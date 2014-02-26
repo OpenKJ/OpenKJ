@@ -36,7 +36,9 @@ SOURCES += main.cpp\
     khzip.cpp \
     qglcanvas.cpp \
     cdgwindow.cpp \
-    khsettings.cpp
+    khsettings.cpp \
+    regularsingersdialog.cpp \
+    regularsingermodel.cpp
 
 HEADERS  += mainwindow.h \
     queuetablemodel.h \
@@ -63,12 +65,15 @@ HEADERS  += mainwindow.h \
     khzip.h \
     qglcanvas.h \
     cdgwindow.h \
-    khsettings.h
+    khsettings.h \
+    regularsingersdialog.h \
+    regularsingermodel.h
 
 FORMS    += mainwindow.ui \
     databasedialog.ui \
     settingsdialog.ui \
-    cdgwindow.ui
+    cdgwindow.ui \
+    regularsingersdialog.ui
 
 unix: CONFIG += link_pkgconfig
 #unix: PKGCONFIG += phonon4qt5

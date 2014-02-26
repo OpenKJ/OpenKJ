@@ -120,6 +120,16 @@ int KhRegularSingers::add(QString name)
     return -1;
 }
 
+int KhRegularSingers::size()
+{
+    return regularSingers->size();
+}
+
+boost::shared_ptr<KhRegularSinger> KhRegularSingers::at(int index)
+{
+    return regularSingers->at(index);
+}
+
 void KhRegularSingers::loadFromDB()
 {
     regularSingers->clear();
@@ -181,4 +191,9 @@ boost::shared_ptr<KhRegularSong> KhRegularSinger::getSongByIndex(int index)
             return regSongs->getRegSongs()->at(i);
     }
     return boost::shared_ptr<KhRegularSong>(new KhRegularSong());
+}
+
+int KhRegularSinger::songsSize()
+{
+    return regSongs->getRegSongs()->size();
 }

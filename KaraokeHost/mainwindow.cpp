@@ -76,6 +76,7 @@ MainWindow::MainWindow(QWidget *parent) :
     khTmpDir = new QTemporaryDir();
     dbDialog = new DatabaseDialog(this);
     settingsDialog = new SettingsDialog(this);
+    regularSingersDialog = new RegularSingersDialog(this);
     cdgWindow = new CdgWindow(this, Qt::Window);
     if (settings->showCdgWindow())
     {
@@ -379,6 +380,11 @@ void MainWindow::on_actionSettings_triggered()
     settingsDialog->show();
 }
 
+void MainWindow::on_actionRegulars_triggered()
+{
+    regularSingersDialog->show();
+}
+
 void MainWindow::songDroppedOnSinger(int singer, int song, int row)
 {
     ui->treeViewRotation->clearSelection();
@@ -500,4 +506,9 @@ void MainWindow::audioBackend_stateChanged(QMediaPlayer::State state)
 void MainWindow::on_sliderProgress_sliderMoved(int position)
 {
     audioBackend->setPosition(position);
+}
+
+void MainWindow::on_buttonRegulars_clicked()
+{
+    regularSingersDialog->show();
 }

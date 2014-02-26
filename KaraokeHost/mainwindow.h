@@ -1,3 +1,23 @@
+/*
+ * Copyright (c) 2013-2014 Thomas Isaac Lightburn
+ *
+ *
+ * This file is part of OpenKJ.
+ *
+ * OpenKJ is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
@@ -20,6 +40,7 @@
 #include "khabstractaudiobackend.h"
 #include <cdgwindow.h>
 #include <khsettings.h>
+#include <regularsingersdialog.h>
 
 
 using namespace std;
@@ -27,25 +48,7 @@ using namespace std;
 namespace Ui {
 class MainWindow;
 }
-/*
- * Copyright (c) 2013-2014 Thomas Isaac Lightburn
- *
- *
- * This file is part of OpenKJ.
- *
- * OpenKJ is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+
 
 
 class MainWindow : public QMainWindow
@@ -72,6 +75,7 @@ private slots:
     void on_treeViewQueue_activated(const QModelIndex &index);
     void on_actionManage_DB_triggered();
     void on_actionSettings_triggered();
+    void on_actionRegulars_triggered();
     void songDroppedOnSinger(int singer, int song, int row);
     void on_pushButton_clicked();
     void on_treeViewQueue_clicked(const QModelIndex &index);
@@ -85,6 +89,7 @@ private slots:
     void audioBackend_durationChanged(qint64 duration);
     void audioBackend_stateChanged(QMediaPlayer::State state);
     void on_sliderProgress_sliderMoved(int position);
+    void on_buttonRegulars_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -99,6 +104,7 @@ private:
     CdgWindow *cdgWindow;
     DatabaseDialog *dbDialog;
     SettingsDialog *settingsDialog;
+    RegularSingersDialog *regularSingersDialog;
     KhAbstractAudioBackend *audioBackend;
     KhRotationSingers *singers;
     KhRegularSingers *regularSingers;

@@ -40,6 +40,7 @@ public:
     boost::shared_ptr<KhRegularSongs> getRegSongs() const;
     int addSong(int songIndex, int keyChange, int position);
     boost::shared_ptr<KhRegularSong> getSongByIndex(int index);
+    int songsSize();
 
 signals:
     
@@ -63,6 +64,8 @@ public:
     boost::shared_ptr<KhRegularSinger> getByName(QString regName);
     bool exists(QString searchName);
     int add(QString name);
+    int size();
+    boost::shared_ptr<KhRegularSinger> at(int index);
 
 signals:
 
