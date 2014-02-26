@@ -4,7 +4,8 @@
 #
 #-------------------------------------------------
 
-QT       += core gui sql widgets network opengl
+QT       += core gui sql network opengl multimedia
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = KaraokeHost
 TEMPLATE = app

@@ -30,11 +30,13 @@ RegularSingerModel::RegularSingerModel(QObject *parent) :
 
 int RegularSingerModel::rowCount(const QModelIndex &parent) const
 {
+    Q_UNUSED(parent);
     return regularSingers->size();
 }
 
 int RegularSingerModel::columnCount(const QModelIndex &parent) const
 {
+    Q_UNUSED(parent);
     return 6;
 }
 
@@ -43,7 +45,7 @@ QVariant RegularSingerModel::data(const QModelIndex &index, int role) const
     if(!index.isValid())
         return QVariant();
 
-    if((unsigned)index.row() >= regularSingers->size() || index.row() < 0)
+    if(index.row() >= regularSingers->size() || index.row() < 0)
         return QVariant();
 
     if ((index.column() == LOAD) && (role == Qt::DecorationRole))
@@ -91,6 +93,11 @@ QVariant RegularSingerModel::data(const QModelIndex &index, int role) const
 
 bool RegularSingerModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
+    // Need to implement for changing regular singer names from the ui
+    Q_UNUSED(index);
+    Q_UNUSED(value);
+    Q_UNUSED(role);
+    return false;
 }
 
 QVariant RegularSingerModel::headerData(int section, Qt::Orientation orientation, int role) const

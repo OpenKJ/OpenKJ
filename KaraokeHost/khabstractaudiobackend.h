@@ -22,8 +22,7 @@
 #define KHABSTRACTAUDIOBACKEND_H
 
 #include <QObject>
-//#include <QMediaPlayer>
-#include <QtMultimedia/QMediaPlayer>
+#include <QMediaPlayer>
 
 class KhAbstractAudioBackend : public QObject
 {
