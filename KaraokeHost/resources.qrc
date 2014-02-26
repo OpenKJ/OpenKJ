@@ -1,0 +1,25 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file alias="play">Icons/media-playback-start.png</file>
+        <file alias="stop">Icons/media-playback-stop.png</file>
+        <file alias="pause">Icons/media-playback-pause.png</file>
+        <file>Icons/go-up.png</file>
+        <file>Icons/go-top.png</file>
+        <file>Icons/go-down.png</file>
+        <file>Icons/go-bottom.png</file>
+        <file>Icons/list-remove.png</file>
+        <file>Icons/list-add-user.png</file>
+        <file>Icons/emblem-favorite.png</file>
+        <file alias="microphone">Icons/audio-input-microphone.png</file>
+        <file>Icons/splash.png</file>
+        <file>Icons/system-search.png</file>
+        <file>Icons/video-display.png</file>
+        <file>Icons/audio-card.png</file>
+        <file>Icons/edit.png</file>
+        <file>Icons/edit-delete.png</file>
+        <file>Icons/edit-clear.png</file>
+        <file>Icons/emblem-favorite-16x16.png</file>
+        <file>Icons/emblem-favorite-disabled-16x16.png</file>
+        <file>Icons/openkjlogo1.png</file>
+    </qresource>
+</RCC>
