@@ -14,4 +14,4 @@ My reason for this and its predecessors is because I'm a Linux geek, and I was u
 
 If you are building this and want to use the pitch shift/key change functionality, you will unfortunately have to build it with USE_FMOD defined and download and install a copy of the FMOD Api (fmod.org).  I haven't figured out how to get key changing working with any of the open source audio libraries.  If anyone knows how to get this working, feel free to subclass KhAbstractAudioBackend, it should be pretty self explanatory.  By default this uses a QMediaPlayer based audio backend, which isn't very featureful.
 
-This project requires Qt 5.x, Taglib, and minizip to build.
+This project requires Qt 5.x, boost, Taglib, and minizip to build.
