@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui sql widgets network multimedia opengl
+QT       += core gui sql widgets network opengl
 
 TARGET = KaraokeHost
 TEMPLATE = app
@@ -32,7 +32,6 @@ SOURCES += main.cpp\
     khregularsong.cpp \
     khipcclient.cpp \
     khabstractaudiobackend.cpp \
-    khaudiobackendqmediaplayer.cpp \
     khzip.cpp \
     qglcanvas.cpp \
     cdgwindow.cpp \
@@ -61,7 +60,6 @@ HEADERS  += mainwindow.h \
     khregularsong.h \
     khipcclient.h \
     khabstractaudiobackend.h \
-    khaudiobackendqmediaplayer.h \
     khzip.h \
     qglcanvas.h \
     cdgwindow.h \
@@ -78,19 +76,16 @@ FORMS    += mainwindow.ui \
 unix: CONFIG += link_pkgconfig
 #unix: PKGCONFIG += phonon4qt5
 
-unix: LIBS += -ltag -L$$_PRO_FILE_PWD_/fmod-linux/fmod/lib -lfmodex64 -lminizip
-
-win32: LIBS += -L"$$_PRO_FILE_PWD_/taglib-win32/lib" -ltag
-win32: INCLUDEPATH += ./taglib-win32/include
-win32: INCLUDEPATH += "C:\Users\nunya\Downloads\boost_1_54_0\boost_1_54_0"
+    LIBS += -ltag -lminizip
 
 contains(DEFINES, USE_FMOD) {
 	message("USE_FMOD defined, building with FMOD API (http://www.fmod.org) support")
 	message("Please note that, while free for non-commercial use, FMOD is NOT open source")
+        win32: INCLUDEPATH += "/home/isaac/devel/QT/KSP/fmod-win32/fmod/inc/"
 	HEADERS += khaudiobackendfmod.h
 	SOURCES += khaudiobackendfmod.cpp
 
-	win32: LIBS += -lfmodex
+        win32: LIBS += -L"/home/isaac/devel/QT/KSP/fmod-win32/fmod/lib/" -lfmodex
 	unix {
 		contains(QMAKE_HOST.arch, x86_64) {
 			message("64bit UNIX/Linux platform detected, linking fmodex64")
@@ -100,6 +95,10 @@ contains(DEFINES, USE_FMOD) {
 			LIBS += -lfmodex
 		}
 	}
+} else {
+        QT += multimedia
+        HEADERS += khaudiobackendqmediaplayer.h
+        SOURCES += khaudiobackendqmediaplayer.cpp
 }
 
 RESOURCES += \

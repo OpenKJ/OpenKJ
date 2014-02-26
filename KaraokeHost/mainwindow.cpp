@@ -24,9 +24,11 @@
 #include <iostream>
 #include <QTemporaryDir>
 #include <QDir>
-#include <khaudiobackendqmediaplayer.h>
+//#include <khaudiobackendqmediaplayer.h>
 #ifdef USE_FMOD
 #include <khaudiobackendfmod.h>
+#else
+#include <khaudiobackendqmediaplayer.h>
 #endif
 #include <khzip.h>
 //#include "../Cdg2/cdg2.h"

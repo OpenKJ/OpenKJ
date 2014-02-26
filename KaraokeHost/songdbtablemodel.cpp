@@ -291,7 +291,7 @@ void SongDBTableModel::loadFromDB(boost::shared_ptr<QSqlDatabase> db)
     while (!thread->isFinished())
     {
         QApplication::processEvents();
-        usleep(100);
+        //usleep(100);
     }
 //    fulldata->clear();
 //    QSqlQuery query("SELECT * FROM dbSongs");

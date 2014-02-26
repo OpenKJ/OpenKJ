@@ -58,7 +58,7 @@ QVariant RegularSingerModel::data(const QModelIndex &index, int role) const
         return icon;
     }
 
-    if ((index.column() == DELETE) && (role == Qt::DecorationRole))
+    if ((index.column() == DEL) && (role == Qt::DecorationRole))
     {
         QPixmap icon(":/icons/Icons/edit-delete.png");
         return icon;
