@@ -140,6 +140,8 @@ BmSongs::BmSongs(QObject *parent) :
 
 BmSongs::~BmSongs()
 {
+    qDeleteAll(allSongs->begin(),allSongs->end());
+    qDeleteAll(filteredSongs->begin(),filteredSongs->end());
     delete filteredSongs;
     delete allSongs;
 }
@@ -148,6 +150,8 @@ void BmSongs::loadFromDB()
 {
     emit dataAboutToChange();
     qDebug() << "Loading songs from database";
+    qDeleteAll(allSongs->begin(),allSongs->end());
+    qDeleteAll(filteredSongs->begin(),filteredSongs->end());
     allSongs->clear();
     filteredSongs->clear();
     filterTerms.clear();
