@@ -34,6 +34,7 @@ BmPlaylistSong::BmPlaylistSong(QObject *parent) :
 BmPlaylist::BmPlaylist(QObject *parent) :
     QObject(parent)
 {
+    songs = new QList<BmPlaylistSong *>;
     m_currentSong = getSongByPosition(0);
 }
 
@@ -61,6 +62,7 @@ unsigned int BmPlaylist::size()
 BmPlaylists::BmPlaylists(QObject *parent) :
     QObject(parent)
 {
+    playlists = new QList<BmPlaylist *>;
     loadFromDB();
     if (playlists->size() < 1)
     {

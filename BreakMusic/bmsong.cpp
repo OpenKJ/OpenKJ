@@ -134,6 +134,8 @@ void BmSong::setArtist(const QString &artist)
 BmSongs::BmSongs(QObject *parent) :
     QObject(parent)
 {
+    filteredSongs = new QList<BmSong *>;
+    allSongs = new QList<BmSong *>;
 }
 
 void BmSongs::loadFromDB()
