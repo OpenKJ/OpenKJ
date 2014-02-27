@@ -48,7 +48,7 @@ QVariant SourceDirTableModel::data(const QModelIndex &index, int role) const
     if(!index.isValid())
         return QVariant();
 
-    if((unsigned)index.row() >= mydata->size() || index.row() < 0)
+    if(index.row() >= mydata->size() || index.row() < 0)
         return QVariant();
 
     if(role == Qt::DisplayRole)

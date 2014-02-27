@@ -45,24 +45,24 @@ void BmPlaylist::loadSongs()
     int song = query.record().indexOf("song");
     int position = query.record().indexOf("position");
     while (query.next()) {
-        boost::shared_ptr<BmPlaylistSong> plSong(new BmPlaylistSong(this));
+        BmPlaylistSong *plSong = new BmPlaylistSong(this);
         plSong->setIndex(query.value(index).toInt());
         plSong->setPosition(query.value(position).toInt(),true);
-        plSong->setSong(boost::shared_ptr<BmSong>(new BmSong(query.value(song).toInt(),this)));
-        songs.push_back(plSong);
+        plSong->setSong(new BmSong(query.value(song).toInt(),this));
+        songs->push_back(plSong);
     }
 }
 
 unsigned int BmPlaylist::size()
 {
-    return songs.size();
+    return songs->size();
 }
 
 BmPlaylists::BmPlaylists(QObject *parent) :
     QObject(parent)
 {
     loadFromDB();
-    if (playlists.size() < 1)
+    if (playlists->size() < 1)
     {
         setCurrent(addPlaylist("Default"));
     }
@@ -75,51 +75,51 @@ unsigned int BmPlaylists::addPlaylist(QString title)
     {
         QSqlQuery query;
         query.exec("INSERT INTO playlists (title) VALUES(\"" + title + "\")");
-        boost::shared_ptr<BmPlaylist> playlist(new BmPlaylist);
+        BmPlaylist *playlist = new BmPlaylist;
         playlist->setTitle(title);
         playlist->setPlIndex(query.lastInsertId().toInt());
-        playlists.push_back(playlist);
+        playlists->push_back(playlist);
         emit playlistsChanged();
         return playlist->plIndex();
     }
     return 0;
 }
 
-void BmPlaylist::addSong(boost::shared_ptr<BmSong> song)
+void BmPlaylist::addSong(BmSong *song)
 {
     emit dataAboutToChange();
-    boost::shared_ptr<BmPlaylistSong> plSong(new BmPlaylistSong(this));
+    BmPlaylistSong *plSong = new BmPlaylistSong(this);
     QSqlQuery query;
-    query.exec("INSERT INTO plsongs (playlist,song,position) VALUES(" + QString::number(m_plIndex) + "," + QString::number(song->index()) + "," + QString::number(songs.size()) + ")");
+    query.exec("INSERT INTO plsongs (playlist,song,position) VALUES(" + QString::number(m_plIndex) + "," + QString::number(song->index()) + "," + QString::number(songs->size()) + ")");
     plSong->setSong(song);
-    plSong->setPosition(songs.size(),true);
+    plSong->setPosition(songs->size(),true);
     plSong->setIndex(query.lastInsertId().toInt());
-    songs.push_back(plSong);
+    songs->push_back(plSong);
     emit dataChanged();
 }
 
 void BmPlaylist::moveSong(unsigned int oldPosition, unsigned int newPosition)
 {
     QSqlQuery query;
-    boost::shared_ptr<BmPlaylistSong> movingSong = getSongByPosition(oldPosition);
+    BmPlaylistSong *movingSong = getSongByPosition(oldPosition);
     query.exec("BEGIN TRANSACTION");
     if (newPosition > oldPosition)
     {
         //Moving down
-        for (unsigned int i=0; i < songs.size(); i++)
+        for (int i=0; i < songs->size(); i++)
         {
-            if ((songs.at(i)->position() > oldPosition) && (songs.at(i)->position() <= newPosition) && (songs.at(i)->index() != movingSong->index()))
-                songs.at(i)->setPosition(songs.at(i)->position() - 1);
+            if ((songs->at(i)->position() > oldPosition) && (songs->at(i)->position() <= newPosition) && (songs->at(i)->index() != movingSong->index()))
+                songs->at(i)->setPosition(songs->at(i)->position() - 1);
         }
         movingSong->setPosition(newPosition);
     }
     else if (newPosition < oldPosition)
     {
         //Moving up
-        for (unsigned int i=0; i < songs.size(); i++)
+        for (int i=0; i < songs->size(); i++)
         {
-            if ((songs.at(i)->position() >= newPosition) && (songs.at(i)->position() < oldPosition) && (songs.at(i)->index() != movingSong->index()))
-                songs.at(i)->setPosition(songs.at(i)->position() + 1);
+            if ((songs->at(i)->position() >= newPosition) && (songs->at(i)->position() < oldPosition) && (songs->at(i)->index() != movingSong->index()))
+                songs->at(i)->setPosition(songs->at(i)->position() + 1);
         }
         movingSong->setPosition(newPosition);
     }
@@ -137,12 +137,12 @@ void BmPlaylistSong::setIndex(unsigned int index)
     m_index = index;
 }
 
-boost::shared_ptr<BmSong> BmPlaylistSong::song() const
+BmSong *BmPlaylistSong::song() const
 {
     return m_song;
 }
 
-void BmPlaylistSong::setSong(boost::shared_ptr<BmSong> song)
+void BmPlaylistSong::setSong(BmSong *song)
 {
     m_song = song;
     setValid(true);
@@ -178,7 +178,7 @@ void BmPlaylist::next()
     emit dataChanged();
 }
 
-bool positionSort(boost::shared_ptr<BmPlaylistSong> song1, boost::shared_ptr<BmPlaylistSong> song2)
+bool positionSort(BmPlaylistSong *song1, BmPlaylistSong *song2)
 {
     if (song1->position() >= song2->position())
         return false;
@@ -189,7 +189,7 @@ bool positionSort(boost::shared_ptr<BmPlaylistSong> song1, boost::shared_ptr<BmP
 void BmPlaylist::sort()
 {
     emit dataAboutToChange();
-    std::sort(songs.begin(), songs.end(), positionSort);
+    std::sort(songs->begin(), songs->end(), positionSort);
     emit dataChanged();
 }
 
@@ -215,16 +215,16 @@ void BmPlaylists::loadFromDB()
 {
     emit dataAboutToChange();
     qDebug() << "Loading playlists from database";
-    playlists.clear();
+    playlists->clear();
     QSqlQuery query("SELECT ROWID,title FROM playlists ORDER BY title");
     int index = query.record().indexOf("ROWID");
     int title = query.record().indexOf("title");
     while (query.next()) {
-        boost::shared_ptr<BmPlaylist> playlist(new BmPlaylist());
+        BmPlaylist *playlist = new BmPlaylist();
         playlist->setPlIndex(query.value(index).toInt());
         playlist->setTitle(query.value(title).toString());
         playlist->loadSongs();
-        playlists.push_back(playlist);
+        playlists->push_back(playlist);
     }
     qDebug() << "Loading playlists from database - complete";
     emit dataChanged();
@@ -233,9 +233,9 @@ void BmPlaylists::loadFromDB()
 
 bool BmPlaylists::exists(QString title)
 {
-    for (unsigned int i=0; i < playlists.size(); i++)
+    for (int i=0; i < playlists->size(); i++)
     {
-        if (playlists.at(i)->title() == title)
+        if (playlists->at(i)->title() == title)
             return true;
     }
     return false;
@@ -244,35 +244,35 @@ bool BmPlaylists::exists(QString title)
 QStringList BmPlaylists::getTitleList()
 {
     QStringList titles;
-    for (unsigned int i=0; i < playlists.size(); i++)
-        titles << playlists.at(i)->title();
+    for (int i=0; i < playlists->size(); i++)
+        titles << playlists->at(i)->title();
     return titles;
 }
 
 
-boost::shared_ptr<BmPlaylist> BmPlaylists::getCurrent()
+BmPlaylist *BmPlaylists::getCurrent()
 {
     return currentPlaylist;
 }
 
-boost::shared_ptr<BmPlaylist> BmPlaylists::getByIndex(unsigned int plIndex)
+BmPlaylist *BmPlaylists::getByIndex(unsigned int plIndex)
 {
-    for (unsigned int i=0; i < playlists.size(); i++)
+    for (int i=0; i < playlists->size(); i++)
     {
-        if (playlists.at(i)->plIndex() == plIndex)
-            return playlists.at(i);
+        if (playlists->at(i)->plIndex() == plIndex)
+            return playlists->at(i);
     }
-    return boost::shared_ptr<BmPlaylist>(new BmPlaylist);
+    return new BmPlaylist(this);
 }
 
-boost::shared_ptr<BmPlaylist> BmPlaylists::getByTitle(QString plTitle)
+BmPlaylist *BmPlaylists::getByTitle(QString plTitle)
 {
-    for (unsigned int i=0; i < playlists.size(); i++)
+    for (int i=0; i < playlists->size(); i++)
     {
-        if (playlists.at(i)->title() == plTitle)
-            return playlists.at(i);
+        if (playlists->at(i)->title() == plTitle)
+            return playlists->at(i);
     }
-    return boost::shared_ptr<BmPlaylist>(new BmPlaylist);
+    return new BmPlaylist(this);
 }
 
 
@@ -282,8 +282,8 @@ void BmPlaylists::setCurrent(int plIndex)
     currentPlaylist = getByIndex(plIndex);
     emit dataChanged();
     emit currentPlaylistChanged(currentPlaylist->title());
-    connect(currentPlaylist.get(), SIGNAL(dataAboutToChange()), this, SIGNAL(dataAboutToChange()));
-    connect(currentPlaylist.get(), SIGNAL(dataChanged()),this, SIGNAL(dataChanged()));
+    connect(currentPlaylist, SIGNAL(dataAboutToChange()), this, SIGNAL(dataAboutToChange()));
+    connect(currentPlaylist, SIGNAL(dataChanged()),this, SIGNAL(dataChanged()));
 }
 
 void BmPlaylists::setCurrent(QString plTitle)
@@ -292,14 +292,14 @@ void BmPlaylists::setCurrent(QString plTitle)
     currentPlaylist = getByTitle(plTitle);
     emit dataChanged();
     emit currentPlaylistChanged(currentPlaylist->title());
-    connect(currentPlaylist.get(), SIGNAL(dataAboutToChange()), this, SIGNAL(dataAboutToChange()));
-    connect(currentPlaylist.get(), SIGNAL(dataChanged()),this, SIGNAL(dataChanged()));
+    connect(currentPlaylist, SIGNAL(dataAboutToChange()), this, SIGNAL(dataAboutToChange()));
+    connect(currentPlaylist, SIGNAL(dataChanged()),this, SIGNAL(dataChanged()));
 }
 
 
-boost::shared_ptr<BmPlaylistSong> BmPlaylist::at(int vectorPos)
+BmPlaylistSong *BmPlaylist::at(int vectorPos)
 {
-    return songs.at(vectorPos);
+    return songs->at(vectorPos);
 }
 
 bool BmPlaylistSong::valid() const
@@ -312,32 +312,31 @@ void BmPlaylistSong::setValid(bool valid)
     m_valid = valid;
 }
 
-boost::shared_ptr<BmPlaylistSong> BmPlaylist::getCurrentSong()
+BmPlaylistSong *BmPlaylist::getCurrentSong()
 {
     return m_currentSong;
 }
 
-boost::shared_ptr<BmPlaylistSong> BmPlaylist::getNextSong()
+BmPlaylistSong *BmPlaylist::getNextSong()
 {
-    if (songs.size() == 0)
-        return boost::shared_ptr<BmPlaylistSong>(new BmPlaylistSong());
+    if (songs->size() == 0)
+        return new BmPlaylistSong();
     int nextpos;
-    if (m_currentSong->position() < songs.size() - 1)
+    if (m_currentSong->position() < (unsigned)songs->size() - 1)
         nextpos = m_currentSong->position() + 1;
     else
         nextpos = 0;
     return getSongByPosition(nextpos);
 }
 
-
-boost::shared_ptr<BmPlaylistSong> BmPlaylist::getSongByPosition(unsigned int position)
+BmPlaylistSong *BmPlaylist::getSongByPosition(unsigned int position)
 {
-    for (unsigned int i=0; i < songs.size(); i++)
+    for (int i=0; i < songs->size(); i++)
     {
-        if (songs.at(i)->position() == position)
-            return songs.at(i);
+        if (songs->at(i)->position() == position)
+            return songs->at(i);
     }
-    return boost::shared_ptr<BmPlaylistSong>(new BmPlaylistSong);
+    return new BmPlaylistSong();
 }
 
 
@@ -346,18 +345,18 @@ void BmPlaylist::insertSong(int songid, unsigned int position)
     qDebug() << "doing insertSong(" << songid << "," << position << ")";
     QSqlQuery query;
     query.exec("INSERT INTO plsongs (playlist,song,position) VALUES(" + QString::number(m_plIndex) + "," + QString::number(songid) + "," + QString::number(position) + ")");
-    boost::shared_ptr<BmPlaylistSong> plSong(new BmPlaylistSong(this));
+    BmPlaylistSong *plSong = new BmPlaylistSong(this);
     plSong->setIndex(query.lastInsertId().toInt());
     plSong->setPosition(position, true);
-    plSong->setSong(boost::shared_ptr<BmSong>(new BmSong(songid,this)));
+    plSong->setSong(new BmSong(songid,this));
     query.exec("BEGIN TRANSACTION");
-    for (unsigned int i=0; i < songs.size(); i++)
+    for (int i=0; i < songs->size(); i++)
     {
-        if (songs.at(i)->position() >= position)
-            songs.at(i)->setPosition(songs.at(i)->position() + 1);
+        if (songs->at(i)->position() >= position)
+            songs->at(i)->setPosition(songs->at(i)->position() + 1);
     }
     query.exec("COMMIT TRANSACTION");
-    songs.push_back(plSong);
+    songs->push_back(plSong);
     sort();
 }
 
@@ -365,16 +364,16 @@ void BmPlaylist::insertSong(int songid, unsigned int position)
 void BmPlaylist::removeSong(unsigned int position)
 {
     emit dataAboutToChange();
-    boost::shared_ptr<BmPlaylistSong> delSong = getSongByPosition(position);
+    BmPlaylistSong *delSong = getSongByPosition(position);
     QSqlQuery query;
     query.exec("BEGIN TRANSACTION");
     query.exec("DELETE FROM plsongs WHERE ROWID == " + QString::number(delSong->index()));
-    for (unsigned int i=0; i < songs.size(); i++)
+    for (int i=0; i < songs->size(); i++)
     {
-        if (songs.at(i)->position() > delSong->position())
-            songs.at(i)->setPosition(songs.at(i)->position() - 1);
+        if (songs->at(i)->position() > delSong->position())
+            songs->at(i)->setPosition(songs->at(i)->position() - 1);
     }
     query.exec("COMMIT TRANSACTION");
-    songs.erase(songs.begin() + (delSong->position()));
+    songs->erase(songs->begin() + (delSong->position()));
     emit dataChanged();
 }

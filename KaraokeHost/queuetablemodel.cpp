@@ -51,7 +51,7 @@ QVariant QueueTableModel::data(const QModelIndex &index, int role) const
     if(!index.isValid())
         return QVariant();
 
-    if((unsigned)index.row() >= singers->getSelected()->getQueueSongs()->size() || index.row() < 0)
+    if(index.row() >= singers->getSelected()->getQueueSongs()->size() || index.row() < 0)
         return QVariant();
 
     if((role == Qt::BackgroundRole) && (singers->getSelected()->getQueueSongs()->at(index.row())->getPlayed()))

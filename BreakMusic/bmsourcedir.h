@@ -22,8 +22,6 @@
 #define KHBMSOURCEDIR_H
 
 #include <QObject>
-#include <boost/shared_ptr.hpp>
-#include <vector>
 
 class BmSourceDir : public QObject
 {
@@ -52,7 +50,7 @@ class BmSourceDirs : public QObject
 public:
     explicit BmSourceDirs(QObject *parent = 0);
     int size();
-    boost::shared_ptr<BmSourceDir> at(int vectorPos);
+    BmSourceDir *at(int vectorPos);
     bool add(QString path);
     void deleteByIndex(int index);
     void deleteByPath(QString path);
@@ -62,7 +60,7 @@ signals:
 public slots:
 
 private:
-    std::vector<boost::shared_ptr<BmSourceDir> > srcDirs;
+    QList<BmSourceDir *> *srcDirs;
     void loadFromDB();
 };
 #endif // KHBMSOURCEDIR_H

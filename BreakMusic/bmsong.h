@@ -23,7 +23,6 @@
 
 #include <QObject>
 #include <vector>
-#include <boost/shared_ptr.hpp>
 #include <QStringList>
 
 class BmSong : public QObject
@@ -77,8 +76,8 @@ public:
     void loadFromDB();
     void setFilterTerms(QStringList terms);
     void clear();
-    boost::shared_ptr<BmSong> at(int vectorIndex);
-    boost::shared_ptr<BmSong> getSongByIndex(int songIndex);
+    BmSong *at(int vectorIndex);
+    BmSong *getSongByIndex(int songIndex);
     unsigned int size();
 signals:
     void dataAboutToChange();
@@ -87,8 +86,8 @@ signals:
 public slots:
 
 private:
-    std::vector<boost::shared_ptr<BmSong> > allSongs;
-    std::vector<boost::shared_ptr<BmSong> > filteredSongs;
+    QList<BmSong *> *allSongs;
+    QList<BmSong *> *filteredSongs;
     QStringList filterTerms;
 };
 

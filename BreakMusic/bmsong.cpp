@@ -140,8 +140,8 @@ void BmSongs::loadFromDB()
 {
     emit dataAboutToChange();
     qDebug() << "Loading songs from database";
-    allSongs.clear();
-    filteredSongs.clear();
+    allSongs->clear();
+    filteredSongs->clear();
     filterTerms.clear();
     QSqlQuery query("SELECT ROWID,artist,title,path,filename,duration FROM songs ORDER BY filename");
     int index = query.record().indexOf("ROWID");
@@ -151,15 +151,15 @@ void BmSongs::loadFromDB()
     int filename = query.record().indexOf("filename");
     int duration = query.record().indexOf("duration");
     while (query.next()) {
-        boost::shared_ptr<BmSong> song(new BmSong());
+        BmSong *song = new BmSong();
         song->setIndex(query.value(index).toInt());
         song->setArtist(query.value(artist).toString());
         song->setTitle(query.value(title).toString());
         song->setPath(query.value(path).toString());
         song->setFilename(query.value(filename).toString());
         song->setDuration(query.value(duration).toInt());
-        allSongs.push_back(song);
-        filteredSongs.push_back(song);
+        allSongs->push_back(song);
+        filteredSongs->push_back(song);
     }
     emit dataChanged();
     qDebug() << "Loading songs from database - complete";
@@ -171,21 +171,21 @@ void BmSongs::setFilterTerms(QStringList terms)
     if (terms.size() == 0)
     {
         emit dataAboutToChange();
-        filteredSongs.clear();
-        for (unsigned int i=0; i < allSongs.size(); i++)
-            filteredSongs.push_back(allSongs.at(i));
+        filteredSongs->clear();
+        for (int i=0; i < allSongs->size(); i++)
+            filteredSongs->push_back(allSongs->at(i));
         emit dataChanged();
         return;
     }
 
     emit dataAboutToChange();
-    filteredSongs.clear();
-    for (unsigned int i=0; i < allSongs.size(); i++)
+    filteredSongs->clear();
+    for (int i=0; i < allSongs->size(); i++)
     {
         bool match = true;
         for (int j=0; j < terms.size(); j++)
         {
-            if (!allSongs.at(i)->getSearchableString().contains(terms.at(j), Qt::CaseInsensitive))
+            if (!allSongs->at(i)->getSearchableString().contains(terms.at(j), Qt::CaseInsensitive))
             {
                 match = false;
                 break;
@@ -193,7 +193,7 @@ void BmSongs::setFilterTerms(QStringList terms)
         }
 
         if (match)
-            filteredSongs.push_back(allSongs.at(i));
+            filteredSongs->push_back(allSongs->at(i));
     }
     emit dataChanged();
 }
@@ -201,11 +201,11 @@ void BmSongs::setFilterTerms(QStringList terms)
 
 unsigned int BmSongs::size()
 {
-    return filteredSongs.size();
+    return filteredSongs->size();
 }
 
 
-boost::shared_ptr<BmSong> BmSongs::at(int vectorIndex)
+BmSong *BmSongs::at(int vectorIndex)
 {
-    return filteredSongs.at(vectorIndex);
+    return filteredSongs->at(vectorIndex);
 }

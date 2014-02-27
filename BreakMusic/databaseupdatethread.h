@@ -22,7 +22,6 @@
 #define DATABASEUPDATETHREAD_H
 
 #include <QThread>
-#include <boost/shared_ptr.hpp>
 #include <QStringList>
 
 class DatabaseUpdateThread : public QThread
@@ -40,7 +39,7 @@ public slots:
 
 private:
     QString m_path;
-    boost::shared_ptr<QStringList> findMediaFiles(QString directory);
+    QStringList *findMediaFiles(QString directory);
     
 };
 

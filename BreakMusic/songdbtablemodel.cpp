@@ -102,7 +102,7 @@ QMimeData *SongdbTableModel::mimeData(const QModelIndexList &indexes) const
     QMimeData *mimeData = new QMimeData();
     QByteArray output;
     QBuffer outputBuffer(&output);
-    boost::shared_ptr<BmSong> dragSong = songs->at(indexes.at(0).row());
+    BmSong *dragSong = songs->at(indexes.at(0).row());
     qDebug() << "Dragged song: " << dragSong->index() << " - " << dragSong->artist() << " - " << dragSong->title();
     int songid = songs->at(indexes.at(0).row())->index();
     outputBuffer.open(QIODevice::WriteOnly);

@@ -42,9 +42,9 @@ void DatabaseUpdateThread::setPath(const QString &path)
     m_path = path;
 }
 
-boost::shared_ptr<QStringList> DatabaseUpdateThread::findMediaFiles(QString directory)
+QStringList *DatabaseUpdateThread::findMediaFiles(QString directory)
 {
-    boost::shared_ptr<QStringList> files(new QStringList());
+    QStringList *files = new QStringList();
     QDir dir(directory);
     QDirIterator iterator(dir.absolutePath(), QDirIterator::Subdirectories);
     while (iterator.hasNext()) {
@@ -62,7 +62,7 @@ boost::shared_ptr<QStringList> DatabaseUpdateThread::findMediaFiles(QString dire
 
 void DatabaseUpdateThread::run()
 {
-    boost::shared_ptr<QStringList> files = findMediaFiles(m_path);
+    QStringList *files = findMediaFiles(m_path);
     QSqlQuery query;
     qDebug() << "Beginning db insert";
     query.exec("BEGIN TRANSACTION");

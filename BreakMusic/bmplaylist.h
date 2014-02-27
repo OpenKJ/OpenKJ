@@ -23,7 +23,6 @@
 
 #include <QObject>
 #include <bmsong.h>
-#include <boost/shared_ptr.hpp>
 
 
 class BmPlaylistSong : public QObject
@@ -33,8 +32,8 @@ public:
     explicit BmPlaylistSong(QObject *parent=0);
     unsigned int position() const;
     void setPosition(unsigned int position, bool skipDb = false);
-    boost::shared_ptr<BmSong> song() const;
-    void setSong(boost::shared_ptr<BmSong> song);
+    BmSong *song() const;
+    void setSong(BmSong *song);
 
     unsigned int index() const;
     void setIndex(unsigned int index);
@@ -47,7 +46,7 @@ public slots:
 
 private:
     unsigned int m_position;
-    boost::shared_ptr<BmSong> m_song;
+    BmSong *m_song;
     unsigned int m_index;
     bool m_valid;
 };
@@ -60,13 +59,13 @@ public:
     explicit BmPlaylist(QObject *parent = 0);
     void loadSongs();
     unsigned int size();
-    boost::shared_ptr<BmPlaylistSong> at(int vectorPos);
-    boost::shared_ptr<BmPlaylistSong> getCurrentSong();
-    boost::shared_ptr<BmPlaylistSong> getNextSong();
-    boost::shared_ptr<BmPlaylistSong> getSongByPosition(unsigned int position);
-    void insertSong(boost::shared_ptr<BmSong> song, unsigned int position);
+    BmPlaylistSong *at(int vectorPos);
+    BmPlaylistSong *getCurrentSong();
+    BmPlaylistSong *getNextSong();
+    BmPlaylistSong *getSongByPosition(unsigned int position);
+    void insertSong(BmSong *song, unsigned int position);
     void insertSong(int songid, unsigned int position);
-    void addSong(boost::shared_ptr<BmSong> song);
+    void addSong(BmSong *song);
     void moveSong(unsigned int oldPosition, unsigned int newPosition);
     void moveSongAfterCurrent(int oldPos);
     void removeSong(unsigned int position);
@@ -85,10 +84,10 @@ signals:
 public slots:
 
 private:
-    std::vector<boost::shared_ptr<BmPlaylistSong> > songs;
+    QList<BmPlaylistSong *> *songs;
     unsigned int m_plIndex;
     QString m_title;
-    boost::shared_ptr<BmPlaylistSong> m_currentSong;
+    BmPlaylistSong *m_currentSong;
     
 };
 
@@ -105,11 +104,11 @@ public:
     /// Remove playlist by playlist title.
     void removePlaylist(QString title);
     /// Return pointer to the current playlist as set by setCurrent(int)
-    boost::shared_ptr<BmPlaylist> getCurrent();
+    BmPlaylist *getCurrent();
     /// Return pointer to the playlist matching plIndex
-    boost::shared_ptr<BmPlaylist> getByIndex(unsigned int plIndex);
+    BmPlaylist *getByIndex(unsigned int plIndex);
     /// Return pointer to the playlist matching plTitle
-    boost::shared_ptr<BmPlaylist> getByTitle(QString plTitle);
+    BmPlaylist *getByTitle(QString plTitle);
     /// Set the currently active playlist
     void setCurrent(int plIndex);
     /// Set the currently active playlist
@@ -117,7 +116,7 @@ public:
     /// Get a pointer to the playlist at vector position vectorIndex.  This is
     /// only really meant to be used when iterating over the playlists.  This is
     /// not based on the plIndex
-    boost::shared_ptr<BmPlaylist> at(int vectorIndex);
+    BmPlaylist *at(int vectorIndex);
     /// Return the number of playlists
     unsigned int size();
     /// Check to see if a playlist title exists
@@ -134,10 +133,10 @@ signals:
 public slots:
 
 private:
-    std::vector<boost::shared_ptr<BmPlaylist> > playlists;
+    QList<BmPlaylist *> *playlists;
     /// Load in the playlists from the database
     void loadFromDB();
-    boost::shared_ptr<BmPlaylist> currentPlaylist;
+    BmPlaylist *currentPlaylist;
 };
 
 #endif // BmPLAYLIST_H

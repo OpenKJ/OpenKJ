@@ -37,7 +37,7 @@ QVariant RotationTableModel::data(const QModelIndex &index, int role) const
     if(!index.isValid())
         return QVariant();
 
-    if((unsigned)index.row() >= singers->getSingers()->size() || index.row() < 0)
+    if(index.row() >= singers->getSingers()->size() || index.row() < 0)
         return QVariant();
 
 //    if((role == Qt::BackgroundRole) && (singers->getSingers()->at(index.row())->getSingerPosition() == singers->getCurrentSingerPosition()))
@@ -109,7 +109,7 @@ QVariant RotationTableModel::headerData(int section, Qt::Orientation orientation
 bool RotationTableModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     Q_UNUSED(role);
-    if (index.isValid() && role == Qt::EditRole && !((unsigned)index.row() >= singers->getSingers()->size() || index.row() < 0))
+    if (index.isValid() && role == Qt::EditRole && !(index.row() >= singers->getSingers()->size() || index.row() < 0))
     {
         if (singers->singerExists(value.toString()))
         {

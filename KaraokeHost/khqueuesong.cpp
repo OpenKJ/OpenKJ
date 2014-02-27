@@ -238,7 +238,7 @@ QList<KhQueueSong *> *KhQueueSongs::getSongs()
 
 KhQueueSong *KhQueueSongs::getSongByIndex(int index)
 {
-    for (unsigned int i=0; i < songs->size(); i++)
+    for (int i=0; i < songs->size(); i++)
     {
         if (songs->at(i)->getIndex() == index)
             return songs->at(i);
@@ -248,7 +248,7 @@ KhQueueSong *KhQueueSongs::getSongByIndex(int index)
 
 KhQueueSong *KhQueueSongs::getSongByPosition(int position)
 {
-    for (unsigned int i=0; i < songs->size(); i++)
+    for (int i=0; i < songs->size(); i++)
     {
         if (songs->at(i)->getPosition() == position)
             return songs->at(i);
@@ -258,7 +258,7 @@ KhQueueSong *KhQueueSongs::getSongByPosition(int position)
 
 KhQueueSong *KhQueueSongs::getNextSong()
 {
-    for (unsigned int i=0; i < songs->size(); i++)
+    for (int i=0; i < songs->size(); i++)
     {
         if (!songs->at(i)->getPlayed())
         {
@@ -350,7 +350,7 @@ void KhQueueSongs::deleteSongByIndex(int index)
     qDebug() << "Deleting song at position: " << song->getPosition();
     QSqlQuery query;
     query.exec("DELETE FROM queuesongs WHERE ROWID == " + QString::number(index));
-    for (unsigned int i=0; i < songs->size(); i++)
+    for (int i=0; i < songs->size(); i++)
         if (songs->at(i)->getPosition() > song->getPosition())
             songs->at(i)->setPosition(songs->at(i)->getPosition() - 1);
     if (song->isRegSong())
@@ -426,7 +426,7 @@ void KhQueueSongs::sortByArtist(bool reverse)
     else
         std::sort(songs->begin(),songs->end(),sortByArtistReverseCallback);
     QSqlQuery query("BEGIN TRANSACTION");
-    for (unsigned int i=0; i < songs->size(); i++)
+    for (int i=0; i < songs->size(); i++)
         songs->at(i)->setPosition(i);
     query.exec("COMMIT TRANSACTION");
 }
@@ -438,7 +438,7 @@ void KhQueueSongs::sortByTitle(bool reverse)
     else
         std::sort(songs->begin(),songs->end(),sortByTitleReverseCallback);
     QSqlQuery query("BEGIN TRANSACTION");
-    for (unsigned int i=0; i < songs->size(); i++)
+    for (int i=0; i < songs->size(); i++)
         songs->at(i)->setPosition(i);
     query.exec("COMMIT TRANSACTION");
 }
@@ -450,7 +450,7 @@ void KhQueueSongs::sortByDiscID(bool reverse)
     else
         std::sort(songs->begin(),songs->end(),sortByDiscIDReverseCallback);
     QSqlQuery query("BEGIN TRANSACTION");
-    for (unsigned int i=0; i < songs->size(); i++)
+    for (int i=0; i < songs->size(); i++)
         songs->at(i)->setPosition(i);
     query.exec("COMMIT TRANSACTION");
 }
@@ -465,11 +465,11 @@ int KhQueueSongs::addSong(KhQueueSong *song)
         positionStr = QString::number(songs->size());
         song->setPosition(songs->size(),true);
     }
-    else if ((unsigned)song->getPosition() != songs->size())
+    else if (song->getPosition() != songs->size())
     {
         positionStr = QString::number(song->getPosition());
         query.exec("BEGIN TRANSACTION");
-        for (unsigned int i=0; i < songs->size(); i++)
+        for (int i=0; i < songs->size(); i++)
             if (songs->at(i)->getPosition() >= song->getPosition()) songs->at(i)->setPosition(songs->at(i)->getPosition() + 1);
         query.exec("COMMIT TRANSACTION");
     }
@@ -487,7 +487,7 @@ int KhQueueSongs::addSong(KhQueueSong *song)
 
 bool KhQueueSongs::songExists(int songIndex)
 {
-    for (unsigned int i=0; i < songs->size(); i++)
+    for (int i=0; i < songs->size(); i++)
     {
         if (songs->at(i)->getSongID() == songIndex)
             return true;
@@ -508,7 +508,7 @@ bool KhQueueSongs::moveSong(int oldPosition, int newPosition)
     query.exec("BEGIN TRANSACTION");
     if (newPosition > oldPosition)
     {
-        for (unsigned int i=0; i < songs->size(); i++)
+        for (int i=0; i < songs->size(); i++)
         {
             if ((songs->at(i)->getPosition() > oldPosition) && (songs->at(i)->getPosition() <= newPosition - 1) && (songs->at(i)->getIndex() != movingSong->getIndex()))
                 songs->at(i)->setPosition(songs->at(i)->getPosition() - 1);
@@ -517,7 +517,7 @@ bool KhQueueSongs::moveSong(int oldPosition, int newPosition)
     }
     else if (newPosition < oldPosition)
     {
-        for (unsigned int i=0; i < songs->size(); i++)
+        for (int i=0; i < songs->size(); i++)
         {
             if ((songs->at(i)->getPosition() >= newPosition) && (songs->at(i)->getPosition() < oldPosition) && (songs->at(i)->getIndex() != movingSong->getIndex()))
                 songs->at(i)->setPosition(songs->at(i)->getPosition() + 1);
@@ -537,6 +537,6 @@ int KhQueueSongs::getRegSingerIndex() const
 void KhQueueSongs::setRegSingerIndex(int value)
 {
     regSingerIndex = value;
-    for (unsigned int i=0; i < songs->size(); i++)
+    for (int i=0; i < songs->size(); i++)
         songs->at(i)->setRegSingerIndex(regSingerIndex);
 }

@@ -65,12 +65,12 @@ void BmSourceDir::setPath(const QString &value)
 
 int BmSourceDirs::size()
 {
-    return srcDirs.size();
+    return srcDirs->size();
 }
 
-boost::shared_ptr<BmSourceDir> BmSourceDirs::at(int vectorPos)
+BmSourceDir *BmSourceDirs::at(int vectorPos)
 {
-    return srcDirs.at(vectorPos);
+    return srcDirs->at(vectorPos);
 }
 
 bool BmSourceDirs::add(QString path)
@@ -79,7 +79,7 @@ bool BmSourceDirs::add(QString path)
     if (query.exec("INSERT INTO srcdirs (path) VALUES(\"" + path + "\")"))
     {
         int index = query.lastInsertId().toInt();
-        srcDirs.push_back(boost::shared_ptr<BmSourceDir>(new BmSourceDir(path,index,this)));
+        srcDirs->push_back(new BmSourceDir(path,index,this));
         return true;
     }
     else
@@ -102,21 +102,21 @@ void BmSourceDirs::deleteByPath(QString path)
 
 void BmSourceDirs::debugPrintEntries()
 {
-    for (unsigned int i=0; i < srcDirs.size(); i++)
-        qDebug() << "Src Path: " << srcDirs.at(i)->getPath();
+    for (int i=0; i < srcDirs->size(); i++)
+        qDebug() << "Src Path: " << srcDirs->at(i)->getPath();
 }
 
 void BmSourceDirs::loadFromDB()
 {
-    srcDirs.clear();
+    srcDirs->clear();
     QSqlQuery query("SELECT ROWID,path FROM srcDirs ORDER BY path");
     int sourcedirid = query.record().indexOf("ROWID");
     int path = query.record().indexOf("path");
     while (query.next()) {
-        boost::shared_ptr<BmSourceDir> dir(new BmSourceDir());
+        BmSourceDir *dir = new BmSourceDir();
         dir->setIndex(query.value(sourcedirid).toInt());
         dir->setPath(query.value(path).toString());
-        srcDirs.push_back(dir);
+        srcDirs->push_back(dir);
     }
 }
 
@@ -124,6 +124,6 @@ void BmSourceDirs::loadFromDB()
 BmSourceDirs::BmSourceDirs(QObject *parent) :
     QObject(parent)
 {
-    //srcDirs = new std::vector<boost::shared_ptr<BmSourceDir> >();
+    srcDirs = new QList<BmSourceDir *>;
     loadFromDB();
 }

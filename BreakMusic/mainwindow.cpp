@@ -212,8 +212,8 @@ void MainWindow::on_mediaDurationChanged(qint64 duration)
 
 void MainWindow::playCurrent()
 {
-    boost::shared_ptr<BmPlaylistSong> song = playlists->getCurrent()->getCurrentSong();
-    boost::shared_ptr<BmPlaylistSong> next = playlists->getCurrent()->getNextSong();
+    BmPlaylistSong *song = playlists->getCurrent()->getCurrentSong();
+    BmPlaylistSong *next = playlists->getCurrent()->getNextSong();
     qDebug() << "Playing song at position: " << song->position() << " Artist: " << song->song()->artist() << " Title: " << song->song()->title();
     if (mPlayer->state() == QMediaPlayer::PlayingState)
         fader->fadeStop();
@@ -264,7 +264,7 @@ void MainWindow::on_playlistChanged()
 {
     if (playlists->getCurrent()->getNextSong()->valid())
     {
-    boost::shared_ptr<BmSong> nextSong = playlists->getCurrent()->getNextSong()->song();
+    BmSong *nextSong = playlists->getCurrent()->getNextSong()->song();
     ui->labelNext->setText(nextSong->artist() + " - " + nextSong->title());
     }
 }
