@@ -38,6 +38,12 @@ BmPlaylist::BmPlaylist(QObject *parent) :
     m_currentSong = getSongByPosition(0);
 }
 
+BmPlaylist::~BmPlaylist()
+{
+    qDeleteAll(songs->begin(),songs->end());
+    delete songs;
+}
+
 void BmPlaylist::loadSongs()
 {
     QSqlQuery query;
@@ -69,6 +75,12 @@ BmPlaylists::BmPlaylists(QObject *parent) :
         setCurrent(addPlaylist("Default"));
     }
     setCurrent(1);
+}
+
+BmPlaylists::~BmPlaylists()
+{
+    qDeleteAll(playlists->begin(),playlists->end());
+    delete playlists;
 }
 
 unsigned int BmPlaylists::addPlaylist(QString title)
@@ -217,6 +229,7 @@ void BmPlaylists::loadFromDB()
 {
     emit dataAboutToChange();
     qDebug() << "Loading playlists from database";
+    qDeleteAll(playlists->begin(),playlists->end());
     playlists->clear();
     QSqlQuery query("SELECT ROWID,title FROM playlists ORDER BY title");
     int index = query.record().indexOf("ROWID");
@@ -338,7 +351,7 @@ BmPlaylistSong *BmPlaylist::getSongByPosition(unsigned int position)
         if (songs->at(i)->position() == position)
             return songs->at(i);
     }
-    return new BmPlaylistSong();
+    return NULL;
 }
 
 

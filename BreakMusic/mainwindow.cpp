@@ -84,6 +84,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    delete database;
+    delete khDir;
     delete ui;
 }
 

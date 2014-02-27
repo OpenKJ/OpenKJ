@@ -73,6 +73,7 @@ class BmSongs : public QObject
     Q_OBJECT
 public:
     explicit BmSongs(QObject *parent = 0);
+    ~BmSongs();
     void loadFromDB();
     void setFilterTerms(QStringList terms);
     void clear();

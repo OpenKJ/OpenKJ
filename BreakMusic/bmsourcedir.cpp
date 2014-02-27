@@ -127,3 +127,8 @@ BmSourceDirs::BmSourceDirs(QObject *parent) :
     srcDirs = new QList<BmSourceDir *>;
     loadFromDB();
 }
+
+BmSourceDirs::~BmSourceDirs()
+{
+    delete srcDirs;
+}

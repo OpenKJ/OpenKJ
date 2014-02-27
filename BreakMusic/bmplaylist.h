@@ -57,6 +57,7 @@ class BmPlaylist : public QObject
     Q_OBJECT
 public:
     explicit BmPlaylist(QObject *parent = 0);
+    ~BmPlaylist();
     void loadSongs();
     unsigned int size();
     BmPlaylistSong *at(int vectorPos);
@@ -97,6 +98,7 @@ class BmPlaylists : public QObject
     Q_OBJECT
 public:
     explicit BmPlaylists(QObject *parent = 0);
+    ~BmPlaylists();
     /// Add playlist and return plIndex of new playlist or zero on failure
     unsigned int addPlaylist(QString title);
     /// Remove playlist by plIndex

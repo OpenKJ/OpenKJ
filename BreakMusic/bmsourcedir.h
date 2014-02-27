@@ -49,6 +49,7 @@ class BmSourceDirs : public QObject
     Q_OBJECT
 public:
     explicit BmSourceDirs(QObject *parent = 0);
+    ~BmSourceDirs();
     int size();
     BmSourceDir *at(int vectorPos);
     bool add(QString path);

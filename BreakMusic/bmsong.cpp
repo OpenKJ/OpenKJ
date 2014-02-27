@@ -138,6 +138,12 @@ BmSongs::BmSongs(QObject *parent) :
     allSongs = new QList<BmSong *>;
 }
 
+BmSongs::~BmSongs()
+{
+    delete filteredSongs;
+    delete allSongs;
+}
+
 void BmSongs::loadFromDB()
 {
     emit dataAboutToChange();
