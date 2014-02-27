@@ -20,6 +20,7 @@
 
 #include "regularsingersdialog.h"
 #include "ui_regularsingersdialog.h"
+#include <QDebug>
 
 RegularSingersDialog::RegularSingersDialog(KhRegularSingers *singers, QWidget *parent) :
     QDialog(parent),
@@ -50,4 +51,23 @@ RegularSingersDialog::~RegularSingersDialog()
 void RegularSingersDialog::on_btnClose_clicked()
 {
     close();
+}
+
+void RegularSingersDialog::on_treeViewRegulars_clicked(const QModelIndex &index)
+{
+    if (index.column() == 3)
+    {
+        // Add to rotation
+        qDebug() << "Add to rotation clicked on row " << index.row();
+    }
+    else if (index.column() == 4)
+    {
+        // Rename regular
+        qDebug() << "Rename singer clicked on row " << index.row();
+    }
+    else if (index.column() == 5)
+    {
+        // Delete regular
+        qDebug() << "Delete singer clicked on row " << index.row();
+    }
 }

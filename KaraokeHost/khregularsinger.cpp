@@ -57,9 +57,7 @@ KhRegularSinger::KhRegularSinger(QString singerName, int singerID, QObject *pare
 KhRegularSingers::KhRegularSingers(QObject *parent) :
     QObject(parent)
 {
-    boost::shared_ptr<KhRegularSingerVector> tmp_ptr(new KhRegularSingerVector);
-    regularSingers.swap(tmp_ptr);
-
+    regularSingers = new QList<KhRegularSinger *>;
     loadFromDB();
 }
 
@@ -73,29 +71,29 @@ void KhRegularSinger::setName(const QString &value)
     name = value;
 }
 
-boost::shared_ptr<KhRegularSingerVector> KhRegularSingers::getRegularSingers() const
+QList<KhRegularSinger *> *KhRegularSingers::getRegularSingers()
 {
     return regularSingers;
 }
 
-boost::shared_ptr<KhRegularSinger> KhRegularSingers::getByIndex(int regIndex)
+KhRegularSinger *KhRegularSingers::getByIndex(int regIndex)
 {
     for (unsigned int i=0; i < regularSingers->size(); i++)
     {
         if (regularSingers->at(i)->getIndex() == regIndex)
             return regularSingers->at(i);
     }
-    return boost::shared_ptr<KhRegularSinger>(new KhRegularSinger);
+    return new KhRegularSinger();
 }
 
-boost::shared_ptr<KhRegularSinger> KhRegularSingers::getByName(QString regName)
+KhRegularSinger *KhRegularSingers::getByName(QString regName)
 {
     for (unsigned int i=0; i < regularSingers->size(); i++)
     {
         if (regularSingers->at(i)->getName() == regName)
             return regularSingers->at(i);
     }
-    return boost::shared_ptr<KhRegularSinger>(new KhRegularSinger);
+    return new KhRegularSinger();
 }
 
 bool KhRegularSingers::exists(QString searchName)
@@ -112,9 +110,8 @@ int KhRegularSingers::add(QString name)
 {
     if (!exists(name))
     {
-        boost::shared_ptr<KhRegularSinger> singer(new KhRegularSinger(name));
+        KhRegularSinger *singer = new KhRegularSinger(name);
         regularSingers->push_back(singer);
-        qDebug() << "Created regular singer. ID:" << singer->getIndex();
         return singer->getIndex();
     }
     return -1;
@@ -125,7 +122,7 @@ int KhRegularSingers::size()
     return regularSingers->size();
 }
 
-boost::shared_ptr<KhRegularSinger> KhRegularSingers::at(int index)
+KhRegularSinger *KhRegularSingers::at(int index)
 {
     return regularSingers->at(index);
 }
@@ -137,7 +134,7 @@ void KhRegularSingers::loadFromDB()
     int regsingerid = query.record().indexOf("ROWID");
     int name = query.record().indexOf("name");
     while (query.next()) {
-        boost::shared_ptr<KhRegularSinger> singer(new KhRegularSinger());
+        KhRegularSinger *singer = new KhRegularSinger();
         singer->setIndex(query.value(regsingerid).toInt());
         singer->setName(query.value(name).toString());
         regularSingers->push_back(singer);

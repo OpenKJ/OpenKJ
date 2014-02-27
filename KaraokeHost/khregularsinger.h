@@ -52,20 +52,20 @@ private:
     boost::shared_ptr<KhRegularSongs> regSongs;
 };
 
-typedef std::vector<boost::shared_ptr<KhRegularSinger> > KhRegularSingerVector;
+//typedef std::vector<boost::shared_ptr<KhRegularSinger> > KhRegularSingerVector;
 
 class KhRegularSingers : public QObject
 {
     Q_OBJECT
 public:
     explicit KhRegularSingers(QObject *parent = 0);
-    boost::shared_ptr<KhRegularSingerVector> getRegularSingers() const;
-    boost::shared_ptr<KhRegularSinger> getByIndex(int regIndex);
-    boost::shared_ptr<KhRegularSinger> getByName(QString regName);
+    QList<KhRegularSinger *> *getRegularSingers();
+    KhRegularSinger *getByIndex(int regIndex);
+    KhRegularSinger *getByName(QString regName);
     bool exists(QString searchName);
     int add(QString name);
     int size();
-    boost::shared_ptr<KhRegularSinger> at(int index);
+    KhRegularSinger* at(int index);
 
 signals:
 
@@ -73,7 +73,7 @@ public slots:
 
 private:
     void loadFromDB();
-    boost::shared_ptr<KhRegularSingerVector> regularSingers;
+    QList<KhRegularSinger *> *regularSingers;
 
 };
 

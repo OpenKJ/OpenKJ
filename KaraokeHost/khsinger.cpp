@@ -407,7 +407,7 @@ void KhRotationSingers::createRegularForSinger(int singerID)
     int regularid = regularSingers->add(singer->getSingerName());
     singer->setRegular(true);
     singer->setRegularIndex(regularid);
-    boost::shared_ptr<KhRegularSinger> regular = regularSingers->getByIndex(regularid);
+    KhRegularSinger *regular = regularSingers->getByIndex(regularid);
     for (unsigned int i=0; i < singer->getQueueSongs()->size(); i++)
     {
         int regsongindex = regular->addSong(singer->getQueueSongs()->at(i)->getSongID(),singer->getQueueSongs()->at(i)->getKeyChange(),singer->getQueueSongs()->at(i)->getPosition());
@@ -469,7 +469,7 @@ int KhSinger::addSongAtPosition(int songid, int position, bool regularSong, int 
         boost::shared_ptr<KhQueueSong> song = getSongByIndex(qsongid);
         if (regular)
         {
-            boost::shared_ptr<KhRegularSinger> regsinger = regularSingers->getByIndex(regularIndex);
+            KhRegularSinger *regsinger = regularSingers->getByIndex(regularIndex);
             int regsongid = regsinger->addSong(song->getSongID(), song->getKeyChange(), song->getPosition());
             song->setRegSong(true);
             song->setRegSongIndex(regsongid);
