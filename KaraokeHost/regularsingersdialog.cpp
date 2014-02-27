@@ -21,12 +21,12 @@
 #include "regularsingersdialog.h"
 #include "ui_regularsingersdialog.h"
 
-RegularSingersDialog::RegularSingersDialog(QWidget *parent) :
+RegularSingersDialog::RegularSingersDialog(KhRegularSingers *singers, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::RegularSingersDialog)
 {
     ui->setupUi(this);
-    regularSingerModel = new RegularSingerModel(this);
+    regularSingerModel = new RegularSingerModel(singers, this);
     ui->treeViewRegulars->setModel(regularSingerModel);
     ui->treeViewRegulars->hideColumn(0);
     ui->treeViewRegulars->setColumnWidth(3,20);

@@ -78,7 +78,7 @@ MainWindow::MainWindow(QWidget *parent) :
     khTmpDir = new QTemporaryDir();
     dbDialog = new DatabaseDialog(this);
     settingsDialog = new SettingsDialog(this);
-    regularSingersDialog = new RegularSingersDialog(this);
+    regularSingersDialog = new RegularSingersDialog(regularSingers, this);
     cdgWindow = new CdgWindow(this, Qt::Window);
     if (settings->showCdgWindow())
     {

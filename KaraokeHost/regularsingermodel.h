@@ -28,7 +28,7 @@ class RegularSingerModel : public QAbstractTableModel
 {
     Q_OBJECT
 public:
-    explicit RegularSingerModel(QObject *parent = 0);
+    explicit RegularSingerModel(KhRegularSingers *regulars, QObject *parent = 0);
     enum {REGID=0,SINGER,SONGCOUNT,LOAD,RENAME,DEL};
 
 signals:

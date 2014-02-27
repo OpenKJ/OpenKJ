@@ -21,10 +21,10 @@
 #include "regularsingermodel.h"
 #include <QPixmap>
 
-RegularSingerModel::RegularSingerModel(QObject *parent) :
+RegularSingerModel::RegularSingerModel(KhRegularSingers *regulars, QObject *parent) :
     QAbstractTableModel(parent)
 {
-    regularSingers = new KhRegularSingers(this);
+    regularSingers = regulars;
 }
 
 

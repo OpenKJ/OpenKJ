@@ -33,7 +33,7 @@ class RegularSingersDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit RegularSingersDialog(QWidget *parent = 0);
+    explicit RegularSingersDialog(KhRegularSingers *singers, QWidget *parent = 0);
     ~RegularSingersDialog();
 
 private slots:
