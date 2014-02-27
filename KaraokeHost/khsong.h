@@ -21,13 +21,16 @@
 #ifndef DBSONG_H
 #define DBSONG_H
 
+#include <QObject>
 #include <QString>
 #include <boost/shared_ptr.hpp>
 #include <vector>
 
-class KhSong
+class KhSong : public QObject
 {
+    Q_OBJECT
 public:
+    explicit KhSong(QObject *parent=0);
     bool operator==(KhSong cmpsong) {
         if (ID == cmpsong.ID) return true;
         else return false;
@@ -43,6 +46,6 @@ public:
 
 };
 
-typedef boost::shared_ptr<std::vector<boost::shared_ptr<KhSong> > > KhSongs;
+typedef QList<KhSong *> KhSongs;
 
 #endif // DBSONG_H

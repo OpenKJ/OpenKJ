@@ -24,10 +24,10 @@
 #include <QSqlRecord>
 #include <QDebug>
 
-SongDBLoadThread::SongDBLoadThread(KhSongs songsVectorPointer, QObject *parent):
+SongDBLoadThread::SongDBLoadThread(KhSongs *songsptr, QObject *parent):
     QThread(parent)
 {
-    songs.swap(songsVectorPointer);
+    songs = songsptr;
 }
 
 void SongDBLoadThread::run()
@@ -43,7 +43,7 @@ void SongDBLoadThread::run()
     int length = query.record().indexOf("length");
     qDebug() << "Loading songdb into cache";
     while (query.next()) {
-        boost::shared_ptr<KhSong> song(new KhSong());
+        KhSong *song = new KhSong();
         song->ID = query.value(dbsongid).toInt();
         song->DiscID = query.value(discid).toString();
         song->Artist = query.value(artist).toString();

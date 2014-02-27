@@ -40,8 +40,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     //    audioBackend = new KhAudioBackendQMediaPlayer(this);
     ui->setupUi(this);
-    boost::scoped_ptr<QDir> dir(new QDir(QDir::homePath() + QDir::separator() + ".KaraokeHost"));
-    khDir.swap(dir);
+    khDir = new QDir(QDir::homePath() + QDir::separator() + ".KaraokeHost");
     qDebug() << "Program data directory: " << khDir->absolutePath();
     if (!khDir->exists())
     {
@@ -50,8 +49,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     settings = new KhSettings(this);
     settings->restoreWindowState(this);
-    boost::shared_ptr<QSqlDatabase> dbptr(new QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE")));
-    database.swap(dbptr);
+    database = new QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE"));
     database->setDatabaseName(khDir->absolutePath() + QDir::separator() + "karaokehost.sqlite");
     database->open();
     QSqlQuery query("CREATE TABLE IF NOT EXISTS dbSongs ( discid VARCHAR(25), artist VARCHAR(100), title VARCHAR(100), path VARCHAR(700) NOT NULL UNIQUE, filename VARCHAR(200), 'length' INTEGER)");
@@ -89,10 +87,9 @@ MainWindow::MainWindow(QWidget *parent) :
             cdgWindow->move(topLeft);
         }
     }
-    boost::shared_ptr<CDG> cdg_ptr(new CDG);
-    cdg.swap(cdg_ptr);
+    cdg = new CDG;
     songdbmodel = new SongDBTableModel(this);
-    songdbmodel->loadFromDB(database);
+    songdbmodel->loadFromDB();
     ui->treeViewDB->sortByColumn(-1);
     ui->treeViewDB->setModel(songdbmodel);
     ipcClient = new KhIPCClient("bmControl",this);
@@ -151,6 +148,8 @@ MainWindow::~MainWindow()
     settings->saveWindowState(cdgWindow);
     settings->saveWindowState(this);
     settings->setShowCdgWindow(cdgWindow->isVisible());
+    delete cdg;
+    delete khDir;
     delete khTmpDir;
     delete ui;
 }
@@ -164,12 +163,12 @@ void MainWindow::search()
 
 void MainWindow::songdbUpdated()
 {
-    songdbmodel->loadFromDB(database);
+    songdbmodel->loadFromDB();
 }
 
 void MainWindow::databaseCleared()
 {
-    songdbmodel->loadFromDB(database);
+    songdbmodel->loadFromDB();
     singers->clear();
     ui->treeViewDB->clearSelection();
     ui->treeViewRotation->clearSelection();
@@ -248,7 +247,7 @@ void MainWindow::on_treeViewRotation_activated(const QModelIndex &index)
     singers->setCurrentSingerPosition(index.row() + 1);
     audioBackend->stop();
     boost::shared_ptr<KhQueueSong> qsong = singers->getSelected()->getNextSong();
-    boost::shared_ptr<KhSong> song = songdbmodel->getSongByID(qsong->getSongID());
+    KhSong *song = songdbmodel->getSongByID(qsong->getSongID());
     songCurrent = song;
     delete khTmpDir;
     khTmpDir = new QTemporaryDir();
@@ -354,7 +353,7 @@ void MainWindow::on_treeViewQueue_activated(const QModelIndex &index)
 
     audioBackend->stop();
     boost::shared_ptr<KhQueueSong> queuesong = singers->getSelected()->getSongByPosition(index.row());
-    boost::shared_ptr<KhSong> song(new KhSong());
+    KhSong *song = new KhSong();
     song->Artist = queuesong->getArtist();
     song->Title = queuesong->getTitle();
     song->path = queuesong->getSourceFile();

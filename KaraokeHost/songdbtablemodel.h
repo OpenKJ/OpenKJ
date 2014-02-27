@@ -38,13 +38,13 @@
 #define SORTDIR_ASC 0
 #define SORTDIR_DEC 0
 
-bool songsort(boost::shared_ptr<KhSong> song1, boost::shared_ptr<KhSong> song2);
+bool songsort(KhSong *song1, KhSong *song2);
 
 class SongDBTableModel : public QAbstractTableModel
 {
     Q_OBJECT
-    boost::shared_ptr<std::vector<boost::shared_ptr<KhSong> > > fulldata;
-    boost::shared_ptr<std::vector<boost::shared_ptr<KhSong> > > filteredData;
+    KhSongs *fulldata;
+    KhSongs *filteredData;
 public:
     typedef std::vector<boost::shared_ptr<KhSong> >::const_iterator const_iterator;
     explicit SongDBTableModel(QObject *parent = 0);
@@ -56,20 +56,20 @@ public:
     void sort(int column, Qt::SortOrder order);
     QMimeData* mimeData(const QModelIndexList &indexes) const;
 
-    void addSong(boost::shared_ptr<KhSong> song);
+    void addSong(KhSong *song);
     void removeSong(int row);
-    void loadFromDB(boost::shared_ptr<QSqlDatabase> db);
+    void loadFromDB();
     bool setData(const QModelIndex &index, const QVariant &value, int role);
     Qt::ItemFlags flags(const QModelIndex &index) const;
 //    KSPDBSong& getSong(size_t index);
-    const_iterator begin()const{return filteredData->begin();}
-    const_iterator end()const{return filteredData->end();}
+//    const_iterator begin()const{return filteredData->begin();}
+//    const_iterator end()const{return filteredData->end();}
     QString filter;
     int lastSortCol;
     Qt::SortOrder lastSortOrder;
     void applyFilter(QString filterstr);
-    boost::shared_ptr<KhSong> getRowSong(int row);
-    boost::shared_ptr<KhSong> getSongByID(int songid);
+    KhSong *getRowSong(int row);
+    KhSong *getSongByID(int songid);
 
 signals:
     
@@ -87,7 +87,7 @@ signals:
     void resultReady(const QString &s);
 
 public:
-    boost::shared_ptr<std::vector<boost::shared_ptr<KhSong> > > mydata;
+    KhSongs *mydata;
     int sortOrder;
 
 };

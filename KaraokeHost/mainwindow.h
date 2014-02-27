@@ -33,7 +33,6 @@
 #include <QTemporaryDir>
 #include <QDir>
 #include <QSplashScreen>
-#include <boost/shared_ptr.hpp>
 #include "databasedialog.h"
 #include "settingsdialog.h"
 #include "khipcclient.h"
@@ -93,7 +92,7 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    boost::shared_ptr<QSqlDatabase> database;
+    QSqlDatabase *database;
     SongDBTableModel *songdbmodel;
     RotationTableModel *rotationmodel;
     QueueTableModel *queuemodel;
@@ -113,9 +112,9 @@ private:
     void play(QString zipFilePath);
 
     QTemporaryDir *khTmpDir;
-    boost::scoped_ptr<QDir> khDir;
-    boost::shared_ptr<CDG> cdg;
-    boost::shared_ptr<KhSong> songCurrent;
+    QDir *khDir;
+    CDG *cdg;
+    KhSong *songCurrent;
     KhSettings *settings;
 
     int sortColDB;

@@ -29,7 +29,7 @@ class SongDBLoadThread : public QThread
 {
     Q_OBJECT
 public:
-    explicit SongDBLoadThread(KhSongs songsVectorPointer, QObject *parent = 0);
+    explicit SongDBLoadThread(KhSongs *songsVectorPointer, QObject *parent = 0);
     void run();
 //    void setSharedPointer(boost::shared_ptr<)
 
@@ -38,7 +38,7 @@ signals:
 public slots:
     
 private:
-    KhSongs songs;
+    KhSongs *songs;
 };
 
 #endif // SONGDBLOADTHREAD_H

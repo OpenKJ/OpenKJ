@@ -27,7 +27,7 @@
 int sortorder = SONGSORT_ATS;
 bool sortasc = true;
 
-bool songsort(boost::shared_ptr<KhSong> song1, boost::shared_ptr<KhSong> song2)
+bool songsort(KhSong *song1, KhSong *song2)
 {
     QString term1a;
     QString term1b;
@@ -92,12 +92,8 @@ void DBSortThread::run()
 SongDBTableModel::SongDBTableModel(QObject *parent) :
     QAbstractTableModel(parent)
 {
-    boost::shared_ptr<std::vector<boost::shared_ptr<KhSong> > > full(new std::vector<boost::shared_ptr<KhSong> >());
-    fulldata.swap(full);
-//    fulldata = boost::scoped_ptr<std::vector<boost::shared_ptr<KSPDBSong> >(new std::vector<boost::shared_ptr<KSPDBSong> >());
-    boost::shared_ptr<std::vector<boost::shared_ptr<KhSong> > > filtered(new std::vector<boost::shared_ptr<KhSong> >());
-    filteredData.swap(filtered);
-//    filteredData = new std::vector<boost::shared_ptr<KSPDBSong> >();
+    fulldata = new KhSongs;
+    filteredData = new KhSongs;
     lastSortCol = 0;
     lastSortOrder = Qt::AscendingOrder;
 }
@@ -108,7 +104,7 @@ void SongDBTableModel::applyFilter(QString filterstr)
     filter = filterstr;
     QStringList terms;
     terms = filterstr.split(" ",QString::SkipEmptyParts);
-    for (unsigned int i=0; i < fulldata->size(); i++)
+    for (int i=0; i < fulldata->size(); i++)
     {
         bool match = true;
         for (int j=0; j < terms.size(); j++)
@@ -131,7 +127,7 @@ QVariant SongDBTableModel::data(const QModelIndex &index, int role) const
     if(!index.isValid())
         return QVariant();
 
-    if((unsigned)index.row() >= filteredData->size() || index.row() < 0)
+    if(index.row() >= filteredData->size() || index.row() < 0)
         return QVariant();
 
     if(role == Qt::DisplayRole || role == Qt::EditRole)
@@ -175,7 +171,7 @@ QVariant SongDBTableModel::headerData(int section, Qt::Orientation orientation, 
 
 bool SongDBTableModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    if (index.isValid() && role == Qt::EditRole && !((unsigned)index.row() >= fulldata->size() || index.row() < 0))
+    if (index.isValid() && role == Qt::EditRole && !(index.row() >= fulldata->size() || index.row() < 0))
     {
         int row = index.row();
 
@@ -208,7 +204,7 @@ Qt::ItemFlags SongDBTableModel::flags(const QModelIndex &index) const
     return QAbstractTableModel::flags(index) | Qt::ItemIsEditable | Qt::ItemIsDragEnabled;
 }
 
-void SongDBTableModel::addSong(boost::shared_ptr<KhSong> song)
+void SongDBTableModel::addSong(KhSong *song)
 {
     if(std::find(fulldata->begin(),fulldata->end(),song) != fulldata->end())
         return;
@@ -279,13 +275,11 @@ QMimeData *SongDBTableModel::mimeData(const QModelIndexList &indexes) const
     return mimeData;
 }
 
-void SongDBTableModel::loadFromDB(boost::shared_ptr<QSqlDatabase> db)
+void SongDBTableModel::loadFromDB()
 {
     qDebug() << "Loading songDB";
-    UNUSED(db);
     layoutAboutToBeChanged();
     filteredData->clear();
-
     boost::scoped_ptr<SongDBLoadThread> thread(new SongDBLoadThread(fulldata, this));
     thread->start();
     while (!thread->isFinished())
@@ -293,42 +287,21 @@ void SongDBTableModel::loadFromDB(boost::shared_ptr<QSqlDatabase> db)
         QApplication::processEvents();
         //usleep(100);
     }
-//    fulldata->clear();
-//    QSqlQuery query("SELECT * FROM dbSongs");
-//    int dbsongid = query.record().indexOf("dbsongid");
-//    int discid = query.record().indexOf("discid");
-//    int artist = query.record().indexOf("artist");
-//    int title  = query.record().indexOf("title");
-//    int filename = query.record().indexOf("filename");
-//    int path = query.record().indexOf("path");
-//    int length = query.record().indexOf("length");
-//    qDebug() << "Loading songdb into cache";
-//    while (query.next()) {
-//        boost::shared_ptr<DBSong> song(new DBSong());
-//        song->ID = query.value(dbsongid).toInt();
-//        song->DiscID = query.value(discid).toString();
-//        song->Artist = query.value(artist).toString();
-//        song->Title = query.value(title).toString();
-//        song->filename = query.value(filename).toString();
-//        song->path = query.value(path).toString();
-//        song->Duration = query.value(length).toString();
-//        addSong(song);
-//    }
     layoutChanged();
     qDebug() << "Songdb Loaded";
 }
 
-boost::shared_ptr<KhSong> SongDBTableModel::getRowSong(int row)
+KhSong *SongDBTableModel::getRowSong(int row)
 {
     return filteredData->at(row);
 }
 
-boost::shared_ptr<KhSong> SongDBTableModel::getSongByID(int songid)
+KhSong *SongDBTableModel::getSongByID(int songid)
 {
-    for (unsigned int i=0; i < fulldata->size(); i++)
+    for (int i=0; i < fulldata->size(); i++)
     {
         if (fulldata->at(i)->ID == songid)
             return fulldata->at(i);
     }
-    return boost::shared_ptr<KhSong>(new KhSong());
+    return new KhSong();
 }

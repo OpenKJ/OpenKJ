@@ -21,3 +21,10 @@
 
 #include "khsong.h"
 
+
+
+KhSong::KhSong(QObject *parent) :
+    QObject(parent)
+{
+
+}
