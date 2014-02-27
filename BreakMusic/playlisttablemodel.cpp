@@ -53,16 +53,18 @@ QVariant PlaylistTableModel::data(const QModelIndex &index, int role) const
     if((unsigned)index.row() >= playlists->getCurrent()->size() || index.row() < 0)
         return QVariant();
 
-    if((role == Qt::BackgroundRole) && (playlists->getCurrent()->getCurrentSong()->position() == (unsigned)index.row()))
+    if (playlists->getCurrent()->getCurrentSong() != NULL)
     {
-        return QBrush(Qt::yellow);
+        if((role == Qt::BackgroundRole) && (playlists->getCurrent()->getCurrentSong()->position() == (unsigned)index.row()))
+        {
+            return QBrush(Qt::yellow);
+        }
+        if ((index.column() == 0) && (role == Qt::DecorationRole) && (playlists->getCurrent()->getCurrentSong()->position() == (unsigned)index.row()))
+        {
+            QPixmap icon(":/icons/play-small.png");
+            return icon;
+        }
     }
-    if ((index.column() == 0) && (role == Qt::DecorationRole) && (playlists->getCurrent()->getCurrentSong()->position() == (unsigned)index.row()))
-    {
-        QPixmap icon(":/icons/play-small.png");
-        return icon;
-    }
-
     if ((index.column() == 5) && (role == Qt::DecorationRole))
     {
         QPixmap icon(":/icons/edit-delete.png");

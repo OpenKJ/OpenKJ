@@ -31,6 +31,11 @@ BmPlaylistSong::BmPlaylistSong(QObject *parent) :
     setValid(false);
 }
 
+BmPlaylistSong::~BmPlaylistSong()
+{
+    delete m_song;
+}
+
 BmPlaylist::BmPlaylist(QObject *parent) :
     QObject(parent)
 {
@@ -55,7 +60,8 @@ void BmPlaylist::loadSongs()
         BmPlaylistSong *plSong = new BmPlaylistSong(this);
         plSong->setIndex(query.value(index).toInt());
         plSong->setPosition(query.value(position).toInt(),true);
-        plSong->setSong(new BmSong(query.value(song).toInt(),this));
+        BmSong *bmSong = new BmSong(query.value(song).toInt());
+        plSong->setSong(bmSong);
         songs->push_back(plSong);
     }
 }
@@ -335,13 +341,18 @@ BmPlaylistSong *BmPlaylist::getCurrentSong()
 BmPlaylistSong *BmPlaylist::getNextSong()
 {
     if (songs->size() == 0)
-        return new BmPlaylistSong();
+        return NULL;
     int nextpos;
-    if (m_currentSong->position() < (unsigned)songs->size() - 1)
-        nextpos = m_currentSong->position() + 1;
+    if (m_currentSong != NULL)
+    {
+        if (m_currentSong->position() < (unsigned)songs->size() - 1)
+            nextpos = m_currentSong->position() + 1;
+        else
+            nextpos = 0;
+        return getSongByPosition(nextpos);
+    }
     else
-        nextpos = 0;
-    return getSongByPosition(nextpos);
+        return NULL;
 }
 
 BmPlaylistSong *BmPlaylist::getSongByPosition(unsigned int position)
@@ -351,7 +362,7 @@ BmPlaylistSong *BmPlaylist::getSongByPosition(unsigned int position)
         if (songs->at(i)->position() == position)
             return songs->at(i);
     }
-    return new BmPlaylistSong(this);
+    return NULL;
 }
 
 

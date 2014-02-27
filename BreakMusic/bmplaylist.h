@@ -30,6 +30,7 @@ class BmPlaylistSong : public QObject
     Q_OBJECT
 public:
     explicit BmPlaylistSong(QObject *parent=0);
+    ~BmPlaylistSong();
     unsigned int position() const;
     void setPosition(unsigned int position, bool skipDb = false);
     BmSong *song() const;

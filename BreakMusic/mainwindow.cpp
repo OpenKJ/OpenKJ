@@ -89,13 +89,6 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-
-
-//void MainWindow::ipcMessageReceived(QString ipcMessage)
-//{
-//    qDebug() << "Received IPC: " << ipcMessage;
-//}
-
 void MainWindow::ipcMessageReceived(int ipcCommand)
 {
     qDebug() << "Received IPC: " << ipcCommand;
@@ -264,7 +257,7 @@ void MainWindow::on_comboBoxPlaylists_currentIndexChanged(const QString &arg1)
 
 void MainWindow::on_playlistChanged()
 {
-    if (playlists->getCurrent()->getNextSong()->valid())
+    if (playlists->getCurrent()->getNextSong() != NULL)
     {
     BmSong *nextSong = playlists->getCurrent()->getNextSong()->song();
     ui->labelNext->setText(nextSong->artist() + " - " + nextSong->title());

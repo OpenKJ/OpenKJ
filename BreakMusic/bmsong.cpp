@@ -141,7 +141,7 @@ BmSongs::BmSongs(QObject *parent) :
 BmSongs::~BmSongs()
 {
     qDeleteAll(allSongs->begin(),allSongs->end());
-    qDeleteAll(filteredSongs->begin(),filteredSongs->end());
+    // Don't need to qDeleteAll from filteredSongs as it contains pointers to objects already being deleted
     delete filteredSongs;
     delete allSongs;
 }

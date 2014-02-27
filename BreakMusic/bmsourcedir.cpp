@@ -108,15 +108,17 @@ void BmSourceDirs::debugPrintEntries()
 
 void BmSourceDirs::loadFromDB()
 {
+    qDeleteAll(srcDirs->begin(),srcDirs->end());
     srcDirs->clear();
     QSqlQuery query("SELECT ROWID,path FROM srcDirs ORDER BY path");
     int sourcedirid = query.record().indexOf("ROWID");
     int path = query.record().indexOf("path");
     while (query.next()) {
-        BmSourceDir *dir = new BmSourceDir();
-        dir->setIndex(query.value(sourcedirid).toInt());
-        dir->setPath(query.value(path).toString());
-        srcDirs->push_back(dir);
+//        BmSourceDir *dir = new BmSourceDir();
+//        dir->setIndex(query.value(sourcedirid).toInt());
+//        dir->setPath(query.value(path).toString());
+//        srcDirs->push_back(dir);
+        srcDirs->push_back(new BmSourceDir(query.value(path).toString(),query.value(sourcedirid).toInt()));
     }
 }
 
@@ -130,5 +132,6 @@ BmSourceDirs::BmSourceDirs(QObject *parent) :
 
 BmSourceDirs::~BmSourceDirs()
 {
+    qDeleteAll(srcDirs->begin(),srcDirs->end());
     delete srcDirs;
 }
