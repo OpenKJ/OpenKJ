@@ -22,8 +22,6 @@
 #define KHREGULARSINGER_H
 
 #include <QObject>
-#include <boost/shared_ptr.hpp>
-#include <vector>
 #include "khregularsong.h"
 
 class KhRegularSinger : public QObject
@@ -37,9 +35,9 @@ public:
     void setIndex(int value);
     QString getName() const;
     void setName(const QString &value);
-    boost::shared_ptr<KhRegularSongs> getRegSongs() const;
+    KhRegularSongs *getRegSongs() const;
     int addSong(int songIndex, int keyChange, int position);
-    boost::shared_ptr<KhRegularSong> getSongByIndex(int index);
+    KhRegularSong *getSongByIndex(int index);
     int songsSize();
 
 signals:
@@ -49,10 +47,8 @@ public slots:
 private:
     int regindex;
     QString name;
-    boost::shared_ptr<KhRegularSongs> regSongs;
+    KhRegularSongs *regSongs;
 };
-
-//typedef std::vector<boost::shared_ptr<KhRegularSinger> > KhRegularSingerVector;
 
 class KhRegularSingers : public QObject
 {

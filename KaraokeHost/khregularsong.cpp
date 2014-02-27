@@ -24,7 +24,8 @@
 #include <QSqlRecord>
 #include <QVariant>
 
-KhRegularSong::KhRegularSong()
+KhRegularSong::KhRegularSong(QObject *parent) :
+    QObject(parent)
 {
 }
 
@@ -89,10 +90,10 @@ void KhRegularSong::setRegSongIndex(int value)
 }
 
 
-KhRegularSongs::KhRegularSongs(int regSingerID)
+KhRegularSongs::KhRegularSongs(int regSingerID, QObject *parent)
 {
-    boost::shared_ptr<KhRegularSongsVector> tmp_ptr(new KhRegularSongsVector());
-    regSongs.swap(tmp_ptr);
+    Q_UNUSED(parent);
+    regSongs = new QList<KhRegularSong *>;
     regSingerIndex = regSingerID;
     loadFromDB();
 }
@@ -107,7 +108,7 @@ void KhRegularSongs::loadFromDB()
     int keychg = query.record().indexOf("keychg");
     int position = query.record().indexOf("position");
     while (query.next()) {
-        boost::shared_ptr<KhRegularSong> song(new KhRegularSong());
+        KhRegularSong *song = new KhRegularSong();
         song->setRegSongIndex(query.value(regsongid).toInt());
         song->setRegSingerIndex(query.value(regsingerid).toInt());
         song->setSongIndex(query.value(songid).toInt());
@@ -119,26 +120,26 @@ void KhRegularSongs::loadFromDB()
 
 void KhRegularSongs::deleteSongByIndex(int index)
 {
-    boost::shared_ptr<KhRegularSong> song = getSongByIndex(index);
+    KhRegularSong *song = getSongByIndex(index);
     QSqlQuery query;
     query.exec("DELETE FROM regularsongs WHERE ROWID == " + QString::number(index));
-    for (unsigned int i=0; i < regSongs->size(); i++)
+    for (int i=0; i < regSongs->size(); i++)
         if (regSongs->at(i)->getPosition() > song->getPosition())
             regSongs->at(i)->setPosition(regSongs->at(i)->getPosition() - 1);
     regSongs->erase(regSongs->begin() + (song->getPosition()));
 }
 
-boost::shared_ptr<KhRegularSong> KhRegularSongs::getSongByIndex(int index)
+KhRegularSong *KhRegularSongs::getSongByIndex(int index)
 {
-    for (unsigned int i=0; i < regSongs->size(); i++)
+    for (int i=0; i < regSongs->size(); i++)
     {
         if (regSongs->at(i)->getRegSongIndex() == index)
             return regSongs->at(i);
     }
-    return boost::shared_ptr<KhRegularSong>(new KhRegularSong());
+    return new KhRegularSong();
 }
 
-boost::shared_ptr<KhRegularSongsVector> KhRegularSongs::getRegSongs()
+QList<KhRegularSong *> *KhRegularSongs::getRegSongs()
 {
     return regSongs;
 }

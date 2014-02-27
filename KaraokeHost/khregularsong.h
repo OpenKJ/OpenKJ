@@ -21,14 +21,12 @@
 #ifndef KHREGULARSONG_H
 #define KHREGULARSONG_H
 
-#include <boost/shared_ptr.hpp>
-#include <vector>
+#include <QObject>
 
-class KhRegularSong
-{
+class KhRegularSong : public QObject {
+    Q_OBJECT
 public:
-    KhRegularSong();
-
+    explicit KhRegularSong(QObject *parent = 0);
     int getRegSongIndex() const;
     void setRegSongIndex(int value);
     int getRegSingerIndex() const;
@@ -48,21 +46,19 @@ private:
     int position;
 };
 
-typedef std::vector<boost::shared_ptr<KhRegularSong> > KhRegularSongsVector;
+class KhRegularSongs : public QObject {
+    Q_OBJECT
 
-class KhRegularSongs
-{
 public:
-    KhRegularSongs(int regSingerID);
+    explicit KhRegularSongs(int regSingerID, QObject *parent = 0);
     void deleteSongByIndex(int index);
-    boost::shared_ptr<KhRegularSongsVector> getRegSongs();
-private:
+    QList<KhRegularSong*> *getRegSongs();
 
-    boost::shared_ptr<KhRegularSongsVector> regSongs;
+private:
+    QList<KhRegularSong*> *regSongs;
     int regSingerIndex;
     void loadFromDB();
-    boost::shared_ptr<KhRegularSong> getSongByIndex(int index);
-
+    KhRegularSong *getSongByIndex(int index);
 };
 
 #endif // KHREGULARSONG_H

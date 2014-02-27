@@ -29,8 +29,7 @@ KhRegularSinger::KhRegularSinger(QObject *parent) :
 {
     regindex = -1;
     name = "Empty KhRegularSinger";
-    boost::shared_ptr<KhRegularSongs> sng_ptr(new KhRegularSongs(-1));
-    regSongs.swap(sng_ptr);
+    regSongs = new KhRegularSongs(-1, this);
 }
 
 KhRegularSinger::KhRegularSinger(QString singerName, QObject *parent)
@@ -40,8 +39,7 @@ KhRegularSinger::KhRegularSinger(QString singerName, QObject *parent)
     query.exec("INSERT INTO regularsingers (name) VALUES(\"" + singerName + "\")");
     regindex = query.lastInsertId().toInt();
     name = singerName;
-    boost::shared_ptr<KhRegularSongs> sng_ptr(new KhRegularSongs(regindex));
-    regSongs.swap(sng_ptr);
+    regSongs = new KhRegularSongs(regindex, this);
 }
 
 KhRegularSinger::KhRegularSinger(QString singerName, int singerID, QObject *parent)
@@ -49,8 +47,7 @@ KhRegularSinger::KhRegularSinger(QString singerName, int singerID, QObject *pare
     Q_UNUSED(parent);
     regindex = singerID;
     name = singerName;
-    boost::shared_ptr<KhRegularSongs> sng_ptr(new KhRegularSongs(regindex));
-    regSongs.swap(sng_ptr);
+    regSongs = new KhRegularSongs(regindex, this);
 }
 
 
@@ -78,7 +75,7 @@ QList<KhRegularSinger *> *KhRegularSingers::getRegularSingers()
 
 KhRegularSinger *KhRegularSingers::getByIndex(int regIndex)
 {
-    for (unsigned int i=0; i < regularSingers->size(); i++)
+    for (int i=0; i < regularSingers->size(); i++)
     {
         if (regularSingers->at(i)->getIndex() == regIndex)
             return regularSingers->at(i);
@@ -88,7 +85,7 @@ KhRegularSinger *KhRegularSingers::getByIndex(int regIndex)
 
 KhRegularSinger *KhRegularSingers::getByName(QString regName)
 {
-    for (unsigned int i=0; i < regularSingers->size(); i++)
+    for (int i=0; i < regularSingers->size(); i++)
     {
         if (regularSingers->at(i)->getName() == regName)
             return regularSingers->at(i);
@@ -98,7 +95,7 @@ KhRegularSinger *KhRegularSingers::getByName(QString regName)
 
 bool KhRegularSingers::exists(QString searchName)
 {
-    for (unsigned int i=0; i < regularSingers->size(); i++)
+    for (int i=0; i < regularSingers->size(); i++)
     {
         if (regularSingers->at(i)->getName() == searchName)
             return true;
@@ -149,11 +146,10 @@ int KhRegularSinger::getIndex() const
 void KhRegularSinger::setIndex(int value)
 {
     regindex = value;
-    boost::shared_ptr<KhRegularSongs> tmp_ptr(new KhRegularSongs(regindex));
-    regSongs.swap(tmp_ptr);
+    regSongs = new KhRegularSongs(regindex);
 }
 
-boost::shared_ptr<KhRegularSongs> KhRegularSinger::getRegSongs() const
+KhRegularSongs *KhRegularSinger::getRegSongs() const
 {
     return regSongs;
 }
@@ -170,7 +166,7 @@ int KhRegularSinger::addSong(int songIndex, int keyChange, int position)
     QString sql = "INSERT INTO regularsongs (singer, song, keychg, position) VALUES(" + QString::number(regindex) + "," + QString::number(songIndex) + "," + QString::number(keyChange) + "," + QString::number(position) + ")";
     qDebug() << "Doing sql: " << sql;
     query.exec(sql);
-    boost::shared_ptr<KhRegularSong> song(new KhRegularSong);
+    KhRegularSong *song = new KhRegularSong;
     song->setRegSongIndex(query.lastInsertId().toInt());
     song->setRegSingerIndex(regindex);
     song->setSongIndex(songIndex);
@@ -180,14 +176,14 @@ int KhRegularSinger::addSong(int songIndex, int keyChange, int position)
     return query.lastInsertId().toInt();
 }
 
-boost::shared_ptr<KhRegularSong> KhRegularSinger::getSongByIndex(int index)
+KhRegularSong *KhRegularSinger::getSongByIndex(int index)
 {
-    for (unsigned int i=0; i < regSongs->getRegSongs()->size(); i++)
+    for (int i=0; i < regSongs->getRegSongs()->size(); i++)
     {
         if (regSongs->getRegSongs()->at(i)->getRegSongIndex() == index)
             return regSongs->getRegSongs()->at(i);
     }
-    return boost::shared_ptr<KhRegularSong>(new KhRegularSong());
+    return new KhRegularSong();
 }
 
 int KhRegularSinger::songsSize()
