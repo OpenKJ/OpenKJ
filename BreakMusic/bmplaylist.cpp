@@ -351,7 +351,7 @@ BmPlaylistSong *BmPlaylist::getSongByPosition(unsigned int position)
         if (songs->at(i)->position() == position)
             return songs->at(i);
     }
-    return NULL;
+    return new BmPlaylistSong(this);
 }
 
 
