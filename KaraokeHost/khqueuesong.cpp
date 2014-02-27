@@ -44,7 +44,8 @@ void KhQueueSong::setSourceFile(const QString &value)
     sourceFile = value;
 }
 
-KhQueueSong::KhQueueSong(boost::shared_ptr<KhRegularSingers> regSingers)
+KhQueueSong::KhQueueSong(KhRegularSingers *regSingers, QObject *parent) :
+    QObject(parent)
 {
     regularSingers = regSingers;
 }
@@ -173,13 +174,12 @@ void KhQueueSong::setIndex(int value)
 }
 
 
-KhQueueSongs::KhQueueSongs(int singerID, boost::shared_ptr<KhRegularSingers> regSingers, int regSingerID, QObject *parent) :
+KhQueueSongs::KhQueueSongs(int singerID, KhRegularSingers *regSingers, int regSingerID, QObject *parent) :
     QObject(parent)
 {
     singerIndex = singerID;
     regSingerIndex = regSingerID;
-    boost::shared_ptr<KhQueueSongsVector> tmp_ptr(new KhQueueSongsVector);
-    songs.swap(tmp_ptr);
+    songs = new QList<KhQueueSong *>;
     regularSingers = regSingers;
     loadFromDB();
 }
@@ -231,32 +231,32 @@ void KhQueueSong::setRegSong(bool value, bool skipDB)
     }
 }
 
-boost::shared_ptr<KhQueueSongsVector> KhQueueSongs::getSongs()
+QList<KhQueueSong *> *KhQueueSongs::getSongs()
 {
     return songs;
 }
 
-boost::shared_ptr<KhQueueSong> KhQueueSongs::getSongByIndex(int index)
+KhQueueSong *KhQueueSongs::getSongByIndex(int index)
 {
     for (unsigned int i=0; i < songs->size(); i++)
     {
         if (songs->at(i)->getIndex() == index)
             return songs->at(i);
     }
-    return boost::shared_ptr<KhQueueSong>(new KhQueueSong(regularSingers));
+    return new KhQueueSong(regularSingers);
 }
 
-boost::shared_ptr<KhQueueSong> KhQueueSongs::getSongByPosition(int position)
+KhQueueSong *KhQueueSongs::getSongByPosition(int position)
 {
     for (unsigned int i=0; i < songs->size(); i++)
     {
         if (songs->at(i)->getPosition() == position)
             return songs->at(i);
     }
-    return boost::shared_ptr<KhQueueSong>(new KhQueueSong(regularSingers));
+    return new KhQueueSong(regularSingers);
 }
 
-boost::shared_ptr<KhQueueSong> KhQueueSongs::getNextSong()
+KhQueueSong *KhQueueSongs::getNextSong()
 {
     for (unsigned int i=0; i < songs->size(); i++)
     {
@@ -265,7 +265,7 @@ boost::shared_ptr<KhQueueSong> KhQueueSongs::getNextSong()
             return songs->at(i);
         }
     }
-    return boost::shared_ptr<KhQueueSong>(new KhQueueSong(regularSingers));
+    return new KhQueueSong(regularSingers);
 }
 
 int KhQueueSongs::getSingerIndex() const
@@ -297,7 +297,7 @@ void KhQueueSongs::loadFromDB()
     int regsong = query.record().indexOf("regsong");
     int regsongid = query.record().indexOf("regsongid");
     while (query.next()) {
-        boost::shared_ptr<KhQueueSong> song(new KhQueueSong(regularSingers));
+        KhQueueSong *song = new KhQueueSong(regularSingers);
         song->setIndex(query.value(queuesongid).toInt());
         song->setSingerID(query.value(singer).toInt(), true);
         song->setSongID(query.value(songid).toInt(), true);
@@ -319,7 +319,7 @@ void KhQueueSongs::loadFromDB()
 
 int KhQueueSongs::addSongAtEnd(int songid, bool regularSong, int regSongID)
 {
-    boost::shared_ptr<KhQueueSong> song(new KhQueueSong(regularSingers));
+    KhQueueSong *song = new KhQueueSong(regularSingers);
     song->setSongID(songid,true);
     song->setSingerID(singerIndex,true);
     song->setPlayed(false,true);
@@ -332,7 +332,7 @@ int KhQueueSongs::addSongAtEnd(int songid, bool regularSong, int regSongID)
 
 int KhQueueSongs::addSongAtPosition(int songid, int position, bool regularSong, int regSongID)
 {
-    boost::shared_ptr<KhQueueSong> song(new KhQueueSong(regularSingers));
+    KhQueueSong *song = new KhQueueSong(regularSingers);
     song->setSongID(songid,true);
     song->setSingerID(singerIndex,true);
     song->setPlayed(false,true);
@@ -345,7 +345,7 @@ int KhQueueSongs::addSongAtPosition(int songid, int position, bool regularSong, 
 
 void KhQueueSongs::deleteSongByIndex(int index)
 {
-    boost::shared_ptr<KhQueueSong> song = getSongByIndex(index);
+    KhQueueSong *song = getSongByIndex(index);
     qDebug() << "KhQueueSongs::deleteSongByIndex(int " << index << ")";
     qDebug() << "Deleting song at position: " << song->getPosition();
     QSqlQuery query;
@@ -365,49 +365,49 @@ void KhQueueSongs::deleteSongByPosition(int position)
     deleteSongByIndex(getSongByPosition(position)->getIndex());
 }
 
-bool sortByPositionCallback(boost::shared_ptr<KhQueueSong> song1, boost::shared_ptr<KhQueueSong> song2)
+bool sortByPositionCallback(KhQueueSong *song1, KhQueueSong *song2)
 {
     if (song1->getPosition() < song2->getPosition())
         return true;
     return false;
 }
 
-bool sortByArtistCallback(boost::shared_ptr<KhQueueSong> song1, boost::shared_ptr<KhQueueSong> song2)
+bool sortByArtistCallback(KhQueueSong *song1, KhQueueSong *song2)
 {
     if (song1->getArtist().toLower() < song2->getArtist().toLower())
         return true;
     return false;
 }
 
-bool sortByArtistReverseCallback(boost::shared_ptr<KhQueueSong> song1, boost::shared_ptr<KhQueueSong> song2)
+bool sortByArtistReverseCallback(KhQueueSong *song1, KhQueueSong *song2)
 {
     if (song1->getArtist().toLower() > song2->getArtist().toLower())
         return true;
     return false;
 }
 
-bool sortByTitleCallback(boost::shared_ptr<KhQueueSong> song1, boost::shared_ptr<KhQueueSong> song2)
+bool sortByTitleCallback(KhQueueSong *song1, KhQueueSong *song2)
 {
     if (song1->getTitle().toLower() < song2->getTitle().toLower())
         return true;
     return false;
 }
 
-bool sortByTitleReverseCallback(boost::shared_ptr<KhQueueSong> song1, boost::shared_ptr<KhQueueSong> song2)
+bool sortByTitleReverseCallback(KhQueueSong *song1, KhQueueSong *song2)
 {
     if (song1->getTitle().toLower() > song2->getTitle().toLower())
         return true;
     return false;
 }
 
-bool sortByDiscIDCallback(boost::shared_ptr<KhQueueSong> song1, boost::shared_ptr<KhQueueSong> song2)
+bool sortByDiscIDCallback(KhQueueSong *song1, KhQueueSong *song2)
 {
     if (song1->getDiscID().toLower() < song2->getDiscID().toLower())
         return true;
     return false;
 }
 
-bool sortByDiscIDReverseCallback(boost::shared_ptr<KhQueueSong> song1, boost::shared_ptr<KhQueueSong> song2)
+bool sortByDiscIDReverseCallback(KhQueueSong *song1, KhQueueSong *song2)
 {
     if (song1->getDiscID().toLower() > song2->getDiscID().toLower())
         return true;
@@ -456,7 +456,7 @@ void KhQueueSongs::sortByDiscID(bool reverse)
 }
 
 
-int KhQueueSongs::addSong(boost::shared_ptr<KhQueueSong> song)
+int KhQueueSongs::addSong(KhQueueSong *song)
 {
     QSqlQuery query;
     QString positionStr;
@@ -504,7 +504,7 @@ void KhQueueSongs::clear()
 bool KhQueueSongs::moveSong(int oldPosition, int newPosition)
 {
     QSqlQuery query;
-    boost::shared_ptr<KhQueueSong> movingSong = getSongByPosition(oldPosition);
+    KhQueueSong *movingSong = getSongByPosition(oldPosition);
     query.exec("BEGIN TRANSACTION");
     if (newPosition > oldPosition)
     {

@@ -24,21 +24,18 @@
 #include <iostream>
 #include <QTemporaryDir>
 #include <QDir>
-//#include <khaudiobackendqmediaplayer.h>
 #ifdef USE_FMOD
 #include <khaudiobackendfmod.h>
 #else
 #include <khaudiobackendqmediaplayer.h>
 #endif
 #include <khzip.h>
-//#include "../Cdg2/cdg2.h"
 #include <QDesktopWidget>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    //    audioBackend = new KhAudioBackendQMediaPlayer(this);
     ui->setupUi(this);
     khDir = new QDir(QDir::homePath() + QDir::separator() + ".KaraokeHost");
     qDebug() << "Program data directory: " << khDir->absolutePath();
@@ -246,7 +243,7 @@ void MainWindow::on_treeViewRotation_activated(const QModelIndex &index)
 
     singers->setCurrentSingerPosition(index.row() + 1);
     audioBackend->stop();
-    boost::shared_ptr<KhQueueSong> qsong = singers->getSelected()->getNextSong();
+    KhQueueSong *qsong = singers->getSelected()->getNextSong();
     KhSong *song = songdbmodel->getSongByID(qsong->getSongID());
     songCurrent = song;
     delete khTmpDir;
@@ -276,7 +273,7 @@ void MainWindow::on_treeViewRotation_clicked(const QModelIndex &index)
     }
     else if (index.column() == 5)
     {
-        boost::shared_ptr<KhSinger> singer = singers->getSingerByPosition(index.row() + 1);
+        KhSinger *singer = singers->getSingerByPosition(index.row() + 1);
         if (!singer->isRegular())
         {
             if (regularSingers->exists(singer->getSingerName()))
@@ -352,7 +349,7 @@ void MainWindow::on_treeViewQueue_activated(const QModelIndex &index)
 {
 
     audioBackend->stop();
-    boost::shared_ptr<KhQueueSong> queuesong = singers->getSelected()->getSongByPosition(index.row());
+    KhQueueSong *queuesong = singers->getSelected()->getSongByPosition(index.row());
     KhSong *song = new KhSong();
     song->Artist = queuesong->getArtist();
     song->Title = queuesong->getTitle();

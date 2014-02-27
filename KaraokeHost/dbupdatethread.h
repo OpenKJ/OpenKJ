@@ -22,7 +22,6 @@
 #define DBUPDATETHREAD_H
 
 #include <QThread>
-#include <boost/shared_ptr.hpp>
 #include <QStringList>
 
 class DbUpdateThread : public QThread
@@ -38,7 +37,7 @@ public:
     int getPattern() const;
     void setPattern(int value);
 
-    boost::shared_ptr<QStringList> findKaraokeFiles(QString directory);
+    QStringList *findKaraokeFiles(QString directory);
 signals:
     void threadFinished();
     

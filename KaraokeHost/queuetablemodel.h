@@ -26,7 +26,6 @@
 #include <QAbstractTableModel>
 #include <QSqlDatabase>
 #include <QMimeData>
-#include <boost/shared_ptr.hpp>
 #include "khqueuesong.h"
 #include "khsinger.h"
 

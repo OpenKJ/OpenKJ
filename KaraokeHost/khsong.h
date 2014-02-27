@@ -23,8 +23,6 @@
 
 #include <QObject>
 #include <QString>
-#include <boost/shared_ptr.hpp>
-#include <vector>
 
 class KhSong : public QObject
 {

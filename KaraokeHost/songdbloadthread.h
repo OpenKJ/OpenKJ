@@ -22,16 +22,14 @@
 #define SONGDBLOADTHREAD_H
 
 #include <QThread>
-#include <boost/shared_ptr.hpp>
 #include "khsong.h"
 
 class SongDBLoadThread : public QThread
 {
     Q_OBJECT
 public:
-    explicit SongDBLoadThread(KhSongs *songsVectorPointer, QObject *parent = 0);
+    explicit SongDBLoadThread(KhSongs *songsPointer, QObject *parent = 0);
     void run();
-//    void setSharedPointer(boost::shared_ptr<)
 
 signals:
     

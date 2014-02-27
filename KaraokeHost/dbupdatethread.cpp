@@ -45,9 +45,9 @@ QString DbUpdateThread::getPath() const
     return path;
 }
 
-boost::shared_ptr<QStringList> DbUpdateThread::findKaraokeFiles(QString directory)
+QStringList *DbUpdateThread::findKaraokeFiles(QString directory)
 {
-    boost::shared_ptr<QStringList> files(new QStringList());
+    QStringList *files = new QStringList();
     QDir dir(directory);
     QDirIterator iterator(dir.absolutePath(), QDirIterator::Subdirectories);
     while (iterator.hasNext()) {
@@ -68,7 +68,7 @@ void DbUpdateThread::setPath(const QString &value)
 
 void DbUpdateThread::run()
 {
-    boost::shared_ptr<QStringList> files = findKaraokeFiles(path);
+    QStringList *files = findKaraokeFiles(path);
     QSqlQuery query("BEGIN TRANSACTION");
     for (int i=0; i < files->size(); i++)
     {
@@ -113,4 +113,5 @@ void DbUpdateThread::run()
         query.exec(sql);
     }
     query.exec("COMMIT TRANSACTION");
+    delete files;
 }

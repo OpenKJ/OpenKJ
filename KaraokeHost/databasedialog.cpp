@@ -32,7 +32,6 @@ DatabaseDialog::DatabaseDialog(QWidget *parent) :
     ui(new Ui::DatabaseDialog)
 {
     ui->setupUi(this);
-    //boost::shared_ptr<SourceDirTableModel> tmp_ptr(new SourceDirTableModel);
     sourcedirmodel = new SourceDirTableModel();
     sourcedirmodel->loadFromDB();
     ui->treeViewFolders->setModel(sourcedirmodel);

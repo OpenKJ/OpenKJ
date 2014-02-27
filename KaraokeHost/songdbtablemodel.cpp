@@ -209,9 +209,6 @@ void SongDBTableModel::addSong(KhSong *song)
     if(std::find(fulldata->begin(),fulldata->end(),song) != fulldata->end())
         return;
     beginInsertRows(QModelIndex(),fulldata->size(),fulldata->size());
-    /*BOOST_SCOPE_EXIT(this_){
-        this_->endInsertRows();
-    }BOOST_SCOPE_EXIT_END*/
     fulldata->push_back(song);
     endInsertRows();
 }
@@ -219,12 +216,6 @@ void SongDBTableModel::addSong(KhSong *song)
 void SongDBTableModel::removeSong(int row)
 {
     UNUSED(row);
-//    beginRemoveRows(QModelIndex(),row,row);
-//    /*BOOST_SCOPE_EXIT(this_){
-//        this_->endRemoveRows();
-//    }BOOST_SCOPE_EXIT_END//*/
-//    mydata.erase(std::next(mydata.begin(),row));
-//    endRemoveRows();
 }
 
 int SongDBTableModel::rowCount(const QModelIndex &parent) const
@@ -252,13 +243,14 @@ void SongDBTableModel::sort(int column, Qt::SortOrder order = Qt::AscendingOrder
     qDebug() << "Table tried to call sort. Column:" << column << " Order:" << order;
     this->layoutAboutToBeChanged();
 //    std::sort(mydata->begin(),mydata->end(),songsort);
-    boost::scoped_ptr<DBSortThread> sortThread(new DBSortThread());
+    DBSortThread *sortThread = new DBSortThread();
     sortThread->mydata = filteredData;
     sortThread->start();
     while(!sortThread->isFinished()) QCoreApplication::processEvents();
     this->layoutChanged();
     qDebug() << "Sort completed";
     // std::sort(begin(),end(),songsort);
+    delete sortThread;
 }
 
 QMimeData *SongDBTableModel::mimeData(const QModelIndexList &indexes) const
@@ -280,7 +272,7 @@ void SongDBTableModel::loadFromDB()
     qDebug() << "Loading songDB";
     layoutAboutToBeChanged();
     filteredData->clear();
-    boost::scoped_ptr<SongDBLoadThread> thread(new SongDBLoadThread(fulldata, this));
+    SongDBLoadThread *thread = new SongDBLoadThread(fulldata, this);
     thread->start();
     while (!thread->isFinished())
     {
@@ -289,6 +281,7 @@ void SongDBTableModel::loadFromDB()
     }
     layoutChanged();
     qDebug() << "Songdb Loaded";
+    delete thread;
 }
 
 KhSong *SongDBTableModel::getRowSong(int row)

@@ -23,15 +23,13 @@
 
 #include <QString>
 #include <QObject>
-#include <boost/shared_ptr.hpp>
-#include <vector>
 #include "khqueuesong.h"
 #include "khregularsinger.h"
 
 class KhSinger : public QObject {
     Q_OBJECT
 public:
-    explicit KhSinger(boost::shared_ptr<KhRegularSingers> regSingers, QObject *parent = 0);
+    explicit KhSinger(KhRegularSingers *regSingers, QObject *parent = 0);
 
     int getSingerIndex() const;
     void setSingerIndex(int value);
@@ -48,13 +46,13 @@ public:
     int getRegularIndex() const;
     void setRegularIndex(int value, bool skipDB = false);
 
-    boost::shared_ptr<KhQueueSongsVector> getQueueSongs();
-    boost::shared_ptr<KhQueueSongs> getQueueObject();
-    boost::shared_ptr<KhQueueSong> getSongByIndex(int queueSongID);
-    boost::shared_ptr<KhQueueSong> getSongByPosition(int position);
-    boost::shared_ptr<KhQueueSong> getNextSong();
+    QList<KhQueueSong *> *getQueueSongs();
+    KhQueueSongs *getQueueObject();
+    KhQueueSong *getSongByIndex(int queueSongID);
+    KhQueueSong *getSongByPosition(int position);
+    KhQueueSong *getNextSong();
     bool hasUnplayedSongs();
-    int addSong(boost::shared_ptr<KhQueueSong> song);
+    int addSong(KhQueueSong *song);
     int addSongAtEnd(int songid, bool regularSong = false, int regSongID = -1);
     int addSongAtPosition(int songid, int position, bool regularSong = false, int regSongID = -1);
     void clearQueue();
@@ -67,9 +65,8 @@ private:
     int singerPosition;
     bool regular;
     int regularIndex;
-    KhQueueSongsVector queue;
-    boost::shared_ptr<KhQueueSongs> songs;
-    boost::shared_ptr<KhRegularSingers> regularSingers;
+    KhQueueSongs *songs;
+    KhRegularSingers *regularSingers;
 
 signals:
 
@@ -77,18 +74,15 @@ public slots:
 
 };
 
-typedef std::vector<boost::shared_ptr<KhSinger> > KhRotationData;
-
-
 class KhRotationSingers : public QObject {
     Q_OBJECT
 public:
     explicit KhRotationSingers(QObject *parent = 0);
     void loadFromDB();
-    boost::shared_ptr<KhRotationData> getSingers();
+    QList<KhSinger *> *getSingers();
     bool moveSinger(int oldPosition, int newPosition);
-    boost::shared_ptr<KhSinger> getSingerByPosition(int position) const;
-    boost::shared_ptr<KhSinger> getSingerByIndex(int singerid);
+    KhSinger *getSingerByPosition(int position) const;
+    KhSinger *getSingerByIndex(int singerid);
     int getCurrentSingerPosition() const;
     void setCurrentSingerPosition(int value);
     bool singerAdd(QString name, int position = -1, bool regular = false);
@@ -97,8 +91,8 @@ public:
     void deleteSingerByIndex(int singerid);
     void deleteSingerByPosition(int position);
     void clear();
-    boost::shared_ptr<KhSinger> getCurrent();
-    boost::shared_ptr<KhSinger> getSelected();
+    KhSinger *getCurrent();
+    KhSinger *getSelected();
 
     int getCurrentSingerIndex() const;
     void setCurrentSingerIndex(int value);
@@ -109,8 +103,8 @@ public:
     void createRegularForSinger(int singerID);
 
 private:
-    boost::shared_ptr<KhRotationData> singers;
-    boost::shared_ptr<KhRegularSingers> regularSingers;
+    QList<KhSinger *> *singers;
+    KhRegularSingers *regularSingers;
     int currentSingerPosition;
     int currentSingerIndex;
     int selectedSingerPosition;

@@ -24,10 +24,10 @@
 #include <QSqlRecord>
 #include <QDebug>
 
-SongDBLoadThread::SongDBLoadThread(KhSongs *songsptr, QObject *parent):
+SongDBLoadThread::SongDBLoadThread(KhSongs *songsPointer, QObject *parent):
     QThread(parent)
 {
-    songs = songsptr;
+    songs = songsPointer;
 }
 
 void SongDBLoadThread::run()

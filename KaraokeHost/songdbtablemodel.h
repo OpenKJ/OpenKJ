@@ -25,9 +25,6 @@
 #include <QtSql>
 #include <algorithm>
 #include <QThread>
-#include <boost/shared_ptr.hpp>
-#include <boost/weak_ptr.hpp>
-#include <boost/scoped_ptr.hpp>
 #include "khsong.h"
 
 
@@ -46,7 +43,6 @@ class SongDBTableModel : public QAbstractTableModel
     KhSongs *fulldata;
     KhSongs *filteredData;
 public:
-    typedef std::vector<boost::shared_ptr<KhSong> >::const_iterator const_iterator;
     explicit SongDBTableModel(QObject *parent = 0);
     enum {ARTIST=0,TITLE,DISCID,DURATION,MAX_COLS};
     int rowCount(const QModelIndex &parent) const;
@@ -61,9 +57,6 @@ public:
     void loadFromDB();
     bool setData(const QModelIndex &index, const QVariant &value, int role);
     Qt::ItemFlags flags(const QModelIndex &index) const;
-//    KSPDBSong& getSong(size_t index);
-//    const_iterator begin()const{return filteredData->begin();}
-//    const_iterator end()const{return filteredData->end();}
     QString filter;
     int lastSortCol;
     Qt::SortOrder lastSortOrder;

@@ -23,7 +23,6 @@
 
 #include <QAbstractTableModel>
 #include <QMimeData>
-#include <boost/shared_ptr.hpp>
 #include "khsinger.h"
 
 class RotationTableModel : public QAbstractTableModel

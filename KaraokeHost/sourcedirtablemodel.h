@@ -23,7 +23,6 @@
 
 #include <QAbstractTableModel>
 #include <QSqlDatabase>
-#include <boost/shared_ptr.hpp>
 
 class SourceDir
 {
@@ -45,21 +44,16 @@ private:
     int pattern;
 };
 
-typedef std::vector<boost::shared_ptr<SourceDir> > SourceDirs;
-
 class SourceDirTableModel : public QAbstractTableModel
 {
     Q_OBJECT
 public:
     explicit SourceDirTableModel(QObject *parent = 0);
-    typedef SourceDirs::const_iterator const_iterator;
     enum {PATH=0,PATTERN};
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
-    const_iterator begin()const{return mydata->begin();}
-    const_iterator end()const{return mydata->end();}
     Qt::ItemFlags flags(const QModelIndex &index) const;
     void addSourceDir(QString dirpath, int pattern);
     void delSourceDir(int index);
@@ -70,11 +64,11 @@ public:
     QSqlDatabase *getDBObject() const;
     void setDBObject(QSqlDatabase *value);
     void clear();
-    boost::shared_ptr<SourceDir> getDirByIndex(int index);
+    SourceDir *getDirByIndex(int index);
 
 private:
-    boost::shared_ptr<SourceDirs> mydata;
-    void addSourceDir(boost::shared_ptr<SourceDir> dir);
+    QList<SourceDir *> *mydata;
+    void addSourceDir(SourceDir *dir);
     
 signals:
     

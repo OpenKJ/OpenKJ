@@ -22,13 +22,11 @@
 #define QUEUESONG_H
 
 #include <QString>
-#include <boost/shared_ptr.hpp>
-#include <vector>
 #include <QObject>
 #include "khregularsinger.h"
 
-class KhQueueSong
-{
+class KhQueueSong : public QObject {
+    Q_OBJECT
 private:
     int index;
     int singerID;
@@ -47,10 +45,10 @@ private:
     void setTitle(const QString &value);
     void setDiscID(const QString &value);
     void setSourceFile(const QString &value);
-    boost::shared_ptr<KhRegularSingers> regularSingers;
+    KhRegularSingers *regularSingers;
 
 public:
-    KhQueueSong(boost::shared_ptr<KhRegularSingers> regSingers);
+    explicit KhQueueSong(KhRegularSingers *regSingers, QObject *parent=0);
     int getIndex() const;
     void setIndex(int value);
     int getSingerID() const;
@@ -75,18 +73,16 @@ public:
     void setRegSingerIndex(int value, bool skipDB = false);
 };
 
-typedef std::vector<boost::shared_ptr<KhQueueSong> > KhQueueSongsVector;
-
 class KhQueueSongs : public QObject {
     Q_OBJECT
 public:
-    explicit KhQueueSongs(int singerID, boost::shared_ptr<KhRegularSingers> regSingers, int regSingerID = -1 ,QObject *parent = 0);
-    boost::shared_ptr<KhQueueSongsVector> getSongs();
-    boost::shared_ptr<KhQueueSong> getSongByIndex(int index);
-    boost::shared_ptr<KhQueueSong> getSongByPosition(int position);
-    boost::shared_ptr<KhQueueSong> getNextSong();
+    explicit KhQueueSongs(int singerID, KhRegularSingers *regSingers, int regSingerID = -1 , QObject *parent = 0);
+    QList<KhQueueSong *> *getSongs();
+    KhQueueSong *getSongByIndex(int index);
+    KhQueueSong *getSongByPosition(int position);
+    KhQueueSong *getNextSong();
     bool songExists(int songIndex);
-    int addSong(boost::shared_ptr<KhQueueSong> song);
+    int addSong(KhQueueSong *song);
     int addSongAtEnd(int songid, bool regularSong = false, int regSongID = -1);
     int addSongAtPosition(int songid, int position, bool regularSong = false, int regSongID = -1);
     void deleteSongByIndex(int index);
@@ -104,8 +100,8 @@ public:
     void setRegSingerIndex(int value);
 
 private:
-    boost::shared_ptr<KhQueueSongsVector> songs;
-    boost::shared_ptr<KhRegularSingers> regularSingers;
+    QList<KhQueueSong *> *songs;
+    KhRegularSingers *regularSingers;
     void loadFromDB();
     int singerIndex;
     int regSingerIndex;

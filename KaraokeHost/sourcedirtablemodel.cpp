@@ -28,8 +28,7 @@
 SourceDirTableModel::SourceDirTableModel(QObject *parent) :
     QAbstractTableModel(parent)
 {
-    boost::shared_ptr<SourceDirs> tmp_ptr(new SourceDirs());
-    mydata.swap(tmp_ptr);
+    mydata = new QList<SourceDir *>;
 }
 
 int SourceDirTableModel::rowCount(const QModelIndex &parent) const
@@ -113,7 +112,7 @@ void SourceDirTableModel::loadFromDB()
     int path = query.record().indexOf("path");
     int pattern = query.record().indexOf("pattern");
     while (query.next()) {
-        boost::shared_ptr<SourceDir> dir(new SourceDir());
+        SourceDir *dir = new SourceDir();
         dir->setIndex(query.value(sourcedirid).toInt());
         dir->setPath(query.value(path).toString());
         dir->setPattern(query.value(pattern).toInt());
@@ -152,14 +151,11 @@ void SourceDir::setPattern(int value)
 }
 
 
-void SourceDirTableModel::addSourceDir(boost::shared_ptr<SourceDir> dir)
+void SourceDirTableModel::addSourceDir(SourceDir *dir)
 {
     if(std::find(mydata->begin(),mydata->end(),dir) != mydata->end())
         return;
     beginInsertRows(QModelIndex(),mydata->size(),mydata->size());
-    /*BOOST_SCOPE_EXIT(this_){
-        this_->endInsertRows();
-    }BOOST_SCOPE_EXIT_END*/
     mydata->push_back(dir);
     endInsertRows();
 }
@@ -189,7 +185,7 @@ int SourceDirTableModel::size()
 }
 
 
-boost::shared_ptr<SourceDir> SourceDirTableModel::getDirByIndex(int index)
+SourceDir *SourceDirTableModel::getDirByIndex(int index)
 {
     return mydata->at(index);
 }
