@@ -65,6 +65,7 @@ Things that are still work in progress or to do:
 KaraokeHost:
 
 * Regular singer management (load/export/import/etc)
+* Scrolling rotaiton ticker on the bottom of the CDG window
 * Setting key changes on queued songs
 * Convert main program CDG display to OpenGL rendering like the CDG window
 * Automatically adapting the models/views to contents and window size
