@@ -156,8 +156,10 @@ KhRotationSingers::~KhRotationSingers()
 
 void KhRotationSingers::loadFromDB()
 {
+    qDeleteAll(singers->begin(),singers->end());
     singers->clear();
-    QSqlQuery query("SELECT ROWID,name,position,regular,regularid FROM rotationSingers");
+    QSqlQuery query;
+    query.exec("SELECT ROWID,name,position,regular,regularid FROM rotationSingers");
     int rotationsingerid = query.record().indexOf("ROWID");
     int name = query.record().indexOf("name");
     int position  = query.record().indexOf("position");

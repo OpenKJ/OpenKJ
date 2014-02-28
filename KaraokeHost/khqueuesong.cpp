@@ -177,6 +177,7 @@ void KhQueueSong::setIndex(int value)
 KhQueueSongs::KhQueueSongs(int singerID, KhRegularSingers *regSingers, int regSingerID, QObject *parent) :
     QObject(parent)
 {
+    singerIndex = 0;
     singerIndex = singerID;
     regSingerIndex = regSingerID;
     songs = new QList<KhQueueSong *>;
@@ -287,19 +288,17 @@ void KhQueueSongs::setSingerIndex(int value)
 
 void KhQueueSongs::loadFromDB()
 {
+    qDeleteAll(songs->begin(),songs->end());
     songs->clear();
-    //    QSqlQuery query("SELECT queueSongs.ROWID,queueSongs.singer,queueSongs.song,queueSongs.keychg,queueSongs.played,queueSongs.position,dbSongs.artist,dbSongs.title,dbSongs.discid,dbSongs.path FROM queueSongs,dbSongs WHERE queueSongs.singer=" + QString::number(singerIndex) + " AND dbSongs.'dbsongid' == queueSongs.song ORDER BY song");
-    QSqlQuery query("SELECT ROWID,singer,song,keychg,played,position,regsong,regsongid FROM queuesongs WHERE singer == " + QString::number(singerIndex));
+    QSqlQuery query;
+    QString singerIdx = QString::number(singerIndex);
+    query.exec("SELECT ROWID,singer,song,keychg,played,position,regsong,regsongid FROM queuesongs WHERE singer == " + singerIdx);
     int queuesongid = query.record().indexOf("ROWID");
     int singer = query.record().indexOf("singer");
     int songid = query.record().indexOf("song");
     int keychg = query.record().indexOf("keychg");
     int played = query.record().indexOf("played");
     int position = query.record().indexOf("position");
-    //    int artist = query.record().indexOf("artist");
-    //    int title = query.record().indexOf("title");
-    //    int discid = query.record().indexOf("discid");
-    //    int path = query.record().indexOf("path");
     int regsong = query.record().indexOf("regsong");
     int regsongid = query.record().indexOf("regsongid");
     while (query.next()) {
@@ -310,13 +309,8 @@ void KhQueueSongs::loadFromDB()
         song->setKeyChange(query.value(keychg).toInt(), true);
         song->setPlayed(query.value(played).toBool(), true);
         song->setPosition(query.value(position).toInt(), true);
-        //        song->setArtist(query.value(artist).toString());
-        //        song->setTitle(query.value(title).toString());
-        //        song->setDiscID(query.value(discid).toString());
-        //        song->setSourceFile(query.value(path).toString());
         song->setRegSong(query.value(regsong).toBool(), true);
         song->setRegSongIndex(query.value(regsongid).toInt(), true);
-        qDebug() << "Song in rotation: Idx:" << song->getIndex() << " Pos:" << song->getPosition() << " - " << song->getArtist() << " - " << song->getTitle() << " - " << song->getDiscID();
         songs->push_back(song);
     }
     sort();
