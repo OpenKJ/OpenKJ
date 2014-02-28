@@ -147,6 +147,13 @@ KhRotationSingers::KhRotationSingers(QObject *parent) :
     currentSingerPosition = -1;
 }
 
+KhRotationSingers::~KhRotationSingers()
+{
+    qDeleteAll(singers->begin(),singers->end());
+    delete singers;
+    delete regularSingers;
+}
+
 void KhRotationSingers::loadFromDB()
 {
     singers->clear();
@@ -157,12 +164,12 @@ void KhRotationSingers::loadFromDB()
     int regular = query.record().indexOf("regular");
     int regularindex = query.record().indexOf("regularid");
     while (query.next()) {
-        KhSinger *singer = new KhSinger(regularSingers, this);
+        KhSinger *singer = new KhSinger(regularSingers);
         singer->setSingerIndex(query.value(rotationsingerid).toInt());
-        singer->setSingerName(query.value(name).toString(),true);
-        singer->setSingerPosition(query.value(position).toInt(),true);
         singer->setRegular(query.value(regular).toBool(),true);
         singer->setRegularIndex(query.value(regularindex).toInt());
+        singer->setSingerName(query.value(name).toString(),true);
+        singer->setSingerPosition(query.value(position).toInt(),true);
         singers->push_back(singer);
     }
     sortSingers();
@@ -218,7 +225,7 @@ KhSinger *KhRotationSingers::getSingerByPosition(int position) const
             return singers->at(i);
         }
     }
-    return new KhSinger(regularSingers);
+    return NULL;
 }
 
 KhSinger *KhRotationSingers::getSingerByIndex(int singerid)
@@ -228,7 +235,7 @@ KhSinger *KhRotationSingers::getSingerByIndex(int singerid)
             if (singers->at(i)->getSingerIndex() == singerid)
                 return singers->at(i);
         }
-        return new KhSinger(regularSingers);
+        return NULL;
 }
 
 int KhRotationSingers::getCurrentSingerPosition() const
@@ -239,7 +246,10 @@ int KhRotationSingers::getCurrentSingerPosition() const
 void KhRotationSingers::setCurrentSingerPosition(int value)
 {
     currentSingerPosition = value;
-    currentSingerIndex = getSingerByPosition(value)->getSingerIndex();
+    if (getSingerByPosition(value) != NULL)
+        currentSingerIndex = getSingerByPosition(value)->getSingerIndex();
+    else
+        currentSingerIndex = -1;
 }
 
 bool KhRotationSingers::singerAdd(QString name, int position, bool regular)
@@ -371,7 +381,10 @@ int KhRotationSingers::getCurrentSingerIndex() const
 void KhRotationSingers::setCurrentSingerIndex(int value)
 {
     currentSingerIndex = value;
-    currentSingerPosition = getSingerByIndex(value)->getSingerPosition();
+    if (getSingerByIndex(value) != NULL)
+        currentSingerPosition = getSingerByIndex(value)->getSingerPosition();
+    else
+        currentSingerPosition = -1;
 }
 
 int KhRotationSingers::getSelectedSingerIndex() const
@@ -382,7 +395,10 @@ int KhRotationSingers::getSelectedSingerIndex() const
 void KhRotationSingers::setSelectedSingerIndex(int value)
 {
     selectedSingerIndex = value;
-    selectedSingerPosition = getSingerByIndex(value)->getSingerPosition();
+    if (getSingerByIndex(value) != NULL)
+        selectedSingerPosition = getSingerByIndex(value)->getSingerPosition();
+    else
+        selectedSingerPosition = -1;
 }
 
 void KhRotationSingers::createRegularForSinger(int singerID)

@@ -29,6 +29,11 @@ KhRegularSong::KhRegularSong(QObject *parent) :
 {
 }
 
+KhRegularSong::~KhRegularSong()
+{
+
+}
+
 int KhRegularSong::getPosition() const
 {
     return position;
@@ -96,6 +101,12 @@ KhRegularSongs::KhRegularSongs(int regSingerID, QObject *parent)
     regSongs = new QList<KhRegularSong *>;
     regSingerIndex = regSingerID;
     loadFromDB();
+}
+
+KhRegularSongs::~KhRegularSongs()
+{
+    qDeleteAll(regSongs->begin(),regSongs->end());
+    delete regSongs;
 }
 
 void KhRegularSongs::loadFromDB()

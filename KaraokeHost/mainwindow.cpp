@@ -148,6 +148,8 @@ MainWindow::~MainWindow()
     delete cdg;
     delete khDir;
     delete khTmpDir;
+    delete database;
+    delete regularSingers;
     delete ui;
 }
 
@@ -395,7 +397,8 @@ void MainWindow::songDroppedOnSinger(int singer, int song, int row)
     selmodel->select(selection, QItemSelectionModel::Select);
     queuemodel->layoutAboutToBeChanged();
     singers->setSelectedSingerIndex(singer);
-    singers->getSingerByIndex(singer)->addSongAtEnd(song);
+    if (singers->getSingerByIndex(singer) != NULL)
+        singers->getSingerByIndex(singer)->addSongAtEnd(song);
     queuemodel->layoutChanged();
 }
 

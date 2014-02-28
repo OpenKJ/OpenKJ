@@ -24,14 +24,6 @@
 #include <QVariant>
 #include <QDebug>
 
-KhRegularSinger::KhRegularSinger(QObject *parent) :
-    QObject(parent)
-{
-    regindex = -1;
-    name = "Empty KhRegularSinger";
-    regSongs = new KhRegularSongs(-1, this);
-}
-
 KhRegularSinger::KhRegularSinger(QString singerName, QObject *parent)
 {
     Q_UNUSED(parent);
@@ -50,12 +42,23 @@ KhRegularSinger::KhRegularSinger(QString singerName, int singerID, QObject *pare
     regSongs = new KhRegularSongs(regindex, this);
 }
 
+KhRegularSinger::~KhRegularSinger()
+{
+    delete regSongs;
+}
+
 
 KhRegularSingers::KhRegularSingers(QObject *parent) :
     QObject(parent)
 {
     regularSingers = new QList<KhRegularSinger *>;
     loadFromDB();
+}
+
+KhRegularSingers::~KhRegularSingers()
+{
+    qDeleteAll(regularSingers->begin(),regularSingers->end());
+    delete regularSingers;
 }
 
 QString KhRegularSinger::getName() const
@@ -80,7 +83,7 @@ KhRegularSinger *KhRegularSingers::getByIndex(int regIndex)
         if (regularSingers->at(i)->getIndex() == regIndex)
             return regularSingers->at(i);
     }
-    return new KhRegularSinger();
+    return NULL;
 }
 
 KhRegularSinger *KhRegularSingers::getByName(QString regName)
@@ -90,7 +93,7 @@ KhRegularSinger *KhRegularSingers::getByName(QString regName)
         if (regularSingers->at(i)->getName() == regName)
             return regularSingers->at(i);
     }
-    return new KhRegularSinger();
+    return NULL;
 }
 
 bool KhRegularSingers::exists(QString searchName)
@@ -131,10 +134,7 @@ void KhRegularSingers::loadFromDB()
     int regsingerid = query.record().indexOf("ROWID");
     int name = query.record().indexOf("name");
     while (query.next()) {
-        KhRegularSinger *singer = new KhRegularSinger();
-        singer->setIndex(query.value(regsingerid).toInt());
-        singer->setName(query.value(name).toString());
-        regularSingers->push_back(singer);
+        regularSingers->push_back(new KhRegularSinger(query.value(name).toString(), query.value(regsingerid).toInt()));
     }
 }
 

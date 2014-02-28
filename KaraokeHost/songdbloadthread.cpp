@@ -32,6 +32,7 @@ SongDBLoadThread::SongDBLoadThread(KhSongs *songsPointer, QObject *parent):
 
 void SongDBLoadThread::run()
 {
+    qDeleteAll(songs->begin(),songs->end());
     songs->clear();
     QSqlQuery query("SELECT ROWID,discid,artist,title,filename,path,length FROM dbSongs");
     int dbsongid = query.record().indexOf("ROWID");

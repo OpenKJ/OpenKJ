@@ -78,6 +78,7 @@ class KhRotationSingers : public QObject {
     Q_OBJECT
 public:
     explicit KhRotationSingers(QObject *parent = 0);
+    ~KhRotationSingers();
     void loadFromDB();
     QList<KhSinger *> *getSingers();
     bool moveSinger(int oldPosition, int newPosition);

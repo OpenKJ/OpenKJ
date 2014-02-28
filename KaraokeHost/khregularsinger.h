@@ -28,9 +28,9 @@ class KhRegularSinger : public QObject
 {
     Q_OBJECT
 public:
-    explicit KhRegularSinger(QObject *parent = 0);
     explicit KhRegularSinger(QString singerName, QObject *parent = 0);
     explicit KhRegularSinger(QString singerName, int singerID, QObject *parent = 0);
+    ~KhRegularSinger();
     int getIndex() const;
     void setIndex(int value);
     QString getName() const;
@@ -55,6 +55,7 @@ class KhRegularSingers : public QObject
     Q_OBJECT
 public:
     explicit KhRegularSingers(QObject *parent = 0);
+    ~KhRegularSingers();
     QList<KhRegularSinger *> *getRegularSingers();
     KhRegularSinger *getByIndex(int regIndex);
     KhRegularSinger *getByName(QString regName);

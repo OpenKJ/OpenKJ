@@ -31,6 +31,12 @@ SourceDirTableModel::SourceDirTableModel(QObject *parent) :
     mydata = new QList<SourceDir *>;
 }
 
+SourceDirTableModel::~SourceDirTableModel()
+{
+    qDeleteAll(mydata->begin(),mydata->end());
+    delete mydata;
+}
+
 int SourceDirTableModel::rowCount(const QModelIndex &parent) const
 {
     UNUSED(parent);

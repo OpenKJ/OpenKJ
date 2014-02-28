@@ -37,7 +37,10 @@ int QueueTableModel::rowCount(const QModelIndex &parent) const
 {
     UNUSED(parent);
 //    return mydata->size();
+    if (singers->getSelected() != NULL)
     return singers->getSelected()->getQueueSongs()->size();
+    else
+    return 0;
 }
 
 int QueueTableModel::columnCount(const QModelIndex &parent) const
@@ -219,7 +222,8 @@ void QueueTableModel::sort(int column, Qt::SortOrder order)
     }
     else
     {
-        singers->getSelected()->getQueueObject()->sort();
+        if (singers->getSelected() != NULL)
+            singers->getSelected()->getQueueObject()->sort();
     }
     layoutChanged();
 }

@@ -77,6 +77,7 @@ class KhQueueSongs : public QObject {
     Q_OBJECT
 public:
     explicit KhQueueSongs(int singerID, KhRegularSingers *regSingers, int regSingerID = -1 , QObject *parent = 0);
+    ~KhQueueSongs();
     QList<KhQueueSong *> *getSongs();
     KhQueueSong *getSongByIndex(int index);
     KhQueueSong *getSongByPosition(int position);

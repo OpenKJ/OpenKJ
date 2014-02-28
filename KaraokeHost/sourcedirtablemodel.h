@@ -49,6 +49,7 @@ class SourceDirTableModel : public QAbstractTableModel
     Q_OBJECT
 public:
     explicit SourceDirTableModel(QObject *parent = 0);
+    ~SourceDirTableModel();
     enum {PATH=0,PATTERN};
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;

@@ -184,6 +184,12 @@ KhQueueSongs::KhQueueSongs(int singerID, KhRegularSingers *regSingers, int regSi
     loadFromDB();
 }
 
+KhQueueSongs::~KhQueueSongs()
+{
+    qDeleteAll(songs->begin(),songs->end());
+    delete songs;
+}
+
 int KhQueueSong::getRegSongIndex() const
 {
     return regSongIndex;
@@ -243,7 +249,7 @@ KhQueueSong *KhQueueSongs::getSongByIndex(int index)
         if (songs->at(i)->getIndex() == index)
             return songs->at(i);
     }
-    return new KhQueueSong(regularSingers);
+    return NULL;
 }
 
 KhQueueSong *KhQueueSongs::getSongByPosition(int position)
@@ -253,7 +259,7 @@ KhQueueSong *KhQueueSongs::getSongByPosition(int position)
         if (songs->at(i)->getPosition() == position)
             return songs->at(i);
     }
-    return new KhQueueSong(regularSingers);
+    return NULL;
 }
 
 KhQueueSong *KhQueueSongs::getNextSong()
@@ -265,7 +271,7 @@ KhQueueSong *KhQueueSongs::getNextSong()
             return songs->at(i);
         }
     }
-    return new KhQueueSong(regularSingers);
+    return NULL;
 }
 
 int KhQueueSongs::getSingerIndex() const
@@ -324,9 +330,9 @@ int KhQueueSongs::addSongAtEnd(int songid, bool regularSong, int regSongID)
     song->setSingerID(singerIndex,true);
     song->setPlayed(false,true);
     song->setKeyChange(0,true);
-    song->setPosition(-1);
     song->setRegSong(regularSong,true);
     song->setRegSongIndex(regSongID,true);
+    song->setPosition(-1);
     return addSong(song);
 }
 

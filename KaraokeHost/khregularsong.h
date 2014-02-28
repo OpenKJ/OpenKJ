@@ -27,6 +27,7 @@ class KhRegularSong : public QObject {
     Q_OBJECT
 public:
     explicit KhRegularSong(QObject *parent = 0);
+    ~KhRegularSong();
     int getRegSongIndex() const;
     void setRegSongIndex(int value);
     int getRegSingerIndex() const;
@@ -51,6 +52,7 @@ class KhRegularSongs : public QObject {
 
 public:
     explicit KhRegularSongs(int regSingerID, QObject *parent = 0);
+    ~KhRegularSongs();
     void deleteSongByIndex(int index);
     QList<KhRegularSong*> *getRegSongs();
 

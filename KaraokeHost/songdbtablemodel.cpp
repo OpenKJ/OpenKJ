@@ -98,6 +98,13 @@ SongDBTableModel::SongDBTableModel(QObject *parent) :
     lastSortOrder = Qt::AscendingOrder;
 }
 
+SongDBTableModel::~SongDBTableModel()
+{
+    qDeleteAll(fulldata->begin(),fulldata->end());
+    delete fulldata;
+    delete filteredData;
+}
+
 void SongDBTableModel::applyFilter(QString filterstr)
 {
     filteredData->clear();

@@ -172,8 +172,11 @@ bool RotationTableModel::dropMimeData(const QMimeData *data, Qt::DropAction acti
         {
             QByteArray bytedata = data->data("integer/songid");
             int songid =  QString(bytedata.data()).toInt();
-            int singerid = singers->getSingerByPosition(droprow + 1)->getSingerIndex();
-            emit songDroppedOnSinger(singerid,songid, parent.row());
+            if (singers->getSingerByPosition(droprow + 1) != NULL)
+            {
+                int singerid = singers->getSingerByPosition(droprow + 1)->getSingerIndex();
+                emit songDroppedOnSinger(singerid,songid, parent.row());
+            }
         }
     }
     return false;

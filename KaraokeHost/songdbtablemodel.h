@@ -44,6 +44,7 @@ class SongDBTableModel : public QAbstractTableModel
     KhSongs *filteredData;
 public:
     explicit SongDBTableModel(QObject *parent = 0);
+    ~SongDBTableModel();
     enum {ARTIST=0,TITLE,DISCID,DURATION,MAX_COLS};
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;
