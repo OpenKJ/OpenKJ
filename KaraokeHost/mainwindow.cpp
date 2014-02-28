@@ -59,6 +59,7 @@ MainWindow::MainWindow(QWidget *parent) :
     sortDirDB = 0;
     singers = new KhRotationSingers(this);
     regularSingers = new KhRegularSingers(this);
+    songCurrent = NULL;
     rotationmodel = new RotationTableModel(singers, this);
     ui->treeViewRotation->setModel(rotationmodel);
     ui->treeViewRotation->header()->resizeSection(0,18);
@@ -150,6 +151,7 @@ MainWindow::~MainWindow()
     delete khTmpDir;
     delete database;
     delete regularSingers;
+    delete songCurrent;
     delete ui;
 }
 
@@ -357,6 +359,8 @@ void MainWindow::on_treeViewQueue_activated(const QModelIndex &index)
     song->Title = queuesong->getTitle();
     song->path = queuesong->getSourceFile();
     song->DiscID = queuesong->getDiscID();
+    if (songCurrent != NULL)
+        delete songCurrent;
     songCurrent = song;
     delete khTmpDir;
     khTmpDir = new QTemporaryDir();

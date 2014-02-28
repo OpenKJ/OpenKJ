@@ -69,6 +69,7 @@ bool KhZip::extractMp3(QDir destDir)
         unzGetCurrentFileInfo(hFile,NULL,fname,256,NULL,0,NULL,0);
         qDebug() << "Filename: " << fname;
         QString filename = fname;
+        delete [] fname;
         if (filename.endsWith(".mp3", Qt::CaseInsensitive))
         {
             int unzResult = unzOpenCurrentFile(hFile);
@@ -104,6 +105,7 @@ bool KhZip::extractMp3(QDir destDir)
                 return false;
             }
         }
+
     }
     return mp3Found;
 }
@@ -128,6 +130,7 @@ bool KhZip::extractCdg(QDir destDir)
         unzGetCurrentFileInfo(hFile,NULL,fname,256,NULL,0,NULL,0);
         qDebug() << "Filename: " << fname;
         QString filename = fname;
+        delete [] fname;
         if (filename.endsWith(".cdg", Qt::CaseInsensitive))
         {
             int unzResult = unzOpenCurrentFile(hFile);
