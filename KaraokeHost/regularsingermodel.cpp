@@ -25,6 +25,8 @@ RegularSingerModel::RegularSingerModel(KhRegularSingers *regulars, QObject *pare
     QAbstractTableModel(parent)
 {
     regularSingers = regulars;
+    connect(regularSingers, SIGNAL(dataAboutToChange()), this, SIGNAL(layoutAboutToBeChanged()));
+    connect(regularSingers, SIGNAL(dataChanged()), this, SIGNAL(layoutChanged()));
 }
 
 
@@ -132,4 +134,31 @@ Qt::ItemFlags RegularSingerModel::flags(const QModelIndex &index) const
     if (!index.isValid())
         return Qt::ItemIsEnabled;
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+}
+
+void RegularSingerModel::removeByName(QString name)
+{
+    layoutAboutToBeChanged();
+    regularSingers->deleteSinger(name);
+    layoutChanged();
+
+}
+
+void RegularSingerModel::removeBySingerID(int singerID)
+{
+    layoutAboutToBeChanged();
+    regularSingers->deleteSinger(singerID);
+    layoutChanged();
+}
+
+void RegularSingerModel::removeByListIndex(int listIndex)
+{
+    layoutAboutToBeChanged();
+    regularSingers->deleteSinger(regularSingers->at(listIndex)->getIndex());
+    layoutChanged();
+}
+
+KhRegularSinger *RegularSingerModel::getRegularSingerByListIndex(int listIndex)
+{
+    return regularSingers->at(listIndex);
 }

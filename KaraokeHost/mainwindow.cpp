@@ -57,8 +57,8 @@ MainWindow::MainWindow(QWidget *parent) :
     query.exec("CREATE TABLE IF NOT EXISTS sourceDirs ( path VARCHAR(255) UNIQUE, pattern INTEGER)");
     sortColDB = 1;
     sortDirDB = 0;
-    singers = new KhRotationSingers(this);
     regularSingers = new KhRegularSingers(this);
+    singers = new KhRotationSingers(regularSingers, this);
     songCurrent = NULL;
     rotationmodel = new RotationTableModel(singers, this);
     ui->treeViewRotation->setModel(rotationmodel);
@@ -115,6 +115,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(audioBackend, SIGNAL(stateChanged(QMediaPlayer::State)), this, SLOT(audioBackend_stateChanged(QMediaPlayer::State)));
     connect(settingsDialog, SIGNAL(showCdgWindowChanged(bool)), cdgWindow, SLOT(setVisible(bool)));
     connect(settingsDialog, SIGNAL(cdgWindowFullScreenChanged(bool)), cdgWindow, SLOT(setFullScreen(bool)));
+    connect(regularSingers, SIGNAL(dataChanged()), rotationmodel, SIGNAL(layoutChanged()));
+    connect(regularSingers, SIGNAL(dataAboutToChange()), rotationmodel, SIGNAL(layoutAboutToBeChanged()));
     cdgWindow->updateCDG(QImage(":/icons/Icons/openkjlogo1.png"));
     settings->restoreWindowState(cdgWindow);
     ui->cdgOutput->setPixmap(QPixmap::fromImage(QImage(":/icons/Icons/openkjlogo1.png")));

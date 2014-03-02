@@ -40,7 +40,6 @@ bool KhSinger::isRegular() const
 
 void KhSinger::setRegular(bool value, bool skipDB)
 {
-    qDebug() << "setRegular fired. Singer: " << singerIndex << " Regular: " << regular;
     regular = value;
     if (!skipDB)
     {
@@ -135,23 +134,26 @@ KhQueueSong *KhSinger::getNextSong()
     return songs->getNextSong();
 }
 
-KhRotationSingers::KhRotationSingers(QObject *parent) :
+KhRotationSingers::KhRotationSingers(KhRegularSingers *regSingersPtr, QObject *parent) :
     QObject(parent)
 {
-    regularSingers = new KhRegularSingers;
+    regularSingers = regSingersPtr;
     singers = new QList<KhSinger *>;
     loadFromDB();
     selectedSingerIndex = -1;
     selectedSingerPosition = -1;
     currentSingerIndex = -1;
     currentSingerPosition = -1;
+    connect(regularSingers, SIGNAL(dataAboutToChange()), this, SIGNAL(dataAboutToChange()));
+    connect(regularSingers, SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
+    connect(regularSingers, SIGNAL(regularSingerDeleted(int)), this, SLOT(regularSingerDeleted(int)));
 }
 
 KhRotationSingers::~KhRotationSingers()
 {
     qDeleteAll(singers->begin(),singers->end());
     delete singers;
-    delete regularSingers;
+    //delete regularSingers;
 }
 
 void KhRotationSingers::loadFromDB()
@@ -166,10 +168,20 @@ void KhRotationSingers::loadFromDB()
     int regular = query.record().indexOf("regular");
     int regularindex = query.record().indexOf("regularid");
     while (query.next()) {
+        bool isReg = query.value(regular).toBool();
+        int regIdx = query.value(regularindex).toInt();
         KhSinger *singer = new KhSinger(regularSingers);
         singer->setSingerIndex(query.value(rotationsingerid).toInt());
-        singer->setRegular(query.value(regular).toBool(),true);
-        singer->setRegularIndex(query.value(regularindex).toInt());
+        if ((isReg) && (regularSingers->getByRegularID(regIdx) != NULL))
+        {
+            singer->setRegular(query.value(regular).toBool(),true);
+            singer->setRegularIndex(query.value(regularindex).toInt(),true);
+        }
+        else
+        {
+            singer->setRegular(false,true);
+            singer->setRegularIndex(-1, true);
+        }
         singer->setSingerName(query.value(name).toString(),true);
         singer->setSingerPosition(query.value(position).toInt(),true);
         singers->push_back(singer);
@@ -372,6 +384,20 @@ void KhRotationSingers::sortSingers()
     emit dataChanged();
 }
 
+void KhRotationSingers::regularSingerDeleted(int RegularID)
+{
+    for (int i=0; i < singers->size(); i++)
+    {
+        if (singers->at(i)->getRegularIndex() == RegularID)
+        {
+            emit dataAboutToChange();
+            singers->at(i)->setRegular(false);
+            singers->at(i)->setRegularIndex(-1);
+            emit dataChanged();
+        }
+    }
+}
+
 
 
 
@@ -406,16 +432,18 @@ void KhRotationSingers::setSelectedSingerIndex(int value)
 void KhRotationSingers::createRegularForSinger(int singerID)
 {
     KhSinger *singer = getSingerByIndex(singerID);
+    QSqlQuery query("BEGIN TRANSACTION");
     int regularid = regularSingers->add(singer->getSingerName());
     singer->setRegular(true);
     singer->setRegularIndex(regularid);
-    KhRegularSinger *regular = regularSingers->getByIndex(regularid);
+    KhRegularSinger *regular = regularSingers->getByRegularID(regularid);
     for (int i=0; i < singer->getQueueSongs()->size(); i++)
     {
         int regsongindex = regular->addSong(singer->getQueueSongs()->at(i)->getSongID(),singer->getQueueSongs()->at(i)->getKeyChange(),singer->getQueueSongs()->at(i)->getPosition());
         singer->getQueueSongs()->at(i)->setRegSong(true);
         singer->getQueueSongs()->at(i)->setRegSongIndex(regsongindex);
     }
+    query.exec("COMMIT TRANSACTION");
 }
 
 int KhRotationSingers::getSelectedSingerPosition() const
@@ -436,7 +464,7 @@ int KhSinger::addSong(KhQueueSong *song)
     {
         if (regular)
         {
-            int regsongid = regularSingers->getByIndex(regularIndex)->addSong(song->getSongID(), song->getKeyChange(), song->getPosition());
+            int regsongid = regularSingers->getByRegularID(regularIndex)->addSong(song->getSongID(), song->getKeyChange(), song->getPosition());
             song->setRegSong(true);
             song->setRegSongIndex(regsongid);
         }
@@ -454,7 +482,7 @@ int KhSinger::addSongAtEnd(int songid, bool regularSong, int regSongID)
         KhQueueSong *song = getSongByIndex(qsongid);
         if (regular)
         {
-            int regsongid = regularSingers->getByIndex(regularIndex)->addSong(song->getSongID(), song->getKeyChange(), song->getPosition());
+            int regsongid = regularSingers->getByRegularID(regularIndex)->addSong(song->getSongID(), song->getKeyChange(), song->getPosition());
             song->setRegSong(true);
             song->setRegSongIndex(regsongid);
         }
@@ -471,7 +499,7 @@ int KhSinger::addSongAtPosition(int songid, int position, bool regularSong, int 
         KhQueueSong *song = getSongByIndex(qsongid);
         if (regular)
         {
-            KhRegularSinger *regsinger = regularSingers->getByIndex(regularIndex);
+            KhRegularSinger *regsinger = regularSingers->getByRegularID(regularIndex);
             int regsongid = regsinger->addSong(song->getSongID(), song->getKeyChange(), song->getPosition());
             song->setRegSong(true);
             song->setRegSongIndex(regsongid);

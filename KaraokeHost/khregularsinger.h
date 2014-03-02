@@ -57,20 +57,29 @@ public:
     explicit KhRegularSingers(QObject *parent = 0);
     ~KhRegularSingers();
     QList<KhRegularSinger *> *getRegularSingers();
-    KhRegularSinger *getByIndex(int regIndex);
+    KhRegularSinger *getByRegularID(int regIndex);
     KhRegularSinger *getByName(QString regName);
     bool exists(QString searchName);
     int add(QString name);
     int size();
     KhRegularSinger* at(int index);
+    void deleteSinger(int singerID);
+    void deleteSinger(QString name);
 
 signals:
+    void dataAboutToChange();
+    void dataChanged();
+    void regularSingerDeleted(int regSingerIdx);
 
 public slots:
 
 private:
     void loadFromDB();
     QList<KhRegularSinger *> *regularSingers;
+    int getListIndexBySingerID(int SingerID);
+    int getListIndexByName(QString name);
+    void dbDeleteSinger(int SingerID);
+
 
 };
 

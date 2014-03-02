@@ -36,9 +36,12 @@ public:
     explicit RegularSingersDialog(KhRegularSingers *singers, QWidget *parent = 0);
     ~RegularSingersDialog();
 
+signals:
+    void regularSingerDeleted(int regularID);
+    void regularSingerRenamed(int regularID, QString newName);
+
 private slots:
     void on_btnClose_clicked();
-
     void on_treeViewRegulars_clicked(const QModelIndex &index);
 
 private:

@@ -84,7 +84,7 @@ void KhQueueSong::setPosition(int value, bool skipDB)
         QSqlQuery query;
         query.exec("UPDATE queuesongs SET 'position'=" + QString::number(position) + " WHERE ROWID == " + QString::number(index));
         if (regSong)
-           regularSingers->getByIndex(regSingerIndex)->getSongByIndex(regSongIndex)->setPosition(position);
+           regularSingers->getByRegularID(regSingerIndex)->getSongByIndex(regSongIndex)->setPosition(position);
     }
 }
 
@@ -116,7 +116,7 @@ void KhQueueSong::setKeyChange(int value, bool skipDB)
         QSqlQuery query;
         query.exec("UPDATE queuesongs SET 'keychg'=" + QString::number(keyChange) + " WHERE ROWID == " + QString::number(index));
         if (regSong)
-            regularSingers->getByIndex(regSingerIndex)->getSongByIndex(regSongIndex)->setKeyChange(keyChange);
+            regularSingers->getByRegularID(regSingerIndex)->getSongByIndex(regSongIndex)->setKeyChange(keyChange);
     }
 }
 
@@ -163,13 +163,11 @@ void KhQueueSong::setSingerID(int value, bool skipDB)
 
 int KhQueueSong::getIndex() const
 {
-    qDebug() << "Returning index: " << index;
     return index;
 }
 
 void KhQueueSong::setIndex(int value)
 {
-    qDebug() << "Index set to: " << value;
     index = value;
 }
 
@@ -219,7 +217,7 @@ void KhQueueSong::setRegSingerIndex(int value, bool skipDB)
         QSqlQuery query;
         query.exec("UPDATE queuesongs SET 'regsingerid'=" + QString::number(regSingerIndex) + " WHERE ROWID == " + QString::number(index));
         if (regSong)
-            regularSingers->getByIndex(regSingerIndex)->getSongByIndex(regSongIndex)->setRegSingerIndex(regSingerIndex);
+            regularSingers->getByRegularID(regSingerIndex)->getSongByIndex(regSongIndex)->setRegSingerIndex(regSingerIndex);
     }
 }
 
@@ -354,7 +352,7 @@ void KhQueueSongs::deleteSongByIndex(int index)
         if (songs->at(i)->getPosition() > song->getPosition())
             songs->at(i)->setPosition(songs->at(i)->getPosition() - 1);
     if (song->isRegSong())
-        regularSingers->getByIndex(song->getRegSingerIndex())->getRegSongs()->deleteSongByIndex(song->getRegSongIndex());
+        regularSingers->getByRegularID(song->getRegSingerIndex())->getRegSongs()->deleteSongByIndex(song->getRegSongIndex());
         songs->erase(songs->begin() + (song->getPosition()));
 
     emit queueUpdated();

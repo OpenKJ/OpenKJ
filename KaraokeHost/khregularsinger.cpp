@@ -76,7 +76,7 @@ QList<KhRegularSinger *> *KhRegularSingers::getRegularSingers()
     return regularSingers;
 }
 
-KhRegularSinger *KhRegularSingers::getByIndex(int regIndex)
+KhRegularSinger *KhRegularSingers::getByRegularID(int regIndex)
 {
     for (int i=0; i < regularSingers->size(); i++)
     {
@@ -110,8 +110,10 @@ int KhRegularSingers::add(QString name)
 {
     if (!exists(name))
     {
+        emit dataAboutToChange();
         KhRegularSinger *singer = new KhRegularSinger(name);
         regularSingers->push_back(singer);
+        emit dataChanged();
         return singer->getIndex();
     }
     return -1;
@@ -127,15 +129,62 @@ KhRegularSinger *KhRegularSingers::at(int index)
     return regularSingers->at(index);
 }
 
+void KhRegularSingers::deleteSinger(int singerID)
+{
+    emit dataAboutToChange();
+    int listIndex = getListIndexBySingerID(singerID);
+    regularSingers->removeAt(listIndex);
+    dbDeleteSinger(singerID);
+    emit dataChanged();
+    emit regularSingerDeleted(singerID);
+}
+
+void KhRegularSingers::deleteSinger(QString name)
+{
+    emit dataAboutToChange();
+    int listIndex = getListIndexByName(name);
+    emit regularSingerDeleted(regularSingers->at(listIndex)->getIndex());
+    regularSingers->removeAt(listIndex);
+    emit dataChanged();
+}
+
 void KhRegularSingers::loadFromDB()
 {
+    emit dataAboutToChange();
     regularSingers->clear();
-    QSqlQuery query("SELECT ROWID,name FROM regularSingers");
+    QSqlQuery query("SELECT ROWID,name FROM regularSingers ORDER BY LOWER(name)");
     int regsingerid = query.record().indexOf("ROWID");
     int name = query.record().indexOf("name");
     while (query.next()) {
         regularSingers->push_back(new KhRegularSinger(query.value(name).toString(), query.value(regsingerid).toInt()));
     }
+    emit dataChanged();
+}
+
+int KhRegularSingers::getListIndexBySingerID(int SingerID)
+{
+    for (int i=0; i < regularSingers->size(); i++)
+    {
+        if (regularSingers->at(i)->getIndex() == SingerID)
+            return i;
+    }
+    return -1;
+}
+
+int KhRegularSingers::getListIndexByName(QString name)
+{
+    for (int i=0; i < regularSingers->size(); i++)
+    {
+        if (regularSingers->at(i)->getName() == name)
+            return i;
+    }
+    return -1;
+}
+
+void KhRegularSingers::dbDeleteSinger(int SingerID)
+{
+    QSqlQuery query;
+    query.exec("DELETE FROM regularSingers WHERE ROWID=" + QString::number(SingerID));
 }
 
 int KhRegularSinger::getIndex() const
@@ -183,7 +232,7 @@ KhRegularSong *KhRegularSinger::getSongByIndex(int index)
         if (regSongs->getRegSongs()->at(i)->getRegSongIndex() == index)
             return regSongs->getRegSongs()->at(i);
     }
-    return new KhRegularSong();
+    return NULL;
 }
 
 int KhRegularSinger::songsSize()

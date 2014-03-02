@@ -77,7 +77,7 @@ public slots:
 class KhRotationSingers : public QObject {
     Q_OBJECT
 public:
-    explicit KhRotationSingers(QObject *parent = 0);
+    explicit KhRotationSingers(KhRegularSingers *regSingersPtr, QObject *parent = 0);
     ~KhRotationSingers();
     void loadFromDB();
     QList<KhSinger *> *getSingers();
@@ -117,7 +117,7 @@ signals:
     void dataChanged();
 
 public slots:
-
+    void regularSingerDeleted(int RegularID);
 };
 
 

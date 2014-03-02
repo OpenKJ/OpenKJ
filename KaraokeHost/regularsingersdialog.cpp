@@ -59,6 +59,7 @@ void RegularSingersDialog::on_treeViewRegulars_clicked(const QModelIndex &index)
     {
         // Add to rotation
         qDebug() << "Add to rotation clicked on row " << index.row();
+
     }
     else if (index.column() == 4)
     {
@@ -69,5 +70,7 @@ void RegularSingersDialog::on_treeViewRegulars_clicked(const QModelIndex &index)
     {
         // Delete regular
         qDebug() << "Delete singer clicked on row " << index.row();
+        emit regularSingerDeleted(regularSingerModel->getRegularSingerByListIndex(index.row())->getIndex());
+        regularSingerModel->removeByListIndex(index.row());
     }
 }

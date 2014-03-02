@@ -25,7 +25,6 @@ SOURCES += main.cpp\
     dbupdatethread.cpp \
     settingsdialog.cpp \
     songdbloadthread.cpp \
-    khrotation.cpp \
     khqueuesong.cpp \
     khsinger.cpp \
     khsong.cpp \
@@ -53,7 +52,6 @@ HEADERS  += mainwindow.h \
     dbupdatethread.h \
     settingsdialog.h \
     songdbloadthread.h \
-    khrotation.h \
     khqueuesong.h \
     khsinger.h \
     khsong.h \

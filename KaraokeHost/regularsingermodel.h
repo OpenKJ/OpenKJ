@@ -44,6 +44,10 @@ public:
     bool setData(const QModelIndex &index, const QVariant &value, int role);
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
+    void removeByName(QString name);
+    void removeBySingerID(int singerID);
+    void removeByListIndex(int listIndex);
+    KhRegularSinger *getRegularSingerByListIndex(int listIndex);
 
 private:
     KhRegularSingers *regularSingers;
