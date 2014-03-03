@@ -23,6 +23,7 @@
 #include <QSqlQuery>
 #include <QSqlRecord>
 #include <QVariant>
+#include <QDebug>
 
 KhRegularSong::KhRegularSong(QObject *parent) :
     QObject(parent)
@@ -150,7 +151,55 @@ KhRegularSong *KhRegularSongs::getSongByIndex(int index)
     return new KhRegularSong();
 }
 
+bool sortKhRegularSongCompare(const KhRegularSong *s1, const KhRegularSong *s2)
+{
+    return s1->getPosition() < s2->getPosition();
+}
+
+void KhRegularSongs::sort()
+{
+    qSort(regSongs->begin(),regSongs->end(),sortKhRegularSongCompare);
+}
+
 QList<KhRegularSong *> *KhRegularSongs::getRegSongs()
 {
     return regSongs;
+}
+
+int KhRegularSongs::addSong(KhRegularSong *regSong)
+{
+    regSong->setPosition(regSongs->size());
+    QSqlQuery query("INSERT INTO regularSongs (singer,song,keychg,played,position VALUES(" + QString::number(regSingerIndex) + "," + QString::number(regSong->getSongIndex()) + "," + QString::number(regSong->getKeyChange()) + "," + QString::number(regSong->getPosition()) + ")");
+    int regSongID = query.lastInsertId().toInt();
+    qDebug() << "Added regular song regid: " << regSongID;
+    regSong->setRegSongIndex(regSongID);
+    regSongs->push_back(regSong);
+    return regSongID;
+}
+
+void KhRegularSongs::moveSong(int regSongID, int newPos)
+{
+    QSqlQuery query;
+    KhRegularSong *regSong = getSongByIndex(regSongID);
+    int oldPos = regSong->getPosition();
+    query.exec("BEGIN TRANSACTION");
+    if (newPos > oldPos)
+    {
+        for (int i=0; i < regSongs->size(); i++)
+        {
+            if ((regSongs->at(i)->getPosition() > oldPos) && (regSongs->at(i)->getPosition() <= newPos - 1) && (regSongs->at(i)->getRegSongIndex() != regSong->getRegSongIndex()))
+                regSongs->at(i)->setPosition(regSongs->at(i)->getPosition() - 1);
+        }
+        regSong->setPosition(newPos - 1);
+    }
+    else if (newPos < oldPos)
+    {
+        for (int i=0; i < regSongs->size(); i++)
+        {
+            if ((regSongs->at(i)->getPosition() >= newPos) && (regSongs->at(i)->getPosition() < oldPos) && (regSongs->at(i)->getRegSongIndex() != regSong->getRegSongIndex()))
+                regSongs->at(i)->setPosition(regSongs->at(i)->getPosition() + 1);
+        }
+        regSong->setPosition(newPos);
+    }
+    query.exec("COMMIT TRANSACTION");
 }

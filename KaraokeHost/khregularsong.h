@@ -55,12 +55,15 @@ public:
     ~KhRegularSongs();
     void deleteSongByIndex(int index);
     QList<KhRegularSong*> *getRegSongs();
+    int addSong(KhRegularSong *regSong);
+    void moveSong(int regSongID, int newPos);
+    KhRegularSong *getSongByIndex(int index);
+    void sort();
 
 private:
     QList<KhRegularSong*> *regSongs;
     int regSingerIndex;
     void loadFromDB();
-    KhRegularSong *getSongByIndex(int index);
 };
 
 #endif // KHREGULARSONG_H

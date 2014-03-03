@@ -89,7 +89,18 @@ void KhQueueSong::setPosition(int value, bool skipDB)
         QSqlQuery query;
         query.exec("UPDATE queuesongs SET 'position'=" + QString::number(position) + " WHERE ROWID == " + QString::number(index));
         if (regSong)
-           regularSingers->getByRegularID(regSingerIndex)->getSongByIndex(regSongIndex)->setPosition(position);
+        {
+            KhRegularSinger *regSinger = regularSingers->getByRegularID(regSingerIndex);
+            if (regSinger == NULL)
+            {
+                qDebug() << "Got null KhRegularSinger from getByRegularID(" << regSingerIndex << ")";
+                return;
+            }
+            KhRegularSongs *regSongs = regSinger->getRegSongs();
+            KhRegularSong *regSong = regSongs->getSongByIndex(regSongIndex);
+            regSongs->moveSong(regSong->getRegSongIndex(), position);
+        }
+           //regularSingers->getByRegularID(regSingerIndex)->getSongByIndex(regSongIndex)->setPosition(position);
     }
 }
 
@@ -221,8 +232,8 @@ void KhQueueSong::setRegSingerIndex(int value, bool skipDB)
     {
         QSqlQuery query;
         query.exec("UPDATE queuesongs SET 'regsingerid'=" + QString::number(regSingerIndex) + " WHERE ROWID == " + QString::number(index));
-        if (regSong)
-            regularSingers->getByRegularID(regSingerIndex)->getSongByIndex(regSongIndex)->setRegSingerIndex(regSingerIndex);
+//        if (regSong)
+//            regularSingers->getByRegularID(regSingerIndex)->getSongByIndex(regSongIndex)->setRegSingerIndex(regSingerIndex);
     }
 }
 
@@ -333,7 +344,7 @@ int KhQueueSongs::addSongAtEnd(int songid, bool regularSong, int regSongID)
     return addSong(song);
 }
 
-int KhQueueSongs::addSongAtPosition(int songid, int position, bool regularSong, int regSongID)
+int KhQueueSongs::addSongAtPosition(int songid, int position, bool regularSong, int regSongID, int regSingerID)
 {
     KhQueueSong *song = new KhQueueSong(regularSingers);
     song->setSongID(songid,true);
@@ -343,6 +354,7 @@ int KhQueueSongs::addSongAtPosition(int songid, int position, bool regularSong, 
     song->setPosition(position,true);
     song->setRegSong(regularSong,true);
     song->setRegSongIndex(regSongID,true);
+    song->setRegSingerIndex(regSingerIndex,true);
     return addSong(song);
 }
 

@@ -485,6 +485,7 @@ int KhSinger::addSongAtEnd(int songid, bool regularSong, int regSongID)
             int regsongid = regularSingers->getByRegularID(regularIndex)->addSong(song->getSongID(), song->getKeyChange(), song->getPosition());
             song->setRegSong(true);
             song->setRegSongIndex(regsongid);
+            song->setRegSingerIndex(regularIndex);
         }
         return qsongid;
     }
@@ -495,14 +496,20 @@ int KhSinger::addSongAtPosition(int songid, int position, bool regularSong, int 
 {
     if (singerIndex != 0)
     {
-        int qsongid = songs->addSongAtPosition(songid,position,regularSong,regSongID);
+        int qsongid = songs->addSongAtPosition(songid,position,regularSong,regSongID,regularIndex);
         KhQueueSong *song = getSongByIndex(qsongid);
         if (regular)
         {
-            KhRegularSinger *regsinger = regularSingers->getByRegularID(regularIndex);
-            int regsongid = regsinger->addSong(song->getSongID(), song->getKeyChange(), song->getPosition());
             song->setRegSong(true);
+            song->setRegSingerIndex(regularIndex);
+            KhRegularSinger *regsinger = regularSingers->getByRegularID(regularIndex);
+            KhRegularSong *regSong = new KhRegularSong();
+            regSong->setRegSingerIndex(regsinger->getIndex());
+            regSong->setSongIndex(song->getSongID());
+            int regsongid = regsinger->getRegSongs()->addSong(regSong);
+            regsinger->getRegSongs()->moveSong(regsongid, position);
             song->setRegSongIndex(regsongid);
+
         }
         return qsongid;
     }

@@ -91,6 +91,7 @@ void RegularSingersDialog::addRegularToRotation(int ListIndex)
         m_rotSingers->singerAdd(m_regSingers->at(ListIndex)->getName());
         KhSinger *rotSinger = m_rotSingers->getSingers()->at(m_rotSingers->getSingers()->size() -1);
         KhRegularSinger *regSinger = m_regSingers->at(ListIndex);
+        regSinger->getRegSongs()->sort();
         for (int i=0; i < regSinger->getRegSongs()->getRegSongs()->size(); i++)
         {
             KhRegularSong *regSong = regSinger->getRegSongs()->getRegSongs()->at(i);

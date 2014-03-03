@@ -85,7 +85,7 @@ public:
     bool songExists(int songIndex);
     int addSong(KhQueueSong *song);
     int addSongAtEnd(int songid, bool regularSong = false, int regSongID = -1);
-    int addSongAtPosition(int songid, int position, bool regularSong = false, int regSongID = -1);
+    int addSongAtPosition(int songid, int position, bool regularSong = false, int regSongID = -1, int regSingerID = -1);
     void deleteSongByIndex(int index);
     void deleteSongByPosition(int position);
     void sort();
