@@ -21,13 +21,14 @@
 #include "regularsingersdialog.h"
 #include "ui_regularsingersdialog.h"
 #include <QDebug>
+#include <QSqlQuery>
 
-RegularSingersDialog::RegularSingersDialog(KhRegularSingers *singers, QWidget *parent) :
+RegularSingersDialog::RegularSingersDialog(KhRegularSingers *regSingers, KhRotationSingers *rotSingers, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::RegularSingersDialog)
 {
     ui->setupUi(this);
-    regularSingerModel = new RegularSingerModel(singers, this);
+    regularSingerModel = new RegularSingerModel(regSingers, this);
     ui->treeViewRegulars->setModel(regularSingerModel);
     ui->treeViewRegulars->hideColumn(0);
     ui->treeViewRegulars->setColumnWidth(3,20);
@@ -41,6 +42,8 @@ RegularSingersDialog::RegularSingersDialog(KhRegularSingers *singers, QWidget *p
     ui->comboBoxAddPos->addItem("Fair");
     ui->comboBoxAddPos->addItem("Bottom");
     ui->comboBoxAddPos->addItem("Next");
+    m_rotSingers = rotSingers;
+    m_regSingers = regSingers;
 }
 
 RegularSingersDialog::~RegularSingersDialog()
@@ -59,6 +62,7 @@ void RegularSingersDialog::on_treeViewRegulars_clicked(const QModelIndex &index)
     {
         // Add to rotation
         qDebug() << "Add to rotation clicked on row " << index.row();
+        addRegularToRotation(index.row());
 
     }
     else if (index.column() == 4)
@@ -72,5 +76,31 @@ void RegularSingersDialog::on_treeViewRegulars_clicked(const QModelIndex &index)
         qDebug() << "Delete singer clicked on row " << index.row();
         emit regularSingerDeleted(regularSingerModel->getRegularSingerByListIndex(index.row())->getIndex());
         regularSingerModel->removeByListIndex(index.row());
+    }
+}
+
+void RegularSingersDialog::addRegularToRotation(int ListIndex)
+{
+    if (m_rotSingers->singerExists(m_regSingers->at(ListIndex)->getName()))
+    {
+        //Singer with name already exists in rotation
+    }
+    else
+    {
+        QSqlQuery query("BEGIN TRANSACTION");
+        m_rotSingers->singerAdd(m_regSingers->at(ListIndex)->getName());
+        KhSinger *rotSinger = m_rotSingers->getSingers()->at(m_rotSingers->getSingers()->size() -1);
+        KhRegularSinger *regSinger = m_regSingers->at(ListIndex);
+        for (int i=0; i < regSinger->getRegSongs()->getRegSongs()->size(); i++)
+        {
+            KhRegularSong *regSong = regSinger->getRegSongs()->getRegSongs()->at(i);
+            rotSinger->addSongAtEnd(regSong->getSongIndex());
+            rotSinger->getQueueSongs()->at(i)->setRegSingerIndex(regSinger->getIndex());
+            rotSinger->getQueueSongs()->at(i)->setRegSong(true);
+            rotSinger->getQueueSongs()->at(i)->setRegSongIndex(regSong->getRegSongIndex());
+        }
+        rotSinger->setRegular(true);
+        rotSinger->setRegularIndex(regSinger->getIndex());
+        query.exec("COMMIT TRANSACTION");
     }
 }

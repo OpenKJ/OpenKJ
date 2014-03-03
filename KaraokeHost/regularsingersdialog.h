@@ -23,6 +23,7 @@
 
 #include <QDialog>
 #include <regularsingermodel.h>
+#include <khsinger.h>
 
 namespace Ui {
 class RegularSingersDialog;
@@ -33,7 +34,7 @@ class RegularSingersDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit RegularSingersDialog(KhRegularSingers *singers, QWidget *parent = 0);
+    explicit RegularSingersDialog(KhRegularSingers *regSingers, KhRotationSingers *rotSingers, QWidget *parent = 0);
     ~RegularSingersDialog();
 
 signals:
@@ -45,8 +46,11 @@ private slots:
     void on_treeViewRegulars_clicked(const QModelIndex &index);
 
 private:
+    void addRegularToRotation(int ListIndex);
     Ui::RegularSingersDialog *ui;
     RegularSingerModel *regularSingerModel;
+    KhRotationSingers *m_rotSingers;
+    KhRegularSingers *m_regSingers;
 };
 
 #endif // REGULARSINGERSDIALOG_H

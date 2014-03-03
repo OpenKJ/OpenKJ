@@ -185,6 +185,7 @@ void KhRegularSingers::dbDeleteSinger(int SingerID)
 {
     QSqlQuery query;
     query.exec("DELETE FROM regularSingers WHERE ROWID=" + QString::number(SingerID));
+    query.exec("DELETE FROM regularSongs WHERE SINGER=" + QString::number(SingerID));
 }
 
 int KhRegularSinger::getIndex() const

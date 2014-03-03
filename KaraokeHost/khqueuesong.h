@@ -98,7 +98,7 @@ public:
     void setSingerIndex(int value);
 
     int getRegSingerIndex() const;
-    void setRegSingerIndex(int value);
+    void setRegSingerIndex(int value, bool skipDB = false);
 
 private:
     QList<KhQueueSong *> *songs;

@@ -48,6 +48,11 @@ KhQueueSong::KhQueueSong(KhRegularSingers *regSingers, QObject *parent) :
     QObject(parent)
 {
     regularSingers = regSingers;
+    regSong = false;
+    regSingerIndex = -1;
+    regSongIndex = -1;
+    played = false;
+    position = -1;
 }
 
 
@@ -532,9 +537,9 @@ int KhQueueSongs::getRegSingerIndex() const
     return regSingerIndex;
 }
 
-void KhQueueSongs::setRegSingerIndex(int value)
+void KhQueueSongs::setRegSingerIndex(int value, bool skipDB)
 {
     regSingerIndex = value;
     for (int i=0; i < songs->size(); i++)
-        songs->at(i)->setRegSingerIndex(regSingerIndex);
+        songs->at(i)->setRegSingerIndex(regSingerIndex, skipDB);
 }

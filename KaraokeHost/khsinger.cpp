@@ -105,7 +105,7 @@ void KhSinger::setRegularIndex(int value, bool skipDB)
         QSqlQuery query;
         QString sql = "UPDATE rotationsingers SET 'regularid'=" + QString::number(regularIndex) + " WHERE ROWID == " + QString::number(singerIndex);
         query.exec(sql);
-        songs->setRegSingerIndex(regularIndex);
+        songs->setRegSingerIndex(regularIndex,true);
     }
 }
 
