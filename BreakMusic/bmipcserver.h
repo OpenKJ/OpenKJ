@@ -35,7 +35,6 @@ public:
     enum{CMD_FADE_OUT=0,CMD_FADE_IN,CMD_STOP,CMD_PAUSE,CMD_PLAY};
 
 signals:
-    //void messageReceived(QString);
     void messageReceived(int);
 
 public slots:
