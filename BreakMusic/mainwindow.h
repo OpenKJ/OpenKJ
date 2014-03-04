@@ -22,7 +22,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QtMultimedia/QMediaPlayer>
+#include <QMediaPlayer>
 #include <QSharedMemory>
 #include "bmipcserver.h"
 #include <QtSql>
