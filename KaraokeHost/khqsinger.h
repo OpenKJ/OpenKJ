@@ -46,6 +46,12 @@ private:
 
 public:
     explicit KhQSingers(QObject *parent = 0);
+    /**
+     * @brief add
+     * Add a singer to the queue.
+     * @param singer Takes a pointer to a KhQSinger object
+     * @return Returns the index of the newly created singer
+     */
     int add(KhQSinger *singer);
     void insert(KhQSinger *singer, int index);
     void remove(int index);
