@@ -48,6 +48,10 @@ private:
     QList<KhQSinger*> *singers;
 
 public:
+    /**
+     * @brief KhQSingers default constructor
+     * @param parent Pointer to a parent QObject based object
+     */
     explicit KhQSingers(QObject *parent = 0);
     /**
      * @brief Add a new singer to the queue.
