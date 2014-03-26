@@ -500,6 +500,7 @@ int KhSinger::addSongAtPosition(int songid, int position, bool regularSong, int 
         KhQueueSong *song = getSongByIndex(qsongid);
         if (regular)
         {
+            QSqlQuery query("BEGIN TRANSACTION");
             song->setRegSong(true);
             song->setRegSingerIndex(regularIndex);
             KhRegularSinger *regsinger = regularSingers->getByRegularID(regularIndex);
@@ -507,8 +508,9 @@ int KhSinger::addSongAtPosition(int songid, int position, bool regularSong, int 
             regSong->setRegSingerIndex(regsinger->getIndex());
             regSong->setSongIndex(song->getSongID());
             int regsongid = regsinger->getRegSongs()->addSong(regSong);
-            regsinger->getRegSongs()->moveSong(regsongid, position);
             song->setRegSongIndex(regsongid);
+            query.exec("COMMIT TRANSACTION");
+            regsinger->getRegSongs()->moveSong(regsongid, position);
 
         }
         return qsongid;
