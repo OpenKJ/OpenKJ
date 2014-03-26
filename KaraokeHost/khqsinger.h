@@ -95,6 +95,8 @@ public slots:
 
 /**
  * @brief The KhQSingers class is a container for the KhQSinger objects which are used to populate the singer queue.
+ * Most of the changes also update the database to keep it in sync with the program unless skipdb is specified where applicable.  Any code that is going to
+ * be doing lots of updates should wrap them in a SQL transaction to keep things speedy.
  */
 class KhQSingers : public QObject
 {
