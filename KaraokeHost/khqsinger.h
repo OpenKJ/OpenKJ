@@ -6,6 +6,8 @@
 
 /**
  * @brief The KhQSinger class represents singers in the program's singer queue.
+ * Most of the changes also update the database to keep it in sync with the program unless skipdb is specified where applicable.  Any code that is going to
+ * be doing lots of updates should wrap them in a SQL transaction to keep things speedy.
  */
 class KhQSinger : public QObject
 {
