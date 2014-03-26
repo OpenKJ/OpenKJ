@@ -38,6 +38,9 @@ public slots:
 
 };
 
+/**
+ * @brief The KhQSingers class is a container for the KhQSinger objects which are used to populate the singer queue.
+ */
 class KhQSingers : public QObject
 {
     Q_OBJECT
