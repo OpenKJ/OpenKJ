@@ -169,7 +169,8 @@ QList<KhRegularSong *> *KhRegularSongs::getRegSongs()
 int KhRegularSongs::addSong(KhRegularSong *regSong)
 {
     regSong->setPosition(regSongs->size());
-    QSqlQuery query("INSERT INTO regularSongs (singer,song,keychg,played,position VALUES(" + QString::number(regSingerIndex) + "," + QString::number(regSong->getSongIndex()) + "," + QString::number(regSong->getKeyChange()) + "," + QString::number(regSong->getPosition()) + ")");
+    qDebug() << QString("INSERT INTO regularSongs (singer,song,keychg,position) VALUES(" + QString::number(regSingerIndex) + "," + QString::number(regSong->getSongIndex()) + "," + QString::number(regSong->getKeyChange()) + "," + QString::number(regSong->getPosition()) + ")");
+    QSqlQuery query("INSERT INTO regularSongs (singer,song,keychg,position) VALUES(" + QString::number(regSingerIndex) + "," + QString::number(regSong->getSongIndex()) + "," + QString::number(regSong->getKeyChange()) + "," + QString::number(regSong->getPosition()) + ")");
     int regSongID = query.lastInsertId().toInt();
     qDebug() << "Added regular song regid: " << regSongID;
     regSong->setRegSongIndex(regSongID);
