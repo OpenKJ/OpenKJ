@@ -4,6 +4,9 @@
 #include <QObject>
 #include <khqsong.h>
 
+/**
+ * @brief The KhQSinger class represents singers in the program's singer queue.
+ */
 class KhQSinger : public QObject
 {
     Q_OBJECT
@@ -15,24 +18,74 @@ private:
     bool m_regular;
 
 public:
+    /**
+     * @brief KhQSinger default constructor
+     * @param parent Pointer to a parent QObject based object, usually a KhQSingers object
+     */
     explicit KhQSinger(QObject *parent = 0);
-
+    /**
+     * @brief Get the database index
+     * @return An int containing the db index for the table row associated with this KhQSinger
+     */
     int dbIndex() const;
+    /**
+     * @brief Set the database index.
+     * This should generally only be used when populating KhQSinger objects while loading the database.
+     * @param dbIndex The db index for the table row associated with this KhQSinger
+     */
     void setDbIndex(int dbIndex);
-
+    /**
+     * @brief Get the position index
+     * @return An int containing the index
+     */
     int index() const;
+    /**
+     * @brief Set the position index
+     * This should only be used when loading the database or by the KhQSingers object when manipulating the order.
+     * @param index The position index.
+     */
     void setIndex(int index);
-
+    /**
+     * @brief Get the name of the singer
+     * @return Returns a QString containing the singer's name
+     */
     QString name() const;
+    /**
+     * @brief Set the singer's name
+     * @param name A QString set to the desired singer name
+     */
     void setName(const QString &name);
-
+    /**
+     * @brief Get a pointer to the KhQSongs object associated with this singer
+     * @return Returns a pointer to the KhQSongs object
+     */
     KhQSongs *qSongs();
+    /**
+     * @brief setQSongs Set the KhQSongs object this KhQSinger should use
+     * This is only intended to be used when creating new singers based on the database or on regular singers being loaded.
+     * @param qSongs A pointer to a KhQSongs object
+     */
     void setQSongs(KhQSongs *qSongs);
-
+    /**
+     * @brief Gets whether this singer is being tracked as a regular
+     * @return Returns true if the singer is being tracked as a regular, false otherwise
+     */
     bool regular() const;
+    /**
+     * @brief Sets whether the singers is being tracked as a regular
+     * @param regular A bool variable that should be true if the singer is being tracked as a regular, false otherwise.
+     */
     void setRegular(bool regular);
 
 signals:
+    /**
+     * @brief Signal that should be emitted any time a change is about to be made to the object or its children.  Primarily for use with QAbstractTableModel for updating views.
+     */
+    void dataAboutToChange();
+    /**
+     * @brief Signal that shoulch be emitted any time a change has been made to the object or its children.  Primarily for use with QAbstractTableModel for updating views.
+     */
+    void dataChanged();
 
 public slots:
 
