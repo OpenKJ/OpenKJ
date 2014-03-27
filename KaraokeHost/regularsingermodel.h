@@ -32,6 +32,7 @@ public:
     enum {REGID=0,SINGER,SONGCOUNT,LOAD,RENAME,DEL};
 
 signals:
+    void editSingerDuplicateError();
 
 public slots:
 

@@ -21,6 +21,7 @@
 #include "regularsingersdialog.h"
 #include "ui_regularsingersdialog.h"
 #include <QDebug>
+#include <QMessageBox>
 #include <QSqlQuery>
 
 RegularSingersDialog::RegularSingersDialog(KhRegularSingers *regSingers, KhRotationSingers *rotSingers, QWidget *parent) :
@@ -44,6 +45,7 @@ RegularSingersDialog::RegularSingersDialog(KhRegularSingers *regSingers, KhRotat
     ui->comboBoxAddPos->addItem("Next");
     m_rotSingers = rotSingers;
     m_regSingers = regSingers;
+    connect(regularSingerModel, SIGNAL(editSingerDuplicateError()), this, SLOT(editSingerDuplicateError()));
 }
 
 RegularSingersDialog::~RegularSingersDialog()
@@ -69,14 +71,35 @@ void RegularSingersDialog::on_treeViewRegulars_clicked(const QModelIndex &index)
     {
         // Rename regular
         qDebug() << "Rename singer clicked on row " << index.row();
+        QModelIndex child = regularSingerModel->index(index.row(), 1, index.parent());
+        ui->treeViewRegulars->selectionModel()->setCurrentIndex(child,QItemSelectionModel::SelectCurrent);
+        ui->treeViewRegulars->edit(child);
     }
     else if (index.column() == 5)
     {
         // Delete regular
-        qDebug() << "Delete singer clicked on row " << index.row();
-        emit regularSingerDeleted(regularSingerModel->getRegularSingerByListIndex(index.row())->getIndex());
-        regularSingerModel->removeByListIndex(index.row());
+
+        QMessageBox msgBox(this);
+        msgBox.setText("Are you sure you want to delete this regular singer?");
+        msgBox.setInformativeText("This will completely remove the regular singer from the database and can not be undone.  Note that if the singer is already loaded they won't be deleted from the rotation but regular tracking will be disabled.");
+        QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
+        QPushButton *cancelButton = msgBox.addButton(QMessageBox::Cancel);
+        msgBox.exec();
+        if (msgBox.clickedButton() == yesButton)
+        {
+            qDebug() << "Delete singer clicked on row " << index.row();
+            emit regularSingerDeleted(regularSingerModel->getRegularSingerByListIndex(index.row())->getIndex());
+            regularSingerModel->removeByListIndex(index.row());
+            return;
+        }
+        else if (msgBox.clickedButton() == cancelButton)
+            return;
     }
+}
+
+void RegularSingersDialog::editSingerDuplicateError()
+{
+    QMessageBox::warning(this, tr("Duplicate Name"), tr("A regular singer by that name already exists, edit cancelled."),QMessageBox::Close);
 }
 
 void RegularSingersDialog::addRegularToRotation(int ListIndex)

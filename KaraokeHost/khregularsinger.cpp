@@ -66,9 +66,15 @@ QString KhRegularSinger::getName() const
     return name;
 }
 
-void KhRegularSinger::setName(const QString &value)
+void KhRegularSinger::setName(const QString &value, bool skipDb)
 {
     name = value;
+    if (!skipDb)
+    {
+        QSqlQuery query;
+        QString sql = "UPDATE regularSingers SET 'name'=\"" + value + "\" WHERE ROWID == " + QString::number(regindex);
+        query.exec(sql);
+    }
 }
 
 QList<KhRegularSinger *> *KhRegularSingers::getRegularSingers()

@@ -34,7 +34,7 @@ public:
     int getIndex() const;
     void setIndex(int value);
     QString getName() const;
-    void setName(const QString &value);
+    void setName(const QString &value, bool skipDb = false);
     KhRegularSongs *getRegSongs() const;
     int addSong(int songIndex, int keyChange, int position);
     KhRegularSong *getSongByIndex(int index);

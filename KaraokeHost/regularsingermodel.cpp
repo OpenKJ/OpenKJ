@@ -67,7 +67,7 @@ QVariant RegularSingerModel::data(const QModelIndex &index, int role) const
         QPixmap icon(":/icons/Icons/edit-delete.png");
         return icon;
     }
-    if(role == Qt::DisplayRole)
+    if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
         switch(index.column())
         {
@@ -95,11 +95,21 @@ QVariant RegularSingerModel::data(const QModelIndex &index, int role) const
 
 bool RegularSingerModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    // Need to implement for changing regular singer names from the ui
-    Q_UNUSED(index);
-    Q_UNUSED(value);
     Q_UNUSED(role);
-    return false;
+    if (index.isValid() && role == Qt::EditRole && !(index.row() >= regularSingers->size() || index.row() < 0))
+    {
+        if (regularSingers->exists(value.toString()))
+        {
+            //QMessageBox::warning(this, tr("Duplicate Name"), tr("A regular singer by that name already exists, edit cancelled."),QMessageBox::Close);
+            emit editSingerDuplicateError();
+            return false;
+        }
+        regularSingers->at(index.row())->setName(value.toString());
+        //singers->getSingerByPosition(index.row() + 1)->setSingerName(value.toString());
+        return true;
+    }
+    else
+        return false;
 }
 
 QVariant RegularSingerModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -133,6 +143,8 @@ Qt::ItemFlags RegularSingerModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
         return Qt::ItemIsEnabled;
+    if (index.column() == SINGER)
+        return Qt::ItemIsEditable | Qt::ItemIsEnabled | Qt::ItemIsSelectable;
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
 

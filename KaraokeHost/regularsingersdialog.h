@@ -44,6 +44,7 @@ signals:
 private slots:
     void on_btnClose_clicked();
     void on_treeViewRegulars_clicked(const QModelIndex &index);
+    void editSingerDuplicateError();
 
 private:
     void addRegularToRotation(int ListIndex);
