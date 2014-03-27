@@ -107,6 +107,7 @@ void RegularSingersDialog::addRegularToRotation(int ListIndex)
     if (m_rotSingers->singerExists(m_regSingers->at(ListIndex)->getName()))
     {
         //Singer with name already exists in rotation
+        QMessageBox::warning(this, tr("Naming conflict"), tr("A rotation singer already exists with the same name as the regular you're attempting to add. Action aborted."), QMessageBox::Close);
     }
     else
     {
