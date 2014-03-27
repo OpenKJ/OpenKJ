@@ -8,13 +8,13 @@ Not anywhere near ready for professional use at this point.  Many features are i
 
 There are previous versions of this software that I wrote and currently use to host my shows, but they are based on proprietary libraries and couldn't be open sourced.  This is my attempt at re-implementing my previous work in an FOSS friendly way.  As soon as it reaches feature parity with what I'm using now, I'll start dogfooding it.
 
-The oldest and cruftiest code is in the libCDG part of it, that was some of the first code I wrote while figuring out C++.  It could probably use heavy improvements.
+The oldest and cruftiest code is in the libCDG part of it, that was some of the first code I wrote while figuring out C++.  It could use heavy improvements.
 
 My reason for this and its predecessors is because I'm a Linux geek, and I was unhappy with the lack of available Linux based hosting software.  I'm a bit of a purist, so I couldn't abide running Windows to run my shows.  
 
 If you are building this and want to use the pitch shift/key change functionality, you will unfortunately have to build it with USE_FMOD defined and download and install a copy of the FMOD Api (fmod.org).  I haven't figured out how to get key changing working with any of the open source audio libraries.  If anyone knows how to get this working, feel free to subclass KhAbstractAudioBackend, it should be pretty self explanatory.  By default this uses a QMediaPlayer based audio backend, which isn't very featureful.
 
-This project requires Qt 5.x, boost, Taglib, and minizip to build.
+This project requires Qt 5.x, boost, Taglib, and minizip to build.  Working builds have only been done on Linux at this point.  This *should* (and is intended to) build on Windows and Mac, assuming all of the dependencies are there.  The FMOD backend will NOT build on Windows using mingw because the C++ API for FMOD isn't compatible.  I'll eventually re-write the FMOD audio abstraction layer to use the C calls instead so it will build.  It should build fine using the msvc compiler.  If anyone successfully builds any of this on a non-Linux platform, please let me know.
 
 Things that work so far:
 
@@ -43,7 +43,11 @@ KaraokeHost:
 * Settings for CDG window (enabled/disabled, fullscreen, monitor for fullscreen output)
 * Playing songs from the rotation or queue lists (double click)
 * Media controls (pause, unpause, stop)
-* Regular singer management (save/track new regular singer - Pretty useless right now)
+* Regular singers - Save singer as regular (if no name conflict)
+* Regular singers - Load saved singer
+* Regular singers - Rename existing singer
+* Regular singers - Delete existing singer
+* Regular singers - Auto track/save queue changes for regular singer.
 * Notification of BreakMusic via IPC that karaoke is starting playback or stopping (used for auto-fade of break music)
 
 BreakMusic:
@@ -64,7 +68,9 @@ Things that are still work in progress or to do:
 
 KaraokeHost:
 
-* Regular singer management (load/export/import/etc)
+* Regular singers - Import from file
+* Regular singers - Export to file
+* Regular singers - Name conflict resolution on save (Merge/Replace)
 * Scrolling rotaiton ticker on the bottom of the CDG window
 * Setting key changes on queued songs
 * Convert main program CDG display to OpenGL rendering like the CDG window
