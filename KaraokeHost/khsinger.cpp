@@ -295,7 +295,6 @@ bool KhRotationSingers::add(QString name, int position, bool regular)
         else
             return false;
     }
-    // still need to implement other positional adds
     return false;
 }
 
