@@ -216,12 +216,12 @@ void MainWindow::on_treeViewDB_activated(const QModelIndex &index)
 
 void MainWindow::on_buttonAddSinger_clicked()
 {
-    if (singers->singerExists(ui->editAddSinger->text()))
+    if (singers->exists(ui->editAddSinger->text()))
     {
         qDebug() << "Singer exists";
         return;
     }
-    if (!singers->singerAdd(ui->editAddSinger->text()))
+    if (!singers->add(ui->editAddSinger->text()))
     {
         qDebug() << "Failed to add singer!!!";
         return;
@@ -231,12 +231,12 @@ void MainWindow::on_buttonAddSinger_clicked()
 
 void MainWindow::on_editAddSinger_returnPressed()
 {
-    if (singers->singerExists(ui->editAddSinger->text()))
+    if (singers->exists(ui->editAddSinger->text()))
     {
         qDebug() << "Singer exists";
         return;
     }
-    if (!singers->singerAdd(ui->editAddSinger->text()))
+    if (!singers->add(ui->editAddSinger->text()))
     {
         qDebug() << "Failed to add singer!!!";
         return;

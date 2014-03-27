@@ -266,34 +266,40 @@ void KhRotationSingers::setCurrentSingerPosition(int value)
         currentSingerIndex = -1;
 }
 
-bool KhRotationSingers::singerAdd(QString name, int position, bool regular)
+bool KhRotationSingers::add(QString name, int position, bool regular)
 {
-    if (singerExists(name))
+    if (exists(name))
     {
         return false;
     }
     emit dataAboutToChange();
     QSqlQuery query;
+    int nextPos = singers->size() + 1;
+    //        singerPos = singers->size() + 1;
+    bool result = query.exec("INSERT INTO rotationSingers (name, position, regular) VALUES(\"" + name + "\", " + QString::number(nextPos) + "," + QString::number(regular) + ")");
+    if (!result) return false;
+    KhSinger *singer = new KhSinger(regularSingers, this);
+    singer->setSingerName(name,true);
+    singer->setSingerPosition(nextPos,true);
+    singer->setSingerIndex(query.lastInsertId().toInt());
+    singer->setRegular(regular,true);
+    singer->setRegularIndex(-1,true);
+    singers->push_back(singer);
+    emit dataChanged();
     if (position == -1)
-    {
-        position = singers->size() + 1;
-        bool result = query.exec("INSERT INTO rotationSingers (name, position, regular) VALUES(\"" + name + "\", " + QString::number(position) + "," + QString::number(regular) + ")");
-        if (!result) return false;
-        KhSinger *singer = new KhSinger(regularSingers, this);
-        singer->setSingerName(name,true);
-        singer->setSingerPosition(position,true);
-        singer->setSingerIndex(query.lastInsertId().toInt());
-        singer->setRegular(regular,true);
-        singer->setRegularIndex(-1,true);
-        singers->push_back(singer);
-        emit dataChanged();
         return true;
+    else
+    {
+        if (moveSinger(nextPos,position))
+            return true;
+        else
+            return false;
     }
     // still need to implement other positional adds
     return false;
 }
 
-bool KhRotationSingers::singerExists(QString name)
+bool KhRotationSingers::exists(QString name)
 {
     bool match = false;
     for (int i=0; i < singers->size(); i++)

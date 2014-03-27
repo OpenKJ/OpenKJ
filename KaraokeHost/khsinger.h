@@ -86,8 +86,8 @@ public:
     KhSinger *getSingerByIndex(int singerid);
     int getCurrentSingerPosition() const;
     void setCurrentSingerPosition(int value);
-    bool singerAdd(QString name, int position = -1, bool regular = false);
-    bool singerExists(QString name);
+    bool add(QString name, int position = -1, bool regular = false);
+    bool exists(QString name);
     QString getNextSongBySingerPosition(int position) const;
     void deleteSingerByIndex(int singerid);
     void deleteSingerByPosition(int position);

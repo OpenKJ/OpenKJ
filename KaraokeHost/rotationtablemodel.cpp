@@ -111,7 +111,7 @@ bool RotationTableModel::setData(const QModelIndex &index, const QVariant &value
     Q_UNUSED(role);
     if (index.isValid() && role == Qt::EditRole && !(index.row() >= singers->getSingers()->size() || index.row() < 0))
     {
-        if (singers->singerExists(value.toString()))
+        if (singers->exists(value.toString()))
         {
             emit notify_user("Error: Duplicate singer name.  Edit cancelled.");
             return false;

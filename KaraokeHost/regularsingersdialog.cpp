@@ -104,17 +104,18 @@ void RegularSingersDialog::editSingerDuplicateError()
 
 void RegularSingersDialog::addRegularToRotation(int ListIndex)
 {
-    if (m_rotSingers->singerExists(m_regSingers->at(ListIndex)->getName()))
+    if (m_rotSingers->exists(m_regSingers->at(ListIndex)->getName()))
     {
         //Singer with name already exists in rotation
         QMessageBox::warning(this, tr("Naming conflict"), tr("A rotation singer already exists with the same name as the regular you're attempting to add. Action aborted."), QMessageBox::Close);
     }
     else
     {
-        QSqlQuery query("BEGIN TRANSACTION");
-        m_rotSingers->singerAdd(m_regSingers->at(ListIndex)->getName());
-        KhSinger *rotSinger = m_rotSingers->getSingers()->at(m_rotSingers->getSingers()->size() -1);
         KhRegularSinger *regSinger = m_regSingers->at(ListIndex);
+        KhSinger *rotSinger;
+        QSqlQuery query("BEGIN TRANSACTION");
+        m_rotSingers->add(m_regSingers->at(ListIndex)->getName());
+        rotSinger = m_rotSingers->getSingers()->at(m_rotSingers->getSingers()->size() -1);
         regSinger->getRegSongs()->sort();
         for (int i=0; i < regSinger->getRegSongs()->getRegSongs()->size(); i++)
         {
@@ -127,5 +128,15 @@ void RegularSingersDialog::addRegularToRotation(int ListIndex)
         rotSinger->setRegular(true);
         rotSinger->setRegularIndex(regSinger->getIndex());
         query.exec("COMMIT TRANSACTION");
+        if ((ui->comboBoxAddPos->currentText() == "Next") && (m_rotSingers->getCurrent() != NULL))
+        {
+            if (m_rotSingers->getCurrent()->getSingerPosition() != m_rotSingers->getSingers()->size())
+                m_rotSingers->moveSinger(rotSinger->getSingerPosition(),m_rotSingers->getCurrent()->getSingerPosition() + 1);
+        }
+        else if ((ui->comboBoxAddPos->currentText() == "Fair") && (m_rotSingers->getCurrent() != NULL))
+        {
+            if (m_rotSingers->getCurrent()->getSingerPosition() != 1)
+                m_rotSingers->moveSinger(rotSinger->getSingerPosition(), m_rotSingers->getCurrent()->getSingerPosition());
+        }
     }
 }
