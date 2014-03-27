@@ -272,10 +272,12 @@ void MainWindow::on_treeViewRotation_clicked(const QModelIndex &index)
     }
     else if (index.column() == 4)
     {
+        queuemodel->layoutAboutToBeChanged();
         singers->deleteSingerByPosition(index.row() + 1);
         ui->treeViewRotation->clearSelection();
         singers->setSelectedSingerIndex(-1);
         rowclicked = -1;
+        queuemodel->layoutChanged();
     }
     else if (index.column() == 5)
     {

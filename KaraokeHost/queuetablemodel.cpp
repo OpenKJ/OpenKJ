@@ -115,6 +115,8 @@ bool QueueTableModel::dropMimeData(const QMimeData *data, Qt::DropAction action,
 {
     UNUSED(action);
     UNUSED(column);
+    if (singers->getSelected() == NULL)
+        return false;
     int droprow;
     if (parent.row() >= 0)
         droprow = parent.row();
