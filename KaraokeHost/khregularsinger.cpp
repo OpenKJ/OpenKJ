@@ -106,7 +106,7 @@ bool KhRegularSingers::exists(QString searchName)
 {
     for (int i=0; i < regularSingers->size(); i++)
     {
-        if (regularSingers->at(i)->getName() == searchName)
+        if (regularSingers->at(i)->getName().toLower() == searchName.toLower())
             return true;
     }
     return false;
