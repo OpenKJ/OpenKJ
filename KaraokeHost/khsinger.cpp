@@ -360,6 +360,7 @@ void KhRotationSingers::clear()
     query.exec("DELETE FROM rotationsingers");
     query.exec("DELETE FROM queuesongs");
     currentSingerPosition = -1;
+    qDeleteAll(singers->begin(),singers->end());
     singers->clear();
     emit dataChanged();
 }
@@ -525,6 +526,8 @@ int KhSinger::addSongAtPosition(int songid, int position, bool regularSong, int 
 
 void KhSinger::clearQueue()
 {
+    if ((isRegular()) && (regularSingers->getByRegularID(getRegularIndex()) != NULL))
+       regularSingers->getByRegularID(getRegularIndex())->getRegSongs()->clear();
     songs->clear();
 }
 

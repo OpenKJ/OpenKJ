@@ -55,6 +55,8 @@ MainWindow::MainWindow(QWidget *parent) :
     query.exec("CREATE TABLE IF NOT EXISTS regularSingers ( name VARCHAR(30) NOT NULL UNIQUE)");
     query.exec("CREATE TABLE IF NOT EXISTS regularSongs ( singer INTEGER NOT NULL, song INTEGER NOT NULL, 'keychg' INTEGER, 'position' INTEGER)");
     query.exec("CREATE TABLE IF NOT EXISTS sourceDirs ( path VARCHAR(255) UNIQUE, pattern INTEGER)");
+//    query.exec("PRAGMA synchronous = OFF");
+//    query.exec("PRAGMA journal_mode = OFF");
     sortColDB = 1;
     sortDirDB = 0;
     regularSingers = new KhRegularSingers(this);
@@ -437,8 +439,10 @@ void MainWindow::on_buttonClearRotation_clicked()
 {
     ui->treeViewQueue->clearSelection();
     ui->treeViewRotation->clearSelection();
+    //queuemodel->clear();
+    queuemodel->layoutAboutToBeChanged();
     singers->clear();
-    queuemodel->clear();
+    queuemodel->layoutChanged();
 }
 
 void MainWindow::clearQueueSort()
@@ -449,8 +453,13 @@ void MainWindow::clearQueueSort()
 
 void MainWindow::on_buttonClearQueue_clicked()
 {
-    ui->treeViewQueue->clearSelection();
-    queuemodel->clear();
+    if (singers->getSelected() != NULL)
+    {
+        rotationmodel->layoutAboutToBeChanged();
+        ui->treeViewQueue->clearSelection();
+        queuemodel->clear();
+        rotationmodel->layoutChanged();
+    }
 }
 
 void MainWindow::on_spinBoxKey_valueChanged(int arg1)

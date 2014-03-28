@@ -59,6 +59,7 @@ public:
     void moveSong(int regSongID, int newPos);
     KhRegularSong *getSongByIndex(int index);
     void sort();
+    void clear();
 
 private:
     QList<KhRegularSong*> *regSongs;

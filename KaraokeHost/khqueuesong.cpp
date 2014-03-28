@@ -363,15 +363,15 @@ void KhQueueSongs::deleteSongByIndex(int index)
     KhQueueSong *song = getSongByIndex(index);
     qDebug() << "KhQueueSongs::deleteSongByIndex(int " << index << ")";
     qDebug() << "Deleting song at position: " << song->getPosition();
-    QSqlQuery query;
+    QSqlQuery query("BEGIN TRANSACTION");
     query.exec("DELETE FROM queuesongs WHERE ROWID == " + QString::number(index));
     for (int i=0; i < songs->size(); i++)
         if (songs->at(i)->getPosition() > song->getPosition())
             songs->at(i)->setPosition(songs->at(i)->getPosition() - 1);
+    query.exec("COMMIT TRANSACTION");
     if (song->isRegSong())
         regularSingers->getByRegularID(song->getRegSingerIndex())->getRegSongs()->deleteSongByIndex(song->getRegSongIndex());
         songs->erase(songs->begin() + (song->getPosition()));
-
     emit queueUpdated();
 }
 
@@ -513,7 +513,10 @@ bool KhQueueSongs::songExists(int songIndex)
 
 void KhQueueSongs::clear()
 {
+    qDeleteAll(songs->begin(),songs->end());
     songs->clear();
+    QSqlQuery query;
+    query.exec("DELETE FROM queueSongs WHERE singer == " + QString::number(getSingerIndex()));
 }
 
 bool KhQueueSongs::moveSong(int oldPosition, int newPosition)
@@ -552,6 +555,8 @@ int KhQueueSongs::getRegSingerIndex() const
 void KhQueueSongs::setRegSingerIndex(int value, bool skipDB)
 {
     regSingerIndex = value;
+    QSqlQuery query("BEGIN TRANSACTION");
     for (int i=0; i < songs->size(); i++)
         songs->at(i)->setRegSingerIndex(regSingerIndex, skipDB);
+    query.exec("COMMIT TRANSACTION");
 }

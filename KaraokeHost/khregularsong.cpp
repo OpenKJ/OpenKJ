@@ -134,11 +134,13 @@ void KhRegularSongs::deleteSongByIndex(int index)
 {
     KhRegularSong *song = getSongByIndex(index);
     QSqlQuery query;
+    query.exec("BEGIN TRANSACTION");
     query.exec("DELETE FROM regularsongs WHERE ROWID == " + QString::number(index));
     for (int i=0; i < regSongs->size(); i++)
         if (regSongs->at(i)->getPosition() > song->getPosition())
             regSongs->at(i)->setPosition(regSongs->at(i)->getPosition() - 1);
     regSongs->erase(regSongs->begin() + (song->getPosition()));
+    query.exec("COMMIT TRANSACTION");
 }
 
 KhRegularSong *KhRegularSongs::getSongByIndex(int index)
@@ -159,6 +161,18 @@ bool sortKhRegularSongCompare(const KhRegularSong *s1, const KhRegularSong *s2)
 void KhRegularSongs::sort()
 {
     qSort(regSongs->begin(),regSongs->end(),sortKhRegularSongCompare);
+}
+
+void KhRegularSongs::clear()
+{
+    QSqlQuery query;
+    qDebug() << QString("DELETE FROM regularsongs WHERE singer == " + QString::number(regSingerIndex));
+    if (query.exec("DELETE FROM regularsongs WHERE singer == " + QString::number(regSingerIndex)))
+        qDebug() << "SQL returned okay";
+    else
+        qDebug() << "SQL returned error";
+    qDeleteAll(regSongs->begin(),regSongs->end());
+    regSongs->clear();
 }
 
 QList<KhRegularSong *> *KhRegularSongs::getRegSongs()
