@@ -305,3 +305,8 @@ KhSong *SongDBTableModel::getSongByID(int songid)
     }
     return new KhSong();
 }
+
+KhSongs *SongDBTableModel::getDbSongs()
+{
+    return fulldata;
+}

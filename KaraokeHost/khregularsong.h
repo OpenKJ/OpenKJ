@@ -22,6 +22,7 @@
 #define KHREGULARSONG_H
 
 #include <QObject>
+#include <khsong.h>
 
 class KhRegularSong : public QObject {
     Q_OBJECT
@@ -51,7 +52,7 @@ class KhRegularSongs : public QObject {
     Q_OBJECT
 
 public:
-    explicit KhRegularSongs(int regSingerID, QObject *parent = 0);
+    explicit KhRegularSongs(int regSingerID, KhSongs *dbSongsPtr, QObject *parent = 0);
     ~KhRegularSongs();
     void deleteSongByIndex(int index);
     QList<KhRegularSong*> *getRegSongs();
@@ -65,6 +66,8 @@ private:
     QList<KhRegularSong*> *regSongs;
     int regSingerIndex;
     void loadFromDB();
+    KhSongs *dbSongs;
+
 };
 
 #endif // KHREGULARSONG_H
