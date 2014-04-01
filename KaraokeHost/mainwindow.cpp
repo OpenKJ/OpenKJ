@@ -121,6 +121,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(regularSingers, SIGNAL(dataAboutToChange()), rotationmodel, SIGNAL(layoutAboutToBeChanged()));
     cdgWindow->updateCDG(QImage(":/icons/Icons/openkjlogo1.png"));
     settings->restoreWindowState(cdgWindow);
+    if ((settings->cdgWindowFullscreen()) && (settings->showCdgWindow()))
+    {
+        cdgWindow->makeFullscreen();
+    }
     ui->cdgOutput->setPixmap(QPixmap::fromImage(QImage(":/icons/Icons/openkjlogo1.png")));
 }
 
