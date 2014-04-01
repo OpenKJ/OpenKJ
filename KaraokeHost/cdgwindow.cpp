@@ -24,18 +24,28 @@
 #include <QApplication>
 #include <QDesktopWidget>
 
+extern KhSettings *settings;
+
+
 CdgWindow::CdgWindow(QWidget *parent, Qt::WindowFlags f) :
     QDialog(parent, f),
     ui(new Ui::cdgWindow)
 {
     ui->setupUi(this);
-    settings = new KhSettings(this);
+//    settings = new KhSettings(this);
     canvas = new QGLCanvas(this);
     ui->verticalLayout->addWidget(canvas);
     canvas->repaint();
     m_fullScreen = false;
     m_lastSize.setWidth(300);
     m_lastSize.setHeight(216);
+    ticker = new ScrollText(this);
+    ticker->setFont(settings->tickerFont());
+    ticker->setMinimumHeight(50);
+    ticker->setText("This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll");
+    ui->verticalLayout->addWidget(ticker);
+    connect(settings, SIGNAL(tickerFontChanged()), this, SLOT(tickerFontSettingsChanged()));
+    connect(settings, SIGNAL(tickerHeightChanged()), this, SLOT(tickerHeightChanged()));
 }
 
 CdgWindow::~CdgWindow()
@@ -90,6 +100,19 @@ void CdgWindow::setFullScreenMonitor(int monitor)
     Q_UNUSED(monitor);
     makeWindowed();
     makeFullscreen();
+}
+
+void CdgWindow::tickerFontSettingsChanged()
+{
+    qDebug() << "tickerFontSettingsChanged() fired";
+    ticker->setFont(settings->tickerFont());
+    //    ticker->refresh();
+}
+
+void CdgWindow::tickerHeightChanged()
+{
+    ticker->setMinimumHeight(settings->tickerHeight());
+    ticker->setMaximumHeight(settings->tickerHeight());
 }
 
 void CdgWindow::mouseDoubleClickEvent(QMouseEvent *e)

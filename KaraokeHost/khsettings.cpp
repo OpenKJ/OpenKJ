@@ -80,3 +80,27 @@ void KhSettings::restoreWindowState(QWidget *window)
     window->move(settings->value("pos", QPoint(100, 100)).toPoint());
     settings->endGroup();
 }
+
+void KhSettings::setTickerFont(QFont font)
+{
+    settings->setValue("tickerFont", font.toString());
+    emit tickerFontChanged();
+}
+
+QFont KhSettings::tickerFont()
+{
+    QFont font;
+    font.fromString(settings->value("tickerFont", QApplication::font().toString()).toString());
+    return font;
+}
+
+int KhSettings::tickerHeight()
+{
+    return settings->value("tickerHeight", 25).toInt();
+}
+
+void KhSettings::setTickerHeight(int height)
+{
+    settings->setValue("tickerHeight", height);
+    emit tickerHeightChanged();
+}

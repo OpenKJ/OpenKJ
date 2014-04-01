@@ -48,6 +48,10 @@ private slots:
 
     void on_listWidgetMonitors_itemSelectionChanged();
 
+    void on_pushButtonFont_clicked();
+
+    void on_spinBoxTickerHeight_valueChanged(int arg1);
+
 signals:
     void showCdgWindowChanged(bool);
     void cdgWindowFullScreenChanged(bool);
@@ -56,7 +60,7 @@ signals:
 private:
     Ui::SettingsDialog *ui;
     QStringList getMonitors();
-    KhSettings *settings;
+//    KhSettings *settings;
 };
 
 #endif // SETTINGSDIALOG_H

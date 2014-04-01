@@ -32,6 +32,9 @@
 #include <khzip.h>
 #include <QDesktopWidget>
 
+KhSettings *settings;
+
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)

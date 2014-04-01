@@ -115,7 +115,7 @@ private:
     QDir *khDir;
     CDG *cdg;
     KhSong *songCurrent;
-    KhSettings *settings;
+//    KhSettings *settings;
 
     int sortColDB;
     int sortDirDB;

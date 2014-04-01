@@ -51,8 +51,14 @@ public:
     bool setSilenceDetection(bool detect);
     void saveWindowState(QWidget *window);
     void restoreWindowState(QWidget *window);
+    void setTickerFont(QFont font);
+    QFont tickerFont();
+    int tickerHeight();
+    void setTickerHeight(int height);
 
 signals:
+    void tickerFontChanged();
+    void tickerHeightChanged();
 
 public slots:
 

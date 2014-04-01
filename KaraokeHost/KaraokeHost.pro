@@ -37,7 +37,8 @@ SOURCES += main.cpp\
     cdgwindow.cpp \
     khsettings.cpp \
     regularsingersdialog.cpp \
-    regularsingermodel.cpp
+    regularsingermodel.cpp \
+    scrolltext.cpp
 
 HEADERS  += mainwindow.h \
     queuetablemodel.h \
@@ -64,7 +65,8 @@ HEADERS  += mainwindow.h \
     cdgwindow.h \
     khsettings.h \
     regularsingersdialog.h \
-    regularsingermodel.h
+    regularsingermodel.h \
+    scrolltext.h
 
 FORMS    += mainwindow.ui \
     databasedialog.ui \

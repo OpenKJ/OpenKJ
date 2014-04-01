@@ -25,6 +25,7 @@
 #include <qglcanvas.h>
 #include <QMouseEvent>
 #include <khsettings.h>
+#include <scrolltext.h>
 
 namespace Ui {
 class cdgWindow;
@@ -40,18 +41,22 @@ public:
     void updateCDG(QImage image);
     void makeFullscreen();
     void makeWindowed();
+
 public slots:
     void setFullScreen(bool fullscreen);
     void setFullScreenMonitor(int monitor);
+    void tickerFontSettingsChanged();
+    void tickerHeightChanged();
 
 private:
     Ui::cdgWindow *ui;
     QGLCanvas *canvas;
+    ScrollText *ticker;
 
 private:
     bool m_fullScreen;
     QRect m_lastSize;
-    KhSettings *settings;
+//    KhSettings *settings;
 
     // QWidget interface
 protected:

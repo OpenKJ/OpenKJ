@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>588</width>
-    <height>375</height>
+    <width>592</width>
+    <height>426</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -117,19 +117,6 @@
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
-         <spacer name="verticalSpacer">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
          <widget class="QStackedWidget" name="stackedWidget">
           <property name="currentIndex">
            <number>1</number>
@@ -170,6 +157,71 @@
               <layout class="QVBoxLayout" name="verticalLayout_8">
                <item>
                 <widget class="QListWidget" name="listWidgetMonitors"/>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="Line" name="line">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupBoxTicker">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="title">
+               <string>Ticker</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_9">
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_4">
+                 <property name="topMargin">
+                  <number>10</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>5</number>
+                 </property>
+                 <item>
+                  <widget class="QPushButton" name="pushButtonFont">
+                   <property name="text">
+                    <string>Font</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_2">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label">
+                   <property name="text">
+                    <string>Ticker Height</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="spinBoxTickerHeight"/>
+                 </item>
+                </layout>
                </item>
               </layout>
              </widget>

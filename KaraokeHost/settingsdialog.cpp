@@ -23,6 +23,10 @@
 #include <QDebug>
 #include <QApplication>
 #include <QDesktopWidget>
+#include <QFontDialog>
+
+extern KhSettings *settings;
+
 
 SettingsDialog::SettingsDialog(QWidget *parent) :
     QDialog(parent),
@@ -32,12 +36,14 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     createIcons();
     QStringList screens = getMonitors();
     ui->listWidgetMonitors->addItems(screens);
-    settings = new KhSettings(this);
+//    settings = new KhSettings(this);
     ui->checkBoxShowCdgWindow->setChecked(settings->showCdgWindow());
     ui->groupBoxMonitors->setChecked(settings->cdgWindowFullscreen());
     ui->listWidgetMonitors->setEnabled(settings->showCdgWindow());
     ui->groupBoxMonitors->setEnabled(settings->showCdgWindow());
     ui->listWidgetMonitors->item(settings->cdgWindowFullScreenMonitor())->setSelected(true);
+    ui->spinBoxTickerHeight->setValue(settings->tickerHeight());
+
 }
 
 SettingsDialog::~SettingsDialog()
@@ -96,4 +102,20 @@ void SettingsDialog::on_listWidgetMonitors_itemSelectionChanged()
     int selMonitor = ui->listWidgetMonitors->selectionModel()->selectedIndexes().at(0).row();
     settings->setCdgWindowFullscreenMonitor(selMonitor);
     emit cdgWindowFullScreenMonitorChanged(selMonitor);
+}
+
+void SettingsDialog::on_pushButtonFont_clicked()
+{
+    bool ok;
+    QFont currentFont = this->font();
+    QFont font = QFontDialog::getFont(&ok, settings->tickerFont(), this, "Select ticker font");
+    if (ok)
+    {
+        settings->setTickerFont(font);
+    }
+}
+
+void SettingsDialog::on_spinBoxTickerHeight_valueChanged(int arg1)
+{
+    settings->setTickerHeight(arg1);
 }
