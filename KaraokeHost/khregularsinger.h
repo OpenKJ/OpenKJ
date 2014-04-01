@@ -23,13 +23,14 @@
 
 #include <QObject>
 #include "khregularsong.h"
+#include <khsong.h>
 
 class KhRegularSinger : public QObject
 {
     Q_OBJECT
 public:
-    explicit KhRegularSinger(QString singerName, QObject *parent = 0);
-    explicit KhRegularSinger(QString singerName, int singerID, QObject *parent = 0);
+    explicit KhRegularSinger(QString singerName, KhSongs *dbSongsPtr, QObject *parent = 0);
+    explicit KhRegularSinger(QString singerName, int singerID, KhSongs *dbSongsPtr, QObject *parent = 0);
     ~KhRegularSinger();
     int getIndex() const;
     void setIndex(int value);
@@ -48,13 +49,14 @@ private:
     int regindex;
     QString name;
     KhRegularSongs *regSongs;
+    KhSongs *dbSongs;
 };
 
 class KhRegularSingers : public QObject
 {
     Q_OBJECT
 public:
-    explicit KhRegularSingers(QObject *parent = 0);
+    explicit KhRegularSingers(KhSongs *dbSongsPtr, QObject *parent = 0);
     ~KhRegularSingers();
     QList<KhRegularSinger *> *getRegularSingers();
     KhRegularSinger *getByRegularID(int regIndex);
@@ -65,6 +67,7 @@ public:
     KhRegularSinger* at(int index);
     void deleteSinger(int singerID);
     void deleteSinger(QString name);
+    void exportSinger(int singerID);
 
 signals:
     void dataAboutToChange();
@@ -79,7 +82,7 @@ private:
     int getListIndexBySingerID(int SingerID);
     int getListIndexByName(QString name);
     void dbDeleteSinger(int SingerID);
-
+    KhSongs *dbSongs;
 
 };
 

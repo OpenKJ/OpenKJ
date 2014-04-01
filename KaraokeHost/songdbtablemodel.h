@@ -64,6 +64,7 @@ public:
     void applyFilter(QString filterstr);
     KhSong *getRowSong(int row);
     KhSong *getSongByID(int songid);
+    KhSongs *getDbSongs();
 
 signals:
     

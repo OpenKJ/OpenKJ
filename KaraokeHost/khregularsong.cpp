@@ -96,12 +96,13 @@ void KhRegularSong::setRegSongIndex(int value)
 }
 
 
-KhRegularSongs::KhRegularSongs(int regSingerID, QObject *parent)
+KhRegularSongs::KhRegularSongs(int regSingerID, KhSongs *dbSongsPtr, QObject *parent)
 {
     Q_UNUSED(parent);
     regSongs = new QList<KhRegularSong *>;
     regSingerIndex = regSingerID;
     loadFromDB();
+    dbSongs = dbSongsPtr;
 }
 
 KhRegularSongs::~KhRegularSongs()

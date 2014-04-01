@@ -62,7 +62,9 @@ MainWindow::MainWindow(QWidget *parent) :
 //    query.exec("PRAGMA journal_mode = OFF");
     sortColDB = 1;
     sortDirDB = 0;
-    regularSingers = new KhRegularSingers(this);
+    songdbmodel = new SongDBTableModel(this);
+    songdbmodel->loadFromDB();
+    regularSingers = new KhRegularSingers(songdbmodel->getDbSongs(),this);
     singers = new KhRotationSingers(regularSingers, this);
     songCurrent = NULL;
     rotationmodel = new RotationTableModel(singers, this);
@@ -91,8 +93,8 @@ MainWindow::MainWindow(QWidget *parent) :
         }
     }
     cdg = new CDG;
-    songdbmodel = new SongDBTableModel(this);
-    songdbmodel->loadFromDB();
+//    songdbmodel = new SongDBTableModel(this);
+//    songdbmodel->loadFromDB();
     ui->treeViewDB->sortByColumn(-1);
     ui->treeViewDB->setModel(songdbmodel);
     ipcClient = new KhIPCClient("bmControl",this);
@@ -129,6 +131,8 @@ MainWindow::MainWindow(QWidget *parent) :
         cdgWindow->makeFullscreen();
     }
     ui->cdgOutput->setPixmap(QPixmap::fromImage(QImage(":/icons/Icons/openkjlogo1.png")));
+
+    regularSingers->exportSinger(1);
 }
 
 void MainWindow::play(QString zipFilePath)

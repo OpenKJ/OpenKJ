@@ -23,23 +23,27 @@
 #include <QSqlRecord>
 #include <QVariant>
 #include <QDebug>
+#include <QXmlStreamWriter>
+#include <QFile>
 
-KhRegularSinger::KhRegularSinger(QString singerName, QObject *parent)
+KhRegularSinger::KhRegularSinger(QString singerName, KhSongs *dbSongsPtr, QObject *parent)
 {
     Q_UNUSED(parent);
+    dbSongs = dbSongsPtr;
     QSqlQuery query;
     query.exec("INSERT INTO regularsingers (name) VALUES(\"" + singerName + "\")");
     regindex = query.lastInsertId().toInt();
     name = singerName;
-    regSongs = new KhRegularSongs(regindex, this);
+    regSongs = new KhRegularSongs(regindex, dbSongs, this);
 }
 
-KhRegularSinger::KhRegularSinger(QString singerName, int singerID, QObject *parent)
+KhRegularSinger::KhRegularSinger(QString singerName, int singerID, KhSongs *dbSongsPtr, QObject *parent)
 {
     Q_UNUSED(parent);
+    dbSongs = dbSongsPtr;
     regindex = singerID;
     name = singerName;
-    regSongs = new KhRegularSongs(regindex, this);
+    regSongs = new KhRegularSongs(regindex, dbSongs, this);
 }
 
 KhRegularSinger::~KhRegularSinger()
@@ -48,9 +52,10 @@ KhRegularSinger::~KhRegularSinger()
 }
 
 
-KhRegularSingers::KhRegularSingers(QObject *parent) :
+KhRegularSingers::KhRegularSingers(KhSongs *dbSongsPtr, QObject *parent) :
     QObject(parent)
 {
+    dbSongs = dbSongsPtr;
     regularSingers = new QList<KhRegularSinger *>;
     loadFromDB();
 }
@@ -117,7 +122,7 @@ int KhRegularSingers::add(QString name)
     if (!exists(name))
     {
         emit dataAboutToChange();
-        KhRegularSinger *singer = new KhRegularSinger(name);
+        KhRegularSinger *singer = new KhRegularSinger(name, dbSongs);
         regularSingers->push_back(singer);
         emit dataChanged();
         return singer->getIndex();
@@ -154,6 +159,49 @@ void KhRegularSingers::deleteSinger(QString name)
     emit dataChanged();
 }
 
+void KhRegularSingers::exportSinger(int singerID)
+{
+    if (getByRegularID(singerID) != NULL)
+    {
+        KhRegularSinger *regSinger = getByRegularID(singerID);
+        QFile *xmlFile = new QFile("/tmp/KhRegularExport.xml");
+        xmlFile->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate);
+        QXmlStreamWriter xml(xmlFile);
+        xml.setAutoFormatting(true);
+        xml.writeStartDocument();
+        xml.writeStartElement("regulars");
+        xml.writeStartElement("singer");
+        xml.writeAttribute("name", regSinger->getName());
+        for (int i=0; i < regSinger->getRegSongs()->getRegSongs()->size(); i++)
+        {
+           KhRegularSong *regSong = regSinger->getRegSongs()->getRegSongs()->at(i);
+           KhSong *dbSong;
+           for (int j=0; j < dbSongs->size(); j++)
+           {
+               if (dbSongs->at(j)->ID == regSong->getSongIndex())
+               {
+                   dbSong = dbSongs->at(j);
+                   break;
+               }
+           }
+           if (dbSong != NULL)
+           {
+               xml.writeStartElement("song");
+               xml.writeAttribute("artist", dbSong->Artist);
+               xml.writeAttribute("title", dbSong->Title);
+               xml.writeAttribute("discid", dbSong->DiscID);
+               xml.writeAttribute("key", QString::number(regSong->getKeyChange()));
+               xml.writeEndElement();
+           }
+
+        }
+        xml.writeEndElement();
+        xml.writeEndElement();
+        xml.writeEndDocument();
+        xmlFile->close();
+    }
+}
+
 void KhRegularSingers::loadFromDB()
 {
     emit dataAboutToChange();
@@ -162,7 +210,7 @@ void KhRegularSingers::loadFromDB()
     int regsingerid = query.record().indexOf("ROWID");
     int name = query.record().indexOf("name");
     while (query.next()) {
-        regularSingers->push_back(new KhRegularSinger(query.value(name).toString(), query.value(regsingerid).toInt()));
+        regularSingers->push_back(new KhRegularSinger(query.value(name).toString(), query.value(regsingerid).toInt(), dbSongs));
     }
     emit dataChanged();
 }
@@ -202,7 +250,7 @@ int KhRegularSinger::getIndex() const
 void KhRegularSinger::setIndex(int value)
 {
     regindex = value;
-    regSongs = new KhRegularSongs(regindex);
+    regSongs = new KhRegularSongs(regindex, dbSongs);
 }
 
 KhRegularSongs *KhRegularSinger::getRegSongs() const
