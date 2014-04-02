@@ -259,11 +259,13 @@ int KhRotationSingers::getCurrentSingerPosition() const
 
 void KhRotationSingers::setCurrentSingerPosition(int value)
 {
+    emit dataAboutToChange();
     currentSingerPosition = value;
     if (getSingerByPosition(value) != NULL)
         currentSingerIndex = getSingerByPosition(value)->getSingerIndex();
     else
         currentSingerIndex = -1;
+    emit dataChanged();
 }
 
 bool KhRotationSingers::add(QString name, int position, bool regular)
@@ -414,11 +416,13 @@ int KhRotationSingers::getCurrentSingerIndex() const
 
 void KhRotationSingers::setCurrentSingerIndex(int value)
 {
+    emit dataAboutToChange();
     currentSingerIndex = value;
     if (getSingerByIndex(value) != NULL)
         currentSingerPosition = getSingerByIndex(value)->getSingerPosition();
     else
         currentSingerPosition = -1;
+    emit dataChanged();
 }
 
 int KhRotationSingers::getSelectedSingerIndex() const

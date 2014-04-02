@@ -23,7 +23,7 @@ public slots:
     void setSeparator(QString separator);
 
     void refresh();
-
+    void setSpeed(int speed);
 
 protected:
     virtual void paintEvent(QPaintEvent *);

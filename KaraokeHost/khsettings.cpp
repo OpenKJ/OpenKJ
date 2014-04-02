@@ -104,3 +104,58 @@ void KhSettings::setTickerHeight(int height)
     settings->setValue("tickerHeight", height);
     emit tickerHeightChanged();
 }
+
+int KhSettings::tickerSpeed()
+{
+    return settings->value("tickerSpeed", 50).toInt();
+}
+
+void KhSettings::setTickerSpeed(int speed)
+{
+    settings->setValue("tickerSpeed", speed);
+    emit tickerSpeedChanged();
+}
+
+QColor KhSettings::tickerTextColor()
+{
+    return settings->value("tickerTextColor", QApplication::palette().foreground().color()).value<QColor>();
+}
+
+void KhSettings::setTickerTextColor(QColor color)
+{
+    settings->setValue("tickerTextColor", color);
+    emit tickerTextColorChanged();
+}
+
+QColor KhSettings::tickerBgColor()
+{
+    return settings->value("tickerBgColor", QApplication::palette().background().color()).value<QColor>();
+}
+
+void KhSettings::setTickerBgColor(QColor color)
+{
+    settings->setValue("tickerBgColor", color);
+    emit tickerBgColorChanged();
+}
+
+bool KhSettings::tickerFullRotation()
+{
+    return settings->value("tickerFullRotation", true).toBool();
+}
+
+void KhSettings::setTickerFullRotation(bool full)
+{
+    settings->setValue("tickerFullRotation", full);
+    emit tickerOutputModeChanged();
+}
+
+int KhSettings::tickerShowNumSingers()
+{
+    return settings->value("tickerShowNumSingers", 10).toInt();
+}
+
+void KhSettings::setTickerShowNumSingers(int limit)
+{
+    settings->setValue("tickerShowNumSingers", limit);
+    emit tickerOutputModeChanged();
+}

@@ -46,6 +46,12 @@ void ScrollText::refresh()
     update();
 }
 
+void ScrollText::setSpeed(int speed)
+{
+    if ((speed <= 100) && (speed >= 1))
+        timer.setInterval(100 - speed);
+}
+
 void ScrollText::updateText()
 {
     timer.stop();

@@ -55,10 +55,24 @@ public:
     QFont tickerFont();
     int tickerHeight();
     void setTickerHeight(int height);
+    int tickerSpeed();
+    void setTickerSpeed(int speed);
+    QColor tickerTextColor();
+    void setTickerTextColor(QColor color);
+    QColor tickerBgColor();
+    void setTickerBgColor(QColor color);
+    bool tickerFullRotation();
+    void setTickerFullRotation(bool full);
+    int tickerShowNumSingers();
+    void setTickerShowNumSingers(int limit);
 
 signals:
     void tickerFontChanged();
     void tickerHeightChanged();
+    void tickerSpeedChanged();
+    void tickerTextColorChanged();
+    void tickerBgColorChanged();
+    void tickerOutputModeChanged();
 
 public slots:
 

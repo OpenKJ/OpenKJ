@@ -24,6 +24,7 @@
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QFontDialog>
+#include <QColorDialog>
 
 extern KhSettings *settings;
 
@@ -43,7 +44,24 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     ui->groupBoxMonitors->setEnabled(settings->showCdgWindow());
     ui->listWidgetMonitors->item(settings->cdgWindowFullScreenMonitor())->setSelected(true);
     ui->spinBoxTickerHeight->setValue(settings->tickerHeight());
-
+    ui->horizontalSliderTickerSpeed->setValue(settings->tickerSpeed());
+    QPalette txtpalette = ui->pushButtonTextColor->palette();
+    txtpalette.setColor(QPalette::Button, settings->tickerTextColor());
+    ui->pushButtonTextColor->setPalette(txtpalette);
+    QPalette bgpalette = ui->pushButtonBgColor->palette();
+    bgpalette.setColor(QPalette::Button, settings->tickerBgColor());
+    ui->pushButtonBgColor->setPalette(bgpalette);
+    if (settings->tickerFullRotation())
+    {
+        ui->radioButtonFullRotation->setChecked(true);
+        ui->spinBoxTickerSingers->setEnabled(false);
+    }
+    else
+    {
+        ui->radioButtonPartialRotation->setChecked(true);
+        ui->spinBoxTickerSingers->setEnabled(true);
+    }
+    ui->spinBoxTickerSingers->setValue(settings->tickerShowNumSingers());
 }
 
 SettingsDialog::~SettingsDialog()
@@ -107,7 +125,6 @@ void SettingsDialog::on_listWidgetMonitors_itemSelectionChanged()
 void SettingsDialog::on_pushButtonFont_clicked()
 {
     bool ok;
-    QFont currentFont = this->font();
     QFont font = QFontDialog::getFont(&ok, settings->tickerFont(), this, "Select ticker font");
     if (ok)
     {
@@ -118,4 +135,48 @@ void SettingsDialog::on_pushButtonFont_clicked()
 void SettingsDialog::on_spinBoxTickerHeight_valueChanged(int arg1)
 {
     settings->setTickerHeight(arg1);
+}
+
+void SettingsDialog::on_horizontalSliderTickerSpeed_valueChanged(int value)
+{
+    settings->setTickerSpeed(value);
+}
+
+void SettingsDialog::on_pushButtonTextColor_clicked()
+{
+    QColor color = QColorDialog::getColor(settings->tickerTextColor(),this,"Select ticker text color");
+    if (color.isValid())
+    {
+        settings->setTickerTextColor(color);
+        QPalette palette = ui->pushButtonTextColor->palette();
+        palette.setColor(ui->pushButtonTextColor->backgroundRole(), color);
+        ui->pushButtonTextColor->setPalette(palette);
+    }
+
+//    QColor color = QColorDialog::getColor()
+}
+
+void SettingsDialog::on_pushButtonBgColor_clicked()
+{
+    QColor color = QColorDialog::getColor(settings->tickerTextColor(),this,"Select ticker background color");
+    if (color.isValid())
+    {
+        settings->setTickerBgColor(color);
+        QPalette palette = ui->pushButtonBgColor->palette();
+        palette.setColor(ui->pushButtonBgColor->backgroundRole(), color);
+        ui->pushButtonBgColor->setPalette(palette);
+    }
+}
+
+void SettingsDialog::on_radioButtonFullRotation_toggled(bool checked)
+{
+    settings->setTickerFullRotation(checked);
+    ui->spinBoxTickerSingers->setEnabled(!checked);
+}
+
+
+
+void SettingsDialog::on_spinBoxTickerSingers_valueChanged(int arg1)
+{
+    settings->setTickerShowNumSingers(arg1);
 }

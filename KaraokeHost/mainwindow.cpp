@@ -124,6 +124,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(settingsDialog, SIGNAL(cdgWindowFullScreenChanged(bool)), cdgWindow, SLOT(setFullScreen(bool)));
     connect(regularSingers, SIGNAL(dataChanged()), rotationmodel, SIGNAL(layoutChanged()));
     connect(regularSingers, SIGNAL(dataAboutToChange()), rotationmodel, SIGNAL(layoutAboutToBeChanged()));
+    connect(singers, SIGNAL(dataChanged()), this, SLOT(rotationDataChanged()));
+    connect(settings, SIGNAL(tickerOutputModeChanged()), this, SLOT(rotationDataChanged()));
     cdgWindow->updateCDG(QImage(":/icons/Icons/openkjlogo1.png"));
     settings->restoreWindowState(cdgWindow);
     if ((settings->cdgWindowFullscreen()) && (settings->showCdgWindow()))
@@ -133,6 +135,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->cdgOutput->setPixmap(QPixmap::fromImage(QImage(":/icons/Icons/openkjlogo1.png")));
 
     regularSingers->exportSinger(1);
+    rotationDataChanged();
 }
 
 void MainWindow::play(QString zipFilePath)
@@ -540,4 +543,50 @@ void MainWindow::on_sliderProgress_sliderMoved(int position)
 void MainWindow::on_buttonRegulars_clicked()
 {
     regularSingersDialog->show();
+}
+
+void MainWindow::rotationDataChanged()
+{
+    QString tickerText = "Singers in rotation: ";
+    tickerText += QString::number(singers->getSingers()->size());
+    tickerText += " | Current singer: ";
+    int displayPos;
+    if (singers->getCurrent() != NULL)
+    {
+        tickerText += singers->getCurrent()->getSingerName();
+        displayPos = singers->getCurrent()->getSingerPosition();
+    }
+    else
+    {
+        tickerText += "None";
+        displayPos = 0;
+    }
+//    tickerText += " | Upcoming Singers: ";
+    int listSize;
+    if (settings->tickerFullRotation() || (singers->getSingers()->size() < settings->tickerShowNumSingers()))
+{
+        listSize = singers->getSingers()->size();
+        tickerText += " | Upcoming Singers: ";
+    }
+    else
+{
+        listSize = settings->tickerShowNumSingers();
+        tickerText += " | Next ";
+        tickerText += QString::number(settings->tickerShowNumSingers());
+        tickerText += " Singers: ";
+}
+    for (unsigned int i=0; i < listSize; i++)
+    {
+        if (displayPos + 1 <= singers->getSingers()->size())
+            displayPos++;
+        else
+            displayPos = 1;
+        tickerText += QString::number(i + 1);
+        tickerText += ") ";
+        tickerText += singers->getSingerByPosition(displayPos)->getSingerName();
+        tickerText += "  ";
+    }
+    if (singers->getSingers()->size() == 0)
+        tickerText += " None";
+    cdgWindow->setTickerText(tickerText);
 }

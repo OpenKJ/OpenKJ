@@ -52,6 +52,16 @@ private slots:
 
     void on_spinBoxTickerHeight_valueChanged(int arg1);
 
+    void on_horizontalSliderTickerSpeed_valueChanged(int value);
+
+    void on_pushButtonTextColor_clicked();
+
+    void on_pushButtonBgColor_clicked();
+
+    void on_radioButtonFullRotation_toggled(bool checked);
+
+    void on_spinBoxTickerSingers_valueChanged(int arg1);
+
 signals:
     void showCdgWindowChanged(bool);
     void cdgWindowFullScreenChanged(bool);

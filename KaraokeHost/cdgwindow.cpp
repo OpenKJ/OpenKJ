@@ -41,11 +41,25 @@ CdgWindow::CdgWindow(QWidget *parent, Qt::WindowFlags f) :
     m_lastSize.setHeight(216);
     ticker = new ScrollText(this);
     ticker->setFont(settings->tickerFont());
-    ticker->setMinimumHeight(50);
+    ticker->setMinimumHeight(settings->tickerHeight());
+    ticker->setMaximumHeight(settings->tickerHeight());
+    ticker->setSpeed(settings->tickerSpeed());
+    QPalette palette = ticker->palette();
+    palette.setColor(ticker->foregroundRole(), settings->tickerTextColor());
+    ticker->setPalette(palette);
+
+    palette = this->palette();
+    palette.setColor(QPalette::Background, settings->tickerBgColor());
+    this->setPalette(palette);
+
     ticker->setText("This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll");
     ui->verticalLayout->addWidget(ticker);
-    connect(settings, SIGNAL(tickerFontChanged()), this, SLOT(tickerFontSettingsChanged()));
+    connect(settings, SIGNAL(tickerFontChanged()), this, SLOT(tickerFontChanged()));
     connect(settings, SIGNAL(tickerHeightChanged()), this, SLOT(tickerHeightChanged()));
+    connect(settings, SIGNAL(tickerSpeedChanged()), this, SLOT(tickerSpeedChanged()));
+    connect(settings, SIGNAL(tickerTextColorChanged()), this, SLOT(tickerTextColorChanged()));
+    connect(settings, SIGNAL(tickerBgColorChanged()), this, SLOT(tickerBgColorChanged()));
+
 }
 
 CdgWindow::~CdgWindow()
@@ -87,6 +101,11 @@ void CdgWindow::makeWindowed()
     m_fullScreen = false;
 }
 
+void CdgWindow::setTickerText(QString text)
+{
+    ticker->setText(text);
+}
+
 void CdgWindow::setFullScreen(bool fullscreen)
 {
     if (fullscreen)
@@ -102,17 +121,38 @@ void CdgWindow::setFullScreenMonitor(int monitor)
     makeFullscreen();
 }
 
-void CdgWindow::tickerFontSettingsChanged()
+void CdgWindow::tickerFontChanged()
 {
     qDebug() << "tickerFontSettingsChanged() fired";
     ticker->setFont(settings->tickerFont());
-    //    ticker->refresh();
+    ticker->refresh();
 }
 
 void CdgWindow::tickerHeightChanged()
 {
     ticker->setMinimumHeight(settings->tickerHeight());
     ticker->setMaximumHeight(settings->tickerHeight());
+    ticker->refresh();
+}
+
+void CdgWindow::tickerSpeedChanged()
+{
+    ticker->setSpeed(settings->tickerSpeed());
+}
+
+void CdgWindow::tickerTextColorChanged()
+{
+    //ticker->palette().foreground().setColor(settings->tickerTextColor());
+    QPalette palette = ticker->palette();
+    palette.setColor(ticker->foregroundRole(), settings->tickerTextColor());
+    ticker->setPalette(palette);
+}
+
+void CdgWindow::tickerBgColorChanged()
+{
+    QPalette palette = ticker->palette();
+    palette.setColor(QPalette::Base, settings->tickerBgColor());
+    ticker->setPalette(palette);
 }
 
 void CdgWindow::mouseDoubleClickEvent(QMouseEvent *e)

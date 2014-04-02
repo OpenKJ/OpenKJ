@@ -89,6 +89,7 @@ private slots:
     void audioBackend_stateChanged(QMediaPlayer::State state);
     void on_sliderProgress_sliderMoved(int position);
     void on_buttonRegulars_clicked();
+    void rotationDataChanged();
 
 private:
     Ui::MainWindow *ui;

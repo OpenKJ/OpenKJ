@@ -41,12 +41,16 @@ public:
     void updateCDG(QImage image);
     void makeFullscreen();
     void makeWindowed();
+    void setTickerText(QString text);
 
 public slots:
     void setFullScreen(bool fullscreen);
     void setFullScreenMonitor(int monitor);
-    void tickerFontSettingsChanged();
+    void tickerFontChanged();
     void tickerHeightChanged();
+    void tickerSpeedChanged();
+    void tickerTextColorChanged();
+    void tickerBgColorChanged();
 
 private:
     Ui::cdgWindow *ui;
