@@ -51,6 +51,7 @@ public slots:
     void tickerSpeedChanged();
     void tickerTextColorChanged();
     void tickerBgColorChanged();
+    void tickerEnableChanged();
 
 private:
     Ui::cdgWindow *ui;

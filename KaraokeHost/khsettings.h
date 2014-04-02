@@ -65,6 +65,8 @@ public:
     void setTickerFullRotation(bool full);
     int tickerShowNumSingers();
     void setTickerShowNumSingers(int limit);
+    void setTickerEnabled(bool enable);
+    bool tickerEnabled();
 
 signals:
     void tickerFontChanged();
@@ -73,6 +75,7 @@ signals:
     void tickerTextColorChanged();
     void tickerBgColorChanged();
     void tickerOutputModeChanged();
+    void tickerEnableChanged();
 
 public slots:
 

@@ -59,6 +59,7 @@ CdgWindow::CdgWindow(QWidget *parent, Qt::WindowFlags f) :
     connect(settings, SIGNAL(tickerSpeedChanged()), this, SLOT(tickerSpeedChanged()));
     connect(settings, SIGNAL(tickerTextColorChanged()), this, SLOT(tickerTextColorChanged()));
     connect(settings, SIGNAL(tickerBgColorChanged()), this, SLOT(tickerBgColorChanged()));
+    connect(settings, SIGNAL(tickerEnableChanged()), this, SLOT(tickerEnableChanged()));
 
 }
 
@@ -153,6 +154,11 @@ void CdgWindow::tickerBgColorChanged()
     QPalette palette = ticker->palette();
     palette.setColor(QPalette::Base, settings->tickerBgColor());
     ticker->setPalette(palette);
+}
+
+void CdgWindow::tickerEnableChanged()
+{
+    ticker->enable(settings->tickerEnabled());
 }
 
 void CdgWindow::mouseDoubleClickEvent(QMouseEvent *e)

@@ -180,3 +180,8 @@ void SettingsDialog::on_spinBoxTickerSingers_valueChanged(int arg1)
 {
     settings->setTickerShowNumSingers(arg1);
 }
+
+void SettingsDialog::on_groupBoxTicker_toggled(bool arg1)
+{
+    settings->setTickerEnabled(arg1);
+}

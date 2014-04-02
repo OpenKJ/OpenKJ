@@ -24,6 +24,8 @@ public slots:
 
     void refresh();
     void setSpeed(int speed);
+    void enable(bool enabled);
+
 
 protected:
     virtual void paintEvent(QPaintEvent *);

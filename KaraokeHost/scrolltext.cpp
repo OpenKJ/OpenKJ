@@ -10,7 +10,7 @@ ScrollText::ScrollText(QWidget *parent) :
     setFixedHeight(fontMetrics().height());
     leftMargin = height() / 3;
 
-    setSeparator("   ---   ");
+    setSeparator("  ---  ");
 
     connect(&timer, SIGNAL(timeout()), this, SLOT(timer_timeout()));
     timer.setInterval(50);
@@ -50,6 +50,20 @@ void ScrollText::setSpeed(int speed)
 {
     if ((speed <= 100) && (speed >= 1))
         timer.setInterval(100 - speed);
+}
+
+void ScrollText::enable(bool enabled)
+{
+    if (enabled)
+    {
+        timer.start();
+        setHidden(false);
+    }
+    else
+    {
+        timer.stop();
+        setHidden(true);
+    }
 }
 
 void ScrollText::updateText()

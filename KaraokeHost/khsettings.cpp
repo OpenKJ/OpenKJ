@@ -159,3 +159,14 @@ void KhSettings::setTickerShowNumSingers(int limit)
     settings->setValue("tickerShowNumSingers", limit);
     emit tickerOutputModeChanged();
 }
+
+void KhSettings::setTickerEnabled(bool enable)
+{
+    settings->setValue("tickerEnabled", enable);
+    emit tickerEnableChanged();
+}
+
+bool KhSettings::tickerEnabled()
+{
+    return settings->value("tickerEnabled", false).toBool();
+}

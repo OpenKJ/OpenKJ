@@ -62,6 +62,8 @@ private slots:
 
     void on_spinBoxTickerSingers_valueChanged(int arg1);
 
+    void on_groupBoxTicker_toggled(bool arg1);
+
 signals:
     void showCdgWindowChanged(bool);
     void cdgWindowFullScreenChanged(bool);
