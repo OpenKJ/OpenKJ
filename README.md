@@ -49,7 +49,8 @@ KaraokeHost:
 * Regular singers - Delete existing singer
 * Regular singers - Auto track/save queue changes for regular singer.
 * Notification of BreakMusic via IPC that karaoke is starting playback or stopping (used for auto-fade of break music)
-* Ticker - display on CDG output
+* Ticker - Enable/disable
+* Ticker - Display ticker on CDG output window
 * Ticker - Font settings
 * Ticker - Foreground/background color settings
 * Ticker - Full rotation or limited rotation display settings
