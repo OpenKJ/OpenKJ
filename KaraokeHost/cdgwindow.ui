@@ -20,13 +20,6 @@
    <property name="margin">
     <number>0</number>
    </property>
-   <item>
-    <layout class="QVBoxLayout" name="verticalLayout">
-     <property name="spacing">
-      <number>0</number>
-     </property>
-    </layout>
-   </item>
   </layout>
  </widget>
  <resources/>

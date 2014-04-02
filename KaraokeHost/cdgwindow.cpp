@@ -34,7 +34,8 @@ CdgWindow::CdgWindow(QWidget *parent, Qt::WindowFlags f) :
     ui->setupUi(this);
 //    settings = new KhSettings(this);
     canvas = new QGLCanvas(this);
-    ui->verticalLayout->addWidget(canvas);
+//    ui->verticalLayout->addWidget(canvas);
+    ui->verticalLayout_2->addWidget(canvas);
     canvas->repaint();
     m_fullScreen = false;
     m_lastSize.setWidth(300);
@@ -53,7 +54,9 @@ CdgWindow::CdgWindow(QWidget *parent, Qt::WindowFlags f) :
     this->setPalette(palette);
 
     ticker->setText("This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll");
-    ui->verticalLayout->addWidget(ticker);
+//    ui->verticalLayout->addWidget(ticker);
+    ui->verticalLayout_2->addWidget(ticker);
+
     connect(settings, SIGNAL(tickerFontChanged()), this, SLOT(tickerFontChanged()));
     connect(settings, SIGNAL(tickerHeightChanged()), this, SLOT(tickerHeightChanged()));
     connect(settings, SIGNAL(tickerSpeedChanged()), this, SLOT(tickerSpeedChanged()));

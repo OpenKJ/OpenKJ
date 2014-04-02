@@ -24,7 +24,7 @@ public slots:
 
     void refresh();
     void setSpeed(int speed);
-    void enable(bool enabled);
+    void enable(bool Enabled);
 
 
 protected:
@@ -44,6 +44,7 @@ private:
     QImage alphaChannel;
     QImage buffer;
     QTimer timer;
+    bool enabled;
 
 private slots:
     virtual void timer_timeout();

@@ -575,7 +575,7 @@ void MainWindow::rotationDataChanged()
         tickerText += QString::number(settings->tickerShowNumSingers());
         tickerText += " Singers: ";
 }
-    for (unsigned int i=0; i < listSize; i++)
+    for (int i=0; i < listSize; i++)
     {
         if (displayPos + 1 <= singers->getSingers()->size())
             displayPos++;

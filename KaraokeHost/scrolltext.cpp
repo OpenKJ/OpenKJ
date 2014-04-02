@@ -5,6 +5,7 @@
 ScrollText::ScrollText(QWidget *parent) :
     QWidget(parent), scrollPos(0)
 {
+    enabled = true;
     staticText.setTextFormat(Qt::PlainText);
 
     setFixedHeight(fontMetrics().height());
@@ -52,10 +53,12 @@ void ScrollText::setSpeed(int speed)
         timer.setInterval(100 - speed);
 }
 
-void ScrollText::enable(bool enabled)
+void ScrollText::enable(bool Enabled)
 {
+    enabled = Enabled;
     if (enabled)
     {
+
         timer.start();
         setHidden(false);
     }
@@ -77,7 +80,7 @@ void ScrollText::updateText()
     {
         scrollPos = -64;
         staticText.setText(_text + _separator);
-        timer.start();
+        if (enabled) timer.start();
     }
     else
         staticText.setText(_text);

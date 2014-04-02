@@ -34,10 +34,6 @@ protected:
     void paintEvent(QPaintEvent*);
 private:
     QImage img;
-
-    // QGLWidget interface
-protected:
-    //void paintGL();
 };
 
 #endif // QGLCANVAS_H

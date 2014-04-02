@@ -33,22 +33,8 @@ void QGLCanvas::setImage(const QImage& image)
 void QGLCanvas::paintEvent(QPaintEvent*)
 {
     QPainter p(this);
-    //p.begin(this);
-    //Set the painter to use a smooth scaling algorithm.
     p.setRenderHint(QPainter::HighQualityAntialiasing);
     p.setRenderHint(QPainter::SmoothPixmapTransform, 1);
     p.drawImage(this->rect(), img);
     p.end();
-
 }
-
-
-//void QGLCanvas::paintGL()
-//{
-//    QPainter p(this);
-
-//    //Set the painter to use a smooth scaling algorithm.
-//    p.setRenderHint(QPainter::SmoothPixmapTransform, 1);
-
-//    p.drawImage(this->rect(), img);
-//}
