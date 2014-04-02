@@ -154,9 +154,9 @@ void CdgWindow::tickerTextColorChanged()
 
 void CdgWindow::tickerBgColorChanged()
 {
-    QPalette palette = ticker->palette();
-    palette.setColor(QPalette::Base, settings->tickerBgColor());
-    ticker->setPalette(palette);
+    QPalette palette = this->palette();
+    palette.setColor(QPalette::Background, settings->tickerBgColor());
+    this->setPalette(palette);
 }
 
 void CdgWindow::tickerEnableChanged()
