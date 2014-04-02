@@ -80,7 +80,6 @@ KaraokeHost:
 * Setting key changes on queued songs
 * Convert main program CDG display to OpenGL rendering like the CDG window
 * Automatically adapting the models/views to contents and window size
-* Detection of bad zip files and user notification.
 * User notification of many different error conditions.
 * Fading in/out on stop, pause, and unpause.
 * Find a way to do keychanges without requiring a closed souce library
