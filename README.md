@@ -49,6 +49,11 @@ KaraokeHost:
 * Regular singers - Delete existing singer
 * Regular singers - Auto track/save queue changes for regular singer.
 * Notification of BreakMusic via IPC that karaoke is starting playback or stopping (used for auto-fade of break music)
+* Ticker - display on CDG output
+* Ticker - Font settings
+* Ticker - Foreground/background color settings
+* Ticker - Full rotation or limited rotation display settings
+* Ticker - Widget height setting (eventually will make adaptive to font, but this works for now)
 
 BreakMusic:
 
@@ -71,7 +76,6 @@ KaraokeHost:
 * Regular singers - Import from file
 * Regular singers - Export to file
 * Regular singers - Name conflict resolution on save (Merge/Replace)
-* Scrolling rotaiton ticker on the bottom of the CDG window
 * Setting key changes on queued songs
 * Convert main program CDG display to OpenGL rendering like the CDG window
 * Automatically adapting the models/views to contents and window size
@@ -79,6 +83,7 @@ KaraokeHost:
 * User notification of many different error conditions.
 * Fading in/out on stop, pause, and unpause.
 * Find a way to do keychanges without requiring a closed souce library
+* Ticker - Make height auto-adapt to font size
 * And a million more things I'm forgetting
 
 BreakMusic:
