@@ -24,6 +24,7 @@
 #include <QVariant>
 #include <QDebug>
 #include <QXmlStreamWriter>
+#include <QXmlStreamReader>
 #include <QFile>
 
 KhRegularSinger::KhRegularSinger(QString singerName, KhSongs *dbSongsPtr, QObject *parent)
@@ -249,6 +250,31 @@ void KhRegularSingers::exportSingers(QList<int> singerIDs, QString savePath)
     xml.writeEndElement();
     xml.writeEndDocument();
     xmlFile->close();
+}
+
+QStringList KhRegularSingers::importSingersList(QString fileName)
+{
+    QFile *xmlFile = new QFile(fileName);
+    xmlFile->open(QIODevice::ReadOnly);
+    QXmlStreamReader xml(xmlFile);
+    while (!xml.isEndDocument())
+    {
+        xml.readNext();
+        if (xml.isStartDocument())
+            qDebug() << "xml: StartDocument";
+        if (xml.isStartElement())
+        {
+            qDebug () << "xml: StartElement " << xml.name();
+            for (int i=0; i < xml.attributes().size(); i++)
+            {
+                qDebug() << "xml:      " << xml.attributes().at(i).name() << " = " << xml.attributes().at(i).value();
+            }
+        }
+        if (xml.isEndElement())
+            qDebug () << "xml: EndElement " << xml.name();
+    }
+    xmlFile->close();
+    return QStringList();
 }
 
 void KhRegularSingers::loadFromDB()

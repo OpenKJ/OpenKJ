@@ -139,6 +139,8 @@ MainWindow::MainWindow(QWidget *parent) :
         cdgWindow->makeFullscreen();
     }
     rotationDataChanged();
+
+    regularSingers->importSingersList("/tmp/regtest.xml");
 }
 
 void MainWindow::play(QString zipFilePath)

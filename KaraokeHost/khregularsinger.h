@@ -69,6 +69,7 @@ public:
     void deleteSinger(QString name);
     void exportSinger(int singerID, QString savePath);
     void exportSingers(QList<int> singerIDs, QString savePath);
+    QStringList importSingersList(QString fileName);
 
 signals:
     void dataAboutToChange();
