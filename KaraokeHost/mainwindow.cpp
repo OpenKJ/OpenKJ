@@ -31,6 +31,8 @@
 #endif
 #include <khzip.h>
 #include <QDesktopWidget>
+#include <QStandardPaths>
+#include <QCoreApplication>
 
 
 KhSettings *settings;
@@ -40,12 +42,13 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    QCoreApplication::setOrganizationName("OpenKJ");
+    QCoreApplication::setOrganizationDomain("OpenKJ.org");
+    QCoreApplication::setApplicationName("KaraokeHost");
     ui->setupUi(this);
-    khDir = new QDir(QDir::homePath() + QDir::separator() + ".KaraokeHost");
-    qDebug() << "Program data directory: " << khDir->absolutePath();
+    khDir = new QDir(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
     if (!khDir->exists())
     {
-        qDebug() << "Creating program data dir: " << khDir->absolutePath();
         khDir->mkpath(khDir->absolutePath());
     }
     settings = new KhSettings(this);
