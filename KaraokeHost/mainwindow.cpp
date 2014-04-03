@@ -32,6 +32,7 @@
 #include <khzip.h>
 #include <QDesktopWidget>
 
+
 KhSettings *settings;
 
 
@@ -82,6 +83,7 @@ MainWindow::MainWindow(QWidget *parent) :
     dbDialog = new DatabaseDialog(this);
     settingsDialog = new SettingsDialog(this);
     regularSingersDialog = new RegularSingersDialog(regularSingers, singers, this);
+    regularExportDialog = new RegularExportDialog(regularSingers, this);
     cdgWindow = new CdgWindow(this, Qt::Window);
     if (settings->showCdgWindow())
     {
@@ -127,14 +129,12 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(singers, SIGNAL(dataChanged()), this, SLOT(rotationDataChanged()));
     connect(settings, SIGNAL(tickerOutputModeChanged()), this, SLOT(rotationDataChanged()));
     cdgWindow->updateCDG(QImage(":/icons/Icons/openkjlogo1.png"));
+    ui->cdgOutput->setPixmap(QPixmap::fromImage(QImage(":/icons/Icons/openkjlogo1.png")));
     settings->restoreWindowState(cdgWindow);
     if ((settings->cdgWindowFullscreen()) && (settings->showCdgWindow()))
     {
         cdgWindow->makeFullscreen();
     }
-    ui->cdgOutput->setPixmap(QPixmap::fromImage(QImage(":/icons/Icons/openkjlogo1.png")));
-
-    regularSingers->exportSinger(1);
     rotationDataChanged();
 }
 
@@ -417,6 +417,11 @@ void MainWindow::on_treeViewQueue_activated(const QModelIndex &index)
 void MainWindow::on_actionManage_DB_triggered()
 {
     dbDialog->showNormal();
+}
+
+void MainWindow::on_actionExport_Regulars_triggered()
+{
+    regularExportDialog->show();
 }
 
 void MainWindow::on_actionSettings_triggered()

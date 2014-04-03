@@ -67,7 +67,8 @@ public:
     KhRegularSinger* at(int index);
     void deleteSinger(int singerID);
     void deleteSinger(QString name);
-    void exportSinger(int singerID);
+    void exportSinger(int singerID, QString savePath);
+    void exportSingers(QList<int> singerIDs, QString savePath);
 
 signals:
     void dataAboutToChange();

@@ -159,12 +159,12 @@ void KhRegularSingers::deleteSinger(QString name)
     emit dataChanged();
 }
 
-void KhRegularSingers::exportSinger(int singerID)
+void KhRegularSingers::exportSinger(int singerID, QString savePath)
 {
     if (getByRegularID(singerID) != NULL)
     {
         KhRegularSinger *regSinger = getByRegularID(singerID);
-        QFile *xmlFile = new QFile("/tmp/KhRegularExport.xml");
+        QFile *xmlFile = new QFile(savePath);
         xmlFile->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate);
         QXmlStreamWriter xml(xmlFile);
         xml.setAutoFormatting(true);
@@ -176,6 +176,7 @@ void KhRegularSingers::exportSinger(int singerID)
         {
            KhRegularSong *regSong = regSinger->getRegSongs()->getRegSongs()->at(i);
            KhSong *dbSong;
+           dbSong = NULL;
            for (int j=0; j < dbSongs->size(); j++)
            {
                if (dbSongs->at(j)->ID == regSong->getSongIndex())
@@ -200,6 +201,54 @@ void KhRegularSingers::exportSinger(int singerID)
         xml.writeEndDocument();
         xmlFile->close();
     }
+}
+
+void KhRegularSingers::exportSingers(QList<int> singerIDs, QString savePath)
+{
+    QFile *xmlFile = new QFile(savePath);
+    xmlFile->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate);
+    QXmlStreamWriter xml(xmlFile);
+    xml.setAutoFormatting(true);
+    xml.writeStartDocument();
+    xml.writeStartElement("regulars");
+    for (int r=0; r < singerIDs.size(); r++)
+    {
+        int singerID = singerIDs.at(r);
+        if (getByRegularID(singerID) != NULL)
+        {
+            KhRegularSinger *regSinger = getByRegularID(singerID);
+            xml.writeStartElement("singer");
+            xml.writeAttribute("name", regSinger->getName());
+            for (int i=0; i < regSinger->getRegSongs()->getRegSongs()->size(); i++)
+            {
+                KhRegularSong *regSong = regSinger->getRegSongs()->getRegSongs()->at(i);
+                KhSong *dbSong;
+                dbSong = NULL;
+                for (int j=0; j < dbSongs->size(); j++)
+                {
+                    if (dbSongs->at(j)->ID == regSong->getSongIndex())
+                    {
+                        dbSong = dbSongs->at(j);
+                        break;
+                    }
+                }
+                if (dbSong != NULL)
+                {
+                    xml.writeStartElement("song");
+                    xml.writeAttribute("artist", dbSong->Artist);
+                    xml.writeAttribute("title", dbSong->Title);
+                    xml.writeAttribute("discid", dbSong->DiscID);
+                    xml.writeAttribute("key", QString::number(regSong->getKeyChange()));
+                    xml.writeEndElement();
+                }
+
+            }
+            xml.writeEndElement();
+        }
+    }
+    xml.writeEndElement();
+    xml.writeEndDocument();
+    xmlFile->close();
 }
 
 void KhRegularSingers::loadFromDB()

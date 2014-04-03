@@ -1084,6 +1084,7 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionExport_Regulars"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuTools">
@@ -1122,6 +1123,16 @@
   <action name="actionSettings">
    <property name="text">
     <string>Settings</string>
+   </property>
+  </action>
+  <action name="actionExport_Regular_Singers">
+   <property name="text">
+    <string>Export Regulars</string>
+   </property>
+  </action>
+  <action name="actionExport_Regulars">
+   <property name="text">
+    <string>Export Regulars</string>
    </property>
   </action>
  </widget>
