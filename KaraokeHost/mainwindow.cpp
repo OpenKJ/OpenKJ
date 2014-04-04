@@ -87,6 +87,7 @@ MainWindow::MainWindow(QWidget *parent) :
     settingsDialog = new SettingsDialog(this);
     regularSingersDialog = new RegularSingersDialog(regularSingers, singers, this);
     regularExportDialog = new RegularExportDialog(regularSingers, this);
+    regularImportDialog = new RegularImportDialog(regularSingers, this);
     cdgWindow = new CdgWindow(this, Qt::Window);
     if (settings->showCdgWindow())
     {
@@ -140,7 +141,10 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     rotationDataChanged();
 
-    regularSingers->importSingersList("/tmp/regtest.xml");
+//    QStringList singers = regularSingers->importSingersList("/tmp/regtest.xml");
+//    for (int i=0; i < singers.size(); i++)
+//        regularSingers->importSinger(singers.at(i), "/tmp/regtest.xml");
+//    close();
 }
 
 void MainWindow::play(QString zipFilePath)
@@ -427,6 +431,11 @@ void MainWindow::on_actionManage_DB_triggered()
 void MainWindow::on_actionExport_Regulars_triggered()
 {
     regularExportDialog->show();
+}
+
+void MainWindow::on_actionImport_Regulars_triggered()
+{
+    regularImportDialog->show();
 }
 
 void MainWindow::on_actionSettings_triggered()

@@ -39,7 +39,8 @@ SOURCES += main.cpp\
     regularsingersdialog.cpp \
     regularsingermodel.cpp \
     scrolltext.cpp \
-    regularexportdialog.cpp
+    regularexportdialog.cpp \
+    regularimportdialog.cpp
 
 HEADERS  += mainwindow.h \
     queuetablemodel.h \
@@ -68,14 +69,16 @@ HEADERS  += mainwindow.h \
     regularsingersdialog.h \
     regularsingermodel.h \
     scrolltext.h \
-    regularexportdialog.h
+    regularexportdialog.h \
+    regularimportdialog.h
 
 FORMS    += mainwindow.ui \
     databasedialog.ui \
     settingsdialog.ui \
     cdgwindow.ui \
     regularsingersdialog.ui \
-    regularexportdialog.ui
+    regularexportdialog.ui \
+    regularimportdialog.ui
 
 unix: CONFIG += link_pkgconfig
 #unix: PKGCONFIG += phonon4qt5

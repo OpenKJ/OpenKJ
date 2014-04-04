@@ -25,6 +25,27 @@
 #include "khregularsong.h"
 #include <khsong.h>
 
+class KhRegImportSong
+{
+public:
+    KhRegImportSong(QString discID, QString artist, QString title, int keyChange)
+    {
+        m_discId = discID;
+        m_artist = artist;
+        m_title = title;
+        m_keyChange = keyChange;
+    }
+    QString discID() { return m_discId; }
+    QString artist() { return m_artist; }
+    QString title() { return m_title; }
+    int keyChange() { return m_keyChange; }
+private:
+    QString m_discId;
+    QString m_artist;
+    QString m_title;
+    int m_keyChange;
+};
+
 class KhRegularSinger : public QObject
 {
     Q_OBJECT
@@ -69,7 +90,8 @@ public:
     void deleteSinger(QString name);
     void exportSinger(int singerID, QString savePath);
     void exportSingers(QList<int> singerIDs, QString savePath);
-    QStringList importSingersList(QString fileName);
+    QStringList importLoadSingerList(QString fileName);
+    QList<KhRegImportSong> importLoadSongs(QString name, QString fileName);
 
 signals:
     void dataAboutToChange();
@@ -87,5 +109,7 @@ private:
     KhSongs *dbSongs;
 
 };
+
+
 
 #endif // KHREGULARSINGER_H

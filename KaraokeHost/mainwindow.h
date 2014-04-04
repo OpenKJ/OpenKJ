@@ -41,6 +41,7 @@
 #include <khsettings.h>
 #include <regularsingersdialog.h>
 #include <regularexportdialog.h>
+#include <regularimportdialog.h>
 
 
 using namespace std;
@@ -75,6 +76,7 @@ private slots:
     void on_treeViewQueue_activated(const QModelIndex &index);
     void on_actionManage_DB_triggered();
     void on_actionExport_Regulars_triggered();
+    void on_actionImport_Regulars_triggered();
     void on_actionSettings_triggered();
     void on_actionRegulars_triggered();
     void songDroppedOnSinger(int singer, int song, int row);
@@ -108,6 +110,7 @@ private:
     SettingsDialog *settingsDialog;
     RegularSingersDialog *regularSingersDialog;
     RegularExportDialog *regularExportDialog;
+    RegularImportDialog *regularImportDialog;
     KhAbstractAudioBackend *audioBackend;
     KhRotationSingers *singers;
     KhRegularSingers *regularSingers;

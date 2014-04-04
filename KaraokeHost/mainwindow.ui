@@ -1084,6 +1084,7 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionImport_Regulars"/>
     <addaction name="actionExport_Regulars"/>
     <addaction name="actionExit"/>
    </widget>
@@ -1133,6 +1134,11 @@
   <action name="actionExport_Regulars">
    <property name="text">
     <string>Export Regulars</string>
+   </property>
+  </action>
+  <action name="actionImport_Regulars">
+   <property name="text">
+    <string>Import Regulars</string>
    </property>
   </action>
  </widget>

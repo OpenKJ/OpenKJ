@@ -252,29 +252,47 @@ void KhRegularSingers::exportSingers(QList<int> singerIDs, QString savePath)
     xmlFile->close();
 }
 
-QStringList KhRegularSingers::importSingersList(QString fileName)
+QStringList KhRegularSingers::importLoadSingerList(QString fileName)
 {
+    QStringList singers;
     QFile *xmlFile = new QFile(fileName);
     xmlFile->open(QIODevice::ReadOnly);
     QXmlStreamReader xml(xmlFile);
     while (!xml.isEndDocument())
     {
         xml.readNext();
-        if (xml.isStartDocument())
-            qDebug() << "xml: StartDocument";
-        if (xml.isStartElement())
-        {
-            qDebug () << "xml: StartElement " << xml.name();
-            for (int i=0; i < xml.attributes().size(); i++)
-            {
-                qDebug() << "xml:      " << xml.attributes().at(i).name() << " = " << xml.attributes().at(i).value();
-            }
-        }
-        if (xml.isEndElement())
-            qDebug () << "xml: EndElement " << xml.name();
+        if ((xml.isStartElement()) && (xml.name() == "singer"))
+            singers << xml.attributes().value("name").toString();
     }
     xmlFile->close();
-    return QStringList();
+    singers.sort();
+    return singers;
+}
+
+QList<KhRegImportSong> KhRegularSingers::importLoadSongs(QString name, QString fileName)
+{
+    QList<KhRegImportSong> songs;
+    QFile *xmlFile = new QFile(fileName);
+    xmlFile->open(QIODevice::ReadOnly);
+    QXmlStreamReader xml(xmlFile);
+    bool done = false;
+    while ((!xml.isEndDocument()) && (!done))
+    {
+        xml.readNext();
+        if ((xml.isStartElement()) && (xml.name() == "singer") && (xml.attributes().value("name") == name))
+        {
+            xml.readNext();
+            while ((xml.name() != "singer") && (!xml.isEndDocument()))
+            {
+                if ((xml.isStartElement()) && (xml.name() == "song"))
+                    songs.push_back(KhRegImportSong(xml.attributes().value("discid").toString(), xml.attributes().value("artist").toString(), xml.attributes().value("title").toString(), xml.attributes().value("keychange").toString().toInt()));
+                xml.readNext();
+            }
+            done = true;
+        }
+    }
+    xmlFile->close();
+    return songs;
 }
 
 void KhRegularSingers::loadFromDB()
