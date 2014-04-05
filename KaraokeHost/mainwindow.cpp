@@ -87,7 +87,7 @@ MainWindow::MainWindow(QWidget *parent) :
     settingsDialog = new SettingsDialog(this);
     regularSingersDialog = new RegularSingersDialog(regularSingers, singers, this);
     regularExportDialog = new RegularExportDialog(regularSingers, this);
-    regularImportDialog = new RegularImportDialog(regularSingers, this);
+    regularImportDialog = new RegularImportDialog(songdbmodel->getDbSongs(), regularSingers, this);
     cdgWindow = new CdgWindow(this, Qt::Window);
     if (settings->showCdgWindow())
     {

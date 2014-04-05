@@ -35,10 +35,22 @@ public:
         m_title = title;
         m_keyChange = keyChange;
     }
-    QString discID() { return m_discId; }
-    QString artist() { return m_artist; }
-    QString title() { return m_title; }
-    int keyChange() { return m_keyChange; }
+//    QString discID() { return m_discId; }
+//    QString artist() { return m_artist; }
+//    QString title() { return m_title; }
+//    int keyChange() { return m_keyChange; }
+    QString discId() const;
+    void setDiscId(const QString &discId);
+
+    QString artist() const;
+    void setArtist(const QString &artist);
+
+    QString title() const;
+    void setTitle(const QString &title);
+
+    int keyChange() const;
+    void setKeyChange(int keyChange);
+
 private:
     QString m_discId;
     QString m_artist;

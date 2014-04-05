@@ -387,3 +387,43 @@ int KhRegularSinger::songsSize()
 {
     return regSongs->getRegSongs()->size();
 }
+
+QString KhRegImportSong::discId() const
+{
+    return m_discId;
+}
+
+void KhRegImportSong::setDiscId(const QString &discId)
+{
+    m_discId = discId;
+}
+QString KhRegImportSong::artist() const
+{
+    return m_artist;
+}
+
+void KhRegImportSong::setArtist(const QString &artist)
+{
+    m_artist = artist;
+}
+QString KhRegImportSong::title() const
+{
+    return m_title;
+}
+
+void KhRegImportSong::setTitle(const QString &title)
+{
+    m_title = title;
+}
+int KhRegImportSong::keyChange() const
+{
+    return m_keyChange;
+}
+
+void KhRegImportSong::setKeyChange(int keyChange)
+{
+    m_keyChange = keyChange;
+}
+
+
+

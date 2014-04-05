@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <khregularsinger.h>
+#include <khsong.h>
 
 namespace Ui {
 class RegularImportDialog;
@@ -13,7 +14,7 @@ class RegularImportDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit RegularImportDialog(KhRegularSingers *regSingersPtr, QWidget *parent = 0);
+    explicit RegularImportDialog(KhSongs *dbsongs, KhRegularSingers *regSingersPtr, QWidget *parent = 0);
     ~RegularImportDialog();
 
 private slots:
@@ -28,6 +29,10 @@ private slots:
 private:
     Ui::RegularImportDialog *ui;
     KhRegularSingers *regSingers;
+    KhSongs *dbSongs;
+    QString curImportFile;
+    void importSinger(QString name);
+    KhSong *findExactSongMatch(KhRegImportSong importSong);
 };
 
 #endif // REGULARIMPORTDIALOG_H
