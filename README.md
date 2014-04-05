@@ -49,6 +49,7 @@ KaraokeHost:
 * Regular singers - Delete existing singer
 * Regular singers - Auto track/save queue changes for regular singer.
 * Regular singers - Export to file (file->export regulars)
+* Regular singers - Import from file (no rename/merge/replace on name conflict yet)
 * Notification of BreakMusic via IPC that karaoke is starting playback or stopping (used for auto-fade of break music)
 * Ticker - Enable/disable
 * Ticker - Display ticker on CDG output window
@@ -75,7 +76,7 @@ Things that are still work in progress or to do:
 
 KaraokeHost:
 
-* Regular singers - Import from file
+* Regular singers - Name conflict resolution on import (Rename/Merge/Replace) 
 * Regular singers - Name conflict resolution on save (Merge/Replace)
 * Setting key changes on queued songs
 * Convert main program CDG display to OpenGL rendering like the CDG window
