@@ -94,6 +94,11 @@ void SettingsDialog::createIcons()
     videoButton->setText(tr("Video"));
     videoButton->setTextAlignment(Qt::AlignHCenter);
     videoButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+    QListWidgetItem *networkButton = new QListWidgetItem(ui->listWidget);
+    networkButton->setIcon(QIcon(":/icons/Icons/network-wired.png"));
+    networkButton->setText(tr("Network"));
+    networkButton->setTextAlignment(Qt::AlignHCenter);
+    networkButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 }
 
 void SettingsDialog::on_btnClose_clicked()

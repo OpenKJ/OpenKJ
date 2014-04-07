@@ -22,5 +22,6 @@
         <file>Icons/emblem-favorite-disabled-16x16.png</file>
         <file>Icons/openkjlogo1.png</file>
         <file>Icons/list-add-user-small.png</file>
+        <file>Icons/network-wired.png</file>
     </qresource>
 </RCC>

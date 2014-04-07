@@ -67,6 +67,16 @@ public:
     void setTickerShowNumSingers(int limit);
     void setTickerEnabled(bool enable);
     bool tickerEnabled();
+    bool requestServerEnabled();
+    void setRequestServerEnabled(bool enable);
+    QString requestServerUrl();
+    void setRequestServerUrl(QString url);
+    QString requestServerUsername();
+    void setRequestServerUsername(QString username);
+    QString requestServerPassword();
+    void setRequestServerPassword(QString password);
+    bool requestServerIgnoreCertErrors();
+    void setRequestServerIgnoreCertErrors(bool ignore);
 
 signals:
     void tickerFontChanged();
