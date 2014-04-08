@@ -170,3 +170,53 @@ bool KhSettings::tickerEnabled()
 {
     return settings->value("tickerEnabled", false).toBool();
 }
+
+bool KhSettings::requestServerEnabled()
+{
+    return settings->value("requestServerEnabled", false).toBool();
+}
+
+void KhSettings::setRequestServerEnabled(bool enable)
+{
+    settings->setValue("requestServerEnabled", enable);
+}
+
+QString KhSettings::requestServerUrl()
+{
+    return settings->value("requestServerUrl", "").toString();
+}
+
+void KhSettings::setRequestServerUrl(QString url)
+{
+    settings->setValue("requestServerUrl", url);
+}
+
+QString KhSettings::requestServerUsername()
+{
+    return settings->value("requestServerUsername","").toString();
+}
+
+void KhSettings::setRequestServerUsername(QString username)
+{
+    settings->setValue("requestServerUsername", username);
+}
+
+QString KhSettings::requestServerPassword()
+{
+    return settings->value("requestServerPassword", "").toString();
+}
+
+void KhSettings::setRequestServerPassword(QString password)
+{
+    settings->setValue("requestServerPassword", password);
+}
+
+bool KhSettings::requestServerIgnoreCertErrors()
+{
+    return settings->value("requestServerIgnoreCertErrors", false).toBool();
+}
+
+void KhSettings::setRequestServerIgnoreCertErrors(bool ignore)
+{
+    settings->setValue("requestServerIgnoreCertErrors", ignore);
+}

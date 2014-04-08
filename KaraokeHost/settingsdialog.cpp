@@ -37,7 +37,6 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     createIcons();
     QStringList screens = getMonitors();
     ui->listWidgetMonitors->addItems(screens);
-//    settings = new KhSettings(this);
     ui->checkBoxShowCdgWindow->setChecked(settings->showCdgWindow());
     ui->groupBoxMonitors->setChecked(settings->cdgWindowFullscreen());
     ui->listWidgetMonitors->setEnabled(settings->showCdgWindow());
@@ -62,6 +61,11 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
         ui->spinBoxTickerSingers->setEnabled(true);
     }
     ui->spinBoxTickerSingers->setValue(settings->tickerShowNumSingers());
+    ui->groupBoxRequestServer->setChecked(settings->requestServerEnabled());
+    ui->lineEditUrl->setText(settings->requestServerUrl());
+    ui->lineEditUsername->setText(settings->requestServerUsername());
+    ui->lineEditPassword->setText(settings->requestServerPassword());
+    ui->checkBoxIgnoreCertErrors->setChecked(settings->requestServerIgnoreCertErrors());
 }
 
 SettingsDialog::~SettingsDialog()
@@ -189,4 +193,29 @@ void SettingsDialog::on_spinBoxTickerSingers_valueChanged(int arg1)
 void SettingsDialog::on_groupBoxTicker_toggled(bool arg1)
 {
     settings->setTickerEnabled(arg1);
+}
+
+void SettingsDialog::on_lineEditUrl_editingFinished()
+{
+    settings->setRequestServerUrl(ui->lineEditUrl->text());
+}
+
+void SettingsDialog::on_checkBoxIgnoreCertErrors_toggled(bool checked)
+{
+    settings->setRequestServerIgnoreCertErrors(checked);
+}
+
+void SettingsDialog::on_lineEditUsername_editingFinished()
+{
+    settings->setRequestServerUsername(ui->lineEditUsername->text());
+}
+
+void SettingsDialog::on_lineEditPassword_editingFinished()
+{
+    settings->setRequestServerPassword(ui->lineEditPassword->text());
+}
+
+void SettingsDialog::on_groupBoxRequestServer_toggled(bool arg1)
+{
+    settings->setRequestServerEnabled(arg1);
 }
