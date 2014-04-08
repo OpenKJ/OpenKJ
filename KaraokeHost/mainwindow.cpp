@@ -88,6 +88,7 @@ MainWindow::MainWindow(QWidget *parent) :
     regularSingersDialog = new RegularSingersDialog(regularSingers, singers, this);
     regularExportDialog = new RegularExportDialog(regularSingers, this);
     regularImportDialog = new RegularImportDialog(songdbmodel->getDbSongs(), regularSingers, this);
+    requestsDialog = new KhRequestsDialog(this);
     cdgWindow = new CdgWindow(this, Qt::Window);
     if (settings->showCdgWindow())
     {
@@ -446,6 +447,11 @@ void MainWindow::on_actionSettings_triggered()
 void MainWindow::on_actionRegulars_triggered()
 {
     regularSingersDialog->show();
+}
+
+void MainWindow::on_actionIncoming_Requests_triggered()
+{
+    requestsDialog->show();
 }
 
 void MainWindow::songDroppedOnSinger(int singer, int song, int row)

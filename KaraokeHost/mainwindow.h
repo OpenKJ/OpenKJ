@@ -42,6 +42,7 @@
 #include <regularsingersdialog.h>
 #include <regularexportdialog.h>
 #include <regularimportdialog.h>
+#include <khrequestsdialog.h>
 
 
 using namespace std;
@@ -79,6 +80,7 @@ private slots:
     void on_actionImport_Regulars_triggered();
     void on_actionSettings_triggered();
     void on_actionRegulars_triggered();
+    void on_actionIncoming_Requests_triggered();
     void songDroppedOnSinger(int singer, int song, int row);
     void on_pushButton_clicked();
     void on_treeViewQueue_clicked(const QModelIndex &index);
@@ -111,6 +113,7 @@ private:
     RegularSingersDialog *regularSingersDialog;
     RegularExportDialog *regularExportDialog;
     RegularImportDialog *regularImportDialog;
+    KhRequestsDialog *requestsDialog;
     KhAbstractAudioBackend *audioBackend;
     KhRotationSingers *singers;
     KhRegularSingers *regularSingers;
