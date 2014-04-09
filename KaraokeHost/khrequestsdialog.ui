@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
-    <widget class="QGroupBox" name="groupBox">
+    <widget class="QGroupBox" name="groupBoxRequests">
      <property name="title">
       <string>Incoming Requests</string>
      </property>
@@ -46,7 +46,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox_2">
+    <widget class="QGroupBox" name="groupBoxSongDb">
      <property name="title">
       <string>Song Matches</string>
      </property>
@@ -83,7 +83,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox_3">
+    <widget class="QGroupBox" name="groupBoxAddSong">
      <property name="title">
       <string>Add to Singer</string>
      </property>
@@ -95,10 +95,20 @@
           <property name="text">
            <string>Existing singer</string>
           </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="comboBox"/>
+         <widget class="QComboBox" name="comboBoxSingers">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
         </item>
         <item>
          <spacer name="horizontalSpacer">
@@ -125,7 +135,30 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit_2"/>
+         <widget class="QLineEdit" name="lineEditSingerName"/>
+        </item>
+        <item>
+         <widget class="QLabel" name="labelAddPos">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>at position</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="comboBoxAddPosition">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
         </item>
         <item>
          <spacer name="horizontalSpacer_2">
@@ -145,18 +178,8 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_4">
         <property name="topMargin">
-         <number>0</number>
+         <number>5</number>
         </property>
-        <item>
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>New singer position</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="comboBox_2"/>
-        </item>
         <item>
          <spacer name="horizontalSpacer_3">
           <property name="orientation">
@@ -169,6 +192,13 @@
            </size>
           </property>
          </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButtonAddSong">
+          <property name="text">
+           <string>Add Song</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>

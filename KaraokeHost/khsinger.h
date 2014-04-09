@@ -102,6 +102,7 @@ public:
     int getSelectedSingerIndex() const;
     void setSelectedSingerIndex(int value);
     void createRegularForSinger(int singerID);
+    QStringList getSingerList();
 
 private:
     QList<KhSinger *> *singers;

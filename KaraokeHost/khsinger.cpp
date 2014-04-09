@@ -456,6 +456,14 @@ void KhRotationSingers::createRegularForSinger(int singerID)
     query.exec("COMMIT TRANSACTION");
 }
 
+QStringList KhRotationSingers::getSingerList()
+{
+    QStringList singerList;
+    for (int i=0; i < singers->size(); i++)
+        singerList << singers->at(i)->getSingerName();
+    return singerList;
+}
+
 int KhRotationSingers::getSelectedSingerPosition() const
 {
     return selectedSingerPosition;
