@@ -18,10 +18,12 @@ public:
 
 private slots:
     void on_pushButtonClose_clicked();
+    void requestsModified();
 
 private:
     Ui::KhRequestsDialog *ui;
     RequestsTableModel *requestsModel;
+
 };
 
 #endif // KHREQUESTSDIALOG_H

@@ -3,10 +3,8 @@
 
 #include <QAbstractTableModel>
 #include <QNetworkAccessManager>
-#include <QUrl>
-#include <QNetworkRequest>
-#include <QNetworkReply>
 #include <QTimer>
+
 
 class Request
 {
@@ -42,10 +40,14 @@ signals:
 
 public slots:
     void timerExpired();
+    void onNetworkReply(QNetworkReply* reply);
+    void onSslErrors(QNetworkReply * reply);
 
 private:
     QTimer *timer;
     QList<Request> requests;
+    QNetworkAccessManager *networkManager;
+    int curSerial;
 
     // QAbstractItemModel interface
 public:
@@ -54,6 +56,7 @@ public:
     QVariant data(const QModelIndex &index, int role) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
+
 };
 
 #endif // REQUESTSTABLEMODEL_H

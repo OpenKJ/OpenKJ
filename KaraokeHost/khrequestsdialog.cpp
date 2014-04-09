@@ -8,6 +8,7 @@ KhRequestsDialog::KhRequestsDialog(QWidget *parent) :
     ui->setupUi(this);
     requestsModel = new RequestsTableModel(this);
     ui->treeViewRequests->setModel(requestsModel);
+    connect(requestsModel, SIGNAL(layoutChanged()), this, SLOT(requestsModified()));
 }
 
 KhRequestsDialog::~KhRequestsDialog()
@@ -18,4 +19,9 @@ KhRequestsDialog::~KhRequestsDialog()
 void KhRequestsDialog::on_pushButtonClose_clicked()
 {
     close();
+}
+
+void KhRequestsDialog::requestsModified()
+{
+    this->show();
 }
