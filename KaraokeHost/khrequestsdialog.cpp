@@ -8,6 +8,14 @@ KhRequestsDialog::KhRequestsDialog(KhSongs *fullData, KhRotationSingers *singers
     ui->setupUi(this);
     requestsModel = new RequestsTableModel(this);
     ui->treeViewRequests->setModel(requestsModel);
+    ui->treeViewRequests->hideColumn(0);
+//    ui->treeViewRequests->header()->setSectionResizeMode(1,QHeaderView::ResizeToContents);
+//    ui->treeViewRequests->header()->setSectionResizeMode(2,QHeaderView::Stretch);
+//    ui->treeViewRequests->header()->setSectionResizeMode(3,QHeaderView::Stretch);
+//    ui->treeViewRequests->header()->setSectionResizeMode(4,QHeaderView::ResizeToContents);
+//    ui->treeViewRequests->header()->setSectionResizeMode(1,QHeaderView::Interactive);
+//    ui->treeViewRequests->header()->setSectionResizeMode(2,QHeaderView::Interactive);
+//    ui->treeViewRequests->header()->setSectionResizeMode(3,QHeaderView::Interactive);
     connect(requestsModel, SIGNAL(layoutChanged()), this, SLOT(requestsModified()));
     songDbModel = new SongDBTableModel(this);
     songDbModel->setFullData(fullData);
@@ -34,6 +42,7 @@ void KhRequestsDialog::on_pushButtonClose_clicked()
 void KhRequestsDialog::requestsModified()
 {
     this->show();
+    ui->treeViewRequests->header()->resizeSections(QHeaderView::Stretch);
 }
 
 void KhRequestsDialog::on_pushButtonSearch_clicked()

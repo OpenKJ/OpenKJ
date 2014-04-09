@@ -40,6 +40,12 @@
         <property name="expandsOnDoubleClick">
          <bool>false</bool>
         </property>
+        <attribute name="headerCascadingSectionResizes">
+         <bool>true</bool>
+        </attribute>
+        <attribute name="headerStretchLastSection">
+         <bool>false</bool>
+        </attribute>
        </widget>
       </item>
      </layout>

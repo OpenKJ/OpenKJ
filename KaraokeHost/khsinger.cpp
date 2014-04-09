@@ -461,6 +461,7 @@ QStringList KhRotationSingers::getSingerList()
     QStringList singerList;
     for (int i=0; i < singers->size(); i++)
         singerList << singers->at(i)->getSingerName();
+    singerList.sort();
     return singerList;
 }
 
