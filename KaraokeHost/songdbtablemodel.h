@@ -56,6 +56,7 @@ public:
     void addSong(KhSong *song);
     void removeSong(int row);
     void loadFromDB();
+    void setFullData(KhSongs *data);
     bool setData(const QModelIndex &index, const QVariant &value, int role);
     Qt::ItemFlags flags(const QModelIndex &index) const;
     QString filter;

@@ -291,6 +291,14 @@ void SongDBTableModel::loadFromDB()
     delete thread;
 }
 
+void SongDBTableModel::setFullData(KhSongs *data)
+{
+    emit layoutAboutToBeChanged();
+    filteredData->clear();
+    fulldata = data;
+    emit layoutChanged();
+}
+
 KhSong *SongDBTableModel::getRowSong(int row)
 {
     return filteredData->at(row);
