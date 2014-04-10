@@ -111,14 +111,18 @@ void RequestsTableModel::onNetworkReply(QNetworkReply *reply)
         }
         if (delIndex != -1)
         {
+            emit layoutAboutToBeChanged();
             requests.removeAt(delIndex);
+            emit layoutChanged();
         }
     }
     else if (recordType == 3)
     {
+        emit layoutAboutToBeChanged();
         qDebug() << "Clear request - clearing requests - new serial " << serial;
         curSerial = serial;
         requests.clear();
+        emit layoutChanged();
     }
 }
 
@@ -135,7 +139,7 @@ int RequestsTableModel::rowCount(const QModelIndex &parent) const
 
 int RequestsTableModel::columnCount(const QModelIndex &parent) const
 {
-    return 5;
+    return 6;
 }
 
 QVariant RequestsTableModel::data(const QModelIndex &index, int role) const
@@ -145,7 +149,11 @@ QVariant RequestsTableModel::data(const QModelIndex &index, int role) const
 
     if(index.row() >= requests.size() || index.row() < 0)
         return QVariant();
-
+    if ((index.column() == 5) && (role == Qt::DecorationRole))
+    {
+        QPixmap icon(":/icons/Icons/edit-delete.png");
+        return icon;
+    }
     if(role == Qt::DisplayRole)
     {
         switch(index.column())
@@ -190,6 +198,22 @@ QVariant RequestsTableModel::headerData(int section, Qt::Orientation orientation
 Qt::ItemFlags RequestsTableModel::flags(const QModelIndex &index) const
 {
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+}
+
+void RequestsTableModel::deleteAll()
+{
+    QUrl url(settings->requestServerUrl() + "/clearRequests.php");
+    QNetworkRequest request;
+    request.setUrl(url);
+    networkManager->get(request);
+}
+
+void RequestsTableModel::deleteRequestId(int requestId)
+{
+    QUrl url(settings->requestServerUrl() + "/delRequest.php?reqID=" + QString::number(requestId));
+    QNetworkRequest request;
+    request.setUrl(url);
+    networkManager->get(request);
 }
 
 Request::Request(int RequestId, QString Singer, QString Artist, QString Title, int ts)

@@ -87,3 +87,16 @@ void KhRequestsDialog::on_radioButtonExistingSinger_toggled(bool checked)
     ui->lineEditSingerName->setEnabled(!checked);
     ui->labelAddPos->setEnabled(!checked);
 }
+
+void KhRequestsDialog::on_pushButtonClearReqs_clicked()
+{
+    requestsModel->deleteAll();
+}
+
+void KhRequestsDialog::on_treeViewRequests_clicked(const QModelIndex &index)
+{
+    if (index.column() == 5)
+    {
+        requestsModel->deleteRequestId(index.sibling(index.row(),0).data().toInt());
+    }
+}

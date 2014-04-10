@@ -30,6 +30,10 @@ private slots:
 
     void on_radioButtonExistingSinger_toggled(bool checked);
 
+    void on_pushButtonClearReqs_clicked();
+
+    void on_treeViewRequests_clicked(const QModelIndex &index);
+
 private:
     Ui::KhRequestsDialog *ui;
     RequestsTableModel *requestsModel;
