@@ -26,7 +26,37 @@
 #define KHAUDIOBACKENDQMEDIAPLAYER_H
 
 #include <QObject>
+#include <QMediaPlayer>
+#include <QThread>
 #include "khabstractaudiobackend.h"
+
+class FaderQMediaPlayer : public QThread
+{
+    Q_OBJECT
+public:
+    explicit FaderQMediaPlayer(QMediaPlayer *mediaPlayer, QObject *parent = 0);
+    void run();
+    void fadeIn(int targetVolume);
+    void fadeIn();
+    void fadeOut();
+    void fadeStop();
+    void fadePause();
+    void fadePlay();
+    bool isFading();
+
+signals:
+
+public slots:
+    void setBaseVolume(int volume);
+
+private:
+    int m_targetVolume;
+    int m_preOutVolume;
+    QMediaPlayer *mPlayer;
+    bool fading;
+    bool stopAfter;
+    bool pauseAfter;
+};
 
 class KhAudioBackendQMediaPlayer : public KhAbstractAudioBackend
 {
@@ -48,6 +78,7 @@ public:
     bool isMuted();
     qint64 duration();
     QMediaPlayer::State state();
+    FaderQMediaPlayer *fader;
 
 
 public slots:
@@ -59,6 +90,14 @@ public slots:
     void setVolume(int volume);
     void stop();
 
+
+    // KhAbstractAudioBackend interface
+public slots:
+    void fadeOut();
+    void fadeIn(int targetVolume);
+    void fadeStop();
+    void fadePause();
+    void fadePlay();
 };
 
 #endif // KHAUDIOBACKENDQMEDIAPLAYER_H

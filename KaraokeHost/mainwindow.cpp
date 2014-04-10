@@ -174,7 +174,7 @@ void MainWindow::play(QString zipFilePath)
             cdg->FileOpen(khTmpDir->path().toStdString() + QDir::separator().toLatin1() + "tmp.cdg");
             cdg->Process();
             audioBackend->setMedia(khTmpDir->path() + QDir::separator() + "tmp.mp3");
-            audioBackend->play();
+            audioBackend->fadePlay();
             ui->labelArtist->setText(songCurrent->Artist);
             ui->labelTitle->setText(songCurrent->Title);
         }
@@ -185,7 +185,7 @@ void MainWindow::play(QString zipFilePath)
     }
     else if (audioBackend->state() == QMediaPlayer::PausedState)
     {
-        audioBackend->play();
+        audioBackend->fadePlay();
     }
 }
 
@@ -226,7 +226,7 @@ void MainWindow::databaseCleared()
 
 void MainWindow::on_buttonStop_clicked()
 {
-    audioBackend->stop();
+    audioBackend->fadeStop();
 }
 
 void MainWindow::on_buttonPlay_clicked()
@@ -236,9 +236,9 @@ void MainWindow::on_buttonPlay_clicked()
 void MainWindow::on_buttonPause_clicked()
 {
     if (audioBackend->state() == QMediaPlayer::PausedState)
-        audioBackend->play();
+        audioBackend->fadePlay();
     else
-        audioBackend->pause();
+        audioBackend->fadePause();
 }
 
 void MainWindow::on_lineEdit_returnPressed()
@@ -294,7 +294,7 @@ void MainWindow::on_treeViewRotation_activated(const QModelIndex &index)
 {
 
     singers->setCurrentSingerPosition(index.row() + 1);
-    audioBackend->stop();
+    audioBackend->fadeStop();
     KhQueueSong *qsong = singers->getSelected()->getNextSong();
     KhSong *song = songdbmodel->getSongByID(qsong->getSongID());
     songCurrent = song;
@@ -401,8 +401,7 @@ void MainWindow::on_treeViewRotation_clicked(const QModelIndex &index)
 
 void MainWindow::on_treeViewQueue_activated(const QModelIndex &index)
 {
-
-    audioBackend->stop();
+    audioBackend->fadeStop();
     KhQueueSong *queuesong = singers->getSelected()->getSongByPosition(index.row());
     KhSong *song = new KhSong();
     song->Artist = queuesong->getArtist();

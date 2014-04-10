@@ -39,6 +39,7 @@ public:
     QString msToMMSS(qint64 msec);
     virtual QString backendName() {return QString("Abstract - something is horribly wrong");}
 
+
 signals:
     void audioAvailableChanged(bool);
     void bufferStatusChanged(int);
@@ -51,6 +52,7 @@ signals:
     void videoAvailableChanged(bool);
     void volumeChanged(int);
 
+
 public slots:
     virtual void play() {}
     virtual void pause() {}
@@ -60,6 +62,15 @@ public slots:
     virtual void setVolume(int volume) {Q_UNUSED(volume);}
     virtual void stop() {}
     virtual void setPitchShift(int pitchShift) {Q_UNUSED(pitchShift);}
+    virtual void fadeOut() {}
+    virtual void fadeIn(int targetVolume = 100) {Q_UNUSED(targetVolume);}
+    virtual void fadeStop() { stop(); }
+    virtual void fadePause() { pause(); }
+    virtual void fadePlay(int targetVolume = 100)
+    {
+        Q_UNUSED(targetVolume);
+        play();
+    }
 
 };
 

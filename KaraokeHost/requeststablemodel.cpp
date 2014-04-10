@@ -98,11 +98,9 @@ void RequestsTableModel::onNetworkReply(QNetworkReply *reply)
     }
     else if (recordType == 2)
     {
-        qDebug() << "Data received: \n" << data;
         qDebug() << "Deleted request - removing item - new serial " << serial;
         curSerial = serial;
         int reqID = json.object().value("delreq").toDouble();
-        //requestsModel->delRequest(reqID);
         int delIndex = -1;
         for (int i=0; i < requests.size(); i++)
         {
