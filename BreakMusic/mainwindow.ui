@@ -778,6 +778,7 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionImport_Playlist"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
@@ -825,6 +826,11 @@
   <action name="actionHide_Metadata">
    <property name="text">
     <string>Hide Metadata</string>
+   </property>
+  </action>
+  <action name="actionImport_Playlist">
+   <property name="text">
+    <string>Import Playlist</string>
    </property>
   </action>
  </widget>

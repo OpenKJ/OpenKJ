@@ -509,9 +509,9 @@ int KhSinger::addSongAtEnd(int songid, bool regularSong, int regSongID)
     if (singerIndex != -1)
     {
         int qsongid = songs->addSongAtEnd(songid, regularSong,regSongID);
-        KhQueueSong *song = getSongByIndex(qsongid);
         if (regular)
         {
+            KhQueueSong *song = getSongByIndex(qsongid);
             int regsongid = regularSingers->getByRegularID(regularIndex)->addSong(song->getSongID(), song->getKeyChange(), song->getPosition());
             song->setRegSong(true);
             song->setRegSongIndex(regsongid);

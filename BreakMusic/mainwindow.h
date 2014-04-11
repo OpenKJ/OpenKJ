@@ -94,6 +94,7 @@ private slots:
     void on_playlistChanged();
     void on_actionShow_Metadata(bool checked);
     void on_actionShow_Filenames(bool checked);
+    void on_actionImport_Playlist_triggered();
 
 
     void on_treeViewPlaylist_clicked(const QModelIndex &index);

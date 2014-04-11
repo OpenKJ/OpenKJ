@@ -42,7 +42,8 @@ SOURCES += main.cpp\
     regularexportdialog.cpp \
     regularimportdialog.cpp \
     khrequestsdialog.cpp \
-    requeststablemodel.cpp
+    requeststablemodel.cpp \
+    cdgpreviewdialog.cpp
 
 HEADERS  += mainwindow.h \
     queuetablemodel.h \
@@ -74,7 +75,8 @@ HEADERS  += mainwindow.h \
     regularexportdialog.h \
     regularimportdialog.h \
     khrequestsdialog.h \
-    requeststablemodel.h
+    requeststablemodel.h \
+    cdgpreviewdialog.h
 
 FORMS    += mainwindow.ui \
     databasedialog.ui \
@@ -83,7 +85,8 @@ FORMS    += mainwindow.ui \
     regularsingersdialog.ui \
     regularexportdialog.ui \
     regularimportdialog.ui \
-    khrequestsdialog.ui
+    khrequestsdialog.ui \
+    cdgpreviewdialog.ui
 
 unix: CONFIG += link_pkgconfig
 #unix: PKGCONFIG += phonon4qt5

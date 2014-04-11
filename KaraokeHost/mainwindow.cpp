@@ -33,6 +33,7 @@
 #include <QDesktopWidget>
 #include <QStandardPaths>
 #include <QCoreApplication>
+#include <QMenu>
 
 
 KhSettings *settings;
@@ -63,7 +64,7 @@ MainWindow::MainWindow(QWidget *parent) :
     query.exec("CREATE TABLE IF NOT EXISTS regularSongs ( singer INTEGER NOT NULL, song INTEGER NOT NULL, 'keychg' INTEGER, 'position' INTEGER)");
     query.exec("CREATE TABLE IF NOT EXISTS sourceDirs ( path VARCHAR(255) UNIQUE, pattern INTEGER)");
 //    query.exec("PRAGMA synchronous = OFF");
-//    query.exec("PRAGMA journal_mode = OFF");
+    query.exec("PRAGMA journal_mode = OFF");
     sortColDB = 1;
     sortDirDB = 0;
     songdbmodel = new SongDBTableModel(this);
@@ -89,6 +90,7 @@ MainWindow::MainWindow(QWidget *parent) :
     regularExportDialog = new RegularExportDialog(regularSingers, this);
     regularImportDialog = new RegularImportDialog(songdbmodel->getDbSongs(), regularSingers, this);
     requestsDialog = new KhRequestsDialog(songdbmodel->getDbSongs(), singers, this);
+    cdgPreviewDialog = new CdgPreviewDialog(this);
     cdgWindow = new CdgWindow(this, Qt::Window);
     if (settings->showCdgWindow())
     {
@@ -151,6 +153,8 @@ MainWindow::MainWindow(QWidget *parent) :
 //    for (int i=0; i < singers.size(); i++)
 //        regularSingers->importSinger(singers.at(i), "/tmp/regtest.xml");
 //    close();
+//    cdgPreviewDialog->show();
+//    cdgPreviewDialog->preview("/storage/karaoke/Sound Choice/SC1000 Series/SC1736-04 - 3 Doors Down - Kryptonite.zip");
 }
 
 void MainWindow::play(QString zipFilePath)
@@ -639,4 +643,18 @@ void MainWindow::rotationDataChanged()
     if (singers->getSingers()->size() == 0)
         tickerText += " None";
     cdgWindow->setTickerText(tickerText);
+}
+
+void MainWindow::on_treeViewDB_customContextMenuRequested(const QPoint &pos)
+{
+    QModelIndex index = ui->treeViewDB->indexAt(pos);
+    if (index.isValid())
+    {
+        QString zipPath = songdbmodel->getRowSong(index.row())->path;
+        cdgPreviewDialog->setZipFile(zipPath);
+        QMenu contextMenu(this);
+        contextMenu.addAction("Preview", cdgPreviewDialog, SLOT(preview()));
+        contextMenu.exec(QCursor::pos());
+        //contextMenu->exec(ui->treeView->mapToGlobal(point));
+    }
 }

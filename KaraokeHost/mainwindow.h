@@ -43,6 +43,7 @@
 #include <regularexportdialog.h>
 #include <regularimportdialog.h>
 #include <khrequestsdialog.h>
+#include <cdgpreviewdialog.h>
 
 
 using namespace std;
@@ -97,6 +98,8 @@ private slots:
     void on_buttonRegulars_clicked();
     void rotationDataChanged();
 
+    void on_treeViewDB_customContextMenuRequested(const QPoint &pos);
+
 private:
     Ui::MainWindow *ui;
     QSqlDatabase *database;
@@ -114,6 +117,7 @@ private:
     RegularExportDialog *regularExportDialog;
     RegularImportDialog *regularImportDialog;
     KhRequestsDialog *requestsDialog;
+    CdgPreviewDialog *cdgPreviewDialog;
     KhAbstractAudioBackend *audioBackend;
     KhRotationSingers *singers;
     KhRegularSingers *regularSingers;

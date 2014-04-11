@@ -23,6 +23,7 @@
 #include <QDebug>
 #include <QSqlQuery>
 #include <QInputDialog>
+#include <QFileDialog>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -294,6 +295,31 @@ void MainWindow::on_actionShow_Filenames(bool checked)
     {
         ui->treeViewDB->header()->showSection(2);
         ui->treeViewPlaylist->header()->showSection(3);
+    }
+}
+
+void MainWindow::on_actionImport_Playlist_triggered()
+{
+    QString importFile = QFileDialog::getOpenFileName(this,tr("Select playlist to import"), QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), tr("(*.m3u)"));
+    if (importFile != "")
+    {
+        QString curImportFile = importFile;
+        QStringList audioFileList;
+        QFile textFile;
+        textFile.setFileName(importFile);
+        textFile.open(QFile::ReadOnly);
+        //... (open the file for reading, etc.)
+        QTextStream textStream(&textFile);
+        while (true)
+        {
+            QString line = textStream.readLine();
+            if (line.isNull())
+                break;
+            else
+                audioFileList.append(line);
+        }
+        for (int i=0; i < audioFileList.size(); i++)
+            qDebug() << audioFileList.at(i);
     }
 }
 

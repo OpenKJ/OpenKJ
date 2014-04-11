@@ -57,23 +57,28 @@ void KhRequestsDialog::requestsModified()
 void KhRequestsDialog::on_pushButtonSearch_clicked()
 {
     songDbModel->applyFilter(ui->lineEditSearch->text());
+    ui->treeViewSearch->header()->resizeSections(QHeaderView::Stretch);
+
 }
 
 void KhRequestsDialog::on_lineEditSearch_returnPressed()
 {
     songDbModel->applyFilter(ui->lineEditSearch->text());
+    ui->treeViewSearch->header()->resizeSections(QHeaderView::Stretch);
 
 }
 
 void KhRequestsDialog::requestSelectionChanged(const QModelIndex &current, const QModelIndex &previous)
 {
-    if (current.isValid())
+    qDebug() << "Current selection " << current.row();
+    if ((current.isValid()) && (ui->treeViewRequests->selectionModel()->selectedIndexes().size() > 0))
     {
-        ui->comboBoxSingers->clear();
-        ui->comboBoxSingers->addItems(rotSingers->getSingerList());
-        QString filterStr = current.sibling(current.row(),2).data().toString() + " " + current.sibling(current.row(),3).data().toString();
-        songDbModel->applyFilter(filterStr);
-        ui->lineEditSearch->setText(filterStr);
+//        ui->comboBoxSingers->clear();
+//        ui->comboBoxSingers->addItems(rotSingers->getSingerList());
+//        QString filterStr = current.sibling(current.row(),2).data().toString() + " " + current.sibling(current.row(),3).data().toString();
+//        songDbModel->applyFilter(filterStr);
+//        ui->lineEditSearch->setText(filterStr);
+//        ui->treeViewSearch->header()->resizeSections(QHeaderView::Stretch);
     }
 
 }
@@ -110,6 +115,12 @@ void KhRequestsDialog::on_treeViewRequests_clicked(const QModelIndex &index)
     }
     else
     {
+        ui->comboBoxSingers->clear();
+        ui->comboBoxSingers->addItems(rotSingers->getSingerList());
+        QString filterStr = index.sibling(index.row(),2).data().toString() + " " + index.sibling(index.row(),3).data().toString();
+        songDbModel->applyFilter(filterStr);
+        ui->lineEditSearch->setText(filterStr);
+        ui->treeViewSearch->header()->resizeSections(QHeaderView::Stretch);
         ui->lineEditSingerName->setText(index.sibling(index.row(),1).data().toString());
     }
 }
@@ -152,5 +163,4 @@ void KhRequestsDialog::on_pushButtonAddSong_clicked()
         rotSingers->getSingerByName(ui->comboBoxSingers->currentText())->addSongAtEnd(songid);
         rotSingers->dataChanged();
     }
-    //songid = songdbmodel->getRowSong(index.row())->ID;
 }

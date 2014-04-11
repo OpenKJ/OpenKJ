@@ -340,7 +340,7 @@ int KhQueueSongs::addSongAtEnd(int songid, bool regularSong, int regSongID)
     song->setKeyChange(0,true);
     song->setRegSong(regularSong,true);
     song->setRegSongIndex(regSongID,true);
-    song->setPosition(-1);
+    song->setPosition(-1,true);
     return addSong(song);
 }
 
@@ -483,10 +483,12 @@ int KhQueueSongs::addSong(KhQueueSong *song)
     else if (song->getPosition() != songs->size())
     {
         positionStr = QString::number(song->getPosition());
+        qDebug() << "KhQueueSongs::addSong DB transaction start";
         query.exec("BEGIN TRANSACTION");
         for (int i=0; i < songs->size(); i++)
             if (songs->at(i)->getPosition() >= song->getPosition()) songs->at(i)->setPosition(songs->at(i)->getPosition() + 1);
         query.exec("COMMIT TRANSACTION");
+        qDebug() << "KhQueueSongs::addSong DB transaction end";
     }
     else
     {

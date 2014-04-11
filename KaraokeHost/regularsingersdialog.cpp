@@ -113,10 +113,14 @@ void RegularSingersDialog::addRegularToRotation(int ListIndex)
     {
         KhRegularSinger *regSinger = m_regSingers->at(ListIndex);
         KhSinger *rotSinger;
+        qDebug() << "RegularSingersDialog::addRegularToRotation() DB transaction start";
         QSqlQuery query("BEGIN TRANSACTION");
+        qDebug() << "Adding regular " << m_regSingers->at(ListIndex)->getName();
         m_rotSingers->add(m_regSingers->at(ListIndex)->getName());
         rotSinger = m_rotSingers->getSingers()->at(m_rotSingers->getSingers()->size() -1);
+        qDebug() << "Sorting songs by position";
         regSinger->getRegSongs()->sort();
+        qDebug() << "Sort complete, adding songs to singer's queue";
         for (int i=0; i < regSinger->getRegSongs()->getRegSongs()->size(); i++)
         {
             KhRegularSong *regSong = regSinger->getRegSongs()->getRegSongs()->at(i);
@@ -125,9 +129,12 @@ void RegularSingersDialog::addRegularToRotation(int ListIndex)
             rotSinger->getQueueSongs()->at(i)->setRegSong(true);
             rotSinger->getQueueSongs()->at(i)->setRegSongIndex(regSong->getRegSongIndex());
         }
+        qDebug() << "Done adding songs, setting as regular";
         rotSinger->setRegular(true);
         rotSinger->setRegularIndex(regSinger->getIndex());
+        qDebug() << "Singer add complete";
         query.exec("COMMIT TRANSACTION");
+        qDebug() << "RegularSingersDialog::addRegularToRotation() DB transaction end";
         if ((ui->comboBoxAddPos->currentText() == "Next") && (m_rotSingers->getCurrent() != NULL))
         {
             if (m_rotSingers->getCurrent()->getSingerPosition() != m_rotSingers->getSingers()->size())

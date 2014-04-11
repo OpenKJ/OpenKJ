@@ -4,6 +4,7 @@
 #include <QStandardPaths>
 #include <QDebug>
 #include <QMessageBox>
+#include <QSqlQuery>
 
 RegularImportDialog::RegularImportDialog(KhSongs *dbsongs, KhRegularSingers *regSingersPtr, QWidget *parent) :
     QDialog(parent),
@@ -68,6 +69,7 @@ void RegularImportDialog::importSinger(QString name)
         int regID = regSingers->add(name);
         KhRegularSinger *regSinger = regSingers->getByRegularID(regID);
         QList<KhRegImportSong> songs = regSingers->importLoadSongs(name, curImportFile);
+        QSqlQuery query("BEGIN TRANSACTION");
         for (int i=0; i < songs.size(); i++)
         {
             KhSong *exactMatch = findExactSongMatch(songs.at(i));
@@ -79,8 +81,9 @@ void RegularImportDialog::importSinger(QString name)
                 regSinger->addSong(songId, keyChg, pos);
             }
             else
-                QMessageBox::warning(this, tr("No song match found"),QString("An exact song DB match for the song \"" + songs.at(i).discId() + " - " + songs.at(i).artist() + " - " + songs.at(i).title() + "\" could not be found, skipping import for this song."));
+                QMessageBox::warning(this, tr("No song match found"),QString("An exact song DB match for the song \"" + songs.at(i).discId() + " - " + songs.at(i).artist() + " - " + songs.at(i).title() + "\" could not be found while importing singer \"" + name + "\", skipping import for this song."));
         }
+        query.exec("COMMIT TRANSACTION");
     }
 }
 
