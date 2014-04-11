@@ -96,12 +96,16 @@ SongDBTableModel::SongDBTableModel(QObject *parent) :
     filteredData = new KhSongs;
     lastSortCol = 0;
     lastSortOrder = Qt::AscendingOrder;
+    externalDataSource = false;
 }
 
 SongDBTableModel::~SongDBTableModel()
 {
-    qDeleteAll(fulldata->begin(),fulldata->end());
-    delete fulldata;
+    if (!externalDataSource)
+    {
+        qDeleteAll(fulldata->begin(),fulldata->end());
+        delete fulldata;
+    }
     delete filteredData;
 }
 
@@ -293,6 +297,7 @@ void SongDBTableModel::loadFromDB()
 
 void SongDBTableModel::setFullData(KhSongs *data)
 {
+    externalDataSource = true;
     emit layoutAboutToBeChanged();
     filteredData->clear();
     fulldata = data;

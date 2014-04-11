@@ -36,13 +36,10 @@ class FaderQMediaPlayer : public QThread
 public:
     explicit FaderQMediaPlayer(QMediaPlayer *mediaPlayer, QObject *parent = 0);
     void run();
-    void fadeIn(int targetVolume);
     void fadeIn();
     void fadeOut();
-    void fadeStop();
-    void fadePause();
-    void fadePlay();
     bool isFading();
+    void restoreVolume();
 
 signals:
 
@@ -54,8 +51,6 @@ private:
     int m_preOutVolume;
     QMediaPlayer *mPlayer;
     bool fading;
-    bool stopAfter;
-    bool pauseAfter;
 };
 
 class KhAudioBackendQMediaPlayer : public KhAbstractAudioBackend
@@ -63,6 +58,8 @@ class KhAudioBackendQMediaPlayer : public KhAbstractAudioBackend
     Q_OBJECT
 private:
     QMediaPlayer *mplayer;
+    bool m_fade;
+
 public:
     explicit KhAudioBackendQMediaPlayer(QObject *parent = 0);
     QString backendName() {return QString("QMediaPlayer");}
@@ -79,7 +76,8 @@ public:
     qint64 duration();
     QMediaPlayer::State state();
     FaderQMediaPlayer *fader;
-
+    bool canFade() { return true; }
+    void setUseFader(bool fade) {m_fade = fade;}
 
 public slots:
     void play();
@@ -94,10 +92,8 @@ public slots:
     // KhAbstractAudioBackend interface
 public slots:
     void fadeOut();
-    void fadeIn(int targetVolume);
-    void fadeStop();
-    void fadePause();
-    void fadePlay();
+    void fadeIn();
+
 };
 
 #endif // KHAUDIOBACKENDQMEDIAPLAYER_H

@@ -77,6 +77,10 @@ public:
     void setRequestServerPassword(QString password);
     bool requestServerIgnoreCertErrors();
     void setRequestServerIgnoreCertErrors(bool ignore);
+    bool audioUseFader();
+    void setAudioUseFader(bool fader);
+    int audioVolume();
+    bool setAudioVolume(int volume);
 
 signals:
     void tickerFontChanged();

@@ -112,13 +112,15 @@ MainWindow::MainWindow(QWidget *parent) :
     audioBackend = new KhAudioBackendQMediaPlayer(this);
     qDebug() << "Audio backend: QMediaPlayer";
 #endif
+    if (audioBackend->canFade())
+        audioBackend->setUseFader(settings->audioUseFader());
     if (!audioBackend->canPitchShift())
     {
         ui->groupBoxKey->hide();
         ui->treeViewQueue->hideColumn(3);
     }
+
     connect(audioBackend, SIGNAL(volumeChanged(int)), ui->sliderVolume, SLOT(setValue(int)));
-    audioBackend->setVolume(50);
     connect(dbDialog, SIGNAL(databaseUpdated()), this, SLOT(songdbUpdated()));
     connect(dbDialog, SIGNAL(databaseCleared()), this, SLOT(databaseCleared()));
     connect(rotationmodel, SIGNAL(songDroppedOnSinger(int,int,int)), this, SLOT(songDroppedOnSinger(int,int,int)));
@@ -127,6 +129,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(audioBackend, SIGNAL(positionChanged(qint64)), this, SLOT(audioBackend_positionChanged(qint64)));
     connect(audioBackend, SIGNAL(durationChanged(qint64)), this, SLOT(audioBackend_durationChanged(qint64)));
     connect(audioBackend, SIGNAL(stateChanged(QMediaPlayer::State)), this, SLOT(audioBackend_stateChanged(QMediaPlayer::State)));
+    qDebug() << "Setting volume to " << settings->audioVolume();
+    audioBackend->setVolume(settings->audioVolume());
+    ui->sliderVolume->setValue(settings->audioVolume());
     connect(settingsDialog, SIGNAL(showCdgWindowChanged(bool)), cdgWindow, SLOT(setVisible(bool)));
     connect(settingsDialog, SIGNAL(cdgWindowFullScreenChanged(bool)), cdgWindow, SLOT(setFullScreen(bool)));
     connect(regularSingers, SIGNAL(dataChanged()), rotationmodel, SIGNAL(layoutChanged()));
@@ -174,7 +179,7 @@ void MainWindow::play(QString zipFilePath)
             cdg->FileOpen(khTmpDir->path().toStdString() + QDir::separator().toLatin1() + "tmp.cdg");
             cdg->Process();
             audioBackend->setMedia(khTmpDir->path() + QDir::separator() + "tmp.mp3");
-            audioBackend->fadePlay();
+            audioBackend->play();
             ui->labelArtist->setText(songCurrent->Artist);
             ui->labelTitle->setText(songCurrent->Title);
         }
@@ -185,7 +190,7 @@ void MainWindow::play(QString zipFilePath)
     }
     else if (audioBackend->state() == QMediaPlayer::PausedState)
     {
-        audioBackend->fadePlay();
+        audioBackend->play();
     }
 }
 
@@ -194,6 +199,7 @@ MainWindow::~MainWindow()
     settings->saveWindowState(cdgWindow);
     settings->saveWindowState(this);
     settings->setShowCdgWindow(cdgWindow->isVisible());
+    settings->setAudioVolume(audioBackend->volume());
     delete cdg;
     delete khDir;
     delete khTmpDir;
@@ -226,7 +232,7 @@ void MainWindow::databaseCleared()
 
 void MainWindow::on_buttonStop_clicked()
 {
-    audioBackend->fadeStop();
+    audioBackend->stop();
 }
 
 void MainWindow::on_buttonPlay_clicked()
@@ -236,9 +242,9 @@ void MainWindow::on_buttonPlay_clicked()
 void MainWindow::on_buttonPause_clicked()
 {
     if (audioBackend->state() == QMediaPlayer::PausedState)
-        audioBackend->fadePlay();
+        audioBackend->play();
     else
-        audioBackend->fadePause();
+        audioBackend->pause();
 }
 
 void MainWindow::on_lineEdit_returnPressed()
@@ -294,7 +300,7 @@ void MainWindow::on_treeViewRotation_activated(const QModelIndex &index)
 {
 
     singers->setCurrentSingerPosition(index.row() + 1);
-    audioBackend->fadeStop();
+    audioBackend->stop();
     KhQueueSong *qsong = singers->getSelected()->getNextSong();
     KhSong *song = songdbmodel->getSongByID(qsong->getSongID());
     songCurrent = song;
@@ -401,7 +407,7 @@ void MainWindow::on_treeViewRotation_clicked(const QModelIndex &index)
 
 void MainWindow::on_treeViewQueue_activated(const QModelIndex &index)
 {
-    audioBackend->fadeStop();
+    audioBackend->stop();
     KhQueueSong *queuesong = singers->getSelected()->getSongByPosition(index.row());
     KhSong *song = new KhSong();
     song->Artist = queuesong->getArtist();

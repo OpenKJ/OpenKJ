@@ -41,6 +41,7 @@ KhAudioBackendQMediaPlayer::KhAudioBackendQMediaPlayer(QObject *parent) :
     connect(mplayer, SIGNAL(positionChanged(qint64)), this, SIGNAL(positionChanged(qint64)));
     connect(mplayer, SIGNAL(stateChanged(QMediaPlayer::State)), this, SIGNAL(stateChanged(QMediaPlayer::State)));
     connect(mplayer, SIGNAL(volumeChanged(int)), this, SIGNAL(volumeChanged(int)));
+    connect(mplayer, SIGNAL(volumeChanged(int)), fader, SLOT(setBaseVolume(int)));
 }
 
 
@@ -67,10 +68,14 @@ qint64 KhAudioBackendQMediaPlayer::duration()
 void KhAudioBackendQMediaPlayer::play()
 {
     mplayer->play();
+    if (m_fade)
+        fadeIn();
 }
 
 void KhAudioBackendQMediaPlayer::pause()
 {
+    if (m_fade)
+        fadeOut();
     mplayer->pause();
 }
 
@@ -78,6 +83,8 @@ void KhAudioBackendQMediaPlayer::setMedia(QString filename)
 {
     qDebug() << "AudioBackend - Playing file: " << filename;
     mplayer->setMedia(QUrl::fromLocalFile(filename));
+    if (m_fade)
+        fadeIn();
 }
 
 void KhAudioBackendQMediaPlayer::setMuted(bool muted)
@@ -93,14 +100,25 @@ void KhAudioBackendQMediaPlayer::setPosition(qint64 position)
 void KhAudioBackendQMediaPlayer::setVolume(int volume)
 {
     mplayer->setVolume(volume);
-    fader->setBaseVolume(volume);
 }
 
 void KhAudioBackendQMediaPlayer::stop()
 {
-    mplayer->stop();
+    qDebug() << "KhAudioBackendQMediaPlayer::stop()";
+    qDebug() << "Media state: " << mplayer->state();
+    if (mplayer->state() == QMediaPlayer::PlayingState)
+    {
+        if (m_fade)
+            fadeOut();
+        mplayer->stop();
+        fader->restoreVolume();
+    }
+    else if (mplayer->state() == QMediaPlayer::PausedState)
+    {
+        mplayer->stop();
+        fader->restoreVolume();
+    }
 }
-
 
 QMediaPlayer::State KhAudioBackendQMediaPlayer::state()
 {
@@ -113,26 +131,10 @@ void KhAudioBackendQMediaPlayer::fadeOut()
     fader->fadeOut();
 }
 
-void KhAudioBackendQMediaPlayer::fadeIn(int targetVolume)
+void KhAudioBackendQMediaPlayer::fadeIn()
 {
-    fader->fadeIn(targetVolume);
+    fader->fadeIn();
 }
-
-void KhAudioBackendQMediaPlayer::fadeStop()
-{
-    fader->fadeStop();
-}
-
-void KhAudioBackendQMediaPlayer::fadePause()
-{
-    fader->fadePause();
-}
-
-void KhAudioBackendQMediaPlayer::fadePlay()
-{
-    fader->fadePlay();
-}
-
 
 FaderQMediaPlayer::FaderQMediaPlayer(QMediaPlayer *mediaPlayer, QObject *parent) :
     QThread(parent)
@@ -141,7 +143,6 @@ FaderQMediaPlayer::FaderQMediaPlayer(QMediaPlayer *mediaPlayer, QObject *parent)
     m_targetVolume = 0;
     m_preOutVolume = mediaPlayer->volume();
     fading = false;
-    stopAfter = false;
 }
 
 void FaderQMediaPlayer::run()
@@ -157,84 +158,35 @@ void FaderQMediaPlayer::run()
             mPlayer->setVolume(mPlayer->volume() + 1);
         QThread::msleep(30);
     }
-    if (stopAfter)
-    {
-        mPlayer->stop();
-        stopAfter = false;
-    }
-    if (pauseAfter)
-    {
-        mPlayer->pause();
-        pauseAfter = false;
-    }
     fading = false;
-}
-
-void FaderQMediaPlayer::fadeIn(int targetVolume)
-{
-    while(fading)
-        QThread::msleep(20);
-    m_targetVolume = targetVolume;
-    start();
 }
 
 void FaderQMediaPlayer::fadeIn()
 {
-    while(fading)
-        QThread::msleep(20);
     m_targetVolume = m_preOutVolume;
-    start();
+    if (!fading)
+    {
+        start();
+    }
+    while(fading)
+        QApplication::processEvents();
+
 }
 
 void FaderQMediaPlayer::fadeOut()
 {
-    while(fading)
-        QThread::msleep(20);
-    m_preOutVolume = mPlayer->volume();
-    m_targetVolume = 0;
-    start();
-}
-
-void FaderQMediaPlayer::fadeStop()
-{
     if (mPlayer->state() == QMediaPlayer::PlayingState)
     {
-        stopAfter = true;
-        fading = true;
-        int curvol = mPlayer->volume();
-        m_preOutVolume = curvol;
-        m_targetVolume = 0;
-        start();
-        while(fading)
-            QApplication::processEvents();
-        mPlayer->setVolume(curvol);
-        setBaseVolume(curvol);
-    }
-    else
-        mPlayer->stop();
-}
-
-void FaderQMediaPlayer::fadePause()
-{
-    pauseAfter = true;
-    int curVolume = mPlayer->volume();
     m_targetVolume = 0;
-    start();
+    if (!fading)
+    {
+        fading = true;
+        m_preOutVolume = mPlayer->volume();
+        start();
+    }
     while(fading)
         QApplication::processEvents();
-    setBaseVolume(curVolume);
-}
-
-void FaderQMediaPlayer::fadePlay()
-{
-    qDebug() << "FaderQMediaPlayer::fadePlay() - Current Volume: " << mPlayer->volume() << " Target Volume: " << m_preOutVolume;
-    stopAfter = false;
-    pauseAfter = false;
-    m_targetVolume = m_preOutVolume;
-    mPlayer->play();
-    start();
-    while(fading)
-        QApplication::processEvents();
+    }
 }
 
 bool FaderQMediaPlayer::isFading()
@@ -242,12 +194,13 @@ bool FaderQMediaPlayer::isFading()
     return fading;
 }
 
+void FaderQMediaPlayer::restoreVolume()
+{
+    mPlayer->setVolume(m_preOutVolume);
+}
+
 void FaderQMediaPlayer::setBaseVolume(int volume)
 {
     if (!fading)
-    {
-    qDebug() << "FaderQmediaPlayer::setBaseVolume(" << volume << ")";
-    m_preOutVolume = volume;
-
-    }
+        m_preOutVolume = volume;
 }

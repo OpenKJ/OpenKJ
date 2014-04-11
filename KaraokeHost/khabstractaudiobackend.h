@@ -36,6 +36,8 @@ public:
     virtual QMediaPlayer::State state() {return QMediaPlayer::StoppedState;}
     virtual bool canPitchShift() {return false;}
     virtual int pitchShift() {return 0;}
+    virtual bool canFade() { return false; }
+    virtual void setUseFader(bool fade) {Q_UNUSED(fade);}
     QString msToMMSS(qint64 msec);
     virtual QString backendName() {return QString("Abstract - something is horribly wrong");}
 
@@ -63,15 +65,7 @@ public slots:
     virtual void stop() {}
     virtual void setPitchShift(int pitchShift) {Q_UNUSED(pitchShift);}
     virtual void fadeOut() {}
-    virtual void fadeIn(int targetVolume = 100) {Q_UNUSED(targetVolume);}
-    virtual void fadeStop() { stop(); }
-    virtual void fadePause() { pause(); }
-    virtual void fadePlay(int targetVolume = 100)
-    {
-        Q_UNUSED(targetVolume);
-        play();
-    }
-
+    virtual void fadeIn() {}
 };
 
 #endif // KHABSTRACTAUDIOBACKEND_H

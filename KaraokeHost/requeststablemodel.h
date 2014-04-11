@@ -58,6 +58,7 @@ public:
     Qt::ItemFlags flags(const QModelIndex &index) const;
     void deleteAll();
     void deleteRequestId(int requestId);
+    int count();
 
 };
 

@@ -214,6 +214,11 @@ void RequestsTableModel::deleteRequestId(int requestId)
     networkManager->get(request);
 }
 
+int RequestsTableModel::count()
+{
+    return requests.count();
+}
+
 Request::Request(int RequestId, QString Singer, QString Artist, QString Title, int ts)
 {
     m_requestId = RequestId;

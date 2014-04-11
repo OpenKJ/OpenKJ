@@ -42,6 +42,8 @@ class SongDBTableModel : public QAbstractTableModel
     Q_OBJECT
     KhSongs *fulldata;
     KhSongs *filteredData;
+    bool externalDataSource;
+
 public:
     explicit SongDBTableModel(QObject *parent = 0);
     ~SongDBTableModel();

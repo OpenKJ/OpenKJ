@@ -41,8 +41,11 @@ void KhRequestsDialog::on_pushButtonClose_clicked()
 
 void KhRequestsDialog::requestsModified()
 {
-    this->show();
-    ui->treeViewRequests->header()->resizeSections(QHeaderView::Stretch);
+    if (requestsModel->count() > 0)
+    {
+        this->show();
+        ui->treeViewRequests->header()->resizeSections(QHeaderView::Stretch);
+    }
 }
 
 void KhRequestsDialog::on_pushButtonSearch_clicked()

@@ -220,3 +220,23 @@ void KhSettings::setRequestServerIgnoreCertErrors(bool ignore)
 {
     settings->setValue("requestServerIgnoreCertErrors", ignore);
 }
+
+bool KhSettings::audioUseFader()
+{
+    return settings->value("audioUseFader", true).toBool();
+}
+
+void KhSettings::setAudioUseFader(bool fader)
+{
+    settings->setValue("audioUseFader", fader);
+}
+
+int KhSettings::audioVolume()
+{
+    return settings->value("audioVolume", 50).toInt();
+}
+
+bool KhSettings::setAudioVolume(int volume)
+{
+    settings->setValue("audioVolume", volume);
+}
