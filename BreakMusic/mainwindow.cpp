@@ -304,7 +304,7 @@ void MainWindow::on_actionImport_Playlist_triggered()
     if (importFile != "")
     {
         QString curImportFile = importFile;
-        QStringList audioFileList;
+        QStringList files;
         QFile textFile;
         textFile.setFileName(importFile);
         textFile.open(QFile::ReadOnly);
@@ -316,10 +316,24 @@ void MainWindow::on_actionImport_Playlist_triggered()
             if (line.isNull())
                 break;
             else
-                audioFileList.append(line);
+                files.append(line);
         }
-        for (int i=0; i < audioFileList.size(); i++)
-            qDebug() << audioFileList.at(i);
+    QSqlQuery query;
+    qDebug() << "Beginning db insert";
+    query.exec("BEGIN TRANSACTION");
+    for (int i=0; i < files.size(); i++)
+    {
+        TagLib::FileRef f(files.at(i).toUtf8().data());
+        QString artist = QString::fromStdString(f.tag()->artist().to8Bit(true));
+        QString title = QString::fromStdString(f.tag()->title().to8Bit(true));
+        QString duration = QString::number(f.audioProperties()->length());
+        QString filename = QFileInfo(files.at(i)).fileName();
+        query.exec("INSERT OR IGNORE INTO songs (artist,title,path,filename,duration) VALUES(\"" + artist + "\",\"" + title + "\",\"" + files.at(i) + "\",\"" + filename + "\"," + duration + ")");
+        //        qDebug() << f.tag()->artist().toCString(true) << " - " << f.tag()->title().toCString(true);
+
+    }
+    query.exec("COMMIT TRANSACTION");
+    qDebug() << "Finished db insert";
     }
 }
 
