@@ -25,24 +25,24 @@ libCDG is fairly stable and I've been dogfooding it for years at this point ever
 
 KaraokeHost:
 
-* Blank database creation if nonexistant on program startup
-* Database management (scanning for and importing karaoke zip files)
-* Database searching
-* Adding rotation singers
-* Deleting rotation singers
-* Renameing rotation singers
-* Moving rotation singers via drag reordering
-* Current singer tracking
-* Adding songs to a singer's queue (via double click or drag'n'drop from the db search results)
-* Deleting singer's queued songs
-* Moving singer's queued songs via drag reordering
-* Audio output (QMediaPlayer or FMOD backend)
-* On the fly key changes (FMOD backend ONLY)
-* CDG Graphics output in the main window
-* Scaled CDG Graphics output in the optional CDG display window (requires working OpenGL video drivers)
-* Settings for CDG window (enabled/disabled, fullscreen, monitor for fullscreen output)
-* Playing songs from the rotation or queue lists (double click)
-* Media controls (pause, unpause, stop)
+* General - Blank database creation if nonexistant on program startup
+* SongDB - Database management (scanning for and importing karaoke zip files)
+* SongDB - Database searching
+* Rotation Mgmt - Adding rotation singers
+* Rotation Mgmt - Deleting rotation singers
+* Rotation Mgmt - Renameing rotation singers
+* Rotation Mgmt - Moving rotation singers via drag reordering
+* Rotation Mgmt - Current singer tracking
+* Rotation Mgmt - Adding songs to a singer's queue (via double click or drag'n'drop from the db search results)
+* Rotation Mgmt - Deleting singer's queued songs
+* Rotation Mgmt - Moving singer's queued songs via drag reordering
+* Audio - Output (QMediaPlayer or FMOD backend)
+* Audio - On the fly key changes (FMOD backend ONLY)
+* Video - CDG Graphics output in the main window
+* Video - Scaled CDG Graphics output in the optional CDG display window (requires working OpenGL video drivers)
+* Video - Settings for CDG window (enabled/disabled, fullscreen, monitor for fullscreen output)
+* Audio - Playing songs from the rotation or queue lists (double click)
+* Audio - Media controls (pause, unpause, stop)
 * Regular singers - Save singer as regular (if no name conflict)
 * Regular singers - Load saved singer
 * Regular singers - Rename existing singer
@@ -50,13 +50,15 @@ KaraokeHost:
 * Regular singers - Auto track/save queue changes for regular singer.
 * Regular singers - Export to file (file->export regulars)
 * Regular singers - Import from file (no rename/merge/replace on name conflict yet)
-* Notification of BreakMusic via IPC that karaoke is starting playback or stopping (used for auto-fade of break music)
+* IPC - Notification of BreakMusic via IPC that karaoke is starting playback or stopping (used for auto-fade of break music)
 * Ticker - Enable/disable
 * Ticker - Display ticker on CDG output window
 * Ticker - Font settings
 * Ticker - Foreground/background color settings
 * Ticker - Full rotation or limited rotation display settings
 * Ticker - Widget height setting (eventually will make adaptive to font, but this works for now)
+* Audio - Fading in/out on play/pause/unpause/stop (QMediaPlayer backend only)
+* Video - CDG Preview Dialog
 
 BreakMusic:
 
@@ -78,12 +80,12 @@ KaraokeHost:
 
 * Regular singers - Name conflict resolution on import (Rename/Merge/Replace) 
 * Regular singers - Name conflict resolution on save (Merge/Replace)
-* Setting key changes on queued songs
-* Convert main program CDG display to OpenGL rendering like the CDG window
-* Automatically adapting the models/views to contents and window size
-* User notification of many different error conditions.
-* Fading in/out on stop, pause, and unpause.
-* Find a way to do keychanges without requiring a closed souce library
+* Rotation Mgmt - Setting key changes on queued songs
+* Video - Convert main program CDG display to OpenGL rendering like the CDG window
+* Look/Feel - Automatically adapting the models/views to contents and window size
+* General - User notification of many different error conditions.
+* Audio - Fading in/out on stop, pause, and unpause. (TODO on fmod backend)
+* Audio - Find a way to do keychanges without requiring a closed souce library
 * Ticker - Make height auto-adapt to font size
 * And a million more things I'm forgetting
 
