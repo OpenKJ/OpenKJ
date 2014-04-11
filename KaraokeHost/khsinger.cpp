@@ -31,6 +31,7 @@ KhSinger::KhSinger(KhRegularSingers *regSingers, QObject *parent) :
 {
     songs = new KhQueueSongs(singerIndex,regSingers, regularIndex, this);
     regularSingers = regSingers;
+
 }
 
 bool KhSinger::isRegular() const
@@ -250,6 +251,16 @@ KhSinger *KhRotationSingers::getSingerByIndex(int singerid)
                 return singers->at(i);
         }
         return NULL;
+}
+
+KhSinger *KhRotationSingers::getSingerByName(QString name)
+{
+    for (int i=0; i < singers->size(); i++)
+    {
+        if (singers->at(i)->getSingerName() == name)
+            return singers->at(i);
+    }
+    return NULL;
 }
 
 int KhRotationSingers::getCurrentSingerPosition() const

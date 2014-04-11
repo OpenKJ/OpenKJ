@@ -34,6 +34,8 @@ private slots:
 
     void on_treeViewRequests_clicked(const QModelIndex &index);
 
+    void on_pushButtonAddSong_clicked();
+
 private:
     Ui::KhRequestsDialog *ui;
     RequestsTableModel *requestsModel;

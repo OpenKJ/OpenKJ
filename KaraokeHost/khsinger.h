@@ -84,6 +84,7 @@ public:
     bool moveSinger(int oldPosition, int newPosition);
     KhSinger *getSingerByPosition(int position) const;
     KhSinger *getSingerByIndex(int singerid);
+    KhSinger *getSingerByName(QString name);
     int getCurrentSingerPosition() const;
     void setCurrentSingerPosition(int value);
     bool add(QString name, int position = -1, bool regular = false);

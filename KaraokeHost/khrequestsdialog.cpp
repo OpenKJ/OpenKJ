@@ -27,6 +27,12 @@ KhRequestsDialog::KhRequestsDialog(KhSongs *fullData, KhRotationSingers *singers
     ui->comboBoxSingers->setEnabled(true);
     ui->lineEditSingerName->setEnabled(false);
     ui->labelAddPos->setEnabled(false);
+    QStringList posOptions;
+    posOptions << "After current singer";
+    posOptions << "Fair (full rotation)";
+    posOptions << "Bottom of rotation";
+    ui->comboBoxAddPosition->addItems(posOptions);
+    ui->comboBoxAddPosition->setCurrentIndex(1);
 }
 
 KhRequestsDialog::~KhRequestsDialog()
@@ -102,4 +108,49 @@ void KhRequestsDialog::on_treeViewRequests_clicked(const QModelIndex &index)
     {
         requestsModel->deleteRequestId(index.sibling(index.row(),0).data().toInt());
     }
+    else
+    {
+        ui->lineEditSingerName->setText(index.sibling(index.row(),1).data().toString());
+    }
+}
+
+void KhRequestsDialog::on_pushButtonAddSong_clicked()
+{
+    if (ui->treeViewRequests->selectionModel()->selectedIndexes().size() < 1)
+        return;
+    if (ui->treeViewSearch->selectionModel()->selectedIndexes().size() < 1)
+        return;
+    if (ui->radioButtonNewSinger->isChecked())
+    {
+        if (ui->lineEditSingerName->text() == "")
+            return;
+        else if (rotSingers->exists(ui->lineEditSingerName->text()))
+            return;
+        else
+        {
+            int songid = songDbModel->getRowSong(ui->treeViewSearch->selectionModel()->selectedIndexes().at(0).row())->ID;
+            rotSingers->add(ui->lineEditSingerName->text());
+            KhSinger *rotSinger = rotSingers->getSingerByName(ui->lineEditSingerName->text());
+            if ((ui->comboBoxAddPosition->currentText() == "After current singer") && (rotSingers->getCurrent() != NULL))
+            {
+                if (rotSingers->getCurrent()->getSingerPosition() != rotSingers->getSingers()->size())
+                    rotSingers->moveSinger(rotSinger->getSingerPosition(),rotSingers->getCurrent()->getSingerPosition() + 1);
+            }
+            else if ((ui->comboBoxAddPosition->currentText() == "Fair (full rotation)") && (rotSingers->getCurrent() != NULL))
+            {
+                if (rotSingers->getCurrent()->getSingerPosition() != 1)
+                    rotSingers->moveSinger(rotSinger->getSingerPosition(), rotSingers->getCurrent()->getSingerPosition());
+            }
+            rotSinger->addSongAtEnd(songid);
+
+        }
+    }
+    else if (ui->radioButtonExistingSinger->isChecked())
+    {
+        rotSingers->dataAboutToChange();
+        int songid = songDbModel->getRowSong(ui->treeViewSearch->selectionModel()->selectedIndexes().at(0).row())->ID;
+        rotSingers->getSingerByName(ui->comboBoxSingers->currentText())->addSongAtEnd(songid);
+        rotSingers->dataChanged();
+    }
+    //songid = songdbmodel->getRowSong(index.row())->ID;
 }
