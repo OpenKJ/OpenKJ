@@ -35,10 +35,17 @@ MainWindow::MainWindow(QWidget *parent) :
     sharedMemory = new QSharedMemory("KhControl",this);
     mPlayer = new QMediaPlayer(this);
     sharedMemory->lock();
-    ipcServer = new BmIPCServer("bmControl",this);
-    khDir = new QDir(QDir::homePath() + QDir::separator() + ".KaraokeHost");
+    ipcServer = new BmIPCServer("bmControl",this); 
+    QCoreApplication::setOrganizationName("OpenKJ");
+    QCoreApplication::setOrganizationDomain("OpenKJ.org");
+    QCoreApplication::setApplicationName("BreakMusic");
+    khDir = new QDir(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
+    if (!khDir->exists())
+    {
+        khDir->mkpath(khDir->absolutePath());
+    }
     database = new QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE"));
-    database->setDatabaseName(khDir->absolutePath() + QDir::separator() + "khbreakmusic.sqlite");
+    database->setDatabaseName(khDir->absolutePath() + QDir::separator() + "karaokehost.sqlite");
     database->open();
     QSqlQuery query;
     query.exec("CREATE TABLE IF NOT EXISTS songs ( artist VARCHAR(100), title VARCHAR(100), path VARCHAR(700) NOT NULL UNIQUE, filename VARCHAR(200), duration INTEGER)");
