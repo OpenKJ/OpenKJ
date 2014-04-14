@@ -151,7 +151,7 @@ void BmSongs::loadFromDB()
     emit dataAboutToChange();
     qDebug() << "Loading songs from database";
     qDeleteAll(allSongs->begin(),allSongs->end());
-    qDeleteAll(filteredSongs->begin(),filteredSongs->end());
+//  qDeleteAll(filteredSongs->begin(),filteredSongs->end());
     allSongs->clear();
     filteredSongs->clear();
     filterTerms.clear();
