@@ -79,6 +79,7 @@ public:
     void clear();
     BmSong *at(int vectorIndex);
     BmSong *getSongByIndex(int songIndex);
+    BmSong *getSongByPath(QString path);
     unsigned int size();
 signals:
     void dataAboutToChange();

@@ -111,6 +111,11 @@ QMimeData *SongdbTableModel::mimeData(const QModelIndexList &indexes) const
     return mimeData;
 }
 
+void SongdbTableModel::reloadFromDb()
+{
+    songs->loadFromDB();
+}
+
 void SongdbTableModel::showMetadata(bool value)
 {
     layoutAboutToBeChanged();

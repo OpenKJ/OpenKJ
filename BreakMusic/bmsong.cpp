@@ -221,3 +221,13 @@ BmSong *BmSongs::at(int vectorIndex)
 {
     return filteredSongs->at(vectorIndex);
 }
+
+BmSong *BmSongs::getSongByPath(QString path)
+{
+    for (int i=0; i < allSongs->size(); i++)
+    {
+        if (allSongs->at(i)->path() == path)
+            return allSongs->at(i);
+    }
+    return NULL;
+}
