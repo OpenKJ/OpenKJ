@@ -24,6 +24,8 @@
 #include <QSqlQuery>
 #include <QInputDialog>
 #include <QFileDialog>
+#include <taglib/tag.h>
+#include <taglib/fileref.h>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),

@@ -24,6 +24,7 @@
 #include <QObject>
 #include "khregularsong.h"
 #include <khsong.h>
+#include <QStringList>
 
 class KhRegImportSong
 {
