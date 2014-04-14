@@ -357,6 +357,7 @@ void MainWindow::on_actionImport_Playlist_triggered()
         songdbmodel->reloadFromDb();
         qDebug() << "Finished db insert";
         qDebug() << "Adding songs to new playlist " << playlists->getCurrent()->title();
+        query.exec("BEGIN TRANSACTION");
         for (int i=0; i < files.size(); i++)
         {
             BmSong *song = songdbmodel->getSongs()->getSongByPath(files.at(i));
@@ -365,6 +366,7 @@ void MainWindow::on_actionImport_Playlist_triggered()
                 playlists->getCurrent()->addSong(song);
             }
         }
+        query.exec("COMMIT TRANSACTION");
         qDebug() << "Done adding songs to playlist";
     }
 }
