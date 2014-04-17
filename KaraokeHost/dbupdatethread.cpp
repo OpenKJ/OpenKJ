@@ -76,7 +76,7 @@ void DbUpdateThread::run()
         QString title;
         QString discid;
         QFileInfo file(files->at(i));
-        QStringList entries = file.baseName().split(" - ");
+        QStringList entries = file.completeBaseName().split(" - ");
         switch (pattern)
         {
         case SourceDir::DTA:
