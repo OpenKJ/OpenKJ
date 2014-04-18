@@ -74,6 +74,8 @@ private slots:
 
     void on_groupBoxRequestServer_toggled(bool arg1);
 
+    void on_pushButtonBrowse_clicked();
+
 signals:
     void showCdgWindowChanged(bool);
     void cdgWindowFullScreenChanged(bool);

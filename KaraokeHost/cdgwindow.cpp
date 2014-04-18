@@ -90,7 +90,24 @@ void CdgWindow::makeFullscreen()
     QRect screenDimensions = QApplication::desktop()->screenGeometry(settings->cdgWindowFullScreenMonitor());
     resize(screenDimensions.width(),screenDimensions.height());
     show();
-    updateCDG(QImage(":/icons/Icons/openkjlogo1.png"));
+    QImage cdgBg;
+    if (settings->cdgDisplayBackgroundImage() != "")
+    {
+        qDebug() << "Attempting to load CDG background: " << settings->cdgDisplayBackgroundImage();
+        if (!cdgBg.load(settings->cdgDisplayBackgroundImage()))
+        {
+            qDebug() << "Failed to load, loading default resource";
+            cdgBg.load(":/icons/Icons/openkjlogo1.png");
+        }
+        else
+            qDebug() << "Loaded OK";
+    }
+    else
+    {
+        cdgBg.load(":/icons/Icons/openkjlogo1.png");
+        qDebug() << "No CDG background image specified, loading default resource";
+    }
+    updateCDG(cdgBg);
     m_fullScreen = true;
 }
 

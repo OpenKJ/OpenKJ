@@ -240,3 +240,13 @@ void KhSettings::setAudioVolume(int volume)
 {
     settings->setValue("audioVolume", volume);
 }
+
+QString KhSettings::cdgDisplayBackgroundImage()
+{
+    return settings->value("cdgDisplayBackgroundImage", "").toString();
+}
+
+void KhSettings::setCdgDisplayBackgroundImage(QString imageFile)
+{
+    settings->setValue("cdgDisplayBackgroundImage", imageFile);
+}

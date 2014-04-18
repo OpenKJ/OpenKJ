@@ -25,6 +25,9 @@
 #include <QDesktopWidget>
 #include <QFontDialog>
 #include <QColorDialog>
+#include <QFileDialog>
+#include <QStandardPaths>
+#include <QMessageBox>
 
 extern KhSettings *settings;
 
@@ -66,6 +69,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     ui->lineEditUsername->setText(settings->requestServerUsername());
     ui->lineEditPassword->setText(settings->requestServerPassword());
     ui->checkBoxIgnoreCertErrors->setChecked(settings->requestServerIgnoreCertErrors());
+    ui->lineEditCdgBackground->setText(settings->cdgDisplayBackgroundImage());
 }
 
 SettingsDialog::~SettingsDialog()
@@ -218,4 +222,22 @@ void SettingsDialog::on_lineEditPassword_editingFinished()
 void SettingsDialog::on_groupBoxRequestServer_toggled(bool arg1)
 {
     settings->setRequestServerEnabled(arg1);
+}
+
+void SettingsDialog::on_pushButtonBrowse_clicked()
+{
+    QString imageFile = QFileDialog::getOpenFileName(this,tr("Select image file"), QStandardPaths::writableLocation(QStandardPaths::PicturesLocation), tr("Images (*.png *.jpg *.jpeg *.gif)"));
+    if (imageFile != "")
+    {
+        QImage image(imageFile);
+        if (!image.isNull())
+        {
+            settings->setCdgDisplayBackgroundImage(imageFile);
+            ui->lineEditCdgBackground->setText(imageFile);
+        }
+        else
+        {
+            QMessageBox::warning(this, tr("Image load error"),QString("Unsupported or corrupt image file."));
+        }
+    }
 }

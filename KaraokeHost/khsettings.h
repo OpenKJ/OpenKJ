@@ -81,6 +81,8 @@ public:
     void setAudioUseFader(bool fader);
     int audioVolume();
     void setAudioVolume(int volume);
+    QString cdgDisplayBackgroundImage();
+    void setCdgDisplayBackgroundImage(QString imageFile);
 
 signals:
     void tickerFontChanged();

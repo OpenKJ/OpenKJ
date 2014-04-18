@@ -140,7 +140,24 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(regularSingers, SIGNAL(dataAboutToChange()), rotationmodel, SIGNAL(layoutAboutToBeChanged()));
     connect(singers, SIGNAL(dataChanged()), this, SLOT(rotationDataChanged()));
     connect(settings, SIGNAL(tickerOutputModeChanged()), this, SLOT(rotationDataChanged()));
-    cdgWindow->updateCDG(QImage(":/icons/Icons/openkjlogo1.png"));
+    QImage cdgBg;
+    if (settings->cdgDisplayBackgroundImage() != "")
+    {
+        qDebug() << "Attempting to load CDG background: " << settings->cdgDisplayBackgroundImage();
+        if (!cdgBg.load(settings->cdgDisplayBackgroundImage()))
+        {
+            qDebug() << "Failed to load, loading default resource";
+            cdgBg.load(":/icons/Icons/openkjlogo1.png");
+        }
+        else
+            qDebug() << "Loaded OK";
+    }
+    else
+    {
+        cdgBg.load(":/icons/Icons/openkjlogo1.png");
+        qDebug() << "No CDG background image specified, loading default resource";
+    }
+    cdgWindow->updateCDG(cdgBg);
     ui->cdgOutput->setPixmap(QPixmap::fromImage(QImage(":/icons/Icons/openkjlogo1.png")));
     settings->restoreWindowState(cdgWindow);
     if ((settings->cdgWindowFullscreen()) && (settings->showCdgWindow()))
@@ -583,7 +600,24 @@ void MainWindow::audioBackend_stateChanged(QMediaPlayer::State state)
         ui->labelTotalTime->setText("0:00");
         ui->sliderProgress->setValue(0);
         ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
-        cdgWindow->updateCDG(QImage(":/icons/Icons/openkjlogo1.png"));
+        QImage cdgBg;
+        if (settings->cdgDisplayBackgroundImage() != "")
+        {
+            qDebug() << "Attempting to load CDG background: " << settings->cdgDisplayBackgroundImage();
+            if (!cdgBg.load(settings->cdgDisplayBackgroundImage()))
+            {
+                qDebug() << "Failed to load, loading default resource";
+                cdgBg.load(":/icons/Icons/openkjlogo1.png");
+            }
+            else
+                qDebug() << "Loaded OK";
+        }
+        else
+        {
+            cdgBg.load(":/icons/Icons/openkjlogo1.png");
+            qDebug() << "No CDG background image specified, loading default resource";
+        }
+        cdgWindow->updateCDG(cdgBg);
         ui->cdgOutput->setPixmap(QPixmap::fromImage(QImage(":/icons/Icons/openkjlogo1.png")));
 
     }
