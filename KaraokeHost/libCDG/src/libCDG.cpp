@@ -404,7 +404,7 @@ void CDG::CMDTileBlock(char data[16], bool XOR)
 
 CDG::~CDG()
 {
-
+    delete CDGImage;
 }
 
 
