@@ -29,6 +29,7 @@ Fader::Fader(QMediaPlayer *mediaPlayer, QObject *parent) :
     m_preOutVolume = mediaPlayer->volume();
     fading = false;
     stopAfter = false;
+    pauseAfter = false;
 }
 
 void Fader::run()

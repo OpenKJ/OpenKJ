@@ -33,6 +33,9 @@ public:
 	CDG_Frame_Image()
 	{
 		memset(&CDG_Map, 0, sizeof(CDG_Map));
+        NeedFullUpdate = true;
+        Skip = false;
+        LastUpdate = 0;
 	}
 	void SetCDGMapData(char inmap[216][300])
 	{

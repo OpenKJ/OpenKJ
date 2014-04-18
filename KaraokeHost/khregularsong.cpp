@@ -28,6 +28,11 @@
 KhRegularSong::KhRegularSong(QObject *parent) :
     QObject(parent)
 {
+    regSongIndex = -1;
+    regSingerIndex = -1;
+    songIndex = -1;
+    keyChange = 0;
+    position = -1;
 }
 
 KhRegularSong::~KhRegularSong()

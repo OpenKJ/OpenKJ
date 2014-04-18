@@ -29,6 +29,9 @@ BmPlaylistSong::BmPlaylistSong(QObject *parent) :
     QObject(parent)
 {
     setValid(false);
+    m_position = -1;
+    m_song = NULL;
+    m_index = -1;
 }
 
 BmPlaylistSong::~BmPlaylistSong()
@@ -41,6 +44,7 @@ BmPlaylist::BmPlaylist(QObject *parent) :
 {
     songs = new QList<BmPlaylistSong *>;
     m_currentSong = getSongByPosition(0);
+    m_plIndex = -1;
 }
 
 BmPlaylist::~BmPlaylist()

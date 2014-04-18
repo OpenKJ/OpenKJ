@@ -31,7 +31,10 @@ KhSinger::KhSinger(KhRegularSingers *regSingers, QObject *parent) :
 {
     songs = new KhQueueSongs(singerIndex,regSingers, regularIndex, this);
     regularSingers = regSingers;
-
+    singerIndex = -1;
+    singerPosition = -1;
+    regular = false;
+    regularIndex = -1;
 }
 
 bool KhSinger::isRegular() const

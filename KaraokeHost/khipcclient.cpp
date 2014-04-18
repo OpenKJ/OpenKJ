@@ -35,6 +35,7 @@ KhIPCClient::KhIPCClient(QString remoteServername, QObject *parent) :
     connect(m_socket, SIGNAL(readyRead()), this, SLOT(socket_readReady()));
     connect(m_socket, SIGNAL(error(QLocalSocket::LocalSocketError)),
             this, SLOT(socket_error(QLocalSocket::LocalSocketError)));
+    m_blockSize = 0;
 }
 
 KhIPCClient::~KhIPCClient() {

@@ -27,12 +27,14 @@
 BmSourceDir::BmSourceDir(QObject *parent) :
     QObject(parent)
 {
+    m_index = -1;
 }
 
 BmSourceDir::BmSourceDir(QString path, QObject *parent) :
     QObject(parent)
 {
     m_path = path;
+    m_index = -1;
 }
 
 BmSourceDir::BmSourceDir(QString path, int index, QObject *parent) :

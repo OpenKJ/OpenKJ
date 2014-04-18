@@ -28,7 +28,10 @@ class SourceDir
 {
 public:
     enum {DAT=0,DTA,ATD,TAD,AT,TA};
-
+    SourceDir() {
+        index = -1;
+        pattern = DAT;
+    }
     int getPattern() const;
     void setPattern(int value);
 

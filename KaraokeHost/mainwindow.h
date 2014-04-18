@@ -106,10 +106,6 @@ private:
     SongDBTableModel *songdbmodel;
     RotationTableModel *rotationmodel;
     QueueTableModel *queuemodel;
-    QSortFilterProxyModel *dbproxymodel;
-    QSqlQueryModel *queryModelDB;
-    QSqlTableModel *tableModelDB;
-    QSqlQueryModel *queryModelRotation;
     CdgWindow *cdgWindow;
     DatabaseDialog *dbDialog;
     SettingsDialog *settingsDialog;

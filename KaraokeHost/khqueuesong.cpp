@@ -53,6 +53,10 @@ KhQueueSong::KhQueueSong(KhRegularSingers *regSingers, QObject *parent) :
     regSongIndex = -1;
     played = false;
     position = -1;
+    index = -1;
+    singerID = -1;
+    songID = -1;
+    keyChange = 0;
 }
 
 

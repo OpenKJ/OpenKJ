@@ -27,11 +27,15 @@
 BmSong::BmSong(QObject *parent) :
     QObject(parent)
 {
+    m_duration = -1;
+    m_index = -1;
 }
 
 BmSong::BmSong(int songIndex, QObject *parent) :
     QObject(parent)
 {
+    m_duration = -1;
+    m_index = -1;
     QSqlQuery query("SELECT ROWID,artist,title,path,filename,duration FROM songs WHERE ROWID == " + QString::number(songIndex));
     int index = query.record().indexOf("ROWID");
     int artist = query.record().indexOf("artist");
