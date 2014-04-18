@@ -30,8 +30,7 @@ CDG::CDG()
     masks[3] = 0x04;
     masks[4] = 0x02;
     masks[5] = 0x01;
-    boost::scoped_ptr<CDG_Frame_Image> cdgimage_ptr(new CDG_Frame_Image());
-    CDGImage.swap(cdgimage_ptr);
+    CDGImage = new CDG_Frame_Image();
 }
 
 bool CDG::FileOpen(string filename)

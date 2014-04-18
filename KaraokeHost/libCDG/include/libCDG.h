@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #include "libCDG_Frame_Image.h"
 #include "libCDG_Color.h"
-#include <boost/scoped_ptr.hpp>
+//#include <boost/scoped_ptr.hpp>
 
 #define SC_MASK           0x3F
 #define SC_CDG_COMMAND    0x09
@@ -197,7 +197,7 @@ private:
 	bool CDGFileOpened;
 	FILE *CDGFile;
 	unsigned int CurPos;
-    boost::scoped_ptr<CDG_Frame_Image> CDGImage;
+    CDG_Frame_Image *CDGImage;
 	char masks[6];
 	bool needupdate;
 	CDG_Color colors[16];
