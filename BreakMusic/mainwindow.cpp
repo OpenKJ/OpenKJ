@@ -90,6 +90,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->sliderVolume, SIGNAL(sliderMoved(int)), fader, SLOT(setBaseVolume(int)));
 
     on_actionShow_Filenames(false);
+
 }
 
 MainWindow::~MainWindow()

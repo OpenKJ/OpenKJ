@@ -749,6 +749,9 @@
                    <property name="toolTip">
                     <string>Volume Control</string>
                    </property>
+                   <property name="tracking">
+                    <bool>false</bool>
+                   </property>
                    <property name="orientation">
                     <enum>Qt::Vertical</enum>
                    </property>
