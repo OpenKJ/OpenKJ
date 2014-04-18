@@ -32,6 +32,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    fading = false;
     sharedMemory = new QSharedMemory("KhControl",this);
     mPlayer = new QMediaPlayer(this);
     sharedMemory->lock();
