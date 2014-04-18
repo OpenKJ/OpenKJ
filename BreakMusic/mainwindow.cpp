@@ -80,8 +80,8 @@ MainWindow::MainWindow(QWidget *parent) :
     on_actionShow_Filenames(settings->showFilenames());
     on_actionShow_Metadata(settings->showMetadata());
     songs->loadFromDB();
-    mPlayer->setVolume(25);
-    ui->sliderVolume->setValue(25);
+    mPlayer->setVolume(settings->volume());
+    ui->sliderVolume->setValue(settings->volume());
     fader = new Fader(mPlayer,this);
 
     connect(ipcServer, SIGNAL(messageReceived(int)), this, SLOT(ipcMessageReceived(int)));
