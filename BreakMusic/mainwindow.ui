@@ -521,11 +521,20 @@
              <property name="itemsExpandable">
               <bool>false</bool>
              </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
              <property name="expandsOnDoubleClick">
               <bool>false</bool>
              </property>
              <attribute name="headerCascadingSectionResizes">
               <bool>true</bool>
+             </attribute>
+             <attribute name="headerDefaultSectionSize">
+              <number>60</number>
+             </attribute>
+             <attribute name="headerMinimumSectionSize">
+              <number>18</number>
              </attribute>
             </widget>
            </item>
@@ -761,7 +770,7 @@
               <bool>true</bool>
              </attribute>
              <attribute name="headerStretchLastSection">
-              <bool>false</bool>
+              <bool>true</bool>
              </attribute>
             </widget>
            </item>

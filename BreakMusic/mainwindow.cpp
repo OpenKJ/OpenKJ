@@ -73,12 +73,14 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->comboBoxPlaylists->setCurrentIndex(settings->playlistIndex());
     ui->treeViewDB->setModel(songdbmodel);
     ui->treeViewPlaylist->setModel(playlistmodel);
+    on_actionShow_Filenames(settings->showFilenames());
+    on_actionShow_Metadata(settings->showMetadata());
+    ui->treeViewPlaylist->header()->resizeSections(QHeaderView::ResizeToContents);
     ui->treeViewPlaylist->header()->resizeSection(0,18);
     ui->treeViewPlaylist->header()->setSectionResizeMode(0,QHeaderView::Fixed);
     ui->treeViewPlaylist->header()->resizeSection(playlistmodel->getColumnCount() - 1,18);
     ui->treeViewPlaylist->header()->setSectionResizeMode(playlistmodel->getColumnCount() - 1,QHeaderView::Fixed);
-    on_actionShow_Filenames(settings->showFilenames());
-    on_actionShow_Metadata(settings->showMetadata());
+
     songs->loadFromDB();
     ui->treeViewDB->header()->resizeSections(QHeaderView::ResizeToContents);
     mPlayer->setVolume(settings->volume());
@@ -98,7 +100,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(playlists, SIGNAL(dataChanged()), this, SLOT(on_playlistChanged()));
     connect(ui->sliderVolume, SIGNAL(sliderMoved(int)), fader, SLOT(setBaseVolume(int)));
 
+
     //on_actionShow_Filenames(false);
+    //ui->treeViewPlaylist->header()->resizeSections(QHeaderView::ResizeToContents);
 
 }
 
@@ -154,6 +158,7 @@ void MainWindow::on_playlistsChanged()
     ui->comboBoxPlaylists->clear();
     ui->comboBoxPlaylists->addItems(playlists->getTitleList());
     ui->comboBoxPlaylists->setCurrentText(cursel);
+    ui->treeViewPlaylist->header()->resizeSections(QHeaderView::ResizeToContents);
 }
 
 void MainWindow::on_treeViewDB_activated(const QModelIndex &index)
