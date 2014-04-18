@@ -33,10 +33,10 @@
         </sizepolicy>
        </property>
        <property name="frameShape">
-        <enum>QFrame::StyledPanel</enum>
+        <enum>QFrame::Box</enum>
        </property>
        <property name="frameShadow">
-        <enum>QFrame::Raised</enum>
+        <enum>QFrame::Plain</enum>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <property name="leftMargin">
@@ -87,7 +87,7 @@
               <enum>QFrame::Box</enum>
              </property>
              <property name="frameShadow">
-              <enum>QFrame::Sunken</enum>
+              <enum>QFrame::Plain</enum>
              </property>
              <layout class="QHBoxLayout" name="horizontalLayout_2">
               <property name="topMargin">
@@ -161,7 +161,7 @@
                  <enum>QFrame::Box</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Sunken</enum>
+                 <enum>QFrame::Plain</enum>
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_8">
                  <property name="leftMargin">
@@ -384,7 +384,7 @@
                     <enum>QFrame::Box</enum>
                    </property>
                    <property name="frameShadow">
-                    <enum>QFrame::Sunken</enum>
+                    <enum>QFrame::Plain</enum>
                    </property>
                    <layout class="QHBoxLayout" name="horizontalLayout_4">
                     <item>
@@ -421,7 +421,7 @@
               <enum>QFrame::Box</enum>
              </property>
              <property name="frameShadow">
-              <enum>QFrame::Sunken</enum>
+              <enum>QFrame::Plain</enum>
              </property>
              <layout class="QHBoxLayout" name="horizontalLayout_6">
               <property name="topMargin">
@@ -491,6 +491,12 @@
            </property>
            <item>
             <widget class="QTreeView" name="treeViewDB">
+             <property name="frameShape">
+              <enum>QFrame::Box</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Sunken</enum>
+             </property>
              <property name="editTriggers">
               <set>QAbstractItemView::NoEditTriggers</set>
              </property>
@@ -526,10 +532,10 @@
            <item>
             <widget class="QFrame" name="frame_10">
              <property name="frameShape">
-              <enum>QFrame::Box</enum>
+              <enum>QFrame::NoFrame</enum>
              </property>
              <property name="frameShadow">
-              <enum>QFrame::Sunken</enum>
+              <enum>QFrame::Plain</enum>
              </property>
              <layout class="QHBoxLayout" name="horizontalLayout_7">
               <property name="topMargin">
@@ -598,10 +604,10 @@
         </sizepolicy>
        </property>
        <property name="frameShape">
-        <enum>QFrame::StyledPanel</enum>
+        <enum>QFrame::Box</enum>
        </property>
        <property name="frameShadow">
-        <enum>QFrame::Raised</enum>
+        <enum>QFrame::Plain</enum>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
         <property name="leftMargin">
@@ -637,7 +643,7 @@
               <enum>QFrame::Box</enum>
              </property>
              <property name="frameShadow">
-              <enum>QFrame::Sunken</enum>
+              <enum>QFrame::Plain</enum>
              </property>
              <layout class="QHBoxLayout" name="horizontalLayout_8">
               <property name="topMargin">
@@ -717,6 +723,9 @@
             <widget class="QTreeView" name="treeViewPlaylist">
              <property name="focusPolicy">
               <enum>Qt::WheelFocus</enum>
+             </property>
+             <property name="frameShape">
+              <enum>QFrame::Box</enum>
              </property>
              <property name="editTriggers">
               <set>QAbstractItemView::NoEditTriggers</set>
