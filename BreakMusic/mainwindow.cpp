@@ -77,6 +77,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->treeViewPlaylist->header()->setSectionResizeMode(0,QHeaderView::Fixed);
     ui->treeViewPlaylist->header()->resizeSection(playlistmodel->getColumnCount() - 1,18);
     ui->treeViewPlaylist->header()->setSectionResizeMode(playlistmodel->getColumnCount() - 1,QHeaderView::Fixed);
+    on_actionShow_Filenames(settings->showFilenames());
+    on_actionShow_Metadata(settings->showMetadata());
     songs->loadFromDB();
     mPlayer->setVolume(25);
     ui->sliderVolume->setValue(25);
