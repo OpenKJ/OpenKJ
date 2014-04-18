@@ -95,7 +95,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(playlists, SIGNAL(dataChanged()), this, SLOT(on_playlistChanged()));
     connect(ui->sliderVolume, SIGNAL(sliderMoved(int)), fader, SLOT(setBaseVolume(int)));
 
-    on_actionShow_Filenames(false);
+    //on_actionShow_Filenames(false);
 
 }
 
