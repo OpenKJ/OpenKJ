@@ -81,5 +81,6 @@ void DatabaseUpdateThread::run()
         }
     }
     query.exec("COMMIT TRANSACTION");
+    delete files;
     qDebug() << "Finished db insert";
 }
