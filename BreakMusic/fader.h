@@ -47,9 +47,6 @@ private:
     int m_targetVolume;
     int m_preOutVolume;
     QMediaPlayer *mPlayer;
-    bool fading;
-    bool stopAfter;
-    bool pauseAfter;
 };
 
 #endif // FADER_H

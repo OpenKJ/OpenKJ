@@ -27,15 +27,10 @@ Fader::Fader(QMediaPlayer *mediaPlayer, QObject *parent) :
     mPlayer = mediaPlayer;
     m_targetVolume = 0;
     m_preOutVolume = mediaPlayer->volume();
-    fading = false;
-    stopAfter = false;
-    pauseAfter = false;
 }
 
 void Fader::run()
 {
-
-    fading = true;
     while (mPlayer->volume() != m_targetVolume)
     {
         if (mPlayer->volume() > m_targetVolume)
@@ -44,81 +39,80 @@ void Fader::run()
             mPlayer->setVolume(mPlayer->volume() + 1);
         QThread::msleep(30);
     }
-    if (stopAfter)
-    {
-        mPlayer->stop();
-        stopAfter = false;
-    }
-    if (pauseAfter)
-    {
-        mPlayer->pause();
-        pauseAfter = false;
-    }
-    fading = false;
 }
 
 void Fader::fadeIn(int targetVolume)
 {
-    while(fading)
-        QThread::msleep(20);
+    while(isRunning())
+        QApplication::processEvents();
     m_targetVolume = targetVolume;
     start();
+    while(isRunning())
+        QApplication::processEvents();
 }
 
 void Fader::fadeIn()
 {
-    while(fading)
-        QThread::msleep(20);
+    while(isRunning())
+        QApplication::processEvents();
     m_targetVolume = m_preOutVolume;
     start();
+    while(isRunning())
+        QApplication::processEvents();
 }
 
 void Fader::fadeOut()
 {
-    while(fading)
-        QThread::msleep(20);
+    while(isRunning())
+        QApplication::processEvents();
     m_preOutVolume = mPlayer->volume();
     m_targetVolume = 0;
     start();
+    while(isRunning())
+        QApplication::processEvents();
 }
 
 void Fader::fadeStop()
 {
-    stopAfter = true;
-    while(fading)
-        QThread::msleep(20);
-    fading = true;
-    m_preOutVolume = mPlayer->volume();
+    while(isRunning())
+        QApplication::processEvents();
+    int curVolume = mPlayer->volume();
+    m_preOutVolume = curVolume;
     m_targetVolume = 0;
     start();
+    while(isRunning())
+        QApplication::processEvents();
+    mPlayer->stop();
+    mPlayer->setVolume(curVolume);
 
 }
 
 void Fader::fadePause()
 {
-    pauseAfter = true;
-    while(fading)
-        QThread::msleep(20);
+    while(isRunning())
+        QApplication::processEvents();
     m_preOutVolume = mPlayer->volume();
     m_targetVolume = 0;
     start();
+    while(isRunning())
+        QApplication::processEvents();
+    mPlayer->pause();
 }
 
 void Fader::fadePlay()
 {
-    stopAfter = false;
-    pauseAfter = false;
-    while(fading)
+    while(isRunning())
         QApplication::processEvents();
     mPlayer->play();
-//        QThread::msleep(20);
     m_targetVolume = m_preOutVolume;
     start();
+    while(isRunning())
+        QApplication::processEvents();
 }
 
 bool Fader::isFading()
 {
-    return fading;
+    return isRunning();
 }
 
 void Fader::setBaseVolume(int volume)

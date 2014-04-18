@@ -22,6 +22,7 @@
 #include "ui_databasedialog.h"
 #include "databaseupdatethread.h"
 #include <QFileDialog>
+#include <QMessageBox>
 
 DatabaseDialog::DatabaseDialog(QWidget *parent) :
     QDialog(parent),
@@ -53,12 +54,21 @@ void DatabaseDialog::on_pushButtonAdd_clicked()
 
 void DatabaseDialog::on_pushButtonUpdateAll_clicked()
 {
+    QMessageBox *msgBox = new QMessageBox(this);
+    msgBox->setStandardButtons(0);
+    msgBox->setText("Updating Database, please wait...");
+    msgBox->show();
     for (int i=0; i < srcDirs->size(); i++)
     {
+        QApplication::processEvents();
         DatabaseUpdateThread thread;
         thread.setPath(srcDirs->at(i)->getPath());
-        thread.run();
+        thread.start();
+        while (thread.isRunning())
+            QApplication::processEvents();
     }
+    msgBox->close();
+    delete msgBox;
 }
 
 void DatabaseDialog::on_pushButtonClose_clicked()

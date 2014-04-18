@@ -111,6 +111,10 @@ void RegularSingersDialog::addRegularToRotation(int ListIndex)
     }
     else
     {
+        QMessageBox *msgBox = new QMessageBox(this);
+        msgBox->setStandardButtons(0);
+        msgBox->setText("Loading regular singer, please wait...");
+        msgBox->show();
         KhRegularSinger *regSinger = m_regSingers->at(ListIndex);
         KhSinger *rotSinger;
         qDebug() << "RegularSingersDialog::addRegularToRotation() DB transaction start";
@@ -149,5 +153,7 @@ void RegularSingersDialog::addRegularToRotation(int ListIndex)
             if (m_rotSingers->getCurrent()->getSingerPosition() != 1)
                 m_rotSingers->moveSinger(rotSinger->getSingerPosition(), m_rotSingers->getCurrent()->getSingerPosition());
         }
+        msgBox->close();
+        delete msgBox;
     }
 }

@@ -40,21 +40,31 @@ void RegularImportDialog::on_pushButtonClose_clicked()
 
 void RegularImportDialog::on_pushButtonImport_clicked()
 {
+    QMessageBox *msgBox = new QMessageBox(this);
+    msgBox->setStandardButtons(0);
+    msgBox->setText("Importing regular singers, please wait...");
+    msgBox->show();
     for (int i=0; i < ui->listWidgetRegulars->selectedItems().size(); i++)
     {
         importSinger(ui->listWidgetRegulars->selectedItems().at(i)->text());
     }
-    QMessageBox::information(this, tr("Import complete"),tr("Regular singer import complete."));
+    msgBox->close();
+    delete msgBox;
 }
 
 void RegularImportDialog::on_pushButtonImportAll_clicked()
 {
+    QMessageBox *msgBox = new QMessageBox(this);
+    msgBox->setStandardButtons(0);
+    msgBox->setText("Importing regular singers, please wait...");
+    msgBox->show();
     ui->listWidgetRegulars->selectAll();
     for (int i=0; i < ui->listWidgetRegulars->selectedItems().size(); i++)
     {
         importSinger(ui->listWidgetRegulars->selectedItems().at(i)->text());
     }
-    QMessageBox::information(this, tr("Import complete"),tr("Regular singer import complete."));
+    msgBox->close();
+    delete msgBox;
 }
 
 void RegularImportDialog::importSinger(QString name)
@@ -72,7 +82,9 @@ void RegularImportDialog::importSinger(QString name)
         QSqlQuery query("BEGIN TRANSACTION");
         for (int i=0; i < songs.size(); i++)
         {
+            QApplication::processEvents();
             KhSong *exactMatch = findExactSongMatch(songs.at(i));
+            QApplication::processEvents();
             if (exactMatch != NULL)
             {
                 int songId = exactMatch->ID;
