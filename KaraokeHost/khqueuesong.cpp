@@ -371,7 +371,7 @@ void KhQueueSongs::deleteSongByIndex(int index)
     query.exec("COMMIT TRANSACTION");
     if (song->isRegSong())
         regularSingers->getByRegularID(song->getRegSingerIndex())->getRegSongs()->deleteSongByIndex(song->getRegSongIndex());
-        songs->erase(songs->begin() + (song->getPosition()));
+    songs->erase(songs->begin() + (song->getPosition()));
     emit queueUpdated();
 }
 
