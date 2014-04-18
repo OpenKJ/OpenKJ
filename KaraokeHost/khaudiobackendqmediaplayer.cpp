@@ -29,6 +29,7 @@ KhAudioBackendQMediaPlayer::KhAudioBackendQMediaPlayer(QObject *parent) :
     mplayer = new QMediaPlayer(this);
     mplayer->setVolume(25);
     mplayer->setNotifyInterval(40);
+    m_fade = true;
     fader = new FaderQMediaPlayer(mplayer,this);
     connect(mplayer, SIGNAL(audioAvailableChanged(bool)), this, SIGNAL(audioAvailableChanged(bool)));
     connect(mplayer, SIGNAL(bufferStatusChanged(int)), this, SIGNAL(bufferStatusChanged(int)));

@@ -31,6 +31,13 @@ CDG::CDG()
     masks[4] = 0x02;
     masks[5] = 0x01;
     CDGImage = new CDG_Frame_Image();
+    LastCDGCommandMS = 0;
+    Open = false;
+    CDGFileOpened = false;
+    CDGFile = NULL;
+    CurPos = 0;
+    needupdate = true;
+    NeedFullUpdate = true;
 }
 
 bool CDG::FileOpen(string filename)

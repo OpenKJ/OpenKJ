@@ -27,6 +27,8 @@ SongdbTableModel::SongdbTableModel(BmSongs *songsObject, QObject *parent) :
     songs = songsObject;
     connect(songs, SIGNAL(dataAboutToChange()), this, SIGNAL(layoutAboutToBeChanged()));
     connect(songs, SIGNAL(dataChanged()), this, SIGNAL(layoutChanged()));
+    m_showFilenames = true;
+    m_showMetadata = false;
 }
 
 int SongdbTableModel::rowCount(const QModelIndex &parent) const

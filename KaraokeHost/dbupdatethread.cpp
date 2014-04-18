@@ -28,6 +28,7 @@
 DbUpdateThread::DbUpdateThread(QObject *parent) :
     QThread(parent)
 {
+    pattern = SourceDir::DAT;
 }
 
 int DbUpdateThread::getPattern() const
