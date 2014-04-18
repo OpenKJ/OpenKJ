@@ -80,6 +80,7 @@ MainWindow::MainWindow(QWidget *parent) :
     on_actionShow_Filenames(settings->showFilenames());
     on_actionShow_Metadata(settings->showMetadata());
     songs->loadFromDB();
+    ui->treeViewDB->header()->resizeSections(QHeaderView::ResizeToContents);
     mPlayer->setVolume(settings->volume());
     ui->sliderVolume->setValue(settings->volume());
     fader = new Fader(mPlayer,this);
