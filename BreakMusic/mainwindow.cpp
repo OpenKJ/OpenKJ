@@ -26,12 +26,17 @@
 #include <QFileDialog>
 #include <taglib/tag.h>
 #include <taglib/fileref.h>
+#include <bmsettings.h>
+
+BmSettings *settings;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    settings = new BmSettings(this);
+    settings->restoreWindowState(this);
     fading = false;
     sharedMemory = new QSharedMemory("KhControl",this);
     mPlayer = new QMediaPlayer(this);
@@ -58,14 +63,14 @@ MainWindow::MainWindow(QWidget *parent) :
     songdbmodel = new SongdbTableModel(songs,this);
     playlists = new BmPlaylists(this);
     playlistmodel = new PlaylistTableModel(playlists,this);
-    playlistmodel->showFilenames(false);
-    playlistmodel->showMetadata(true);
-    songdbmodel->showFilenames(false);
-    songdbmodel->showMetadata(true);
-    ui->actionShow_Filenames->setChecked(false);
-    ui->actionShow_Metadata->setChecked(true);
+    playlistmodel->showFilenames(settings->showFilenames());
+    playlistmodel->showMetadata(settings->showMetadata());
+    songdbmodel->showFilenames(settings->showFilenames());
+    songdbmodel->showMetadata(settings->showMetadata());
+    ui->actionShow_Filenames->setChecked(settings->showFilenames());
+    ui->actionShow_Metadata->setChecked(settings->showMetadata());
     ui->comboBoxPlaylists->addItems(playlists->getTitleList());
-    ui->comboBoxPlaylists->setCurrentIndex(0);
+    ui->comboBoxPlaylists->setCurrentIndex(settings->playlistIndex());
     ui->treeViewDB->setModel(songdbmodel);
     ui->treeViewPlaylist->setModel(playlistmodel);
     ui->treeViewPlaylist->header()->resizeSection(0,18);
@@ -96,6 +101,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    settings->saveWindowState(this);
+    settings->setVolume(ui->sliderVolume->value());
+    settings->setPlaylistIndex(ui->comboBoxPlaylists->currentIndex());
     delete database;
     delete khDir;
     delete ui;
@@ -292,6 +300,7 @@ void MainWindow::on_actionShow_Metadata(bool checked)
         ui->treeViewPlaylist->header()->showSection(1);
         ui->treeViewPlaylist->header()->showSection(2);
     }
+    settings->setShowMetadata(checked);
 }
 
 
@@ -307,6 +316,7 @@ void MainWindow::on_actionShow_Filenames(bool checked)
         ui->treeViewDB->header()->showSection(2);
         ui->treeViewPlaylist->header()->showSection(3);
     }
+    settings->setShowFilenames(checked);
 }
 
 void MainWindow::on_actionImport_Playlist_triggered()

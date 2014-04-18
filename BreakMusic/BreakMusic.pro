@@ -24,7 +24,8 @@ SOURCES += main.cpp\
     bmipcserver.cpp \
     bmplaylist.cpp \
     bmsong.cpp \
-    bmsourcedir.cpp
+    bmsourcedir.cpp \
+    bmsettings.cpp
 
 HEADERS  += mainwindow.h \
     songdbtablemodel.h \
@@ -37,7 +38,8 @@ HEADERS  += mainwindow.h \
     bmipcserver.h \
     bmplaylist.h \
     bmsong.h \
-    bmsourcedir.h
+    bmsourcedir.h \
+    bmsettings.h
 
 FORMS    += mainwindow.ui \
     databasedialog.ui
