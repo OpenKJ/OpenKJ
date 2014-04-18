@@ -156,7 +156,7 @@ void FaderQMediaPlayer::run()
             mPlayer->setVolume(mPlayer->volume() - 1);
         if (mPlayer->volume() < m_targetVolume)
             mPlayer->setVolume(mPlayer->volume() + 1);
-        QThread::msleep(60);
+        QThread::msleep(30);
     }
     fading = false;
 }
