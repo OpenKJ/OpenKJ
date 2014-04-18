@@ -26,5 +26,5 @@
 KhSong::KhSong(QObject *parent) :
     QObject(parent)
 {
-
+    ID = -1;
 }
