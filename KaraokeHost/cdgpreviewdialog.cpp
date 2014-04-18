@@ -13,6 +13,8 @@ CdgPreviewDialog::CdgPreviewDialog(QWidget *parent) :
     timer = new QTimer(this);
     timer->stop();
     connect(timer, SIGNAL(timeout()), this, SLOT(timerTimeout()));
+    cdgPosition = 0;
+    cdgTempDir = NULL;
 
 }
 
