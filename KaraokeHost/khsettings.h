@@ -80,7 +80,7 @@ public:
     bool audioUseFader();
     void setAudioUseFader(bool fader);
     int audioVolume();
-    bool setAudioVolume(int volume);
+    void setAudioVolume(int volume);
 
 signals:
     void tickerFontChanged();

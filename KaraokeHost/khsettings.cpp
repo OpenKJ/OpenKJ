@@ -236,7 +236,7 @@ int KhSettings::audioVolume()
     return settings->value("audioVolume", 50).toInt();
 }
 
-bool KhSettings::setAudioVolume(int volume)
+void KhSettings::setAudioVolume(int volume)
 {
     settings->setValue("audioVolume", volume);
 }
