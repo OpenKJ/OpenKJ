@@ -25,6 +25,7 @@
 BmIPCServer::BmIPCServer(QString servername, QObject *parent)
     :QObject(parent) {
     m_server = new QLocalServer(this);
+    m_lastIpcCmd = CMD_NOOP;
     qDebug() << "Attempting to open command socket...";
     if (!m_server->listen(servername)) {
         qDebug() << "Failure: Error creating socket, trying to delete socket and trying again";
@@ -66,5 +67,16 @@ void BmIPCServer::socket_new_connection() {
     QString message;
     in >> command;
 
+    m_lastIpcCmd = command;
     emit messageReceived(command);
 }
+int BmIPCServer::lastIpcCmd() const
+{
+    return m_lastIpcCmd;
+}
+
+void BmIPCServer::setLastIpcCmd(const int &lastIpcCmd)
+{
+    m_lastIpcCmd = lastIpcCmd;
+}
+

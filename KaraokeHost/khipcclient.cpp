@@ -59,6 +59,7 @@ void KhIPCClient::send_MessageToServer(int command)
 
 
 void KhIPCClient::socket_connected(){
+    qDebug() << "IPC socket connected";
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_0);
@@ -69,14 +70,14 @@ void KhIPCClient::socket_connected(){
 }
 
 void KhIPCClient::socket_disconnected() {
-    qDebug() << "socket_disconnected";
+    qDebug() << "IPC socket disconnected";
 }
 
 
 void KhIPCClient::socket_readReady() {
-    qDebug() << "socket_readReady";
+    qDebug() << "IPC socket readReady";
 }
 
 void KhIPCClient::socket_error(QLocalSocket::LocalSocketError) {
-    qDebug() << "socket_error";
+    qDebug() << "IPC socket error";
 }

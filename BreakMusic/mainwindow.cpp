@@ -238,12 +238,19 @@ void MainWindow::playCurrent()
     BmPlaylistSong *song = playlists->getCurrent()->getCurrentSong();
     BmPlaylistSong *next = playlists->getCurrent()->getNextSong();
     qDebug() << "Playing song at position: " << song->position() << " Artist: " << song->song()->artist() << " Title: " << song->song()->title();
-    if (mPlayer->state() == QMediaPlayer::PlayingState)
-        fader->fadeStop();
+    if (mPlayer->state() == QMediaPlayer::PlayingState) {
+        if (ipcServer->lastIpcCmd() == BmIPCServer::CMD_FADE_OUT)
+            mPlayer->stop();
+        else
+            fader->fadeStop();
+    }
     while (fader->isFading())
         QApplication::processEvents();
     mPlayer->setMedia(QUrl::fromLocalFile(song->song()->path()));
-    fader->fadePlay();
+    if (ipcServer->lastIpcCmd() == BmIPCServer::CMD_FADE_OUT)
+        mPlayer->play();
+    else
+        fader->fadePlay();
     ui->sliderPosition->setMaximum(mPlayer->duration());
     ui->sliderPosition->setValue(0);
     ui->labelPlaying->setText(song->song()->artist() + " - " + song->song()->title());

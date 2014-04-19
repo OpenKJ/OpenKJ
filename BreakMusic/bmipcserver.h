@@ -30,9 +30,12 @@ class BmIPCServer : public QObject
 {
     Q_OBJECT
 public:
+    enum IpcCmd{CMD_NOOP=-1,CMD_FADE_OUT=0,CMD_FADE_IN,CMD_STOP,CMD_PAUSE,CMD_PLAY};
     BmIPCServer(QString servername, QObject *parent);
     ~BmIPCServer();
-    enum{CMD_FADE_OUT=0,CMD_FADE_IN,CMD_STOP,CMD_PAUSE,CMD_PLAY};
+
+    int lastIpcCmd() const;
+    void setLastIpcCmd(const int &lastIpcCmd);
 
 signals:
     void messageReceived(int);
@@ -42,6 +45,7 @@ public slots:
 
 private:
     QLocalServer*       m_server;
+    int m_lastIpcCmd;
 };
 
 

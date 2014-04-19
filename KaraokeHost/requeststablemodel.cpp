@@ -32,7 +32,7 @@ void RequestsTableModel::timerExpired()
 {
     if (settings->requestServerEnabled())
     {
-        qDebug() << "Timer tick";
+        // qDebug() << "Timer tick";
         QUrl url(settings->requestServerUrl() + "/getSerial.php");
         QNetworkRequest request;
         request.setUrl(url);
@@ -57,13 +57,13 @@ void RequestsTableModel::onNetworkReply(QNetworkReply *reply)
 
     int recordType = json.object().value("recordtype").toDouble();
     int serial = json.object().value("serial").toDouble();
-    qDebug() << "Serial #" << serial;
+    //qDebug() << "Serial #" << serial;
     if (recordType == 0)
     {
         //serial only
         if (curSerial != serial)
         {
-            qDebug() << "Serial only pull - " << curSerial << " != " << serial << " - Serial mismatch.  Downloading full list.";
+            //qDebug() << "Serial only pull - " << curSerial << " != " << serial << " - Serial mismatch.  Downloading full list.";
             QUrl url(settings->requestServerUrl() + "/getRequests.php");
             QNetworkRequest request;
             request.setUrl(url);
@@ -71,17 +71,17 @@ void RequestsTableModel::onNetworkReply(QNetworkReply *reply)
         }
         else
         {
-            qDebug() << "Serial only pull - " << serial << " - Serials match.";
+            //qDebug() << "Serial only pull - " << serial << " - Serials match.";
         }
     }
     else if (recordType == 1)
     {
         //full pull
-        qDebug() << "Full data pull - updating - serial " << serial;
+        //qDebug() << "Full data pull - updating - serial " << serial;
         curSerial = serial;
         int count = json.object().value("numreqs").toDouble();
         QJsonArray reqArray = json.object().value("requests").toArray();
-        qDebug() << "Requests: " << count << " Serial no: " << serial;
+        //qDebug() << "Requests: " << count << " Serial no: " << serial;
         //requestsModel->clear();
         emit layoutAboutToBeChanged();
         requests.clear();
@@ -99,7 +99,7 @@ void RequestsTableModel::onNetworkReply(QNetworkReply *reply)
     }
     else if (recordType == 2)
     {
-        qDebug() << "Deleted request - removing item - new serial " << serial;
+        //qDebug() << "Deleted request - removing item - new serial " << serial;
         curSerial = serial;
         int reqID = json.object().value("delreq").toDouble();
         int delIndex = -1;
@@ -118,7 +118,7 @@ void RequestsTableModel::onNetworkReply(QNetworkReply *reply)
     else if (recordType == 3)
     {
         emit layoutAboutToBeChanged();
-        qDebug() << "Clear request - clearing requests - new serial " << serial;
+        //qDebug() << "Clear request - clearing requests - new serial " << serial;
         curSerial = serial;
         requests.clear();
         emit layoutChanged();
