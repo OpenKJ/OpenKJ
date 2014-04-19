@@ -27,6 +27,8 @@ public slots:
 private slots:
     void timerTimeout();
 
+    void on_pushButtonClose_clicked();
+
 private:
     Ui::CdgPreviewDialog *ui;
     QString m_zipFile;

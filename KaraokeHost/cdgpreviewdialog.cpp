@@ -77,3 +77,11 @@ void CdgPreviewDialog::timerTimeout()
 }
 
 
+
+void CdgPreviewDialog::on_pushButtonClose_clicked()
+{
+    timer->stop();
+    cdg->VideoClose();
+    cdgPosition = 0;
+    close();
+}
