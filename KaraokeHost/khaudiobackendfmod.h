@@ -65,6 +65,8 @@ public:
     QMediaPlayer::State state();
     bool canPitchShift();
     int pitchShift();
+    bool canDetectSilence() { return true; }
+    bool isSilent();
 
 public slots:
     void play();

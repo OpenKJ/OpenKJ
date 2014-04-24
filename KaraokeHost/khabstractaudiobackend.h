@@ -40,6 +40,8 @@ public:
     virtual void setUseFader(bool fade) {Q_UNUSED(fade);}
     QString msToMMSS(qint64 msec);
     virtual QString backendName() {return QString("Abstract - something is horribly wrong");}
+    virtual bool canDetectSilence() { return false; }
+    virtual bool isSilent() { return false; }
 
 
 signals:
@@ -53,6 +55,7 @@ signals:
     void stateChanged(QMediaPlayer::State);
     void videoAvailableChanged(bool);
     void volumeChanged(int);
+    void silenceDetected();
 
 
 public slots:

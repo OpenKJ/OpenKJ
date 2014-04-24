@@ -97,6 +97,7 @@ private slots:
     void on_sliderProgress_sliderMoved(int position);
     void on_buttonRegulars_clicked();
     void rotationDataChanged();
+    void silenceDetected();
 
     void on_treeViewDB_customContextMenuRequested(const QPoint &pos);
 

@@ -140,6 +140,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(regularSingers, SIGNAL(dataAboutToChange()), rotationmodel, SIGNAL(layoutAboutToBeChanged()));
     connect(singers, SIGNAL(dataChanged()), this, SLOT(rotationDataChanged()));
     connect(settings, SIGNAL(tickerOutputModeChanged()), this, SLOT(rotationDataChanged()));
+    connect(audioBackend, SIGNAL(silenceDetected()), this, SLOT(silenceDetected()));
     QImage cdgBg;
     if (settings->cdgDisplayBackgroundImage() != "")
     {
@@ -677,6 +678,11 @@ void MainWindow::rotationDataChanged()
     if (singers->getSingers()->size() == 0)
         tickerText += " None";
     cdgWindow->setTickerText(tickerText);
+}
+
+void MainWindow::silenceDetected()
+{
+    qDebug() << "Silence detected " << audioBackend->position();
 }
 
 void MainWindow::on_treeViewDB_customContextMenuRequested(const QPoint &pos)

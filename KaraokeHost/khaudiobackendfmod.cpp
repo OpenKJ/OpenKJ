@@ -125,6 +125,24 @@ int KhAudioBackendFMOD::pitchShift()
     return m_pitchShift;
 }
 
+bool KhAudioBackendFMOD::isSilent()
+{
+    float spectrumarray[64];
+    float avglevel = 0;
+    float sumlevel = 0;
+    int numvalues = 64;
+    channel->getSpectrum(spectrumarray,numvalues, 0, FMOD_DSP_FFT_WINDOW_RECT);
+    for (int i = 0; i <= 63; i++) {
+        sumlevel = sumlevel + spectrumarray[i];
+    }
+    //avglevel = sumlevel / 64;
+    //qDebug() << avglevel;
+    if ((sumlevel / 64) < .0001)
+        return true;
+    else
+        return false;
+}
+
 void KhAudioBackendFMOD::play()
 {
     if (state() == QMediaPlayer::PausedState)
@@ -204,7 +222,10 @@ void KhAudioBackendFMOD::setPitchShift(int semitones)
 void KhAudioBackendFMOD::signalTimer_timeout()
 {
     if(state() == QMediaPlayer::PlayingState)
+    {
         emit positionChanged(position());
-    if (state() == QMediaPlayer::StoppedState)
+        if (isSilent()) emit silenceDetected();
+    }
+    else if (state() == QMediaPlayer::StoppedState)
         stop();
 }
