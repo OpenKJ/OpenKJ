@@ -523,12 +523,22 @@ void MainWindow::notify_user(QString message)
 
 void MainWindow::on_buttonClearRotation_clicked()
 {
-    ui->treeViewQueue->clearSelection();
-    ui->treeViewRotation->clearSelection();
-    //queuemodel->clear();
-    queuemodel->layoutAboutToBeChanged();
-    singers->clear();
-    queuemodel->layoutChanged();
+    QMessageBox msgBox;
+    msgBox.setText("Are you sure?");
+    msgBox.setInformativeText("This action will clear all singers and queues. This operation can not be undone.");
+    msgBox.setIcon(QMessageBox::Warning);
+    msgBox.addButton(QMessageBox::Cancel);
+    QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
+    msgBox.exec();
+    if (msgBox.clickedButton() == yesButton)
+    {
+        ui->treeViewQueue->clearSelection();
+        ui->treeViewRotation->clearSelection();
+        //queuemodel->clear();
+        queuemodel->layoutAboutToBeChanged();
+        singers->clear();
+        queuemodel->layoutChanged();
+    }
 }
 
 void MainWindow::clearQueueSort()
@@ -539,12 +549,21 @@ void MainWindow::clearQueueSort()
 
 void MainWindow::on_buttonClearQueue_clicked()
 {
-    if (singers->getSelected() != NULL)
-    {
-        rotationmodel->layoutAboutToBeChanged();
-        ui->treeViewQueue->clearSelection();
-        queuemodel->clear();
-        rotationmodel->layoutChanged();
+    QMessageBox msgBox;
+    msgBox.setText("Are you sure?");
+    msgBox.setInformativeText("This action will clear all queued songs for the selected singer.  If the singer is a regular singer, it will delete their saved regular songs as well! This operation can not be undone.");
+    msgBox.setIcon(QMessageBox::Warning);
+    msgBox.addButton(QMessageBox::Cancel);
+    QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
+    msgBox.exec();
+    if (msgBox.clickedButton() == yesButton) {
+        if (singers->getSelected() != NULL)
+        {
+            rotationmodel->layoutAboutToBeChanged();
+            ui->treeViewQueue->clearSelection();
+            queuemodel->clear();
+            rotationmodel->layoutChanged();
+        }
     }
 }
 

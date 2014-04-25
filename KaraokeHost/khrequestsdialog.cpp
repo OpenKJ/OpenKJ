@@ -116,8 +116,8 @@ void KhRequestsDialog::on_pushButtonClearReqs_clicked()
     msgBox.addButton(QMessageBox::Cancel);
     QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
     msgBox.exec();
-
-    if (msgBox.clickedButton() == yesButton) {
+    if (msgBox.clickedButton() == yesButton)
+    {
         requestsModel->deleteAll();
     }
 }
