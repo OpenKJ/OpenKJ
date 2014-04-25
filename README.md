@@ -4,9 +4,9 @@ OpenKJ
 Cross-platform open source karaoke show hosting software.
 
 
-Not anywhere near ready for professional use at this point.  Many features are incomplete, and the code is full of ugly. To any other developers looking at this code, please don't laugh too hard, as I'm self taught primarily for the purpose of writing this.  Well, okay, you can laugh, just not where I can hear you ;)
+Experimental but usable at this point.  I am using it to run my shows every weekend now, but if you do so and it kills kittens or eats your firstborn don't come screaming at me ;) Some features are still incomplete, and the code is full of ugly. To any other developers looking at this code, please don't laugh too hard, as I'm self taught primarily for the purpose of writing this.  Well, okay, you can laugh, just not where I can hear you ;)
 
-There are previous versions of this software that I wrote and currently use to host my shows, but they are based on proprietary libraries and couldn't be open sourced.  This is my attempt at re-implementing my previous work in an FOSS friendly way.  As soon as it reaches feature parity with what I'm using now, I'll start dogfooding it.
+There are previous versions of this software that I wrote and currently use to host my shows, but they are based on proprietary libraries and couldn't be open sourced.  This is my attempt at re-implementing my previous work in an FOSS friendly way.
 
 The oldest and cruftiest code is in the libCDG part of it, that was some of the first code I wrote while figuring out C++.  It could use heavy improvements.
 
@@ -14,20 +14,33 @@ My reason for this and its predecessors is because I'm a Linux geek, and I was u
 
 If you are building this and want to use the pitch shift/key change functionality, you will unfortunately have to build it with USE_FMOD defined and download and install a copy of the FMOD Api (fmod.org).  I haven't figured out how to get key changing working with any of the open source audio libraries.  If anyone knows how to get this working, feel free to subclass KhAbstractAudioBackend, it should be pretty self explanatory.  By default this uses a QMediaPlayer based audio backend, which isn't very featureful.
 
-This project requires Qt 5.x, boost, Taglib, and minizip to build.  Working builds have only been done on Linux at this point.  This *should* (and is intended to) build on Windows and Mac, assuming all of the dependencies are there.  The FMOD backend will NOT build on Windows using mingw because the C++ API for FMOD isn't compatible.  I'll eventually re-write the FMOD audio abstraction layer to use the C calls instead so it will build.  It should build fine using the msvc compiler.  If anyone successfully builds any of this on a non-Linux platform, please let me know.
+This project requires Qt 5.x, Taglib, and minizip to build.  Working builds have only been done on Linux at this point.  This *should* (and is intended to) build on Windows and Mac, assuming all of the dependencies are there.  The FMOD backend will NOT build on Windows using mingw because the C++ API for FMOD isn't compatible.  I'll eventually re-write the FMOD audio abstraction layer to use the C calls instead so it will build.  It should build fine using the msvc compiler.  If anyone successfully builds any of this on a non-Linux platform, please let me know.
 
 Things that work so far:
 
 libCDG:
 
-libCDG is fairly stable and I've been dogfooding it for years at this point every weekend in pre-OSS karaoke programs of mine.  Only rarely does it cause issues, and then only when a corrupt CDG does something I didn't think to account for.
 * Opening and processing of cdg files into sequences of timestamps and rgb data to be displayed
+
+libCDG is fairly stable and I've been dogfooding it for years at this point every weekend in pre-OSS karaoke programs of mine.  Only rarely does it cause issues, and then only when a corrupt CDG does something I didn't think to account for.
 
 KaraokeHost:
 
+* Audio - Output
+* Audio - Playing songs from the rotation or queue lists (double click)
+* Audio - Media controls (pause, unpause, stop)
+* Audio - On the fly key changes (Fmod backend ONLY)
+* Audio - Fading in/out on play/pause/unpause/stop
+* Audio - Silence detection at the end of karaoke tracks (Fmod Only)
 * General - Blank database creation if nonexistant on program startup
-* SongDB - Database management (scanning for and importing karaoke zip files)
-* SongDB - Database searching
+* IPC - Notification of BreakMusic via IPC that karaoke is starting playback or stopping (used for auto-fade of break music)
+* Regular singers - Save singer as regular (if no name conflict)
+* Regular singers - Load saved singer
+* Regular singers - Rename existing singer
+* Regular singers - Delete existing singer
+* Regular singers - Auto track/save queue changes for regular singer.
+* Regular singers - Export to file (file->export regulars)
+* Regular singers - Import from file (no rename/merge/replace on name conflict yet)
 * Rotation Mgmt - Adding rotation singers
 * Rotation Mgmt - Deleting rotation singers
 * Rotation Mgmt - Renameing rotation singers
@@ -36,43 +49,34 @@ KaraokeHost:
 * Rotation Mgmt - Adding songs to a singer's queue (via double click or drag'n'drop from the db search results)
 * Rotation Mgmt - Deleting singer's queued songs
 * Rotation Mgmt - Moving singer's queued songs via drag reordering
-* Audio - Output (QMediaPlayer or FMOD backend)
-* Audio - On the fly key changes (FMOD backend ONLY)
-* Video - CDG Graphics output in the main window
-* Video - Scaled CDG Graphics output in the optional CDG display window (requires working OpenGL video drivers)
-* Video - Settings for CDG window (enabled/disabled, fullscreen, monitor for fullscreen output)
-* Audio - Playing songs from the rotation or queue lists (double click)
-* Audio - Media controls (pause, unpause, stop)
-* Regular singers - Save singer as regular (if no name conflict)
-* Regular singers - Load saved singer
-* Regular singers - Rename existing singer
-* Regular singers - Delete existing singer
-* Regular singers - Auto track/save queue changes for regular singer.
-* Regular singers - Export to file (file->export regulars)
-* Regular singers - Import from file (no rename/merge/replace on name conflict yet)
-* IPC - Notification of BreakMusic via IPC that karaoke is starting playback or stopping (used for auto-fade of break music)
+* SongDB - Database management (scanning for and importing karaoke zip files)
+* SongDB - Database searching
 * Ticker - Enable/disable
 * Ticker - Display ticker on CDG output window
 * Ticker - Font settings
 * Ticker - Foreground/background color settings
 * Ticker - Full rotation or limited rotation display settings
 * Ticker - Widget height setting (eventually will make adaptive to font, but this works for now)
-* Audio - Fading in/out on play/pause/unpause/stop (QMediaPlayer backend only)
+* Video - CDG Graphics output in the main window
+* Video - Scaled CDG Graphics output in the optional CDG display window (requires working OpenGL video drivers)
+* Video - Settings for CDG window (enabled/disabled, fullscreen, monitor for fullscreen output)
 * Video - CDG Preview Dialog
 
 BreakMusic:
 
-* Fading in/out on IPC notification from KaraokeHost
-* Fading out/in when switching songs
-* Database management (scanning for and importing mp3's for now, will add more formats and make configurable later)
-* Database search
-* Playlist creation
-* Playlist selection
-* Adding songs to playlist via drag'n'drop from search results
-* Adding songs to playlist via double click.
-* Playing songs in playlist
-* Media controls
-* Display of songs via either metadata or filename (or both)
+* Audio - Playing songs in playlist
+* Audio - Media controls
+* Audio - Fading out/in when switching songs
+* IPC - Fading in/out on IPC notification from KaraokeHost
+* Playlist - New playlist creation
+* Playlist - Selecting/Loading playlists
+* Playlist - Import from m3u file (file must have full paths, not relative for now)
+* Playlist - Adding songs to playlist via drag'n'drop from search results
+* Playlist - Adding songs to playlist via double click.
+* SongDB - Database management (scanning for and importing mp3, ogg, flac, & wav for now, will add more formats and make configurable later)
+* SongDB - Database search
+* UI - Display of songs via either metadata or filename (or both)
+
 
 Things that are still work in progress or to do:
 
@@ -82,9 +86,8 @@ KaraokeHost:
 * Regular singers - Name conflict resolution on save (Merge/Replace)
 * Rotation Mgmt - Setting key changes on queued songs
 * Video - Convert main program CDG display to OpenGL rendering like the CDG window
-* Look/Feel - Automatically adapting the models/views to contents and window size
+* UI - Automatically adapting the models/views to contents and window size
 * General - User notification of many different error conditions.
-* Audio - Fading in/out on stop, pause, and unpause. (TODO on fmod backend)
 * Audio - Find a way to do keychanges without requiring a closed souce library
 * Ticker - Make height auto-adapt to font size
 * And a million more things I'm forgetting
