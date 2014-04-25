@@ -42,7 +42,7 @@ private:
     FMOD_RESULT      fmresult;
     FMOD::DSP        *dsp;
     FMOD_CREATESOUNDEXINFO exinfo;
-    double GetKeyFloat(int keychange);
+    double getPitchAdjustment(int keychange);
     QTimer *signalTimer;
     void pitchShifter(bool enable);
 

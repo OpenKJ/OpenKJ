@@ -39,21 +39,19 @@ KhAudioBackendFMOD::KhAudioBackendFMOD(QObject *parent) :
     setVolume(25);
 }
 
-double KhAudioBackendFMOD::GetKeyFloat(int keychange)
+double KhAudioBackendFMOD::getPitchAdjustment(int semitones)
 {
-    int i;
-    double keyfloat = 1.0;
-    if (keychange > 0) {
-        for (i = 0; i < keychange; i++) {
-            keyfloat = keyfloat * 1.05946;
+    double pitchAdjustment = 1.0;
+    if (semitones > 0) {
+        for (unsigned int i = 0; i < semitones; i++) {
+            pitchAdjustment = pitchAdjustment * 1.05946;
+        }
+    else {
+        for (unsigned int i = 0; i > semitones; i--) {
+            pitchAdjustment = pitchAdjustment * 0.9438;
         }
     }
-    if (keychange < 0) {
-        for (i = 0; i > keychange; i--) {
-            keyfloat = keyfloat * 0.9438;
-        }
-    }
-    return keyfloat;
+    return pitchAdjustment;
 }
 
 void KhAudioBackendFMOD::pitchShifter(bool enable)
@@ -64,7 +62,7 @@ void KhAudioBackendFMOD::pitchShifter(bool enable)
         system->addDSP(this->dsp, NULL);
         dsp->setParameter(1, 4096);
         dsp->setParameter(2, 8);
-        dsp->setParameter(0, GetKeyFloat(0));
+        dsp->setParameter(0, getPitchAdjustment(0));
         m_pitchShifterEnabled = true;
     }
     else if ((!enable) && (m_pitchShifterEnabled))
@@ -214,7 +212,7 @@ void KhAudioBackendFMOD::setPitchShift(int semitones)
     else
     {
         pitchShifter(true);
-        dsp->setParameter(0,GetKeyFloat(semitones));
+        dsp->setParameter(0,getPitchAdjustment(semitones));
     }
     m_pitchShift = semitones;
 }
