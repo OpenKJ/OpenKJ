@@ -76,30 +76,23 @@ void RequestsTableModel::onNetworkReply(QNetworkReply *reply)
     }
     else if (recordType == 1)
     {
-        //full pull
-        //qDebug() << "Full data pull - updating - serial " << serial;
         curSerial = serial;
-        int count = json.object().value("numreqs").toDouble();
         QJsonArray reqArray = json.object().value("requests").toArray();
-        //qDebug() << "Requests: " << count << " Serial no: " << serial;
-        //requestsModel->clear();
         emit layoutAboutToBeChanged();
         requests.clear();
-        for (unsigned int i=0; i < reqArray.size(); i++)
+        for (int i=0; i < reqArray.size(); i++)
         {
             QString artist = reqArray.at(i).toObject().value("artist").toString();
             QString title = reqArray.at(i).toObject().value("title").toString();
             QString singer = reqArray.at(i).toObject().value("singer").toString();
             int index = reqArray.at(i).toObject().value("id").toDouble();
             int reqtime = reqArray.at(i).toObject().value("reqtime").toDouble();
-            //requestsModel->addRequest(index, singer, artist, title, reqtime);
             requests << Request(index,singer,artist,title,reqtime);
         }
         emit layoutChanged();
     }
     else if (recordType == 2)
     {
-        //qDebug() << "Deleted request - removing item - new serial " << serial;
         curSerial = serial;
         int reqID = json.object().value("delreq").toDouble();
         int delIndex = -1;
@@ -133,11 +126,13 @@ void RequestsTableModel::onSslErrors(QNetworkReply *reply)
 
 int RequestsTableModel::rowCount(const QModelIndex &parent) const
 {
+    Q_UNUSED(parent);
     return requests.size();
 }
 
 int RequestsTableModel::columnCount(const QModelIndex &parent) const
 {
+    Q_UNUSED(parent);
     return 6;
 }
 
@@ -176,6 +171,7 @@ QVariant RequestsTableModel::data(const QModelIndex &index, int role) const
 
 QVariant RequestsTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
+    Q_UNUSED(orientation);
     if (role == Qt::DisplayRole)
     {
         switch(section) {
@@ -196,6 +192,7 @@ QVariant RequestsTableModel::headerData(int section, Qt::Orientation orientation
 
 Qt::ItemFlags RequestsTableModel::flags(const QModelIndex &index) const
 {
+    Q_UNUSED(index);
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
 

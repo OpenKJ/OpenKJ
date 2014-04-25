@@ -103,21 +103,21 @@ void KhAudioBackendQMediaPlayer::setVolume(int volume)
     mplayer->setVolume(volume);
 }
 
-void KhAudioBackendQMediaPlayer::stop()
+void KhAudioBackendQMediaPlayer::stop(bool skipFade)
 {
     qDebug() << "KhAudioBackendQMediaPlayer::stop()";
     qDebug() << "Media state: " << mplayer->state();
     if (mplayer->state() == QMediaPlayer::PlayingState)
     {
-        if (m_fade)
+        if ((m_fade) && (!skipFade))
             fadeOut();
         mplayer->stop();
-        fader->restoreVolume();
+        if (!skipFade) fader->restoreVolume();
     }
     else if (mplayer->state() == QMediaPlayer::PausedState)
     {
         mplayer->stop();
-        fader->restoreVolume();
+        if (!skipFade) fader->restoreVolume();
     }
 }
 

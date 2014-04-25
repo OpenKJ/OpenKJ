@@ -86,7 +86,7 @@ public slots:
     void setMuted(bool muted);
     void setPosition(qint64 position);
     void setVolume(int volume);
-    void stop();
+    void stop(bool skipFade = false);
 
 
     // KhAbstractAudioBackend interface

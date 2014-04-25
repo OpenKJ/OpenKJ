@@ -19,6 +19,8 @@
 */
 
 #include "khaudiobackendfmod.h"
+#include <QApplication>
+#include <QDebug>
 
 KhAudioBackendFMOD::KhAudioBackendFMOD(QObject *parent) :
     KhAbstractAudioBackend(parent)
@@ -36,18 +38,25 @@ KhAudioBackendFMOD::KhAudioBackendFMOD(QObject *parent) :
     signalTimer = new QTimer(this);
     connect(signalTimer, SIGNAL(timeout()), this, SLOT(signalTimer_timeout()));
     signalTimer->start(40);
+    silenceDetectTimer = new QTimer(this);
+    connect(silenceDetectTimer, SIGNAL(timeout()), this, SLOT(silenceDetectTimer_timeout()));
+    silenceDetectTimer->start(1000);
+    m_fade = true;
+    fader = new FaderFmod(this);
     setVolume(25);
+    connect(fader, SIGNAL(volumeChanged(int)), this, SLOT(faderChangedVolume(int)));
 }
 
 double KhAudioBackendFMOD::getPitchAdjustment(int semitones)
 {
     double pitchAdjustment = 1.0;
     if (semitones > 0) {
-        for (unsigned int i = 0; i < semitones; i++) {
+        for (int i = 0; i < semitones; i++) {
             pitchAdjustment = pitchAdjustment * 1.05946;
         }
+    }
     else {
-        for (unsigned int i = 0; i > semitones; i--) {
+        for (int i = 0; i > semitones; i--) {
             pitchAdjustment = pitchAdjustment * 0.9438;
         }
     }
@@ -75,7 +84,11 @@ void KhAudioBackendFMOD::pitchShifter(bool enable)
 
 int KhAudioBackendFMOD::volume()
 {
-    return m_volume;
+    float volume;
+    int intVolume;
+    channel->getVolume(&volume);
+    intVolume = volume / .01;
+    return intVolume;
 }
 
 qint64 KhAudioBackendFMOD::position()
@@ -126,15 +139,12 @@ int KhAudioBackendFMOD::pitchShift()
 bool KhAudioBackendFMOD::isSilent()
 {
     float spectrumarray[64];
-    float avglevel = 0;
     float sumlevel = 0;
     int numvalues = 64;
     channel->getSpectrum(spectrumarray,numvalues, 0, FMOD_DSP_FFT_WINDOW_RECT);
     for (int i = 0; i <= 63; i++) {
         sumlevel = sumlevel + spectrumarray[i];
     }
-    //avglevel = sumlevel / 64;
-    //qDebug() << avglevel;
     if ((sumlevel / 64) < .0001)
         return true;
     else
@@ -146,18 +156,23 @@ void KhAudioBackendFMOD::play()
     if (state() == QMediaPlayer::PausedState)
     {
         channel->setPaused(false);
-
+        emit stateChanged(QMediaPlayer::PlayingState);
+        if (m_fade)
+            fadeIn();
     }
     else
     {
         system->playSound(FMOD_CHANNEL_FREE, this->sound, 0, &this->channel);
         setVolume(m_volume);
+        fader->setChannel(channel);
     }
     emit stateChanged(QMediaPlayer::PlayingState);
 }
 
 void KhAudioBackendFMOD::pause()
 {
+    if (m_fade)
+        fadeOut();
     channel->setPaused(true);
     emit stateChanged(QMediaPlayer::PausedState);
 }
@@ -186,20 +201,26 @@ void KhAudioBackendFMOD::setPosition(qint64 position)
 void KhAudioBackendFMOD::setVolume(int volume)
 {
     m_volume = volume;
+    fader->setBaseVolume(volume);
     channel->setVolume(volume * .01);
     emit volumeChanged(volume);
 }
 
-void KhAudioBackendFMOD::stop()
+void KhAudioBackendFMOD::stop(bool skipFade)
 {
     if (m_soundOpened)
     {
+        int curVolume = volume();
+        if ((m_fade) && (!skipFade))
+            fadeOut();
         channel->stop();
         sound->release();
         emit stateChanged(QMediaPlayer::StoppedState);
         emit durationChanged(0);
         emit positionChanged(0);
         m_soundOpened = false;
+        if ((m_fade) && (!skipFade))
+            setVolume(curVolume);
     }
 }
 
@@ -222,8 +243,137 @@ void KhAudioBackendFMOD::signalTimer_timeout()
     if(state() == QMediaPlayer::PlayingState)
     {
         emit positionChanged(position());
-        if (isSilent()) emit silenceDetected();
     }
     else if (state() == QMediaPlayer::StoppedState)
         stop();
+}
+
+void KhAudioBackendFMOD::silenceDetectTimer_timeout()
+{
+    static int seconds = 0;
+    if ((state() == QMediaPlayer::PlayingState) && (isSilent()))
+    {
+        if (seconds >= 2)
+        {
+            seconds = 0;
+            emit silenceDetected();
+            return;
+        }
+        seconds++;
+    }
+}
+
+void KhAudioBackendFMOD::faderChangedVolume(int volume)
+{
+    m_volume = volume;
+    emit volumeChanged(volume);
+}
+
+
+FaderFmod::FaderFmod(QObject *parent) :
+    QThread(parent)
+{
+    m_preOutVolume = 0;
+    m_targetVolume = 0;
+    fading = false;
+
+}
+
+void FaderFmod::run()
+{
+    fading = true;
+    while (volume() != m_targetVolume)
+    {
+        if (volume() > m_targetVolume)
+        {
+            if (volume() < .01)
+                setVolume(0);
+            else
+                setVolume(volume() - .01);
+        }
+        if (volume() < m_targetVolume)
+            setVolume(volume() + .01);
+        QThread::msleep(30);
+    }
+    fading = false;
+}
+
+void FaderFmod::fadeIn()
+{
+    m_targetVolume = m_preOutVolume;
+    if (!fading)
+    {
+        start();
+    }
+    while(fading)
+        QApplication::processEvents();
+}
+
+void FaderFmod::fadeOut()
+{
+    bool playing;
+    channel->isPlaying(&playing);
+    if (playing)
+    {
+    m_targetVolume = 0;
+    if (!fading)
+    {
+        fading = true;
+        m_preOutVolume = volume();
+        start();
+    }
+    while(fading)
+        QApplication::processEvents();
+    }
+}
+
+bool FaderFmod::isFading()
+{
+    return fading;
+}
+
+void FaderFmod::restoreVolume()
+{
+    setVolume(m_preOutVolume);
+}
+
+void FaderFmod::setChannel(Channel *fmChannel)
+{
+    channel = fmChannel;
+    m_preOutVolume = volume();
+}
+
+void FaderFmod::setBaseVolume(int volume)
+{
+    if (!fading)
+        m_preOutVolume = volume;
+}
+
+void FaderFmod::setVolume(float volume)
+{
+    channel->setVolume(volume);
+    emit volumeChanged(volume * 100);
+}
+
+float FaderFmod::volume()
+{
+    float volume;
+    channel->getVolume(&volume);
+    return volume;
+}
+
+
+void KhAudioBackendFMOD::setUseFader(bool fade)
+{
+    m_fade = fade;
+}
+
+void KhAudioBackendFMOD::fadeOut()
+{
+    fader->fadeOut();
+}
+
+void KhAudioBackendFMOD::fadeIn()
+{
+    fader->fadeIn();
 }

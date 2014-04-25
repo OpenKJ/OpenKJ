@@ -682,7 +682,11 @@ void MainWindow::rotationDataChanged()
 
 void MainWindow::silenceDetected()
 {
-    qDebug() << "Silence detected " << audioBackend->position();
+    if (cdg->GetLastCDGUpdate() < audioBackend->position())
+    {
+        qDebug() << "Silence detected for > 2s after last CDG draw command... Stopping.";
+        audioBackend->stop(true);
+    }
 }
 
 void MainWindow::on_treeViewDB_customContextMenuRequested(const QPoint &pos)

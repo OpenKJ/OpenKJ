@@ -350,6 +350,7 @@ int KhQueueSongs::addSongAtEnd(int songid, bool regularSong, int regSongID)
 
 int KhQueueSongs::addSongAtPosition(int songid, int position, bool regularSong, int regSongID, int regSingerID)
 {
+    Q_UNUSED(regSingerID);
     KhQueueSong *song = new KhQueueSong(regularSingers);
     song->setSongID(songid,true);
     song->setSingerID(singerIndex,true);

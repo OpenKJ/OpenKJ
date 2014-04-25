@@ -25,8 +25,38 @@
 #include <fmod.hpp>
 #include <fmod_errors.h>
 #include <QTimer>
+#include <QThread>
+
 
 using namespace FMOD;
+
+class FaderFmod : public QThread
+{
+    Q_OBJECT
+public:
+    explicit FaderFmod(QObject *parent = 0);
+    void run();
+    void fadeIn();
+    void fadeOut();
+    bool isFading();
+    void restoreVolume();
+    void setChannel(FMOD::Channel *fmChannel);
+
+signals:
+    void volumeChanged(int);
+
+public slots:
+    void setBaseVolume(int volume);
+
+private:
+    float m_targetVolume;
+    float m_preOutVolume;
+    FMOD::Channel *channel;
+    bool fading;
+    void setVolume(float volume);
+    float volume();
+};
+
 
 class KhAudioBackendFMOD : public KhAbstractAudioBackend
 {
@@ -44,7 +74,10 @@ private:
     FMOD_CREATESOUNDEXINFO exinfo;
     double getPitchAdjustment(int keychange);
     QTimer *signalTimer;
+    QTimer *silenceDetectTimer;
     void pitchShifter(bool enable);
+    FaderFmod *fader;
+    bool m_fade;
 
 public:
     explicit KhAudioBackendFMOD(QObject *parent = 0);
@@ -67,6 +100,7 @@ public:
     int pitchShift();
     bool canDetectSilence() { return true; }
     bool isSilent();
+    bool canFade() { return true; }
 
 public slots:
     void play();
@@ -75,11 +109,21 @@ public slots:
     void setMuted(bool muted);
     void setPosition(qint64 position);
     void setVolume(int volume);
-    void stop();
+    void stop(bool skipFade = false);
     void setPitchShift(int semitones);
 
 private slots:
     void signalTimer_timeout();
+    void silenceDetectTimer_timeout();
+    void faderChangedVolume(int volume);
+
+    // KhAbstractAudioBackend interface
+public:
+    void setUseFader(bool fade);
+
+public slots:
+    void fadeOut();
+    void fadeIn();
 };
 
 #endif // KHAUDIOBACKENDFMOD_H

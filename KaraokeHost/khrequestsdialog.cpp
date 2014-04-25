@@ -70,6 +70,7 @@ void KhRequestsDialog::on_lineEditSearch_returnPressed()
 
 void KhRequestsDialog::requestSelectionChanged(const QModelIndex &current, const QModelIndex &previous)
 {
+    Q_UNUSED(previous);
     qDebug() << "Current selection " << current.row();
     if ((current.isValid()) && (ui->treeViewRequests->selectionModel()->selectedIndexes().size() > 0))
     {
@@ -85,6 +86,7 @@ void KhRequestsDialog::requestSelectionChanged(const QModelIndex &current, const
 
 void KhRequestsDialog::songSelectionChanged(const QModelIndex &current, const QModelIndex &previous)
 {
+    Q_UNUSED(previous);
     if (current.isValid())
     {
 //        if (ui->treeViewSearch->selectionModel()->selectedIndexes().size() > 0)

@@ -65,7 +65,7 @@ public slots:
     virtual void setMuted(bool muted) {Q_UNUSED(muted);}
     virtual void setPosition(qint64 position) {Q_UNUSED(position);}
     virtual void setVolume(int volume) {Q_UNUSED(volume);}
-    virtual void stop() {}
+    virtual void stop(bool skipFade = false) {Q_UNUSED(skipFade);}
     virtual void setPitchShift(int pitchShift) {Q_UNUSED(pitchShift);}
     virtual void fadeOut() {}
     virtual void fadeIn() {}
