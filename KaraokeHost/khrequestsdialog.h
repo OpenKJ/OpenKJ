@@ -5,6 +5,7 @@
 #include <requeststablemodel.h>
 #include <songdbtablemodel.h>
 #include <khsinger.h>
+#include <cdgpreviewdialog.h>
 
 namespace Ui {
 class KhRequestsDialog;
@@ -36,11 +37,14 @@ private slots:
 
     void on_pushButtonAddSong_clicked();
 
+    void on_treeViewSearch_customContextMenuRequested(const QPoint &pos);
+
 private:
     Ui::KhRequestsDialog *ui;
     RequestsTableModel *requestsModel;
     SongDBTableModel *songDbModel;
     KhRotationSingers *rotSingers;
+    CdgPreviewDialog *cdgPreviewDialog;
 };
 
 #endif // KHREQUESTSDIALOG_H

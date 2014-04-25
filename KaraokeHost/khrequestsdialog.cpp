@@ -1,5 +1,6 @@
 #include "khrequestsdialog.h"
 #include "ui_khrequestsdialog.h"
+#include <QMenu>
 
 KhRequestsDialog::KhRequestsDialog(KhSongs *fullData, KhRotationSingers *singers, QWidget *parent) :
     QDialog(parent),
@@ -20,6 +21,7 @@ KhRequestsDialog::KhRequestsDialog(KhSongs *fullData, KhRotationSingers *singers
     songDbModel = new SongDBTableModel(this);
     songDbModel->setFullData(fullData);
     ui->treeViewSearch->setModel(songDbModel);
+    cdgPreviewDialog = new CdgPreviewDialog(this);
     connect(ui->treeViewRequests->selectionModel(), SIGNAL(currentRowChanged(QModelIndex,QModelIndex)), this, SLOT(requestSelectionChanged(QModelIndex,QModelIndex)));
     connect(ui->treeViewSearch->selectionModel(), SIGNAL(currentRowChanged(QModelIndex,QModelIndex)), this, SLOT(songSelectionChanged(QModelIndex,QModelIndex)));
     rotSingers = singers;
@@ -164,5 +166,20 @@ void KhRequestsDialog::on_pushButtonAddSong_clicked()
         int songid = songDbModel->getRowSong(ui->treeViewSearch->selectionModel()->selectedIndexes().at(0).row())->ID;
         rotSingers->getSingerByName(ui->comboBoxSingers->currentText())->addSongAtEnd(songid);
         rotSingers->dataChanged();
+    }
+}
+
+void KhRequestsDialog::on_treeViewSearch_customContextMenuRequested(const QPoint &pos)
+{
+    qDebug() << "on_treeViewSearch_customContextMenuRequested fired";
+    QModelIndex index = ui->treeViewSearch->indexAt(pos);
+    if (index.isValid())
+    {
+        QString zipPath = songDbModel->getRowSong(index.row())->path;
+        cdgPreviewDialog->setZipFile(zipPath);
+        QMenu contextMenu(this);
+        contextMenu.addAction("Preview", cdgPreviewDialog, SLOT(preview()));
+        contextMenu.exec(QCursor::pos());
+        //contextMenu->exec(ui->treeView->mapToGlobal(point));
     }
 }
