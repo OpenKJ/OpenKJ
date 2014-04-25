@@ -37,11 +37,11 @@ public:
     virtual bool canPitchShift() {return false;}
     virtual int pitchShift() {return 0;}
     virtual bool canFade() { return false; }
-    virtual void setUseFader(bool fade) {Q_UNUSED(fade);}
     QString msToMMSS(qint64 msec);
     virtual QString backendName() {return QString("Abstract - something is horribly wrong");}
     virtual bool canDetectSilence() { return false; }
     virtual bool isSilent() { return false; }
+    virtual bool canDownmix() { return false; }
 
 
 signals:
@@ -69,6 +69,10 @@ public slots:
     virtual void setPitchShift(int pitchShift) {Q_UNUSED(pitchShift);}
     virtual void fadeOut() {}
     virtual void fadeIn() {}
+    virtual void setUseFader(bool fade) {Q_UNUSED(fade);}
+    virtual void setUseSilenceDetection(bool enabled) {Q_UNUSED(enabled);}
+    virtual void setDownmix(bool enabled) {Q_UNUSED(enabled);}
+
 };
 
 #endif // KHABSTRACTAUDIOBACKEND_H

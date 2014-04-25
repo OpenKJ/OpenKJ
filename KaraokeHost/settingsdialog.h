@@ -76,10 +76,19 @@ private slots:
 
     void on_pushButtonBrowse_clicked();
 
+    void on_checkBoxFader_toggled(bool checked);
+
+    void on_checkBoxSilenceDetection_toggled(bool checked);
+
+    void on_checkBoxDownmix_toggled(bool checked);
+
 signals:
     void showCdgWindowChanged(bool);
     void cdgWindowFullScreenChanged(bool);
     void cdgWindowFullScreenMonitorChanged(int);
+    void audioUseFaderChanged(bool);
+    void audioSilenceDetectChanged(bool);
+    void audioDownmixChanged(bool);
 
 private:
     Ui::SettingsDialog *ui;

@@ -83,6 +83,10 @@ public:
     void setAudioVolume(int volume);
     QString cdgDisplayBackgroundImage();
     void setCdgDisplayBackgroundImage(QString imageFile);
+    bool audioDownmix();
+    void setAudioDownmix(bool downmix);
+    bool audioDetectSilence();
+    void setAudioDetectSilence(bool enabled);
 
 signals:
     void tickerFontChanged();

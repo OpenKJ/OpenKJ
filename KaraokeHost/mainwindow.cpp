@@ -26,9 +26,8 @@
 #include <QDir>
 #ifdef USE_FMOD
 #include <khaudiobackendfmod.h>
-#else
-#include <khaudiobackendqmediaplayer.h>
 #endif
+#include <khaudiobackendqmediaplayer.h>
 #include <khzip.h>
 #include <QDesktopWidget>
 #include <QStandardPaths>
@@ -108,7 +107,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->treeViewDB->setModel(songdbmodel);
     ipcClient = new KhIPCClient("bmControl",this);
 #ifdef USE_FMOD
-    audioBackend = new KhAudioBackendFMOD(this);
+    audioBackend = new KhAudioBackendFMOD(settings->audioDownmix(), this);
     qDebug() << "Audio backend: FMOD";
 #else
     audioBackend = new KhAudioBackendQMediaPlayer(this);
@@ -141,6 +140,12 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(singers, SIGNAL(dataChanged()), this, SLOT(rotationDataChanged()));
     connect(settings, SIGNAL(tickerOutputModeChanged()), this, SLOT(rotationDataChanged()));
     connect(audioBackend, SIGNAL(silenceDetected()), this, SLOT(silenceDetected()));
+    connect(settingsDialog, SIGNAL(audioUseFaderChanged(bool)), audioBackend, SLOT(setUseFader(bool)));
+    audioBackend->setUseFader(settings->audioUseFader());
+    connect(settingsDialog, SIGNAL(audioSilenceDetectChanged(bool)), audioBackend, SLOT(setUseSilenceDetection(bool)));
+    audioBackend->setUseSilenceDetection(settings->audioDetectSilence());
+    connect(settingsDialog, SIGNAL(audioDownmixChanged(bool)), audioBackend, SLOT(setDownmix(bool)));
+    audioBackend->setDownmix(settings->audioDownmix());
     QImage cdgBg;
     if (settings->cdgDisplayBackgroundImage() != "")
     {
@@ -525,7 +530,7 @@ void MainWindow::on_buttonClearRotation_clicked()
 {
     QMessageBox msgBox;
     msgBox.setText("Are you sure?");
-    msgBox.setInformativeText("This action will clear all singers and queues. This operation can not be undone.");
+    msgBox.setInformativeText("This action will clear all rotation singers and queues. This operation can not be undone.");
     msgBox.setIcon(QMessageBox::Warning);
     msgBox.addButton(QMessageBox::Cancel);
     QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);

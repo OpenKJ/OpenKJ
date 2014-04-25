@@ -250,3 +250,23 @@ void KhSettings::setCdgDisplayBackgroundImage(QString imageFile)
 {
     settings->setValue("cdgDisplayBackgroundImage", imageFile);
 }
+
+bool KhSettings::audioDownmix()
+{
+    return settings->value("audioDownmix", false).toBool();
+}
+
+void KhSettings::setAudioDownmix(bool downmix)
+{
+    settings->setValue("audioDownmix", downmix);
+}
+
+bool KhSettings::audioDetectSilence()
+{
+    return settings->value("audioDetectSilence", false).toBool();
+}
+
+void KhSettings::setAudioDetectSilence(bool enabled)
+{
+    settings->setValue("audioDetectSilence", enabled);
+}

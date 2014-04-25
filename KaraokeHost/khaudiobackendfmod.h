@@ -78,9 +78,11 @@ private:
     void pitchShifter(bool enable);
     FaderFmod *fader;
     bool m_fade;
+    bool m_silenceDetect;
 
 public:
-    explicit KhAudioBackendFMOD(QObject *parent = 0);
+//    explicit KhAudioBackendFMOD(QObject *parent = 0);
+    KhAudioBackendFMOD(bool downmix = false, QObject *parent = 0);
     QString backendName() {return QString("FMOD");}
 signals:
 
@@ -111,6 +113,9 @@ public slots:
     void setVolume(int volume);
     void stop(bool skipFade = false);
     void setPitchShift(int semitones);
+    void setUseFader(bool fade) { m_fade = fade; }
+    void setUseSilenceDetection(bool enabled) { m_silenceDetect = enabled; }
+    void setDownmix(bool enabled);
 
 private slots:
     void signalTimer_timeout();
@@ -119,7 +124,7 @@ private slots:
 
     // KhAbstractAudioBackend interface
 public:
-    void setUseFader(bool fade);
+    //void setUseFader(bool fade);
 
 public slots:
     void fadeOut();

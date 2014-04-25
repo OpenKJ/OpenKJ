@@ -70,6 +70,9 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     ui->lineEditPassword->setText(settings->requestServerPassword());
     ui->checkBoxIgnoreCertErrors->setChecked(settings->requestServerIgnoreCertErrors());
     ui->lineEditCdgBackground->setText(settings->cdgDisplayBackgroundImage());
+    ui->checkBoxFader->setChecked(settings->audioUseFader());
+    ui->checkBoxDownmix->setChecked(settings->audioDownmix());
+    ui->checkBoxSilenceDetection->setChecked(settings->audioDetectSilence());
 }
 
 SettingsDialog::~SettingsDialog()
@@ -240,4 +243,22 @@ void SettingsDialog::on_pushButtonBrowse_clicked()
             QMessageBox::warning(this, tr("Image load error"),QString("Unsupported or corrupt image file."));
         }
     }
+}
+
+void SettingsDialog::on_checkBoxFader_toggled(bool checked)
+{
+    settings->setAudioUseFader(checked);
+    emit audioUseFaderChanged(checked);
+}
+
+void SettingsDialog::on_checkBoxSilenceDetection_toggled(bool checked)
+{
+    settings->setAudioDetectSilence(checked);
+    emit audioSilenceDetectChanged(checked);
+}
+
+void SettingsDialog::on_checkBoxDownmix_toggled(bool checked)
+{
+    settings->setAudioDownmix(checked);
+    emit audioDownmixChanged(checked);
 }

@@ -22,14 +22,15 @@
 #include <QApplication>
 #include <QDebug>
 
-KhAudioBackendFMOD::KhAudioBackendFMOD(QObject *parent) :
+KhAudioBackendFMOD::KhAudioBackendFMOD(bool downmix, QObject *parent) :
     KhAbstractAudioBackend(parent)
 {
     fmresult = System_Create(&system);
 #ifdef Q_OS_LINUX
     fmresult = system->setOutput(FMOD_OUTPUTTYPE_PULSEAUDIO);
 #endif
-    fmresult = system->setSpeakerMode(FMOD_SPEAKERMODE_MONO);
+    if (downmix)
+        fmresult = system->setSpeakerMode(FMOD_SPEAKERMODE_MONO);
     fmresult = system->init(2, FMOD_INIT_NORMAL, NULL);
     memset(&exinfo, 0, sizeof(FMOD_CREATESOUNDEXINFO));
     m_pitchShift = 0;
@@ -238,6 +239,15 @@ void KhAudioBackendFMOD::setPitchShift(int semitones)
     m_pitchShift = semitones;
 }
 
+void KhAudioBackendFMOD::setDownmix(bool enabled)
+{
+    qDebug() << "KhAudioBackendFMOD - Downmix to mono " << enabled;
+    if (enabled)
+        system->setSpeakerMode(FMOD_SPEAKERMODE_MONO);
+    else
+        system->setSpeakerMode(FMOD_SPEAKERMODE_STEREO);
+}
+
 void KhAudioBackendFMOD::signalTimer_timeout()
 {
     if(state() == QMediaPlayer::PlayingState)
@@ -250,16 +260,19 @@ void KhAudioBackendFMOD::signalTimer_timeout()
 
 void KhAudioBackendFMOD::silenceDetectTimer_timeout()
 {
-    static int seconds = 0;
-    if ((state() == QMediaPlayer::PlayingState) && (isSilent()))
+    if (m_silenceDetect)
     {
-        if (seconds >= 2)
+        static int seconds = 0;
+        if ((state() == QMediaPlayer::PlayingState) && (isSilent()))
         {
-            seconds = 0;
-            emit silenceDetected();
-            return;
+            if (seconds >= 2)
+            {
+                seconds = 0;
+                emit silenceDetected();
+                return;
+            }
+            seconds++;
         }
-        seconds++;
     }
 }
 
@@ -360,12 +373,6 @@ float FaderFmod::volume()
     float volume;
     channel->getVolume(&volume);
     return volume;
-}
-
-
-void KhAudioBackendFMOD::setUseFader(bool fade)
-{
-    m_fade = fade;
 }
 
 void KhAudioBackendFMOD::fadeOut()
