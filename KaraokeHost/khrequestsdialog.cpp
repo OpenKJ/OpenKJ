@@ -1,6 +1,7 @@
 #include "khrequestsdialog.h"
 #include "ui_khrequestsdialog.h"
 #include <QMenu>
+#include <QMessageBox>
 
 KhRequestsDialog::KhRequestsDialog(KhSongs *fullData, KhRotationSingers *singers, QWidget *parent) :
     QDialog(parent),
@@ -108,7 +109,17 @@ void KhRequestsDialog::on_radioButtonExistingSinger_toggled(bool checked)
 
 void KhRequestsDialog::on_pushButtonClearReqs_clicked()
 {
-    requestsModel->deleteAll();
+    QMessageBox msgBox;
+    msgBox.setText("Are you sure?");
+    msgBox.setInformativeText("This action will clear all received requests. This operation can not be undone.");
+    msgBox.setIcon(QMessageBox::Warning);
+    msgBox.addButton(QMessageBox::Cancel);
+    QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
+    msgBox.exec();
+
+    if (msgBox.clickedButton() == yesButton) {
+        requestsModel->deleteAll();
+    }
 }
 
 void KhRequestsDialog::on_treeViewRequests_clicked(const QModelIndex &index)
