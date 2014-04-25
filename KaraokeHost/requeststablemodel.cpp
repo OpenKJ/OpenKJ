@@ -8,7 +8,7 @@
 #include <QJsonValue>
 #include <QJsonArray>
 #include <QDateTime>
-#include <khsettings.h>
+#include "khsettings.h"
 
 
 extern KhSettings *settings;

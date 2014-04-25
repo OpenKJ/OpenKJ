@@ -22,7 +22,7 @@
 #define REGULARSINGERMODEL_H
 
 #include <QAbstractTableModel>
-#include <khregularsinger.h>
+#include "khregularsinger.h"
 
 class RegularSingerModel : public QAbstractTableModel
 {

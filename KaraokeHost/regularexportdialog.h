@@ -2,8 +2,8 @@
 #define REGULAREXPORTDIALOG_H
 
 #include <QDialog>
-#include <khregularsinger.h>
-#include <regularsingermodel.h>
+#include "khregularsinger.h"
+#include "regularsingermodel.h"
 
 namespace Ui {
 class RegularExportDialog;

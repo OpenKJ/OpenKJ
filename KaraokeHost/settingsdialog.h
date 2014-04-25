@@ -23,7 +23,7 @@
 
 #include <QDialog>
 #include <QList>
-#include <khsettings.h>
+#include "khsettings.h"
 
 namespace Ui {
 class SettingsDialog;

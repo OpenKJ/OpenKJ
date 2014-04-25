@@ -22,10 +22,10 @@
 #define CDGWINDOW_H
 
 #include <QDialog>
-#include <qglcanvas.h>
+#include "qglcanvas.h"
 #include <QMouseEvent>
-#include <khsettings.h>
-#include <scrolltext.h>
+#include "khsettings.h"
+#include "scrolltext.h"
 
 namespace Ui {
 class cdgWindow;

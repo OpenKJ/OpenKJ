@@ -22,7 +22,7 @@
 #define KHREGULARSONG_H
 
 #include <QObject>
-#include <khsong.h>
+#include "khsong.h"
 
 class KhRegularSong : public QObject {
     Q_OBJECT

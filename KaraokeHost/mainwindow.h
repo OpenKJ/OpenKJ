@@ -37,13 +37,13 @@
 #include "settingsdialog.h"
 #include "khipcclient.h"
 #include "khabstractaudiobackend.h"
-#include <cdgwindow.h>
-#include <khsettings.h>
-#include <regularsingersdialog.h>
-#include <regularexportdialog.h>
-#include <regularimportdialog.h>
-#include <khrequestsdialog.h>
-#include <cdgpreviewdialog.h>
+#include "cdgwindow.h"
+#include "khsettings.h"
+#include "regularsingersdialog.h"
+#include "regularexportdialog.h"
+#include "regularimportdialog.h"
+#include "khrequestsdialog.h"
+#include "cdgpreviewdialog.h"
 
 
 using namespace std;

@@ -22,8 +22,8 @@
 #define REGULARSINGERSDIALOG_H
 
 #include <QDialog>
-#include <regularsingermodel.h>
-#include <khsinger.h>
+#include "regularsingermodel.h"
+#include "khsinger.h"
 
 namespace Ui {
 class RegularSingersDialog;

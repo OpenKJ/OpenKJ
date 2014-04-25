@@ -2,7 +2,7 @@
 #include "ui_cdgpreviewdialog.h"
 #include <QMessageBox>
 #include <QDebug>
-#include <khzip.h>
+#include "khzip.h"
 
 CdgPreviewDialog::CdgPreviewDialog(QWidget *parent) :
     QDialog(parent),

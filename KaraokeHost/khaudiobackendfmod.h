@@ -21,7 +21,7 @@
 #ifndef KHAUDIOBACKENDFMOD_H
 #define KHAUDIOBACKENDFMOD_H
 
-#include <khabstractaudiobackend.h>
+#include "khabstractaudiobackend.h"
 #include <fmod.hpp>
 #include <fmod_errors.h>
 #include <QTimer>

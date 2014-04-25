@@ -25,10 +25,10 @@
 #include <QTemporaryDir>
 #include <QDir>
 #ifdef USE_FMOD
-#include <khaudiobackendfmod.h>
+#include "khaudiobackendfmod.h"
 #endif
-#include <khaudiobackendqmediaplayer.h>
-#include <khzip.h>
+#include "khaudiobackendqmediaplayer.h"
+#include "khzip.h"
 #include <QDesktopWidget>
 #include <QStandardPaths>
 #include <QCoreApplication>

@@ -2,10 +2,10 @@
 #define KHREQUESTSDIALOG_H
 
 #include <QDialog>
-#include <requeststablemodel.h>
-#include <songdbtablemodel.h>
-#include <khsinger.h>
-#include <cdgpreviewdialog.h>
+#include "requeststablemodel.h"
+#include "songdbtablemodel.h"
+#include "khsinger.h"
+#include "cdgpreviewdialog.h"
 
 namespace Ui {
 class KhRequestsDialog;
