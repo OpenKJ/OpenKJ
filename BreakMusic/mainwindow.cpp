@@ -26,7 +26,7 @@
 #include <QFileDialog>
 #include <taglib/tag.h>
 #include <taglib/fileref.h>
-#include <bmsettings.h>
+#include "bmsettings.h"
 
 BmSettings *settings;
 

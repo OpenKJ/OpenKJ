@@ -22,7 +22,7 @@
 #define BmPLAYLIST_H
 
 #include <QObject>
-#include <bmsong.h>
+#include "bmsong.h"
 
 
 class BmPlaylistSong : public QObject

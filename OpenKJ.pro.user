@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 3.1.0, 2014-04-25T18:24:48. -->
+<!-- Written by QtCreator 3.1.0, 2014-04-26T03:21:53. -->
 <qtcreator>
  <data>
   <variable>ProjectExplorer.Project.ActiveTarget</variable>
@@ -70,7 +70,7 @@
       <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">QtProjectManager.QMakeBuildStep</value>
       <value type="bool" key="QtProjectManager.QMakeBuildStep.LinkQmlDebuggingLibrary">false</value>
       <value type="bool" key="QtProjectManager.QMakeBuildStep.LinkQmlDebuggingLibraryAuto">true</value>
-      <value type="QString" key="QtProjectManager.QMakeBuildStep.QMakeArguments"></value>
+      <value type="QString" key="QtProjectManager.QMakeBuildStep.QMakeArguments">&quot;INCLUDEPATH+=C:\Users\nunya\Downloads\zlib125\zlib-1.2.5&quot; &quot;INCLUDEPATH+=C:\Users\nunya\Downloads\zlib125\zlib-1.2.5\contrib&quot; LIB+=&quot;-lC:\Users\nunya\Downloads\zlib125dll\staticx64\zlibstat.lib&quot; &quot;LIBS += C:\taglib\taglib\taglib\tag.lib&quot; &quot;LIBS += C:\Users\nunya\Downloads\zlib125dll\staticx64\zlibstat.lib&quot; &quot;INCLUDEPATH += C:\taglib\taglib&quot; &quot;INCLUDEPATH += C:\taglib\taglib\taglib\toolkit&quot;</value>
       <value type="bool" key="QtProjectManager.QMakeBuildStep.QMakeForced">false</value>
      </valuemap>
      <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.1">
@@ -268,7 +268,7 @@
      <value type="int">13</value>
      <value type="int">14</value>
     </valuelist>
-    <value type="int" key="PE.EnvironmentAspect.Base">-1</value>
+    <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">KaraokeHost</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>

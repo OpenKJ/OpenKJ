@@ -10,7 +10,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = KaraokeHost
 TEMPLATE = app
 
-DEFINES += USE_FMOD
+#DEFINES += USE_FMOD
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -92,8 +92,8 @@ FORMS    += mainwindow.ui \
 unix: CONFIG += link_pkgconfig
 #unix: PKGCONFIG += phonon4qt5
 
-    LIBS += -ltag -lminizip
-
+unix: LIBS += -ltag -lminizip
+# win32: LIBS += -lminizip
 contains(DEFINES, USE_FMOD) {
 	message("USE_FMOD defined, building with FMOD API (http://www.fmod.org) support")
 	message("Please note that, while free for non-commercial use, FMOD is NOT open source")
