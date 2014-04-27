@@ -71,10 +71,13 @@ CdgWindow::~CdgWindow()
     delete ui;
 }
 
-void CdgWindow::updateCDG(QImage image)
+void CdgWindow::updateCDG(QImage image, bool overrideVisibleCheck)
 {
-    canvas->setImage(image);
-    canvas->repaint();
+    if ((isVisible()) || (overrideVisibleCheck))
+    {
+        canvas->setImage(image);
+        canvas->repaint();
+    }
 }
 
 void CdgWindow::makeFullscreen()

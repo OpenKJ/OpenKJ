@@ -164,7 +164,7 @@ MainWindow::MainWindow(QWidget *parent) :
         cdgBg.load(":/icons/Icons/openkjlogo1.png");
         qDebug() << "No CDG background image specified, loading default resource";
     }
-    cdgWindow->updateCDG(cdgBg);
+    cdgWindow->updateCDG(cdgBg,true);
     ui->cdgOutput->setPixmap(QPixmap::fromImage(QImage(":/icons/Icons/openkjlogo1.png")));
     settings->restoreWindowState(cdgWindow);
     if ((settings->cdgWindowFullscreen()) && (settings->showCdgWindow()))
@@ -637,7 +637,7 @@ void MainWindow::audioBackend_stateChanged(QMediaPlayer::State state)
             cdgBg.load(":/icons/Icons/openkjlogo1.png");
             qDebug() << "No CDG background image specified, loading default resource";
         }
-        cdgWindow->updateCDG(cdgBg);
+        cdgWindow->updateCDG(cdgBg, true);
         ui->cdgOutput->setPixmap(QPixmap::fromImage(QImage(":/icons/Icons/openkjlogo1.png")));
 
     }

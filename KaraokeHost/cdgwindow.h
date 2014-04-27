@@ -38,7 +38,7 @@ class CdgWindow : public QDialog
 public:
     explicit CdgWindow(QWidget *parent = 0, Qt::WindowFlags f = 0);
     ~CdgWindow();
-    void updateCDG(QImage image);
+    void updateCDG(QImage image, bool overrideVisibleCheck = false);
     void makeFullscreen();
     void makeWindowed();
     void setTickerText(QString text);
