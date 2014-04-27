@@ -33,6 +33,7 @@
 #include <QTemporaryDir>
 #include <QDir>
 #include <QSplashScreen>
+#include <QLabel>
 #include "databasedialog.h"
 #include "settingsdialog.h"
 #include "khipcclient.h"
@@ -119,6 +120,7 @@ private:
     KhRotationSingers *singers;
     KhRegularSingers *regularSingers;
     KhIPCClient *ipcClient;
+    QLabel *labelSingerCount;
 
     void play(QString zipFilePath);
 

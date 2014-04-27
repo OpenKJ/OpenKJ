@@ -46,6 +46,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QCoreApplication::setOrganizationDomain("OpenKJ.org");
     QCoreApplication::setApplicationName("KaraokeHost");
     ui->setupUi(this);
+    labelSingerCount = new QLabel(ui->statusBar);
     khDir = new QDir(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
     if (!khDir->exists())
     {
@@ -171,13 +172,7 @@ MainWindow::MainWindow(QWidget *parent) :
         cdgWindow->makeFullscreen();
     }
     rotationDataChanged();
-
-//    QStringList singers = regularSingers->importSingersList("/tmp/regtest.xml");
-//    for (int i=0; i < singers.size(); i++)
-//        regularSingers->importSinger(singers.at(i), "/tmp/regtest.xml");
-//    close();
-//    cdgPreviewDialog->show();
-//    cdgPreviewDialog->preview("/storage/karaoke/Sound Choice/SC1000 Series/SC1736-04 - 3 Doors Down - Kryptonite.zip");
+    ui->statusBar->addWidget(labelSingerCount);
 }
 
 void MainWindow::play(QString zipFilePath)
@@ -660,6 +655,9 @@ void MainWindow::on_buttonRegulars_clicked()
 
 void MainWindow::rotationDataChanged()
 {
+    QString statusBarText = "Singers: ";
+    statusBarText += QString::number(singers->getSingers()->size());
+    labelSingerCount->setText(statusBarText);
     QString tickerText = "Singers in rotation: ";
     tickerText += QString::number(singers->getSingers()->size());
     tickerText += " | Current singer: ";
