@@ -25,13 +25,17 @@
 KhAudioBackendFMOD::KhAudioBackendFMOD(bool downmix, QObject *parent) :
     KhAbstractAudioBackend(parent)
 {
-    fmresult = System_Create(&system);
+    //fmresult = System_Create(&system);
+    FMOD_System_Create(&system);
 #ifdef Q_OS_LINUX
-    fmresult = system->setOutput(FMOD_OUTPUTTYPE_PULSEAUDIO);
+    //fmresult = system->setOutput(FMOD_OUTPUTTYPE_PULSEAUDIO);
+    FMOD_System_SetOutput(system,FMOD_OUTPUTTYPE_PULSEAUDIO);
 #endif
     if (downmix)
-        fmresult = system->setSpeakerMode(FMOD_SPEAKERMODE_MONO);
-    fmresult = system->init(2, FMOD_INIT_NORMAL, NULL);
+        FMOD_System_SetSpeakerMode(system,FMOD_SPEAKERMODE_MONO);
+        //fmresult = system->setSpeakerMode(FMOD_SPEAKERMODE_MONO);
+    //fmresult = system->init(2, FMOD_INIT_NORMAL, NULL);
+    FMOD_System_Init(system,2, FMOD_INIT_NORMAL,NULL);
     memset(&exinfo, 0, sizeof(FMOD_CREATESOUNDEXINFO));
     m_pitchShift = 0;
     m_pitchShifterEnabled = false;
@@ -68,16 +72,22 @@ void KhAudioBackendFMOD::pitchShifter(bool enable)
 {
     if ((enable) && (!m_pitchShifterEnabled))
     {
-        system->createDSPByType(FMOD_DSP_TYPE_PITCHSHIFT, &this->dsp);
-        system->addDSP(this->dsp, NULL);
-        dsp->setParameter(1, 4096);
-        dsp->setParameter(2, 8);
-        dsp->setParameter(0, getPitchAdjustment(0));
+        FMOD_System_CreateDSPByType(system, FMOD_DSP_TYPE_PITCHSHIFT, &dsp);
+        //system->createDSPByType(FMOD_DSP_TYPE_PITCHSHIFT, &this->dsp);
+        //system->addDSP(this->dsp, NULL);
+        FMOD_System_AddDSP(system,dsp,NULL);
+        FMOD_DSP_SetParameter(dsp,1,4096);
+        //dsp->setParameter(1, 4096);
+        FMOD_DSP_SetParameter(dsp,2,8);
+        //dsp->setParameter(2, 8);
+        FMOD_DSP_SetParameter(dsp,0,getPitchAdjustment(0));
+        //dsp->setParameter(0, getPitchAdjustment(0));
         m_pitchShifterEnabled = true;
     }
     else if ((!enable) && (m_pitchShifterEnabled))
     {
-        dsp->release();
+        FMOD_DSP_Release(dsp);
+        //dsp->release();
         m_pitchShifterEnabled = false;
     }
 }
@@ -87,7 +97,8 @@ int KhAudioBackendFMOD::volume()
 {
     float volume;
     int intVolume;
-    channel->getVolume(&volume);
+    FMOD_Channel_GetVolume(channel, &volume);
+    //channel->getVolume(&volume);
     intVolume = volume / .01;
     return intVolume;
 }
@@ -95,30 +106,35 @@ int KhAudioBackendFMOD::volume()
 qint64 KhAudioBackendFMOD::position()
 {
     unsigned int pos = 0;
-    channel->getPosition(&pos, FMOD_TIMEUNIT_MS);
+    FMOD_Channel_GetPosition(channel, &pos, FMOD_TIMEUNIT_MS);
+    //channel->getPosition(&pos, FMOD_TIMEUNIT_MS);
     return pos;
 }
 
 bool KhAudioBackendFMOD::isMuted()
 {
-    bool muted;
-    channel->getMute(&muted);
+    FMOD_BOOL muted;
+    FMOD_Channel_GetMute(channel, &muted);
+    //channel->getMute(&muted);
     return muted;
 }
 
 qint64 KhAudioBackendFMOD::duration()
 {
     unsigned int duration;
-    sound->getLength(&duration,1);
+    FMOD_Sound_GetLength(sound, &duration, 1);
+    //sound->getLength(&duration,1);
     return duration;
 }
 
 QMediaPlayer::State KhAudioBackendFMOD::state()
 {
-    bool paused;
-    bool playing;
-    channel->getPaused(&paused);
-    channel->isPlaying(&playing);
+    FMOD_BOOL paused;
+    FMOD_BOOL playing;
+    FMOD_Channel_GetPaused(channel, &paused);
+    //channel->getPaused(&paused);
+    //channel->isPlaying(&playing);
+    FMOD_Channel_IsPlaying(channel, &playing);
     if (paused)
         return QMediaPlayer::PausedState;
     else if (playing)
@@ -142,7 +158,8 @@ bool KhAudioBackendFMOD::isSilent()
     float spectrumarray[64];
     float sumlevel = 0;
     int numvalues = 64;
-    channel->getSpectrum(spectrumarray,numvalues, 0, FMOD_DSP_FFT_WINDOW_RECT);
+    FMOD_Channel_GetSpectrum(channel, spectrumarray,numvalues,0,FMOD_DSP_FFT_WINDOW_RECT);
+    //channel->getSpectrum(spectrumarray,numvalues, 0, FMOD_DSP_FFT_WINDOW_RECT);
     for (int i = 0; i <= 63; i++) {
         sumlevel = sumlevel + spectrumarray[i];
     }
@@ -156,14 +173,16 @@ void KhAudioBackendFMOD::play()
 {
     if (state() == QMediaPlayer::PausedState)
     {
-        channel->setPaused(false);
+        FMOD_Channel_SetPaused(channel,false);
+        //channel->setPaused(false);
         emit stateChanged(QMediaPlayer::PlayingState);
         if (m_fade)
             fadeIn();
     }
     else
     {
-        system->playSound(FMOD_CHANNEL_FREE, this->sound, 0, &this->channel);
+        FMOD_System_PlaySound(system, FMOD_CHANNEL_FREE, sound, 0, &channel);
+        //system->playSound(FMOD_CHANNEL_FREE, this->sound, 0, &this->channel);
         setVolume(m_volume);
         fader->setChannel(channel);
     }
@@ -174,7 +193,8 @@ void KhAudioBackendFMOD::pause()
 {
     if (m_fade)
         fadeOut();
-    channel->setPaused(true);
+    FMOD_Channel_SetPaused(channel, true);
+    //channel->setPaused(true);
     emit stateChanged(QMediaPlayer::PausedState);
 }
 
@@ -182,20 +202,23 @@ void KhAudioBackendFMOD::setMedia(QString filename)
 {
     if (m_soundOpened)
         stop();
-    system->createStream(filename.toUtf8(), FMOD_SOFTWARE | FMOD_DEFAULT | FMOD_2D, 0, &sound);
+    FMOD_System_CreateStream(system, filename.toUtf8(), FMOD_SOFTWARE | FMOD_DEFAULT | FMOD_2D, 0, &sound);
+    //system->createStream(filename.toUtf8(), FMOD_SOFTWARE | FMOD_DEFAULT | FMOD_2D, 0, &sound);
     m_soundOpened = true;
     emit durationChanged(duration());
 }
 
 void KhAudioBackendFMOD::setMuted(bool muted)
 {
-    channel->setMute(muted);
+    FMOD_Channel_SetMute(channel, muted);
+//    channel->setMute(muted);
     emit mutedChanged(muted);
 }
 
 void KhAudioBackendFMOD::setPosition(qint64 position)
 {
-    channel->setPosition(position, FMOD_TIMEUNIT_MS);
+    FMOD_Channel_SetPosition(channel, position, FMOD_TIMEUNIT_MS);
+    //channel->setPosition(position, FMOD_TIMEUNIT_MS);
     emit positionChanged(position);
 }
 
@@ -203,7 +226,8 @@ void KhAudioBackendFMOD::setVolume(int volume)
 {
     m_volume = volume;
     fader->setBaseVolume(volume);
-    channel->setVolume(volume * .01);
+    FMOD_Channel_SetVolume(channel, volume * .01);
+    //channel->setVolume(volume * .01);
     emit volumeChanged(volume);
 }
 
@@ -214,8 +238,10 @@ void KhAudioBackendFMOD::stop(bool skipFade)
         int curVolume = volume();
         if ((m_fade) && (!skipFade))
             fadeOut();
-        channel->stop();
-        sound->release();
+        //channel->stop();
+        FMOD_Channel_Stop(channel);
+        //sound->release();
+        FMOD_Sound_Release(sound);
         emit stateChanged(QMediaPlayer::StoppedState);
         emit durationChanged(0);
         emit positionChanged(0);
@@ -234,7 +260,8 @@ void KhAudioBackendFMOD::setPitchShift(int semitones)
     else
     {
         pitchShifter(true);
-        dsp->setParameter(0,getPitchAdjustment(semitones));
+        FMOD_DSP_SetParameter(dsp, 0, getPitchAdjustment(semitones));
+        //dsp->setParameter(0,getPitchAdjustment(semitones));
     }
     m_pitchShift = semitones;
 }
@@ -243,9 +270,9 @@ void KhAudioBackendFMOD::setDownmix(bool enabled)
 {
     qDebug() << "KhAudioBackendFMOD - Downmix to mono " << enabled;
     if (enabled)
-        system->setSpeakerMode(FMOD_SPEAKERMODE_MONO);
+        FMOD_System_SetSpeakerMode(system, FMOD_SPEAKERMODE_MONO);
     else
-        system->setSpeakerMode(FMOD_SPEAKERMODE_STEREO);
+        FMOD_System_SetSpeakerMode(system, FMOD_SPEAKERMODE_STEREO);
 }
 
 void KhAudioBackendFMOD::signalTimer_timeout()
@@ -324,8 +351,9 @@ void FaderFmod::fadeIn()
 
 void FaderFmod::fadeOut()
 {
-    bool playing;
-    channel->isPlaying(&playing);
+    FMOD_BOOL playing;
+    FMOD_Channel_IsPlaying(channel, &playing);
+    //channel->isPlaying(&playing);
     if (playing)
     {
     m_targetVolume = 0;
@@ -350,7 +378,7 @@ void FaderFmod::restoreVolume()
     setVolume(m_preOutVolume);
 }
 
-void FaderFmod::setChannel(Channel *fmChannel)
+void FaderFmod::setChannel(FMOD_CHANNEL *fmChannel)
 {
     channel = fmChannel;
     m_preOutVolume = volume();
@@ -364,14 +392,16 @@ void FaderFmod::setBaseVolume(int volume)
 
 void FaderFmod::setVolume(float volume)
 {
-    channel->setVolume(volume);
+    //channel->setVolume(volume);
+    FMOD_Channel_SetVolume(channel, volume);
     emit volumeChanged(volume * 100);
 }
 
 float FaderFmod::volume()
 {
     float volume;
-    channel->getVolume(&volume);
+    FMOD_Channel_GetVolume(channel, &volume);
+    //channel->getVolume(&volume);
     return volume;
 }
 

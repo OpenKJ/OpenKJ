@@ -10,7 +10,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = KaraokeHost
 TEMPLATE = app
 
-#DEFINES += USE_FMOD
+DEFINES += USE_FMOD
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -93,15 +93,16 @@ unix: CONFIG += link_pkgconfig
 #unix: PKGCONFIG += phonon4qt5
 
 unix: LIBS += -ltag -lminizip
+win32: LIBS += -lminizip -ltag.dll
 # win32: LIBS += -lminizip
 contains(DEFINES, USE_FMOD) {
 	message("USE_FMOD defined, building with FMOD API (http://www.fmod.org) support")
 	message("Please note that, while free for non-commercial use, FMOD is NOT open source")
-        win32: INCLUDEPATH += "/home/isaac/devel/QT/KSP/fmod-win32/fmod/inc/"
+        win32: INCLUDEPATH += "/home/isaac/.wine/drive_c/Program Files (x86)/FMOD SoundSystem/FMOD Programmers API Windows/api/inc"
 	HEADERS += khaudiobackendfmod.h
 	SOURCES += khaudiobackendfmod.cpp
 
-        win32: LIBS += -L"/home/isaac/devel/QT/KSP/fmod-win32/fmod/lib/" -lfmodex
+        win32: LIBS += -L"/home/isaac/.wine/drive_c/Program Files (x86)/FMOD SoundSystem/FMOD Programmers API Windows/api/lib" -lfmodex
 	unix {
 		contains(QMAKE_HOST.arch, x86_64) {
 			message("64bit UNIX/Linux platform detected, linking fmodex64")

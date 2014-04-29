@@ -22,13 +22,13 @@
 #define KHAUDIOBACKENDFMOD_H
 
 #include "khabstractaudiobackend.h"
-#include <fmod.hpp>
+#include <fmod.h>
 #include <fmod_errors.h>
 #include <QTimer>
 #include <QThread>
 
 
-using namespace FMOD;
+//using namespace FMOD;
 
 class FaderFmod : public QThread
 {
@@ -40,7 +40,7 @@ public:
     void fadeOut();
     bool isFading();
     void restoreVolume();
-    void setChannel(FMOD::Channel *fmChannel);
+    void setChannel(FMOD_CHANNEL *fmChannel);
 
 signals:
     void volumeChanged(int);
@@ -51,7 +51,8 @@ public slots:
 private:
     float m_targetVolume;
     float m_preOutVolume;
-    FMOD::Channel *channel;
+
+    FMOD_CHANNEL *channel;
     bool fading;
     void setVolume(float volume);
     float volume();
@@ -66,11 +67,11 @@ private:
     bool m_pitchShifterEnabled;
     int m_volume;
     bool m_soundOpened;
-    FMOD::System *system;
-    FMOD::Sound      *sound;
-    FMOD::Channel    *channel;
-    FMOD_RESULT      fmresult;
-    FMOD::DSP        *dsp;
+    FMOD_SYSTEM *system;
+    FMOD_SOUND *sound;
+    FMOD_CHANNEL *channel;
+    FMOD_RESULT fmresult;
+    FMOD_DSP *dsp;
     FMOD_CREATESOUNDEXINFO exinfo;
     double getPitchAdjustment(int keychange);
     QTimer *signalTimer;

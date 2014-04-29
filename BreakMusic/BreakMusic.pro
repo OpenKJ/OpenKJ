@@ -48,4 +48,5 @@ RESOURCES += \
     resources.qrc
 
 unix: LIBS += -ltag
+win32: LIBS += -ltag
 #win32: LIBS += -L"$$_PRO_FILE_PWD_/taglib-win32/lib" -ltag
