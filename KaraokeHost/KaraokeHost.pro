@@ -7,6 +7,8 @@
 QT       += core gui sql network opengl multimedia
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
+win32: CONFIG += console
+
 TARGET = KaraokeHost
 TEMPLATE = app
 

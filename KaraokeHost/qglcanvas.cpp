@@ -20,10 +20,17 @@
 
 #include "qglcanvas.h"
 
+#ifdef Q_OS_WIN
+QGLCanvas::QGLCanvas(QWidget *parent) :
+    QWidget(parent)
+{
+}
+#else
 QGLCanvas::QGLCanvas(QWidget *parent) :
     QGLWidget(parent)
 {
 }
+#endif
 void QGLCanvas::setImage(const QImage& image)
 {
     img = image;

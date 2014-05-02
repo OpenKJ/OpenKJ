@@ -11,6 +11,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = BreakMusic
 TEMPLATE = app
 
+win32: CONFIG += console
 
 SOURCES += main.cpp\
         mainwindow.cpp \
