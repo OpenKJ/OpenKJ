@@ -87,6 +87,8 @@ public:
     void setAudioDownmix(bool downmix);
     bool audioDetectSilence();
     void setAudioDetectSilence(bool enabled);
+    QString audioOutputDevice();
+    void setAudioOutputDevice(QString device);
 
 signals:
     void tickerFontChanged();

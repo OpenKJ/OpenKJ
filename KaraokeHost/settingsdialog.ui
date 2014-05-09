@@ -124,6 +124,16 @@
           <widget class="QWidget" name="audioPage">
            <layout class="QVBoxLayout" name="verticalLayout_7">
             <item>
+             <widget class="QLabel" name="label_10">
+              <property name="text">
+               <string>Audio output device</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QListWidget" name="listWidgetAudioDevices"/>
+            </item>
+            <item>
              <widget class="QCheckBox" name="checkBoxFader">
               <property name="toolTip">
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If the fader is enabled, song transitions (stop, pause, unpause) will be faded out/in to avoid hard transitions.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>

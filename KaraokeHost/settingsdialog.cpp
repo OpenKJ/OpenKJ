@@ -32,10 +32,11 @@
 extern KhSettings *settings;
 
 
-SettingsDialog::SettingsDialog(QWidget *parent) :
+SettingsDialog::SettingsDialog(KhAbstractAudioBackend *AudioBackend, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::SettingsDialog)
 {
+    audioBackend = AudioBackend;
     ui->setupUi(this);
     createIcons();
     QStringList screens = getMonitors();
@@ -73,6 +74,16 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     ui->checkBoxFader->setChecked(settings->audioUseFader());
     ui->checkBoxDownmix->setChecked(settings->audioDownmix());
     ui->checkBoxSilenceDetection->setChecked(settings->audioDetectSilence());
+    ui->checkBoxSilenceDetection->setHidden(!audioBackend->canDetectSilence());
+    ui->checkBoxDownmix->setHidden(!audioBackend->canDownmix());
+    ui->checkBoxFader->setHidden(!audioBackend->canFade());
+    ui->listWidgetAudioDevices->addItems(audioBackend->getOutputDevices());
+    if (audioBackend->getOutputDevices().contains(settings->audioOutputDevice()))
+    {
+        ui->listWidgetAudioDevices->findItems(settings->audioOutputDevice(),Qt::MatchExactly).at(0)->setSelected(true);
+    }
+    else
+        ui->listWidgetAudioDevices->item(0)->setSelected(true);
 }
 
 SettingsDialog::~SettingsDialog()
@@ -261,4 +272,13 @@ void SettingsDialog::on_checkBoxDownmix_toggled(bool checked)
 {
     settings->setAudioDownmix(checked);
     emit audioDownmixChanged(checked);
+}
+
+void SettingsDialog::on_listWidgetAudioDevices_itemSelectionChanged()
+{
+    QString device = ui->listWidgetAudioDevices->selectedItems().at(0)->text();
+    settings->setAudioOutputDevice(device);
+    int deviceIndex = audioBackend->getOutputDevices().indexOf(QRegExp(device,Qt::CaseSensitive,QRegExp::FixedString));
+    if (deviceIndex != -1)
+        audioBackend->setOutputDevice(deviceIndex);
 }

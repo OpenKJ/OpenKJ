@@ -85,6 +85,8 @@ public:
 //    explicit KhAudioBackendFMOD(QObject *parent = 0);
     KhAudioBackendFMOD(bool downmix = false, QObject *parent = 0);
     QString backendName() {return QString("FMOD");}
+    QStringList getOutputDevices();
+    void setOutputDevice(int deviceIndex);
 signals:
 
 public slots:
@@ -104,6 +106,7 @@ public:
     bool canDetectSilence() { return true; }
     bool isSilent();
     bool canFade() { return true; }
+    bool canDownmix() { return true; }
 
 public slots:
     void play();

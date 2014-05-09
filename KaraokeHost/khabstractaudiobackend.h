@@ -42,6 +42,8 @@ public:
     virtual bool canDetectSilence() { return false; }
     virtual bool isSilent() { return false; }
     virtual bool canDownmix() { return false; }
+    virtual QStringList getOutputDevices();
+    virtual void setOutputDevice(int deviceIndex) {Q_UNUSED(deviceIndex);}
 
 
 signals:

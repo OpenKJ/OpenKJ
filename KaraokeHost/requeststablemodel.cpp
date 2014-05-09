@@ -63,7 +63,7 @@ void RequestsTableModel::onNetworkReply(QNetworkReply *reply)
         //serial only
         if (curSerial != serial)
         {
-            //qDebug() << "Serial only pull - " << curSerial << " != " << serial << " - Serial mismatch.  Downloading full list.";
+            qDebug() << "RequestsClient - Serial only pull - " << curSerial << " != " << serial << " - Serial mismatch.  Downloading full list.";
             QUrl url(settings->requestServerUrl() + "/getRequests.php");
             QNetworkRequest request;
             request.setUrl(url);
@@ -71,11 +71,12 @@ void RequestsTableModel::onNetworkReply(QNetworkReply *reply)
         }
         else
         {
-            //qDebug() << "Serial only pull - " << serial << " - Serials match.";
+            qDebug() << "RequestsClient - Serial only pull - " << serial << " - Serials match.";
         }
     }
     else if (recordType == 1)
     {
+        qDebug() << "RequestsClient - Recieved full list";
         curSerial = serial;
         QJsonArray reqArray = json.object().value("requests").toArray();
         emit layoutAboutToBeChanged();
@@ -95,6 +96,7 @@ void RequestsTableModel::onNetworkReply(QNetworkReply *reply)
     {
         curSerial = serial;
         int reqID = json.object().value("delreq").toDouble();
+        qDebug() << "RequestsClient - Received delete for request " << reqID << " - Removing request";
         int delIndex = -1;
         for (int i=0; i < requests.size(); i++)
         {
@@ -111,7 +113,7 @@ void RequestsTableModel::onNetworkReply(QNetworkReply *reply)
     else if (recordType == 3)
     {
         emit layoutAboutToBeChanged();
-        //qDebug() << "Clear request - clearing requests - new serial " << serial;
+        qDebug() << "RequestsClient - Received clear - clearing all requests - new serial " << serial;
         curSerial = serial;
         requests.clear();
         emit layoutChanged();

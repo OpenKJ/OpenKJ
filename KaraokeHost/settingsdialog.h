@@ -24,6 +24,7 @@
 #include <QDialog>
 #include <QList>
 #include "khsettings.h"
+#include "khabstractaudiobackend.h"
 
 namespace Ui {
 class SettingsDialog;
@@ -34,7 +35,7 @@ class SettingsDialog : public QDialog
     Q_OBJECT
     
 public:
-    explicit SettingsDialog(QWidget *parent = 0);
+    explicit SettingsDialog(KhAbstractAudioBackend *AudioBackend, QWidget *parent = 0);
     ~SettingsDialog();
     
     void createIcons();
@@ -82,6 +83,8 @@ private slots:
 
     void on_checkBoxDownmix_toggled(bool checked);
 
+    void on_listWidgetAudioDevices_itemSelectionChanged();
+
 signals:
     void showCdgWindowChanged(bool);
     void cdgWindowFullScreenChanged(bool);
@@ -93,6 +96,7 @@ signals:
 private:
     Ui::SettingsDialog *ui;
     QStringList getMonitors();
+    KhAbstractAudioBackend *audioBackend;
 //    KhSettings *settings;
 };
 

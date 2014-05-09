@@ -63,8 +63,8 @@ MainWindow::MainWindow(QWidget *parent) :
     query.exec("CREATE TABLE IF NOT EXISTS regularSingers ( name VARCHAR(30) NOT NULL UNIQUE)");
     query.exec("CREATE TABLE IF NOT EXISTS regularSongs ( singer INTEGER NOT NULL, song INTEGER NOT NULL, 'keychg' INTEGER, 'position' INTEGER)");
     query.exec("CREATE TABLE IF NOT EXISTS sourceDirs ( path VARCHAR(255) UNIQUE, pattern INTEGER)");
-//    query.exec("PRAGMA synchronous = OFF");
-    query.exec("PRAGMA journal_mode = OFF");
+    query.exec("PRAGMA synchronous = OFF");
+//    query.exec("PRAGMA journal_mode = OFF");
     sortColDB = 1;
     sortDirDB = 0;
     songdbmodel = new SongDBTableModel(this);
@@ -85,7 +85,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     khTmpDir = new QTemporaryDir();
     dbDialog = new DatabaseDialog(this);
-    settingsDialog = new SettingsDialog(this);
     regularSingersDialog = new RegularSingersDialog(regularSingers, singers, this);
     regularExportDialog = new RegularExportDialog(regularSingers, this);
     regularImportDialog = new RegularImportDialog(songdbmodel->getDbSongs(), regularSingers, this);
@@ -121,7 +120,7 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->groupBoxKey->hide();
         ui->treeViewQueue->hideColumn(3);
     }
-
+    settingsDialog = new SettingsDialog(audioBackend, this);
     connect(audioBackend, SIGNAL(volumeChanged(int)), ui->sliderVolume, SLOT(setValue(int)));
     connect(dbDialog, SIGNAL(databaseUpdated()), this, SLOT(songdbUpdated()));
     connect(dbDialog, SIGNAL(databaseCleared()), this, SLOT(databaseCleared()));
@@ -167,6 +166,8 @@ MainWindow::MainWindow(QWidget *parent) :
     cdgWindow->updateCDG(cdgBg,true);
     ui->cdgOutput->setPixmap(QPixmap::fromImage(QImage(":/icons/Icons/openkjlogo1.png")));
     settings->restoreWindowState(cdgWindow);
+    settings->restoreWindowState(requestsDialog);
+    settings->restoreWindowState(regularSingersDialog);
     if ((settings->cdgWindowFullscreen()) && (settings->showCdgWindow()))
     {
         cdgWindow->makeFullscreen();
@@ -219,9 +220,11 @@ void MainWindow::play(QString zipFilePath)
 MainWindow::~MainWindow()
 {
     settings->saveWindowState(cdgWindow);
+    settings->saveWindowState(requestsDialog);
+    settings->saveWindowState(regularSingersDialog);
     settings->saveWindowState(this);
     settings->setShowCdgWindow(cdgWindow->isVisible());
-    settings->setAudioVolume(audioBackend->volume());
+    settings->setAudioVolume(ui->sliderVolume->value());
     delete cdg;
     delete khDir;
     delete khTmpDir;

@@ -25,17 +25,19 @@
 KhAudioBackendFMOD::KhAudioBackendFMOD(bool downmix, QObject *parent) :
     KhAbstractAudioBackend(parent)
 {
-    //fmresult = System_Create(&system);
-    FMOD_System_Create(&system);
+    fmresult = FMOD_System_Create(&system);
+    qDebug() << "KhAudioBackendFMOD Creating system - Error state - " << FMOD_ErrorString(fmresult);
 #ifdef Q_OS_LINUX
-    //fmresult = system->setOutput(FMOD_OUTPUTTYPE_PULSEAUDIO);
-    FMOD_System_SetOutput(system,FMOD_OUTPUTTYPE_PULSEAUDIO);
+    fmresult = FMOD_System_SetOutput(system,FMOD_OUTPUTTYPE_PULSEAUDIO);
+    qDebug() << "KhAudioBackendFMOD - Setting backend to PulseAudio - Error state - " << FMOD_ErrorString(fmresult);
 #endif
     if (downmix)
-        FMOD_System_SetSpeakerMode(system,FMOD_SPEAKERMODE_MONO);
-        //fmresult = system->setSpeakerMode(FMOD_SPEAKERMODE_MONO);
-    //fmresult = system->init(2, FMOD_INIT_NORMAL, NULL);
-    FMOD_System_Init(system,2, FMOD_INIT_NORMAL,NULL);
+    {
+        fmresult = FMOD_System_SetSpeakerMode(system,FMOD_SPEAKERMODE_MONO);
+        qDebug() << "KhAudioBackendFMOD - Setting speaker mode - Error state - " << FMOD_ErrorString(fmresult);
+    }
+    fmresult = FMOD_System_Init(system,2, FMOD_INIT_NORMAL,NULL);
+    qDebug() << "KhAudioBackendFMOD - Initializing system - Error state - " << FMOD_ErrorString(fmresult);
     memset(&exinfo, 0, sizeof(FMOD_CREATESOUNDEXINFO));
     m_pitchShift = 0;
     m_pitchShifterEnabled = false;
@@ -50,6 +52,28 @@ KhAudioBackendFMOD::KhAudioBackendFMOD(bool downmix, QObject *parent) :
     fader = new FaderFmod(this);
     setVolume(25);
     connect(fader, SIGNAL(volumeChanged(int)), this, SLOT(faderChangedVolume(int)));
+    qDebug() << "KhAudioBackendFMOD - Initialized";
+}
+
+QStringList KhAudioBackendFMOD::getOutputDevices()
+{
+    int count;
+    QStringList devices;
+    FMOD_System_GetNumDrivers(system, &count);
+    for (int i=0; i < count; i++)
+    {
+        char name[255];
+        FMOD_System_GetDriverInfo(system, i, name, 255, NULL);
+        devices << name;
+    }
+    return devices;
+}
+
+void KhAudioBackendFMOD::setOutputDevice(int deviceIndex)
+{
+    qDebug() << "KhAudioBackendFMOD - setOutputDevice(" << deviceIndex << ") called.";
+    fmresult = FMOD_System_SetDriver(system, deviceIndex);
+    qDebug() << "KhAudioBackendFMOD - Error state - " << FMOD_ErrorString(fmresult);
 }
 
 double KhAudioBackendFMOD::getPitchAdjustment(int semitones)
@@ -181,7 +205,8 @@ void KhAudioBackendFMOD::play()
     }
     else
     {
-        FMOD_System_PlaySound(system, FMOD_CHANNEL_FREE, sound, 0, &channel);
+        fmresult = FMOD_System_PlaySound(system, FMOD_CHANNEL_FREE, sound, 0, &channel);
+        qDebug() << "KhAudioBackendFMOD - Playing sound - Error state - " << FMOD_ErrorString(fmresult);
         //system->playSound(FMOD_CHANNEL_FREE, this->sound, 0, &this->channel);
         setVolume(m_volume);
         fader->setChannel(channel);
@@ -202,7 +227,8 @@ void KhAudioBackendFMOD::setMedia(QString filename)
 {
     if (m_soundOpened)
         stop();
-    FMOD_System_CreateStream(system, filename.toUtf8(), FMOD_SOFTWARE | FMOD_DEFAULT | FMOD_2D, 0, &sound);
+    fmresult = FMOD_System_CreateStream(system, filename.toUtf8(), FMOD_SOFTWARE | FMOD_DEFAULT | FMOD_2D, 0, &sound);
+    qDebug() << "KhAudioBackendFMOD - Creating stream - Error state - " << FMOD_ErrorString(fmresult);
     //system->createStream(filename.toUtf8(), FMOD_SOFTWARE | FMOD_DEFAULT | FMOD_2D, 0, &sound);
     m_soundOpened = true;
     emit durationChanged(duration());

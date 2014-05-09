@@ -41,5 +41,12 @@ QString KhAbstractAudioBackend::msToMMSS(qint64 msec)
 //    else
         min = QString::number(minutes);
 
-    return QString(min + ":" + sec);
+        return QString(min + ":" + sec);
+}
+
+QStringList KhAbstractAudioBackend::getOutputDevices()
+{
+    QStringList devices;
+    devices << "System Default Output";
+    return devices;
 }

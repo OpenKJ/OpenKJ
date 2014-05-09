@@ -75,9 +75,13 @@ void KhSettings::saveWindowState(QWidget *window)
 
 void KhSettings::restoreWindowState(QWidget *window)
 {
+
     settings->beginGroup(window->objectName());
-    window->resize(settings->value("size", QSize(640, 480)).toSize());
-    window->move(settings->value("pos", QPoint(100, 100)).toPoint());
+    if (settings->contains("size") && settings->contains("pos"))
+    {
+        window->resize(settings->value("size", QSize(640, 480)).toSize());
+        window->move(settings->value("pos", QPoint(100, 100)).toPoint());
+    }
     settings->endGroup();
 }
 
@@ -269,4 +273,14 @@ bool KhSettings::audioDetectSilence()
 void KhSettings::setAudioDetectSilence(bool enabled)
 {
     settings->setValue("audioDetectSilence", enabled);
+}
+
+QString KhSettings::audioOutputDevice()
+{
+    return settings->value("audioOutputDevice", 0).toString();
+}
+
+void KhSettings::setAudioOutputDevice(QString device)
+{
+    settings->setValue("audioOutputDevice", device);
 }
