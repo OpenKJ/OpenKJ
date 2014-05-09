@@ -61,6 +61,9 @@
             <height>32</height>
            </size>
           </property>
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
+          </property>
           <property name="text">
            <string/>
           </property>
@@ -115,6 +118,9 @@
         </item>
         <item>
          <widget class="QPushButton" name="pushButtonSearch">
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
+          </property>
           <property name="text">
            <string/>
           </property>
@@ -242,6 +248,9 @@
         </item>
         <item>
          <widget class="QPushButton" name="pushButtonAddSong">
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
+          </property>
           <property name="text">
            <string>Add Song</string>
           </property>
@@ -272,6 +281,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="pushButtonClose">
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
        <property name="text">
         <string>Close</string>
        </property>
