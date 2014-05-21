@@ -35,6 +35,7 @@ KhSinger::KhSinger(KhRegularSingers *regSingers, QObject *parent) :
     m_position = -1;
     m_regular = false;
     m_regularIndex = -1;
+    db = new KhDb(this);
 }
 
 bool KhSinger::regular() const
@@ -47,9 +48,7 @@ void KhSinger::setRegular(bool value, bool skipDB)
     m_regular = value;
     if (!skipDB)
     {
-        QSqlQuery query;
-        QString sql = "UPDATE rotationsingers SET 'regular'=" + QString::number(m_regular) + " WHERE ROWID == " + QString::number(m_index);
-        query.exec(sql);
+        db->singerSetRegular(m_index, value);
     }
 }
 
@@ -63,9 +62,7 @@ void KhSinger::setPosition(int value, bool skipDB)
     m_position = value;
     if (!skipDB)
     {
-        QSqlQuery query;
-        QString sql = "UPDATE rotationsingers SET 'position'=" + QString::number(m_position) + " WHERE ROWID == " + QString::number(m_index);
-        query.exec(sql);
+        db->singerSetPosition(m_index, value);
     }
 }
 
@@ -79,9 +76,7 @@ void KhSinger::setName(const QString &value, bool skipDB)
     m_name = value;
     if (!skipDB)
     {
-        QSqlQuery query;
-        QString sql = "UPDATE rotationsingers SET 'name'=\"" + m_name + "\" WHERE ROWID == " + QString::number(m_index);
-        query.exec(sql);
+        db->singerSetName(m_index, value);
     }
 }
 
@@ -106,9 +101,7 @@ void KhSinger::setRegularIndex(int value, bool skipDB)
     m_regularIndex = value;
     if (!skipDB)
     {
-        QSqlQuery query;
-        QString sql = "UPDATE rotationsingers SET 'regularid'=" + QString::number(m_regularIndex) + " WHERE ROWID == " + QString::number(m_index);
-        query.exec(sql);
+        db->singerSetRegIndex(m_index, value);
     }
     m_songs->setRegSingerIndex(m_regularIndex,skipDB);
 }

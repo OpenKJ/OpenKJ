@@ -46,7 +46,8 @@ SOURCES += main.cpp\
     regularimportdialog.cpp \
     khrequestsdialog.cpp \
     requeststablemodel.cpp \
-    cdgpreviewdialog.cpp
+    cdgpreviewdialog.cpp \
+    khdb.cpp
 
 HEADERS  += mainwindow.h \
     queuetablemodel.h \
@@ -79,7 +80,8 @@ HEADERS  += mainwindow.h \
     regularimportdialog.h \
     khrequestsdialog.h \
     requeststablemodel.h \
-    cdgpreviewdialog.h
+    cdgpreviewdialog.h \
+    khdb.h
 
 FORMS    += mainwindow.ui \
     databasedialog.ui \
