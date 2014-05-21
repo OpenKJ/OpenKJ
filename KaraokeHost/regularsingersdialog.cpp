@@ -24,7 +24,7 @@
 #include <QMessageBox>
 #include <QSqlQuery>
 
-RegularSingersDialog::RegularSingersDialog(KhRegularSingers *regSingers, KhSingers *rotSingers, QWidget *parent) :
+RegularSingersDialog::RegularSingersDialog(KhRegularSingers *regSingers, RotationTableModel *rotationModel, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::RegularSingersDialog)
 {
@@ -43,7 +43,7 @@ RegularSingersDialog::RegularSingersDialog(KhRegularSingers *regSingers, KhSinge
     ui->comboBoxAddPos->addItem("Fair");
     ui->comboBoxAddPos->addItem("Bottom");
     ui->comboBoxAddPos->addItem("Next");
-    m_rotSingers = rotSingers;
+    m_rotationModel = rotationModel;
     m_regSingers = regSingers;
     connect(regularSingerModel, SIGNAL(editSingerDuplicateError()), this, SLOT(editSingerDuplicateError()));
 }
@@ -104,7 +104,7 @@ void RegularSingersDialog::editSingerDuplicateError()
 
 void RegularSingersDialog::addRegularToRotation(int ListIndex)
 {
-    if (m_rotSingers->exists(m_regSingers->at(ListIndex)->getName()))
+    if (m_rotationModel->exists(m_regSingers->at(ListIndex)->getName()))
     {
         //Singer with name already exists in rotation
         QMessageBox::warning(this, tr("Naming conflict"), tr("A rotation singer already exists with the same name as the regular you're attempting to add. Action aborted."), QMessageBox::Close);
@@ -120,8 +120,8 @@ void RegularSingersDialog::addRegularToRotation(int ListIndex)
         qDebug() << "RegularSingersDialog::addRegularToRotation() DB transaction start";
         QSqlQuery query("BEGIN TRANSACTION");
         qDebug() << "Adding regular " << m_regSingers->at(ListIndex)->getName();
-        m_rotSingers->add(m_regSingers->at(ListIndex)->getName());
-        rotSinger = m_rotSingers->getSingers()->at(m_rotSingers->getSingers()->size() -1);
+        m_rotationModel->add(m_regSingers->at(ListIndex)->getName());
+        rotSinger = m_rotationModel->at(m_rotationModel->size() -1);
         qDebug() << "Sorting songs by position";
         regSinger->getRegSongs()->sort();
         qDebug() << "Sort complete, adding songs to singer's queue";
@@ -143,15 +143,15 @@ void RegularSingersDialog::addRegularToRotation(int ListIndex)
         qDebug() << "Singer add complete";
         query.exec("COMMIT TRANSACTION");
         qDebug() << "RegularSingersDialog::addRegularToRotation() DB transaction end";
-        if ((ui->comboBoxAddPos->currentText() == "Next") && (m_rotSingers->getCurrent() != NULL))
+        if ((ui->comboBoxAddPos->currentText() == "Next") && (m_rotationModel->getCurrent() != NULL))
         {
-            if (m_rotSingers->getCurrent()->position() != m_rotSingers->getSingers()->size())
-                m_rotSingers->moveSinger(rotSinger->position(),m_rotSingers->getCurrent()->position() + 1);
+            if (m_rotationModel->getCurrent()->position() != m_rotationModel->size())
+                m_rotationModel->moveSinger(rotSinger->position(),m_rotationModel->getCurrent()->position() + 1);
         }
-        else if ((ui->comboBoxAddPos->currentText() == "Fair") && (m_rotSingers->getCurrent() != NULL))
+        else if ((ui->comboBoxAddPos->currentText() == "Fair") && (m_rotationModel->getCurrent() != NULL))
         {
-            if (m_rotSingers->getCurrent()->position() != 1)
-                m_rotSingers->moveSinger(rotSinger->position(), m_rotSingers->getCurrent()->position());
+            if (m_rotationModel->getCurrent()->position() != 1)
+                m_rotationModel->moveSinger(rotSinger->position(), m_rotationModel->getCurrent()->position());
         }
         msgBox->close();
         delete msgBox;

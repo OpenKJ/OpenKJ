@@ -20,16 +20,33 @@
 
 #include "rotationtablemodel.h"
 #include <QMessageBox>
+#include <QSqlQuery>
+#include <QSqlRecord>
 #include <QDebug>
+#include <algorithm>
+#include "khdb.h"
 
+extern KhDb *db;
 
-RotationTableModel::RotationTableModel(KhSingers *singersObject, QObject *parent) :
+RotationTableModel::RotationTableModel(KhRegularSingers *regularSingersObject, QObject *parent) :
     QAbstractTableModel(parent)
 {
-    singers = singersObject;
-    singers->setCurrentSingerPosition(-1);
-    connect(singers,SIGNAL(dataAboutToChange()), this, SIGNAL(layoutAboutToBeChanged()));
-    connect(singers, SIGNAL(dataChanged()), this, SIGNAL(layoutChanged()));
+    //singers = singersObject;
+    regularSingers = regularSingersObject;
+    m_singers = new QList<KhSinger *>;
+    loadFromDB();
+    setCurrentSingerPosition(-1);
+    currentSingerPosition = -1;
+    currentSingerIndex = -1;
+    selectedSingerIndex = -1;
+    selectedSingerPosition = -1;
+
+}
+
+RotationTableModel::~RotationTableModel()
+{
+    qDeleteAll(m_singers->begin(),m_singers->end());
+    delete m_singers;
 }
 
 QVariant RotationTableModel::data(const QModelIndex &index, int role) const
@@ -37,11 +54,11 @@ QVariant RotationTableModel::data(const QModelIndex &index, int role) const
     if(!index.isValid())
         return QVariant();
 
-    if(index.row() >= singers->getSingers()->size() || index.row() < 0)
+    if(index.row() >= m_singers->size() || index.row() < 0)
         return QVariant();
 
 //    if((role == Qt::BackgroundRole) && (singers->getSingers()->at(index.row())->getSingerPosition() == singers->getCurrentSingerPosition()))
-    if((role == Qt::BackgroundRole) && (singers->getSingers()->at(index.row())->index() == singers->getCurrentSingerIndex()))
+    if((role == Qt::BackgroundRole) && (m_singers->at(index.row())->index() == getCurrentSingerIndex()))
         return QBrush(Qt::yellow);
 
     if (role == Qt::DecorationRole)
@@ -49,7 +66,7 @@ QVariant RotationTableModel::data(const QModelIndex &index, int role) const
         switch(index.column())
         {
         case 0:
-            if (singers->getSingers()->at(index.row())->index() == singers->getCurrentSingerIndex())
+            if (m_singers->at(index.row())->index() == getCurrentSingerIndex())
                 return QPixmap(":/icons/microphone");
             else
                 return QVariant();
@@ -58,7 +75,7 @@ QVariant RotationTableModel::data(const QModelIndex &index, int role) const
         case 4:
             return QPixmap(":/icons/Icons/edit-delete.png");
         case 5:
-            if (singers->getSingers()->at(index.row())->regular())
+            if (m_singers->at(index.row())->regular())
                 return QPixmap(":/icons/Icons/emblem-favorite-16x16.png");
             else
                 return QPixmap(":/icons/Icons/emblem-favorite-disabled-16x16.png");
@@ -72,9 +89,9 @@ QVariant RotationTableModel::data(const QModelIndex &index, int role) const
         switch(index.column())
         {
         case NAME:
-            return singers->getSingers()->at(index.row())->name();
+            return m_singers->at(index.row())->name();
         case NEXTSONG:
-            return singers->getNextSongBySingerPosition(singers->getSingers()->at(index.row())->position());
+            return getNextSongBySingerPosition(m_singers->at(index.row())->position());
         }
     }
     return QVariant();
@@ -109,14 +126,14 @@ QVariant RotationTableModel::headerData(int section, Qt::Orientation orientation
 bool RotationTableModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     Q_UNUSED(role);
-    if (index.isValid() && role == Qt::EditRole && !(index.row() >= singers->getSingers()->size() || index.row() < 0))
+    if (index.isValid() && role == Qt::EditRole && !(index.row() >= m_singers->size() || index.row() < 0))
     {
-        if (singers->exists(value.toString()))
+        if (exists(value.toString()))
         {
             emit notify_user("Error: Duplicate singer name.  Edit cancelled.");
             return false;
         }
-        singers->getSingerByPosition(index.row() + 1)->setName(value.toString());
+        getSingerByPosition(index.row() + 1)->setName(value.toString());
         return true;
     }
     else
@@ -138,7 +155,7 @@ Qt::ItemFlags RotationTableModel::flags(const QModelIndex &index) const
 int RotationTableModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    return singers->getSingers()->size();
+    return m_singers->size();
 }
 
 int RotationTableModel::columnCount(const QModelIndex &parent) const
@@ -158,12 +175,12 @@ bool RotationTableModel::dropMimeData(const QMimeData *data, Qt::DropAction acti
     else if (row >= 0)
         droprow = row;
     else
-        droprow = singers->getSingers()->size();
+        droprow = m_singers->size();
     if (data->hasFormat("text/plain"))
     {
         int dragrow;
         dragrow = data->text().toInt();
-        singers->moveSinger(dragrow + 1,droprow + 1);
+        moveSinger(dragrow + 1,droprow + 1);
         return true;
     }
     else if (data->hasFormat("integer/songid"))
@@ -172,10 +189,10 @@ bool RotationTableModel::dropMimeData(const QMimeData *data, Qt::DropAction acti
         {
             QByteArray bytedata = data->data("integer/songid");
             int songid =  QString(bytedata.data()).toInt();
-            if (singers->getSingerByPosition(droprow + 1) != NULL)
+            if (getSingerByPosition(droprow + 1) != NULL)
             {
-                int singerid = singers->getSingerByPosition(droprow + 1)->index();
-                emit songDroppedOnSinger(singerid,songid, parent.row());
+                int singerid = getSingerByPosition(droprow + 1)->index();
+                songDroppedOnSinger(singerid,songid, parent.row());
             }
         }
     }
@@ -222,4 +239,331 @@ QStringList RotationTableModel::mimeTypes() const
     types << "text/plain";
     types << "integer/songid";
     return types;
+}
+
+void RotationTableModel::loadFromDB()
+{
+    qDeleteAll(m_singers->begin(),m_singers->end());
+    m_singers->clear();
+    QSqlQuery query;
+    query.exec("SELECT ROWID,name,position,regular,regularid FROM rotationSingers");
+    int rotationsingerid = query.record().indexOf("ROWID");
+    int name = query.record().indexOf("name");
+    int position  = query.record().indexOf("position");
+    int regular = query.record().indexOf("regular");
+    int regularindex = query.record().indexOf("regularid");
+    while (query.next()) {
+        bool isReg = query.value(regular).toBool();
+        int regIdx = query.value(regularindex).toInt();
+        KhSinger *singer = new KhSinger(regularSingers);
+        singer->setIndex(query.value(rotationsingerid).toInt());
+        if ((isReg) && (regularSingers->getByRegularID(regIdx) != NULL))
+        {
+            singer->setRegular(query.value(regular).toBool(),true);
+            singer->setRegularIndex(query.value(regularindex).toInt(),true);
+        }
+        else
+        {
+            singer->setRegular(false,true);
+            singer->setRegularIndex(-1, true);
+        }
+        singer->setName(query.value(name).toString(),true);
+        singer->setPosition(query.value(position).toInt(),true);
+        m_singers->push_back(singer);
+    }
+    sortSingers();
+}
+
+bool RotationTableModel::moveSinger(int oldPosition, int newPosition)
+{
+    KhSinger *movingSinger = getSingerByPosition(oldPosition);
+    db->beginTransaction();
+    if (newPosition > oldPosition)
+    {
+        if (currentSingerPosition == oldPosition)
+            currentSingerPosition = newPosition - 1;
+        else if ((currentSingerPosition <= newPosition) && (currentSingerPosition > oldPosition))
+            currentSingerPosition--;
+        for (int i=0; i < m_singers->size(); i++)
+        {
+            if ((m_singers->at(i)->position() > oldPosition) && (m_singers->at(i)->position() <= newPosition - 1) && (m_singers->at(i)->index() != movingSinger->index()))
+                m_singers->at(i)->setPosition(m_singers->at(i)->position() - 1);
+        }
+        movingSinger->setPosition(newPosition - 1);
+    }
+    else if (newPosition < oldPosition)
+    {
+        if (currentSingerPosition == oldPosition)
+            currentSingerPosition = newPosition;
+        else if ((currentSingerPosition >= newPosition) && (currentSingerPosition < oldPosition))
+            currentSingerPosition++;
+        for (int i=0; i < m_singers->size(); i++)
+        {
+            if ((m_singers->at(i)->position() >= newPosition) && (m_singers->at(i)->position() < oldPosition) && (m_singers->at(i)->index() != movingSinger->index()))
+                m_singers->at(i)->setPosition(m_singers->at(i)->position() + 1);
+        }
+        movingSinger->setPosition(newPosition);
+    }
+    db->endTransaction();
+    sortSingers();
+    return true;
+}
+
+KhSinger *RotationTableModel::getSingerByPosition(int position) const
+{
+    if (position < 0) return NULL;
+    for (int i=0; i < m_singers->size(); i++)
+    {
+        if (position == m_singers->at(i)->position())
+        {
+            return m_singers->at(i);
+        }
+    }
+    return NULL;
+}
+
+KhSinger *RotationTableModel::getSingerByIndex(int singerid)
+{
+    for (int i=0; i < m_singers->size(); i++)
+    {
+        if (m_singers->at(i)->index() == singerid)
+            return m_singers->at(i);
+    }
+    return NULL;
+}
+
+KhSinger *RotationTableModel::getSingerByName(QString name)
+{
+    for (int i=0; i < m_singers->size(); i++)
+    {
+        if (m_singers->at(i)->name() == name)
+            return m_singers->at(i);
+    }
+    return NULL;
+}
+
+int RotationTableModel::getCurrentSingerPosition() const
+{
+    return currentSingerPosition;
+}
+
+void RotationTableModel::setCurrentSingerPosition(int value)
+{
+    emit layoutAboutToBeChanged();
+    currentSingerPosition = value;
+    if (getSingerByPosition(value) != NULL)
+        currentSingerIndex = getSingerByPosition(value)->index();
+    else
+        currentSingerIndex = -1;
+    emit layoutChanged();
+}
+
+bool RotationTableModel::exists(QString name)
+{
+    bool match = false;
+    for (int i=0; i < m_singers->size(); i++)
+    {
+        if (name.toLower() == m_singers->at(i)->name().toLower())
+        {
+            match = true;
+            break;
+        }
+    }
+    return match;
+}
+
+QString RotationTableModel::getNextSongBySingerPosition(int position) const
+{
+    QString nextSong;
+    int singerid = getSingerByPosition(position)->index();
+    QSqlQuery query("SELECT queueSongs.song,dbSongs.artist,dbSongs.title FROM queueSongs,dbSongs WHERE queueSongs.played == 0 AND queueSongs.singer == " + QString::number(singerid) + " AND dbSongs.ROWID == queueSongs.song ORDER BY position LIMIT 1");
+    int idx = query.record().indexOf("song");
+    int artist = query.record().indexOf("artist");
+    int title = query.record().indexOf("title");
+    int songid = -1;
+    while (query.next()) {
+        songid = query.value(idx).toInt();
+        nextSong = query.value(artist).toString() + " - " + query.value(title).toString();
+    }
+    if (songid == -1)
+        nextSong = "--empty--";
+    return nextSong;
+}
+
+void RotationTableModel::deleteSingerByIndex(int singerid)
+{
+    QSqlQuery query;
+    int delSingerPos = getSingerByIndex(singerid)->position();
+    if (singerid == currentSingerIndex) setCurrentSingerPosition(-1);
+    query.exec("BEGIN TRANSACTION");
+    query.exec("DELETE FROM queueSongs WHERE singer == " + QString::number(singerid));
+    query.exec("DELETE FROM rotationSingers WHERE ROWID == " + QString::number(singerid));
+    m_singers->erase(m_singers->begin() + (delSingerPos - 1));
+    for (int i=0; i < m_singers->size(); i++)
+    {
+        if (m_singers->at(i)->position() >  delSingerPos)
+            m_singers->at(i)->setPosition(m_singers->at(i)->position() - 1);
+    }
+    query.exec("COMMIT TRANSACTION");
+    sortSingers();
+}
+
+void RotationTableModel::deleteSingerByPosition(int position)
+{
+    KhSinger *singer = getSingerByPosition(position);
+    deleteSingerByIndex(singer->index());
+}
+
+void RotationTableModel::clear()
+{
+    emit layoutAboutToBeChanged();
+    QSqlQuery query;
+    query.exec("DELETE FROM rotationsingers");
+    query.exec("DELETE FROM queuesongs");
+    currentSingerPosition = -1;
+    qDeleteAll(m_singers->begin(),m_singers->end());
+    m_singers->clear();
+    emit layoutChanged();
+}
+
+KhSinger *RotationTableModel::getCurrent()
+{
+    return getSingerByPosition(currentSingerPosition);
+}
+
+KhSinger *RotationTableModel::getSelected()
+{
+    return getSingerByIndex(selectedSingerIndex);
+}
+
+bool singerPositionSort(KhSinger *singer1, KhSinger *singer2)
+{
+    if (singer1->position() >= singer2->position())
+        return false;
+    else
+        return true;
+}
+
+void RotationTableModel::sortSingers()
+{
+    emit layoutAboutToBeChanged();
+    std::sort(m_singers->begin(), m_singers->end(), singerPositionSort);
+    emit layoutChanged();
+}
+
+int RotationTableModel::getCurrentSingerIndex() const
+{
+    return currentSingerIndex;
+}
+
+void RotationTableModel::setCurrentSingerIndex(int value)
+{
+    emit layoutAboutToBeChanged();
+    currentSingerIndex = value;
+    if (getSingerByIndex(value) != NULL)
+        currentSingerPosition = getSingerByIndex(value)->position();
+    else
+        currentSingerPosition = -1;
+    emit layoutChanged();
+}
+
+int RotationTableModel::getSelectedSingerPosition() const
+{
+    return selectedSingerPosition;
+}
+
+int RotationTableModel::getSelectedSingerIndex() const
+{
+    return selectedSingerIndex;
+}
+
+void RotationTableModel::setSelectedSingerIndex(int value)
+{
+    selectedSingerIndex = value;
+    if (getSingerByIndex(value) != NULL)
+        selectedSingerPosition = getSingerByIndex(value)->position();
+    else
+        selectedSingerPosition = -1;
+}
+
+void RotationTableModel::createRegularForSinger(int singerID)
+{
+    KhSinger *singer = getSingerByIndex(singerID);
+    db->beginTransaction();
+    int regularid = regularSingers->add(singer->name());
+    singer->setRegular(true);
+    singer->setRegularIndex(regularid);
+    KhRegularSinger *regular = regularSingers->getByRegularID(regularid);
+    for (int i=0; i < singer->queueSongs()->size(); i++)
+    {
+        int regsongindex = regular->addSong(singer->queueSongs()->at(i)->getSongID(),singer->queueSongs()->at(i)->getKeyChange(),singer->queueSongs()->at(i)->getPosition());
+        singer->queueSongs()->at(i)->setRegSong(true);
+        singer->queueSongs()->at(i)->setRegSongIndex(regsongindex);
+    }
+    db->endTransaction();
+}
+
+QStringList RotationTableModel::getSingerList()
+{
+    QStringList singerList;
+    for (int i=0; i < m_singers->size(); i++)
+        singerList << m_singers->at(i)->name();
+    singerList.sort();
+    return singerList;
+}
+
+KhSinger *RotationTableModel::at(int index)
+{
+    return m_singers->at(index);
+}
+
+int RotationTableModel::size()
+{
+    return m_singers->size();
+}
+
+bool RotationTableModel::add(QString name, int position, bool regular)
+{
+    if (exists(name))
+    {
+        return false;
+    }
+    emit layoutAboutToBeChanged();
+    QSqlQuery query;
+    int nextPos = m_singers->size() + 1;
+    //        singerPos = singers->size() + 1;
+    bool result = query.exec("INSERT INTO rotationSingers (name, position, regular) VALUES(\"" + name + "\", " + QString::number(nextPos) + "," + QString::number(regular) + ")");
+    if (!result) return false;
+    KhSinger *singer = new KhSinger(regularSingers, this);
+    singer->setName(name,true);
+    singer->setPosition(nextPos,true);
+    singer->setIndex(query.lastInsertId().toInt());
+    singer->setRegular(regular,true);
+    singer->setRegularIndex(-1,true);
+    m_singers->push_back(singer);
+    emit layoutChanged();
+    if (position == -1)
+        return true;
+    else
+    {
+        if (moveSinger(nextPos,position))
+            return true;
+        else
+            return false;
+    }
+    return false;
+}
+
+void RotationTableModel::regularSingerDeleted(int RegularID)
+{
+    for (int i=0; i < m_singers->size(); i++)
+    {
+        if (m_singers->at(i)->regularIndex() == RegularID)
+        {
+            emit layoutAboutToBeChanged();
+            m_singers->at(i)->setRegular(false);
+            m_singers->at(i)->setRegularIndex(-1);
+            emit layoutChanged();
+        }
+    }
 }

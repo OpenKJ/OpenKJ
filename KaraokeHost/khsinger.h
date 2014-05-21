@@ -23,7 +23,6 @@
 
 #include <QString>
 #include <QObject>
-#include "khdb.h"
 #include "khqueuesong.h"
 #include "khregularsinger.h"
 
@@ -68,60 +67,13 @@ private:
     int m_regularIndex;
     KhQueueSongs *m_songs;
     KhRegularSingers *m_regularSingers;
-    KhDb *db;
 signals:
 
 public slots:
 
 };
 
-class KhSingers : public QObject {
-    Q_OBJECT
-public:
-    explicit KhSingers(KhRegularSingers *regSingersPtr, QObject *parent = 0);
-    ~KhSingers();
-    void loadFromDB();
-    QList<KhSinger *> *getSingers();
-    bool moveSinger(int oldPosition, int newPosition);
-    KhSinger *getSingerByPosition(int position) const;
-    KhSinger *getSingerByIndex(int singerid);
-    KhSinger *getSingerByName(QString name);
-    int getCurrentSingerPosition() const;
-    void setCurrentSingerPosition(int value);
-    bool add(QString name, int position = -1, bool regular = false);
-    bool exists(QString name);
-    QString getNextSongBySingerPosition(int position) const;
-    void deleteSingerByIndex(int singerid);
-    void deleteSingerByPosition(int position);
-    void clear();
-    KhSinger *getCurrent();
-    KhSinger *getSelected();
 
-    int getCurrentSingerIndex() const;
-    void setCurrentSingerIndex(int value);
-    int getSelectedSingerPosition() const;
-    void setSelectedSingerPosition(int value);
-    int getSelectedSingerIndex() const;
-    void setSelectedSingerIndex(int value);
-    void createRegularForSinger(int singerID);
-    QStringList getSingerList();
-
-private:
-    QList<KhSinger *> *singers;
-    KhRegularSingers *regularSingers;
-    int currentSingerPosition;
-    int currentSingerIndex;
-    int selectedSingerPosition;
-    int selectedSingerIndex;
-    void sortSingers();
-
-signals:
-    void dataAboutToChange();
-    void dataChanged();
-
-public slots:
-    void regularSingerDeleted(int RegularID);
-};
 
 
 #endif // ROTATIONSINGER_H

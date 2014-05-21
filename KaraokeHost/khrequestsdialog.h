@@ -4,6 +4,7 @@
 #include <QDialog>
 #include "requeststablemodel.h"
 #include "songdbtablemodel.h"
+#include "rotationtablemodel.h"
 #include "khsinger.h"
 #include "cdgpreviewdialog.h"
 
@@ -16,7 +17,7 @@ class KhRequestsDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit KhRequestsDialog(KhSongs *fullData,KhSingers *singers,QWidget *parent = 0);
+    explicit KhRequestsDialog(KhSongs *fullData,RotationTableModel *rotationModel,QWidget *parent = 0);
     ~KhRequestsDialog();
 
 private slots:
@@ -43,7 +44,7 @@ private:
     Ui::KhRequestsDialog *ui;
     RequestsTableModel *requestsModel;
     SongDBTableModel *songDbModel;
-    KhSingers *rotSingers;
+    RotationTableModel *m_rotationModel;
     CdgPreviewDialog *cdgPreviewDialog;
 };
 

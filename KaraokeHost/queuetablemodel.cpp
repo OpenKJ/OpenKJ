@@ -26,19 +26,19 @@
 #include <QDebug>
 #include "khsinger.h"
 
-QueueTableModel::QueueTableModel(KhSingers *singersObject, QObject *parent) :
+QueueTableModel::QueueTableModel(RotationTableModel *rotationModel, QObject *parent) :
     QAbstractTableModel(parent)
 {
-    singers = singersObject;
-    singers->setCurrentSingerIndex(-1);
+    m_rotationModel = rotationModel;
+    m_rotationModel->setCurrentSingerIndex(-1);
 }
 
 int QueueTableModel::rowCount(const QModelIndex &parent) const
 {
     UNUSED(parent);
 //    return mydata->size();
-    if (singers->getSelected() != NULL)
-    return singers->getSelected()->queueSongs()->size();
+    if (m_rotationModel->getSelected() != NULL)
+    return m_rotationModel->getSelected()->queueSongs()->size();
     else
     return 0;
 }
@@ -54,10 +54,10 @@ QVariant QueueTableModel::data(const QModelIndex &index, int role) const
     if(!index.isValid())
         return QVariant();
 
-    if(index.row() >= singers->getSelected()->queueSongs()->size() || index.row() < 0)
+    if(index.row() >= m_rotationModel->getSelected()->queueSongs()->size() || index.row() < 0)
         return QVariant();
 
-    if((role == Qt::BackgroundRole) && (singers->getSelected()->queueSongs()->at(index.row())->getPlayed()))
+    if((role == Qt::BackgroundRole) && (m_rotationModel->getSelected()->queueSongs()->at(index.row())->getPlayed()))
     {
         return QBrush(Qt::gray);
     }
@@ -71,13 +71,13 @@ QVariant QueueTableModel::data(const QModelIndex &index, int role) const
         switch(index.column())
         {
         case ARTIST:
-            return singers->getSelected()->queueSongs()->at(index.row())->getArtist();
+            return m_rotationModel->getSelected()->queueSongs()->at(index.row())->getArtist();
         case TITLE:
-            return singers->getSelected()->queueSongs()->at(index.row())->getTitle();
+            return m_rotationModel->getSelected()->queueSongs()->at(index.row())->getTitle();
         case DISCID:
-            return singers->getSelected()->queueSongs()->at(index.row())->getDiscID();
+            return m_rotationModel->getSelected()->queueSongs()->at(index.row())->getDiscID();
         case KEYCHANGE:
-            int keychange = singers->getSelected()->queueSongs()->at(index.row())->getKeyChange();
+            int keychange = m_rotationModel->getSelected()->queueSongs()->at(index.row())->getKeyChange();
             if (keychange == 0)
                 return QVariant();
             else if (keychange > 0)
@@ -115,7 +115,7 @@ bool QueueTableModel::dropMimeData(const QMimeData *data, Qt::DropAction action,
 {
     UNUSED(action);
     UNUSED(column);
-    if (singers->getSelected() == NULL)
+    if (m_rotationModel->getSelected() == NULL)
         return false;
     int droprow;
     if (parent.row() >= 0)
@@ -123,25 +123,25 @@ bool QueueTableModel::dropMimeData(const QMimeData *data, Qt::DropAction action,
     else if (row >= 0)
         droprow = row;
     else
-        droprow = singers->getSelected()->queueSongs()->size();
+        droprow = m_rotationModel->getSelected()->queueSongs()->size();
 
     if (data->hasFormat("text/plain"))
     {
         int dragrow;
         dragrow = data->text().toInt();
-        singers->getSelected()->moveSong(dragrow,droprow);
+        m_rotationModel->getSelected()->moveSong(dragrow,droprow);
         emit itemMoved();
         return true;
     }
     else if (data->hasFormat("integer/songid"))
     {
-        if (singers->getSelectedSingerIndex() >= 0)
+        if (m_rotationModel->getSelectedSingerIndex() >= 0)
         {
             int songid;
             QByteArray bytedata = data->data("integer/songid");
             songid =  QString(bytedata.data()).toInt();
             layoutAboutToBeChanged();
-            singers->getSelected()->addSongAtPosition(songid, droprow);
+            m_rotationModel->getSelected()->addSongAtPosition(songid, droprow);
             layoutChanged();
             return true;
         }
@@ -194,7 +194,7 @@ Qt::ItemFlags QueueTableModel::flags(const QModelIndex &index) const
 void QueueTableModel::clear()
 {
     layoutAboutToBeChanged();
-    singers->getSelected()->clearQueue();
+    m_rotationModel->getSelected()->clearQueue();
     layoutChanged();
 }
 
@@ -204,28 +204,28 @@ void QueueTableModel::sort(int column, Qt::SortOrder order)
     if (column == ARTIST)
     {
         if (order == Qt::AscendingOrder)
-            singers->getSelected()->queueObject()->sortByArtist();
+            m_rotationModel->getSelected()->queueObject()->sortByArtist();
         else
-            singers->getSelected()->queueObject()->sortByArtist(true);
+            m_rotationModel->getSelected()->queueObject()->sortByArtist(true);
     }
     else if (column == TITLE)
     {
         if (order == Qt::AscendingOrder)
-            singers->getSelected()->queueObject()->sortByTitle();
+            m_rotationModel->getSelected()->queueObject()->sortByTitle();
         else
-            singers->getSelected()->queueObject()->sortByTitle(true);
+            m_rotationModel->getSelected()->queueObject()->sortByTitle(true);
     }
     else if (column == DISCID)
     {
         if (order == Qt::AscendingOrder)
-            singers->getSelected()->queueObject()->sortByDiscID();
+            m_rotationModel->getSelected()->queueObject()->sortByDiscID();
         else
-            singers->getSelected()->queueObject()->sortByDiscID(true);
+            m_rotationModel->getSelected()->queueObject()->sortByDiscID(true);
     }
     else
     {
-        if (singers->getSelected() != NULL)
-            singers->getSelected()->queueObject()->sort();
+        if (m_rotationModel->getSelected() != NULL)
+            m_rotationModel->getSelected()->queueObject()->sort();
     }
     layoutChanged();
 }

@@ -3,7 +3,7 @@
 #include <QMenu>
 #include <QMessageBox>
 
-KhRequestsDialog::KhRequestsDialog(KhSongs *fullData, KhSingers *singers, QWidget *parent) :
+KhRequestsDialog::KhRequestsDialog(KhSongs *fullData, RotationTableModel *rotationModel, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::KhRequestsDialog)
 {
@@ -25,7 +25,7 @@ KhRequestsDialog::KhRequestsDialog(KhSongs *fullData, KhSingers *singers, QWidge
     cdgPreviewDialog = new CdgPreviewDialog(this);
     connect(ui->treeViewRequests->selectionModel(), SIGNAL(currentRowChanged(QModelIndex,QModelIndex)), this, SLOT(requestSelectionChanged(QModelIndex,QModelIndex)));
     connect(ui->treeViewSearch->selectionModel(), SIGNAL(currentRowChanged(QModelIndex,QModelIndex)), this, SLOT(songSelectionChanged(QModelIndex,QModelIndex)));
-    rotSingers = singers;
+    m_rotationModel = rotationModel;
     ui->comboBoxAddPosition->setEnabled(false);
     ui->comboBoxSingers->setEnabled(true);
     ui->lineEditSingerName->setEnabled(false);
@@ -131,7 +131,7 @@ void KhRequestsDialog::on_treeViewRequests_clicked(const QModelIndex &index)
     else
     {
         ui->comboBoxSingers->clear();
-        ui->comboBoxSingers->addItems(rotSingers->getSingerList());
+        ui->comboBoxSingers->addItems(m_rotationModel->getSingerList());
         QString filterStr = index.sibling(index.row(),2).data().toString() + " " + index.sibling(index.row(),3).data().toString();
         songDbModel->applyFilter(filterStr);
         ui->lineEditSearch->setText(filterStr);
@@ -150,22 +150,22 @@ void KhRequestsDialog::on_pushButtonAddSong_clicked()
     {
         if (ui->lineEditSingerName->text() == "")
             return;
-        else if (rotSingers->exists(ui->lineEditSingerName->text()))
+        else if (m_rotationModel->exists(ui->lineEditSingerName->text()))
             return;
         else
         {
             int songid = songDbModel->getRowSong(ui->treeViewSearch->selectionModel()->selectedIndexes().at(0).row())->ID;
-            rotSingers->add(ui->lineEditSingerName->text());
-            KhSinger *rotSinger = rotSingers->getSingerByName(ui->lineEditSingerName->text());
-            if ((ui->comboBoxAddPosition->currentText() == "After current singer") && (rotSingers->getCurrent() != NULL))
+            m_rotationModel->add(ui->lineEditSingerName->text());
+            KhSinger *rotSinger = m_rotationModel->getSingerByName(ui->lineEditSingerName->text());
+            if ((ui->comboBoxAddPosition->currentText() == "After current singer") && (m_rotationModel->getCurrent() != NULL))
             {
-                if (rotSingers->getCurrent()->position() != rotSingers->getSingers()->size())
-                    rotSingers->moveSinger(rotSinger->position(),rotSingers->getCurrent()->position() + 1);
+                if (m_rotationModel->getCurrent()->position() != m_rotationModel->size())
+                    m_rotationModel->moveSinger(rotSinger->position(),m_rotationModel->getCurrent()->position() + 1);
             }
-            else if ((ui->comboBoxAddPosition->currentText() == "Fair (full rotation)") && (rotSingers->getCurrent() != NULL))
+            else if ((ui->comboBoxAddPosition->currentText() == "Fair (full rotation)") && (m_rotationModel->getCurrent() != NULL))
             {
-                if (rotSingers->getCurrent()->position() != 1)
-                    rotSingers->moveSinger(rotSinger->position(), rotSingers->getCurrent()->position());
+                if (m_rotationModel->getCurrent()->position() != 1)
+                    m_rotationModel->moveSinger(rotSinger->position(), m_rotationModel->getCurrent()->position());
             }
             rotSinger->addSongAtEnd(songid);
 
@@ -173,10 +173,10 @@ void KhRequestsDialog::on_pushButtonAddSong_clicked()
     }
     else if (ui->radioButtonExistingSinger->isChecked())
     {
-        rotSingers->dataAboutToChange();
+        m_rotationModel->layoutAboutToBeChanged();
         int songid = songDbModel->getRowSong(ui->treeViewSearch->selectionModel()->selectedIndexes().at(0).row())->ID;
-        rotSingers->getSingerByName(ui->comboBoxSingers->currentText())->addSongAtEnd(songid);
-        rotSingers->dataChanged();
+        m_rotationModel->getSingerByName(ui->comboBoxSingers->currentText())->addSongAtEnd(songid);
+        m_rotationModel->layoutChanged();
     }
 }
 

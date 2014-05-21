@@ -24,16 +24,25 @@
 #include <QAbstractTableModel>
 #include <QMimeData>
 #include "khsinger.h"
+#include "khregularsinger.h"
 
 class RotationTableModel : public QAbstractTableModel
 {
     Q_OBJECT
 
 private:
-    KhSingers *singers;
+    //KhSingers *singers;
+    QList<KhSinger *> *m_singers;
+    KhRegularSingers *regularSingers;
+    int currentSingerPosition;
+    int currentSingerIndex;
+    int selectedSingerIndex;
+    int selectedSingerPosition;
+    void sortSingers();
 
 public:
-    explicit RotationTableModel(KhSingers *singersObject, QObject *parent = 0);
+    explicit RotationTableModel(KhRegularSingers *regularSingersObject, QObject *parent = 0);
+    ~RotationTableModel();
     enum {ICON=0,NAME,NEXTSONG};
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;
@@ -48,12 +57,43 @@ public:
     bool removeRows(int row, int count, const QModelIndex & parent = QModelIndex());
     QStringList mimeTypes() const;
 
+    // Brought over from KhSingers
+    void loadFromDB();
+    bool moveSinger(int oldPosition, int newPosition);
+    KhSinger *getSingerByPosition(int position) const;
+    KhSinger *getSingerByIndex(int singerid);
+    KhSinger *getSingerByName(QString name);
+    int getCurrentSingerPosition() const;
+    void setCurrentSingerPosition(int value);
+    bool exists(QString name);
+    QString getNextSongBySingerPosition(int position) const;
+    void deleteSingerByIndex(int singerid);
+    void deleteSingerByPosition(int position);
+    void clear();
+    KhSinger *getCurrent();
+    KhSinger *getSelected();
+
+    int getCurrentSingerIndex() const;
+    void setCurrentSingerIndex(int value);
+    int getSelectedSingerPosition() const;
+    void setSelectedSingerPosition(int value);
+    int getSelectedSingerIndex() const;
+    void setSelectedSingerIndex(int value);
+    void createRegularForSinger(int singerID);
+    QStringList getSingerList();
+    KhSinger *at(int index);
+    int size();
+
+    bool add(QString name, int position = -1, bool regular = false);
+
+
 signals:
     void songDroppedOnSinger(int singerid, int songid, int rowid);
     void notify_user(QString);
 
 public slots:
-    
+    void regularSingerDeleted(int RegularID);
+
 };
 
 #endif // KSPROTATIONTABLEMODEL_H

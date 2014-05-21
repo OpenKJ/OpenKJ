@@ -23,6 +23,7 @@
 #include <QApplication>
 #include <QDesktopWidget>
 
+
 KhSettings::KhSettings(QObject *parent) :
     QObject(parent)
 {

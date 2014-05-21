@@ -27,6 +27,7 @@
 #include <QSqlDatabase>
 #include <QMimeData>
 #include "khqueuesong.h"
+#include "rotationtablemodel.h"
 #include "khsinger.h"
 
 
@@ -36,7 +37,7 @@ class QueueTableModel : public QAbstractTableModel
 {
     Q_OBJECT
 public:
-    explicit QueueTableModel(KhSingers *singersObject, QObject *parent = 0);
+    explicit QueueTableModel(RotationTableModel *rotationModel, QObject *parent = 0);
     enum {ARTIST=0,TITLE,DISCID,KEYCHANGE};
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;
@@ -58,7 +59,7 @@ signals:
 public slots:
     
 private:
-    KhSingers *singers;
+    RotationTableModel *m_rotationModel;
 };
 
 #endif // QUEUETABLEMODEL_H
