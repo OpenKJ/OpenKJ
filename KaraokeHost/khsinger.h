@@ -23,6 +23,7 @@
 
 #include <QString>
 #include <QObject>
+#include "khdb.h"
 #include "khqueuesong.h"
 #include "khregularsinger.h"
 
@@ -67,7 +68,7 @@ private:
     int m_regularIndex;
     KhQueueSongs *m_songs;
     KhRegularSingers *m_regularSingers;
-
+    KhDb *db;
 signals:
 
 public slots:
