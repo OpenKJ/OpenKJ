@@ -43,5 +43,5 @@ bool KhDb::singerSetRegIndex(int singerId, int regId)
 {
     QSqlQuery query;
     QString sql = "UPDATE rotationsingers SET 'regularid'=" + QString::number(regId) + " WHERE ROWID == " + QString::number(singerId);
-    query.exec(sql);
+    return query.exec(sql);
 }
