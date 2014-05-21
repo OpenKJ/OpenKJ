@@ -23,7 +23,7 @@
 #include <QDebug>
 
 
-RotationTableModel::RotationTableModel(KhRotationSingers *singersObject, QObject *parent) :
+RotationTableModel::RotationTableModel(KhSingers *singersObject, QObject *parent) :
     QAbstractTableModel(parent)
 {
     singers = singersObject;
@@ -41,7 +41,7 @@ QVariant RotationTableModel::data(const QModelIndex &index, int role) const
         return QVariant();
 
 //    if((role == Qt::BackgroundRole) && (singers->getSingers()->at(index.row())->getSingerPosition() == singers->getCurrentSingerPosition()))
-    if((role == Qt::BackgroundRole) && (index.row() == (singers->getCurrentSingerPosition()) - 1))
+    if((role == Qt::BackgroundRole) && (singers->getSingers()->at(index.row())->index() == singers->getCurrentSingerIndex()))
         return QBrush(Qt::yellow);
 
     if (role == Qt::DecorationRole)
@@ -49,7 +49,7 @@ QVariant RotationTableModel::data(const QModelIndex &index, int role) const
         switch(index.column())
         {
         case 0:
-            if (singers->getSingers()->at(index.row())->getSingerPosition() == singers->getCurrentSingerPosition())
+            if (singers->getSingers()->at(index.row())->index() == singers->getCurrentSingerIndex())
                 return QPixmap(":/icons/microphone");
             else
                 return QVariant();
@@ -58,7 +58,7 @@ QVariant RotationTableModel::data(const QModelIndex &index, int role) const
         case 4:
             return QPixmap(":/icons/Icons/edit-delete.png");
         case 5:
-            if (singers->getSingers()->at(index.row())->isRegular())
+            if (singers->getSingers()->at(index.row())->regular())
                 return QPixmap(":/icons/Icons/emblem-favorite-16x16.png");
             else
                 return QPixmap(":/icons/Icons/emblem-favorite-disabled-16x16.png");
@@ -72,9 +72,9 @@ QVariant RotationTableModel::data(const QModelIndex &index, int role) const
         switch(index.column())
         {
         case NAME:
-            return singers->getSingers()->at(index.row())->getSingerName();
+            return singers->getSingers()->at(index.row())->name();
         case NEXTSONG:
-            return singers->getNextSongBySingerPosition(singers->getSingers()->at(index.row())->getSingerPosition());
+            return singers->getNextSongBySingerPosition(singers->getSingers()->at(index.row())->position());
         }
     }
     return QVariant();
@@ -116,7 +116,7 @@ bool RotationTableModel::setData(const QModelIndex &index, const QVariant &value
             emit notify_user("Error: Duplicate singer name.  Edit cancelled.");
             return false;
         }
-        singers->getSingerByPosition(index.row() + 1)->setSingerName(value.toString());
+        singers->getSingerByPosition(index.row() + 1)->setName(value.toString());
         return true;
     }
     else
@@ -174,7 +174,7 @@ bool RotationTableModel::dropMimeData(const QMimeData *data, Qt::DropAction acti
             int songid =  QString(bytedata.data()).toInt();
             if (singers->getSingerByPosition(droprow + 1) != NULL)
             {
-                int singerid = singers->getSingerByPosition(droprow + 1)->getSingerIndex();
+                int singerid = singers->getSingerByPosition(droprow + 1)->index();
                 emit songDroppedOnSinger(singerid,songid, parent.row());
             }
         }

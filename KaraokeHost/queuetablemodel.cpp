@@ -26,7 +26,7 @@
 #include <QDebug>
 #include "khsinger.h"
 
-QueueTableModel::QueueTableModel(KhRotationSingers *singersObject, QObject *parent) :
+QueueTableModel::QueueTableModel(KhSingers *singersObject, QObject *parent) :
     QAbstractTableModel(parent)
 {
     singers = singersObject;
@@ -38,7 +38,7 @@ int QueueTableModel::rowCount(const QModelIndex &parent) const
     UNUSED(parent);
 //    return mydata->size();
     if (singers->getSelected() != NULL)
-    return singers->getSelected()->getQueueSongs()->size();
+    return singers->getSelected()->queueSongs()->size();
     else
     return 0;
 }
@@ -54,10 +54,10 @@ QVariant QueueTableModel::data(const QModelIndex &index, int role) const
     if(!index.isValid())
         return QVariant();
 
-    if(index.row() >= singers->getSelected()->getQueueSongs()->size() || index.row() < 0)
+    if(index.row() >= singers->getSelected()->queueSongs()->size() || index.row() < 0)
         return QVariant();
 
-    if((role == Qt::BackgroundRole) && (singers->getSelected()->getQueueSongs()->at(index.row())->getPlayed()))
+    if((role == Qt::BackgroundRole) && (singers->getSelected()->queueSongs()->at(index.row())->getPlayed()))
     {
         return QBrush(Qt::gray);
     }
@@ -71,13 +71,13 @@ QVariant QueueTableModel::data(const QModelIndex &index, int role) const
         switch(index.column())
         {
         case ARTIST:
-            return singers->getSelected()->getQueueSongs()->at(index.row())->getArtist();
+            return singers->getSelected()->queueSongs()->at(index.row())->getArtist();
         case TITLE:
-            return singers->getSelected()->getQueueSongs()->at(index.row())->getTitle();
+            return singers->getSelected()->queueSongs()->at(index.row())->getTitle();
         case DISCID:
-            return singers->getSelected()->getQueueSongs()->at(index.row())->getDiscID();
+            return singers->getSelected()->queueSongs()->at(index.row())->getDiscID();
         case KEYCHANGE:
-            int keychange = singers->getSelected()->getQueueSongs()->at(index.row())->getKeyChange();
+            int keychange = singers->getSelected()->queueSongs()->at(index.row())->getKeyChange();
             if (keychange == 0)
                 return QVariant();
             else if (keychange > 0)
@@ -123,7 +123,7 @@ bool QueueTableModel::dropMimeData(const QMimeData *data, Qt::DropAction action,
     else if (row >= 0)
         droprow = row;
     else
-        droprow = singers->getSelected()->getQueueSongs()->size();
+        droprow = singers->getSelected()->queueSongs()->size();
 
     if (data->hasFormat("text/plain"))
     {
@@ -204,28 +204,28 @@ void QueueTableModel::sort(int column, Qt::SortOrder order)
     if (column == ARTIST)
     {
         if (order == Qt::AscendingOrder)
-            singers->getSelected()->getQueueObject()->sortByArtist();
+            singers->getSelected()->queueObject()->sortByArtist();
         else
-            singers->getSelected()->getQueueObject()->sortByArtist(true);
+            singers->getSelected()->queueObject()->sortByArtist(true);
     }
     else if (column == TITLE)
     {
         if (order == Qt::AscendingOrder)
-            singers->getSelected()->getQueueObject()->sortByTitle();
+            singers->getSelected()->queueObject()->sortByTitle();
         else
-            singers->getSelected()->getQueueObject()->sortByTitle(true);
+            singers->getSelected()->queueObject()->sortByTitle(true);
     }
     else if (column == DISCID)
     {
         if (order == Qt::AscendingOrder)
-            singers->getSelected()->getQueueObject()->sortByDiscID();
+            singers->getSelected()->queueObject()->sortByDiscID();
         else
-            singers->getSelected()->getQueueObject()->sortByDiscID(true);
+            singers->getSelected()->queueObject()->sortByDiscID(true);
     }
     else
     {
         if (singers->getSelected() != NULL)
-            singers->getSelected()->getQueueObject()->sort();
+            singers->getSelected()->queueObject()->sort();
     }
     layoutChanged();
 }

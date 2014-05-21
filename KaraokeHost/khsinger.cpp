@@ -29,116 +29,116 @@
 KhSinger::KhSinger(KhRegularSingers *regSingers, QObject *parent) :
     QObject(parent)
 {
-    songs = new KhQueueSongs(singerIndex,regSingers, regularIndex, this);
-    regularSingers = regSingers;
-    singerIndex = -1;
-    singerPosition = -1;
-    regular = false;
-    regularIndex = -1;
+    m_songs = new KhQueueSongs(m_index,regSingers, m_regularIndex, this);
+    m_regularSingers = regSingers;
+    m_index = -1;
+    m_position = -1;
+    m_regular = false;
+    m_regularIndex = -1;
 }
 
-bool KhSinger::isRegular() const
+bool KhSinger::regular() const
 {
-    return regular;
+    return m_regular;
 }
 
 void KhSinger::setRegular(bool value, bool skipDB)
 {
-    regular = value;
+    m_regular = value;
     if (!skipDB)
     {
         QSqlQuery query;
-        QString sql = "UPDATE rotationsingers SET 'regular'=" + QString::number(regular) + " WHERE ROWID == " + QString::number(singerIndex);
+        QString sql = "UPDATE rotationsingers SET 'regular'=" + QString::number(m_regular) + " WHERE ROWID == " + QString::number(m_index);
         query.exec(sql);
     }
 }
 
-int KhSinger::getSingerPosition() const
+int KhSinger::position() const
 {
-    return singerPosition;
+    return m_position;
 }
 
-void KhSinger::setSingerPosition(int value, bool skipDB)
+void KhSinger::setPosition(int value, bool skipDB)
 {
-    singerPosition = value;
+    m_position = value;
     if (!skipDB)
     {
         QSqlQuery query;
-        QString sql = "UPDATE rotationsingers SET 'position'=" + QString::number(singerPosition) + " WHERE ROWID == " + QString::number(singerIndex);
+        QString sql = "UPDATE rotationsingers SET 'position'=" + QString::number(m_position) + " WHERE ROWID == " + QString::number(m_index);
         query.exec(sql);
     }
 }
 
-QString KhSinger::getSingerName() const
+QString KhSinger::name() const
 {
-    return singerName;
+    return m_name;
 }
 
-void KhSinger::setSingerName(const QString &value, bool skipDB)
+void KhSinger::setName(const QString &value, bool skipDB)
 {
-    singerName = value;
+    m_name = value;
     if (!skipDB)
     {
         QSqlQuery query;
-        QString sql = "UPDATE rotationsingers SET 'name'=\"" + singerName + "\" WHERE ROWID == " + QString::number(singerIndex);
+        QString sql = "UPDATE rotationsingers SET 'name'=\"" + m_name + "\" WHERE ROWID == " + QString::number(m_index);
         query.exec(sql);
     }
 }
 
-int KhSinger::getSingerIndex() const
+int KhSinger::index() const
 {
-    return singerIndex;
+    return m_index;
 }
 
-void KhSinger::setSingerIndex(int value)
+void KhSinger::setIndex(int value)
 {
-    songs->setSingerIndex(value);
-    singerIndex = value;
+    m_songs->setSingerIndex(value);
+    m_index = value;
 }
 
-int KhSinger::getRegularIndex() const
+int KhSinger::regularIndex() const
 {
-    return regularIndex;
+    return m_regularIndex;
 }
 
 void KhSinger::setRegularIndex(int value, bool skipDB)
 {
-    regularIndex = value;
+    m_regularIndex = value;
     if (!skipDB)
     {
         QSqlQuery query;
-        QString sql = "UPDATE rotationsingers SET 'regularid'=" + QString::number(regularIndex) + " WHERE ROWID == " + QString::number(singerIndex);
+        QString sql = "UPDATE rotationsingers SET 'regularid'=" + QString::number(m_regularIndex) + " WHERE ROWID == " + QString::number(m_index);
         query.exec(sql);
     }
-    songs->setRegSingerIndex(regularIndex,skipDB);
+    m_songs->setRegSingerIndex(m_regularIndex,skipDB);
 }
 
-QList<KhQueueSong *> *KhSinger::getQueueSongs()
+QList<KhQueueSong *> *KhSinger::queueSongs()
 {
-    return songs->getSongs();
+    return m_songs->getSongs();
 }
 
-KhQueueSongs *KhSinger::getQueueObject()
+KhQueueSongs *KhSinger::queueObject()
 {
-    return songs;
+    return m_songs;
 }
 
 KhQueueSong *KhSinger::getSongByIndex(int queueSongID)
 {
-    return songs->getSongByIndex(queueSongID);
+    return m_songs->getSongByIndex(queueSongID);
 }
 
 KhQueueSong *KhSinger::getSongByPosition(int position)
 {
-    return songs->getSongByPosition(position);
+    return m_songs->getSongByPosition(position);
 }
 
 KhQueueSong *KhSinger::getNextSong()
 {
-    return songs->getNextSong();
+    return m_songs->getNextSong();
 }
 
-KhRotationSingers::KhRotationSingers(KhRegularSingers *regSingersPtr, QObject *parent) :
+KhSingers::KhSingers(KhRegularSingers *regSingersPtr, QObject *parent) :
     QObject(parent)
 {
     regularSingers = regSingersPtr;
@@ -153,14 +153,14 @@ KhRotationSingers::KhRotationSingers(KhRegularSingers *regSingersPtr, QObject *p
     connect(regularSingers, SIGNAL(regularSingerDeleted(int)), this, SLOT(regularSingerDeleted(int)));
 }
 
-KhRotationSingers::~KhRotationSingers()
+KhSingers::~KhSingers()
 {
     qDeleteAll(singers->begin(),singers->end());
     delete singers;
     //delete regularSingers;
 }
 
-void KhRotationSingers::loadFromDB()
+void KhSingers::loadFromDB()
 {
     qDeleteAll(singers->begin(),singers->end());
     singers->clear();
@@ -175,7 +175,7 @@ void KhRotationSingers::loadFromDB()
         bool isReg = query.value(regular).toBool();
         int regIdx = query.value(regularindex).toInt();
         KhSinger *singer = new KhSinger(regularSingers);
-        singer->setSingerIndex(query.value(rotationsingerid).toInt());
+        singer->setIndex(query.value(rotationsingerid).toInt());
         if ((isReg) && (regularSingers->getByRegularID(regIdx) != NULL))
         {
             singer->setRegular(query.value(regular).toBool(),true);
@@ -186,19 +186,19 @@ void KhRotationSingers::loadFromDB()
             singer->setRegular(false,true);
             singer->setRegularIndex(-1, true);
         }
-        singer->setSingerName(query.value(name).toString(),true);
-        singer->setSingerPosition(query.value(position).toInt(),true);
+        singer->setName(query.value(name).toString(),true);
+        singer->setPosition(query.value(position).toInt(),true);
         singers->push_back(singer);
     }
     sortSingers();
 }
 
-QList<KhSinger *> *KhRotationSingers::getSingers()
+QList<KhSinger *> *KhSingers::getSingers()
 {
     return singers;
 }
 
-bool KhRotationSingers::moveSinger(int oldPosition, int newPosition)
+bool KhSingers::moveSinger(int oldPosition, int newPosition)
 {
     QSqlQuery query;
     KhSinger *movingSinger = getSingerByPosition(oldPosition);
@@ -211,10 +211,10 @@ bool KhRotationSingers::moveSinger(int oldPosition, int newPosition)
             currentSingerPosition--;
         for (int i=0; i < singers->size(); i++)
         {
-            if ((singers->at(i)->getSingerPosition() > oldPosition) && (singers->at(i)->getSingerPosition() <= newPosition - 1) && (singers->at(i)->getSingerIndex() != movingSinger->getSingerIndex()))
-                singers->at(i)->setSingerPosition(singers->at(i)->getSingerPosition() - 1);
+            if ((singers->at(i)->position() > oldPosition) && (singers->at(i)->position() <= newPosition - 1) && (singers->at(i)->index() != movingSinger->index()))
+                singers->at(i)->setPosition(singers->at(i)->position() - 1);
         }
-        movingSinger->setSingerPosition(newPosition - 1);
+        movingSinger->setPosition(newPosition - 1);
     }
     else if (newPosition < oldPosition)
     {
@@ -224,21 +224,22 @@ bool KhRotationSingers::moveSinger(int oldPosition, int newPosition)
             currentSingerPosition++;
         for (int i=0; i < singers->size(); i++)
         {
-            if ((singers->at(i)->getSingerPosition() >= newPosition) && (singers->at(i)->getSingerPosition() < oldPosition) && (singers->at(i)->getSingerIndex() != movingSinger->getSingerIndex()))
-                singers->at(i)->setSingerPosition(singers->at(i)->getSingerPosition() + 1);
+            if ((singers->at(i)->position() >= newPosition) && (singers->at(i)->position() < oldPosition) && (singers->at(i)->index() != movingSinger->index()))
+                singers->at(i)->setPosition(singers->at(i)->position() + 1);
         }
-        movingSinger->setSingerPosition(newPosition);
+        movingSinger->setPosition(newPosition);
     }
     query.exec("COMMIT TRANSACTION");
     sortSingers();
     return true;
 }
 
-KhSinger *KhRotationSingers::getSingerByPosition(int position) const
+KhSinger *KhSingers::getSingerByPosition(int position) const
 {
+    if (position < 0) return NULL;
     for (int i=0; i < singers->size(); i++)
     {
-        if (position == singers->at(i)->getSingerPosition())
+        if (position == singers->at(i)->position())
         {
             return singers->at(i);
         }
@@ -246,43 +247,43 @@ KhSinger *KhRotationSingers::getSingerByPosition(int position) const
     return NULL;
 }
 
-KhSinger *KhRotationSingers::getSingerByIndex(int singerid)
+KhSinger *KhSingers::getSingerByIndex(int singerid)
 {
         for (int i=0; i < singers->size(); i++)
         {
-            if (singers->at(i)->getSingerIndex() == singerid)
+            if (singers->at(i)->index() == singerid)
                 return singers->at(i);
         }
         return NULL;
 }
 
-KhSinger *KhRotationSingers::getSingerByName(QString name)
+KhSinger *KhSingers::getSingerByName(QString name)
 {
     for (int i=0; i < singers->size(); i++)
     {
-        if (singers->at(i)->getSingerName() == name)
+        if (singers->at(i)->name() == name)
             return singers->at(i);
     }
     return NULL;
 }
 
-int KhRotationSingers::getCurrentSingerPosition() const
+int KhSingers::getCurrentSingerPosition() const
 {
     return currentSingerPosition;
 }
 
-void KhRotationSingers::setCurrentSingerPosition(int value)
+void KhSingers::setCurrentSingerPosition(int value)
 {
     emit dataAboutToChange();
     currentSingerPosition = value;
     if (getSingerByPosition(value) != NULL)
-        currentSingerIndex = getSingerByPosition(value)->getSingerIndex();
+        currentSingerIndex = getSingerByPosition(value)->index();
     else
         currentSingerIndex = -1;
     emit dataChanged();
 }
 
-bool KhRotationSingers::add(QString name, int position, bool regular)
+bool KhSingers::add(QString name, int position, bool regular)
 {
     if (exists(name))
     {
@@ -295,9 +296,9 @@ bool KhRotationSingers::add(QString name, int position, bool regular)
     bool result = query.exec("INSERT INTO rotationSingers (name, position, regular) VALUES(\"" + name + "\", " + QString::number(nextPos) + "," + QString::number(regular) + ")");
     if (!result) return false;
     KhSinger *singer = new KhSinger(regularSingers, this);
-    singer->setSingerName(name,true);
-    singer->setSingerPosition(nextPos,true);
-    singer->setSingerIndex(query.lastInsertId().toInt());
+    singer->setName(name,true);
+    singer->setPosition(nextPos,true);
+    singer->setIndex(query.lastInsertId().toInt());
     singer->setRegular(regular,true);
     singer->setRegularIndex(-1,true);
     singers->push_back(singer);
@@ -314,12 +315,12 @@ bool KhRotationSingers::add(QString name, int position, bool regular)
     return false;
 }
 
-bool KhRotationSingers::exists(QString name)
+bool KhSingers::exists(QString name)
 {
     bool match = false;
     for (int i=0; i < singers->size(); i++)
     {
-        if (name.toLower() == singers->at(i)->getSingerName().toLower())
+        if (name.toLower() == singers->at(i)->name().toLower())
         {
             match = true;
             break;
@@ -328,10 +329,10 @@ bool KhRotationSingers::exists(QString name)
     return match;
 }
 
-QString KhRotationSingers::getNextSongBySingerPosition(int position) const
+QString KhSingers::getNextSongBySingerPosition(int position) const
 {
     QString nextSong;
-    int singerid = getSingerByPosition(position)->getSingerIndex();
+    int singerid = getSingerByPosition(position)->index();
     QSqlQuery query("SELECT queueSongs.song,dbSongs.artist,dbSongs.title FROM queueSongs,dbSongs WHERE queueSongs.played == 0 AND queueSongs.singer == " + QString::number(singerid) + " AND dbSongs.ROWID == queueSongs.song ORDER BY position LIMIT 1");
     int idx = query.record().indexOf("song");
     int artist = query.record().indexOf("artist");
@@ -346,30 +347,31 @@ QString KhRotationSingers::getNextSongBySingerPosition(int position) const
     return nextSong;
 }
 
-void KhRotationSingers::deleteSingerByIndex(int singerid)
+void KhSingers::deleteSingerByIndex(int singerid)
 {
     QSqlQuery query;
-    int delSingerPos = getSingerByIndex(singerid)->getSingerPosition();
+    int delSingerPos = getSingerByIndex(singerid)->position();
+    if (singerid == currentSingerIndex) setCurrentSingerPosition(-1);
     query.exec("BEGIN TRANSACTION");
     query.exec("DELETE FROM queueSongs WHERE singer == " + QString::number(singerid));
     query.exec("DELETE FROM rotationSingers WHERE ROWID == " + QString::number(singerid));
     singers->erase(singers->begin() + (delSingerPos - 1));
     for (int i=0; i < singers->size(); i++)
     {
-        if (singers->at(i)->getSingerPosition() >  delSingerPos)
-            singers->at(i)->setSingerPosition(singers->at(i)->getSingerPosition() - 1);
+        if (singers->at(i)->position() >  delSingerPos)
+            singers->at(i)->setPosition(singers->at(i)->position() - 1);
     }
     query.exec("COMMIT TRANSACTION");
     sortSingers();
 }
 
-void KhRotationSingers::deleteSingerByPosition(int position)
+void KhSingers::deleteSingerByPosition(int position)
 {
     KhSinger *singer = getSingerByPosition(position);
-    deleteSingerByIndex(singer->getSingerIndex());
+    deleteSingerByIndex(singer->index());
 }
 
-void KhRotationSingers::clear()
+void KhSingers::clear()
 {
     emit dataAboutToChange();
     QSqlQuery query;
@@ -381,36 +383,36 @@ void KhRotationSingers::clear()
     emit dataChanged();
 }
 
-KhSinger *KhRotationSingers::getCurrent()
+KhSinger *KhSingers::getCurrent()
 {
     return getSingerByPosition(currentSingerPosition);
 }
 
-KhSinger *KhRotationSingers::getSelected()
+KhSinger *KhSingers::getSelected()
 {
     return getSingerByIndex(selectedSingerIndex);
 }
 
 bool positionSort(KhSinger *singer1, KhSinger *singer2)
 {
-    if (singer1->getSingerPosition() >= singer2->getSingerPosition())
+    if (singer1->position() >= singer2->position())
         return false;
     else
         return true;
 }
 
-void KhRotationSingers::sortSingers()
+void KhSingers::sortSingers()
 {
     emit dataAboutToChange();
     std::sort(singers->begin(), singers->end(), positionSort);
     emit dataChanged();
 }
 
-void KhRotationSingers::regularSingerDeleted(int RegularID)
+void KhSingers::regularSingerDeleted(int RegularID)
 {
     for (int i=0; i < singers->size(); i++)
     {
-        if (singers->at(i)->getRegularIndex() == RegularID)
+        if (singers->at(i)->regularIndex() == RegularID)
         {
             emit dataAboutToChange();
             singers->at(i)->setRegular(false);
@@ -423,85 +425,85 @@ void KhRotationSingers::regularSingerDeleted(int RegularID)
 
 
 
-int KhRotationSingers::getCurrentSingerIndex() const
+int KhSingers::getCurrentSingerIndex() const
 {
     return currentSingerIndex;
 }
 
-void KhRotationSingers::setCurrentSingerIndex(int value)
+void KhSingers::setCurrentSingerIndex(int value)
 {
     emit dataAboutToChange();
     currentSingerIndex = value;
     if (getSingerByIndex(value) != NULL)
-        currentSingerPosition = getSingerByIndex(value)->getSingerPosition();
+        currentSingerPosition = getSingerByIndex(value)->position();
     else
         currentSingerPosition = -1;
     emit dataChanged();
 }
 
-int KhRotationSingers::getSelectedSingerIndex() const
+int KhSingers::getSelectedSingerIndex() const
 {
     return selectedSingerIndex;
 }
 
-void KhRotationSingers::setSelectedSingerIndex(int value)
+void KhSingers::setSelectedSingerIndex(int value)
 {
     selectedSingerIndex = value;
     if (getSingerByIndex(value) != NULL)
-        selectedSingerPosition = getSingerByIndex(value)->getSingerPosition();
+        selectedSingerPosition = getSingerByIndex(value)->position();
     else
         selectedSingerPosition = -1;
 }
 
-void KhRotationSingers::createRegularForSinger(int singerID)
+void KhSingers::createRegularForSinger(int singerID)
 {
     KhSinger *singer = getSingerByIndex(singerID);
     QSqlQuery query("BEGIN TRANSACTION");
-    int regularid = regularSingers->add(singer->getSingerName());
+    int regularid = regularSingers->add(singer->name());
     singer->setRegular(true);
     singer->setRegularIndex(regularid);
     KhRegularSinger *regular = regularSingers->getByRegularID(regularid);
-    for (int i=0; i < singer->getQueueSongs()->size(); i++)
+    for (int i=0; i < singer->queueSongs()->size(); i++)
     {
-        int regsongindex = regular->addSong(singer->getQueueSongs()->at(i)->getSongID(),singer->getQueueSongs()->at(i)->getKeyChange(),singer->getQueueSongs()->at(i)->getPosition());
-        singer->getQueueSongs()->at(i)->setRegSong(true);
-        singer->getQueueSongs()->at(i)->setRegSongIndex(regsongindex);
+        int regsongindex = regular->addSong(singer->queueSongs()->at(i)->getSongID(),singer->queueSongs()->at(i)->getKeyChange(),singer->queueSongs()->at(i)->getPosition());
+        singer->queueSongs()->at(i)->setRegSong(true);
+        singer->queueSongs()->at(i)->setRegSongIndex(regsongindex);
     }
     query.exec("COMMIT TRANSACTION");
 }
 
-QStringList KhRotationSingers::getSingerList()
+QStringList KhSingers::getSingerList()
 {
     QStringList singerList;
     for (int i=0; i < singers->size(); i++)
-        singerList << singers->at(i)->getSingerName();
+        singerList << singers->at(i)->name();
     singerList.sort();
     return singerList;
 }
 
-int KhRotationSingers::getSelectedSingerPosition() const
+int KhSingers::getSelectedSingerPosition() const
 {
     return selectedSingerPosition;
 }
 
-void KhRotationSingers::setSelectedSingerPosition(int value)
+void KhSingers::setSelectedSingerPosition(int value)
 {
     selectedSingerPosition = value;
-    selectedSingerIndex = getSingerByPosition(value)->getSingerIndex();
+    selectedSingerIndex = getSingerByPosition(value)->index();
 }
 
 
 int KhSinger::addSong(KhQueueSong *song)
 {
-    if (singerIndex != -1)
+    if (m_index != -1)
     {
-        if (regular)
+        if (m_regular)
         {
-            int regsongid = regularSingers->getByRegularID(regularIndex)->addSong(song->getSongID(), song->getKeyChange(), song->getPosition());
+            int regsongid = m_regularSingers->getByRegularID(m_regularIndex)->addSong(song->getSongID(), song->getKeyChange(), song->getPosition());
             song->setRegSong(true);
             song->setRegSongIndex(regsongid);
         }
-        int qsongid = songs->addSong(song);
+        int qsongid = m_songs->addSong(song);
         return qsongid;
     }
     return -1;
@@ -509,16 +511,16 @@ int KhSinger::addSong(KhQueueSong *song)
 
 int KhSinger::addSongAtEnd(int songid, bool regularSong, int regSongID)
 {
-    if (singerIndex != -1)
+    if (m_index != -1)
     {
-        int qsongid = songs->addSongAtEnd(songid, regularSong,regSongID);
-        if (regular)
+        int qsongid = m_songs->addSongAtEnd(songid, regularSong,regSongID);
+        if (m_regular)
         {
             KhQueueSong *song = getSongByIndex(qsongid);
-            int regsongid = regularSingers->getByRegularID(regularIndex)->addSong(song->getSongID(), song->getKeyChange(), song->getPosition());
+            int regsongid = m_regularSingers->getByRegularID(m_regularIndex)->addSong(song->getSongID(), song->getKeyChange(), song->getPosition());
             song->setRegSong(true);
             song->setRegSongIndex(regsongid);
-            song->setRegSingerIndex(regularIndex);
+            song->setRegSingerIndex(m_regularIndex);
         }
         return qsongid;
     }
@@ -527,16 +529,16 @@ int KhSinger::addSongAtEnd(int songid, bool regularSong, int regSongID)
 
 int KhSinger::addSongAtPosition(int songid, int position, bool regularSong, int regSongID)
 {
-    if (singerIndex != 0)
+    if (m_index != 0)
     {
-        int qsongid = songs->addSongAtPosition(songid,position,regularSong,regSongID,regularIndex);
+        int qsongid = m_songs->addSongAtPosition(songid,position,regularSong,regSongID,m_regularIndex);
         KhQueueSong *song = getSongByIndex(qsongid);
-        if (regular)
+        if (m_regular)
         {
             QSqlQuery query("BEGIN TRANSACTION");
             song->setRegSong(true);
-            song->setRegSingerIndex(regularIndex);
-            KhRegularSinger *regsinger = regularSingers->getByRegularID(regularIndex);
+            song->setRegSingerIndex(m_regularIndex);
+            KhRegularSinger *regsinger = m_regularSingers->getByRegularID(m_regularIndex);
             KhRegularSong *regSong = new KhRegularSong();
             regSong->setRegSingerIndex(regsinger->getIndex());
             regSong->setSongIndex(song->getSongID());
@@ -553,12 +555,12 @@ int KhSinger::addSongAtPosition(int songid, int position, bool regularSong, int 
 
 void KhSinger::clearQueue()
 {
-    if ((isRegular()) && (regularSingers->getByRegularID(getRegularIndex()) != NULL))
-       regularSingers->getByRegularID(getRegularIndex())->getRegSongs()->clear();
-    songs->clear();
+    if ((regular()) && (m_regularSingers->getByRegularID(regularIndex()) != NULL))
+       m_regularSingers->getByRegularID(regularIndex())->getRegSongs()->clear();
+    m_songs->clear();
 }
 
 void KhSinger::moveSong(int oldPosition, int newPosition)
 {
-    songs->moveSong(oldPosition, newPosition);
+    m_songs->moveSong(oldPosition, newPosition);
 }

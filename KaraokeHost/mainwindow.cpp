@@ -70,7 +70,7 @@ MainWindow::MainWindow(QWidget *parent) :
     songdbmodel = new SongDBTableModel(this);
     songdbmodel->loadFromDB();
     regularSingers = new KhRegularSingers(songdbmodel->getDbSongs(),this);
-    singers = new KhRotationSingers(regularSingers, this);
+    singers = new KhSingers(regularSingers, this);
     songCurrent = NULL;
     rotationmodel = new RotationTableModel(singers, this);
     ui->treeViewRotation->setModel(rotationmodel);
@@ -359,9 +359,9 @@ void MainWindow::on_treeViewRotation_clicked(const QModelIndex &index)
     else if (index.column() == 5)
     {
         KhSinger *singer = singers->getSingerByPosition(index.row() + 1);
-        if (!singer->isRegular())
+        if (!singer->regular())
         {
-            if (regularSingers->exists(singer->getSingerName()))
+            if (regularSingers->exists(singer->name()))
             {
                 QMessageBox msgBox(this);
                 msgBox.setText("A regular singer with this name already exists!");
@@ -390,7 +390,7 @@ void MainWindow::on_treeViewRotation_clicked(const QModelIndex &index)
             {
                 rotationmodel->layoutAboutToBeChanged();
                 qDebug() << "Set regular clicked, singer is not currently regular";
-                singers->createRegularForSinger(singer->getSingerIndex());
+                singers->createRegularForSinger(singer->index());
                 rotationmodel->layoutChanged();
                 //for (unsigned int i=0; i < queuemodel->rowCount(); i++)
                 // {
@@ -422,7 +422,7 @@ void MainWindow::on_treeViewRotation_clicked(const QModelIndex &index)
     else if (rowclicked != index.row())
     {
         ui->treeViewQueue->clearSelection();
-        int singerid = singers->getSingerByPosition(index.row() + 1)->getSingerIndex();
+        int singerid = singers->getSingerByPosition(index.row() + 1)->index();
         queuemodel->layoutAboutToBeChanged();
         singers->setSelectedSingerIndex(singerid);
         rowclicked = index.row();
@@ -449,7 +449,7 @@ void MainWindow::on_treeViewQueue_activated(const QModelIndex &index)
     queuesong->setPlayed(true);
     queuemodel->layoutChanged();
     rotationmodel->layoutAboutToBeChanged();
-    singers->setCurrentSingerPosition(singers->getSelected()->getSingerPosition());
+    singers->setCurrentSingerPosition(singers->getSelected()->position());
     rotationmodel->layoutChanged();
     ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
 }
@@ -511,7 +511,7 @@ void MainWindow::on_treeViewQueue_clicked(const QModelIndex &index)
     if (index.column() == 4)
     {
         queuemodel->layoutAboutToBeChanged();
-        singers->getSelected()->getQueueObject()->deleteSongByPosition(index.row());
+        singers->getSelected()->queueObject()->deleteSongByPosition(index.row());
         queuemodel->layoutChanged();
         ui->treeViewQueue->clearSelection();
     }
@@ -667,8 +667,8 @@ void MainWindow::rotationDataChanged()
     int displayPos;
     if (singers->getCurrent() != NULL)
     {
-        tickerText += singers->getCurrent()->getSingerName();
-        displayPos = singers->getCurrent()->getSingerPosition();
+        tickerText += singers->getCurrent()->name();
+        displayPos = singers->getCurrent()->position();
     }
     else
     {
@@ -697,7 +697,7 @@ void MainWindow::rotationDataChanged()
             displayPos = 1;
         tickerText += QString::number(i + 1);
         tickerText += ") ";
-        tickerText += singers->getSingerByPosition(displayPos)->getSingerName();
+        tickerText += singers->getSingerByPosition(displayPos)->name();
         tickerText += "  ";
     }
     if (singers->getSingers()->size() == 0)

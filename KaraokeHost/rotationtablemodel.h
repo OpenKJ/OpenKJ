@@ -30,10 +30,10 @@ class RotationTableModel : public QAbstractTableModel
     Q_OBJECT
 
 private:
-    KhRotationSingers *singers;
+    KhSingers *singers;
 
 public:
-    explicit RotationTableModel(KhRotationSingers *singersObject, QObject *parent = 0);
+    explicit RotationTableModel(KhSingers *singersObject, QObject *parent = 0);
     enum {ICON=0,NAME,NEXTSONG};
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;

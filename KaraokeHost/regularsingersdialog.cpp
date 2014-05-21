@@ -24,7 +24,7 @@
 #include <QMessageBox>
 #include <QSqlQuery>
 
-RegularSingersDialog::RegularSingersDialog(KhRegularSingers *regSingers, KhRotationSingers *rotSingers, QWidget *parent) :
+RegularSingersDialog::RegularSingersDialog(KhRegularSingers *regSingers, KhSingers *rotSingers, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::RegularSingersDialog)
 {
@@ -130,11 +130,11 @@ void RegularSingersDialog::addRegularToRotation(int ListIndex)
             KhRegularSong *regSong = regSinger->getRegSongs()->getRegSongs()->at(i);
             rotSinger->addSongAtEnd(regSong->getSongIndex());
             QApplication::processEvents();
-            rotSinger->getQueueSongs()->at(i)->setRegSingerIndex(regSinger->getIndex());
+            rotSinger->queueSongs()->at(i)->setRegSingerIndex(regSinger->getIndex());
             QApplication::processEvents();
-            rotSinger->getQueueSongs()->at(i)->setRegSong(true);
+            rotSinger->queueSongs()->at(i)->setRegSong(true);
             QApplication::processEvents();
-            rotSinger->getQueueSongs()->at(i)->setRegSongIndex(regSong->getRegSongIndex());
+            rotSinger->queueSongs()->at(i)->setRegSongIndex(regSong->getRegSongIndex());
             QApplication::processEvents();
         }
         qDebug() << "Done adding songs, setting as regular";
@@ -145,13 +145,13 @@ void RegularSingersDialog::addRegularToRotation(int ListIndex)
         qDebug() << "RegularSingersDialog::addRegularToRotation() DB transaction end";
         if ((ui->comboBoxAddPos->currentText() == "Next") && (m_rotSingers->getCurrent() != NULL))
         {
-            if (m_rotSingers->getCurrent()->getSingerPosition() != m_rotSingers->getSingers()->size())
-                m_rotSingers->moveSinger(rotSinger->getSingerPosition(),m_rotSingers->getCurrent()->getSingerPosition() + 1);
+            if (m_rotSingers->getCurrent()->position() != m_rotSingers->getSingers()->size())
+                m_rotSingers->moveSinger(rotSinger->position(),m_rotSingers->getCurrent()->position() + 1);
         }
         else if ((ui->comboBoxAddPos->currentText() == "Fair") && (m_rotSingers->getCurrent() != NULL))
         {
-            if (m_rotSingers->getCurrent()->getSingerPosition() != 1)
-                m_rotSingers->moveSinger(rotSinger->getSingerPosition(), m_rotSingers->getCurrent()->getSingerPosition());
+            if (m_rotSingers->getCurrent()->position() != 1)
+                m_rotSingers->moveSinger(rotSinger->position(), m_rotSingers->getCurrent()->position());
         }
         msgBox->close();
         delete msgBox;

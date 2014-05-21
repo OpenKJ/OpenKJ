@@ -16,7 +16,7 @@ class KhRequestsDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit KhRequestsDialog(KhSongs *fullData,KhRotationSingers *singers,QWidget *parent = 0);
+    explicit KhRequestsDialog(KhSongs *fullData,KhSingers *singers,QWidget *parent = 0);
     ~KhRequestsDialog();
 
 private slots:
@@ -43,7 +43,7 @@ private:
     Ui::KhRequestsDialog *ui;
     RequestsTableModel *requestsModel;
     SongDBTableModel *songDbModel;
-    KhRotationSingers *rotSingers;
+    KhSingers *rotSingers;
     CdgPreviewDialog *cdgPreviewDialog;
 };
 

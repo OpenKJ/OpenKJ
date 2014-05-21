@@ -36,7 +36,7 @@ class QueueTableModel : public QAbstractTableModel
 {
     Q_OBJECT
 public:
-    explicit QueueTableModel(KhRotationSingers *singersObject, QObject *parent = 0);
+    explicit QueueTableModel(KhSingers *singersObject, QObject *parent = 0);
     enum {ARTIST=0,TITLE,DISCID,KEYCHANGE};
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;
@@ -58,7 +58,7 @@ signals:
 public slots:
     
 private:
-    KhRotationSingers *singers;
+    KhSingers *singers;
 };
 
 #endif // QUEUETABLEMODEL_H

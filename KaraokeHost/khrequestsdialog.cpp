@@ -3,7 +3,7 @@
 #include <QMenu>
 #include <QMessageBox>
 
-KhRequestsDialog::KhRequestsDialog(KhSongs *fullData, KhRotationSingers *singers, QWidget *parent) :
+KhRequestsDialog::KhRequestsDialog(KhSongs *fullData, KhSingers *singers, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::KhRequestsDialog)
 {
@@ -159,13 +159,13 @@ void KhRequestsDialog::on_pushButtonAddSong_clicked()
             KhSinger *rotSinger = rotSingers->getSingerByName(ui->lineEditSingerName->text());
             if ((ui->comboBoxAddPosition->currentText() == "After current singer") && (rotSingers->getCurrent() != NULL))
             {
-                if (rotSingers->getCurrent()->getSingerPosition() != rotSingers->getSingers()->size())
-                    rotSingers->moveSinger(rotSinger->getSingerPosition(),rotSingers->getCurrent()->getSingerPosition() + 1);
+                if (rotSingers->getCurrent()->position() != rotSingers->getSingers()->size())
+                    rotSingers->moveSinger(rotSinger->position(),rotSingers->getCurrent()->position() + 1);
             }
             else if ((ui->comboBoxAddPosition->currentText() == "Fair (full rotation)") && (rotSingers->getCurrent() != NULL))
             {
-                if (rotSingers->getCurrent()->getSingerPosition() != 1)
-                    rotSingers->moveSinger(rotSinger->getSingerPosition(), rotSingers->getCurrent()->getSingerPosition());
+                if (rotSingers->getCurrent()->position() != 1)
+                    rotSingers->moveSinger(rotSinger->position(), rotSingers->getCurrent()->position());
             }
             rotSinger->addSongAtEnd(songid);
 

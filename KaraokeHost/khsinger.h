@@ -31,23 +31,23 @@ class KhSinger : public QObject {
 public:
     explicit KhSinger(KhRegularSingers *regSingers, QObject *parent = 0);
 
-    int getSingerIndex() const;
-    void setSingerIndex(int value);
+    int index() const;
+    void setIndex(int value);
 
-    QString getSingerName() const;
-    void setSingerName(const QString &value, bool skipDB = false);
+    QString name() const;
+    void setName(const QString &value, bool skipDB = false);
 
-    int getSingerPosition() const;
-    void setSingerPosition(int value, bool skipDB = false);
+    int position() const;
+    void setPosition(int value, bool skipDB = false);
 
-    bool isRegular() const;
+    bool regular() const;
     void setRegular(bool value, bool skipDB = false);
 
-    int getRegularIndex() const;
+    int regularIndex() const;
     void setRegularIndex(int value, bool skipDB = false);
 
-    QList<KhQueueSong *> *getQueueSongs();
-    KhQueueSongs *getQueueObject();
+    QList<KhQueueSong *> *queueSongs();
+    KhQueueSongs *queueObject();
     KhQueueSong *getSongByIndex(int queueSongID);
     KhQueueSong *getSongByPosition(int position);
     KhQueueSong *getNextSong();
@@ -60,13 +60,13 @@ public:
 
 
 private:
-    int singerIndex;
-    QString singerName;
-    int singerPosition;
-    bool regular;
-    int regularIndex;
-    KhQueueSongs *songs;
-    KhRegularSingers *regularSingers;
+    int m_index;
+    QString m_name;
+    int m_position;
+    bool m_regular;
+    int m_regularIndex;
+    KhQueueSongs *m_songs;
+    KhRegularSingers *m_regularSingers;
 
 signals:
 
@@ -74,11 +74,11 @@ public slots:
 
 };
 
-class KhRotationSingers : public QObject {
+class KhSingers : public QObject {
     Q_OBJECT
 public:
-    explicit KhRotationSingers(KhRegularSingers *regSingersPtr, QObject *parent = 0);
-    ~KhRotationSingers();
+    explicit KhSingers(KhRegularSingers *regSingersPtr, QObject *parent = 0);
+    ~KhSingers();
     void loadFromDB();
     QList<KhSinger *> *getSingers();
     bool moveSinger(int oldPosition, int newPosition);

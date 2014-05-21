@@ -117,7 +117,7 @@ private:
     KhRequestsDialog *requestsDialog;
     CdgPreviewDialog *cdgPreviewDialog;
     KhAbstractAudioBackend *audioBackend;
-    KhRotationSingers *singers;
+    KhSingers *singers;
     KhRegularSingers *regularSingers;
     KhIPCClient *ipcClient;
     QLabel *labelSingerCount;
