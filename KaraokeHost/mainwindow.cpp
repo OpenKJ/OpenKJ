@@ -169,6 +169,11 @@ MainWindow::MainWindow(QWidget *parent) :
     settings->restoreWindowState(cdgWindow);
     settings->restoreWindowState(requestsDialog);
     settings->restoreWindowState(regularSingersDialog);
+    settings->restoreSplitterState(ui->splitter);
+    settings->restoreSplitterState(ui->splitter_2);
+    settings->restoreColumnWidths(ui->treeViewDB);
+    settings->restoreColumnWidths(ui->treeViewQueue);
+    settings->restoreColumnWidths(ui->treeViewRotation);
     if ((settings->cdgWindowFullscreen()) && (settings->showCdgWindow()))
     {
         cdgWindow->makeFullscreen();
@@ -220,6 +225,11 @@ void MainWindow::play(QString zipFilePath)
 
 MainWindow::~MainWindow()
 {
+    settings->saveSplitterState(ui->splitter);
+    settings->saveSplitterState(ui->splitter_2);
+    settings->saveColumnWidths(ui->treeViewDB);
+    settings->saveColumnWidths(ui->treeViewRotation);
+    settings->saveColumnWidths(ui->treeViewQueue);
     settings->saveWindowState(cdgWindow);
     settings->saveWindowState(requestsDialog);
     settings->saveWindowState(regularSingersDialog);

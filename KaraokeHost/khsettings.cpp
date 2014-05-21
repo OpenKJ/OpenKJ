@@ -86,6 +86,38 @@ void KhSettings::restoreWindowState(QWidget *window)
     settings->endGroup();
 }
 
+void KhSettings::saveColumnWidths(QTreeView *treeView)
+{
+    settings->beginGroup(treeView->objectName());
+    settings->setValue("headerState", treeView->header()->saveState());
+    settings->setValue("hiddenSections", treeView->header()->hiddenSectionCount());
+    settings->setValue("sections", treeView->header()->count());
+    settings->endGroup();
+}
+
+void KhSettings::restoreColumnWidths(QTreeView *treeView)
+{
+    settings->beginGroup(treeView->objectName());
+    if ((settings->contains("headerState")) && (settings->value("hiddenSections").toInt() == treeView->header()->hiddenSectionCount()) && (settings->value("sections").toInt() == treeView->header()->count()))
+        treeView->header()->restoreState(settings->value("headerState").toByteArray());
+    settings->endGroup();
+}
+
+void KhSettings::saveSplitterState(QSplitter *splitter)
+{
+    settings->beginGroup(splitter->objectName());
+    settings->setValue("splitterState", splitter->saveState());
+    settings->endGroup();
+}
+
+void KhSettings::restoreSplitterState(QSplitter *splitter)
+{
+    settings->beginGroup(splitter->objectName());
+    if (settings->contains("splitterState"))
+        splitter->restoreState(settings->value("splitterState").toByteArray());
+    settings->endGroup();
+}
+
 void KhSettings::setTickerFont(QFont font)
 {
     settings->setValue("tickerFont", font.toString());

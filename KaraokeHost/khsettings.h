@@ -21,8 +21,11 @@
 #ifndef KHSETTINGS_H
 #define KHSETTINGS_H
 
+#include <QHeaderView>
 #include <QObject>
 #include <QSettings>
+#include <QSplitter>
+#include <QTreeView>
 #include <QWidget>
 
 
@@ -51,6 +54,10 @@ public:
     bool setSilenceDetection(bool detect);
     void saveWindowState(QWidget *window);
     void restoreWindowState(QWidget *window);
+    void saveColumnWidths(QTreeView *treeView);
+    void restoreColumnWidths(QTreeView *treeView);
+    void saveSplitterState(QSplitter *splitter);
+    void restoreSplitterState(QSplitter *splitter);
     void setTickerFont(QFont font);
     QFont tickerFont();
     int tickerHeight();
