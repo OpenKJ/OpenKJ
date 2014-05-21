@@ -231,7 +231,7 @@ MainWindow::~MainWindow()
     delete khTmpDir;
     delete database;
     delete regularSingers;
-    delete songCurrent;
+    //delete songCurrent;
     delete ui;
 }
 

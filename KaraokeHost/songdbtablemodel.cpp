@@ -103,10 +103,10 @@ SongDBTableModel::~SongDBTableModel()
 {
     if (!externalDataSource)
     {
+        delete filteredData;
         qDeleteAll(fulldata->begin(),fulldata->end());
         delete fulldata;
     }
-    delete filteredData;
 }
 
 void SongDBTableModel::applyFilter(QString filterstr)
