@@ -392,19 +392,17 @@ QString RotationTableModel::getNextSongBySingerPosition(int position) const
 
 void RotationTableModel::deleteSingerByIndex(int singerid)
 {
-    QSqlQuery query;
     int delSingerPos = getSingerByIndex(singerid)->position();
     if (singerid == currentSingerIndex) setCurrentSingerPosition(-1);
-    query.exec("BEGIN TRANSACTION");
-    query.exec("DELETE FROM queueSongs WHERE singer == " + QString::number(singerid));
-    query.exec("DELETE FROM rotationSingers WHERE ROWID == " + QString::number(singerid));
+    db->beginTransaction();
+    db->singerDelete(singerid);
     m_singers->erase(m_singers->begin() + (delSingerPos - 1));
     for (int i=0; i < m_singers->size(); i++)
     {
         if (m_singers->at(i)->position() >  delSingerPos)
             m_singers->at(i)->setPosition(m_singers->at(i)->position() - 1);
     }
-    query.exec("COMMIT TRANSACTION");
+    db->endTransaction();
     sortSingers();
 }
 
@@ -417,9 +415,7 @@ void RotationTableModel::deleteSingerByPosition(int position)
 void RotationTableModel::clear()
 {
     emit layoutAboutToBeChanged();
-    QSqlQuery query;
-    query.exec("DELETE FROM rotationsingers");
-    query.exec("DELETE FROM queuesongs");
+    db->rotationClear();
     currentSingerPosition = -1;
     qDeleteAll(m_singers->begin(),m_singers->end());
     m_singers->clear();
@@ -529,15 +525,16 @@ bool RotationTableModel::add(QString name, int position, bool regular)
         return false;
     }
     emit layoutAboutToBeChanged();
-    QSqlQuery query;
+    //QSqlQuery query;
     int nextPos = m_singers->size() + 1;
     //        singerPos = singers->size() + 1;
-    bool result = query.exec("INSERT INTO rotationSingers (name, position, regular) VALUES(\"" + name + "\", " + QString::number(nextPos) + "," + QString::number(regular) + ")");
-    if (!result) return false;
+    int singerId = db->singerAdd(name, nextPos, regular);
+    //int result = query.exec("INSERT INTO rotationSingers (name, position, regular) VALUES(\"" + name + "\", " + QString::number(nextPos) + "," + QString::number(regular) + ")");
+    if (singerId == -1) return false;
     KhSinger *singer = new KhSinger(regularSingers, this);
     singer->setName(name,true);
     singer->setPosition(nextPos,true);
-    singer->setIndex(query.lastInsertId().toInt());
+    singer->setIndex(singerId);
     singer->setRegular(regular,true);
     singer->setRegularIndex(-1,true);
     m_singers->push_back(singer);

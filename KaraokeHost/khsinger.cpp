@@ -19,11 +19,7 @@
 */
 
 #include "khsinger.h"
-#include <QSqlQuery>
-#include <QSqlRecord>
 #include <QtCore>
-#include <algorithm>
-#include <QDebug>
 #include "khdb.h"
 
 extern KhDb *db;
@@ -130,7 +126,9 @@ KhQueueSong *KhSinger::getSongByPosition(int position)
 
 KhQueueSong *KhSinger::getNextSong()
 {
-    return m_songs->getNextSong();
+    if (this != NULL)
+        return m_songs->getNextSong();
+    return NULL;
 }
 
 int KhSinger::addSong(KhQueueSong *song)
@@ -175,7 +173,7 @@ int KhSinger::addSongAtPosition(int songid, int position, bool regularSong, int 
         KhQueueSong *song = getSongByIndex(qsongid);
         if (m_regular)
         {
-            QSqlQuery query("BEGIN TRANSACTION");
+            db->beginTransaction();
             song->setRegSong(true);
             song->setRegSingerIndex(m_regularIndex);
             KhRegularSinger *regsinger = m_regularSingers->getByRegularID(m_regularIndex);
@@ -184,7 +182,7 @@ int KhSinger::addSongAtPosition(int songid, int position, bool regularSong, int 
             regSong->setSongIndex(song->getSongID());
             int regsongid = regsinger->getRegSongs()->addSong(regSong);
             song->setRegSongIndex(regsongid);
-            query.exec("COMMIT TRANSACTION");
+            db->endTransaction();
             regsinger->getRegSongs()->moveSong(regsongid, position);
 
         }

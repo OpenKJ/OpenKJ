@@ -72,7 +72,6 @@ public:
     void clear();
     KhSinger *getCurrent();
     KhSinger *getSelected();
-
     int getCurrentSingerIndex() const;
     void setCurrentSingerIndex(int value);
     int getSelectedSingerPosition() const;
@@ -83,7 +82,6 @@ public:
     QStringList getSingerList();
     KhSinger *at(int index);
     int size();
-
     bool add(QString name, int position = -1, bool regular = false);
 
 

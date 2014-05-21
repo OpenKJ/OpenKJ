@@ -115,11 +115,14 @@ bool KhQueueSong::getPlayed() const
 
 void KhQueueSong::setPlayed(bool value, bool skipDB)
 {
-    played = value;
-    if (!skipDB)
+    if (this != NULL)
     {
-        QSqlQuery query;
-        query.exec("UPDATE queuesongs SET 'played'=" + QString::number(played) + " WHERE ROWID == " + QString::number(index));
+        played = value;
+        if (!skipDB)
+        {
+            QSqlQuery query;
+            query.exec("UPDATE queuesongs SET 'played'=" + QString::number(played) + " WHERE ROWID == " + QString::number(index));
+        }
     }
 }
 
@@ -142,7 +145,9 @@ void KhQueueSong::setKeyChange(int value, bool skipDB)
 
 int KhQueueSong::getSongID() const
 {
-    return songID;
+    if (this != NULL)
+        return songID;
+    else return -1;
 }
 
 void KhQueueSong::setSongID(int value, bool skipDB)

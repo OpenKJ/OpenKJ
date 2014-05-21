@@ -15,8 +15,9 @@ public:
     bool singerSetName(int singerId, QString name);
     bool singerSetRegIndex(int singerId, int regId);
     bool singerMove(int singerId, int newPosition);
-    int  singerAdd(QString name, int position, bool regular);
+    int  singerAdd(QString name, int position = -1, bool regular = false);
     bool singerDelete(int singerId);
+    bool rotationClear();
 
 
 signals:
