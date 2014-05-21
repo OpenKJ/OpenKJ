@@ -374,20 +374,7 @@ bool RotationTableModel::exists(QString name)
 
 QString RotationTableModel::getNextSongBySingerPosition(int position) const
 {
-    QString nextSong;
-    int singerid = getSingerByPosition(position)->index();
-    QSqlQuery query("SELECT queueSongs.song,dbSongs.artist,dbSongs.title FROM queueSongs,dbSongs WHERE queueSongs.played == 0 AND queueSongs.singer == " + QString::number(singerid) + " AND dbSongs.ROWID == queueSongs.song ORDER BY position LIMIT 1");
-    int idx = query.record().indexOf("song");
-    int artist = query.record().indexOf("artist");
-    int title = query.record().indexOf("title");
-    int songid = -1;
-    while (query.next()) {
-        songid = query.value(idx).toInt();
-        nextSong = query.value(artist).toString() + " - " + query.value(title).toString();
-    }
-    if (songid == -1)
-        nextSong = "--empty--";
-    return nextSong;
+    return db->singerGetNextSong(getSingerByPosition(position)->index());
 }
 
 void RotationTableModel::deleteSingerByIndex(int singerid)
@@ -525,11 +512,8 @@ bool RotationTableModel::add(QString name, int position, bool regular)
         return false;
     }
     emit layoutAboutToBeChanged();
-    //QSqlQuery query;
     int nextPos = m_singers->size() + 1;
-    //        singerPos = singers->size() + 1;
     int singerId = db->singerAdd(name, nextPos, regular);
-    //int result = query.exec("INSERT INTO rotationSingers (name, position, regular) VALUES(\"" + name + "\", " + QString::number(nextPos) + "," + QString::number(regular) + ")");
     if (singerId == -1) return false;
     KhSinger *singer = new KhSinger(regularSingers, this);
     singer->setName(name,true);
@@ -553,14 +537,14 @@ bool RotationTableModel::add(QString name, int position, bool regular)
 
 void RotationTableModel::regularSingerDeleted(int RegularID)
 {
+    emit layoutAboutToBeChanged();
     for (int i=0; i < m_singers->size(); i++)
     {
         if (m_singers->at(i)->regularIndex() == RegularID)
         {
-            emit layoutAboutToBeChanged();
             m_singers->at(i)->setRegular(false);
             m_singers->at(i)->setRegularIndex(-1);
-            emit layoutChanged();
         }
     }
+    emit layoutChanged();
 }

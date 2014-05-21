@@ -1,5 +1,6 @@
 #include "khdb.h"
 #include <QSqlQuery>
+#include <QSqlRecord>
 #include <QVariant>
 
 KhDb::KhDb(QObject *parent) :
@@ -60,6 +61,24 @@ bool KhDb::singerDelete(int singerId)
     if (query.exec("DELETE FROM queueSongs WHERE singer == " + QString::number(singerId)))
         return query.exec("DELETE FROM rotationSingers WHERE ROWID == " + QString::number(singerId));
     return false;
+}
+
+QString KhDb::singerGetNextSong(int singerId)
+{
+    QSqlQuery query;
+    query.exec("SELECT queueSongs.song,dbSongs.artist,dbSongs.title FROM queueSongs,dbSongs WHERE queueSongs.played == 0 AND queueSongs.singer == " + QString::number(singerId) + " AND dbSongs.ROWID == queueSongs.song ORDER BY position LIMIT 1");
+    int idx = query.record().indexOf("song");
+    int artist = query.record().indexOf("artist");
+    int title = query.record().indexOf("title");
+    int songid = -1;
+    QString nextSong;
+    while (query.next()) {
+        songid = query.value(idx).toInt();
+        nextSong = query.value(artist).toString() + " - " + query.value(title).toString();
+    }
+    if (songid == -1)
+        nextSong = "--empty--";
+    return nextSong;
 }
 
 bool KhDb::rotationClear()

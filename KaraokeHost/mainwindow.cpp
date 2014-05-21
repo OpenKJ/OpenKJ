@@ -324,18 +324,20 @@ void MainWindow::on_editAddSinger_returnPressed()
 
 void MainWindow::on_treeViewRotation_activated(const QModelIndex &index)
 {
-
-    rotationmodel->setCurrentSingerPosition(index.row() + 1);
-    audioBackend->stop();
-    KhQueueSong *qsong = rotationmodel->getSelected()->getNextSong();
-    KhSong *song = songdbmodel->getSongByID(qsong->getSongID());
-    songCurrent = song;
-    delete khTmpDir;
-    khTmpDir = new QTemporaryDir();
-    play(song->path);
-    queuemodel->layoutAboutToBeChanged();
-    qsong->setPlayed(true);
-    queuemodel->layoutChanged();
+    if (index.column() < 3)
+    {
+        rotationmodel->setCurrentSingerPosition(index.row() + 1);
+        audioBackend->stop();
+        KhQueueSong *qsong = rotationmodel->getSelected()->getNextSong();
+        KhSong *song = songdbmodel->getSongByID(qsong->getSongID());
+        songCurrent = song;
+        delete khTmpDir;
+        khTmpDir = new QTemporaryDir();
+        play(song->path);
+        queuemodel->layoutAboutToBeChanged();
+        qsong->setPlayed(true);
+        queuemodel->layoutChanged();
+    }
 }
 
 void MainWindow::on_treeViewRotation_clicked(const QModelIndex &index)

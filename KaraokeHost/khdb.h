@@ -17,6 +17,7 @@ public:
     bool singerMove(int singerId, int newPosition);
     int  singerAdd(QString name, int position = -1, bool regular = false);
     bool singerDelete(int singerId);
+    QString singerGetNextSong(int singerId);
     bool rotationClear();
 
 
