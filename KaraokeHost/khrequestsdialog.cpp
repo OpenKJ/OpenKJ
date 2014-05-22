@@ -2,6 +2,9 @@
 #include "ui_khrequestsdialog.h"
 #include <QMenu>
 #include <QMessageBox>
+#include "khsettings.h"
+
+extern KhSettings *settings;
 
 KhRequestsDialog::KhRequestsDialog(KhSongs *fullData, RotationTableModel *rotationModel, QWidget *parent) :
     QDialog(parent),
@@ -36,15 +39,20 @@ KhRequestsDialog::KhRequestsDialog(KhSongs *fullData, RotationTableModel *rotati
     posOptions << "Bottom of rotation";
     ui->comboBoxAddPosition->addItems(posOptions);
     ui->comboBoxAddPosition->setCurrentIndex(1);
+    settings->restoreColumnWidths(ui->treeViewRequests);
+    settings->restoreColumnWidths(ui->treeViewSearch);
 }
 
 KhRequestsDialog::~KhRequestsDialog()
 {
+
     delete ui;
 }
 
 void KhRequestsDialog::on_pushButtonClose_clicked()
 {
+    settings->saveColumnWidths(ui->treeViewRequests);
+    settings->saveColumnWidths(ui->treeViewSearch);
     close();
 }
 
@@ -53,21 +61,21 @@ void KhRequestsDialog::requestsModified()
     if (requestsModel->count() > 0)
     {
         this->show();
-        ui->treeViewRequests->header()->resizeSections(QHeaderView::Stretch);
+        //ui->treeViewRequests->header()->resizeSections(QHeaderView::Stretch);
     }
 }
 
 void KhRequestsDialog::on_pushButtonSearch_clicked()
 {
     songDbModel->applyFilter(ui->lineEditSearch->text());
-    ui->treeViewSearch->header()->resizeSections(QHeaderView::Stretch);
+    //ui->treeViewSearch->header()->resizeSections(QHeaderView::Stretch);
 
 }
 
 void KhRequestsDialog::on_lineEditSearch_returnPressed()
 {
     songDbModel->applyFilter(ui->lineEditSearch->text());
-    ui->treeViewSearch->header()->resizeSections(QHeaderView::Stretch);
+    //ui->treeViewSearch->header()->resizeSections(QHeaderView::Stretch);
 
 }
 
