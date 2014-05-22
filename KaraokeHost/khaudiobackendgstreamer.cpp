@@ -122,7 +122,7 @@ void KhAudioBackendGStreamer::stop(bool skipFade)
 {
     Q_UNUSED(skipFade);
     qDebug() << "GSSound - stop() called";
-    //gst_element_set_state(pipeline, GST_STATE_NULL);
+    gst_element_set_state(pipeline, GST_STATE_NULL);
     qDebug() << "GSSound - stop() exit";
 }
 
