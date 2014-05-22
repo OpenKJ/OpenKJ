@@ -59,6 +59,8 @@ class KhAudioBackendQMediaPlayer : public KhAbstractAudioBackend
 private:
     QMediaPlayer *mplayer;
     bool m_fade;
+    bool m_stopping;
+
 
 public:
     explicit KhAudioBackendQMediaPlayer(QObject *parent = 0);
@@ -78,6 +80,7 @@ public:
     FaderQMediaPlayer *fader;
     bool canFade() { return true; }
     void setUseFader(bool fade) {m_fade = fade;}
+    bool stopping() {return m_stopping;}
 
 public slots:
     void play();

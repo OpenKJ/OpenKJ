@@ -43,6 +43,7 @@ KhAudioBackendQMediaPlayer::KhAudioBackendQMediaPlayer(QObject *parent) :
     connect(mplayer, SIGNAL(stateChanged(QMediaPlayer::State)), this, SIGNAL(stateChanged(QMediaPlayer::State)));
     connect(mplayer, SIGNAL(volumeChanged(int)), this, SIGNAL(volumeChanged(int)));
     connect(mplayer, SIGNAL(volumeChanged(int)), fader, SLOT(setBaseVolume(int)));
+    m_stopping = false;
 }
 
 
@@ -107,6 +108,9 @@ void KhAudioBackendQMediaPlayer::stop(bool skipFade)
 {
     qDebug() << "KhAudioBackendQMediaPlayer::stop()";
     qDebug() << "Media state: " << mplayer->state();
+    if (m_stopping)
+        return;
+    m_stopping = true;
     if (mplayer->state() == QMediaPlayer::PlayingState)
     {
         if ((m_fade) && (!skipFade))
@@ -119,6 +123,7 @@ void KhAudioBackendQMediaPlayer::stop(bool skipFade)
         mplayer->stop();
         if (!skipFade) fader->restoreVolume();
     }
+    m_stopping = false;
 }
 
 QMediaPlayer::State KhAudioBackendQMediaPlayer::state()

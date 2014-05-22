@@ -12,7 +12,7 @@ win32: CONFIG += console
 TARGET = KaraokeHost
 TEMPLATE = app
 
-#DEFINES += USE_FMOD
+DEFINES += USE_FMOD
 
 SOURCES += main.cpp\
         mainwindow.cpp \

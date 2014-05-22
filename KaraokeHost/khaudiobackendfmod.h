@@ -80,6 +80,7 @@ private:
     FaderFmod *fader;
     bool m_fade;
     bool m_silenceDetect;
+    bool m_stopping;
 
 public:
 //    explicit KhAudioBackendFMOD(QObject *parent = 0);
@@ -107,6 +108,7 @@ public:
     bool isSilent();
     bool canFade() { return true; }
     bool canDownmix() { return true; }
+    bool stopping() { return m_stopping; }
 
 public slots:
     void play();

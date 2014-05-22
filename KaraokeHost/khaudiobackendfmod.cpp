@@ -50,6 +50,7 @@ KhAudioBackendFMOD::KhAudioBackendFMOD(bool downmix, QObject *parent) :
     silenceDetectTimer->start(1000);
     m_fade = true;
     fader = new FaderFmod(this);
+    m_stopping = false;
     setVolume(25);
     connect(fader, SIGNAL(volumeChanged(int)), this, SLOT(faderChangedVolume(int)));
     qDebug() << "KhAudioBackendFMOD - Initialized";
@@ -259,8 +260,11 @@ void KhAudioBackendFMOD::setVolume(int volume)
 
 void KhAudioBackendFMOD::stop(bool skipFade)
 {
+    if (m_stopping)
+        return;
     if (m_soundOpened)
     {
+        m_stopping = true;
         int curVolume = volume();
         if ((m_fade) && (!skipFade))
             fadeOut();
@@ -274,6 +278,7 @@ void KhAudioBackendFMOD::stop(bool skipFade)
         m_soundOpened = false;
         if ((m_fade) && (!skipFade))
             setVolume(curVolume);
+        m_stopping = false;
     }
 }
 
