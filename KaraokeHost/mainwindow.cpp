@@ -28,6 +28,7 @@
 #include "khaudiobackendfmod.h"
 #endif
 #include "khaudiobackendqmediaplayer.h"
+#include "khaudiobackendgstreamer.h"
 #include "khzip.h"
 #include <QDesktopWidget>
 #include <QStandardPaths>
@@ -111,9 +112,10 @@ MainWindow::MainWindow(QWidget *parent) :
     audioBackend = new KhAudioBackendFMOD(settings->audioDownmix(), this);
     qDebug() << "Audio backend: FMOD";
 #else
-    audioBackend = new KhAudioBackendQMediaPlayer(this);
-    qDebug() << "Audio backend: QMediaPlayer";
+//    audioBackend = new KhAudioBackendQMediaPlayer(this);
+    audioBackend = new KhAudioBackendGStreamer(this);
 #endif
+    qDebug() << "Audio backend: " << audioBackend->backendName();
     if (audioBackend->canFade())
         audioBackend->setUseFader(settings->audioUseFader());
     if (!audioBackend->canPitchShift())

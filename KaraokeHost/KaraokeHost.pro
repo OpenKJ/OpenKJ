@@ -9,10 +9,12 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 win32: CONFIG += console
 
+PKGCONFIG += gstreamer-1.0
+
 TARGET = KaraokeHost
 TEMPLATE = app
 
-DEFINES += USE_FMOD
+#DEFINES += USE_FMOD
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -47,7 +49,8 @@ SOURCES += main.cpp\
     khrequestsdialog.cpp \
     requeststablemodel.cpp \
     cdgpreviewdialog.cpp \
-    khdb.cpp
+    khdb.cpp \
+    khaudiobackendgstreamer.cpp
 
 HEADERS  += mainwindow.h \
     queuetablemodel.h \
@@ -81,7 +84,8 @@ HEADERS  += mainwindow.h \
     khrequestsdialog.h \
     requeststablemodel.h \
     cdgpreviewdialog.h \
-    khdb.h
+    khdb.h \
+    khaudiobackendgstreamer.h
 
 FORMS    += mainwindow.ui \
     databasedialog.ui \
