@@ -26,6 +26,9 @@
 #include <QSqlQuery>
 #include <QMessageBox>
 #include "dbupdatethread.h"
+#include "khsettings.h"
+
+extern KhSettings *settings;
 
 DatabaseDialog::DatabaseDialog(QWidget *parent) :
     QDialog(parent),
@@ -36,6 +39,7 @@ DatabaseDialog::DatabaseDialog(QWidget *parent) :
     sourcedirmodel->loadFromDB();
     ui->treeViewFolders->setModel(sourcedirmodel);
     selectedRow = -1;
+    settings->restoreColumnWidths(ui->treeViewFolders);
 }
 
 DatabaseDialog::~DatabaseDialog()
@@ -71,6 +75,7 @@ void DatabaseDialog::on_buttonNew_clicked()
 
 void DatabaseDialog::on_buttonClose_clicked()
 {
+    settings->saveColumnWidths(ui->treeViewFolders);
     ui->treeViewFolders->clearSelection();
     hide();
 }
