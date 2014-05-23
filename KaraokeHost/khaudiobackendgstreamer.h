@@ -3,6 +3,7 @@
 
 #include "khabstractaudiobackend.h"
 #include <gst/gst.h>
+#include <QTimer>
 
 
 class KhAudioBackendGStreamer : public KhAbstractAudioBackend
@@ -27,6 +28,8 @@ private:
     GstElement *pipeline;
     GstBus *bus;
     QString m_filename;
+    QTimer *signalTimer;
+
 
     // KhAbstractAudioBackend interface
 public:
@@ -45,7 +48,11 @@ public slots:
     void setMuted(bool muted);
     void setPosition(qint64 position);
     void setVolume(int volume);
-    void stop(bool skipFade);
+    void stop(bool skipFade = false);
+
+private slots:
+    void signalTimer_timeout();
+
 
 };
 

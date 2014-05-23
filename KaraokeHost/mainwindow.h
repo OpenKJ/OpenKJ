@@ -102,6 +102,10 @@ private slots:
 
     void on_treeViewDB_customContextMenuRequested(const QPoint &pos);
 
+    void on_sliderProgress_sliderPressed();
+
+    void on_sliderProgress_sliderReleased();
+
 private:
     Ui::MainWindow *ui;
     QSqlDatabase *database;
@@ -121,7 +125,7 @@ private:
     KhRegularSingers *regularSingers;
     KhIPCClient *ipcClient;
     QLabel *labelSingerCount;
-
+    bool sliderPositionPressed;
     void play(QString zipFilePath);
 
     QTemporaryDir *khTmpDir;

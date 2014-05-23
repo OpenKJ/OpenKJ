@@ -43,6 +43,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    sliderPositionPressed = false;
     QCoreApplication::setOrganizationName("OpenKJ");
     QCoreApplication::setOrganizationDomain("OpenKJ.org");
     QCoreApplication::setApplicationName("KaraokeHost");
@@ -614,8 +615,11 @@ void MainWindow::audioBackend_positionChanged(qint64 position)
                 free(rgbdata);
             }
         }
-        ui->sliderProgress->setMaximum(audioBackend->duration());
-        ui->sliderProgress->setValue(position);
+        if (!sliderPositionPressed)
+        {
+            ui->sliderProgress->setMaximum(audioBackend->duration());
+            ui->sliderProgress->setValue(position);
+        }
         ui->labelElapsedTime->setText(audioBackend->msToMMSS(position));
         ui->labelRemainTime->setText(audioBackend->msToMMSS(audioBackend->duration() - position));
     }
@@ -663,7 +667,7 @@ void MainWindow::audioBackend_stateChanged(QMediaPlayer::State state)
 
 void MainWindow::on_sliderProgress_sliderMoved(int position)
 {
-    audioBackend->setPosition(position);
+   // audioBackend->setPosition(position);
 }
 
 void MainWindow::on_buttonRegulars_clicked()
@@ -741,4 +745,15 @@ void MainWindow::on_treeViewDB_customContextMenuRequested(const QPoint &pos)
         contextMenu.exec(QCursor::pos());
         //contextMenu->exec(ui->treeView->mapToGlobal(point));
     }
+}
+
+void MainWindow::on_sliderProgress_sliderPressed()
+{
+    sliderPositionPressed = true;
+}
+
+void MainWindow::on_sliderProgress_sliderReleased()
+{
+    audioBackend->setPosition(ui->sliderProgress->value());
+    sliderPositionPressed = false;
 }
