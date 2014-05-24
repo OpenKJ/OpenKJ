@@ -4,7 +4,34 @@
 #include "khabstractaudiobackend.h"
 #include <gst/gst.h>
 #include <QTimer>
+#include <QThread>
 
+class FaderGStreamer : public QThread
+{
+    Q_OBJECT
+public:
+    explicit FaderGStreamer(QObject *parent = 0);
+    void run();
+    void fadeIn();
+    void fadeOut();
+    bool isFading();
+    void restoreVolume();
+    void setVolumeElement(GstElement *GstVolumeElement);
+
+signals:
+    void volumeChanged(int);
+
+public slots:
+    void setBaseVolume(int volume);
+
+private:
+    double m_targetVolume;
+    double m_preOutVolume;
+    GstElement *volumeElement;
+    bool fading;
+    void setVolume(double targetVolume);
+    double volume();
+};
 
 class KhAudioBackendGStreamer : public KhAbstractAudioBackend
 {
@@ -33,6 +60,8 @@ private:
     bool m_keyChangerOn;
     int m_keyChange;
     int m_volume;
+    FaderGStreamer *fader;
+    bool m_fade;
 
     // KhAbstractAudioBackend interface
 public:
@@ -57,8 +86,7 @@ public slots:
 
 private slots:
     void signalTimer_timeout();
-
-
+    void faderChangedVolume(int volume);
 
     // KhAbstractAudioBackend interface
 public:
@@ -67,6 +95,15 @@ public:
 
 public slots:
     void setPitchShift(int pitchShift);
+
+    // KhAbstractAudioBackend interface
+public:
+    bool canFade();
+
+public slots:
+    void fadeOut();
+    void fadeIn();
+    void setUseFader(bool fade);
 };
 
 #endif // KHAUDIOBACKENDGSTREAMER_H

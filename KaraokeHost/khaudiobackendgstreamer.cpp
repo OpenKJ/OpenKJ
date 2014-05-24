@@ -30,9 +30,14 @@ KhAudioBackendGStreamer::KhAudioBackendGStreamer(QObject *parent) :
     g_object_set(G_OBJECT(pitch), "pitch", 1.0, "tempo", 1.0, NULL);
     g_object_set(G_OBJECT(rgvolume), "album-mode", false, NULL);
 
+    fader = new FaderGStreamer(this);
+    fader->setVolumeElement(volumeElement);
+
     signalTimer = new QTimer(this);
     connect(signalTimer, SIGNAL(timeout()), this, SLOT(signalTimer_timeout()));
+    connect(fader, SIGNAL(volumeChanged(int)), this, SLOT(faderChangedVolume(int)));
     signalTimer->start(40);
+    m_fade = false;
     m_keyChangerOn = false;
     m_keyChange = 0;
 
@@ -146,30 +151,27 @@ void KhAudioBackendGStreamer::play()
     if (state() == QMediaPlayer::PausedState)
     {
         gst_element_set_state(playBin, GST_STATE_PLAYING);
+        if (m_fade)
+            fadeIn();
     }
     else
     {
-        qDebug() << "GSSound - play() called";
-      //  g_object_set (G_OBJECT(filesrc), "location", m_filename.toStdString().c_str(), NULL);
-      //  bus = gst_pipeline_get_bus(GST_PIPELINE (pipeline));
-        //gst_object_unref (bus);
         gst_element_set_state(playBin, GST_STATE_PLAYING);
-        qDebug() << "GSSound - play() exit";
     }
 }
 
 void KhAudioBackendGStreamer::pause()
 {
-    qDebug() << "GSSound - pause() called";
+    if (m_fade)
+        fadeOut();
     gst_element_set_state(playBin, GST_STATE_PAUSED);
-    qDebug() << "GSSound - pause() exit";
 }
 
 void KhAudioBackendGStreamer::setMedia(QString filename)
 {
     m_filename = filename;
     std::string uri = "file://" + filename.toStdString();
-    qDebug() << "Playing: " << uri.c_str();
+    qDebug() << "KhAudioBackendGStreamer - Playing: " << uri.c_str();
     g_object_set(GST_OBJECT(playBin), "uri", uri.c_str(), NULL);
 }
 
@@ -191,32 +193,31 @@ void KhAudioBackendGStreamer::setMuted(bool muted)
 void KhAudioBackendGStreamer::setPosition(qint64 position)
 {
     qDebug() << "Seeking to: " << position << "ms";
-// data->playbin2, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT
     GstSeekFlags flags = GST_SEEK_FLAG_FLUSH;
     if (!gst_element_seek_simple(playBin, GST_FORMAT_TIME, flags, GST_MSECOND * position))
     {
       qDebug() << "Seek failed!";
     }
-    //emit positionChanged(position);
+    emit positionChanged(position);
 }
 
 void KhAudioBackendGStreamer::setVolume(int volume)
 {
     m_volume = volume;
-    //fader->setBaseVolume(volume);
+    fader->setBaseVolume(volume);
     g_object_set(G_OBJECT(volumeElement), "volume", volume * .01, NULL);
-//    FMOD_Channel_SetVolume(channel, volume * .01);
-    //channel->setVolume(volume * .01);
     emit volumeChanged(volume);
 }
 
 void KhAudioBackendGStreamer::stop(bool skipFade)
 {
-    Q_UNUSED(skipFade);
-    qDebug() << "GSSound - stop() called";
+    int curVolume = volume();
+    if ((m_fade) && (!skipFade) && (state() == QMediaPlayer::PlayingState))
+        fadeOut();
     gst_element_set_state(playBin, GST_STATE_NULL);
     emit stateChanged(QMediaPlayer::StoppedState);
-    qDebug() << "GSSound - stop() exit";
+    if ((m_fade) && (!skipFade))
+        setVolume(curVolume);
 }
 
 void KhAudioBackendGStreamer::signalTimer_timeout()
@@ -235,7 +236,13 @@ void KhAudioBackendGStreamer::signalTimer_timeout()
         emit positionChanged(position());
     }
 //    else if (state() == QMediaPlayer::StoppedState)
-//        stop();
+    //        stop();
+}
+
+void KhAudioBackendGStreamer::faderChangedVolume(int volume)
+{
+    m_volume = volume;
+    emit volumeChanged(volume);
 }
 
 
@@ -279,4 +286,114 @@ void KhAudioBackendGStreamer::setPitchShift(int pitchShift)
         keyChangerOn();
     qDebug() << "executing g_object_set(GST_OBJECT(pitch), \"pitch\", " << getPitchForSemitone(pitchShift) << ", NULL)";
     g_object_set(G_OBJECT(pitch), "pitch", getPitchForSemitone(pitchShift), "tempo", 1.0, NULL);
+}
+
+FaderGStreamer::FaderGStreamer(QObject *parent) :
+    QThread(parent)
+{
+    m_preOutVolume = 0;
+    m_targetVolume = 0;
+    fading = false;
+
+}
+
+void FaderGStreamer::run()
+{
+    fading = true;
+    while (volume() != m_targetVolume)
+    {
+        if (volume() > m_targetVolume)
+        {
+            if (volume() < .01)
+                setVolume(0);
+            else
+                setVolume(volume() - .01);
+        }
+        if (volume() < m_targetVolume)
+            setVolume(volume() + .01);
+        QThread::msleep(30);
+    }
+    fading = false;
+}
+
+void FaderGStreamer::fadeIn()
+{
+    m_targetVolume = m_preOutVolume;
+    if (!fading)
+    {
+        start();
+    }
+    while(fading)
+        QApplication::processEvents();
+}
+
+void FaderGStreamer::fadeOut()
+{
+    m_targetVolume = 0;
+    if (!fading)
+    {
+        fading = true;
+        m_preOutVolume = volume();
+        start();
+    }
+    while(fading)
+        QApplication::processEvents();
+}
+
+bool FaderGStreamer::isFading()
+{
+    return fading;
+}
+
+void FaderGStreamer::restoreVolume()
+{
+    setVolume(m_preOutVolume);
+}
+
+void FaderGStreamer::setVolumeElement(GstElement *GstVolumeElement)
+{
+    volumeElement = GstVolumeElement;
+    m_preOutVolume = volume();
+}
+
+void FaderGStreamer::setBaseVolume(int volume)
+{
+    if (!fading)
+        m_preOutVolume = volume;
+}
+
+void FaderGStreamer::setVolume(double targetVolume)
+{
+    g_object_set(G_OBJECT(volumeElement), "volume", targetVolume, NULL);
+    emit volumeChanged(targetVolume * 100);
+}
+
+double FaderGStreamer::volume()
+{
+    gdouble curVolume;
+    g_object_get(G_OBJECT(volumeElement), "volume", &curVolume, NULL);
+    return curVolume;
+}
+
+
+
+
+bool KhAudioBackendGStreamer::canFade()
+{
+    return true;
+}
+
+void KhAudioBackendGStreamer::fadeOut()
+{
+    fader->fadeOut();
+}
+
+void KhAudioBackendGStreamer::fadeIn()
+{
+    fader->fadeIn();
+}
+
+void KhAudioBackendGStreamer::setUseFader(bool fade)
+{
+    m_fade = fade;
 }
