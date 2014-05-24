@@ -17,19 +17,22 @@ signals:
 public slots:
 
 private:
-    GstElement *pbin;
-    GstElement *decodebin;
+    GstElement *sinkBin;
+    GstElement *playBin;
     GstElement *audioconvert;
     GstElement *autoaudiosink;
     GstElement *audioresample;
     GstElement *rgvolume;
-    GstElement *filesrc;
     GstElement *pitch;
-    GstElement *pipeline;
+    GstElement *volumeElement;
+    GstPad *pad;
+    GstPad *ghostPad;
     GstBus *bus;
     QString m_filename;
     QTimer *signalTimer;
-
+    bool m_keyChangerOn;
+    int m_keyChange;
+    int m_volume;
 
     // KhAbstractAudioBackend interface
 public:
@@ -40,6 +43,8 @@ public:
     QMediaPlayer::State state();
     QString backendName();
     bool stopping();
+    void keyChangerOn();
+    void keyChangerOff();
 
 public slots:
     void play();
@@ -54,6 +59,14 @@ private slots:
     void signalTimer_timeout();
 
 
+
+    // KhAbstractAudioBackend interface
+public:
+    bool canPitchShift();
+    int pitchShift();
+
+public slots:
+    void setPitchShift(int pitchShift);
 };
 
 #endif // KHAUDIOBACKENDGSTREAMER_H

@@ -14,7 +14,7 @@ PKGCONFIG += gstreamer-1.0
 TARGET = KaraokeHost
 TEMPLATE = app
 
-#DEFINES += USE_FMOD
+DEFINES += USE_FMOD
 
 SOURCES += main.cpp\
         mainwindow.cpp \

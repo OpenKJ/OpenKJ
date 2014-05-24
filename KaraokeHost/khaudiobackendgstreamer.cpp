@@ -1,47 +1,58 @@
 #include "khaudiobackendgstreamer.h"
+#include <QApplication>
 #include <QDebug>
+#include <math.h>
+
+#define STUP 1.0594630943592952645618252949461
+#define STDN 0.94387431268169349664191315666784
 
 KhAudioBackendGStreamer::KhAudioBackendGStreamer(QObject *parent) :
     KhAbstractAudioBackend(parent)
 {
     gst_init(NULL,NULL);
-    pipeline = gst_pipeline_new("audio-player");
-    decodebin = gst_element_factory_make("mad", "decodebin");
+    m_volume = 0;
     audioconvert = gst_element_factory_make("audioconvert", "audioconvert");
     autoaudiosink = gst_element_factory_make("autoaudiosink", "autoaudiosink");
     audioresample = gst_element_factory_make("audioresample", "audioresample");
     rgvolume = gst_element_factory_make("rgvolume", "rgvolume");
-    //audiosrc = gst_element_factory_make("autoaudiosrc", "audiosrc");
-    filesrc = gst_element_factory_make("filesrc", "filesrc");
+    volumeElement = gst_element_factory_make("volume", "volumeElement");
     pitch = gst_element_factory_make("pitch", "pitch");
-
-// Need to research using insertbin for dynamically adding/removing "pitch" to save CPU when it's not in use
-    gst_bin_add_many(GST_BIN (pipeline), filesrc, decodebin, audioconvert, rgvolume, pitch, audioresample, autoaudiosink, NULL);
-    gst_element_link_many(filesrc, decodebin, audioconvert, rgvolume, pitch, audioresample, autoaudiosink, NULL);
+    playBin = gst_element_factory_make("playbin", "playBin");
+    sinkBin = gst_bin_new("sinkBin");
+    gst_bin_add_many(GST_BIN (sinkBin), rgvolume, pitch, audioresample, volumeElement, autoaudiosink, NULL);
+    gst_element_link_many(rgvolume, audioresample, volumeElement, autoaudiosink, NULL);
+    pad = gst_element_get_static_pad(rgvolume, "sink");
+    ghostPad = gst_ghost_pad_new("sink", pad);
+    gst_pad_set_active(ghostPad, true);
+    gst_element_add_pad(sinkBin, ghostPad);
+    gst_object_unref(pad);
+    g_object_set(G_OBJECT(playBin), "audio-sink", sinkBin, NULL);
+    g_object_set(G_OBJECT(pitch), "pitch", 1.0, "tempo", 1.0, NULL);
+    g_object_set(G_OBJECT(rgvolume), "album-mode", false, NULL);
 
     signalTimer = new QTimer(this);
     connect(signalTimer, SIGNAL(timeout()), this, SLOT(signalTimer_timeout()));
     signalTimer->start(40);
+    m_keyChangerOn = false;
+    m_keyChange = 0;
 
 }
 
 KhAudioBackendGStreamer::~KhAudioBackendGStreamer()
 {
-    gst_element_set_state(pipeline, GST_STATE_NULL);
-    gst_object_unref(pipeline);
 }
 
 
 int KhAudioBackendGStreamer::volume()
 {
-    return 0;
+    return m_volume;
 }
 
 qint64 KhAudioBackendGStreamer::position()
 {
     gint64 pos;
-    GstFormat fmt = GST_FORMAT_TIME;
-    if (gst_element_query_position (pipeline, fmt, &pos))
+//    GstFormat fmt = GST_FORMAT_TIME;
+    if (gst_element_query_position (playBin, GST_FORMAT_TIME, &pos))
     {
         //cout << "Position:" << pos / 1000000 << endl;
         return pos / 1000000;
@@ -58,7 +69,7 @@ qint64 KhAudioBackendGStreamer::duration()
 {
     gint64 duration;
     GstFormat fmt = GST_FORMAT_TIME;
-    if (gst_element_query_duration (pipeline, fmt, &duration))
+    if (gst_element_query_duration (playBin, fmt, &duration))
     {
         return duration / 1000000;
     }
@@ -68,7 +79,7 @@ qint64 KhAudioBackendGStreamer::duration()
 QMediaPlayer::State KhAudioBackendGStreamer::state()
 {
     GstState state;
-    gst_element_get_state(pipeline, &state, NULL, GST_CLOCK_TIME_NONE);
+    gst_element_get_state(playBin, &state, NULL, GST_CLOCK_TIME_NONE);
     if (state == GST_STATE_PLAYING)
         return QMediaPlayer::PlayingState;
     if (state == GST_STATE_PAUSED)
@@ -88,19 +99,61 @@ bool KhAudioBackendGStreamer::stopping()
     return false;
 }
 
+void KhAudioBackendGStreamer::keyChangerOn()
+{
+    QMediaPlayer::State curstate = state();
+    int pos = position();
+    qDebug() << "keyChangerOn() fired";
+    gst_element_set_state(playBin, GST_STATE_NULL);
+    while (state() != QMediaPlayer::StoppedState)
+        QApplication::processEvents();
+    gst_element_unlink(rgvolume,audioresample);
+    if (!gst_element_link_many(rgvolume,pitch,audioresample,NULL))
+        qDebug() << "Failed to link gstreamer elements";
+    gst_element_set_state(playBin, GST_STATE_PLAYING);
+    while (state() != QMediaPlayer::PlayingState)
+        QApplication::processEvents();
+    setPosition(pos);
+    if (curstate == QMediaPlayer::PausedState)
+        pause();
+    m_keyChangerOn = true;
+
+}
+
+void KhAudioBackendGStreamer::keyChangerOff()
+{
+    QMediaPlayer::State curstate = state();
+    int pos = position();
+    qDebug() << "keyChangerOff() fired";
+    gst_element_set_state(playBin, GST_STATE_NULL);
+    while (state() != QMediaPlayer::StoppedState)
+        QApplication::processEvents();
+    gst_element_unlink(rgvolume,pitch);
+    gst_element_unlink(pitch,audioresample);
+    if (!gst_element_link(rgvolume,audioresample))
+        qDebug() << "Failed to link gstreamer elements";
+    gst_element_set_state(playBin, GST_STATE_PLAYING);
+    while (state() != QMediaPlayer::PlayingState)
+        QApplication::processEvents();
+    setPosition(pos);
+    if (curstate == QMediaPlayer::PausedState)
+        pause();
+    m_keyChangerOn = false;
+}
+
 void KhAudioBackendGStreamer::play()
 {
     if (state() == QMediaPlayer::PausedState)
     {
-        gst_element_set_state(pipeline, GST_STATE_PLAYING);
+        gst_element_set_state(playBin, GST_STATE_PLAYING);
     }
     else
     {
         qDebug() << "GSSound - play() called";
-        g_object_set (G_OBJECT(filesrc), "location", m_filename.toStdString().c_str(), NULL);
-        bus = gst_pipeline_get_bus(GST_PIPELINE (pipeline));
+      //  g_object_set (G_OBJECT(filesrc), "location", m_filename.toStdString().c_str(), NULL);
+      //  bus = gst_pipeline_get_bus(GST_PIPELINE (pipeline));
         //gst_object_unref (bus);
-        gst_element_set_state(pipeline, GST_STATE_PLAYING);
+        gst_element_set_state(playBin, GST_STATE_PLAYING);
         qDebug() << "GSSound - play() exit";
     }
 }
@@ -108,17 +161,30 @@ void KhAudioBackendGStreamer::play()
 void KhAudioBackendGStreamer::pause()
 {
     qDebug() << "GSSound - pause() called";
-    gst_element_set_state(pipeline, GST_STATE_PAUSED);
+    gst_element_set_state(playBin, GST_STATE_PAUSED);
     qDebug() << "GSSound - pause() exit";
 }
 
 void KhAudioBackendGStreamer::setMedia(QString filename)
 {
     m_filename = filename;
+    std::string uri = "file://" + filename.toStdString();
+    qDebug() << "Playing: " << uri.c_str();
+    g_object_set(GST_OBJECT(playBin), "uri", uri.c_str(), NULL);
 }
 
 void KhAudioBackendGStreamer::setMuted(bool muted)
 {
+    if (muted)
+    {
+        g_object_set(G_OBJECT(volumeElement), "volume", 0.0, NULL);
+        muted = true;
+    }
+    else
+    {
+        g_object_set(G_OBJECT(volumeElement), "volume", m_volume * .01, NULL);
+        muted = false;
+    }
 
 }
 
@@ -127,7 +193,7 @@ void KhAudioBackendGStreamer::setPosition(qint64 position)
     qDebug() << "Seeking to: " << position << "ms";
 // data->playbin2, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT
     GstSeekFlags flags = GST_SEEK_FLAG_FLUSH;
-    if (!gst_element_seek_simple(decodebin, GST_FORMAT_TIME, flags, GST_MSECOND * position))
+    if (!gst_element_seek_simple(playBin, GST_FORMAT_TIME, flags, GST_MSECOND * position))
     {
       qDebug() << "Seek failed!";
     }
@@ -136,13 +202,20 @@ void KhAudioBackendGStreamer::setPosition(qint64 position)
 
 void KhAudioBackendGStreamer::setVolume(int volume)
 {
+    m_volume = volume;
+    //fader->setBaseVolume(volume);
+    g_object_set(G_OBJECT(volumeElement), "volume", volume * .01, NULL);
+//    FMOD_Channel_SetVolume(channel, volume * .01);
+    //channel->setVolume(volume * .01);
+    emit volumeChanged(volume);
 }
 
 void KhAudioBackendGStreamer::stop(bool skipFade)
 {
     Q_UNUSED(skipFade);
     qDebug() << "GSSound - stop() called";
-    gst_element_set_state(pipeline, GST_STATE_NULL);
+    gst_element_set_state(playBin, GST_STATE_NULL);
+    emit stateChanged(QMediaPlayer::StoppedState);
     qDebug() << "GSSound - stop() exit";
 }
 
@@ -165,3 +238,45 @@ void KhAudioBackendGStreamer::signalTimer_timeout()
 //        stop();
 }
 
+
+
+bool KhAudioBackendGStreamer::canPitchShift()
+{
+    return true;
+}
+
+int KhAudioBackendGStreamer::pitchShift()
+{
+    return m_keyChange;
+}
+
+gfloat getPitchForSemitone(int semitone)
+{
+    float pitch;
+    if (semitone > 0)
+    {
+        // shifting up
+        pitch = pow(STUP,semitone);
+    }
+    else if (semitone < 0){
+        // shifting down
+        pitch = 1 - ((100 - (pow(STDN,abs(semitone)) * 100)) / 100);
+    }
+    else
+    {
+        // no change
+        pitch = 1.0;
+    }
+    return pitch;
+}
+
+void KhAudioBackendGStreamer::setPitchShift(int pitchShift)
+{
+    m_keyChange = pitchShift;
+    if ((pitchShift == 0) && (m_keyChangerOn))
+        keyChangerOff();
+    else if ((pitchShift != 0) && (!m_keyChangerOn))
+        keyChangerOn();
+    qDebug() << "executing g_object_set(GST_OBJECT(pitch), \"pitch\", " << getPitchForSemitone(pitchShift) << ", NULL)";
+    g_object_set(G_OBJECT(pitch), "pitch", getPitchForSemitone(pitchShift), "tempo", 1.0, NULL);
+}
