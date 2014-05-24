@@ -1,26 +1,69 @@
 #include "khaudiobackendgstreamer.h"
 #include <QApplication>
 #include <QDebug>
+#include <string.h>
 #include <math.h>
+#include <gst/app/gstappsink.h>
 
 #define STUP 1.0594630943592952645618252949461
 #define STDN 0.94387431268169349664191315666784
+
+int outputChannels;
+double currentRMSLevel;
+
+static gboolean message_handler (GstBus * bus, GstMessage * message, gpointer data)
+{
+    Q_UNUSED(bus);
+    Q_UNUSED(data);
+    if (message->type == GST_MESSAGE_ELEMENT) {
+        const GstStructure *s = gst_message_get_structure (message);
+        const gchar *name = gst_structure_get_name (s);
+        if (strcmp (name, "level") == 0) {
+            gint channels;
+            GstClockTime endtime;
+            gdouble rms_dB;
+            gdouble rms;
+            const GValue *array_val;
+            const GValue *value;
+            GValueArray *rms_arr;
+            gint i;
+            if (!gst_structure_get_clock_time (s, "endtime", &endtime))
+                g_warning ("Could not parse endtime");
+            array_val = gst_structure_get_value (s, "rms");
+            rms_arr = (GValueArray *) g_value_get_boxed (array_val);
+            channels = rms_arr->n_values;
+            outputChannels = channels;
+            double rmsValues = 0.0;
+            for (i = 0; i < channels; ++i) {
+                value = g_value_array_get_nth (rms_arr, i);
+                rms_dB = g_value_get_double (value);
+                rms = pow (10, rms_dB / 20);
+                rmsValues = rmsValues + rms;
+            }
+            currentRMSLevel = rmsValues / channels;
+        }
+    }
+    return TRUE;
+}
+
 
 KhAudioBackendGStreamer::KhAudioBackendGStreamer(QObject *parent) :
     KhAbstractAudioBackend(parent)
 {
     gst_init(NULL,NULL);
+    guint watch_id;
     m_volume = 0;
     audioconvert = gst_element_factory_make("audioconvert", "audioconvert");
     autoaudiosink = gst_element_factory_make("autoaudiosink", "autoaudiosink");
     audioresample = gst_element_factory_make("audioresample", "audioresample");
     rgvolume = gst_element_factory_make("rgvolume", "rgvolume");
     volumeElement = gst_element_factory_make("volume", "volumeElement");
+    level = gst_element_factory_make("level", "level");
     pitch = gst_element_factory_make("pitch", "pitch");
     playBin = gst_element_factory_make("playbin", "playBin");
     sinkBin = gst_bin_new("sinkBin");
-    gst_bin_add_many(GST_BIN (sinkBin), rgvolume, pitch, audioresample, volumeElement, autoaudiosink, NULL);
-    gst_element_link_many(rgvolume, audioresample, volumeElement, autoaudiosink, NULL);
+    gst_bin_add_many(GST_BIN (sinkBin), rgvolume, pitch, audioresample, level, volumeElement, autoaudiosink, NULL);
+    gst_element_link_many(rgvolume, audioresample, level, volumeElement, autoaudiosink, NULL);
     pad = gst_element_get_static_pad(rgvolume, "sink");
     ghostPad = gst_ghost_pad_new("sink", pad);
     gst_pad_set_active(ghostPad, true);
@@ -29,15 +72,24 @@ KhAudioBackendGStreamer::KhAudioBackendGStreamer(QObject *parent) :
     g_object_set(G_OBJECT(playBin), "audio-sink", sinkBin, NULL);
     g_object_set(G_OBJECT(pitch), "pitch", 1.0, "tempo", 1.0, NULL);
     g_object_set(G_OBJECT(rgvolume), "album-mode", false, NULL);
+    g_object_set(G_OBJECT (level), "post-messages", TRUE, NULL);
+    bus = gst_element_get_bus (playBin);
+    watch_id = gst_bus_add_watch (bus, message_handler, NULL);
+
 
     fader = new FaderGStreamer(this);
     fader->setVolumeElement(volumeElement);
-
+    silenceDetectTimer = new QTimer(this);
+    connect(silenceDetectTimer, SIGNAL(timeout()), this, SLOT(silenceDetectTimer_timeout()));
+    silenceDetectTimer->start(1000);
     signalTimer = new QTimer(this);
     connect(signalTimer, SIGNAL(timeout()), this, SLOT(signalTimer_timeout()));
     connect(fader, SIGNAL(volumeChanged(int)), this, SLOT(faderChangedVolume(int)));
     signalTimer->start(40);
     m_fade = false;
+    m_silenceDetect = false;
+    outputChannels = 0;
+    currentRMSLevel = 0.0;
     m_keyChangerOn = false;
     m_keyChange = 0;
 
@@ -239,6 +291,25 @@ void KhAudioBackendGStreamer::signalTimer_timeout()
     //        stop();
 }
 
+void KhAudioBackendGStreamer::silenceDetectTimer_timeout()
+{
+    if (m_silenceDetect)
+    {
+        static int seconds = 0;
+        if ((state() == QMediaPlayer::PlayingState) && (isSilent()))
+        {
+            qDebug() << "Silence detected for " << seconds << " seconds";
+            if (seconds >= 2)
+            {
+                seconds = 0;
+                emit silenceDetected();
+                return;
+            }
+            seconds++;
+        }
+    }
+}
+
 void KhAudioBackendGStreamer::faderChangedVolume(int volume)
 {
     m_volume = volume;
@@ -396,4 +467,22 @@ void KhAudioBackendGStreamer::fadeIn()
 void KhAudioBackendGStreamer::setUseFader(bool fade)
 {
     m_fade = fade;
+}
+
+
+bool KhAudioBackendGStreamer::canDetectSilence()
+{
+    return true;
+}
+
+bool KhAudioBackendGStreamer::isSilent()
+{
+    if (currentRMSLevel <= 0.01)
+        return true;
+    return false;
+}
+
+void KhAudioBackendGStreamer::setUseSilenceDetection(bool enabled)
+{
+    m_silenceDetect = enabled;
 }

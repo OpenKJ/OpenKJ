@@ -2,9 +2,12 @@
 #define KHAUDIOBACKENDGSTREAMER_H
 
 #include "khabstractaudiobackend.h"
+#define GLIB_DISABLE_DEPRECATION_WARNINGS
 #include <gst/gst.h>
 #include <QTimer>
 #include <QThread>
+
+
 
 class FaderGStreamer : public QThread
 {
@@ -52,16 +55,20 @@ private:
     GstElement *rgvolume;
     GstElement *pitch;
     GstElement *volumeElement;
+    GstElement *level;
     GstPad *pad;
     GstPad *ghostPad;
     GstBus *bus;
     QString m_filename;
     QTimer *signalTimer;
+    QTimer *silenceDetectTimer;
     bool m_keyChangerOn;
     int m_keyChange;
     int m_volume;
     FaderGStreamer *fader;
     bool m_fade;
+    bool m_silenceDetect;
+
 
     // KhAbstractAudioBackend interface
 public:
@@ -86,6 +93,7 @@ public slots:
 
 private slots:
     void signalTimer_timeout();
+    void silenceDetectTimer_timeout();
     void faderChangedVolume(int volume);
 
     // KhAbstractAudioBackend interface
@@ -104,6 +112,14 @@ public slots:
     void fadeOut();
     void fadeIn();
     void setUseFader(bool fade);
+
+    // KhAbstractAudioBackend interface
+public:
+    bool canDetectSilence();
+    bool isSilent();
+
+public slots:
+    void setUseSilenceDetection(bool enabled);
 };
 
 #endif // KHAUDIOBACKENDGSTREAMER_H
