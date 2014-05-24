@@ -128,7 +128,9 @@ void SongDBTableModel::applyFilter(QString filterstr)
         }
 
         if (match)
+        {
             filteredData->push_back(fulldata->at(i));
+        }
     }
     sort(lastSortCol, lastSortOrder);
 }

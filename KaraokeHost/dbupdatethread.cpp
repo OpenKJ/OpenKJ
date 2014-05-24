@@ -110,7 +110,7 @@ void DbUpdateThread::run()
             break;
         }
         QString sql = "INSERT OR IGNORE INTO dbSongs (discid,artist,title,path,filename) VALUES(\"" + discid + "\",\"" + artist + "\",\""
-                + title + "\",\"" + file.filePath() + "\",\"" + file.baseName() + "\")";
+                + title + "\",\"" + file.filePath() + "\",\"" + file.completeBaseName() + "\")";
         query.exec(sql);
     }
     query.exec("COMMIT TRANSACTION");
