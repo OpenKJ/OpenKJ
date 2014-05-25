@@ -14,7 +14,7 @@ PKGCONFIG += gstreamer-1.0
 TARGET = KaraokeHost
 TEMPLATE = app
 
-DEFINES += USE_FMOD
+#DEFINES += USE_FMOD
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -100,6 +100,10 @@ FORMS    += mainwindow.ui \
 unix: CONFIG += link_pkgconfig
 #unix: PKGCONFIG += phonon4qt5
 
+win32: INCLUDEPATH += "/usr/i686-w64-mingw32/sys-root/mingw/include/gstreamer-1.0/"
+win32: INCLUDEPATH += "/usr/i686-w64-mingw32/sys-root/mingw/include/glib-2.0/"
+win32: INCLUDEPATH += "/usr/i686-w64-mingw32/sys-root/mingw/lib/glib-2.0/include/"
+win32: LIBS+= -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0
 unix: LIBS += -ltag -lminizip
 win32: LIBS += -lminizip -ltag.dll
 # win32: LIBS += -lminizip

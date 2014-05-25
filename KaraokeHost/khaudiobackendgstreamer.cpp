@@ -330,7 +330,7 @@ int KhAudioBackendGStreamer::pitchShift()
 
 gfloat getPitchForSemitone(int semitone)
 {
-    float pitch;
+    double pitch;
     if (semitone > 0)
     {
         // shifting up
