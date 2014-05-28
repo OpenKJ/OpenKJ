@@ -32,7 +32,7 @@ void RequestsTableModel::timerExpired()
 {
     if (settings->requestServerEnabled())
     {
-        // qDebug() << "Timer tick";
+        qDebug() << "RequestsClient -" << QTime::currentTime().toString() << " - Sending request for current serial";
         QUrl url(settings->requestServerUrl() + "/getSerial.php");
         QNetworkRequest request;
         request.setUrl(url);
@@ -57,13 +57,13 @@ void RequestsTableModel::onNetworkReply(QNetworkReply *reply)
 
     int recordType = json.object().value("recordtype").toDouble();
     int serial = json.object().value("serial").toDouble();
-    //qDebug() << "Serial #" << serial;
+    qDebug() << "RequestsClient -" << QTime::currentTime().toString() <<  " - Received reply from server";
     if (recordType == 0)
     {
         //serial only
         if (curSerial != serial)
         {
-            qDebug() << "RequestsClient - Serial only pull - " << curSerial << " != " << serial << " - Serial mismatch.  Downloading full list.";
+            qDebug() << "RequestsClient - Received serial - " << curSerial << " != " << serial << " - Serial mismatch.  Requesting full list.";
             QUrl url(settings->requestServerUrl() + "/getRequests.php");
             QNetworkRequest request;
             request.setUrl(url);
@@ -71,7 +71,7 @@ void RequestsTableModel::onNetworkReply(QNetworkReply *reply)
         }
         else
         {
-            qDebug() << "RequestsClient - Serial only pull - " << serial << " - Serials match.";
+            qDebug() << "RequestsClient - Received serial - " << serial << " - Serials match.";
         }
     }
     else if (recordType == 1)
@@ -200,6 +200,7 @@ Qt::ItemFlags RequestsTableModel::flags(const QModelIndex &index) const
 
 void RequestsTableModel::deleteAll()
 {
+    qDebug() << "RequestsClient - " << QTime::currentTime().toString() << " - Requesting clear all";
     QUrl url(settings->requestServerUrl() + "/clearRequests.php");
     QNetworkRequest request;
     request.setUrl(url);
@@ -208,6 +209,7 @@ void RequestsTableModel::deleteAll()
 
 void RequestsTableModel::deleteRequestId(int requestId)
 {
+    qDebug() << "RequestsClient - " << QTime::currentTime().toString() << " - Requesting delete for request id: " << requestId;
     QUrl url(settings->requestServerUrl() + "/delRequest.php?reqID=" + QString::number(requestId));
     QNetworkRequest request;
     request.setUrl(url);
