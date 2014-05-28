@@ -770,6 +770,20 @@ void MainWindow::on_treeViewDB_customContextMenuRequested(const QPoint &pos)
     }
 }
 
+void MainWindow::on_treeViewQueue_customContextMenuRequested(const QPoint &pos)
+{
+    QModelIndex index = ui->treeViewQueue->indexAt(pos);
+    if (index.isValid())
+    {
+        QString zipPath = rotationmodel->getSelected()->getSongByPosition(index.row())->getSourceFile();
+        cdgPreviewDialog->setZipFile(zipPath);
+        QMenu contextMenu(this);
+        contextMenu.addAction("Preview", cdgPreviewDialog, SLOT(preview()));
+        contextMenu.exec(QCursor::pos());
+        //contextMenu->exec(ui->treeView->mapToGlobal(point));
+    }
+}
+
 void MainWindow::on_sliderProgress_sliderPressed()
 {
     sliderPositionPressed = true;
