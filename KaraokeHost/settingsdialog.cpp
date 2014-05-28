@@ -46,6 +46,7 @@ SettingsDialog::SettingsDialog(KhAudioBackends *AudioBackends, QWidget *parent) 
     }
     ui->comboBoxBackend->setCurrentIndex(settings->audioBackend());
     createIcons();
+    ui->listWidget->setCurrentRow(0);
     QStringList screens = getMonitors();
     ui->listWidgetMonitors->addItems(screens);
     ui->checkBoxShowCdgWindow->setChecked(settings->showCdgWindow());

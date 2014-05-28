@@ -96,6 +96,9 @@
           <property name="flow">
            <enum>QListView::TopToBottom</enum>
           </property>
+          <property name="resizeMode">
+           <enum>QListView::Adjust</enum>
+          </property>
           <property name="viewMode">
            <enum>QListView::IconMode</enum>
           </property>
