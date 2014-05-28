@@ -68,7 +68,6 @@ private slots:
     void songdbUpdated();
     void databaseCleared();
     void on_buttonStop_clicked();
-    void on_buttonPlay_clicked();
     void on_buttonPause_clicked();
     void on_lineEdit_returnPressed();
     void on_treeViewDB_activated(const QModelIndex &index);

@@ -295,10 +295,6 @@ void MainWindow::on_buttonStop_clicked()
     activeAudioBackend->stop();
 }
 
-void MainWindow::on_buttonPlay_clicked()
-{
-}
-
 void MainWindow::on_buttonPause_clicked()
 {
     if (activeAudioBackend->state() == KhAbstractAudioBackend::PausedState)
