@@ -96,6 +96,8 @@ public:
     void setAudioDetectSilence(bool enabled);
     QString audioOutputDevice();
     void setAudioOutputDevice(QString device);
+    int audioBackend();
+    void setAudioBackend(int index);
 
 signals:
     void tickerFontChanged();
@@ -105,6 +107,7 @@ signals:
     void tickerBgColorChanged();
     void tickerOutputModeChanged();
     void tickerEnableChanged();
+    void audioBackendChanged(int index);
 
 public slots:
 

@@ -9,12 +9,14 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 win32: CONFIG += console
 
-PKGCONFIG += gstreamer-1.0
-
 TARGET = KaraokeHost
 TEMPLATE = app
 
-#DEFINES += USE_FMOD
+DEFINES += USE_FMOD
+DEFINES += USE_GSTREAMER
+# On Linux platforms QMediaPlayer uses gstreamer as its base.  You can not
+# load both backends due to conflicts.
+#DEFINES += USE_QMEDIAPLAYER
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -49,8 +51,7 @@ SOURCES += main.cpp\
     khrequestsdialog.cpp \
     requeststablemodel.cpp \
     cdgpreviewdialog.cpp \
-    khdb.cpp \
-    khaudiobackendgstreamer.cpp
+    khdb.cpp
 
 HEADERS  += mainwindow.h \
     queuetablemodel.h \
@@ -84,8 +85,7 @@ HEADERS  += mainwindow.h \
     khrequestsdialog.h \
     requeststablemodel.h \
     cdgpreviewdialog.h \
-    khdb.h \
-    khaudiobackendgstreamer.h
+    khdb.h
 
 FORMS    += mainwindow.ui \
     databasedialog.ui \
@@ -107,13 +107,27 @@ win32: LIBS+= -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0
 unix: LIBS += -ltag -lminizip
 win32: LIBS += -lminizip -ltag.dll
 # win32: LIBS += -lminizip
+
+contains(DEFINES, USE_GSTREAMER) {
+    message("USE_GSTREAMER defined, building GStreamer audio backend")
+    PKGCONFIG += gstreamer-1.0
+    HEADERS += khaudiobackendgstreamer.h
+    SOURCES += khaudiobackendgstreamer.cpp
+}
+
+contains(DEFINES, USE_QMEDIAPLAYER) {
+        QT += multimedia
+        HEADERS += khaudiobackendqmediaplayer.h
+        SOURCES += khaudiobackendqmediaplayer.cpp
+}
+
 contains(DEFINES, USE_FMOD) {
-	message("USE_FMOD defined, building with FMOD API (http://www.fmod.org) support")
+        # If building on win32/64 you'll need to fix the paths
+        message("USE_FMOD defined, building with Fmod audio backend (http://www.fmod.org) support")
 	message("Please note that, while free for non-commercial use, FMOD is NOT open source")
         win32: INCLUDEPATH += "/home/isaac/.wine/drive_c/Program Files (x86)/FMOD SoundSystem/FMOD Programmers API Windows/api/inc"
 	HEADERS += khaudiobackendfmod.h
 	SOURCES += khaudiobackendfmod.cpp
-
         win32: LIBS += -L"/home/isaac/.wine/drive_c/Program Files (x86)/FMOD SoundSystem/FMOD Programmers API Windows/api/lib" -lfmodex
 	unix {
 		contains(QMAKE_HOST.arch, x86_64) {
@@ -124,10 +138,6 @@ contains(DEFINES, USE_FMOD) {
 			LIBS += -lfmodex
 		}
 	}
-} else {
-        QT += multimedia
-        HEADERS += khaudiobackendqmediaplayer.h
-        SOURCES += khaudiobackendqmediaplayer.cpp
 }
 
 RESOURCES += \

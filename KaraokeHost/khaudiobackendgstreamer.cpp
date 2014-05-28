@@ -133,17 +133,17 @@ qint64 KhAudioBackendGStreamer::duration()
     return 0;
 }
 
-QMediaPlayer::State KhAudioBackendGStreamer::state()
+KhAbstractAudioBackend::State KhAudioBackendGStreamer::state()
 {
     GstState state;
     gst_element_get_state(playBin, &state, NULL, GST_CLOCK_TIME_NONE);
     if (state == GST_STATE_PLAYING)
-        return QMediaPlayer::PlayingState;
+        return KhAbstractAudioBackend::PlayingState;
     if (state == GST_STATE_PAUSED)
-        return QMediaPlayer::PausedState;
+        return KhAbstractAudioBackend::PausedState;
     if (state == GST_STATE_NULL)
-        return QMediaPlayer::StoppedState;
-    return QMediaPlayer::StoppedState;
+        return KhAbstractAudioBackend::StoppedState;
+    return KhAbstractAudioBackend::StoppedState;
 }
 
 QString KhAudioBackendGStreamer::backendName()
@@ -158,20 +158,20 @@ bool KhAudioBackendGStreamer::stopping()
 
 void KhAudioBackendGStreamer::keyChangerOn()
 {
-    QMediaPlayer::State curstate = state();
+    KhAbstractAudioBackend::State curstate = state();
     int pos = position();
     qDebug() << "keyChangerOn() fired";
     gst_element_set_state(playBin, GST_STATE_NULL);
-    while (state() != QMediaPlayer::StoppedState)
+    while (state() != KhAbstractAudioBackend::StoppedState)
         QApplication::processEvents();
     gst_element_unlink(rgvolume,audioresample);
     if (!gst_element_link_many(rgvolume,pitch,audioresample,NULL))
         qDebug() << "Failed to link gstreamer elements";
     gst_element_set_state(playBin, GST_STATE_PLAYING);
-    while (state() != QMediaPlayer::PlayingState)
+    while (state() != KhAbstractAudioBackend::PlayingState)
         QApplication::processEvents();
     setPosition(pos);
-    if (curstate == QMediaPlayer::PausedState)
+    if (curstate == KhAbstractAudioBackend::PausedState)
         pause();
     m_keyChangerOn = true;
 
@@ -179,28 +179,28 @@ void KhAudioBackendGStreamer::keyChangerOn()
 
 void KhAudioBackendGStreamer::keyChangerOff()
 {
-    QMediaPlayer::State curstate = state();
+    KhAbstractAudioBackend::State curstate = state();
     int pos = position();
     qDebug() << "keyChangerOff() fired";
     gst_element_set_state(playBin, GST_STATE_NULL);
-    while (state() != QMediaPlayer::StoppedState)
+    while (state() != KhAbstractAudioBackend::StoppedState)
         QApplication::processEvents();
     gst_element_unlink(rgvolume,pitch);
     gst_element_unlink(pitch,audioresample);
     if (!gst_element_link(rgvolume,audioresample))
         qDebug() << "Failed to link gstreamer elements";
     gst_element_set_state(playBin, GST_STATE_PLAYING);
-    while (state() != QMediaPlayer::PlayingState)
+    while (state() != KhAbstractAudioBackend::PlayingState)
         QApplication::processEvents();
     setPosition(pos);
-    if (curstate == QMediaPlayer::PausedState)
+    if (curstate == KhAbstractAudioBackend::PausedState)
         pause();
     m_keyChangerOn = false;
 }
 
 void KhAudioBackendGStreamer::play()
 {
-    if (state() == QMediaPlayer::PausedState)
+    if (state() == KhAbstractAudioBackend::PausedState)
     {
         gst_element_set_state(playBin, GST_STATE_PLAYING);
         if (m_fade)
@@ -264,26 +264,26 @@ void KhAudioBackendGStreamer::setVolume(int volume)
 void KhAudioBackendGStreamer::stop(bool skipFade)
 {
     int curVolume = volume();
-    if ((m_fade) && (!skipFade) && (state() == QMediaPlayer::PlayingState))
+    if ((m_fade) && (!skipFade) && (state() == KhAbstractAudioBackend::PlayingState))
         fadeOut();
     gst_element_set_state(playBin, GST_STATE_NULL);
-    emit stateChanged(QMediaPlayer::StoppedState);
+    emit stateChanged(KhAbstractAudioBackend::StoppedState);
     if ((m_fade) && (!skipFade))
         setVolume(curVolume);
 }
 
 void KhAudioBackendGStreamer::signalTimer_timeout()
 {
-    static QMediaPlayer::State currentState;
+    static KhAbstractAudioBackend::State currentState;
     if (state() != currentState)
     {
         qDebug() << "audio state changed - old: " << currentState << " new: " << state();
         currentState = state();
         emit stateChanged(currentState);
-        if (currentState == QMediaPlayer::StoppedState)
+        if (currentState == KhAbstractAudioBackend::StoppedState)
             stop();
     }
-    if(state() == QMediaPlayer::PlayingState)
+    if(state() == KhAbstractAudioBackend::PlayingState)
     {
         emit positionChanged(position());
     }
@@ -293,12 +293,12 @@ void KhAudioBackendGStreamer::signalTimer_timeout()
 
 void KhAudioBackendGStreamer::silenceDetectTimer_timeout()
 {
+    static int seconds = 0;
     if (m_silenceDetect)
     {
-        static int seconds = 0;
-        if ((state() == QMediaPlayer::PlayingState) && (isSilent()))
+        if ((state() == KhAbstractAudioBackend::PlayingState) && (isSilent()))
         {
-            qDebug() << "Silence detected for " << seconds << " seconds";
+            qDebug() << "Silence detected for " << seconds + 1 << " seconds";
             if (seconds >= 2)
             {
                 seconds = 0;
@@ -307,6 +307,8 @@ void KhAudioBackendGStreamer::silenceDetectTimer_timeout()
             }
             seconds++;
         }
+        else
+            seconds = 0;
     }
 }
 

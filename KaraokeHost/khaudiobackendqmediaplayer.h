@@ -43,6 +43,8 @@ public:
 
 signals:
 
+private slots:
+
 public slots:
     void setBaseVolume(int volume);
 
@@ -76,7 +78,7 @@ public:
     qint64 position();
     bool isMuted();
     qint64 duration();
-    QMediaPlayer::State state();
+    KhAbstractAudioBackend::State state();
     FaderQMediaPlayer *fader;
     bool canFade() { return true; }
     void setUseFader(bool fade) {m_fade = fade;}
@@ -96,6 +98,10 @@ public slots:
 public slots:
     void fadeOut();
     void fadeIn();
+
+private slots:
+    void qmStateChanged(QMediaPlayer::State qmstate);
+
 
 };
 

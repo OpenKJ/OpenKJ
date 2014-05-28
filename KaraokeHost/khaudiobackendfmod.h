@@ -101,7 +101,7 @@ public:
     qint64 position();
     bool isMuted();
     qint64 duration();
-    QMediaPlayer::State state();
+    KhAbstractAudioBackend::State state();
     bool canPitchShift();
     int pitchShift();
     bool canDetectSilence() { return true; }

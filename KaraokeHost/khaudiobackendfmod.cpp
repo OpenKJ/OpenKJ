@@ -26,18 +26,18 @@ KhAudioBackendFMOD::KhAudioBackendFMOD(bool downmix, QObject *parent) :
     KhAbstractAudioBackend(parent)
 {
     fmresult = FMOD_System_Create(&system);
-    qDebug() << "KhAudioBackendFMOD Creating system - Error state - " << FMOD_ErrorString(fmresult);
+    //qDebug() << "KhAudioBackendFMOD Creating system - Error state - " << FMOD_ErrorString(fmresult);
 #ifdef Q_OS_LINUX
     fmresult = FMOD_System_SetOutput(system,FMOD_OUTPUTTYPE_PULSEAUDIO);
-    qDebug() << "KhAudioBackendFMOD - Setting backend to PulseAudio - Error state - " << FMOD_ErrorString(fmresult);
+    //qDebug() << "KhAudioBackendFMOD - Setting backend to PulseAudio - Error state - " << FMOD_ErrorString(fmresult);
 #endif
     if (downmix)
     {
         fmresult = FMOD_System_SetSpeakerMode(system,FMOD_SPEAKERMODE_MONO);
-        qDebug() << "KhAudioBackendFMOD - Setting speaker mode - Error state - " << FMOD_ErrorString(fmresult);
+        //qDebug() << "KhAudioBackendFMOD - Setting speaker mode - Error state - " << FMOD_ErrorString(fmresult);
     }
     fmresult = FMOD_System_Init(system,2, FMOD_INIT_NORMAL,NULL);
-    qDebug() << "KhAudioBackendFMOD - Initializing system - Error state - " << FMOD_ErrorString(fmresult);
+    //qDebug() << "KhAudioBackendFMOD - Initializing system - Error state - " << FMOD_ErrorString(fmresult);
     memset(&exinfo, 0, sizeof(FMOD_CREATESOUNDEXINFO));
     m_pitchShift = 0;
     m_pitchShifterEnabled = false;
@@ -53,7 +53,7 @@ KhAudioBackendFMOD::KhAudioBackendFMOD(bool downmix, QObject *parent) :
     m_stopping = false;
     setVolume(25);
     connect(fader, SIGNAL(volumeChanged(int)), this, SLOT(faderChangedVolume(int)));
-    qDebug() << "KhAudioBackendFMOD - Initialized";
+    //qDebug() << "KhAudioBackendFMOD - Initialized";
 }
 
 QStringList KhAudioBackendFMOD::getOutputDevices()
@@ -152,7 +152,7 @@ qint64 KhAudioBackendFMOD::duration()
     return duration;
 }
 
-QMediaPlayer::State KhAudioBackendFMOD::state()
+KhAbstractAudioBackend::State KhAudioBackendFMOD::state()
 {
     FMOD_BOOL paused;
     FMOD_BOOL playing;
@@ -161,11 +161,11 @@ QMediaPlayer::State KhAudioBackendFMOD::state()
     //channel->isPlaying(&playing);
     FMOD_Channel_IsPlaying(channel, &playing);
     if (paused)
-        return QMediaPlayer::PausedState;
+        return KhAbstractAudioBackend::PausedState;
     else if (playing)
-        return QMediaPlayer::PlayingState;
+        return KhAbstractAudioBackend::PlayingState;
     else
-        return QMediaPlayer::StoppedState;
+        return KhAbstractAudioBackend::StoppedState;
 }
 
 bool KhAudioBackendFMOD::canPitchShift()
@@ -196,11 +196,11 @@ bool KhAudioBackendFMOD::isSilent()
 
 void KhAudioBackendFMOD::play()
 {
-    if (state() == QMediaPlayer::PausedState)
+    if (state() == KhAbstractAudioBackend::PausedState)
     {
         FMOD_Channel_SetPaused(channel,false);
         //channel->setPaused(false);
-        emit stateChanged(QMediaPlayer::PlayingState);
+        emit stateChanged(KhAbstractAudioBackend::PlayingState);
         if (m_fade)
             fadeIn();
     }
@@ -212,7 +212,7 @@ void KhAudioBackendFMOD::play()
         setVolume(m_volume);
         fader->setChannel(channel);
     }
-    emit stateChanged(QMediaPlayer::PlayingState);
+    emit stateChanged(KhAbstractAudioBackend::PlayingState);
 }
 
 void KhAudioBackendFMOD::pause()
@@ -221,7 +221,7 @@ void KhAudioBackendFMOD::pause()
         fadeOut();
     FMOD_Channel_SetPaused(channel, true);
     //channel->setPaused(true);
-    emit stateChanged(QMediaPlayer::PausedState);
+    emit stateChanged(KhAbstractAudioBackend::PausedState);
 }
 
 void KhAudioBackendFMOD::setMedia(QString filename)
@@ -229,7 +229,7 @@ void KhAudioBackendFMOD::setMedia(QString filename)
     if (m_soundOpened)
         stop();
     fmresult = FMOD_System_CreateStream(system, filename.toUtf8(), FMOD_SOFTWARE | FMOD_DEFAULT | FMOD_2D, 0, &sound);
-    qDebug() << "KhAudioBackendFMOD - Creating stream - Error state - " << FMOD_ErrorString(fmresult);
+    //qDebug() << "KhAudioBackendFMOD - Creating stream - Error state - " << FMOD_ErrorString(fmresult);
     //system->createStream(filename.toUtf8(), FMOD_SOFTWARE | FMOD_DEFAULT | FMOD_2D, 0, &sound);
     m_soundOpened = true;
     emit durationChanged(duration());
@@ -272,7 +272,7 @@ void KhAudioBackendFMOD::stop(bool skipFade)
         FMOD_Channel_Stop(channel);
         //sound->release();
         FMOD_Sound_Release(sound);
-        emit stateChanged(QMediaPlayer::StoppedState);
+        emit stateChanged(KhAbstractAudioBackend::StoppedState);
         emit durationChanged(0);
         emit positionChanged(0);
         m_soundOpened = false;
@@ -308,11 +308,11 @@ void KhAudioBackendFMOD::setDownmix(bool enabled)
 
 void KhAudioBackendFMOD::signalTimer_timeout()
 {
-    if(state() == QMediaPlayer::PlayingState)
+    if(state() == KhAbstractAudioBackend::PlayingState)
     {
         emit positionChanged(position());
     }
-    else if (state() == QMediaPlayer::StoppedState)
+    else if (state() == KhAbstractAudioBackend::StoppedState)
         stop();
 }
 
@@ -321,7 +321,7 @@ void KhAudioBackendFMOD::silenceDetectTimer_timeout()
     if (m_silenceDetect)
     {
         static int seconds = 0;
-        if ((state() == QMediaPlayer::PlayingState) && (isSilent()))
+        if ((state() == KhAbstractAudioBackend::PlayingState) && (isSilent()))
         {
             if (seconds >= 2)
             {

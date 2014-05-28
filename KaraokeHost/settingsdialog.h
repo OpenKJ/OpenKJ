@@ -35,7 +35,7 @@ class SettingsDialog : public QDialog
     Q_OBJECT
     
 public:
-    explicit SettingsDialog(KhAbstractAudioBackend *AudioBackend, QWidget *parent = 0);
+    explicit SettingsDialog(KhAudioBackends *AudioBackends, QWidget *parent = 0);
     ~SettingsDialog();
     
     void createIcons();
@@ -85,6 +85,10 @@ private slots:
 
     void on_listWidgetAudioDevices_itemSelectionChanged();
 
+    void on_comboBoxBackend_currentIndexChanged(int index);
+
+    void audioBackendChanged(int index);
+
 signals:
     void showCdgWindowChanged(bool);
     void cdgWindowFullScreenChanged(bool);
@@ -97,6 +101,8 @@ private:
     Ui::SettingsDialog *ui;
     QStringList getMonitors();
     KhAbstractAudioBackend *audioBackend;
+    KhAudioBackends *audioBackends;
+    bool pageSetupDone;
 //    KhSettings *settings;
 };
 

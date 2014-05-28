@@ -27,8 +27,12 @@
 #ifdef USE_FMOD
 #include "khaudiobackendfmod.h"
 #endif
+#ifdef USE_QMEDIAPLAYER
 #include "khaudiobackendqmediaplayer.h"
+#endif
+#ifdef USE_GSTREAMER
 #include "khaudiobackendgstreamer.h"
+#endif
 #include "khzip.h"
 #include <QDesktopWidget>
 #include <QStandardPaths>
@@ -109,33 +113,48 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->treeViewDB->sortByColumn(-1);
     ui->treeViewDB->setModel(songdbmodel);
     ipcClient = new KhIPCClient("bmControl",this);
+    audioBackends = new KhAudioBackends;
 #ifdef USE_FMOD
-    audioBackend = new KhAudioBackendFMOD(settings->audioDownmix(), this);
-    qDebug() << "Audio backend: FMOD";
-#else
-//    audioBackend = new KhAudioBackendQMediaPlayer(this);
-    audioBackend = new KhAudioBackendGStreamer(this);
+    qDebug() << "Initializing audio backend: Fmod";
+    audioBackends->push_back(new KhAudioBackendFMOD(settings->audioDownmix(), this));
 #endif
-    qDebug() << "Audio backend: " << audioBackend->backendName();
-    if (audioBackend->canFade())
-        audioBackend->setUseFader(settings->audioUseFader());
-    if (!audioBackend->canPitchShift())
+#ifdef USE_GSTREAMER
+    qDebug() << "Initializing audio backend: GStreamer";
+    audioBackends->push_back(new KhAudioBackendGStreamer(this));
+#endif
+#ifdef USE_QMEDIAPLAYER
+    qDebug() << "Initializing audio backend: QMediaPlayer (QtMultimedia)";
+    audioBackends->push_back(new KhAudioBackendQMediaPlayer(this));
+#endif
+    if (audioBackends->count() < 1)
+        qCritical("No audio backends available!");
+    if (settings->audioBackend() < audioBackends->count())
+        activeAudioBackend = audioBackends->at(settings->audioBackend());
+    else
+    {
+        settings->setAudioBackend(0);
+        activeAudioBackend = audioBackends->at(0);
+    }
+    qDebug() << "Audio backend: " << activeAudioBackend->backendName();
+    if (activeAudioBackend->canFade())
+        activeAudioBackend->setUseFader(settings->audioUseFader());
+    if (!activeAudioBackend->canPitchShift())
     {
         ui->groupBoxKey->hide();
         ui->treeViewQueue->hideColumn(3);
     }
-    settingsDialog = new SettingsDialog(audioBackend, this);
-    connect(audioBackend, SIGNAL(volumeChanged(int)), ui->sliderVolume, SLOT(setValue(int)));
+    settingsDialog = new SettingsDialog(audioBackends, this);
+    connect(activeAudioBackend, SIGNAL(volumeChanged(int)), ui->sliderVolume, SLOT(setValue(int)));
     connect(dbDialog, SIGNAL(databaseUpdated()), this, SLOT(songdbUpdated()));
     connect(dbDialog, SIGNAL(databaseCleared()), this, SLOT(databaseCleared()));
     connect(rotationmodel, SIGNAL(songDroppedOnSinger(int,int,int)), this, SLOT(songDroppedOnSinger(int,int,int)));
     connect(rotationmodel, SIGNAL(notify_user(QString)), this, SLOT(notify_user(QString)));
     connect(queuemodel, SIGNAL(itemMoved()), this, SLOT(clearQueueSort()));
-    connect(audioBackend, SIGNAL(positionChanged(qint64)), this, SLOT(audioBackend_positionChanged(qint64)));
-    connect(audioBackend, SIGNAL(durationChanged(qint64)), this, SLOT(audioBackend_durationChanged(qint64)));
-    connect(audioBackend, SIGNAL(stateChanged(QMediaPlayer::State)), this, SLOT(audioBackend_stateChanged(QMediaPlayer::State)));
+    connect(activeAudioBackend, SIGNAL(positionChanged(qint64)), this, SLOT(audioBackend_positionChanged(qint64)));
+    connect(activeAudioBackend, SIGNAL(durationChanged(qint64)), this, SLOT(audioBackend_durationChanged(qint64)));
+    connect(activeAudioBackend, SIGNAL(stateChanged(KhAbstractAudioBackend::State)), this, SLOT(audioBackend_stateChanged(KhAbstractAudioBackend::State)));
     qDebug() << "Setting volume to " << settings->audioVolume();
-    audioBackend->setVolume(settings->audioVolume());
+    activeAudioBackend->setVolume(settings->audioVolume());
     ui->sliderVolume->setValue(settings->audioVolume());
     connect(settingsDialog, SIGNAL(showCdgWindowChanged(bool)), cdgWindow, SLOT(setVisible(bool)));
     connect(settingsDialog, SIGNAL(cdgWindowFullScreenChanged(bool)), cdgWindow, SLOT(setFullScreen(bool)));
@@ -143,13 +162,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(regularSingers, SIGNAL(dataAboutToChange()), rotationmodel, SIGNAL(layoutAboutToBeChanged()));
     connect(rotationmodel, SIGNAL(layoutChanged()), this, SLOT(rotationDataChanged()));
     connect(settings, SIGNAL(tickerOutputModeChanged()), this, SLOT(rotationDataChanged()));
-    connect(audioBackend, SIGNAL(silenceDetected()), this, SLOT(silenceDetected()));
-    connect(settingsDialog, SIGNAL(audioUseFaderChanged(bool)), audioBackend, SLOT(setUseFader(bool)));
-    audioBackend->setUseFader(settings->audioUseFader());
-    connect(settingsDialog, SIGNAL(audioSilenceDetectChanged(bool)), audioBackend, SLOT(setUseSilenceDetection(bool)));
-    audioBackend->setUseSilenceDetection(settings->audioDetectSilence());
-    connect(settingsDialog, SIGNAL(audioDownmixChanged(bool)), audioBackend, SLOT(setDownmix(bool)));
-    audioBackend->setDownmix(settings->audioDownmix());
+    connect(settings, SIGNAL(audioBackendChanged(int)), this, SLOT(audioBackendChanged(int)));
+    connect(activeAudioBackend, SIGNAL(silenceDetected()), this, SLOT(silenceDetected()));
+    connect(settingsDialog, SIGNAL(audioUseFaderChanged(bool)), activeAudioBackend, SLOT(setUseFader(bool)));
+    activeAudioBackend->setUseFader(settings->audioUseFader());
+    connect(settingsDialog, SIGNAL(audioSilenceDetectChanged(bool)), activeAudioBackend, SLOT(setUseSilenceDetection(bool)));
+    activeAudioBackend->setUseSilenceDetection(settings->audioDetectSilence());
+    connect(settingsDialog, SIGNAL(audioDownmixChanged(bool)), activeAudioBackend, SLOT(setDownmix(bool)));
+    activeAudioBackend->setDownmix(settings->audioDownmix());
     QImage cdgBg;
     if (settings->cdgDisplayBackgroundImage() != "")
     {
@@ -188,7 +208,7 @@ MainWindow::MainWindow(QWidget *parent) :
 void MainWindow::play(QString zipFilePath)
 {
 
-    if ((audioBackend->state() != QMediaPlayer::PlayingState) && (audioBackend->state() != QMediaPlayer::PausedState))
+    if ((activeAudioBackend->state() != KhAbstractAudioBackend::PlayingState) && (activeAudioBackend->state() != KhAbstractAudioBackend::PausedState))
     {
         KhZip zip(zipFilePath);
         bool cdgOk = zip.extractCdg(QDir(khTmpDir->path()));
@@ -210,8 +230,8 @@ void MainWindow::play(QString zipFilePath)
 
             cdg->FileOpen(khTmpDir->path().toStdString() + QDir::separator().toLatin1() + "tmp.cdg");
             cdg->Process();
-            audioBackend->setMedia(khTmpDir->path() + QDir::separator() + "tmp.mp3");
-            audioBackend->play();
+            activeAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + "tmp.mp3");
+            activeAudioBackend->play();
             ui->labelArtist->setText(songCurrent->Artist);
             ui->labelTitle->setText(songCurrent->Title);
         }
@@ -220,9 +240,9 @@ void MainWindow::play(QString zipFilePath)
             QMessageBox::warning(this, tr("Bad karaoke file"),tr("Zip file does not contain a valid karaoke track.  CDG or mp3 file missing."),QMessageBox::Ok);
         }
     }
-    else if (audioBackend->state() == QMediaPlayer::PausedState)
+    else if (activeAudioBackend->state() == KhAbstractAudioBackend::PausedState)
     {
-        audioBackend->play();
+        activeAudioBackend->play();
     }
 }
 
@@ -272,7 +292,7 @@ void MainWindow::databaseCleared()
 
 void MainWindow::on_buttonStop_clicked()
 {
-    audioBackend->stop();
+    activeAudioBackend->stop();
 }
 
 void MainWindow::on_buttonPlay_clicked()
@@ -281,10 +301,10 @@ void MainWindow::on_buttonPlay_clicked()
 
 void MainWindow::on_buttonPause_clicked()
 {
-    if (audioBackend->state() == QMediaPlayer::PausedState)
-        audioBackend->play();
+    if (activeAudioBackend->state() == KhAbstractAudioBackend::PausedState)
+        activeAudioBackend->play();
     else
-        audioBackend->pause();
+        activeAudioBackend->pause();
 }
 
 void MainWindow::on_lineEdit_returnPressed()
@@ -341,7 +361,7 @@ void MainWindow::on_treeViewRotation_activated(const QModelIndex &index)
     if (index.column() < 3)
     {
         rotationmodel->setCurrentSingerPosition(index.row() + 1);
-        audioBackend->stop();
+        activeAudioBackend->stop();
         KhQueueSong *qsong = rotationmodel->getSelected()->getNextSong();
         KhSong *song = songdbmodel->getSongByID(qsong->getSongID());
         songCurrent = song;
@@ -449,7 +469,7 @@ void MainWindow::on_treeViewRotation_clicked(const QModelIndex &index)
 
 void MainWindow::on_treeViewQueue_activated(const QModelIndex &index)
 {
-    audioBackend->stop();
+    activeAudioBackend->stop();
     KhQueueSong *queuesong = rotationmodel->getSelected()->getSongByPosition(index.row());
     KhSong *song = new KhSong();
     song->Artist = queuesong->getArtist();
@@ -589,20 +609,20 @@ void MainWindow::on_buttonClearQueue_clicked()
 
 void MainWindow::on_spinBoxKey_valueChanged(int arg1)
 {
-    if ((audioBackend->state() == QMediaPlayer::PlayingState) || (audioBackend->state() == QMediaPlayer::PausedState))
-        audioBackend->setPitchShift(arg1);
+    if ((activeAudioBackend->state() == KhAbstractAudioBackend::PlayingState) || (activeAudioBackend->state() == KhAbstractAudioBackend::PausedState))
+        activeAudioBackend->setPitchShift(arg1);
     else
         ui->spinBoxKey->setValue(0);
 }
 
 void MainWindow::on_sliderVolume_valueChanged(int value)
 {
-    audioBackend->setVolume(value);
+    activeAudioBackend->setVolume(value);
 }
 
 void MainWindow::audioBackend_positionChanged(qint64 position)
 {
-    if (audioBackend->state() == QMediaPlayer::PlayingState)
+    if (activeAudioBackend->state() == KhAbstractAudioBackend::PlayingState)
     {
         if (cdg->GetLastCDGUpdate() >= position)
         {
@@ -618,22 +638,22 @@ void MainWindow::audioBackend_positionChanged(qint64 position)
         }
         if (!sliderPositionPressed)
         {
-            ui->sliderProgress->setMaximum(audioBackend->duration());
+            ui->sliderProgress->setMaximum(activeAudioBackend->duration());
             ui->sliderProgress->setValue(position);
         }
-        ui->labelElapsedTime->setText(audioBackend->msToMMSS(position));
-        ui->labelRemainTime->setText(audioBackend->msToMMSS(audioBackend->duration() - position));
+        ui->labelElapsedTime->setText(activeAudioBackend->msToMMSS(position));
+        ui->labelRemainTime->setText(activeAudioBackend->msToMMSS(activeAudioBackend->duration() - position));
     }
 }
 
 void MainWindow::audioBackend_durationChanged(qint64 duration)
 {
-    ui->labelTotalTime->setText(audioBackend->msToMMSS(duration));
+    ui->labelTotalTime->setText(activeAudioBackend->msToMMSS(duration));
 }
 
-void MainWindow::audioBackend_stateChanged(QMediaPlayer::State state)
+void MainWindow::audioBackend_stateChanged(KhAbstractAudioBackend::State state)
 {
-    if (state == QMediaPlayer::StoppedState)
+    if (state == KhAbstractAudioBackend::StoppedState)
     {
         cdg->VideoClose();
         ui->labelArtist->setText("None");
@@ -668,6 +688,7 @@ void MainWindow::audioBackend_stateChanged(QMediaPlayer::State state)
 
 void MainWindow::on_sliderProgress_sliderMoved(int position)
 {
+    Q_UNUSED(position);
    // audioBackend->setPosition(position);
 }
 
@@ -727,11 +748,16 @@ void MainWindow::rotationDataChanged()
 
 void MainWindow::silenceDetected()
 {
-    if (cdg->GetLastCDGUpdate() < audioBackend->position())
+    if (cdg->GetLastCDGUpdate() < activeAudioBackend->position())
     {
         qDebug() << "Silence detected for > 2s after last CDG draw command... Stopping.";
-        audioBackend->stop(true);
+        activeAudioBackend->stop(true);
     }
+}
+
+void MainWindow::audioBackendChanged(int index)
+{
+    activeAudioBackend = audioBackends->at(index);
 }
 
 void MainWindow::on_treeViewDB_customContextMenuRequested(const QPoint &pos)
@@ -755,6 +781,6 @@ void MainWindow::on_sliderProgress_sliderPressed()
 
 void MainWindow::on_sliderProgress_sliderReleased()
 {
-    audioBackend->setPosition(ui->sliderProgress->value());
+    activeAudioBackend->setPosition(ui->sliderProgress->value());
     sliderPositionPressed = false;
 }

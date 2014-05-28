@@ -76,7 +76,7 @@ public:
     qint64 position();
     bool isMuted();
     qint64 duration();
-    QMediaPlayer::State state();
+    KhAbstractAudioBackend::State state();
     QString backendName();
     bool stopping();
     void keyChangerOn();

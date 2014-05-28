@@ -22,18 +22,20 @@
 #define KHABSTRACTAUDIOBACKEND_H
 
 #include <QObject>
-#include <QMediaPlayer>
+#include <QStringList>
+//#include <QMediaPlayer>
 
 class KhAbstractAudioBackend : public QObject
 {
     Q_OBJECT
 public:
+    enum State{PlayingState=0,PausedState,StoppedState};
     explicit KhAbstractAudioBackend(QObject *parent = 0);
     virtual int volume() {return 0;}
     virtual qint64 position() {return 0;}
     virtual bool isMuted() {return 0;}
     virtual qint64 duration() {return 0;}
-    virtual QMediaPlayer::State state() {return QMediaPlayer::StoppedState;}
+    virtual KhAbstractAudioBackend::State state() {return KhAbstractAudioBackend::StoppedState;}
     virtual bool canPitchShift() {return false;}
     virtual int pitchShift() {return 0;}
     virtual bool canFade() { return false; }
@@ -51,11 +53,9 @@ signals:
     void audioAvailableChanged(bool);
     void bufferStatusChanged(int);
     void durationChanged(qint64);
-    void error(QMediaPlayer::Error);
-    void mediaStatusChanged(QMediaPlayer::MediaStatus);
     void mutedChanged(bool);
     void positionChanged(qint64);
-    void stateChanged(QMediaPlayer::State);
+    void stateChanged(KhAbstractAudioBackend::State);
     void videoAvailableChanged(bool);
     void volumeChanged(int);
     void silenceDetected();
@@ -77,5 +77,8 @@ public slots:
     virtual void setDownmix(bool enabled) {Q_UNUSED(enabled);}
 
 };
+
+typedef QList<KhAbstractAudioBackend *> KhAudioBackends;
+
 
 #endif // KHABSTRACTAUDIOBACKEND_H

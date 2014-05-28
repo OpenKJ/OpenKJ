@@ -94,11 +94,12 @@ private slots:
     void on_sliderVolume_valueChanged(int value);
     void audioBackend_positionChanged(qint64 position);
     void audioBackend_durationChanged(qint64 duration);
-    void audioBackend_stateChanged(QMediaPlayer::State state);
+    void audioBackend_stateChanged(KhAbstractAudioBackend::State state);
     void on_sliderProgress_sliderMoved(int position);
     void on_buttonRegulars_clicked();
     void rotationDataChanged();
     void silenceDetected();
+    void audioBackendChanged(int index);
 
     void on_treeViewDB_customContextMenuRequested(const QPoint &pos);
 
@@ -120,7 +121,8 @@ private:
     RegularImportDialog *regularImportDialog;
     KhRequestsDialog *requestsDialog;
     CdgPreviewDialog *cdgPreviewDialog;
-    KhAbstractAudioBackend *audioBackend;
+    KhAbstractAudioBackend *activeAudioBackend;
+    KhAudioBackends *audioBackends;
     //KhSingers *singers;
     KhRegularSingers *regularSingers;
     KhIPCClient *ipcClient;

@@ -33,14 +33,11 @@ KhAudioBackendQMediaPlayer::KhAudioBackendQMediaPlayer(QObject *parent) :
     fader = new FaderQMediaPlayer(mplayer,this);
     connect(mplayer, SIGNAL(audioAvailableChanged(bool)), this, SIGNAL(audioAvailableChanged(bool)));
     connect(mplayer, SIGNAL(bufferStatusChanged(int)), this, SIGNAL(bufferStatusChanged(int)));
-//    connect(mplayer, SIGNAL(currentMediaChanged(QMediaContent)), this, SIGNAL(currentMediaChanged(QMediaContent)));
     connect(mplayer, SIGNAL(durationChanged(qint64)), this, SIGNAL(durationChanged(qint64)));
-    connect(mplayer, SIGNAL(error(QMediaPlayer::Error)), this, SIGNAL(error(QMediaPlayer::Error)));
-//    connect(mplayer, SIGNAL(mediaChanged(QMediaContent)), this, SIGNAL(mediaChanged(QMediaContent)));
-    connect(mplayer, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)), this, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)));
     connect(mplayer, SIGNAL(mutedChanged(bool)), this, SIGNAL(mutedChanged(bool)));
     connect(mplayer, SIGNAL(positionChanged(qint64)), this, SIGNAL(positionChanged(qint64)));
-    connect(mplayer, SIGNAL(stateChanged(QMediaPlayer::State)), this, SIGNAL(stateChanged(QMediaPlayer::State)));
+    connect(mplayer, SIGNAL(stateChanged(QMediaPlayer::State)), this, SLOT(qmStateChanged(QMediaPlayer::State)));
+    //connect(mplayer, SIGNAL(stateChanged(KhAbstractAudioBackend::State)), this, SIGNAL(stateChanged(KhAbstractAudioBackend::State)));
     connect(mplayer, SIGNAL(volumeChanged(int)), this, SIGNAL(volumeChanged(int)));
     connect(mplayer, SIGNAL(volumeChanged(int)), fader, SLOT(setBaseVolume(int)));
     m_stopping = false;
@@ -126,9 +123,14 @@ void KhAudioBackendQMediaPlayer::stop(bool skipFade)
     m_stopping = false;
 }
 
-QMediaPlayer::State KhAudioBackendQMediaPlayer::state()
+KhAudioBackendQMediaPlayer::State KhAudioBackendQMediaPlayer::state()
 {
-    return mplayer->state();
+    if (mplayer->state() == QMediaPlayer::PlayingState)
+        return KhAbstractAudioBackend::PlayingState;
+    else if (mplayer->state() == QMediaPlayer::PausedState)
+        return KhAbstractAudioBackend::PausedState;
+    else
+        return KhAbstractAudioBackend::StoppedState;
 }
 
 
@@ -203,6 +205,16 @@ bool FaderQMediaPlayer::isFading()
 void FaderQMediaPlayer::restoreVolume()
 {
     mPlayer->setVolume(m_preOutVolume);
+}
+
+void KhAudioBackendQMediaPlayer::qmStateChanged(QMediaPlayer::State qmstate)
+{
+    if (qmstate == QMediaPlayer::PlayingState)
+        emit stateChanged(KhAbstractAudioBackend::PlayingState);
+    else if (qmstate == QMediaPlayer::PausedState)
+        emit stateChanged(KhAbstractAudioBackend::PausedState);
+    else
+        emit stateChanged(KhAbstractAudioBackend::StoppedState);
 }
 
 void FaderQMediaPlayer::setBaseVolume(int volume)

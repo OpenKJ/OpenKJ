@@ -317,3 +317,14 @@ void KhSettings::setAudioOutputDevice(QString device)
 {
     settings->setValue("audioOutputDevice", device);
 }
+
+int KhSettings::audioBackend()
+{
+    return settings->value("audioBackend", 0).toInt();
+}
+
+void KhSettings::setAudioBackend(int index)
+{
+    settings->setValue("audioBackend", index);
+    emit audioBackendChanged(index);
+}
