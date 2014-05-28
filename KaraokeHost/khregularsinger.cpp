@@ -295,9 +295,21 @@ QList<KhRegImportSong> KhRegularSingers::importLoadSongs(QString name, QString f
     return songs;
 }
 
+void KhRegularSingers::clear()
+{
+    emit dataAboutToChange();
+    qDeleteAll(regularSingers->begin(), regularSingers->end());
+    QSqlQuery query;
+    query.exec("DELETE FROM regularsingers");
+    query.exec("DELETE FROM regularsongs");
+    regularSingers->clear();
+    emit dataChanged();
+}
+
 void KhRegularSingers::loadFromDB()
 {
     emit dataAboutToChange();
+    qDeleteAll(regularSingers->begin(), regularSingers->end());
     regularSingers->clear();
     QSqlQuery query("SELECT ROWID,name FROM regularSingers ORDER BY LOWER(name)");
     int regsingerid = query.record().indexOf("ROWID");
@@ -358,10 +370,8 @@ int KhRegularSinger::addSong(int songIndex, int keyChange, int position)
         qDebug() << "KhRegularSinger::addSong() - Tried to add data to an uninitialized regular!";
                     return -1;
     }
-    qDebug() << "KhRegularSinger::addSong(" << songIndex << "," << keyChange << "," << position << ") call on regular singer: " << regindex;
     QSqlQuery query;
     QString sql = "INSERT INTO regularsongs (singer, song, keychg, position) VALUES(" + QString::number(regindex) + "," + QString::number(songIndex) + "," + QString::number(keyChange) + "," + QString::number(position) + ")";
-    qDebug() << "Doing sql: " << sql;
     query.exec(sql);
     KhRegularSong *song = new KhRegularSong;
     song->setRegSongIndex(query.lastInsertId().toInt());

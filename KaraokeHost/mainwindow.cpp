@@ -264,6 +264,7 @@ void MainWindow::databaseCleared()
 {
     songdbmodel->loadFromDB();
     rotationmodel->clear();
+    regularSingers->clear();
     ui->treeViewDB->clearSelection();
     ui->treeViewRotation->clearSelection();
 

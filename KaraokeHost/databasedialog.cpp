@@ -115,6 +115,7 @@ void DatabaseDialog::on_buttonUpdate_clicked()
         }
         emit databaseUpdated();
         msgBox.hide();
+        QMessageBox::information(this, "Update Complete", "Database update complete.");
     }
 }
 
@@ -139,6 +140,7 @@ void DatabaseDialog::on_buttonUpdateAll_clicked()
     msgBox.setInformativeText("Reloading song database into cache");
     emit databaseUpdated();
     msgBox.hide();
+    QMessageBox::information(this, "Update Complete", "Database update complete.");
 }
 
 void DatabaseDialog::on_btnClearDatabase_clicked()
@@ -155,11 +157,8 @@ void DatabaseDialog::on_btnClearDatabase_clicked()
     if (msgBox.clickedButton() == yesButton) {
         QSqlQuery query;
         query.exec("DELETE FROM dbSongs");
-        query.exec("DELETE FROM rotationSongs");
-        query.exec("DELETE FROM rotationSingers");
-        query.exec("DELETE FROM regsingers");
-        query.exec("DELETE FROM regsongs");
         emit databaseCleared();
+        QMessageBox::information(this, "Database cleared", "Song database, regular singers, and all rotation data has been cleared.");
     } else if (msgBox.clickedButton() == cancelButton) {
         // Cancelled
     }

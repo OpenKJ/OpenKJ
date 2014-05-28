@@ -40,16 +40,22 @@ void RegularImportDialog::on_pushButtonClose_clicked()
 
 void RegularImportDialog::on_pushButtonImport_clicked()
 {
-    QMessageBox *msgBox = new QMessageBox(this);
-    msgBox->setStandardButtons(0);
-    msgBox->setText("Importing regular singers, please wait...");
-    msgBox->show();
-    for (int i=0; i < ui->listWidgetRegulars->selectedItems().size(); i++)
+    if (ui->listWidgetRegulars->selectedItems().size() > 0)
     {
-        importSinger(ui->listWidgetRegulars->selectedItems().at(i)->text());
+        QMessageBox *msgBox = new QMessageBox(this);
+        msgBox->setStandardButtons(0);
+        msgBox->setText("Importing regular singers, please wait...");
+        msgBox->show();
+        for (int i=0; i < ui->listWidgetRegulars->selectedItems().size(); i++)
+        {
+            msgBox->setInformativeText("Importing singer: " + ui->listWidgetRegulars->selectedItems().at(i)->text());
+            importSinger(ui->listWidgetRegulars->selectedItems().at(i)->text());
+        }
+        msgBox->close();
+        delete msgBox;
+        QMessageBox::information(this, "Import complete", "Regular singer import complete.");
+        ui->listWidgetRegulars->clearSelection();
     }
-    msgBox->close();
-    delete msgBox;
 }
 
 void RegularImportDialog::on_pushButtonImportAll_clicked()
@@ -61,10 +67,13 @@ void RegularImportDialog::on_pushButtonImportAll_clicked()
     ui->listWidgetRegulars->selectAll();
     for (int i=0; i < ui->listWidgetRegulars->selectedItems().size(); i++)
     {
+        msgBox->setInformativeText("Importing singer: " + ui->listWidgetRegulars->selectedItems().at(i)->text());
         importSinger(ui->listWidgetRegulars->selectedItems().at(i)->text());
     }
     msgBox->close();
     delete msgBox;
+    QMessageBox::information(this, "Import complete", "Regular singer import complete.");
+    ui->listWidgetRegulars->clearSelection();
 }
 
 void RegularImportDialog::importSinger(QString name)

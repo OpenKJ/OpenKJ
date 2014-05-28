@@ -22,6 +22,8 @@ private slots:
 
     void on_pushButtonExport_clicked();
 
+    void on_pushButtonExportAll_clicked();
+
 private:
     Ui::RegularExportDialog *ui;
     RegularSingerModel *regSingersModel;

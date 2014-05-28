@@ -105,6 +105,7 @@ public:
     void exportSingers(QList<int> singerIDs, QString savePath);
     QStringList importLoadSingerList(QString fileName);
     QList<KhRegImportSong> importLoadSongs(QString name, QString fileName);
+    void clear();
 
 signals:
     void dataAboutToChange();
