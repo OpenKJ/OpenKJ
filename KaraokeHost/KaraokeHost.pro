@@ -16,7 +16,7 @@ TEMPLATE = app
 DEFINES += USE_GSTREAMER
 # On Linux platforms QMediaPlayer uses gstreamer as its base.  You can not
 # load both backends due to conflicts.
-#DEFINES += USE_QMEDIAPLAYER
+DEFINES += USE_QMEDIAPLAYER
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -100,6 +100,7 @@ FORMS    += mainwindow.ui \
     dlgsettings.ui \
     dlgcdg.ui
 
+unix: QT_CONFIG -= no-pkg-config
 unix: CONFIG += link_pkgconfig
 #unix: PKGCONFIG += phonon4qt5
 

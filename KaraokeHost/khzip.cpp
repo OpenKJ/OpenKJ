@@ -22,7 +22,7 @@
 #include <QDebug>
 #include <fstream>
 extern "C" {
-    #include <minizip/unzip.h>
+    #include <unzip.h>
 }
 
 

@@ -24,9 +24,9 @@
 #include <QFileDialog>
 #include <QMessageBox>
 
-DlgDatabase::DlgDatabase(QWidget *parent) :
+DatabaseDialog::DatabaseDialog(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::DlgDatabase)
+    ui(new Ui::DatabaseDialog)
 {
 
     ui->setupUi(this);
@@ -35,12 +35,12 @@ DlgDatabase::DlgDatabase(QWidget *parent) :
     ui->treeViewPaths->setModel(sourcedirmodel);
 }
 
-DlgDatabase::~DlgDatabase()
+DatabaseDialog::~DatabaseDialog()
 {
     delete ui;
 }
 
-void DlgDatabase::on_pushButtonAdd_clicked()
+void DatabaseDialog::on_pushButtonAdd_clicked()
 {
     QString fileName = QFileDialog::getExistingDirectory(this);
     if (fileName != "")
@@ -52,7 +52,7 @@ void DlgDatabase::on_pushButtonAdd_clicked()
     }
 }
 
-void DlgDatabase::on_pushButtonUpdateAll_clicked()
+void DatabaseDialog::on_pushButtonUpdateAll_clicked()
 {
     QMessageBox *msgBox = new QMessageBox(this);
     msgBox->setStandardButtons(0);
@@ -71,7 +71,7 @@ void DlgDatabase::on_pushButtonUpdateAll_clicked()
     delete msgBox;
 }
 
-void DlgDatabase::on_pushButtonClose_clicked()
+void DatabaseDialog::on_pushButtonClose_clicked()
 {
     close();
 }

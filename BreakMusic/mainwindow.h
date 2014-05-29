@@ -54,7 +54,7 @@ private:
     BmIPCServer *ipcServer;
     QSqlDatabase *database;
     QDir *khDir;
-    DlgDatabase *dbDialog;
+    DatabaseDialog *dbDialog;
     BmSongs *songs;
     SongdbTableModel *songdbmodel;
     PlaylistTableModel *playlistmodel;

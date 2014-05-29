@@ -48,6 +48,10 @@ FORMS    += mainwindow.ui \
 RESOURCES += \
     resources.qrc
 
-unix: LIBS += -ltag
+unix: QT_CONFIG -= no-pkg-config
+unix: CONFIG += link_pkgconfig
+
+unix: PKGCONFIG += taglib_c
+
 win32: LIBS += -ltag
 #win32: LIBS += -L"$$_PRO_FILE_PWD_/taglib-win32/lib" -ltag
