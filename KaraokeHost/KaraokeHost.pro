@@ -27,10 +27,8 @@ SOURCES += main.cpp\
     libCDG/src/libCDG_Color.cpp \
     libCDG/src/CDG_Frame_Image.cpp \
     libCDG/src/libCDG.cpp \
-    databasedialog.cpp \
     sourcedirtablemodel.cpp \
     dbupdatethread.cpp \
-    settingsdialog.cpp \
     songdbloadthread.cpp \
     khqueuesong.cpp \
     khsinger.cpp \
@@ -41,18 +39,20 @@ SOURCES += main.cpp\
     khabstractaudiobackend.cpp \
     khzip.cpp \
     qglcanvas.cpp \
-    cdgwindow.cpp \
     khsettings.cpp \
-    regularsingersdialog.cpp \
     regularsingermodel.cpp \
     scrolltext.cpp \
-    regularexportdialog.cpp \
-    regularimportdialog.cpp \
-    khrequestsdialog.cpp \
     requeststablemodel.cpp \
     khdb.cpp \
     dlgkeychange.cpp \
-    dlgcdgpreview.cpp
+    dlgcdgpreview.cpp \
+    dlgdatabase.cpp \
+    dlgrequests.cpp \
+    dlgregularexport.cpp \
+    dlgregularimport.cpp \
+    dlgregularsingers.cpp \
+    dlgsettings.cpp \
+    dlgcdg.cpp
 
 HEADERS  += mainwindow.h \
     queuetablemodel.h \
@@ -62,10 +62,8 @@ HEADERS  += mainwindow.h \
     libCDG/include/libCDG_Frame_Image.h \
     libCDG/include/libCDG_Color.h \
     libCDG/include/CDG_Frame_Image.h \
-    databasedialog.h \
     sourcedirtablemodel.h \
     dbupdatethread.h \
-    settingsdialog.h \
     songdbloadthread.h \
     khqueuesong.h \
     khsinger.h \
@@ -76,29 +74,31 @@ HEADERS  += mainwindow.h \
     khabstractaudiobackend.h \
     khzip.h \
     qglcanvas.h \
-    cdgwindow.h \
     khsettings.h \
-    regularsingersdialog.h \
     regularsingermodel.h \
     scrolltext.h \
-    regularexportdialog.h \
-    regularimportdialog.h \
-    khrequestsdialog.h \
     requeststablemodel.h \
     khdb.h \
     dlgkeychange.h \
-    dlgcdgpreview.h
+    dlgcdgpreview.h \
+    dlgdatabase.h \
+    dlgrequests.h \
+    dlgregularexport.h \
+    dlgregularimport.h \
+    dlgregularsingers.h \
+    dlgsettings.h \
+    dlgcdg.h
 
 FORMS    += mainwindow.ui \
-    databasedialog.ui \
-    settingsdialog.ui \
-    cdgwindow.ui \
-    regularsingersdialog.ui \
-    regularexportdialog.ui \
-    regularimportdialog.ui \
-    khrequestsdialog.ui \
     dlgkeychange.ui \
-    dlgcdgpreview.ui
+    dlgcdgpreview.ui \
+    dlgdatabase.ui \
+    dlgrequests.ui \
+    dlgregularexport.ui \
+    dlgregularimport.ui \
+    dlgregularsingers.ui \
+    dlgsettings.ui \
+    dlgcdg.ui
 
 unix: CONFIG += link_pkgconfig
 #unix: PKGCONFIG += phonon4qt5

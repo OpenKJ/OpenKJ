@@ -58,7 +58,7 @@ MainWindow::MainWindow(QWidget *parent) :
     query.exec("CREATE TABLE IF NOT EXISTS playlists ( title VARCHAR(100) NOT NULL UNIQUE)");
     query.exec("CREATE TABLE IF NOT EXISTS plsongs ( playlist INTEGER, song INTEGER, position INTEGER)");
     query.exec("CREATE TABLE IF NOT EXISTS srcdirs ( path VARCHAR(700) NOT NULL UNIQUE)");
-    dbDialog = new DatabaseDialog(this);
+    dbDialog = new DlgDatabase(this);
     songs = new BmSongs(this);
     songdbmodel = new SongdbTableModel(songs,this);
     playlists = new BmPlaylists(this);

@@ -6,16 +6,16 @@
 #include "khsong.h"
 
 namespace Ui {
-class RegularImportDialog;
+class DlgRegularImport;
 }
 
-class RegularImportDialog : public QDialog
+class DlgRegularImport : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit RegularImportDialog(KhSongs *dbsongs, KhRegularSingers *regSingersPtr, QWidget *parent = 0);
-    ~RegularImportDialog();
+    explicit DlgRegularImport(KhSongs *dbsongs, KhRegularSingers *regSingersPtr, QWidget *parent = 0);
+    ~DlgRegularImport();
 
 private slots:
     void on_pushButtonSelectFile_clicked();
@@ -27,7 +27,7 @@ private slots:
     void on_pushButtonImportAll_clicked();
 
 private:
-    Ui::RegularImportDialog *ui;
+    Ui::DlgRegularImport *ui;
     KhRegularSingers *regSingers;
     KhSongs *dbSongs;
     QString curImportFile;

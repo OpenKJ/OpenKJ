@@ -1,5 +1,5 @@
 #include "dlgcdgpreview.h"
-#include "ui_cdgpreviewdialog.h"
+#include "ui_dlgcdgpreview.h"
 #include <QMessageBox>
 #include <QDebug>
 #include "khzip.h"

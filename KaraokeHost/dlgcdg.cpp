@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "cdgwindow.h"
-#include "ui_cdgwindow.h"
+#include "dlgcdg.h"
+#include "ui_dlgcdg.h"
 #include <QDebug>
 #include <QApplication>
 #include <QDesktopWidget>
@@ -27,9 +27,9 @@
 extern KhSettings *settings;
 
 
-CdgWindow::CdgWindow(QWidget *parent, Qt::WindowFlags f) :
+DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
     QDialog(parent, f),
-    ui(new Ui::cdgWindow)
+    ui(new Ui::DlgCdg)
 {
     ui->setupUi(this);
 //    settings = new KhSettings(this);
@@ -66,12 +66,12 @@ CdgWindow::CdgWindow(QWidget *parent, Qt::WindowFlags f) :
 
 }
 
-CdgWindow::~CdgWindow()
+DlgCdg::~DlgCdg()
 {
     delete ui;
 }
 
-void CdgWindow::updateCDG(QImage image, bool overrideVisibleCheck)
+void DlgCdg::updateCDG(QImage image, bool overrideVisibleCheck)
 {
     if ((isVisible()) || (overrideVisibleCheck))
     {
@@ -80,7 +80,7 @@ void CdgWindow::updateCDG(QImage image, bool overrideVisibleCheck)
     }
 }
 
-void CdgWindow::makeFullscreen()
+void DlgCdg::makeFullscreen()
 {
     m_lastSize.setHeight(height());
     m_lastSize.setWidth(width());
@@ -114,7 +114,7 @@ void CdgWindow::makeFullscreen()
     m_fullScreen = true;
 }
 
-void CdgWindow::makeWindowed()
+void DlgCdg::makeWindowed()
 {
 //    hide();
     setWindowFlags(Qt::Window | Qt::WindowStaysOnTopHint);
@@ -125,12 +125,12 @@ void CdgWindow::makeWindowed()
     m_fullScreen = false;
 }
 
-void CdgWindow::setTickerText(QString text)
+void DlgCdg::setTickerText(QString text)
 {
     ticker->setText(text);
 }
 
-void CdgWindow::setFullScreen(bool fullscreen)
+void DlgCdg::setFullScreen(bool fullscreen)
 {
     if (fullscreen)
         makeFullscreen();
@@ -138,33 +138,33 @@ void CdgWindow::setFullScreen(bool fullscreen)
         makeWindowed();
 }
 
-void CdgWindow::setFullScreenMonitor(int monitor)
+void DlgCdg::setFullScreenMonitor(int monitor)
 {
     Q_UNUSED(monitor);
     makeWindowed();
     makeFullscreen();
 }
 
-void CdgWindow::tickerFontChanged()
+void DlgCdg::tickerFontChanged()
 {
     qDebug() << "tickerFontSettingsChanged() fired";
     ticker->setFont(settings->tickerFont());
     ticker->refresh();
 }
 
-void CdgWindow::tickerHeightChanged()
+void DlgCdg::tickerHeightChanged()
 {
     ticker->setMinimumHeight(settings->tickerHeight());
     ticker->setMaximumHeight(settings->tickerHeight());
     ticker->refresh();
 }
 
-void CdgWindow::tickerSpeedChanged()
+void DlgCdg::tickerSpeedChanged()
 {
     ticker->setSpeed(settings->tickerSpeed());
 }
 
-void CdgWindow::tickerTextColorChanged()
+void DlgCdg::tickerTextColorChanged()
 {
     //ticker->palette().foreground().setColor(settings->tickerTextColor());
     QPalette palette = ticker->palette();
@@ -172,19 +172,19 @@ void CdgWindow::tickerTextColorChanged()
     ticker->setPalette(palette);
 }
 
-void CdgWindow::tickerBgColorChanged()
+void DlgCdg::tickerBgColorChanged()
 {
     QPalette palette = this->palette();
     palette.setColor(QPalette::Background, settings->tickerBgColor());
     this->setPalette(palette);
 }
 
-void CdgWindow::tickerEnableChanged()
+void DlgCdg::tickerEnableChanged()
 {
     ticker->enable(settings->tickerEnabled());
 }
 
-void CdgWindow::mouseDoubleClickEvent(QMouseEvent *e)
+void DlgCdg::mouseDoubleClickEvent(QMouseEvent *e)
 {
     Q_UNUSED(e);
     if (m_fullScreen)

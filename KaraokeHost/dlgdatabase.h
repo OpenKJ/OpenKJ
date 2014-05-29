@@ -28,16 +28,16 @@
 
 
 namespace Ui {
-class DatabaseDialog;
+class DlgDatabase;
 }
 
-class DatabaseDialog : public QDialog
+class DlgDatabase : public QDialog
 {
     Q_OBJECT
     
 public:
-    explicit DatabaseDialog(QWidget *parent = 0);
-    ~DatabaseDialog();    
+    explicit DlgDatabase(QWidget *parent = 0);
+    ~DlgDatabase();
 
 signals:
     void databaseUpdated();
@@ -61,7 +61,7 @@ private slots:
     void dbupdate_thread_finished();
 
 private:
-    Ui::DatabaseDialog *ui;
+    Ui::DlgDatabase *ui;
     SourceDirTableModel *sourcedirmodel;
     int selectedRow;
 };

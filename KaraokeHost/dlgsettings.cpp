@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "settingsdialog.h"
-#include "ui_settingsdialog.h"
+#include "dlgsettings.h"
+#include "ui_dlgsettings.h"
 #include <QDebug>
 #include <QApplication>
 #include <QDesktopWidget>
@@ -32,9 +32,9 @@
 extern KhSettings *settings;
 
 
-SettingsDialog::SettingsDialog(KhAudioBackends *AudioBackends, QWidget *parent) :
+DlgSettings::DlgSettings(KhAudioBackends *AudioBackends, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::SettingsDialog)
+    ui(new Ui::DlgSettings)
 {
     pageSetupDone = false;
     audioBackends = AudioBackends;
@@ -97,12 +97,12 @@ SettingsDialog::SettingsDialog(KhAudioBackends *AudioBackends, QWidget *parent) 
     pageSetupDone = true;
 }
 
-SettingsDialog::~SettingsDialog()
+DlgSettings::~DlgSettings()
 {
     delete ui;
 }
 
-QStringList SettingsDialog::getMonitors()
+QStringList DlgSettings::getMonitors()
 {
     QStringList screenStrings;
     for (int i=0; i < QApplication::desktop()->screenCount(); i++)
@@ -115,7 +115,7 @@ QStringList SettingsDialog::getMonitors()
 }
 
 
-void SettingsDialog::createIcons()
+void DlgSettings::createIcons()
 {
     QListWidgetItem *audioButton = new QListWidgetItem(ui->listWidget);
     audioButton->setIcon(QIcon(":/icons/Icons/audio-card.png"));
@@ -134,12 +134,12 @@ void SettingsDialog::createIcons()
     networkButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 }
 
-void SettingsDialog::on_btnClose_clicked()
+void DlgSettings::on_btnClose_clicked()
 {
     close();
 }
 
-void SettingsDialog::on_checkBoxShowCdgWindow_stateChanged(int arg1)
+void DlgSettings::on_checkBoxShowCdgWindow_stateChanged(int arg1)
 {
     settings->setShowCdgWindow(arg1);
     emit showCdgWindowChanged(arg1);
@@ -147,20 +147,20 @@ void SettingsDialog::on_checkBoxShowCdgWindow_stateChanged(int arg1)
     ui->groupBoxMonitors->setEnabled(arg1);
 }
 
-void SettingsDialog::on_groupBoxMonitors_toggled(bool arg1)
+void DlgSettings::on_groupBoxMonitors_toggled(bool arg1)
 {
     settings->setCdgWindowFullscreen(arg1);
     emit cdgWindowFullScreenChanged(arg1);
 }
 
-void SettingsDialog::on_listWidgetMonitors_itemSelectionChanged()
+void DlgSettings::on_listWidgetMonitors_itemSelectionChanged()
 {
     int selMonitor = ui->listWidgetMonitors->selectionModel()->selectedIndexes().at(0).row();
     settings->setCdgWindowFullscreenMonitor(selMonitor);
     emit cdgWindowFullScreenMonitorChanged(selMonitor);
 }
 
-void SettingsDialog::on_pushButtonFont_clicked()
+void DlgSettings::on_pushButtonFont_clicked()
 {
     bool ok;
     QFont font = QFontDialog::getFont(&ok, settings->tickerFont(), this, "Select ticker font");
@@ -170,17 +170,17 @@ void SettingsDialog::on_pushButtonFont_clicked()
     }
 }
 
-void SettingsDialog::on_spinBoxTickerHeight_valueChanged(int arg1)
+void DlgSettings::on_spinBoxTickerHeight_valueChanged(int arg1)
 {
     settings->setTickerHeight(arg1);
 }
 
-void SettingsDialog::on_horizontalSliderTickerSpeed_valueChanged(int value)
+void DlgSettings::on_horizontalSliderTickerSpeed_valueChanged(int value)
 {
     settings->setTickerSpeed(value);
 }
 
-void SettingsDialog::on_pushButtonTextColor_clicked()
+void DlgSettings::on_pushButtonTextColor_clicked()
 {
     QColor color = QColorDialog::getColor(settings->tickerTextColor(),this,"Select ticker text color");
     if (color.isValid())
@@ -194,7 +194,7 @@ void SettingsDialog::on_pushButtonTextColor_clicked()
 //    QColor color = QColorDialog::getColor()
 }
 
-void SettingsDialog::on_pushButtonBgColor_clicked()
+void DlgSettings::on_pushButtonBgColor_clicked()
 {
     QColor color = QColorDialog::getColor(settings->tickerTextColor(),this,"Select ticker background color");
     if (color.isValid())
@@ -206,7 +206,7 @@ void SettingsDialog::on_pushButtonBgColor_clicked()
     }
 }
 
-void SettingsDialog::on_radioButtonFullRotation_toggled(bool checked)
+void DlgSettings::on_radioButtonFullRotation_toggled(bool checked)
 {
     settings->setTickerFullRotation(checked);
     ui->spinBoxTickerSingers->setEnabled(!checked);
@@ -214,42 +214,42 @@ void SettingsDialog::on_radioButtonFullRotation_toggled(bool checked)
 
 
 
-void SettingsDialog::on_spinBoxTickerSingers_valueChanged(int arg1)
+void DlgSettings::on_spinBoxTickerSingers_valueChanged(int arg1)
 {
     settings->setTickerShowNumSingers(arg1);
 }
 
-void SettingsDialog::on_groupBoxTicker_toggled(bool arg1)
+void DlgSettings::on_groupBoxTicker_toggled(bool arg1)
 {
     settings->setTickerEnabled(arg1);
 }
 
-void SettingsDialog::on_lineEditUrl_editingFinished()
+void DlgSettings::on_lineEditUrl_editingFinished()
 {
     settings->setRequestServerUrl(ui->lineEditUrl->text());
 }
 
-void SettingsDialog::on_checkBoxIgnoreCertErrors_toggled(bool checked)
+void DlgSettings::on_checkBoxIgnoreCertErrors_toggled(bool checked)
 {
     settings->setRequestServerIgnoreCertErrors(checked);
 }
 
-void SettingsDialog::on_lineEditUsername_editingFinished()
+void DlgSettings::on_lineEditUsername_editingFinished()
 {
     settings->setRequestServerUsername(ui->lineEditUsername->text());
 }
 
-void SettingsDialog::on_lineEditPassword_editingFinished()
+void DlgSettings::on_lineEditPassword_editingFinished()
 {
     settings->setRequestServerPassword(ui->lineEditPassword->text());
 }
 
-void SettingsDialog::on_groupBoxRequestServer_toggled(bool arg1)
+void DlgSettings::on_groupBoxRequestServer_toggled(bool arg1)
 {
     settings->setRequestServerEnabled(arg1);
 }
 
-void SettingsDialog::on_pushButtonBrowse_clicked()
+void DlgSettings::on_pushButtonBrowse_clicked()
 {
     QString imageFile = QFileDialog::getOpenFileName(this,tr("Select image file"), QStandardPaths::writableLocation(QStandardPaths::PicturesLocation), tr("Images (*.png *.jpg *.jpeg *.gif)"));
     if (imageFile != "")
@@ -267,25 +267,25 @@ void SettingsDialog::on_pushButtonBrowse_clicked()
     }
 }
 
-void SettingsDialog::on_checkBoxFader_toggled(bool checked)
+void DlgSettings::on_checkBoxFader_toggled(bool checked)
 {
     settings->setAudioUseFader(checked);
     emit audioUseFaderChanged(checked);
 }
 
-void SettingsDialog::on_checkBoxSilenceDetection_toggled(bool checked)
+void DlgSettings::on_checkBoxSilenceDetection_toggled(bool checked)
 {
     settings->setAudioDetectSilence(checked);
     emit audioSilenceDetectChanged(checked);
 }
 
-void SettingsDialog::on_checkBoxDownmix_toggled(bool checked)
+void DlgSettings::on_checkBoxDownmix_toggled(bool checked)
 {
     settings->setAudioDownmix(checked);
     emit audioDownmixChanged(checked);
 }
 
-void SettingsDialog::on_listWidgetAudioDevices_itemSelectionChanged()
+void DlgSettings::on_listWidgetAudioDevices_itemSelectionChanged()
 {
     if (pageSetupDone)
     {
@@ -297,7 +297,7 @@ void SettingsDialog::on_listWidgetAudioDevices_itemSelectionChanged()
     }
 }
 
-void SettingsDialog::on_comboBoxBackend_currentIndexChanged(int index)
+void DlgSettings::on_comboBoxBackend_currentIndexChanged(int index)
 {
     if (pageSetupDone)
     {
@@ -312,7 +312,7 @@ void SettingsDialog::on_comboBoxBackend_currentIndexChanged(int index)
     }
 }
 
-void SettingsDialog::audioBackendChanged(int index)
+void DlgSettings::audioBackendChanged(int index)
 {
     pageSetupDone = false;
     audioBackend = audioBackends->at(index);

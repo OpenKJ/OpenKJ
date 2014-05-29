@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>KhRequestsDialog</class>
- <widget class="QDialog" name="KhRequestsDialog">
+ <class>DlgRequests</class>
+ <widget class="QDialog" name="DlgRequests">
   <property name="geometry">
    <rect>
     <x>0</x>

@@ -25,16 +25,16 @@
 #include "sourcedirtablemodel.h"
 
 namespace Ui {
-class DatabaseDialog;
+class DlgDatabase;
 }
 
-class DatabaseDialog : public QDialog
+class DlgDatabase : public QDialog
 {
     Q_OBJECT
     
 public:
-    explicit DatabaseDialog(QWidget *parent = 0);
-    ~DatabaseDialog();
+    explicit DlgDatabase(QWidget *parent = 0);
+    ~DlgDatabase();
     
 private slots:
     void on_pushButtonAdd_clicked();
@@ -44,7 +44,7 @@ private slots:
     void on_pushButtonClose_clicked();
 
 private:
-    Ui::DatabaseDialog *ui;
+    Ui::DlgDatabase *ui;
     SourceDirTableModel *sourcedirmodel;
     BmSourceDirs *srcDirs;
 

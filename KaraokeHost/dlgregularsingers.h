@@ -27,16 +27,16 @@
 #include "khsinger.h"
 
 namespace Ui {
-class RegularSingersDialog;
+class DlgRegularSingers;
 }
 
-class RegularSingersDialog : public QDialog
+class DlgRegularSingers : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit RegularSingersDialog(KhRegularSingers *regSingers, RotationTableModel *rotationModel, QWidget *parent = 0);
-    ~RegularSingersDialog();
+    explicit DlgRegularSingers(KhRegularSingers *regSingers, RotationTableModel *rotationModel, QWidget *parent = 0);
+    ~DlgRegularSingers();
 
 signals:
     void regularSingerDeleted(int regularID);
@@ -49,7 +49,7 @@ private slots:
 
 private:
     void addRegularToRotation(int ListIndex);
-    Ui::RegularSingersDialog *ui;
+    Ui::DlgRegularSingers *ui;
     RegularSingerModel *regularSingerModel;
     RotationTableModel *m_rotationModel;
     KhRegularSingers *m_regSingers;

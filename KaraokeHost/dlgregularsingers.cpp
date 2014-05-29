@@ -18,15 +18,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "regularsingersdialog.h"
-#include "ui_regularsingersdialog.h"
+#include "dlgregularsingers.h"
+#include "ui_dlgregularsingers.h"
 #include <QDebug>
 #include <QMessageBox>
 #include <QSqlQuery>
 
-RegularSingersDialog::RegularSingersDialog(KhRegularSingers *regSingers, RotationTableModel *rotationModel, QWidget *parent) :
+DlgRegularSingers::DlgRegularSingers(KhRegularSingers *regSingers, RotationTableModel *rotationModel, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::RegularSingersDialog)
+    ui(new Ui::DlgRegularSingers)
 {
     ui->setupUi(this);
     regularSingerModel = new RegularSingerModel(regSingers, this);
@@ -48,17 +48,17 @@ RegularSingersDialog::RegularSingersDialog(KhRegularSingers *regSingers, Rotatio
     connect(regularSingerModel, SIGNAL(editSingerDuplicateError()), this, SLOT(editSingerDuplicateError()));
 }
 
-RegularSingersDialog::~RegularSingersDialog()
+DlgRegularSingers::~DlgRegularSingers()
 {
     delete ui;
 }
 
-void RegularSingersDialog::on_btnClose_clicked()
+void DlgRegularSingers::on_btnClose_clicked()
 {
     close();
 }
 
-void RegularSingersDialog::on_treeViewRegulars_clicked(const QModelIndex &index)
+void DlgRegularSingers::on_treeViewRegulars_clicked(const QModelIndex &index)
 {
     if (index.column() == 3)
     {
@@ -97,12 +97,12 @@ void RegularSingersDialog::on_treeViewRegulars_clicked(const QModelIndex &index)
     }
 }
 
-void RegularSingersDialog::editSingerDuplicateError()
+void DlgRegularSingers::editSingerDuplicateError()
 {
     QMessageBox::warning(this, tr("Duplicate Name"), tr("A regular singer by that name already exists, edit cancelled."),QMessageBox::Close);
 }
 
-void RegularSingersDialog::addRegularToRotation(int ListIndex)
+void DlgRegularSingers::addRegularToRotation(int ListIndex)
 {
     if (m_rotationModel->exists(m_regSingers->at(ListIndex)->getName()))
     {

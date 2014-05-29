@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "databasedialog.h"
-#include "ui_databasedialog.h"
+#include "dlgdatabase.h"
+#include "ui_dlgdatabase.h"
 #include <QDebug>
 #include <QFileDialog>
 #include <QInputDialog>
@@ -30,9 +30,9 @@
 
 extern KhSettings *settings;
 
-DatabaseDialog::DatabaseDialog(QWidget *parent) :
+DlgDatabase::DlgDatabase(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::DatabaseDialog)
+    ui(new Ui::DlgDatabase)
 {
     ui->setupUi(this);
     sourcedirmodel = new SourceDirTableModel();
@@ -42,7 +42,7 @@ DatabaseDialog::DatabaseDialog(QWidget *parent) :
     settings->restoreColumnWidths(ui->treeViewFolders);
 }
 
-DatabaseDialog::~DatabaseDialog()
+DlgDatabase::~DlgDatabase()
 {
     delete sourcedirmodel;
     delete ui;
@@ -50,7 +50,7 @@ DatabaseDialog::~DatabaseDialog()
 
 
 
-void DatabaseDialog::on_buttonNew_clicked()
+void DlgDatabase::on_buttonNew_clicked()
 {
     QString fileName = QFileDialog::getExistingDirectory(this);
     if (fileName != "")
@@ -73,14 +73,14 @@ void DatabaseDialog::on_buttonNew_clicked()
     }
 }
 
-void DatabaseDialog::on_buttonClose_clicked()
+void DlgDatabase::on_buttonClose_clicked()
 {
     settings->saveColumnWidths(ui->treeViewFolders);
     ui->treeViewFolders->clearSelection();
     hide();
 }
 
-void DatabaseDialog::on_buttonDelete_clicked()
+void DlgDatabase::on_buttonDelete_clicked()
 {
     if (selectedRow >= 0)
     {
@@ -91,12 +91,12 @@ void DatabaseDialog::on_buttonDelete_clicked()
     }
 }
 
-void DatabaseDialog::on_treeViewFolders_clicked(const QModelIndex &index)
+void DlgDatabase::on_treeViewFolders_clicked(const QModelIndex &index)
 {
     selectedRow = index.row();
 }
 
-void DatabaseDialog::on_buttonUpdate_clicked()
+void DlgDatabase::on_buttonUpdate_clicked()
 {
     if (selectedRow >= 0)
     {
@@ -119,7 +119,7 @@ void DatabaseDialog::on_buttonUpdate_clicked()
     }
 }
 
-void DatabaseDialog::on_buttonUpdateAll_clicked()
+void DlgDatabase::on_buttonUpdateAll_clicked()
 {
     DbUpdateThread updateThread(this);
     QMessageBox msgBox;
@@ -143,7 +143,7 @@ void DatabaseDialog::on_buttonUpdateAll_clicked()
     QMessageBox::information(this, "Update Complete", "Database update complete.");
 }
 
-void DatabaseDialog::on_btnClearDatabase_clicked()
+void DlgDatabase::on_btnClearDatabase_clicked()
 {
     QMessageBox msgBox;
     msgBox.setText("Are you sure?");
@@ -164,6 +164,6 @@ void DatabaseDialog::on_btnClearDatabase_clicked()
     }
 }
 
-void DatabaseDialog::dbupdate_thread_finished()
+void DlgDatabase::dbupdate_thread_finished()
 {
 }
