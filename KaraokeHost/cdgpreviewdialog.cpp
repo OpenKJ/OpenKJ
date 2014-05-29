@@ -40,6 +40,14 @@ void CdgPreviewDialog::preview()
     if (!zip.extractCdg(QDir(cdgTempDir->path())))
     {
         QMessageBox::warning(this, tr("Bad karaoke file"),tr("Zip file does not contain a valid karaoke track.  CDG file missing."),QMessageBox::Ok);
+        close();
+        return;
+    }
+    QFile cdgFile(cdgTempDir->path() + QDir::separator() + "tmp.cdg");
+    if (cdgFile.size() == 0)
+    {
+        QMessageBox::warning(this, tr("Bad karaoke file"), tr("CDG file contains no data"),QMessageBox::Ok);
+        close();
         return;
     }
     qDebug() << "Opening cdg file " << cdgTempDir->path() << "/tmp.cdg";
