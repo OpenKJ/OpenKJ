@@ -96,7 +96,7 @@ public:
     bool moveSong(int oldPosition, int newPosition);
     int getSingerIndex() const;
     void setSingerIndex(int value);
-
+    void setSongKey(int index, int keyChange);
     int getRegSingerIndex() const;
     void setRegSingerIndex(int value, bool skipDB = false);
 
@@ -109,6 +109,8 @@ private:
 
 signals:
     void queueUpdated();
+    void dataAboutToChange();
+    void dataChanged();
 
 public slots:
 

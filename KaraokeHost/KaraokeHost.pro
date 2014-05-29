@@ -12,7 +12,7 @@ win32: CONFIG += console
 TARGET = KaraokeHost
 TEMPLATE = app
 
-DEFINES += USE_FMOD
+#DEFINES += USE_FMOD
 DEFINES += USE_GSTREAMER
 # On Linux platforms QMediaPlayer uses gstreamer as its base.  You can not
 # load both backends due to conflicts.
@@ -51,7 +51,8 @@ SOURCES += main.cpp\
     khrequestsdialog.cpp \
     requeststablemodel.cpp \
     cdgpreviewdialog.cpp \
-    khdb.cpp
+    khdb.cpp \
+    dlgkeychange.cpp
 
 HEADERS  += mainwindow.h \
     queuetablemodel.h \
@@ -85,7 +86,8 @@ HEADERS  += mainwindow.h \
     khrequestsdialog.h \
     requeststablemodel.h \
     cdgpreviewdialog.h \
-    khdb.h
+    khdb.h \
+    dlgkeychange.h
 
 FORMS    += mainwindow.ui \
     databasedialog.ui \
@@ -95,7 +97,8 @@ FORMS    += mainwindow.ui \
     regularexportdialog.ui \
     regularimportdialog.ui \
     khrequestsdialog.ui \
-    cdgpreviewdialog.ui
+    cdgpreviewdialog.ui \
+    dlgkeychange.ui
 
 unix: CONFIG += link_pkgconfig
 #unix: PKGCONFIG += phonon4qt5

@@ -45,6 +45,7 @@
 #include "regularimportdialog.h"
 #include "khrequestsdialog.h"
 #include "cdgpreviewdialog.h"
+#include "dlgkeychange.h"
 
 
 using namespace std;
@@ -106,6 +107,7 @@ private slots:
     void on_sliderProgress_sliderPressed();
 
     void on_sliderProgress_sliderReleased();
+    void setKeyChange();
 
 private:
     Ui::MainWindow *ui;
@@ -119,6 +121,7 @@ private:
     RegularSingersDialog *regularSingersDialog;
     RegularExportDialog *regularExportDialog;
     RegularImportDialog *regularImportDialog;
+    DlgKeyChange *dlgKeyChange;
     KhRequestsDialog *requestsDialog;
     CdgPreviewDialog *cdgPreviewDialog;
     KhAbstractAudioBackend *activeAudioBackend;

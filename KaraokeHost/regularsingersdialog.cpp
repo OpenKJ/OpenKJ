@@ -130,12 +130,15 @@ void RegularSingersDialog::addRegularToRotation(int ListIndex)
             KhRegularSong *regSong = regSinger->getRegSongs()->getRegSongs()->at(i);
             rotSinger->addSongAtEnd(regSong->getSongIndex());
             QApplication::processEvents();
+            rotSinger->queueSongs()->at(i)->setKeyChange(regSong->getKeyChange());
+            QApplication::processEvents();
             rotSinger->queueSongs()->at(i)->setRegSingerIndex(regSinger->getIndex());
             QApplication::processEvents();
             rotSinger->queueSongs()->at(i)->setRegSong(true);
             QApplication::processEvents();
             rotSinger->queueSongs()->at(i)->setRegSongIndex(regSong->getRegSongIndex());
             QApplication::processEvents();
+
         }
         qDebug() << "Done adding songs, setting as regular";
         rotSinger->setRegular(true);

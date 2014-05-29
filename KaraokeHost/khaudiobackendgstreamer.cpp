@@ -161,18 +161,24 @@ void KhAudioBackendGStreamer::keyChangerOn()
     KhAbstractAudioBackend::State curstate = state();
     int pos = position();
     qDebug() << "keyChangerOn() fired";
-    gst_element_set_state(playBin, GST_STATE_NULL);
-    while (state() != KhAbstractAudioBackend::StoppedState)
-        QApplication::processEvents();
+    if (curstate != KhAbstractAudioBackend::StoppedState)
+    {
+        gst_element_set_state(playBin, GST_STATE_NULL);
+        while (state() != KhAbstractAudioBackend::StoppedState)
+            QApplication::processEvents();
+    }
     gst_element_unlink(rgvolume,audioresample);
     if (!gst_element_link_many(rgvolume,pitch,audioresample,NULL))
         qDebug() << "Failed to link gstreamer elements";
-    gst_element_set_state(playBin, GST_STATE_PLAYING);
-    while (state() != KhAbstractAudioBackend::PlayingState)
-        QApplication::processEvents();
-    setPosition(pos);
-    if (curstate == KhAbstractAudioBackend::PausedState)
-        pause();
+    if (curstate != KhAbstractAudioBackend::StoppedState)
+    {
+        gst_element_set_state(playBin, GST_STATE_PLAYING);
+        while (state() != KhAbstractAudioBackend::PlayingState)
+            QApplication::processEvents();
+        setPosition(pos);
+        if (curstate == KhAbstractAudioBackend::PausedState)
+            pause();
+    }
     m_keyChangerOn = true;
 
 }
@@ -182,19 +188,25 @@ void KhAudioBackendGStreamer::keyChangerOff()
     KhAbstractAudioBackend::State curstate = state();
     int pos = position();
     qDebug() << "keyChangerOff() fired";
-    gst_element_set_state(playBin, GST_STATE_NULL);
-    while (state() != KhAbstractAudioBackend::StoppedState)
-        QApplication::processEvents();
+    if (curstate != KhAbstractAudioBackend::StoppedState)
+    {
+        gst_element_set_state(playBin, GST_STATE_NULL);
+        while (state() != KhAbstractAudioBackend::StoppedState)
+            QApplication::processEvents();
+    }
     gst_element_unlink(rgvolume,pitch);
     gst_element_unlink(pitch,audioresample);
     if (!gst_element_link(rgvolume,audioresample))
         qDebug() << "Failed to link gstreamer elements";
-    gst_element_set_state(playBin, GST_STATE_PLAYING);
-    while (state() != KhAbstractAudioBackend::PlayingState)
-        QApplication::processEvents();
-    setPosition(pos);
-    if (curstate == KhAbstractAudioBackend::PausedState)
-        pause();
+    if (curstate != KhAbstractAudioBackend::StoppedState)
+    {
+        gst_element_set_state(playBin, GST_STATE_PLAYING);
+        while (state() != KhAbstractAudioBackend::PlayingState)
+            QApplication::processEvents();
+        setPosition(pos);
+        if (curstate == KhAbstractAudioBackend::PausedState)
+            pause();
+    }
     m_keyChangerOn = false;
 }
 
@@ -270,6 +282,7 @@ void KhAudioBackendGStreamer::stop(bool skipFade)
     emit stateChanged(KhAbstractAudioBackend::StoppedState);
     if ((m_fade) && (!skipFade))
         setVolume(curVolume);
+   // setPitchShift(0);
 }
 
 void KhAudioBackendGStreamer::signalTimer_timeout()
@@ -287,6 +300,8 @@ void KhAudioBackendGStreamer::signalTimer_timeout()
     {
         emit positionChanged(position());
     }
+    if((state() == KhAbstractAudioBackend::StoppedState) && (pitchShift() != 0))
+            setPitchShift(0);
 //    else if (state() == QMediaPlayer::StoppedState)
     //        stop();
 }
@@ -359,6 +374,7 @@ void KhAudioBackendGStreamer::setPitchShift(int pitchShift)
         keyChangerOn();
     qDebug() << "executing g_object_set(GST_OBJECT(pitch), \"pitch\", " << getPitchForSemitone(pitchShift) << ", NULL)";
     g_object_set(G_OBJECT(pitch), "pitch", getPitchForSemitone(pitchShift), "tempo", 1.0, NULL);
+    emit pitchChanged(pitchShift);
 }
 
 FaderGStreamer::FaderGStreamer(QObject *parent) :
