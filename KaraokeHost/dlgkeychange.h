@@ -20,6 +20,8 @@ public:
 private slots:
     void on_buttonBox_accepted();
 
+    void on_spinBoxKey_valueChanged(int arg1);
+
 private:
     Ui::DlgKeyChange *ui;
     RotationTableModel *m_rotationModel;

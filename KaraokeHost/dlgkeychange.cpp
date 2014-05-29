@@ -27,3 +27,11 @@ void DlgKeyChange::on_buttonBox_accepted()
     //m_queueSongs->queueUpdated();
     close();
 }
+
+void DlgKeyChange::on_spinBoxKey_valueChanged(int arg1)
+{
+    if (arg1 > 0)
+        ui->spinBoxKey->setPrefix("+");
+    else
+        ui->spinBoxKey->setPrefix("");
+}
