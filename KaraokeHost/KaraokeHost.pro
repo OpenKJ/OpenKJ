@@ -107,7 +107,7 @@ win32: INCLUDEPATH += "/usr/i686-w64-mingw32/sys-root/mingw/include/gstreamer-1.
 win32: INCLUDEPATH += "/usr/i686-w64-mingw32/sys-root/mingw/include/glib-2.0/"
 win32: INCLUDEPATH += "/usr/i686-w64-mingw32/sys-root/mingw/lib/glib-2.0/include/"
 win32: LIBS+= -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0
-unix: LIBS += -ltag -lminizip
+unix: PKGCONFIG += minizip taglib_c
 win32: LIBS += -lminizip -ltag.dll
 # win32: LIBS += -lminizip
 
