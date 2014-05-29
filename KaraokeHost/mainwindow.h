@@ -44,7 +44,7 @@
 #include "regularexportdialog.h"
 #include "regularimportdialog.h"
 #include "khrequestsdialog.h"
-#include "cdgpreviewdialog.h"
+#include "dlgcdgpreview.h"
 #include "dlgkeychange.h"
 
 
@@ -123,7 +123,7 @@ private:
     RegularImportDialog *regularImportDialog;
     DlgKeyChange *dlgKeyChange;
     KhRequestsDialog *requestsDialog;
-    CdgPreviewDialog *cdgPreviewDialog;
+    DlgCdgPreview *cdgPreviewDialog;
     KhAbstractAudioBackend *activeAudioBackend;
     KhAudioBackends *audioBackends;
     //KhSingers *singers;

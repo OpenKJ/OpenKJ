@@ -6,7 +6,7 @@
 #include "songdbtablemodel.h"
 #include "rotationtablemodel.h"
 #include "khsinger.h"
-#include "cdgpreviewdialog.h"
+#include "dlgcdgpreview.h"
 
 namespace Ui {
 class KhRequestsDialog;
@@ -45,7 +45,7 @@ private:
     RequestsTableModel *requestsModel;
     SongDBTableModel *songDbModel;
     RotationTableModel *m_rotationModel;
-    CdgPreviewDialog *cdgPreviewDialog;
+    DlgCdgPreview *cdgPreviewDialog;
 };
 
 #endif // KHREQUESTSDIALOG_H

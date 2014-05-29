@@ -50,9 +50,9 @@ SOURCES += main.cpp\
     regularimportdialog.cpp \
     khrequestsdialog.cpp \
     requeststablemodel.cpp \
-    cdgpreviewdialog.cpp \
     khdb.cpp \
-    dlgkeychange.cpp
+    dlgkeychange.cpp \
+    dlgcdgpreview.cpp
 
 HEADERS  += mainwindow.h \
     queuetablemodel.h \
@@ -85,9 +85,9 @@ HEADERS  += mainwindow.h \
     regularimportdialog.h \
     khrequestsdialog.h \
     requeststablemodel.h \
-    cdgpreviewdialog.h \
     khdb.h \
-    dlgkeychange.h
+    dlgkeychange.h \
+    dlgcdgpreview.h
 
 FORMS    += mainwindow.ui \
     databasedialog.ui \
@@ -97,8 +97,8 @@ FORMS    += mainwindow.ui \
     regularexportdialog.ui \
     regularimportdialog.ui \
     khrequestsdialog.ui \
-    cdgpreviewdialog.ui \
-    dlgkeychange.ui
+    dlgkeychange.ui \
+    dlgcdgpreview.ui
 
 unix: CONFIG += link_pkgconfig
 #unix: PKGCONFIG += phonon4qt5

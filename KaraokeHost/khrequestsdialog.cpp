@@ -25,7 +25,7 @@ KhRequestsDialog::KhRequestsDialog(KhSongs *fullData, RotationTableModel *rotati
     songDbModel = new SongDBTableModel(this);
     songDbModel->setFullData(fullData);
     ui->treeViewSearch->setModel(songDbModel);
-    cdgPreviewDialog = new CdgPreviewDialog(this);
+    cdgPreviewDialog = new DlgCdgPreview(this);
     connect(ui->treeViewRequests->selectionModel(), SIGNAL(currentRowChanged(QModelIndex,QModelIndex)), this, SLOT(requestSelectionChanged(QModelIndex,QModelIndex)));
     connect(ui->treeViewSearch->selectionModel(), SIGNAL(currentRowChanged(QModelIndex,QModelIndex)), this, SLOT(songSelectionChanged(QModelIndex,QModelIndex)));
     m_rotationModel = rotationModel;
