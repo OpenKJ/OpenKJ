@@ -59,6 +59,7 @@ signals:
     void videoAvailableChanged(bool);
     void volumeChanged(int);
     void silenceDetected();
+    void pitchChanged(int);
 
 
 public slots:

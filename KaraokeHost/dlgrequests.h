@@ -6,19 +6,19 @@
 #include "songdbtablemodel.h"
 #include "rotationtablemodel.h"
 #include "khsinger.h"
-#include "cdgpreviewdialog.h"
+#include "dlgcdgpreview.h"
 
 namespace Ui {
-class KhRequestsDialog;
+class DlgRequests;
 }
 
-class KhRequestsDialog : public QDialog
+class DlgRequests : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit KhRequestsDialog(KhSongs *fullData,RotationTableModel *rotationModel,QWidget *parent = 0);
-    ~KhRequestsDialog();
+    explicit DlgRequests(KhSongs *fullData,RotationTableModel *rotationModel,QWidget *parent = 0);
+    ~DlgRequests();
 
 private slots:
     void on_pushButtonClose_clicked();
@@ -41,11 +41,11 @@ private slots:
     void on_treeViewSearch_customContextMenuRequested(const QPoint &pos);
 
 private:
-    Ui::KhRequestsDialog *ui;
+    Ui::DlgRequests *ui;
     RequestsTableModel *requestsModel;
     SongDBTableModel *songDbModel;
     RotationTableModel *m_rotationModel;
-    CdgPreviewDialog *cdgPreviewDialog;
+    DlgCdgPreview *cdgPreviewDialog;
 };
 
 #endif // KHREQUESTSDIALOG_H

@@ -28,16 +28,16 @@
 #include "scrolltext.h"
 
 namespace Ui {
-class cdgWindow;
+class DlgCdg;
 }
 
-class CdgWindow : public QDialog
+class DlgCdg : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit CdgWindow(QWidget *parent = 0, Qt::WindowFlags f = 0);
-    ~CdgWindow();
+    explicit DlgCdg(QWidget *parent = 0, Qt::WindowFlags f = 0);
+    ~DlgCdg();
     void updateCDG(QImage image, bool overrideVisibleCheck = false);
     void makeFullscreen();
     void makeWindowed();
@@ -54,7 +54,7 @@ public slots:
     void tickerEnableChanged();
 
 private:
-    Ui::cdgWindow *ui;
+    Ui::DlgCdg *ui;
     QGLCanvas *canvas;
     ScrollText *ticker;
 

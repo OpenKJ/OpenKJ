@@ -1,13 +1,13 @@
-#include "regularexportdialog.h"
-#include "ui_regularexportdialog.h"
+#include "dlgregularexport.h"
+#include "ui_dlgregularexport.h"
 #include <QFileDialog>
 #include <QStandardPaths>
 #include <QDebug>
 #include <QMessageBox>
 
-RegularExportDialog::RegularExportDialog(KhRegularSingers *regularSingers, QWidget *parent) :
+DlgRegularExport::DlgRegularExport(KhRegularSingers *regularSingers, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::RegularExportDialog)
+    ui(new Ui::DlgRegularExport)
 {
     regSingers = regularSingers;
     ui->setupUi(this);
@@ -21,17 +21,17 @@ RegularExportDialog::RegularExportDialog(KhRegularSingers *regularSingers, QWidg
     ui->treeViewRegulars->header()->setSectionResizeMode(1,QHeaderView::Stretch);
 }
 
-RegularExportDialog::~RegularExportDialog()
+DlgRegularExport::~DlgRegularExport()
 {
     delete ui;
 }
 
-void RegularExportDialog::on_pushButtonClose_clicked()
+void DlgRegularExport::on_pushButtonClose_clicked()
 {
     close();
 }
 
-void RegularExportDialog::on_pushButtonExport_clicked()
+void DlgRegularExport::on_pushButtonExport_clicked()
 {
     QModelIndexList selList = ui->treeViewRegulars->selectionModel()->selectedRows();
     QList<int> selRegs;
@@ -59,7 +59,7 @@ void RegularExportDialog::on_pushButtonExport_clicked()
     }
 }
 
-void RegularExportDialog::on_pushButtonExportAll_clicked()
+void DlgRegularExport::on_pushButtonExportAll_clicked()
 {
     ui->treeViewRegulars->selectAll();
     QModelIndexList selList = ui->treeViewRegulars->selectionModel()->selectedRows();

@@ -68,6 +68,7 @@ private:
     FaderGStreamer *fader;
     bool m_fade;
     bool m_silenceDetect;
+    bool m_canKeyChange;
 
 
     // KhAbstractAudioBackend interface

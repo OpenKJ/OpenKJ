@@ -22,9 +22,9 @@
 #include <QDir>
 #include <QDebug>
 #include <QDirIterator>
-#include <taglib/tag.h>
-#include <taglib/taglib.h>
-#include <taglib/fileref.h>
+#include <tag.h>
+#include <taglib.h>
+#include <fileref.h>
 #include <QSqlQuery>
 #include <QFileInfo>
 

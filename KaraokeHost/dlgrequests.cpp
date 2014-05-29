@@ -1,14 +1,14 @@
-#include "khrequestsdialog.h"
-#include "ui_khrequestsdialog.h"
+#include "dlgrequests.h"
+#include "ui_dlgrequests.h"
 #include <QMenu>
 #include <QMessageBox>
 #include "khsettings.h"
 
 extern KhSettings *settings;
 
-KhRequestsDialog::KhRequestsDialog(KhSongs *fullData, RotationTableModel *rotationModel, QWidget *parent) :
+DlgRequests::DlgRequests(KhSongs *fullData, RotationTableModel *rotationModel, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::KhRequestsDialog)
+    ui(new Ui::DlgRequests)
 {
     ui->setupUi(this);
     requestsModel = new RequestsTableModel(this);
@@ -25,7 +25,7 @@ KhRequestsDialog::KhRequestsDialog(KhSongs *fullData, RotationTableModel *rotati
     songDbModel = new SongDBTableModel(this);
     songDbModel->setFullData(fullData);
     ui->treeViewSearch->setModel(songDbModel);
-    cdgPreviewDialog = new CdgPreviewDialog(this);
+    cdgPreviewDialog = new DlgCdgPreview(this);
     connect(ui->treeViewRequests->selectionModel(), SIGNAL(currentRowChanged(QModelIndex,QModelIndex)), this, SLOT(requestSelectionChanged(QModelIndex,QModelIndex)));
     connect(ui->treeViewSearch->selectionModel(), SIGNAL(currentRowChanged(QModelIndex,QModelIndex)), this, SLOT(songSelectionChanged(QModelIndex,QModelIndex)));
     m_rotationModel = rotationModel;
@@ -43,20 +43,20 @@ KhRequestsDialog::KhRequestsDialog(KhSongs *fullData, RotationTableModel *rotati
     settings->restoreColumnWidths(ui->treeViewSearch);
 }
 
-KhRequestsDialog::~KhRequestsDialog()
+DlgRequests::~DlgRequests()
 {
 
     delete ui;
 }
 
-void KhRequestsDialog::on_pushButtonClose_clicked()
+void DlgRequests::on_pushButtonClose_clicked()
 {
     settings->saveColumnWidths(ui->treeViewRequests);
     settings->saveColumnWidths(ui->treeViewSearch);
     close();
 }
 
-void KhRequestsDialog::requestsModified()
+void DlgRequests::requestsModified()
 {
     if (requestsModel->count() > 0)
     {
@@ -65,21 +65,21 @@ void KhRequestsDialog::requestsModified()
     }
 }
 
-void KhRequestsDialog::on_pushButtonSearch_clicked()
+void DlgRequests::on_pushButtonSearch_clicked()
 {
     songDbModel->applyFilter(ui->lineEditSearch->text());
     //ui->treeViewSearch->header()->resizeSections(QHeaderView::Stretch);
 
 }
 
-void KhRequestsDialog::on_lineEditSearch_returnPressed()
+void DlgRequests::on_lineEditSearch_returnPressed()
 {
     songDbModel->applyFilter(ui->lineEditSearch->text());
     //ui->treeViewSearch->header()->resizeSections(QHeaderView::Stretch);
 
 }
 
-void KhRequestsDialog::requestSelectionChanged(const QModelIndex &current, const QModelIndex &previous)
+void DlgRequests::requestSelectionChanged(const QModelIndex &current, const QModelIndex &previous)
 {
     Q_UNUSED(previous);
     qDebug() << "Current selection " << current.row();
@@ -95,7 +95,7 @@ void KhRequestsDialog::requestSelectionChanged(const QModelIndex &current, const
 
 }
 
-void KhRequestsDialog::songSelectionChanged(const QModelIndex &current, const QModelIndex &previous)
+void DlgRequests::songSelectionChanged(const QModelIndex &current, const QModelIndex &previous)
 {
     Q_UNUSED(previous);
     if (current.isValid())
@@ -107,7 +107,7 @@ void KhRequestsDialog::songSelectionChanged(const QModelIndex &current, const QM
     }
 }
 
-void KhRequestsDialog::on_radioButtonExistingSinger_toggled(bool checked)
+void DlgRequests::on_radioButtonExistingSinger_toggled(bool checked)
 {
     ui->comboBoxAddPosition->setEnabled(!checked);
     ui->comboBoxSingers->setEnabled(checked);
@@ -115,7 +115,7 @@ void KhRequestsDialog::on_radioButtonExistingSinger_toggled(bool checked)
     ui->labelAddPos->setEnabled(!checked);
 }
 
-void KhRequestsDialog::on_pushButtonClearReqs_clicked()
+void DlgRequests::on_pushButtonClearReqs_clicked()
 {
     QMessageBox msgBox;
     msgBox.setText("Are you sure?");
@@ -130,7 +130,7 @@ void KhRequestsDialog::on_pushButtonClearReqs_clicked()
     }
 }
 
-void KhRequestsDialog::on_treeViewRequests_clicked(const QModelIndex &index)
+void DlgRequests::on_treeViewRequests_clicked(const QModelIndex &index)
 {
     if (index.column() == 5)
     {
@@ -148,7 +148,7 @@ void KhRequestsDialog::on_treeViewRequests_clicked(const QModelIndex &index)
     }
 }
 
-void KhRequestsDialog::on_pushButtonAddSong_clicked()
+void DlgRequests::on_pushButtonAddSong_clicked()
 {
     if (ui->treeViewRequests->selectionModel()->selectedIndexes().size() < 1)
         return;
@@ -188,7 +188,7 @@ void KhRequestsDialog::on_pushButtonAddSong_clicked()
     }
 }
 
-void KhRequestsDialog::on_treeViewSearch_customContextMenuRequested(const QPoint &pos)
+void DlgRequests::on_treeViewSearch_customContextMenuRequested(const QPoint &pos)
 {
     qDebug() << "on_treeViewSearch_customContextMenuRequested fired";
     QModelIndex index = ui->treeViewSearch->indexAt(pos);

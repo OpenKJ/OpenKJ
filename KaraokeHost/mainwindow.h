@@ -34,17 +34,18 @@
 #include <QDir>
 #include <QSplashScreen>
 #include <QLabel>
-#include "databasedialog.h"
-#include "settingsdialog.h"
+#include "dlgdatabase.h"
+#include "dlgsettings.h"
 #include "khipcclient.h"
 #include "khabstractaudiobackend.h"
-#include "cdgwindow.h"
+#include "dlgcdg.h"
 #include "khsettings.h"
-#include "regularsingersdialog.h"
-#include "regularexportdialog.h"
-#include "regularimportdialog.h"
-#include "khrequestsdialog.h"
-#include "cdgpreviewdialog.h"
+#include "dlgregularsingers.h"
+#include "dlgregularexport.h"
+#include "dlgregularimport.h"
+#include "dlgrequests.h"
+#include "dlgcdgpreview.h"
+#include "dlgkeychange.h"
 
 
 using namespace std;
@@ -106,6 +107,7 @@ private slots:
     void on_sliderProgress_sliderPressed();
 
     void on_sliderProgress_sliderReleased();
+    void setKeyChange();
 
 private:
     Ui::MainWindow *ui;
@@ -113,14 +115,15 @@ private:
     SongDBTableModel *songdbmodel;
     RotationTableModel *rotationmodel;
     QueueTableModel *queuemodel;
-    CdgWindow *cdgWindow;
-    DatabaseDialog *dbDialog;
-    SettingsDialog *settingsDialog;
-    RegularSingersDialog *regularSingersDialog;
-    RegularExportDialog *regularExportDialog;
-    RegularImportDialog *regularImportDialog;
-    KhRequestsDialog *requestsDialog;
-    CdgPreviewDialog *cdgPreviewDialog;
+    DlgCdg *cdgWindow;
+    DlgDatabase *dbDialog;
+    DlgSettings *settingsDialog;
+    DlgRegularSingers *regularSingersDialog;
+    DlgRegularExport *regularExportDialog;
+    DlgRegularImport *regularImportDialog;
+    DlgKeyChange *dlgKeyChange;
+    DlgRequests *requestsDialog;
+    DlgCdgPreview *cdgPreviewDialog;
     KhAbstractAudioBackend *activeAudioBackend;
     KhAudioBackends *audioBackends;
     //KhSingers *singers;

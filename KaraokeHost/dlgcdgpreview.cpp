@@ -1,12 +1,12 @@
-#include "cdgpreviewdialog.h"
-#include "ui_cdgpreviewdialog.h"
+#include "dlgcdgpreview.h"
+#include "ui_dlgcdgpreview.h"
 #include <QMessageBox>
 #include <QDebug>
 #include "khzip.h"
 
-CdgPreviewDialog::CdgPreviewDialog(QWidget *parent) :
+DlgCdgPreview::DlgCdgPreview(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::CdgPreviewDialog)
+    ui(new Ui::DlgCdgPreview)
 {
     ui->setupUi(this);
     cdg = new CDG();
@@ -18,17 +18,17 @@ CdgPreviewDialog::CdgPreviewDialog(QWidget *parent) :
 
 }
 
-CdgPreviewDialog::~CdgPreviewDialog()
+DlgCdgPreview::~DlgCdgPreview()
 {
     delete ui;
 }
 
-void CdgPreviewDialog::setZipFile(QString zipFile)
+void DlgCdgPreview::setZipFile(QString zipFile)
 {
     m_zipFile = zipFile;
 }
 
-void CdgPreviewDialog::preview()
+void DlgCdgPreview::preview()
 {
     timer->stop();
     cdgPosition = 0;
@@ -58,7 +58,7 @@ void CdgPreviewDialog::preview()
 }
 
 
-void CdgPreviewDialog::timerTimeout()
+void DlgCdgPreview::timerTimeout()
 {
     if (cdg->IsOpen())
     {
@@ -86,7 +86,7 @@ void CdgPreviewDialog::timerTimeout()
 
 
 
-void CdgPreviewDialog::on_pushButtonClose_clicked()
+void DlgCdgPreview::on_pushButtonClose_clicked()
 {
     timer->stop();
     cdg->VideoClose();

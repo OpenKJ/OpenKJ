@@ -27,16 +27,16 @@
 #include "khabstractaudiobackend.h"
 
 namespace Ui {
-class SettingsDialog;
+class DlgSettings;
 }
 
-class SettingsDialog : public QDialog
+class DlgSettings : public QDialog
 {
     Q_OBJECT
     
 public:
-    explicit SettingsDialog(KhAudioBackends *AudioBackends, QWidget *parent = 0);
-    ~SettingsDialog();
+    explicit DlgSettings(KhAudioBackends *AudioBackends, QWidget *parent = 0);
+    ~DlgSettings();
     
     void createIcons();
 private slots:
@@ -98,7 +98,7 @@ signals:
     void audioDownmixChanged(bool);
 
 private:
-    Ui::SettingsDialog *ui;
+    Ui::DlgSettings *ui;
     QStringList getMonitors();
     KhAbstractAudioBackend *audioBackend;
     KhAudioBackends *audioBackends;

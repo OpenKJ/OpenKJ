@@ -139,7 +139,10 @@ void KhQueueSong::setKeyChange(int value, bool skipDB)
         QSqlQuery query;
         query.exec("UPDATE queuesongs SET 'keychg'=" + QString::number(keyChange) + " WHERE ROWID == " + QString::number(index));
         if (regSong)
-            regularSingers->getByRegularID(regSingerIndex)->getSongByIndex(regSongIndex)->setKeyChange(keyChange);
+        {
+            if (regularSingers->getByRegularID(regSingerIndex)->getSongByIndex(regSongIndex)->getKeyChange() != keyChange)
+                regularSingers->getByRegularID(regSingerIndex)->getSongByIndex(regSongIndex)->setKeyChange(keyChange);
+        }
     }
 }
 
@@ -307,6 +310,13 @@ void KhQueueSongs::setSingerIndex(int value)
 {
     singerIndex = value;
     loadFromDB();
+}
+
+void KhQueueSongs::setSongKey(int index, int keyChange)
+{
+    emit dataAboutToChange();
+    getSongByIndex(index)->setKeyChange(keyChange);
+    emit dataChanged();
 }
 
 void KhQueueSongs::loadFromDB()

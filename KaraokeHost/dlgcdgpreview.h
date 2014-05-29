@@ -9,16 +9,16 @@
 
 
 namespace Ui {
-class CdgPreviewDialog;
+class DlgCdgPreview;
 }
 
-class CdgPreviewDialog : public QDialog
+class DlgCdgPreview : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit CdgPreviewDialog(QWidget *parent = 0);
-    ~CdgPreviewDialog();
+    explicit DlgCdgPreview(QWidget *parent = 0);
+    ~DlgCdgPreview();
     void setZipFile(QString zipFile);
 
 public slots:
@@ -30,7 +30,7 @@ private slots:
     void on_pushButtonClose_clicked();
 
 private:
-    Ui::CdgPreviewDialog *ui;
+    Ui::DlgCdgPreview *ui;
     QString m_zipFile;
     QTimer *timer;
     QTemporaryDir *cdgTempDir;

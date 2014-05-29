@@ -91,13 +91,14 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->treeViewQueue->header()->resizeSection(4,18);
 
     khTmpDir = new QTemporaryDir();
-    dbDialog = new DatabaseDialog(this);
-    regularSingersDialog = new RegularSingersDialog(regularSingers, rotationmodel, this);
-    regularExportDialog = new RegularExportDialog(regularSingers, this);
-    regularImportDialog = new RegularImportDialog(songdbmodel->getDbSongs(), regularSingers, this);
-    requestsDialog = new KhRequestsDialog(songdbmodel->getDbSongs(), rotationmodel, this);
-    cdgPreviewDialog = new CdgPreviewDialog(this);
-    cdgWindow = new CdgWindow(this, Qt::Window);
+    dbDialog = new DlgDatabase(this);
+    dlgKeyChange = new DlgKeyChange(rotationmodel, this);
+    regularSingersDialog = new DlgRegularSingers(regularSingers, rotationmodel, this);
+    regularExportDialog = new DlgRegularExport(regularSingers, this);
+    regularImportDialog = new DlgRegularImport(songdbmodel->getDbSongs(), regularSingers, this);
+    requestsDialog = new DlgRequests(songdbmodel->getDbSongs(), rotationmodel, this);
+    cdgPreviewDialog = new DlgCdgPreview(this);
+    cdgWindow = new DlgCdg(this, Qt::Window);
     if (settings->showCdgWindow())
     {
         cdgWindow->show();
@@ -143,7 +144,7 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->groupBoxKey->hide();
         ui->treeViewQueue->hideColumn(3);
     }
-    settingsDialog = new SettingsDialog(audioBackends, this);
+    settingsDialog = new DlgSettings(audioBackends, this);
     connect(activeAudioBackend, SIGNAL(volumeChanged(int)), ui->sliderVolume, SLOT(setValue(int)));
     connect(dbDialog, SIGNAL(databaseUpdated()), this, SLOT(songdbUpdated()));
     connect(dbDialog, SIGNAL(databaseCleared()), this, SLOT(databaseCleared()));
@@ -153,6 +154,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(activeAudioBackend, SIGNAL(positionChanged(qint64)), this, SLOT(audioBackend_positionChanged(qint64)));
     connect(activeAudioBackend, SIGNAL(durationChanged(qint64)), this, SLOT(audioBackend_durationChanged(qint64)));
     connect(activeAudioBackend, SIGNAL(stateChanged(KhAbstractAudioBackend::State)), this, SLOT(audioBackend_stateChanged(KhAbstractAudioBackend::State)));
+    connect(activeAudioBackend, SIGNAL(pitchChanged(int)), ui->spinBoxKey, SLOT(setValue(int)));
     qDebug() << "Setting volume to " << settings->audioVolume();
     activeAudioBackend->setVolume(settings->audioVolume());
     ui->sliderVolume->setValue(settings->audioVolume());
@@ -478,6 +480,7 @@ void MainWindow::on_treeViewQueue_activated(const QModelIndex &index)
     delete khTmpDir;
     khTmpDir = new QTemporaryDir();
     play(song->path);
+    if (activeAudioBackend->canPitchShift()) activeAudioBackend->setPitchShift(queuesong->getKeyChange());
     queuemodel->layoutAboutToBeChanged();
     queuesong->setPlayed(true);
     queuemodel->layoutChanged();
@@ -774,11 +777,13 @@ void MainWindow::on_treeViewQueue_customContextMenuRequested(const QPoint &pos)
 {
     QModelIndex index = ui->treeViewQueue->indexAt(pos);
     if (index.isValid())
-    {
+    {   
         QString zipPath = rotationmodel->getSelected()->getSongByPosition(index.row())->getSourceFile();
+        dlgKeyChange->setActiveSong(rotationmodel->getSelected()->getSongByPosition(index.row()));
         cdgPreviewDialog->setZipFile(zipPath);
         QMenu contextMenu(this);
         contextMenu.addAction("Preview", cdgPreviewDialog, SLOT(preview()));
+        contextMenu.addAction("Set Key Change", this, SLOT(setKeyChange()));
         contextMenu.exec(QCursor::pos());
         //contextMenu->exec(ui->treeView->mapToGlobal(point));
     }
@@ -793,4 +798,9 @@ void MainWindow::on_sliderProgress_sliderReleased()
 {
     activeAudioBackend->setPosition(ui->sliderProgress->value());
     sliderPositionPressed = false;
+}
+
+void MainWindow::setKeyChange()
+{
+    dlgKeyChange->show();
 }

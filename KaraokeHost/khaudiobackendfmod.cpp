@@ -279,6 +279,7 @@ void KhAudioBackendFMOD::stop(bool skipFade)
         if ((m_fade) && (!skipFade))
             setVolume(curVolume);
         m_stopping = false;
+        setPitchShift(0);
     }
 }
 
@@ -295,6 +296,7 @@ void KhAudioBackendFMOD::setPitchShift(int semitones)
         //dsp->setParameter(0,getPitchAdjustment(semitones));
     }
     m_pitchShift = semitones;
+    emit pitchChanged(semitones);
 }
 
 void KhAudioBackendFMOD::setDownmix(bool enabled)

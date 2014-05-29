@@ -1,14 +1,14 @@
-#include "regularimportdialog.h"
-#include "ui_regularimportdialog.h"
+#include "dlgregularimport.h"
+#include "ui_dlgregularimport.h"
 #include <QFileDialog>
 #include <QStandardPaths>
 #include <QDebug>
 #include <QMessageBox>
 #include <QSqlQuery>
 
-RegularImportDialog::RegularImportDialog(KhSongs *dbsongs, KhRegularSingers *regSingersPtr, QWidget *parent) :
+DlgRegularImport::DlgRegularImport(KhSongs *dbsongs, KhRegularSingers *regSingersPtr, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::RegularImportDialog)
+    ui(new Ui::DlgRegularImport)
 {
     ui->setupUi(this);
     regSingers = regSingersPtr;
@@ -16,12 +16,12 @@ RegularImportDialog::RegularImportDialog(KhSongs *dbsongs, KhRegularSingers *reg
     curImportFile = "";
 }
 
-RegularImportDialog::~RegularImportDialog()
+DlgRegularImport::~DlgRegularImport()
 {
     delete ui;
 }
 
-void RegularImportDialog::on_pushButtonSelectFile_clicked()
+void DlgRegularImport::on_pushButtonSelectFile_clicked()
 {
     QString importFile = QFileDialog::getOpenFileName(this,tr("Select file to load regulars from"), QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), tr("(*.xml)"));
     if (importFile != "")
@@ -33,12 +33,12 @@ void RegularImportDialog::on_pushButtonSelectFile_clicked()
     }
 }
 
-void RegularImportDialog::on_pushButtonClose_clicked()
+void DlgRegularImport::on_pushButtonClose_clicked()
 {
     close();
 }
 
-void RegularImportDialog::on_pushButtonImport_clicked()
+void DlgRegularImport::on_pushButtonImport_clicked()
 {
     if (ui->listWidgetRegulars->selectedItems().size() > 0)
     {
@@ -58,7 +58,7 @@ void RegularImportDialog::on_pushButtonImport_clicked()
     }
 }
 
-void RegularImportDialog::on_pushButtonImportAll_clicked()
+void DlgRegularImport::on_pushButtonImportAll_clicked()
 {
     QMessageBox *msgBox = new QMessageBox(this);
     msgBox->setStandardButtons(0);
@@ -76,7 +76,7 @@ void RegularImportDialog::on_pushButtonImportAll_clicked()
     ui->listWidgetRegulars->clearSelection();
 }
 
-void RegularImportDialog::importSinger(QString name)
+void DlgRegularImport::importSinger(QString name)
 {
     qDebug() << "importSinger(" << name << ") called";
     if (regSingers->exists(name))
@@ -108,7 +108,7 @@ void RegularImportDialog::importSinger(QString name)
     }
 }
 
-KhSong *RegularImportDialog::findExactSongMatch(KhRegImportSong importSong)
+KhSong *DlgRegularImport::findExactSongMatch(KhRegImportSong importSong)
 {
     for (int i=0; i < dbSongs->size(); i++)
     {

@@ -12,7 +12,7 @@ win32: CONFIG += console
 TARGET = KaraokeHost
 TEMPLATE = app
 
-DEFINES += USE_FMOD
+#DEFINES += USE_FMOD
 DEFINES += USE_GSTREAMER
 # On Linux platforms QMediaPlayer uses gstreamer as its base.  You can not
 # load both backends due to conflicts.
@@ -27,10 +27,8 @@ SOURCES += main.cpp\
     libCDG/src/libCDG_Color.cpp \
     libCDG/src/CDG_Frame_Image.cpp \
     libCDG/src/libCDG.cpp \
-    databasedialog.cpp \
     sourcedirtablemodel.cpp \
     dbupdatethread.cpp \
-    settingsdialog.cpp \
     songdbloadthread.cpp \
     khqueuesong.cpp \
     khsinger.cpp \
@@ -41,17 +39,20 @@ SOURCES += main.cpp\
     khabstractaudiobackend.cpp \
     khzip.cpp \
     qglcanvas.cpp \
-    cdgwindow.cpp \
     khsettings.cpp \
-    regularsingersdialog.cpp \
     regularsingermodel.cpp \
     scrolltext.cpp \
-    regularexportdialog.cpp \
-    regularimportdialog.cpp \
-    khrequestsdialog.cpp \
     requeststablemodel.cpp \
-    cdgpreviewdialog.cpp \
-    khdb.cpp
+    khdb.cpp \
+    dlgkeychange.cpp \
+    dlgcdgpreview.cpp \
+    dlgdatabase.cpp \
+    dlgrequests.cpp \
+    dlgregularexport.cpp \
+    dlgregularimport.cpp \
+    dlgregularsingers.cpp \
+    dlgsettings.cpp \
+    dlgcdg.cpp
 
 HEADERS  += mainwindow.h \
     queuetablemodel.h \
@@ -61,10 +62,8 @@ HEADERS  += mainwindow.h \
     libCDG/include/libCDG_Frame_Image.h \
     libCDG/include/libCDG_Color.h \
     libCDG/include/CDG_Frame_Image.h \
-    databasedialog.h \
     sourcedirtablemodel.h \
     dbupdatethread.h \
-    settingsdialog.h \
     songdbloadthread.h \
     khqueuesong.h \
     khsinger.h \
@@ -75,28 +74,33 @@ HEADERS  += mainwindow.h \
     khabstractaudiobackend.h \
     khzip.h \
     qglcanvas.h \
-    cdgwindow.h \
     khsettings.h \
-    regularsingersdialog.h \
     regularsingermodel.h \
     scrolltext.h \
-    regularexportdialog.h \
-    regularimportdialog.h \
-    khrequestsdialog.h \
     requeststablemodel.h \
-    cdgpreviewdialog.h \
-    khdb.h
+    khdb.h \
+    dlgkeychange.h \
+    dlgcdgpreview.h \
+    dlgdatabase.h \
+    dlgrequests.h \
+    dlgregularexport.h \
+    dlgregularimport.h \
+    dlgregularsingers.h \
+    dlgsettings.h \
+    dlgcdg.h
 
 FORMS    += mainwindow.ui \
-    databasedialog.ui \
-    settingsdialog.ui \
-    cdgwindow.ui \
-    regularsingersdialog.ui \
-    regularexportdialog.ui \
-    regularimportdialog.ui \
-    khrequestsdialog.ui \
-    cdgpreviewdialog.ui
+    dlgkeychange.ui \
+    dlgcdgpreview.ui \
+    dlgdatabase.ui \
+    dlgrequests.ui \
+    dlgregularexport.ui \
+    dlgregularimport.ui \
+    dlgregularsingers.ui \
+    dlgsettings.ui \
+    dlgcdg.ui
 
+unix: QT_CONFIG -= no-pkg-config
 unix: CONFIG += link_pkgconfig
 #unix: PKGCONFIG += phonon4qt5
 
@@ -104,7 +108,7 @@ win32: INCLUDEPATH += "/usr/i686-w64-mingw32/sys-root/mingw/include/gstreamer-1.
 win32: INCLUDEPATH += "/usr/i686-w64-mingw32/sys-root/mingw/include/glib-2.0/"
 win32: INCLUDEPATH += "/usr/i686-w64-mingw32/sys-root/mingw/lib/glib-2.0/include/"
 win32: LIBS+= -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0
-unix: LIBS += -ltag -lminizip
+unix: PKGCONFIG += minizip taglib_c
 win32: LIBS += -lminizip -ltag.dll
 # win32: LIBS += -lminizip
 

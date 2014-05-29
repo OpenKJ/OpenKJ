@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>CdgPreviewDialog</class>
- <widget class="QDialog" name="CdgPreviewDialog">
+ <class>DlgCdgPreview</class>
+ <widget class="QDialog" name="DlgCdgPreview">
   <property name="geometry">
    <rect>
     <x>0</x>

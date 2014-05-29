@@ -24,8 +24,8 @@
 #include <QSqlQuery>
 #include <QInputDialog>
 #include <QFileDialog>
-#include <taglib/tag.h>
-#include <taglib/fileref.h>
+#include <tag.h>
+#include <fileref.h>
 #include "bmsettings.h"
 
 BmSettings *settings;
