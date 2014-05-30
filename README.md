@@ -17,7 +17,7 @@ The only real reason it exists is so that I could have something that would rece
 
 Both are experimental but usable at this point.  I am using it to run my shows every weekend now, but if you do so and it kills kittens or eats your firstborn don't come screaming at me ;) Some features are still incomplete, and the code is full of ugly. To any other developers looking at this code, please don't laugh too hard, as I'm self taught primarily for the purpose of writing this.  Well, okay, you can laugh, but only if you're willing to fix the code that you're making fun of ;)
 
-Requirements to build KaraokeHost:
+**Requirements to build KaraokeHost:**
 
 * Qt 5.x
 * minizip
@@ -26,7 +26,7 @@ Strongly recommended:
 * gstreamer (1.0+)
 * gst-plugins-ugly (for key changer)
 
-Requirements to build BreakMusic:
+**Requirements to build BreakMusic:**
 
 * Qt 5.x
 * Taglib
@@ -37,7 +37,7 @@ It should build and work on Windows as well, but I have little experience there 
 
 The goal is to have it work on all three platforms.
 
-The KaraokeHost audio backends
+**The KaraokeHost audio backends**
 
 GStreamer (recommended)
 
