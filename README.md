@@ -38,6 +38,7 @@ It should build and work on Windows as well, but I have little experience there 
 The goal is to have it work on all three platforms.
 
 The KaraokeHost audio backends
+
 GStreamer (recommended)
 
 * Fader - working
