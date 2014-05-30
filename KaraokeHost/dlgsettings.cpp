@@ -53,7 +53,10 @@ DlgSettings::DlgSettings(KhAudioBackends *AudioBackends, QWidget *parent) :
     ui->groupBoxMonitors->setChecked(settings->cdgWindowFullscreen());
     ui->listWidgetMonitors->setEnabled(settings->showCdgWindow());
     ui->groupBoxMonitors->setEnabled(settings->showCdgWindow());
-    ui->listWidgetMonitors->item(settings->cdgWindowFullScreenMonitor())->setSelected(true);
+    if (screens.count() > settings->cdgWindowFullScreenMonitor())
+        ui->listWidgetMonitors->item(settings->cdgWindowFullScreenMonitor())->setSelected(true);
+    else
+        settings->setCdgWindowFullscreen(false);
     ui->spinBoxTickerHeight->setValue(settings->tickerHeight());
     ui->horizontalSliderTickerSpeed->setValue(settings->tickerSpeed());
     QPalette txtpalette = ui->pushButtonTextColor->palette();
