@@ -21,6 +21,7 @@ DlgCdgPreview::DlgCdgPreview(QWidget *parent) :
 DlgCdgPreview::~DlgCdgPreview()
 {
     delete ui;
+    delete cdg;
 }
 
 void DlgCdgPreview::setZipFile(QString zipFile)

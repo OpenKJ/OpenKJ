@@ -91,7 +91,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->treeViewQueue->header()->resizeSection(4,18);
 
     khTmpDir = new QTemporaryDir();
-    dbDialog = new DlgDatabase(this);
+    dbDialog = new DlgDatabase(songdbmodel->getDbSongs(),this);
     dlgKeyChange = new DlgKeyChange(rotationmodel, this);
     regularSingersDialog = new DlgRegularSingers(regularSingers, rotationmodel, this);
     regularExportDialog = new DlgRegularExport(regularSingers, this);
@@ -213,6 +213,7 @@ void MainWindow::play(QString zipFilePath)
     if ((activeAudioBackend->state() != KhAbstractAudioBackend::PlayingState) && (activeAudioBackend->state() != KhAbstractAudioBackend::PausedState))
     {
         KhZip zip(zipFilePath);
+        int duration = zip.getSongDuration();
         bool cdgOk = zip.extractCdg(QDir(khTmpDir->path()));
         bool mp3Ok = zip.extractMp3(QDir(khTmpDir->path()));
         if (mp3Ok && cdgOk)
@@ -236,6 +237,7 @@ void MainWindow::play(QString zipFilePath)
             activeAudioBackend->play();
             ui->labelArtist->setText(songCurrent->Artist);
             ui->labelTitle->setText(songCurrent->Title);
+            qDebug() << "Duration from cdg: " << activeAudioBackend->msToMMSS(duration);
         }
         else
         {
@@ -268,6 +270,7 @@ MainWindow::~MainWindow()
     delete regularSingers;
     //delete songCurrent;
     delete ui;
+    delete audioBackends;
 }
 
 void MainWindow::search()
