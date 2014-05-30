@@ -12,6 +12,9 @@ A few features:
 * Remotely fades BreakMusic in and out when karaoke tracks start/end
 * Lots of other little things
 
+![Main window screen shot](/screenShots/KhMainWindow.png "Main KaraokeHost Window")
+![Full screen CDG Display](/screenShots/KhCDGWindowFullScreen.png "Fullscreen CDG Display")
+
 BreakMusic is a VERY basic bare bones media player.
 The only real reason it exists is so that I could have something that would receive IPC commands from KaraokeHost to tell it to fade out when a karaoke track starts playing and fade back in when it is stopped. (I'm a lazy KJ like that).
 
