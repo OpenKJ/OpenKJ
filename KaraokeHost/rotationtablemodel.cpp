@@ -128,6 +128,8 @@ bool RotationTableModel::setData(const QModelIndex &index, const QVariant &value
     Q_UNUSED(role);
     if (index.isValid() && role == Qt::EditRole && !(index.row() >= m_singers->size() || index.row() < 0))
     {
+        if (getSingerByPosition(index.row() + 1)->name() == value.toString())
+            return false;
         if (exists(value.toString()))
         {
             emit notify_user("Error: Duplicate singer name.  Edit cancelled.");
