@@ -302,6 +302,12 @@ void KhAudioBackendGStreamer::stop(bool skipFade)
 
 void KhAudioBackendGStreamer::signalTimer_timeout()
 {
+    static int curDuration;
+    if (duration() != curDuration)
+    {
+        emit durationChanged(duration());
+        curDuration = duration();
+    }
     static KhAbstractAudioBackend::State currentState;
     if (state() != currentState)
     {
