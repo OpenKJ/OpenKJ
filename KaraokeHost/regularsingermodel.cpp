@@ -98,6 +98,8 @@ bool RegularSingerModel::setData(const QModelIndex &index, const QVariant &value
     Q_UNUSED(role);
     if (index.isValid() && role == Qt::EditRole && !(index.row() >= regularSingers->size() || index.row() < 0))
     {
+        if (regularSingers->at(index.row())->getName() == value.toString())
+            return false;
         if (regularSingers->exists(value.toString()))
         {
             //QMessageBox::warning(this, tr("Duplicate Name"), tr("A regular singer by that name already exists, edit cancelled."),QMessageBox::Close);
