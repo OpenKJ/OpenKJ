@@ -162,6 +162,12 @@ QVariant SongDBTableModel::data(const QModelIndex &index, int role) const
     if(index.row() >= filteredData->size() || index.row() < 0)
         return QVariant();
 
+    if(role == Qt::TextAlignmentRole)
+    {
+        if (index.column() == DURATION)
+            return Qt::AlignRight;
+    }
+
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
         switch(index.column())

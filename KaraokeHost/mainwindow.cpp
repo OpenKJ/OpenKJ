@@ -81,14 +81,21 @@ MainWindow::MainWindow(QWidget *parent) :
     songCurrent = NULL;
     rotationmodel = new RotationTableModel(regularSingers, this);
     ui->treeViewRotation->setModel(rotationmodel);
-    ui->treeViewRotation->header()->resizeSection(0,18);
-    ui->treeViewRotation->header()->resizeSection(3,18);
-    ui->treeViewRotation->header()->resizeSection(4,18);
-    ui->treeViewRotation->header()->resizeSection(5,18);
+    ui->treeViewRotation->header()->setSectionResizeMode(0,QHeaderView::Fixed);
+    ui->treeViewRotation->header()->setSectionResizeMode(3,QHeaderView::Fixed);
+    ui->treeViewRotation->header()->setSectionResizeMode(4,QHeaderView::Fixed);
+    ui->treeViewRotation->header()->setSectionResizeMode(5,QHeaderView::Fixed);
+    ui->treeViewRotation->header()->resizeSection(0,22);
+    ui->treeViewRotation->header()->resizeSection(3,22);
+    ui->treeViewRotation->header()->resizeSection(4,22);
+    ui->treeViewRotation->header()->resizeSection(5,22);
     queuemodel = new QueueTableModel(rotationmodel, this);
     ui->treeViewQueue->sortByColumn(-1);
     ui->treeViewQueue->setModel(queuemodel);
-    ui->treeViewQueue->header()->resizeSection(4,18);
+    ui->treeViewQueue->header()->setSectionResizeMode(3,QHeaderView::Fixed);
+    ui->treeViewQueue->header()->setSectionResizeMode(4,QHeaderView::Fixed);
+    ui->treeViewQueue->header()->resizeSection(4,22);
+    ui->treeViewQueue->header()->resizeSection(3,50);
 
     khTmpDir = new QTemporaryDir();
     dbDialog = new DlgDatabase(songdbmodel->getDbSongs(),this);
@@ -113,6 +120,8 @@ MainWindow::MainWindow(QWidget *parent) :
 //    songdbmodel->loadFromDB();
     ui->treeViewDB->sortByColumn(-1);
     ui->treeViewDB->setModel(songdbmodel);
+    ui->treeViewDB->header()->setSectionResizeMode(3,QHeaderView::Fixed);
+    ui->treeViewDB->header()->resizeSection(3,60);
     ipcClient = new KhIPCClient("bmControl",this);
     audioBackends = new KhAudioBackends;
 #ifdef USE_FMOD

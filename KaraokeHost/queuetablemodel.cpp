@@ -66,6 +66,11 @@ QVariant QueueTableModel::data(const QModelIndex &index, int role) const
         QPixmap icon(":/icons/Icons/edit-delete.png");
         return icon;
     }
+    if (role == Qt::TextAlignmentRole)
+    {
+        if (index.column() == KEYCHANGE)
+            return Qt::AlignCenter;
+    }
     if(role == Qt::DisplayRole)
     {
         switch(index.column())

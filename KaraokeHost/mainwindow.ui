@@ -101,6 +101,9 @@
              <property name="sortingEnabled">
               <bool>true</bool>
              </property>
+             <attribute name="headerCascadingSectionResizes">
+              <bool>true</bool>
+             </attribute>
             </widget>
            </item>
            <item>
@@ -1119,6 +1122,9 @@
               </property>
               <attribute name="headerCascadingSectionResizes">
                <bool>true</bool>
+              </attribute>
+              <attribute name="headerDefaultSectionSize">
+               <number>100</number>
               </attribute>
               <attribute name="headerShowSortIndicator" stdset="0">
                <bool>true</bool>
