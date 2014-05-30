@@ -21,8 +21,8 @@ Requirements to build KaraokeHost:
 
 * Qt 5.x
 * minizip
-Strongly recommended:
 
+Strongly recommended:
 * gstreamer (1.0+)
 * gst-plugins-ugly (for key changer)
 
