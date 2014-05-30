@@ -52,7 +52,8 @@ SOURCES += main.cpp\
     dlgregularimport.cpp \
     dlgregularsingers.cpp \
     dlgsettings.cpp \
-    dlgcdg.cpp
+    dlgcdg.cpp \
+    dlgdurationscan.cpp
 
 HEADERS  += mainwindow.h \
     queuetablemodel.h \
@@ -87,7 +88,8 @@ HEADERS  += mainwindow.h \
     dlgregularimport.h \
     dlgregularsingers.h \
     dlgsettings.h \
-    dlgcdg.h
+    dlgcdg.h \
+    dlgdurationscan.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \
@@ -98,7 +100,8 @@ FORMS    += mainwindow.ui \
     dlgregularimport.ui \
     dlgregularsingers.ui \
     dlgsettings.ui \
-    dlgcdg.ui
+    dlgcdg.ui \
+    dlgdurationscan.ui
 
 unix: QT_CONFIG -= no-pkg-config
 unix: CONFIG += link_pkgconfig
