@@ -88,3 +88,10 @@ bool KhDb::rotationClear()
         return query.exec("DELETE FROM queuesongs");
     return false;
 }
+
+bool KhDb::songSetDuration(int songId, int duration)
+{
+    QSqlQuery query;
+    QString sql = "UPDATE dbsongs SET 'length'=" + QString::number(duration) + " WHERE ROWID == " + QString::number(songId);
+    return query.exec(sql);
+}

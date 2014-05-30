@@ -23,6 +23,7 @@
 
 #include <QThread>
 #include <QStringList>
+#include "khzip.h"
 
 class DbUpdateThread : public QThread
 {
@@ -47,6 +48,7 @@ public slots:
 private:
     QString path;
     int pattern;
+    KhZip zip;
 };
 
 #endif // DBUPDATETHREAD_H

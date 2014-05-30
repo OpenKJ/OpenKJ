@@ -39,7 +39,7 @@ public:
     QString Title;
     QString DiscID;
     QString filename;
-    QString Duration;
+    long Duration;
     QString path;
 
 };

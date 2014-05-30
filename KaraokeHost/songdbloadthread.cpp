@@ -51,7 +51,7 @@ void SongDBLoadThread::run()
         song->Title = query.value(title).toString();
         song->filename = query.value(filename).toString();
         song->path = query.value(path).toString();
-        song->Duration = query.value(length).toString();
+        song->Duration = query.value(length).toInt();
         songs->push_back(song);
     }
 }

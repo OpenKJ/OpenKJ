@@ -27,6 +27,25 @@
 int sortorder = SONGSORT_ATS;
 bool sortasc = true;
 
+QString SongDBTableModel::msToMMSS(const qint64 msec) const
+{
+    QString sec;
+    QString min;
+    int seconds = (int) (msec / 1000) % 60 ;
+    int minutes = (int) ((msec / (1000*60)) % 60);
+
+    if (seconds < 10)
+        sec = "0" + QString::number(seconds);
+    else
+        sec = QString::number(seconds);
+//    if (minutes < 10)
+//        min = "0" + QString::number(minutes);
+//    else
+        min = QString::number(minutes);
+
+        return QString(min + ":" + sec);
+}
+
 bool songsort(KhSong *song1, KhSong *song2)
 {
     QString term1a;
@@ -154,7 +173,14 @@ QVariant SongDBTableModel::data(const QModelIndex &index, int role) const
         case DISCID:
             return filteredData->at(index.row())->DiscID;
         case DURATION:
-            return filteredData->at(index.row())->Duration;
+            if (filteredData->at(index.row())->Duration != 0)
+            {
+                QString duration = msToMMSS(filteredData->at(index.row())->Duration);
+                return duration;
+            }
+            else
+                return QVariant();
+
         }
     }
     return QVariant();
@@ -200,7 +226,7 @@ bool SongDBTableModel::setData(const QModelIndex &index, const QVariant &value, 
             fulldata->at(row)->DiscID = value.toString();
             break;
         case 3:
-            fulldata->at(row)->Duration = value.toString();
+            fulldata->at(row)->Duration = value.toInt();
         default:
             return false;
         }

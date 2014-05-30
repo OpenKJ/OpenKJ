@@ -20,10 +20,9 @@
 
 #include "khzip.h"
 #include <QDebug>
+#include <QTemporaryDir>
 #include <fstream>
-extern "C" {
-    #include <unzip.h>
-}
+
 
 
 
@@ -36,16 +35,59 @@ void KhZip::setZipFile(const QString &zipFile)
 {
     m_zipFile = zipFile;
 }
+
+int KhZip::getSongDuration()
+{
+    long fileSize = 0;
+    unzFile hFile = unzOpen64(m_zipFile.toUtf8().data());
+    if (!hFile)
+    {
+        qDebug() << "Error opening zip file";
+        return 0;
+    }
+    if (unzGoToFirstFile(hFile) != UNZ_OK)
+    {
+        qDebug() << "unzGoToFirstFile() failed";
+        return 0;
+    }
+    bool cdgFound = false;
+    while (!cdgFound)
+    {
+        char *fname = new char[256];
+//        unz_file_info fileInfo;
+        unzGetCurrentFileInfo(hFile,fileInfo,fname,256,NULL,0,NULL,0);
+        QString filename = fname;
+        delete [] fname;
+        if (filename.endsWith(".cdg", Qt::CaseInsensitive))
+        {
+            fileSize = fileInfo->uncompressed_size;
+            unzCloseCurrentFile(hFile);
+            unzClose(hFile);
+            cdgFound = true;
+        }
+        else
+        {
+            if (unzGoToNextFile(hFile) != UNZ_OK)
+            {
+                return 0;
+            }
+        }
+    }
+    // ((bytes / CD subchannel sector size) / Standard CD sectors per second) * 1000 = ms duration
+    return ((fileSize / 96) / 75) * 1000;
+}
+
 KhZip::KhZip(QString zipFile, QObject *parent) :
     QObject(parent)
 {
     m_zipFile = zipFile;
+    fileInfo = new unz_file_info;
 }
 
 KhZip::KhZip(QObject *parent) :
     QObject(parent)
 {
-
+    fileInfo = new unz_file_info;
 }
 
 bool KhZip::extractMp3(QDir destDir)

@@ -23,6 +23,7 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QDirIterator>
+#include <QDebug>
 #include "sourcedirtablemodel.h"
 
 DbUpdateThread::DbUpdateThread(QObject *parent) :

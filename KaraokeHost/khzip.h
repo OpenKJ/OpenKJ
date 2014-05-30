@@ -23,6 +23,9 @@
 
 #include <QObject>
 #include <QDir>
+extern "C" {
+    #include <unzip.h>
+}
 
 class KhZip : public QObject
 {
@@ -37,6 +40,8 @@ public:
 
     QString zipFile() const;
     void setZipFile(const QString &zipFile);
+    int getSongDuration();
+    unz_file_info *fileInfo;
 
 signals:
 

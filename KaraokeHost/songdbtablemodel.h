@@ -68,6 +68,7 @@ public:
     KhSong *getRowSong(int row);
     KhSong *getSongByID(int songid);
     KhSongs *getDbSongs();
+    QString msToMMSS(const qint64 msec) const;
 
 signals:
     
