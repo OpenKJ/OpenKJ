@@ -331,4 +331,8 @@ void DlgSettings::audioBackendChanged(int index)
     }
     else
         ui->listWidgetAudioDevices->item(0)->setSelected(true);
+    if (!audioBackend->downmixChangeRequiresRestart())
+        ui->checkBoxDownmix->setText("Downmix to mono");
+    else
+        ui->checkBoxDownmix->setText("Dowmix to mono (requires restart)");
 }

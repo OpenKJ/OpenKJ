@@ -53,27 +53,33 @@ KhAudioBackendGStreamer::KhAudioBackendGStreamer(QObject *parent) :
     guint watch_id;
     m_volume = 0;
     m_canKeyChange = true;
-    audioconvert = gst_element_factory_make("audioconvert", "audioconvert");
-    autoaudiosink = gst_element_factory_make("autoaudiosink", "autoaudiosink");
-    audioresample = gst_element_factory_make("audioresample", "audioresample");
+    audioConvert = gst_element_factory_make("audioconvert", "audioconvert");
+    autoAudioSink = gst_element_factory_make("autoaudiosink", "autoaudiosink");
+    audioResample = gst_element_factory_make("audioresample", "audioresample");
     rgvolume = gst_element_factory_make("rgvolume", "rgvolume");
     volumeElement = gst_element_factory_make("volume", "volumeElement");
     level = gst_element_factory_make("level", "level");
     pitch = gst_element_factory_make("pitch", "pitch");
     playBin = gst_element_factory_make("playbin", "playBin");
+    filter = gst_element_factory_make("capsfilter", "filter");
+    if (!filter)
+        qDebug() << "Failed to create caps filter";
     sinkBin = gst_bin_new("sinkBin");
+    audioCapsStereo = gst_caps_new_simple("audio/x-raw","channels", G_TYPE_INT, 2, NULL);
+    audioCapsMono = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 1, NULL);
+    g_object_set(filter, "caps", audioCapsMono, NULL);
     if (!pitch)
     {
         qDebug() << "gst plugin 'pitch' not found, key changing disabled";
-        gst_bin_add_many(GST_BIN (sinkBin), rgvolume, audioresample, level, volumeElement, autoaudiosink, NULL);
+        gst_bin_add_many(GST_BIN (sinkBin), rgvolume, audioResample, filter, level, volumeElement, autoAudioSink, NULL);
         m_canKeyChange = false;
     }
     else
     {
-        gst_bin_add_many(GST_BIN (sinkBin), rgvolume, pitch, audioresample, level, volumeElement, autoaudiosink, NULL);
+        gst_bin_add_many(GST_BIN (sinkBin), rgvolume, pitch, audioResample, filter, level, volumeElement, autoAudioSink, NULL);
         g_object_set(G_OBJECT(pitch), "pitch", 1.0, "tempo", 1.0, NULL);
     }
-    gst_element_link_many(rgvolume, audioresample, level, volumeElement, autoaudiosink, NULL);
+    gst_element_link_many(rgvolume, audioResample, filter, level, volumeElement, autoAudioSink, NULL);
     pad = gst_element_get_static_pad(rgvolume, "sink");
     ghostPad = gst_ghost_pad_new("sink", pad);
     gst_pad_set_active(ghostPad, true);
@@ -176,8 +182,8 @@ void KhAudioBackendGStreamer::keyChangerOn()
         while (state() != KhAbstractAudioBackend::StoppedState)
             QApplication::processEvents();
     }
-    gst_element_unlink(rgvolume,audioresample);
-    if (!gst_element_link_many(rgvolume,pitch,audioresample,NULL))
+    gst_element_unlink(rgvolume,audioResample);
+    if (!gst_element_link_many(rgvolume,pitch,audioResample,NULL))
         qDebug() << "Failed to link gstreamer elements";
     if (curstate != KhAbstractAudioBackend::StoppedState)
     {
@@ -204,8 +210,8 @@ void KhAudioBackendGStreamer::keyChangerOff()
             QApplication::processEvents();
     }
     gst_element_unlink(rgvolume,pitch);
-    gst_element_unlink(pitch,audioresample);
-    if (!gst_element_link(rgvolume,audioresample))
+    gst_element_unlink(pitch,audioResample);
+    if (!gst_element_link(rgvolume,audioResample))
         qDebug() << "Failed to link gstreamer elements";
     if (curstate != KhAbstractAudioBackend::StoppedState)
     {
@@ -512,4 +518,19 @@ bool KhAudioBackendGStreamer::isSilent()
 void KhAudioBackendGStreamer::setUseSilenceDetection(bool enabled)
 {
     m_silenceDetect = enabled;
+}
+
+
+bool KhAudioBackendGStreamer::canDownmix()
+{
+    return true;
+}
+
+void KhAudioBackendGStreamer::setDownmix(bool enabled)
+{
+    qDebug() << "KhAudioBackendGStreamer::setDownmix(" << enabled << ") called";
+    if (enabled)
+        g_object_set(filter, "caps", audioCapsMono, NULL);
+    else
+        g_object_set(filter, "caps", audioCapsStereo, NULL);
 }

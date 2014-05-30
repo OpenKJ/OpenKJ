@@ -49,13 +49,16 @@ public slots:
 private:
     GstElement *sinkBin;
     GstElement *playBin;
-    GstElement *audioconvert;
-    GstElement *autoaudiosink;
-    GstElement *audioresample;
+    GstElement *audioConvert;
+    GstElement *autoAudioSink;
+    GstElement *audioResample;
     GstElement *rgvolume;
     GstElement *pitch;
     GstElement *volumeElement;
     GstElement *level;
+    GstElement *filter;
+    GstCaps *audioCapsStereo;
+    GstCaps *audioCapsMono;
     GstPad *pad;
     GstPad *ghostPad;
     GstBus *bus;
@@ -121,6 +124,14 @@ public:
 
 public slots:
     void setUseSilenceDetection(bool enabled);
+
+    // KhAbstractAudioBackend interface
+public:
+    bool canDownmix();
+    bool downmixChangeRequiresRestart() { return false; }
+
+public slots:
+    void setDownmix(bool enabled);
 };
 
 #endif // KHAUDIOBACKENDGSTREAMER_H
