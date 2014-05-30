@@ -18,15 +18,18 @@ The only real reason it exists is so that I could have something that would rece
 Both are experimental but usable at this point.  I am using it to run my shows every weekend now, but if you do so and it kills kittens or eats your firstborn don't come screaming at me ;) Some features are still incomplete, and the code is full of ugly. To any other developers looking at this code, please don't laugh too hard, as I'm self taught primarily for the purpose of writing this.  Well, okay, you can laugh, but only if you're willing to fix the code that you're making fun of ;)
 
 Requirements to build KaraokeHost:
-Qt 5.x
-minizip
+
+* Qt 5.x
+* minizip
 Strongly recommended:
-gstreamer (1.0+)
-gst-plugins-ugly (for key changer)
+
+* gstreamer (1.0+)
+* gst-plugins-ugly (for key changer)
 
 Requirements to build BreakMusic:
-Qt 5.x
-taglib
+
+* Qt 5.x
+* Taglib
 
 I develop the software and host my shows on Linux (Fedora specifically), so it is known to build and work there.  (It "should" work similarly on the BSD's.)
 I have verified that it will build and run on Mac OS X, though only with the QMediaPlayer backend.  The brew gstreamer-1.0 packages were missing too much stuff for the GStreamer backend to work properly.  I haven't tried it with the GStreamer project hosted installer.
@@ -36,6 +39,7 @@ The goal is to have it work on all three platforms.
 
 The KaraokeHost audio backends
 GStreamer (recommended)
+
 * Fader - working
 * Downmix - working
 * Silence detect - working
@@ -43,6 +47,7 @@ GStreamer (recommended)
 * Output device selection - Not implemented (waiting for upcoming features in GStreamer)
 
 QMediaPlayer (very limited, feature wise because of QMediaPlayer itself)
+
 * Fader - Working
 * Downmix - Not implemented
 * Silence detect - Not implemented
@@ -50,6 +55,7 @@ QMediaPlayer (very limited, feature wise because of QMediaPlayer itself)
 * Output device selection - Not implemented
 
 Fmod (Closed source, not really working on this backend anymore, but it's still there if anyone wants to play)
+
 * Fader - Working
 * Downmix - Working
 * Silence detect - Working
