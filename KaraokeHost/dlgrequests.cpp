@@ -13,6 +13,8 @@ DlgRequests::DlgRequests(KhSongs *fullData, RotationTableModel *rotationModel, Q
     ui->setupUi(this);
     requestsModel = new RequestsTableModel(this);
     ui->treeViewRequests->setModel(requestsModel);
+    ui->treeViewRequests->header()->setSectionResizeMode(5,QHeaderView::Fixed);
+    ui->treeViewRequests->header()->resizeSection(5,22);
     ui->treeViewRequests->hideColumn(0);
 //    ui->treeViewRequests->header()->setSectionResizeMode(1,QHeaderView::ResizeToContents);
 //    ui->treeViewRequests->header()->setSectionResizeMode(2,QHeaderView::Stretch);
@@ -25,6 +27,8 @@ DlgRequests::DlgRequests(KhSongs *fullData, RotationTableModel *rotationModel, Q
     songDbModel = new SongDBTableModel(this);
     songDbModel->setFullData(fullData);
     ui->treeViewSearch->setModel(songDbModel);
+    ui->treeViewSearch->header()->setSectionResizeMode(3,QHeaderView::Fixed);
+    ui->treeViewSearch->header()->resizeSection(3,60);
     cdgPreviewDialog = new DlgCdgPreview(this);
     connect(ui->treeViewRequests->selectionModel(), SIGNAL(currentRowChanged(QModelIndex,QModelIndex)), this, SLOT(requestSelectionChanged(QModelIndex,QModelIndex)));
     connect(ui->treeViewSearch->selectionModel(), SIGNAL(currentRowChanged(QModelIndex,QModelIndex)), this, SLOT(songSelectionChanged(QModelIndex,QModelIndex)));

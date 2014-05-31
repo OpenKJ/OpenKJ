@@ -43,9 +43,6 @@
         <attribute name="headerCascadingSectionResizes">
          <bool>true</bool>
         </attribute>
-        <attribute name="headerStretchLastSection">
-         <bool>false</bool>
-        </attribute>
        </widget>
       </item>
       <item>
@@ -102,6 +99,9 @@
         <property name="contextMenuPolicy">
          <enum>Qt::CustomContextMenu</enum>
         </property>
+        <attribute name="headerCascadingSectionResizes">
+         <bool>true</bool>
+        </attribute>
        </widget>
       </item>
       <item>
