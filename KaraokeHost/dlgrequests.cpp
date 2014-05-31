@@ -143,12 +143,29 @@ void DlgRequests::on_treeViewRequests_clicked(const QModelIndex &index)
     else
     {
         ui->comboBoxSingers->clear();
-        ui->comboBoxSingers->addItems(m_rotationModel->getSingerList());
+        QString singerName = index.sibling(index.row(),1).data().toString();
+        QStringList singers = m_rotationModel->getSingerList();
+        ui->comboBoxSingers->addItems(singers);
+
         QString filterStr = index.sibling(index.row(),2).data().toString() + " " + index.sibling(index.row(),3).data().toString();
         songDbModel->applyFilter(filterStr);
         ui->lineEditSearch->setText(filterStr);
         ui->treeViewSearch->header()->resizeSections(QHeaderView::Stretch);
-        ui->lineEditSingerName->setText(index.sibling(index.row(),1).data().toString());
+        ui->lineEditSingerName->setText(singerName);
+
+        int s = -1;
+        for (int i=0; i < singers.size(); i++)
+        {
+            if (singers.at(i).toLower() == singerName.toLower())
+            {
+                s = i;
+                break;
+            }
+        }
+        if (s != -1)
+        {
+            ui->comboBoxSingers->setCurrentIndex(s);
+        }
     }
 }
 
