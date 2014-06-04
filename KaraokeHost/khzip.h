@@ -23,6 +23,9 @@
 
 #include <QObject>
 #include <QDir>
+#ifdef Q_OS_WIN
+#define ZLIB_WINAPI
+#endif
 extern "C" {
     #include <unzip.h>
 }

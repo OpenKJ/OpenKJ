@@ -22,6 +22,7 @@
 #include <QDebug>
 #include <QTemporaryDir>
 #include <fstream>
+#include <QFile>
 
 
 
@@ -124,7 +125,9 @@ bool KhZip::extractMp3(QDir destDir)
             unsigned char* Buffer = new unsigned char[SizeBuffer];
             ::memset(Buffer, 0, SizeBuffer);
             int bytesRead = 0;
-            std::ofstream outFile(QString(destDir.path() + QDir::separator() + "tmp.mp3").toUtf8().data());
+            QFile outFile(destDir.path() + QDir::separator() + "tmp.mp3");
+            outFile.open(QIODevice::WriteOnly);
+            //std::ofstream outFile(QString(destDir.path() + QDir::separator() + "tmp.mp3").toUtf8().data());
             while ((bytesRead = unzReadCurrentFile(hFile, Buffer, SizeBuffer)) > 0)
             {
                 outFile.write((const char*)Buffer, bytesRead);
@@ -185,7 +188,8 @@ bool KhZip::extractCdg(QDir destDir)
             unsigned char* Buffer = new unsigned char[SizeBuffer];
             ::memset(Buffer, 0, SizeBuffer);
             int bytesRead = 0;
-            std::ofstream outFile(QString(destDir.path() + QDir::separator() + "tmp.cdg").toUtf8().data());
+            QFile outFile(destDir.path() + QDir::separator() + "tmp.cdg");
+            outFile.open(QIODevice::WriteOnly);
             while ((bytesRead = unzReadCurrentFile(hFile, Buffer, SizeBuffer)) > 0)
             {
                 outFile.write((const char*)Buffer, bytesRead);

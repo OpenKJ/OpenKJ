@@ -20,14 +20,14 @@
 
 #include "qglcanvas.h"
 
-#ifdef Q_OS_WIN
+#ifdef USE_GL
 QGLCanvas::QGLCanvas(QWidget *parent) :
-    QWidget(parent)
+    QGLWidget(parent)
 {
 }
 #else
 QGLCanvas::QGLCanvas(QWidget *parent) :
-    QGLWidget(parent)
+    QWidget(parent)
 {
 }
 #endif

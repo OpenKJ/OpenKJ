@@ -4,7 +4,8 @@
 #
 #-------------------------------------------------
 
-QT       += core gui sql network opengl
+QT += core gui sql network
+unix: QT += opengl
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 win32: CONFIG += console
@@ -12,11 +13,13 @@ win32: CONFIG += console
 TARGET = KaraokeHost
 TEMPLATE = app
 
+win32: DEFINES += ZLIB_WINAPI
+
 #DEFINES += USE_FMOD
-DEFINES += USE_GSTREAMER
+#DEFINES += USE_GSTREAMER
 # On Linux platforms QMediaPlayer uses gstreamer as its base.  You can not
 # load both backends due to conflicts.
-#DEFINES += USE_QMEDIAPLAYER
+DEFINES += USE_QMEDIAPLAYER
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -106,12 +109,11 @@ FORMS    += mainwindow.ui \
 unix: QT_CONFIG -= no-pkg-config
 unix: CONFIG += link_pkgconfig
 
-win32: INCLUDEPATH += "/usr/i686-w64-mingw32/sys-root/mingw/include/gstreamer-1.0/"
-win32: INCLUDEPATH += "/usr/i686-w64-mingw32/sys-root/mingw/include/glib-2.0/"
-win32: INCLUDEPATH += "/usr/i686-w64-mingw32/sys-root/mingw/lib/glib-2.0/include/"
-win32: LIBS+= -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0
+
+win32: INCLUDEPATH += "C:\Users\nunya\Downloads\zlib125\zlib-1.2.5\contrib\minizip"
+win32: INCLUDEPATH += "C:\Users\nunya\Downloads\zlib125\zlib-1.2.5"
 unix: PKGCONFIG += minizip
-win32: LIBS += -lminizip
+win32: LIBS += -L"C:\Users\nunya\Downloads\zlib125dll\dllx64" -lzlibwapi
 # win32: LIBS += -lminizip
 
 contains(DEFINES, USE_GSTREAMER) {
@@ -119,6 +121,8 @@ contains(DEFINES, USE_GSTREAMER) {
     PKGCONFIG += gstreamer-1.0
     HEADERS += khaudiobackendgstreamer.h
     SOURCES += khaudiobackendgstreamer.cpp
+    win32: LIBS+= -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0
+
 }
 
 contains(DEFINES, USE_QMEDIAPLAYER) {

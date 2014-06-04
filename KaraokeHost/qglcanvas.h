@@ -21,17 +21,17 @@
 #ifndef QGLCANVAS_H
 #define QGLCANVAS_H
 
-#ifdef Q_OS_WIN
-    #include <QWidget>
-#else
+#ifdef USE_GL
     #include <QGLWidget>
+#else
+    #include <QWidget>
 #endif
 #include <QPainter>
 
-#ifdef Q_OS_WIN
-class QGLCanvas : public QWidget
-#else
+#ifdef USE_GL
 class QGLCanvas : public QGLWidget
+#else
+class QGLCanvas : public QWidget
 #endif
 {
     Q_OBJECT
