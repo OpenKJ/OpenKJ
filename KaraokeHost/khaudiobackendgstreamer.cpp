@@ -372,7 +372,7 @@ void KhAudioBackendGStreamer::faderChangedVolume(int volume)
 
 bool KhAudioBackendGStreamer::canPitchShift()
 {
-    return true;
+    return m_canKeyChange;
 }
 
 int KhAudioBackendGStreamer::pitchShift()
