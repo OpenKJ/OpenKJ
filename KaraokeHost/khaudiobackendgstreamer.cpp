@@ -13,7 +13,6 @@ KhAudioBackendGStreamer::KhAudioBackendGStreamer(QObject *parent) :
     KhAbstractAudioBackend(parent)
 {
     gst_init(NULL,NULL);
-    guint watch_id;
     m_volume = 0;
     m_canKeyChange = true;
     audioConvert = gst_element_factory_make("audioconvert", "audioconvert");
@@ -32,14 +31,22 @@ KhAudioBackendGStreamer::KhAudioBackendGStreamer(QObject *parent) :
     if (!volumeElement)
         qDebug() << "GStreamer - Unable to create element volume";
     level = gst_element_factory_make("level", "level");
+    if (!level)
+        qDebug() << "GStreamer - Unable to create element level";
     pitch = gst_element_factory_make("pitch", "pitch");
-    playBin = gst_element_factory_make("playbin", "playBin");
+    if (!pitch)
+        qDebug() << "GStreamer - Unable to create element pitch";
+    playBin = gst_element_factory_make("playbin2", "playBin");
+    if (!playBin)
+        qDebug() << "GStreamer - Unable to create element playBin";
     filter = gst_element_factory_make("capsfilter", "filter");
     if (!filter)
         qDebug() << "Failed to create caps filter";
     sinkBin = gst_bin_new("sinkBin");
-    audioCapsStereo = gst_caps_new_simple("audio/x-raw","channels", G_TYPE_INT, 2, NULL);
-    audioCapsMono = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 1, NULL);
+    if (!sinkBin)
+        qDebug() << "GStreamer - Unable to create bin sinkBin";
+    audioCapsStereo = gst_caps_new_simple("audio/x-raw-int","channels", G_TYPE_INT, 2, NULL);
+    audioCapsMono = gst_caps_new_simple("audio/x-raw-int", "channels", G_TYPE_INT, 1, NULL);
     g_object_set(filter, "caps", audioCapsMono, NULL);
     if (!pitch)
     {
@@ -60,7 +67,7 @@ KhAudioBackendGStreamer::KhAudioBackendGStreamer(QObject *parent) :
     gst_object_unref(pad);
     g_object_set(G_OBJECT(playBin), "audio-sink", sinkBin, NULL);
     g_object_set(G_OBJECT(rgvolume), "album-mode", false, NULL);
-    g_object_set(G_OBJECT (level), "post-messages", TRUE, NULL);
+    g_object_set(G_OBJECT (level), "message", TRUE, NULL);
     bus = gst_element_get_bus (playBin);
 //    watch_id = gst_bus_add_watch (bus, message_handler, NULL);
 
@@ -99,24 +106,21 @@ void KhAudioBackendGStreamer::processGstMessages()
             if (message->type == GST_MESSAGE_ELEMENT) {
                 const GstStructure *s = gst_message_get_structure (message);
                 const gchar *name = gst_structure_get_name (s);
-                if (strcmp (name, "level") == 0) {
+                if (strcmp (name, "level") == 0)
+                {
                     gint channels;
-                    GstClockTime endtime;
                     gdouble rms_dB;
                     gdouble rms;
-                    const GValue *array_val;
+                    const GValue *list;
                     const GValue *value;
-                    GValueArray *rms_arr;
                     gint i;
-                    if (!gst_structure_get_clock_time (s, "endtime", &endtime))
-                        g_warning ("Could not parse endtime");
-                    array_val = gst_structure_get_value (s, "rms");
-                    rms_arr = (GValueArray *) g_value_get_boxed (array_val);
-                    channels = rms_arr->n_values;
-                    outputChannels = channels;
+                    list = gst_structure_get_value (s, "rms");
+                    channels = gst_value_list_get_size (list);
                     double rmsValues = 0.0;
-                    for (i = 0; i < channels; ++i) {
-                        value = g_value_array_get_nth (rms_arr, i);
+                    for (i = 0; i < channels; ++i)
+                    {
+                        list = gst_structure_get_value (s, "rms");
+                        value = gst_value_list_get_value (list, i);
                         rms_dB = g_value_get_double (value);
                         rms = pow (10, rms_dB / 20);
                         rmsValues = rmsValues + rms;
@@ -128,9 +132,38 @@ void KhAudioBackendGStreamer::processGstMessages()
         }
         else
             done = true;
+        //            if (message->type == GST_MESSAGE_ELEMENT) {
+        //                const GstStructure *s = gst_message_get_structure (message);
+        //                const gchar *name = gst_structure_get_name (s);
+        //                if (strcmp (name, "level") == 0) {
+        //                    gint channels;
+        //                    GstClockTime endtime;
+        //                    gdouble rms_dB;
+        //                    gdouble rms;
+        //                    const GValue *array_val;
+        //                    const GValue *value;
+        //                    GValueArray *rms_arr;
+        //                    gint i;
+        //                    if (!gst_structure_get_clock_time (s, "endtime", &endtime))
+        //                        g_warning ("Could not parse endtime");
+        //                    array_val = gst_structure_get_value (s, "rms");
+        //                    rms_arr = (GValueArray *) g_value_get_boxed (array_val);
+        //                    channels = rms_arr->n_values;
+        //                    outputChannels = channels;
+        //                    double rmsValues = 0.0;
+        //                    for (i = 0; i < channels; ++i) {
+        //                        value = g_value_array_get_nth (rms_arr, i);
+        //                        rms_dB = g_value_get_double (value);
+        //                        rms = pow (10, rms_dB / 20);
+        //                        rmsValues = rmsValues + rms;
+        //                    }
+        //                    currentRMSLevel = rmsValues / channels;
+        //                }
+        //            }
+        //            gst_message_unref(message);
+        //        }
     }
 }
-
 
 int KhAudioBackendGStreamer::volume()
 {
@@ -140,8 +173,8 @@ int KhAudioBackendGStreamer::volume()
 qint64 KhAudioBackendGStreamer::position()
 {
     gint64 pos;
-//    GstFormat fmt = GST_FORMAT_TIME;
-    if (gst_element_query_position (playBin, GST_FORMAT_TIME, &pos))
+    GstFormat fmt = GST_FORMAT_TIME;
+    if (gst_element_query_position (playBin, &fmt, &pos))
     {
         //cout << "Position:" << pos / 1000000 << endl;
         return pos / 1000000;
@@ -158,7 +191,7 @@ qint64 KhAudioBackendGStreamer::duration()
 {
     gint64 duration;
     GstFormat fmt = GST_FORMAT_TIME;
-    if (gst_element_query_duration (playBin, fmt, &duration))
+    if (gst_element_query_duration (playBin, &fmt, &duration))
     {
         return duration / 1000000;
     }
