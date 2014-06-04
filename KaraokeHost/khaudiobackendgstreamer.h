@@ -72,6 +72,9 @@ private:
     bool m_fade;
     bool m_silenceDetect;
     bool m_canKeyChange;
+    void processGstMessages();
+    int outputChannels;
+    double currentRMSLevel;
 
 
     // KhAbstractAudioBackend interface

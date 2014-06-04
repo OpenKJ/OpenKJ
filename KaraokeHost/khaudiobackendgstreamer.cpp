@@ -7,43 +7,6 @@
 #define STUP 1.0594630943592952645618252949461
 #define STDN 0.94387431268169349664191315666784
 
-int outputChannels;
-double currentRMSLevel;
-
-static gboolean message_handler (GstBus * bus, GstMessage * message, gpointer data)
-{
-    Q_UNUSED(bus);
-    Q_UNUSED(data);
-    if (message->type == GST_MESSAGE_ELEMENT) {
-        const GstStructure *s = gst_message_get_structure (message);
-        const gchar *name = gst_structure_get_name (s);
-        if (strcmp (name, "level") == 0) {
-            gint channels;
-            GstClockTime endtime;
-            gdouble rms_dB;
-            gdouble rms;
-            const GValue *array_val;
-            const GValue *value;
-            GValueArray *rms_arr;
-            gint i;
-            if (!gst_structure_get_clock_time (s, "endtime", &endtime))
-                g_warning ("Could not parse endtime");
-            array_val = gst_structure_get_value (s, "rms");
-            rms_arr = (GValueArray *) g_value_get_boxed (array_val);
-            channels = rms_arr->n_values;
-            outputChannels = channels;
-            double rmsValues = 0.0;
-            for (i = 0; i < channels; ++i) {
-                value = g_value_array_get_nth (rms_arr, i);
-                rms_dB = g_value_get_double (value);
-                rms = pow (10, rms_dB / 20);
-                rmsValues = rmsValues + rms;
-            }
-            currentRMSLevel = rmsValues / channels;
-        }
-    }
-    return TRUE;
-}
 
 
 KhAudioBackendGStreamer::KhAudioBackendGStreamer(QObject *parent) :
@@ -99,7 +62,7 @@ KhAudioBackendGStreamer::KhAudioBackendGStreamer(QObject *parent) :
     g_object_set(G_OBJECT(rgvolume), "album-mode", false, NULL);
     g_object_set(G_OBJECT (level), "post-messages", TRUE, NULL);
     bus = gst_element_get_bus (playBin);
-    watch_id = gst_bus_add_watch (bus, message_handler, NULL);
+//    watch_id = gst_bus_add_watch (bus, message_handler, NULL);
 
 
     fader = new FaderGStreamer(this);
@@ -122,6 +85,50 @@ KhAudioBackendGStreamer::KhAudioBackendGStreamer(QObject *parent) :
 
 KhAudioBackendGStreamer::~KhAudioBackendGStreamer()
 {
+}
+
+void KhAudioBackendGStreamer::processGstMessages()
+{
+    GstMessage *message = NULL;
+    bool done = false;
+    while (!done)
+    {
+        message = gst_bus_pop(bus);
+        if (message != NULL)
+        {
+            if (message->type == GST_MESSAGE_ELEMENT) {
+                const GstStructure *s = gst_message_get_structure (message);
+                const gchar *name = gst_structure_get_name (s);
+                if (strcmp (name, "level") == 0) {
+                    gint channels;
+                    GstClockTime endtime;
+                    gdouble rms_dB;
+                    gdouble rms;
+                    const GValue *array_val;
+                    const GValue *value;
+                    GValueArray *rms_arr;
+                    gint i;
+                    if (!gst_structure_get_clock_time (s, "endtime", &endtime))
+                        g_warning ("Could not parse endtime");
+                    array_val = gst_structure_get_value (s, "rms");
+                    rms_arr = (GValueArray *) g_value_get_boxed (array_val);
+                    channels = rms_arr->n_values;
+                    outputChannels = channels;
+                    double rmsValues = 0.0;
+                    for (i = 0; i < channels; ++i) {
+                        value = g_value_array_get_nth (rms_arr, i);
+                        rms_dB = g_value_get_double (value);
+                        rms = pow (10, rms_dB / 20);
+                        rmsValues = rmsValues + rms;
+                    }
+                    currentRMSLevel = rmsValues / channels;
+                }
+            }
+            gst_message_unref(message);
+        }
+        else
+            done = true;
+    }
 }
 
 
@@ -316,6 +323,7 @@ void KhAudioBackendGStreamer::stop(bool skipFade)
 
 void KhAudioBackendGStreamer::signalTimer_timeout()
 {
+
     static int curDuration;
     if (duration() != curDuration)
     {
@@ -339,6 +347,7 @@ void KhAudioBackendGStreamer::signalTimer_timeout()
             setPitchShift(0);
 //    else if (state() == QMediaPlayer::StoppedState)
     //        stop();
+    processGstMessages();
 }
 
 void KhAudioBackendGStreamer::silenceDetectTimer_timeout()
