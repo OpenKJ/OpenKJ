@@ -54,10 +54,20 @@ KhAudioBackendGStreamer::KhAudioBackendGStreamer(QObject *parent) :
     m_volume = 0;
     m_canKeyChange = true;
     audioConvert = gst_element_factory_make("audioconvert", "audioconvert");
+    if (!audioConvert)
+        qDebug() << "GStreamer - Unable to create element audioconvert";
     autoAudioSink = gst_element_factory_make("autoaudiosink", "autoaudiosink");
+    if (!autoAudioSink)
+        qDebug() << "GStreamer - Unable to create element autoaudiosink";
     audioResample = gst_element_factory_make("audioresample", "audioresample");
+    if (!audioResample)
+        qDebug() << "GStreamer - Unable to create element audioresample";
     rgvolume = gst_element_factory_make("rgvolume", "rgvolume");
+    if (!rgvolume)
+        qDebug() << "GStreamer - Unable to create element rgvolume";
     volumeElement = gst_element_factory_make("volume", "volumeElement");
+    if (!volumeElement)
+        qDebug() << "GStreamer - Unable to create element volume";
     level = gst_element_factory_make("level", "level");
     pitch = gst_element_factory_make("pitch", "pitch");
     playBin = gst_element_factory_make("playbin", "playBin");
@@ -249,7 +259,11 @@ void KhAudioBackendGStreamer::pause()
 void KhAudioBackendGStreamer::setMedia(QString filename)
 {
     m_filename = filename;
+#ifdef Q_OS_WIN
+    std::string uri = "file:///" + filename.toStdString();
+#else
     std::string uri = "file://" + filename.toStdString();
+#endif
     qDebug() << "KhAudioBackendGStreamer - Playing: " << uri.c_str();
     g_object_set(GST_OBJECT(playBin), "uri", uri.c_str(), NULL);
 }

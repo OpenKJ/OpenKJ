@@ -16,7 +16,7 @@ TEMPLATE = app
 win32: DEFINES += ZLIB_WINAPI
 
 #DEFINES += USE_FMOD
-#DEFINES += USE_GSTREAMER
+DEFINES += USE_GSTREAMER
 # On Linux platforms QMediaPlayer uses gstreamer as its base.  You can not
 # load both backends due to conflicts.
 DEFINES += USE_QMEDIAPLAYER
@@ -118,10 +118,13 @@ win32: LIBS += -L"C:\Users\nunya\Downloads\zlib125dll\dllx64" -lzlibwapi
 
 contains(DEFINES, USE_GSTREAMER) {
     message("USE_GSTREAMER defined, building GStreamer audio backend")
+    win32: INCLUDEPATH += "C:\gstreamer\1.0\x86_64\include\gstreamer-1.0"
+    win32: INCLUDEPATH += "C:\gstreamer\1.0\x86_64\include\glib-2.0"
+    win32: INCLUDEPATH += "C:\gstreamer\1.0\x86_64\lib\glib-2.0\include"
     PKGCONFIG += gstreamer-1.0
     HEADERS += khaudiobackendgstreamer.h
     SOURCES += khaudiobackendgstreamer.cpp
-    win32: LIBS+= -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0
+    win32: LIBS+= -L"C:\gstreamer\1.0\x86_64\lib" -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0
 
 }
 
