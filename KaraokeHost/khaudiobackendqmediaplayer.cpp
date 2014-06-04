@@ -43,6 +43,13 @@ KhAudioBackendQMediaPlayer::KhAudioBackendQMediaPlayer(QObject *parent) :
     m_stopping = false;
 }
 
+KhAudioBackendQMediaPlayer::~KhAudioBackendQMediaPlayer()
+{
+    qDebug() << "KhAudioBackendQMedaiPlayer destructor called";
+    mplayer->setMedia(QMediaContent());
+    delete mplayer;
+}
+
 
 int KhAudioBackendQMediaPlayer::volume()
 {
@@ -120,6 +127,7 @@ void KhAudioBackendQMediaPlayer::stop(bool skipFade)
         mplayer->stop();
         if (!skipFade) fader->restoreVolume();
     }
+    mplayer->setMedia(QMediaContent());
     m_stopping = false;
 }
 

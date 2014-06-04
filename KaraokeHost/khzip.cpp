@@ -126,6 +126,7 @@ bool KhZip::extractMp3(QDir destDir)
             ::memset(Buffer, 0, SizeBuffer);
             int bytesRead = 0;
             QFile outFile(destDir.path() + QDir::separator() + "tmp.mp3");
+            outFile.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ExeOwner);
             outFile.open(QIODevice::WriteOnly);
             //std::ofstream outFile(QString(destDir.path() + QDir::separator() + "tmp.mp3").toUtf8().data());
             while ((bytesRead = unzReadCurrentFile(hFile, Buffer, SizeBuffer)) > 0)
@@ -189,6 +190,7 @@ bool KhZip::extractCdg(QDir destDir)
             ::memset(Buffer, 0, SizeBuffer);
             int bytesRead = 0;
             QFile outFile(destDir.path() + QDir::separator() + "tmp.cdg");
+            outFile.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ExeOwner);
             outFile.open(QIODevice::WriteOnly);
             while ((bytesRead = unzReadCurrentFile(hFile, Buffer, SizeBuffer)) > 0)
             {

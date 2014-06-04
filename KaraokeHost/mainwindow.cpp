@@ -274,12 +274,13 @@ MainWindow::~MainWindow()
     settings->setAudioVolume(ui->sliderVolume->value());
     delete cdg;
     delete khDir;
-    delete khTmpDir;
     delete database;
     delete regularSingers;
     //delete songCurrent;
     delete ui;
+    qDeleteAll(audioBackends->begin(), audioBackends->end());
     delete audioBackends;
+    delete khTmpDir;
 }
 
 void MainWindow::search()

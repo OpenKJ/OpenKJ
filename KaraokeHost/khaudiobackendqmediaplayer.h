@@ -66,6 +66,7 @@ private:
 
 public:
     explicit KhAudioBackendQMediaPlayer(QObject *parent = 0);
+    ~KhAudioBackendQMediaPlayer();
     QString backendName() {return QString("QMediaPlayer");}
 signals:
 
