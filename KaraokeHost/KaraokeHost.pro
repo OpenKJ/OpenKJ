@@ -22,10 +22,10 @@ TEMPLATE = app
 
 
 #DEFINES += USE_FMOD
-DEFINES += USE_GSTREAMER
+#DEFINES += USE_GSTREAMER
 # On Linux platforms QMediaPlayer uses gstreamer as its base.  You can not
 # load both backends due to conflicts.
-#DEFINES += USE_QMEDIAPLAYER
+DEFINES += USE_QMEDIAPLAYER
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -128,7 +128,11 @@ contains(DEFINES, USE_GSTREAMER) {
     win32: INCLUDEPATH += "C:\gstreamer-sdk\0.10\x86\include\glib-2.0"
     win32: INCLUDEPATH += "C:\gstreamer-sdk\0.10\x86\lib\glib-2.0\include"
     win32: INCLUDEPATH += "C:\gstreamer-sdk\0.10\x86\include\libxml2"
-    PKGCONFIG += gstreamer-0.10
+    !macx {
+        PKGCONFIG += gstreamer-0.10
+    }
+    macx: INCLUDEPATH += "/Library/Frameworks/GStreamer.framework/Headers"
+    macx: LIBS += -L"/Library/Frameworks/GStreamer.framework/Libraries" -lgstreamer-0.10 -lglib-2.0 -lgobject-2.0
     HEADERS += khaudiobackendgstreamer.h
     SOURCES += khaudiobackendgstreamer.cpp
     win32: LIBS+= -L"C:\gstreamer-sdk\0.10\x86\lib" -lgstreamer-0.10 -lglib-2.0 -lgobject-2.0

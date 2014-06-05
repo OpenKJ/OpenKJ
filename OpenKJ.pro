@@ -1,3 +1,5 @@
+cache()
+
 TEMPLATE = subdirs
 
 SUBDIRS += \
