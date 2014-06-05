@@ -42,6 +42,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //mPlayer = new QMediaPlayer(this);
     mPlayer = new BmAudioBackendGStreamer(this);
     mPlayer->setUseFader(true);
+    mPlayer->setUseSilenceDetection(true);
     sharedMemory->lock();
     ipcServer = new BmIPCServer("bmControl",this); 
     QCoreApplication::setOrganizationName("OpenKJ");
@@ -86,7 +87,6 @@ MainWindow::MainWindow(QWidget *parent) :
     songs->loadFromDB();
     ui->treeViewDB->header()->resizeSections(QHeaderView::ResizeToContents);
     mPlayer->setVolume(settings->volume());
-    ui->sliderVolume->setValue(settings->volume());
     //fader = new Fader(mPlayer,this);
 
     connect(ipcServer, SIGNAL(messageReceived(int)), this, SLOT(ipcMessageReceived(int)));

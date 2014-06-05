@@ -56,6 +56,7 @@ unix: QT_CONFIG -= no-pkg-config
 unix: CONFIG += link_pkgconfig
 
 unix: PKGCONFIG += taglib_c
+unix: PKGCONFIG += gstreamer-0.10
 
 win32: INCLUDEPATH += "C:\taglib\include\taglib"
 win32: LIBS += -L"C:\taglib\taglib\taglib\Release" -ltag

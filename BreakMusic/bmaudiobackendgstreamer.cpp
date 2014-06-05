@@ -445,6 +445,7 @@ void FaderGStreamer::run()
 
 void FaderGStreamer::fadeIn()
 {
+    qDebug() << "fadeIn() - Started";
     m_targetVolume = m_preOutVolume;
     if (!fading)
     {
@@ -452,10 +453,12 @@ void FaderGStreamer::fadeIn()
     }
     while(fading)
         QApplication::processEvents();
+    qDebug() << "fadeIn() - Finished";
 }
 
 void FaderGStreamer::fadeOut()
 {
+    qDebug() << "fadeOut() - Started";
     m_targetVolume = 0;
     if (!fading)
     {
@@ -465,6 +468,7 @@ void FaderGStreamer::fadeOut()
     }
     while(fading)
         QApplication::processEvents();
+    qDebug() << "fadeOut() - Finished";
 }
 
 bool FaderGStreamer::isFading()
