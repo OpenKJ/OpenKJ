@@ -22,9 +22,7 @@ TEMPLATE = app
 
 
 #DEFINES += USE_FMOD
-#DEFINES += USE_GSTREAMER
-# On Linux platforms QMediaPlayer uses gstreamer as its base.  You can not
-# load both backends due to conflicts.
+DEFINES += USE_GSTREAMER
 DEFINES += USE_QMEDIAPLAYER
 
 SOURCES += main.cpp\
