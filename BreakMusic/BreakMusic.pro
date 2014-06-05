@@ -11,7 +11,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = BreakMusic
 TEMPLATE = app
 
-win32: CONFIG += console
+#win32: CONFIG += console
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -53,5 +53,6 @@ unix: CONFIG += link_pkgconfig
 
 unix: PKGCONFIG += taglib_c
 
-win32: LIBS += -ltag
+win32: INCLUDEPATH += "C:\taglib\include\taglib"
+win32: LIBS += -L"C:\taglib\taglib\taglib\Release" -ltag
 #win32: LIBS += -L"$$_PRO_FILE_PWD_/taglib-win32/lib" -ltag
