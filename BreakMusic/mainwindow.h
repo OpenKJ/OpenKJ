@@ -22,7 +22,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QMediaPlayer>
+//#include <QMediaPlayer>
 #include <QSharedMemory>
 #include "bmipcserver.h"
 #include <QtSql>
@@ -33,7 +33,8 @@
 #include "songdbtablemodel.h"
 #include "playlisttablemodel.h"
 #include "bmplaylist.h"
-#include "fader.h"
+//#include "fader.h"
+#include "bmaudiobackendgstreamer.h"
 
 namespace Ui {
 class MainWindow;
@@ -49,7 +50,7 @@ public:
 
 private:
     Ui::MainWindow *ui;
-    QMediaPlayer *mPlayer;
+    //QMediaPlayer *mPlayer;
     QSharedMemory *sharedMemory;
     BmIPCServer *ipcServer;
     QSqlDatabase *database;
@@ -59,11 +60,11 @@ private:
     SongdbTableModel *songdbmodel;
     PlaylistTableModel *playlistmodel;
     BmPlaylists *playlists;
-    Fader *fader;
+    //Fader *fader;
     bool fading;
-    void playCurrent();
+    void playCurrent(bool skipfade = false);
     QString msToMMSS(qint64 ms);
-
+    BmAudioBackendGStreamer *mPlayer;
 
 private slots:
 //    void ipcMessageReceived(QString ipcMessage);
@@ -81,7 +82,7 @@ private slots:
 
     void on_sliderVolume_valueChanged(int value);
 
-    void on_mediaStatusChanged(QMediaPlayer::MediaStatus status);
+    //void on_mediaStatusChanged(BmAbstractAudioBackend::MediaStatus status);
 
     void on_sliderPosition_sliderMoved(int position);
 
@@ -95,6 +96,7 @@ private slots:
     void on_actionShow_Metadata(bool checked);
     void on_actionShow_Filenames(bool checked);
     void on_actionImport_Playlist_triggered();
+    void mediaStateChanged(BmAbstractAudioBackend::State newState);
 
 
     void on_treeViewPlaylist_clicked(const QModelIndex &index);

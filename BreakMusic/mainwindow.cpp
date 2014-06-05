@@ -39,7 +39,9 @@ MainWindow::MainWindow(QWidget *parent) :
     settings->restoreWindowState(this);
     fading = false;
     sharedMemory = new QSharedMemory("KhControl",this);
-    mPlayer = new QMediaPlayer(this);
+    //mPlayer = new QMediaPlayer(this);
+    mPlayer = new BmAudioBackendGStreamer(this);
+    mPlayer->setUseFader(true);
     sharedMemory->lock();
     ipcServer = new BmIPCServer("bmControl",this); 
     QCoreApplication::setOrganizationName("OpenKJ");
@@ -85,12 +87,13 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->treeViewDB->header()->resizeSections(QHeaderView::ResizeToContents);
     mPlayer->setVolume(settings->volume());
     ui->sliderVolume->setValue(settings->volume());
-    fader = new Fader(mPlayer,this);
+    //fader = new Fader(mPlayer,this);
 
     connect(ipcServer, SIGNAL(messageReceived(int)), this, SLOT(ipcMessageReceived(int)));
     connect(ui->actionShow_Filenames, SIGNAL(triggered(bool)), this, SLOT(on_actionShow_Filenames(bool)));
     connect(ui->actionShow_Metadata, SIGNAL(triggered(bool)), this, SLOT(on_actionShow_Metadata(bool)));
     connect(ui->actionManage_Database, SIGNAL(triggered()), dbDialog, SLOT(show()));
+    connect(mPlayer, SIGNAL(stateChanged(BmAbstractAudioBackend::State)), this, SLOT(mediaStateChanged(BmAbstractAudioBackend::State)));
     connect(mPlayer, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)), this, SLOT(on_mediaStatusChanged(QMediaPlayer::MediaStatus)));
     connect(mPlayer, SIGNAL(positionChanged(qint64)), this, SLOT(on_mediaPositionChanged(qint64)));
     connect(mPlayer, SIGNAL(durationChanged(qint64)), this, SLOT(on_mediaDurationChanged(qint64)));
@@ -98,7 +101,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(playlists, SIGNAL(playlistsChanged()), this, SLOT(on_playlistsChanged()));
     connect(playlists, SIGNAL(currentPlaylistChanged(QString)), ui->comboBoxPlaylists, SLOT(setCurrentText(QString)));
     connect(playlists, SIGNAL(dataChanged()), this, SLOT(on_playlistChanged()));
-    connect(ui->sliderVolume, SIGNAL(sliderMoved(int)), fader, SLOT(setBaseVolume(int)));
+    //connect(ui->sliderVolume, SIGNAL(sliderMoved(int)), fader, SLOT(setBaseVolume(int)));
 
 
     //on_actionShow_Filenames(false);
@@ -121,23 +124,24 @@ void MainWindow::ipcMessageReceived(int ipcCommand)
     qDebug() << "Received IPC: " << ipcCommand;
     switch (ipcCommand) {
     case BmIPCServer::CMD_FADE_OUT:
-        fader->fadeOut();
+        //fader->fadeOut();
+        mPlayer->fadeOut();
         qDebug() << "Received IPC command CMD_FADE_OUT";
         break;
     case BmIPCServer::CMD_FADE_IN:
-        fader->fadeIn();
+        mPlayer->fadeIn();
         qDebug() << "Received IPC command CMD_FADE_IN";
         break;
     case BmIPCServer::CMD_PLAY:
-        fader->fadePlay();
+        mPlayer->play();
         qDebug() << "Received IPC command CMD_PLAY";
         break;
     case BmIPCServer::CMD_PAUSE:
-        fader->fadePause();
+        mPlayer->pause();
         qDebug() << "Received IPC command CMD_PAUSE";
         break;
     case BmIPCServer::CMD_STOP:
-        fader->fadeStop();
+        mPlayer->stop();
         qDebug() << "Received IPC command CMD_STOP";
         break;
     default:
@@ -170,7 +174,7 @@ void MainWindow::on_treeViewDB_activated(const QModelIndex &index)
 
 void MainWindow::on_buttonStop_clicked()
 {
-    fader->fadeStop();
+    mPlayer->stop();
 }
 
 void MainWindow::on_lineEditSearch_returnPressed()
@@ -205,15 +209,15 @@ void MainWindow::on_sliderVolume_valueChanged(int value)
     mPlayer->setVolume(value);
 }
 
-void MainWindow::on_mediaStatusChanged(QMediaPlayer::MediaStatus status)
-{
-    qDebug() << "mediaStatusChanged fired: " << status;
-    if ((status == QMediaPlayer::EndOfMedia) && (ui->checkBoxBreak->checkState() != Qt::Checked))
-    {
-        playlists->getCurrent()->next();
-        playCurrent();
-    }
-}
+//void MainWindow::on_mediaStatusChanged(BmAbstractAudioBackend::MediaStatus status)
+//{
+//    qDebug() << "mediaStatusChanged fired: " << status;
+//    if ((status == QMediaPlayer::EndOfMedia) && (ui->checkBoxBreak->checkState() != Qt::Checked))
+//    {
+//        playlists->getCurrent()->next();
+//        playCurrent();
+//    }
+//}
 
 void MainWindow::on_sliderPosition_sliderMoved(int position)
 {
@@ -233,24 +237,22 @@ void MainWindow::on_mediaDurationChanged(qint64 duration)
     ui->labelDuration->setText(msToMMSS(duration));
 }
 
-void MainWindow::playCurrent()
+void MainWindow::playCurrent(bool skipfade)
 {
     BmPlaylistSong *song = playlists->getCurrent()->getCurrentSong();
     BmPlaylistSong *next = playlists->getCurrent()->getNextSong();
     qDebug() << "Playing song at position: " << song->position() << " Artist: " << song->song()->artist() << " Title: " << song->song()->title();
-    if (mPlayer->state() == QMediaPlayer::PlayingState) {
+    if (mPlayer->state() == BmAbstractAudioBackend::PlayingState) {
         if (ipcServer->lastIpcCmd() == BmIPCServer::CMD_FADE_OUT)
-            mPlayer->stop();
+            mPlayer->stop(true);
         else
-            fader->fadeStop();
+            mPlayer->stop(skipfade);
     }
-    while (fader->isFading())
-        QApplication::processEvents();
-    mPlayer->setMedia(QUrl::fromLocalFile(song->song()->path()));
+    mPlayer->setMedia(song->song()->path());
     if (ipcServer->lastIpcCmd() == BmIPCServer::CMD_FADE_OUT)
         mPlayer->play();
     else
-        fader->fadePlay();
+        mPlayer->play();
     ui->sliderPosition->setMaximum(mPlayer->duration());
     ui->sliderPosition->setValue(0);
     ui->labelPlaying->setText(song->song()->artist() + " - " + song->song()->title());
@@ -279,9 +281,9 @@ QString MainWindow::msToMMSS(qint64 ms)
 void MainWindow::on_buttonPause_clicked(bool checked)
 {
     if (checked)
-        fader->fadePause();
+        mPlayer->pause();
     else
-        fader->fadePlay();
+        mPlayer->play();
 }
 
 void MainWindow::on_comboBoxPlaylists_currentIndexChanged(const QString &arg1)
@@ -396,6 +398,21 @@ void MainWindow::on_actionImport_Playlist_triggered()
         query.exec("COMMIT TRANSACTION");
         qDebug() << "Done adding songs to playlist";
     }
+}
+
+void MainWindow::mediaStateChanged(BmAbstractAudioBackend::State newState)
+{
+    static BmAbstractAudioBackend::State lastState = BmAbstractAudioBackend::StoppedState;
+    if (newState != lastState)
+    {
+        lastState = newState;
+        if (newState == BmAbstractAudioBackend::EndOfMediaState)
+        {
+            playlists->getCurrent()->next();
+            playCurrent(true);
+        }
+    }
+
 }
 
 void MainWindow::on_treeViewPlaylist_clicked(const QModelIndex &index)

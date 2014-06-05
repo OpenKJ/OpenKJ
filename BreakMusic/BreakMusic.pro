@@ -26,7 +26,9 @@ SOURCES += main.cpp\
     bmplaylist.cpp \
     bmsong.cpp \
     bmsourcedir.cpp \
-    bmsettings.cpp
+    bmsettings.cpp \
+    bmabstractaudiobackend.cpp \
+    bmaudiobackendgstreamer.cpp
 
 HEADERS  += mainwindow.h \
     songdbtablemodel.h \
@@ -40,7 +42,9 @@ HEADERS  += mainwindow.h \
     bmplaylist.h \
     bmsong.h \
     bmsourcedir.h \
-    bmsettings.h
+    bmsettings.h \
+    bmabstractaudiobackend.h \
+    bmaudiobackendgstreamer.h
 
 FORMS    += mainwindow.ui \
     databasedialog.ui
@@ -56,3 +60,10 @@ unix: PKGCONFIG += taglib_c
 win32: INCLUDEPATH += "C:\taglib\include\taglib"
 win32: LIBS += -L"C:\taglib\taglib\taglib\Release" -ltag
 #win32: LIBS += -L"$$_PRO_FILE_PWD_/taglib-win32/lib" -ltag
+
+win32: INCLUDEPATH += "C:\gstreamer-sdk\0.10\x86\include\gstreamer-0.10"
+win32: INCLUDEPATH += "C:\gstreamer-sdk\0.10\x86\include\glib-2.0"
+win32: INCLUDEPATH += "C:\gstreamer-sdk\0.10\x86\lib\glib-2.0\include"
+win32: INCLUDEPATH += "C:\gstreamer-sdk\0.10\x86\include\libxml2"
+win32: LIBS+= -L"C:\gstreamer-sdk\0.10\x86\lib" -lgstreamer-0.10 -lglib-2.0 -lgobject-2.0
+
