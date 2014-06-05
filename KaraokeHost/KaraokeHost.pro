@@ -9,13 +9,15 @@ QT += core gui sql network
 unix: DEFINES += USE_GL
 #win32: DEFINES += USE_GL
 
+win32: RC_FILE = KaraokeHost.rc
+
 contains(DEFINES, USE_GL) {
     QT += opengl
 }
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-win32: CONFIG += console
+#win32: CONFIG += console
 
 TARGET = KaraokeHost
 TEMPLATE = app
