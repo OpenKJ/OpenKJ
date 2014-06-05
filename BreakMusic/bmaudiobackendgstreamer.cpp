@@ -452,6 +452,11 @@ void FaderGStreamer::fadeIn()
         fading = true;
         start();
     }
+    else
+    {
+        qDebug() << "fadeIn() - A fade operation is already in progress... skipping";
+        return;
+    }
     while(fading)
         QApplication::processEvents();
     qDebug() << "fadeIn() - Finished";
@@ -466,6 +471,11 @@ void FaderGStreamer::fadeOut()
         fading = true;
         m_preOutVolume = volume();
         start();
+    }
+    else
+    {
+        qDebug() << "fadeIn() - A fade operation is already in progress... skipping";
+        return;
     }
     while(fading)
         QApplication::processEvents();
@@ -491,7 +501,7 @@ void FaderGStreamer::setVolumeElement(GstElement *GstVolumeElement)
 void FaderGStreamer::setBaseVolume(int volume)
 {
     if (!fading)
-        m_preOutVolume = volume;
+        m_preOutVolume = volume * .01;
 }
 
 void FaderGStreamer::setVolume(double targetVolume)
