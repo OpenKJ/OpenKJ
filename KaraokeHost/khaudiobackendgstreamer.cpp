@@ -12,65 +12,50 @@
 KhAudioBackendGStreamer::KhAudioBackendGStreamer(QObject *parent) :
     KhAbstractAudioBackend(parent)
 {
-    gst_init(NULL,NULL);
     m_volume = 0;
     m_canKeyChange = true;
-    audioConvert = gst_element_factory_make("audioconvert", "audioconvert");
-    if (!audioConvert)
-        qDebug() << "GStreamer - Unable to create element audioconvert";
-    autoAudioSink = gst_element_factory_make("autoaudiosink", "autoaudiosink");
-    if (!autoAudioSink)
-        qDebug() << "GStreamer - Unable to create element autoaudiosink";
-    audioResample = gst_element_factory_make("audioresample", "audioresample");
-    if (!audioResample)
-        qDebug() << "GStreamer - Unable to create element audioresample";
-    rgvolume = gst_element_factory_make("rgvolume", "rgvolume");
-    if (!rgvolume)
-        qDebug() << "GStreamer - Unable to create element rgvolume";
+    m_fade = false;
+    m_silenceDetect = false;
+    m_outputChannels = 0;
+    m_currentRmsLevel = 0.0;
+    m_keyChangerOn = false;
+    m_keyChange = 0;
+
+    gst_init(NULL,NULL);
+    audioConvert = gst_element_factory_make("audioconvert", "audioConvert");
+    audioConvert2 = gst_element_factory_make("audioconvert", "audioConvert2");
+    autoAudioSink = gst_element_factory_make("autoaudiosink", "autoAudioSink");
+    rgVolume = gst_element_factory_make("rgvolume", "rgVolume");
     volumeElement = gst_element_factory_make("volume", "volumeElement");
-    if (!volumeElement)
-        qDebug() << "GStreamer - Unable to create element volume";
     level = gst_element_factory_make("level", "level");
-    if (!level)
-        qDebug() << "GStreamer - Unable to create element level";
     pitch = gst_element_factory_make("pitch", "pitch");
-    if (!pitch)
-        qDebug() << "GStreamer - Unable to create element pitch";
     playBin = gst_element_factory_make("playbin2", "playBin");
-    if (!playBin)
-        qDebug() << "GStreamer - Unable to create element playBin";
     filter = gst_element_factory_make("capsfilter", "filter");
-    if (!filter)
-        qDebug() << "Failed to create caps filter";
     sinkBin = gst_bin_new("sinkBin");
-    if (!sinkBin)
-        qDebug() << "GStreamer - Unable to create bin sinkBin";
     audioCapsStereo = gst_caps_new_simple("audio/x-raw-int","channels", G_TYPE_INT, 2, NULL);
     audioCapsMono = gst_caps_new_simple("audio/x-raw-int", "channels", G_TYPE_INT, 1, NULL);
-    g_object_set(filter, "caps", audioCapsMono, NULL);
+    g_object_set(filter, "caps", audioCapsStereo, NULL);
     if (!pitch)
     {
         qDebug() << "gst plugin 'pitch' not found, key changing disabled";
-        gst_bin_add_many(GST_BIN (sinkBin), rgvolume, audioResample, filter, level, volumeElement, autoAudioSink, NULL);
+        gst_bin_add_many(GST_BIN (sinkBin), rgVolume, filter, level, volumeElement, autoAudioSink, NULL);
         m_canKeyChange = false;
     }
     else
     {
-        gst_bin_add_many(GST_BIN (sinkBin), rgvolume, pitch, audioResample, filter, level, volumeElement, autoAudioSink, NULL);
+        gst_bin_add_many(GST_BIN (sinkBin), rgVolume, audioConvert, pitch, audioConvert2, filter, level, volumeElement, autoAudioSink, NULL);
         g_object_set(G_OBJECT(pitch), "pitch", 1.0, "tempo", 1.0, NULL);
     }
-    gst_element_link_many(rgvolume, audioResample, filter, level, volumeElement, autoAudioSink, NULL);
-    pad = gst_element_get_static_pad(rgvolume, "sink");
+    gst_element_link_many(rgVolume, audioConvert, audioConvert2, filter, level, volumeElement, autoAudioSink, NULL);
+    pad = gst_element_get_static_pad(rgVolume, "sink");
     ghostPad = gst_ghost_pad_new("sink", pad);
     gst_pad_set_active(ghostPad, true);
     gst_element_add_pad(sinkBin, ghostPad);
     gst_object_unref(pad);
     g_object_set(G_OBJECT(playBin), "audio-sink", sinkBin, NULL);
-    g_object_set(G_OBJECT(rgvolume), "album-mode", false, NULL);
+    g_object_set(G_OBJECT(rgVolume), "album-mode", false, NULL);
     g_object_set(G_OBJECT (level), "message", TRUE, NULL);
     bus = gst_element_get_bus (playBin);
-//    watch_id = gst_bus_add_watch (bus, message_handler, NULL);
-
 
     fader = new FaderGStreamer(this);
     fader->setVolumeElement(volumeElement);
@@ -81,12 +66,7 @@ KhAudioBackendGStreamer::KhAudioBackendGStreamer(QObject *parent) :
     connect(signalTimer, SIGNAL(timeout()), this, SLOT(signalTimer_timeout()));
     connect(fader, SIGNAL(volumeChanged(int)), this, SLOT(faderChangedVolume(int)));
     signalTimer->start(40);
-    m_fade = false;
-    m_silenceDetect = false;
-    outputChannels = 0;
-    currentRMSLevel = 0.0;
-    m_keyChangerOn = false;
-    m_keyChange = 0;
+
 
 }
 
@@ -125,43 +105,13 @@ void KhAudioBackendGStreamer::processGstMessages()
                         rms = pow (10, rms_dB / 20);
                         rmsValues = rmsValues + rms;
                     }
-                    currentRMSLevel = rmsValues / channels;
+                    m_currentRmsLevel = rmsValues / channels;
                 }
             }
             gst_message_unref(message);
         }
         else
             done = true;
-        //            if (message->type == GST_MESSAGE_ELEMENT) {
-        //                const GstStructure *s = gst_message_get_structure (message);
-        //                const gchar *name = gst_structure_get_name (s);
-        //                if (strcmp (name, "level") == 0) {
-        //                    gint channels;
-        //                    GstClockTime endtime;
-        //                    gdouble rms_dB;
-        //                    gdouble rms;
-        //                    const GValue *array_val;
-        //                    const GValue *value;
-        //                    GValueArray *rms_arr;
-        //                    gint i;
-        //                    if (!gst_structure_get_clock_time (s, "endtime", &endtime))
-        //                        g_warning ("Could not parse endtime");
-        //                    array_val = gst_structure_get_value (s, "rms");
-        //                    rms_arr = (GValueArray *) g_value_get_boxed (array_val);
-        //                    channels = rms_arr->n_values;
-        //                    outputChannels = channels;
-        //                    double rmsValues = 0.0;
-        //                    for (i = 0; i < channels; ++i) {
-        //                        value = g_value_array_get_nth (rms_arr, i);
-        //                        rms_dB = g_value_get_double (value);
-        //                        rms = pow (10, rms_dB / 20);
-        //                        rmsValues = rmsValues + rms;
-        //                    }
-        //                    currentRMSLevel = rmsValues / channels;
-        //                }
-        //            }
-        //            gst_message_unref(message);
-        //        }
     }
 }
 
@@ -232,9 +182,15 @@ void KhAudioBackendGStreamer::keyChangerOn()
         while (state() != KhAbstractAudioBackend::StoppedState)
             QApplication::processEvents();
     }
-    gst_element_unlink(rgvolume,audioResample);
-    if (!gst_element_link_many(rgvolume,pitch,audioResample,NULL))
-        qDebug() << "Failed to link gstreamer elements";
+//    qDebug() << "Setting playbin sink to sink bin";
+//    g_object_set(G_OBJECT(playBin), "audio-sink", psSinkBin, NULL);
+    gst_element_unlink(audioConvert,audioConvert2);
+    if (!gst_element_link(audioConvert,pitch))
+        qDebug() << "Failed to link audioConvert to pitch";
+    if (!gst_element_link(pitch,audioConvert2))
+        qDebug() << "Failed to link pitch to audioConvert2";
+//    if (!gst_element_link_many(rgvolume,pitch,audioResample,NULL))
+//        qDebug() << "Failed to link gstreamer elements";
     if (curstate != KhAbstractAudioBackend::StoppedState)
     {
         gst_element_set_state(playBin, GST_STATE_PLAYING);
@@ -245,7 +201,6 @@ void KhAudioBackendGStreamer::keyChangerOn()
             pause();
     }
     m_keyChangerOn = true;
-
 }
 
 void KhAudioBackendGStreamer::keyChangerOff()
@@ -259,9 +214,10 @@ void KhAudioBackendGStreamer::keyChangerOff()
         while (state() != KhAbstractAudioBackend::StoppedState)
             QApplication::processEvents();
     }
-    gst_element_unlink(rgvolume,pitch);
-    gst_element_unlink(pitch,audioResample);
-    if (!gst_element_link(rgvolume,audioResample))
+//    g_object_set(G_OBJECT(playBin), "audio-sink", sinkBin, NULL);
+    gst_element_unlink(audioConvert,pitch);
+    gst_element_unlink(pitch,audioConvert2);
+    if (!gst_element_link(audioConvert,audioConvert2))
         qDebug() << "Failed to link gstreamer elements";
     if (curstate != KhAbstractAudioBackend::StoppedState)
     {
@@ -572,7 +528,7 @@ bool KhAudioBackendGStreamer::canDetectSilence()
 
 bool KhAudioBackendGStreamer::isSilent()
 {
-    if (currentRMSLevel <= 0.01)
+    if (m_currentRmsLevel <= 0.01)
         return true;
     return false;
 }

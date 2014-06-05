@@ -50,9 +50,9 @@ private:
     GstElement *sinkBin;
     GstElement *playBin;
     GstElement *audioConvert;
+    GstElement *audioConvert2;
     GstElement *autoAudioSink;
-    GstElement *audioResample;
-    GstElement *rgvolume;
+    GstElement *rgVolume;
     GstElement *pitch;
     GstElement *volumeElement;
     GstElement *level;
@@ -73,8 +73,8 @@ private:
     bool m_silenceDetect;
     bool m_canKeyChange;
     void processGstMessages();
-    int outputChannels;
-    double currentRMSLevel;
+    int m_outputChannels;
+    double m_currentRmsLevel;
 
 
     // KhAbstractAudioBackend interface
