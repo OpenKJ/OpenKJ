@@ -23,5 +23,8 @@
         <file>Icons/openkjlogo1.png</file>
         <file>Icons/list-add-user-small.png</file>
         <file>Icons/network-wired.png</file>
+        <file>Icons/khicon-32x32.png</file>
+        <file>Icons/khicon-64x64.png</file>
+        <file>Icons/khicon-144x144.png</file>
     </qresource>
 </RCC>
