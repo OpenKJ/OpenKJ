@@ -39,14 +39,15 @@ KhAudioBackendGStreamer::KhAudioBackendGStreamer(QObject *parent) :
     {
         qDebug() << "gst plugin 'pitch' not found, key changing disabled";
         gst_bin_add_many(GST_BIN (sinkBin), rgVolume, filter, level, volumeElement, autoAudioSink, NULL);
+        gst_element_link_many(rgVolume, filter, level, volumeElement, autoAudioSink, NULL);
         m_canKeyChange = false;
     }
     else
     {
         gst_bin_add_many(GST_BIN (sinkBin), rgVolume, audioConvert, pitch, audioConvert2, filter, level, volumeElement, autoAudioSink, NULL);
+        gst_element_link_many(rgVolume, audioConvert, audioConvert2, filter, level, volumeElement, autoAudioSink, NULL);
         g_object_set(G_OBJECT(pitch), "pitch", 1.0, "tempo", 1.0, NULL);
     }
-    gst_element_link_many(rgVolume, audioConvert, audioConvert2, filter, level, volumeElement, autoAudioSink, NULL);
     pad = gst_element_get_static_pad(rgVolume, "sink");
     ghostPad = gst_ghost_pad_new("sink", pad);
     gst_pad_set_active(ghostPad, true);
