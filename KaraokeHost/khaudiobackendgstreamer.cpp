@@ -38,8 +38,8 @@ KhAudioBackendGStreamer::KhAudioBackendGStreamer(QObject *parent) :
     if (!pitch)
     {
         qDebug() << "gst plugin 'pitch' not found, key changing disabled";
-        gst_bin_add_many(GST_BIN (sinkBin), rgVolume, filter, level, volumeElement, autoAudioSink, NULL);
-        gst_element_link_many(rgVolume, filter, level, volumeElement, autoAudioSink, NULL);
+        gst_bin_add_many(GST_BIN (sinkBin), rgVolume, audioConvert, filter, level, volumeElement, autoAudioSink, NULL);
+        gst_element_link_many(rgVolume, audioConvert, filter, level, volumeElement, autoAudioSink, NULL);
         m_canKeyChange = false;
     }
     else
