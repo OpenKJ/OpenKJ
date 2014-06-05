@@ -449,6 +449,7 @@ void FaderGStreamer::fadeIn()
     m_targetVolume = m_preOutVolume;
     if (!fading)
     {
+        fading = true;
         start();
     }
     while(fading)
