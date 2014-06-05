@@ -124,13 +124,14 @@ win32: LIBS += -L"C:\Users\nunya\Downloads\zlib125dll\dll32" -lzlibwapi
 
 contains(DEFINES, USE_GSTREAMER) {
     message("USE_GSTREAMER defined, building GStreamer audio backend")
-    win32: INCLUDEPATH += "C:\gstreamer\1.0\x86\include\gstreamer-1.0"
-    win32: INCLUDEPATH += "C:\gstreamer\1.0\x86\include\glib-2.0"
-    win32: INCLUDEPATH += "C:\gstreamer\1.0\x86\lib\glib-2.0\include"
+    win32: INCLUDEPATH += "C:\gstreamer-sdk\0.10\x86\include\gstreamer-0.10"
+    win32: INCLUDEPATH += "C:\gstreamer-sdk\0.10\x86\include\glib-2.0"
+    win32: INCLUDEPATH += "C:\gstreamer-sdk\0.10\x86\lib\glib-2.0\include"
+    win32: INCLUDEPATH += "C:\gstreamer-sdk\0.10\x86\include\libxml2"
     PKGCONFIG += gstreamer-0.10
     HEADERS += khaudiobackendgstreamer.h
     SOURCES += khaudiobackendgstreamer.cpp
-    win32: LIBS+= -L"C:\gstreamer\1.0\x86\lib" -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0
+    win32: LIBS+= -L"C:\gstreamer-sdk\0.10\x86\lib" -lgstreamer-0.10 -lglib-2.0 -lgobject-2.0
 
 }
 
