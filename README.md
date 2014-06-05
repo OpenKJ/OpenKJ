@@ -12,6 +12,10 @@ A few features:
 * Remotely fades BreakMusic in and out when karaoke tracks start/end
 * Lots of other little things
 
+It currently only handles mp3g+zip files (zip files containing an mp3 and cdg file).  I'll be adding others in the future (non-zipped mp3+cdg, wav+cdg, ogg+cdg, etc).  It does not support playing non cdg-based tracks (wmv, avi, mpg, etc) and I have zero plans to ever do so, as professional KJ's generally don't use them.
+
+Database entries for the songs are based on the file naming scheme.  I've included the commone ones I've come across, if anyone needs something added just tell me or submit the appropriate code changes if you're a programmer.  They're pretty trivial to add.  I plan on adding the ability to do custom definitons in the future, but it's pretty far down on my list.
+
 ![Main window screen shot](/screenShots/KhMainWindow.png "Main KaraokeHost Window")
 ![Full screen CDG Display](/screenShots/KhCDGWindowFullScreen.png "Fullscreen CDG Display")
 
@@ -34,9 +38,12 @@ Strongly recommended:
 * Qt 5.x
 * Taglib
 
-I develop the software and host my shows on Linux (Fedora specifically), so it is known to build and work there.  (It "should" work similarly on the BSD's.)
-I have verified that it will build and run on Mac OS X, though only with the QMediaPlayer backend.  The brew gstreamer-1.0 packages were missing too much stuff for the GStreamer backend to work properly.  I haven't tried it with the GStreamer project hosted installer.
-It should build and work on Windows as well, but I have little experience there and have had problems getting the dependencies set up properly.  If anyone builds it successfully on Windows please do let me know.  
+I develop the software and host my shows on Linux (Fedora specifically), so it is known to build and work there.  (It "should" work similarly on any Linux distor or the BSD's.)  Everything needed will most likely be available via the package manager on any common distro.  On Fedora the packages are gstreamer-devel gstreamer gstreamer-plugins-good gstreamer-plugins-bad minizip minizip-devel and the Qt5 stuff (I just yum install qt5-* because I'm lazy).  On Fedora you will also need to have the rpmfusion repo enabled to get mp3 support, as the app is pretty useless w/o it.  "qmake-qt5" or possibly just "qmake", depending on your distro, followed by a "make" should get it built.  There is no "make install" at the moment, so you'll just need to copy the KaraokeHost and BreakMusic binaries into "/usr/bin" or the like if you don't want run it from the build directory.  Tweak the KaraokeHost.pro file to turn audio backends on/off and to enable or disable OpenGL support prior to building.  One thing to note, you'll probably need to turn off flat volumes in your pulseaudio config if you're using it, otherwise the applicaitons may mess with your system-wide volume instead of just the application volume.
+
+I have verified that it will build and run on Mac OS X, though only with the QMediaPlayer backend.  It builds okay with the gstreamer.com GStreamer SDK, and GStreamer isn't throwing errors, but isn't playing either.  Looks like there may be something it doesn't like about the pipeline, but I've been unable to figure it out as of yet.  Not spending a lot of time on this until it becomes important to someone who can test on a real Mac (I test builds on a hackintosh).  Minizip was acquired via brew, as was pkg-config (for setting the build flags appropriately for minizip).
+
+Karaokehost is building and working on Windows (only tested on Win7) using the msvc 2012 build system (only testing 32bit builds atm).  GStreamer works fine built against the gstreamer.com GStreamer SDK.  Minizip can be downloaded from http://www.winimage.com/zLibDll/minizip.html  You'll need both the zlib125.zip (headers) and zlib125dll.zip (libs and dll) files.  You will likely need to modify the paths in the KaraokeHost.pro file to match your devel environment.
+
 
 The goal is to have it work on all three platforms.
 
