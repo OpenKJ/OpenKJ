@@ -26,8 +26,8 @@ Both are experimental but usable at this point.  I am using it to run my shows e
 * minizip
 
 Strongly recommended:
-* gstreamer (1.0+)
-* gst-plugins-ugly (for key changer)
+* gstreamer (0.10 branch)
+* gst-plugins-bad (for key changer)
 
 **Requirements to build BreakMusic:**
 
