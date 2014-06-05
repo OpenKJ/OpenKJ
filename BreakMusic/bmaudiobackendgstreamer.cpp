@@ -446,10 +446,14 @@ void FaderGStreamer::run()
 void FaderGStreamer::fadeIn()
 {
     qDebug() << "fadeIn() - Started";
-    m_targetVolume = m_preOutVolume;
+    if (m_preOutVolume <= volume())
+    {
+        qDebug() << "fadeIn() - Target volume already met or exceeded... skipping";
+        return;
+    }
     if (!fading)
     {
-        fading = true;
+        m_targetVolume = m_preOutVolume;
         start();
     }
     else
@@ -465,10 +469,9 @@ void FaderGStreamer::fadeIn()
 void FaderGStreamer::fadeOut()
 {
     qDebug() << "fadeOut() - Started";
-    m_targetVolume = 0;
     if (!fading)
     {
-        fading = true;
+        m_targetVolume = 0;
         m_preOutVolume = volume();
         start();
     }

@@ -125,12 +125,12 @@ void MainWindow::ipcMessageReceived(int ipcCommand)
     switch (ipcCommand) {
     case BmIPCServer::CMD_FADE_OUT:
         //fader->fadeOut();
-        mPlayer->fadeOut();
         qDebug() << "Received IPC command CMD_FADE_OUT";
+        mPlayer->fadeOut();
         break;
     case BmIPCServer::CMD_FADE_IN:
-        mPlayer->fadeIn();
         qDebug() << "Received IPC command CMD_FADE_IN";
+        mPlayer->fadeIn();
         break;
     case BmIPCServer::CMD_PLAY:
         mPlayer->play();

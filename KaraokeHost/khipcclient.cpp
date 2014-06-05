@@ -27,7 +27,7 @@ KhIPCClient::KhIPCClient(QString remoteServername, QObject *parent) :
 
     m_socket = new QLocalSocket(this);
     m_serverName = remoteServername;
-    m_command = -1;
+    m_command = CMD_NOOP;
 
     connect(m_socket, SIGNAL(connected()), this, SLOT(socket_connected()));
     connect(m_socket, SIGNAL(disconnected()), this, SLOT(socket_disconnected()));

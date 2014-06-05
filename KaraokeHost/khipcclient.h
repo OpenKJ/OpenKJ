@@ -31,7 +31,7 @@ class KhIPCClient : public QObject
 public:
     KhIPCClient(QString remoteServername, QObject *parent = 0);
     ~KhIPCClient();
-    enum{CMD_FADE_OUT=0,CMD_FADE_IN,CMD_STOP,CMD_PAUSE,CMD_PLAY};
+    enum{CMD_NOOP=0,CMD_FADE_OUT,CMD_FADE_IN,CMD_STOP,CMD_PAUSE,CMD_PLAY};
 
 signals:
 
