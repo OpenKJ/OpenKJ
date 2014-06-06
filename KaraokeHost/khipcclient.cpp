@@ -52,14 +52,29 @@ KhIPCClient::~KhIPCClient() {
 
 void KhIPCClient::send_MessageToServer(int command)
 {
-    m_socket->abort();
+    // m_socket->abort();
     m_command = command;
-    m_socket->connectToServer(m_serverName);
+    if (m_socket->state() != QLocalSocket::ConnectedState)
+    {
+        qDebug() << "IPC Client - Trying to send command but conneciton is closed, trying to connect";
+        m_socket->connectToServer(m_serverName);
+    }
+    else
+    {
+        qDebug() << "IPC Client - Sending command over existing connection";
+        QByteArray block;
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out.setVersion(QDataStream::Qt_5_0);
+        out << m_command;
+        out.device()->seek(0);
+        m_socket->write(block);
+        m_socket->flush();
+    }
 }
 
 
 void KhIPCClient::socket_connected(){
-    qDebug() << "IPC socket connected";
+    qDebug() << "IPC Client - Connection established, sending command";
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_0);
@@ -70,14 +85,14 @@ void KhIPCClient::socket_connected(){
 }
 
 void KhIPCClient::socket_disconnected() {
-    qDebug() << "IPC socket disconnected";
+    qDebug() << "IPC Client - Disconnected";
 }
 
 
 void KhIPCClient::socket_readReady() {
-    qDebug() << "IPC socket readReady";
+    qDebug() << "IPC Client - readReady signal emitted";
 }
 
 void KhIPCClient::socket_error(QLocalSocket::LocalSocketError) {
-    qDebug() << "IPC socket error";
+    qDebug() << "IPC Client - Socket Error";
 }

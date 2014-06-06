@@ -109,6 +109,10 @@ void KhAudioBackendGStreamer::processGstMessages()
                     m_currentRmsLevel = rmsValues / channels;
                 }
             }
+            else if (message->type == GST_MESSAGE_EOS)
+            {
+                emit stateChanged(EndOfMediaState);
+            }
             gst_message_unref(message);
         }
         else

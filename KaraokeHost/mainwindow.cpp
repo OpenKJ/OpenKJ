@@ -219,8 +219,10 @@ MainWindow::MainWindow(QWidget *parent) :
 void MainWindow::play(QString zipFilePath)
 {
 
-    if ((activeAudioBackend->state() != KhAbstractAudioBackend::PlayingState) && (activeAudioBackend->state() != KhAbstractAudioBackend::PausedState))
+    if (activeAudioBackend->state() != KhAbstractAudioBackend::PausedState)
     {
+        if (activeAudioBackend->state() == KhAbstractAudioBackend::PlayingState)
+            activeAudioBackend->stop();
         KhZip zip(zipFilePath);
         int duration = zip.getSongDuration();
         bool cdgOk = zip.extractCdg(QDir(khTmpDir->path()));
@@ -243,6 +245,7 @@ void MainWindow::play(QString zipFilePath)
             cdg->FileOpen(khTmpDir->path().toStdString() + QDir::separator().toLatin1() + "tmp.cdg");
             cdg->Process();
             activeAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + "tmp.mp3");
+            ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
             activeAudioBackend->play();
             ui->labelArtist->setText(songCurrent->Artist);
             ui->labelTitle->setText(songCurrent->Title);
@@ -308,6 +311,7 @@ void MainWindow::databaseCleared()
 void MainWindow::on_buttonStop_clicked()
 {
     activeAudioBackend->stop();
+    ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
 }
 
 void MainWindow::on_buttonPause_clicked()
@@ -480,7 +484,6 @@ void MainWindow::on_treeViewRotation_clicked(const QModelIndex &index)
 
 void MainWindow::on_treeViewQueue_activated(const QModelIndex &index)
 {
-    activeAudioBackend->stop();
     KhQueueSong *queuesong = rotationmodel->getSelected()->getSongByPosition(index.row());
     KhSong *song = new KhSong();
     song->Artist = queuesong->getArtist();
@@ -500,7 +503,6 @@ void MainWindow::on_treeViewQueue_activated(const QModelIndex &index)
     rotationmodel->layoutAboutToBeChanged();
     rotationmodel->setCurrentSingerPosition(rotationmodel->getSelected()->position());
     rotationmodel->layoutChanged();
-    ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
 }
 
 void MainWindow::on_actionManage_DB_triggered()
@@ -674,7 +676,7 @@ void MainWindow::audioBackend_stateChanged(KhAbstractAudioBackend::State state)
         ui->labelRemainTime->setText("0:00");
         ui->labelTotalTime->setText("0:00");
         ui->sliderProgress->setValue(0);
-        ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
+        //ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
         QImage cdgBg;
         if (settings->cdgDisplayBackgroundImage() != "")
         {
@@ -696,6 +698,12 @@ void MainWindow::audioBackend_stateChanged(KhAbstractAudioBackend::State state)
         ui->cdgOutput->setPixmap(QPixmap::fromImage(QImage(":/icons/Icons/openkjlogo1.png")));
 
     }
+    if (state == KhAbstractAudioBackend::EndOfMediaState)
+    {
+        ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
+        activeAudioBackend->stop(true);
+    }
+
 }
 
 void MainWindow::on_sliderProgress_sliderMoved(int position)
@@ -764,6 +772,7 @@ void MainWindow::silenceDetected()
     {
         qDebug() << "Silence detected for > 2s after last CDG draw command... Stopping.";
         activeAudioBackend->stop(true);
+        ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
     }
 }
 
