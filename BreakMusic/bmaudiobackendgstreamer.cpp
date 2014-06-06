@@ -429,6 +429,17 @@ void FaderGStreamer::run()
     fading = true;
     while (volume() != m_targetVolume)
     {
+        qDebug() << "Fader - Running - Current volume: " << volume() << " Target volume: " << m_targetVolume;
+        if ((volume() > m_targetVolume) && (volume() <= m_targetVolume + .01))
+        {
+            setVolume(m_targetVolume);
+            break;
+        }
+        else if ((volume() < m_targetVolume) && (volume() >= m_targetVolume - .01))
+        {
+            setVolume(m_targetVolume);
+            break;
+        }
         if (volume() > m_targetVolume)
         {
             if (volume() < .01)
@@ -436,7 +447,7 @@ void FaderGStreamer::run()
             else
                 setVolume(volume() - .01);
         }
-        if (volume() < m_targetVolume)
+        else if (volume() < m_targetVolume)
             setVolume(volume() + .01);
         QThread::msleep(30);
     }

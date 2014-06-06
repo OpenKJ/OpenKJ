@@ -93,8 +93,8 @@ private slots:
 
     void on_comboBoxPlaylists_currentIndexChanged(const QString &arg1);
     void on_playlistChanged();
-    void on_actionShow_Metadata(bool checked);
-    void on_actionShow_Filenames(bool checked);
+    void onActionShowMetadata(bool checked);
+    void onActionShowFilenames(bool checked);
     void on_actionImport_Playlist_triggered();
     void mediaStateChanged(BmAbstractAudioBackend::State newState);
 
@@ -102,7 +102,7 @@ private slots:
     void on_treeViewPlaylist_clicked(const QModelIndex &index);
 
 public slots:
-    void on_actionManageDatabase_triggered();
+    void onActionManageDatabase();
     void on_playlistsChanged();
 
 };

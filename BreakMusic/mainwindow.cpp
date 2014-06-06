@@ -76,8 +76,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->comboBoxPlaylists->setCurrentIndex(settings->playlistIndex());
     ui->treeViewDB->setModel(songdbmodel);
     ui->treeViewPlaylist->setModel(playlistmodel);
-    on_actionShow_Filenames(settings->showFilenames());
-    on_actionShow_Metadata(settings->showMetadata());
+    onActionShowFilenames(settings->showFilenames());
+    onActionShowMetadata(settings->showMetadata());
     ui->treeViewPlaylist->header()->resizeSections(QHeaderView::ResizeToContents);
     ui->treeViewPlaylist->header()->resizeSection(0,18);
     ui->treeViewPlaylist->header()->setSectionResizeMode(0,QHeaderView::Fixed);
@@ -90,11 +90,11 @@ MainWindow::MainWindow(QWidget *parent) :
     //fader = new Fader(mPlayer,this);
 
     connect(ipcServer, SIGNAL(messageReceived(int)), this, SLOT(ipcMessageReceived(int)));
-    connect(ui->actionShow_Filenames, SIGNAL(triggered(bool)), this, SLOT(on_actionShow_Filenames(bool)));
-    connect(ui->actionShow_Metadata, SIGNAL(triggered(bool)), this, SLOT(on_actionShow_Metadata(bool)));
+    connect(ui->actionShow_Filenames, SIGNAL(triggered(bool)), this, SLOT(onActionShowFilenames(bool)));
+    connect(ui->actionShow_Metadata, SIGNAL(triggered(bool)), this, SLOT(onActionShowMetadata(bool)));
     connect(ui->actionManage_Database, SIGNAL(triggered()), dbDialog, SLOT(show()));
     connect(mPlayer, SIGNAL(stateChanged(BmAbstractAudioBackend::State)), this, SLOT(mediaStateChanged(BmAbstractAudioBackend::State)));
-    connect(mPlayer, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)), this, SLOT(on_mediaStatusChanged(QMediaPlayer::MediaStatus)));
+ //   connect(mPlayer, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)), this, SLOT(on_mediaStatusChanged(QMediaPlayer::MediaStatus)));
     connect(mPlayer, SIGNAL(positionChanged(qint64)), this, SLOT(on_mediaPositionChanged(qint64)));
     connect(mPlayer, SIGNAL(durationChanged(qint64)), this, SLOT(on_mediaDurationChanged(qint64)));
     connect(mPlayer, SIGNAL(volumeChanged(int)), ui->sliderVolume, SLOT(setValue(int)));
@@ -150,7 +150,7 @@ void MainWindow::ipcMessageReceived(int ipcCommand)
     }
 }
 
-void MainWindow::on_actionManageDatabase_triggered()
+void MainWindow::onActionManageDatabase()
 {
     dbDialog->show();
 }
@@ -301,7 +301,7 @@ void MainWindow::on_playlistChanged()
     }
 }
 
-void MainWindow::on_actionShow_Metadata(bool checked)
+void MainWindow::onActionShowMetadata(bool checked)
 {
     if (!checked)
     {
@@ -321,7 +321,7 @@ void MainWindow::on_actionShow_Metadata(bool checked)
 }
 
 
-void MainWindow::on_actionShow_Filenames(bool checked)
+void MainWindow::onActionShowFilenames(bool checked)
 {
     if (!checked)
     {

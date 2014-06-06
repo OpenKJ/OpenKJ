@@ -35,8 +35,6 @@ public:
     ~BmIPCServer();
 
     int lastIpcCmd() const;
-    void setLastIpcCmd(const int &lastIpcCmd);
-
 signals:
     void messageReceived(int);
 

@@ -27,18 +27,18 @@ BmIPCServer::BmIPCServer(QString servername, QObject *parent)
     :QObject(parent) {
     m_server = new QLocalServer(this);
     m_lastIpcCmd = CMD_NOOP;
-    qDebug() << "Attempting to open command socket...";
+    qDebug() << "IPC Server - Attempting to open command socket...";
     if (!m_server->listen(servername)) {
-        qDebug() << "Failure: Error creating socket, trying to delete socket and trying again";
+        qDebug() << "IPC Server - Error creating socket, attempting to delete socket and trying again";
         QFile::remove("/tmp/" + servername);
         if (m_server->listen(servername))
-            qDebug() << "Success: Listening on socket " << servername;
+            qDebug() << "IPC Server - Success! Listening on socket" << servername;
         else
-            qDebug() << "Failure: Unable to open socket";
+            qDebug() << "IPC Server - Failure! Unable to open socket!";
 
     }
     else
-        qDebug() << "Success: Listening on socket " << servername;
+        qDebug() << "IPC Server - Socket opened successfully.  Listening on socket: " << servername;
     clientConnection = NULL;
     connect(m_server, SIGNAL(newConnection()), this, SLOT(socket_new_connection()));
 }
@@ -51,23 +51,8 @@ BmIPCServer::~BmIPCServer() {
 void BmIPCServer::socket_new_connection() {
     qDebug() << "IPC Server - New client connected";
     clientConnection = m_server->nextPendingConnection();
-//    while (clientConnection->bytesAvailable() < 1)
-//    {
-//        QApplication::processEvents();
-//        clientConnection->waitForReadyRead();
-//    }
     connect(clientConnection, SIGNAL(disconnected()), this, SLOT(clientDisconnected()));
     connect(clientConnection, SIGNAL(readyRead()), this, SLOT(dataReady()));
-//    QDataStream in(clientConnection);
-//    in.setVersion(QDataStream::Qt_5_0);
-//    if (clientConnection->bytesAvailable() < 1) {
-//        return;
-//    }
-//    int command;
-//    QString message;
-//    in >> command;
-//    m_lastIpcCmd = command;
-//    emit messageReceived(command);
 }
 
 void BmIPCServer::dataReady()
@@ -90,6 +75,7 @@ void BmIPCServer::dataReady()
 void BmIPCServer::clientDisconnected()
 {
     qDebug() << "IPC Server - Client disconnected";
+    clientConnection->deleteLater();
 }
 
 int BmIPCServer::lastIpcCmd() const
@@ -97,8 +83,4 @@ int BmIPCServer::lastIpcCmd() const
     return m_lastIpcCmd;
 }
 
-void BmIPCServer::setLastIpcCmd(const int &lastIpcCmd)
-{
-    m_lastIpcCmd = lastIpcCmd;
-}
 
