@@ -108,6 +108,7 @@ private slots:
 
     void on_sliderProgress_sliderReleased();
     void setKeyChange();
+    void toggleQueuePlayed();
 
 private:
     Ui::MainWindow *ui;
@@ -132,6 +133,7 @@ private:
     QLabel *labelSingerCount;
     bool sliderPositionPressed;
     void play(QString zipFilePath);
+    KhQueueSong *rtClickQueueSong;
 
     QTemporaryDir *khTmpDir;
     QDir *khDir;

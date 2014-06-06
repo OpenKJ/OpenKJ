@@ -214,6 +214,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     rotationDataChanged();
     ui->statusBar->addWidget(labelSingerCount);
+    rtClickQueueSong = NULL;
 }
 
 void MainWindow::play(QString zipFilePath)
@@ -802,10 +803,12 @@ void MainWindow::on_treeViewQueue_customContextMenuRequested(const QPoint &pos)
     {   
         QString zipPath = rotationmodel->getSelected()->getSongByPosition(index.row())->getSourceFile();
         dlgKeyChange->setActiveSong(rotationmodel->getSelected()->getSongByPosition(index.row()));
+        rtClickQueueSong = rotationmodel->getSelected()->getSongByPosition(index.row());
         cdgPreviewDialog->setZipFile(zipPath);
         QMenu contextMenu(this);
         contextMenu.addAction("Preview", cdgPreviewDialog, SLOT(preview()));
         contextMenu.addAction("Set Key Change", this, SLOT(setKeyChange()));
+        contextMenu.addAction("Toggle played", this, SLOT(toggleQueuePlayed()));
         contextMenu.exec(QCursor::pos());
         //contextMenu->exec(ui->treeView->mapToGlobal(point));
     }
@@ -825,4 +828,13 @@ void MainWindow::on_sliderProgress_sliderReleased()
 void MainWindow::setKeyChange()
 {
     dlgKeyChange->show();
+}
+
+void MainWindow::toggleQueuePlayed()
+{
+    rotationmodel->layoutAboutToBeChanged();
+    queuemodel->layoutAboutToBeChanged();
+    rtClickQueueSong->setPlayed(!rtClickQueueSong->getPlayed());
+    rotationmodel->layoutChanged();
+    queuemodel->layoutChanged();
 }
