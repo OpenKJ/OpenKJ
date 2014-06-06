@@ -18,6 +18,10 @@
   <property name="windowTitle">
    <string>OpenKJ BreakMusic</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="resources.qrc">
+    <normaloff>:/icons/bmicon48x48.png</normaloff>:/icons/bmicon48x48.png</iconset>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
