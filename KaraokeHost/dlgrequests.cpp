@@ -32,6 +32,9 @@ DlgRequests::DlgRequests(KhSongs *fullData, RotationTableModel *rotationModel, Q
     cdgPreviewDialog = new DlgCdgPreview(this);
     connect(ui->treeViewRequests->selectionModel(), SIGNAL(currentRowChanged(QModelIndex,QModelIndex)), this, SLOT(requestSelectionChanged(QModelIndex,QModelIndex)));
     connect(ui->treeViewSearch->selectionModel(), SIGNAL(currentRowChanged(QModelIndex,QModelIndex)), this, SLOT(songSelectionChanged(QModelIndex,QModelIndex)));
+    connect(requestsModel, SIGNAL(updateReceived(QTime)), this, SLOT(updateReceived(QTime)));
+    connect(requestsModel, SIGNAL(authenticationError()), this, SLOT(authError()));
+    connect(requestsModel, SIGNAL(sslError()), this, SLOT(sslError()));
     m_rotationModel = rotationModel;
     ui->comboBoxAddPosition->setEnabled(false);
     ui->comboBoxSingers->setEnabled(true);
@@ -222,4 +225,24 @@ void DlgRequests::on_treeViewSearch_customContextMenuRequested(const QPoint &pos
         contextMenu.exec(QCursor::pos());
         //contextMenu->exec(ui->treeView->mapToGlobal(point));
     }
+}
+
+void DlgRequests::updateReceived(QTime updateTime)
+{
+    ui->labelLastUpdate->setText(updateTime.toString("hh:mm:ss AP"));
+}
+
+void DlgRequests::on_buttonRefresh_clicked()
+{
+    requestsModel->forceFullUpdate();
+}
+
+void DlgRequests::authError()
+{
+    QMessageBox::warning(this, "Authentication Error", "An authentication error was encountered while trying to connect to the requests server.  Please verify that your username, password, and the requests server URL are correct.");
+}
+
+void DlgRequests::sslError()
+{
+    QMessageBox::warning(this, "SSL Handshake Error", "An error was encountered while establishing a secure connection to the requests server.  This is usually caused by an invalid or self-signed cert on the server.  You can set the requests client to ignore SSL errors in the network settings dialog.");
 }

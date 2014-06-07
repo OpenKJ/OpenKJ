@@ -26,6 +26,7 @@ RequestsTableModel::RequestsTableModel(QObject *parent) :
     connect(timer, SIGNAL(timeout()), this, SLOT(timerExpired()));
     connect(networkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
     connect(networkManager, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(onSslErrors(QNetworkReply*)));
+    connect(networkManager, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)), this, SLOT(setAuth(QNetworkReply*,QAuthenticator*)));
 }
 
 void RequestsTableModel::timerExpired()
@@ -42,15 +43,13 @@ void RequestsTableModel::timerExpired()
 
 void RequestsTableModel::onNetworkReply(QNetworkReply *reply)
 {
-    reply->ignoreSslErrors();
+    if (settings->requestServerIgnoreCertErrors())
+        reply->ignoreSslErrors();
     if (reply->error() != QNetworkReply::NoError)
     {
-        if (reply->error() != QNetworkReply::SslHandshakeFailedError)
-        {
         qDebug() << reply->errorString();
         //output some meaningful error msg
         return;
-        }
     }
     QByteArray data = reply->readAll();
     QJsonDocument json = QJsonDocument::fromJson(data);
@@ -58,6 +57,8 @@ void RequestsTableModel::onNetworkReply(QNetworkReply *reply)
     int recordType = json.object().value("recordtype").toDouble();
     int serial = json.object().value("serial").toDouble();
     qDebug() << "RequestsClient -" << QTime::currentTime().toString() <<  " - Received reply from server";
+    m_lastUpdate = QTime::currentTime();
+    emit updateReceived(m_lastUpdate);
     if (recordType == 0)
     {
         //serial only
@@ -109,6 +110,12 @@ void RequestsTableModel::onNetworkReply(QNetworkReply *reply)
             requests.removeAt(delIndex);
             emit layoutChanged();
         }
+        // Go ahead and force a full download.  Occasionally new requests are being missed if they're
+        // entered at just the right time while deleting a request or clearing the requests.
+        QUrl url(settings->requestServerUrl() + "/getRequests.php");
+        QNetworkRequest request;
+        request.setUrl(url);
+        networkManager->get(request);
     }
     else if (recordType == 3)
     {
@@ -117,12 +124,58 @@ void RequestsTableModel::onNetworkReply(QNetworkReply *reply)
         curSerial = serial;
         requests.clear();
         emit layoutChanged();
+        // Go ahead and force a full download.  Occasionally new requests are being missed if they're
+        // entered at just the right time while deleting a request or clearing the requests.
+        QUrl url(settings->requestServerUrl() + "/getRequests.php");
+        QNetworkRequest request;
+        request.setUrl(url);
+        networkManager->get(request);
     }
 }
 
 void RequestsTableModel::onSslErrors(QNetworkReply *reply)
 {
-    reply->ignoreSslErrors();
+    static QString lastUrl;
+    static bool errorEmitted = false;
+    if (lastUrl != settings->requestServerUrl())
+        errorEmitted = false;
+    if (settings->requestServerIgnoreCertErrors())
+        reply->ignoreSslErrors();
+    else if (!errorEmitted)
+    {
+        emit sslError();
+        errorEmitted = true;
+
+    }
+    lastUrl = settings->requestServerUrl();
+}
+
+void RequestsTableModel::setAuth(QNetworkReply *reply, QAuthenticator *authenticator)
+{
+    Q_UNUSED(reply);
+    static bool firstTry = true;
+    static bool errorSignalSent = false;
+    static QString lastUser;
+    static QString lastPass;
+    static QString lastUrl;
+    if ((lastUser != settings->requestServerUsername()) || (lastPass != settings->requestServerPassword()) || (lastUrl != settings->requestServerUrl()))
+    {
+        firstTry = true;
+        errorSignalSent = false;
+    }
+    if ((!firstTry) && (!errorSignalSent))
+    {
+        emit authenticationError();
+        errorSignalSent = true;
+        return;
+    }
+    qDebug() << "RequestsClient - Received authentication request, sending username and password";
+    authenticator->setUser(settings->requestServerUsername());
+    authenticator->setPassword(settings->requestServerPassword());
+    lastUser = settings->requestServerUsername();
+    lastPass = settings->requestServerPassword();
+    lastUrl = settings->requestServerUrl();
+    firstTry = false;
 }
 
 
@@ -219,6 +272,19 @@ void RequestsTableModel::deleteRequestId(int requestId)
 int RequestsTableModel::count()
 {
     return requests.count();
+}
+
+QTime RequestsTableModel::lastUpdate()
+{
+    return m_lastUpdate;
+}
+
+void RequestsTableModel::forceFullUpdate()
+{
+    QUrl url(settings->requestServerUrl() + "/getRequests.php");
+    QNetworkRequest request;
+    request.setUrl(url);
+    networkManager->get(request);
 }
 
 Request::Request(int RequestId, QString Singer, QString Artist, QString Title, int ts)

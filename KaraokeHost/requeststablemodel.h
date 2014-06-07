@@ -3,7 +3,9 @@
 
 #include <QAbstractTableModel>
 #include <QNetworkAccessManager>
+#include <QAuthenticator>
 #include <QTimer>
+#include <QTime>
 
 
 class Request
@@ -35,19 +37,30 @@ class RequestsTableModel : public QAbstractTableModel
 public:
     explicit RequestsTableModel(QObject *parent = 0);
     enum {REQUESTID=0,SINGER,ARTIST,TITLE,TIMESTAMP};
+    void deleteAll();
+    void deleteRequestId(int requestId);
+    int count();
+    QTime lastUpdate();
+    void forceFullUpdate();
 
 signals:
+    void updateReceived(QTime);
+    void authenticationError();
+    void sslError();
 
-public slots:
+private slots:
     void timerExpired();
     void onNetworkReply(QNetworkReply* reply);
     void onSslErrors(QNetworkReply * reply);
+    void setAuth(QNetworkReply * reply, QAuthenticator * authenticator);
 
 private:
     QTimer *timer;
     QList<Request> requests;
     QNetworkAccessManager *networkManager;
     int curSerial;
+    QTime m_lastUpdate;
+
 
     // QAbstractItemModel interface
 public:
@@ -56,9 +69,7 @@ public:
     QVariant data(const QModelIndex &index, int role) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
-    void deleteAll();
-    void deleteRequestId(int requestId);
-    int count();
+
 
 };
 

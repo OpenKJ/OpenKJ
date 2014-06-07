@@ -26,5 +26,6 @@
         <file>Icons/khicon-32x32.png</file>
         <file>Icons/khicon-64x64.png</file>
         <file>Icons/khicon-144x144.png</file>
+        <file>Icons/view-refresh.png</file>
     </qresource>
 </RCC>
