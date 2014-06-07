@@ -37,6 +37,7 @@ void RequestsTableModel::timerExpired()
         QUrl url(settings->requestServerUrl() + "/getSerial.php");
         QNetworkRequest request;
         request.setUrl(url);
+        request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
         networkManager->get(request);
     }
 }
@@ -68,6 +69,7 @@ void RequestsTableModel::onNetworkReply(QNetworkReply *reply)
             QUrl url(settings->requestServerUrl() + "/getRequests.php");
             QNetworkRequest request;
             request.setUrl(url);
+            request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
             networkManager->get(request);
         }
         else
@@ -115,6 +117,7 @@ void RequestsTableModel::onNetworkReply(QNetworkReply *reply)
         QUrl url(settings->requestServerUrl() + "/getRequests.php");
         QNetworkRequest request;
         request.setUrl(url);
+        request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
         networkManager->get(request);
     }
     else if (recordType == 3)
@@ -129,6 +132,7 @@ void RequestsTableModel::onNetworkReply(QNetworkReply *reply)
         QUrl url(settings->requestServerUrl() + "/getRequests.php");
         QNetworkRequest request;
         request.setUrl(url);
+        request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
         networkManager->get(request);
     }
 }
@@ -257,6 +261,7 @@ void RequestsTableModel::deleteAll()
     QUrl url(settings->requestServerUrl() + "/clearRequests.php");
     QNetworkRequest request;
     request.setUrl(url);
+    request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
     networkManager->get(request);
 }
 
@@ -266,6 +271,7 @@ void RequestsTableModel::deleteRequestId(int requestId)
     QUrl url(settings->requestServerUrl() + "/delRequest.php?reqID=" + QString::number(requestId));
     QNetworkRequest request;
     request.setUrl(url);
+    request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
     networkManager->get(request);
 }
 
@@ -284,6 +290,7 @@ void RequestsTableModel::forceFullUpdate()
     QUrl url(settings->requestServerUrl() + "/getRequests.php");
     QNetworkRequest request;
     request.setUrl(url);
+    request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
     networkManager->get(request);
 }
 
