@@ -35,6 +35,7 @@ DlgRequests::DlgRequests(KhSongs *fullData, RotationTableModel *rotationModel, Q
     connect(requestsModel, SIGNAL(updateReceived(QTime)), this, SLOT(updateReceived(QTime)));
     connect(requestsModel, SIGNAL(authenticationError()), this, SLOT(authError()));
     connect(requestsModel, SIGNAL(sslError()), this, SLOT(sslError()));
+    connect(requestsModel, SIGNAL(delayError(int)), this, SLOT(delayError(int)));
     m_rotationModel = rotationModel;
     ui->comboBoxAddPosition->setEnabled(false);
     ui->comboBoxSingers->setEnabled(true);
@@ -245,4 +246,9 @@ void DlgRequests::authError()
 void DlgRequests::sslError()
 {
     QMessageBox::warning(this, "SSL Handshake Error", "An error was encountered while establishing a secure connection to the requests server.  This is usually caused by an invalid or self-signed cert on the server.  You can set the requests client to ignore SSL errors in the network settings dialog.");
+}
+
+void DlgRequests::delayError(int seconds)
+{
+    QMessageBox::warning(this, "Possible Connectivity Issue", "It has been " + QString::number(seconds) + " seconds since we last received a response from the requests server.  You may be missing new submitted requests.  Please ensure that your network connection is up and working.");
 }

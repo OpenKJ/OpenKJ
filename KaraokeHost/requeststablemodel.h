@@ -47,6 +47,7 @@ signals:
     void updateReceived(QTime);
     void authenticationError();
     void sslError();
+    void delayError(int);
 
 private slots:
     void timerExpired();

@@ -33,6 +33,19 @@ void RequestsTableModel::timerExpired()
 {
     if (settings->requestServerEnabled())
     {
+        static bool errorEmitted = false;
+        static QTime lastTime;
+        qDebug() << "RequestsClient - Seconds since last update: " << m_lastUpdate.secsTo(QTime::currentTime());
+        if (lastTime != m_lastUpdate)
+        {
+            errorEmitted = false;
+        }
+        if ((m_lastUpdate.secsTo(QTime::currentTime()) > 300) && (!errorEmitted))
+        {
+            emit delayError(m_lastUpdate.secsTo(QTime::currentTime()));
+            errorEmitted = true;
+        }
+        lastTime = m_lastUpdate;
         qDebug() << "RequestsClient -" << QTime::currentTime().toString() << " - Sending request for current serial";
         QUrl url(settings->requestServerUrl() + "/getSerial.php");
         QNetworkRequest request;

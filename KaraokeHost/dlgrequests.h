@@ -44,6 +44,7 @@ private slots:
     void on_buttonRefresh_clicked();
     void authError();
     void sslError();
+    void delayError(int seconds);
 
 private:
     Ui::DlgRequests *ui;
