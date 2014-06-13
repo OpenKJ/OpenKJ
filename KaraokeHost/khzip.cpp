@@ -91,6 +91,11 @@ KhZip::KhZip(QObject *parent) :
     fileInfo = new unz_file_info;
 }
 
+KhZip::~KhZip()
+{
+    delete fileInfo;
+}
+
 bool KhZip::extractMp3(QDir destDir)
 {
     qDebug() << "Extracting to " << destDir.path();

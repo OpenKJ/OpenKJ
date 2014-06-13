@@ -38,6 +38,7 @@ private:
 public:
     explicit KhZip(QString zipFile, QObject *parent = 0);
     explicit KhZip(QObject *parent = 0);
+    ~KhZip();
     bool extractMp3(QDir destDir);
     bool extractCdg(QDir destDir);
 
