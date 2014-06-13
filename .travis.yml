@@ -4,3 +4,4 @@ install:
 script:
   - qmake
   - make
+
