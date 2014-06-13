@@ -4,6 +4,9 @@ install:
   - sudo apt-get install qtbase5-dev qt5-qmake
 
 script:
+  - pwd
+  - ls
+  - cd coyote1357/OpenKJ
   - qmake
   - make
 
