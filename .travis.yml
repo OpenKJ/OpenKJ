@@ -1,7 +1,6 @@
 install:
   - sudo apt-add-repository ppa:ubuntu-sdk-team/ppa -y
-  - sudo apt-get update
-  - sudo apt-get install qtbase5-dev qt5-qmake qt5-default
+  - sudo apt-get install qtbase5-dev qt5-qmake qt5-default gstreamer-dev
 
 script:
   - pwd
