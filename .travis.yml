@@ -5,8 +5,8 @@ install:
 
 script:
   - pwd
-  - ls
-  - cd coyote1357/OpenKJ
+  - which qmake
   - qmake
+  - qmake-qt5
   - make
 
