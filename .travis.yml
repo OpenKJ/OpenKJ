@@ -3,8 +3,6 @@ install:
   - sudo apt-get install qtbase5-dev qt5-qmake qt5-default libgstreamer0.10-dev
 
 script:
-  - pwd
-  - which qmake
   - qmake
   - make
 
