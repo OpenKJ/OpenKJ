@@ -1,12 +1,11 @@
 install:
   - sudo apt-add-repository ppa:ubuntu-sdk-team/ppa -y
   - sudo apt-get update
-  - sudo apt-get install qtbase5-dev qt5-qmake
+  - sudo apt-get install qtbase5-dev qt5-qmake qt5-default
 
 script:
   - pwd
   - which qmake
   - qmake
-  - qmake-qt5
   - make
 
