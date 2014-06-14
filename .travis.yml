@@ -2,10 +2,9 @@ install:
   - sudo apt-get update
   - sudo apt-add-repository ppa:ubuntu-sdk-team/ppa -y
   - sudo apt-get update
-  - sudo apt-get install qtbase5-dev qt5-qmake qt5-default libgstreamer0.10-dev lib32z1-dev
+  - sudo apt-get install qtbase5-dev qt5-qmake qt5-default libgstreamer0.10-dev 
 
 script:
   - ls
   - qmake
   - make
-
