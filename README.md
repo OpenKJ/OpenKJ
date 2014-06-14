@@ -29,7 +29,6 @@ Both are experimental but usable at this point.  I am using it to run my shows e
 **Requirements to build KaraokeHost:**
 
 * Qt 5.x
-* minizip
 
 Strongly recommended:
 * gstreamer (0.10 branch)
@@ -42,15 +41,15 @@ Strongly recommended:
 
 **Linux**
 
-I develop the software and host my shows on Linux (Fedora specifically), so it is known to build and work there.  (It "should" work similarly on any Linux distor or the BSD's.)  Everything needed will most likely be available via the package manager on any common distro.  On Fedora the packages are gstreamer-devel gstreamer gstreamer-plugins-good gstreamer-plugins-bad minizip minizip-devel and the Qt5 stuff (I just yum install qt5-* because I'm lazy).  On Fedora you will also need to have the rpmfusion repo enabled to get mp3 support, as the app is pretty useless w/o it.  "qmake-qt5" or possibly just "qmake", depending on your distro, followed by a "make" should get it built.  There is no "make install" at the moment, so you'll just need to copy the KaraokeHost and BreakMusic binaries into "/usr/bin" or the like if you don't want run it from the build directory.  Tweak the KaraokeHost.pro file to turn audio backends on/off and to enable or disable OpenGL support prior to building.  One thing to note, you'll probably need to turn off flat volumes in your pulseaudio config if you're using it, otherwise the applicaitons may mess with your system-wide volume instead of just the application volume.
+I develop the software and host my shows on Linux (Fedora specifically), so it is known to build and work there.  (It "should" work similarly on any Linux distor or the BSD's.)  Everything needed will most likely be available via the package manager on any common distro.  On Fedora the packages are gstreamer-devel gstreamer gstreamer-plugins-good gstreamer-plugins-bad and the Qt5 stuff (I just yum install qt5-* because I'm lazy).  On Fedora you will also need to have the rpmfusion repo enabled to get mp3 support, as the app is pretty useless w/o it.  "qmake-qt5" or possibly just "qmake", depending on your distro, followed by a "make" should get it built.  There is no "make install" at the moment, so you'll just need to copy the KaraokeHost and BreakMusic binaries into "/usr/bin" or the like if you don't want run it from the build directory.  Tweak the KaraokeHost.pro file to turn audio backends on/off and to enable or disable OpenGL support prior to building.  One thing to note, you'll probably need to turn off flat volumes in your pulseaudio config if you're using it, otherwise the applicaitons may mess with your system-wide volume instead of just the application volume.
 
 **Mac**
 
-I have verified that it will build and run on Mac OS X, though only with the QMediaPlayer backend.  It builds okay with the gstreamer.com GStreamer SDK, and GStreamer isn't throwing errors, but isn't playing either.  Looks like there may be something it doesn't like about the pipeline, but I've been unable to figure it out as of yet.  Not spending a lot of time on this until it becomes important to someone who can test on a real Mac (I test builds on a hackintosh).  Minizip was acquired via brew, as was pkg-config (for setting the build flags appropriately for minizip).
+I have verified that it will build and run on Mac OS X, though only with the QMediaPlayer backend.  It builds okay with the gstreamer.com GStreamer SDK, and GStreamer isn't throwing errors, but isn't playing either.  Looks like there may be something it doesn't like about the pipeline, but I've been unable to figure it out as of yet.  Not spending a lot of time on this until it becomes important to someone who can test on a real Mac (I test builds on a hackintosh).
 
 **Windows**
 
-Karaokehost is building and working on Windows (only tested on Win7) using the msvc 2012 build system (only testing 32bit builds atm).  GStreamer works fine built against the gstreamer.com GStreamer SDK.  Minizip can be downloaded from http://www.winimage.com/zLibDll/minizip.html  You'll need both the zlib125.zip (headers) and zlib125dll.zip (libs and dll) files.  You will likely need to modify the paths in the KaraokeHost.pro file to match your devel environment.  Experimental build installers can be found at http://openkj.org/downloads  I'm not sure I've got all of the dependencies in there, so if anyone tries it and it fails, be sure to let me know.
+Karaokehost is building and working on Windows (only tested on Win7) using the msvc 2012 build system (only testing 32bit builds atm).  GStreamer works fine built against the gstreamer.com GStreamer SDK.  You will likely need to modify the paths in the KaraokeHost.pro file to match your devel environment.  Experimental build installers can be found at http://openkj.org/downloads
 
 
 The goal is to have it work consistently across all three platforms.
@@ -73,15 +72,6 @@ QMediaPlayer (very limited, feature wise because of QMediaPlayer itself)
 * Key changer - Not implemented
 * Output device selection - Not implemented
 
-Fmod (Closed source, not really working on this backend anymore, but it's still there if anyone wants to play)
-
-* Fader - Working
-* Downmix - Working
-* Silence detect - Working
-* Key changer - Working
-* Output device selection - Working (mostly)
-
-
 
 Things that are still work in progress or to do:
 
@@ -90,6 +80,7 @@ KaraokeHost:
 * Regular singers - Name conflict resolution on import (Rename/Merge/Replace) 
 * Regular singers - Name conflict resolution on save (Merge/Replace)
 * Ticker - Make height auto-adapt to font size
+* Settings - Output device selection
 * And a million more things I'm forgetting
 
 BreakMusic:
