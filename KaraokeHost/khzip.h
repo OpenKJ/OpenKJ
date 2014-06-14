@@ -23,12 +23,35 @@
 
 #include <QObject>
 #include <QDir>
-#ifdef Q_OS_WIN
-#define ZLIB_WINAPI
-#endif
-extern "C" {
-    #include <unzip.h>
-}
+//#ifdef Q_OS_WIN
+//#define ZLIB_WINAPI
+//#endif
+//extern "C" {
+//    #include <unzip.h>
+//}
+
+//class KhZip : public QObject
+//{
+//    Q_OBJECT
+//private:
+//    QString m_zipFile;
+//public:
+//    explicit KhZip(QString zipFile, QObject *parent = 0);
+//    explicit KhZip(QObject *parent = 0);
+//    ~KhZip();
+//    bool extractMp3(QDir destDir);
+//    bool extractCdg(QDir destDir);
+
+//    QString zipFile() const;
+//    void setZipFile(const QString &zipFile);
+//    int getSongDuration();
+//    unz_file_info *fileInfo;
+
+//signals:
+
+//public slots:
+
+//};
 
 class KhZip : public QObject
 {
@@ -38,14 +61,13 @@ private:
 public:
     explicit KhZip(QString zipFile, QObject *parent = 0);
     explicit KhZip(QObject *parent = 0);
-    ~KhZip();
+    //~KhZip2();
     bool extractMp3(QDir destDir);
     bool extractCdg(QDir destDir);
 
     QString zipFile() const;
     void setZipFile(const QString &zipFile);
     int getSongDuration();
-    unz_file_info *fileInfo;
 
 signals:
 

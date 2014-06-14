@@ -24,8 +24,101 @@
 #include <fstream>
 #include <QFile>
 
+#if defined(__GNUC__)
+#ifndef _FILE_OFFSET_BITS
+#define _FILE_OFFSET_BITS 64
+#endif
+#ifndef _LARGEFILE64_SOURCE
+#define _LARGEFILE64_SOURCE 1
+#endif
+#endif
+
+#include "extern/miniz.c"
 
 
+KhZip::KhZip(QString zipFile, QObject *parent) :
+    QObject(parent)
+{
+    m_zipFile = zipFile;
+}
+
+KhZip::KhZip(QObject *parent) :
+    QObject(parent)
+{
+    m_zipFile = "";
+}
+
+bool KhZip::extractMp3(QDir destDir)
+{
+    mz_zip_archive zip_archive;
+    memset(&zip_archive, 0, sizeof(zip_archive));
+    if (!mz_zip_reader_init_file(&zip_archive, m_zipFile.toStdString().c_str(), 0))
+    {
+        qDebug() << "mz_zip_reader_init_file() failed!";
+        return false;
+    }
+
+    for (int i = 0; i < (int)mz_zip_reader_get_num_files(&zip_archive); i++)
+    {
+        mz_zip_archive_file_stat file_stat;
+        if (!mz_zip_reader_file_stat(&zip_archive, i, &file_stat))
+        {
+            qDebug() << "mz_zip_reader_file_stat() failed!";
+            mz_zip_reader_end(&zip_archive);
+            return false;
+        }
+        QString filename = file_stat.m_filename;
+        if (filename.endsWith(".mp3", Qt::CaseInsensitive))
+        {
+            QString outFile(destDir.path() + QDir::separator() + "tmp.mp3");
+            if (mz_zip_reader_extract_file_to_file(&zip_archive, file_stat.m_filename,outFile.toLocal8Bit().data(),0))
+                return true;
+            else
+            {
+                qDebug() << "Error extracting file";
+            }
+        }
+
+    }
+
+    return false;
+}
+
+bool KhZip::extractCdg(QDir destDir)
+{
+    mz_zip_archive zip_archive;
+    memset(&zip_archive, 0, sizeof(zip_archive));
+    if (!mz_zip_reader_init_file(&zip_archive, m_zipFile.toLocal8Bit().data(), 0))
+    {
+        qDebug() << "mz_zip_reader_init_file() failed!";
+        //return false;
+    }
+
+    for (int i = 0; i < (int)mz_zip_reader_get_num_files(&zip_archive); i++)
+    {
+        mz_zip_archive_file_stat file_stat;
+        if (!mz_zip_reader_file_stat(&zip_archive, i, &file_stat))
+        {
+            qDebug() << "mz_zip_reader_file_stat() failed!";
+            mz_zip_reader_end(&zip_archive);
+            return false;
+        }
+        QString filename = file_stat.m_filename;
+        if (filename.endsWith(".cdg", Qt::CaseInsensitive))
+        {
+            QString outFile(destDir.path() + QDir::separator() + "tmp.cdg");
+            if (mz_zip_reader_extract_file_to_file(&zip_archive, file_stat.m_filename,outFile.toLocal8Bit().data(),0))
+                return true;
+            else
+            {
+                qDebug() << "Error extracting file";
+            }
+        }
+
+    }
+
+    return false;
+}
 
 QString KhZip::zipFile() const
 {
@@ -39,186 +132,30 @@ void KhZip::setZipFile(const QString &zipFile)
 
 int KhZip::getSongDuration()
 {
-    long fileSize = 0;
-    unzFile hFile = unzOpen64(m_zipFile.toUtf8().data());
-    if (!hFile)
+    mz_zip_archive zip_archive;
+    memset(&zip_archive, 0, sizeof(zip_archive));
+    if (!mz_zip_reader_init_file(&zip_archive, m_zipFile.toLocal8Bit().data(), 0))
     {
-        qDebug() << "Error opening zip file";
+        qDebug() << "mz_zip_reader_init_file() failed!";
         return 0;
     }
-    if (unzGoToFirstFile(hFile) != UNZ_OK)
+
+    for (int i = 0; i < (int)mz_zip_reader_get_num_files(&zip_archive); i++)
     {
-        qDebug() << "unzGoToFirstFile() failed";
-        return 0;
-    }
-    bool cdgFound = false;
-    while (!cdgFound)
-    {
-        char *fname = new char[256];
-//        unz_file_info fileInfo;
-        unzGetCurrentFileInfo(hFile,fileInfo,fname,256,NULL,0,NULL,0);
-        QString filename = fname;
-        delete [] fname;
+        mz_zip_archive_file_stat file_stat;
+        if (!mz_zip_reader_file_stat(&zip_archive, i, &file_stat))
+        {
+            qDebug() << "mz_zip_reader_file_stat() failed!";
+            mz_zip_reader_end(&zip_archive);
+            return 0;
+        }
+        QString filename = file_stat.m_filename;
         if (filename.endsWith(".cdg", Qt::CaseInsensitive))
         {
-            fileSize = fileInfo->uncompressed_size;
-            unzCloseCurrentFile(hFile);
-            unzClose(hFile);
-            cdgFound = true;
-        }
-        else
-        {
-            if (unzGoToNextFile(hFile) != UNZ_OK)
-            {
-                return 0;
-            }
-        }
-    }
-    // ((bytes / CD subchannel sector size) / Standard CD sectors per second) * 1000 = ms duration
-    return ((fileSize / 96) / 75) * 1000;
-}
-
-KhZip::KhZip(QString zipFile, QObject *parent) :
-    QObject(parent)
-{
-    m_zipFile = zipFile;
-    fileInfo = new unz_file_info;
-}
-
-KhZip::KhZip(QObject *parent) :
-    QObject(parent)
-{
-    fileInfo = new unz_file_info;
-}
-
-KhZip::~KhZip()
-{
-    delete fileInfo;
-}
-
-bool KhZip::extractMp3(QDir destDir)
-{
-    qDebug() << "Extracting to " << destDir.path();
-    unzFile hFile = unzOpen64(m_zipFile.toUtf8().data());
-    if (!hFile)
-    {
-        qDebug() << "Error opening zip file";
-        return false;
-    }
-    if (unzGoToFirstFile(hFile) != UNZ_OK)
-    {
-        qDebug() << "unzGoToFirstFile() failed";
-        return false;
-    }
-    bool mp3Found = false;
-    while (!mp3Found)
-    {
-        char *fname = new char[256];
-        unzGetCurrentFileInfo(hFile,NULL,fname,256,NULL,0,NULL,0);
-        qDebug() << "Filename: " << fname;
-        QString filename = fname;
-        delete [] fname;
-        if (filename.endsWith(".mp3", Qt::CaseInsensitive))
-        {
-            int unzResult = unzOpenCurrentFile(hFile);
-            if (unzResult != UNZ_OK)
-            {
-                qDebug() << "unzOpenCurrentFile() failed " << unzResult;
-                return false;
-            }
-            const int SizeBuffer = 32768;
-            unsigned char* Buffer = new unsigned char[SizeBuffer];
-            ::memset(Buffer, 0, SizeBuffer);
-            int bytesRead = 0;
-            QFile outFile(destDir.path() + QDir::separator() + "tmp.mp3");
-            outFile.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ExeOwner);
-            outFile.open(QIODevice::WriteOnly);
-            //std::ofstream outFile(QString(destDir.path() + QDir::separator() + "tmp.mp3").toUtf8().data());
-            while ((bytesRead = unzReadCurrentFile(hFile, Buffer, SizeBuffer)) > 0)
-            {
-                outFile.write((const char*)Buffer, bytesRead);
-            }
-
-            if (Buffer)
-            {
-                delete [] Buffer;
-                Buffer = NULL;
-            }
-            outFile.close();
-            unzCloseCurrentFile(hFile);
-            unzClose(hFile);
-            mp3Found = true;
-        }
-        else
-        {
-            if (unzGoToNextFile(hFile) != UNZ_OK)
-            {
-                return false;
-            }
+            return ((file_stat.m_uncomp_size / 96) / 75) * 1000;
         }
 
     }
-    return mp3Found;
-}
 
-bool KhZip::extractCdg(QDir destDir)
-{
-    unzFile hFile = unzOpen64(m_zipFile.toUtf8().data());
-    if (!hFile)
-    {
-        qDebug() << "Error opening zip file";
-        return false;
-    }
-    if (unzGoToFirstFile(hFile) != UNZ_OK)
-    {
-        qDebug() << "unzGoToFirstFile() failed";
-        return false;
-    }
-    bool cdgFound = false;
-    while (!cdgFound)
-    {
-        char *fname = new char[256];
-        unzGetCurrentFileInfo(hFile,NULL,fname,256,NULL,0,NULL,0);
-        qDebug() << "Filename: " << fname;
-        QString filename = fname;
-        delete [] fname;
-        if (filename.endsWith(".cdg", Qt::CaseInsensitive))
-        {
-            int unzResult = unzOpenCurrentFile(hFile);
-            if (unzResult != UNZ_OK)
-            {
-                qDebug() << "unzOpenCurrentFile() failed " << unzResult;
-                return false;
-            }
-            const int SizeBuffer = 32768;
-            unsigned char* Buffer = new unsigned char[SizeBuffer];
-            ::memset(Buffer, 0, SizeBuffer);
-            int bytesRead = 0;
-            QFile outFile(destDir.path() + QDir::separator() + "tmp.cdg");
-            outFile.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ExeOwner);
-            outFile.open(QIODevice::WriteOnly);
-            while ((bytesRead = unzReadCurrentFile(hFile, Buffer, SizeBuffer)) > 0)
-            {
-                outFile.write((const char*)Buffer, bytesRead);
-            }
-
-            if (Buffer)
-            {
-                delete [] Buffer;
-                Buffer = NULL;
-            }
-            outFile.close();
-            unzCloseCurrentFile(hFile);
-            unzClose(hFile);
-            cdgFound = true;
-        }
-        else
-        {
-            if (unzGoToNextFile(hFile) != UNZ_OK)
-            {
-                return false;
-            }
-        }
-    }
-    return cdgFound;
+    return 0;
 }

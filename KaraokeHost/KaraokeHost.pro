@@ -116,10 +116,10 @@ unix: QT_CONFIG -= no-pkg-config
 unix: CONFIG += link_pkgconfig
 
 
-win32: INCLUDEPATH += "C:\Users\nunya\Downloads\zlib125\zlib-1.2.5\contrib\minizip"
-win32: INCLUDEPATH += "C:\Users\nunya\Downloads\zlib125\zlib-1.2.5"
-unix: PKGCONFIG += minizip
-win32: LIBS += -L"C:\Users\nunya\Downloads\zlib125dll\dll32" -lzlibwapi
+#win32: INCLUDEPATH += "C:\Users\nunya\Downloads\zlib125\zlib-1.2.5\contrib\minizip"
+#win32: INCLUDEPATH += "C:\Users\nunya\Downloads\zlib125\zlib-1.2.5"
+#unix: PKGCONFIG += minizip
+#win32: LIBS += -L"C:\Users\nunya\Downloads\zlib125dll\dll32" -lzlibwapi
 # win32: LIBS += -lminizip
 
 contains(DEFINES, USE_GSTREAMER) {
