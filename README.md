@@ -1,6 +1,8 @@
 OpenKJ
 ======
 
+Travis CI status [![Build Status](https://travis-ci.org/coyote1357/OpenKJ.svg?branch=master)](https://travis-ci.org/coyote1357/OpenKJ)
+
 Cross-platform open source karaoke show hosting software.
 
 KaraokeHost is a full featured karaoke hosting program.
