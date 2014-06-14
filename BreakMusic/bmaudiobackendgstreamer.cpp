@@ -58,8 +58,8 @@ BmAudioBackendGStreamer::BmAudioBackendGStreamer(QObject *parent) :
     g_object_set(G_OBJECT (level), "message", TRUE, NULL);
     bus = gst_element_get_bus (playBin);
 
-    fader = new FaderGStreamer(this);
-    fader->setVolumeElement(volumeElement);
+    fader = new FaderGStreamer(volumeElement, this);
+//    fader->setVolumeElement(volumeElement);
     silenceDetectTimer = new QTimer(this);
     connect(silenceDetectTimer, SIGNAL(timeout()), this, SLOT(silenceDetectTimer_timeout()));
     silenceDetectTimer->start(1000);
@@ -415,13 +415,13 @@ void BmAudioBackendGStreamer::setPitchShift(int pitchShift)
     emit pitchChanged(pitchShift);
 }
 
-FaderGStreamer::FaderGStreamer(QObject *parent) :
+FaderGStreamer::FaderGStreamer(GstElement *GstVolumeElement, QObject *parent) :
     QThread(parent)
 {
     m_preOutVolume = 0;
     m_targetVolume = 0;
     fading = false;
-
+    volumeElement = GstVolumeElement;
 }
 
 void FaderGStreamer::run()

@@ -13,7 +13,7 @@ class FaderGStreamer : public QThread
 {
     Q_OBJECT
 public:
-    explicit FaderGStreamer(QObject *parent = 0);
+    explicit FaderGStreamer(GstElement *GstVolumeElement, QObject *parent = 0);
     void run();
     void fadeIn();
     void fadeOut();
