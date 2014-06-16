@@ -18,6 +18,7 @@ RequestsTableModel::RequestsTableModel(QObject *parent) :
 {
     networkManager = new QNetworkAccessManager(this);
     curSerial = -1;
+    m_clearingCache = false;
     timer = new QTimer(this);
     timer->setInterval(10000);
     timer->start();
@@ -175,6 +176,14 @@ void RequestsTableModel::setAuth(QNetworkReply *reply, QAuthenticator *authentic
     static QString lastUser;
     static QString lastPass;
     static QString lastUrl;
+
+    if (m_clearingCache)
+    {
+        firstTry = true;
+        errorSignalSent = false;
+        m_clearingCache = false;
+    }
+
     if ((lastUser != settings->requestServerUsername()) || (lastPass != settings->requestServerPassword()) || (lastUrl != settings->requestServerUrl()))
     {
         firstTry = true;
@@ -300,10 +309,13 @@ QTime RequestsTableModel::lastUpdate()
 
 void RequestsTableModel::forceFullUpdate()
 {
+    qDebug() << "Full update forced - Clearing cache and trying to connect again";
+    networkManager->clearAccessCache();
     QUrl url(settings->requestServerUrl() + "/getRequests.php");
     QNetworkRequest request;
     request.setUrl(url);
     request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
+    m_clearingCache = true;
     networkManager->get(request);
 }
 
