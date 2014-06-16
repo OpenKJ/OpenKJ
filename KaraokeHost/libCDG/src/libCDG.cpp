@@ -219,22 +219,27 @@ void CDG::CMDBorderPreset(char data[16])
     preset.color = (data[0] & 0x0F);
     if (preset.color <= 15)
     {
-        // set first 12 rows to preset color
-        memset(&CDGImage->CDG_Map, preset.color, 3600);
-        // set last 12 rows to preset color
-        memset(&CDGImage->CDG_Map + 204, preset.color, 3600);
-        for (unsigned int i = 12; i < 204; i++)
+        // Top rows
+        for (unsigned int y = 0; y < 12; y++)
         {
-            // set first 6 cols in row to preset color
-            memset(&CDGImage->CDG_Map[i], preset.color, 6);
-            // want to use memset for the end 6 cols as well, but it's choking on it for some reason
-            // just going to use direct setting for now, will try to figure it out later.
-            CDGImage->CDG_Map[i][294] = preset.color;
-            CDGImage->CDG_Map[i][295] = preset.color;
-            CDGImage->CDG_Map[i][296] = preset.color;
-            CDGImage->CDG_Map[i][297] = preset.color;
-            CDGImage->CDG_Map[i][298] = preset.color;
-            CDGImage->CDG_Map[i][299] = preset.color;
+            for (unsigned int x=0; x < 300; x++)
+                CDGImage->CDG_Map[y][x] = preset.color;
+        }
+        // Bottom rows
+        for (unsigned int y = 202; y < 216; y++)
+        {
+            for (unsigned int x=0; x < 300; x++)
+                CDGImage->CDG_Map[y][x] = preset.color;
+        }
+        // Sides
+        for (unsigned int y = 11; y < 204; y++)
+        {
+            // Left
+            for (unsigned int x = 0; x < 6; x++)
+                CDGImage->CDG_Map[y][x] = preset.color;
+            // Right
+            for (unsigned int x=294; x < 300; x++)
+                CDGImage->CDG_Map[y][x] = preset.color;
         }
     }
 }
