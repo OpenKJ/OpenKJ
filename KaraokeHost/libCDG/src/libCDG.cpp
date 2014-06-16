@@ -222,7 +222,7 @@ void CDG::CMDBorderPreset(char data[16])
         // set first 12 rows to preset color
         memset(&CDGImage->CDG_Map, preset.color, 3600);
         // set last 12 rows to preset color
-        memset(&CDGImage->CDG_Map[204], preset.color, 3600);
+        memset(&CDGImage->CDG_Map + 204, preset.color, 3600);
         for (unsigned int i = 12; i < 204; i++)
         {
             // set first 6 cols in row to preset color
