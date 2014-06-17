@@ -23,7 +23,6 @@ TARGET = KaraokeHost
 TEMPLATE = app
 
 
-#DEFINES += USE_FMOD
 DEFINES += USE_GSTREAMER
 DEFINES += USE_QMEDIAPLAYER
 
@@ -150,8 +149,8 @@ contains(DEFINES, USE_FMOD) {
         message("USE_FMOD defined, building with Fmod audio backend (http://www.fmod.org) support")
 	message("Please note that, while free for non-commercial use, FMOD is NOT open source")
         win32: INCLUDEPATH += "C:\Program Files (x86)\FMOD SoundSystem\FMOD Programmers API Windows\api\inc"
-	HEADERS += khaudiobackendfmod.h
-	SOURCES += khaudiobackendfmod.cpp
+	HEADERS +=
+	SOURCES +=
         win32: LIBS += -L"C:\Program Files (x86)\FMOD SoundSystem\FMOD Programmers API Windows\api\lib" -lfmodex_vc
 	unix {
 		contains(QMAKE_HOST.arch, x86_64) {

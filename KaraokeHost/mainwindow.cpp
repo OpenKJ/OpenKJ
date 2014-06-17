@@ -24,9 +24,6 @@
 #include <iostream>
 #include <QTemporaryDir>
 #include <QDir>
-#ifdef USE_FMOD
-#include "khaudiobackendfmod.h"
-#endif
 #ifdef USE_QMEDIAPLAYER
 #include "khaudiobackendqmediaplayer.h"
 #endif
@@ -124,10 +121,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->treeViewDB->header()->resizeSection(3,60);
     ipcClient = new KhIPCClient("bmControl",this);
     audioBackends = new KhAudioBackends;
-#ifdef USE_FMOD
-    qDebug() << "Initializing audio backend: Fmod";
-    audioBackends->push_back(new KhAudioBackendFMOD(settings->audioDownmix(), this));
-#endif
 #ifdef USE_GSTREAMER
     qDebug() << "Initializing audio backend: GStreamer";
     audioBackends->push_back(new KhAudioBackendGStreamer(this));
