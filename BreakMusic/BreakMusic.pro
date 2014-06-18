@@ -66,7 +66,7 @@ win32: INCLUDEPATH += "C:\gstreamer-sdk\0.10\x86\include\libxml2"
 win32: LIBS+= -L"C:\gstreamer-sdk\0.10\x86\lib" -lgstreamer-0.10 -lglib-2.0 -lgobject-2.0
 
 unix {
-    iconfiles.files += icons/bmicon-64x64.png
+    iconfiles.files += icons/bmicon64x64.png
     iconfiles.path = /usr/share/pixmaps
     desktopfiles.files += breakmusic.desktop
     desktopfiles.path = /usr/share/applications
