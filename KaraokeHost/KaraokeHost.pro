@@ -132,8 +132,7 @@ RESOURCES += \
     resources.qrc
 
 unix {
-    binaryfiles.files += KaraokeHost/KaraokeHost
-    binaryfiles.files += BreakMusic/BreakMusic
+    binaryfiles.files += KaraokeHost
     binaryfiles.path = /usr/bin
     INSTALLS += binaryfiles
 }

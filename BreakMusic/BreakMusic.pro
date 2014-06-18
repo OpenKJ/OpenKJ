@@ -70,3 +70,8 @@ win32: INCLUDEPATH += "C:\gstreamer-sdk\0.10\x86\lib\glib-2.0\include"
 win32: INCLUDEPATH += "C:\gstreamer-sdk\0.10\x86\include\libxml2"
 win32: LIBS+= -L"C:\gstreamer-sdk\0.10\x86\lib" -lgstreamer-0.10 -lglib-2.0 -lgobject-2.0
 
+unix {
+    binaryfiles.files += BreakMusic
+    binaryfiles.path = /usr/bin
+    INSTALLS += binaryfiles
+}
