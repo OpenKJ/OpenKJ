@@ -4,16 +4,12 @@
 #
 #-------------------------------------------------
 
-QT       += core gui sql multimedia network
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT += core gui sql multimedia network widgets
 
 TARGET = BreakMusic
 TEMPLATE = app
 
 win32: RC_FILE = BreakMusic.rc
-
-#win32: CONFIG += console
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -62,7 +58,6 @@ unix: PKGCONFIG += gstreamer-0.10
 
 win32: INCLUDEPATH += "C:\taglib\include\taglib"
 win32: LIBS += -L"C:\taglib\taglib\taglib\Release" -ltag
-#win32: LIBS += -L"$$_PRO_FILE_PWD_/taglib-win32/lib" -ltag
 
 win32: INCLUDEPATH += "C:\gstreamer-sdk\0.10\x86\include\gstreamer-0.10"
 win32: INCLUDEPATH += "C:\gstreamer-sdk\0.10\x86\include\glib-2.0"
@@ -71,7 +66,11 @@ win32: INCLUDEPATH += "C:\gstreamer-sdk\0.10\x86\include\libxml2"
 win32: LIBS+= -L"C:\gstreamer-sdk\0.10\x86\lib" -lgstreamer-0.10 -lglib-2.0 -lgobject-2.0
 
 unix {
+    iconfiles.files += icons/bmicon-64x64.png
+    iconfiles.path = /usr/share/pixmaps
+    desktopfiles.files += breakmusic.desktop
+    desktopfiles.path = /usr/share/applications
     binaryfiles.files += BreakMusic
     binaryfiles.path = /usr/bin
-    INSTALLS += binaryfiles
+    INSTALLS += binaryfiles iconfiles desktopfiles
 }

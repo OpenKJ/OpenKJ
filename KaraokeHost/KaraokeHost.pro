@@ -132,7 +132,11 @@ RESOURCES += \
     resources.qrc
 
 unix {
+    iconfiles.files += Icons/khicon-64x64.png
+    iconfiles.path = /usr/share/pixmaps
+    desktopfiles.files += karaokehost.desktop
+    desktopfiles.path = /usr/share/applications
     binaryfiles.files += KaraokeHost
     binaryfiles.path = /usr/bin
-    INSTALLS += binaryfiles
+    INSTALLS += binaryfiles iconfiles desktopfiles
 }
