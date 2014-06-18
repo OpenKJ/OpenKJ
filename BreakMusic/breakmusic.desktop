@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=OpenKJ BreakMusic 
+Comment=Break music player for OpenKJ
+Exec=/usr/bin/BreakMusic
+Icon=/usr/share/pixmaps/bmicon-64x64.png
+Terminal=false
+Categories=AudioVideo;Audio;Player;
