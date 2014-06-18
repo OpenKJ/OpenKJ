@@ -169,3 +169,10 @@ RESOURCES += \
 
 INCLUDEPATH += $$PWD/../Cdg2
 DEPENDPATH += $$PWD/../Cdg2
+
+unix {
+    binaryfiles.files += KaraokeHost/KaraokeHost
+    binaryfiles.files += BreakMusic/BreakMusic
+    binaryfiles.path = /usr/bin
+    INSTALLS += binaryfiles
+}
