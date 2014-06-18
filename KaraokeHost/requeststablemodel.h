@@ -61,6 +61,7 @@ private:
     QNetworkAccessManager *networkManager;
     int curSerial;
     QTime m_lastUpdate;
+    bool m_clearingCache;
 
 
     // QAbstractItemModel interface
