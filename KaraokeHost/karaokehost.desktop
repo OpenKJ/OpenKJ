@@ -4,6 +4,6 @@ Version=1.0
 Name=OpenKJ KaraokeHost
 Comment=Karaoke Hosting Software
 Exec=/usr/bin/KaraokeHost
-Icon=/usr/share/pixmaps/khicon-144x144.png
+Icon=/usr/share/pixmaps/khicon-64x64.png
 Terminal=false
 Categories=AudioVideo;Audio;Player;
