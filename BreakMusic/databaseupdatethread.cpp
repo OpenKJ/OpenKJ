@@ -52,7 +52,7 @@ QStringList *DatabaseUpdateThread::findMediaFiles(QString directory)
         iterator.next();
         if (!iterator.fileInfo().isDir()) {
             QString filename = iterator.filePath();
-            if (filename.endsWith(".mp3",Qt::CaseInsensitive) || filename.endsWith(".wav",Qt::CaseInsensitive) || filename.endsWith(".ogg",Qt::CaseInsensitive) || filename.endsWith(".flac",Qt::CaseInsensitive))
+            if (filename.endsWith(".mp3",Qt::CaseInsensitive) || filename.endsWith(".wav",Qt::CaseInsensitive) || filename.endsWith(".ogg",Qt::CaseInsensitive) || filename.endsWith(".flac",Qt::CaseInsensitive) || filename.endsWith(".m4a", Qt::CaseInsensitive))
             {
                 files->append(filename);
             }
