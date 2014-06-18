@@ -380,7 +380,7 @@ void MainWindow::on_actionImport_Playlist_triggered()
                 QString artist = QString::fromStdString(f.tag()->artist().to8Bit(true));
                 QString title = QString::fromStdString(f.tag()->title().to8Bit(true));
                 QString duration = QString::number(f.audioProperties()->length());
-                QString filename = QFileInfo(files.at(i)).fileName();
+                QString filename = QFileInfo(files.at(i)).fileName().replace("\\","/");
                 query.exec("INSERT OR IGNORE INTO songs (artist,title,path,filename,duration) VALUES(\"" + artist + "\",\"" + title + "\",\"" + files.at(i) + "\",\"" + filename + "\"," + duration + ")");
                 //        qDebug() << f.tag()->artist().toCString(true) << " - " << f.tag()->title().toCString(true);
             }
