@@ -354,7 +354,10 @@ void MainWindow::on_actionImport_Playlist_triggered()
             if (line.isNull())
                 break;
             else
-                files.append(line);
+            {
+                if (!line.startsWith("#"))
+                    files.append(line);
+            }
         }
         QSqlQuery query;
 
