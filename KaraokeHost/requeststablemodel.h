@@ -61,6 +61,8 @@ private:
     QNetworkAccessManager *networkManager;
     int curSerial;
     QTime m_lastUpdate;
+    bool m_connectionReset;
+    bool m_delayWarningShown;
     bool m_clearingCache;
 
 

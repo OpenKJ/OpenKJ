@@ -19,6 +19,8 @@ RequestsTableModel::RequestsTableModel(QObject *parent) :
     networkManager = new QNetworkAccessManager(this);
     curSerial = -1;
     m_clearingCache = false;
+    m_connectionReset = false;
+    m_delayWarningShown = false;
     timer = new QTimer(this);
     timer->setInterval(10000);
     timer->start();
@@ -34,19 +36,22 @@ void RequestsTableModel::timerExpired()
 {
     if (settings->requestServerEnabled())
     {
-        static bool errorEmitted = false;
-        static QTime lastTime;
         qDebug() << "RequestsClient - Seconds since last update: " << m_lastUpdate.secsTo(QTime::currentTime());
-        if (lastTime != m_lastUpdate)
-        {
-            errorEmitted = false;
-        }
-        if ((m_lastUpdate.secsTo(QTime::currentTime()) > 300) && (!errorEmitted))
+        if ((m_lastUpdate.secsTo(QTime::currentTime()) > 300) && (!m_delayWarningShown))
         {
             emit delayError(m_lastUpdate.secsTo(QTime::currentTime()));
-            errorEmitted = true;
+            m_delayWarningShown = true;
         }
-        lastTime = m_lastUpdate;
+        else if ((m_lastUpdate.secsTo(QTime::currentTime()) > 200) && (!m_connectionReset))
+        {
+            forceFullUpdate();
+            m_connectionReset = true;
+        }
+        else
+        {
+            m_connectionReset = false;
+            m_delayWarningShown = false;
+        }
         qDebug() << "RequestsClient -" << QTime::currentTime().toString() << " - Sending request for current serial";
         QUrl url(settings->requestServerUrl() + "/getSerial.php");
         QNetworkRequest request;
