@@ -98,6 +98,16 @@ public:
     void setAudioOutputDevice(QString device);
     int audioBackend();
     void setAudioBackend(int index);
+    QString recordingContainer();
+    void setRecordingContainer(QString container);
+    QString recordingCodec();
+    void setRecordingCodec(QString codec);
+    QString recordingInput();
+    void setRecordingInput(QString input);
+    QString recordingOutputDir();
+    void setRecordingOutputDir(QString path);
+    bool recordingEnabled();
+    void setRecordingEnabled(bool enabled);
 
 signals:
     void tickerFontChanged();
@@ -108,6 +118,7 @@ signals:
     void tickerOutputModeChanged();
     void tickerEnableChanged();
     void audioBackendChanged(int index);
+    void recordingSetupChanged();
 
 public slots:
 

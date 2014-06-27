@@ -22,6 +22,8 @@
 #include <QCoreApplication>
 #include <QApplication>
 #include <QDesktopWidget>
+#include <QStandardPaths>
+
 
 
 KhSettings::KhSettings(QObject *parent) :
@@ -327,4 +329,60 @@ void KhSettings::setAudioBackend(int index)
 {
     settings->setValue("audioBackend", index);
     emit audioBackendChanged(index);
+}
+
+QString KhSettings::recordingContainer()
+{
+    return settings->value("recordingContainer", "ogg").toString();
+}
+
+void KhSettings::setRecordingContainer(QString container)
+{
+    settings->setValue("recordingContainer", container);
+    emit recordingSetupChanged();
+}
+
+QString KhSettings::recordingCodec()
+{
+    return settings->value("recordingCodec", "audio/vorbis").toString();
+}
+
+void KhSettings::setRecordingCodec(QString codec)
+{
+    settings->setValue("recordingCodec", codec);
+    emit recordingSetupChanged();
+}
+
+QString KhSettings::recordingInput()
+{
+    return settings->value("recordingInput", "undefined").toString();
+}
+
+void KhSettings::setRecordingInput(QString input)
+{
+    settings->setValue("recordingInput", input);
+    emit recordingSetupChanged();
+}
+
+QString KhSettings::recordingOutputDir()
+{
+    QString defaultPath = QStandardPaths::writableLocation(QStandardPaths::MusicLocation);
+    return settings->value("recordingOutputDir", defaultPath).toString();
+}
+
+void KhSettings::setRecordingOutputDir(QString path)
+{
+    settings->setValue("recordingOutputDir", path);
+    emit recordingSetupChanged();
+}
+
+bool KhSettings::recordingEnabled()
+{
+    return settings->value("recordingEnabled", false).toBool();
+}
+
+void KhSettings::setRecordingEnabled(bool enabled)
+{
+    settings->setValue("recordingEnabled", enabled);
+    emit recordingSetupChanged();
 }

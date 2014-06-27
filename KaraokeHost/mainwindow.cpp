@@ -146,6 +146,7 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->groupBoxKey->hide();
         ui->treeViewQueue->hideColumn(3);
     }
+    audioRecorder = new KhAudioRecorder(this);
     settingsDialog = new DlgSettings(audioBackends, this);
     connect(activeAudioBackend, SIGNAL(volumeChanged(int)), ui->sliderVolume, SLOT(setValue(int)));
     connect(dbDialog, SIGNAL(databaseUpdated()), this, SLOT(songdbUpdated()));
@@ -241,6 +242,8 @@ void MainWindow::play(QString zipFilePath)
             activeAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + "tmp.mp3");
             ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
             activeAudioBackend->play();
+            if (settings->recordingEnabled())
+                audioRecorder->record(rotationmodel->getCurrent()->name() + " - " + songCurrent->Artist + " - " + songCurrent->Title);
             ui->labelArtist->setText(songCurrent->Artist);
             ui->labelTitle->setText(songCurrent->Title);
             qDebug() << "Duration from cdg: " << activeAudioBackend->msToMMSS(duration);
@@ -252,6 +255,8 @@ void MainWindow::play(QString zipFilePath)
     }
     else if (activeAudioBackend->state() == KhAbstractAudioBackend::PausedState)
     {
+        if (settings->recordingEnabled())
+            audioRecorder->unpause();
         activeAudioBackend->play();
     }
 }
@@ -489,7 +494,7 @@ void MainWindow::on_treeViewQueue_activated(const QModelIndex &index)
     songCurrent = song;
     delete khTmpDir;
     khTmpDir = new QTemporaryDir();
-    play(song->path);
+//    play(song->path);
     if (activeAudioBackend->canPitchShift()) activeAudioBackend->setPitchShift(queuesong->getKeyChange());
     queuemodel->layoutAboutToBeChanged();
     queuesong->setPlayed(true);
@@ -497,6 +502,8 @@ void MainWindow::on_treeViewQueue_activated(const QModelIndex &index)
     rotationmodel->layoutAboutToBeChanged();
     rotationmodel->setCurrentSingerPosition(rotationmodel->getSelected()->position());
     rotationmodel->layoutChanged();
+    play(song->path);
+
 }
 
 void MainWindow::on_actionManage_DB_triggered()
@@ -663,6 +670,7 @@ void MainWindow::audioBackend_stateChanged(KhAbstractAudioBackend::State state)
 {
     if (state == KhAbstractAudioBackend::StoppedState)
     {
+        audioRecorder->stop();
         cdg->VideoClose();
         ui->labelArtist->setText("None");
         ui->labelTitle->setText("None");
@@ -694,8 +702,13 @@ void MainWindow::audioBackend_stateChanged(KhAbstractAudioBackend::State state)
     }
     if (state == KhAbstractAudioBackend::EndOfMediaState)
     {
+        audioRecorder->stop();
         ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
         activeAudioBackend->stop(true);
+    }
+    if (state == KhAbstractAudioBackend::PausedState)
+    {
+            audioRecorder->pause();
     }
 
 }

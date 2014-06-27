@@ -46,6 +46,7 @@
 #include "dlgrequests.h"
 #include "dlgcdgpreview.h"
 #include "dlgkeychange.h"
+#include "khaudiorecorder.h"
 
 
 using namespace std;
@@ -127,6 +128,7 @@ private:
     DlgCdgPreview *cdgPreviewDialog;
     KhAbstractAudioBackend *activeAudioBackend;
     KhAudioBackends *audioBackends;
+    KhAudioRecorder *audioRecorder;
     //KhSingers *singers;
     KhRegularSingers *regularSingers;
     KhIPCClient *ipcClient;

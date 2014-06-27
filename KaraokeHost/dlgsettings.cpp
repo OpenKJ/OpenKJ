@@ -28,6 +28,7 @@
 #include <QFileDialog>
 #include <QStandardPaths>
 #include <QMessageBox>
+#include <QAudioRecorder>
 
 extern KhSettings *settings;
 
@@ -85,6 +86,14 @@ DlgSettings::DlgSettings(KhAudioBackends *AudioBackends, QWidget *parent) :
     ui->checkBoxFader->setChecked(settings->audioUseFader());
     ui->checkBoxDownmix->setChecked(settings->audioDownmix());
     ui->checkBoxSilenceDetection->setChecked(settings->audioDetectSilence());
+    QAudioRecorder audioRecorder;
+    QStringList inputs = audioRecorder.audioInputs();
+    QStringList codecs = audioRecorder.supportedAudioCodecs();
+    QStringList containers = audioRecorder.supportedContainers();
+    ui->groupBoxRecording->setChecked(settings->recordingEnabled());
+    ui->comboBoxDevice->addItems(inputs);
+    ui->comboBoxCodec->addItems(codecs);
+    ui->comboBoxContainer->addItems(containers);
     audioBackendChanged(settings->audioBackend());
     connect(settings, SIGNAL(audioBackendChanged(int)), this, SLOT(audioBackendChanged(int)));
 //    ui->checkBoxSilenceDetection->setHidden(!audioBackend->canDetectSilence());
@@ -97,6 +106,10 @@ DlgSettings::DlgSettings(KhAudioBackends *AudioBackends, QWidget *parent) :
 //    }
 //    else
 //        ui->listWidgetAudioDevices->item(0)->setSelected(true);
+
+
+
+
     pageSetupDone = true;
 }
 
@@ -335,4 +348,28 @@ void DlgSettings::audioBackendChanged(int index)
         ui->checkBoxDownmix->setText("Downmix to mono");
     else
         ui->checkBoxDownmix->setText("Dowmix to mono (requires restart)");
+}
+
+void DlgSettings::on_comboBoxDevice_currentIndexChanged(const QString &arg1)
+{
+    if (pageSetupDone)
+        settings->setRecordingInput(arg1);
+}
+
+void DlgSettings::on_comboBoxCodec_currentIndexChanged(const QString &arg1)
+{
+    if (pageSetupDone)
+        settings->setRecordingCodec(arg1);
+}
+
+void DlgSettings::on_comboBoxContainer_currentIndexChanged(const QString &arg1)
+{
+    if (pageSetupDone)
+        settings->setRecordingContainer(arg1);
+}
+
+void DlgSettings::on_groupBoxRecording_toggled(bool arg1)
+{
+    if (pageSetupDone)
+        settings->setRecordingEnabled(arg1);
 }

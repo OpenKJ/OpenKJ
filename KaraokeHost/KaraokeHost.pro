@@ -56,7 +56,8 @@ SOURCES += main.cpp\
     dlgregularsingers.cpp \
     dlgsettings.cpp \
     dlgcdg.cpp \
-    dlgdurationscan.cpp
+    dlgdurationscan.cpp \
+    khaudiorecorder.cpp
 
 HEADERS  += mainwindow.h \
     queuetablemodel.h \
@@ -92,7 +93,8 @@ HEADERS  += mainwindow.h \
     dlgregularsingers.h \
     dlgsettings.h \
     dlgcdg.h \
-    dlgdurationscan.h
+    dlgdurationscan.h \
+    khaudiorecorder.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \

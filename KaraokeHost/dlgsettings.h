@@ -89,6 +89,14 @@ private slots:
 
     void audioBackendChanged(int index);
 
+    void on_comboBoxDevice_currentIndexChanged(const QString &arg1);
+
+    void on_comboBoxCodec_currentIndexChanged(const QString &arg1);
+
+    void on_comboBoxContainer_currentIndexChanged(const QString &arg1);
+
+    void on_groupBoxRecording_toggled(bool arg1);
+
 signals:
     void showCdgWindowChanged(bool);
     void cdgWindowFullScreenChanged(bool);
