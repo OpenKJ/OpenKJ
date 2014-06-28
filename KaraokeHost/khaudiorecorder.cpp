@@ -13,12 +13,13 @@ KhAudioRecorder::KhAudioRecorder(QObject *parent) :
 {
     audioRecorder = new QAudioRecorder(this);
     connect(audioRecorder, SIGNAL(error(QMediaRecorder::Error)), this, SLOT(audioRecorderError(QMediaRecorder::Error)));
-
+    outputFile = "";
 
 }
 
 void KhAudioRecorder::record(QString filename)
 {
+    outputFile = filename;
     qDebug() << "KhAudioRecorder::record(" << filename << ") called";
 //    qDebug() << "Recording to: " << QUrl::fromLocalFile(settings->recordingOutputDir() + QDir::separator() + filename).toString();
 ////    audioRecorder->setAudioInput(settings->recordingInput());
@@ -35,7 +36,7 @@ void KhAudioRecorder::record(QString filename)
     audioSettings.setQuality(QMultimedia::HighQuality);
     audioRecorder->setEncodingSettings(audioSettings);
     audioRecorder->setContainerFormat("ogg");
-    audioRecorder->setOutputLocation(QUrl("test.ogg"));
+    audioRecorder->setOutputLocation(QUrl(filename + ".ogg"));
     audioRecorder->record();
     qDebug() << "Output file location: " << audioRecorder->outputLocation().toString();
 }
@@ -44,6 +45,7 @@ void KhAudioRecorder::stop()
 {
     qDebug() << "KhAudioRecorder::stop() called";
     audioRecorder->stop();
+    QFile::rename(outputFile + ".ogg", settings->recordingOutputDir() + QDir::separator() + outputFile + ".ogg");
 }
 
 void KhAudioRecorder::pause()

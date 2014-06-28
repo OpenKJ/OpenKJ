@@ -10,6 +10,7 @@ class KhAudioRecorder : public QObject
     Q_OBJECT
 private:
     QAudioRecorder *audioRecorder;
+    QString outputFile;
     //QAudioEncoderSettings audioSettings;
 
 public:
