@@ -32,11 +32,12 @@ void KhAudioRecorder::record(QString filename)
 //        qDebug() << "Recording - Faile to set output location";
 //    audioRecorder->record();
     QAudioEncoderSettings audioSettings;
-    audioSettings.setCodec("audio/vorbis");
+    audioSettings.setCodec("audio/mpeg");
     audioSettings.setQuality(QMultimedia::HighQuality);
     audioRecorder->setEncodingSettings(audioSettings);
-    audioRecorder->setContainerFormat("ogg");
-    audioRecorder->setOutputLocation(QUrl(filename + ".ogg"));
+    audioRecorder->setContainerFormat("raw");
+    audioRecorder->setOutputLocation(QUrl(filename + ".mp3"));
+    audioRecorder->setVolume(1.0);
     audioRecorder->record();
     qDebug() << "Output file location: " << audioRecorder->outputLocation().toString();
 }
@@ -45,7 +46,7 @@ void KhAudioRecorder::stop()
 {
     qDebug() << "KhAudioRecorder::stop() called";
     audioRecorder->stop();
-    QFile::rename(outputFile + ".ogg", settings->recordingOutputDir() + QDir::separator() + outputFile + ".ogg");
+    QFile::rename(outputFile + ".mp3", settings->recordingOutputDir() + QDir::separator() + outputFile + ".mp3");
 }
 
 void KhAudioRecorder::pause()
