@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT += core gui sql network widgets
+QT += core gui sql network widgets multimedia
 
 unix: DEFINES += USE_GL
 #win32: DEFINES += USE_GL
@@ -19,7 +19,6 @@ TARGET = KaraokeHost
 TEMPLATE = app
 
 DEFINES += USE_GSTREAMER
-DEFINES += USE_QMEDIAPLAYER
 
 SOURCES += main.cpp\
     mainwindow.cpp \
@@ -40,6 +39,7 @@ SOURCES += main.cpp\
     khregularsong.cpp \
     khipcclient.cpp \
     khabstractaudiobackend.cpp \
+    khaudiobackendqmediaplayer.cpp \
     khzip.cpp \
     qglcanvas.cpp \
     khsettings.cpp \
@@ -77,6 +77,7 @@ HEADERS  += mainwindow.h \
     khregularsong.h \
     khipcclient.h \
     khabstractaudiobackend.h \
+    khaudiobackendqmediaplayer.h \
     khzip.h \
     qglcanvas.h \
     khsettings.h \
@@ -122,12 +123,6 @@ contains(DEFINES, USE_GSTREAMER) {
     macx: LIBS += -L"/Library/Frameworks/GStreamer.framework/Libraries" -lgstreamer-0.10 -lglib-2.0 -lgobject-2.0
     HEADERS += khaudiobackendgstreamer.h
     SOURCES += khaudiobackendgstreamer.cpp
-}
-
-contains(DEFINES, USE_QMEDIAPLAYER) {
-        QT += multimedia
-        HEADERS += khaudiobackendqmediaplayer.h
-        SOURCES += khaudiobackendqmediaplayer.cpp
 }
 
 RESOURCES += \
