@@ -4,6 +4,7 @@
 #include <QDir>
 #include "khsettings.h"
 #include <QDebug>
+#include <QDateTime>
 
 extern KhSettings *settings;
 
@@ -14,7 +15,7 @@ KhAudioRecorder::KhAudioRecorder(QObject *parent) :
     audioRecorder = new QAudioRecorder(this);
     connect(audioRecorder, SIGNAL(error(QMediaRecorder::Error)), this, SLOT(audioRecorderError(QMediaRecorder::Error)));
     outputFile = "";
-
+    startDateTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm");
 }
 
 void KhAudioRecorder::record(QString filename)
@@ -32,11 +33,12 @@ void KhAudioRecorder::record(QString filename)
 //        qDebug() << "Recording - Faile to set output location";
 //    audioRecorder->record();
     QAudioEncoderSettings audioSettings;
-    audioSettings.setCodec("audio/mpeg");
+    audioSettings.setCodec(settings->recordingCodec());
     audioSettings.setQuality(QMultimedia::HighQuality);
+    audioRecorder->setAudioInput(settings->recordingInput());
     audioRecorder->setEncodingSettings(audioSettings);
-    audioRecorder->setContainerFormat("raw");
-    audioRecorder->setOutputLocation(QUrl(filename + ".mp3"));
+    audioRecorder->setContainerFormat(settings->recordingContainer());
+    audioRecorder->setOutputLocation(QUrl(filename));
     audioRecorder->setVolume(1.0);
     audioRecorder->record();
     qDebug() << "Output file location: " << audioRecorder->outputLocation().toString();
@@ -45,8 +47,21 @@ void KhAudioRecorder::record(QString filename)
 void KhAudioRecorder::stop()
 {
     qDebug() << "KhAudioRecorder::stop() called";
-    audioRecorder->stop();
-    QFile::rename(outputFile + ".mp3", settings->recordingOutputDir() + QDir::separator() + outputFile + ".mp3");
+    if (audioRecorder->state() == QMediaRecorder::RecordingState)
+    {
+        audioRecorder->stop();
+        QFileInfo fileInfo(audioRecorder->actualLocation().toString());
+        QString outputDir = settings->recordingOutputDir() + QDir::separator() + "Karaoke Recordings" + QDir::separator() + "Show Beginning " + startDateTime;
+
+        QString outputFilePath;
+        if (settings->recordingContainer() != "raw")
+            outputFilePath = outputDir + QDir::separator() + fileInfo.fileName() + "." + audioRecorder->containerFormat();
+        else
+            outputFilePath = outputDir + QDir::separator() + fileInfo.fileName() + "." + settings->recordingRawExtension();
+        QDir dir;
+        dir.mkpath(outputDir);
+        QFile::rename(fileInfo.absoluteFilePath(), outputFilePath);
+    }
 }
 
 void KhAudioRecorder::pause()

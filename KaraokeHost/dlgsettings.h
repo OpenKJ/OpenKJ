@@ -97,6 +97,10 @@ private slots:
 
     void on_groupBoxRecording_toggled(bool arg1);
 
+    void on_lineEditExtension_editingFinished();
+
+    void on_buttonBrowse_clicked();
+
 signals:
     void showCdgWindowChanged(bool);
     void cdgWindowFullScreenChanged(bool);

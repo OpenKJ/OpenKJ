@@ -386,3 +386,13 @@ void KhSettings::setRecordingEnabled(bool enabled)
     settings->setValue("recordingEnabled", enabled);
     emit recordingSetupChanged();
 }
+
+QString KhSettings::recordingRawExtension()
+{
+    return settings->value("recordingRawExtension", QString()).toString();
+}
+
+void KhSettings::setRecordingRawExtension(QString extension)
+{
+    settings->setValue("recordingRawExtension", extension);
+}

@@ -94,6 +94,16 @@ DlgSettings::DlgSettings(KhAudioBackends *AudioBackends, QWidget *parent) :
     ui->comboBoxDevice->addItems(inputs);
     ui->comboBoxCodec->addItems(codecs);
     ui->comboBoxContainer->addItems(containers);
+    ui->comboBoxDevice->setCurrentIndex(ui->comboBoxDevice->findText(settings->recordingInput()));
+    ui->comboBoxCodec->setCurrentIndex(ui->comboBoxCodec->findText(settings->recordingCodec()));
+    ui->comboBoxContainer->setCurrentIndex(ui->comboBoxContainer->findText(settings->recordingContainer()));
+    ui->lineEditExtension->setText(settings->recordingRawExtension());
+    ui->lineEditOutputDir->setText(settings->recordingOutputDir());
+    if (settings->recordingContainer() != "raw")
+    {
+        ui->lineEditExtension->hide();
+        ui->labelExtension->hide();
+    }
     audioBackendChanged(settings->audioBackend());
     connect(settings, SIGNAL(audioBackendChanged(int)), this, SLOT(audioBackendChanged(int)));
 //    ui->checkBoxSilenceDetection->setHidden(!audioBackend->canDetectSilence());
@@ -359,17 +369,59 @@ void DlgSettings::on_comboBoxDevice_currentIndexChanged(const QString &arg1)
 void DlgSettings::on_comboBoxCodec_currentIndexChanged(const QString &arg1)
 {
     if (pageSetupDone)
+    {
         settings->setRecordingCodec(arg1);
+        if (arg1 == "audio/mpeg")
+        {
+            ui->lineEditExtension->setText("mp3");
+            settings->setRecordingRawExtension("mp3");
+        }
+    }
 }
 
 void DlgSettings::on_comboBoxContainer_currentIndexChanged(const QString &arg1)
 {
     if (pageSetupDone)
+    {
         settings->setRecordingContainer(arg1);
+        if (arg1 == "raw")
+        {
+            ui->labelExtension->show();
+            ui->lineEditExtension->show();
+            if (settings->recordingCodec() == "audio/mpeg")
+            {
+                ui->lineEditExtension->setText("mp3");
+                settings->setRecordingRawExtension("mp3");
+            }
+            else
+                ui->lineEditExtension->setText(settings->recordingRawExtension());
+
+        }
+        else
+        {
+            ui->labelExtension->hide();
+            ui->lineEditExtension->hide();
+        }
+    }
 }
 
 void DlgSettings::on_groupBoxRecording_toggled(bool arg1)
 {
     if (pageSetupDone)
         settings->setRecordingEnabled(arg1);
+}
+
+void DlgSettings::on_lineEditExtension_editingFinished()
+{
+    settings->setRecordingRawExtension(ui->lineEditExtension->text());
+}
+
+void DlgSettings::on_buttonBrowse_clicked()
+{
+    QString dirName = QFileDialog::getExistingDirectory(this, "Select the output directory",QStandardPaths::writableLocation(QStandardPaths::MusicLocation));
+    if (dirName != "")
+    {
+        settings->setRecordingOutputDir(dirName);
+        ui->lineEditOutputDir->setText(dirName);
+    }
 }

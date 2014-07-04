@@ -108,6 +108,8 @@ public:
     void setRecordingOutputDir(QString path);
     bool recordingEnabled();
     void setRecordingEnabled(bool enabled);
+    QString recordingRawExtension();
+    void setRecordingRawExtension(QString extension);
 
 signals:
     void tickerFontChanged();

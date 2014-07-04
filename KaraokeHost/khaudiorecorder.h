@@ -12,6 +12,8 @@ private:
     QAudioRecorder *audioRecorder;
     QString outputFile;
     //QAudioEncoderSettings audioSettings;
+    QString startDateTime;
+
 
 public:
     explicit KhAudioRecorder(QObject *parent = 0);
