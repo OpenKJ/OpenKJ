@@ -36,27 +36,36 @@
        <number>0</number>
       </property>
       <item>
-       <widget class="QTreeView" name="treeViewPaths">
+       <widget class="QTableView" name="tableViewPaths">
         <property name="editTriggers">
          <set>QAbstractItemView::NoEditTriggers</set>
         </property>
         <property name="showDropIndicator" stdset="0">
          <bool>false</bool>
         </property>
-        <property name="indentation">
-         <number>0</number>
+        <property name="alternatingRowColors">
+         <bool>true</bool>
         </property>
-        <property name="rootIsDecorated">
-         <bool>false</bool>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectRows</enum>
         </property>
-        <property name="expandsOnDoubleClick">
-         <bool>false</bool>
+        <property name="gridStyle">
+         <enum>Qt::NoPen</enum>
         </property>
-        <attribute name="headerVisible">
+        <property name="sortingEnabled">
+         <bool>true</bool>
+        </property>
+        <attribute name="horizontalHeaderVisible">
+         <bool>true</bool>
+        </attribute>
+        <attribute name="horizontalHeaderStretchLastSection">
+         <bool>true</bool>
+        </attribute>
+        <attribute name="verticalHeaderVisible">
          <bool>false</bool>
         </attribute>
-        <attribute name="headerCascadingSectionResizes">
-         <bool>true</bool>
+        <attribute name="verticalHeaderStretchLastSection">
+         <bool>false</bool>
         </attribute>
        </widget>
       </item>
@@ -115,6 +124,13 @@
          <enum>QFrame::Raised</enum>
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <widget class="QPushButton" name="pushButtonClearDb">
+           <property name="text">
+            <string>Clear DB</string>
+           </property>
+          </widget>
+         </item>
          <item>
           <spacer name="horizontalSpacer_3">
            <property name="orientation">

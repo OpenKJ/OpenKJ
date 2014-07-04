@@ -27,7 +27,6 @@
 #include "bmipcserver.h"
 #include <QtSql>
 #include <QDir>
-#include "bmsourcedir.h"
 #include "databasedialog.h"
 #include "bmsong.h"
 #include "songdbtablemodel.h"

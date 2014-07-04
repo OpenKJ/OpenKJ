@@ -16,14 +16,12 @@ SOURCES += main.cpp\
     songdbtablemodel.cpp \
     playlisttablemodel.cpp \
     khipc.cpp \
-    sourcedirtablemodel.cpp \
     databasedialog.cpp \
     databaseupdatethread.cpp \
     fader.cpp \
     bmipcserver.cpp \
     bmplaylist.cpp \
     bmsong.cpp \
-    bmsourcedir.cpp \
     bmsettings.cpp \
     bmabstractaudiobackend.cpp \
     bmaudiobackendgstreamer.cpp
@@ -32,14 +30,12 @@ HEADERS  += mainwindow.h \
     songdbtablemodel.h \
     playlisttablemodel.h \
     khipc.h \
-    sourcedirtablemodel.h \
     databasedialog.h \
     databaseupdatethread.h \
     fader.h \
     bmipcserver.h \
     bmplaylist.h \
     bmsong.h \
-    bmsourcedir.h \
     bmsettings.h \
     bmabstractaudiobackend.h \
     bmaudiobackendgstreamer.h
