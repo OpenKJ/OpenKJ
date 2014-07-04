@@ -55,6 +55,7 @@ bool KhZip::extractMp3(QDir destDir)
     if (!mz_zip_reader_init_file(&zip_archive, m_zipFile.toStdString().c_str(), 0))
     {
         qDebug() << "mz_zip_reader_init_file() failed!";
+        mz_zip_reader_end(&zip_archive);
         return false;
     }
 
@@ -72,7 +73,10 @@ bool KhZip::extractMp3(QDir destDir)
         {
             QString outFile(destDir.path() + QDir::separator() + "tmp.mp3");
             if (mz_zip_reader_extract_file_to_file(&zip_archive, file_stat.m_filename,outFile.toLocal8Bit().data(),0))
+            {
+                mz_zip_reader_end(&zip_archive);
                 return true;
+            }
             else
             {
                 qDebug() << "Error extracting file";
@@ -80,7 +84,7 @@ bool KhZip::extractMp3(QDir destDir)
         }
 
     }
-
+    mz_zip_reader_end(&zip_archive);
     return false;
 }
 
@@ -91,7 +95,8 @@ bool KhZip::extractCdg(QDir destDir)
     if (!mz_zip_reader_init_file(&zip_archive, m_zipFile.toLocal8Bit().data(), 0))
     {
         qDebug() << "mz_zip_reader_init_file() failed!";
-        //return false;
+        mz_zip_reader_end(&zip_archive);
+        return false;
     }
 
     for (int i = 0; i < (int)mz_zip_reader_get_num_files(&zip_archive); i++)
@@ -108,7 +113,10 @@ bool KhZip::extractCdg(QDir destDir)
         {
             QString outFile(destDir.path() + QDir::separator() + "tmp.cdg");
             if (mz_zip_reader_extract_file_to_file(&zip_archive, file_stat.m_filename,outFile.toLocal8Bit().data(),0))
+            {
+                mz_zip_reader_end(&zip_archive);
                 return true;
+            }
             else
             {
                 qDebug() << "Error extracting file";
@@ -116,7 +124,7 @@ bool KhZip::extractCdg(QDir destDir)
         }
 
     }
-
+    mz_zip_reader_end(&zip_archive);
     return false;
 }
 
@@ -137,6 +145,7 @@ int KhZip::getSongDuration()
     if (!mz_zip_reader_init_file(&zip_archive, m_zipFile.toLocal8Bit().data(), 0))
     {
         qDebug() << "mz_zip_reader_init_file() failed!";
+        mz_zip_reader_end(&zip_archive);
         return 0;
     }
 
@@ -152,10 +161,11 @@ int KhZip::getSongDuration()
         QString filename = file_stat.m_filename;
         if (filename.endsWith(".cdg", Qt::CaseInsensitive))
         {
+            mz_zip_reader_end(&zip_archive);
             return ((file_stat.m_uncomp_size / 96) / 75) * 1000;
         }
 
     }
-
+    mz_zip_reader_end(&zip_archive);
     return 0;
 }
