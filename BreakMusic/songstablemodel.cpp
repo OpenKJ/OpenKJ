@@ -1,5 +1,6 @@
 #include "songstablemodel.h"
 #include <QMimeData>
+#include <QStringList>
 
 SongsTableModel::SongsTableModel(QObject *parent, QSqlDatabase db) :
     QSqlTableModel(parent, db)
