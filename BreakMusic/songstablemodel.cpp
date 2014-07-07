@@ -25,7 +25,7 @@ void SongsTableModel::search(QString searchString)
     terms = searchString.split(" ",QString::SkipEmptyParts);
     if (terms.size() < 1)
     {
-        setFilter("4");
+        setFilter("");
         return;
     }
     QString whereClause = "searchstring LIKE \"%" + terms.at(0) + "%\"";
