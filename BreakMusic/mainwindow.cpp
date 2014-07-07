@@ -34,6 +34,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    currentPosition = 0;
     ui->setupUi(this);
     settings = new BmSettings(this);
     settings->restoreWindowState(this);
@@ -58,63 +59,53 @@ MainWindow::MainWindow(QWidget *parent) :
     database->open();
     QSqlQuery query;
     query.exec("CREATE TABLE IF NOT EXISTS songs ( songid INTEGER PRIMARY KEY AUTOINCREMENT, Artist COLLATE NOCASE, Title COLLATE NOCASE, path VARCHAR(700) NOT NULL UNIQUE, Filename COLLATE NOCASE, Duration TEXT, searchstring TEXT)");
-    query.exec("CREATE TABLE IF NOT EXISTS playlists ( title COLLATE NOCASE NOT NULL UNIQUE)");
-    query.exec("CREATE TABLE IF NOT EXISTS plsongs ( playlist INTEGER, song INTEGER, position INTEGER)");
+    query.exec("CREATE TABLE IF NOT EXISTS playlists ( playlistid INTEGER PRIMARY KEY AUTOINCREMENT, title COLLATE NOCASE NOT NULL UNIQUE)");
+    query.exec("CREATE TABLE IF NOT EXISTS plsongs ( plsongid INTEGER PRIMARY KEY AUTOINCREMENT, playlist INT, position INT, Artist INT, Title INT, Filename INT, Duration INT, path INT)");
     query.exec("CREATE TABLE IF NOT EXISTS srcdirs ( path NOT NULL)");
     dbDialog = new DatabaseDialog(database,this);
-    songs = new BmSongs(this);
-    //songdbmodel = new SongdbTableModel(songs,this);
-    playlists = new BmPlaylists(this);
-    playlistmodel = new PlaylistTableModel(playlists,this);
-    playlistmodel->showFilenames(settings->showFilenames());
-    playlistmodel->showMetadata(settings->showMetadata());
+    playlistsModel = new QSqlTableModel(this, *database);
+    playlistsModel->setTable("playlists");
+    playlistsModel->sort(2, Qt::AscendingOrder);
     dbModel = new SongsTableModel(this, *database);
     dbModel->setTable("songs");
-    dbModel->sort(1,Qt::AscendingOrder);
-//    dbModel->select();
-    //songdbmodel->showFilenames(settings->showFilenames());
-    //songdbmodel->showMetadata(settings->showMetadata());
+    //dbModel->sort(1,Qt::AscendingOrder);
+    dbModel->select();
+    currentPlaylist = settings->playlistIndex();
+    plModel = new PlaylistModel(this, *database);
+    plModel->select();
     ui->actionShow_Filenames->setChecked(settings->showFilenames());
     ui->actionShow_Metadata->setChecked(settings->showMetadata());
-    ui->comboBoxPlaylists->addItems(playlists->getTitleList());
+    ui->comboBoxPlaylists->setModel(playlistsModel);
+    ui->comboBoxPlaylists->setModelColumn(1);
     ui->comboBoxPlaylists->setCurrentIndex(settings->playlistIndex());
     ui->tableViewDB->setModel(dbModel);
     ui->tableViewDB->setColumnHidden(0, true);
     ui->tableViewDB->setColumnHidden(3, true);
     ui->tableViewDB->setColumnHidden(6, true);
-    ui->treeViewPlaylist->setModel(playlistmodel);
-    onActionShowFilenames(settings->showFilenames());
-    onActionShowMetadata(settings->showMetadata());
-    ui->treeViewPlaylist->header()->resizeSections(QHeaderView::ResizeToContents);
-    ui->treeViewPlaylist->header()->resizeSection(0,18);
+    ui->treeViewPlaylist->setModel(plModel);
+    ui->treeViewPlaylist->header()->hideSection(0);
+    ui->treeViewPlaylist->header()->hideSection(1);
     ui->treeViewPlaylist->header()->setSectionResizeMode(0,QHeaderView::Fixed);
-    ui->treeViewPlaylist->header()->resizeSection(playlistmodel->getColumnCount() - 1,18);
-    ui->treeViewPlaylist->header()->setSectionResizeMode(playlistmodel->getColumnCount() - 1,QHeaderView::Fixed);
-
-    songs->loadFromDB();
+    ui->treeViewPlaylist->header()->resizeSection(0,16);
+    ui->treeViewPlaylist->header()->setSectionResizeMode(7, QHeaderView::Fixed);
+    ui->treeViewPlaylist->header()->resizeSection(7,16);
+    plDelegate = new PlaylistItemDelegate(this);
+    ui->treeViewPlaylist->setItemDelegate(plDelegate);
+    showFilenames(settings->showFilenames());
+    showMetadata(settings->showMetadata());
     ui->tableViewDB->horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
     mPlayer->setVolume(settings->volume());
     //fader = new Fader(mPlayer,this);
 
     connect(ipcServer, SIGNAL(messageReceived(int)), this, SLOT(ipcMessageReceived(int)));
-    connect(ui->actionShow_Filenames, SIGNAL(triggered(bool)), this, SLOT(onActionShowFilenames(bool)));
-    connect(ui->actionShow_Metadata, SIGNAL(triggered(bool)), this, SLOT(onActionShowMetadata(bool)));
+    connect(ui->actionShow_Filenames, SIGNAL(triggered(bool)), this, SLOT(showFilenames(bool)));
+    connect(ui->actionShow_Metadata, SIGNAL(triggered(bool)), this, SLOT(showMetadata(bool)));
     connect(ui->actionManage_Database, SIGNAL(triggered()), dbDialog, SLOT(show()));
     connect(mPlayer, SIGNAL(stateChanged(BmAbstractAudioBackend::State)), this, SLOT(mediaStateChanged(BmAbstractAudioBackend::State)));
- //   connect(mPlayer, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)), this, SLOT(on_mediaStatusChanged(QMediaPlayer::MediaStatus)));
     connect(mPlayer, SIGNAL(positionChanged(qint64)), this, SLOT(on_mediaPositionChanged(qint64)));
     connect(mPlayer, SIGNAL(durationChanged(qint64)), this, SLOT(on_mediaDurationChanged(qint64)));
     connect(mPlayer, SIGNAL(volumeChanged(int)), ui->sliderVolume, SLOT(setValue(int)));
-    connect(playlists, SIGNAL(playlistsChanged()), this, SLOT(on_playlistsChanged()));
-    connect(playlists, SIGNAL(currentPlaylistChanged(QString)), ui->comboBoxPlaylists, SLOT(setCurrentText(QString)));
-    connect(playlists, SIGNAL(dataChanged()), this, SLOT(on_playlistChanged()));
     connect(dbDialog, SIGNAL(dbUpdated()), this, SLOT(dbUpdated()));
-    //connect(ui->sliderVolume, SIGNAL(sliderMoved(int)), fader, SLOT(setBaseVolume(int)));
-
-
-    //on_actionShow_Filenames(false);
-    //ui->treeViewPlaylist->header()->resizeSections(QHeaderView::ResizeToContents);
-
 }
 
 MainWindow::~MainWindow()
@@ -163,21 +154,10 @@ void MainWindow::onActionManageDatabase()
     dbDialog->show();
 }
 
-void MainWindow::on_playlistsChanged()
+void MainWindow::on_tableViewDB_activated(const QModelIndex &index)
 {
-    qDebug() << "on_playlistsChanged() fired";
-    QString cursel = playlists->getCurrent()->title();
-    ui->comboBoxPlaylists->clear();
-    ui->comboBoxPlaylists->addItems(playlists->getTitleList());
-    ui->comboBoxPlaylists->setCurrentText(cursel);
-    ui->treeViewPlaylist->header()->resizeSections(QHeaderView::ResizeToContents);
-}
-
-void MainWindow::on_treeViewDB_activated(const QModelIndex &index)
-{
-    playlists->getCurrent()->addSong(songs->at(index.row()));
-//    mPlayer->setMedia(QUrl::fromLocalFile(songs->at(index.row())->path()));
-//    mPlayer->play();
+    int songId = index.sibling(index.row(), 0).data().toInt();
+    plModel->addSong(songId);
 }
 
 void MainWindow::on_buttonStop_clicked()
@@ -197,33 +177,34 @@ void MainWindow::on_buttonAddPlaylist_clicked()
     if (ok && !title.isEmpty())
     {
         qDebug() << "Would create playlist: " + title;
-        if (!playlists->exists(title))
-            playlists->setCurrent(playlists->addPlaylist(title));
+        if (playlistsModel->insertRow(playlistsModel->rowCount()))
+        {
+            QModelIndex index = playlistsModel->index(playlistsModel->rowCount() - 1, 1);
+            playlistsModel->setData(index, title);
+            playlistsModel->submitAll();
+            playlistsModel->select();
+            ui->comboBoxPlaylists->setCurrentIndex(index.row());
+        }
     }
 }
 
 void MainWindow::on_treeViewPlaylist_activated(const QModelIndex &index)
 {
-
-    playlists->getCurrent()->setCurrentSongByPosition(index.row());
-    playCurrent();
-    ui->buttonPause->setChecked(false);
+    mPlayer->stop();
+    QString path = index.sibling(index.row(), 7).data().toString();
+    QString song = index.sibling(index.row(), 3).data().toString() + " - " + index.sibling(index.row(), 4).data().toString();
+    mPlayer->setMedia(path);
+    mPlayer->play();
+    ui->labelPlaying->setText(song);
+    currentPosition = index.row();
+    plDelegate->setCurrentSong(index.row());
+    plModel->select();
 }
 
 void MainWindow::on_sliderVolume_valueChanged(int value)
 {
     mPlayer->setVolume(value);
 }
-
-//void MainWindow::on_mediaStatusChanged(BmAbstractAudioBackend::MediaStatus status)
-//{
-//    qDebug() << "mediaStatusChanged fired: " << status;
-//    if ((status == QMediaPlayer::EndOfMedia) && (ui->checkBoxBreak->checkState() != Qt::Checked))
-//    {
-//        playlists->getCurrent()->next();
-//        playCurrent();
-//    }
-//}
 
 void MainWindow::on_sliderPosition_sliderMoved(int position)
 {
@@ -241,28 +222,6 @@ void MainWindow::on_mediaDurationChanged(qint64 duration)
 {
     ui->sliderPosition->setMaximum(duration);
     ui->labelDuration->setText(msToMMSS(duration));
-}
-
-void MainWindow::playCurrent(bool skipfade)
-{
-    BmPlaylistSong *song = playlists->getCurrent()->getCurrentSong();
-    BmPlaylistSong *next = playlists->getCurrent()->getNextSong();
-    qDebug() << "Playing song at position: " << song->position() << " Artist: " << song->song()->artist() << " Title: " << song->song()->title();
-    if (mPlayer->state() == BmAbstractAudioBackend::PlayingState) {
-        if (ipcServer->lastIpcCmd() == BmIPCServer::CMD_FADE_OUT)
-            mPlayer->stop(true);
-        else
-            mPlayer->stop(skipfade);
-    }
-    mPlayer->setMedia(song->song()->path());
-    if (ipcServer->lastIpcCmd() == BmIPCServer::CMD_FADE_OUT)
-        mPlayer->play();
-    else
-        mPlayer->play();
-    ui->sliderPosition->setMaximum(mPlayer->duration());
-    ui->sliderPosition->setValue(0);
-    ui->labelPlaying->setText(song->song()->artist() + " - " + song->song()->title());
-    ui->labelNext->setText(next->song()->artist() + " - " + next->song()->title());
 }
 
 QString MainWindow::msToMMSS(qint64 ms)
@@ -292,121 +251,106 @@ void MainWindow::on_buttonPause_clicked(bool checked)
         mPlayer->play();
 }
 
-void MainWindow::on_comboBoxPlaylists_currentIndexChanged(const QString &arg1)
-{
-    qDebug() << "Changing active playlist to: " << arg1;
-    playlists->setCurrent(arg1);
-}
-
-void MainWindow::on_playlistChanged()
-{
-    if (playlists->getCurrent()->getNextSong() != NULL)
-    {
-    BmSong *nextSong = playlists->getCurrent()->getNextSong()->song();
-    ui->labelNext->setText(nextSong->artist() + " - " + nextSong->title());
-    }
-}
-
-void MainWindow::onActionShowMetadata(bool checked)
+void MainWindow::showMetadata(bool checked)
 {
     if (!checked)
     {
         ui->tableViewDB->setColumnHidden(1, true);
         ui->tableViewDB->setColumnHidden(2, true);
-        ui->treeViewPlaylist->header()->hideSection(1);
-        ui->treeViewPlaylist->header()->hideSection(2);
+        ui->treeViewPlaylist->header()->hideSection(3);
+        ui->treeViewPlaylist->header()->hideSection(4);
     }
     else
     {
         ui->tableViewDB->setColumnHidden(1, false);
         ui->tableViewDB->setColumnHidden(2, false);
-        ui->treeViewPlaylist->header()->showSection(1);
-        ui->treeViewPlaylist->header()->showSection(2);
+        ui->treeViewPlaylist->header()->showSection(3);
+        ui->treeViewPlaylist->header()->showSection(4);
     }
     settings->setShowMetadata(checked);
 }
 
 
-void MainWindow::onActionShowFilenames(bool checked)
+void MainWindow::showFilenames(bool checked)
 {
     if (!checked)
     {
         ui->tableViewDB->setColumnHidden(4, true);
-        ui->treeViewPlaylist->header()->hideSection(3);
+        ui->treeViewPlaylist->header()->hideSection(5);
     }
     else
     {
         ui->tableViewDB->setColumnHidden(4, false);
-        ui->treeViewPlaylist->header()->showSection(3);
+        ui->treeViewPlaylist->header()->showSection(5);
     }
     settings->setShowFilenames(checked);
 }
 
 void MainWindow::on_actionImport_Playlist_triggered()
 {
-    QString importFile = QFileDialog::getOpenFileName(this,tr("Select playlist to import"), QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), tr("(*.m3u)"));
-    if (importFile != "")
-    {
-        QStringList files;
-        QFile textFile;
-        textFile.setFileName(importFile);
-        textFile.open(QFile::ReadOnly);
-        //... (open the file for reading, etc.)
-        QTextStream textStream(&textFile);
-        while (true)
-        {
-            QString line = textStream.readLine();
-            if (line.isNull())
-                break;
-            else
-            {
-                if (!line.startsWith("#"))
-                    files.append(line.replace("\\", "/"));
-            }
-        }
-        QSqlQuery query;
+//    QString importFile = QFileDialog::getOpenFileName(this,tr("Select playlist to import"), QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), tr("(*.m3u)"));
+//    if (importFile != "")
+//    {
+//        QStringList files;
+//        QFile textFile;
+//        textFile.setFileName(importFile);
+//        textFile.open(QFile::ReadOnly);
+//        //... (open the file for reading, etc.)
+//        QTextStream textStream(&textFile);
+//        while (true)
+//        {
+//            QString line = textStream.readLine();
+//            if (line.isNull())
+//                break;
+//            else
+//            {
+//                if (!line.startsWith("#"))
+//                    files.append(line.replace("\\", "/"));
+//            }
+//        }
+//        QSqlQuery query;
 
-        bool ok;
-        QString title = QInputDialog::getText(this, tr("New Playlist"), tr("Playlist title:"), QLineEdit::Normal, tr("New Playlist"), &ok);
-        if (ok && !title.isEmpty())
-        {
-            if (!playlists->exists(title))
-                playlists->setCurrent(playlists->addPlaylist(title));
-        }
+//        bool ok;
+//        QString title = QInputDialog::getText(this, tr("New Playlist"), tr("Playlist title:"), QLineEdit::Normal, tr("New Playlist"), &ok);
+//        if (ok && !title.isEmpty())
+//        {
+//            if (!playlists->exists(title))
+//                playlists->setCurrent(playlists->addPlaylist(title));
+//        }
 
 
-        qDebug() << "Adding playlist songs to DB if valid and not already present";
-        query.exec("BEGIN TRANSACTION");
-        for (int i=0; i < files.size(); i++)
-        {
-            TagLib::FileRef f(files.at(i).toUtf8().data());
-            if (!f.isNull())
-            {
-                QString artist = QString::fromStdString(f.tag()->artist().to8Bit(true));
-                QString title = QString::fromStdString(f.tag()->title().to8Bit(true));
-                QString duration = QString::number(f.audioProperties()->length());
-                QString filename = QFileInfo(files.at(i)).fileName();
-                query.exec("INSERT OR IGNORE INTO songs (artist,title,path,filename,duration) VALUES(\"" + artist + "\",\"" + title + "\",\"" + files.at(i) + "\",\"" + filename + "\"," + duration + ")");
-                //        qDebug() << f.tag()->artist().toCString(true) << " - " << f.tag()->title().toCString(true);
-            }
-        }
-        query.exec("COMMIT TRANSACTION");
-        //songdbmodel->reloadFromDb();
-        dbUpdated();
-        qDebug() << "Finished db insert";
-        qDebug() << "Adding songs to new playlist " << playlists->getCurrent()->title();
-        query.exec("BEGIN TRANSACTION");
-        for (int i=0; i < files.size(); i++)
-        {
-            BmSong *song = songs->getSongByPath(files.at(i));
-            if (song != NULL)
-            {
-                playlists->getCurrent()->addSong(song);
-            }
-        }
-        query.exec("COMMIT TRANSACTION");
-        qDebug() << "Done adding songs to playlist";
-    }
+//        qDebug() << "Adding playlist songs to DB if valid and not already present";
+//        query.exec("BEGIN TRANSACTION");
+//        for (int i=0; i < files.size(); i++)
+//        {
+//            TagLib::FileRef f(files.at(i).toUtf8().data());
+//            if (!f.isNull())
+//            {
+//                QString artist = QString::fromStdString(f.tag()->artist().to8Bit(true));
+//                QString title = QString::fromStdString(f.tag()->title().to8Bit(true));
+//                QString duration = QString::number(f.audioProperties()->length());
+//                QString filename = QFileInfo(files.at(i)).fileName();
+//                query.exec("INSERT OR IGNORE INTO songs (artist,title,path,filename,duration) VALUES(\"" + artist + "\",\"" + title + "\",\"" + files.at(i) + "\",\"" + filename + "\"," + duration + ")");
+//                //        qDebug() << f.tag()->artist().toCString(true) << " - " << f.tag()->title().toCString(true);
+//            }
+//        }
+//        query.exec("COMMIT TRANSACTION");
+//        //songdbmodel->reloadFromDb();
+//        dbUpdated();
+//        qDebug() << "Finished db insert";
+//        qDebug() << "Adding songs to new playlist " << playlists->getCurrent()->title();
+//        query.exec("BEGIN TRANSACTION");
+//        for (int i=0; i < files.size(); i++)
+//        {
+//            BmSong *song = songs->getSongByPath(files.at(i));
+//            if (song != NULL)
+//            {
+//                playlists->getCurrent()->addSong(song);
+//            }
+//        }
+//        query.exec("COMMIT TRANSACTION");
+//        qDebug() << "Done adding songs to playlist";
+//    }
 }
 
 void MainWindow::mediaStateChanged(BmAbstractAudioBackend::State newState)
@@ -417,8 +361,22 @@ void MainWindow::mediaStateChanged(BmAbstractAudioBackend::State newState)
         lastState = newState;
         if (newState == BmAbstractAudioBackend::EndOfMediaState)
         {
-            playlists->getCurrent()->next();
-            playCurrent(true);
+            if (ui->checkBoxBreak->isChecked())
+                return;
+            if (currentPosition < plModel->rowCount() - 1)
+                currentPosition++;
+            else
+                currentPosition = 0;
+            mPlayer->stop(true);
+            QString path = plModel->index(currentPosition, 7).data().toString();
+            QString song = plModel->index(currentPosition, 3).data().toString() + " - " + plModel->index(currentPosition, 4).data().toString();
+            mPlayer->setMedia(path);
+            mPlayer->play();
+            ui->labelPlaying->setText(song);
+            plDelegate->setCurrentSong(currentPosition);
+            plModel->select();
+            //            playlists->getCurrent()->next();
+//            playCurrent(true);
         }
     }
 
@@ -431,9 +389,15 @@ void MainWindow::dbUpdated()
 
 void MainWindow::on_treeViewPlaylist_clicked(const QModelIndex &index)
 {
-    if (index.column() == 5)
+    if (index.column() == 7)
     {
         qDebug() << "Delete clicked on row: " << index.row();
-        playlists->getCurrent()->removeSong(index.row());
+        plModel->deleteSong(index.row());
     }
+}
+
+void MainWindow::on_comboBoxPlaylists_currentIndexChanged(int index)
+{
+    currentPlaylist = index + 1;
+    plModel->setCurrentPlaylist(currentPlaylist);
 }

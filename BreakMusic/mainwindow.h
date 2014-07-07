@@ -28,13 +28,12 @@
 #include <QtSql>
 #include <QDir>
 #include "databasedialog.h"
-#include "bmsong.h"
-//#include "songdbtablemodel.h"
-#include "playlisttablemodel.h"
-#include "bmplaylist.h"
-//#include "fader.h"
 #include "bmaudiobackendgstreamer.h"
+#include "bmabstractaudiobackend.h"
 #include "songstablemodel.h"
+#include "playlistmodel.h"
+#include <QSqlTableModel>
+#include "playlistitemdelegate.h"
 
 
 namespace Ui {
@@ -57,55 +56,39 @@ private:
     QSqlDatabase *database;
     QDir *khDir;
     DatabaseDialog *dbDialog;
-    BmSongs *songs;
     SongsTableModel *dbModel;
-    //SongdbTableModel *songdbmodel;
-    PlaylistTableModel *playlistmodel;
-    BmPlaylists *playlists;
-    //Fader *fader;
+    PlaylistModel *plModel;
+    QSqlTableModel *playlistsModel;
     bool fading;
-    void playCurrent(bool skipfade = false);
     QString msToMMSS(qint64 ms);
     BmAudioBackendGStreamer *mPlayer;
+    int currentPosition;
+    int currentPlaylist;
+    PlaylistItemDelegate *plDelegate;
+
 
 private slots:
-//    void ipcMessageReceived(QString ipcMessage);
     void ipcMessageReceived(int ipcCommand);
-
-    void on_treeViewDB_activated(const QModelIndex &index);
-
+    void on_tableViewDB_activated(const QModelIndex &index);
     void on_buttonStop_clicked();
-
     void on_lineEditSearch_returnPressed();
-
     void on_buttonAddPlaylist_clicked();
-
     void on_treeViewPlaylist_activated(const QModelIndex &index);
-
     void on_sliderVolume_valueChanged(int value);
-
-    //void on_mediaStatusChanged(BmAbstractAudioBackend::MediaStatus status);
-
     void on_sliderPosition_sliderMoved(int position);
-
     void on_mediaPositionChanged(qint64 position);
     void on_mediaDurationChanged(qint64 duration);
-
     void on_buttonPause_clicked(bool checked);
-
-    void on_comboBoxPlaylists_currentIndexChanged(const QString &arg1);
-    void on_playlistChanged();
-    void onActionShowMetadata(bool checked);
-    void onActionShowFilenames(bool checked);
+    void showMetadata(bool checked);
+    void showFilenames(bool checked);
     void on_actionImport_Playlist_triggered();
     void mediaStateChanged(BmAbstractAudioBackend::State newState);
     void dbUpdated();
-
     void on_treeViewPlaylist_clicked(const QModelIndex &index);
+    void on_comboBoxPlaylists_currentIndexChanged(int index);
 
 public slots:
     void onActionManageDatabase();
-    void on_playlistsChanged();
 
 };
 
