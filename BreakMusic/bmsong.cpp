@@ -36,8 +36,8 @@ BmSong::BmSong(int songIndex, QObject *parent) :
 {
     m_duration = -1;
     m_index = -1;
-    QSqlQuery query("SELECT ROWID,artist,title,path,filename,duration FROM songs WHERE ROWID == " + QString::number(songIndex));
-    int index = query.record().indexOf("ROWID");
+    QSqlQuery query("SELECT songid,artist,title,path,filename,duration FROM songs WHERE songid == " + QString::number(songIndex));
+    int index = query.record().indexOf("songid");
     int artist = query.record().indexOf("artist");
     int title = query.record().indexOf("title");
     int path = query.record().indexOf("path");
@@ -49,7 +49,7 @@ BmSong::BmSong(int songIndex, QObject *parent) :
         setTitle(query.value(title).toString());
         setPath(query.value(path).toString());
         setFilename(query.value(filename).toString());
-        setDuration(query.value(duration).toInt());
+        setDuration(query.value(duration).toString());
     }
 }
 
@@ -63,30 +63,31 @@ void BmSong::setIndex(int index)
     m_index = index;
 }
 
-int BmSong::duration() const
+QString BmSong::duration() const
 {
     return m_duration;
 }
 
-void BmSong::setDuration(int duration)
+void BmSong::setDuration(QString duration)
 {
     m_duration = duration;
 }
 
 QString BmSong::durationStr()
 {
-    int min;
-    int sec;
-    QString minStr;
-    QString secStr;
-    min = (int) (duration() / 60);
-    sec = duration() % 60;
-    minStr = QString::number(min);
-    if (sec < 10)
-        secStr = "0" + QString::number(sec);
-    else
-        secStr = QString::number(sec);
-    return QString(minStr + ":" + secStr);
+    return duration();
+//    int min;
+//    int sec;
+//    QString minStr;
+//    QString secStr;
+//    min = (int) (duration() / 60);
+//    sec = duration() % 60;
+//    minStr = QString::number(min);
+//    if (sec < 10)
+//        secStr = "0" + QString::number(sec);
+//    else
+//        secStr = QString::number(sec);
+//    return QString(minStr + ":" + secStr);
 }
 
 QString BmSong::filename() const
@@ -159,8 +160,8 @@ void BmSongs::loadFromDB()
     allSongs->clear();
     filteredSongs->clear();
     filterTerms.clear();
-    QSqlQuery query("SELECT ROWID,artist,title,path,filename,duration FROM songs ORDER BY filename");
-    int index = query.record().indexOf("ROWID");
+    QSqlQuery query("SELECT songid,artist,title,path,filename,duration FROM songs ORDER BY filename");
+    int index = query.record().indexOf("songid");
     int artist = query.record().indexOf("artist");
     int title = query.record().indexOf("title");
     int path = query.record().indexOf("path");
@@ -173,7 +174,7 @@ void BmSongs::loadFromDB()
         song->setTitle(query.value(title).toString());
         song->setPath(query.value(path).toString());
         song->setFilename(query.value(filename).toString());
-        song->setDuration(query.value(duration).toInt());
+        song->setDuration(query.value(duration).toString());
         allSongs->push_back(song);
         filteredSongs->push_back(song);
     }

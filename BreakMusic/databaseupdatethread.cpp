@@ -72,12 +72,25 @@ void DatabaseUpdateThread::run()
         TagLib::FileRef f(files->at(i).toUtf8().data());
         if (!f.isNull())
         {
+            int ms = f.audioProperties()->length();
+            int min;
+            int sec;
+            QString minStr;
+            QString secStr;
+            min = (int) (ms / 60);
+            sec = ms % 60;
+            minStr = QString::number(min);
+            if (sec < 10)
+                secStr = "0" + QString::number(sec);
+            else
+                secStr = QString::number(sec);
+            QString duration = minStr + ":" + secStr;
+
             QString artist = QString::fromStdString(f.tag()->artist().to8Bit(true));
             QString title = QString::fromStdString(f.tag()->title().to8Bit(true));
-            QString duration = QString::number(f.audioProperties()->length());
             QString filename = QFileInfo(files->at(i)).fileName();
-            query.exec("INSERT OR IGNORE INTO songs (artist,title,path,filename,duration) VALUES(\"" + artist + "\",\"" + title + "\",\"" + files->at(i) + "\",\"" + filename + "\"," + duration + ")");
-            //        qDebug() << f.tag()->artist().toCString(true) << " - " << f.tag()->title().toCString(true);
+            QString queryString = "INSERT OR IGNORE INTO songs (artist,title,path,filename,duration,searchstring) VALUES(\"" + artist + "\",\"" + title + "\",\"" + files->at(i) + "\",\"" + filename + "\",\"" + duration + "\",\"" + artist + title + filename + "\")";
+            query.exec(queryString);
         }
     }
     query.exec("COMMIT TRANSACTION");

@@ -52,6 +52,9 @@ private slots:
 
     void on_pushButtonUpdate_clicked();
 
+signals:
+    void dbUpdated();
+
 private:
     Ui::DatabaseDialog *ui;
     QSqlTableModel *pathsModel;

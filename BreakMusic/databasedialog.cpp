@@ -73,6 +73,7 @@ void DatabaseDialog::on_pushButtonUpdate_clicked()
             QApplication::processEvents();
 
         msgBox->close();
+        emit dbUpdated();
         delete msgBox;
     }
 }
@@ -93,6 +94,7 @@ void DatabaseDialog::on_pushButtonUpdateAll_clicked()
             QApplication::processEvents();
     }
     msgBox->close();
+    emit dbUpdated();
     delete msgBox;
 }
 

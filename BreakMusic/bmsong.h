@@ -46,8 +46,8 @@ public:
 
     QString getSearchableString() const;
 
-    int duration() const;
-    void setDuration(int duration);
+    QString duration() const;
+    void setDuration(QString duration);
 
     QString durationStr();
 
@@ -63,7 +63,7 @@ private:
     QString m_title;
     QString m_path;
     QString m_filename;
-    int m_duration;
+    QString m_duration;
     int m_index;
     
 };

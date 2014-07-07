@@ -29,11 +29,13 @@
 #include <QDir>
 #include "databasedialog.h"
 #include "bmsong.h"
-#include "songdbtablemodel.h"
+//#include "songdbtablemodel.h"
 #include "playlisttablemodel.h"
 #include "bmplaylist.h"
 //#include "fader.h"
 #include "bmaudiobackendgstreamer.h"
+#include "songstablemodel.h"
+
 
 namespace Ui {
 class MainWindow;
@@ -56,7 +58,8 @@ private:
     QDir *khDir;
     DatabaseDialog *dbDialog;
     BmSongs *songs;
-    SongdbTableModel *songdbmodel;
+    SongsTableModel *dbModel;
+    //SongdbTableModel *songdbmodel;
     PlaylistTableModel *playlistmodel;
     BmPlaylists *playlists;
     //Fader *fader;
@@ -96,7 +99,7 @@ private slots:
     void onActionShowFilenames(bool checked);
     void on_actionImport_Playlist_triggered();
     void mediaStateChanged(BmAbstractAudioBackend::State newState);
-
+    void dbUpdated();
 
     void on_treeViewPlaylist_clicked(const QModelIndex &index);
 

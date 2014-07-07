@@ -57,24 +57,31 @@ MainWindow::MainWindow(QWidget *parent) :
     database->setDatabaseName(khDir->absolutePath() + QDir::separator() + "breakmusic.sqlite");
     database->open();
     QSqlQuery query;
-    query.exec("CREATE TABLE IF NOT EXISTS songs ( artist VARCHAR(100), title VARCHAR(100), path VARCHAR(700) NOT NULL UNIQUE, filename VARCHAR(200), duration INTEGER)");
-    query.exec("CREATE TABLE IF NOT EXISTS playlists ( title VARCHAR(100) NOT NULL UNIQUE)");
+    query.exec("CREATE TABLE IF NOT EXISTS songs ( songid INTEGER PRIMARY KEY AUTOINCREMENT, Artist COLLATE NOCASE, Title COLLATE NOCASE, path VARCHAR(700) NOT NULL UNIQUE, Filename COLLATE NOCASE, Duration TEXT, searchstring TEXT)");
+    query.exec("CREATE TABLE IF NOT EXISTS playlists ( title COLLATE NOCASE NOT NULL UNIQUE)");
     query.exec("CREATE TABLE IF NOT EXISTS plsongs ( playlist INTEGER, song INTEGER, position INTEGER)");
-    query.exec("CREATE TABLE IF NOT EXISTS srcdirs ( path COLLATE NOCASE NOT NULL)");
+    query.exec("CREATE TABLE IF NOT EXISTS srcdirs ( path NOT NULL)");
     dbDialog = new DatabaseDialog(database,this);
     songs = new BmSongs(this);
-    songdbmodel = new SongdbTableModel(songs,this);
+    //songdbmodel = new SongdbTableModel(songs,this);
     playlists = new BmPlaylists(this);
     playlistmodel = new PlaylistTableModel(playlists,this);
     playlistmodel->showFilenames(settings->showFilenames());
     playlistmodel->showMetadata(settings->showMetadata());
-    songdbmodel->showFilenames(settings->showFilenames());
-    songdbmodel->showMetadata(settings->showMetadata());
+    dbModel = new SongsTableModel(this, *database);
+    dbModel->setTable("songs");
+    dbModel->sort(1,Qt::AscendingOrder);
+//    dbModel->select();
+    //songdbmodel->showFilenames(settings->showFilenames());
+    //songdbmodel->showMetadata(settings->showMetadata());
     ui->actionShow_Filenames->setChecked(settings->showFilenames());
     ui->actionShow_Metadata->setChecked(settings->showMetadata());
     ui->comboBoxPlaylists->addItems(playlists->getTitleList());
     ui->comboBoxPlaylists->setCurrentIndex(settings->playlistIndex());
-    ui->treeViewDB->setModel(songdbmodel);
+    ui->tableViewDB->setModel(dbModel);
+    ui->tableViewDB->setColumnHidden(0, true);
+    ui->tableViewDB->setColumnHidden(3, true);
+    ui->tableViewDB->setColumnHidden(6, true);
     ui->treeViewPlaylist->setModel(playlistmodel);
     onActionShowFilenames(settings->showFilenames());
     onActionShowMetadata(settings->showMetadata());
@@ -85,7 +92,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->treeViewPlaylist->header()->setSectionResizeMode(playlistmodel->getColumnCount() - 1,QHeaderView::Fixed);
 
     songs->loadFromDB();
-    ui->treeViewDB->header()->resizeSections(QHeaderView::ResizeToContents);
+    ui->tableViewDB->horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
     mPlayer->setVolume(settings->volume());
     //fader = new Fader(mPlayer,this);
 
@@ -101,6 +108,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(playlists, SIGNAL(playlistsChanged()), this, SLOT(on_playlistsChanged()));
     connect(playlists, SIGNAL(currentPlaylistChanged(QString)), ui->comboBoxPlaylists, SLOT(setCurrentText(QString)));
     connect(playlists, SIGNAL(dataChanged()), this, SLOT(on_playlistChanged()));
+    connect(dbDialog, SIGNAL(dbUpdated()), this, SLOT(dbUpdated()));
     //connect(ui->sliderVolume, SIGNAL(sliderMoved(int)), fader, SLOT(setBaseVolume(int)));
 
 
@@ -179,9 +187,7 @@ void MainWindow::on_buttonStop_clicked()
 
 void MainWindow::on_lineEditSearch_returnPressed()
 {
-    QStringList terms;
-    terms = ui->lineEditSearch->text().split(" ",QString::SkipEmptyParts);
-    songs->setFilterTerms(terms);
+    dbModel->search(ui->lineEditSearch->text());
 }
 
 void MainWindow::on_buttonAddPlaylist_clicked()
@@ -305,15 +311,15 @@ void MainWindow::onActionShowMetadata(bool checked)
 {
     if (!checked)
     {
-        ui->treeViewDB->header()->hideSection(0);
-        ui->treeViewDB->header()->hideSection(1);
+        ui->tableViewDB->setColumnHidden(1, true);
+        ui->tableViewDB->setColumnHidden(2, true);
         ui->treeViewPlaylist->header()->hideSection(1);
         ui->treeViewPlaylist->header()->hideSection(2);
     }
     else
     {
-        ui->treeViewDB->header()->showSection(0);
-        ui->treeViewDB->header()->showSection(1);
+        ui->tableViewDB->setColumnHidden(1, false);
+        ui->tableViewDB->setColumnHidden(2, false);
         ui->treeViewPlaylist->header()->showSection(1);
         ui->treeViewPlaylist->header()->showSection(2);
     }
@@ -325,12 +331,12 @@ void MainWindow::onActionShowFilenames(bool checked)
 {
     if (!checked)
     {
-        ui->treeViewDB->header()->hideSection(2);
+        ui->tableViewDB->setColumnHidden(4, true);
         ui->treeViewPlaylist->header()->hideSection(3);
     }
     else
     {
-        ui->treeViewDB->header()->showSection(2);
+        ui->tableViewDB->setColumnHidden(4, false);
         ui->treeViewPlaylist->header()->showSection(3);
     }
     settings->setShowFilenames(checked);
@@ -341,7 +347,6 @@ void MainWindow::on_actionImport_Playlist_triggered()
     QString importFile = QFileDialog::getOpenFileName(this,tr("Select playlist to import"), QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), tr("(*.m3u)"));
     if (importFile != "")
     {
-        QString curImportFile = importFile;
         QStringList files;
         QFile textFile;
         textFile.setFileName(importFile);
@@ -386,13 +391,14 @@ void MainWindow::on_actionImport_Playlist_triggered()
             }
         }
         query.exec("COMMIT TRANSACTION");
-        songdbmodel->reloadFromDb();
+        //songdbmodel->reloadFromDb();
+        dbUpdated();
         qDebug() << "Finished db insert";
         qDebug() << "Adding songs to new playlist " << playlists->getCurrent()->title();
         query.exec("BEGIN TRANSACTION");
         for (int i=0; i < files.size(); i++)
         {
-            BmSong *song = songdbmodel->getSongs()->getSongByPath(files.at(i));
+            BmSong *song = songs->getSongByPath(files.at(i));
             if (song != NULL)
             {
                 playlists->getCurrent()->addSong(song);
@@ -416,6 +422,11 @@ void MainWindow::mediaStateChanged(BmAbstractAudioBackend::State newState)
         }
     }
 
+}
+
+void MainWindow::dbUpdated()
+{
+    dbModel->select();
 }
 
 void MainWindow::on_treeViewPlaylist_clicked(const QModelIndex &index)
