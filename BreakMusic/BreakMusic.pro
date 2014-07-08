@@ -13,7 +13,6 @@ win32: RC_FILE = BreakMusic.rc
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    khipc.cpp \
     databasedialog.cpp \
     databaseupdatethread.cpp \
     bmipcserver.cpp \
@@ -25,7 +24,6 @@ SOURCES += main.cpp\
     playlistitemdelegate.cpp
 
 HEADERS  += mainwindow.h \
-    khipc.h \
     databasedialog.h \
     databaseupdatethread.h \
     bmipcserver.h \

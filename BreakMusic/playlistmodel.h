@@ -18,6 +18,10 @@ public:
     void insertSong(int songId, int position);
     void deleteSong(int position);
     void setCurrentPlaylist(int playlistId);
+    int currentPlaylist();
+    int getSongIdByFilePath(QString filePath);
+    QString currentSongString();
+    QString nextSongString();
 
 signals:
 

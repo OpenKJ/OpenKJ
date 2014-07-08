@@ -47,8 +47,6 @@ void PlaylistItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
     }
     painter->drawText(option.rect, index.data().toString());
     painter->setRenderHint(QPainter::Antialiasing, true);
-
-    //painter->setPen(Qt::NoPen);
 }
 
 

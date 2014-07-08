@@ -698,46 +698,12 @@
                </widget>
               </item>
               <item>
-               <widget class="QComboBox" name="comboBoxPlaylists"/>
-              </item>
-              <item>
-               <widget class="QPushButton" name="buttonAddPlaylist">
-                <property name="minimumSize">
-                 <size>
-                  <width>24</width>
-                  <height>24</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>24</width>
-                  <height>24</height>
-                 </size>
-                </property>
-                <property name="baseSize">
-                 <size>
-                  <width>24</width>
-                  <height>24</height>
-                 </size>
-                </property>
-                <property name="focusPolicy">
-                 <enum>Qt::NoFocus</enum>
-                </property>
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="icon">
-                 <iconset resource="resources.qrc">
-                  <normaloff>:/icons/list-add.png</normaloff>:/icons/list-add.png</iconset>
-                </property>
-                <property name="iconSize">
-                 <size>
-                  <width>22</width>
-                  <height>22</height>
-                 </size>
-                </property>
-                <property name="flat">
-                 <bool>true</bool>
+               <widget class="QComboBox" name="comboBoxPlaylists">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
                 </property>
                </widget>
               </item>
@@ -808,12 +774,6 @@
      <height>25</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuFile">
-    <property name="title">
-     <string>File</string>
-    </property>
-    <addaction name="actionImport_Playlist"/>
-   </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
      <string>Tools</string>
@@ -827,9 +787,25 @@
     <addaction name="actionShow_Filenames"/>
     <addaction name="actionShow_Metadata"/>
    </widget>
-   <addaction name="menuFile"/>
+   <widget class="QMenu" name="menuPlaylist">
+    <property name="title">
+     <string>Playlist</string>
+    </property>
+    <addaction name="actionNew_Playlist"/>
+    <addaction name="actionImport_Playlist"/>
+    <addaction name="actionExport_Playlist"/>
+    <addaction name="actionRemove_Playlist"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+   </widget>
+   <addaction name="menuPlaylist"/>
    <addaction name="menuTools"/>
    <addaction name="menuView"/>
+   <addaction name="menuHelp"/>
   </widget>
   <action name="actionManage_Database">
    <property name="text">
@@ -864,7 +840,27 @@
   </action>
   <action name="actionImport_Playlist">
    <property name="text">
-    <string>Import Playlist</string>
+    <string>Import</string>
+   </property>
+  </action>
+  <action name="actionExport_Playlist">
+   <property name="text">
+    <string>Export</string>
+   </property>
+  </action>
+  <action name="actionRemove_Playlist">
+   <property name="text">
+    <string>Remove</string>
+   </property>
+  </action>
+  <action name="actionNew_Playlist">
+   <property name="text">
+    <string>New</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
    </property>
   </action>
  </widget>

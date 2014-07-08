@@ -10,5 +10,6 @@
         <file>icons/bmicon32x32.png</file>
         <file>icons/bmicon48x48.png</file>
         <file>icons/bmicon64x64.png</file>
+        <file>icons/media-floppy.png</file>
     </qresource>
 </RCC>

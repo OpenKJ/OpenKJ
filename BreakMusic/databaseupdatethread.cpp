@@ -20,7 +20,6 @@
 
 #include "databaseupdatethread.h"
 #include <QDir>
-#include <QDebug>
 #include <QDirIterator>
 #include <tag.h>
 #include <taglib.h>
@@ -65,7 +64,6 @@ void DatabaseUpdateThread::run()
 {
     QStringList *files = findMediaFiles(m_path);
     QSqlQuery query;
-    qDebug() << "Beginning db insert";
     query.exec("BEGIN TRANSACTION");
     for (int i=0; i < files->size(); i++)
     {
@@ -95,5 +93,4 @@ void DatabaseUpdateThread::run()
     }
     query.exec("COMMIT TRANSACTION");
     delete files;
-    qDebug() << "Finished db insert";
 }

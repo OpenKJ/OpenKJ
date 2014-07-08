@@ -54,6 +54,7 @@ private slots:
 
 signals:
     void dbUpdated();
+    void dbCleared();
 
 private:
     Ui::DatabaseDialog *ui;

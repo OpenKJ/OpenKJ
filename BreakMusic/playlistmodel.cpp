@@ -1,5 +1,4 @@
 #include "playlistmodel.h"
-#include <QDebug>
 #include <QSqlQuery>
 
 PlaylistModel::PlaylistModel(QObject *parent, QSqlDatabase db) :
@@ -27,20 +26,16 @@ void PlaylistModel::moveSong(int oldPosition, int newPosition)
     {
         // Moving down
         QString sql = "UPDATE plsongs SET position = position - 1 WHERE position > " + QString::number(oldPosition) + " AND position <= " + QString::number(newPosition) + " AND plsongid != " + QString::number(plSongId);
-        qDebug() << sql;
         query.exec(sql);
         sql = "UPDATE plsongs SET position = " + QString::number(newPosition) + " WHERE plsongid == " + QString::number(plSongId);
-        qDebug() << sql;
         query.exec(sql);
     }
     else if (newPosition < oldPosition)
     {
         // Moving up
         QString sql = "UPDATE plsongs SET position = position + 1 WHERE position >= " + QString::number(newPosition) + " AND position < " + QString::number(oldPosition) + " AND plsongid != " + QString::number(plSongId);
-        qDebug() << sql;
         query.exec(sql);
         sql = "UPDATE plsongs SET position = " + QString::number(newPosition) + " WHERE plsongid == " + QString::number(plSongId);
-        qDebug() << sql;
         query.exec(sql);
     }
     query.exec("COMMIT TRANSACTION");
@@ -49,20 +44,18 @@ void PlaylistModel::moveSong(int oldPosition, int newPosition)
 
 void PlaylistModel::addSong(int songId)
 {
-    qDebug() << "Adding songid " << songId << "to playlist " << m_playlistId;
-    if (!insertRow(rowCount()))
-        qDebug() << "WTF?  Unable to add row!";
-    int newRow = rowCount() - 1;
-    if (!setData(index(newRow, 1), m_playlistId))
-        qDebug() << "WTF?  setData failed";
-    setData(index(newRow, 2), newRow);
-    setData(index(newRow, 3), songId);
-    setData(index(newRow, 4), songId);
-    setData(index(newRow, 5), songId);
-    setData(index(newRow, 6), songId);
-    setData(index(newRow, 7), songId);
-    submitAll();
-    select();
+    if (insertRow(rowCount())) {
+        int newRow = rowCount() - 1;
+        setData(index(newRow, 1), m_playlistId);
+        setData(index(newRow, 2), newRow);
+        setData(index(newRow, 3), songId);
+        setData(index(newRow, 4), songId);
+        setData(index(newRow, 5), songId);
+        setData(index(newRow, 6), songId);
+        setData(index(newRow, 7), songId);
+        submitAll();
+        select();
+    }
 }
 
 void PlaylistModel::insertSong(int songId, int position)
@@ -86,9 +79,25 @@ void PlaylistModel::setCurrentPlaylist(int playlistId)
     select();
 }
 
+int PlaylistModel::currentPlaylist()
+{
+    return m_playlistId;
+}
+
+int PlaylistModel::getSongIdByFilePath(QString filePath)
+{
+    QSqlQuery query("SELECT songid FROM songs WHERE path == \"" + filePath + "\" LIMIT 1");
+    if (query.first())
+        return query.value(0).toInt();
+
+    return -1;
+}
 
 bool PlaylistModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
 {
+    Q_UNUSED(action);
+    Q_UNUSED(column);
+
     if (data->hasFormat("integer/queuepos"))
     {
         int droprow;
@@ -121,26 +130,6 @@ bool PlaylistModel::dropMimeData(const QMimeData *data, Qt::DropAction action, i
                 songid = QString(bytedata.data()).toInt();
                 insertSong(songid, droprow);
     }
-//    if (data->hasFormat("integer/songid"))
-//    {
-//        unsigned int droprow;
-//        if (parent.row() >= 0)
-//            droprow = parent.row();
-//        else if (row >= 0)
-//            droprow = row;
-//        else
-//            droprow = playlists->getCurrent()->size();
-//        int songid;
-//        QByteArray bytedata = data->data("integer/songid");
-//        songid = QString(bytedata.data()).toInt();
-//        int position;
-//        if (droprow >= playlists->getCurrent()->size())
-//            position = playlists->getCurrent()->size();
-//        else
-//            position = playlists->getCurrent()->at(droprow)->position();
-//        playlists->getCurrent()->insertSong(songid,position);
-//        return true;
-//    }
     return false;
 }
 

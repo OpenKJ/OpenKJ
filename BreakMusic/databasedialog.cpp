@@ -67,7 +67,6 @@ void DatabaseDialog::on_pushButtonUpdate_clicked()
 
         DatabaseUpdateThread thread;
         thread.setPath(pathsModel->data(pathsModel->index(selectedDirectoryIdx, 0)).toString());
-        qDebug() << "Updating for path: " << pathsModel->data(pathsModel->index(selectedDirectoryIdx, 0)).toString();
         thread.start();
         while (thread.isRunning())
             QApplication::processEvents();
@@ -105,11 +104,24 @@ void DatabaseDialog::on_pushButtonClose_clicked()
 
 void DatabaseDialog::on_pushButtonClearDb_clicked()
 {
-    QSqlQuery query;
-    query.exec("DELETE FROM playlists");
-    query.exec("DELETE FROM plsongs");
-    query.exec("DELETE FROM songs");
-    query.exec("VACUUM");
+    QMessageBox msgBox;
+    msgBox.setText("Are you sure?");
+    msgBox.setInformativeText("Clearing the database will also clear all playlists.  If you have not already done so, you may want to export your playlists before performing this operation.  This operation can not be undone.");
+    msgBox.setIcon(QMessageBox::Warning);
+    msgBox.addButton(QMessageBox::Cancel);
+    QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
+    msgBox.exec();
+    if (msgBox.clickedButton() == yesButton) {
+        QSqlQuery query;
+        query.exec("DELETE FROM playlists");
+        query.exec("DELETE FROM plsongs");
+        query.exec("DELETE FROM songs");
+        query.exec("DELETE FROM srcDirs");
+        query.exec("UPDATE sqlite_sequence SET seq = 0");
+        query.exec("VACUUM");
+        pathsModel->select();
+        emit dbCleared();
+    }
 }
 
 void DatabaseDialog::on_pushButtonDelete_clicked()
@@ -125,7 +137,6 @@ void DatabaseDialog::on_tableViewPaths_clicked(const QModelIndex &index)
         selectedDirectoryIdx = index.row();
     else
         selectedDirectoryIdx = -1;
-    qDebug() << "Selected path row" << selectedDirectoryIdx;
 }
 
 

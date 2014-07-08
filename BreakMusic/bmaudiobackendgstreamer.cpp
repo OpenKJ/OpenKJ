@@ -57,9 +57,7 @@ BmAudioBackendGStreamer::BmAudioBackendGStreamer(QObject *parent) :
     g_object_set(G_OBJECT(rgVolume), "album-mode", false, NULL);
     g_object_set(G_OBJECT (level), "message", TRUE, NULL);
     bus = gst_element_get_bus (playBin);
-
     fader = new FaderGStreamer(volumeElement, this);
-//    fader->setVolumeElement(volumeElement);
     silenceDetectTimer = new QTimer(this);
     connect(silenceDetectTimer, SIGNAL(timeout()), this, SLOT(silenceDetectTimer_timeout()));
     silenceDetectTimer->start(1000);
@@ -131,7 +129,6 @@ qint64 BmAudioBackendGStreamer::position()
     GstFormat fmt = GST_FORMAT_TIME;
     if (gst_element_query_position (playBin, &fmt, &pos))
     {
-        //cout << "Position:" << pos / 1000000 << endl;
         return pos / 1000000;
     }
     return 0;
@@ -187,15 +184,11 @@ void BmAudioBackendGStreamer::keyChangerOn()
         while (state() != BmAbstractAudioBackend::StoppedState)
             QApplication::processEvents();
     }
-//    qDebug() << "Setting playbin sink to sink bin";
-//    g_object_set(G_OBJECT(playBin), "audio-sink", psSinkBin, NULL);
     gst_element_unlink(audioConvert,audioConvert2);
     if (!gst_element_link(audioConvert,pitch))
         qDebug() << "Failed to link audioConvert to pitch";
     if (!gst_element_link(pitch,audioConvert2))
         qDebug() << "Failed to link pitch to audioConvert2";
-//    if (!gst_element_link_many(rgvolume,pitch,audioResample,NULL))
-//        qDebug() << "Failed to link gstreamer elements";
     if (curstate != BmAbstractAudioBackend::StoppedState)
     {
         gst_element_set_state(playBin, GST_STATE_PLAYING);
@@ -219,7 +212,6 @@ void BmAudioBackendGStreamer::keyChangerOff()
         while (state() != BmAbstractAudioBackend::StoppedState)
             QApplication::processEvents();
     }
-//    g_object_set(G_OBJECT(playBin), "audio-sink", sinkBin, NULL);
     gst_element_unlink(audioConvert,pitch);
     gst_element_unlink(pitch,audioConvert2);
     if (!gst_element_link(audioConvert,audioConvert2))
@@ -265,7 +257,6 @@ void BmAudioBackendGStreamer::setMedia(QString filename)
 #else
     std::string uri = "file://" + filename.toStdString();
 #endif
-    qDebug() << "KhAudioBackendGStreamer - Playing: " << uri.c_str();
     g_object_set(GST_OBJECT(playBin), "uri", uri.c_str(), NULL);
 }
 
@@ -286,7 +277,6 @@ void BmAudioBackendGStreamer::setMuted(bool muted)
 
 void BmAudioBackendGStreamer::setPosition(qint64 position)
 {
-    qDebug() << "Seeking to: " << position << "ms";
     GstSeekFlags flags = GST_SEEK_FLAG_FLUSH;
     if (!gst_element_seek_simple(playBin, GST_FORMAT_TIME, flags, GST_MSECOND * position))
     {
@@ -312,7 +302,6 @@ void BmAudioBackendGStreamer::stop(bool skipFade)
     emit stateChanged(BmAbstractAudioBackend::StoppedState);
     if ((m_fade) && (!skipFade))
         setVolume(curVolume);
-   // setPitchShift(0);
 }
 
 void BmAudioBackendGStreamer::signalTimer_timeout()
@@ -327,7 +316,6 @@ void BmAudioBackendGStreamer::signalTimer_timeout()
     static BmAbstractAudioBackend::State currentState;
     if (state() != currentState)
     {
-        qDebug() << "audio state changed - old: " << currentState << " new: " << state();
         currentState = state();
         emit stateChanged(currentState);
         if (currentState == BmAbstractAudioBackend::StoppedState)
@@ -339,8 +327,6 @@ void BmAudioBackendGStreamer::signalTimer_timeout()
     }
     if((state() == BmAbstractAudioBackend::StoppedState) && (pitchShift() != 0))
             setPitchShift(0);
-//    else if (state() == QMediaPlayer::StoppedState)
-    //        stop();
     processGstMessages();
 }
 
@@ -410,7 +396,6 @@ void BmAudioBackendGStreamer::setPitchShift(int pitchShift)
         keyChangerOff();
     else if ((pitchShift != 0) && (!m_keyChangerOn))
         keyChangerOn();
-    qDebug() << "executing g_object_set(GST_OBJECT(pitch), \"pitch\", " << getPitchForSemitone(pitchShift) << ", NULL)";
     g_object_set(G_OBJECT(pitch), "pitch", getPitchForSemitone(pitchShift), "tempo", 1.0, NULL);
     emit pitchChanged(pitchShift);
 }
@@ -455,10 +440,9 @@ void FaderGStreamer::run()
 
 void FaderGStreamer::fadeIn()
 {
-    qDebug() << "fadeIn() - Started";
     if (m_preOutVolume <= volume())
     {
-        qDebug() << "fadeIn() - Target volume already met or exceeded... skipping";
+        // Target volume already met or exceeded... skipping";
         return;
     }
     m_targetVolume = m_preOutVolume;
@@ -469,17 +453,15 @@ void FaderGStreamer::fadeIn()
     }
     else
     {
-        qDebug() << "fadeIn() - A fade operation is already in progress... skipping";
+        // A fade operation is already in progress... skipping";
         return;
     }
     while(fading)
         QApplication::processEvents();
-    qDebug() << "fadeIn() - Finished";
 }
 
 void FaderGStreamer::fadeOut()
 {
-    qDebug() << "fadeOut() - Started";
     m_targetVolume = 0;
     if (!fading)
     {
@@ -489,12 +471,11 @@ void FaderGStreamer::fadeOut()
     }
     else
     {
-        qDebug() << "fadeIn() - A fade operation is already in progress... skipping";
+        // A fade operation is already in progress... skipping";
         return;
     }
     while(fading)
         QApplication::processEvents();
-    qDebug() << "fadeOut() - Finished";
 }
 
 bool FaderGStreamer::isFading()
@@ -581,7 +562,6 @@ bool BmAudioBackendGStreamer::canDownmix()
 
 void BmAudioBackendGStreamer::setDownmix(bool enabled)
 {
-    qDebug() << "KhAudioBackendGStreamer::setDownmix(" << enabled << ") called";
     if (enabled)
         g_object_set(filter, "caps", audioCapsMono, NULL);
     else

@@ -22,8 +22,6 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-//#include <QMediaPlayer>
-#include <QSharedMemory>
 #include "bmipcserver.h"
 #include <QtSql>
 #include <QDir>
@@ -50,29 +48,26 @@ public:
 
 private:
     Ui::MainWindow *ui;
-    //QMediaPlayer *mPlayer;
-    QSharedMemory *sharedMemory;
     BmIPCServer *ipcServer;
     QSqlDatabase *database;
     QDir *khDir;
     DatabaseDialog *dbDialog;
     SongsTableModel *dbModel;
     PlaylistModel *plModel;
+    PlaylistItemDelegate *plDelegate;
     QSqlTableModel *playlistsModel;
-    bool fading;
     QString msToMMSS(qint64 ms);
     BmAudioBackendGStreamer *mPlayer;
     int currentPosition;
     int currentPlaylist;
-    PlaylistItemDelegate *plDelegate;
-
+    bool playlistExists(QString name);
+    void addPlaylist(QString title);
 
 private slots:
     void ipcMessageReceived(int ipcCommand);
     void on_tableViewDB_activated(const QModelIndex &index);
     void on_buttonStop_clicked();
     void on_lineEditSearch_returnPressed();
-    void on_buttonAddPlaylist_clicked();
     void on_treeViewPlaylist_activated(const QModelIndex &index);
     void on_sliderVolume_valueChanged(int value);
     void on_sliderPosition_sliderMoved(int position);
@@ -82,10 +77,16 @@ private slots:
     void showMetadata(bool checked);
     void showFilenames(bool checked);
     void on_actionImport_Playlist_triggered();
+    void on_actionExport_Playlist_triggered();
+    void on_actionNew_Playlist_triggered();
+    void on_actionRemove_Playlist_triggered();
+    void on_actionAbout_triggered();
     void mediaStateChanged(BmAbstractAudioBackend::State newState);
     void dbUpdated();
+    void dbCleared();
     void on_treeViewPlaylist_clicked(const QModelIndex &index);
     void on_comboBoxPlaylists_currentIndexChanged(int index);
+    void on_checkBoxBreak_toggled(bool checked);
 
 public slots:
     void onActionManageDatabase();
