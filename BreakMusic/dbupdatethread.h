@@ -24,11 +24,11 @@
 #include <QThread>
 #include <QStringList>
 
-class DatabaseUpdateThread : public QThread
+class DbUpdateThread : public QThread
 {
     Q_OBJECT
 public:
-    explicit DatabaseUpdateThread(QObject *parent = 0);
+    explicit DbUpdateThread(QObject *parent = 0);
     void run();
     QString path() const;
     void setPath(const QString &path);

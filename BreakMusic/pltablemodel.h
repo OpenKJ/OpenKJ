@@ -5,14 +5,14 @@
 #include <QMimeData>
 #include <QStringList>
 
-class PlaylistModel : public QSqlRelationalTableModel
+class PlTableModel : public QSqlRelationalTableModel
 {
     Q_OBJECT
 private:
     int m_playlistId;
 
 public:
-    explicit PlaylistModel(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
+    explicit PlTableModel(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
     void moveSong(int oldPosition, int newPosition);
     void addSong(int songId);
     void insertSong(int songId, int position);

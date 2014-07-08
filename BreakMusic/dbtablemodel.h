@@ -3,7 +3,7 @@
 
 #include <QSqlTableModel>
 
-class SongsTableModel : public QSqlTableModel
+class DbTableModel : public QSqlTableModel
 {
     Q_OBJECT
 private:
@@ -12,7 +12,7 @@ private:
     QString titleOrder;
     QString filenameOrder;
 public:
-    explicit SongsTableModel(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
+    explicit DbTableModel(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
     void search(QString searchString);
     enum {SORT_ARTIST=1,SORT_TITLE=2,SORT_FILENAME=4,SORT_DURATION=5};
 

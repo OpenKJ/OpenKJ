@@ -14,25 +14,25 @@ win32: RC_FILE = BreakMusic.rc
 SOURCES += main.cpp\
         mainwindow.cpp \
     databasedialog.cpp \
-    databaseupdatethread.cpp \
     bmipcserver.cpp \
     bmsettings.cpp \
     bmabstractaudiobackend.cpp \
     bmaudiobackendgstreamer.cpp \
-    songstablemodel.cpp \
-    playlistmodel.cpp \
-    playlistitemdelegate.cpp
+    pltablemodel.cpp \
+    plitemdelegate.cpp \
+    dbtablemodel.cpp \
+    dbupdatethread.cpp
 
 HEADERS  += mainwindow.h \
     databasedialog.h \
-    databaseupdatethread.h \
     bmipcserver.h \
     bmsettings.h \
     bmabstractaudiobackend.h \
     bmaudiobackendgstreamer.h \
-    songstablemodel.h \
-    playlistmodel.h \
-    playlistitemdelegate.h
+    pltablemodel.h \
+    plitemdelegate.h \
+    dbtablemodel.h \
+    dbupdatethread.h
 
 FORMS    += mainwindow.ui \
     databasedialog.ui

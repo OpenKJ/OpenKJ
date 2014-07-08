@@ -3,14 +3,14 @@
 
 #include <QItemDelegate>
 
-class PlaylistItemDelegate : public QItemDelegate
+class PlItemDelegate : public QItemDelegate
 {
     Q_OBJECT
 private:
     int m_currentSong;
 
 public:
-    explicit PlaylistItemDelegate(QObject *parent = 0);
+    explicit PlItemDelegate(QObject *parent = 0);
 
 signals:
 

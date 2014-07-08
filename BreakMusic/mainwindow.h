@@ -28,10 +28,10 @@
 #include "databasedialog.h"
 #include "bmaudiobackendgstreamer.h"
 #include "bmabstractaudiobackend.h"
-#include "songstablemodel.h"
-#include "playlistmodel.h"
+#include "dbtablemodel.h"
+#include "pltablemodel.h"
+#include "plitemdelegate.h"
 #include <QSqlTableModel>
-#include "playlistitemdelegate.h"
 
 
 namespace Ui {
@@ -52,11 +52,10 @@ private:
     QSqlDatabase *database;
     QDir *khDir;
     DatabaseDialog *dbDialog;
-    SongsTableModel *dbModel;
-    PlaylistModel *plModel;
-    PlaylistItemDelegate *plDelegate;
+    DbTableModel *dbModel;
+    PlTableModel *plModel;
+    PlItemDelegate *plDelegate;
     QSqlTableModel *playlistsModel;
-    QString msToMMSS(qint64 ms);
     BmAudioBackendGStreamer *mPlayer;
     int currentPosition;
     int currentPlaylist;

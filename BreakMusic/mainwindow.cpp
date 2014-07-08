@@ -24,9 +24,10 @@
 #include <QSqlQuery>
 #include <QInputDialog>
 #include <QFileDialog>
+#include <QMessageBox>
+#include <QTime>
 #include <tag.h>
 #include <fileref.h>
-#include <QMessageBox>
 #include "bmsettings.h"
 
 BmSettings *settings;
@@ -63,11 +64,11 @@ MainWindow::MainWindow(QWidget *parent) :
     playlistsModel = new QSqlTableModel(this, *database);
     playlistsModel->setTable("playlists");
     playlistsModel->sort(2, Qt::AscendingOrder);
-    dbModel = new SongsTableModel(this, *database);
+    dbModel = new DbTableModel(this, *database);
     dbModel->setTable("songs");
     dbModel->select();
     currentPlaylist = settings->playlistIndex();
-    plModel = new PlaylistModel(this, *database);
+    plModel = new PlTableModel(this, *database);
     plModel->select();
     ui->actionShow_Filenames->setChecked(settings->showFilenames());
     ui->actionShow_Metadata->setChecked(settings->showMetadata());
@@ -86,11 +87,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->treeViewPlaylist->setModel(plModel);
     ui->treeViewPlaylist->header()->hideSection(0);
     ui->treeViewPlaylist->header()->hideSection(1);
-    ui->treeViewPlaylist->header()->setSectionResizeMode(0,QHeaderView::Fixed);
-    ui->treeViewPlaylist->header()->resizeSection(0,16);
+    ui->treeViewPlaylist->header()->setSectionResizeMode(1,QHeaderView::Fixed);
+    ui->treeViewPlaylist->header()->resizeSection(2,16);
     ui->treeViewPlaylist->header()->setSectionResizeMode(7, QHeaderView::Fixed);
     ui->treeViewPlaylist->header()->resizeSection(7,16);
-    plDelegate = new PlaylistItemDelegate(this);
+    ui->treeViewPlaylist->header()->setSectionResizeMode(6, QHeaderView::ResizeToContents);
+    plDelegate = new PlItemDelegate(this);
     ui->treeViewPlaylist->setItemDelegate(plDelegate);
     showFilenames(settings->showFilenames());
     showMetadata(settings->showMetadata());
@@ -208,33 +210,14 @@ void MainWindow::on_sliderPosition_sliderMoved(int position)
 void MainWindow::on_mediaPositionChanged(qint64 position)
 {
     ui->sliderPosition->setValue(position);
-    ui->labelPosition->setText(msToMMSS(position));
-    ui->labelRemaining->setText(msToMMSS(mPlayer->duration() - position));
+    ui->labelPosition->setText(QTime(0,0,0,0).addMSecs(position).toString("m:ss"));
+    ui->labelRemaining->setText(QTime(0,0,0,0).addMSecs(mPlayer->duration() - position).toString("m:ss"));
 }
 
 void MainWindow::on_mediaDurationChanged(qint64 duration)
 {
     ui->sliderPosition->setMaximum(duration);
-    ui->labelDuration->setText(msToMMSS(duration));
-}
-
-QString MainWindow::msToMMSS(qint64 ms)
-{
-    QString sec;
-    QString min;
-    int seconds = (int) (ms / 1000) % 60 ;
-    int minutes = (int) ((ms / (1000*60)) % 60);
-
-    if (seconds < 10)
-        sec = "0" + QString::number(seconds);
-    else
-        sec = QString::number(seconds);
-    if (minutes < 10)
-        min = "0" + QString::number(minutes);
-    else
-        min = QString::number(minutes);
-
-    return QString(min + ":" + sec);
+    ui->labelDuration->setText(QTime(0,0,0,0).addMSecs(duration).toString("m:ss"));
 }
 
 bool MainWindow::playlistExists(QString name)

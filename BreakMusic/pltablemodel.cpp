@@ -1,7 +1,7 @@
-#include "playlistmodel.h"
+#include "pltablemodel.h"
 #include <QSqlQuery>
 
-PlaylistModel::PlaylistModel(QObject *parent, QSqlDatabase db) :
+PlTableModel::PlTableModel(QObject *parent, QSqlDatabase db) :
     QSqlRelationalTableModel(parent, db)
 {
     m_playlistId = -1;
@@ -17,7 +17,7 @@ PlaylistModel::PlaylistModel(QObject *parent, QSqlDatabase db) :
     setSort(2, Qt::AscendingOrder);
 }
 
-void PlaylistModel::moveSong(int oldPosition, int newPosition)
+void PlTableModel::moveSong(int oldPosition, int newPosition)
 {
     QSqlQuery query;
     int plSongId = index(oldPosition,0).data().toInt();
@@ -42,7 +42,7 @@ void PlaylistModel::moveSong(int oldPosition, int newPosition)
     select();
 }
 
-void PlaylistModel::addSong(int songId)
+void PlTableModel::addSong(int songId)
 {
     if (insertRow(rowCount())) {
         int newRow = rowCount() - 1;
@@ -58,13 +58,13 @@ void PlaylistModel::addSong(int songId)
     }
 }
 
-void PlaylistModel::insertSong(int songId, int position)
+void PlTableModel::insertSong(int songId, int position)
 {
     addSong(songId);
     moveSong(rowCount() - 1, position);
 }
 
-void PlaylistModel::deleteSong(int position)
+void PlTableModel::deleteSong(int position)
 {
     int plSongId = index(position,0).data().toInt();
     QSqlQuery query("DELETE FROM plsongs WHERE plsongid == " + QString::number(plSongId));
@@ -72,19 +72,19 @@ void PlaylistModel::deleteSong(int position)
     select();
 }
 
-void PlaylistModel::setCurrentPlaylist(int playlistId)
+void PlTableModel::setCurrentPlaylist(int playlistId)
 {
     m_playlistId = playlistId;
     setFilter("playlist=" + QString::number(m_playlistId));
     select();
 }
 
-int PlaylistModel::currentPlaylist()
+int PlTableModel::currentPlaylist()
 {
     return m_playlistId;
 }
 
-int PlaylistModel::getSongIdByFilePath(QString filePath)
+int PlTableModel::getSongIdByFilePath(QString filePath)
 {
     QSqlQuery query("SELECT songid FROM songs WHERE path == \"" + filePath + "\" LIMIT 1");
     if (query.first())
@@ -93,7 +93,7 @@ int PlaylistModel::getSongIdByFilePath(QString filePath)
     return -1;
 }
 
-bool PlaylistModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
+bool PlTableModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
 {
     Q_UNUSED(action);
     Q_UNUSED(column);
@@ -133,7 +133,7 @@ bool PlaylistModel::dropMimeData(const QMimeData *data, Qt::DropAction action, i
     return false;
 }
 
-QStringList PlaylistModel::mimeTypes() const
+QStringList PlTableModel::mimeTypes() const
 {
     QStringList types;
     types << "integer/songid";
@@ -141,7 +141,7 @@ QStringList PlaylistModel::mimeTypes() const
     return types;
 }
 
-bool PlaylistModel::canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const
+bool PlTableModel::canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const
 {
     Q_UNUSED(data);
     Q_UNUSED(action);
@@ -151,12 +151,12 @@ bool PlaylistModel::canDropMimeData(const QMimeData *data, Qt::DropAction action
     return true;
 }
 
-Qt::DropActions PlaylistModel::supportedDropActions() const
+Qt::DropActions PlTableModel::supportedDropActions() const
 {
     return Qt::CopyAction | Qt::MoveAction;
 }
 
-QMimeData *PlaylistModel::mimeData(const QModelIndexList &indexes) const
+QMimeData *PlTableModel::mimeData(const QModelIndexList &indexes) const
 {
     QMimeData *mimeData = new QMimeData();
     mimeData->setData("integer/queuepos", indexes.at(0).sibling(indexes.at(0).row(), 2).data().toByteArray().data());
@@ -164,7 +164,7 @@ QMimeData *PlaylistModel::mimeData(const QModelIndexList &indexes) const
 }
 
 
-Qt::ItemFlags PlaylistModel::flags(const QModelIndex &index) const
+Qt::ItemFlags PlTableModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
         return Qt::ItemIsEnabled | Qt::ItemIsDropEnabled;

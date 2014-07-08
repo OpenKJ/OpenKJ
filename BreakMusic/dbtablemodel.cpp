@@ -1,8 +1,8 @@
-#include "songstablemodel.h"
+#include "dbtablemodel.h"
 #include <QMimeData>
 #include <QStringList>
 
-SongsTableModel::SongsTableModel(QObject *parent, QSqlDatabase db) :
+DbTableModel::DbTableModel(QObject *parent, QSqlDatabase db) :
     QSqlTableModel(parent, db)
 {
     sortColumn = SORT_ARTIST;
@@ -11,7 +11,7 @@ SongsTableModel::SongsTableModel(QObject *parent, QSqlDatabase db) :
     filenameOrder = "ASC";
 }
 
-Qt::ItemFlags SongsTableModel::flags(const QModelIndex &index) const
+Qt::ItemFlags DbTableModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
         return Qt::ItemIsEnabled;
@@ -19,7 +19,7 @@ Qt::ItemFlags SongsTableModel::flags(const QModelIndex &index) const
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled;
 }
 
-void SongsTableModel::search(QString searchString)
+void DbTableModel::search(QString searchString)
 {
     QStringList terms;
     terms = searchString.split(" ",QString::SkipEmptyParts);
@@ -37,7 +37,7 @@ void SongsTableModel::search(QString searchString)
 }
 
 
-QMimeData *SongsTableModel::mimeData(const QModelIndexList &indexes) const
+QMimeData *DbTableModel::mimeData(const QModelIndexList &indexes) const
 {
     QMimeData *mimeData = new QMimeData();
     mimeData->setData("integer/songid", data(indexes.at(0).sibling(indexes.at(0).row(),0)).toByteArray().data());
@@ -45,7 +45,7 @@ QMimeData *SongsTableModel::mimeData(const QModelIndexList &indexes) const
 }
 
 
-QString SongsTableModel::orderByClause() const
+QString DbTableModel::orderByClause() const
 {
     QString sql = " ORDER BY ";
     switch (sortColumn) {
@@ -63,7 +63,7 @@ QString SongsTableModel::orderByClause() const
 }
 
 
-void SongsTableModel::sort(int column, Qt::SortOrder order)
+void DbTableModel::sort(int column, Qt::SortOrder order)
 {
     QString orderString = "ASC";
     if (order == Qt::DescendingOrder)

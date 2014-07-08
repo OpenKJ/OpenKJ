@@ -20,7 +20,7 @@
 
 #include "databasedialog.h"
 #include "ui_databasedialog.h"
-#include "databaseupdatethread.h"
+#include "dbupdatethread.h"
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QSqlQuery>
@@ -65,7 +65,7 @@ void DatabaseDialog::on_pushButtonUpdate_clicked()
         msgBox->setText("Updating Database, please wait...");
         msgBox->show();
 
-        DatabaseUpdateThread thread;
+        DbUpdateThread thread;
         thread.setPath(pathsModel->data(pathsModel->index(selectedDirectoryIdx, 0)).toString());
         thread.start();
         while (thread.isRunning())
@@ -86,7 +86,7 @@ void DatabaseDialog::on_pushButtonUpdateAll_clicked()
     for (int i=0; i < pathsModel->rowCount(); i++)
     {
         QApplication::processEvents();
-        DatabaseUpdateThread thread;
+        DbUpdateThread thread;
         thread.setPath(pathsModel->data(pathsModel->index(i, 0)).toString());
         thread.start();
         while (thread.isRunning())

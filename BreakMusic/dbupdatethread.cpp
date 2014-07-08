@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "databaseupdatethread.h"
+#include "dbupdatethread.h"
 #include <QDir>
 #include <QDirIterator>
 #include <tag.h>
@@ -27,22 +27,22 @@
 #include <QSqlQuery>
 #include <QFileInfo>
 
-DatabaseUpdateThread::DatabaseUpdateThread(QObject *parent) :
+DbUpdateThread::DbUpdateThread(QObject *parent) :
     QThread(parent)
 {
 }
 
-QString DatabaseUpdateThread::path() const
+QString DbUpdateThread::path() const
 {
     return m_path;
 }
 
-void DatabaseUpdateThread::setPath(const QString &path)
+void DbUpdateThread::setPath(const QString &path)
 {
     m_path = path;
 }
 
-QStringList *DatabaseUpdateThread::findMediaFiles(QString directory)
+QStringList *DbUpdateThread::findMediaFiles(QString directory)
 {
     QStringList *files = new QStringList();
     QDir dir(directory);
@@ -60,7 +60,7 @@ QStringList *DatabaseUpdateThread::findMediaFiles(QString directory)
     return files;
 }
 
-void DatabaseUpdateThread::run()
+void DbUpdateThread::run()
 {
     QStringList *files = findMediaFiles(m_path);
     QSqlQuery query;

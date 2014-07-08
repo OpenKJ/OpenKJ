@@ -1,24 +1,24 @@
-#include "playlistitemdelegate.h"
+#include "plitemdelegate.h"
 #include <QPainter>
 
 
-int PlaylistItemDelegate::currentSong() const
+int PlItemDelegate::currentSong() const
 {
     return m_currentSong;
 }
 
-void PlaylistItemDelegate::setCurrentSong(int value)
+void PlItemDelegate::setCurrentSong(int value)
 {
     m_currentSong = value;
 }
-PlaylistItemDelegate::PlaylistItemDelegate(QObject *parent) :
+PlItemDelegate::PlItemDelegate(QObject *parent) :
     QItemDelegate(parent)
 {
     m_currentSong = -1;
 }
 
 
-void PlaylistItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+void PlItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     if (index.row() == m_currentSong)
     {
@@ -45,14 +45,18 @@ void PlaylistItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
         painter->drawImage(QRect(option.rect.x(), option.rect.y(), 16, 16), QImage(":/icons/edit-delete.png"));
         return;
     }
+    if (index.column() == 6)
+    {
+        painter->drawText(option.rect, Qt::AlignCenter, index.data().toString());
+        return;
+    }
     painter->drawText(option.rect, index.data().toString());
-    painter->setRenderHint(QPainter::Antialiasing, true);
 }
 
 
-QSize PlaylistItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
+QSize PlItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    if ((index.column() == 2) || (index.column() == 6))
+    if ((index.column() == 2) || (index.column() == 7))
     {
         return QSize(16,16);
     }
