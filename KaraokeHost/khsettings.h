@@ -25,6 +25,7 @@
 #include <QObject>
 #include <QSettings>
 #include <QSplitter>
+#include <QTableView>
 #include <QTreeView>
 #include <QWidget>
 
@@ -55,7 +56,9 @@ public:
     void saveWindowState(QWidget *window);
     void restoreWindowState(QWidget *window);
     void saveColumnWidths(QTreeView *treeView);
+    void saveColumnWidths(QTableView *tableView);
     void restoreColumnWidths(QTreeView *treeView);
+    void restoreColumnWidths(QTableView *tableView);
     void saveSplitterState(QSplitter *splitter);
     void restoreSplitterState(QSplitter *splitter);
     void setTickerFont(QFont font);

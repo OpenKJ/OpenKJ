@@ -97,11 +97,28 @@ void KhSettings::saveColumnWidths(QTreeView *treeView)
     settings->endGroup();
 }
 
+void KhSettings::saveColumnWidths(QTableView *tableView)
+{
+    settings->beginGroup(tableView->objectName());
+    settings->setValue("headerState", tableView->horizontalHeader()->saveState());
+    settings->setValue("hiddenSections", tableView->horizontalHeader()->hiddenSectionCount());
+    settings->setValue("sections", tableView->horizontalHeader()->count());
+    settings->endGroup();
+}
+
 void KhSettings::restoreColumnWidths(QTreeView *treeView)
 {
     settings->beginGroup(treeView->objectName());
     if ((settings->contains("headerState")) && (settings->value("hiddenSections").toInt() == treeView->header()->hiddenSectionCount()) && (settings->value("sections").toInt() == treeView->header()->count()))
         treeView->header()->restoreState(settings->value("headerState").toByteArray());
+    settings->endGroup();
+}
+
+void KhSettings::restoreColumnWidths(QTableView *tableView)
+{
+    settings->beginGroup(tableView->objectName());
+    if ((settings->contains("headerState")) && (settings->value("hiddenSections").toInt() == tableView->horizontalHeader()->hiddenSectionCount()) && (settings->value("sections").toInt() == tableView->horizontalHeader()->count()))
+        tableView->horizontalHeader()->restoreState(settings->value("headerState").toByteArray());
     settings->endGroup();
 }
 

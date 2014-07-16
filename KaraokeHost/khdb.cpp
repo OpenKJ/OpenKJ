@@ -92,6 +92,6 @@ bool KhDb::rotationClear()
 bool KhDb::songSetDuration(int songId, int duration)
 {
     QSqlQuery query;
-    QString sql = "UPDATE dbsongs SET 'length'=" + QString::number(duration) + " WHERE ROWID == " + QString::number(songId);
+    QString sql = "UPDATE dbsongs SET 'duration'=" + QString::number(duration) + " WHERE ROWID == " + QString::number(songId);
     return query.exec(sql);
 }

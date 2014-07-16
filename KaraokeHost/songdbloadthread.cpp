@@ -34,14 +34,14 @@ void SongDBLoadThread::run()
 {
     qDeleteAll(songs->begin(),songs->end());
     songs->clear();
-    QSqlQuery query("SELECT ROWID,discid,artist,title,filename,path,length FROM dbSongs");
-    int dbsongid = query.record().indexOf("ROWID");
+    QSqlQuery query("SELECT ROWID,discid,artist,title,filename,path,duration FROM dbSongs");
+    int dbsongid = query.record().indexOf("songid");
     int discid = query.record().indexOf("discid");
     int artist = query.record().indexOf("artist");
     int title  = query.record().indexOf("title");
     int filename = query.record().indexOf("filename");
     int path = query.record().indexOf("path");
-    int length = query.record().indexOf("length");
+    int length = query.record().indexOf("duration");
     qDebug() << "Loading songdb into cache";
     while (query.next()) {
         KhSong *song = new KhSong();

@@ -103,7 +103,7 @@ private slots:
     void silenceDetected();
     void audioBackendChanged(int index);
 
-    void on_treeViewDB_customContextMenuRequested(const QPoint &pos);
+    void on_tableViewDB_customContextMenuRequested(const QPoint &pos);
     void on_treeViewQueue_customContextMenuRequested(const QPoint &pos);
 
     void on_sliderProgress_sliderPressed();

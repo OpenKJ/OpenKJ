@@ -60,7 +60,7 @@ MainWindow::MainWindow(QWidget *parent) :
     database = new QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE"));
     database->setDatabaseName(khDir->absolutePath() + QDir::separator() + "karaokehost.sqlite");
     database->open();
-    QSqlQuery query("CREATE TABLE IF NOT EXISTS dbSongs ( songid INTEGER PRIMARY KEY AUTOINCREMENT, Artist VARCHAR(100), Title VARCHAR(100), DiscID VARCHAR(25), path VARCHAR(700) NOT NULL UNIQUE, filename VARCHAR(200), 'length' INTEGER)");
+    QSqlQuery query("CREATE TABLE IF NOT EXISTS dbSongs ( songid INTEGER PRIMARY KEY AUTOINCREMENT, Artist COLLATE NOCASE, Title COLLATE NOCASE, DiscId COLLATE NOCASE, 'Duration' INTEGER, path VARCHAR(700) NOT NULL UNIQUE, filename COLLATE NOCASE)");
     query.exec("CREATE TABLE IF NOT EXISTS rotationSingers ( name VARCHAR(30) NOT NULL UNIQUE, 'position' INTEGER NOT NULL, 'regular' LOGICAL DEFAULT(0), 'regularid' INTEGER)");
     query.exec("CREATE TABLE IF NOT EXISTS queueSongs ( singer INTEGER NOT NULL, song INTEGER NOT NULL, keychg INTEGER, played INTEGER NOT NULL, 'position' INTEGER, 'regsong' LOGICAL DEFAULT(0), 'regsongid' INTEGER DEFAULT(-1), 'regsingerid' INTEGER DEFAULT(-1))");
     query.exec("CREATE TABLE IF NOT EXISTS regularSingers ( name VARCHAR(30) NOT NULL UNIQUE)");
@@ -117,8 +117,8 @@ MainWindow::MainWindow(QWidget *parent) :
     cdg = new CDG;
 //    songdbmodel = new SongDBTableModel(this);
 //    songdbmodel->loadFromDB();
-    ui->treeViewDB->sortByColumn(-1);
-    ui->treeViewDB->setModel(dbModel);
+    ui->tableViewDB->setModel(dbModel);
+
 //    ui->treeViewDB->header()->setSectionResizeMode(3,QHeaderView::Fixed);
 //    ui->treeViewDB->header()->resizeSection(3,60);
     ipcClient = new KhIPCClient("bmControl",this);
@@ -201,7 +201,7 @@ MainWindow::MainWindow(QWidget *parent) :
     settings->restoreWindowState(regularSingersDialog);
     settings->restoreSplitterState(ui->splitter);
     settings->restoreSplitterState(ui->splitter_2);
-    settings->restoreColumnWidths(ui->treeViewDB);
+    settings->restoreColumnWidths(ui->tableViewDB);
     settings->restoreColumnWidths(ui->treeViewQueue);
     settings->restoreColumnWidths(ui->treeViewRotation);
     if ((settings->cdgWindowFullscreen()) && (settings->showCdgWindow()))
@@ -209,6 +209,11 @@ MainWindow::MainWindow(QWidget *parent) :
         cdgWindow->makeFullscreen();
     }
     rotationDataChanged();
+
+    ui->tableViewDB->hideColumn(0);
+    ui->tableViewDB->hideColumn(5);
+    ui->tableViewDB->hideColumn(6);
+
     ui->statusBar->addWidget(labelSingerCount);
     rtClickQueueSong = NULL;
 }
@@ -267,7 +272,7 @@ MainWindow::~MainWindow()
 {
     settings->saveSplitterState(ui->splitter);
     settings->saveSplitterState(ui->splitter_2);
-    settings->saveColumnWidths(ui->treeViewDB);
+    settings->saveColumnWidths(ui->tableViewDB);
     settings->saveColumnWidths(ui->treeViewRotation);
     settings->saveColumnWidths(ui->treeViewQueue);
     settings->saveWindowState(cdgWindow);
@@ -289,9 +294,10 @@ MainWindow::~MainWindow()
 
 void MainWindow::search()
 {
-    QString termsstr;
-    termsstr = ui->lineEdit->text();
-    songdbmodel->applyFilter(termsstr);
+//    QString termsstr;
+//    termsstr = ui->lineEdit->text();
+//    songdbmodel->applyFilter(termsstr);
+    dbModel->search(ui->lineEdit->text());
 }
 
 void MainWindow::songdbUpdated()
@@ -304,7 +310,7 @@ void MainWindow::databaseCleared()
     songdbmodel->loadFromDB();
     rotationmodel->clear();
     regularSingers->clear();
-    ui->treeViewDB->clearSelection();
+    ui->tableViewDB->clearSelection();
     ui->treeViewRotation->clearSelection();
 
 }
@@ -790,17 +796,16 @@ void MainWindow::audioBackendChanged(int index)
     activeAudioBackend = audioBackends->at(index);
 }
 
-void MainWindow::on_treeViewDB_customContextMenuRequested(const QPoint &pos)
+void MainWindow::on_tableViewDB_customContextMenuRequested(const QPoint &pos)
 {
-    QModelIndex index = ui->treeViewDB->indexAt(pos);
+    QModelIndex index = ui->tableViewDB->indexAt(pos);
     if (index.isValid())
     {
-        QString zipPath = songdbmodel->getRowSong(index.row())->path;
+        QString zipPath = index.sibling(index.row(), 5).data().toString();
         cdgPreviewDialog->setZipFile(zipPath);
         QMenu contextMenu(this);
         contextMenu.addAction("Preview", cdgPreviewDialog, SLOT(preview()));
         contextMenu.exec(QCursor::pos());
-        //contextMenu->exec(ui->treeView->mapToGlobal(point));
     }
 }
 
