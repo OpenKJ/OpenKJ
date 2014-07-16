@@ -47,6 +47,7 @@
 #include "dlgcdgpreview.h"
 #include "dlgkeychange.h"
 #include "khaudiorecorder.h"
+#include "dbtablemodel.h"
 
 
 using namespace std;
@@ -115,6 +116,7 @@ private:
     Ui::MainWindow *ui;
     QSqlDatabase *database;
     SongDBTableModel *songdbmodel;
+    DbTableModel *dbModel;
     RotationTableModel *rotationmodel;
     QueueTableModel *queuemodel;
     DlgCdg *cdgWindow;

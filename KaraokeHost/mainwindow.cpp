@@ -24,9 +24,7 @@
 #include <iostream>
 #include <QTemporaryDir>
 #include <QDir>
-#ifdef USE_QMEDIAPLAYER
 #include "khaudiobackendqmediaplayer.h"
-#endif
 #ifdef USE_GSTREAMER
 #include "khaudiobackendgstreamer.h"
 #endif
@@ -36,6 +34,7 @@
 #include <QCoreApplication>
 #include <QMenu>
 #include "khdb.h"
+
 
 KhSettings *settings;
 KhDb *db;
@@ -61,7 +60,7 @@ MainWindow::MainWindow(QWidget *parent) :
     database = new QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE"));
     database->setDatabaseName(khDir->absolutePath() + QDir::separator() + "karaokehost.sqlite");
     database->open();
-    QSqlQuery query("CREATE TABLE IF NOT EXISTS dbSongs ( discid VARCHAR(25), artist VARCHAR(100), title VARCHAR(100), path VARCHAR(700) NOT NULL UNIQUE, filename VARCHAR(200), 'length' INTEGER)");
+    QSqlQuery query("CREATE TABLE IF NOT EXISTS dbSongs ( songid INTEGER PRIMARY KEY AUTOINCREMENT, Artist VARCHAR(100), Title VARCHAR(100), DiscID VARCHAR(25), path VARCHAR(700) NOT NULL UNIQUE, filename VARCHAR(200), 'length' INTEGER)");
     query.exec("CREATE TABLE IF NOT EXISTS rotationSingers ( name VARCHAR(30) NOT NULL UNIQUE, 'position' INTEGER NOT NULL, 'regular' LOGICAL DEFAULT(0), 'regularid' INTEGER)");
     query.exec("CREATE TABLE IF NOT EXISTS queueSongs ( singer INTEGER NOT NULL, song INTEGER NOT NULL, keychg INTEGER, played INTEGER NOT NULL, 'position' INTEGER, 'regsong' LOGICAL DEFAULT(0), 'regsongid' INTEGER DEFAULT(-1), 'regsingerid' INTEGER DEFAULT(-1))");
     query.exec("CREATE TABLE IF NOT EXISTS regularSingers ( name VARCHAR(30) NOT NULL UNIQUE)");
@@ -73,6 +72,9 @@ MainWindow::MainWindow(QWidget *parent) :
     sortDirDB = 0;
     songdbmodel = new SongDBTableModel(this);
     songdbmodel->loadFromDB();
+    dbModel = new DbTableModel(this, *database);
+    dbModel->setTable("dbsongs");
+    dbModel->select();
     regularSingers = new KhRegularSingers(songdbmodel->getDbSongs(),this);
     //singers = new KhSingers(regularSingers, this);
     songCurrent = NULL;
@@ -116,9 +118,9 @@ MainWindow::MainWindow(QWidget *parent) :
 //    songdbmodel = new SongDBTableModel(this);
 //    songdbmodel->loadFromDB();
     ui->treeViewDB->sortByColumn(-1);
-    ui->treeViewDB->setModel(songdbmodel);
-    ui->treeViewDB->header()->setSectionResizeMode(3,QHeaderView::Fixed);
-    ui->treeViewDB->header()->resizeSection(3,60);
+    ui->treeViewDB->setModel(dbModel);
+//    ui->treeViewDB->header()->setSectionResizeMode(3,QHeaderView::Fixed);
+//    ui->treeViewDB->header()->resizeSection(3,60);
     ipcClient = new KhIPCClient("bmControl",this);
     audioBackends = new KhAudioBackends;
 #ifdef USE_GSTREAMER

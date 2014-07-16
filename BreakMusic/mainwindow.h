@@ -67,7 +67,7 @@ private slots:
     void on_tableViewDB_activated(const QModelIndex &index);
     void on_buttonStop_clicked();
     void on_lineEditSearch_returnPressed();
-    void on_treeViewPlaylist_activated(const QModelIndex &index);
+    void on_tableViewPlaylist_activated(const QModelIndex &index);
     void on_sliderVolume_valueChanged(int value);
     void on_sliderPosition_sliderMoved(int position);
     void on_mediaPositionChanged(qint64 position);
@@ -83,7 +83,7 @@ private slots:
     void mediaStateChanged(BmAbstractAudioBackend::State newState);
     void dbUpdated();
     void dbCleared();
-    void on_treeViewPlaylist_clicked(const QModelIndex &index);
+    void on_tableViewPlaylist_clicked(const QModelIndex &index);
     void on_comboBoxPlaylists_currentIndexChanged(int index);
     void on_checkBoxBreak_toggled(bool checked);
 

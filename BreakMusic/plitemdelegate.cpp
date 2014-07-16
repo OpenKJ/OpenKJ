@@ -50,7 +50,7 @@ void PlItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option
         painter->drawText(option.rect, Qt::AlignCenter, index.data().toString());
         return;
     }
-    painter->drawText(option.rect, index.data().toString());
+    painter->drawText(option.rect, Qt::TextSingleLine, index.data().toString());
 }
 
 

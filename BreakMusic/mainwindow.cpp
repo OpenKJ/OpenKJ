@@ -84,16 +84,16 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewDB->setColumnHidden(0, true);
     ui->tableViewDB->setColumnHidden(3, true);
     ui->tableViewDB->setColumnHidden(6, true);
-    ui->treeViewPlaylist->setModel(plModel);
-    ui->treeViewPlaylist->header()->hideSection(0);
-    ui->treeViewPlaylist->header()->hideSection(1);
-    ui->treeViewPlaylist->header()->setSectionResizeMode(1,QHeaderView::Fixed);
-    ui->treeViewPlaylist->header()->resizeSection(2,16);
-    ui->treeViewPlaylist->header()->setSectionResizeMode(7, QHeaderView::Fixed);
-    ui->treeViewPlaylist->header()->resizeSection(7,16);
-    ui->treeViewPlaylist->header()->setSectionResizeMode(6, QHeaderView::ResizeToContents);
+    ui->tableViewPlaylist->setModel(plModel);
+    ui->tableViewPlaylist->setColumnHidden(0, true);
+    ui->tableViewPlaylist->setColumnHidden(1, true);
+    ui->tableViewPlaylist->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Fixed);
+    ui->tableViewPlaylist->horizontalHeader()->resizeSection(2,16);
+    ui->tableViewPlaylist->horizontalHeader()->setSectionResizeMode(7, QHeaderView::Fixed);
+    ui->tableViewPlaylist->horizontalHeader()->resizeSection(7,16);
+    ui->tableViewPlaylist->horizontalHeader()->setSectionResizeMode(6, QHeaderView::ResizeToContents);
     plDelegate = new PlItemDelegate(this);
-    ui->treeViewPlaylist->setItemDelegate(plDelegate);
+    ui->tableViewPlaylist->setItemDelegate(plDelegate);
     showFilenames(settings->showFilenames());
     showMetadata(settings->showMetadata());
     ui->tableViewDB->horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
@@ -173,7 +173,7 @@ void MainWindow::on_lineEditSearch_returnPressed()
     dbModel->search(ui->lineEditSearch->text());
 }
 
-void MainWindow::on_treeViewPlaylist_activated(const QModelIndex &index)
+void MainWindow::on_tableViewPlaylist_activated(const QModelIndex &index)
 {
     mPlayer->stop();
     currentPosition = index.row();
@@ -252,36 +252,18 @@ void MainWindow::on_buttonPause_clicked(bool checked)
 
 void MainWindow::showMetadata(bool checked)
 {
-    if (!checked)
-    {
-        ui->tableViewDB->setColumnHidden(1, true);
-        ui->tableViewDB->setColumnHidden(2, true);
-        ui->treeViewPlaylist->header()->hideSection(3);
-        ui->treeViewPlaylist->header()->hideSection(4);
-    }
-    else
-    {
-        ui->tableViewDB->setColumnHidden(1, false);
-        ui->tableViewDB->setColumnHidden(2, false);
-        ui->treeViewPlaylist->header()->showSection(3);
-        ui->treeViewPlaylist->header()->showSection(4);
-    }
+    ui->tableViewDB->setColumnHidden(1, !checked);
+    ui->tableViewDB->setColumnHidden(2, !checked);
+    ui->tableViewPlaylist->setColumnHidden(3, !checked);
+    ui->tableViewPlaylist->setColumnHidden(4, !checked);
     settings->setShowMetadata(checked);
 }
 
 
 void MainWindow::showFilenames(bool checked)
 {
-    if (!checked)
-    {
-        ui->tableViewDB->setColumnHidden(4, true);
-        ui->treeViewPlaylist->header()->hideSection(5);
-    }
-    else
-    {
-        ui->tableViewDB->setColumnHidden(4, false);
-        ui->treeViewPlaylist->header()->showSection(5);
-    }
+    ui->tableViewDB->setColumnHidden(4, !checked);
+    ui->tableViewPlaylist->setColumnHidden(5, !checked);
     settings->setShowFilenames(checked);
 }
 
@@ -480,7 +462,7 @@ void MainWindow::dbCleared()
     ui->comboBoxPlaylists->setCurrentIndex(0);
 }
 
-void MainWindow::on_treeViewPlaylist_clicked(const QModelIndex &index)
+void MainWindow::on_tableViewPlaylist_clicked(const QModelIndex &index)
 {
     if (index.column() == 7)
     {
