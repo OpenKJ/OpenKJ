@@ -58,7 +58,11 @@ SOURCES += main.cpp\
     dlgcdg.cpp \
     dlgdurationscan.cpp \
     khaudiorecorder.cpp \
-    dbtablemodel.cpp
+    dbtablemodel.cpp \
+    queuemodel.cpp \
+    rotationmodel.cpp \
+    rotationitemdelegate.cpp \
+    dbitemdelegate.cpp
 
 HEADERS  += mainwindow.h \
     queuetablemodel.h \
@@ -97,7 +101,11 @@ HEADERS  += mainwindow.h \
     dlgcdg.h \
     dlgdurationscan.h \
     khaudiorecorder.h \
-    dbtablemodel.h
+    dbtablemodel.h \
+    queuemodel.h \
+    rotationmodel.h \
+    rotationitemdelegate.h \
+    dbitemdelegate.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \

@@ -5,11 +5,13 @@
 DbTableModel::DbTableModel(QObject *parent, QSqlDatabase db) :
     QSqlTableModel(parent, db)
 {
+    setTable("dbsongs");
     sortColumn = SORT_ARTIST;
     artistOrder = "ASC";
     titleOrder = "ASC";
     discIdOrder = "ASC";
     durationOrder = "ASC";
+    select();
 }
 
 

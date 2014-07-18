@@ -38,7 +38,7 @@ class DlgDatabase : public QDialog
     Q_OBJECT
     
 public:
-    explicit DlgDatabase(KhSongs *songs, QWidget *parent = 0);
+    explicit DlgDatabase(QWidget *parent = 0);
     ~DlgDatabase();
 
 signals:

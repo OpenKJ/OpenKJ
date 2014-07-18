@@ -30,7 +30,7 @@
 
 extern KhSettings *settings;
 
-DlgDatabase::DlgDatabase(KhSongs *songs, QWidget *parent) :
+DlgDatabase::DlgDatabase(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DlgDatabase)
 {
@@ -40,7 +40,7 @@ DlgDatabase::DlgDatabase(KhSongs *songs, QWidget *parent) :
     ui->treeViewFolders->setModel(sourcedirmodel);
     selectedRow = -1;
     settings->restoreColumnWidths(ui->treeViewFolders);
-    dlgDurationScan = new DlgDurationScan(songs,this);
+    dlgDurationScan = new DlgDurationScan(this);
 }
 
 DlgDatabase::~DlgDatabase()

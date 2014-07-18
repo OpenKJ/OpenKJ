@@ -48,6 +48,10 @@
 #include "dlgkeychange.h"
 #include "khaudiorecorder.h"
 #include "dbtablemodel.h"
+#include "queuemodel.h"
+#include "rotationmodel.h"
+#include "rotationitemdelegate.h"
+#include "dbitemdelegate.h"
 
 
 using namespace std;
@@ -73,19 +77,19 @@ private slots:
     void on_buttonStop_clicked();
     void on_buttonPause_clicked();
     void on_lineEdit_returnPressed();
-    void on_treeViewDB_activated(const QModelIndex &index);
+    void on_tableViewDB_activated(const QModelIndex &index);
     void on_buttonAddSinger_clicked();
     void on_editAddSinger_returnPressed();
-    void on_treeViewRotation_activated(const QModelIndex &index);
-    void on_treeViewRotation_clicked(const QModelIndex &index);
-    void on_treeViewQueue_activated(const QModelIndex &index);
+    void on_tableViewRotation_activated(const QModelIndex &index);
+    void on_tableViewRotation_clicked(const QModelIndex &index);
+    void on_tableViewQueue_activated(const QModelIndex &index);
     void on_actionManage_DB_triggered();
     void on_actionExport_Regulars_triggered();
     void on_actionImport_Regulars_triggered();
     void on_actionSettings_triggered();
     void on_actionRegulars_triggered();
     void on_actionIncoming_Requests_triggered();
-    void songDroppedOnSinger(int singer, int song, int row);
+    void songDroppedOnSinger(int singerId, int songId, int dropRow);
     void on_pushButton_clicked();
     void on_treeViewQueue_clicked(const QModelIndex &index);
     void notify_user(QString message);
@@ -104,7 +108,7 @@ private slots:
     void audioBackendChanged(int index);
 
     void on_tableViewDB_customContextMenuRequested(const QPoint &pos);
-    void on_treeViewQueue_customContextMenuRequested(const QPoint &pos);
+    void on_tableViewQueue_customContextMenuRequested(const QPoint &pos);
 
     void on_sliderProgress_sliderPressed();
 
@@ -117,6 +121,10 @@ private:
     QSqlDatabase *database;
     SongDBTableModel *songdbmodel;
     DbTableModel *dbModel;
+    DbItemDelegate *dbDelegate;
+    QueueModel *qModel;
+    RotationModel *rotModel;
+    RotationItemDelegate *rotDelegate;
     RotationTableModel *rotationmodel;
     QueueTableModel *queuemodel;
     DlgCdg *cdgWindow;

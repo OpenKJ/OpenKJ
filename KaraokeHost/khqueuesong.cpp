@@ -91,7 +91,7 @@ void KhQueueSong::setPosition(int value, bool skipDB)
     if (!skipDB)
     {
         QSqlQuery query;
-        query.exec("UPDATE queuesongs SET 'position'=" + QString::number(position) + " WHERE ROWID == " + QString::number(index));
+        query.exec("UPDATE queuesongs SET 'position'=" + QString::number(position) + " WHERE qsongid == " + QString::number(index));
         if (regSong)
         {
             KhRegularSinger *regSinger = regularSingers->getByRegularID(regSingerIndex);
@@ -121,7 +121,7 @@ void KhQueueSong::setPlayed(bool value, bool skipDB)
         if (!skipDB)
         {
             QSqlQuery query;
-            query.exec("UPDATE queuesongs SET 'played'=" + QString::number(played) + " WHERE ROWID == " + QString::number(index));
+            query.exec("UPDATE queuesongs SET 'played'=" + QString::number(played) + " WHERE qsongid == " + QString::number(index));
         }
     }
 }
@@ -137,7 +137,7 @@ void KhQueueSong::setKeyChange(int value, bool skipDB)
     if (!skipDB)
     {
         QSqlQuery query;
-        query.exec("UPDATE queuesongs SET 'keychg'=" + QString::number(keyChange) + " WHERE ROWID == " + QString::number(index));
+        query.exec("UPDATE queuesongs SET 'keychg'=" + QString::number(keyChange) + " WHERE qsongid == " + QString::number(index));
         if (regSong)
         {
             if (regularSingers->getByRegularID(regSingerIndex)->getSongByIndex(regSongIndex)->getKeyChange() != keyChange)
@@ -157,7 +157,7 @@ void KhQueueSong::setSongID(int value, bool skipDB)
 {
     songID = value;
     QSqlQuery query;
-    query.exec("SELECT artist,title,discid,path FROM dbsongs WHERE ROWID == " + QString::number(songID));
+    query.exec("SELECT artist,title,discid,path FROM dbsongs WHERE qsongid == " + QString::number(songID));
     int artist = query.record().indexOf("artist");
     int title = query.record().indexOf("title");
     int discid = query.record().indexOf("discid");
@@ -170,7 +170,7 @@ void KhQueueSong::setSongID(int value, bool skipDB)
     }
     if (!skipDB)
     {
-        query.exec("UPDATE queuesongs SET 'songid'=" + QString::number(songID) + " WHERE ROWID == " + QString::number(index));
+        query.exec("UPDATE queuesongs SET 'songid'=" + QString::number(songID) + " WHERE qsongid == " + QString::number(index));
     }
 }
 
@@ -185,7 +185,7 @@ void KhQueueSong::setSingerID(int value, bool skipDB)
     if (!skipDB)
     {
         QSqlQuery query;
-        query.exec("UPDATE queuesongs SET 'singer'=" + QString::number(singerID) + " WHERE ROWID == " + QString::number(index));
+        query.exec("UPDATE queuesongs SET 'singer'=" + QString::number(singerID) + " WHERE qsongid == " + QString::number(index));
     }
 }
 
@@ -228,7 +228,7 @@ void KhQueueSong::setRegSongIndex(int value, bool skipDB)
     if (!skipDB)
     {
         QSqlQuery query;
-        query.exec("UPDATE queuesongs SET 'regsongid'=" + QString::number(regSongIndex) + " WHERE ROWID == " + QString::number(index));
+        query.exec("UPDATE queuesongs SET 'regsongid'=" + QString::number(regSongIndex) + " WHERE qsongid == " + QString::number(index));
     }
 }
 
@@ -243,7 +243,7 @@ void KhQueueSong::setRegSingerIndex(int value, bool skipDB)
     if (!skipDB)
     {
         QSqlQuery query;
-        query.exec("UPDATE queuesongs SET 'regsingerid'=" + QString::number(regSingerIndex) + " WHERE ROWID == " + QString::number(index));
+        query.exec("UPDATE queuesongs SET 'regsingerid'=" + QString::number(regSingerIndex) + " WHERE qsongid == " + QString::number(index));
 //        if (regSong)
 //            regularSingers->getByRegularID(regSingerIndex)->getSongByIndex(regSongIndex)->setRegSingerIndex(regSingerIndex);
     }
@@ -260,7 +260,7 @@ void KhQueueSong::setRegSong(bool value, bool skipDB)
     if (!skipDB)
     {
         QSqlQuery query;
-        query.exec("UPDATE queuesongs SET 'regsong'=" + QString::number(regSong) + " WHERE ROWID == " + QString::number(index));
+        query.exec("UPDATE queuesongs SET 'regsong'=" + QString::number(regSong) + " WHERE qsongid == " + QString::number(index));
     }
 }
 
@@ -326,7 +326,7 @@ void KhQueueSongs::loadFromDB()
     QSqlQuery query;
     QString singerIdx = QString::number(singerIndex);
     query.exec("SELECT ROWID,singer,song,keychg,played,position,regsong,regsongid FROM queuesongs WHERE singer == " + singerIdx);
-    int queuesongid = query.record().indexOf("ROWID");
+    int queuesongid = query.record().indexOf("qsongid");
     int singer = query.record().indexOf("singer");
     int songid = query.record().indexOf("song");
     int keychg = query.record().indexOf("keychg");
@@ -384,7 +384,7 @@ void KhQueueSongs::deleteSongByIndex(int index)
     qDebug() << "KhQueueSongs::deleteSongByIndex(int " << index << ")";
     qDebug() << "Deleting song at position: " << song->getPosition();
     QSqlQuery query("BEGIN TRANSACTION");
-    query.exec("DELETE FROM queuesongs WHERE ROWID == " + QString::number(index));
+    query.exec("DELETE FROM queuesongs WHERE qsongid == " + QString::number(index));
     for (int i=0; i < songs->size(); i++)
         if (songs->at(i)->getPosition() > song->getPosition())
             songs->at(i)->setPosition(songs->at(i)->getPosition() - 1);
@@ -514,7 +514,7 @@ int KhQueueSongs::addSong(KhQueueSong *song)
     {
         positionStr = QString::number(song->getPosition());
     }
-    query.exec("INSERT INTO queueSongs (singer,song,keychg,played,position,regsong,regsongid) VALUES(" + QString::number(song->getSingerID()) + "," + QString::number(song->getSongID()) + "," + QString::number(song->getKeyChange()) + "," + QString::number(song->getPlayed()) + "," + positionStr + "," + QString::number(song->isRegSong()) + "," + QString::number(song->getRegSongIndex()) + ")");
+    query.exec("INSERT INTO queueSongs (singer,song,artist,title,discid,path,keychg,played,position,regsong,regsongid) VALUES(" + QString::number(song->getSingerID()) + "," + QString::number(song->getSongID()) + "," + QString::number(song->getSongID()) + "," + QString::number(song->getSongID()) + "," + QString::number(song->getSongID()) + "," + QString::number(song->getSongID()) + "," + QString::number(song->getKeyChange()) + "," + QString::number(song->getPlayed()) + "," + positionStr + "," + QString::number(song->isRegSong()) + "," + QString::number(song->getRegSongIndex()) + ")");
     song->setIndex(query.lastInsertId().toInt());
     songs->push_back(song);
     sort();

@@ -61,8 +61,8 @@ MainWindow::MainWindow(QWidget *parent) :
     database->setDatabaseName(khDir->absolutePath() + QDir::separator() + "karaokehost.sqlite");
     database->open();
     QSqlQuery query("CREATE TABLE IF NOT EXISTS dbSongs ( songid INTEGER PRIMARY KEY AUTOINCREMENT, Artist COLLATE NOCASE, Title COLLATE NOCASE, DiscId COLLATE NOCASE, 'Duration' INTEGER, path VARCHAR(700) NOT NULL UNIQUE, filename COLLATE NOCASE)");
-    query.exec("CREATE TABLE IF NOT EXISTS rotationSingers ( name VARCHAR(30) NOT NULL UNIQUE, 'position' INTEGER NOT NULL, 'regular' LOGICAL DEFAULT(0), 'regularid' INTEGER)");
-    query.exec("CREATE TABLE IF NOT EXISTS queueSongs ( singer INTEGER NOT NULL, song INTEGER NOT NULL, keychg INTEGER, played INTEGER NOT NULL, 'position' INTEGER, 'regsong' LOGICAL DEFAULT(0), 'regsongid' INTEGER DEFAULT(-1), 'regsingerid' INTEGER DEFAULT(-1))");
+    query.exec("CREATE TABLE IF NOT EXISTS rotationSingers ( singerid INTEGER PRIMARY KEY AUTOINCREMENT, name COLLATE NOCASE UNIQUE, 'position' INTEGER NOT NULL, 'regular' LOGICAL DEFAULT(0), 'regularid' INTEGER)");
+    query.exec("CREATE TABLE IF NOT EXISTS queueSongs ( qsongid INTEGER PRIMARY KEY AUTOINCREMENT, singer INT, song INTEGER NOT NULL, artist INT, title INT, discid INT, path INT, keychg INT, played LOGICAL DEFAULT(0), 'position' INT, 'regsong' LOGICAL DEFAULT(0), 'regsongid' INTEGER DEFAULT(-1), 'regsingerid' INTEGER DEFAULT(-1))");
     query.exec("CREATE TABLE IF NOT EXISTS regularSingers ( name VARCHAR(30) NOT NULL UNIQUE)");
     query.exec("CREATE TABLE IF NOT EXISTS regularSongs ( singer INTEGER NOT NULL, song INTEGER NOT NULL, 'keychg' INTEGER, 'position' INTEGER)");
     query.exec("CREATE TABLE IF NOT EXISTS sourceDirs ( path VARCHAR(255) UNIQUE, pattern INTEGER)");
@@ -73,36 +73,44 @@ MainWindow::MainWindow(QWidget *parent) :
     songdbmodel = new SongDBTableModel(this);
     songdbmodel->loadFromDB();
     dbModel = new DbTableModel(this, *database);
-    dbModel->setTable("dbsongs");
     dbModel->select();
+    qModel = new QueueModel(this, *database);
+    qModel->select();
+    rotModel = new RotationModel(this, *database);
+    rotModel->select();
+    ui->tableViewDB->hideColumn(0);
+    ui->tableViewDB->hideColumn(5);
+    ui->tableViewDB->hideColumn(6);
     regularSingers = new KhRegularSingers(songdbmodel->getDbSongs(),this);
     //singers = new KhSingers(regularSingers, this);
     songCurrent = NULL;
     rotationmodel = new RotationTableModel(regularSingers, this);
-    ui->treeViewRotation->setModel(rotationmodel);
-    ui->treeViewRotation->header()->setSectionResizeMode(0,QHeaderView::Fixed);
-    ui->treeViewRotation->header()->setSectionResizeMode(3,QHeaderView::Fixed);
-    ui->treeViewRotation->header()->setSectionResizeMode(4,QHeaderView::Fixed);
-    ui->treeViewRotation->header()->setSectionResizeMode(5,QHeaderView::Fixed);
-    ui->treeViewRotation->header()->resizeSection(0,22);
-    ui->treeViewRotation->header()->resizeSection(3,22);
-    ui->treeViewRotation->header()->resizeSection(4,22);
-    ui->treeViewRotation->header()->resizeSection(5,22);
+    ui->tableViewRotation->setModel(rotModel);
+    rotDelegate = new RotationItemDelegate(this);
+    ui->tableViewRotation->setItemDelegate(rotDelegate);
+//    ui->treeViewRotation->header()->setSectionResizeMode(0,QHeaderView::Fixed);
+//    ui->treeViewRotation->header()->setSectionResizeMode(3,QHeaderView::Fixed);
+//    ui->treeViewRotation->header()->setSectionResizeMode(4,QHeaderView::Fixed);
+//    ui->treeViewRotation->header()->setSectionResizeMode(5,QHeaderView::Fixed);
+//    ui->treeViewRotation->header()->resizeSection(0,22);
+//    ui->treeViewRotation->header()->resizeSection(3,22);
+//    ui->treeViewRotation->header()->resizeSection(4,22);
+//    ui->treeViewRotation->header()->resizeSection(5,22);
     queuemodel = new QueueTableModel(rotationmodel, this);
-    ui->treeViewQueue->sortByColumn(-1);
-    ui->treeViewQueue->setModel(queuemodel);
-    ui->treeViewQueue->header()->setSectionResizeMode(3,QHeaderView::Fixed);
-    ui->treeViewQueue->header()->setSectionResizeMode(4,QHeaderView::Fixed);
-    ui->treeViewQueue->header()->resizeSection(4,22);
-    ui->treeViewQueue->header()->resizeSection(3,50);
+//    ui->treeViewQueue->sortByColumn(-1);
+    ui->tableViewQueue->setModel(qModel);
+//    ui->treeViewQueue->header()->setSectionResizeMode(3,QHeaderView::Fixed);
+//    ui->treeViewQueue->header()->setSectionResizeMode(4,QHeaderView::Fixed);
+//    ui->treeViewQueue->header()->resizeSection(4,22);
+//    ui->treeViewQueue->header()->resizeSection(3,50);
 
     khTmpDir = new QTemporaryDir();
-    dbDialog = new DlgDatabase(songdbmodel->getDbSongs(),this);
+    dbDialog = new DlgDatabase(this);
     dlgKeyChange = new DlgKeyChange(rotationmodel, this);
     regularSingersDialog = new DlgRegularSingers(regularSingers, rotationmodel, this);
     regularExportDialog = new DlgRegularExport(regularSingers, this);
     regularImportDialog = new DlgRegularImport(songdbmodel->getDbSongs(), regularSingers, this);
-    requestsDialog = new DlgRequests(songdbmodel->getDbSongs(), rotationmodel, this);
+    requestsDialog = new DlgRequests(rotModel, this);
     cdgPreviewDialog = new DlgCdgPreview(this);
     cdgWindow = new DlgCdg(this, Qt::Window);
     if (settings->showCdgWindow())
@@ -118,6 +126,8 @@ MainWindow::MainWindow(QWidget *parent) :
 //    songdbmodel = new SongDBTableModel(this);
 //    songdbmodel->loadFromDB();
     ui->tableViewDB->setModel(dbModel);
+    dbDelegate = new DbItemDelegate(this);
+    ui->tableViewDB->setItemDelegate(dbDelegate);
 
 //    ui->treeViewDB->header()->setSectionResizeMode(3,QHeaderView::Fixed);
 //    ui->treeViewDB->header()->resizeSection(3,60);
@@ -146,10 +156,11 @@ MainWindow::MainWindow(QWidget *parent) :
     if (!activeAudioBackend->canPitchShift())
     {
         ui->groupBoxKey->hide();
-        ui->treeViewQueue->hideColumn(3);
+        ui->tableViewQueue->hideColumn(7);
     }
     audioRecorder = new KhAudioRecorder(this);
     settingsDialog = new DlgSettings(audioBackends, this);
+    connect(rotModel, SIGNAL(songDroppedOnSinger(int,int,int)), this, SLOT(songDroppedOnSinger(int,int,int)));
     connect(activeAudioBackend, SIGNAL(volumeChanged(int)), ui->sliderVolume, SLOT(setValue(int)));
     connect(dbDialog, SIGNAL(databaseUpdated()), this, SLOT(songdbUpdated()));
     connect(dbDialog, SIGNAL(databaseCleared()), this, SLOT(databaseCleared()));
@@ -167,7 +178,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(settingsDialog, SIGNAL(cdgWindowFullScreenChanged(bool)), cdgWindow, SLOT(setFullScreen(bool)));
     connect(regularSingers, SIGNAL(dataChanged()), rotationmodel, SIGNAL(layoutChanged()));
     connect(regularSingers, SIGNAL(dataAboutToChange()), rotationmodel, SIGNAL(layoutAboutToBeChanged()));
-    connect(rotationmodel, SIGNAL(layoutChanged()), this, SLOT(rotationDataChanged()));
+    connect(rotModel, SIGNAL(rotationModified()), this, SLOT(rotationDataChanged()));
     connect(settings, SIGNAL(tickerOutputModeChanged()), this, SLOT(rotationDataChanged()));
     connect(settings, SIGNAL(audioBackendChanged(int)), this, SLOT(audioBackendChanged(int)));
     connect(activeAudioBackend, SIGNAL(silenceDetected()), this, SLOT(silenceDetected()));
@@ -177,6 +188,8 @@ MainWindow::MainWindow(QWidget *parent) :
     activeAudioBackend->setUseSilenceDetection(settings->audioDetectSilence());
     connect(settingsDialog, SIGNAL(audioDownmixChanged(bool)), activeAudioBackend, SLOT(setDownmix(bool)));
     activeAudioBackend->setDownmix(settings->audioDownmix());
+    connect(qModel, SIGNAL(queueModified()), rotModel, SLOT(queueModified()));
+    connect(requestsDialog, SIGNAL(addRequestSong(int,int)), qModel, SLOT(songAdd(int,int)));
     QImage cdgBg;
     if (settings->cdgDisplayBackgroundImage() != "")
     {
@@ -202,8 +215,8 @@ MainWindow::MainWindow(QWidget *parent) :
     settings->restoreSplitterState(ui->splitter);
     settings->restoreSplitterState(ui->splitter_2);
     settings->restoreColumnWidths(ui->tableViewDB);
-    settings->restoreColumnWidths(ui->treeViewQueue);
-    settings->restoreColumnWidths(ui->treeViewRotation);
+    settings->restoreColumnWidths(ui->tableViewQueue);
+    settings->restoreColumnWidths(ui->tableViewRotation);
     if ((settings->cdgWindowFullscreen()) && (settings->showCdgWindow()))
     {
         cdgWindow->makeFullscreen();
@@ -213,6 +226,28 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewDB->hideColumn(0);
     ui->tableViewDB->hideColumn(5);
     ui->tableViewDB->hideColumn(6);
+    ui->tableViewQueue->hideColumn(0);
+    ui->tableViewQueue->hideColumn(1);
+    ui->tableViewQueue->hideColumn(2);
+    ui->tableViewQueue->hideColumn(6);
+    ui->tableViewQueue->hideColumn(8);
+    //ui->tableViewQueue->hideColumn(9);
+    ui->tableViewQueue->hideColumn(11);
+    ui->tableViewQueue->hideColumn(12);
+//    ui->tableViewRotation->hideColumn(4);
+    ui->tableViewRotation->horizontalHeader()->resizeSection(0, 20);
+    ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
+    ui->tableViewRotation->horizontalHeader()->resizeSection(3,20);
+    ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Fixed);
+    ui->tableViewRotation->horizontalHeader()->resizeSection(4,20);
+    ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Fixed);
+    rotModel->setHeaderData(0,Qt::Horizontal,"");
+    rotModel->setHeaderData(1,Qt::Horizontal,"Singer");
+    rotModel->setHeaderData(2,Qt::Horizontal,"Next Song");
+    rotModel->setHeaderData(3,Qt::Horizontal,"");
+    rotModel->setHeaderData(4,Qt::Horizontal,"");
+
+
 
     ui->statusBar->addWidget(labelSingerCount);
     rtClickQueueSong = NULL;
@@ -249,10 +284,10 @@ void MainWindow::play(QString zipFilePath)
             activeAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + "tmp.mp3");
             ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
             activeAudioBackend->play();
-            if (settings->recordingEnabled())
-                audioRecorder->record(rotationmodel->getCurrent()->name() + " - " + songCurrent->Artist + " - " + songCurrent->Title);
-            ui->labelArtist->setText(songCurrent->Artist);
-            ui->labelTitle->setText(songCurrent->Title);
+//            if (settings->recordingEnabled())
+//                audioRecorder->record(rotationmodel->getCurrent()->name() + " - " + songCurrent->Artist + " - " + songCurrent->Title);
+//            ui->labelArtist->setText(songCurrent->Artist);
+//            ui->labelTitle->setText(songCurrent->Title);
             qDebug() << "Duration from cdg: " << activeAudioBackend->msToMMSS(duration);
         }
         else
@@ -273,8 +308,8 @@ MainWindow::~MainWindow()
     settings->saveSplitterState(ui->splitter);
     settings->saveSplitterState(ui->splitter_2);
     settings->saveColumnWidths(ui->tableViewDB);
-    settings->saveColumnWidths(ui->treeViewRotation);
-    settings->saveColumnWidths(ui->treeViewQueue);
+    settings->saveColumnWidths(ui->tableViewRotation);
+    settings->saveColumnWidths(ui->tableViewQueue);
     settings->saveWindowState(cdgWindow);
     settings->saveWindowState(requestsDialog);
     settings->saveWindowState(regularSingersDialog);
@@ -302,7 +337,7 @@ void MainWindow::search()
 
 void MainWindow::songdbUpdated()
 {
-    songdbmodel->loadFromDB();
+    dbModel->select();
 }
 
 void MainWindow::databaseCleared()
@@ -311,7 +346,7 @@ void MainWindow::databaseCleared()
     rotationmodel->clear();
     regularSingers->clear();
     ui->tableViewDB->clearSelection();
-    ui->treeViewRotation->clearSelection();
+    ui->tableViewRotation->clearSelection();
 
 }
 
@@ -334,184 +369,182 @@ void MainWindow::on_lineEdit_returnPressed()
     search();
 }
 
-void MainWindow::on_treeViewDB_activated(const QModelIndex &index)
+void MainWindow::on_tableViewDB_activated(const QModelIndex &index)
 {
-    if (rotationmodel->getSelectedSingerPosition() != -1)
+    if (qModel->singer() >= 0)
     {
-        int songid;
-        songid = songdbmodel->getRowSong(index.row())->ID;
-        rotationmodel->layoutAboutToBeChanged();
-        queuemodel->layoutAboutToBeChanged();
-        rotationmodel->getSelected()->addSongAtEnd(songid);
-        queuemodel->layoutChanged();
-        rotationmodel->layoutChanged();
+        qModel->songAdd(index.sibling(index.row(),0).data().toInt());
     }
+//    if (rotationmodel->getSelectedSingerPosition() != -1)
+//    {
+//        int songid;
+//        songid = songdbmodel->getRowSong(index.row())->ID;
+//        rotationmodel->layoutAboutToBeChanged();
+//        queuemodel->layoutAboutToBeChanged();
+//        rotationmodel->getSelected()->addSongAtEnd(songid);
+//        queuemodel->layoutChanged();
+//        rotationmodel->layoutChanged();
+//    }
 }
 
 void MainWindow::on_buttonAddSinger_clicked()
 {
-    if (rotationmodel->exists(ui->editAddSinger->text()))
-    {
-        qDebug() << "Singer exists";
-        return;
-    }
-    if (!rotationmodel->add(ui->editAddSinger->text()))
-    {
-        qDebug() << "Failed to add singer!!!";
-        return;
-    }
+//    if (rotationmodel->exists(ui->editAddSinger->text()))
+//    {
+//        qDebug() << "Singer exists";
+//        return;
+//    }
+//    if (!rotationmodel->add(ui->editAddSinger->text()))
+//    {
+//        qDebug() << "Failed to add singer!!!";
+//        return;
+//    }
+    rotModel->singerAdd(ui->editAddSinger->text());
     ui->editAddSinger->clear();
 }
 
 void MainWindow::on_editAddSinger_returnPressed()
 {
-    if (rotationmodel->exists(ui->editAddSinger->text()))
-    {
-        qDebug() << "Singer exists";
-        return;
-    }
-    if (!rotationmodel->add(ui->editAddSinger->text()))
-    {
-        qDebug() << "Failed to add singer!!!";
-        return;
-    }
+//    if (rotationmodel->exists(ui->editAddSinger->text()))
+//    {
+//        qDebug() << "Singer exists";
+//        return;
+//    }
+//    if (!rotationmodel->add(ui->editAddSinger->text()))
+//    {
+//        qDebug() << "Failed to add singer!!!";
+//        return;
+//    }
+    rotModel->singerAdd(ui->editAddSinger->text());
     ui->editAddSinger->clear();
 }
 
-void MainWindow::on_treeViewRotation_activated(const QModelIndex &index)
+void MainWindow::on_tableViewRotation_activated(const QModelIndex &index)
 {
     if (index.column() < 3)
     {
-        rotationmodel->setCurrentSingerPosition(index.row() + 1);
-        activeAudioBackend->stop();
-        KhQueueSong *qsong = rotationmodel->getSelected()->getNextSong();
-        KhSong *song = songdbmodel->getSongByID(qsong->getSongID());
-        songCurrent = song;
-        delete khTmpDir;
-        khTmpDir = new QTemporaryDir();
-        play(song->path);
-        queuemodel->layoutAboutToBeChanged();
-        qsong->setPlayed(true);
-        queuemodel->layoutChanged();
+        int singerId = index.sibling(index.row(),0).data().toInt();
+        play(rotModel->nextSongPath(singerId));
+        rotDelegate->setCurrentSinger(singerId);
+        rotModel->setCurrentSinger(singerId);
+        ui->labelArtist->setText(rotModel->nextSongArtist(singerId));
+        ui->labelTitle->setText(rotModel->nextSongTitle(singerId));
+        ui->labelSinger->setText(rotModel->getSingerName(singerId));
+        qModel->markSongPlayed(rotModel->nextSongQueueId(singerId));
     }
 }
 
-void MainWindow::on_treeViewRotation_clicked(const QModelIndex &index)
+void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
 {
-    ui->treeViewQueue->sortByColumn(-1);
-    static int rowclicked = -1;
-    if (index.column() == 3)
+    if (index.column() == 4)
     {
-        QModelIndex child = rotationmodel->index(index.row(), 1, index.parent());
-        ui->treeViewRotation->selectionModel()->setCurrentIndex(child,QItemSelectionModel::SelectCurrent);
-        ui->treeViewRotation->edit(child);
-    }
-    else if (index.column() == 4)
-    {
-        queuemodel->layoutAboutToBeChanged();
-        rotationmodel->deleteSingerByPosition(index.row() + 1);
-        ui->treeViewRotation->clearSelection();
-        rotationmodel->setSelectedSingerIndex(-1);
-        rowclicked = -1;
-        queuemodel->layoutChanged();
-    }
-    else if (index.column() == 5)
-    {
-        KhSinger *singer = rotationmodel->getSingerByPosition(index.row() + 1);
-        if (!singer->regular())
+        // Deleting singer
+        QMessageBox msgBox(this);
+        msgBox.setText("Are you sure you want to remove this singer?");
+        msgBox.setInformativeText("Unless this singer is a tracked regular, you will be unable retrieve any queue data for this singer once they are deleted.");
+        QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
+        msgBox.addButton(QMessageBox::Cancel);
+        msgBox.exec();
+        if (msgBox.clickedButton() == yesButton)
         {
-            if (regularSingers->exists(singer->name()))
+            int singerId = index.sibling(index.row(),0).data().toInt();
+            qModel->setSinger(-1);
+            if (rotModel->currentSinger() == singerId)
             {
-                QMessageBox msgBox(this);
-                msgBox.setText("A regular singer with this name already exists!");
-                msgBox.setInformativeText("Would you like to merge their saved queue with the current singer's, replace the saved queue completely, or cancel?");
-                QPushButton *mergeButton = msgBox.addButton(tr("Merge"), QMessageBox::ActionRole);
-                QPushButton *replaceButton     = msgBox.addButton("Replace",QMessageBox::ActionRole);
-                QPushButton *cancelButton = msgBox.addButton(QMessageBox::Cancel);
-
-                msgBox.exec();
-
-                if (msgBox.clickedButton() == mergeButton)
-                {
-                    // merge the singer queue with the regular's queue
-                }
-                else if (msgBox.clickedButton() == replaceButton)
-                {
-                    // replace the exising regular's queue with the current singer's
-                }
-                else if (msgBox.clickedButton() == cancelButton)
-                {
-                    // abort, so nothing.
-                    return;
-                }
+                rotModel->setCurrentSinger(-1);
+                rotDelegate->setCurrentSinger(-1);
             }
-            else
-            {
-                rotationmodel->layoutAboutToBeChanged();
-                qDebug() << "Set regular clicked, singer is not currently regular";
-                rotationmodel->createRegularForSinger(singer->index());
-                rotationmodel->layoutChanged();
-                //for (unsigned int i=0; i < queuemodel->rowCount(); i++)
-                // {
-                // Need more functionality in queuemodel or need to split out queue data into KhSingers
-                // }
-                return;
-            }
-        }
-        else
-        {
-            QMessageBox msgBox(this);
-            msgBox.setText("Are you sure you want to disable regular tracking for this singer?");
-            msgBox.setInformativeText("Doing so will not remove the regular singer entry, but it will prevent any changes made to the singer's queue from being saved to the regular singer until the regular singer is either reloaded or the rotation singer is re-merged with the regular singer.");
-            QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
-            QPushButton *cancelButton = msgBox.addButton(QMessageBox::Cancel);
-            msgBox.exec();
-            if (msgBox.clickedButton() == yesButton)
-            {
-                rotationmodel->layoutAboutToBeChanged();
-                singer->setRegular(false);
-                singer->setRegularIndex(-1);
-                rotationmodel->layoutChanged();
-                return;
-            }
-            else if (msgBox.clickedButton() == cancelButton)
-                return;
+            rotModel->singerDelete(singerId);
+            ui->tableViewRotation->clearSelection();
+            ui->tableViewQueue->clearSelection();
+            return;
         }
     }
-    else if (rowclicked != index.row())
-    {
-        ui->treeViewQueue->clearSelection();
-        int singerid = rotationmodel->getSingerByPosition(index.row() + 1)->index();
-        queuemodel->layoutAboutToBeChanged();
-        rotationmodel->setSelectedSingerIndex(singerid);
-        rowclicked = index.row();
-        queuemodel->layoutChanged();
-    }
+    qModel->setSinger(index.sibling(index.row(),0).data().toInt());
+//    if (index.column() == 5)
+//    {
+//        KhSinger *singer = rotationmodel->getSingerByPosition(index.row() + 1);
+//        if (!singer->regular())
+//        {
+//            if (regularSingers->exists(singer->name()))
+//            {
+//                QMessageBox msgBox(this);
+//                msgBox.setText("A regular singer with this name already exists!");
+//                msgBox.setInformativeText("Would you like to merge their saved queue with the current singer's, replace the saved queue completely, or cancel?");
+//                QPushButton *mergeButton = msgBox.addButton(tr("Merge"), QMessageBox::ActionRole);
+//                QPushButton *replaceButton     = msgBox.addButton("Replace",QMessageBox::ActionRole);
+//                QPushButton *cancelButton = msgBox.addButton(QMessageBox::Cancel);
+
+//                msgBox.exec();
+
+//                if (msgBox.clickedButton() == mergeButton)
+//                {
+//                    // merge the singer queue with the regular's queue
+//                }
+//                else if (msgBox.clickedButton() == replaceButton)
+//                {
+//                    // replace the exising regular's queue with the current singer's
+//                }
+//                else if (msgBox.clickedButton() == cancelButton)
+//                {
+//                    // abort, so nothing.
+//                    return;
+//                }
+//            }
+//            else
+//            {
+//                rotationmodel->layoutAboutToBeChanged();
+//                qDebug() << "Set regular clicked, singer is not currently regular";
+//                rotationmodel->createRegularForSinger(singer->index());
+//                rotationmodel->layoutChanged();
+//                //for (unsigned int i=0; i < queuemodel->rowCount(); i++)
+//                // {
+//                // Need more functionality in queuemodel or need to split out queue data into KhSingers
+//                // }
+//                return;
+//            }
+//        }
+//        else
+//        {
+//            QMessageBox msgBox(this);
+//            msgBox.setText("Are you sure you want to disable regular tracking for this singer?");
+//            msgBox.setInformativeText("Doing so will not remove the regular singer entry, but it will prevent any changes made to the singer's queue from being saved to the regular singer until the regular singer is either reloaded or the rotation singer is re-merged with the regular singer.");
+//            QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
+//            QPushButton *cancelButton = msgBox.addButton(QMessageBox::Cancel);
+//            msgBox.exec();
+//            if (msgBox.clickedButton() == yesButton)
+//            {
+//                rotationmodel->layoutAboutToBeChanged();
+//                singer->setRegular(false);
+//                singer->setRegularIndex(-1);
+//                rotationmodel->layoutChanged();
+//                return;
+//            }
+//            else if (msgBox.clickedButton() == cancelButton)
+//                return;
+//        }
+//    }
+//    else if (rowclicked != index.row())
+//    {
+//        ui->tableViewQueue->clearSelection();
+//        int singerid = rotationmodel->getSingerByPosition(index.row() + 1)->index();
+//        qModel->setSinger(singerid);
+//        queuemodel->layoutAboutToBeChanged();
+//        rotationmodel->setSelectedSingerIndex(singerid);
+//        rowclicked = index.row();
+//        queuemodel->layoutChanged();
+//    }
 }
 
-void MainWindow::on_treeViewQueue_activated(const QModelIndex &index)
+void MainWindow::on_tableViewQueue_activated(const QModelIndex &index)
 {
-    KhQueueSong *queuesong = rotationmodel->getSelected()->getSongByPosition(index.row());
-    KhSong *song = new KhSong();
-    song->Artist = queuesong->getArtist();
-    song->Title = queuesong->getTitle();
-    song->path = queuesong->getSourceFile();
-    song->DiscID = queuesong->getDiscID();
-    if (songCurrent != NULL)
-        delete songCurrent;
-    songCurrent = song;
-    delete khTmpDir;
-    khTmpDir = new QTemporaryDir();
-//    play(song->path);
-    if (activeAudioBackend->canPitchShift()) activeAudioBackend->setPitchShift(queuesong->getKeyChange());
-    queuemodel->layoutAboutToBeChanged();
-    queuesong->setPlayed(true);
-    queuemodel->layoutChanged();
-    rotationmodel->layoutAboutToBeChanged();
-    rotationmodel->setCurrentSingerPosition(rotationmodel->getSelected()->position());
-    rotationmodel->layoutChanged();
-    play(song->path);
-
+    play(index.sibling(index.row(), 6).data().toString());
+    rotDelegate->setCurrentSinger(index.sibling(index.row(),1).data().toInt());
+    rotModel->setCurrentSinger(index.sibling(index.row(),1).data().toInt());
+    qModel->markSongPlayed(index.sibling(index.row(),0).data().toInt());
+    ui->labelSinger->setText(rotModel->getSingerName(index.sibling(index.row(),1).data().toInt()));
+    ui->labelArtist->setText(index.sibling(index.row(),3).data().toString());
+    ui->labelTitle->setText(index.sibling(index.row(),4).data().toString());
 }
 
 void MainWindow::on_actionManage_DB_triggered()
@@ -544,21 +577,18 @@ void MainWindow::on_actionIncoming_Requests_triggered()
     requestsDialog->show();
 }
 
-void MainWindow::songDroppedOnSinger(int singer, int song, int row)
+void MainWindow::songDroppedOnSinger(int singerId, int songId, int dropRow)
 {
-    ui->treeViewRotation->clearSelection();
-    QItemSelectionModel *selmodel = ui->treeViewRotation->selectionModel();
+    qModel->setSinger(singerId);
+    qModel->songAdd(songId);
+    ui->tableViewRotation->clearSelection();
+    QItemSelectionModel *selmodel = ui->tableViewRotation->selectionModel();
     QModelIndex topLeft;
     QModelIndex bottomRight;
-    topLeft = rotationmodel->index(row, 0, QModelIndex());
-    bottomRight = rotationmodel->index(row, 2, QModelIndex());
+    topLeft = rotModel->index(dropRow, 0, QModelIndex());
+    bottomRight = rotModel->index(dropRow, 4, QModelIndex());
     QItemSelection selection(topLeft, bottomRight);
     selmodel->select(selection, QItemSelectionModel::Select);
-    queuemodel->layoutAboutToBeChanged();
-    rotationmodel->setSelectedSingerIndex(singer);
-    if (rotationmodel->getSingerByIndex(singer) != NULL)
-        rotationmodel->getSingerByIndex(singer)->addSongAtEnd(song);
-    queuemodel->layoutChanged();
 }
 
 void MainWindow::on_pushButton_clicked()
@@ -573,7 +603,7 @@ void MainWindow::on_treeViewQueue_clicked(const QModelIndex &index)
         queuemodel->layoutAboutToBeChanged();
         rotationmodel->getSelected()->queueObject()->deleteSongByPosition(index.row());
         queuemodel->layoutChanged();
-        ui->treeViewQueue->clearSelection();
+        ui->tableViewQueue->clearSelection();
     }
 }
 
@@ -595,8 +625,8 @@ void MainWindow::on_buttonClearRotation_clicked()
     msgBox.exec();
     if (msgBox.clickedButton() == yesButton)
     {
-        ui->treeViewQueue->clearSelection();
-        ui->treeViewRotation->clearSelection();
+        ui->tableViewQueue->clearSelection();
+        ui->tableViewRotation->clearSelection();
         //queuemodel->clear();
         queuemodel->layoutAboutToBeChanged();
         rotationmodel->clear();
@@ -606,7 +636,7 @@ void MainWindow::on_buttonClearRotation_clicked()
 
 void MainWindow::clearQueueSort()
 {
-    ui->treeViewQueue->sortByColumn(-1);
+    ui->tableViewQueue->sortByColumn(-1);
 }
 
 
@@ -623,7 +653,7 @@ void MainWindow::on_buttonClearQueue_clicked()
         if (rotationmodel->getSelected() != NULL)
         {
             rotationmodel->layoutAboutToBeChanged();
-            ui->treeViewQueue->clearSelection();
+            ui->tableViewQueue->clearSelection();
             queuemodel->clear();
             rotationmodel->layoutChanged();
         }
@@ -682,6 +712,7 @@ void MainWindow::audioBackend_stateChanged(KhAbstractAudioBackend::State state)
         cdg->VideoClose();
         ui->labelArtist->setText("None");
         ui->labelTitle->setText("None");
+        ui->labelSinger->setText("None");
         ui->labelElapsedTime->setText("0:00");
         ui->labelRemainTime->setText("0:00");
         ui->labelTotalTime->setText("0:00");
@@ -735,48 +766,48 @@ void MainWindow::on_buttonRegulars_clicked()
 void MainWindow::rotationDataChanged()
 {
     QString statusBarText = "Singers: ";
-    statusBarText += QString::number(rotationmodel->size());
+    statusBarText += QString::number(rotModel->rowCount());
     labelSingerCount->setText(statusBarText);
     QString tickerText = "Singers in rotation: ";
-    tickerText += QString::number(rotationmodel->size());
+    tickerText += QString::number(rotModel->rowCount());
     tickerText += " | Current singer: ";
     int displayPos;
-    if (rotationmodel->getCurrent() != NULL)
+    QString curSinger = rotModel->getSingerName(rotModel->currentSinger());
+    if (curSinger != "")
     {
-        tickerText += rotationmodel->getCurrent()->name();
-        displayPos = rotationmodel->getCurrent()->position();
+        tickerText += curSinger;
+        displayPos = rotModel->getSingerPosition(rotModel->currentSinger());
     }
     else
     {
         tickerText += "None";
-        displayPos = 0;
+        displayPos = -1;
     }
-//    tickerText += " | Upcoming Singers: ";
     int listSize;
-    if (settings->tickerFullRotation() || (rotationmodel->size() < settings->tickerShowNumSingers()))
-{
-        listSize = rotationmodel->size();
+    if (settings->tickerFullRotation() || (rotModel->rowCount() < settings->tickerShowNumSingers()))
+    {
+        listSize = rotModel->rowCount();
         tickerText += " | Upcoming Singers: ";
     }
     else
-{
+    {
         listSize = settings->tickerShowNumSingers();
         tickerText += " | Next ";
         tickerText += QString::number(settings->tickerShowNumSingers());
         tickerText += " Singers: ";
-}
+    }
     for (int i=0; i < listSize; i++)
     {
-        if (displayPos + 1 <= rotationmodel->size())
+        if (displayPos + 1 < rotModel->rowCount())
             displayPos++;
         else
-            displayPos = 1;
+            displayPos = 0;
         tickerText += QString::number(i + 1);
         tickerText += ") ";
-        tickerText += rotationmodel->getSingerByPosition(displayPos)->name();
+        tickerText += rotModel->getSingerName(rotModel->singerIdAtPosition(displayPos));
         tickerText += "  ";
     }
-    if (rotationmodel->size() == 0)
+    if (rotModel->rowCount() == 0)
         tickerText += " None";
     cdgWindow->setTickerText(tickerText);
 }
@@ -809,12 +840,13 @@ void MainWindow::on_tableViewDB_customContextMenuRequested(const QPoint &pos)
     }
 }
 
-void MainWindow::on_treeViewQueue_customContextMenuRequested(const QPoint &pos)
+void MainWindow::on_tableViewQueue_customContextMenuRequested(const QPoint &pos)
 {
-    QModelIndex index = ui->treeViewQueue->indexAt(pos);
+    QModelIndex index = ui->tableViewQueue->indexAt(pos);
     if (index.isValid())
     {   
-        QString zipPath = rotationmodel->getSelected()->getSongByPosition(index.row())->getSourceFile();
+//        QString zipPath = rotationmodel->getSelected()->getSongByPosition(index.row())->getSourceFile();
+        QString zipPath = index.sibling(index.row(), 6).data().toString();
         dlgKeyChange->setActiveSong(rotationmodel->getSelected()->getSongByPosition(index.row()));
         rtClickQueueSong = rotationmodel->getSelected()->getSongByPosition(index.row());
         cdgPreviewDialog->setZipFile(zipPath);

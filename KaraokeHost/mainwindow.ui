@@ -937,7 +937,7 @@
              <number>2</number>
             </property>
             <item>
-             <widget class="QTreeView" name="treeViewRotation">
+             <widget class="QTableView" name="tableViewRotation">
               <property name="editTriggers">
                <set>QAbstractItemView::EditKeyPressed</set>
               </property>
@@ -956,26 +956,23 @@
               <property name="alternatingRowColors">
                <bool>true</bool>
               </property>
-              <property name="rootIsDecorated">
-               <bool>false</bool>
+              <property name="selectionMode">
+               <enum>QAbstractItemView::SingleSelection</enum>
               </property>
-              <property name="itemsExpandable">
-               <bool>false</bool>
+              <property name="selectionBehavior">
+               <enum>QAbstractItemView::SelectRows</enum>
               </property>
-              <property name="allColumnsShowFocus">
-               <bool>true</bool>
-              </property>
-              <property name="expandsOnDoubleClick">
-               <bool>false</bool>
-              </property>
-              <attribute name="headerCascadingSectionResizes">
+              <attribute name="horizontalHeaderCascadingSectionResizes">
                <bool>true</bool>
               </attribute>
-              <attribute name="headerDefaultSectionSize">
-               <number>200</number>
+              <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+               <bool>false</bool>
               </attribute>
-              <attribute name="headerStretchLastSection">
+              <attribute name="horizontalHeaderStretchLastSection">
                <bool>true</bool>
+              </attribute>
+              <attribute name="verticalHeaderVisible">
+               <bool>false</bool>
               </attribute>
              </widget>
             </item>
@@ -1090,7 +1087,7 @@
              <number>4</number>
             </property>
             <item>
-             <widget class="QTreeView" name="treeViewQueue">
+             <widget class="QTableView" name="tableViewQueue">
               <property name="contextMenuPolicy">
                <enum>Qt::CustomContextMenu</enum>
               </property>
@@ -1112,32 +1109,26 @@
               <property name="alternatingRowColors">
                <bool>true</bool>
               </property>
-              <property name="rootIsDecorated">
-               <bool>false</bool>
+              <property name="selectionMode">
+               <enum>QAbstractItemView::SingleSelection</enum>
               </property>
-              <property name="uniformRowHeights">
-               <bool>true</bool>
+              <property name="selectionBehavior">
+               <enum>QAbstractItemView::SelectRows</enum>
               </property>
-              <property name="itemsExpandable">
-               <bool>false</bool>
-              </property>
-              <property name="sortingEnabled">
-               <bool>true</bool>
-              </property>
-              <property name="allColumnsShowFocus">
-               <bool>true</bool>
-              </property>
-              <property name="expandsOnDoubleClick">
-               <bool>false</bool>
-              </property>
-              <attribute name="headerCascadingSectionResizes">
+              <attribute name="horizontalHeaderCascadingSectionResizes">
                <bool>true</bool>
               </attribute>
-              <attribute name="headerDefaultSectionSize">
-               <number>100</number>
-              </attribute>
-              <attribute name="headerShowSortIndicator" stdset="0">
+              <attribute name="horizontalHeaderHighlightSections">
                <bool>true</bool>
+              </attribute>
+              <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+               <bool>true</bool>
+              </attribute>
+              <attribute name="horizontalHeaderStretchLastSection">
+               <bool>true</bool>
+              </attribute>
+              <attribute name="verticalHeaderVisible">
+               <bool>false</bool>
               </attribute>
              </widget>
             </item>

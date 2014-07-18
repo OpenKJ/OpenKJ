@@ -100,9 +100,13 @@ void KhSettings::saveColumnWidths(QTreeView *treeView)
 void KhSettings::saveColumnWidths(QTableView *tableView)
 {
     settings->beginGroup(tableView->objectName());
-    settings->setValue("headerState", tableView->horizontalHeader()->saveState());
-    settings->setValue("hiddenSections", tableView->horizontalHeader()->hiddenSectionCount());
-    settings->setValue("sections", tableView->horizontalHeader()->count());
+    for (int i=0; i < tableView->horizontalHeader()->count(); i++)
+    {
+        settings->beginGroup(QString::number(i));
+        settings->setValue("size", tableView->horizontalHeader()->sectionSize(i));
+        settings->setValue("hidden", tableView->horizontalHeader()->isSectionHidden(i));
+        settings->endGroup();
+    }
     settings->endGroup();
 }
 
@@ -117,8 +121,17 @@ void KhSettings::restoreColumnWidths(QTreeView *treeView)
 void KhSettings::restoreColumnWidths(QTableView *tableView)
 {
     settings->beginGroup(tableView->objectName());
-    if ((settings->contains("headerState")) && (settings->value("hiddenSections").toInt() == tableView->horizontalHeader()->hiddenSectionCount()) && (settings->value("sections").toInt() == tableView->horizontalHeader()->count()))
-        tableView->horizontalHeader()->restoreState(settings->value("headerState").toByteArray());
+    QStringList headers = settings->childGroups();
+    for (int i=0; i < headers.size(); i++)
+    {
+        settings->beginGroup(headers.at(i));
+        int section = headers.at(i).toInt();
+        bool hidden = settings->value("hidden", false).toBool();
+        int size = settings->value("size", 0).toInt();
+        tableView->horizontalHeader()->resizeSection(section, size);
+        tableView->horizontalHeader()->setSectionHidden(section, hidden);
+        settings->endGroup();
+    }
     settings->endGroup();
 }
 
