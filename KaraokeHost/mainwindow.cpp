@@ -68,7 +68,6 @@ MainWindow::MainWindow(QWidget *parent) :
     query.exec("CREATE TABLE IF NOT EXISTS regularSongs ( regsongid INTEGER PRIMARY KEY AUTOINCREMENT, singer INTEGER NOT NULL, song INTEGER NOT NULL, 'keychg' INTEGER, 'position' INTEGER)");
     query.exec("CREATE TABLE IF NOT EXISTS sourceDirs ( path VARCHAR(255) UNIQUE, pattern INTEGER)");
     query.exec("PRAGMA synchronous = OFF");
-//    query.exec("PRAGMA journal_mode = OFF");
     sortColDB = 1;
     sortDirDB = 0;
     dbModel = new DbTableModel(this, *database);
@@ -86,7 +85,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewRotation->setItemDelegate(rotDelegate);
     ui->tableViewQueue->setModel(qModel);
     ui->tableViewQueue->setItemDelegate(qDelegate);
-
     khTmpDir = new QTemporaryDir();
     dbDialog = new DlgDatabase(this);
     dlgKeyChange = new DlgKeyChange(qModel, this);
@@ -106,14 +104,9 @@ MainWindow::MainWindow(QWidget *parent) :
         }
     }
     cdg = new CDG;
-//    songdbmodel = new SongDBTableModel(this);
-//    songdbmodel->loadFromDB();
     ui->tableViewDB->setModel(dbModel);
     dbDelegate = new DbItemDelegate(this);
     ui->tableViewDB->setItemDelegate(dbDelegate);
-
-//    ui->treeViewDB->header()->setSectionResizeMode(3,QHeaderView::Fixed);
-//    ui->treeViewDB->header()->resizeSection(3,60);
     ipcClient = new KhIPCClient("bmControl",this);
     audioBackends = new KhAudioBackends;
 #ifdef USE_GSTREAMER
@@ -200,7 +193,6 @@ MainWindow::MainWindow(QWidget *parent) :
         cdgWindow->makeFullscreen();
     }
     rotationDataChanged();
-
     ui->tableViewDB->hideColumn(0);
     ui->tableViewDB->hideColumn(5);
     ui->tableViewDB->hideColumn(6);
@@ -215,7 +207,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewQueue->horizontalHeader()->resizeSection(8, 20);
     ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(8, QHeaderView::Fixed);
     ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(7, QHeaderView::ResizeToContents);
-//    ui->tableViewRotation->hideColumn(4);
     qModel->setHeaderData(8, Qt::Horizontal,"");
     qModel->setHeaderData(7, Qt::Horizontal, "Key");
     ui->tableViewRotation->horizontalHeader()->resizeSection(0, 20);
@@ -229,15 +220,11 @@ MainWindow::MainWindow(QWidget *parent) :
     rotModel->setHeaderData(2,Qt::Horizontal,"Next Song");
     rotModel->setHeaderData(3,Qt::Horizontal,"");
     rotModel->setHeaderData(4,Qt::Horizontal,"");
-
-
-
     ui->statusBar->addWidget(labelSingerCount);
 }
 
 void MainWindow::play(QString zipFilePath)
 {
-
     if (activeAudioBackend->state() != KhAbstractAudioBackend::PausedState)
     {
         if (activeAudioBackend->state() == KhAbstractAudioBackend::PlayingState)
@@ -309,9 +296,6 @@ MainWindow::~MainWindow()
 
 void MainWindow::search()
 {
-//    QString termsstr;
-//    termsstr = ui->lineEdit->text();
-//    songdbmodel->applyFilter(termsstr);
     dbModel->search(ui->lineEdit->text());
 }
 
@@ -351,46 +335,16 @@ void MainWindow::on_tableViewDB_activated(const QModelIndex &index)
     {
         qModel->songAdd(index.sibling(index.row(),0).data().toInt());
     }
-//    if (rotationmodel->getSelectedSingerPosition() != -1)
-//    {
-//        int songid;
-//        songid = songdbmodel->getRowSong(index.row())->ID;
-//        rotationmodel->layoutAboutToBeChanged();
-//        queuemodel->layoutAboutToBeChanged();
-//        rotationmodel->getSelected()->addSongAtEnd(songid);
-//        queuemodel->layoutChanged();
-//        rotationmodel->layoutChanged();
-//    }
 }
 
 void MainWindow::on_buttonAddSinger_clicked()
 {
-//    if (rotationmodel->exists(ui->editAddSinger->text()))
-//    {
-//        qDebug() << "Singer exists";
-//        return;
-//    }
-//    if (!rotationmodel->add(ui->editAddSinger->text()))
-//    {
-//        qDebug() << "Failed to add singer!!!";
-//        return;
-//    }
     rotModel->singerAdd(ui->editAddSinger->text());
     ui->editAddSinger->clear();
 }
 
 void MainWindow::on_editAddSinger_returnPressed()
 {
-//    if (rotationmodel->exists(ui->editAddSinger->text()))
-//    {
-//        qDebug() << "Singer exists";
-//        return;
-//    }
-//    if (!rotationmodel->add(ui->editAddSinger->text()))
-//    {
-//        qDebug() << "Failed to add singer!!!";
-//        return;
-//    }
     rotModel->singerAdd(ui->editAddSinger->text());
     ui->editAddSinger->clear();
 }
