@@ -22,28 +22,18 @@ DEFINES += USE_GSTREAMER
 
 SOURCES += main.cpp\
     mainwindow.cpp \
-    queuetablemodel.cpp \
-    rotationtablemodel.cpp \
-    songdbtablemodel.cpp \
     libCDG/src/libCDG_Frame_Image.cpp \
     libCDG/src/libCDG_Color.cpp \
     libCDG/src/CDG_Frame_Image.cpp \
     libCDG/src/libCDG.cpp \
     sourcedirtablemodel.cpp \
     dbupdatethread.cpp \
-    songdbloadthread.cpp \
-    khqueuesong.cpp \
-    khsinger.cpp \
-    khsong.cpp \
-    khregularsinger.cpp \
-    khregularsong.cpp \
     khipcclient.cpp \
     khabstractaudiobackend.cpp \
     khaudiobackendqmediaplayer.cpp \
     khzip.cpp \
     qglcanvas.cpp \
     khsettings.cpp \
-    regularsingermodel.cpp \
     scrolltext.cpp \
     requeststablemodel.cpp \
     khdb.cpp \
@@ -62,31 +52,23 @@ SOURCES += main.cpp\
     queuemodel.cpp \
     rotationmodel.cpp \
     rotationitemdelegate.cpp \
-    dbitemdelegate.cpp
+    dbitemdelegate.cpp \
+    queueitemdelegate.cpp \
+    regitemdelegate.cpp
 
 HEADERS  += mainwindow.h \
-    queuetablemodel.h \
-    rotationtablemodel.h \
-    songdbtablemodel.h \
     libCDG/include/libCDG.h \
     libCDG/include/libCDG_Frame_Image.h \
     libCDG/include/libCDG_Color.h \
     libCDG/include/CDG_Frame_Image.h \
     sourcedirtablemodel.h \
     dbupdatethread.h \
-    songdbloadthread.h \
-    khqueuesong.h \
-    khsinger.h \
-    khsong.h \
-    khregularsinger.h \
-    khregularsong.h \
     khipcclient.h \
     khabstractaudiobackend.h \
     khaudiobackendqmediaplayer.h \
     khzip.h \
     qglcanvas.h \
     khsettings.h \
-    regularsingermodel.h \
     scrolltext.h \
     requeststablemodel.h \
     khdb.h \
@@ -105,7 +87,9 @@ HEADERS  += mainwindow.h \
     queuemodel.h \
     rotationmodel.h \
     rotationitemdelegate.h \
-    dbitemdelegate.h
+    dbitemdelegate.h \
+    queueitemdelegate.h \
+    regitemdelegate.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \

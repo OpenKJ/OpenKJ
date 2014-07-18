@@ -2,7 +2,7 @@
 #define DLGKEYCHANGE_H
 
 #include <QDialog>
-#include "rotationtablemodel.h"
+#include "queuemodel.h"
 
 namespace Ui {
 class DlgKeyChange;
@@ -13,8 +13,8 @@ class DlgKeyChange : public QDialog
     Q_OBJECT
 
 public:
-    explicit DlgKeyChange(RotationTableModel *rotationModel, QWidget *parent = 0);
-    void setActiveSong(KhQueueSong *song);
+    explicit DlgKeyChange(QueueModel *queueModel, QWidget *parent = 0);
+    void setActiveSong(int songId);
     ~DlgKeyChange();
 
 private slots:
@@ -24,8 +24,8 @@ private slots:
 
 private:
     Ui::DlgKeyChange *ui;
-    RotationTableModel *m_rotationModel;
-    KhQueueSong *m_activeSong;
+    QueueModel *qModel;
+    int m_activeSong;
 };
 
 #endif // DLGKEYCHANGE_H

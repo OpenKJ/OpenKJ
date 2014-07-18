@@ -26,6 +26,7 @@ public:
     QString nextSongTitle(int singerId);
     int nextSongId(int singerId);
     int nextSongQueueId(int singerId);
+    void clearRotation();
 
 signals:
     void songDroppedOnSinger(int singerId, int songId, int dropRow);

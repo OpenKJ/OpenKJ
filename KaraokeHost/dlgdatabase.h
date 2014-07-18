@@ -26,7 +26,7 @@
 #include <QDirIterator>
 #include "sourcedirtablemodel.h"
 #include "dlgdurationscan.h"
-#include "khsong.h"
+//#include "khsong.h"
 
 
 namespace Ui {

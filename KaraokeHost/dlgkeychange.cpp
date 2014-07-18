@@ -1,19 +1,19 @@
 #include "dlgkeychange.h"
 #include "ui_dlgkeychange.h"
 
-DlgKeyChange::DlgKeyChange(RotationTableModel *rotationModel, QWidget *parent) :
+DlgKeyChange::DlgKeyChange(QueueModel *queueModel, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DlgKeyChange)
 {
-    m_rotationModel = rotationModel;
-    m_activeSong = NULL;
+    qModel = queueModel;
+    m_activeSong = -1;
     ui->setupUi(this);
 }
 
-void DlgKeyChange::setActiveSong(KhQueueSong *song)
+void DlgKeyChange::setActiveSong(int songId)
 {
-    m_activeSong = song;
-    ui->spinBoxKey->setValue(song->getKeyChange());
+    m_activeSong = songId;
+    ui->spinBoxKey->setValue(qModel->getSongKey(m_activeSong));
 }
 
 DlgKeyChange::~DlgKeyChange()
@@ -23,8 +23,7 @@ DlgKeyChange::~DlgKeyChange()
 
 void DlgKeyChange::on_buttonBox_accepted()
 {
-    m_activeSong->setKeyChange(ui->spinBoxKey->value());
-    //m_queueSongs->queueUpdated();
+    qModel->songSetKey(m_activeSong, ui->spinBoxKey->value());
     close();
 }
 

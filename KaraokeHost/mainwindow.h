@@ -23,11 +23,9 @@
 
 #include <QMainWindow>
 #include <QtSql>
-#include "queuetablemodel.h"
-#include "songdbtablemodel.h"
-#include "rotationtablemodel.h"
-#include "khsinger.h"
-#include "khregularsinger.h"
+//#include "songdbtablemodel.h"
+//#include "khsinger.h"
+//#include "khregularsinger.h"
 #include "libCDG/include/libCDG.h"
 #include <QSortFilterProxyModel>
 #include <QTemporaryDir>
@@ -49,6 +47,7 @@
 #include "khaudiorecorder.h"
 #include "dbtablemodel.h"
 #include "queuemodel.h"
+#include "queueitemdelegate.h"
 #include "rotationmodel.h"
 #include "rotationitemdelegate.h"
 #include "dbitemdelegate.h"
@@ -91,7 +90,7 @@ private slots:
     void on_actionIncoming_Requests_triggered();
     void songDroppedOnSinger(int singerId, int songId, int dropRow);
     void on_pushButton_clicked();
-    void on_treeViewQueue_clicked(const QModelIndex &index);
+    void on_tableViewQueue_clicked(const QModelIndex &index);
     void notify_user(QString message);
     void on_buttonClearRotation_clicked();
     void clearQueueSort();
@@ -119,14 +118,12 @@ private slots:
 private:
     Ui::MainWindow *ui;
     QSqlDatabase *database;
-    SongDBTableModel *songdbmodel;
     DbTableModel *dbModel;
     DbItemDelegate *dbDelegate;
     QueueModel *qModel;
+    QueueItemDelegate *qDelegate;
     RotationModel *rotModel;
     RotationItemDelegate *rotDelegate;
-    RotationTableModel *rotationmodel;
-    QueueTableModel *queuemodel;
     DlgCdg *cdgWindow;
     DlgDatabase *dbDialog;
     DlgSettings *settingsDialog;
@@ -139,19 +136,14 @@ private:
     KhAbstractAudioBackend *activeAudioBackend;
     KhAudioBackends *audioBackends;
     KhAudioRecorder *audioRecorder;
-    //KhSingers *singers;
-    KhRegularSingers *regularSingers;
     KhIPCClient *ipcClient;
     QLabel *labelSingerCount;
     bool sliderPositionPressed;
     void play(QString zipFilePath);
-    KhQueueSong *rtClickQueueSong;
-
+    int m_rtClickQueueSongId;
     QTemporaryDir *khTmpDir;
     QDir *khDir;
     CDG *cdg;
-    KhSong *songCurrent;
-//    KhSettings *settings;
 
     int sortColDB;
     int sortDirDB;

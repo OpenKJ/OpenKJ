@@ -186,6 +186,15 @@ int RotationModel::nextSongQueueId(int singerId)
     return -1;
 }
 
+void RotationModel::clearRotation()
+{
+    QSqlQuery query;
+    query.exec("DELETE from queuesongs");
+    query.exec("DELETE FROM rotationsingers");
+    select();
+    emit rotationModified();
+}
+
 void RotationModel::queueModified()
 {
     emit layoutAboutToBeChanged();

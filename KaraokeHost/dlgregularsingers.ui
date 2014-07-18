@@ -15,26 +15,23 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QTreeView" name="treeViewRegulars">
+    <widget class="QTableView" name="tableViewRegulars">
      <property name="focusPolicy">
       <enum>Qt::ClickFocus</enum>
      </property>
-     <property name="rootIsDecorated">
-      <bool>false</bool>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::SingleSelection</enum>
      </property>
-     <property name="itemsExpandable">
-      <bool>false</bool>
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectRows</enum>
      </property>
-     <property name="allColumnsShowFocus">
-      <bool>true</bool>
-     </property>
-     <property name="expandsOnDoubleClick">
-      <bool>false</bool>
-     </property>
-     <attribute name="headerCascadingSectionResizes">
+     <attribute name="horizontalHeaderCascadingSectionResizes">
       <bool>true</bool>
      </attribute>
-     <attribute name="headerStretchLastSection">
+     <attribute name="horizontalHeaderStretchLastSection">
+      <bool>false</bool>
+     </attribute>
+     <attribute name="verticalHeaderVisible">
       <bool>false</bool>
      </attribute>
     </widget>

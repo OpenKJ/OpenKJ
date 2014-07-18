@@ -3,12 +3,12 @@
 
 #include <QDialog>
 #include "requeststablemodel.h"
-#include "songdbtablemodel.h"
+//#include "songdbtablemodel.h"
 #include "dbtablemodel.h"
 #include "dbitemdelegate.h"
-#include "rotationtablemodel.h"
+//#include "rotationtablemodel.h"
 #include "rotationmodel.h"
-#include "khsinger.h"
+//#include "khsinger.h"
 #include "dlgcdgpreview.h"
 
 namespace Ui {
@@ -55,7 +55,7 @@ signals:
 private:
     Ui::DlgRequests *ui;
     RequestsTableModel *requestsModel;
-    SongDBTableModel *songDbModel;
+    //SongDBTableModel *songDbModel;
     DbTableModel *dbModel;
     DbItemDelegate *dbDelegate;
     RotationModel *rotModel;

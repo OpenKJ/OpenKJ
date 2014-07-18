@@ -22,9 +22,9 @@
 #define REGULARSINGERSDIALOG_H
 
 #include <QDialog>
-#include "regularsingermodel.h"
-#include "rotationtablemodel.h"
-#include "khsinger.h"
+#include <QSqlTableModel>
+#include "regitemdelegate.h"
+#include "rotationmodel.h"
 
 namespace Ui {
 class DlgRegularSingers;
@@ -35,7 +35,7 @@ class DlgRegularSingers : public QDialog
     Q_OBJECT
 
 public:
-    explicit DlgRegularSingers(KhRegularSingers *regSingers, RotationTableModel *rotationModel, QWidget *parent = 0);
+    explicit DlgRegularSingers(RotationModel *rotationModel, QWidget *parent = 0);
     ~DlgRegularSingers();
 
 signals:
@@ -44,15 +44,15 @@ signals:
 
 private slots:
     void on_btnClose_clicked();
-    void on_treeViewRegulars_clicked(const QModelIndex &index);
+    void on_tableViewRegulars_clicked(const QModelIndex &index);
     void editSingerDuplicateError();
 
 private:
     void addRegularToRotation(int ListIndex);
     Ui::DlgRegularSingers *ui;
-    RegularSingerModel *regularSingerModel;
-    RotationTableModel *m_rotationModel;
-    KhRegularSingers *m_regSingers;
+    QSqlTableModel *regModel;
+    RegItemDelegate *regDelegate;
+    RotationModel *rotModel;
 };
 
 #endif // REGULARSINGERSDIALOG_H

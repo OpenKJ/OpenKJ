@@ -44,6 +44,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     sliderPositionPressed = false;
+    m_rtClickQueueSongId = -1;
     QCoreApplication::setOrganizationName("OpenKJ");
     QCoreApplication::setOrganizationDomain("OpenKJ.org");
     QCoreApplication::setApplicationName("KaraokeHost");
@@ -63,53 +64,35 @@ MainWindow::MainWindow(QWidget *parent) :
     QSqlQuery query("CREATE TABLE IF NOT EXISTS dbSongs ( songid INTEGER PRIMARY KEY AUTOINCREMENT, Artist COLLATE NOCASE, Title COLLATE NOCASE, DiscId COLLATE NOCASE, 'Duration' INTEGER, path VARCHAR(700) NOT NULL UNIQUE, filename COLLATE NOCASE)");
     query.exec("CREATE TABLE IF NOT EXISTS rotationSingers ( singerid INTEGER PRIMARY KEY AUTOINCREMENT, name COLLATE NOCASE UNIQUE, 'position' INTEGER NOT NULL, 'regular' LOGICAL DEFAULT(0), 'regularid' INTEGER)");
     query.exec("CREATE TABLE IF NOT EXISTS queueSongs ( qsongid INTEGER PRIMARY KEY AUTOINCREMENT, singer INT, song INTEGER NOT NULL, artist INT, title INT, discid INT, path INT, keychg INT, played LOGICAL DEFAULT(0), 'position' INT, 'regsong' LOGICAL DEFAULT(0), 'regsongid' INTEGER DEFAULT(-1), 'regsingerid' INTEGER DEFAULT(-1))");
-    query.exec("CREATE TABLE IF NOT EXISTS regularSingers ( name VARCHAR(30) NOT NULL UNIQUE)");
-    query.exec("CREATE TABLE IF NOT EXISTS regularSongs ( singer INTEGER NOT NULL, song INTEGER NOT NULL, 'keychg' INTEGER, 'position' INTEGER)");
+    query.exec("CREATE TABLE IF NOT EXISTS regularSingers ( regsingerid INTEGER PRIMARY KEY AUTOINCREMENT, Name COLLATE NOCASE UNIQUE, ph1 INT, ph2 INT)");
+    query.exec("CREATE TABLE IF NOT EXISTS regularSongs ( regsongid INTEGER PRIMARY KEY AUTOINCREMENT, singer INTEGER NOT NULL, song INTEGER NOT NULL, 'keychg' INTEGER, 'position' INTEGER)");
     query.exec("CREATE TABLE IF NOT EXISTS sourceDirs ( path VARCHAR(255) UNIQUE, pattern INTEGER)");
     query.exec("PRAGMA synchronous = OFF");
 //    query.exec("PRAGMA journal_mode = OFF");
     sortColDB = 1;
     sortDirDB = 0;
-    songdbmodel = new SongDBTableModel(this);
-    songdbmodel->loadFromDB();
     dbModel = new DbTableModel(this, *database);
     dbModel->select();
     qModel = new QueueModel(this, *database);
     qModel->select();
+    qDelegate = new QueueItemDelegate(this);
     rotModel = new RotationModel(this, *database);
     rotModel->select();
     ui->tableViewDB->hideColumn(0);
     ui->tableViewDB->hideColumn(5);
     ui->tableViewDB->hideColumn(6);
-    regularSingers = new KhRegularSingers(songdbmodel->getDbSongs(),this);
-    //singers = new KhSingers(regularSingers, this);
-    songCurrent = NULL;
-    rotationmodel = new RotationTableModel(regularSingers, this);
     ui->tableViewRotation->setModel(rotModel);
     rotDelegate = new RotationItemDelegate(this);
     ui->tableViewRotation->setItemDelegate(rotDelegate);
-//    ui->treeViewRotation->header()->setSectionResizeMode(0,QHeaderView::Fixed);
-//    ui->treeViewRotation->header()->setSectionResizeMode(3,QHeaderView::Fixed);
-//    ui->treeViewRotation->header()->setSectionResizeMode(4,QHeaderView::Fixed);
-//    ui->treeViewRotation->header()->setSectionResizeMode(5,QHeaderView::Fixed);
-//    ui->treeViewRotation->header()->resizeSection(0,22);
-//    ui->treeViewRotation->header()->resizeSection(3,22);
-//    ui->treeViewRotation->header()->resizeSection(4,22);
-//    ui->treeViewRotation->header()->resizeSection(5,22);
-    queuemodel = new QueueTableModel(rotationmodel, this);
-//    ui->treeViewQueue->sortByColumn(-1);
     ui->tableViewQueue->setModel(qModel);
-//    ui->treeViewQueue->header()->setSectionResizeMode(3,QHeaderView::Fixed);
-//    ui->treeViewQueue->header()->setSectionResizeMode(4,QHeaderView::Fixed);
-//    ui->treeViewQueue->header()->resizeSection(4,22);
-//    ui->treeViewQueue->header()->resizeSection(3,50);
+    ui->tableViewQueue->setItemDelegate(qDelegate);
 
     khTmpDir = new QTemporaryDir();
     dbDialog = new DlgDatabase(this);
-    dlgKeyChange = new DlgKeyChange(rotationmodel, this);
-    regularSingersDialog = new DlgRegularSingers(regularSingers, rotationmodel, this);
-    regularExportDialog = new DlgRegularExport(regularSingers, this);
-    regularImportDialog = new DlgRegularImport(songdbmodel->getDbSongs(), regularSingers, this);
+    dlgKeyChange = new DlgKeyChange(qModel, this);
+    regularSingersDialog = new DlgRegularSingers(rotModel, this);
+    regularExportDialog = new DlgRegularExport(this);
+    regularImportDialog = new DlgRegularImport(this);
     requestsDialog = new DlgRequests(rotModel, this);
     cdgPreviewDialog = new DlgCdgPreview(this);
     cdgWindow = new DlgCdg(this, Qt::Window);
@@ -164,9 +147,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(activeAudioBackend, SIGNAL(volumeChanged(int)), ui->sliderVolume, SLOT(setValue(int)));
     connect(dbDialog, SIGNAL(databaseUpdated()), this, SLOT(songdbUpdated()));
     connect(dbDialog, SIGNAL(databaseCleared()), this, SLOT(databaseCleared()));
-    connect(rotationmodel, SIGNAL(songDroppedOnSinger(int,int,int)), this, SLOT(songDroppedOnSinger(int,int,int)));
-    connect(rotationmodel, SIGNAL(notify_user(QString)), this, SLOT(notify_user(QString)));
-    connect(queuemodel, SIGNAL(itemMoved()), this, SLOT(clearQueueSort()));
     connect(activeAudioBackend, SIGNAL(positionChanged(qint64)), this, SLOT(audioBackend_positionChanged(qint64)));
     connect(activeAudioBackend, SIGNAL(durationChanged(qint64)), this, SLOT(audioBackend_durationChanged(qint64)));
     connect(activeAudioBackend, SIGNAL(stateChanged(KhAbstractAudioBackend::State)), this, SLOT(audioBackend_stateChanged(KhAbstractAudioBackend::State)));
@@ -176,8 +156,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->sliderVolume->setValue(settings->audioVolume());
     connect(settingsDialog, SIGNAL(showCdgWindowChanged(bool)), cdgWindow, SLOT(setVisible(bool)));
     connect(settingsDialog, SIGNAL(cdgWindowFullScreenChanged(bool)), cdgWindow, SLOT(setFullScreen(bool)));
-    connect(regularSingers, SIGNAL(dataChanged()), rotationmodel, SIGNAL(layoutChanged()));
-    connect(regularSingers, SIGNAL(dataAboutToChange()), rotationmodel, SIGNAL(layoutAboutToBeChanged()));
     connect(rotModel, SIGNAL(rotationModified()), this, SLOT(rotationDataChanged()));
     connect(settings, SIGNAL(tickerOutputModeChanged()), this, SLOT(rotationDataChanged()));
     connect(settings, SIGNAL(audioBackendChanged(int)), this, SLOT(audioBackendChanged(int)));
@@ -230,11 +208,16 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewQueue->hideColumn(1);
     ui->tableViewQueue->hideColumn(2);
     ui->tableViewQueue->hideColumn(6);
-    ui->tableViewQueue->hideColumn(8);
-    //ui->tableViewQueue->hideColumn(9);
+    ui->tableViewQueue->hideColumn(9);
+    ui->tableViewQueue->hideColumn(10);
     ui->tableViewQueue->hideColumn(11);
     ui->tableViewQueue->hideColumn(12);
+    ui->tableViewQueue->horizontalHeader()->resizeSection(8, 20);
+    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(8, QHeaderView::Fixed);
+    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(7, QHeaderView::ResizeToContents);
 //    ui->tableViewRotation->hideColumn(4);
+    qModel->setHeaderData(8, Qt::Horizontal,"");
+    qModel->setHeaderData(7, Qt::Horizontal, "Key");
     ui->tableViewRotation->horizontalHeader()->resizeSection(0, 20);
     ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
     ui->tableViewRotation->horizontalHeader()->resizeSection(3,20);
@@ -250,7 +233,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     ui->statusBar->addWidget(labelSingerCount);
-    rtClickQueueSong = NULL;
 }
 
 void MainWindow::play(QString zipFilePath)
@@ -319,8 +301,6 @@ MainWindow::~MainWindow()
     delete cdg;
     delete khDir;
     delete database;
-    delete regularSingers;
-    //delete songCurrent;
     delete ui;
     qDeleteAll(audioBackends->begin(), audioBackends->end());
     delete audioBackends;
@@ -342,12 +322,8 @@ void MainWindow::songdbUpdated()
 
 void MainWindow::databaseCleared()
 {
-    songdbmodel->loadFromDB();
-    rotationmodel->clear();
-    regularSingers->clear();
-    ui->tableViewDB->clearSelection();
-    ui->tableViewRotation->clearSelection();
-
+    dbModel->select();
+    rotModel->clearRotation();
 }
 
 void MainWindow::on_buttonStop_clicked()
@@ -430,7 +406,7 @@ void MainWindow::on_tableViewRotation_activated(const QModelIndex &index)
         ui->labelArtist->setText(rotModel->nextSongArtist(singerId));
         ui->labelTitle->setText(rotModel->nextSongTitle(singerId));
         ui->labelSinger->setText(rotModel->getSingerName(singerId));
-        qModel->markSongPlayed(rotModel->nextSongQueueId(singerId));
+        qModel->songSetPlayed(rotModel->nextSongQueueId(singerId));
     }
 }
 
@@ -541,7 +517,7 @@ void MainWindow::on_tableViewQueue_activated(const QModelIndex &index)
     play(index.sibling(index.row(), 6).data().toString());
     rotDelegate->setCurrentSinger(index.sibling(index.row(),1).data().toInt());
     rotModel->setCurrentSinger(index.sibling(index.row(),1).data().toInt());
-    qModel->markSongPlayed(index.sibling(index.row(),0).data().toInt());
+    qModel->songSetPlayed(index.sibling(index.row(),0).data().toInt());
     ui->labelSinger->setText(rotModel->getSingerName(index.sibling(index.row(),1).data().toInt()));
     ui->labelArtist->setText(index.sibling(index.row(),3).data().toString());
     ui->labelTitle->setText(index.sibling(index.row(),4).data().toString());
@@ -596,14 +572,11 @@ void MainWindow::on_pushButton_clicked()
     search();
 }
 
-void MainWindow::on_treeViewQueue_clicked(const QModelIndex &index)
+void MainWindow::on_tableViewQueue_clicked(const QModelIndex &index)
 {
-    if (index.column() == 4)
+    if (index.column() == 8)
     {
-        queuemodel->layoutAboutToBeChanged();
-        rotationmodel->getSelected()->queueObject()->deleteSongByPosition(index.row());
-        queuemodel->layoutChanged();
-        ui->tableViewQueue->clearSelection();
+        qModel->songDelete(index.sibling(index.row(),0).data().toInt());
     }
 }
 
@@ -625,12 +598,8 @@ void MainWindow::on_buttonClearRotation_clicked()
     msgBox.exec();
     if (msgBox.clickedButton() == yesButton)
     {
-        ui->tableViewQueue->clearSelection();
-        ui->tableViewRotation->clearSelection();
-        //queuemodel->clear();
-        queuemodel->layoutAboutToBeChanged();
-        rotationmodel->clear();
-        queuemodel->layoutChanged();
+        rotModel->clearRotation();
+        qModel->setSinger(-1);
     }
 }
 
@@ -650,13 +619,7 @@ void MainWindow::on_buttonClearQueue_clicked()
     QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
     msgBox.exec();
     if (msgBox.clickedButton() == yesButton) {
-        if (rotationmodel->getSelected() != NULL)
-        {
-            rotationmodel->layoutAboutToBeChanged();
-            ui->tableViewQueue->clearSelection();
-            queuemodel->clear();
-            rotationmodel->layoutChanged();
-        }
+        qModel->clearQueue();
     }
 }
 
@@ -845,17 +808,15 @@ void MainWindow::on_tableViewQueue_customContextMenuRequested(const QPoint &pos)
     QModelIndex index = ui->tableViewQueue->indexAt(pos);
     if (index.isValid())
     {   
-//        QString zipPath = rotationmodel->getSelected()->getSongByPosition(index.row())->getSourceFile();
         QString zipPath = index.sibling(index.row(), 6).data().toString();
-        dlgKeyChange->setActiveSong(rotationmodel->getSelected()->getSongByPosition(index.row()));
-        rtClickQueueSong = rotationmodel->getSelected()->getSongByPosition(index.row());
+        m_rtClickQueueSongId = index.sibling(index.row(), 0).data().toInt();
+        dlgKeyChange->setActiveSong(m_rtClickQueueSongId);
         cdgPreviewDialog->setZipFile(zipPath);
         QMenu contextMenu(this);
         contextMenu.addAction("Preview", cdgPreviewDialog, SLOT(preview()));
         contextMenu.addAction("Set Key Change", this, SLOT(setKeyChange()));
         contextMenu.addAction("Toggle played", this, SLOT(toggleQueuePlayed()));
         contextMenu.exec(QCursor::pos());
-        //contextMenu->exec(ui->treeView->mapToGlobal(point));
     }
 }
 
@@ -877,9 +838,5 @@ void MainWindow::setKeyChange()
 
 void MainWindow::toggleQueuePlayed()
 {
-    rotationmodel->layoutAboutToBeChanged();
-    queuemodel->layoutAboutToBeChanged();
-    rtClickQueueSong->setPlayed(!rtClickQueueSong->getPlayed());
-    rotationmodel->layoutChanged();
-    queuemodel->layoutChanged();
+    qModel->songSetPlayed(m_rtClickQueueSongId, !qModel->getSongPlayed(m_rtClickQueueSongId));
 }

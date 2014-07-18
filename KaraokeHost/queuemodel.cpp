@@ -1,5 +1,6 @@
 #include "queuemodel.h"
 #include <QSqlQuery>
+#include <QDebug>
 
 QueueModel::QueueModel(QObject *parent, QSqlDatabase db) :
     QSqlRelationalTableModel(parent, db)
@@ -23,6 +24,36 @@ void QueueModel::setSinger(int singerId)
 int QueueModel::singer()
 {
     return m_singerId;
+}
+
+int QueueModel::getSongPosition(int songId)
+{
+    QSqlQuery query;
+    query.exec("SELECT position FROM queuesongs WHERE qsongid == " + QString::number(songId) + " LIMIT 1");
+    if (query.first())
+        return query.value(0).toInt();
+
+    return -1;
+}
+
+bool QueueModel::getSongPlayed(int songId)
+{
+    QSqlQuery query;
+    query.exec("SELECT played FROM queuesongs WHERE qsongid == " + QString::number(songId) + " LIMIT 1");
+    if (query.first())
+        return query.value(0).toBool();
+
+    return false;
+}
+
+int QueueModel::getSongKey(int songId)
+{
+    QSqlQuery query;
+    query.exec("SELECT keychg FROM queuesongs WHERE qsongid == " + QString::number(songId) + " LIMIT 1");
+    if (query.first())
+        return query.value(0).toInt();
+
+    return 0;
 }
 
 void QueueModel::songMove(int oldPosition, int newPosition)
@@ -66,7 +97,35 @@ void QueueModel::songInsert(int songId, int position)
     songMove(rowCount() - 1, position);
 }
 
-void QueueModel::markSongPlayed(int qSongId, bool played)
+void QueueModel::songDelete(int songId)
+{
+    QSqlQuery query;
+    query.exec("BEGIN TRANSACTION");
+    qDebug() << "UPDATE queuesongs SET position = position - 1 WHERE singer == " << QString::number(singer()) << " AND position > " << QString::number(getSongPosition(songId));
+    query.exec("UPDATE queuesongs SET position = position - 1 WHERE singer == " + QString::number(singer()) + " AND position > " + QString::number(getSongPosition(songId)));
+    query.exec("DELETE FROM queuesongs WHERE qsongid == " + QString::number(songId));
+    query.exec("COMMIT TRANSACTION");
+    select();
+    emit queueModified();
+}
+
+void QueueModel::songSetKey(int songId, int semitones)
+{
+    QSqlQuery query;
+    query.exec("UPDATE queuesongs SET keychg = " + QString::number(semitones) + " WHERE qsongid == " + QString::number(songId));
+    select();
+    emit queueModified();
+}
+
+void QueueModel::clearQueue()
+{
+    QSqlQuery query;
+    query.exec("DELETE FROM queuesongs where singer == " + QString::number(singer()));
+    select();
+    emit queueModified();
+}
+
+void QueueModel::songSetPlayed(int qSongId, bool played)
 {
     QSqlQuery query;
     query.exec("UPDATE queuesongs SET played = " + QString::number(played) + " WHERE qsongid == " + QString::number(qSongId));

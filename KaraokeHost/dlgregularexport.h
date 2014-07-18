@@ -2,8 +2,9 @@
 #define REGULAREXPORTDIALOG_H
 
 #include <QDialog>
-#include "khregularsinger.h"
-#include "regularsingermodel.h"
+//#include "khregularsinger.h"
+//#include "regularsingermodel.h"
+#include <QSqlTableModel>
 
 namespace Ui {
 class DlgRegularExport;
@@ -14,7 +15,7 @@ class DlgRegularExport : public QDialog
     Q_OBJECT
 
 public:
-    explicit DlgRegularExport(KhRegularSingers *regularSingers, QWidget *parent = 0);
+    explicit DlgRegularExport(QWidget *parent = 0);
     ~DlgRegularExport();
 
 private slots:
@@ -26,8 +27,8 @@ private slots:
 
 private:
     Ui::DlgRegularExport *ui;
-    RegularSingerModel *regSingersModel;
-    KhRegularSingers *regSingers;
+    //KhRegularSingers *regSingers;
+    QSqlTableModel *regModel;
 };
 
 #endif // REGULAREXPORTDIALOG_H
