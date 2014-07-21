@@ -62,6 +62,7 @@ QString DbTableModel::orderByClause() const
         break;
     case SORT_DURATION:
         sql.append("duration " + durationOrder + ", title " + titleOrder + ", artist " + artistOrder + ", discid " + discIdOrder);
+        break;
     default:
         sql.append("artist " + artistOrder + ", title " + titleOrder + ", discid " + discIdOrder + ", duration " + durationOrder);
         break;
