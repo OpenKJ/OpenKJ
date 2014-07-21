@@ -63,6 +63,7 @@ public:
     Qt::DropActions supportedDropActions() const;
     int currentSinger() const;
     void setCurrentSinger(int currentSingerId);
+
 };
 
 #endif // ROTATIONMODEL_H

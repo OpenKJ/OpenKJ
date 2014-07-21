@@ -228,3 +228,63 @@ void QueueModel::songAdd(int songId, int singerId)
     select();
     emit queueModified(singer());
 }
+
+
+void QueueModel::sort(int column, Qt::SortOrder order)
+{
+    qDebug() << "sort(" << column << "," << order << ") called";
+    QSqlQuery query;
+    QString orderByClause;
+    QString artistOrder = "ASC";
+    QString titleOrder = "ASC";
+    QString discIdOrder = "ASC";
+    QString sortField = "artist";
+    switch (column) {
+    case 3:
+        if (order == Qt::AscendingOrder)
+            artistOrder == "ASC";
+        else
+            artistOrder == "DESC";
+        orderByClause = " ORDER BY dbsongs.artist " + artistOrder + ", dbsongs.title " + titleOrder + ", dbsongs.discid " + discIdOrder;
+        break;
+    case 4:
+        sortField = "title";
+        if (order == Qt::AscendingOrder)
+            titleOrder == "ASC";
+        else
+            titleOrder == "DESC";
+        orderByClause = " ORDER BY dbsongs.title " + titleOrder + ", dbsongs.artist " + artistOrder + ", dbsongs.discid " + discIdOrder;
+        break;
+    case 5:
+        sortField = "discid";
+        if (order == Qt::AscendingOrder)
+            discIdOrder == "ASC";
+        else
+            discIdOrder == "DESC";
+        orderByClause = " ORDER BY dbsongs.discid " + discIdOrder + ", dbsongs.artist " + artistOrder + ", dbsongs.title " + titleOrder;
+        break;
+    default:
+        return;
+    }
+
+    QList<int> qSongIds;
+    QString sql = "SELECT queuesongs.qsongid FROM queuesongs,dbsongs WHERE queuesongs.singer == " + QString::number(singer()) + " AND dbsongs.songid == queuesongs.song " + orderByClause;
+    qDebug() << sql;
+    query.exec(sql);
+    while (query.next())
+        qSongIds << query.value(0).toInt();
+    query.exec("BEGIN TRANSACTION");
+    for (int i=0; i < qSongIds.size(); i++)
+    {
+        sql = "UPDATE queuesongs SET position = " + QString::number(i) + " WHERE qsongid == " + QString::number(qSongIds.at(i));
+        qDebug() << sql;
+        query.exec(sql);
+    }
+    query.exec("COMMIT TRANSACTION");
+    select();
+}
+
+QString QueueModel::orderByClause() const
+{
+    return "ORDER BY position";
+}

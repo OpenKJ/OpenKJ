@@ -36,6 +36,14 @@ signals:
 public slots:
     void songAdd(int songId, int singerId);
 
+
+    // QAbstractItemModel interface
+public:
+    void sort(int column, Qt::SortOrder order);
+
+    // QSqlTableModel interface
+protected:
+    QString orderByClause() const;
 };
 
 #endif // QUEUEMODEL_H
