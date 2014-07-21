@@ -48,7 +48,6 @@ private slots:
     void editSingerDuplicateError();
 
 private:
-    void addRegularToRotation(int ListIndex);
     Ui::DlgRegularSingers *ui;
     QSqlTableModel *regModel;
     RegItemDelegate *regDelegate;

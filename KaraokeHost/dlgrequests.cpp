@@ -80,7 +80,6 @@ void DlgRequests::on_lineEditSearch_returnPressed()
 void DlgRequests::requestSelectionChanged(const QModelIndex &current, const QModelIndex &previous)
 {
     Q_UNUSED(previous);
-    qDebug() << "Current selection " << current.row();
     if ((current.isValid()) && (ui->treeViewRequests->selectionModel()->selectedIndexes().size() > 0))
     {
 //        ui->comboBoxSingers->clear();
