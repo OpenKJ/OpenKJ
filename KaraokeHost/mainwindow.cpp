@@ -65,7 +65,7 @@ MainWindow::MainWindow(QWidget *parent) :
     query.exec("CREATE TABLE IF NOT EXISTS rotationSingers ( singerid INTEGER PRIMARY KEY AUTOINCREMENT, name COLLATE NOCASE UNIQUE, 'position' INTEGER NOT NULL, 'regular' LOGICAL DEFAULT(0), 'regularid' INTEGER)");
     query.exec("CREATE TABLE IF NOT EXISTS queueSongs ( qsongid INTEGER PRIMARY KEY AUTOINCREMENT, singer INT, song INTEGER NOT NULL, artist INT, title INT, discid INT, path INT, keychg INT, played LOGICAL DEFAULT(0), 'position' INT, 'regsong' LOGICAL DEFAULT(0), 'regsongid' INTEGER DEFAULT(-1), 'regsingerid' INTEGER DEFAULT(-1))");
     query.exec("CREATE TABLE IF NOT EXISTS regularSingers ( regsingerid INTEGER PRIMARY KEY AUTOINCREMENT, Name COLLATE NOCASE UNIQUE, ph1 INT, ph2 INT)");
-    query.exec("CREATE TABLE IF NOT EXISTS regularSongs ( regsongid INTEGER PRIMARY KEY AUTOINCREMENT, singer INTEGER NOT NULL, song INTEGER NOT NULL, 'keychg' INTEGER, 'position' INTEGER)");
+    query.exec("CREATE TABLE IF NOT EXISTS regularSongs ( regsongid INTEGER PRIMARY KEY AUTOINCREMENT, regsingerid INTEGER NOT NULL, songid INTEGER NOT NULL, 'keychg' INTEGER, 'position' INTEGER)");
     query.exec("CREATE TABLE IF NOT EXISTS sourceDirs ( path VARCHAR(255) UNIQUE, pattern INTEGER)");
     query.exec("PRAGMA synchronous = OFF");
     sortColDB = 1;
@@ -159,7 +159,7 @@ MainWindow::MainWindow(QWidget *parent) :
     activeAudioBackend->setUseSilenceDetection(settings->audioDetectSilence());
     connect(settingsDialog, SIGNAL(audioDownmixChanged(bool)), activeAudioBackend, SLOT(setDownmix(bool)));
     activeAudioBackend->setDownmix(settings->audioDownmix());
-    connect(qModel, SIGNAL(queueModified()), rotModel, SLOT(queueModified()));
+    connect(qModel, SIGNAL(queueModified(int)), rotModel, SLOT(queueModified(int)));
     connect(requestsDialog, SIGNAL(addRequestSong(int,int)), qModel, SLOT(songAdd(int,int)));
     QImage cdgBg;
     if (settings->cdgDisplayBackgroundImage() != "")
@@ -390,70 +390,29 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
             return;
         }
     }
+    if (index.column() == 3)
+    {
+        if (!rotModel->singerIsRegular(index.sibling(index.row(),0).data().toInt()))
+        {
+            rotModel->singerMakeRegular(index.sibling(index.row(),0).data().toInt());
+            return;
+        }
+        else
+        {
+            QMessageBox msgBox(this);
+            msgBox.setText("Are you sure you want to disable regular tracking for this singer?");
+            msgBox.setInformativeText("Doing so will not remove the regular singer entry, but it will prevent any changes made to the singer's queue from being saved to the regular singer until the regular singer is either reloaded or the rotation singer is re-merged with the regular singer.");
+            QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
+            msgBox.addButton(QMessageBox::Cancel);
+            msgBox.exec();
+            if (msgBox.clickedButton() == yesButton)
+            {
+                rotModel->singerDisableRegularTracking(index.sibling(index.row(),0).data().toInt());
+            }
+        }
+    }
     qModel->setSinger(index.sibling(index.row(),0).data().toInt());
-//    if (index.column() == 5)
-//    {
-//        KhSinger *singer = rotationmodel->getSingerByPosition(index.row() + 1);
-//        if (!singer->regular())
-//        {
-//            if (regularSingers->exists(singer->name()))
-//            {
-//                QMessageBox msgBox(this);
-//                msgBox.setText("A regular singer with this name already exists!");
-//                msgBox.setInformativeText("Would you like to merge their saved queue with the current singer's, replace the saved queue completely, or cancel?");
-//                QPushButton *mergeButton = msgBox.addButton(tr("Merge"), QMessageBox::ActionRole);
-//                QPushButton *replaceButton     = msgBox.addButton("Replace",QMessageBox::ActionRole);
-//                QPushButton *cancelButton = msgBox.addButton(QMessageBox::Cancel);
 
-//                msgBox.exec();
-
-//                if (msgBox.clickedButton() == mergeButton)
-//                {
-//                    // merge the singer queue with the regular's queue
-//                }
-//                else if (msgBox.clickedButton() == replaceButton)
-//                {
-//                    // replace the exising regular's queue with the current singer's
-//                }
-//                else if (msgBox.clickedButton() == cancelButton)
-//                {
-//                    // abort, so nothing.
-//                    return;
-//                }
-//            }
-//            else
-//            {
-//                rotationmodel->layoutAboutToBeChanged();
-//                qDebug() << "Set regular clicked, singer is not currently regular";
-//                rotationmodel->createRegularForSinger(singer->index());
-//                rotationmodel->layoutChanged();
-//                //for (unsigned int i=0; i < queuemodel->rowCount(); i++)
-//                // {
-//                // Need more functionality in queuemodel or need to split out queue data into KhSingers
-//                // }
-//                return;
-//            }
-//        }
-//        else
-//        {
-//            QMessageBox msgBox(this);
-//            msgBox.setText("Are you sure you want to disable regular tracking for this singer?");
-//            msgBox.setInformativeText("Doing so will not remove the regular singer entry, but it will prevent any changes made to the singer's queue from being saved to the regular singer until the regular singer is either reloaded or the rotation singer is re-merged with the regular singer.");
-//            QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
-//            QPushButton *cancelButton = msgBox.addButton(QMessageBox::Cancel);
-//            msgBox.exec();
-//            if (msgBox.clickedButton() == yesButton)
-//            {
-//                rotationmodel->layoutAboutToBeChanged();
-//                singer->setRegular(false);
-//                singer->setRegularIndex(-1);
-//                rotationmodel->layoutChanged();
-//                return;
-//            }
-//            else if (msgBox.clickedButton() == cancelButton)
-//                return;
-//        }
-//    }
 //    else if (rowclicked != index.row())
 //    {
 //        ui->tableViewQueue->clearSelection();
@@ -793,4 +752,14 @@ void MainWindow::setKeyChange()
 void MainWindow::toggleQueuePlayed()
 {
     qModel->songSetPlayed(m_rtClickQueueSongId, !qModel->getSongPlayed(m_rtClickQueueSongId));
+}
+
+void MainWindow::regularNameConflict(QString name)
+{
+    QMessageBox::warning(this, "Regular singer exists!","A regular singer named " + name + " already exists. You must either delete or rename the existing regular first, or rename the new regular singer and try again. The operation has been cancelled.",QMessageBox::Ok);
+}
+
+void MainWindow::regularAddError(QString errorText)
+{
+    QMessageBox::warning(this, "Error adding regular singer!", errorText,QMessageBox::Ok);
 }

@@ -24,14 +24,14 @@ RotationModel::RotationModel(QObject *parent, QSqlDatabase db) :
     sort(2, Qt::AscendingOrder);
 }
 
-void RotationModel::singerAdd(QString name)
+int RotationModel::singerAdd(QString name)
 {
     QSqlQuery query;
     QString sql = "INSERT INTO rotationsingers (name,position,regular,regularid) VALUES(\"" + name + "\"," + QString::number(rowCount()) + ",0,-1)";
     query.exec(sql);
-    qDebug() << sql;
     select();
     emit rotationModified();
+    return query.lastInsertId().toInt();
 }
 
 void RotationModel::singerMove(int oldPosition, int newPosition)
@@ -86,9 +86,111 @@ bool RotationModel::singerExists(QString name)
     return false;
 }
 
+bool RotationModel::singerIsRegular(int singerId)
+{
+    QSqlQuery query;
+    query.exec("SELECT regular FROM rotationsingers WHERE singerid == " + QString::number(singerId));
+    if (query.first())
+        return query.value(0).toBool();
+
+    return false;
+}
+
+int RotationModel::singerRegSingerId(int singerId)
+{
+    QSqlQuery query;
+    query.exec("SELECT regularid FROM rotationsingers WHERE singerid == " + QString::number(singerId));
+    if (query.first())
+        return query.value(0).toInt();
+
+    return -1;
+}
+
+void RotationModel::singerMakeRegular(int singerId)
+{
+    if (regularExists(getSingerName(singerId)))
+    {
+        emit regularAddNameConflict(getSingerName(singerId));
+        return;
+    }
+    int regSingerId = regularAdd(getSingerName(singerId));
+    if (regSingerId == -1)
+    {
+        emit regularAddError("Error adding regular singer.  Reason: Failure while writing new regular singer to database");
+        return;
+    }
+    QSqlQuery query;
+    query.exec("UPDATE rotationsingers SET regular=1,regularid=" + QString::number(regSingerId) + " WHERE singerid == " + QString::number(singerId));
+    query.exec("INSERT INTO regularsongs (regsingerid, songid, keychg, position) SELECT " + QString::number(regSingerId) + ", queuesongs.song, queuesongs.keychg, queuesongs.position FROM queuesongs WHERE queuesongs.singer == " + QString::number(singerId));
+    select();
+}
+
+void RotationModel::singerDisableRegularTracking(int singerId)
+{
+    QSqlQuery query;
+    query.exec("UPDATE rotationsingers SET regular=0,regularid=-1 WHERE singerid == " + QString::number(singerId));
+    select();
+}
+
+int RotationModel::regularAdd(QString name)
+{
+    if (regularExists(name))
+    {
+        emit regularAddNameConflict(name);
+        return -1;
+    }
+    QSqlQuery query;
+    query.exec("INSERT INTO regularsingers (name) VALUES(\"" + name + "\")");
+    emit regularsModified();
+    return query.lastInsertId().toInt();
+}
+
+void RotationModel::regularDelete(int regSingerId)
+{
+    QSqlQuery query;
+    query.exec("BEGIN TRANSACTION");
+    query.exec("DELETE FROM regularsingers WHERE regsingerid == " + QString::number(regSingerId));
+    query.exec("DELETE FROM regularsongs WHERE regsingerid == " + QString::number(regSingerId));
+    query.exec("UPDATE rotationsingers SET regular=0,regularid=-1 WHERE regularid == " + QString::number(regSingerId));
+    query.exec("COMMIT TRANSACTION");
+    select();
+    emit regularsModified();
+}
+
+bool RotationModel::regularExists(QString name)
+{
+    QStringList names = regulars();
+    for (int i=0; i < names.size(); i++)
+    {
+        if (names.at(i).toLower() == name.toLower())
+            return true;
+    }
+    return false;
+}
+
+void RotationModel::regularUpdate(int singerId)
+{
+    int regSingerId = singerRegSingerId(singerId);
+    QSqlQuery query;
+    query.exec("BEGIN TRANSACTION");
+    query.exec("DELETE FROM regularsongs WHERE regsingerid == " + QString::number(regSingerId));
+    query.exec("INSERT INTO regularsongs (regsingerid, songid, keychg, position) SELECT " + QString::number(regSingerId) + ", queuesongs.song, queuesongs.keychg, queuesongs.position FROM queuesongs WHERE queuesongs.singer == " + QString::number(singerId));
+    query.exec("COMMIT TRANSACTION");
+}
+
 QString RotationModel::getSingerName(int singerId)
 {
     QString sql = "select name from rotationsingers WHERE singerid = " + QString::number(singerId) + " LIMIT 1";
+    QSqlQuery query(sql);
+    if (query.first())
+        return query.value(0).toString();
+
+    return QString();
+}
+
+QString RotationModel::getRegularName(int regSingerId)
+{
+    QString sql = "select name from regularsingers WHERE regsingerid = " + QString::number(regSingerId) + " LIMIT 1";
     QSqlQuery query(sql);
     if (query.first())
         return query.value(0).toString();
@@ -134,6 +236,18 @@ QStringList RotationModel::singers()
         singers << index(i,1).data().toString();
     }
     return singers;
+}
+
+QStringList RotationModel::regulars()
+{
+    QStringList names;
+    QSqlQuery query;
+    query.exec("SELECT name FROM regularsingers");
+    while (query.next())
+    {
+        names << query.value(0).toString();
+    }
+    return names;
 }
 
 QString RotationModel::nextSongPath(int singerId)
@@ -195,10 +309,34 @@ void RotationModel::clearRotation()
     emit rotationModified();
 }
 
-void RotationModel::queueModified()
+void RotationModel::queueModified(int singerId)
 {
     emit layoutAboutToBeChanged();
     emit layoutChanged();
+    if (singerIsRegular(singerId))
+        regularUpdate(singerId);
+}
+
+void RotationModel::regularLoad(int regSingerId, int positionHint)
+{
+    if (singerExists(getRegularName(regSingerId)))
+    {
+        emit regularLoadNameConflict(getRegularName(regSingerId));
+        return;
+    }
+    int singerId = singerAdd(getRegularName(regSingerId));
+    QSqlQuery query;
+    query.exec("UPDATE rotationsingers SET regular=1,regularid=" + QString::number(regSingerId) + " WHERE singerid == " + QString::number(singerId));
+    query.exec("INSERT INTO queuesongs (singer, song, artist, title, discid, path, keychg, played, position) SELECT " + QString::number(singerId) + ", regularsongs.songid, regularsongs.songid, regularsongs.songid, regularsongs.songid, regularsongs.songid, regularsongs.keychg, 0, regularsongs.position FROM regularsongs WHERE regsingerid == " + QString::number(regSingerId));
+    switch (positionHint) {
+    case ADD_FAIR:
+        singerMove(rowCount() - 1, getSingerPosition(m_currentSingerId));
+        break;
+    case ADD_NEXT:
+        singerMove(rowCount() - 1, getSingerPosition(m_currentSingerId) + 1);
+        break;
+    }
+    select();
 }
 
 

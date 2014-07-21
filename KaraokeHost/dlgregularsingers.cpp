@@ -31,6 +31,7 @@ DlgRegularSingers::DlgRegularSingers(RotationModel *rotationModel, QWidget *pare
     ui->setupUi(this);
     regModel = new QSqlTableModel(this);
     regModel->setTable("regularsingers");
+    regModel->sort(1, Qt::AscendingOrder);
     ui->tableViewRegulars->setModel(regModel);
     regDelegate = new RegItemDelegate(this);
     ui->tableViewRegulars->setItemDelegate(regDelegate);
@@ -47,6 +48,7 @@ DlgRegularSingers::DlgRegularSingers(RotationModel *rotationModel, QWidget *pare
     regModel->setHeaderData(2, Qt::Horizontal, "");
     regModel->setHeaderData(3, Qt::Horizontal, "");
     regModel->select();
+    connect(rotModel, SIGNAL(regularsModified()), regModel, SLOT(select()));
 }
 
 DlgRegularSingers::~DlgRegularSingers()
@@ -61,41 +63,35 @@ void DlgRegularSingers::on_btnClose_clicked()
 
 void DlgRegularSingers::on_tableViewRegulars_clicked(const QModelIndex &index)
 {
-//    if (index.column() == 3)
-//    {
-//        // Add to rotation
-//        qDebug() << "Add to rotation clicked on row " << index.row();
-//        addRegularToRotation(index.row());
-
-//    }
-//    else if (index.column() == 4)
-//    {
-//        // Rename regular
-//        qDebug() << "Rename singer clicked on row " << index.row();
-//        QModelIndex child = regularSingerModel->index(index.row(), 1, index.parent());
-//        ui->treeViewRegulars->selectionModel()->setCurrentIndex(child,QItemSelectionModel::SelectCurrent);
-//        ui->treeViewRegulars->edit(child);
-//    }
-//    else if (index.column() == 5)
-//    {
-//        // Delete regular
-
-//        QMessageBox msgBox(this);
-//        msgBox.setText("Are you sure you want to delete this regular singer?");
-//        msgBox.setInformativeText("This will completely remove the regular singer from the database and can not be undone.  Note that if the singer is already loaded they won't be deleted from the rotation but regular tracking will be disabled.");
-//        QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
-//        QPushButton *cancelButton = msgBox.addButton(QMessageBox::Cancel);
-//        msgBox.exec();
-//        if (msgBox.clickedButton() == yesButton)
-//        {
-//            qDebug() << "Delete singer clicked on row " << index.row();
-//            emit regularSingerDeleted(regularSingerModel->getRegularSingerByListIndex(index.row())->getIndex());
-//            regularSingerModel->removeByListIndex(index.row());
-//            return;
-//        }
-//        else if (msgBox.clickedButton() == cancelButton)
-//            return;
-//    }
+    if (index.column() == 2)
+    {
+        if (rotModel->singerExists(index.sibling(index.row(), 1).data().toString()))
+        {
+            QMessageBox::warning(this, tr("Naming conflict"), tr("A rotation singer already exists with the same name as the regular you're attempting to add. Action aborted."), QMessageBox::Close);
+            return;
+        }
+        if ((ui->comboBoxAddPos->currentText() == "Next") && (rotModel->currentSinger() != -1))
+            rotModel->regularLoad(index.sibling(index.row(), 0).data().toInt(), rotModel->ADD_NEXT);
+        else if ((ui->comboBoxAddPos->currentText() == "Fair") && (rotModel->currentSinger() != -1))
+            rotModel->regularLoad(index.sibling(index.row(), 0).data().toInt(), rotModel->ADD_FAIR);
+        else
+            rotModel->regularLoad(index.sibling(index.row(), 0).data().toInt(), rotModel->ADD_BOTTOM);
+        return;
+    }
+    if (index.column() == 3)
+    {
+        QMessageBox msgBox(this);
+        msgBox.setText("Are you sure you want to delete this regular singer?");
+        msgBox.setInformativeText("This will completely remove the regular singer from the database and can not be undone.  Note that if the singer is already loaded they won't be deleted from the rotation but regular tracking will be disabled.");
+        QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
+        msgBox.addButton(QMessageBox::Cancel);
+        msgBox.exec();
+        if (msgBox.clickedButton() == yesButton)
+        {
+            rotModel->regularDelete(index.sibling(index.row(), 0).data().toInt());
+            regModel->select();
+        }
+    }
 }
 
 void DlgRegularSingers::editSingerDuplicateError()

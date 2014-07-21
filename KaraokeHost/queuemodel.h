@@ -31,7 +31,7 @@ public:
     Qt::ItemFlags flags(const QModelIndex &index) const;
 
 signals:
-    void queueModified();
+    void queueModified(int singerId);
 
 public slots:
     void songAdd(int songId, int singerId);

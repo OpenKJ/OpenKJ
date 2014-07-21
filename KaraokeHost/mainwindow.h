@@ -23,9 +23,6 @@
 
 #include <QMainWindow>
 #include <QtSql>
-//#include "songdbtablemodel.h"
-//#include "khsinger.h"
-//#include "khregularsinger.h"
 #include "libCDG/include/libCDG.h"
 #include <QSortFilterProxyModel>
 #include <QTemporaryDir>
@@ -105,15 +102,14 @@ private slots:
     void rotationDataChanged();
     void silenceDetected();
     void audioBackendChanged(int index);
-
     void on_tableViewDB_customContextMenuRequested(const QPoint &pos);
     void on_tableViewQueue_customContextMenuRequested(const QPoint &pos);
-
     void on_sliderProgress_sliderPressed();
-
     void on_sliderProgress_sliderReleased();
     void setKeyChange();
     void toggleQueuePlayed();
+    void regularNameConflict(QString name);
+    void regularAddError(QString errorText);
 
 private:
     Ui::MainWindow *ui;

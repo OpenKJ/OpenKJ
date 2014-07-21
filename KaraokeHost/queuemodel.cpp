@@ -78,6 +78,7 @@ void QueueModel::songMove(int oldPosition, int newPosition)
         query.exec(sql);
     }
     query.exec("COMMIT TRANSACTION");
+    emit queueModified(singer());
     select();
 }
 
@@ -88,7 +89,7 @@ void QueueModel::songAdd(int songId)
     QString positionStr = QString::number(rowCount());
     query.exec("INSERT INTO queueSongs (singer,song,artist,title,discid,path,keychg,played,position,regsong,regsongid) VALUES(" + QString::number(m_singerId) + "," + songIdStr + "," + songIdStr + "," + songIdStr + "," + songIdStr + "," + songIdStr + ",0,0," + positionStr + ",0,-1)");
     select();
-    emit queueModified();
+    emit queueModified(singer());
 }
 
 void QueueModel::songInsert(int songId, int position)
@@ -106,7 +107,7 @@ void QueueModel::songDelete(int songId)
     query.exec("DELETE FROM queuesongs WHERE qsongid == " + QString::number(songId));
     query.exec("COMMIT TRANSACTION");
     select();
-    emit queueModified();
+    emit queueModified(singer());
 }
 
 void QueueModel::songSetKey(int songId, int semitones)
@@ -114,7 +115,7 @@ void QueueModel::songSetKey(int songId, int semitones)
     QSqlQuery query;
     query.exec("UPDATE queuesongs SET keychg = " + QString::number(semitones) + " WHERE qsongid == " + QString::number(songId));
     select();
-    emit queueModified();
+    emit queueModified(singer());
 }
 
 void QueueModel::clearQueue()
@@ -122,7 +123,7 @@ void QueueModel::clearQueue()
     QSqlQuery query;
     query.exec("DELETE FROM queuesongs where singer == " + QString::number(singer()));
     select();
-    emit queueModified();
+    emit queueModified(singer());
 }
 
 void QueueModel::songSetPlayed(int qSongId, bool played)
@@ -130,7 +131,7 @@ void QueueModel::songSetPlayed(int qSongId, bool played)
     QSqlQuery query;
     query.exec("UPDATE queuesongs SET played = " + QString::number(played) + " WHERE qsongid == " + QString::number(qSongId));
     select();
-    emit queueModified();
+    emit queueModified(singer());
 }
 
 QStringList QueueModel::mimeTypes() const
@@ -225,5 +226,5 @@ void QueueModel::songAdd(int songId, int singerId)
     QString positionStr = QString::number(newPos);
     query.exec("INSERT INTO queueSongs (singer,song,artist,title,discid,path,keychg,played,position,regsong,regsongid) VALUES(" + QString::number(singerId) + "," + songIdStr + "," + songIdStr + "," + songIdStr + "," + songIdStr + "," + songIdStr + ",0,0," + positionStr + ",0,-1)");
     select();
-    emit queueModified();
+    emit queueModified(singer());
 }

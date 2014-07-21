@@ -40,7 +40,7 @@ public:
 
 signals:
     void regularSingerDeleted(int regularID);
-    void regularSingerRenamed(int regularID, QString newName);
+    void regularSingerRenamed(int regularID, QString newName);    
 
 private slots:
     void on_btnClose_clicked();
