@@ -941,8 +941,11 @@
             </property>
             <item>
              <widget class="QTableView" name="tableViewRotation">
+              <property name="contextMenuPolicy">
+               <enum>Qt::CustomContextMenu</enum>
+              </property>
               <property name="editTriggers">
-               <set>QAbstractItemView::EditKeyPressed</set>
+               <set>QAbstractItemView::NoEditTriggers</set>
               </property>
               <property name="dragEnabled">
                <bool>true</bool>

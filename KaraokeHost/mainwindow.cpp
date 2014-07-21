@@ -33,6 +33,7 @@
 #include <QStandardPaths>
 #include <QCoreApplication>
 #include <QMenu>
+#include <QInputDialog>
 #include "khdb.h"
 
 
@@ -45,6 +46,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     sliderPositionPressed = false;
     m_rtClickQueueSongId = -1;
+    m_rtClickRotationSingerId = -1;
     QCoreApplication::setOrganizationName("OpenKJ");
     QCoreApplication::setOrganizationDomain("OpenKJ.org");
     QCoreApplication::setApplicationName("KaraokeHost");
@@ -722,6 +724,29 @@ void MainWindow::on_tableViewDB_customContextMenuRequested(const QPoint &pos)
         QMenu contextMenu(this);
         contextMenu.addAction("Preview", cdgPreviewDialog, SLOT(preview()));
         contextMenu.exec(QCursor::pos());
+    }
+}
+
+void MainWindow::on_tableViewRotation_customContextMenuRequested(const QPoint &pos)
+{
+    QModelIndex index = ui->tableViewQueue->indexAt(pos);
+    if (index.isValid())
+    {
+           m_rtClickRotationSingerId = index.sibling(index.row(),0).data().toInt();
+           QMenu contextMenu(this);
+           contextMenu.addAction("Rename", this, SLOT(renameSinger()));
+
+           contextMenu.exec(QCursor::pos());
+    }
+}
+
+void MainWindow::renameSinger()
+{
+    bool ok;
+    QString text = QInputDialog::getText(this, "Rename singer", "New name:", QLineEdit::Normal, rotModel->getSingerName(m_rtClickRotationSingerId), &ok);
+    if (ok && !text.isEmpty())
+    {
+
     }
 }
 

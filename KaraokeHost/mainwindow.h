@@ -103,6 +103,8 @@ private slots:
     void silenceDetected();
     void audioBackendChanged(int index);
     void on_tableViewDB_customContextMenuRequested(const QPoint &pos);
+    void on_tableViewRotation_customContextMenuRequested(const QPoint &pos);
+    void renameSinger();
     void on_tableViewQueue_customContextMenuRequested(const QPoint &pos);
     void on_sliderProgress_sliderPressed();
     void on_sliderProgress_sliderReleased();
@@ -137,6 +139,7 @@ private:
     bool sliderPositionPressed;
     void play(QString zipFilePath);
     int m_rtClickQueueSongId;
+    int m_rtClickRotationSingerId;
     QTemporaryDir *khTmpDir;
     QDir *khDir;
     CDG *cdg;
