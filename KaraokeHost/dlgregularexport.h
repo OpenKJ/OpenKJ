@@ -5,6 +5,7 @@
 //#include "khregularsinger.h"
 //#include "regularsingermodel.h"
 #include <QSqlTableModel>
+#include "rotationmodel.h"
 
 namespace Ui {
 class DlgRegularExport;
@@ -29,6 +30,8 @@ private:
     Ui::DlgRegularExport *ui;
     //KhRegularSingers *regSingers;
     QSqlTableModel *regModel;
+    void exportSingers(QList<int> regSingerIds, QString savePath);
+    RotationModel *rotModel;
 };
 
 #endif // REGULAREXPORTDIALOG_H
