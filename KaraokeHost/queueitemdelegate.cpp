@@ -27,7 +27,7 @@ void QueueItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
         painter->save();
         if (option.state & QStyle::State_Selected)
             painter->setPen(option.palette.highlightedText().color());
-        painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter | Qt::AlignCenter, " " + displayText);
+        painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter | Qt::AlignCenter, displayText);
         painter->restore();
         return;
     }

@@ -280,6 +280,16 @@ QString RotationModel::nextSongTitle(int singerId)
     return QString();
 }
 
+int RotationModel::nextSongKeyChg(int singerId)
+{
+    QString sql = "select keychg from queuesongs WHERE singer = " + QString::number(singerId) + " AND queuesongs.played = 0 ORDER BY position LIMIT 1";
+    QSqlQuery query(sql);
+    if (query.first())
+        return query.value(0).toInt();
+
+    return 0;
+}
+
 int RotationModel::nextSongId(int singerId)
 {
     QString sql = "select dbsongs.songid from dbsongs,queuesongs WHERE queuesongs.singer = " + QString::number(singerId) + " AND queuesongs.played = 0 AND dbsongs.songid = queuesongs.song ORDER BY position LIMIT 1";

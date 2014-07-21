@@ -360,6 +360,7 @@ void MainWindow::on_tableViewRotation_activated(const QModelIndex &index)
         if (nextSongPath != "")
         {
             play(nextSongPath);
+            activeAudioBackend->setPitchShift(rotModel->nextSongKeyChg(singerId));
             rotDelegate->setCurrentSinger(singerId);
             rotModel->setCurrentSinger(singerId);
             ui->labelArtist->setText(rotModel->nextSongArtist(singerId));
@@ -433,13 +434,15 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
 
 void MainWindow::on_tableViewQueue_activated(const QModelIndex &index)
 {
+
     play(index.sibling(index.row(), 6).data().toString());
-    rotDelegate->setCurrentSinger(index.sibling(index.row(),1).data().toInt());
-    rotModel->setCurrentSinger(index.sibling(index.row(),1).data().toInt());
-    qModel->songSetPlayed(index.sibling(index.row(),0).data().toInt());
+    activeAudioBackend->setPitchShift(index.sibling(index.row(),7).data().toInt());
     ui->labelSinger->setText(rotModel->getSingerName(index.sibling(index.row(),1).data().toInt()));
     ui->labelArtist->setText(index.sibling(index.row(),3).data().toString());
     ui->labelTitle->setText(index.sibling(index.row(),4).data().toString());
+    rotModel->setCurrentSinger(index.sibling(index.row(),1).data().toInt());
+    rotDelegate->setCurrentSinger(index.sibling(index.row(),1).data().toInt());
+    qModel->songSetPlayed(index.sibling(index.row(),0).data().toInt());
 }
 
 void MainWindow::on_actionManage_DB_triggered()

@@ -37,6 +37,7 @@ public:
     QString nextSongPath(int singerId);
     QString nextSongArtist(int singerId);
     QString nextSongTitle(int singerId);
+    int nextSongKeyChg(int singerId);
     int nextSongId(int singerId);
     int nextSongQueueId(int singerId);
     void clearRotation();
