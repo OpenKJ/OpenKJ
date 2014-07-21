@@ -40,13 +40,15 @@ DlgRegularSingers::DlgRegularSingers(RotationModel *rotationModel, QWidget *pare
     ui->comboBoxAddPos->addItem("Next");
     rotModel = rotationModel;
     ui->tableViewRegulars->hideColumn(0);
-    ui->tableViewRegulars->horizontalHeader()->resizeSection(2, 20);
-    ui->tableViewRegulars->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Fixed);
+    ui->tableViewRegulars->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
     ui->tableViewRegulars->horizontalHeader()->resizeSection(3, 20);
     ui->tableViewRegulars->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Fixed);
+    ui->tableViewRegulars->horizontalHeader()->resizeSection(4, 20);
+    ui->tableViewRegulars->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Fixed);
     ui->tableViewRegulars->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-    regModel->setHeaderData(2, Qt::Horizontal, "");
+    regModel->setHeaderData(2, Qt::Horizontal, "Songs");
     regModel->setHeaderData(3, Qt::Horizontal, "");
+    regModel->setHeaderData(4, Qt::Horizontal, "");
     regModel->select();
     connect(rotModel, SIGNAL(regularsModified()), regModel, SLOT(select()));
 }
@@ -56,6 +58,11 @@ DlgRegularSingers::~DlgRegularSingers()
     delete ui;
 }
 
+void DlgRegularSingers::regularsChanged()
+{
+    regModel->select();
+}
+
 void DlgRegularSingers::on_btnClose_clicked()
 {
     close();
@@ -63,7 +70,7 @@ void DlgRegularSingers::on_btnClose_clicked()
 
 void DlgRegularSingers::on_tableViewRegulars_clicked(const QModelIndex &index)
 {
-    if (index.column() == 2)
+    if (index.column() == 3)
     {
         if (rotModel->singerExists(index.sibling(index.row(), 1).data().toString()))
         {
@@ -78,7 +85,7 @@ void DlgRegularSingers::on_tableViewRegulars_clicked(const QModelIndex &index)
             rotModel->regularLoad(index.sibling(index.row(), 0).data().toInt(), rotModel->ADD_BOTTOM);
         return;
     }
-    if (index.column() == 3)
+    if (index.column() == 4)
     {
         QMessageBox msgBox(this);
         msgBox.setText("Are you sure you want to delete this regular singer?");

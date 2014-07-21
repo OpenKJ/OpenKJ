@@ -42,6 +42,9 @@ signals:
     void regularSingerDeleted(int regularID);
     void regularSingerRenamed(int regularID, QString newName);    
 
+public slots:
+    void regularsChanged();
+
 private slots:
     void on_btnClose_clicked();
     void on_tableViewRegulars_clicked(const QModelIndex &index);

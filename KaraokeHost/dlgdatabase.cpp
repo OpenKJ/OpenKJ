@@ -158,6 +158,10 @@ void DlgDatabase::on_btnClearDatabase_clicked()
     if (msgBox.clickedButton() == yesButton) {
         QSqlQuery query;
         query.exec("DELETE FROM dbSongs");
+        query.exec("DELETE FROM regularsongs");
+        query.exec("DELETE FROM regularsingers");
+        query.exec("DELETE FROM queuesongs");
+        query.exec("DELETE FROM rotationsingers");
         emit databaseCleared();
         QMessageBox::information(this, "Database cleared", "Song database, regular singers, and all rotation data has been cleared.");
     } else if (msgBox.clickedButton() == cancelButton) {

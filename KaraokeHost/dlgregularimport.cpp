@@ -6,6 +6,7 @@
 #include <QMessageBox>
 #include <QSqlQuery>
 #include <QXmlStreamReader>
+#include <QApplication>
 
 DlgRegularImport::DlgRegularImport(RotationModel *rotationModel, QWidget *parent) :
     QDialog(parent),
@@ -106,6 +107,7 @@ void DlgRegularImport::importSinger(QString name)
     bool done = false;
     while ((!xml.isEndDocument()) && (!done))
     {
+        QApplication::processEvents();
         xml.readNext();
         if ((xml.isStartElement()) && (xml.name() == "singer") && (xml.attributes().value("name") == name))
         {
@@ -116,6 +118,7 @@ void DlgRegularImport::importSinger(QString name)
             {
                 if ((xml.isStartElement()) && (xml.name() == "song"))
                 {
+                    QApplication::processEvents();
                     QSqlQuery query;
                     QString discId = xml.attributes().value("discid").toString();
                     QString artist = xml.attributes().value("artist").toString();
