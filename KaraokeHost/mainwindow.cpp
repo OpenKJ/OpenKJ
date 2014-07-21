@@ -90,7 +90,7 @@ MainWindow::MainWindow(QWidget *parent) :
     dlgKeyChange = new DlgKeyChange(qModel, this);
     regularSingersDialog = new DlgRegularSingers(rotModel, this);
     regularExportDialog = new DlgRegularExport(this);
-    regularImportDialog = new DlgRegularImport(this);
+    regularImportDialog = new DlgRegularImport(rotModel, this);
     requestsDialog = new DlgRequests(rotModel, this);
     cdgPreviewDialog = new DlgCdgPreview(this);
     cdgWindow = new DlgCdg(this, Qt::Window);
