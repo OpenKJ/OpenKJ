@@ -279,6 +279,7 @@ void QueueModel::sort(int column, Qt::SortOrder order)
     }
     query.exec("COMMIT TRANSACTION");
     select();
+    emit queueModified(singer());
 }
 
 QString QueueModel::orderByClause() const
