@@ -1,6 +1,7 @@
 #include "dbtablemodel.h"
 #include <QMimeData>
 #include <QByteArray>
+#include <QStringList>
 
 DbTableModel::DbTableModel(QObject *parent, QSqlDatabase db) :
     QSqlTableModel(parent, db)
