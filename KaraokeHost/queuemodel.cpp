@@ -232,7 +232,6 @@ void QueueModel::songAdd(int songId, int singerId)
 
 void QueueModel::sort(int column, Qt::SortOrder order)
 {
-    qDebug() << "sort(" << column << "," << order << ") called";
     QSqlQuery query;
     QString orderByClause;
     QString artistOrder = "ASC";
@@ -269,7 +268,6 @@ void QueueModel::sort(int column, Qt::SortOrder order)
 
     QList<int> qSongIds;
     QString sql = "SELECT queuesongs.qsongid FROM queuesongs,dbsongs WHERE queuesongs.singer == " + QString::number(singer()) + " AND dbsongs.songid == queuesongs.song " + orderByClause;
-    qDebug() << sql;
     query.exec(sql);
     while (query.next())
         qSongIds << query.value(0).toInt();
@@ -277,7 +275,6 @@ void QueueModel::sort(int column, Qt::SortOrder order)
     for (int i=0; i < qSongIds.size(); i++)
     {
         sql = "UPDATE queuesongs SET position = " + QString::number(i) + " WHERE qsongid == " + QString::number(qSongIds.at(i));
-        qDebug() << sql;
         query.exec(sql);
     }
     query.exec("COMMIT TRANSACTION");
