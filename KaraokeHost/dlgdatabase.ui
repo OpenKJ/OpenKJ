@@ -23,25 +23,22 @@
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
-         <widget class="QTreeView" name="treeViewFolders">
+         <widget class="QTableView" name="tableViewFolders">
           <property name="editTriggers">
            <set>QAbstractItemView::NoEditTriggers</set>
           </property>
-          <property name="rootIsDecorated">
-           <bool>false</bool>
-          </property>
-          <property name="uniformRowHeights">
+          <property name="alternatingRowColors">
            <bool>true</bool>
           </property>
-          <property name="itemsExpandable">
+          <property name="selectionBehavior">
+           <enum>QAbstractItemView::SelectRows</enum>
+          </property>
+          <attribute name="horizontalHeaderStretchLastSection">
            <bool>false</bool>
-          </property>
-          <property name="allColumnsShowFocus">
-           <bool>true</bool>
-          </property>
-          <property name="expandsOnDoubleClick">
+          </attribute>
+          <attribute name="verticalHeaderVisible">
            <bool>false</bool>
-          </property>
+          </attribute>
          </widget>
         </item>
         <item>
@@ -56,14 +53,14 @@
            <item>
             <widget class="QPushButton" name="buttonDelete">
              <property name="text">
-              <string>Delete</string>
+              <string>Remove</string>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QPushButton" name="buttonNew">
              <property name="text">
-              <string>New</string>
+              <string>Add</string>
              </property>
             </widget>
            </item>

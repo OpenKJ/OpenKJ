@@ -17,7 +17,14 @@ void RegItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
         QSqlQuery query;
         query.exec("SELECT COUNT(*) FROM regularsongs WHERE regsingerid == " + index.sibling(index.row(), 0).data().toString());
         if (query.first())
+        {
+            painter->save();
+            if (option.state & QStyle::State_Selected)
+                painter->setPen(option.palette.highlightedText().color());
             painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter | Qt::AlignCenter, query.value(0).toString());
+            painter->restore();
+
+        }
         return;
     }
     if (index.column() == 3)
@@ -30,5 +37,9 @@ void RegItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
         painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, 16, 16), QImage(":/icons/Icons/edit-delete.png"));
         return;
     }
+    painter->save();
+    if (option.state & QStyle::State_Selected)
+        painter->setPen(option.palette.highlightedText().color());
     painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + index.data().toString());
+    painter->restore();
 }

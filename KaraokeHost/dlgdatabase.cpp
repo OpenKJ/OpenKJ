@@ -37,9 +37,10 @@ DlgDatabase::DlgDatabase(QWidget *parent) :
     ui->setupUi(this);
     sourcedirmodel = new SourceDirTableModel();
     sourcedirmodel->loadFromDB();
-    ui->treeViewFolders->setModel(sourcedirmodel);
+    ui->tableViewFolders->setModel(sourcedirmodel);
+    ui->tableViewFolders->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    ui->tableViewFolders->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
     selectedRow = -1;
-    settings->restoreColumnWidths(ui->treeViewFolders);
     dlgDurationScan = new DlgDurationScan(this);
 }
 
@@ -76,8 +77,8 @@ void DlgDatabase::on_buttonNew_clicked()
 
 void DlgDatabase::on_buttonClose_clicked()
 {
-    settings->saveColumnWidths(ui->treeViewFolders);
-    ui->treeViewFolders->clearSelection();
+    settings->saveColumnWidths(ui->tableViewFolders);
+    ui->tableViewFolders->clearSelection();
     hide();
 }
 
@@ -85,14 +86,14 @@ void DlgDatabase::on_buttonDelete_clicked()
 {
     if (selectedRow >= 0)
     {
-    int index = ui->treeViewFolders->currentIndex().row();
+    int index = ui->tableViewFolders->currentIndex().row();
     sourcedirmodel->delSourceDir(index);
     selectedRow = -1;
-    ui->treeViewFolders->clearSelection();
+    ui->tableViewFolders->clearSelection();
     }
 }
 
-void DlgDatabase::on_treeViewFolders_clicked(const QModelIndex &index)
+void DlgDatabase::on_tableViewFolders_clicked(const QModelIndex &index)
 {
     selectedRow = index.row();
 }

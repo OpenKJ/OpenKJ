@@ -26,7 +26,7 @@ void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
     if (index.sibling(index.row(), 0).data().toInt() == m_currentSingerId)
     {
         if (option.state & QStyle::State_Selected)
-            painter->fillRect(option.rect, QColor("green"));
+            painter->fillRect(option.rect, option.palette.highlight());
         else
             painter->fillRect(option.rect, QColor("yellow"));
     }
@@ -47,7 +47,11 @@ void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
             nextSong = " " + query.value(0).toString() + " - " + query.value(1).toString();
         else
             nextSong = "  -- Empty -- ";
+        painter->save();
+        if (option.state & QStyle::State_Selected)
+            painter->setPen(option.palette.highlightedText().color());
         painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, nextSong);
+        painter->restore();
         return;
     }
     if (index.column() == 0)
@@ -61,5 +65,9 @@ void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
         painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, 16, 16), QImage(":/icons/Icons/edit-delete.png"));
         return;
     }
+    painter->save();
+    if (option.state & QStyle::State_Selected)
+        painter->setPen(option.palette.highlightedText().color());
     painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + index.data().toString());
+    painter->restore();
 }

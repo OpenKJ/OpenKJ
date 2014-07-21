@@ -89,7 +89,7 @@ MainWindow::MainWindow(QWidget *parent) :
     dbDialog = new DlgDatabase(this);
     dlgKeyChange = new DlgKeyChange(qModel, this);
     regularSingersDialog = new DlgRegularSingers(rotModel, this);
-    regularExportDialog = new DlgRegularExport(this);
+    regularExportDialog = new DlgRegularExport(rotModel, this);
     regularImportDialog = new DlgRegularImport(rotModel, this);
     requestsDialog = new DlgRequests(rotModel, this);
     cdgPreviewDialog = new DlgCdgPreview(this);
@@ -356,13 +356,17 @@ void MainWindow::on_tableViewRotation_activated(const QModelIndex &index)
     if (index.column() < 3)
     {
         int singerId = index.sibling(index.row(),0).data().toInt();
-        play(rotModel->nextSongPath(singerId));
-        rotDelegate->setCurrentSinger(singerId);
-        rotModel->setCurrentSinger(singerId);
-        ui->labelArtist->setText(rotModel->nextSongArtist(singerId));
-        ui->labelTitle->setText(rotModel->nextSongTitle(singerId));
-        ui->labelSinger->setText(rotModel->getSingerName(singerId));
-        qModel->songSetPlayed(rotModel->nextSongQueueId(singerId));
+        QString nextSongPath = rotModel->nextSongPath(singerId);
+        if (nextSongPath != "")
+        {
+            play(nextSongPath);
+            rotDelegate->setCurrentSinger(singerId);
+            rotModel->setCurrentSinger(singerId);
+            ui->labelArtist->setText(rotModel->nextSongArtist(singerId));
+            ui->labelTitle->setText(rotModel->nextSongTitle(singerId));
+            ui->labelSinger->setText(rotModel->getSingerName(singerId));
+            qModel->songSetPlayed(rotModel->nextSongQueueId(singerId));
+        }
     }
 }
 

@@ -16,7 +16,7 @@ class DlgRegularExport : public QDialog
     Q_OBJECT
 
 public:
-    explicit DlgRegularExport(QWidget *parent = 0);
+    explicit DlgRegularExport(RotationModel *rotationModel, QWidget *parent = 0);
     ~DlgRegularExport();
 
 private slots:

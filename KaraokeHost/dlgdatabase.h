@@ -54,7 +54,7 @@ private slots:
 
     void on_buttonDelete_clicked();
 
-    void on_treeViewFolders_clicked(const QModelIndex &index);
+    void on_tableViewFolders_clicked(const QModelIndex &index);
 
     void on_buttonUpdate_clicked();
 

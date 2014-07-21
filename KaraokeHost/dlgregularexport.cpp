@@ -9,20 +9,23 @@
 #include <QSqlQuery>
 #include <QApplication>
 
-DlgRegularExport::DlgRegularExport(QWidget *parent) :
+DlgRegularExport::DlgRegularExport(RotationModel *rotationModel, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DlgRegularExport)
 {
     ui->setupUi(this);
     regModel = new QSqlTableModel(this);
     regModel->setTable("regularsingers");
+    regModel->sort(1, Qt::AscendingOrder);
     regModel->select();
-    rotModel = new RotationModel(this);
-    ui->treeViewRegulars->setModel(regModel);
-    ui->treeViewRegulars->hideColumn(0);
-    ui->treeViewRegulars->hideColumn(2);
-    ui->treeViewRegulars->hideColumn(3);
-    ui->treeViewRegulars->header()->setSectionResizeMode(1,QHeaderView::Stretch);
+    rotModel = rotationModel;
+    ui->tableViewRegulars->setModel(regModel);
+    ui->tableViewRegulars->hideColumn(0);
+    ui->tableViewRegulars->hideColumn(2);
+    ui->tableViewRegulars->hideColumn(3);
+    ui->tableViewRegulars->hideColumn(4);
+    ui->tableViewRegulars->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Stretch);
+    connect(rotModel, SIGNAL(regularsModified()), regModel, SLOT(select()));
 }
 
 DlgRegularExport::~DlgRegularExport()
@@ -37,7 +40,7 @@ void DlgRegularExport::on_pushButtonClose_clicked()
 
 void DlgRegularExport::on_pushButtonExport_clicked()
 {
-    QModelIndexList selList = ui->treeViewRegulars->selectionModel()->selectedRows();
+    QModelIndexList selList = ui->tableViewRegulars->selectionModel()->selectedRows();
     QList<int> selRegs;
     for (int i=0; i < selList.size(); i++)
     {
@@ -58,15 +61,15 @@ void DlgRegularExport::on_pushButtonExport_clicked()
             msgBox->close();
             delete msgBox;
             QMessageBox::information(this, "Export complete", "Regular singer export complete.");
-            ui->treeViewRegulars->clearSelection();
+            ui->tableViewRegulars->clearSelection();
         }
     }
 }
 
 void DlgRegularExport::on_pushButtonExportAll_clicked()
 {
-    ui->treeViewRegulars->selectAll();
-    QModelIndexList selList = ui->treeViewRegulars->selectionModel()->selectedRows();
+    ui->tableViewRegulars->selectAll();
+    QModelIndexList selList = ui->tableViewRegulars->selectionModel()->selectedRows();
     QList<int> selRegs;
     for (int i=0; i < selList.size(); i++)
     {
@@ -87,7 +90,7 @@ void DlgRegularExport::on_pushButtonExportAll_clicked()
             msgBox->close();
             delete msgBox;
             QMessageBox::information(this, "Export complete", "Regular singer export complete.");
-            ui->treeViewRegulars->clearSelection();
+            ui->tableViewRegulars->clearSelection();
         }
     }
 }
