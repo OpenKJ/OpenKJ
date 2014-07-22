@@ -24,5 +24,9 @@ void DbItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option
         painter->restore();
         return;
     }
-    QItemDelegate::paint(painter, option, index);
+    painter->save();
+    if (option.state & QStyle::State_Selected)
+        painter->setPen(option.palette.highlightedText().color());
+    painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + index.data().toString());
+    painter->restore();
 }
