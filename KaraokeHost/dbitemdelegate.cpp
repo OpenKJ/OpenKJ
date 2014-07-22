@@ -9,11 +9,11 @@ DbItemDelegate::DbItemDelegate(QObject *parent) :
 
 void DbItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
+    if (option.state & QStyle::State_Selected)
+        painter->fillRect(option.rect, option.palette.highlight());
+
     if (index.column() == 4)
     {
-        if (option.state & QStyle::State_Selected)
-            painter->fillRect(option.rect, option.palette.highlight());
-
         if (index.data().toInt() <= 0)
             return;
         QString duration = QTime(0,0,0,0).addMSecs(index.data().toInt()).toString("m:ss");
