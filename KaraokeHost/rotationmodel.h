@@ -15,6 +15,7 @@ public:
     enum {ADD_FAIR=0,ADD_BOTTOM,ADD_NEXT};
     int singerAdd(QString name);
     void singerMove(int oldPosition, int newPosition);
+    void singerSetName(int singerId, QString newName);
     void singerDelete(int singerId);
     bool singerExists(QString name);
     bool singerIsRegular(int singerId);
@@ -26,6 +27,7 @@ public:
     bool regularExists(QString name);
     void regularUpdate(int singerId);
     void regularLoad(int regSingerId, int positionHint);
+    void regularSetName(int regSingerId, QString newName);
     QString getSingerName(int singerId);
     QString getRegularName(int regSingerId);
     int getSingerId(QString name);

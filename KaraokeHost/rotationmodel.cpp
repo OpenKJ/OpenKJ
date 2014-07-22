@@ -27,8 +27,7 @@ RotationModel::RotationModel(QObject *parent, QSqlDatabase db) :
 int RotationModel::singerAdd(QString name)
 {
     QSqlQuery query;
-    QString sql = "INSERT INTO rotationsingers (name,position,regular,regularid) VALUES(\"" + name + "\"," + QString::number(rowCount()) + ",0,-1)";
-    query.exec(sql);
+    query.exec("INSERT INTO rotationsingers (name,position,regular,regularid) VALUES(\"" + name + "\"," + QString::number(rowCount()) + ",0,-1)");
     select();
     emit rotationModified();
     return query.lastInsertId().toInt();
@@ -44,33 +43,31 @@ void RotationModel::singerMove(int oldPosition, int newPosition)
     int qSingerId = index(oldPosition,0).data().toInt();
     query.exec("BEGIN TRANSACTION");
     if (newPosition > oldPosition)
-    {
-        // Moving down
         sql = "UPDATE rotationsingers SET position = position - 1 WHERE position > " + QString::number(oldPosition) + " AND position <= " + QString::number(newPosition) + " AND singerid != " + QString::number(qSingerId);
-    }
     else if (newPosition < oldPosition)
-    {
-        // Moving up
         sql = "UPDATE rotationsingers SET position = position + 1 WHERE position >= " + QString::number(newPosition) + " AND position < " + QString::number(oldPosition) + " AND singerid != " + QString::number(qSingerId);
-    }
     query.exec(sql);
-    sql = "UPDATE rotationsingers SET position = " + QString::number(newPosition) + " WHERE singerid == " + QString::number(qSingerId);
-    query.exec(sql);
+    query.exec("UPDATE rotationsingers SET position = " + QString::number(newPosition) + " WHERE singerid == " + QString::number(qSingerId));
     query.exec("COMMIT TRANSACTION");
     select();
     emit rotationModified();
+}
+
+void RotationModel::singerSetName(int singerId, QString newName)
+{
+    QSqlQuery query;
+    query.exec("UPDATE rotationsingers SET name = \"" + newName + "\" WHERE singerid == " + QString::number(singerId));
+    emit rotationModified();
+    select();
 }
 
 void RotationModel::singerDelete(int singerId)
 {
     int position = getSingerPosition(singerId);
     QSqlQuery query;
-    QString sql = "DELETE FROM queuesongs WHERE singer == " + QString::number(singerId);
-    query.exec(sql);
-    sql = "UPDATE rotationsingers SET position = position - 1 WHERE position > " + QString::number(position);
-    query.exec(sql);
-    sql = "DELETE FROM rotationsingers WHERE singerid == " + QString::number(singerId);
-    query.exec(sql);
+    query.exec("DELETE FROM queuesongs WHERE singer == " + QString::number(singerId));
+    query.exec("UPDATE rotationsingers SET position = position - 1 WHERE position > " + QString::number(position));
+    query.exec("DELETE FROM rotationsingers WHERE singerid == " + QString::number(singerId));
     select();
     emit rotationModified();
 }
@@ -180,51 +177,41 @@ void RotationModel::regularUpdate(int singerId)
 
 QString RotationModel::getSingerName(int singerId)
 {
-    QString sql = "select name from rotationsingers WHERE singerid = " + QString::number(singerId) + " LIMIT 1";
-    QSqlQuery query(sql);
+    QSqlQuery query("SELECT name FROM rotationsingers WHERE singerid = " + QString::number(singerId) + " LIMIT 1");
     if (query.first())
         return query.value(0).toString();
-
     return QString();
 }
 
 QString RotationModel::getRegularName(int regSingerId)
 {
-    QString sql = "select name from regularsingers WHERE regsingerid = " + QString::number(regSingerId) + " LIMIT 1";
-    QSqlQuery query(sql);
+    QSqlQuery query("SELECT name FROM regularsingers WHERE regsingerid = " + QString::number(regSingerId) + " LIMIT 1");
     if (query.first())
         return query.value(0).toString();
-
     return QString();
 }
 
 int RotationModel::getSingerId(QString name)
 {
-    QString sql = "select singerid from rotationsingers WHERE name == \"" + name + "\" LIMIT 1";
-    QSqlQuery query(sql);
+    QSqlQuery query("SELECT singerid FROM rotationsingers WHERE name == \"" + name + "\" LIMIT 1");
     if (query.first())
         return query.value(0).toInt();
-
     return -1;
 }
 
 int RotationModel::getSingerPosition(int singerId)
 {
-    QString sql = "select position from rotationsingers WHERE singerid = " + QString::number(singerId) + " LIMIT 1";
-    QSqlQuery query(sql);
+    QSqlQuery query("SELECT position FROM rotationsingers WHERE singerid = " + QString::number(singerId) + " LIMIT 1");
     if (query.first())
         return query.value(0).toInt();
-
     return -1;
 }
 
 int RotationModel::singerIdAtPosition(int position)
 {
-    QString sql = "SELECT singerId FROM rotationsingers WHERE position == " + QString::number(position) + " LIMIT 1";
-    QSqlQuery query(sql);
+    QSqlQuery query("SELECT singerId FROM rotationsingers WHERE position == " + QString::number(position) + " LIMIT 1");
     if (query.first())
         return query.value(0).toInt();
-
     return -1;
 }
 
@@ -232,9 +219,7 @@ QStringList RotationModel::singers()
 {
     QStringList singers;
     for (int i=0; i < rowCount(); i++)
-    {
         singers << index(i,1).data().toString();
-    }
     return singers;
 }
 
@@ -244,69 +229,55 @@ QStringList RotationModel::regulars()
     QSqlQuery query;
     query.exec("SELECT name FROM regularsingers");
     while (query.next())
-    {
         names << query.value(0).toString();
-    }
     return names;
 }
 
 QString RotationModel::nextSongPath(int singerId)
 {
-    QString sql = "select dbsongs.path from dbsongs,queuesongs WHERE queuesongs.singer = " + QString::number(singerId) + " AND queuesongs.played = 0 AND dbsongs.songid = queuesongs.song ORDER BY position LIMIT 1";
-    QSqlQuery query(sql);
+    QSqlQuery query("SELECT dbsongs.path FROM dbsongs,queuesongs WHERE queuesongs.singer = " + QString::number(singerId) + " AND queuesongs.played = 0 AND dbsongs.songid = queuesongs.song ORDER BY position LIMIT 1");
     if (query.first())
         return query.value(0).toString();
-
     return QString();
 }
 
 QString RotationModel::nextSongArtist(int singerId)
 {
-    QString sql = "select dbsongs.artist from dbsongs,queuesongs WHERE queuesongs.singer = " + QString::number(singerId) + " AND queuesongs.played = 0 AND dbsongs.songid = queuesongs.song ORDER BY position LIMIT 1";
-    QSqlQuery query(sql);
+    QSqlQuery query("SELECT dbsongs.artist FROM dbsongs,queuesongs WHERE queuesongs.singer = " + QString::number(singerId) + " AND queuesongs.played = 0 AND dbsongs.songid = queuesongs.song ORDER BY position LIMIT 1");
     if (query.first())
         return query.value(0).toString();
-
     return QString();
 }
 
 QString RotationModel::nextSongTitle(int singerId)
 {
-    QString sql = "select dbsongs.title from dbsongs,queuesongs WHERE queuesongs.singer = " + QString::number(singerId) + " AND queuesongs.played = 0 AND dbsongs.songid = queuesongs.song ORDER BY position LIMIT 1";
-    QSqlQuery query(sql);
+    QSqlQuery query("SELECT dbsongs.title FROM dbsongs,queuesongs WHERE queuesongs.singer = " + QString::number(singerId) + " AND queuesongs.played = 0 AND dbsongs.songid = queuesongs.song ORDER BY position LIMIT 1");
     if (query.first())
         return query.value(0).toString();
-
     return QString();
 }
 
 int RotationModel::nextSongKeyChg(int singerId)
 {
-    QString sql = "select keychg from queuesongs WHERE singer = " + QString::number(singerId) + " AND queuesongs.played = 0 ORDER BY position LIMIT 1";
-    QSqlQuery query(sql);
+    QSqlQuery query("SELECT keychg FROM queuesongs WHERE singer = " + QString::number(singerId) + " AND queuesongs.played = 0 ORDER BY position LIMIT 1");
     if (query.first())
         return query.value(0).toInt();
-
     return 0;
 }
 
 int RotationModel::nextSongId(int singerId)
 {
-    QString sql = "select dbsongs.songid from dbsongs,queuesongs WHERE queuesongs.singer = " + QString::number(singerId) + " AND queuesongs.played = 0 AND dbsongs.songid = queuesongs.song ORDER BY position LIMIT 1";
-    QSqlQuery query(sql);
+    QSqlQuery query("SELECT dbsongs.songid FROM dbsongs,queuesongs WHERE queuesongs.singer = " + QString::number(singerId) + " AND queuesongs.played = 0 AND dbsongs.songid = queuesongs.song ORDER BY position LIMIT 1");
     if (query.first())
         return query.value(0).toInt();
-
     return -1;
 }
 
 int RotationModel::nextSongQueueId(int singerId)
 {
-    QString sql = "select qsongid from queuesongs WHERE singer = " + QString::number(singerId) + " AND played = 0 ORDER BY position LIMIT 1";
-    QSqlQuery query(sql);
+    QSqlQuery query("SELECT qsongid FROM queuesongs WHERE singer = " + QString::number(singerId) + " AND played = 0 ORDER BY position LIMIT 1");
     if (query.first())
         return query.value(0).toInt();
-
     return -1;
 }
 
@@ -346,6 +317,14 @@ void RotationModel::regularLoad(int regSingerId, int positionHint)
         singerMove(rowCount() - 1, getSingerPosition(m_currentSingerId) + 1);
         break;
     }
+    select();
+}
+
+void RotationModel::regularSetName(int regSingerId, QString newName)
+{
+    QSqlQuery query;
+    query.exec("UPDATE regularsingers SET name = \"" + newName + "\" WHERE singerid == " + QString::number(regSingerId));
+    emit rotationModified();
     select();
 }
 
@@ -420,7 +399,6 @@ Qt::ItemFlags RotationModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
         return Qt::ItemIsEnabled | Qt::ItemIsDropEnabled;
-
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | Qt::ItemIsEditable;
 }
 

@@ -729,7 +729,7 @@ void MainWindow::on_tableViewDB_customContextMenuRequested(const QPoint &pos)
 
 void MainWindow::on_tableViewRotation_customContextMenuRequested(const QPoint &pos)
 {
-    QModelIndex index = ui->tableViewQueue->indexAt(pos);
+    QModelIndex index = ui->tableViewRotation->indexAt(pos);
     if (index.isValid())
     {
            m_rtClickRotationSingerId = index.sibling(index.row(),0).data().toInt();
@@ -743,9 +743,23 @@ void MainWindow::on_tableViewRotation_customContextMenuRequested(const QPoint &p
 void MainWindow::renameSinger()
 {
     bool ok;
-    QString text = QInputDialog::getText(this, "Rename singer", "New name:", QLineEdit::Normal, rotModel->getSingerName(m_rtClickRotationSingerId), &ok);
-    if (ok && !text.isEmpty())
+    QString currentName = rotModel->getSingerName(m_rtClickRotationSingerId);
+    QString name = QInputDialog::getText(this, "Rename singer", "New name:", QLineEdit::Normal, currentName, &ok);
+    if (ok && !name.isEmpty())
     {
+        if ((name.toLower() == currentName.toLower()) && (name != currentName))
+        {
+            // changing capitalization only
+            rotModel->singerSetName(m_rtClickRotationSingerId, name);
+        }
+        else if (rotModel->singerExists(name))
+        {
+            QMessageBox::warning(this, "Singer exists!","A singer named " + name + " already exists. Please choose a unique name and try again. The operation has been cancelled.",QMessageBox::Ok);
+        }
+        else
+        {
+            rotModel->singerSetName(m_rtClickRotationSingerId, name);
+        }
 
     }
 }
