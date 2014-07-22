@@ -21,6 +21,8 @@
 #include "dlgregularsingers.h"
 #include "ui_dlgregularsingers.h"
 #include <QDebug>
+#include <QInputDialog>
+#include <QMenu>
 #include <QMessageBox>
 #include <QSqlQuery>
 
@@ -28,6 +30,7 @@ DlgRegularSingers::DlgRegularSingers(RotationModel *rotationModel, QWidget *pare
     QDialog(parent),
     ui(new Ui::DlgRegularSingers)
 {
+    m_rtClickRegSingerId = -1;
     ui->setupUi(this);
     regModel = new QSqlTableModel(this);
     regModel->setTable("regularsingers");
@@ -101,7 +104,43 @@ void DlgRegularSingers::on_tableViewRegulars_clicked(const QModelIndex &index)
     }
 }
 
+void DlgRegularSingers::on_tableViewRegulars_customContextMenuRequested(const QPoint &pos)
+{
+    QModelIndex index = ui->tableViewRegulars->indexAt(pos);
+    if (index.isValid())
+    {
+        m_rtClickRegSingerId = index.sibling(index.row(),0).data().toInt();
+        QMenu contextMenu(this);
+        contextMenu.addAction("Rename", this, SLOT(renameRegSinger()));
+        contextMenu.exec(QCursor::pos());
+    }
+}
+
 void DlgRegularSingers::editSingerDuplicateError()
 {
     QMessageBox::warning(this, tr("Duplicate Name"), tr("A regular singer by that name already exists, edit cancelled."),QMessageBox::Close);
+}
+
+void DlgRegularSingers::renameRegSinger()
+{
+    bool ok;
+    QString currentName = rotModel->getRegularName(m_rtClickRegSingerId);
+    QString name = QInputDialog::getText(this, "Rename regular singer", "New name:", QLineEdit::Normal, currentName, &ok);
+    if (ok && !name.isEmpty())
+    {
+        if ((name.toLower() == currentName.toLower()) && (name != currentName))
+        {
+            // changing capitalization only
+            rotModel->regularSetName(m_rtClickRegSingerId, name);
+        }
+        else if (rotModel->regularExists(name))
+        {
+            QMessageBox::warning(this, "Regular singer exists!","A regular singer named " + name + " already exists. Please choose a unique name and try again. The operation has been cancelled.",QMessageBox::Ok);
+        }
+        else
+        {
+            rotModel->regularSetName(m_rtClickRegSingerId, name);
+        }
+        regModel->select();
+    }
 }

@@ -735,7 +735,6 @@ void MainWindow::on_tableViewRotation_customContextMenuRequested(const QPoint &p
            m_rtClickRotationSingerId = index.sibling(index.row(),0).data().toInt();
            QMenu contextMenu(this);
            contextMenu.addAction("Rename", this, SLOT(renameSinger()));
-
            contextMenu.exec(QCursor::pos());
     }
 }

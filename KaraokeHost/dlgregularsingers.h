@@ -48,9 +48,12 @@ public slots:
 private slots:
     void on_btnClose_clicked();
     void on_tableViewRegulars_clicked(const QModelIndex &index);
+    void on_tableViewRegulars_customContextMenuRequested(const QPoint &pos);
     void editSingerDuplicateError();
+    void renameRegSinger();
 
 private:
+    int m_rtClickRegSingerId;
     Ui::DlgRegularSingers *ui;
     QSqlTableModel *regModel;
     RegItemDelegate *regDelegate;

@@ -19,6 +19,9 @@
      <property name="focusPolicy">
       <enum>Qt::ClickFocus</enum>
      </property>
+     <property name="contextMenuPolicy">
+      <enum>Qt::CustomContextMenu</enum>
+     </property>
      <property name="editTriggers">
       <set>QAbstractItemView::NoEditTriggers</set>
      </property>

@@ -323,7 +323,7 @@ void RotationModel::regularLoad(int regSingerId, int positionHint)
 void RotationModel::regularSetName(int regSingerId, QString newName)
 {
     QSqlQuery query;
-    query.exec("UPDATE regularsingers SET name = \"" + newName + "\" WHERE singerid == " + QString::number(regSingerId));
+    query.exec("UPDATE regularsingers SET name = \"" + newName + "\" WHERE regsingerid == " + QString::number(regSingerId));
     emit rotationModified();
     select();
 }
@@ -352,7 +352,6 @@ bool RotationModel::canDropMimeData(const QMimeData *data, Qt::DropAction action
     Q_UNUSED(parent);
     if ((data->hasFormat("integer/songid")) || (data->hasFormat("integer/rotationpos")))
         return true;
-
     return false;
 }
 
