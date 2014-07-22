@@ -10,6 +10,10 @@ void QueueItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
 {
     int topPad = (option.rect.height() - 16) / 2;
     int leftPad = (option.rect.width() - 16) / 2;
+
+    if (option.state & QStyle::State_Selected)
+        painter->fillRect(option.rect, option.palette.highlight());
+
     if (index.sibling(index.row(), 8).data().toBool())
     {
         if (option.state & QStyle::State_Selected)

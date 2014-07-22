@@ -14,6 +14,8 @@ void DbItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option
         if (index.data().toInt() <= 0)
             return;
         QString duration = QTime(0,0,0,0).addMSecs(index.data().toInt()).toString("m:ss");
+        if (option.state & QStyle::State_Selected)
+            painter->fillRect(option.rect, option.palette.highlight());
         painter->save();
         if (option.state & QStyle::State_Selected)
             painter->setPen(option.palette.highlightedText().color());

@@ -23,6 +23,10 @@ void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 {
     int topPad = (option.rect.height() - 16) / 2;
     int leftPad = (option.rect.width() - 16) / 2;
+
+    if (option.state & QStyle::State_Selected)
+        painter->fillRect(option.rect, option.palette.highlight());
+
     if (index.sibling(index.row(), 0).data().toInt() == m_currentSingerId)
     {
         if (option.state & QStyle::State_Selected)
