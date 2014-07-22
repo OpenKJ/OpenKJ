@@ -87,7 +87,7 @@ void QueueModel::songAdd(int songId)
     QSqlQuery query;
     QString songIdStr = QString::number(songId);
     QString positionStr = QString::number(rowCount());
-    query.exec("INSERT INTO queueSongs (singer,song,artist,title,discid,path,keychg,played,position,regsong,regsongid) VALUES(" + QString::number(m_singerId) + "," + songIdStr + "," + songIdStr + "," + songIdStr + "," + songIdStr + "," + songIdStr + ",0,0," + positionStr + ",0,-1)");
+    query.exec("INSERT INTO queueSongs (singer,song,artist,title,discid,path,keychg,played,position) VALUES(" + QString::number(m_singerId) + "," + songIdStr + "," + songIdStr + "," + songIdStr + "," + songIdStr + "," + songIdStr + ",0,0," + positionStr + ")");
     select();
     emit queueModified(singer());
 }
@@ -224,7 +224,7 @@ void QueueModel::songAdd(int songId, int singerId)
     if (query.first())
         newPos = query.value(0).toInt();
     QString positionStr = QString::number(newPos);
-    query.exec("INSERT INTO queueSongs (singer,song,artist,title,discid,path,keychg,played,position,regsong,regsongid) VALUES(" + QString::number(singerId) + "," + songIdStr + "," + songIdStr + "," + songIdStr + "," + songIdStr + "," + songIdStr + ",0,0," + positionStr + ",0,-1)");
+    query.exec("INSERT INTO queueSongs (singer,song,artist,title,discid,path,keychg,played,position) VALUES(" + QString::number(singerId) + "," + songIdStr + "," + songIdStr + "," + songIdStr + "," + songIdStr + "," + songIdStr + ",0,0," + positionStr + ")");
     select();
     emit queueModified(singer());
 }
