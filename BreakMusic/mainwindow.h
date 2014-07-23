@@ -31,6 +31,7 @@
 #include "dbtablemodel.h"
 #include "pltablemodel.h"
 #include "plitemdelegate.h"
+#include "dbitemdelegate.h"
 #include <QSqlTableModel>
 
 
@@ -53,6 +54,7 @@ private:
     QDir *khDir;
     DatabaseDialog *dbDialog;
     DbTableModel *dbModel;
+    DbItemDelegate *dbDelegate;
     PlTableModel *plModel;
     PlItemDelegate *plDelegate;
     QSqlTableModel *playlistsModel;

@@ -1,5 +1,7 @@
 #include "bmsettings.h"
 #include <QCoreApplication>
+#include <QHeaderView>
+
 
 BmSettings::BmSettings(QObject *parent) :
     QObject(parent)
@@ -64,4 +66,67 @@ int BmSettings::playlistIndex()
 void BmSettings::setPlaylistIndex(int index)
 {
     settings->setValue("playlistIndex", index);
+}
+
+
+void BmSettings::saveColumnWidths(QTreeView *treeView)
+{
+    settings->beginGroup(treeView->objectName());
+    settings->setValue("headerState", treeView->header()->saveState());
+    settings->setValue("hiddenSections", treeView->header()->hiddenSectionCount());
+    settings->setValue("sections", treeView->header()->count());
+    settings->endGroup();
+}
+
+void BmSettings::saveColumnWidths(QTableView *tableView)
+{
+    settings->beginGroup(tableView->objectName());
+    for (int i=0; i < tableView->horizontalHeader()->count(); i++)
+    {
+        settings->beginGroup(QString::number(i));
+        settings->setValue("size", tableView->horizontalHeader()->sectionSize(i));
+        settings->setValue("hidden", tableView->horizontalHeader()->isSectionHidden(i));
+        settings->endGroup();
+    }
+    settings->endGroup();
+}
+
+void BmSettings::restoreColumnWidths(QTreeView *treeView)
+{
+    settings->beginGroup(treeView->objectName());
+    if ((settings->contains("headerState")) && (settings->value("hiddenSections").toInt() == treeView->header()->hiddenSectionCount()) && (settings->value("sections").toInt() == treeView->header()->count()))
+        treeView->header()->restoreState(settings->value("headerState").toByteArray());
+    settings->endGroup();
+}
+
+void BmSettings::restoreColumnWidths(QTableView *tableView)
+{
+    settings->beginGroup(tableView->objectName());
+    QStringList headers = settings->childGroups();
+    for (int i=0; i < headers.size(); i++)
+    {
+        settings->beginGroup(headers.at(i));
+        int section = headers.at(i).toInt();
+        bool hidden = settings->value("hidden", false).toBool();
+        int size = settings->value("size", 0).toInt();
+        tableView->horizontalHeader()->resizeSection(section, size);
+        tableView->horizontalHeader()->setSectionHidden(section, hidden);
+        settings->endGroup();
+    }
+    settings->endGroup();
+}
+
+void BmSettings::saveSplitterState(QSplitter *splitter)
+{
+    settings->beginGroup(splitter->objectName());
+    settings->setValue("splitterState", splitter->saveState());
+    settings->endGroup();
+}
+
+void BmSettings::restoreSplitterState(QSplitter *splitter)
+{
+    settings->beginGroup(splitter->objectName());
+    if (settings->contains("splitterState"))
+        splitter->restoreState(settings->value("splitterState").toByteArray());
+    settings->endGroup();
 }

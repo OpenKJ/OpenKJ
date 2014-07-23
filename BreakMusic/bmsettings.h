@@ -4,6 +4,9 @@
 #include <QObject>
 #include <QSettings>
 #include <QWidget>
+#include <QTableView>
+#include <QTreeView>
+#include <QSplitter>
 
 class BmSettings : public QObject
 {
@@ -20,6 +23,12 @@ public:
     void setVolume(int volume);
     int playlistIndex();
     void setPlaylistIndex(int index);
+    void saveColumnWidths(QTreeView *treeView);
+    void saveColumnWidths(QTableView *tableView);
+    void restoreColumnWidths(QTreeView *treeView);
+    void restoreColumnWidths(QTableView *tableView);
+    void saveSplitterState(QSplitter *splitter);
+    void restoreSplitterState(QSplitter *splitter);
 
 signals:
 

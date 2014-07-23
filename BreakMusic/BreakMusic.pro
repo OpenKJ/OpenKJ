@@ -21,7 +21,8 @@ SOURCES += main.cpp\
     pltablemodel.cpp \
     plitemdelegate.cpp \
     dbtablemodel.cpp \
-    dbupdatethread.cpp
+    dbupdatethread.cpp \
+    dbitemdelegate.cpp
 
 HEADERS  += mainwindow.h \
     databasedialog.h \
@@ -32,7 +33,8 @@ HEADERS  += mainwindow.h \
     pltablemodel.h \
     plitemdelegate.h \
     dbtablemodel.h \
-    dbupdatethread.h
+    dbupdatethread.h \
+    dbitemdelegate.h
 
 FORMS    += mainwindow.ui \
     databasedialog.ui

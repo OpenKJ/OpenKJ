@@ -70,20 +70,8 @@ void DbUpdateThread::run()
         TagLib::FileRef f(files->at(i).toUtf8().data());
         if (!f.isNull())
         {
-            int ms = f.audioProperties()->length();
-            int min;
-            int sec;
-            QString minStr;
-            QString secStr;
-            min = (int) (ms / 60);
-            sec = ms % 60;
-            minStr = QString::number(min);
-            if (sec < 10)
-                secStr = "0" + QString::number(sec);
-            else
-                secStr = QString::number(sec);
-            QString duration = minStr + ":" + secStr;
-
+            int secs = f.audioProperties()->length();
+            QString duration = QString::number(secs);
             QString artist = QString::fromStdString(f.tag()->artist().to8Bit(true));
             QString title = QString::fromStdString(f.tag()->title().to8Bit(true));
             QString filename = QFileInfo(files->at(i)).fileName();

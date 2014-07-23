@@ -80,23 +80,30 @@ MainWindow::MainWindow(QWidget *parent) :
         addPlaylist("Default");
         ui->comboBoxPlaylists->setCurrentIndex(0);
     }
+    dbDelegate = new DbItemDelegate(this);
     ui->tableViewDB->setModel(dbModel);
+    ui->tableViewDB->setItemDelegate(dbDelegate);
+
+    ui->tableViewPlaylist->setModel(plModel);
+    plDelegate = new PlItemDelegate(this);
+    ui->tableViewPlaylist->setItemDelegate(plDelegate);
+    settings->restoreSplitterState(ui->splitter);
+    settings->restoreColumnWidths(ui->tableViewDB);
+    settings->restoreColumnWidths(ui->tableViewPlaylist);
     ui->tableViewDB->setColumnHidden(0, true);
     ui->tableViewDB->setColumnHidden(3, true);
     ui->tableViewDB->setColumnHidden(6, true);
-    ui->tableViewPlaylist->setModel(plModel);
+    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(5, QHeaderView::ResizeToContents);
     ui->tableViewPlaylist->setColumnHidden(0, true);
     ui->tableViewPlaylist->setColumnHidden(1, true);
     ui->tableViewPlaylist->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Fixed);
-    ui->tableViewPlaylist->horizontalHeader()->resizeSection(2,16);
+    ui->tableViewPlaylist->horizontalHeader()->resizeSection(2,25);
     ui->tableViewPlaylist->horizontalHeader()->setSectionResizeMode(7, QHeaderView::Fixed);
-    ui->tableViewPlaylist->horizontalHeader()->resizeSection(7,16);
+    ui->tableViewPlaylist->horizontalHeader()->resizeSection(7,25);
     ui->tableViewPlaylist->horizontalHeader()->setSectionResizeMode(6, QHeaderView::ResizeToContents);
-    plDelegate = new PlItemDelegate(this);
-    ui->tableViewPlaylist->setItemDelegate(plDelegate);
-    showFilenames(settings->showFilenames());
-    showMetadata(settings->showMetadata());
-    ui->tableViewDB->horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
+
+//    showFilenames(settings->showFilenames());
+//    showMetadata(settings->showMetadata());
     mPlayer->setVolume(settings->volume());
 
     connect(ipcServer, SIGNAL(messageReceived(int)), this, SLOT(ipcMessageReceived(int)));
@@ -109,11 +116,16 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(mPlayer, SIGNAL(volumeChanged(int)), ui->sliderVolume, SLOT(setValue(int)));
     connect(dbDialog, SIGNAL(dbUpdated()), this, SLOT(dbUpdated()));
     connect(dbDialog, SIGNAL(dbCleared()), this, SLOT(dbCleared()));
+
+
 }
 
 MainWindow::~MainWindow()
 {
     settings->saveWindowState(this);
+    settings->saveSplitterState(ui->splitter);
+    settings->saveColumnWidths(ui->tableViewDB);
+    settings->saveColumnWidths(ui->tableViewPlaylist);
     settings->setVolume(ui->sliderVolume->value());
     settings->setPlaylistIndex(ui->comboBoxPlaylists->currentIndex());
     delete database;
@@ -254,8 +266,12 @@ void MainWindow::showMetadata(bool checked)
 {
     ui->tableViewDB->setColumnHidden(1, !checked);
     ui->tableViewDB->setColumnHidden(2, !checked);
+    ui->tableViewDB->horizontalHeader()->resizeSection(1, 100);
+    ui->tableViewDB->horizontalHeader()->resizeSection(2, 100);
     ui->tableViewPlaylist->setColumnHidden(3, !checked);
     ui->tableViewPlaylist->setColumnHidden(4, !checked);
+    ui->tableViewPlaylist->horizontalHeader()->resizeSection(3, 100);
+    ui->tableViewPlaylist->horizontalHeader()->resizeSection(4, 100);
     settings->setShowMetadata(checked);
 }
 
@@ -263,7 +279,9 @@ void MainWindow::showMetadata(bool checked)
 void MainWindow::showFilenames(bool checked)
 {
     ui->tableViewDB->setColumnHidden(4, !checked);
+    ui->tableViewDB->horizontalHeader()->resizeSection(4, 100);
     ui->tableViewPlaylist->setColumnHidden(5, !checked);
+    ui->tableViewPlaylist->horizontalHeader()->resizeSection(5, 100);
     settings->setShowFilenames(checked);
 }
 

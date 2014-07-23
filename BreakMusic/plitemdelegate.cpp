@@ -1,6 +1,7 @@
 #include "plitemdelegate.h"
 #include <QPainter>
-
+#include <QTime>
+#include <QDebug>
 
 int PlItemDelegate::currentSong() const
 {
@@ -20,19 +21,19 @@ PlItemDelegate::PlItemDelegate(QObject *parent) :
 
 void PlItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
+    int topPad = (option.rect.height() - 16) / 2;
+    int leftPad = (option.rect.width() - 16) / 2;
+
+    if (option.state & QStyle::State_Selected)
+        painter->fillRect(option.rect, option.palette.highlight());
+
     if (index.row() == m_currentSong)
     {
         if (option.state & QStyle::State_Selected)
-            painter->fillRect(option.rect, QColor("green"));
+            painter->fillRect(option.rect, option.palette.highlight());
         else
             painter->fillRect(option.rect, QColor("yellow"));
     }
-    else
-    {
-        if (option.state & QStyle::State_Selected)
-            painter->fillRect(option.rect, option.palette.highlight());
-    }
-
     if (index.column() == 2)
     {
         if (index.row() != m_currentSong)
@@ -40,9 +41,22 @@ void PlItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option
         painter->drawImage(QRect(option.rect.x(),option.rect.y(), 16, 16), QImage(":/icons/play-small.png"));
         return;
     }
+    if (index.column() == 6)
+    {
+        int sec = index.data().toInt();
+        if (sec <= 0)
+            return;
+        QString duration = QTime(0,0,0,0).addSecs(sec).toString("m:ss");
+        painter->save();
+        if (option.state & QStyle::State_Selected)
+            painter->setPen(option.palette.highlightedText().color());
+        painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter | Qt::AlignCenter, duration);
+        painter->restore();
+        return;
+    }
     if (index.column() == 7)
     {
-        painter->drawImage(QRect(option.rect.x(), option.rect.y(), 16, 16), QImage(":/icons/edit-delete.png"));
+        painter->drawImage(QRect(option.rect.x() + leftPad, option.rect.y() + topPad, 16, 16), QImage(":/icons/edit-delete.png"));
         return;
     }
     if (index.column() == 6)
@@ -50,7 +64,11 @@ void PlItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option
         painter->drawText(option.rect, Qt::AlignCenter, index.data().toString());
         return;
     }
-    painter->drawText(option.rect, Qt::TextSingleLine, index.data().toString());
+    painter->save();
+    if (option.state & QStyle::State_Selected)
+        painter->setPen(option.palette.highlightedText().color());
+    painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + index.data().toString());
+    painter->restore();
 }
 
 
