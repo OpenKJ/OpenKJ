@@ -85,6 +85,9 @@
         </item>
         <item>
          <widget class="QCheckBox" name="checkBoxAccepting">
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
+          </property>
           <property name="text">
            <string>Accept new requests</string>
           </property>
