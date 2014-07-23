@@ -154,6 +154,12 @@ void RequestsTableModel::onNetworkReply(QNetworkReply *reply)
         request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
         networkManager->get(request);
     }
+    else if (recordType == 4)
+    {
+        curSerial = serial;
+        bool accepting = json.object().value("accepting").toBool();
+        emit acceptingReceived(accepting);
+    }
 }
 
 void RequestsTableModel::onSslErrors(QNetworkReply *reply)
@@ -321,6 +327,30 @@ void RequestsTableModel::forceFullUpdate()
     request.setUrl(url);
     request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
     m_clearingCache = true;
+    networkManager->get(request);
+    getAccepting();
+}
+
+void RequestsTableModel::getAccepting()
+{
+    qDebug() << "RequestsClient - Requesting current accepting state.";
+    QUrl url(settings->requestServerUrl() + "/getAccepting.php");
+    QNetworkRequest request;
+    request.setUrl(url);
+    request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
+    networkManager->get(request);
+}
+
+void RequestsTableModel::setAccepting(bool accepting)
+{
+    QUrl url;
+    if (accepting)
+        url.setUrl(settings->requestServerUrl() + "/acceptRequests.php");
+    else
+        url.setUrl(settings->requestServerUrl() + "/rejectRequests.php");
+    QNetworkRequest request;
+    request.setUrl(url);
+    request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
     networkManager->get(request);
 }
 

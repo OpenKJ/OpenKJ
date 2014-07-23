@@ -23,6 +23,7 @@
 
 #include <QDialog>
 #include <QList>
+#include <QNetworkAccessManager>
 #include "khsettings.h"
 #include "khabstractaudiobackend.h"
 
@@ -101,6 +102,8 @@ private slots:
 
     void on_buttonBrowse_clicked();
 
+    void on_pushButtonUpdateRemoteDb_clicked();
+
 signals:
     void showCdgWindowChanged(bool);
     void cdgWindowFullScreenChanged(bool);
@@ -114,7 +117,13 @@ private:
     QStringList getMonitors();
     KhAbstractAudioBackend *audioBackend;
     KhAudioBackends *audioBackends;
+    QNetworkAccessManager *networkManager;
     bool pageSetupDone;
+
+private slots:
+    void onNetworkReply(QNetworkReply* reply);
+    void onSslErrors(QNetworkReply * reply);
+    void setAuth(QNetworkReply * reply, QAuthenticator * authenticator);
 //    KhSettings *settings;
 };
 

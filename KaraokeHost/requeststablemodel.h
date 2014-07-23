@@ -42,12 +42,15 @@ public:
     int count();
     QTime lastUpdate();
     void forceFullUpdate();
+    void getAccepting();
+    void setAccepting(bool accepting);
 
 signals:
     void updateReceived(QTime);
     void authenticationError();
     void sslError();
     void delayError(int);
+    void acceptingReceived(bool);
 
 private slots:
     void timerExpired();

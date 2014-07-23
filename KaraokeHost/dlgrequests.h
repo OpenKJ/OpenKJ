@@ -49,6 +49,8 @@ private slots:
     void sslError();
     void delayError(int seconds);
 
+    void on_checkBoxAccepting_toggled(bool checked);
+
 signals:
     void addRequestSong(int songId, int singerId);
 

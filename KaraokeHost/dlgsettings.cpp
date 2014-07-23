@@ -29,6 +29,11 @@
 #include <QStandardPaths>
 #include <QMessageBox>
 #include <QAudioRecorder>
+#include <QSqlQuery>
+#include <QtSql>
+#include <QXmlStreamWriter>
+#include <QNetworkReply>
+#include <QAuthenticator>
 
 extern KhSettings *settings;
 
@@ -40,6 +45,7 @@ DlgSettings::DlgSettings(KhAudioBackends *AudioBackends, QWidget *parent) :
     pageSetupDone = false;
     audioBackends = AudioBackends;
     audioBackend = AudioBackends->at(settings->audioBackend());
+    networkManager = new QNetworkAccessManager(this);
     ui->setupUi(this);
     for (int i=0; i < audioBackends->size(); i++)
     {
@@ -106,6 +112,10 @@ DlgSettings::DlgSettings(KhAudioBackends *AudioBackends, QWidget *parent) :
     }
     audioBackendChanged(settings->audioBackend());
     connect(settings, SIGNAL(audioBackendChanged(int)), this, SLOT(audioBackendChanged(int)));
+
+    connect(networkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
+    connect(networkManager, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(onSslErrors(QNetworkReply*)));
+    connect(networkManager, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)), this, SLOT(setAuth(QNetworkReply*,QAuthenticator*)));
 //    ui->checkBoxSilenceDetection->setHidden(!audioBackend->canDetectSilence());
 //    ui->checkBoxDownmix->setHidden(!audioBackend->canDownmix());
 //    ui->checkBoxFader->setHidden(!audioBackend->canFade());
@@ -138,6 +148,46 @@ QStringList DlgSettings::getMonitors()
         screenStrings << "Monitor " + QString::number(i) + " - " + QString::number(sWidth) + "x" + QString::number(sHeight);
     }
     return screenStrings;
+}
+
+void DlgSettings::onNetworkReply(QNetworkReply *reply)
+{
+    Q_UNUSED(reply);
+}
+
+void DlgSettings::onSslErrors(QNetworkReply *reply)
+{
+    if (settings->requestServerIgnoreCertErrors())
+        reply->ignoreSslErrors();
+    else
+    {
+        QMessageBox::warning(this, "SSL Error", "Unable to establish secure conneciton with server.");
+    }
+}
+
+void DlgSettings::setAuth(QNetworkReply *reply, QAuthenticator *authenticator)
+{
+    Q_UNUSED(reply);
+    static bool firstTry = true;
+    static QString lastUser;
+    static QString lastPass;
+    static QString lastUrl;
+    if ((lastUser != settings->requestServerUsername()) || (lastPass != settings->requestServerPassword()) || (lastUrl != settings->requestServerUrl()))
+    {
+        firstTry = true;
+    }
+    if (!firstTry)
+    {
+        QMessageBox::warning(this, "Authentication Error", "Server rejected the provided username and password.");
+        return;
+    }
+    qDebug() << "RequestsClient - Received authentication request, sending username and password";
+    authenticator->setUser(settings->requestServerUsername());
+    authenticator->setPassword(settings->requestServerPassword());
+    lastUser = settings->requestServerUsername();
+    lastPass = settings->requestServerPassword();
+    lastUrl = settings->requestServerUrl();
+    firstTry = false;
 }
 
 
@@ -424,4 +474,61 @@ void DlgSettings::on_buttonBrowse_clicked()
         settings->setRecordingOutputDir(dirName);
         ui->lineEditOutputDir->setText(dirName);
     }
+}
+
+void DlgSettings::on_pushButtonUpdateRemoteDb_clicked()
+{
+    QMessageBox *msgBox = new QMessageBox(this);
+    msgBox->setStandardButtons(0);
+    msgBox->setText("Updating remote database.  Please wait...");
+    msgBox->show();
+    msgBox->setInformativeText("Generating data for transmission...");
+    QTemporaryDir dir;
+    QFile xmlFile(dir.path() + QDir::separator() + "songdata.xml");
+    xmlFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate);
+    QXmlStreamWriter xml(&xmlFile);
+    xml.setAutoFormatting(true);
+    xml.writeStartDocument();
+    xml.writeStartElement("songs");
+
+    QApplication::processEvents();
+    QSqlQuery query;
+    query.exec("SELECT DISTINCT artist,title FROM dbsongs ORDER BY artist ASC, title ASC");
+    while (query.next())
+    {
+        QApplication::processEvents();
+        xml.writeStartElement("song");
+        xml.writeAttribute("artist", query.value(0).toString());
+        xml.writeAttribute("title", query.value(1).toString());
+        xml.writeEndElement();
+    }
+    xml.writeEndElement();
+    xml.writeEndDocument();
+    xmlFile.close();
+
+    msgBox->setInformativeText("Uploading data to server...");
+
+    QString path("E:\\QT_playing\\TestingHttpRequests\\debug\\Chrysanthemum.jpg");
+    QNetworkRequest request(QUrl(settings->requestServerUrl() + "/updateSongs.php"));
+    QString bound="margin";
+    QByteArray data(QString("--" + bound + "\r\n").toLocal8Bit());
+    data.append("Content-Disposition: form-data; name=\"action\"\r\n\r\n");
+    data.append("updateSongs.php\r\n");   //our script's name, as I understood. Please, correct me if I'm wrong
+    data.append("--" + bound + "\r\n");   //according to rfc 1867
+    data.append("Content-Disposition: form-data; name=\"uploaded\"; filename=\"songData.xml\"\r\n");
+    data.append("Content-Type: text/xml\r\n\r\n"); //data type
+    if (!xmlFile.open(QIODevice::ReadOnly))
+        return;
+    data.append(xmlFile.readAll());   //let's read the file
+    data.append("\r\n");
+    data.append("--" + bound + "--\r\n");
+    request.setRawHeader(QString("Content-Type").toLocal8Bit(),QString("multipart/form-data; boundary=" + bound).toLocal8Bit());
+    request.setRawHeader(QString("Content-Length").toLocal8Bit(), QString::number(data.length()).toLocal8Bit());
+    QNetworkReply *reply = networkManager->post(request,data);
+    while (!reply->isFinished())
+        QApplication::processEvents();
+    msgBox->close();
+    delete msgBox;
+    QMessageBox::information(this, "Update complete", "Remote database update complete.");
+
 }

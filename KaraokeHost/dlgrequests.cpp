@@ -28,6 +28,7 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     connect(requestsModel, SIGNAL(authenticationError()), this, SLOT(authError()));
     connect(requestsModel, SIGNAL(sslError()), this, SLOT(sslError()));
     connect(requestsModel, SIGNAL(delayError(int)), this, SLOT(delayError(int)));
+    connect(requestsModel, SIGNAL(acceptingReceived(bool)), ui->checkBoxAccepting, SLOT(setChecked(bool)));
     rotModel = rotationModel;
     ui->comboBoxAddPosition->setEnabled(false);
     ui->comboBoxSingers->setEnabled(true);
@@ -44,6 +45,7 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     ui->tableViewSearch->hideColumn(0);
     ui->tableViewSearch->hideColumn(5);
     ui->tableViewSearch->hideColumn(6);
+    requestsModel->getAccepting();
 }
 
 DlgRequests::~DlgRequests()
@@ -232,4 +234,9 @@ void DlgRequests::sslError()
 void DlgRequests::delayError(int seconds)
 {
     QMessageBox::warning(this, "Possible Connectivity Issue", "It has been " + QString::number(seconds) + " seconds since we last received a response from the requests server.  You may be missing new submitted requests.  Please ensure that your network connection is up and working.");
+}
+
+void DlgRequests::on_checkBoxAccepting_toggled(bool checked)
+{
+    requestsModel->setAccepting(checked);
 }
