@@ -157,7 +157,6 @@ void RequestsTableModel::onNetworkReply(QNetworkReply *reply)
     }
     else if (recordType == 4)
     {
-        curSerial = serial;
         bool accepting = json.object().value("accepting").toBool();
         emit acceptingReceived(accepting);
     }
