@@ -13,6 +13,7 @@ DbTableModel::DbTableModel(QObject *parent, QSqlDatabase db) :
     discIdOrder = "ASC";
     durationOrder = "ASC";
     select();
+    search("yeahjustsomethingitllneverfind.imlazylikethat");
 }
 
 

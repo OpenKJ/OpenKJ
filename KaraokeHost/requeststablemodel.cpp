@@ -113,6 +113,7 @@ void RequestsTableModel::onNetworkReply(QNetworkReply *reply)
             requests << Request(index,singer,artist,title,reqtime);
         }
         emit layoutChanged();
+        getAccepting();
     }
     else if (recordType == 2)
     {
@@ -328,7 +329,6 @@ void RequestsTableModel::forceFullUpdate()
     request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
     m_clearingCache = true;
     networkManager->get(request);
-    getAccepting();
 }
 
 void RequestsTableModel::getAccepting()

@@ -2,6 +2,7 @@
 #define KHREQUESTSDIALOG_H
 
 #include <QDialog>
+#include <QItemSelection>
 #include "requeststablemodel.h"
 //#include "songdbtablemodel.h"
 #include "dbtablemodel.h"
@@ -30,9 +31,8 @@ private slots:
     void on_pushButtonSearch_clicked();
 
     void on_lineEditSearch_returnPressed();
-    void requestSelectionChanged(const QModelIndex & current, const QModelIndex & previous);
-    void songSelectionChanged(const QModelIndex & current, const QModelIndex & previous);
-
+    void requestSelectionChanged(const QItemSelection & current, const QItemSelection & previous);
+    void songSelectionChanged(const QItemSelection & current, const QItemSelection & previous);
     void on_radioButtonExistingSinger_toggled(bool checked);
 
     void on_pushButtonClearReqs_clicked();

@@ -22,8 +22,10 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     ui->tableViewSearch->setModel(dbModel);
     ui->tableViewSearch->setItemDelegate(dbDelegate);
     cdgPreviewDialog = new DlgCdgPreview(this);
-    connect(ui->treeViewRequests->selectionModel(), SIGNAL(currentRowChanged(QModelIndex,QModelIndex)), this, SLOT(requestSelectionChanged(QModelIndex,QModelIndex)));
-    connect(ui->tableViewSearch->selectionModel(), SIGNAL(currentRowChanged(QModelIndex,QModelIndex)), this, SLOT(songSelectionChanged(QModelIndex,QModelIndex)));
+    ui->groupBoxAddSong->setDisabled(true);
+    ui->groupBoxSongDb->setDisabled(true);
+    connect(ui->treeViewRequests->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(requestSelectionChanged(QItemSelection,QItemSelection)));
+    connect(ui->tableViewSearch->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(songSelectionChanged(QItemSelection,QItemSelection)));
     connect(requestsModel, SIGNAL(updateReceived(QTime)), this, SLOT(updateReceived(QTime)));
     connect(requestsModel, SIGNAL(authenticationError()), this, SLOT(authError()));
     connect(requestsModel, SIGNAL(sslError()), this, SLOT(sslError()));
@@ -79,31 +81,59 @@ void DlgRequests::on_lineEditSearch_returnPressed()
     dbModel->search(ui->lineEditSearch->text());
 }
 
-void DlgRequests::requestSelectionChanged(const QModelIndex &current, const QModelIndex &previous)
+void DlgRequests::requestSelectionChanged(const QItemSelection &current, const QItemSelection &previous)
 {
-    Q_UNUSED(previous);
-    if ((current.isValid()) && (ui->treeViewRequests->selectionModel()->selectedIndexes().size() > 0))
+    ui->groupBoxAddSong->setDisabled(true);
+    if (current.indexes().size() == 0)
     {
-//        ui->comboBoxSingers->clear();
-//        ui->comboBoxSingers->addItems(rotSingers->getSingerList());
-//        QString filterStr = current.sibling(current.row(),2).data().toString() + " " + current.sibling(current.row(),3).data().toString();
-//        songDbModel->applyFilter(filterStr);
-//        ui->lineEditSearch->setText(filterStr);
-//        ui->treeViewSearch->header()->resizeSections(QHeaderView::Stretch);
+        dbModel->search("yeahjustsomethingitllneverfind.imlazylikethat");
+        ui->groupBoxSongDb->setDisabled(true);
+        return;
     }
+    QModelIndex index = current.indexes().at(0);
+    Q_UNUSED(previous);
+    if ((index.isValid()) && (ui->treeViewRequests->selectionModel()->selectedIndexes().size() > 0))
+    {
+        ui->groupBoxSongDb->setEnabled(true);
+        ui->comboBoxSingers->clear();
+        QString singerName = index.sibling(index.row(),1).data().toString();
+        QStringList singers = rotModel->singers();
+        ui->comboBoxSingers->addItems(singers);
 
+        QString filterStr = index.sibling(index.row(),2).data().toString() + " " + index.sibling(index.row(),3).data().toString();
+        dbModel->search(filterStr);
+        ui->lineEditSearch->setText(filterStr);
+        ui->lineEditSingerName->setText(singerName);
+
+        int s = -1;
+        for (int i=0; i < singers.size(); i++)
+        {
+            if (singers.at(i).toLower() == singerName.toLower())
+            {
+                s = i;
+                break;
+            }
+        }
+        if (s != -1)
+        {
+            ui->comboBoxSingers->setCurrentIndex(s);
+        }
+    }
+    else
+    {
+        dbModel->search("yeahjustsomethingitllneverfind.imlazylikethat");
+    }
 }
 
-void DlgRequests::songSelectionChanged(const QModelIndex &current, const QModelIndex &previous)
+void DlgRequests::songSelectionChanged(const QItemSelection &current, const QItemSelection &previous)
 {
     Q_UNUSED(previous);
-    if (current.isValid())
+    if (current.indexes().size() == 0)
     {
-//        if (ui->treeViewSearch->selectionModel()->selectedIndexes().size() > 0)
-//            ui->groupBoxAddSong->setEnabled(true);
-//        else
-//            ui->groupBoxAddSong->setEnabled(false);
+        ui->groupBoxAddSong->setDisabled(true);
     }
+    else
+        ui->groupBoxAddSong->setEnabled(true);
 }
 
 void DlgRequests::on_radioButtonExistingSinger_toggled(bool checked)
@@ -134,32 +164,6 @@ void DlgRequests::on_treeViewRequests_clicked(const QModelIndex &index)
     if (index.column() == 5)
     {
         requestsModel->deleteRequestId(index.sibling(index.row(),0).data().toInt());
-    }
-    else
-    {
-        ui->comboBoxSingers->clear();
-        QString singerName = index.sibling(index.row(),1).data().toString();
-        QStringList singers = rotModel->singers();
-        ui->comboBoxSingers->addItems(singers);
-
-        QString filterStr = index.sibling(index.row(),2).data().toString() + " " + index.sibling(index.row(),3).data().toString();
-        dbModel->search(filterStr);
-        ui->lineEditSearch->setText(filterStr);
-        ui->lineEditSingerName->setText(singerName);
-
-        int s = -1;
-        for (int i=0; i < singers.size(); i++)
-        {
-            if (singers.at(i).toLower() == singerName.toLower())
-            {
-                s = i;
-                break;
-            }
-        }
-        if (s != -1)
-        {
-            ui->comboBoxSingers->setCurrentIndex(s);
-        }
     }
 }
 
