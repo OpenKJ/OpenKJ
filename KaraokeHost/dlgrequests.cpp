@@ -24,6 +24,7 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     cdgPreviewDialog = new DlgCdgPreview(this);
     ui->groupBoxAddSong->setDisabled(true);
     ui->groupBoxSongDb->setDisabled(true);
+    requestsModel->getAccepting();
     connect(ui->treeViewRequests->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(requestSelectionChanged(QItemSelection,QItemSelection)));
     connect(ui->tableViewSearch->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(songSelectionChanged(QItemSelection,QItemSelection)));
     connect(requestsModel, SIGNAL(updateReceived(QTime)), this, SLOT(updateReceived(QTime)));
@@ -47,7 +48,6 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     ui->tableViewSearch->hideColumn(0);
     ui->tableViewSearch->hideColumn(5);
     ui->tableViewSearch->hideColumn(6);
-    requestsModel->getAccepting();
 }
 
 DlgRequests::~DlgRequests()
@@ -240,7 +240,7 @@ void DlgRequests::delayError(int seconds)
     QMessageBox::warning(this, "Possible Connectivity Issue", "It has been " + QString::number(seconds) + " seconds since we last received a response from the requests server.  You may be missing new submitted requests.  Please ensure that your network connection is up and working.");
 }
 
-void DlgRequests::on_checkBoxAccepting_toggled(bool checked)
+void DlgRequests::on_checkBoxAccepting_clicked(bool checked)
 {
     requestsModel->setAccepting(checked);
 }
