@@ -31,7 +31,6 @@
 #include "dbtablemodel.h"
 #include "pltablemodel.h"
 #include "plitemdelegate.h"
-#include "audiopasshtru.h"
 #include <QSqlTableModel>
 
 
@@ -58,7 +57,6 @@ private:
     PlItemDelegate *plDelegate;
     QSqlTableModel *playlistsModel;
     BmAudioBackendGStreamer *mPlayer;
-    audioPasshtru *passthru;
     int currentPosition;
     int currentPlaylist;
     bool playlistExists(QString name);
@@ -88,10 +86,6 @@ private slots:
     void on_tableViewPlaylist_clicked(const QModelIndex &index);
     void on_comboBoxPlaylists_currentIndexChanged(int index);
     void on_checkBoxBreak_toggled(bool checked);
-
-    void on_pushButtonPassthruEnable_clicked(bool checked);
-
-    void on_comboBoxPassthruSrc_currentIndexChanged(const QString &arg1);
 
 public slots:
     void onActionManageDatabase();

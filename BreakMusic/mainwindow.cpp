@@ -43,7 +43,6 @@ MainWindow::MainWindow(QWidget *parent) :
     mPlayer = new BmAudioBackendGStreamer(this);
     mPlayer->setUseFader(true);
     mPlayer->setUseSilenceDetection(true);
-    passthru = new audioPasshtru(this);
     ipcServer = new BmIPCServer("bmControl",this); 
     QCoreApplication::setOrganizationName("OpenKJ");
     QCoreApplication::setOrganizationDomain("OpenKJ.org");
@@ -99,8 +98,6 @@ MainWindow::MainWindow(QWidget *parent) :
     showMetadata(settings->showMetadata());
     ui->tableViewDB->horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
     mPlayer->setVolume(settings->volume());
-
-    ui->comboBoxPassthruSrc->addItems(passthru->inputDevices());
 
     connect(ipcServer, SIGNAL(messageReceived(int)), this, SLOT(ipcMessageReceived(int)));
     connect(ui->actionShow_Filenames, SIGNAL(triggered(bool)), this, SLOT(showFilenames(bool)));
@@ -494,22 +491,3 @@ void MainWindow::on_checkBoxBreak_toggled(bool checked)
     ui->labelNext->setText(nextSong);
 }
 
-void MainWindow::on_pushButtonPassthruEnable_clicked(bool checked)
-{
-    ui->comboBoxPassthruSrc->setDisabled(checked);
-    if (checked)
-    {
-        passthru->enable();
-        ui->pushButtonPassthruEnable->setText("Disable");
-    }
-    else
-    {
-        passthru->disable();
-        ui->pushButtonPassthruEnable->setText("Enable");
-    }
-}
-
-void MainWindow::on_comboBoxPassthruSrc_currentIndexChanged(const QString &arg1)
-{
-    passthru->setInputDevice(arg1);
-}
