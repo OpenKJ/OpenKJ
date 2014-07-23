@@ -377,7 +377,6 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
 {
     if (index.column() == 4)
     {
-        // Deleting singer
         QMessageBox msgBox(this);
         msgBox.setText("Are you sure you want to remove this singer?");
         msgBox.setInformativeText("Unless this singer is a tracked regular, you will be unable retrieve any queue data for this singer once they are deleted.");
@@ -405,12 +404,9 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
         {
             QString name = index.sibling(index.row(),1).data().toString();
             if (rotModel->regularExists(name))
-            {
                 QMessageBox::warning(this, "Naming conflict!","A regular singer named " + name + " already exists. You must either rename or delete the existing regular singer, or rename the singer being saved as a regular. The operation has been cancelled.",QMessageBox::Ok);
-                return;
-            }
-            rotModel->singerMakeRegular(index.sibling(index.row(),0).data().toInt());
-            return;
+            else
+                rotModel->singerMakeRegular(index.sibling(index.row(),0).data().toInt());
         }
         else
         {
@@ -427,17 +423,6 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
         }
     }
     qModel->setSinger(index.sibling(index.row(),0).data().toInt());
-
-//    else if (rowclicked != index.row())
-//    {
-//        ui->tableViewQueue->clearSelection();
-//        int singerid = rotationmodel->getSingerByPosition(index.row() + 1)->index();
-//        qModel->setSinger(singerid);
-//        queuemodel->layoutAboutToBeChanged();
-//        rotationmodel->setSelectedSingerIndex(singerid);
-//        rowclicked = index.row();
-//        queuemodel->layoutChanged();
-//    }
 }
 
 void MainWindow::on_tableViewQueue_activated(const QModelIndex &index)

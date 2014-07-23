@@ -202,7 +202,7 @@ void DlgRequests::on_pushButtonAddSong_clicked()
     }
 }
 
-void DlgRequests::on_treeViewSearch_customContextMenuRequested(const QPoint &pos)
+void DlgRequests::on_tableViewSearch_customContextMenuRequested(const QPoint &pos)
 {
     QModelIndex index = ui->tableViewSearch->indexAt(pos);
     if (index.isValid())

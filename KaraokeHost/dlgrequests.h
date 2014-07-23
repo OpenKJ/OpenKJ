@@ -41,7 +41,7 @@ private slots:
 
     void on_pushButtonAddSong_clicked();
 
-    void on_treeViewSearch_customContextMenuRequested(const QPoint &pos);
+    void on_tableViewSearch_customContextMenuRequested(const QPoint &pos);
     void updateReceived(QTime updateTime);
 
     void on_buttonRefresh_clicked();
