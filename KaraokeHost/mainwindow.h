@@ -137,7 +137,7 @@ private:
     KhIPCClient *ipcClient;
     QLabel *labelSingerCount;
     bool sliderPositionPressed;
-    void play(QString zipFilePath);
+    void play(QString karaokeFilePath);
     int m_rtClickQueueSongId;
     int m_rtClickRotationSingerId;
     QTemporaryDir *khTmpDir;

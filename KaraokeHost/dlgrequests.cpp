@@ -208,7 +208,7 @@ void DlgRequests::on_tableViewSearch_customContextMenuRequested(const QPoint &po
     if (index.isValid())
     {
         QString zipPath = index.sibling(index.row(),5).data().toString();
-        cdgPreviewDialog->setZipFile(zipPath);
+        cdgPreviewDialog->setSourceFile(zipPath);
         QMenu contextMenu(this);
         contextMenu.addAction("Preview", cdgPreviewDialog, SLOT(preview()));
         contextMenu.exec(QCursor::pos());

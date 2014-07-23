@@ -226,46 +226,88 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->statusBar->addWidget(labelSingerCount);
 }
 
-void MainWindow::play(QString zipFilePath)
+void MainWindow::play(QString karaokeFilePath)
 {
     if (activeAudioBackend->state() != KhAbstractAudioBackend::PausedState)
     {
         if (activeAudioBackend->state() == KhAbstractAudioBackend::PlayingState)
             activeAudioBackend->stop();
-        KhZip zip(zipFilePath);
-        int duration = zip.getSongDuration();
-        bool cdgOk = zip.extractCdg(QDir(khTmpDir->path()));
-        bool mp3Ok = zip.extractMp3(QDir(khTmpDir->path()));
-        if (mp3Ok && cdgOk)
+        bool cdgOk = false;
+        bool mp3Ok = false;
+        if (karaokeFilePath.endsWith(".zip", Qt::CaseInsensitive))
         {
-            QFile cdgFile(khTmpDir->path() + QDir::separator() + "tmp.cdg");
-            if (cdgFile.size() == 0)
+            KhZip zip(karaokeFilePath);
+            cdgOk = zip.extractCdg(QDir(khTmpDir->path()));
+            mp3Ok = zip.extractMp3(QDir(khTmpDir->path()));
+            if (mp3Ok && cdgOk)
+            {
+                QFile cdgFile(khTmpDir->path() + QDir::separator() + "tmp.cdg");
+                if (cdgFile.size() == 0)
+                {
+                    QMessageBox::warning(this, tr("Bad karaoke file"), tr("CDG file contains no data"),QMessageBox::Ok);
+                    return;
+                }
+                QFile mp3File(khTmpDir->path() + QDir::separator() + "tmp.mp3");
+                if (mp3File.size() == 0)
+                {
+                    QMessageBox::warning(this, tr("Bad karaoke file"), tr("mp3 file contains no data"),QMessageBox::Ok);
+                    return;
+                }
+
+                cdg->FileOpen(khTmpDir->path().toStdString() + QDir::separator().toLatin1() + "tmp.cdg");
+                cdg->Process();
+                activeAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + "tmp.mp3");
+                ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
+                activeAudioBackend->play();
+            }
+            else
+            {
+                QMessageBox::warning(this, tr("Bad karaoke file"),tr("Zip file does not contain a valid karaoke track.  CDG or mp3 file missing."),QMessageBox::Ok);
+            }
+        }
+        else if (karaokeFilePath.endsWith(".cdg", Qt::CaseInsensitive))
+        {
+            QFile cdgFile(karaokeFilePath);
+            if (!cdgFile.exists())
+            {
+                QMessageBox::warning(this, tr("Bad karaoke file"), tr("CDG file missing."),QMessageBox::Ok);
+                return;
+            }
+            else if (cdgFile.size() == 0)
             {
                 QMessageBox::warning(this, tr("Bad karaoke file"), tr("CDG file contains no data"),QMessageBox::Ok);
                 return;
             }
-            QFile mp3File(khTmpDir->path() + QDir::separator() + "tmp.mp3");
+            QString mp3fn;
+            QString baseFn = karaokeFilePath;
+            baseFn.chop(3);
+            if (QFile::exists(baseFn + "mp3"))
+                mp3fn = baseFn + "mp3";
+            else if (QFile::exists(baseFn + "Mp3"))
+                mp3fn = baseFn + "Mp3";
+            else if (QFile::exists(baseFn + "MP3"))
+                mp3fn = baseFn + "MP3";
+            else if (QFile::exists(baseFn + "mP3"))
+                mp3fn = baseFn + "mP3";
+            else
+            {
+                QMessageBox::warning(this, tr("Bad karaoke file"), tr("mp3 file missing."),QMessageBox::Ok);
+                return;
+            }
+            QFile mp3File(mp3fn);
             if (mp3File.size() == 0)
             {
                 QMessageBox::warning(this, tr("Bad karaoke file"), tr("mp3 file contains no data"),QMessageBox::Ok);
                 return;
             }
-
-            cdg->FileOpen(khTmpDir->path().toStdString() + QDir::separator().toLatin1() + "tmp.cdg");
+            cdg->FileOpen(cdgFile.fileName().toStdString());
             cdg->Process();
-            activeAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + "tmp.mp3");
+            activeAudioBackend->setMedia(mp3fn);
             ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
             activeAudioBackend->play();
-//            if (settings->recordingEnabled())
-//                audioRecorder->record(rotationmodel->getCurrent()->name() + " - " + songCurrent->Artist + " - " + songCurrent->Title);
-//            ui->labelArtist->setText(songCurrent->Artist);
-//            ui->labelTitle->setText(songCurrent->Title);
-            qDebug() << "Duration from cdg: " << activeAudioBackend->msToMMSS(duration);
         }
         else
-        {
-            QMessageBox::warning(this, tr("Bad karaoke file"),tr("Zip file does not contain a valid karaoke track.  CDG or mp3 file missing."),QMessageBox::Ok);
-        }
+            return;
     }
     else if (activeAudioBackend->state() == KhAbstractAudioBackend::PausedState)
     {
@@ -711,7 +753,7 @@ void MainWindow::on_tableViewDB_customContextMenuRequested(const QPoint &pos)
     if (index.isValid())
     {
         QString zipPath = index.sibling(index.row(), 5).data().toString();
-        cdgPreviewDialog->setZipFile(zipPath);
+        cdgPreviewDialog->setSourceFile(zipPath);
         QMenu contextMenu(this);
         contextMenu.addAction("Preview", cdgPreviewDialog, SLOT(preview()));
         contextMenu.exec(QCursor::pos());
@@ -762,7 +804,7 @@ void MainWindow::on_tableViewQueue_customContextMenuRequested(const QPoint &pos)
         QString zipPath = index.sibling(index.row(), 6).data().toString();
         m_rtClickQueueSongId = index.sibling(index.row(), 0).data().toInt();
         dlgKeyChange->setActiveSong(m_rtClickQueueSongId);
-        cdgPreviewDialog->setZipFile(zipPath);
+        cdgPreviewDialog->setSourceFile(zipPath);
         QMenu contextMenu(this);
         contextMenu.addAction("Preview", cdgPreviewDialog, SLOT(preview()));
         contextMenu.addAction("Set Key Change", this, SLOT(setKeyChange()));

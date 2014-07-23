@@ -24,9 +24,9 @@ DlgCdgPreview::~DlgCdgPreview()
     delete cdg;
 }
 
-void DlgCdgPreview::setZipFile(QString zipFile)
+void DlgCdgPreview::setSourceFile(QString srcFile)
 {
-    m_zipFile = zipFile;
+    m_srcFile = srcFile;
 }
 
 void DlgCdgPreview::preview()
@@ -35,9 +35,11 @@ void DlgCdgPreview::preview()
     cdgPosition = 0;
     if (cdg->IsOpen()) cdg->VideoClose();
     setVisible(true);
+    if (m_srcFile.endsWith(".zip", Qt::CaseInsensitive))
+    {
     cdgTempDir = new QTemporaryDir();
-    KhZip zip(m_zipFile);
-    qDebug() << "Extracting " << m_zipFile;
+    KhZip zip(m_srcFile);
+    qDebug() << "Extracting " << m_srcFile;
     if (!zip.extractCdg(QDir(cdgTempDir->path())))
     {
         QMessageBox::warning(this, tr("Bad karaoke file"),tr("Zip file does not contain a valid karaoke track.  CDG file missing."),QMessageBox::Ok);
@@ -53,6 +55,18 @@ void DlgCdgPreview::preview()
     }
     qDebug() << "Opening cdg file " << cdgTempDir->path() << "/tmp.cdg";
     cdg->FileOpen(cdgTempDir->path().toStdString() + QDir::separator().toLatin1() + "tmp.cdg");
+    }
+    else if (m_srcFile.endsWith(".cdg", Qt::CaseInsensitive))
+    {
+        QFile cdgFile(m_srcFile);
+        if (cdgFile.size() == 0)
+        {
+            QMessageBox::warning(this, tr("Bad karaoke file"), tr("CDG file contains no data"),QMessageBox::Ok);
+            close();
+            return;
+        }
+        cdg->FileOpen(m_srcFile.toStdString());
+    }
     cdg->Process();
     timer->start(40);
     delete cdgTempDir;

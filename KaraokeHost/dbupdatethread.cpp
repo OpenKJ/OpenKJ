@@ -58,6 +58,13 @@ QStringList *DbUpdateThread::findKaraokeFiles(QString directory)
             QString filename = iterator.filePath();
             if (filename.endsWith(".zip",Qt::CaseInsensitive))
                 files->append(filename);
+            else if (filename.endsWith(".cdg", Qt::CaseInsensitive))
+            {
+                QString mp3filename = filename;
+                mp3filename.chop(3);
+                if ((QFile::exists(mp3filename + "mp3")) || (QFile::exists(mp3filename + "MP3")) || (QFile::exists(mp3filename + "Mp3")) || (QFile::exists(mp3filename + "mP3")))
+                    files->append(filename);
+            }
         }
     }
     return files;

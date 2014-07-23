@@ -19,7 +19,7 @@ class DlgCdgPreview : public QDialog
 public:
     explicit DlgCdgPreview(QWidget *parent = 0);
     ~DlgCdgPreview();
-    void setZipFile(QString zipFile);
+    void setSourceFile(QString srcFile);
 
 public slots:
     void preview();
@@ -31,7 +31,7 @@ private slots:
 
 private:
     Ui::DlgCdgPreview *ui;
-    QString m_zipFile;
+    QString m_srcFile;
     QTimer *timer;
     QTemporaryDir *cdgTempDir;
     CDG *cdg;
