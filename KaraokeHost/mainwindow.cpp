@@ -403,6 +403,12 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
     {
         if (!rotModel->singerIsRegular(index.sibling(index.row(),0).data().toInt()))
         {
+            QString name = index.sibling(index.row(),1).data().toString();
+            if (rotModel->regularExists(name))
+            {
+                QMessageBox::warning(this, "Naming conflict!","A regular singer named " + name + " already exists. You must either rename or delete the existing regular singer, or rename the singer being saved as a regular. The operation has been cancelled.",QMessageBox::Ok);
+                return;
+            }
             rotModel->singerMakeRegular(index.sibling(index.row(),0).data().toInt());
             return;
         }
