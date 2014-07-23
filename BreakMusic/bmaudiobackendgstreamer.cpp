@@ -28,26 +28,14 @@ BmAudioBackendGStreamer::BmAudioBackendGStreamer(QObject *parent) :
     rgVolume = gst_element_factory_make("rgvolume", "rgVolume");
     volumeElement = gst_element_factory_make("volume", "volumeElement");
     level = gst_element_factory_make("level", "level");
-    pitch = gst_element_factory_make("pitch", "pitch");
     playBin = gst_element_factory_make("playbin2", "playBin");
     filter = gst_element_factory_make("capsfilter", "filter");
     sinkBin = gst_bin_new("sinkBin");
     audioCapsStereo = gst_caps_new_simple("audio/x-raw-int","channels", G_TYPE_INT, 2, NULL);
     audioCapsMono = gst_caps_new_simple("audio/x-raw-int", "channels", G_TYPE_INT, 1, NULL);
     g_object_set(filter, "caps", audioCapsStereo, NULL);
-    if (!pitch)
-    {
-        qDebug() << "gst plugin 'pitch' not found, key changing disabled";
-        gst_bin_add_many(GST_BIN (sinkBin), rgVolume, audioConvert, filter, level, volumeElement, autoAudioSink, NULL);
-        gst_element_link_many(rgVolume, audioConvert, filter, level, volumeElement, autoAudioSink, NULL);
-        m_canKeyChange = false;
-    }
-    else
-    {
-        gst_bin_add_many(GST_BIN (sinkBin), rgVolume, audioConvert, pitch, audioConvert2, filter, level, volumeElement, autoAudioSink, NULL);
-        gst_element_link_many(rgVolume, audioConvert, audioConvert2, filter, level, volumeElement, autoAudioSink, NULL);
-        g_object_set(G_OBJECT(pitch), "pitch", 1.0, "tempo", 1.0, NULL);
-    }
+    gst_bin_add_many(GST_BIN (sinkBin), rgVolume, audioConvert, filter, level, volumeElement, autoAudioSink, NULL);
+    gst_element_link_many(rgVolume, audioConvert, filter, level, volumeElement, autoAudioSink, NULL);
     pad = gst_element_get_static_pad(rgVolume, "sink");
     ghostPad = gst_ghost_pad_new("sink", pad);
     gst_pad_set_active(ghostPad, true);
@@ -64,7 +52,7 @@ BmAudioBackendGStreamer::BmAudioBackendGStreamer(QObject *parent) :
     signalTimer = new QTimer(this);
     connect(signalTimer, SIGNAL(timeout()), this, SLOT(signalTimer_timeout()));
     connect(fader, SIGNAL(volumeChanged(int)), this, SLOT(faderChangedVolume(int)));
-    signalTimer->start(40);
+    signalTimer->start(100);
 
 
 }
@@ -171,61 +159,6 @@ QString BmAudioBackendGStreamer::backendName()
 bool BmAudioBackendGStreamer::stopping()
 {
     return false;
-}
-
-void BmAudioBackendGStreamer::keyChangerOn()
-{
-    BmAbstractAudioBackend::State curstate = state();
-    int pos = position();
-    qDebug() << "keyChangerOn() fired";
-    if (curstate != BmAbstractAudioBackend::StoppedState)
-    {
-        gst_element_set_state(playBin, GST_STATE_NULL);
-        while (state() != BmAbstractAudioBackend::StoppedState)
-            QApplication::processEvents();
-    }
-    gst_element_unlink(audioConvert,audioConvert2);
-    if (!gst_element_link(audioConvert,pitch))
-        qDebug() << "Failed to link audioConvert to pitch";
-    if (!gst_element_link(pitch,audioConvert2))
-        qDebug() << "Failed to link pitch to audioConvert2";
-    if (curstate != BmAbstractAudioBackend::StoppedState)
-    {
-        gst_element_set_state(playBin, GST_STATE_PLAYING);
-        while (state() != BmAbstractAudioBackend::PlayingState)
-            QApplication::processEvents();
-        setPosition(pos);
-        if (curstate == BmAbstractAudioBackend::PausedState)
-            pause();
-    }
-    m_keyChangerOn = true;
-}
-
-void BmAudioBackendGStreamer::keyChangerOff()
-{
-    BmAbstractAudioBackend::State curstate = state();
-    int pos = position();
-    qDebug() << "keyChangerOff() fired";
-    if (curstate != BmAbstractAudioBackend::StoppedState)
-    {
-        gst_element_set_state(playBin, GST_STATE_NULL);
-        while (state() != BmAbstractAudioBackend::StoppedState)
-            QApplication::processEvents();
-    }
-    gst_element_unlink(audioConvert,pitch);
-    gst_element_unlink(pitch,audioConvert2);
-    if (!gst_element_link(audioConvert,audioConvert2))
-        qDebug() << "Failed to link gstreamer elements";
-    if (curstate != BmAbstractAudioBackend::StoppedState)
-    {
-        gst_element_set_state(playBin, GST_STATE_PLAYING);
-        while (state() != BmAbstractAudioBackend::PlayingState)
-            QApplication::processEvents();
-        setPosition(pos);
-        if (curstate == BmAbstractAudioBackend::PausedState)
-            pause();
-    }
-    m_keyChangerOn = false;
 }
 
 void BmAudioBackendGStreamer::play()
@@ -357,18 +290,6 @@ void BmAudioBackendGStreamer::faderChangedVolume(int volume)
     emit volumeChanged(volume);
 }
 
-
-
-bool BmAudioBackendGStreamer::canPitchShift()
-{
-    return m_canKeyChange;
-}
-
-int BmAudioBackendGStreamer::pitchShift()
-{
-    return m_keyChange;
-}
-
 gfloat getPitchForSemitone(int semitone)
 {
     double pitch;
@@ -387,17 +308,6 @@ gfloat getPitchForSemitone(int semitone)
         pitch = 1.0;
     }
     return pitch;
-}
-
-void BmAudioBackendGStreamer::setPitchShift(int pitchShift)
-{
-    m_keyChange = pitchShift;
-    if ((pitchShift == 0) && (m_keyChangerOn))
-        keyChangerOff();
-    else if ((pitchShift != 0) && (!m_keyChangerOn))
-        keyChangerOn();
-    g_object_set(G_OBJECT(pitch), "pitch", getPitchForSemitone(pitchShift), "tempo", 1.0, NULL);
-    emit pitchChanged(pitchShift);
 }
 
 FaderGStreamer::FaderGStreamer(GstElement *GstVolumeElement, QObject *parent) :

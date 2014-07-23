@@ -53,7 +53,6 @@ private:
     GstElement *audioConvert2;
     GstElement *autoAudioSink;
     GstElement *rgVolume;
-    GstElement *pitch;
     GstElement *volumeElement;
     GstElement *level;
     GstElement *filter;
@@ -102,14 +101,6 @@ private slots:
     void signalTimer_timeout();
     void silenceDetectTimer_timeout();
     void faderChangedVolume(int volume);
-
-    // KhAbstractAudioBackend interface
-public:
-    bool canPitchShift();
-    int pitchShift();
-
-public slots:
-    void setPitchShift(int pitchShift);
 
     // KhAbstractAudioBackend interface
 public:
