@@ -1,5 +1,6 @@
 #include "pltablemodel.h"
 #include <QSqlQuery>
+#include <QDebug>
 
 PlTableModel::PlTableModel(QObject *parent, QSqlDatabase db) :
     QSqlRelationalTableModel(parent, db)
@@ -44,18 +45,24 @@ void PlTableModel::moveSong(int oldPosition, int newPosition)
 
 void PlTableModel::addSong(int songId)
 {
-    if (insertRow(rowCount())) {
-        int newRow = rowCount() - 1;
-        setData(index(newRow, 1), m_playlistId);
-        setData(index(newRow, 2), newRow);
-        setData(index(newRow, 3), songId);
-        setData(index(newRow, 4), songId);
-        setData(index(newRow, 5), songId);
-        setData(index(newRow, 6), songId);
-        setData(index(newRow, 7), songId);
-        submitAll();
-        select();
-    }
+    QSqlQuery query;
+    QString sIdStr = QString::number(songId);
+    QString sql = "INSERT INTO plsongs (playlist,position,artist,title,filename,duration,path) VALUES(" + QString::number(m_playlistId) + "," + QString::number(rowCount()) + "," + sIdStr + "," + sIdStr + "," + sIdStr + "," + sIdStr + "," + sIdStr + ")";
+    qDebug() << sql;
+    query.exec(sql);
+    select();
+    //    if (insertRow(rowCount())) {
+//        int newRow = rowCount() - 1;
+//        setData(index(newRow, 1), m_playlistId);
+//        setData(index(newRow, 2), newRow);
+//        setData(index(newRow, 3), songId);
+//        setData(index(newRow, 4), songId);
+//        setData(index(newRow, 5), songId);
+//        setData(index(newRow, 6), songId);
+//        setData(index(newRow, 7), songId);
+//        submitAll();
+//        select();
+//    }
 }
 
 void PlTableModel::insertSong(int songId, int position)
