@@ -10,6 +10,8 @@ TARGET = miniz
 TEMPLATE = lib
 CONFIG += staticlib
 
+QMAKE_CXXFLAGS += -fno-strict-aliasing
+
 SOURCES += miniz.cpp
 
 HEADERS += \
