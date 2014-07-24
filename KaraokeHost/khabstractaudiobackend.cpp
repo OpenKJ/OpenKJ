@@ -36,11 +36,7 @@ QString KhAbstractAudioBackend::msToMMSS(qint64 msec)
         sec = "0" + QString::number(seconds);
     else
         sec = QString::number(seconds);
-//    if (minutes < 10)
-//        min = "0" + QString::number(minutes);
-//    else
         min = QString::number(minutes);
-
         return QString(min + ":" + sec);
 }
 

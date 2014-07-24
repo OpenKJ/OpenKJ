@@ -35,13 +35,17 @@ class QGLCanvas : public QWidget
 #endif
 {
     Q_OBJECT
+
+private:
+    QImage img;
+
 public:
     explicit QGLCanvas(QWidget *parent = 0);
     void setImage(const QImage& image);
+
 protected:
     void paintEvent(QPaintEvent*);
-private:
-    QImage img;
+
 };
 
 #endif // QGLCANVAS_H

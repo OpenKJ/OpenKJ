@@ -34,6 +34,13 @@ class DlgRegularSingers : public QDialog
 {
     Q_OBJECT
 
+private:
+    int m_rtClickRegSingerId;
+    Ui::DlgRegularSingers *ui;
+    QSqlTableModel *regModel;
+    RegItemDelegate *regDelegate;
+    RotationModel *rotModel;
+
 public:
     explicit DlgRegularSingers(RotationModel *rotationModel, QWidget *parent = 0);
     ~DlgRegularSingers();
@@ -42,9 +49,6 @@ signals:
     void regularSingerDeleted(int regularID);
     void regularSingerRenamed(int regularID, QString newName);    
 
-public slots:
-    void regularsChanged();
-
 private slots:
     void on_btnClose_clicked();
     void on_tableViewRegulars_clicked(const QModelIndex &index);
@@ -52,12 +56,9 @@ private slots:
     void editSingerDuplicateError();
     void renameRegSinger();
 
-private:
-    int m_rtClickRegSingerId;
-    Ui::DlgRegularSingers *ui;
-    QSqlTableModel *regModel;
-    RegItemDelegate *regDelegate;
-    RotationModel *rotModel;
+public slots:
+    void regularsChanged();
+
 };
 
 #endif // REGULARSINGERSDIALOG_H

@@ -23,7 +23,6 @@
 #include <QTemporaryDir>
 #include <fstream>
 #include <QFile>
-
 #if defined(__GNUC__)
 #ifndef _FILE_OFFSET_BITS
 #define _FILE_OFFSET_BITS 64
@@ -32,9 +31,7 @@
 #define _LARGEFILE64_SOURCE 1
 #endif
 #endif
-
-#include "extern/miniz.c"
-
+#include "../miniz/miniz.h"
 
 KhZip::KhZip(QString zipFile, QObject *parent) :
     QObject(parent)

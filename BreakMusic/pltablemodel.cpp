@@ -1,3 +1,23 @@
+/*
+ * Copyright (c) 2013-2014 Thomas Isaac Lightburn
+ *
+ *
+ * This file is part of OpenKJ.
+ *
+ * OpenKJ is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "pltablemodel.h"
 #include <QSqlQuery>
 #include <QDebug>
@@ -51,18 +71,6 @@ void PlTableModel::addSong(int songId)
     qDebug() << sql;
     query.exec(sql);
     select();
-    //    if (insertRow(rowCount())) {
-//        int newRow = rowCount() - 1;
-//        setData(index(newRow, 1), m_playlistId);
-//        setData(index(newRow, 2), newRow);
-//        setData(index(newRow, 3), songId);
-//        setData(index(newRow, 4), songId);
-//        setData(index(newRow, 5), songId);
-//        setData(index(newRow, 6), songId);
-//        setData(index(newRow, 7), songId);
-//        submitAll();
-//        select();
-//    }
 }
 
 void PlTableModel::insertSong(int songId, int position)
@@ -104,7 +112,6 @@ bool PlTableModel::dropMimeData(const QMimeData *data, Qt::DropAction action, in
 {
     Q_UNUSED(action);
     Q_UNUSED(column);
-
     if (data->hasFormat("integer/queuepos"))
     {
         int droprow;
@@ -169,7 +176,6 @@ QMimeData *PlTableModel::mimeData(const QModelIndexList &indexes) const
     mimeData->setData("integer/queuepos", indexes.at(0).sibling(indexes.at(0).row(), 2).data().toByteArray().data());
     return mimeData;
 }
-
 
 Qt::ItemFlags PlTableModel::flags(const QModelIndex &index) const
 {

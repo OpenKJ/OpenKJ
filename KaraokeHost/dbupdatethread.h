@@ -28,27 +28,24 @@
 class DbUpdateThread : public QThread
 {
     Q_OBJECT
-public:
-    explicit DbUpdateThread(QObject *parent = 0);
-    void run();
-    
-    QString getPath() const;
-    void setPath(const QString &value);
-
-    int getPattern() const;
-    void setPattern(int value);
-
-    QStringList *findKaraokeFiles(QString directory);
-signals:
-    void threadFinished();
-    
-public slots:
-    
 
 private:
     QString path;
     int pattern;
     KhZip zip;
+
+public:
+    explicit DbUpdateThread(QObject *parent = 0);
+    void run();
+    QString getPath() const;
+    void setPath(const QString &value);
+    int getPattern() const;
+    void setPattern(int value);
+    QStringList *findKaraokeFiles(QString directory);
+
+signals:
+    void threadFinished();
+
 };
 
 #endif // DBUPDATETHREAD_H

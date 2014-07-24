@@ -44,12 +44,6 @@ KhIPCClient::~KhIPCClient() {
     m_socket = NULL;
 }
 
-//void KhIPCClient::send_MessageToServer(QString message) {
-//    m_socket->abort();
-//    m_message = message;
-//    m_socket->connectToServer(m_serverName);
-//}
-
 void KhIPCClient::send_MessageToServer(int command)
 {
     // m_socket->abort();

@@ -64,13 +64,11 @@ void DatabaseDialog::on_pushButtonUpdate_clicked()
         msgBox->setStandardButtons(0);
         msgBox->setText("Updating Database, please wait...");
         msgBox->show();
-
         DbUpdateThread thread;
         thread.setPath(pathsModel->data(pathsModel->index(selectedDirectoryIdx, 0)).toString());
         thread.start();
         while (thread.isRunning())
             QApplication::processEvents();
-
         msgBox->close();
         emit dbUpdated();
         delete msgBox;

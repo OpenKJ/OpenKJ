@@ -1,3 +1,23 @@
+/*
+ * Copyright (c) 2013-2014 Thomas Isaac Lightburn
+ *
+ *
+ * This file is part of OpenKJ.
+ *
+ * OpenKJ is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #ifndef KHAUDIOBACKENDGSTREAMER_H
 #define KHAUDIOBACKENDGSTREAMER_H
 
@@ -7,11 +27,18 @@
 #include <QTimer>
 #include <QThread>
 
-
-
 class FaderGStreamer : public QThread
 {
     Q_OBJECT
+
+private:
+    double m_targetVolume;
+    double m_preOutVolume;
+    GstElement *volumeElement;
+    bool fading;
+    void setVolume(double targetVolume);
+    double volume();
+
 public:
     explicit FaderGStreamer(GstElement *GstVolumeElement, QObject *parent = 0);
     void run();
@@ -27,24 +54,11 @@ signals:
 public slots:
     void setBaseVolume(int volume);
 
-private:
-    double m_targetVolume;
-    double m_preOutVolume;
-    GstElement *volumeElement;
-    bool fading;
-    void setVolume(double targetVolume);
-    double volume();
 };
 
 class KhAudioBackendGStreamer : public KhAbstractAudioBackend
 {
     Q_OBJECT
-public:
-    explicit KhAudioBackendGStreamer(QObject *parent = 0);
-    ~KhAudioBackendGStreamer();
-signals:
-
-public slots:
 
 private:
     GstElement *sinkBin;
@@ -76,9 +90,9 @@ private:
     int m_outputChannels;
     double m_currentRmsLevel;
 
-
-    // KhAbstractAudioBackend interface
 public:
+    explicit KhAudioBackendGStreamer(QObject *parent = 0);
+    ~KhAudioBackendGStreamer();
     int volume();
     qint64 position();
     bool isMuted();
@@ -88,6 +102,18 @@ public:
     bool stopping();
     void keyChangerOn();
     void keyChangerOff();
+    bool canPitchShift();
+    int pitchShift();
+    bool canDetectSilence();
+    bool isSilent();
+    bool canFade();
+    bool canDownmix();
+    bool downmixChangeRequiresRestart() { return false; }
+
+private slots:
+    void signalTimer_timeout();
+    void silenceDetectTimer_timeout();
+    void faderChangedVolume(int volume);
 
 public slots:
     void play();
@@ -97,44 +123,13 @@ public slots:
     void setPosition(qint64 position);
     void setVolume(int volume);
     void stop(bool skipFade = false);
-
-private slots:
-    void signalTimer_timeout();
-    void silenceDetectTimer_timeout();
-    void faderChangedVolume(int volume);
-
-    // KhAbstractAudioBackend interface
-public:
-    bool canPitchShift();
-    int pitchShift();
-
-public slots:
     void setPitchShift(int pitchShift);
-
-    // KhAbstractAudioBackend interface
-public:
-    bool canFade();
-
-public slots:
     void fadeOut();
     void fadeIn();
     void setUseFader(bool fade);
-
-    // KhAbstractAudioBackend interface
-public:
-    bool canDetectSilence();
-    bool isSilent();
-
-public slots:
     void setUseSilenceDetection(bool enabled);
-
-    // KhAbstractAudioBackend interface
-public:
-    bool canDownmix();
-    bool downmixChangeRequiresRestart() { return false; }
-
-public slots:
     void setDownmix(bool enabled);
+
 };
 
 #endif // KHAUDIOBACKENDGSTREAMER_H

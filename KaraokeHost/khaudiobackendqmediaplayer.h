@@ -20,7 +20,7 @@
 
 // This is pretty much a 1:1 wrapper for the QMediaPlayer functionality we use or might use
 // just to have it abstracted out so that the same abstract object type can be used in the
-// main program for other audio backends.  This is the default backend on all platforms.
+// main program for other audio backends.
 
 #ifndef KHAUDIOBACKENDQMEDIAPLAYER_H
 #define KHAUDIOBACKENDQMEDIAPLAYER_H
@@ -33,6 +33,13 @@
 class FaderQMediaPlayer : public QThread
 {
     Q_OBJECT
+
+private:
+    int m_targetVolume;
+    int m_preOutVolume;
+    QMediaPlayer *mPlayer;
+    bool fading;
+
 public:
     explicit FaderQMediaPlayer(QMediaPlayer *mediaPlayer, QObject *parent = 0);
     void run();
@@ -41,18 +48,9 @@ public:
     bool isFading();
     void restoreVolume();
 
-signals:
-
-private slots:
-
 public slots:
     void setBaseVolume(int volume);
 
-private:
-    int m_targetVolume;
-    int m_preOutVolume;
-    QMediaPlayer *mPlayer;
-    bool fading;
 };
 
 class KhAudioBackendQMediaPlayer : public KhAbstractAudioBackend
@@ -63,18 +61,10 @@ private:
     bool m_fade;
     bool m_stopping;
 
-
 public:
     explicit KhAudioBackendQMediaPlayer(QObject *parent = 0);
     ~KhAudioBackendQMediaPlayer();
     QString backendName() {return QString("QMediaPlayer");}
-signals:
-
-public slots:
-
-
-    // KhAbstractAudioBackend interface
-public:
     int volume();
     qint64 position();
     bool isMuted();
@@ -85,6 +75,9 @@ public:
     void setUseFader(bool fade) {m_fade = fade;}
     bool stopping() {return m_stopping;}
 
+private slots:
+    void qmStateChanged(QMediaPlayer::State qmstate);
+
 public slots:
     void play();
     void pause();
@@ -93,16 +86,8 @@ public slots:
     void setPosition(qint64 position);
     void setVolume(int volume);
     void stop(bool skipFade = false);
-
-
-    // KhAbstractAudioBackend interface
-public slots:
     void fadeOut();
     void fadeIn();
-
-private slots:
-    void qmStateChanged(QMediaPlayer::State qmstate);
-
 
 };
 

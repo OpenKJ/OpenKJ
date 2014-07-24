@@ -1,3 +1,23 @@
+/*
+ * Copyright (c) 2013-2014 Thomas Isaac Lightburn
+ *
+ *
+ * This file is part of OpenKJ.
+ *
+ * OpenKJ is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "requeststablemodel.h"
 #include <QDebug>
 #include <QUrl>
@@ -371,6 +391,7 @@ void Request::setRequestId(int requestId)
 {
     m_requestId = requestId;
 }
+
 int Request::timeStamp() const
 {
     return m_timeStamp;
@@ -380,6 +401,7 @@ void Request::setTimeStamp(int timeStamp)
 {
     m_timeStamp = timeStamp;
 }
+
 QString Request::artist() const
 {
     return m_artist;
@@ -389,6 +411,7 @@ void Request::setArtist(const QString &artist)
 {
     m_artist = artist;
 }
+
 QString Request::title() const
 {
     return m_title;
@@ -398,6 +421,7 @@ void Request::setTitle(const QString &title)
 {
     m_title = title;
 }
+
 QString Request::singer() const
 {
     return m_singer;

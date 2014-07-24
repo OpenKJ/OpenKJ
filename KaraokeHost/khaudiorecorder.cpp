@@ -1,3 +1,23 @@
+/*
+ * Copyright (c) 2013-2014 Thomas Isaac Lightburn
+ *
+ *
+ * This file is part of OpenKJ.
+ *
+ * OpenKJ is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "khaudiorecorder.h"
 #include <QAudioEncoderSettings>
 #include <QUrl>
@@ -7,7 +27,6 @@
 #include <QDateTime>
 
 extern KhSettings *settings;
-
 
 KhAudioRecorder::KhAudioRecorder(QObject *parent) :
     QObject(parent)
@@ -22,16 +41,6 @@ void KhAudioRecorder::record(QString filename)
 {
     outputFile = filename;
     qDebug() << "KhAudioRecorder::record(" << filename << ") called";
-//    qDebug() << "Recording to: " << QUrl::fromLocalFile(settings->recordingOutputDir() + QDir::separator() + filename).toString();
-////    audioRecorder->setAudioInput(settings->recordingInput());
-//    audioSettings.setCodec("audio/vorbis");
-//    audioSettings.setEncodingMode(QMultimedia::ConstantQualityEncoding);
-//    audioSettings.setQuality(QMultimedia::HighQuality);
-//    //audioSettings.setChannelCount(2);
-//    audioRecorder->setEncodingSettings(audioSettings, QVideoEncoderSettings(), "ogg");
-//    if (!audioRecorder->setOutputLocation(QUrl::fromLocalFile(settings->recordingOutputDir() + QDir::separator() + filename)))
-//        qDebug() << "Recording - Faile to set output location";
-//    audioRecorder->record();
     QAudioEncoderSettings audioSettings;
     audioSettings.setCodec(settings->recordingCodec());
     audioSettings.setQuality(QMultimedia::HighQuality);
@@ -78,5 +87,6 @@ void KhAudioRecorder::unpause()
 
 void KhAudioRecorder::audioRecorderError(QMediaRecorder::Error error)
 {
+    Q_UNUSED(error);
     qDebug() << "QAudioRecorder error: " << audioRecorder->errorString();
 }

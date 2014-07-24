@@ -35,6 +35,13 @@ class DlgCdg : public QDialog
 {
     Q_OBJECT
 
+private:
+    Ui::DlgCdg *ui;
+    QGLCanvas *canvas;
+    ScrollText *ticker;
+    bool m_fullScreen;
+    QRect m_lastSize;
+
 public:
     explicit DlgCdg(QWidget *parent = 0, Qt::WindowFlags f = 0);
     ~DlgCdg();
@@ -42,6 +49,9 @@ public:
     void makeFullscreen();
     void makeWindowed();
     void setTickerText(QString text);
+
+protected:
+    void mouseDoubleClickEvent(QMouseEvent *e);
 
 public slots:
     void setFullScreen(bool fullscreen);
@@ -53,19 +63,6 @@ public slots:
     void tickerBgColorChanged();
     void tickerEnableChanged();
 
-private:
-    Ui::DlgCdg *ui;
-    QGLCanvas *canvas;
-    ScrollText *ticker;
-
-private:
-    bool m_fullScreen;
-    QRect m_lastSize;
-//    KhSettings *settings;
-
-    // QWidget interface
-protected:
-    void mouseDoubleClickEvent(QMouseEvent *e);
 };
 
 #endif // CDGWINDOW_H

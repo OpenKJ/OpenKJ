@@ -56,12 +56,43 @@ namespace Ui {
 class MainWindow;
 }
 
-
-
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
     
+private:
+    Ui::MainWindow *ui;
+    QSqlDatabase *database;
+    DbTableModel *dbModel;
+    DbItemDelegate *dbDelegate;
+    QueueModel *qModel;
+    QueueItemDelegate *qDelegate;
+    RotationModel *rotModel;
+    RotationItemDelegate *rotDelegate;
+    DlgCdg *cdgWindow;
+    DlgDatabase *dbDialog;
+    DlgSettings *settingsDialog;
+    DlgRegularSingers *regularSingersDialog;
+    DlgRegularExport *regularExportDialog;
+    DlgRegularImport *regularImportDialog;
+    DlgKeyChange *dlgKeyChange;
+    DlgRequests *requestsDialog;
+    DlgCdgPreview *cdgPreviewDialog;
+    KhAbstractAudioBackend *activeAudioBackend;
+    KhAudioBackends *audioBackends;
+    KhAudioRecorder *audioRecorder;
+    KhIPCClient *ipcClient;
+    QLabel *labelSingerCount;
+    bool sliderPositionPressed;
+    void play(QString karaokeFilePath);
+    int m_rtClickQueueSongId;
+    int m_rtClickRotationSingerId;
+    QTemporaryDir *khTmpDir;
+    QDir *khDir;
+    CDG *cdg;
+    int sortColDB;
+    int sortDirDB;
+
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
@@ -112,40 +143,6 @@ private slots:
     void toggleQueuePlayed();
     void regularNameConflict(QString name);
     void regularAddError(QString errorText);
-
-private:
-    Ui::MainWindow *ui;
-    QSqlDatabase *database;
-    DbTableModel *dbModel;
-    DbItemDelegate *dbDelegate;
-    QueueModel *qModel;
-    QueueItemDelegate *qDelegate;
-    RotationModel *rotModel;
-    RotationItemDelegate *rotDelegate;
-    DlgCdg *cdgWindow;
-    DlgDatabase *dbDialog;
-    DlgSettings *settingsDialog;
-    DlgRegularSingers *regularSingersDialog;
-    DlgRegularExport *regularExportDialog;
-    DlgRegularImport *regularImportDialog;
-    DlgKeyChange *dlgKeyChange;
-    DlgRequests *requestsDialog;
-    DlgCdgPreview *cdgPreviewDialog;
-    KhAbstractAudioBackend *activeAudioBackend;
-    KhAudioBackends *audioBackends;
-    KhAudioRecorder *audioRecorder;
-    KhIPCClient *ipcClient;
-    QLabel *labelSingerCount;
-    bool sliderPositionPressed;
-    void play(QString karaokeFilePath);
-    int m_rtClickQueueSongId;
-    int m_rtClickRotationSingerId;
-    QTemporaryDir *khTmpDir;
-    QDir *khDir;
-    CDG *cdg;
-
-    int sortColDB;
-    int sortDirDB;
 
 };
 

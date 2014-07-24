@@ -50,8 +50,6 @@ DlgDatabase::~DlgDatabase()
     delete ui;
 }
 
-
-
 void DlgDatabase::on_buttonNew_clicked()
 {
     QString fileName = QFileDialog::getExistingDirectory(this);
@@ -151,11 +149,9 @@ void DlgDatabase::on_btnClearDatabase_clicked()
     msgBox.setText("Are you sure?");
     msgBox.setInformativeText("Clearing the song database will also clear the rotation and all saved regular singer data.  If you have not already done so, you may want to export your regular singers before performing this operation.  This operation can not be undone.");
     msgBox.setIcon(QMessageBox::Warning);
-    QPushButton *cancelButton = msgBox.addButton(QMessageBox::Cancel);
+    msgBox.addButton(QMessageBox::Cancel);
     QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
-
     msgBox.exec();
-
     if (msgBox.clickedButton() == yesButton) {
         QSqlQuery query;
         query.exec("DELETE FROM dbSongs");
@@ -165,8 +161,6 @@ void DlgDatabase::on_btnClearDatabase_clicked()
         query.exec("DELETE FROM rotationsingers");
         emit databaseCleared();
         QMessageBox::information(this, "Database cleared", "Song database, regular singers, and all rotation data has been cleared.");
-    } else if (msgBox.clickedButton() == cancelButton) {
-        // Cancelled
     }
 }
 

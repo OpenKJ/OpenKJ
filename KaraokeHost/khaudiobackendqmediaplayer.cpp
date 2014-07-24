@@ -22,7 +22,6 @@
 #include <QDebug>
 #include <QApplication>
 
-
 KhAudioBackendQMediaPlayer::KhAudioBackendQMediaPlayer(QObject *parent) :
     KhAbstractAudioBackend(parent)
 {
@@ -37,7 +36,6 @@ KhAudioBackendQMediaPlayer::KhAudioBackendQMediaPlayer(QObject *parent) :
     connect(mplayer, SIGNAL(mutedChanged(bool)), this, SIGNAL(mutedChanged(bool)));
     connect(mplayer, SIGNAL(positionChanged(qint64)), this, SIGNAL(positionChanged(qint64)));
     connect(mplayer, SIGNAL(stateChanged(QMediaPlayer::State)), this, SLOT(qmStateChanged(QMediaPlayer::State)));
-    //connect(mplayer, SIGNAL(stateChanged(KhAbstractAudioBackend::State)), this, SIGNAL(stateChanged(KhAbstractAudioBackend::State)));
     connect(mplayer, SIGNAL(volumeChanged(int)), this, SIGNAL(volumeChanged(int)));
     connect(mplayer, SIGNAL(volumeChanged(int)), fader, SLOT(setBaseVolume(int)));
     m_stopping = false;
@@ -49,7 +47,6 @@ KhAudioBackendQMediaPlayer::~KhAudioBackendQMediaPlayer()
     mplayer->setMedia(QMediaContent());
     delete mplayer;
 }
-
 
 int KhAudioBackendQMediaPlayer::volume()
 {
@@ -163,7 +160,6 @@ FaderQMediaPlayer::FaderQMediaPlayer(QMediaPlayer *mediaPlayer, QObject *parent)
 
 void FaderQMediaPlayer::run()
 {
-
     fading = true;
     qDebug() << "Fading - Current Volume: " << mPlayer->volume() << " Target Volume: " << m_targetVolume;
     while (mPlayer->volume() != m_targetVolume)
@@ -186,7 +182,6 @@ void FaderQMediaPlayer::fadeIn()
     }
     while(fading)
         QApplication::processEvents();
-
 }
 
 void FaderQMediaPlayer::fadeOut()

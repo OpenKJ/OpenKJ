@@ -48,13 +48,10 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
     QPalette palette = ticker->palette();
     palette.setColor(ticker->foregroundRole(), settings->tickerTextColor());
     ticker->setPalette(palette);
-
     palette = this->palette();
     palette.setColor(QPalette::Background, settings->tickerBgColor());
     this->setPalette(palette);
-
     ticker->setText("This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll");
-//    ui->verticalLayout->addWidget(ticker);
     ui->verticalLayout_2->addWidget(ticker);
 
     connect(settings, SIGNAL(tickerFontChanged()), this, SLOT(tickerFontChanged()));
@@ -63,7 +60,6 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
     connect(settings, SIGNAL(tickerTextColorChanged()), this, SLOT(tickerTextColorChanged()));
     connect(settings, SIGNAL(tickerBgColorChanged()), this, SLOT(tickerBgColorChanged()));
     connect(settings, SIGNAL(tickerEnableChanged()), this, SLOT(tickerEnableChanged()));
-
 }
 
 DlgCdg::~DlgCdg()
@@ -116,7 +112,6 @@ void DlgCdg::makeFullscreen()
 
 void DlgCdg::makeWindowed()
 {
-//    hide();
     setWindowFlags(Qt::Window | Qt::WindowStaysOnTopHint);
     resize(300, 216);
     settings->saveWindowState(this);
@@ -166,7 +161,6 @@ void DlgCdg::tickerSpeedChanged()
 
 void DlgCdg::tickerTextColorChanged()
 {
-    //ticker->palette().foreground().setColor(settings->tickerTextColor());
     QPalette palette = ticker->palette();
     palette.setColor(ticker->foregroundRole(), settings->tickerTextColor());
     ticker->setPalette(palette);

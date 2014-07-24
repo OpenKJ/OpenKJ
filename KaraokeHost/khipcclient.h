@@ -28,22 +28,6 @@
 class KhIPCClient : public QObject
 {
     Q_OBJECT
-public:
-    KhIPCClient(QString remoteServername, QObject *parent = 0);
-    ~KhIPCClient();
-    enum{CMD_NOOP=0,CMD_FADE_OUT,CMD_FADE_IN,CMD_STOP,CMD_PAUSE,CMD_PLAY};
-
-signals:
-
-public slots:
-//    void send_MessageToServer(QString message);
-    void send_MessageToServer(int command);
-
-    void socket_connected();
-    void socket_disconnected();
-
-    void socket_readReady();
-    void socket_error(QLocalSocket::LocalSocketError);
 
 private:
     QLocalSocket*   m_socket;
@@ -51,7 +35,19 @@ private:
     QString m_message;
     QString m_serverName;
     int m_command;
-    
+
+public:
+    KhIPCClient(QString remoteServername, QObject *parent = 0);
+    ~KhIPCClient();
+    enum{CMD_NOOP=0,CMD_FADE_OUT,CMD_FADE_IN,CMD_STOP,CMD_PAUSE,CMD_PLAY};
+
+public slots:
+    void send_MessageToServer(int command);
+    void socket_connected();
+    void socket_disconnected();
+    void socket_readReady();
+    void socket_error(QLocalSocket::LocalSocketError);
+
 };
 
 #endif // KHIPCCLIENT_H

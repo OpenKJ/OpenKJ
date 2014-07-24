@@ -1,3 +1,23 @@
+/*
+ * Copyright (c) 2013-2014 Thomas Isaac Lightburn
+ *
+ *
+ * This file is part of OpenKJ.
+ *
+ * OpenKJ is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "bmaudiobackendgstreamer.h"
 #include <QApplication>
 #include <QDebug>
@@ -6,8 +26,6 @@
 
 #define STUP 1.0594630943592952645618252949461
 #define STDN 0.94387431268169349664191315666784
-
-
 
 BmAudioBackendGStreamer::BmAudioBackendGStreamer(QObject *parent) :
     BmAbstractAudioBackend(parent)
@@ -53,8 +71,6 @@ BmAudioBackendGStreamer::BmAudioBackendGStreamer(QObject *parent) :
     connect(signalTimer, SIGNAL(timeout()), this, SLOT(signalTimer_timeout()));
     connect(fader, SIGNAL(volumeChanged(int)), this, SLOT(faderChangedVolume(int)));
     signalTimer->start(100);
-
-
 }
 
 BmAudioBackendGStreamer::~BmAudioBackendGStreamer()
@@ -239,7 +255,6 @@ void BmAudioBackendGStreamer::stop(bool skipFade)
 
 void BmAudioBackendGStreamer::signalTimer_timeout()
 {
-
     static int curDuration;
     if (duration() != curDuration)
     {
@@ -422,9 +437,6 @@ double FaderGStreamer::volume()
     g_object_get(G_OBJECT(volumeElement), "volume", &curVolume, NULL);
     return curVolume;
 }
-
-
-
 
 bool BmAudioBackendGStreamer::canFade()
 {

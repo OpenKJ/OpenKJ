@@ -1,3 +1,23 @@
+/*
+ * Copyright (c) 2013-2014 Thomas Isaac Lightburn
+ *
+ *
+ * This file is part of OpenKJ.
+ *
+ * OpenKJ is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #ifndef QUEUEMODEL_H
 #define QUEUEMODEL_H
 
@@ -8,7 +28,10 @@
 class QueueModel : public QSqlRelationalTableModel
 {
     Q_OBJECT
+
+private:
     int m_singerId;
+
 public:
     explicit QueueModel(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
     void setSinger(int singerId);
@@ -29,6 +52,10 @@ public:
     Qt::DropActions supportedDropActions() const;
     QMimeData *mimeData(const QModelIndexList &indexes) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
+    void sort(int column, Qt::SortOrder order);
+
+protected:
+    QString orderByClause() const;
 
 signals:
     void queueModified(int singerId);
@@ -36,14 +63,6 @@ signals:
 public slots:
     void songAdd(int songId, int singerId);
 
-
-    // QAbstractItemModel interface
-public:
-    void sort(int column, Qt::SortOrder order);
-
-    // QSqlTableModel interface
-protected:
-    QString orderByClause() const;
 };
 
 #endif // QUEUEMODEL_H

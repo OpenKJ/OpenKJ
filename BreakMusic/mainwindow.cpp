@@ -83,7 +83,6 @@ MainWindow::MainWindow(QWidget *parent) :
     dbDelegate = new DbItemDelegate(this);
     ui->tableViewDB->setModel(dbModel);
     ui->tableViewDB->setItemDelegate(dbDelegate);
-
     ui->tableViewPlaylist->setModel(plModel);
     plDelegate = new PlItemDelegate(this);
     ui->tableViewPlaylist->setItemDelegate(plDelegate);
@@ -101,9 +100,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewPlaylist->horizontalHeader()->setSectionResizeMode(7, QHeaderView::Fixed);
     ui->tableViewPlaylist->horizontalHeader()->resizeSection(7,25);
     ui->tableViewPlaylist->horizontalHeader()->setSectionResizeMode(6, QHeaderView::ResizeToContents);
-
-//    showFilenames(settings->showFilenames());
-//    showMetadata(settings->showMetadata());
     mPlayer->setVolume(settings->volume());
 
     connect(ipcServer, SIGNAL(messageReceived(int)), this, SLOT(ipcMessageReceived(int)));
@@ -116,8 +112,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(mPlayer, SIGNAL(volumeChanged(int)), ui->sliderVolume, SLOT(setValue(int)));
     connect(dbDialog, SIGNAL(dbUpdated()), this, SLOT(dbUpdated()));
     connect(dbDialog, SIGNAL(dbCleared()), this, SLOT(dbCleared()));
-
-
 }
 
 MainWindow::~MainWindow()
@@ -374,7 +368,6 @@ void MainWindow::on_actionExport_Playlist_triggered()
             QMessageBox::warning(this, tr("Error saving file"), tr("Unable to open selected file for writing.  Please verify that you have the proper permissions to write to that location."),QMessageBox::Close);
             return;
         }
-
         QTextStream out(&file);
         for (int i=0; i < plModel->rowCount(); i++)
         {
@@ -465,7 +458,6 @@ void MainWindow::mediaStateChanged(BmAbstractAudioBackend::State newState)
             plModel->select();
         }
     }
-
 }
 
 void MainWindow::dbUpdated()

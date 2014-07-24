@@ -116,19 +116,6 @@ DlgSettings::DlgSettings(KhAudioBackends *AudioBackends, QWidget *parent) :
     connect(networkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
     connect(networkManager, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(onSslErrors(QNetworkReply*)));
     connect(networkManager, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)), this, SLOT(setAuth(QNetworkReply*,QAuthenticator*)));
-//    ui->checkBoxSilenceDetection->setHidden(!audioBackend->canDetectSilence());
-//    ui->checkBoxDownmix->setHidden(!audioBackend->canDownmix());
-//    ui->checkBoxFader->setHidden(!audioBackend->canFade());
-//    ui->listWidgetAudioDevices->addItems(audioBackend->getOutputDevices());
-//    if (audioBackend->getOutputDevices().contains(settings->audioOutputDevice()))
-//    {
-//        ui->listWidgetAudioDevices->findItems(settings->audioOutputDevice(),Qt::MatchExactly).at(0)->setSelected(true);
-//    }
-//    else
-//        ui->listWidgetAudioDevices->item(0)->setSelected(true);
-
-
-
 
     pageSetupDone = true;
 }
@@ -266,8 +253,6 @@ void DlgSettings::on_pushButtonTextColor_clicked()
         palette.setColor(ui->pushButtonTextColor->backgroundRole(), color);
         ui->pushButtonTextColor->setPalette(palette);
     }
-
-//    QColor color = QColorDialog::getColor()
 }
 
 void DlgSettings::on_pushButtonBgColor_clicked()
@@ -505,21 +490,18 @@ void DlgSettings::on_pushButtonUpdateRemoteDb_clicked()
     xml.writeEndElement();
     xml.writeEndDocument();
     xmlFile.close();
-
     msgBox->setInformativeText("Uploading data to server...");
-
-    QString path("E:\\QT_playing\\TestingHttpRequests\\debug\\Chrysanthemum.jpg");
     QNetworkRequest request(QUrl(settings->requestServerUrl() + "/updateSongs.php"));
     QString bound="margin";
     QByteArray data(QString("--" + bound + "\r\n").toLocal8Bit());
     data.append("Content-Disposition: form-data; name=\"action\"\r\n\r\n");
-    data.append("updateSongs.php\r\n");   //our script's name, as I understood. Please, correct me if I'm wrong
-    data.append("--" + bound + "\r\n");   //according to rfc 1867
+    data.append("updateSongs.php\r\n");
+    data.append("--" + bound + "\r\n");
     data.append("Content-Disposition: form-data; name=\"uploaded\"; filename=\"songData.xml\"\r\n");
-    data.append("Content-Type: text/xml\r\n\r\n"); //data type
+    data.append("Content-Type: text/xml\r\n\r\n");
     if (!xmlFile.open(QIODevice::ReadOnly))
         return;
-    data.append(xmlFile.readAll());   //let's read the file
+    data.append(xmlFile.readAll());
     data.append("\r\n");
     data.append("--" + bound + "--\r\n");
     request.setRawHeader(QString("Content-Type").toLocal8Bit(),QString("multipart/form-data; boundary=" + bound).toLocal8Bit());
@@ -530,5 +512,4 @@ void DlgSettings::on_pushButtonUpdateRemoteDb_clicked()
     msgBox->close();
     delete msgBox;
     QMessageBox::information(this, "Update complete", "Remote database update complete.");
-
 }

@@ -637,7 +637,6 @@ void MainWindow::audioBackend_stateChanged(KhAbstractAudioBackend::State state)
         ui->labelRemainTime->setText("0:00");
         ui->labelTotalTime->setText("0:00");
         ui->sliderProgress->setValue(0);
-        //ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
         QImage cdgBg;
         if (settings->cdgDisplayBackgroundImage() != "")
         {
@@ -675,7 +674,6 @@ void MainWindow::audioBackend_stateChanged(KhAbstractAudioBackend::State state)
 void MainWindow::on_sliderProgress_sliderMoved(int position)
 {
     Q_UNUSED(position);
-   // audioBackend->setPosition(position);
 }
 
 void MainWindow::on_buttonRegulars_clicked()

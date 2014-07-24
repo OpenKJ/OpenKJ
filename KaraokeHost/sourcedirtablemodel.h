@@ -26,6 +26,11 @@
 
 class SourceDir
 {
+private:
+    int index;
+    QString path;
+    int pattern;
+
 public:
     enum {DAT=0,DTA,ATD,TAD,AT,TA};
     SourceDir() {
@@ -34,22 +39,21 @@ public:
     }
     int getPattern() const;
     void setPattern(int value);
-
     QString getPath() const;
     void setPath(const QString &value);
-
     int getIndex() const;
     void setIndex(int value);
 
-private:
-    int index;
-    QString path;
-    int pattern;
 };
 
 class SourceDirTableModel : public QAbstractTableModel
 {
     Q_OBJECT
+
+private:
+    QList<SourceDir *> *mydata;
+    void addSourceDir(SourceDir *dir);
+
 public:
     explicit SourceDirTableModel(QObject *parent = 0);
     ~SourceDirTableModel();
@@ -62,21 +66,11 @@ public:
     void addSourceDir(QString dirpath, int pattern);
     void delSourceDir(int index);
     int size();
-
-
     void loadFromDB();
     QSqlDatabase *getDBObject() const;
     void setDBObject(QSqlDatabase *value);
     void clear();
     SourceDir *getDirByIndex(int index);
-
-private:
-    QList<SourceDir *> *mydata;
-    void addSourceDir(SourceDir *dir);
-    
-signals:
-    
-public slots:
     
 };
 

@@ -1,3 +1,23 @@
+/*
+ * Copyright (c) 2013-2014 Thomas Isaac Lightburn
+ *
+ *
+ * This file is part of OpenKJ.
+ *
+ * OpenKJ is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "khaudiobackendgstreamer.h"
 #include <QApplication>
 #include <QDebug>
@@ -57,9 +77,7 @@ KhAudioBackendGStreamer::KhAudioBackendGStreamer(QObject *parent) :
     g_object_set(G_OBJECT(rgVolume), "album-mode", false, NULL);
     g_object_set(G_OBJECT (level), "message", TRUE, NULL);
     bus = gst_element_get_bus (playBin);
-
     fader = new FaderGStreamer(volumeElement, this);
-//    fader->setVolumeElement(volumeElement);
     silenceDetectTimer = new QTimer(this);
     connect(silenceDetectTimer, SIGNAL(timeout()), this, SLOT(silenceDetectTimer_timeout()));
     silenceDetectTimer->start(1000);
@@ -67,8 +85,6 @@ KhAudioBackendGStreamer::KhAudioBackendGStreamer(QObject *parent) :
     connect(signalTimer, SIGNAL(timeout()), this, SLOT(signalTimer_timeout()));
     connect(fader, SIGNAL(volumeChanged(int)), this, SLOT(faderChangedVolume(int)));
     signalTimer->start(40);
-
-
 }
 
 KhAudioBackendGStreamer::~KhAudioBackendGStreamer()
@@ -131,7 +147,6 @@ qint64 KhAudioBackendGStreamer::position()
     GstFormat fmt = GST_FORMAT_TIME;
     if (gst_element_query_position (playBin, &fmt, &pos))
     {
-        //cout << "Position:" << pos / 1000000 << endl;
         return pos / 1000000;
     }
     return 0;
@@ -187,15 +202,7 @@ void KhAudioBackendGStreamer::keyChangerOn()
         while (state() != KhAbstractAudioBackend::StoppedState)
             QApplication::processEvents();
     }
-//    qDebug() << "Setting playbin sink to sink bin";
-//    g_object_set(G_OBJECT(playBin), "audio-sink", psSinkBin, NULL);
     gst_element_unlink(audioConvert,audioConvert2);
-    if (!gst_element_link(audioConvert,pitch))
-        qDebug() << "Failed to link audioConvert to pitch";
-    if (!gst_element_link(pitch,audioConvert2))
-        qDebug() << "Failed to link pitch to audioConvert2";
-//    if (!gst_element_link_many(rgvolume,pitch,audioResample,NULL))
-//        qDebug() << "Failed to link gstreamer elements";
     if (curstate != KhAbstractAudioBackend::StoppedState)
     {
         gst_element_set_state(playBin, GST_STATE_PLAYING);
@@ -212,14 +219,12 @@ void KhAudioBackendGStreamer::keyChangerOff()
 {
     KhAbstractAudioBackend::State curstate = state();
     int pos = position();
-    qDebug() << "keyChangerOff() fired";
     if (curstate != KhAbstractAudioBackend::StoppedState)
     {
         gst_element_set_state(playBin, GST_STATE_NULL);
         while (state() != KhAbstractAudioBackend::StoppedState)
             QApplication::processEvents();
     }
-//    g_object_set(G_OBJECT(playBin), "audio-sink", sinkBin, NULL);
     gst_element_unlink(audioConvert,pitch);
     gst_element_unlink(pitch,audioConvert2);
     if (!gst_element_link(audioConvert,audioConvert2))
@@ -312,12 +317,10 @@ void KhAudioBackendGStreamer::stop(bool skipFade)
     emit stateChanged(KhAbstractAudioBackend::StoppedState);
     if ((m_fade) && (!skipFade))
         setVolume(curVolume);
-   // setPitchShift(0);
 }
 
 void KhAudioBackendGStreamer::signalTimer_timeout()
 {
-
     static int curDuration;
     if (duration() != curDuration)
     {
@@ -327,7 +330,6 @@ void KhAudioBackendGStreamer::signalTimer_timeout()
     static KhAbstractAudioBackend::State currentState;
     if (state() != currentState)
     {
-        qDebug() << "audio state changed - old: " << currentState << " new: " << state();
         currentState = state();
         emit stateChanged(currentState);
         if (currentState == KhAbstractAudioBackend::StoppedState)
@@ -339,8 +341,6 @@ void KhAudioBackendGStreamer::signalTimer_timeout()
     }
     if((state() == KhAbstractAudioBackend::StoppedState) && (pitchShift() != 0))
             setPitchShift(0);
-//    else if (state() == QMediaPlayer::StoppedState)
-    //        stop();
     processGstMessages();
 }
 
@@ -517,9 +517,6 @@ double FaderGStreamer::volume()
     g_object_get(G_OBJECT(volumeElement), "volume", &curVolume, NULL);
     return curVolume;
 }
-
-
-
 
 bool KhAudioBackendGStreamer::canFade()
 {

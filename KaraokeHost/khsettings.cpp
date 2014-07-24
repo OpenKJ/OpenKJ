@@ -24,8 +24,6 @@
 #include <QDesktopWidget>
 #include <QStandardPaths>
 
-
-
 KhSettings::KhSettings(QObject *parent) :
     QObject(parent)
 {

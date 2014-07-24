@@ -29,10 +29,13 @@
 #include <QTreeView>
 #include <QWidget>
 
-
 class KhSettings : public QObject
 {
     Q_OBJECT
+
+private:
+    QSettings *settings;
+
 public:
     explicit KhSettings(QObject *parent = 0);
     bool cdgWindowFullscreen();
@@ -125,10 +128,6 @@ signals:
     void audioBackendChanged(int index);
     void recordingSetupChanged();
 
-public slots:
-
-private:
-    QSettings *settings;
 };
 
 #endif // KHSETTINGS_H

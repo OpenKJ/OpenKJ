@@ -23,7 +23,6 @@
 
 #include <QObject>
 #include <QStringList>
-//#include <QMediaPlayer>
 
 class KhAbstractAudioBackend : public QObject
 {
@@ -48,7 +47,6 @@ public:
     virtual QStringList getOutputDevices();
     virtual void setOutputDevice(int deviceIndex) {Q_UNUSED(deviceIndex);}
     virtual bool stopping() {return false;}
-
 
 signals:
     void audioAvailableChanged(bool);

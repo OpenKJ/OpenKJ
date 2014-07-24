@@ -43,12 +43,13 @@ BmIPCServer::BmIPCServer(QString servername, QObject *parent)
     connect(m_server, SIGNAL(newConnection()), this, SLOT(socket_new_connection()));
 }
 
-BmIPCServer::~BmIPCServer() {
-
+BmIPCServer::~BmIPCServer()
+{
 }
 
 
-void BmIPCServer::socket_new_connection() {
+void BmIPCServer::socket_new_connection()
+{
     qDebug() << "IPC Server - New client connected";
     clientConnection = m_server->nextPendingConnection();
     connect(clientConnection, SIGNAL(disconnected()), this, SLOT(clientDisconnected()));
