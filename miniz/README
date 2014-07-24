@@ -1,0 +1,3 @@
+miniz added here for convenience, split into separate header and code files, and set to build via the Qt Creator build system.  
+
+This is not part of OpenKJ.
