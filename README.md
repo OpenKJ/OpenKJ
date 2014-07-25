@@ -14,7 +14,7 @@ A few features:
 * Remotely fades BreakMusic in and out when karaoke tracks start/end
 * Lots of other little things
 
-It currently only handles mp3g+zip files (zip files containing an mp3 and cdg file).  I'll be adding others in the future (non-zipped mp3+cdg, wav+cdg, ogg+cdg, etc).  It does not support playing non cdg-based tracks (wmv, avi, mpg, etc) and I have zero plans to ever do so, as professional KJ's generally don't use them.
+It currently only handles mp3g+zip files (zip files containing an mp3 and cdg file) and paired mp3 and cdg files.  I'll be adding others in the future (wav+cdg, ogg+cdg, etc) if anyone expresses interest.  It does not support playing non cdg-based tracks (wmv, avi, mpg, etc) and I have zero plans to ever do so, as professional KJ's generally don't use them.
 
 Database entries for the songs are based on the file naming scheme.  I've included the commone ones I've come across, if anyone needs something added just tell me or submit the appropriate code changes if you're a programmer.  They're pretty trivial to add.  I plan on adding the ability to do custom definitons in the future, but it's pretty far down on my list.
 
@@ -24,7 +24,7 @@ Database entries for the songs are based on the file naming scheme.  I've includ
 BreakMusic is a VERY basic bare bones media player.
 The only real reason it exists is so that I could have something that would receive IPC commands from KaraokeHost to tell it to fade out when a karaoke track starts playing and fade back in when it is stopped. (I'm a lazy KJ like that).
 
-Both are experimental but usable at this point.  I am using it to run my shows every weekend now, but if you do so and it kills kittens or eats your firstborn don't come screaming at me ;) Some features are still incomplete, and the code is full of ugly. To any other developers looking at this code, please don't laugh too hard, as I'm self taught primarily for the purpose of writing this.  Well, okay, you can laugh, but only if you're willing to fix the code that you're making fun of ;)
+Both are experimental but usable at this point.  I am using it to run my shows every weekend now, but if you do so and it kills kittens or eats your firstborn don't come screaming at me ;) Some features are still incomplete. To any other developers looking at this code, please don't laugh too hard, as I'm self taught primarily for the purpose of writing this.  Well, okay, you can laugh, but only if you're willing to fix the code that you're making fun of ;)
 
 **Requirements to build KaraokeHost:**
 
