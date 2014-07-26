@@ -83,7 +83,7 @@ private:
     GstBus *bus;
     QString m_filename;
     QTimer *signalTimer;
-    QTimer *silenceDetectTimer;
+//    QTimer *silenceDetectTimer;
     bool m_keyChangerOn;
     int m_keyChange;
     int m_volume;
@@ -119,7 +119,7 @@ public slots:
 
 private slots:
     void signalTimer_timeout();
-    void silenceDetectTimer_timeout();
+//    void silenceDetectTimer_timeout();
     void faderChangedVolume(int volume);
 
     // KhAbstractAudioBackend interface

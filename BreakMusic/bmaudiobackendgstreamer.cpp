@@ -64,13 +64,13 @@ BmAudioBackendGStreamer::BmAudioBackendGStreamer(QObject *parent) :
     g_object_set(G_OBJECT (level), "message", TRUE, NULL);
     bus = gst_element_get_bus (playBin);
     fader = new FaderGStreamer(volumeElement, this);
-    silenceDetectTimer = new QTimer(this);
-    connect(silenceDetectTimer, SIGNAL(timeout()), this, SLOT(silenceDetectTimer_timeout()));
-    silenceDetectTimer->start(1000);
+//    silenceDetectTimer = new QTimer(this);
+//    connect(silenceDetectTimer, SIGNAL(timeout()), this, SLOT(silenceDetectTimer_timeout()));
+//    silenceDetectTimer->start(1000);
     signalTimer = new QTimer(this);
     connect(signalTimer, SIGNAL(timeout()), this, SLOT(signalTimer_timeout()));
     connect(fader, SIGNAL(volumeChanged(int)), this, SLOT(faderChangedVolume(int)));
-    signalTimer->start(100);
+    signalTimer->start(1000);
 }
 
 BmAudioBackendGStreamer::~BmAudioBackendGStreamer()
@@ -276,10 +276,7 @@ void BmAudioBackendGStreamer::signalTimer_timeout()
     if((state() == BmAbstractAudioBackend::StoppedState) && (pitchShift() != 0))
             setPitchShift(0);
     processGstMessages();
-}
 
-void BmAudioBackendGStreamer::silenceDetectTimer_timeout()
-{
     static int seconds = 0;
     if (m_silenceDetect)
     {
@@ -298,6 +295,27 @@ void BmAudioBackendGStreamer::silenceDetectTimer_timeout()
             seconds = 0;
     }
 }
+
+//void BmAudioBackendGStreamer::silenceDetectTimer_timeout()
+//{
+//    static int seconds = 0;
+//    if (m_silenceDetect)
+//    {
+//        if ((state() == BmAbstractAudioBackend::PlayingState) && (isSilent()))
+//        {
+//            qDebug() << "Silence detected for " << seconds + 1 << " seconds";
+//            if (seconds >= 2)
+//            {
+//                seconds = 0;
+//                emit silenceDetected();
+//                return;
+//            }
+//            seconds++;
+//        }
+//        else
+//            seconds = 0;
+//    }
+//}
 
 void BmAudioBackendGStreamer::faderChangedVolume(int volume)
 {
