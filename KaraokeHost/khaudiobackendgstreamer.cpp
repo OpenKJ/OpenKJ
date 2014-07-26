@@ -78,13 +78,13 @@ KhAudioBackendGStreamer::KhAudioBackendGStreamer(QObject *parent) :
     g_object_set(G_OBJECT (level), "message", TRUE, NULL);
     bus = gst_element_get_bus (playBin);
     fader = new FaderGStreamer(volumeElement, this);
-    silenceDetectTimer = new QTimer(this);
-    connect(silenceDetectTimer, SIGNAL(timeout()), this, SLOT(silenceDetectTimer_timeout()));
-    silenceDetectTimer->start(1000);
-    signalTimer = new QTimer(this);
-    connect(signalTimer, SIGNAL(timeout()), this, SLOT(signalTimer_timeout()));
+    slowTimer = new QTimer(this);
+    connect(slowTimer, SIGNAL(timeout()), this, SLOT(slowTimer_timeout()));
+    slowTimer->start(1000);
+    fastTimer = new QTimer(this);
+    connect(fastTimer, SIGNAL(timeout()), this, SLOT(fastTimer_timeout()));
     connect(fader, SIGNAL(volumeChanged(int)), this, SLOT(faderChangedVolume(int)));
-    signalTimer->start(40);
+    fastTimer->start(40);
 }
 
 KhAudioBackendGStreamer::~KhAudioBackendGStreamer()
@@ -319,7 +319,7 @@ void KhAudioBackendGStreamer::stop(bool skipFade)
         setVolume(curVolume);
 }
 
-void KhAudioBackendGStreamer::signalTimer_timeout()
+void KhAudioBackendGStreamer::fastTimer_timeout()
 {
     static int curDuration;
     if (duration() != curDuration)
@@ -327,6 +327,17 @@ void KhAudioBackendGStreamer::signalTimer_timeout()
         emit durationChanged(duration());
         curDuration = duration();
     }
+    static int curPosition;
+    if(state() == KhAbstractAudioBackend::PlayingState)
+    {
+        if (position() != curPosition)
+            emit positionChanged(position());
+        curPosition = position();
+    }
+}
+
+void KhAudioBackendGStreamer::slowTimer_timeout()
+{
     static KhAbstractAudioBackend::State currentState;
     if (state() != currentState)
     {
@@ -335,17 +346,11 @@ void KhAudioBackendGStreamer::signalTimer_timeout()
         if (currentState == KhAbstractAudioBackend::StoppedState)
             stop();
     }
-    else if(state() == KhAbstractAudioBackend::PlayingState)
-    {
-        emit positionChanged(position());
-    }
     else if((state() == KhAbstractAudioBackend::StoppedState) && (pitchShift() != 0))
             setPitchShift(0);
-}
 
-void KhAudioBackendGStreamer::silenceDetectTimer_timeout()
-{
     processGstMessages();
+
     static int seconds = 0;
     if (m_silenceDetect)
     {

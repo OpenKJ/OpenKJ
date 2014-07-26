@@ -77,8 +77,8 @@ private:
     GstPad *ghostPad;
     GstBus *bus;
     QString m_filename;
-    QTimer *signalTimer;
-    QTimer *silenceDetectTimer;
+    QTimer *fastTimer;
+    QTimer *slowTimer;
     bool m_keyChangerOn;
     int m_keyChange;
     int m_volume;
@@ -111,8 +111,8 @@ public:
     bool downmixChangeRequiresRestart() { return false; }
 
 private slots:
-    void signalTimer_timeout();
-    void silenceDetectTimer_timeout();
+    void fastTimer_timeout();
+    void slowTimer_timeout();
     void faderChangedVolume(int volume);
 
 public slots:
