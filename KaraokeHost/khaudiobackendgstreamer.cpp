@@ -335,17 +335,17 @@ void KhAudioBackendGStreamer::signalTimer_timeout()
         if (currentState == KhAbstractAudioBackend::StoppedState)
             stop();
     }
-    if(state() == KhAbstractAudioBackend::PlayingState)
+    else if(state() == KhAbstractAudioBackend::PlayingState)
     {
         emit positionChanged(position());
     }
-    if((state() == KhAbstractAudioBackend::StoppedState) && (pitchShift() != 0))
+    else if((state() == KhAbstractAudioBackend::StoppedState) && (pitchShift() != 0))
             setPitchShift(0);
-    processGstMessages();
 }
 
 void KhAudioBackendGStreamer::silenceDetectTimer_timeout()
 {
+    processGstMessages();
     static int seconds = 0;
     if (m_silenceDetect)
     {
