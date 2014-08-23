@@ -686,9 +686,9 @@ void MainWindow::rotationDataChanged()
     QString statusBarText = "Singers: ";
     statusBarText += QString::number(rotModel->rowCount());
     labelSingerCount->setText(statusBarText);
-    QString tickerText = "Singers in rotation: ";
+    QString tickerText = "Singers: ";
     tickerText += QString::number(rotModel->rowCount());
-    tickerText += " | Current singer: ";
+    tickerText += " | Current: ";
     int displayPos;
     QString curSinger = rotModel->getSingerName(rotModel->currentSinger());
     if (curSinger != "")
@@ -705,7 +705,7 @@ void MainWindow::rotationDataChanged()
     if (settings->tickerFullRotation() || (rotModel->rowCount() < settings->tickerShowNumSingers()))
     {
         listSize = rotModel->rowCount();
-        tickerText += " | Upcoming Singers: ";
+        tickerText += " | Upcoming: ";
     }
     else
     {

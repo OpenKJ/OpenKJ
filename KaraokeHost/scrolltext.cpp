@@ -34,7 +34,7 @@ ScrollText::ScrollText(QWidget *parent) :
     setSeparator("  ---  ");
 
     connect(&timer, SIGNAL(timeout()), this, SLOT(timer_timeout()));
-    timer.setInterval(50);
+    timer.setInterval(500);
 }
 
 QString ScrollText::text() const
@@ -123,7 +123,7 @@ void ScrollText::paintEvent(QPaintEvent*)
         int x = qMin(-scrollPos, 0) + leftMargin;
         while(x < width())
         {
-            pb.drawStaticText(QPointF(x, (height() - wholeTextSize.height()) / 2) + QPoint(2, 2), staticText);
+            pb.drawStaticText(QPointF(x + 2,0), staticText);
             x += wholeTextSize.width();
         }
 
@@ -142,7 +142,7 @@ void ScrollText::paintEvent(QPaintEvent*)
     }
     else
     {
-        p.drawStaticText(QPointF(leftMargin, (height() - wholeTextSize.height()) / 2), staticText);
+        p.drawStaticText(QPointF(leftMargin, 0), staticText);
     }
 }
 
