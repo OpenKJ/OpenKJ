@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT += core gui sql network widgets multimedia KArchive
+QT += core gui sql network widgets multimedia KArchive ThreadWeaver
 
 #CONFIG += console
 

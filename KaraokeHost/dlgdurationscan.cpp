@@ -30,7 +30,16 @@ DlgDurationScan::DlgDurationScan(QWidget *parent) :
     ui(new Ui::DlgDurationScan)
 {
     ui->setupUi(this);
+    queueing = false;
+    transactionStarted = false;
     stopProcessing = false;
+    threadQueue = new ThreadWeaver::Queue(this);
+    uiUpdateTimer = new QTimer(this);
+    uiUpdateTimer->start(500);
+    needed = numUpdatesNeeded();
+    processed = 0;
+    ui->lblTotal->setText(QString::number(needed));
+    connect(uiUpdateTimer, SIGNAL(timeout()), this, SLOT(on_uiUpdateTimer()));
 }
 
 DlgDurationScan::~DlgDurationScan()
@@ -46,6 +55,7 @@ void DlgDurationScan::on_buttonClose_clicked()
 
 void DlgDurationScan::on_buttonStop_clicked()
 {
+    threadQueue->dequeue();
     stopProcessing = true;
 }
 
@@ -54,27 +64,57 @@ void DlgDurationScan::on_buttonStart_clicked()
     stopProcessing = false;
     QStringList needDurationFiles = findNeedUpdateSongs();
     qDebug() << "Found " << needDurationFiles.size() << " songs that need duration";
+    needed = needDurationFiles.size();
+    processed = 0;
     ui->lblTotal->setText(QString::number(needDurationFiles.size()));
     db.beginTransaction();
-    QSqlQuery query;
+    queueing = true;
     for (int i=0; i < needDurationFiles.size(); i++)
     {
         QApplication::processEvents();
-        archiveFile.setArchiveFile(needDurationFiles.at(i));
-        int duration = archiveFile.getSongDuration();
+        threadQueue->stream() << new DurationUpdater(needDurationFiles.at(i));
         QApplication::processEvents();
-        query.exec("UPDATE dbsongs SET duration = " + QString::number(duration) + " WHERE path == \"" + needDurationFiles.at(i) + "\"");
-        ui->progressBar->setValue(((float)(i + 1) / (float)needDurationFiles.size()) * 100);
-        ui->lblProcessed->setText(QString::number(i));
-        QApplication::processEvents();
+        transactionStarted = true;
         if (stopProcessing)
         {
             stopProcessing = false;
             break;
         }
     }
-    db.endTransaction();
+    queueing = false;
+//    db.endTransaction();
 
+}
+
+void DlgDurationScan::on_durationProcessed(int duration, QString filepath)
+{
+    processed++;
+    QSqlQuery query;
+    query.exec("UPDATE dbsongs SET duration = " + QString::number(duration) + " WHERE path == \"" + filepath + "\"");
+
+}
+
+void DlgDurationScan::on_uiUpdateTimer()
+{
+    if ((!threadQueue->isEmpty()) && (!queueing))
+    {
+        processed = needed - threadQueue->queueLength();
+        ui->lblProcessed->setText(QString::number(processed));
+        ui->progressBar->setValue(((float)processed / (float)needed) * 100);
+    }
+    else
+    {
+        if (transactionStarted)
+        {
+            db.endTransaction();
+            transactionStarted = false;
+            needed = numUpdatesNeeded();
+            processed = 0;
+            ui->lblProcessed->setText(QString::number(processed));
+            ui->lblTotal->setText(QString::number(needed));
+            ui->progressBar->setValue(((float)processed / (float)needed) * 100);
+        }
+    }
 }
 
 QStringList DlgDurationScan::findNeedUpdateSongs()
@@ -88,4 +128,29 @@ QStringList DlgDurationScan::findNeedUpdateSongs()
         nullDurations << query.value(0).toString();
     }
     return nullDurations;
+}
+
+int DlgDurationScan::numUpdatesNeeded()
+{
+    int needed = -1;
+    QSqlQuery query;
+    query.exec("SELECT COUNT(*) FROM dbsongs WHERE duration IS NULL");
+    while (query.next())
+    {
+        needed = query.value(0).toInt();
+    }
+    return needed;
+}
+
+void DurationUpdater::run(ThreadWeaver::JobPointer, ThreadWeaver::Thread *)
+{
+    OkArchive archiveFile(m_fileName);
+    int duration = archiveFile.getSongDuration();
+    if (duration == -1)
+    {
+        qWarning() << "Unable to get duration for file: " << m_fileName;
+        return;
+    }
+    QSqlQuery query;
+    query.exec("UPDATE dbsongs SET duration = " + QString::number(duration) + " WHERE path == \"" + m_fileName + "\"");
 }

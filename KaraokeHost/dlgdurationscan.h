@@ -26,6 +26,20 @@
 #include "khdb.h"
 #include <QStringList>
 #include "okarchive.h"
+#include <ThreadWeaver/ThreadWeaver>
+#include <QSqlQuery>
+#include <QTimer>
+
+
+class DurationUpdater : public ThreadWeaver::Job
+{
+public:
+    DurationUpdater(QString filename) : m_fileName(filename) {}
+protected:
+    void run(ThreadWeaver::JobPointer, ThreadWeaver::Thread*);
+private:
+    QString m_fileName;
+};
 
 
 namespace Ui {
@@ -38,11 +52,19 @@ class DlgDurationScan : public QDialog
 
 private:
     QStringList findNeedUpdateSongs();
+    int numUpdatesNeeded();
     Ui::DlgDurationScan *ui;
     KhZip zip;
     OkArchive archiveFile;
     bool stopProcessing;
+    bool queueing;
     KhDb db;
+    ThreadWeaver::Queue *threadQueue;
+    QSqlQuery *m_query;
+    QTimer *uiUpdateTimer;
+    int needed;
+    int processed;
+    bool transactionStarted;
 
 public:
     explicit DlgDurationScan(QWidget *parent = 0);
@@ -52,7 +74,13 @@ private slots:
     void on_buttonClose_clicked();
     void on_buttonStop_clicked();
     void on_buttonStart_clicked();
+    void on_durationProcessed(int duration, QString filePath);
+    void on_uiUpdateTimer();
 
 };
 
+
+
 #endif // DLGDURATIONSCAN_H
+
+

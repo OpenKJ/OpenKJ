@@ -19,7 +19,7 @@ int OkArchive::getSongDuration()
     for (int i=0; i < zip.directory()->entries().count(); i++)
     {
         QString filename = zip.directory()->entries().at(i);
-        qCritical() << "Zip Contents: " << filename;
+      //  qCritical() << "Zip Contents: " << filename;
         if (filename.endsWith(".cdg", Qt::CaseInsensitive))
         {
             if (zip.directory()->entry(filename)->isFile())
