@@ -2,12 +2,15 @@
 #define KHARCHIVE_H
 
 #include <QObject>
+#include <KZip>
+#include <K7Zip>
 
-class KHARCHIVE : public QObject
+class OkArchive : public QObject
 {
     Q_OBJECT
 public:
-    explicit KHARCHIVE(QObject *parent = 0);
+    explicit OkArchive(QString ArchiveFile, QObject *parent = 0);
+    explicit OkArchive(QObject *parent = 0);
 
 signals:
 

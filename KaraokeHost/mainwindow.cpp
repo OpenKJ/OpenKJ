@@ -35,6 +35,7 @@
 #include <QMenu>
 #include <QInputDialog>
 #include "khdb.h"
+#include "okarchive.h"
 
 
 KhSettings *settings;
@@ -237,6 +238,8 @@ void MainWindow::play(QString karaokeFilePath)
         if (karaokeFilePath.endsWith(".zip", Qt::CaseInsensitive))
         {
             KhZip zip(karaokeFilePath);
+            qDebug() << "test";
+            OkArchive archive(karaokeFilePath);
             cdgOk = zip.extractCdg(QDir(khTmpDir->path()));
             mp3Ok = zip.extractMp3(QDir(khTmpDir->path()));
             if (mp3Ok && cdgOk)
@@ -254,7 +257,7 @@ void MainWindow::play(QString karaokeFilePath)
                     return;
                 }
 
-                cdg->FileOpen(khTmpDir->path().toStdString() + QDir::separator().toLatin1() + "tmp.cdg");
+                cdg->FileOpen(QString(khTmpDir->path() + QDir::separator() + "tmp.cdg").toStdString());
                 cdg->Process();
                 activeAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + "tmp.mp3");
                 ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);

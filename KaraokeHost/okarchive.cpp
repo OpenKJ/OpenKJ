@@ -1,6 +1,14 @@
-#include "kharchive.h"
+#include "okarchive.h"
+#include <QDebug>
 
-KHARCHIVE::KHARCHIVE(QObject *parent) : QObject(parent)
+OkArchive::OkArchive(QString ArchiveFile, QObject *parent)
+{
+    KZip zip = KZip(ArchiveFile);
+    zip.open(QIODevice::ReadOnly);
+    qDebug() << "Zip contents:" << zip.directory()->entries();
+}
+
+OkArchive::OkArchive(QObject *parent) : QObject(parent)
 {
 
 }

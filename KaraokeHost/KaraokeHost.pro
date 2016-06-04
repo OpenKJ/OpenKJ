@@ -4,7 +4,9 @@
 #
 #-------------------------------------------------
 
-QT += core gui sql network widgets multimedia
+QT += core gui sql network widgets multimedia KArchive
+
+#CONFIG += console
 
 unix: DEFINES += USE_GL
 #win32: DEFINES += USE_GL
@@ -18,7 +20,8 @@ contains(DEFINES, USE_GL) {
 TARGET = KaraokeHost
 TEMPLATE = app
 
-DEFINES += USE_GSTREAMER
+#DEFINES += USE_GSTREAMER
+DEFINES += USE_QMEDIAPLAYER
 
 SOURCES += main.cpp\
     mainwindow.cpp \
@@ -54,7 +57,8 @@ SOURCES += main.cpp\
     rotationitemdelegate.cpp \
     dbitemdelegate.cpp \
     queueitemdelegate.cpp \
-    regitemdelegate.cpp
+    regitemdelegate.cpp \
+    okarchive.cpp
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -89,7 +93,8 @@ HEADERS  += mainwindow.h \
     rotationitemdelegate.h \
     dbitemdelegate.h \
     queueitemdelegate.h \
-    regitemdelegate.h
+    regitemdelegate.h \
+    okarchive.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \
