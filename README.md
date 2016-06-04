@@ -3,6 +3,8 @@ OpenKJ
 
 Travis CI status [![Build Status](https://travis-ci.org/coyote1357/OpenKJ.svg?branch=master)](https://travis-ci.org/coyote1357/OpenKJ)
 
+NOTE! - Building the current main branch on Windows or OSX will require some work and tinkering in order to get the KDE Frameworks 5 KArchive and ThreadWeaver modules compiled and working.  Linux is my primary platform, so I haven't gotten around to seeing what's required to make it work on Windows or Mac.
+
 Cross-platform open source karaoke show hosting software.
 
 KaraokeHost is a full featured karaoke hosting program.
@@ -29,6 +31,8 @@ Both are experimental but usable at this point.  I am using it to run my shows e
 **Requirements to build KaraokeHost:**
 
 * Qt 5.x
+* KF5 ThreadWeaver
+* KF5 KArchive
 
 Strongly recommended:
 * gstreamer (0.10 branch)
