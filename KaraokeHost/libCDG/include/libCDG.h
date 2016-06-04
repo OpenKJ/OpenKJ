@@ -30,6 +30,8 @@
 #include "libCDG_Frame_Image.h"
 #include "libCDG_Color.h"
 //#include <boost/scoped_ptr.hpp>
+#include <QByteArray>
+#include <QBuffer>
 
 #define SC_MASK           0x3F
 #define SC_CDG_COMMAND    0x09
@@ -44,6 +46,9 @@
 #define CDG_TILEBLOCKXOR    38
 #define CDG_COLOR_TABLE_LOW  0
 #define CDG_COLOR_TABLE_HIGH 1
+
+#define MODE_FILE           0
+#define MODE_QIODEVICE       1
 
 using namespace std;
 
@@ -123,6 +128,12 @@ public:
 	      \return true on success or false on failure
 	*/
 	bool FileOpen(string filename);
+    //! Open a QIODevice
+    /*!
+        Opens a QT IO Device to be processed.
+        \return true on success or false on failure
+    */
+    bool FileOpen(QByteArray byteArray);
 	//! Process an opened CDG file
 	/*!
 	      Processes the contents of a CDG file to generate libCDG's internal
@@ -196,6 +207,8 @@ private:
     bool Open;
 	bool CDGFileOpened;
 	FILE *CDGFile;
+    QByteArray cdgData;
+    QBuffer *buffer;
 	unsigned int CurPos;
     CDG_Frame_Image *CDGImage;
 	char masks[6];
@@ -205,6 +218,7 @@ private:
 	vector<int> ChangedRows;
 	bool NeedFullUpdate;
 	vector<bool> SkipFrames;
+    int mode;
 };
 
 #endif // LIBCDG_H

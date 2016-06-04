@@ -22,7 +22,6 @@
 #define DLGDURATIONSCAN_H
 
 #include <QDialog>
-#include "khzip.h"
 #include "khdb.h"
 #include <QStringList>
 #include "okarchive.h"
@@ -54,7 +53,6 @@ private:
     QStringList findNeedUpdateSongs();
     int numUpdatesNeeded();
     Ui::DlgDurationScan *ui;
-    KhZip zip;
     OkArchive archiveFile;
     bool stopProcessing;
     bool queueing;
