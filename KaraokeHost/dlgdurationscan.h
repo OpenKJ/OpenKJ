@@ -25,6 +25,8 @@
 #include "khzip.h"
 #include "khdb.h"
 #include <QStringList>
+#include "okarchive.h"
+
 
 namespace Ui {
 class DlgDurationScan;
@@ -38,6 +40,7 @@ private:
     QStringList findNeedUpdateSongs();
     Ui::DlgDurationScan *ui;
     KhZip zip;
+    OkArchive archiveFile;
     bool stopProcessing;
     KhDb db;
 

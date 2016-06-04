@@ -60,8 +60,8 @@ void DlgDurationScan::on_buttonStart_clicked()
     for (int i=0; i < needDurationFiles.size(); i++)
     {
         QApplication::processEvents();
-        zip.setZipFile(needDurationFiles.at(i));
-        int duration = zip.getSongDuration();
+        archiveFile.setArchiveFile(needDurationFiles.at(i));
+        int duration = archiveFile.getSongDuration();
         QApplication::processEvents();
         query.exec("UPDATE dbsongs SET duration = " + QString::number(duration) + " WHERE path == \"" + needDurationFiles.at(i) + "\"");
         ui->progressBar->setValue(((float)(i + 1) / (float)needDurationFiles.size()) * 100);

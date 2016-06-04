@@ -11,6 +11,13 @@ class OkArchive : public QObject
 public:
     explicit OkArchive(QString ArchiveFile, QObject *parent = 0);
     explicit OkArchive(QObject *parent = 0);
+    int getSongDuration();
+
+    QString getArchiveFile() const;
+    void setArchiveFile(const QString &value);
+
+private:
+    QString archiveFile;
 
 signals:
 
