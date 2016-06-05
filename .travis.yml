@@ -1,5 +1,7 @@
 before_install:
+  - sudo apt-get update -qq
   - sudo add-apt-repository --yes ppa:beineri/opt-qt56 
+  - sudo add-apt-repository --yes ppa:ubuntu-sdk-team/ppa
   - sudo apt-get update -qq
   - sudo apt-get install qt56base qt56multimedia qt56tools libgstreamer0.10-dev libpulse-dev libtag1-dev libtagc0-dev 
 
