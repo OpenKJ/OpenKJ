@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2016 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -23,6 +23,7 @@
 #include <QDebug>
 #include <QSqlQuery>
 #include <QApplication>
+#include <QFile>
 
 
 DlgDurationScan::DlgDurationScan(QWidget *parent) :
@@ -72,7 +73,10 @@ void DlgDurationScan::on_buttonStart_clicked()
     for (int i=0; i < needDurationFiles.size(); i++)
     {
         QApplication::processEvents();
-        threadQueue->stream() << new DurationUpdater(needDurationFiles.at(i));
+        if (needDurationFiles.at(i).endsWith(".zip", Qt::CaseInsensitive))
+            threadQueue->stream() << new DurationUpdaterZip(needDurationFiles.at(i));
+        else if (needDurationFiles.at(i).endsWith(".cdg", Qt::CaseInsensitive))
+            threadQueue->stream() << new DurationUpdaterCdg(needDurationFiles.at(i));
         QApplication::processEvents();
         transactionStarted = true;
         if (stopProcessing)
@@ -120,7 +124,7 @@ void DlgDurationScan::on_uiUpdateTimer()
 QStringList DlgDurationScan::findNeedUpdateSongs()
 {
     QSqlQuery query;
-    QString sql = "SELECT path FROM dbsongs WHERE duration IS NULL";
+    QString sql = "SELECT path FROM dbsongs WHERE duration IS NULL ORDER BY discid";
     QStringList nullDurations;
     query.exec(sql);
     while (query.next())
@@ -142,7 +146,7 @@ int DlgDurationScan::numUpdatesNeeded()
     return needed;
 }
 
-void DurationUpdater::run(ThreadWeaver::JobPointer, ThreadWeaver::Thread *)
+void DurationUpdaterZip::run(ThreadWeaver::JobPointer, ThreadWeaver::Thread *)
 {
     OkArchive archiveFile(m_fileName);
     int duration = archiveFile.getSongDuration();
@@ -151,6 +155,15 @@ void DurationUpdater::run(ThreadWeaver::JobPointer, ThreadWeaver::Thread *)
         qWarning() << "Unable to get duration for file: " << m_fileName;
         return;
     }
+    QSqlQuery query;
+    query.exec("UPDATE dbsongs SET duration = " + QString::number(duration) + " WHERE path == \"" + m_fileName + "\"");
+}
+
+void DurationUpdaterCdg::run(ThreadWeaver::JobPointer, ThreadWeaver::Thread *)
+{
+    QFile cdgFile(m_fileName);
+    int size = cdgFile.size();
+    int duration = ((size / 96) / 75) * 1000;
     QSqlQuery query;
     query.exec("UPDATE dbsongs SET duration = " + QString::number(duration) + " WHERE path == \"" + m_fileName + "\"");
 }

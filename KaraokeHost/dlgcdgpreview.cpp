@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2016 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -22,7 +22,6 @@
 #include "ui_dlgcdgpreview.h"
 #include <QMessageBox>
 #include <QDebug>
-#include "khzip.h"
 #include "okarchive.h"
 
 DlgCdgPreview::DlgCdgPreview(QWidget *parent) :
@@ -58,42 +57,28 @@ void DlgCdgPreview::preview()
     setVisible(true);
     if (m_srcFile.endsWith(".zip", Qt::CaseInsensitive))
     {
- //   cdgTempDir = new QTemporaryDir();
- //   KhZip zip(m_srcFile);
-    OkArchive karaokeFile(m_srcFile);
-//    qDebug() << "Extracting " << m_srcFile;
-//    if (!zip.extractCdg(QDir(cdgTempDir->path())))
-//    {
-//        QMessageBox::warning(this, tr("Bad karaoke file"),tr("Zip file does not contain a valid karaoke track.  CDG file missing."),QMessageBox::Ok);
-//        close();
-//        return;
-//    }
-//    QFile cdgFile(cdgTempDir->path() + QDir::separator() + "tmp.cdg");
-//    if (cdgFile.size() == 0)
-//    {
-//        QMessageBox::warning(this, tr("Bad karaoke file"), tr("CDG file contains no data"),QMessageBox::Ok);
-//        close();
-//        return;
-//    }
-//    qDebug() << "Opening cdg file " << cdgTempDir->path() << "/tmp.cdg";
-//    cdg->FileOpen(cdgTempDir->path().toStdString() + QDir::separator().toLatin1() + "tmp.cdg");
-//    }
-//    else if (m_srcFile.endsWith(".cdg", Qt::CaseInsensitive))
-//    {
-//        QFile cdgFile(m_srcFile);
-//        if (cdgFile.size() == 0)
-//        {
-//            QMessageBox::warning(this, tr("Bad karaoke file"), tr("CDG file contains no data"),QMessageBox::Ok);
-//            close();
-//            return;
-//        }
-//        cdg->FileOpen(m_srcFile.toStdString());
-//    }
-    cdg->FileOpen(karaokeFile.getCDGData());
+        OkArchive archive(m_srcFile);
+        if ((!archive.checkCDG()) || (!archive.checkMP3()))
+        {
+            QMessageBox::warning(this, tr("Bad karaoke file"),tr("Zip file does not contain a valid karaoke track.  CDG or mp3 file missing or corrupt."),QMessageBox::Ok);
+            close();
+            return;
+        }
+        cdg->FileOpen(archive.getCDGData());
+    }
+    else if (m_srcFile.endsWith(".cdg", Qt::CaseInsensitive))
+    {
+        QFile cdgFile(m_srcFile);
+        if (cdgFile.size() == 0)
+        {
+            QMessageBox::warning(this, tr("Bad karaoke file"), tr("CDG file contains no data"),QMessageBox::Ok);
+            close();
+            return;
+        }
+        cdg->FileOpen(m_srcFile.toStdString());
+    }
     cdg->Process();
     timer->start(40);
-//    delete cdgTempDir;
-}
 }
 
 

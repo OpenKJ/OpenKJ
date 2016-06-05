@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2016 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -30,16 +30,25 @@
 #include <QTimer>
 
 
-class DurationUpdater : public ThreadWeaver::Job
+class DurationUpdaterZip : public ThreadWeaver::Job
 {
 public:
-    DurationUpdater(QString filename) : m_fileName(filename) {}
+    DurationUpdaterZip(QString filename) : m_fileName(filename) {}
 protected:
     void run(ThreadWeaver::JobPointer, ThreadWeaver::Thread*);
 private:
     QString m_fileName;
 };
 
+class DurationUpdaterCdg : public ThreadWeaver::Job
+{
+public:
+    DurationUpdaterCdg(QString filename) : m_fileName(filename) {}
+protected:
+    void run(ThreadWeaver::JobPointer, ThreadWeaver::Thread*);
+private:
+    QString m_fileName;
+};
 
 namespace Ui {
 class DlgDurationScan;
@@ -53,7 +62,7 @@ private:
     QStringList findNeedUpdateSongs();
     int numUpdatesNeeded();
     Ui::DlgDurationScan *ui;
-    OkArchive archiveFile;
+    //OkArchive archiveFile;
     bool stopProcessing;
     bool queueing;
     KhDb db;

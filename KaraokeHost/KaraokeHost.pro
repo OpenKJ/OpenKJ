@@ -34,7 +34,6 @@ SOURCES += main.cpp\
     khipcclient.cpp \
     khabstractaudiobackend.cpp \
     khaudiobackendqmediaplayer.cpp \
-    khzip.cpp \
     qglcanvas.cpp \
     khsettings.cpp \
     scrolltext.cpp \
@@ -70,7 +69,6 @@ HEADERS  += mainwindow.h \
     khipcclient.h \
     khabstractaudiobackend.h \
     khaudiobackendqmediaplayer.h \
-    khzip.h \
     qglcanvas.h \
     khsettings.h \
     scrolltext.h \
@@ -137,15 +135,15 @@ unix {
     INSTALLS += binaryfiles iconfiles desktopfiles
 }
 
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../miniz/release/ -lminiz
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../miniz/debug/ -lminiz
-else:unix: LIBS += -L$$OUT_PWD/../miniz/ -lminiz
+#win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../miniz/release/ -lminiz
+#else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../miniz/debug/ -lminiz
+#else:unix: LIBS += -L$$OUT_PWD/../miniz/ -lminiz
 
-INCLUDEPATH += $$PWD/../miniz
-DEPENDPATH += $$PWD/../miniz
+#INCLUDEPATH += $$PWD/../miniz
+#DEPENDPATH += $$PWD/../miniz
 
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../miniz/release/libminiz.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../miniz/debug/libminiz.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../miniz/release/miniz.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../miniz/debug/miniz.lib
-else:unix: PRE_TARGETDEPS += $$OUT_PWD/../miniz/libminiz.a
+#win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../miniz/release/libminiz.a
+#else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../miniz/debug/libminiz.a
+#else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../miniz/release/miniz.lib
+#else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../miniz/debug/miniz.lib
+#else:unix: PRE_TARGETDEPS += $$OUT_PWD/../miniz/libminiz.a

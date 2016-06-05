@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2016 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -23,7 +23,6 @@
 
 #include <QThread>
 #include <QStringList>
-#include "khzip.h"
 
 class DbUpdateThread : public QThread
 {
@@ -32,7 +31,6 @@ class DbUpdateThread : public QThread
 private:
     QString path;
     int pattern;
-    KhZip zip;
 
 public:
     explicit DbUpdateThread(QObject *parent = 0);
