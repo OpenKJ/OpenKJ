@@ -58,7 +58,9 @@ SOURCES += main.cpp\
     queueitemdelegate.cpp \
     regitemdelegate.cpp \
     okarchive.cpp \
-    cdgvideosurface.cpp
+    cdgvideosurface.cpp \
+    cdgvideowidget.cpp \
+    dlgcdgvideo.cpp
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -94,7 +96,9 @@ HEADERS  += mainwindow.h \
     queueitemdelegate.h \
     regitemdelegate.h \
     okarchive.h \
-    cdgvideosurface.h
+    cdgvideosurface.h \
+    cdgvideowidget.h \
+    dlgcdgvideo.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \
@@ -106,7 +110,8 @@ FORMS    += mainwindow.ui \
     dlgregularsingers.ui \
     dlgsettings.ui \
     dlgcdg.ui \
-    dlgdurationscan.ui
+    dlgdurationscan.ui \
+    dlgcdgvideo.ui
 
 unix: CONFIG += link_pkgconfig
 
