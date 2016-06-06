@@ -57,7 +57,8 @@ SOURCES += main.cpp\
     dbitemdelegate.cpp \
     queueitemdelegate.cpp \
     regitemdelegate.cpp \
-    okarchive.cpp
+    okarchive.cpp \
+    cdgvideosurface.cpp
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -92,7 +93,8 @@ HEADERS  += mainwindow.h \
     dbitemdelegate.h \
     queueitemdelegate.h \
     regitemdelegate.h \
-    okarchive.h
+    okarchive.h \
+    cdgvideosurface.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \
