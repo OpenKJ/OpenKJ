@@ -1,6 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>DlgCdgVideo</class>
- <widget name="DlgCdgVideo" class="QDialog">
+ <widget class="QDialog" name="DlgCdgVideo">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -12,7 +13,25 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
+  <widget class="CdgVideoWidget" name="videoWidget" native="true">
+   <property name="geometry">
+    <rect>
+     <x>160</x>
+     <y>80</y>
+     <width>120</width>
+     <height>80</height>
+    </rect>
+   </property>
+  </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CdgVideoWidget</class>
+   <extends>QWidget</extends>
+   <header>cdgvideowidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

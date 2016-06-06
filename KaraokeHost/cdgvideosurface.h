@@ -4,8 +4,9 @@
 
 class CdgVideoSurface : public QAbstractVideoSurface
 {
+    Q_OBJECT
 public:
-    CdgVideoSurface();
+    CdgVideoSurface(QWidget *widget, QObject *parent = 0);
 
     // QAbstractVideoSurface interface
 public:
@@ -14,6 +15,8 @@ public:
     void stop();
     bool present(const QVideoFrame &frame);
     void updateVideoRect();
+    QRect videoRect() const { return targetRect; }
+    void paint(QPainter *painter);
 
 private:
     QWidget *widget;

@@ -225,6 +225,8 @@ MainWindow::MainWindow(QWidget *parent) :
     rotModel->setHeaderData(3,Qt::Horizontal,"");
     rotModel->setHeaderData(4,Qt::Horizontal,"");
     ui->statusBar->addWidget(labelSingerCount);
+
+    cdgVideoDialog->show();
 }
 
 void MainWindow::play(QString karaokeFilePath)

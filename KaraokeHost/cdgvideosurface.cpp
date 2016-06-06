@@ -2,10 +2,13 @@
 #include <QVideoFrame>
 #include <QVideoSurfaceFormat>
 #include <QWidget>
+#include <QPainter>
+#include <QTransform>
 
-CdgVideoSurface::CdgVideoSurface()
+CdgVideoSurface::CdgVideoSurface(QWidget *widget, QObject *parent)
 {
-
+    Q_UNUSED(parent);
+    CdgVideoSurface::widget = widget;
 }
 
 QList<QVideoFrame::PixelFormat> CdgVideoSurface::supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const
@@ -77,4 +80,29 @@ void CdgVideoSurface::updateVideoRect()
 
     targetRect = QRect(QPoint(0, 0), size);
     targetRect.moveCenter(widget->rect().center());
+}
+
+void CdgVideoSurface::paint(QPainter *painter)
+{
+    if (currentFrame.map(QAbstractVideoBuffer::ReadOnly)) {
+        const QTransform oldTransform = painter->transform();
+
+        if (surfaceFormat().scanLineDirection() == QVideoSurfaceFormat::BottomToTop) {
+           painter->scale(1, -1);
+           painter->translate(0, -widget->height());
+        }
+
+        QImage image(
+                currentFrame.bits(),
+                currentFrame.width(),
+                currentFrame.height(),
+                currentFrame.bytesPerLine(),
+                imageFormat);
+
+        painter->drawImage(targetRect, image, sourceRect);
+
+        painter->setTransform(oldTransform);
+
+        currentFrame.unmap();
+    }
 }

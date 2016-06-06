@@ -6,6 +6,7 @@ DlgCdgVideo::DlgCdgVideo(QWidget *parent) :
     ui(new Ui::DlgCdgVideo)
 {
     ui->setupUi(this);
+    ui->videoWidget->videoSurface()->present(QImage(QString("/home/idm/lightburnisa/Pictures/diabeetus.jpg")));
 }
 
 DlgCdgVideo::~DlgCdgVideo()
