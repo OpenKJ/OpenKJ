@@ -48,7 +48,6 @@
 #include "rotationmodel.h"
 #include "rotationitemdelegate.h"
 #include "dbitemdelegate.h"
-#include "dlgcdgvideo.h"
 
 
 using namespace std;
@@ -93,7 +92,6 @@ private:
     CDG *cdg;
     int sortColDB;
     int sortDirDB;
-    DlgCdgVideo *cdgVideoDialog;
 
 public:
     explicit MainWindow(QWidget *parent = 0);

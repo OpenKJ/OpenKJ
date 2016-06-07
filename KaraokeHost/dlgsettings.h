@@ -92,6 +92,7 @@ private slots:
     void onSslErrors(QNetworkReply * reply);
     void setAuth(QNetworkReply * reply, QAuthenticator * authenticator);
 
+    void on_pushButtonClearBgImg_clicked();
 };
 
 #endif // SETTINGSDIALOG_H

@@ -226,8 +226,6 @@ MainWindow::MainWindow(QWidget *parent) :
     rotModel->setHeaderData(4,Qt::Horizontal,"");
     ui->statusBar->addWidget(labelSingerCount);
 
-    cdgVideoDialog = new DlgCdgVideo(this);
-    cdgVideoDialog->show();
 
 }
 
@@ -599,7 +597,6 @@ void MainWindow::audioBackend_positionChanged(qint64 position)
                 QImage img(rgbdata, 300, 216, QImage::Format_RGB888);
                 ui->cdgOutput->setPixmap(QPixmap::fromImage(img));
                 cdgWindow->updateCDG(img);
-                cdgVideoDialog->present(QVideoFrame(img));
                 free(rgbdata);
             }
         }

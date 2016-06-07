@@ -58,8 +58,7 @@ SOURCES += main.cpp\
     regitemdelegate.cpp \
     okarchive.cpp \
     cdgvideosurface.cpp \
-    cdgvideowidget.cpp \
-    dlgcdgvideo.cpp
+    cdgvideowidget.cpp
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -94,7 +93,6 @@ HEADERS  += mainwindow.h \
     queueitemdelegate.h \
     regitemdelegate.h \
     okarchive.h \
-    dlgcdgvideo.h \
     cdgvideosurface.h \
     cdgvideowidget.h
 

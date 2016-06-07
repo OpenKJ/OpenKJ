@@ -209,6 +209,9 @@ void DlgSettings::on_checkBoxShowCdgWindow_stateChanged(int arg1)
     emit showCdgWindowChanged(arg1);
     ui->listWidgetMonitors->setEnabled(arg1);
     ui->groupBoxMonitors->setEnabled(arg1);
+    ui->pushButtonBrowse->setEnabled(arg1);
+    ui->lineEditCdgBackground->setEnabled(arg1);
+    ui->pushButtonClearBgImg->setEnabled(arg1);
 }
 
 void DlgSettings::on_groupBoxMonitors_toggled(bool arg1)
@@ -513,4 +516,10 @@ void DlgSettings::on_pushButtonUpdateRemoteDb_clicked()
     msgBox->close();
     delete msgBox;
     QMessageBox::information(this, "Update complete", "Remote database update complete.");
+}
+
+void DlgSettings::on_pushButtonClearBgImg_clicked()
+{
+    settings->setCdgDisplayBackgroundImage(QString::null);
+    ui->lineEditCdgBackground->setText(QString::null);
 }
