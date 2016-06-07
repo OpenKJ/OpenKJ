@@ -316,6 +316,7 @@ QString KhSettings::cdgDisplayBackgroundImage()
 void KhSettings::setCdgDisplayBackgroundImage(QString imageFile)
 {
     settings->setValue("cdgDisplayBackgroundImage", imageFile);
+    emit cdgBgImageChanged();
 }
 
 bool KhSettings::audioDownmix()

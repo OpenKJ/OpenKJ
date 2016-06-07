@@ -33,7 +33,6 @@ SOURCES += main.cpp\
     khipcclient.cpp \
     khabstractaudiobackend.cpp \
     khaudiobackendqmediaplayer.cpp \
-    qglcanvas.cpp \
     khsettings.cpp \
     scrolltext.cpp \
     requeststablemodel.cpp \
@@ -69,7 +68,6 @@ HEADERS  += mainwindow.h \
     khipcclient.h \
     khabstractaudiobackend.h \
     khaudiobackendqmediaplayer.h \
-    qglcanvas.h \
     khsettings.h \
     scrolltext.h \
     requeststablemodel.h \

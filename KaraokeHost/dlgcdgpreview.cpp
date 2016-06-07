@@ -35,7 +35,6 @@ DlgCdgPreview::DlgCdgPreview(QWidget *parent) :
     connect(timer, SIGNAL(timeout()), this, SLOT(timerTimeout()));
     cdgPosition = 0;
     cdgTempDir = NULL;
-
 }
 
 DlgCdgPreview::~DlgCdgPreview()
@@ -55,6 +54,7 @@ void DlgCdgPreview::preview()
     cdgPosition = 0;
     if (cdg->IsOpen()) cdg->VideoClose();
     setVisible(true);
+    QApplication::processEvents();
     if (m_srcFile.endsWith(".zip", Qt::CaseInsensitive))
     {
         OkArchive archive(m_srcFile);
@@ -93,7 +93,7 @@ void DlgCdgPreview::timerTimeout()
                 unsigned char* rgbdata;
                 rgbdata = cdg->GetImageByTime(cdgPosition);
                 QImage img(rgbdata, 300, 216, QImage::Format_RGB888);
-                ui->cdgOutput->setPixmap(QPixmap::fromImage(img));
+                ui->cdgVideoWidget->videoSurface()->present(QVideoFrame(img));
                 free(rgbdata);
             }
             cdgPosition = cdgPosition + timer->interval();
@@ -115,5 +115,20 @@ void DlgCdgPreview::on_pushButtonClose_clicked()
     timer->stop();
     cdg->VideoClose();
     cdgPosition = 0;
+    close();
+}
+
+
+void DlgCdgPreview::closeEvent(QCloseEvent *)
+{
+    timer->stop();
+    cdg->VideoClose();
+    cdgPosition = 0;
+    close();
+}
+
+
+void DlgCdgPreview::reject()
+{
     close();
 }

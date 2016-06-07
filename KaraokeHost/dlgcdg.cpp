@@ -32,12 +32,8 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
     ui(new Ui::DlgCdg)
 {
     ui->setupUi(this);
-//    settings = new KhSettings(this);
-//    canvas = new QGLCanvas(this);
     canvas = new CdgVideoWidget(this);
-    //    ui->verticalLayout->addWidget(canvas);
     ui->verticalLayout_2->addWidget(canvas);
-    canvas->repaint();
     m_fullScreen = false;
     m_lastSize.setWidth(300);
     m_lastSize.setHeight(216);
@@ -54,14 +50,15 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
     this->setPalette(palette);
     ticker->setText("This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll");
     ui->verticalLayout_2->addWidget(ticker);
-
     connect(settings, SIGNAL(tickerFontChanged()), this, SLOT(tickerFontChanged()));
     connect(settings, SIGNAL(tickerHeightChanged(int)), this, SLOT(tickerHeightChanged()));
     connect(settings, SIGNAL(tickerSpeedChanged()), this, SLOT(tickerSpeedChanged()));
     connect(settings, SIGNAL(tickerTextColorChanged()), this, SLOT(tickerTextColorChanged()));
     connect(settings, SIGNAL(tickerBgColorChanged()), this, SLOT(tickerBgColorChanged()));
     connect(settings, SIGNAL(tickerEnableChanged()), this, SLOT(tickerEnableChanged()));
+    connect(settings, SIGNAL(cdgBgImageChanged()), canvas, SLOT(presentBgImage()));
     canvas->videoSurface()->start();
+    canvas->setUseBgImage(true);
 }
 
 DlgCdg::~DlgCdg()
@@ -77,8 +74,6 @@ void DlgCdg::updateCDG(QImage image, bool overrideVisibleCheck)
             canvas->videoSurface()->present(QVideoFrame(image.scaled(canvas->size(), Qt::IgnoreAspectRatio)));
         else
             canvas->videoSurface()->present(QVideoFrame(image));
-        //        canvas->setImage(image);
-        //        canvas->repaint();
     }
 }
 
@@ -95,24 +90,7 @@ void DlgCdg::makeFullscreen()
     QRect screenDimensions = QApplication::desktop()->screenGeometry(settings->cdgWindowFullScreenMonitor());
     resize(screenDimensions.width(),screenDimensions.height());
     show();
-    QImage cdgBg;
-    if (settings->cdgDisplayBackgroundImage() != "")
-    {
-        qDebug() << "Attempting to load CDG background: " << settings->cdgDisplayBackgroundImage();
-        if (!cdgBg.load(settings->cdgDisplayBackgroundImage()))
-        {
-            qDebug() << "Failed to load, loading default resource";
-            cdgBg.load(":/icons/Icons/openkjlogo1.png");
-        }
-        else
-            qDebug() << "Loaded OK";
-    }
-    else
-    {
-        cdgBg.load(":/icons/Icons/openkjlogo1.png");
-        qDebug() << "No CDG background image specified, loading default resource";
-    }
-    updateCDG(cdgBg);
+    canvas->presentBgImage();
     m_fullScreen = true;
 }
 
@@ -148,13 +126,10 @@ void DlgCdg::setFullScreenMonitor(int monitor)
 
 void DlgCdg::tickerFontChanged()
 {
-    qDebug() << "tickerFontSettingsChanged() fired";
     ticker->setFont(settings->tickerFont());
     ticker->refresh();
- //   QFontMetrics fm(ticker->font());
     int newHeight = QFontMetrics(ticker->font()).height() * 1.2;
     settings->setTickerHeight(newHeight);
-   // ticker->setFixedHeight(QFontMetrics(ticker->font()).height() * 1.2);
 }
 
 void DlgCdg::tickerHeightChanged()
@@ -186,6 +161,11 @@ void DlgCdg::tickerBgColorChanged()
 void DlgCdg::tickerEnableChanged()
 {
     ticker->enable(settings->tickerEnabled());
+}
+
+void DlgCdg::presentBgImage()
+{
+    canvas->presentBgImage();
 }
 
 void DlgCdg::mouseDoubleClickEvent(QMouseEvent *e)

@@ -127,6 +127,7 @@ signals:
     void tickerEnableChanged();
     void audioBackendChanged(int index);
     void recordingSetupChanged();
+    void cdgBgImageChanged();
 
 };
 

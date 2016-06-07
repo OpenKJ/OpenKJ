@@ -54,6 +54,14 @@ private slots:
 public slots:
     void preview();
 
+
+    // QWidget interface
+protected:
+    void closeEvent(QCloseEvent *);
+
+    // QDialog interface
+public slots:
+    void reject();
 };
 
 #endif // CDGPREVIEWDIALOG_H

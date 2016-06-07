@@ -22,7 +22,6 @@
 #define CDGWINDOW_H
 
 #include <QDialog>
-//#include "qglcanvas.h"
 #include <QMouseEvent>
 #include "khsettings.h"
 #include "scrolltext.h"
@@ -64,6 +63,7 @@ public slots:
     void tickerTextColorChanged();
     void tickerBgColorChanged();
     void tickerEnableChanged();
+    void presentBgImage();
 
 };
 

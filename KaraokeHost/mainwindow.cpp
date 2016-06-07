@@ -52,6 +52,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QCoreApplication::setOrganizationDomain("OpenKJ.org");
     QCoreApplication::setApplicationName("KaraokeHost");
     ui->setupUi(this);
+    ui->cdgVideoWidget->setUseBgImage(false);
     db = new KhDb(this);
     labelSingerCount = new QLabel(ui->statusBar);
     khDir = new QDir(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
@@ -95,7 +96,6 @@ MainWindow::MainWindow(QWidget *parent) :
     regularExportDialog = new DlgRegularExport(rotModel, this);
     regularImportDialog = new DlgRegularImport(rotModel, this);
     requestsDialog = new DlgRequests(rotModel, this);
-    cdgPreviewDialog = new DlgCdgPreview(this);
     cdgWindow = new DlgCdg(this, Qt::Window);
     if (settings->showCdgWindow())
     {
@@ -165,25 +165,8 @@ MainWindow::MainWindow(QWidget *parent) :
     activeAudioBackend->setDownmix(settings->audioDownmix());
     connect(qModel, SIGNAL(queueModified(int)), rotModel, SLOT(queueModified(int)));
     connect(requestsDialog, SIGNAL(addRequestSong(int,int)), qModel, SLOT(songAdd(int,int)));
-    QImage cdgBg;
-    if (settings->cdgDisplayBackgroundImage() != "")
-    {
-        qDebug() << "Attempting to load CDG background: " << settings->cdgDisplayBackgroundImage();
-        if (!cdgBg.load(settings->cdgDisplayBackgroundImage()))
-        {
-            qDebug() << "Failed to load, loading default resource";
-            cdgBg.load(":/icons/Icons/openkjlogo1.png");
-        }
-        else
-            qDebug() << "Loaded OK";
-    }
-    else
-    {
-        cdgBg.load(":/icons/Icons/openkjlogo1.png");
-        qDebug() << "No CDG background image specified, loading default resource";
-    }
-    cdgWindow->updateCDG(cdgBg,true);
-    ui->cdgOutput->setPixmap(QPixmap::fromImage(QImage(":/icons/Icons/openkjlogo1.png")));
+    cdgWindow->presentBgImage();
+    ui->cdgVideoWidget->presentBgImage();
     settings->restoreWindowState(cdgWindow);
     settings->restoreWindowState(requestsDialog);
     settings->restoreWindowState(regularSingersDialog);
@@ -225,8 +208,6 @@ MainWindow::MainWindow(QWidget *parent) :
     rotModel->setHeaderData(3,Qt::Horizontal,"");
     rotModel->setHeaderData(4,Qt::Horizontal,"");
     ui->statusBar->addWidget(labelSingerCount);
-
-
 }
 
 void MainWindow::play(QString karaokeFilePath)
@@ -595,7 +576,8 @@ void MainWindow::audioBackend_positionChanged(qint64 position)
                 unsigned char* rgbdata;
                 rgbdata = cdg->GetImageByTime(position);
                 QImage img(rgbdata, 300, 216, QImage::Format_RGB888);
-                ui->cdgOutput->setPixmap(QPixmap::fromImage(img));
+//                ui->cdgOutput->setPixmap(QPixmap::fromImage(img));
+                ui->cdgVideoWidget->videoSurface()->present(QVideoFrame(img));
                 cdgWindow->updateCDG(img);
                 free(rgbdata);
             }
@@ -628,26 +610,8 @@ void MainWindow::audioBackend_stateChanged(KhAbstractAudioBackend::State state)
         ui->labelRemainTime->setText("0:00");
         ui->labelTotalTime->setText("0:00");
         ui->sliderProgress->setValue(0);
-        QImage cdgBg;
-        if (settings->cdgDisplayBackgroundImage() != "")
-        {
-            qDebug() << "Attempting to load CDG background: " << settings->cdgDisplayBackgroundImage();
-            if (!cdgBg.load(settings->cdgDisplayBackgroundImage()))
-            {
-                qDebug() << "Failed to load, loading default resource";
-                cdgBg.load(":/icons/Icons/openkjlogo1.png");
-            }
-            else
-                qDebug() << "Loaded OK";
-        }
-        else
-        {
-            cdgBg.load(":/icons/Icons/openkjlogo1.png");
-            qDebug() << "No CDG background image specified, loading default resource";
-        }
-        cdgWindow->updateCDG(cdgBg, true);
-        ui->cdgOutput->setPixmap(QPixmap::fromImage(QImage(":/icons/Icons/openkjlogo1.png")));
-
+        ui->cdgVideoWidget->presentBgImage();
+        cdgWindow->presentBgImage();
     }
     if (state == KhAbstractAudioBackend::EndOfMediaState)
     {
@@ -742,6 +706,8 @@ void MainWindow::on_tableViewDB_customContextMenuRequested(const QPoint &pos)
     if (index.isValid())
     {
         QString zipPath = index.sibling(index.row(), 5).data().toString();
+        cdgPreviewDialog = new DlgCdgPreview(this);
+        cdgPreviewDialog->setAttribute(Qt::WA_DeleteOnClose);
         cdgPreviewDialog->setSourceFile(zipPath);
         QMenu contextMenu(this);
         contextMenu.addAction("Preview", cdgPreviewDialog, SLOT(preview()));
