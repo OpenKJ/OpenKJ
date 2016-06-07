@@ -119,7 +119,7 @@ public:
 
 signals:
     void tickerFontChanged();
-    void tickerHeightChanged();
+    void tickerHeightChanged(int height);
     void tickerSpeedChanged();
     void tickerTextColorChanged();
     void tickerBgColorChanged();

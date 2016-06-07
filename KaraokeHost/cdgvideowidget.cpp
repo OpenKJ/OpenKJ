@@ -5,14 +5,12 @@
 #include <QRegion>
 #include <QDebug>
 
-/*
- * This was a test to see if QAbstractVideoSurface use would be faster/more efficient than drawing to a glcanvas
- * directly.  Turns out this isn't the case at all.  This file is no longer in use and is only here for possible
- * later use.
- *
-*/
 
+#ifdef USE_GL
+CdgVideoWidget::CdgVideoWidget(QWidget *parent) : QGLWidget(parent) , surface(0)
+#else
 CdgVideoWidget::CdgVideoWidget(QWidget *parent) : QWidget(parent) , surface(0)
+#endif
 {
     setUpdatesEnabled(true);
     setAutoFillBackground(false);
@@ -58,7 +56,6 @@ void CdgVideoWidget::paintEvent(QPaintEvent *event)
 
         surface->paint(&painter);
     } else {
-        qCritical() << "CdgVideoWidget::paintEvent fired - surface not active";
         painter.fillRect(event->rect(), palette().background());
     }
 }

@@ -33,8 +33,9 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
 {
     ui->setupUi(this);
 //    settings = new KhSettings(this);
-    canvas = new QGLCanvas(this);
-//    ui->verticalLayout->addWidget(canvas);
+//    canvas = new QGLCanvas(this);
+    canvas = new CdgVideoWidget(this);
+    //    ui->verticalLayout->addWidget(canvas);
     ui->verticalLayout_2->addWidget(canvas);
     canvas->repaint();
     m_fullScreen = false;
@@ -55,11 +56,12 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
     ui->verticalLayout_2->addWidget(ticker);
 
     connect(settings, SIGNAL(tickerFontChanged()), this, SLOT(tickerFontChanged()));
-    connect(settings, SIGNAL(tickerHeightChanged()), this, SLOT(tickerHeightChanged()));
+    connect(settings, SIGNAL(tickerHeightChanged(int)), this, SLOT(tickerHeightChanged()));
     connect(settings, SIGNAL(tickerSpeedChanged()), this, SLOT(tickerSpeedChanged()));
     connect(settings, SIGNAL(tickerTextColorChanged()), this, SLOT(tickerTextColorChanged()));
     connect(settings, SIGNAL(tickerBgColorChanged()), this, SLOT(tickerBgColorChanged()));
     connect(settings, SIGNAL(tickerEnableChanged()), this, SLOT(tickerEnableChanged()));
+    canvas->videoSurface()->start();
 }
 
 DlgCdg::~DlgCdg()
@@ -71,8 +73,9 @@ void DlgCdg::updateCDG(QImage image, bool overrideVisibleCheck)
 {
     if ((isVisible()) || (overrideVisibleCheck))
     {
-        canvas->setImage(image);
-        canvas->repaint();
+        canvas->videoSurface()->present(QVideoFrame(image));
+//        canvas->setImage(image);
+//        canvas->repaint();
     }
 }
 
@@ -145,6 +148,10 @@ void DlgCdg::tickerFontChanged()
     qDebug() << "tickerFontSettingsChanged() fired";
     ticker->setFont(settings->tickerFont());
     ticker->refresh();
+ //   QFontMetrics fm(ticker->font());
+    int newHeight = QFontMetrics(ticker->font()).height() * 1.2;
+    settings->setTickerHeight(newHeight);
+   // ticker->setFixedHeight(QFontMetrics(ticker->font()).height() * 1.2);
 }
 
 void DlgCdg::tickerHeightChanged()

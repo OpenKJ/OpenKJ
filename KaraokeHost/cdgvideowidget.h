@@ -1,17 +1,18 @@
 #ifndef CDGVIDEOWIDGET_H
 #define CDGVIDEOWIDGET_H
 
-#include <QWidget>
 #include "cdgvideosurface.h"
+#ifdef USE_GL
+    #include <QGLWidget>
+#else
+    #include <QWidget>
+#endif
 
-/*
- * This was a test to see if QAbstractVideoSurface use would be faster/more efficient than drawing to a glcanvas
- * directly.  Turns out this isn't the case at all.  This file is no longer in use and is only here for possible
- * later use.
- *
-*/
-
+#ifdef USE_GL
+class CdgVideoWidget : public QGLWidget
+#else
 class CdgVideoWidget : public QWidget
+#endif
 {
     Q_OBJECT
 public:

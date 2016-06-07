@@ -94,7 +94,9 @@ HEADERS  += mainwindow.h \
     queueitemdelegate.h \
     regitemdelegate.h \
     okarchive.h \
-    dlgcdgvideo.h
+    dlgcdgvideo.h \
+    cdgvideosurface.h \
+    cdgvideowidget.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \

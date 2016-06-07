@@ -169,7 +169,7 @@ int KhSettings::tickerHeight()
 void KhSettings::setTickerHeight(int height)
 {
     settings->setValue("tickerHeight", height);
-    emit tickerHeightChanged();
+    emit tickerHeightChanged(height);
 }
 
 int KhSettings::tickerSpeed()

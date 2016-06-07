@@ -22,17 +22,11 @@
 #define CDGWINDOW_H
 
 #include <QDialog>
-#include "qglcanvas.h"
+//#include "qglcanvas.h"
 #include <QMouseEvent>
 #include "khsettings.h"
 #include "scrolltext.h"
-
-/*
- * This was a test to see if QAbstractVideoSurface use would be faster/more efficient than drawing to a glcanvas
- * directly.  Turns out this isn't the case at all.  This file is no longer in use and is only here for possible
- * later use.
- *
-*/
+#include "cdgvideowidget.h"
 
 namespace Ui {
 class DlgCdg;
@@ -44,7 +38,8 @@ class DlgCdg : public QDialog
 
 private:
     Ui::DlgCdg *ui;
-    QGLCanvas *canvas;
+//    QGLCanvas *canvas;
+    CdgVideoWidget *canvas;
     ScrollText *ticker;
     bool m_fullScreen;
     QRect m_lastSize;

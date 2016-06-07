@@ -93,7 +93,7 @@ private:
     CDG *cdg;
     int sortColDB;
     int sortDirDB;
-//    DlgCdgVideo *cdgVideoDialog;
+    DlgCdgVideo *cdgVideoDialog;
 
 public:
     explicit MainWindow(QWidget *parent = 0);
