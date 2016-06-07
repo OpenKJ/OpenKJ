@@ -83,7 +83,6 @@ KaraokeHost:
 
 * Regular singers - Name conflict resolution on import (Rename/Merge/Replace) 
 * Regular singers - Name conflict resolution on save (Merge/Replace)
-* Ticker - Make height auto-adapt to font size
 * Settings - Output device selection
 * And a million more things I'm forgetting
 
