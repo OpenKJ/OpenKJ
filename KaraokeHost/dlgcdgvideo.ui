@@ -13,16 +13,24 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <widget class="CdgVideoWidget" name="videoWidget" native="true">
-   <property name="geometry">
-    <rect>
-     <x>160</x>
-     <y>80</y>
-     <width>120</width>
-     <height>80</height>
-    </rect>
-   </property>
-  </widget>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="CdgVideoWidget" name="videoWidget" native="true">
+     <property name="minimumSize">
+      <size>
+       <width>300</width>
+       <height>216</height>
+      </size>
+     </property>
+     <property name="baseSize">
+      <size>
+       <width>300</width>
+       <height>216</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <customwidgets>
   <customwidget>

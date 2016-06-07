@@ -30,25 +30,10 @@
 class CDG_Frame_Image
 {
 public:
-	CDG_Frame_Image()
-	{
-		memset(&CDG_Map, 0, sizeof(CDG_Map));
-        NeedFullUpdate = true;
-        Skip = false;
-        LastUpdate = 0;
-	}
-	void SetCDGMapData(char inmap[216][300])
-	{
-		memcpy(&CDG_Map, &inmap, sizeof(CDG_Map));
-	}
-	void SetColor(int x, int y, int color)
-	{
-		CDG_Map[y][x] = color;
-	}
-	char GetCDG_Color(int x, int y)
-	{
-		return CDG_Map[y][x];
-	}
+    CDG_Frame_Image();
+    void SetCDGMapData(char inmap[216][300]);
+    void SetColor(int x, int y, int color);
+    char GetCDG_Color(int x, int y);
 	unsigned char *Get_RGB_Data();
 	void Get_RGB_Data(unsigned char * pRGB);
 	unsigned char CDG_Map[216][300];

@@ -27,6 +27,13 @@
 #include "khsettings.h"
 #include "scrolltext.h"
 
+/*
+ * This was a test to see if QAbstractVideoSurface use would be faster/more efficient than drawing to a glcanvas
+ * directly.  Turns out this isn't the case at all.  This file is no longer in use and is only here for possible
+ * later use.
+ *
+*/
+
 namespace Ui {
 class DlgCdg;
 }

@@ -2,6 +2,7 @@
 #define DLGCDGVIDEO_H
 
 #include <QDialog>
+#include <QVideoFrame>
 
 namespace Ui {
 class DlgCdgVideo;
@@ -17,6 +18,9 @@ public:
 
 private:
     Ui::DlgCdgVideo *ui;
+
+public slots:
+    void present(QVideoFrame frame);
 };
 
 #endif // DLGCDGVIDEO_H

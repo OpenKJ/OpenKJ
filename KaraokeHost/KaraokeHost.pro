@@ -27,7 +27,6 @@ SOURCES += main.cpp\
     mainwindow.cpp \
     libCDG/src/libCDG_Frame_Image.cpp \
     libCDG/src/libCDG_Color.cpp \
-    libCDG/src/CDG_Frame_Image.cpp \
     libCDG/src/libCDG.cpp \
     sourcedirtablemodel.cpp \
     dbupdatethread.cpp \
@@ -66,7 +65,6 @@ HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
     libCDG/include/libCDG_Frame_Image.h \
     libCDG/include/libCDG_Color.h \
-    libCDG/include/CDG_Frame_Image.h \
     sourcedirtablemodel.h \
     dbupdatethread.h \
     khipcclient.h \
@@ -96,8 +94,6 @@ HEADERS  += mainwindow.h \
     queueitemdelegate.h \
     regitemdelegate.h \
     okarchive.h \
-    cdgvideosurface.h \
-    cdgvideowidget.h \
     dlgcdgvideo.h
 
 FORMS    += mainwindow.ui \
@@ -110,8 +106,7 @@ FORMS    += mainwindow.ui \
     dlgregularsingers.ui \
     dlgsettings.ui \
     dlgcdg.ui \
-    dlgdurationscan.ui \
-    dlgcdgvideo.ui
+    dlgdurationscan.ui
 
 unix: CONFIG += link_pkgconfig
 

@@ -21,13 +21,36 @@
 #include "../include/libCDG_Frame_Image.h"
 
 
+CDG_Frame_Image::CDG_Frame_Image()
+{
+    memset(&CDG_Map, 0, sizeof(CDG_Map));
+    NeedFullUpdate = true;
+    Skip = false;
+    LastUpdate = 0;
+}
+
+void CDG_Frame_Image::SetCDGMapData(char inmap[216][300])
+{
+    memcpy(&CDG_Map, &inmap, sizeof(CDG_Map));
+}
+
+void CDG_Frame_Image::SetColor(int x, int y, int color)
+{
+    CDG_Map[y][x] = color;
+}
+
+char CDG_Frame_Image::GetCDG_Color(int x, int y)
+{
+    return CDG_Map[y][x];
+}
+
 unsigned char *CDG_Frame_Image::Get_RGB_Data()
 {
-	void *ptr;
-	unsigned char *imgdata;
-	unsigned int row;
-	ptr = malloc(194400 * sizeof(unsigned char));
-	imgdata = (unsigned char *)ptr;
+    void *ptr;
+    unsigned char *imgdata;
+    unsigned int row;
+    ptr = malloc(194400 * sizeof(unsigned char));
+    imgdata = (unsigned char *)ptr;
 	for (unsigned int y=0; y<216; y++)
 	{
 		row = y*900;
