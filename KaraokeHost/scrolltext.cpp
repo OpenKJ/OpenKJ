@@ -21,9 +21,11 @@
 #include "scrolltext.h"
 #include <QPainter>
 
-
-ScrollText::ScrollText(QWidget *parent) :
-    QWidget(parent), scrollPos(0)
+#ifdef USE_GL
+ScrollText::ScrollText(QWidget *parent) : QGLWidget(parent), scrollPos(0)
+#else
+ScrollText::ScrollText(QWidget *parent) : QWidget(parent), scrollPos(0)
+#endif
 {
     enabled = true;
     staticText.setTextFormat(Qt::PlainText);

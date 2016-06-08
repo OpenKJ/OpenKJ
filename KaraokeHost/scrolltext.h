@@ -21,12 +21,20 @@
 #ifndef SCROLLTEXT_H
 #define SCROLLTEXT_H
 
-#include <QWidget>
 #include <QStaticText>
 #include <QTimer>
 
+#ifdef USE_GL
+#include <QGLWidget>
+#else
+#include <QWidget>
+#endif
 
+#ifdef USE_GL
+class ScrollText : public QGLWidget
+#else
 class ScrollText : public QWidget
+#endif
 {
     Q_OBJECT
     Q_PROPERTY(QString text READ text WRITE setText)
