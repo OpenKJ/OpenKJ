@@ -88,7 +88,6 @@ bool CdgVideoSurface::present(const QVideoFrame &frame)
 void CdgVideoSurface::updateVideoRect()
 {
     QSize size = surfaceFormat().sizeHint();
-//    QSize size2 = widget->size();
     size.scale(widget->size(), Qt::IgnoreAspectRatio);
     targetRect = QRect(QPoint(0, 0), size);
     targetRect.moveCenter(widget->rect().center());

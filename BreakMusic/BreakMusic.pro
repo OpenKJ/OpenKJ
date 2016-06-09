@@ -48,8 +48,9 @@ unix: CONFIG += link_pkgconfig
 unix: PKGCONFIG += taglib_c
 unix: PKGCONFIG += gstreamer-0.10
 
-win32: INCLUDEPATH += "C:\taglib\include\taglib"
-win32: LIBS += -L"C:\taglib\taglib\taglib\Release" -ltag
+win32: INCLUDEPATH += "K:\k\include\taglib"
+#win32: LIBS += -L"C:\taglib\taglib\taglib\Release" -ltag
+win32: LIBS += -ltag
 
 win32: INCLUDEPATH += "C:\gstreamer-sdk\0.10\x86\include\gstreamer-0.10"
 win32: INCLUDEPATH += "C:\gstreamer-sdk\0.10\x86\include\glib-2.0"

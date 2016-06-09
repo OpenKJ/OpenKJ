@@ -79,16 +79,23 @@ void DlgCdg::updateCDG(QImage image, bool overrideVisibleCheck)
 
 void DlgCdg::makeFullscreen()
 {
+    int hOffset = -10;
+    int vOffset = -50;
+    int hGrow = 20;
+    int vGrow = 20;
     m_lastSize.setHeight(height());
     m_lastSize.setWidth(width());
     Qt::WindowFlags flags;
     flags |= Qt::Window;
     flags |= Qt::FramelessWindowHint;
     flags |= Qt::WindowStaysOnTopHint;
+    flags |= Qt::MaximizeUsingFullscreenGeometryHint;
     setWindowFlags(flags);
-    move(QApplication::desktop()->screenGeometry(settings->cdgWindowFullScreenMonitor()).topLeft());
+    //move(QApplication::desktop()->screenGeometry(settings->cdgWindowFullScreenMonitor()).topLeft());
     QRect screenDimensions = QApplication::desktop()->screenGeometry(settings->cdgWindowFullScreenMonitor());
-    resize(screenDimensions.width(),screenDimensions.height());
+ //   move(screenDimensions.topLeft());
+    move(screenDimensions.left()  + hOffset, screenDimensions.top() + vOffset);
+    resize(screenDimensions.width() + hGrow,screenDimensions.height() + vGrow);
     show();
     canvas->presentBgImage();
     m_fullScreen = true;

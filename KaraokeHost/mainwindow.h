@@ -70,6 +70,7 @@ private:
     RotationModel *rotModel;
     RotationItemDelegate *rotDelegate;
     DlgCdg *cdgWindow;
+    //CdgWindow *cdgWindow2;
     DlgDatabase *dbDialog;
     DlgSettings *settingsDialog;
     DlgRegularSingers *regularSingersDialog;
