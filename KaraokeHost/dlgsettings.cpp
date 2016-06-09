@@ -42,11 +42,16 @@ DlgSettings::DlgSettings(KhAudioBackends *AudioBackends, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DlgSettings)
 {
+
     pageSetupDone = false;
     audioBackends = AudioBackends;
     audioBackend = AudioBackends->at(settings->audioBackend());
     networkManager = new QNetworkAccessManager(this);
     ui->setupUi(this);
+    ui->spinBoxHAdjust->setValue(settings->cdgHSizeAdjustment());
+    ui->spinBoxVAdjust->setValue(settings->cdgVSizeAdjustment());
+    ui->spinBoxHOffset->setValue(settings->cdgHOffset());
+    ui->spinBoxVOffset->setValue(settings->cdgVOffset());
     for (int i=0; i < audioBackends->size(); i++)
     {
         ui->comboBoxBackend->addItem(audioBackends->at(i)->backendName());
@@ -117,6 +122,10 @@ DlgSettings::DlgSettings(KhAudioBackends *AudioBackends, QWidget *parent) :
     connect(networkManager, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(onSslErrors(QNetworkReply*)));
     connect(networkManager, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)), this, SLOT(setAuth(QNetworkReply*,QAuthenticator*)));
     connect(settings, SIGNAL(tickerHeightChanged(int)), ui->spinBoxTickerHeight, SLOT(setValue(int)));
+    connect(ui->spinBoxHAdjust, SIGNAL(valueChanged(int)), settings, SLOT(setCdgHSizeAdjustment(int)));
+    connect(ui->spinBoxVAdjust, SIGNAL(valueChanged(int)), settings, SLOT(setCdgVSizeAdjustment(int)));
+    connect(ui->spinBoxHOffset, SIGNAL(valueChanged(int)), settings, SLOT(setCdgHOffset(int)));
+    connect(ui->spinBoxVOffset, SIGNAL(valueChanged(int)), settings, SLOT(setCdgVOffset(int)));
 
     pageSetupDone = true;
 }

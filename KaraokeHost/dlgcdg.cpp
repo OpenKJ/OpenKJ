@@ -31,6 +31,10 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
     QDialog(parent, f),
     ui(new Ui::DlgCdg)
 {
+    hSizeAdjustment = settings->cdgHSizeAdjustment();
+    vSizeAdjustment = settings->cdgVSizeAdjustment();
+    hOffset = settings->cdgHOffset();
+    vOffset = settings->cdgVOffset();
     ui->setupUi(this);
     canvas = new CdgVideoWidget(this);
     ui->verticalLayout_2->addWidget(canvas);
@@ -57,6 +61,10 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
     connect(settings, SIGNAL(tickerBgColorChanged()), this, SLOT(tickerBgColorChanged()));
     connect(settings, SIGNAL(tickerEnableChanged()), this, SLOT(tickerEnableChanged()));
     connect(settings, SIGNAL(cdgBgImageChanged()), canvas, SLOT(presentBgImage()));
+    connect(settings, SIGNAL(cdgHOffsetChanged(int)), this, SLOT(setHOffset(int)));
+    connect(settings, SIGNAL(cdgVOffsetChanged(int)), this, SLOT(setVOffset(int)));
+    connect(settings, SIGNAL(cdgHSizeAdjustmentChanged(int)), this, SLOT(setHSizeAdjustment(int)));
+    connect(settings, SIGNAL(cdgVSizeAdjustmentChanged(int)), this, SLOT(setVSizeAdjustment(int)));
     canvas->videoSurface()->start();
     canvas->setUseBgImage(true);
 }
@@ -79,26 +87,20 @@ void DlgCdg::updateCDG(QImage image, bool overrideVisibleCheck)
 
 void DlgCdg::makeFullscreen()
 {
-    int hOffset = -10;
-    int vOffset = -50;
-    int hGrow = 20;
-    int vGrow = 20;
+    m_fullScreen = true;
     m_lastSize.setHeight(height());
     m_lastSize.setWidth(width());
     Qt::WindowFlags flags;
     flags |= Qt::Window;
     flags |= Qt::FramelessWindowHint;
     flags |= Qt::WindowStaysOnTopHint;
-    flags |= Qt::MaximizeUsingFullscreenGeometryHint;
+  //  flags |= Qt::MaximizeUsingFullscreenGeometryHint;
     setWindowFlags(flags);
-    //move(QApplication::desktop()->screenGeometry(settings->cdgWindowFullScreenMonitor()).topLeft());
     QRect screenDimensions = QApplication::desktop()->screenGeometry(settings->cdgWindowFullScreenMonitor());
- //   move(screenDimensions.topLeft());
     move(screenDimensions.left()  + hOffset, screenDimensions.top() + vOffset);
-    resize(screenDimensions.width() + hGrow,screenDimensions.height() + vGrow);
+    resize(screenDimensions.width() + hSizeAdjustment,screenDimensions.height() + vSizeAdjustment);
     show();
     canvas->presentBgImage();
-    m_fullScreen = true;
 }
 
 void DlgCdg::makeWindowed()
@@ -173,6 +175,46 @@ void DlgCdg::tickerEnableChanged()
 void DlgCdg::presentBgImage()
 {
     canvas->presentBgImage();
+}
+
+void DlgCdg::setVOffset(int pixels)
+{
+    vOffset = pixels;
+    if (m_fullScreen)
+    {
+        QRect screenDimensions = QApplication::desktop()->screenGeometry(settings->cdgWindowFullScreenMonitor());
+        move(screenDimensions.left()  + hOffset, screenDimensions.top() + vOffset);
+    }
+}
+
+void DlgCdg::setHOffset(int pixels)
+{
+    hOffset = pixels;
+    if (m_fullScreen)
+    {
+        QRect screenDimensions = QApplication::desktop()->screenGeometry(settings->cdgWindowFullScreenMonitor());
+        move(screenDimensions.left()  + hOffset, screenDimensions.top() + vOffset);
+    }
+}
+
+void DlgCdg::setVSizeAdjustment(int pixels)
+{
+    vSizeAdjustment = pixels;
+    if (m_fullScreen)
+    {
+        QRect screenDimensions = QApplication::desktop()->screenGeometry(settings->cdgWindowFullScreenMonitor());
+        resize(screenDimensions.width() + hSizeAdjustment,screenDimensions.height() + vSizeAdjustment);
+    }
+}
+
+void DlgCdg::setHSizeAdjustment(int pixels)
+{
+    hSizeAdjustment = pixels;
+    if (m_fullScreen)
+    {
+        QRect screenDimensions = QApplication::desktop()->screenGeometry(settings->cdgWindowFullScreenMonitor());
+        resize(screenDimensions.width() + hSizeAdjustment,screenDimensions.height() + vSizeAdjustment);
+    }
 }
 
 void DlgCdg::mouseDoubleClickEvent(QMouseEvent *e)

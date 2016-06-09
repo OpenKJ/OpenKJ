@@ -425,3 +425,47 @@ void KhSettings::setRecordingRawExtension(QString extension)
 {
     settings->setValue("recordingRawExtension", extension);
 }
+
+int KhSettings::cdgVOffset()
+{
+    return settings->value("cdgVOffset", 0).toInt();
+}
+
+void KhSettings::setCdgVOffset(int pixels)
+{
+    settings->setValue("cdgVOffset", pixels);
+    emit cdgVOffsetChanged(pixels);
+}
+
+int KhSettings::cdgHOffset()
+{
+    return settings->value("cdgHOffset", 0).toInt();
+}
+
+void KhSettings::setCdgHOffset(int pixels)
+{
+    settings->setValue("cdgHOffset", pixels);
+    emit cdgHOffsetChanged(pixels);
+}
+
+int KhSettings::cdgVSizeAdjustment()
+{
+    return settings->value("cdgVSizeAdjustment", 0).toInt();
+}
+
+void KhSettings::setCdgVSizeAdjustment(int pixels)
+{
+    settings->setValue("cdgVSizeAdjustment", pixels);
+    emit cdgVSizeAdjustmentChanged(pixels);
+}
+
+int KhSettings::cdgHSizeAdjustment()
+{
+    return settings->value("cdgHSizeAdjustment", 0).toInt();
+}
+
+void KhSettings::setCdgHSizeAdjustment(int pixels)
+{
+    settings->setValue("cdgHSizeAdjustment", pixels);
+    emit cdgHSizeAdjustmentChanged(pixels);
+}

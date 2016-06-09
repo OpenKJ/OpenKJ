@@ -102,8 +102,7 @@ MainWindow::MainWindow(QWidget *parent) :
         cdgWindow->show();
         if (settings->cdgWindowFullscreen())
         {
-            QPoint topLeft = QApplication::desktop()->screenGeometry(settings->cdgWindowFullScreenMonitor()).topLeft();
-            cdgWindow->move(topLeft);
+            cdgWindow->setFullScreen(true);
         }
     }
     cdg = new CDG;

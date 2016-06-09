@@ -42,6 +42,10 @@ private:
     ScrollText *ticker;
     bool m_fullScreen;
     QRect m_lastSize;
+    int vOffset;
+    int hOffset;
+    int vSizeAdjustment;
+    int hSizeAdjustment;
 
 public:
     explicit DlgCdg(QWidget *parent = 0, Qt::WindowFlags f = 0);
@@ -50,6 +54,10 @@ public:
     void makeFullscreen();
     void makeWindowed();
     void setTickerText(QString text);
+    int getVOffset() { return vOffset; }
+    int getHOffset() { return hOffset; }
+    int getVAdjustment() { return vSizeAdjustment; }
+    int getHAdjustment() { return hSizeAdjustment; }
 
 protected:
     void mouseDoubleClickEvent(QMouseEvent *e);
@@ -64,6 +72,10 @@ public slots:
     void tickerBgColorChanged();
     void tickerEnableChanged();
     void presentBgImage();
+    void setVOffset(int pixels);
+    void setHOffset(int pixels);
+    void setVSizeAdjustment(int pixels);
+    void setHSizeAdjustment(int pixels);
 
 };
 

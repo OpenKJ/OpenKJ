@@ -116,6 +116,10 @@ public:
     void setRecordingEnabled(bool enabled);
     QString recordingRawExtension();
     void setRecordingRawExtension(QString extension);
+    int cdgVOffset();
+    int cdgHOffset();
+    int cdgVSizeAdjustment();
+    int cdgHSizeAdjustment();
 
 signals:
     void tickerFontChanged();
@@ -128,7 +132,16 @@ signals:
     void audioBackendChanged(int index);
     void recordingSetupChanged();
     void cdgBgImageChanged();
+    void cdgHSizeAdjustmentChanged(int pixels);
+    void cdgVSizeAdjustmentChanged(int pixels);
+    void cdgHOffsetChanged(int pixels);
+    void cdgVOffsetChanged(int pixels);
 
+public slots:
+    void setCdgHSizeAdjustment(int pixels);
+    void setCdgVSizeAdjustment(int pixels);
+    void setCdgHOffset(int pixels);
+    void setCdgVOffset(int pixels);
 };
 
 #endif // KHSETTINGS_H
