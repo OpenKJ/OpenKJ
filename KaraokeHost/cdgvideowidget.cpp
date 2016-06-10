@@ -81,7 +81,7 @@ void CdgVideoWidget::presentBgImage()
             surface->present(QImage(":/icons/Icons/openkjlogo1.png").scaled(size(), Qt::KeepAspectRatio));
         }
         else
-            surface->present(cdgBg);
+            surface->present(cdgBg.scaled(size(), Qt::IgnoreAspectRatio));
     }
     else
     {

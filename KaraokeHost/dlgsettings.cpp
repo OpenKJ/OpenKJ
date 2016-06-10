@@ -231,9 +231,7 @@ void DlgSettings::on_groupBoxMonitors_toggled(bool arg1)
 void DlgSettings::on_listWidgetMonitors_itemSelectionChanged()
 {
     int selMonitor = ui->listWidgetMonitors->selectionModel()->selectedIndexes().at(0).row();
-    //if (selMonitor == )
     settings->setCdgWindowFullscreenMonitor(selMonitor);
-    //emit cdgWindowFullScreenMonitorChanged(selMonitor);
 }
 
 void DlgSettings::on_pushButtonFont_clicked()
@@ -325,7 +323,7 @@ void DlgSettings::on_groupBoxRequestServer_toggled(bool arg1)
 
 void DlgSettings::on_pushButtonBrowse_clicked()
 {
-    QString imageFile = QFileDialog::getOpenFileName(this,tr("Select image file"), QStandardPaths::writableLocation(QStandardPaths::PicturesLocation), tr("Images (*.png *.jpg *.jpeg *.gif)"));
+    QString imageFile = QFileDialog::getOpenFileName(this,QString("Select image file"), QStandardPaths::writableLocation(QStandardPaths::PicturesLocation), QString("Images (*.png *.jpg *.jpeg *.gif)"));
     if (imageFile != "")
     {
         QImage image(imageFile);
