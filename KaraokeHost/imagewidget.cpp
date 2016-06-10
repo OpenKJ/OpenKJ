@@ -25,6 +25,7 @@ void ImageWidget::setPixmap(const QPixmap &p)
 
 void ImageWidget::resizeEvent(QResizeEvent *e)
 {
+    Q_UNUSED(e)
     if(!pix.isNull())
         QLabel::setPixmap(pix.scaled(this->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
 }
