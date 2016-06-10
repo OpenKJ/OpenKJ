@@ -144,6 +144,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(rotModel, SIGNAL(rotationModified()), this, SLOT(rotationDataChanged()));
     connect(settings, SIGNAL(tickerOutputModeChanged()), this, SLOT(rotationDataChanged()));
     connect(settings, SIGNAL(audioBackendChanged(int)), this, SLOT(audioBackendChanged(int)));
+    connect(settings, SIGNAL(cdgBgImageChanged()), this, SLOT(onBgImageChange()));
     connect(activeAudioBackend, SIGNAL(silenceDetected()), this, SLOT(silenceDetected()));
     connect(settingsDialog, SIGNAL(audioUseFaderChanged(bool)), activeAudioBackend, SLOT(setUseFader(bool)));
     activeAudioBackend->setUseFader(settings->audioUseFader());
@@ -798,4 +799,10 @@ void MainWindow::setShowBgImage(bool show)
 {
     ui->bgImage->setPixmap(QPixmap(":/icons/Icons/openkjlogo1.png"));
     ui->bgImage->setVisible(show);
+}
+
+void MainWindow::onBgImageChange()
+{
+   if (activeAudioBackend->state() == KhAbstractAudioBackend::StoppedState)
+       cdgWindow->setShowBgImage(true);
 }

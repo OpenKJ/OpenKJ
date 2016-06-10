@@ -147,6 +147,7 @@ private slots:
     void regularAddError(QString errorText);
     void previewCdg();
     void setShowBgImage(bool show);
+    void onBgImageChange();
 
 
 };
