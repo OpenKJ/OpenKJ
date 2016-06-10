@@ -695,12 +695,9 @@ void MainWindow::on_tableViewDB_customContextMenuRequested(const QPoint &pos)
     QModelIndex index = ui->tableViewDB->indexAt(pos);
     if (index.isValid())
     {
-        QString zipPath = index.sibling(index.row(), 5).data().toString();
-        cdgPreviewDialog = new DlgCdgPreview(this);
-        cdgPreviewDialog->setAttribute(Qt::WA_DeleteOnClose);
-        cdgPreviewDialog->setSourceFile(zipPath);
+        previewZip = index.sibling(index.row(), 5).data().toString();
         QMenu contextMenu(this);
-        contextMenu.addAction("Preview", cdgPreviewDialog, SLOT(preview()));
+        contextMenu.addAction("Preview", this, SLOT(previewCdg()));
         contextMenu.exec(QCursor::pos());
     }
 }
@@ -746,12 +743,11 @@ void MainWindow::on_tableViewQueue_customContextMenuRequested(const QPoint &pos)
     QModelIndex index = ui->tableViewQueue->indexAt(pos);
     if (index.isValid())
     {   
-        QString zipPath = index.sibling(index.row(), 6).data().toString();
+        previewZip = index.sibling(index.row(), 6).data().toString();
         m_rtClickQueueSongId = index.sibling(index.row(), 0).data().toInt();
         dlgKeyChange->setActiveSong(m_rtClickQueueSongId);
-        cdgPreviewDialog->setSourceFile(zipPath);
         QMenu contextMenu(this);
-        contextMenu.addAction("Preview", cdgPreviewDialog, SLOT(preview()));
+        contextMenu.addAction("Preview", this, SLOT(previewCdg()));
         contextMenu.addAction("Set Key Change", this, SLOT(setKeyChange()));
         contextMenu.addAction("Toggle played", this, SLOT(toggleQueuePlayed()));
         contextMenu.exec(QCursor::pos());
@@ -787,4 +783,12 @@ void MainWindow::regularNameConflict(QString name)
 void MainWindow::regularAddError(QString errorText)
 {
     QMessageBox::warning(this, "Error adding regular singer!", errorText,QMessageBox::Ok);
+}
+
+void MainWindow::previewCdg()
+{
+    cdgPreviewDialog = new DlgCdgPreview(this);
+    cdgPreviewDialog->setAttribute(Qt::WA_DeleteOnClose);
+    cdgPreviewDialog->setSourceFile(previewZip);
+    cdgPreviewDialog->preview();
 }

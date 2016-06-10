@@ -93,6 +93,7 @@ private:
     CDG *cdg;
     int sortColDB;
     int sortDirDB;
+    QString previewZip;
 
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -144,6 +145,7 @@ private slots:
     void toggleQueuePlayed();
     void regularNameConflict(QString name);
     void regularAddError(QString errorText);
+    void previewCdg();
 
 };
 
