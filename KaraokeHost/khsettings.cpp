@@ -41,6 +41,7 @@ bool KhSettings::cdgWindowFullscreen()
 void KhSettings::setCdgWindowFullscreen(bool fullScreen)
 {
     settings->setValue("cdgWindowFullscreen", fullScreen);
+    emit cdgWindowFullscreenChanged(fullScreen);
 }
 
 
@@ -52,6 +53,7 @@ bool KhSettings::showCdgWindow()
 void KhSettings::setShowCdgWindow(bool show)
 {
     settings->setValue("showCdgWindow", show);
+    emit cdgShowCdgWindowChanged(show);
 }
 
 void KhSettings::setCdgWindowFullscreenMonitor(int monitor)

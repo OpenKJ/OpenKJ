@@ -49,9 +49,6 @@ public:
     void createIcons();
 
 signals:
-    void showCdgWindowChanged(bool);
-    void cdgWindowFullScreenChanged(bool);
-    void cdgWindowFullScreenMonitorChanged(int);
     void audioUseFaderChanged(bool);
     void audioSilenceDetectChanged(bool);
     void audioDownmixChanged(bool);

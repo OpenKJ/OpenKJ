@@ -39,9 +39,7 @@ private:
 public:
     explicit KhSettings(QObject *parent = 0);
     bool cdgWindowFullscreen();
-    void setCdgWindowFullscreen(bool fullScreen);
     bool showCdgWindow();
-    void setShowCdgWindow(bool show);
     void setCdgWindowFullscreenMonitor(int monitor);
     int  cdgWindowFullScreenMonitor();
     bool controlBreakMusic();
@@ -132,12 +130,16 @@ signals:
     void audioBackendChanged(int index);
     void recordingSetupChanged();
     void cdgBgImageChanged();
+    void cdgShowCdgWindowChanged(bool show);
+    void cdgWindowFullscreenChanged(bool fullscreen);
     void cdgHSizeAdjustmentChanged(int pixels);
     void cdgVSizeAdjustmentChanged(int pixels);
     void cdgHOffsetChanged(int pixels);
     void cdgVOffsetChanged(int pixels);
 
 public slots:
+    void setShowCdgWindow(bool show);
+    void setCdgWindowFullscreen(bool fullScreen);
     void setCdgHSizeAdjustment(int pixels);
     void setCdgVSizeAdjustment(int pixels);
     void setCdgHOffset(int pixels);

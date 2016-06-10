@@ -97,14 +97,6 @@ MainWindow::MainWindow(QWidget *parent) :
     regularImportDialog = new DlgRegularImport(rotModel, this);
     requestsDialog = new DlgRequests(rotModel, this);
     cdgWindow = new DlgCdg(this, Qt::Window);
-    if (settings->showCdgWindow())
-    {
-        cdgWindow->show();
-        if (settings->cdgWindowFullscreen())
-        {
-            cdgWindow->setFullScreen(true);
-        }
-    }
     cdg = new CDG;
     ui->tableViewDB->setModel(dbModel);
     dbDelegate = new DbItemDelegate(this);
@@ -150,8 +142,6 @@ MainWindow::MainWindow(QWidget *parent) :
     qDebug() << "Setting volume to " << settings->audioVolume();
     activeAudioBackend->setVolume(settings->audioVolume());
     ui->sliderVolume->setValue(settings->audioVolume());
-    connect(settingsDialog, SIGNAL(showCdgWindowChanged(bool)), cdgWindow, SLOT(setVisible(bool)));
-    connect(settingsDialog, SIGNAL(cdgWindowFullScreenChanged(bool)), cdgWindow, SLOT(setFullScreen(bool)));
     connect(rotModel, SIGNAL(rotationModified()), this, SLOT(rotationDataChanged()));
     connect(settings, SIGNAL(tickerOutputModeChanged()), this, SLOT(rotationDataChanged()));
     connect(settings, SIGNAL(audioBackendChanged(int)), this, SLOT(audioBackendChanged(int)));
@@ -295,7 +285,8 @@ MainWindow::~MainWindow()
     settings->saveColumnWidths(ui->tableViewDB);
     settings->saveColumnWidths(ui->tableViewRotation);
     settings->saveColumnWidths(ui->tableViewQueue);
-    settings->saveWindowState(cdgWindow);
+    if (!settings->cdgWindowFullscreen())
+        settings->saveWindowState(cdgWindow);
     settings->saveWindowState(requestsDialog);
     settings->saveWindowState(regularSingersDialog);
     settings->saveWindowState(this);

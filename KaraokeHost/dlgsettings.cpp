@@ -215,7 +215,6 @@ void DlgSettings::on_btnClose_clicked()
 void DlgSettings::on_checkBoxShowCdgWindow_stateChanged(int arg1)
 {
     settings->setShowCdgWindow(arg1);
-    emit showCdgWindowChanged(arg1);
     ui->listWidgetMonitors->setEnabled(arg1);
     ui->groupBoxMonitors->setEnabled(arg1);
     ui->pushButtonBrowse->setEnabled(arg1);
@@ -226,14 +225,15 @@ void DlgSettings::on_checkBoxShowCdgWindow_stateChanged(int arg1)
 void DlgSettings::on_groupBoxMonitors_toggled(bool arg1)
 {
     settings->setCdgWindowFullscreen(arg1);
-    emit cdgWindowFullScreenChanged(arg1);
+    //emit cdgWindowFullScreenChanged(arg1);
 }
 
 void DlgSettings::on_listWidgetMonitors_itemSelectionChanged()
 {
     int selMonitor = ui->listWidgetMonitors->selectionModel()->selectedIndexes().at(0).row();
+    //if (selMonitor == )
     settings->setCdgWindowFullscreenMonitor(selMonitor);
-    emit cdgWindowFullScreenMonitorChanged(selMonitor);
+    //emit cdgWindowFullScreenMonitorChanged(selMonitor);
 }
 
 void DlgSettings::on_pushButtonFont_clicked()

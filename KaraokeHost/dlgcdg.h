@@ -26,6 +26,7 @@
 #include "khsettings.h"
 #include "scrolltext.h"
 #include "cdgvideowidget.h"
+#include <QTimer>
 
 namespace Ui {
 class DlgCdg;
@@ -37,8 +38,7 @@ class DlgCdg : public QDialog
 
 private:
     Ui::DlgCdg *ui;
-//    QGLCanvas *canvas;
-    CdgVideoWidget *canvas;
+    CdgVideoWidget *cdgVideoSurface;
     ScrollText *ticker;
     bool m_fullScreen;
     QRect m_lastSize;
@@ -46,6 +46,7 @@ private:
     int hOffset;
     int vSizeAdjustment;
     int hSizeAdjustment;
+    QTimer *fullScreenTimer;
 
 public:
     explicit DlgCdg(QWidget *parent = 0, Qt::WindowFlags f = 0);
@@ -61,6 +62,9 @@ public:
 
 protected:
     void mouseDoubleClickEvent(QMouseEvent *e);
+
+private slots:
+    void fullScreenTimerTimeout();
 
 public slots:
     void setFullScreen(bool fullscreen);

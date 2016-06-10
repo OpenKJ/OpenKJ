@@ -36,8 +36,8 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
     hOffset = settings->cdgHOffset();
     vOffset = settings->cdgVOffset();
     ui->setupUi(this);
-    canvas = new CdgVideoWidget(this);
-    ui->verticalLayout_2->addWidget(canvas);
+    cdgVideoSurface = new CdgVideoWidget(this);
+    ui->verticalLayout_2->addWidget(cdgVideoSurface);
     m_fullScreen = false;
     m_lastSize.setWidth(300);
     m_lastSize.setHeight(216);
@@ -60,13 +60,27 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
     connect(settings, SIGNAL(tickerTextColorChanged()), this, SLOT(tickerTextColorChanged()));
     connect(settings, SIGNAL(tickerBgColorChanged()), this, SLOT(tickerBgColorChanged()));
     connect(settings, SIGNAL(tickerEnableChanged()), this, SLOT(tickerEnableChanged()));
-    connect(settings, SIGNAL(cdgBgImageChanged()), canvas, SLOT(presentBgImage()));
+    connect(settings, SIGNAL(cdgBgImageChanged()), cdgVideoSurface, SLOT(presentBgImage()));
     connect(settings, SIGNAL(cdgHOffsetChanged(int)), this, SLOT(setHOffset(int)));
     connect(settings, SIGNAL(cdgVOffsetChanged(int)), this, SLOT(setVOffset(int)));
     connect(settings, SIGNAL(cdgHSizeAdjustmentChanged(int)), this, SLOT(setHSizeAdjustment(int)));
     connect(settings, SIGNAL(cdgVSizeAdjustmentChanged(int)), this, SLOT(setVSizeAdjustment(int)));
-    canvas->videoSurface()->start();
-    canvas->setUseBgImage(true);
+    connect(settings, SIGNAL(cdgShowCdgWindowChanged(bool)), this, SLOT(setVisible(bool)));
+    connect(settings, SIGNAL(cdgWindowFullscreenChanged(bool)), this, SLOT(setFullScreen(bool)));
+    fullScreenTimer = new QTimer(this);
+    connect(fullScreenTimer, SIGNAL(timeout()), this, SLOT(fullScreenTimerTimeout()));
+    fullScreenTimer->setInterval(500);
+    cdgVideoSurface->videoSurface()->start();
+    cdgVideoSurface->setUseBgImage(true);
+    if ((settings->cdgWindowFullscreen()) && (settings->showCdgWindow()))
+    {
+        makeFullscreen();
+    }
+    else if (settings->showCdgWindow())
+        show();
+    fullScreenTimer = new QTimer(this);
+    connect(fullScreenTimer, SIGNAL(timeout()), this, SLOT(fullScreenTimerTimeout()));
+    fullScreenTimer->setInterval(500);
 }
 
 DlgCdg::~DlgCdg()
@@ -78,10 +92,10 @@ void DlgCdg::updateCDG(QImage image, bool overrideVisibleCheck)
 {
     if ((isVisible()) || (overrideVisibleCheck))
     {
-        if (image.size().height() > canvas->size().height() || image.size().width() > canvas->size().width())
-            canvas->videoSurface()->present(QVideoFrame(image.scaled(canvas->size(), Qt::IgnoreAspectRatio)));
+        if (image.size().height() > cdgVideoSurface->size().height() || image.size().width() > cdgVideoSurface->size().width())
+            cdgVideoSurface->videoSurface()->present(QVideoFrame(image.scaled(cdgVideoSurface->size(), Qt::IgnoreAspectRatio)));
         else
-            canvas->videoSurface()->present(QVideoFrame(image));
+            cdgVideoSurface->videoSurface()->present(QVideoFrame(image));
     }
 }
 
@@ -93,23 +107,23 @@ void DlgCdg::makeFullscreen()
     Qt::WindowFlags flags;
     flags |= Qt::Window;
     flags |= Qt::FramelessWindowHint;
-    flags |= Qt::WindowStaysOnTopHint;
+//    flags |= Qt::WindowStaysOnTopHint;
   //  flags |= Qt::MaximizeUsingFullscreenGeometryHint;
     setWindowFlags(flags);
     QRect screenDimensions = QApplication::desktop()->screenGeometry(settings->cdgWindowFullScreenMonitor());
     move(screenDimensions.left()  + hOffset, screenDimensions.top() + vOffset);
     resize(screenDimensions.width() + hSizeAdjustment,screenDimensions.height() + vSizeAdjustment);
+    cdgVideoSurface->presentBgImage();
     show();
-    canvas->presentBgImage();
+    fullScreenTimer->start();
 }
 
 void DlgCdg::makeWindowed()
 {
     setWindowFlags(Qt::Window | Qt::WindowStaysOnTopHint);
     resize(300, 216);
-    settings->saveWindowState(this);
     show();
-    canvas->repaint();
+    cdgVideoSurface->repaint();
     m_fullScreen = false;
 }
 
@@ -174,7 +188,7 @@ void DlgCdg::tickerEnableChanged()
 
 void DlgCdg::presentBgImage()
 {
-    canvas->presentBgImage();
+    cdgVideoSurface->presentBgImage();
 }
 
 void DlgCdg::setVOffset(int pixels)
@@ -226,5 +240,14 @@ void DlgCdg::mouseDoubleClickEvent(QMouseEvent *e)
     }
     else
         makeFullscreen();
+}
+
+void DlgCdg::fullScreenTimerTimeout()
+{
+    // This is to work around Windows 10 opening the window offset from the top left corner unless we wait a bit
+    // before moving it.
+    setVOffset(settings->cdgVOffset());
+    setHOffset(settings->cdgHOffset());
+    fullScreenTimer->stop();
 }
 
