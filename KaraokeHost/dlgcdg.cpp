@@ -31,6 +31,10 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
     QDialog(parent, f),
     ui(new Ui::DlgCdg)
 {
+    if (settings->cdgWindowFullScreenMonitor() > QApplication::desktop()->numScreens())
+    {
+        settings->setCdgWindowFullscreen(false);
+    }
     hSizeAdjustment = settings->cdgHSizeAdjustment();
     vSizeAdjustment = settings->cdgVSizeAdjustment();
     hOffset = settings->cdgHOffset();
@@ -120,7 +124,7 @@ void DlgCdg::makeFullscreen()
 
 void DlgCdg::makeWindowed()
 {
-    setWindowFlags(Qt::Window | Qt::WindowStaysOnTopHint);
+    setWindowFlags(Qt::Window);
     resize(300, 216);
     show();
     cdgVideoSurface->repaint();
