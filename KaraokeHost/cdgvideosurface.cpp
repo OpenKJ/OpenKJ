@@ -89,7 +89,8 @@ void CdgVideoSurface::updateVideoRect()
 {
     QSize size = surfaceFormat().sizeHint();
     size.scale(widget->size(), Qt::IgnoreAspectRatio);
-    targetRect = QRect(QPoint(0, 0), size);
+//    targetRect = QRect(QPoint(0, 0), size);
+    targetRect = QRect(QPoint(0, 0), widget->size());
     targetRect.moveCenter(widget->rect().center());
 }
 

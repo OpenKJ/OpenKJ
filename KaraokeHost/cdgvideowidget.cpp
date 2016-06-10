@@ -16,12 +16,10 @@ CdgVideoWidget::CdgVideoWidget(QWidget *parent) : QWidget(parent) , surface(0)
     setUpdatesEnabled(true);
     setAutoFillBackground(false);
     setAttribute(Qt::WA_NoSystemBackground, true);
-//   setAttribute(Qt::WA_PaintOnScreen, true);
     QPalette palette = this->palette();
     palette.setColor(QPalette::Background, Qt::black);
     setPalette(palette);
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
-    useBgImage = false;
     surface = new CdgVideoSurface(this);
 }
 
@@ -42,16 +40,6 @@ void CdgVideoWidget::resizeEvent(QResizeEvent *event)
     surface->updateVideoRect();
 }
 
-bool CdgVideoWidget::getUseBgImage() const
-{
-    return useBgImage;
-}
-
-void CdgVideoWidget::setUseBgImage(bool value)
-{
-    useBgImage = value;
-}
-
 void CdgVideoWidget::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
@@ -68,23 +56,5 @@ void CdgVideoWidget::paintEvent(QPaintEvent *event)
         surface->paint(&painter);
     } else {
         painter.fillRect(event->rect(), palette().background());
-    }
-}
-
-void CdgVideoWidget::presentBgImage()
-{
-    QImage cdgBg;
-    if ((settings->cdgDisplayBackgroundImage() != "") && (useBgImage))
-    {
-        if (!cdgBg.load(settings->cdgDisplayBackgroundImage()))
-        {
-            surface->present(QImage(":/icons/Icons/openkjlogo1.png").scaled(size(), Qt::KeepAspectRatio));
-        }
-        else
-            surface->present(cdgBg.scaled(size(), Qt::IgnoreAspectRatio));
-    }
-    else
-    {
-        surface->present(QImage(":/icons/Icons/openkjlogo1.png"));
     }
 }

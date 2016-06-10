@@ -52,7 +52,6 @@ MainWindow::MainWindow(QWidget *parent) :
     QCoreApplication::setOrganizationDomain("OpenKJ.org");
     QCoreApplication::setApplicationName("KaraokeHost");
     ui->setupUi(this);
-    ui->cdgVideoWidget->setUseBgImage(false);
     db = new KhDb(this);
     labelSingerCount = new QLabel(ui->statusBar);
     khDir = new QDir(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
@@ -154,8 +153,8 @@ MainWindow::MainWindow(QWidget *parent) :
     activeAudioBackend->setDownmix(settings->audioDownmix());
     connect(qModel, SIGNAL(queueModified(int)), rotModel, SLOT(queueModified(int)));
     connect(requestsDialog, SIGNAL(addRequestSong(int,int)), qModel, SLOT(songAdd(int,int)));
-    cdgWindow->presentBgImage();
-    ui->cdgVideoWidget->presentBgImage();
+    cdgWindow->setShowBgImage(true);
+    setShowBgImage(true);
     settings->restoreWindowState(cdgWindow);
     settings->restoreWindowState(requestsDialog);
     settings->restoreWindowState(regularSingersDialog);
@@ -217,6 +216,8 @@ void MainWindow::play(QString karaokeFilePath)
                 }
                 cdg->FileOpen(archive.getCDGData());
                 cdg->Process();
+                cdgWindow->setShowBgImage(false);
+                setShowBgImage(false);
                 activeAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + "tmp.mp3");
                 ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
                 activeAudioBackend->play();
@@ -600,8 +601,8 @@ void MainWindow::audioBackend_stateChanged(KhAbstractAudioBackend::State state)
         ui->labelRemainTime->setText("0:00");
         ui->labelTotalTime->setText("0:00");
         ui->sliderProgress->setValue(0);
-        ui->cdgVideoWidget->presentBgImage();
-        cdgWindow->presentBgImage();
+        setShowBgImage(true);
+        cdgWindow->setShowBgImage(true);
     }
     if (state == KhAbstractAudioBackend::EndOfMediaState)
     {
@@ -791,4 +792,10 @@ void MainWindow::previewCdg()
     cdgPreviewDialog->setAttribute(Qt::WA_DeleteOnClose);
     cdgPreviewDialog->setSourceFile(previewZip);
     cdgPreviewDialog->preview();
+}
+
+void MainWindow::setShowBgImage(bool show)
+{
+    ui->bgImage->setPixmap(QPixmap(":/icons/Icons/openkjlogo1.png"));
+    ui->bgImage->setVisible(show);
 }

@@ -22,23 +22,14 @@ public:
     ~CdgVideoWidget();
     CdgVideoSurface *videoSurface() const { return surface; }
     QSize sizeHint() const;
-
-    bool getUseBgImage() const;
-    void setUseBgImage(bool value);
-
-protected:
-    void resizeEvent(QResizeEvent *event);
-
 private:
     CdgVideoSurface *surface;
-    bool useBgImage;
+    void presentScaledBgImage(QSize newSize);
 
-    // QWidget interface
 protected:
     void paintEvent(QPaintEvent *event);
+    void resizeEvent(QResizeEvent *event);
 
-public slots:
-    void presentBgImage();
 };
 
 #endif // CDGVIDEOWIDGET_H

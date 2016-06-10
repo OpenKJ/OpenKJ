@@ -38,8 +38,6 @@ class DlgCdg : public QDialog
 
 private:
     Ui::DlgCdg *ui;
-    CdgVideoWidget *cdgVideoSurface;
-    ScrollText *ticker;
     bool m_fullScreen;
     QRect m_lastSize;
     int vOffset;
@@ -75,11 +73,11 @@ public slots:
     void tickerTextColorChanged();
     void tickerBgColorChanged();
     void tickerEnableChanged();
-    void presentBgImage();
     void setVOffset(int pixels);
     void setHOffset(int pixels);
     void setVSizeAdjustment(int pixels);
     void setHSizeAdjustment(int pixels);
+    void setShowBgImage(bool show);
 
 };
 

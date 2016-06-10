@@ -40,31 +40,27 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
     hOffset = settings->cdgHOffset();
     vOffset = settings->cdgVOffset();
     ui->setupUi(this);
-    cdgVideoSurface = new CdgVideoWidget(this);
-    ui->verticalLayout_2->addWidget(cdgVideoSurface);
     m_fullScreen = false;
     m_lastSize.setWidth(300);
     m_lastSize.setHeight(216);
-    ticker = new ScrollText(this);
-    ticker->setFont(settings->tickerFont());
-    ticker->setMinimumHeight(settings->tickerHeight());
-    ticker->setMaximumHeight(settings->tickerHeight());
-    ticker->setSpeed(settings->tickerSpeed());
-    QPalette palette = ticker->palette();
-    palette.setColor(ticker->foregroundRole(), settings->tickerTextColor());
-    ticker->setPalette(palette);
+    ui->scroll->setFont(settings->tickerFont());
+    ui->scroll->setMinimumHeight(settings->tickerHeight());
+    ui->scroll->setMaximumHeight(settings->tickerHeight());
+    ui->scroll->setSpeed(settings->tickerSpeed());
+    QPalette palette = ui->scroll->palette();
+    palette.setColor(ui->scroll->foregroundRole(), settings->tickerTextColor());
+    ui->scroll->setPalette(palette);
     palette = this->palette();
     palette.setColor(QPalette::Background, settings->tickerBgColor());
     this->setPalette(palette);
-    ticker->setText("This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll");
-    ui->verticalLayout_2->addWidget(ticker);
+    ui->scroll->setText("This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll - This is some text to scroll");
     connect(settings, SIGNAL(tickerFontChanged()), this, SLOT(tickerFontChanged()));
     connect(settings, SIGNAL(tickerHeightChanged(int)), this, SLOT(tickerHeightChanged()));
     connect(settings, SIGNAL(tickerSpeedChanged()), this, SLOT(tickerSpeedChanged()));
     connect(settings, SIGNAL(tickerTextColorChanged()), this, SLOT(tickerTextColorChanged()));
     connect(settings, SIGNAL(tickerBgColorChanged()), this, SLOT(tickerBgColorChanged()));
     connect(settings, SIGNAL(tickerEnableChanged()), this, SLOT(tickerEnableChanged()));
-    connect(settings, SIGNAL(cdgBgImageChanged()), cdgVideoSurface, SLOT(presentBgImage()));
+    connect(settings, SIGNAL(cdgBgImageChanged()), ui->cdgVideo, SLOT(presentBgImage()));
     connect(settings, SIGNAL(cdgHOffsetChanged(int)), this, SLOT(setHOffset(int)));
     connect(settings, SIGNAL(cdgVOffsetChanged(int)), this, SLOT(setVOffset(int)));
     connect(settings, SIGNAL(cdgHSizeAdjustmentChanged(int)), this, SLOT(setHSizeAdjustment(int)));
@@ -74,8 +70,7 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
     fullScreenTimer = new QTimer(this);
     connect(fullScreenTimer, SIGNAL(timeout()), this, SLOT(fullScreenTimerTimeout()));
     fullScreenTimer->setInterval(500);
-    cdgVideoSurface->videoSurface()->start();
-    cdgVideoSurface->setUseBgImage(true);
+    ui->cdgVideo->videoSurface()->start();
     if ((settings->cdgWindowFullscreen()) && (settings->showCdgWindow()))
     {
         makeFullscreen();
@@ -85,6 +80,7 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
     fullScreenTimer = new QTimer(this);
     connect(fullScreenTimer, SIGNAL(timeout()), this, SLOT(fullScreenTimerTimeout()));
     fullScreenTimer->setInterval(500);
+    ui->bgImage->setVisible(false);
 }
 
 DlgCdg::~DlgCdg()
@@ -96,10 +92,10 @@ void DlgCdg::updateCDG(QImage image, bool overrideVisibleCheck)
 {
     if ((isVisible()) || (overrideVisibleCheck))
     {
-        if (image.size().height() > cdgVideoSurface->size().height() || image.size().width() > cdgVideoSurface->size().width())
-            cdgVideoSurface->videoSurface()->present(QVideoFrame(image.scaled(cdgVideoSurface->size(), Qt::IgnoreAspectRatio)));
+        if (image.size().height() > ui->cdgVideo->size().height() || image.size().width() > ui->cdgVideo->size().width())
+            ui->cdgVideo->videoSurface()->present(QVideoFrame(image.scaled(ui->cdgVideo->size(), Qt::IgnoreAspectRatio)));
         else
-            cdgVideoSurface->videoSurface()->present(QVideoFrame(image));
+            ui->cdgVideo->videoSurface()->present(QVideoFrame(image));
     }
 }
 
@@ -111,13 +107,10 @@ void DlgCdg::makeFullscreen()
     Qt::WindowFlags flags;
     flags |= Qt::Window;
     flags |= Qt::FramelessWindowHint;
-//    flags |= Qt::WindowStaysOnTopHint;
-  //  flags |= Qt::MaximizeUsingFullscreenGeometryHint;
     setWindowFlags(flags);
     QRect screenDimensions = QApplication::desktop()->screenGeometry(settings->cdgWindowFullScreenMonitor());
     move(screenDimensions.left()  + hOffset, screenDimensions.top() + vOffset);
     resize(screenDimensions.width() + hSizeAdjustment,screenDimensions.height() + vSizeAdjustment);
-    cdgVideoSurface->presentBgImage();
     show();
     fullScreenTimer->start();
 }
@@ -127,13 +120,13 @@ void DlgCdg::makeWindowed()
     setWindowFlags(Qt::Window);
     resize(300, 216);
     show();
-    cdgVideoSurface->repaint();
+    ui->cdgVideo->repaint();
     m_fullScreen = false;
 }
 
 void DlgCdg::setTickerText(QString text)
 {
-    ticker->setText(text);
+    ui->scroll->setText(text);
 }
 
 void DlgCdg::setFullScreen(bool fullscreen)
@@ -153,29 +146,29 @@ void DlgCdg::setFullScreenMonitor(int monitor)
 
 void DlgCdg::tickerFontChanged()
 {
-    ticker->setFont(settings->tickerFont());
-    ticker->refresh();
-    int newHeight = QFontMetrics(ticker->font()).height() * 1.2;
+    ui->scroll->setFont(settings->tickerFont());
+    ui->scroll->refresh();
+    int newHeight = QFontMetrics(ui->scroll->font()).height() * 1.2;
     settings->setTickerHeight(newHeight);
 }
 
 void DlgCdg::tickerHeightChanged()
 {
-    ticker->setMinimumHeight(settings->tickerHeight());
-    ticker->setMaximumHeight(settings->tickerHeight());
-    ticker->refresh();
+    ui->scroll->setMinimumHeight(settings->tickerHeight());
+    ui->scroll->setMaximumHeight(settings->tickerHeight());
+    ui->scroll->refresh();
 }
 
 void DlgCdg::tickerSpeedChanged()
 {
-    ticker->setSpeed(settings->tickerSpeed());
+    ui->scroll->setSpeed(settings->tickerSpeed());
 }
 
 void DlgCdg::tickerTextColorChanged()
 {
-    QPalette palette = ticker->palette();
-    palette.setColor(ticker->foregroundRole(), settings->tickerTextColor());
-    ticker->setPalette(palette);
+    QPalette palette = ui->scroll->palette();
+    palette.setColor(ui->scroll->foregroundRole(), settings->tickerTextColor());
+    ui->scroll->setPalette(palette);
 }
 
 void DlgCdg::tickerBgColorChanged()
@@ -187,12 +180,7 @@ void DlgCdg::tickerBgColorChanged()
 
 void DlgCdg::tickerEnableChanged()
 {
-    ticker->enable(settings->tickerEnabled());
-}
-
-void DlgCdg::presentBgImage()
-{
-    cdgVideoSurface->presentBgImage();
+    ui->scroll->enable(settings->tickerEnabled());
 }
 
 void DlgCdg::setVOffset(int pixels)
@@ -233,6 +221,15 @@ void DlgCdg::setHSizeAdjustment(int pixels)
         QRect screenDimensions = QApplication::desktop()->screenGeometry(settings->cdgWindowFullScreenMonitor());
         resize(screenDimensions.width() + hSizeAdjustment,screenDimensions.height() + vSizeAdjustment);
     }
+}
+
+void DlgCdg::setShowBgImage(bool show)
+{
+    if (settings->cdgDisplayBackgroundImage() != QString::null)
+        ui->bgImage->setPixmap(QPixmap(settings->cdgDisplayBackgroundImage()));
+    else
+        ui->bgImage->setPixmap(QPixmap(":/icons/Icons/openkjlogo1.png"));
+    ui->bgImage->setVisible(show);
 }
 
 void DlgCdg::mouseDoubleClickEvent(QMouseEvent *e)

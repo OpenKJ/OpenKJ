@@ -146,6 +146,8 @@ private slots:
     void regularNameConflict(QString name);
     void regularAddError(QString errorText);
     void previewCdg();
+    void setShowBgImage(bool show);
+
 
 };
 
