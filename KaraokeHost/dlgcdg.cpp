@@ -60,7 +60,6 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
     connect(settings, SIGNAL(tickerTextColorChanged()), this, SLOT(tickerTextColorChanged()));
     connect(settings, SIGNAL(tickerBgColorChanged()), this, SLOT(tickerBgColorChanged()));
     connect(settings, SIGNAL(tickerEnableChanged()), this, SLOT(tickerEnableChanged()));
-    connect(settings, SIGNAL(cdgBgImageChanged()), ui->cdgVideo, SLOT(presentBgImage()));
     connect(settings, SIGNAL(cdgHOffsetChanged(int)), this, SLOT(setHOffset(int)));
     connect(settings, SIGNAL(cdgVOffsetChanged(int)), this, SLOT(setVOffset(int)));
     connect(settings, SIGNAL(cdgHSizeAdjustmentChanged(int)), this, SLOT(setHSizeAdjustment(int)));
