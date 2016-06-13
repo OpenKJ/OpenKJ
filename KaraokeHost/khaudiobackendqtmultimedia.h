@@ -8,6 +8,7 @@
 #include <QBuffer>
 #include <QTimer>
 #include <QThread>
+#include "stproxyiodevice.h"
 
 class FaderQtMultimedia : public QThread
 {
@@ -55,6 +56,7 @@ private:
     bool m_changingDevice;
     bool m_downmix;
     bool m_muted;
+    StProxyIODevice *stProxy;
 
 public:
     explicit KhAudioBackendQtMultimedia(QObject *parent = 0);

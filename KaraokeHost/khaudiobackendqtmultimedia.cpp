@@ -4,6 +4,7 @@
 #include <QAudioDeviceInfo>
 #include <numeric>
 
+
 KhAudioBackendQtMultimedia::KhAudioBackendQtMultimedia(QObject *parent) : KhAbstractAudioBackend(parent)
 {
     m_muted = false;
@@ -20,7 +21,8 @@ KhAudioBackendQtMultimedia::KhAudioBackendQtMultimedia(QObject *parent) : KhAbst
         format.setChannelCount(1);
     buffer = new QBuffer(m_array, this);
     buffer->open(QIODevice::ReadWrite);
-
+    stProxy = new StProxyIODevice(buffer, this);
+    stProxy->open(QIODevice::ReadOnly);
     audioDecoder = new QAudioDecoder(this);
     audioOutput = new QAudioOutput(format,this);
     audioDecoder->setAudioFormat(format);
@@ -135,6 +137,8 @@ void KhAudioBackendQtMultimedia::setOutputDevice(int deviceIndex)
         delete(audioOutput);
         audioOutput = new QAudioOutput(audioDecoder->audioFormat(),this);
         audioOutput->setVolume(curVolume);
+        if (m_downmix)
+
         if (currentState == QAudio::ActiveState || currentState == QAudio::SuspendedState)
         {
             play();
@@ -287,7 +291,9 @@ void KhAudioBackendQtMultimedia::processAudio()
         if (!m_changingDevice)
         {
             if (audioOutput->state() != QAudio::ActiveState)
-                audioOutput->start(buffer);
+            {
+                audioOutput->start(stProxy);
+            }
         }
     }
 }

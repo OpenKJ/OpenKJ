@@ -60,7 +60,8 @@ SOURCES += main.cpp\
     cdgvideosurface.cpp \
     cdgvideowidget.cpp \
     imagewidget.cpp \
-    khaudiobackendqtmultimedia.cpp
+    khaudiobackendqtmultimedia.cpp \
+    stproxyiodevice.cpp
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -97,7 +98,8 @@ HEADERS  += mainwindow.h \
     cdgvideosurface.h \
     cdgvideowidget.h \
     imagewidget.h \
-    khaudiobackendqtmultimedia.h
+    khaudiobackendqtmultimedia.h \
+    stproxyiodevice.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \
@@ -112,6 +114,8 @@ FORMS    += mainwindow.ui \
     dlgdurationscan.ui
 
 unix: CONFIG += link_pkgconfig
+unix: LIBS += -L"/home/idm/lightburnisa/devel/OpenKJ/soundtouch/lib" -lSoundTouch
+unix: INCLUDEPATH += "../soundtouch/include/soundtouch"
 
 contains(DEFINES, USE_GSTREAMER) {
     message("USE_GSTREAMER defined, building GStreamer audio backend")
