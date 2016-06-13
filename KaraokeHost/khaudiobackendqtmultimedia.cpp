@@ -6,15 +6,18 @@
 
 KhAudioBackendQtMultimedia::KhAudioBackendQtMultimedia(QObject *parent) : KhAbstractAudioBackend(parent)
 {
+    m_muted = false;
     m_silent = false;
     m_detectSilence = false;
     m_fade = false;
+    m_changingDevice = false;
+    m_downmix = false;
     silenceDetectTimer = new QTimer(this);
     silenceDetectTimer->start(1000);
     m_array = new QByteArray();
-    QAudioFormat format;
-    format = QAudioDeviceInfo::defaultOutputDevice().preferredFormat();
-
+    QAudioFormat format = QAudioDeviceInfo::defaultOutputDevice().preferredFormat();
+    if (m_downmix)
+        format.setChannelCount(1);
     buffer = new QBuffer(m_array, this);
     buffer->open(QIODevice::ReadWrite);
 
@@ -49,7 +52,7 @@ qint64 KhAudioBackendQtMultimedia::position()
 
 bool KhAudioBackendQtMultimedia::isMuted()
 {
-    return false;
+    return m_muted;
 }
 
 qint64 KhAudioBackendQtMultimedia::duration()
@@ -109,7 +112,7 @@ bool KhAudioBackendQtMultimedia::isSilent()
 
 bool KhAudioBackendQtMultimedia::canDownmix()
 {
-    return false;
+    return true;
 }
 
 bool KhAudioBackendQtMultimedia::downmixChangeRequiresRestart()
@@ -119,6 +122,31 @@ bool KhAudioBackendQtMultimedia::downmixChangeRequiresRestart()
 
 void KhAudioBackendQtMultimedia::setOutputDevice(int deviceIndex)
 {
+    if (this->deviceIndex != deviceIndex)
+    {
+        m_changingDevice = true;
+        this->deviceIndex = deviceIndex;
+        int curVolume = audioOutput->volume();
+        int curPosition = position();
+        QList<QAudioDeviceInfo> devices = QAudioDeviceInfo::availableDevices(QAudio::AudioOutput);
+        qCritical() << "User selected device: " << devices.at(deviceIndex).deviceName();
+        QAudio::State currentState = audioOutput->state();
+        stop(true);
+        delete(audioOutput);
+        audioOutput = new QAudioOutput(audioDecoder->audioFormat(),this);
+        audioOutput->setVolume(curVolume);
+        if (currentState == QAudio::ActiveState || currentState == QAudio::SuspendedState)
+        {
+            play();
+            setPosition(curPosition);
+        }
+        if (currentState == QAudio::SuspendedState)
+            pause();
+        connect(audioOutput, SIGNAL(notify()), this, SLOT(audioOutputNotify()));
+        connect(audioOutput, SIGNAL(stateChanged(QAudio::State)), this, SLOT(audioOutputStateChanged(QAudio::State)));
+        audioOutput->setNotifyInterval(20);
+        m_changingDevice = false;
+    }
 }
 
 bool KhAudioBackendQtMultimedia::stopping()
@@ -144,8 +172,23 @@ void KhAudioBackendQtMultimedia::setMedia(QString filename)
     audioDecoder->setSourceFilename(filename);
 }
 
-void KhAudioBackendQtMultimedia::setMuted(bool muted)
+void KhAudioBackendQtMultimedia::setMuted(bool mute)
 {
+    static float preMuteVol;
+    if (mute != m_muted)
+    {
+        if (mute)
+        {
+            preMuteVol = audioOutput->volume();
+            audioOutput->setVolume(0.0);
+            m_muted = true;
+        }
+        else
+        {
+            audioOutput->setVolume(preMuteVol);
+            m_muted = false;
+        }
+    }
 }
 
 void KhAudioBackendQtMultimedia::setPosition(qint64 position)
@@ -197,6 +240,36 @@ void KhAudioBackendQtMultimedia::setUseSilenceDetection(bool enabled)
 
 void KhAudioBackendQtMultimedia::setDownmix(bool enabled)
 {
+    if (m_downmix != enabled)
+    {
+        m_downmix = enabled;
+        QAudioFormat format = QAudioDeviceInfo::defaultOutputDevice().preferredFormat();
+        if (m_downmix)
+            format.setChannelCount(1);
+        audioDecoder->setAudioFormat(format);
+        m_changingDevice = true;
+        this->deviceIndex = deviceIndex;
+        int curVolume = audioOutput->volume();
+        int curPosition = position();
+        QList<QAudioDeviceInfo> devices = QAudioDeviceInfo::availableDevices(QAudio::AudioOutput);
+        qCritical() << "User selected device: " << devices.at(deviceIndex).deviceName();
+        QAudio::State currentState = audioOutput->state();
+        stop(true);
+        delete(audioOutput);
+        audioOutput = new QAudioOutput(audioDecoder->audioFormat(),this);
+        audioOutput->setVolume(curVolume);
+        if (currentState == QAudio::ActiveState || currentState == QAudio::SuspendedState)
+        {
+            play();
+            setPosition(curPosition);
+        }
+        if (currentState == QAudio::SuspendedState)
+            pause();
+        connect(audioOutput, SIGNAL(notify()), this, SLOT(audioOutputNotify()));
+        connect(audioOutput, SIGNAL(stateChanged(QAudio::State)), this, SLOT(audioOutputStateChanged(QAudio::State)));
+        audioOutput->setNotifyInterval(20);
+        m_changingDevice = false;
+    }
 }
 
 void KhAudioBackendQtMultimedia::processAudio()
@@ -211,8 +284,11 @@ void KhAudioBackendQtMultimedia::processAudio()
         QByteArray data = QByteArray::fromRawData((char*)newBuffer.data(), newBuffer.byteCount());
         m_array->append(data);
         processing = false;
-        if (audioOutput->state() != QAudio::ActiveState)
-            audioOutput->start(buffer);
+        if (!m_changingDevice)
+        {
+            if (audioOutput->state() != QAudio::ActiveState)
+                audioOutput->start(buffer);
+        }
     }
 }
 
@@ -223,40 +299,37 @@ void KhAudioBackendQtMultimedia::durationReceived(qint64 duration)
 
 void KhAudioBackendQtMultimedia::audioOutputNotify()
 {
-//    static float volume = audioOutput->volume();
-//    if (audioOutput->volume() != volume)
-//    {
-//        volume = audioOutput->volume();
-//        emit volumeChanged(volume * 100);
-//    }
     emit positionChanged(position());
 }
 
 void KhAudioBackendQtMultimedia::audioOutputStateChanged(QAudio::State state)
 {
-    switch (state) {
-    case QAudio::IdleState:
-        // Finished playing (no more data)
-        stop(true);
-        break;
-    case QAudio::StoppedState:
-        // Stopped for other reasons
-        emit stateChanged(KhAbstractAudioBackend::StoppedState);
-        break;
-    case QAudio::ActiveState:
-        emit stateChanged(KhAbstractAudioBackend::PlayingState);
-        break;
-    case QAudio::SuspendedState:
-        emit stateChanged(KhAbstractAudioBackend::PausedState);
-        break;
-    default:
-        break;
+    if (!m_changingDevice)
+    {
+        switch (state) {
+        case QAudio::IdleState:
+            // Finished playing (no more data)
+            stop(true);
+            break;
+        case QAudio::StoppedState:
+            // Stopped for other reasons
+            emit stateChanged(KhAbstractAudioBackend::StoppedState);
+            break;
+        case QAudio::ActiveState:
+            emit stateChanged(KhAbstractAudioBackend::PlayingState);
+            break;
+        case QAudio::SuspendedState:
+            emit stateChanged(KhAbstractAudioBackend::PausedState);
+            break;
+        default:
+            break;
+        }
     }
 }
 
 void KhAudioBackendQtMultimedia::silenceDetectTimerTimeout()
 {
-    if (m_detectSilence)
+    if (m_detectSilence && !m_changingDevice)
     {
         static int seconds = 0;
         int bytesPerSecond = audioOutput->format().bytesForDuration(1000000);
@@ -353,4 +426,17 @@ void FaderQtMultimedia::restoreVolume()
 void FaderQtMultimedia::setBaseVolume(int volume)
 {
     m_preOutVolume = (float)volume / 100.0;
+}
+
+
+QStringList KhAudioBackendQtMultimedia::getOutputDevices()
+{
+    QStringList devNames;
+    QAudioDeviceInfo adInfo;
+    QList<QAudioDeviceInfo> devices = adInfo.availableDevices(QAudio::AudioOutput);
+    for (int i=0; i < devices.size(); i++)
+    {
+        devNames << devices.at(i).deviceName();
+    }
+    return devNames;
 }

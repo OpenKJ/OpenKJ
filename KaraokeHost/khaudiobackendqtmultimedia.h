@@ -51,6 +51,10 @@ private:
     bool m_detectSilence;
     FaderQtMultimedia *fader;
     bool m_fade;
+    int deviceIndex;
+    bool m_changingDevice;
+    bool m_downmix;
+    bool m_muted;
 
 public:
     explicit KhAudioBackendQtMultimedia(QObject *parent = 0);
@@ -69,12 +73,14 @@ public:
     bool downmixChangeRequiresRestart();
     void setOutputDevice(int deviceIndex);
     bool stopping();
+    QStringList getOutputDevices();
+
 
 public slots:
     void play();
     void pause();
     void setMedia(QString filename);
-    void setMuted(bool muted);
+    void setMuted(bool mute);
     void setPosition(qint64 position);
     void setVolume(int volume);
     void stop(bool skipFade);
@@ -91,7 +97,6 @@ private slots:
     void audioOutputNotify();
     void audioOutputStateChanged(QAudio::State state);
     void silenceDetectTimerTimeout();
-
 };
 
 #endif // KHAUDIOBACKENDQTMULTIMEDIA_H
