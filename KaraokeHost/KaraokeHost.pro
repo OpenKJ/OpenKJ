@@ -21,7 +21,8 @@ TARGET = KaraokeHost
 TEMPLATE = app
 
 #DEFINES += USE_GSTREAMER
-DEFINES += USE_QMEDIAPLAYER
+#DEFINES += USE_QMEDIAPLAYER
+DEFINES += USE_QTMULTIMEDIA
 
 SOURCES += main.cpp\
     mainwindow.cpp \
@@ -58,7 +59,8 @@ SOURCES += main.cpp\
     okarchive.cpp \
     cdgvideosurface.cpp \
     cdgvideowidget.cpp \
-    imagewidget.cpp
+    imagewidget.cpp \
+    khaudiobackendqtmultimedia.cpp
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -94,7 +96,8 @@ HEADERS  += mainwindow.h \
     okarchive.h \
     cdgvideosurface.h \
     cdgvideowidget.h \
-    imagewidget.h
+    imagewidget.h \
+    khaudiobackendqtmultimedia.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \

@@ -399,7 +399,7 @@ void DlgSettings::audioBackendChanged(int index)
         ui->listWidgetAudioDevices->findItems(settings->audioOutputDevice(),Qt::MatchExactly).at(0)->setSelected(true);
     }
     else
-        ui->listWidgetAudioDevices->item(0)->setSelected(true);
+//        ui->listWidgetAudioDevices->item(0)->setSelected(true);
     if (!audioBackend->downmixChangeRequiresRestart())
         ui->checkBoxDownmix->setText("Downmix to mono");
     else

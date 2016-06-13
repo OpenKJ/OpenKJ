@@ -28,6 +28,9 @@
 #ifdef USE_GSTREAMER
 #include "khaudiobackendgstreamer.h"
 #endif
+#ifdef USE_QTMULTIMEDIA
+#include "khaudiobackendqtmultimedia.h"
+#endif
 //#include "khzip.h"
 #include <QDesktopWidget>
 #include <QStandardPaths>
@@ -108,7 +111,11 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif
 #ifdef USE_QMEDIAPLAYER
     qDebug() << "Initializing audio backend: QMediaPlayer (QtMultimedia)";
-    audioBackends->push_back(new KhAudioBackendQMediaPlayer(this));
+//    audioBackends->push_back(new KhAudioBackendQMediaPlayer(this));
+#endif
+#ifdef USE_QTMULTIMEDIA
+    qDebug() << "Initializing audio backend: QtMultimedia";
+    audioBackends->push_back(new KhAudioBackendQtMultimedia(this));
 #endif
     if (audioBackends->count() < 1)
         qCritical("No audio backends available!");
@@ -679,9 +686,10 @@ void MainWindow::rotationDataChanged()
 
 void MainWindow::silenceDetected()
 {
+    qCritical() << "cdgLastUpdate: " << cdg->GetLastCDGUpdate() << " audioPos:" << activeAudioBackend->position();
     if (cdg->GetLastCDGUpdate() < activeAudioBackend->position())
     {
-        qDebug() << "Silence detected for > 2s after last CDG draw command... Stopping.";
+        qCritical() << "Silence detected for > 2s after last CDG draw command... Stopping.";
         activeAudioBackend->stop(true);
         ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
     }
