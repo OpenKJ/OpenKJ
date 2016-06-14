@@ -48,7 +48,7 @@
 #include "rotationmodel.h"
 #include "rotationitemdelegate.h"
 #include "dbitemdelegate.h"
-
+#include <QThread>
 
 using namespace std;
 
@@ -94,6 +94,9 @@ private:
     int sortColDB;
     int sortDirDB;
     QString previewZip;
+    QThread *audioThread;
+    KhAbstractAudioBackend::State audioState;
+    int audioPosition;
 
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -149,6 +152,15 @@ private slots:
     void setShowBgImage(bool show);
     void onBgImageChange();
 
+signals:
+    void startPlayback();
+    void pausePlayback();
+    void stopPlayback(bool skipFade = false);
+    void setAudioFile(QString filename);
+    void setVolume(int volume);
+    void setSemitone(int semitone);
+    void setPosition(qint64 position);
+    void initializeAudio();
 
 };
 

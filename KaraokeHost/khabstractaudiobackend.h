@@ -75,6 +75,7 @@ public slots:
     virtual void setUseFader(bool fade) {Q_UNUSED(fade);}
     virtual void setUseSilenceDetection(bool enabled) {Q_UNUSED(enabled);}
     virtual void setDownmix(bool enabled) {Q_UNUSED(enabled);}
+    virtual void initialize() {}
 
 };
 

@@ -8,6 +8,9 @@ QT += core gui sql network widgets multimedia KArchive ThreadWeaver
 
 #CONFIG += console
 
+QMAKE_CXXFLAGS += -fopenmp
+QMAKE_LFLAGS +=  -fopenmp
+
 unix: DEFINES += USE_GL
 #win32: DEFINES += USE_GL
 
@@ -61,7 +64,8 @@ SOURCES += main.cpp\
     cdgvideowidget.cpp \
     imagewidget.cpp \
     khaudiobackendqtmultimedia.cpp \
-    stproxyiodevice.cpp
+    smbpitchshift.cpp \
+    audioprocproxyiodevice.cpp
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -99,7 +103,7 @@ HEADERS  += mainwindow.h \
     cdgvideowidget.h \
     imagewidget.h \
     khaudiobackendqtmultimedia.h \
-    stproxyiodevice.h
+    audioprocproxyiodevice.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \
@@ -114,8 +118,8 @@ FORMS    += mainwindow.ui \
     dlgdurationscan.ui
 
 unix: CONFIG += link_pkgconfig
-unix: LIBS += -L"/home/idm/lightburnisa/devel/OpenKJ/soundtouch/lib" -lSoundTouch
-unix: INCLUDEPATH += "../soundtouch/include/soundtouch"
+#unix: LIBS += -L"/home/idm/lightburnisa/devel/OpenKJ/soundtouch/lib" -lSoundTouch
+#unix: INCLUDEPATH += "../soundtouch/include/soundtouch"
 
 contains(DEFINES, USE_GSTREAMER) {
     message("USE_GSTREAMER defined, building GStreamer audio backend")
