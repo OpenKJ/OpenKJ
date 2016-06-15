@@ -372,7 +372,6 @@ void KhAudioBackendQtMultimedia::silenceDetectTimerTimeout()
             if (sum > -12000)
             {
                 m_silent = true;
-                qCritical() << "Detected silence";
                 seconds++;
                 if (seconds >= 2)
                     emit silenceDetected();
