@@ -10,7 +10,7 @@ AudioProcProxyIODevice::AudioProcProxyIODevice(QBuffer *audioBuffer, QAudioForma
     m_format = format;
     this->audioBuffer = audioBuffer;
     buffering = false;
-    pitchShifter = new PitchShifter(2048,32,44100);
+    pitchShifter = new PitchShifter(4096,32,44100);
 }
 
 void AudioProcProxyIODevice::setFormat(QAudioFormat format)
@@ -88,7 +88,7 @@ qint64 AudioProcProxyIODevice::readData(char *data, qint64 maxlen)
     qint64 samplesSize = audioBuffer->read(data, requestSize);
     if (m_keyChange != 1.0)
     {
-        pitchShifter->smbPitchShift(m_keyChange, m_format.framesForBytes(samplesSize) * m_format.channelCount(), 2048, 32, m_format.sampleRate(),(float*)data,(float*)data);
+        pitchShifter->smbPitchShift(m_keyChange, m_format.framesForBytes(samplesSize) * m_format.channelCount(), 4096, 32, m_format.sampleRate(),(float*)data,(float*)data);
     }
     return requestSize;
 }

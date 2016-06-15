@@ -45,7 +45,7 @@
 #include <stdio.h>
 #include <fftw3.h>
 
-#define MAX_FRAME_LENGTH 2048
+#define MAX_FRAME_LENGTH 4096
 #define D_PI 6.283185f
 #define LOG_2  0.693147f
 
