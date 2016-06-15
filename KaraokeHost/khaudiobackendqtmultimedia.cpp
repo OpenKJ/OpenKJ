@@ -43,7 +43,7 @@ KhAudioBackendQtMultimedia::KhAudioBackendQtMultimedia(QObject *parent) : KhAbst
     format.setSampleSize(32);
     buffer = new QBuffer(m_array, this);
     buffer->open(QIODevice::ReadWrite);
-    stProxy = new AudioProcProxyIODevice(buffer, this);
+    stProxy = new AudioProcProxyIODevice(buffer, format, this);
     stProxy->open(QIODevice::ReadOnly);
     stProxy->setFormat(format);
     audioDecoder = new QAudioDecoder(this);
@@ -183,7 +183,6 @@ bool KhAudioBackendQtMultimedia::stopping()
 
 void KhAudioBackendQtMultimedia::play()
 {
-    qCritical() << "play() slot triggered";
     if (audioOutput->state() == QAudio::SuspendedState)
         audioOutput->resume();
     else
@@ -197,7 +196,6 @@ void KhAudioBackendQtMultimedia::pause()
 
 void KhAudioBackendQtMultimedia::setMedia(QString filename)
 {
-    qCritical() << "setMedia(" << filename << ") slot triggered";
     audioDecoder->setSourceFilename(filename);
 }
 
@@ -388,42 +386,6 @@ void KhAudioBackendQtMultimedia::silenceDetectTimerTimeout()
     }
 }
 
-void KhAudioBackendQtMultimedia::initialize()
-{
-    m_muted = false;
-    m_silent = false;
-    m_detectSilence = false;
-    m_fade = false;
-    m_changingDevice = false;
-    m_downmix = false;
-    silenceDetectTimer = new QTimer(this);
-    silenceDetectTimer->start(1000);
-    m_array = new QByteArray();
-    QAudioFormat format = QAudioDeviceInfo::defaultOutputDevice().preferredFormat();
-    //if (m_downmix)
-        format.setChannelCount(1);
-    format.setSampleType(QAudioFormat::Float);
-    format.setSampleSize(32);
-    buffer = new QBuffer(m_array, this);
-    buffer->open(QIODevice::ReadWrite);
-    stProxy = new AudioProcProxyIODevice(buffer, this);
-    stProxy->open(QIODevice::ReadOnly);
-    stProxy->setFormat(format);
-    audioDecoder = new QAudioDecoder(this);
-    audioOutput = new QAudioOutput(format,this);
-    audioDecoder->setAudioFormat(format);
-    audioOutput->setNotifyInterval(20);
-
-    fader = new FaderQtMultimedia(audioOutput, this);
-
-    connect(audioDecoder, SIGNAL(bufferReady()), this, SLOT(processAudio()));
-    connect(audioDecoder, SIGNAL(durationChanged(qint64)), this, SLOT(durationReceived(qint64)));
-    connect(audioOutput, SIGNAL(notify()), this, SLOT(audioOutputNotify()));
-    connect(audioOutput, SIGNAL(stateChanged(QAudio::State)), this, SLOT(audioOutputStateChanged(QAudio::State)));
-    connect(silenceDetectTimer, SIGNAL(timeout()), this, SLOT(silenceDetectTimerTimeout()));
-    connect(fader, SIGNAL(volumeChanged(int)), this, SIGNAL(volumeChanged(int)));
-}
-
 FaderQtMultimedia::FaderQtMultimedia(QAudioOutput *audioOutput, QObject *parent) : QThread(parent)
 {
     this->audioOutput = audioOutput;
@@ -473,7 +435,6 @@ void FaderQtMultimedia::fadeOut()
     {
         fading = true;
         m_preOutVolume = audioOutput->volume();
-        qCritical() << "m_preOutVolume set to " << m_preOutVolume;
         start();
     }
     while(fading)
@@ -488,7 +449,6 @@ bool FaderQtMultimedia::isFading()
 
 void FaderQtMultimedia::restoreVolume()
 {
-    qCritical() << "Setting volume back to " << m_preOutVolume;
     audioOutput->setVolume(m_preOutVolume);
     emit volumeChanged(audioOutput->volume() * 100);
 }

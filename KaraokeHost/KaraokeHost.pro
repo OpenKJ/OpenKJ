@@ -6,11 +6,6 @@
 
 QT += core gui sql network widgets multimedia KArchive ThreadWeaver
 
-#CONFIG += console
-
-QMAKE_CXXFLAGS += -fopenmp
-QMAKE_LFLAGS +=  -fopenmp
-
 unix: DEFINES += USE_GL
 #win32: DEFINES += USE_GL
 
@@ -23,8 +18,6 @@ contains(DEFINES, USE_GL) {
 TARGET = KaraokeHost
 TEMPLATE = app
 
-#DEFINES += USE_GSTREAMER
-#DEFINES += USE_QMEDIAPLAYER
 DEFINES += USE_QTMULTIMEDIA
 
 SOURCES += main.cpp\
@@ -36,7 +29,6 @@ SOURCES += main.cpp\
     dbupdatethread.cpp \
     khipcclient.cpp \
     khabstractaudiobackend.cpp \
-    khaudiobackendqmediaplayer.cpp \
     khsettings.cpp \
     scrolltext.cpp \
     requeststablemodel.cpp \
@@ -64,8 +56,8 @@ SOURCES += main.cpp\
     cdgvideowidget.cpp \
     imagewidget.cpp \
     khaudiobackendqtmultimedia.cpp \
-    smbpitchshift.cpp \
-    audioprocproxyiodevice.cpp
+    audioprocproxyiodevice.cpp \
+    smbPitchShift/smbPitchShift.fftw3.cpp
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -75,7 +67,6 @@ HEADERS  += mainwindow.h \
     dbupdatethread.h \
     khipcclient.h \
     khabstractaudiobackend.h \
-    khaudiobackendqmediaplayer.h \
     khsettings.h \
     scrolltext.h \
     requeststablemodel.h \
@@ -103,7 +94,8 @@ HEADERS  += mainwindow.h \
     cdgvideowidget.h \
     imagewidget.h \
     khaudiobackendqtmultimedia.h \
-    audioprocproxyiodevice.h
+    audioprocproxyiodevice.h \
+    smbPitchShift/smbPitchShift.fftw3.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \
@@ -118,22 +110,8 @@ FORMS    += mainwindow.ui \
     dlgdurationscan.ui
 
 unix: CONFIG += link_pkgconfig
-#unix: LIBS += -L"/home/idm/lightburnisa/devel/OpenKJ/soundtouch/lib" -lSoundTouch
-#unix: INCLUDEPATH += "../soundtouch/include/soundtouch"
+unix: PKGCONFIG += fftw3
 
-contains(DEFINES, USE_GSTREAMER) {
-    message("USE_GSTREAMER defined, building GStreamer audio backend")
-    unix: PKGCONFIG += gstreamer-0.10
-    win32: INCLUDEPATH += "C:\gstreamer-sdk\0.10\x86\include\gstreamer-0.10"
-    win32: INCLUDEPATH += "C:\gstreamer-sdk\0.10\x86\include\glib-2.0"
-    win32: INCLUDEPATH += "C:\gstreamer-sdk\0.10\x86\lib\glib-2.0\include"
-    win32: INCLUDEPATH += "C:\gstreamer-sdk\0.10\x86\include\libxml2"
-    win32: LIBS+= -L"C:\gstreamer-sdk\0.10\x86\lib" -lgstreamer-0.10 -lglib-2.0 -lgobject-2.0
-    macx: INCLUDEPATH += "/Library/Frameworks/GStreamer.framework/Headers"
-    macx: LIBS += -L"/Library/Frameworks/GStreamer.framework/Libraries" -lgstreamer-0.10 -lglib-2.0 -lgobject-2.0
-    HEADERS += khaudiobackendgstreamer.h
-    SOURCES += khaudiobackendgstreamer.cpp
-}
 
 RESOURCES += \
     resources.qrc
@@ -147,16 +125,3 @@ unix {
     binaryfiles.path = /usr/bin
     INSTALLS += binaryfiles iconfiles desktopfiles
 }
-
-#win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../miniz/release/ -lminiz
-#else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../miniz/debug/ -lminiz
-#else:unix: LIBS += -L$$OUT_PWD/../miniz/ -lminiz
-
-#INCLUDEPATH += $$PWD/../miniz
-#DEPENDPATH += $$PWD/../miniz
-
-#win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../miniz/release/libminiz.a
-#else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../miniz/debug/libminiz.a
-#else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../miniz/release/miniz.lib
-#else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../miniz/debug/miniz.lib
-#else:unix: PRE_TARGETDEPS += $$OUT_PWD/../miniz/libminiz.a

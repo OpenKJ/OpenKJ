@@ -6,33 +6,15 @@
 #include <QAudioFormat>
 #include <QThread>
 #include <QMutex>
+#include "smbPitchShift/smbPitchShift.fftw3.h"
 
 //using namespace soundtouch;
-class pitchShift : public QThread
-{
-    Q_OBJECT
-
-private:
-    float m_keyChange;
-    int m_samples;
-    int m_sampleRate;
-    float *m_dataIn;
-    float *m_dataOut;
-    bool running;
-    QMutex *mutex;
-
-public:
-    explicit pitchShift(float keyChange, int samples, int sampleRate, float* dataIn, float* dataOut, QObject *parent = 0);
-    void run();
-    bool getRunning() const;
-};
-
 
 class AudioProcProxyIODevice : public QIODevice
 {
     Q_OBJECT
 public:
-    explicit AudioProcProxyIODevice(QBuffer *audioBuffer, QObject *parent);
+    explicit AudioProcProxyIODevice(QBuffer *audioBuffer, QAudioFormat format, QObject *parent);
 
     // QIODevice interface
 public:
@@ -62,6 +44,7 @@ private:
     QAudioFormat m_format;
     bool buffering;
     float m_keyChange;
+    PitchShifter *pitchShifter;
 };
 
 #endif // AUDIOPROCPROXYIODEVICE_H

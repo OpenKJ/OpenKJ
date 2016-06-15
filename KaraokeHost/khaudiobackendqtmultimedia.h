@@ -104,7 +104,6 @@ private slots:
     void audioOutputNotify();
     void audioOutputStateChanged(QAudio::State state);
     void silenceDetectTimerTimeout();
-    void initialize();
 };
 
 #endif // KHAUDIOBACKENDQTMULTIMEDIA_H
