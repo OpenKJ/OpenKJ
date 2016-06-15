@@ -40,7 +40,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     settings = new BmSettings(this);
     settings->restoreWindowState(this);
-    mPlayer = new BmAudioBackendGStreamer(this);
+    //mPlayer = new BmAudioBackendGStreamer(this);
+    mPlayer = new AudioBackendQtMultimedia(this);
     mPlayer->setUseFader(true);
     mPlayer->setUseSilenceDetection(true);
     ipcServer = new BmIPCServer("bmControl",this); 
@@ -149,7 +150,7 @@ void MainWindow::ipcMessageReceived(int ipcCommand)
         qDebug() << "Received IPC command CMD_PAUSE";
         break;
     case BmIPCServer::CMD_STOP:
-        mPlayer->stop();
+        mPlayer->stop(false);
         qDebug() << "Received IPC command CMD_STOP";
         break;
     default:
@@ -171,7 +172,7 @@ void MainWindow::on_tableViewDB_activated(const QModelIndex &index)
 
 void MainWindow::on_buttonStop_clicked()
 {
-    mPlayer->stop();
+    mPlayer->stop(false);
 }
 
 void MainWindow::on_lineEditSearch_returnPressed()
@@ -181,7 +182,7 @@ void MainWindow::on_lineEditSearch_returnPressed()
 
 void MainWindow::on_tableViewPlaylist_activated(const QModelIndex &index)
 {
-    mPlayer->stop();
+    mPlayer->stop(false);
     currentPosition = index.row();
     QString path = index.sibling(index.row(), 7).data().toString();
     QString song = index.sibling(index.row(), 3).data().toString() + " - " + index.sibling(index.row(), 4).data().toString();

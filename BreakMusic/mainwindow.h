@@ -26,7 +26,7 @@
 #include <QtSql>
 #include <QDir>
 #include "databasedialog.h"
-#include "bmaudiobackendgstreamer.h"
+#include "audiobackendqtmultimedia.h"
 #include "bmabstractaudiobackend.h"
 #include "dbtablemodel.h"
 #include "pltablemodel.h"
@@ -58,7 +58,9 @@ private:
     PlTableModel *plModel;
     PlItemDelegate *plDelegate;
     QSqlTableModel *playlistsModel;
-    BmAudioBackendGStreamer *mPlayer;
+//    BmAudioBackendGStreamer *mPlayer;
+    AudioBackendQtMultimedia *mPlayer;
+
     int currentPosition;
     int currentPlaylist;
     bool playlistExists(QString name);

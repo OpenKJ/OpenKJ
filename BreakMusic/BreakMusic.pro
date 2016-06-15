@@ -17,24 +17,28 @@ SOURCES += main.cpp\
     bmipcserver.cpp \
     bmsettings.cpp \
     bmabstractaudiobackend.cpp \
-    bmaudiobackendgstreamer.cpp \
     pltablemodel.cpp \
     plitemdelegate.cpp \
     dbtablemodel.cpp \
     dbupdatethread.cpp \
-    dbitemdelegate.cpp
+    dbitemdelegate.cpp \
+    audiobackendqtmultimedia.cpp \
+    smbPitchShift/smbPitchShift.fftw3.cpp \
+    audioprocproxyiodevice.cpp
 
 HEADERS  += mainwindow.h \
     databasedialog.h \
     bmipcserver.h \
     bmsettings.h \
     bmabstractaudiobackend.h \
-    bmaudiobackendgstreamer.h \
     pltablemodel.h \
     plitemdelegate.h \
     dbtablemodel.h \
     dbupdatethread.h \
-    dbitemdelegate.h
+    dbitemdelegate.h \
+    audiobackendqtmultimedia.h \
+    smbPitchShift/smbPitchShift.fftw3.h \
+    audioprocproxyiodevice.h
 
 FORMS    += mainwindow.ui \
     databasedialog.ui
@@ -44,19 +48,11 @@ RESOURCES += \
 
 unix: QT_CONFIG -= no-pkg-config
 unix: CONFIG += link_pkgconfig
-
 unix: PKGCONFIG += taglib_c
-unix: PKGCONFIG += gstreamer-0.10
+unix: PKGCONFIG += fftw3
 
 win32: INCLUDEPATH += "K:\k\include\taglib"
-#win32: LIBS += -L"C:\taglib\taglib\taglib\Release" -ltag
 win32: LIBS += -ltag
-
-win32: INCLUDEPATH += "C:\gstreamer-sdk\0.10\x86\include\gstreamer-0.10"
-win32: INCLUDEPATH += "C:\gstreamer-sdk\0.10\x86\include\glib-2.0"
-win32: INCLUDEPATH += "C:\gstreamer-sdk\0.10\x86\lib\glib-2.0\include"
-win32: INCLUDEPATH += "C:\gstreamer-sdk\0.10\x86\include\libxml2"
-win32: LIBS+= -L"C:\gstreamer-sdk\0.10\x86\lib" -lgstreamer-0.10 -lglib-2.0 -lgobject-2.0
 
 unix {
     iconfiles.files += icons/bmicon64x64.png
@@ -67,3 +63,8 @@ unix {
     binaryfiles.path = /usr/bin
     INSTALLS += binaryfiles iconfiles desktopfiles
 }
+
+DISTFILES += \
+    bmicon.ico \
+    BreakMusic.rc \
+    LICENSE

@@ -18,18 +18,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KHABSTRACTAUDIOBACKEND_H
-#define KHABSTRACTAUDIOBACKEND_H
+#ifndef BMABSTRACEAUDIOBACKEND_H
+#define BMABSTRACEAUDIOBACKEND_H
 
 #include <QObject>
-#include <QStringList>
 
 class BmAbstractAudioBackend : public QObject
 {
     Q_OBJECT
 public:
-    enum State{PlayingState=0,PausedState,StoppedState,EndOfMediaState};
     explicit BmAbstractAudioBackend(QObject *parent = 0);
+    enum State{PlayingState=0,PausedState,StoppedState,EndOfMediaState};
     virtual int volume() {return 0;}
     virtual qint64 position() {return 0;}
     virtual bool isMuted() {return 0;}
@@ -47,6 +46,7 @@ public:
     virtual QStringList getOutputDevices();
     virtual void setOutputDevice(int deviceIndex) {Q_UNUSED(deviceIndex);}
     virtual bool stopping() {return false;}
+
 
 signals:
     void audioAvailableChanged(bool);
@@ -75,11 +75,8 @@ public slots:
     virtual void setUseFader(bool fade) {Q_UNUSED(fade);}
     virtual void setUseSilenceDetection(bool enabled) {Q_UNUSED(enabled);}
     virtual void setDownmix(bool enabled) {Q_UNUSED(enabled);}
-    virtual void initialize() {}
+
 
 };
 
-typedef QList<BmAbstractAudioBackend *> KhAudioBackends;
-
-
-#endif // KHABSTRACTAUDIOBACKEND_H
+#endif // BMABSTRACEAUDIOBACKEND_H
