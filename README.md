@@ -1,8 +1,6 @@
 OpenKJ
 ======
 
-Travis CI status [![Build Status](https://travis-ci.org/coyote1357/OpenKJ.svg?branch=master)](https://travis-ci.org/coyote1357/OpenKJ)
-
 NOTE! - Building the current main branch on Windows or OSX will require some work and tinkering in order to get the KDE Frameworks 5 KArchive and ThreadWeaver modules compiled and working.  Linux is my primary platform, so I haven't gotten around to seeing what's required to make it work on Windows or Mac.
 
 Cross-platform open source karaoke show hosting software.
@@ -33,10 +31,7 @@ Both are experimental but usable at this point.  I am using it to run my shows e
 * Qt 5.x
 * KF5 ThreadWeaver
 * KF5 KArchive
-
-Strongly recommended:
-* gstreamer (0.10 branch)
-* gst-plugins-bad (for key changer)
+* FFTW3
 
 **Requirements to build BreakMusic:**
 
@@ -60,7 +55,16 @@ The goal is to have it work consistently across all three platforms.
 
 **The KaraokeHost audio backends**
 
-GStreamer (recommended)
+QtMultimedia
+
+* Fader - working
+* Downmix - working
+* Silence detect - working
+* Key changer - working
+* Output device selection - working
+* Automatic performance recording - working
+
+GStreamer (Deprecated)
 
 * Fader - working
 * Downmix - working
@@ -68,7 +72,7 @@ GStreamer (recommended)
 * Key changer - working
 * Output device selection - Not implemented (waiting for upcoming features in GStreamer)
 
-QMediaPlayer (very limited, feature wise because of QMediaPlayer itself)
+QMediaPlayer (Deprecated)
 
 * Fader - Working
 * Downmix - Not implemented
