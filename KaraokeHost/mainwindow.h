@@ -32,7 +32,7 @@
 #include "dlgdatabase.h"
 #include "dlgsettings.h"
 #include "khipcclient.h"
-#include "khabstractaudiobackend.h"
+#include "abstractaudiobackend.h"
 #include "dlgcdg.h"
 #include "khsettings.h"
 #include "dlgregularsingers.h"
@@ -79,7 +79,7 @@ private:
     DlgKeyChange *dlgKeyChange;
     DlgRequests *requestsDialog;
     DlgCdgPreview *cdgPreviewDialog;
-    KhAbstractAudioBackend *activeAudioBackend;
+    AbstractAudioBackend *activeAudioBackend;
     KhAudioBackends *audioBackends;
     KhAudioRecorder *audioRecorder;
     KhIPCClient *ipcClient;
@@ -129,7 +129,7 @@ private slots:
     void on_sliderVolume_valueChanged(int value);
     void audioBackend_positionChanged(qint64 position);
     void audioBackend_durationChanged(qint64 duration);
-    void audioBackend_stateChanged(KhAbstractAudioBackend::State state);
+    void audioBackend_stateChanged(AbstractAudioBackend::State state);
     void on_sliderProgress_sliderMoved(int position);
     void on_buttonRegulars_clicked();
     void rotationDataChanged();

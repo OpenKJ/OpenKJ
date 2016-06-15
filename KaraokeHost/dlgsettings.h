@@ -25,7 +25,7 @@
 #include <QList>
 #include <QNetworkAccessManager>
 #include "khsettings.h"
-#include "khabstractaudiobackend.h"
+#include "abstractaudiobackend.h"
 
 namespace Ui {
 class DlgSettings;
@@ -38,7 +38,7 @@ class DlgSettings : public QDialog
 private:
     Ui::DlgSettings *ui;
     QStringList getMonitors();
-    KhAbstractAudioBackend *audioBackend;
+    AbstractAudioBackend *audioBackend;
     KhAudioBackends *audioBackends;
     QNetworkAccessManager *networkManager;
     bool pageSetupDone;

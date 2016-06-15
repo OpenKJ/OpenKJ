@@ -18,14 +18,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "khabstractaudiobackend.h"
+#include "abstractaudiobackend.h"
 
-KhAbstractAudioBackend::KhAbstractAudioBackend(QObject *parent) :
+AbstractAudioBackend::AbstractAudioBackend(QObject *parent) :
     QObject(parent)
 {
 }
 
-QString KhAbstractAudioBackend::msToMMSS(qint64 msec)
+QString AbstractAudioBackend::msToMMSS(qint64 msec)
 {
     QString sec;
     QString min;
@@ -40,7 +40,7 @@ QString KhAbstractAudioBackend::msToMMSS(qint64 msec)
         return QString(min + ":" + sec);
 }
 
-QStringList KhAbstractAudioBackend::getOutputDevices()
+QStringList AbstractAudioBackend::getOutputDevices()
 {
     QStringList devices;
     devices << "System Default Output";

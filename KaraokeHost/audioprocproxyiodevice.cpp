@@ -3,6 +3,7 @@
 #include <QtDebug>
 #include <QApplication>
 #include <QMutexLocker>
+#include <QAudioBuffer>
 
 
 AudioProcProxyIODevice::AudioProcProxyIODevice(QBuffer *audioBuffer, QAudioFormat format, QObject *parent) : QIODevice(parent)
@@ -10,7 +11,7 @@ AudioProcProxyIODevice::AudioProcProxyIODevice(QBuffer *audioBuffer, QAudioForma
     m_format = format;
     this->audioBuffer = audioBuffer;
     buffering = false;
-    pitchShifter = new PitchShifter(4096,32,44100);
+    pitchShifter = new PitchShifter(2048,32,format.sampleRate());
 }
 
 void AudioProcProxyIODevice::setFormat(QAudioFormat format)
@@ -86,11 +87,13 @@ qint64 AudioProcProxyIODevice::readData(char *data, qint64 maxlen)
         requestSize = audioBuffer->bytesAvailable();
     }
     qint64 samplesSize = audioBuffer->read(data, requestSize);
+
+
     if (m_keyChange != 1.0)
     {
-        pitchShifter->smbPitchShift(m_keyChange, m_format.framesForBytes(samplesSize) * m_format.channelCount(), 4096, 32, m_format.sampleRate(),(float*)data,(float*)data);
+        pitchShifter->smbPitchShift(m_keyChange, m_format.framesForBytes(samplesSize) * m_format.channelCount(), 2048, 32, m_format.sampleRate(),(float*)data,(float*)data);
     }
-    return requestSize;
+    return samplesSize;
 }
 
 qint64 AudioProcProxyIODevice::readLineData(char *data, qint64 maxlen)
@@ -116,4 +119,32 @@ qint64 AudioProcProxyIODevice::writeData(const char *data, qint64 len)
     Q_UNUSED(data)
     Q_UNUSED(len)
     return -1;
+}
+
+QByteArray AudioProcProxyIODevice::stereoToMono(QByteArray stereoData)
+{
+    QAudioBuffer buffer(stereoData, m_format);
+    QByteArray monoData;
+    QAudioBuffer::S32F *frames = buffer.data<QAudioBuffer::S32F>();
+    for (int i=0; i < buffer.frameCount(); i++)
+    {
+//        monoData.append(frames[i].average());
+        monoData.append(frames[i].left);
+    }
+    return monoData;
+}
+
+QByteArray AudioProcProxyIODevice::monoToStereo(QByteArray monoData)
+{
+    QAudioFormat format(m_format);
+    format.setChannelCount(1);
+    QAudioBuffer buffer(monoData, format);
+    QAudioBuffer::S32F *frames = buffer.data<QAudioBuffer::S32F>();
+    QByteArray stereoData;
+    for (int i=0; i < buffer.frameCount(); i++)
+    {
+        stereoData.append(frames[i].left);
+        stereoData.append(frames[i].left);
+    }
+    return stereoData;
 }

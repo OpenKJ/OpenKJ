@@ -28,7 +28,6 @@ SOURCES += main.cpp\
     sourcedirtablemodel.cpp \
     dbupdatethread.cpp \
     khipcclient.cpp \
-    khabstractaudiobackend.cpp \
     khsettings.cpp \
     scrolltext.cpp \
     requeststablemodel.cpp \
@@ -55,9 +54,10 @@ SOURCES += main.cpp\
     cdgvideosurface.cpp \
     cdgvideowidget.cpp \
     imagewidget.cpp \
-    khaudiobackendqtmultimedia.cpp \
     audioprocproxyiodevice.cpp \
-    smbPitchShift/smbPitchShift.fftw3.cpp
+    smbPitchShift/smbPitchShift.fftw3.cpp \
+    abstractaudiobackend.cpp \
+    audiobackendqtmultimedia.cpp
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -66,7 +66,6 @@ HEADERS  += mainwindow.h \
     sourcedirtablemodel.h \
     dbupdatethread.h \
     khipcclient.h \
-    khabstractaudiobackend.h \
     khsettings.h \
     scrolltext.h \
     requeststablemodel.h \
@@ -93,9 +92,10 @@ HEADERS  += mainwindow.h \
     cdgvideosurface.h \
     cdgvideowidget.h \
     imagewidget.h \
-    khaudiobackendqtmultimedia.h \
     audioprocproxyiodevice.h \
-    smbPitchShift/smbPitchShift.fftw3.h
+    smbPitchShift/smbPitchShift.fftw3.h \
+    audiobackendqtmultimedia.h \
+    abstractaudiobackend.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \

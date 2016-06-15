@@ -24,7 +24,7 @@
 #include <iostream>
 #include <QTemporaryDir>
 #include <QDir>
-#include "khaudiobackendqtmultimedia.h"
+#include "audiobackendqtmultimedia.h"
 #include <QDesktopWidget>
 #include <QStandardPaths>
 #include <QCoreApplication>
@@ -98,7 +98,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewDB->setItemDelegate(dbDelegate);
     ipcClient = new KhIPCClient("bmControl",this);
     audioBackends = new KhAudioBackends;
-    audioBackends->push_back(new KhAudioBackendQtMultimedia());
+    audioBackends->push_back(new AudioBackendQtMultimedia());
     if (audioBackends->count() < 1)
         qCritical("No audio backends available!");
     if (settings->audioBackend() < audioBackends->count())
@@ -124,7 +124,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(dbDialog, SIGNAL(databaseCleared()), regularSingersDialog, SLOT(regularsChanged()));
     connect(activeAudioBackend, SIGNAL(positionChanged(qint64)), this, SLOT(audioBackend_positionChanged(qint64)));
     connect(activeAudioBackend, SIGNAL(durationChanged(qint64)), this, SLOT(audioBackend_durationChanged(qint64)));
-    connect(activeAudioBackend, SIGNAL(stateChanged(KhAbstractAudioBackend::State)), this, SLOT(audioBackend_stateChanged(KhAbstractAudioBackend::State)));
+    connect(activeAudioBackend, SIGNAL(stateChanged(AbstractAudioBackend::State)), this, SLOT(audioBackend_stateChanged(AbstractAudioBackend::State)));
     connect(activeAudioBackend, SIGNAL(pitchChanged(int)), ui->spinBoxKey, SLOT(setValue(int)));
     qDebug() << "Setting volume to " << settings->audioVolume();
     activeAudioBackend->setVolume(settings->audioVolume());
@@ -189,9 +189,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
 void MainWindow::play(QString karaokeFilePath)
 {
-    if (activeAudioBackend->state() != KhAbstractAudioBackend::PausedState)
+    if (activeAudioBackend->state() != AbstractAudioBackend::PausedState)
     {
-        if (activeAudioBackend->state() == KhAbstractAudioBackend::PlayingState)
+        if (activeAudioBackend->state() == AbstractAudioBackend::PlayingState)
             activeAudioBackend->stop();
         if (karaokeFilePath.endsWith(".zip", Qt::CaseInsensitive))
         {
@@ -260,7 +260,7 @@ void MainWindow::play(QString karaokeFilePath)
         else
             return;
     }
-    else if (activeAudioBackend->state() == KhAbstractAudioBackend::PausedState)
+    else if (activeAudioBackend->state() == AbstractAudioBackend::PausedState)
     {
         if (settings->recordingEnabled())
             audioRecorder->unpause();
@@ -316,7 +316,7 @@ void MainWindow::on_buttonStop_clicked()
 
 void MainWindow::on_buttonPause_clicked()
 {
-    if (activeAudioBackend->state() == KhAbstractAudioBackend::PausedState)
+    if (activeAudioBackend->state() == AbstractAudioBackend::PausedState)
     {
         activeAudioBackend->play();
     }
@@ -536,7 +536,7 @@ void MainWindow::on_buttonClearQueue_clicked()
 
 void MainWindow::on_spinBoxKey_valueChanged(int arg1)
 {
-    if ((activeAudioBackend->state() == KhAbstractAudioBackend::PlayingState) || (activeAudioBackend->state() == KhAbstractAudioBackend::PausedState))
+    if ((activeAudioBackend->state() == AbstractAudioBackend::PlayingState) || (activeAudioBackend->state() == AbstractAudioBackend::PausedState))
     {
         activeAudioBackend->setPitchShift(arg1);
     }
@@ -551,7 +551,7 @@ void MainWindow::on_sliderVolume_valueChanged(int value)
 
 void MainWindow::audioBackend_positionChanged(qint64 position)
 {
-    if (activeAudioBackend->state() == KhAbstractAudioBackend::PlayingState)
+    if (activeAudioBackend->state() == AbstractAudioBackend::PlayingState)
     {
         if (cdg->GetLastCDGUpdate() >= position)
         {
@@ -581,9 +581,9 @@ void MainWindow::audioBackend_durationChanged(qint64 duration)
     ui->labelTotalTime->setText(activeAudioBackend->msToMMSS(duration));
 }
 
-void MainWindow::audioBackend_stateChanged(KhAbstractAudioBackend::State state)
+void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
 {
-    if (state == KhAbstractAudioBackend::StoppedState)
+    if (state == AbstractAudioBackend::StoppedState)
     {
         audioRecorder->stop();
         cdg->VideoClose();
@@ -597,13 +597,13 @@ void MainWindow::audioBackend_stateChanged(KhAbstractAudioBackend::State state)
         setShowBgImage(true);
         cdgWindow->setShowBgImage(true);
     }
-    if (state == KhAbstractAudioBackend::EndOfMediaState)
+    if (state == AbstractAudioBackend::EndOfMediaState)
     {
         audioRecorder->stop();
         ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
         activeAudioBackend->stop(true);
     }
-    if (state == KhAbstractAudioBackend::PausedState)
+    if (state == AbstractAudioBackend::PausedState)
     {
             audioRecorder->pause();
     }
@@ -794,6 +794,6 @@ void MainWindow::setShowBgImage(bool show)
 
 void MainWindow::onBgImageChange()
 {
-   if (activeAudioBackend->state() == KhAbstractAudioBackend::StoppedState)
+   if (activeAudioBackend->state() == AbstractAudioBackend::StoppedState)
        cdgWindow->setShowBgImage(true);
 }

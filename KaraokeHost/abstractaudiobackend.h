@@ -18,23 +18,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KHABSTRACTAUDIOBACKEND_H
-#define KHABSTRACTAUDIOBACKEND_H
+#ifndef ABSTRACTAUDIOBACKEND_H
+#define ABSTRACTAUDIOBACKEND_H
 
 #include <QObject>
 #include <QStringList>
 
-class KhAbstractAudioBackend : public QObject
+class AbstractAudioBackend : public QObject
 {
     Q_OBJECT
 public:
     enum State{PlayingState=0,PausedState,StoppedState,EndOfMediaState};
-    explicit KhAbstractAudioBackend(QObject *parent = 0);
+    explicit AbstractAudioBackend(QObject *parent = 0);
     virtual int volume() {return 0;}
     virtual qint64 position() {return 0;}
     virtual bool isMuted() {return 0;}
     virtual qint64 duration() {return 0;}
-    virtual KhAbstractAudioBackend::State state() {return KhAbstractAudioBackend::StoppedState;}
+    virtual AbstractAudioBackend::State state() {return AbstractAudioBackend::StoppedState;}
     virtual bool canPitchShift() {return false;}
     virtual int pitchShift() {return 0;}
     virtual bool canFade() { return false; }
@@ -54,7 +54,7 @@ signals:
     void durationChanged(qint64);
     void mutedChanged(bool);
     void positionChanged(qint64);
-    void stateChanged(KhAbstractAudioBackend::State);
+    void stateChanged(AbstractAudioBackend::State);
     void videoAvailableChanged(bool);
     void volumeChanged(int);
     void silenceDetected();
@@ -79,7 +79,7 @@ public slots:
 
 };
 
-typedef QList<KhAbstractAudioBackend *> KhAudioBackends;
+typedef QList<AbstractAudioBackend *> KhAudioBackends;
 
 
-#endif // KHABSTRACTAUDIOBACKEND_H
+#endif // ABSTRACTAUDIOBACKEND_H

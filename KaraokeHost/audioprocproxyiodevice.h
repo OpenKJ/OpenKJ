@@ -45,6 +45,13 @@ private:
     bool buffering;
     float m_keyChange;
     PitchShifter *pitchShifter;
+    QByteArray stereoToMono(QByteArray stereoData);
+    QByteArray monoToStereo(QByteArray monoData);
+//    void interleave(const uint16_t * in_L,     // mono input buffer (left channel)
+//                    const uint16_t * in_R,     // mono input buffer (right channel)
+//                    uint16_t * out,            // stereo output buffer
+//                    const size_t num_samples);  // number of samples
+
 };
 
 #endif // AUDIOPROCPROXYIODEVICE_H

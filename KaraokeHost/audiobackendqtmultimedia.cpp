@@ -1,4 +1,4 @@
-#include "khaudiobackendqtmultimedia.h"
+#include "audiobackendqtmultimedia.h"
 #include <QDebug>
 #include <QApplication>
 #include <QAudioDeviceInfo>
@@ -24,9 +24,14 @@ float getPitchForSemitone(int semitone)
     return pitch;
 }
 
-KhAudioBackendQtMultimedia::KhAudioBackendQtMultimedia(QObject *parent) : KhAbstractAudioBackend(parent)
+
+
+AudioBackendQtMultimedia::AudioBackendQtMultimedia(QObject *parent) : AbstractAudioBackend(parent)
 {
-    qRegisterMetaType<KhAbstractAudioBackend::State>("KhAbstractAudioBackend::State");
+    m_audioFormat = QAudioDeviceInfo::defaultOutputDevice().preferredFormat();
+    m_audioFormat.setSampleType(QAudioFormat::Float);
+    m_audioFormat.setSampleSize(32);
+    m_audioFormat.setChannelCount(1);
     m_muted = false;
     m_silent = false;
     m_detectSilence = false;
@@ -36,23 +41,15 @@ KhAudioBackendQtMultimedia::KhAudioBackendQtMultimedia(QObject *parent) : KhAbst
     silenceDetectTimer = new QTimer(this);
     silenceDetectTimer->start(1000);
     m_array = new QByteArray();
-    QAudioFormat format = QAudioDeviceInfo::defaultOutputDevice().preferredFormat();
-    //if (m_downmix)
-        format.setChannelCount(1);
-    format.setSampleType(QAudioFormat::Float);
-    format.setSampleSize(32);
     buffer = new QBuffer(m_array, this);
     buffer->open(QIODevice::ReadWrite);
-    stProxy = new AudioProcProxyIODevice(buffer, format, this);
+    stProxy = new AudioProcProxyIODevice(buffer, m_audioFormat, this);
     stProxy->open(QIODevice::ReadOnly);
-    stProxy->setFormat(format);
     audioDecoder = new QAudioDecoder(this);
-    audioOutput = new QAudioOutput(format,this);
-    audioDecoder->setAudioFormat(format);
+    audioDecoder->setAudioFormat(m_audioFormat);
+    audioOutput = new QAudioOutput(m_audioFormat,this);
     audioOutput->setNotifyInterval(20);
-
     fader = new FaderQtMultimedia(audioOutput, this);
-
     connect(audioDecoder, SIGNAL(bufferReady()), this, SLOT(processAudio()));
     connect(audioDecoder, SIGNAL(durationChanged(qint64)), this, SLOT(durationReceived(qint64)));
     connect(audioOutput, SIGNAL(notify()), this, SLOT(audioOutputNotify()));
@@ -62,12 +59,12 @@ KhAudioBackendQtMultimedia::KhAudioBackendQtMultimedia(QObject *parent) : KhAbst
 }
 
 
-int KhAudioBackendQtMultimedia::volume()
+int AudioBackendQtMultimedia::volume()
 {
     return audioOutput->volume() * 100;
 }
 
-qint64 KhAudioBackendQtMultimedia::position()
+qint64 AudioBackendQtMultimedia::position()
 {
     int curBufferPos = buffer->pos();
     int usPos = audioOutput->format().durationForBytes(curBufferPos);
@@ -75,77 +72,77 @@ qint64 KhAudioBackendQtMultimedia::position()
     return msPos;
 }
 
-bool KhAudioBackendQtMultimedia::isMuted()
+bool AudioBackendQtMultimedia::isMuted()
 {
     return m_muted;
 }
 
-qint64 KhAudioBackendQtMultimedia::duration()
+qint64 AudioBackendQtMultimedia::duration()
 {
     return audioDecoder->duration();
 }
 
-KhAbstractAudioBackend::State KhAudioBackendQtMultimedia::state()
+AbstractAudioBackend::State AudioBackendQtMultimedia::state()
 {
     QAudio::State state = audioOutput->state();
     switch (state) {
     case QAudio::StoppedState:
         // Stopped for other reasons
-        return KhAbstractAudioBackend::StoppedState;
+        return AbstractAudioBackend::StoppedState;
         break;
     case QAudio::ActiveState:
-        return KhAbstractAudioBackend::PlayingState;
+        return AbstractAudioBackend::PlayingState;
         break;
     case QAudio::SuspendedState:
-        return KhAbstractAudioBackend::PausedState;
+        return AbstractAudioBackend::PausedState;
         break;
     default:
         break;
     }
-    return KhAbstractAudioBackend::StoppedState;
+    return AbstractAudioBackend::StoppedState;
 }
 
-bool KhAudioBackendQtMultimedia::canPitchShift()
+bool AudioBackendQtMultimedia::canPitchShift()
 {
     return true;
 }
 
-int KhAudioBackendQtMultimedia::pitchShift()
+int AudioBackendQtMultimedia::pitchShift()
 {
     return m_keyChange;
 }
 
-bool KhAudioBackendQtMultimedia::canFade()
+bool AudioBackendQtMultimedia::canFade()
 {
     return true;
 }
 
-QString KhAudioBackendQtMultimedia::backendName()
+QString AudioBackendQtMultimedia::backendName()
 {
     return QString("QtMultimedia");
 }
 
-bool KhAudioBackendQtMultimedia::canDetectSilence()
+bool AudioBackendQtMultimedia::canDetectSilence()
 {
     return true;
 }
 
-bool KhAudioBackendQtMultimedia::isSilent()
+bool AudioBackendQtMultimedia::isSilent()
 {
     return m_silent;
 }
 
-bool KhAudioBackendQtMultimedia::canDownmix()
-{
-    return true;
-}
-
-bool KhAudioBackendQtMultimedia::downmixChangeRequiresRestart()
+bool AudioBackendQtMultimedia::canDownmix()
 {
     return false;
 }
 
-void KhAudioBackendQtMultimedia::setOutputDevice(int deviceIndex)
+bool AudioBackendQtMultimedia::downmixChangeRequiresRestart()
+{
+    return false;
+}
+
+void AudioBackendQtMultimedia::setOutputDevice(int deviceIndex)
 {
     if (this->deviceIndex != deviceIndex)
     {
@@ -158,7 +155,7 @@ void KhAudioBackendQtMultimedia::setOutputDevice(int deviceIndex)
         QAudio::State currentState = audioOutput->state();
         stop(true);
         delete(audioOutput);
-        audioOutput = new QAudioOutput(audioDecoder->audioFormat(),this);
+        audioOutput = new QAudioOutput(m_audioFormat,this);
         audioOutput->setVolume(curVolume);
        // if (m_downmix)
 
@@ -173,15 +170,17 @@ void KhAudioBackendQtMultimedia::setOutputDevice(int deviceIndex)
         connect(audioOutput, SIGNAL(stateChanged(QAudio::State)), this, SLOT(audioOutputStateChanged(QAudio::State)));
         audioOutput->setNotifyInterval(20);
         m_changingDevice = false;
+        qCritical() << "decodedFormat = " << audioDecoder->audioFormat();
+        qCritical() << "outputFormat = " << audioOutput->format();
     }
 }
 
-bool KhAudioBackendQtMultimedia::stopping()
+bool AudioBackendQtMultimedia::stopping()
 {
     return false;
 }
 
-void KhAudioBackendQtMultimedia::play()
+void AudioBackendQtMultimedia::play()
 {
     if (audioOutput->state() == QAudio::SuspendedState)
         audioOutput->resume();
@@ -189,17 +188,17 @@ void KhAudioBackendQtMultimedia::play()
         audioDecoder->start();
 }
 
-void KhAudioBackendQtMultimedia::pause()
+void AudioBackendQtMultimedia::pause()
 {
     audioOutput->suspend();
 }
 
-void KhAudioBackendQtMultimedia::setMedia(QString filename)
+void AudioBackendQtMultimedia::setMedia(QString filename)
 {
     audioDecoder->setSourceFilename(filename);
 }
 
-void KhAudioBackendQtMultimedia::setMuted(bool mute)
+void AudioBackendQtMultimedia::setMuted(bool mute)
 {
     static float preMuteVol;
     if (mute != m_muted)
@@ -218,18 +217,18 @@ void KhAudioBackendQtMultimedia::setMuted(bool mute)
     }
 }
 
-void KhAudioBackendQtMultimedia::setPosition(qint64 position)
+void AudioBackendQtMultimedia::setPosition(qint64 position)
 {
     qint64 bytePos = audioOutput->format().bytesForDuration(position * 1000);
     buffer->seek(bytePos);
 }
 
-void KhAudioBackendQtMultimedia::setVolume(int volume)
+void AudioBackendQtMultimedia::setVolume(int volume)
 {
     audioOutput->setVolume(volume * .01);
 }
 
-void KhAudioBackendQtMultimedia::stop(bool skipFade)
+void AudioBackendQtMultimedia::stop(bool skipFade)
 {
     if ((m_fade) && (!skipFade))
         fadeOut();
@@ -241,68 +240,43 @@ void KhAudioBackendQtMultimedia::stop(bool skipFade)
         fader->restoreVolume();
 }
 
-void KhAudioBackendQtMultimedia::setPitchShift(int pitchShift)
+void AudioBackendQtMultimedia::setPitchShift(int pitchShift)
 {
     m_keyChange = pitchShift;
     stProxy->setKeyChange(getPitchForSemitone(pitchShift));
     emit pitchChanged(pitchShift);
 }
 
-void KhAudioBackendQtMultimedia::fadeOut()
+void AudioBackendQtMultimedia::fadeOut()
 {
     fader->fadeOut();
 }
 
-void KhAudioBackendQtMultimedia::fadeIn()
+void AudioBackendQtMultimedia::fadeIn()
 {
     fader->fadeIn();
 }
 
-void KhAudioBackendQtMultimedia::setUseFader(bool fade)
+void AudioBackendQtMultimedia::setUseFader(bool fade)
 {
     m_fade = fade;
 }
 
-void KhAudioBackendQtMultimedia::setUseSilenceDetection(bool enabled)
+void AudioBackendQtMultimedia::setUseSilenceDetection(bool enabled)
 {
     m_detectSilence = enabled;
 }
 
-void KhAudioBackendQtMultimedia::setDownmix(bool enabled)
+void AudioBackendQtMultimedia::setDownmix(bool enabled)
 {
-    if (m_downmix != enabled)
-    {
-        m_downmix = enabled;
-        QAudioFormat format = QAudioDeviceInfo::defaultOutputDevice().preferredFormat();
-      //  if (m_downmix)
-            format.setChannelCount(1);
-        audioDecoder->setAudioFormat(format);
-        m_changingDevice = true;
-        this->deviceIndex = deviceIndex;
-        int curVolume = audioOutput->volume();
-        int curPosition = position();
-        QList<QAudioDeviceInfo> devices = QAudioDeviceInfo::availableDevices(QAudio::AudioOutput);
-        qCritical() << "User selected device: " << devices.at(deviceIndex).deviceName();
-        QAudio::State currentState = audioOutput->state();
-        stop(true);
-        delete(audioOutput);
-        audioOutput = new QAudioOutput(audioDecoder->audioFormat(),this);
-        audioOutput->setVolume(curVolume);
-        if (currentState == QAudio::ActiveState || currentState == QAudio::SuspendedState)
-        {
-            play();
-            setPosition(curPosition);
-        }
-        if (currentState == QAudio::SuspendedState)
-            pause();
-        connect(audioOutput, SIGNAL(notify()), this, SLOT(audioOutputNotify()));
-        connect(audioOutput, SIGNAL(stateChanged(QAudio::State)), this, SLOT(audioOutputStateChanged(QAudio::State)));
-        audioOutput->setNotifyInterval(20);
-        m_changingDevice = false;
-    }
+    m_downmix = enabled;
+
+    // We are currently always downmixing due to the key-changer requiring it.
+    // I haven't figured out a way to deinterleave stereo signals without causing
+    // weird audio artifacts, and our key changer requires signals be mono
 }
 
-void KhAudioBackendQtMultimedia::processAudio()
+void AudioBackendQtMultimedia::processAudio()
 {
     static bool processing = false;
     while (processing)
@@ -324,17 +298,17 @@ void KhAudioBackendQtMultimedia::processAudio()
     }
 }
 
-void KhAudioBackendQtMultimedia::durationReceived(qint64 duration)
+void AudioBackendQtMultimedia::durationReceived(qint64 duration)
 {
     emit durationChanged(duration);
 }
 
-void KhAudioBackendQtMultimedia::audioOutputNotify()
+void AudioBackendQtMultimedia::audioOutputNotify()
 {
     emit positionChanged(position());
 }
 
-void KhAudioBackendQtMultimedia::audioOutputStateChanged(QAudio::State state)
+void AudioBackendQtMultimedia::audioOutputStateChanged(QAudio::State state)
 {
     if (!m_changingDevice)
     {
@@ -345,13 +319,13 @@ void KhAudioBackendQtMultimedia::audioOutputStateChanged(QAudio::State state)
             break;
         case QAudio::StoppedState:
             // Stopped for other reasons
-            emit stateChanged(KhAbstractAudioBackend::StoppedState);
+            emit stateChanged(AbstractAudioBackend::StoppedState);
             break;
         case QAudio::ActiveState:
-            emit stateChanged(KhAbstractAudioBackend::PlayingState);
+            emit stateChanged(AbstractAudioBackend::PlayingState);
             break;
         case QAudio::SuspendedState:
-            emit stateChanged(KhAbstractAudioBackend::PausedState);
+            emit stateChanged(AbstractAudioBackend::PausedState);
             break;
         default:
             break;
@@ -359,7 +333,7 @@ void KhAudioBackendQtMultimedia::audioOutputStateChanged(QAudio::State state)
     }
 }
 
-void KhAudioBackendQtMultimedia::silenceDetectTimerTimeout()
+void AudioBackendQtMultimedia::silenceDetectTimerTimeout()
 {
     if (m_detectSilence && !m_changingDevice)
     {
@@ -458,7 +432,7 @@ void FaderQtMultimedia::setBaseVolume(int volume)
 }
 
 
-QStringList KhAudioBackendQtMultimedia::getOutputDevices()
+QStringList AudioBackendQtMultimedia::getOutputDevices()
 {
     QStringList devNames;
     QAudioDeviceInfo adInfo;

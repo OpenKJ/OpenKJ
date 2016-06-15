@@ -1,8 +1,8 @@
-#ifndef KHAUDIOBACKENDQTMULTIMEDIA_H
-#define KHAUDIOBACKENDQTMULTIMEDIA_H
+#ifndef AUDIOBACKENDQTMULTIMEDIA_H
+#define AUDIOBACKENDQTMULTIMEDIA_H
 
 #include <QObject>
-#include <khabstractaudiobackend.h>
+#include <abstractaudiobackend.h>
 #include <QAudioDecoder>
 #include <QAudioOutput>
 #include <QBuffer>
@@ -41,7 +41,7 @@ public slots:
 
 
 
-class KhAudioBackendQtMultimedia : public KhAbstractAudioBackend
+class AudioBackendQtMultimedia : public AbstractAudioBackend
 {
     Q_OBJECT
 private:
@@ -62,14 +62,16 @@ private:
     bool m_muted;
     AudioProcProxyIODevice *stProxy;
     int m_keyChange;
+    QAudioFormat m_audioFormat;
+
 
 public:
-    explicit KhAudioBackendQtMultimedia(QObject *parent = 0);
+    explicit AudioBackendQtMultimedia(QObject *parent = 0);
     int volume();
     qint64 position();
     bool isMuted();
     qint64 duration();
-    KhAbstractAudioBackend::State state();
+    AbstractAudioBackend::State state();
     bool canPitchShift();
     int pitchShift();
     bool canFade();
@@ -106,4 +108,4 @@ private slots:
     void silenceDetectTimerTimeout();
 };
 
-#endif // KHAUDIOBACKENDQTMULTIMEDIA_H
+#endif // AUDIOBACKENDQTMULTIMEDIA_H

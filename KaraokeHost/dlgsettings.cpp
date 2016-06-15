@@ -374,7 +374,7 @@ void DlgSettings::on_comboBoxBackend_currentIndexChanged(int index)
     if (pageSetupDone)
     {
         qDebug() << "SettingsDialog::on_comboBoxBackend_currentIndexChanged(" << index << ") fired";
-        if (audioBackend->state() != KhAbstractAudioBackend::StoppedState)
+        if (audioBackend->state() != AbstractAudioBackend::StoppedState)
         {
             QMessageBox::warning(this, "Unable to complete action","You can not change the audio backend while there is an active song playing or paused.  Please stop the current song and try again");
             ui->comboBoxBackend->setCurrentIndex(settings->audioBackend());
