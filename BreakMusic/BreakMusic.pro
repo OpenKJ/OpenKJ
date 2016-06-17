@@ -11,6 +11,11 @@ TEMPLATE = app
 
 win32: RC_FILE = BreakMusic.rc
 
+#win32: INCLUDEPATH += "K:/fftw"
+#win32: LIBS += -L"K:/fftw" -l"libfftw3-3.lib"
+
+
+
 SOURCES += main.cpp\
         mainwindow.cpp \
     databasedialog.cpp \
@@ -68,3 +73,9 @@ DISTFILES += \
     bmicon.ico \
     BreakMusic.rc \
     LICENSE
+
+
+win32: LIBS += -L"K:/fftw-3.3.4/fftw-3.3-libs/Release/" -llibfftw-3.3
+
+win32: INCLUDEPATH += "K:/fftw-3.3.4/api"
+win32: DEPENDPATH += "K:/fftw-3.3.4/api"

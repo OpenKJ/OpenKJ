@@ -28,10 +28,12 @@ float getPitchForSemitone(int semitone)
 
 AudioBackendQtMultimedia::AudioBackendQtMultimedia(QObject *parent) : AbstractAudioBackend(parent)
 {
-    m_audioFormat = QAudioDeviceInfo::defaultOutputDevice().preferredFormat();
+    //m_audioFormat = QAudioDeviceInfo::defaultOutputDevice().preferredFormat();
+    m_audioFormat.setSampleRate(44100);
     m_audioFormat.setSampleType(QAudioFormat::Float);
     m_audioFormat.setSampleSize(32);
     m_audioFormat.setChannelCount(1);
+    m_audioFormat.setCodec("audio/pcm");
     m_muted = false;
     m_silent = false;
     m_detectSilence = false;

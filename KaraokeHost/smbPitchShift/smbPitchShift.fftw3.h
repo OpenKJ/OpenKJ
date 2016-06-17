@@ -41,6 +41,7 @@
 #define PITCH_H
 
 #include <string.h>
+#define _USE_MATH_DEFINES
 #include <math.h>
 #include <stdio.h>
 #include <fftw3.h>
