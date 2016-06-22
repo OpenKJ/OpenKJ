@@ -24,6 +24,9 @@
 #include <QObject>
 #include <QStringList>
 
+#define STUP 1.0594630943592952645618252949461
+#define STDN 0.94387431268169349664191315666784
+
 class AbstractAudioBackend : public QObject
 {
     Q_OBJECT
@@ -47,6 +50,7 @@ public:
     virtual QStringList getOutputDevices();
     virtual void setOutputDevice(int deviceIndex) {Q_UNUSED(deviceIndex);}
     virtual bool stopping() {return false;}
+    float getPitchForSemitone(int semitone);
 
 signals:
     void audioAvailableChanged(bool);

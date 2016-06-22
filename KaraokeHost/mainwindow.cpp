@@ -25,6 +25,7 @@
 #include <QTemporaryDir>
 #include <QDir>
 #include "audiobackendqtmultimedia.h"
+#include "audiobackendhybrid.h"
 #include <QDesktopWidget>
 #include <QStandardPaths>
 #include <QCoreApplication>
@@ -99,6 +100,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ipcClient = new KhIPCClient("bmControl",this);
     audioBackends = new KhAudioBackends;
     audioBackends->push_back(new AudioBackendQtMultimedia());
+    audioBackends->push_back(new AudioBackendHybrid(this));
     if (audioBackends->count() < 1)
         qCritical("No audio backends available!");
     if (settings->audioBackend() < audioBackends->count())

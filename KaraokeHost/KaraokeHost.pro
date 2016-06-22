@@ -61,7 +61,8 @@ SOURCES += main.cpp\
     audioprocproxyiodevice.cpp \
     smbPitchShift/smbPitchShift.fftw3.cpp \
     abstractaudiobackend.cpp \
-    audiobackendqtmultimedia.cpp
+    audiobackendqtmultimedia.cpp \
+    audiobackendhybrid.cpp
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -99,7 +100,8 @@ HEADERS  += mainwindow.h \
     audioprocproxyiodevice.h \
     smbPitchShift/smbPitchShift.fftw3.h \
     audiobackendqtmultimedia.h \
-    abstractaudiobackend.h
+    abstractaudiobackend.h \
+    audiobackendhybrid.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \
@@ -115,6 +117,7 @@ FORMS    += mainwindow.ui \
 
 unix: CONFIG += link_pkgconfig
 unix: PKGCONFIG += fftw3
+unix: PKGCONFIG += gstreamer-1.0
 
 
 RESOURCES += \

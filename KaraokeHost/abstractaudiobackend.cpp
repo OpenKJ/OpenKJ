@@ -46,3 +46,23 @@ QStringList AbstractAudioBackend::getOutputDevices()
     devices << "System Default Output";
     return devices;
 }
+
+float AbstractAudioBackend::getPitchForSemitone(int semitone)
+{
+    double pitch;
+    if (semitone > 0)
+    {
+        // shifting up
+        pitch = pow(STUP,semitone);
+    }
+    else if (semitone < 0){
+        // shifting down
+        pitch = 1 - ((100 - (pow(STDN,abs(semitone)) * 100)) / 100);
+    }
+    else
+    {
+        // no change
+        pitch = 1.0;
+    }
+    return pitch;
+}
