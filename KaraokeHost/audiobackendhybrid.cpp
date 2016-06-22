@@ -51,7 +51,9 @@ AudioBackendHybrid::AudioBackendHybrid(QObject *parent) :
     playBin = gst_element_factory_make("playbin", "playBin");
     filter = gst_element_factory_make("capsfilter", "filter");
     sinkBin = gst_bin_new("sinkBin");
-    audioCapsStereo = gst_caps_new_simple("audio/x-raw","channels", G_TYPE_INT, 2, NULL);
+//    audioCapsStereo = gst_caps_new_simple("audio/x-raw", "format", G_TYPE_STRING, "F32LE", "rate", G_TYPE_INT, 44100, "channels", G_TYPE_INT, 2, NULL);
+    audioCapsStereo = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 2, NULL);
+//    audioCapsMono = gst_caps_new_simple("audio/x-raw", "format", G_TYPE_STRING, "F32LE", "rate", G_TYPE_INT, 44100, "channels", G_TYPE_INT, 1, NULL);    audioCapsStereo = gst_caps_new_simple("audio/x-raw", "format", G_TYPE_STRING, "F32LE", "rate", G_TYPE_INT, 44100, "channels", G_TYPE_INT, 2, NULL);
     audioCapsMono = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 1, NULL);
     g_object_set(filter, "caps", audioCapsStereo, NULL);
     if (!pitch)
@@ -63,8 +65,8 @@ AudioBackendHybrid::AudioBackendHybrid(QObject *parent) :
     }
     else
     {
-        gst_bin_add_many(GST_BIN (sinkBin), rgVolume, audioConvert, pitch, audioConvert2, filter, level, volumeElement, autoAudioSink, NULL);
-        gst_element_link_many(rgVolume, audioConvert, pitch, audioConvert2, filter, level, volumeElement, autoAudioSink, NULL);
+        gst_bin_add_many(GST_BIN (sinkBin), rgVolume, pitch, level, volumeElement, autoAudioSink, NULL);
+        gst_element_link_many(rgVolume, pitch, level, volumeElement, autoAudioSink, NULL);
         g_object_set(G_OBJECT(pitch), "pitch", 1.0, "tempo", 1.0, NULL);
     }
     pad = gst_element_get_static_pad(rgVolume, "sink");
@@ -107,7 +109,6 @@ void AudioBackendHybrid::processGstMessages()
                     gint channels;
                     gdouble rms_dB;
                     gdouble rms;
-                    const GValue *list;
                     const GValue *value;
                     const GValue *array_val;
                     GValueArray *rms_arr;
