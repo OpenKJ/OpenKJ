@@ -18,14 +18,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "bmabstractaudiobackend.h"
+#include "abstractaudiobackend.h"
+#include <math.h>
 
-BmAbstractAudioBackend::BmAbstractAudioBackend(QObject *parent) :
+AbstractAudioBackend::AbstractAudioBackend(QObject *parent) :
     QObject(parent)
 {
 }
 
-QString BmAbstractAudioBackend::msToMMSS(qint64 msec)
+QString AbstractAudioBackend::msToMMSS(qint64 msec)
 {
     QString sec;
     QString min;
@@ -35,14 +36,36 @@ QString BmAbstractAudioBackend::msToMMSS(qint64 msec)
     if (seconds < 10)
         sec = "0" + QString::number(seconds);
     else
+    {
         sec = QString::number(seconds);
-        min = QString::number(minutes);
-        return QString(min + ":" + sec);
+    }
+    min = QString::number(minutes);
+    return QString(min + ":" + sec);
 }
 
-QStringList BmAbstractAudioBackend::getOutputDevices()
+QStringList AbstractAudioBackend::getOutputDevices()
 {
     QStringList devices;
     devices << "System Default Output";
     return devices;
+}
+
+float AbstractAudioBackend::getPitchForSemitone(int semitone)
+{
+    double pitch;
+    if (semitone > 0)
+    {
+        // shifting up
+        pitch = pow(STUP,semitone);
+    }
+    else if (semitone < 0){
+        // shifting down
+        pitch = 1 - ((100 - (pow(STDN,abs(semitone)) * 100)) / 100);
+    }
+    else
+    {
+        // no change
+        pitch = 1.0;
+    }
+    return pitch;
 }

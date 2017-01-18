@@ -21,29 +21,25 @@ SOURCES += main.cpp\
     databasedialog.cpp \
     bmipcserver.cpp \
     bmsettings.cpp \
-    bmabstractaudiobackend.cpp \
     pltablemodel.cpp \
     plitemdelegate.cpp \
     dbtablemodel.cpp \
     dbupdatethread.cpp \
     dbitemdelegate.cpp \
-    audiobackendqtmultimedia.cpp \
-    smbPitchShift/smbPitchShift.fftw3.cpp \
-    audioprocproxyiodevice.cpp
+    abstractaudiobackend.cpp \
+    audiobackendgstreamer.cpp
 
 HEADERS  += mainwindow.h \
     databasedialog.h \
     bmipcserver.h \
     bmsettings.h \
-    bmabstractaudiobackend.h \
     pltablemodel.h \
     plitemdelegate.h \
     dbtablemodel.h \
     dbupdatethread.h \
     dbitemdelegate.h \
-    audiobackendqtmultimedia.h \
-    smbPitchShift/smbPitchShift.fftw3.h \
-    audioprocproxyiodevice.h
+    abstractaudiobackend.h \
+    audiobackendgstreamer.h
 
 FORMS    += mainwindow.ui \
     databasedialog.ui
@@ -54,7 +50,8 @@ RESOURCES += \
 unix: QT_CONFIG -= no-pkg-config
 unix: CONFIG += link_pkgconfig
 unix: PKGCONFIG += taglib_c
-unix: PKGCONFIG += fftw3
+unix: PKGCONFIG += gstreamer-1.0
+#unix: PKGCONFIG += fftw3
 
 win32: INCLUDEPATH += "K:\k\include\taglib"
 win32: LIBS += -ltag

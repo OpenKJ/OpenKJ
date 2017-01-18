@@ -26,8 +26,10 @@
 #include <QtSql>
 #include <QDir>
 #include "databasedialog.h"
-#include "audiobackendqtmultimedia.h"
-#include "bmabstractaudiobackend.h"
+//#include "audiobackendqtmultimedia.h"
+//#include "bmabstractaudiobackend.h"
+#include "abstractaudiobackend.h"
+#include "audiobackendgstreamer.h"
 #include "dbtablemodel.h"
 #include "pltablemodel.h"
 #include "plitemdelegate.h"
@@ -58,8 +60,8 @@ private:
     PlTableModel *plModel;
     PlItemDelegate *plDelegate;
     QSqlTableModel *playlistsModel;
-//    BmAudioBackendGStreamer *mPlayer;
-    AudioBackendQtMultimedia *mPlayer;
+    AudioBackendGstreamer *mPlayer;
+    //AudioBackendQtMultimedia *mPlayer;
 
     int currentPosition;
     int currentPlaylist;
@@ -84,7 +86,7 @@ private slots:
     void on_actionNew_Playlist_triggered();
     void on_actionRemove_Playlist_triggered();
     void on_actionAbout_triggered();
-    void mediaStateChanged(BmAbstractAudioBackend::State newState);
+    void mediaStateChanged(AbstractAudioBackend::State newState);
     void dbUpdated();
     void dbCleared();
     void on_tableViewPlaylist_clicked(const QModelIndex &index);

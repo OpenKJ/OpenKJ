@@ -18,23 +18,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KHABSTRACTAUDIOBACKEND_H
-#define KHABSTRACTAUDIOBACKEND_H
+#ifndef ABSTRACTAUDIOBACKEND_H
+#define ABSTRACTAUDIOBACKEND_H
 
 #include <QObject>
 #include <QStringList>
 
-class BmAbstractAudioBackend : public QObject
+#define STUP 1.0594630943592952645618252949461
+#define STDN 0.94387431268169349664191315666784
+
+class AbstractAudioBackend : public QObject
 {
     Q_OBJECT
 public:
     enum State{PlayingState=0,PausedState,StoppedState,EndOfMediaState};
-    explicit BmAbstractAudioBackend(QObject *parent = 0);
+    explicit AbstractAudioBackend(QObject *parent = 0);
     virtual int volume() {return 0;}
     virtual qint64 position() {return 0;}
     virtual bool isMuted() {return 0;}
     virtual qint64 duration() {return 0;}
-    virtual BmAbstractAudioBackend::State state() {return BmAbstractAudioBackend::StoppedState;}
+    virtual AbstractAudioBackend::State state() {return AbstractAudioBackend::StoppedState;}
     virtual bool canPitchShift() {return false;}
     virtual int pitchShift() {return 0;}
     virtual bool canFade() { return false; }
@@ -47,6 +50,7 @@ public:
     virtual QStringList getOutputDevices();
     virtual void setOutputDevice(int deviceIndex) {Q_UNUSED(deviceIndex);}
     virtual bool stopping() {return false;}
+    float getPitchForSemitone(int semitone);
 
 signals:
     void audioAvailableChanged(bool);
@@ -54,7 +58,7 @@ signals:
     void durationChanged(qint64);
     void mutedChanged(bool);
     void positionChanged(qint64);
-    void stateChanged(BmAbstractAudioBackend::State);
+    void stateChanged(AbstractAudioBackend::State);
     void videoAvailableChanged(bool);
     void volumeChanged(int);
     void silenceDetected();
@@ -79,7 +83,7 @@ public slots:
 
 };
 
-typedef QList<BmAbstractAudioBackend *> KhAudioBackends;
+typedef QList<AbstractAudioBackend *> KhAudioBackends;
 
 
-#endif // KHABSTRACTAUDIOBACKEND_H
+#endif // ABSTRACTAUDIOBACKEND_H

@@ -24,8 +24,8 @@
 #include <iostream>
 #include <QTemporaryDir>
 #include <QDir>
-#include "audiobackendqtmultimedia.h"
-#include "audiobackendhybrid.h"
+//#include "audiobackendqtmultimedia.h"
+#include "audiobackendgstreamer.h"
 #include <QDesktopWidget>
 #include <QStandardPaths>
 #include <QCoreApplication>
@@ -99,8 +99,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewDB->setItemDelegate(dbDelegate);
     ipcClient = new KhIPCClient("bmControl",this);
     audioBackends = new KhAudioBackends;
-    audioBackends->push_back(new AudioBackendQtMultimedia());
-    audioBackends->push_back(new AudioBackendHybrid(this));
+//    audioBackends->push_back(new AudioBackendQtMultimedia());
+    audioBackends->push_back(new AudioBackendGstreamer(this));
     if (audioBackends->count() < 1)
         qCritical("No audio backends available!");
     if (settings->audioBackend() < audioBackends->count())

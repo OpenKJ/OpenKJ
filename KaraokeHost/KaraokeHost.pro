@@ -20,7 +20,7 @@ contains(DEFINES, USE_GL) {
 TARGET = KaraokeHost
 TEMPLATE = app
 
-DEFINES += USE_QTMULTIMEDIA
+#DEFINES += USE_QTMULTIMEDIA
 
 win32: INCLUDEPATH += "K:/fftw"
 
@@ -58,11 +58,8 @@ SOURCES += main.cpp\
     cdgvideosurface.cpp \
     cdgvideowidget.cpp \
     imagewidget.cpp \
-    audioprocproxyiodevice.cpp \
-    smbPitchShift/smbPitchShift.fftw3.cpp \
     abstractaudiobackend.cpp \
-    audiobackendqtmultimedia.cpp \
-    audiobackendhybrid.cpp
+    audiobackendgstreamer.cpp
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -97,11 +94,8 @@ HEADERS  += mainwindow.h \
     cdgvideosurface.h \
     cdgvideowidget.h \
     imagewidget.h \
-    audioprocproxyiodevice.h \
-    smbPitchShift/smbPitchShift.fftw3.h \
-    audiobackendqtmultimedia.h \
     abstractaudiobackend.h \
-    audiobackendhybrid.h
+    audiobackendgstreamer.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \
@@ -116,7 +110,7 @@ FORMS    += mainwindow.ui \
     dlgdurationscan.ui
 
 unix: CONFIG += link_pkgconfig
-unix: PKGCONFIG += fftw3
+#unix: PKGCONFIG += fftw3
 unix: PKGCONFIG += gstreamer-1.0
 
 

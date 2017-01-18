@@ -41,7 +41,7 @@ MainWindow::MainWindow(QWidget *parent) :
     settings = new BmSettings(this);
     settings->restoreWindowState(this);
     //mPlayer = new BmAudioBackendGStreamer(this);
-    mPlayer = new AudioBackendQtMultimedia(this);
+    mPlayer = new AudioBackendGstreamer(this);
     mPlayer->setUseFader(true);
     mPlayer->setUseSilenceDetection(true);
     ipcServer = new BmIPCServer("bmControl",this); 
@@ -421,13 +421,13 @@ void MainWindow::on_actionAbout_triggered()
     QMessageBox::about(this, title, text);
 }
 
-void MainWindow::mediaStateChanged(BmAbstractAudioBackend::State newState)
+void MainWindow::mediaStateChanged(AbstractAudioBackend::State newState)
 {
-    static BmAbstractAudioBackend::State lastState = BmAbstractAudioBackend::StoppedState;
+    static AbstractAudioBackend::State lastState = AbstractAudioBackend::StoppedState;
     if (newState != lastState)
     {
         lastState = newState;
-        if (newState == BmAbstractAudioBackend::EndOfMediaState)
+        if (newState == AbstractAudioBackend::EndOfMediaState)
         {
             if (ui->checkBoxBreak->isChecked())
             {

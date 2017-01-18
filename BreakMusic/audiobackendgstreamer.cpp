@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "audiobackendhybrid.h"
+#include "audiobackendgstreamer.h"
 #include <QApplication>
 #include <QDebug>
 #include <string.h>
@@ -28,7 +28,7 @@
 
 
 
-AudioBackendHybrid::AudioBackendHybrid(QObject *parent) :
+AudioBackendGstreamer::AudioBackendGstreamer(QObject *parent) :
     AbstractAudioBackend(parent)
 {
     m_volume = 0;
@@ -48,15 +48,14 @@ AudioBackendHybrid::AudioBackendHybrid(QObject *parent) :
     volumeElement = gst_element_factory_make("volume", "volumeElement");
     level = gst_element_factory_make("level", "level");
     pitch = gst_element_factory_make("pitch", "pitch");
+    pitch2 = gst_element_factory_make("ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo", "ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo");
     playBin = gst_element_factory_make("playbin", "playBin");
     filter = gst_element_factory_make("capsfilter", "filter");
     sinkBin = gst_bin_new("sinkBin");
-//    audioCapsStereo = gst_caps_new_simple("audio/x-raw", "format", G_TYPE_STRING, "F32LE", "rate", G_TYPE_INT, 44100, "channels", G_TYPE_INT, 2, NULL);
     audioCapsStereo = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 2, NULL);
-//    audioCapsMono = gst_caps_new_simple("audio/x-raw", "format", G_TYPE_STRING, "F32LE", "rate", G_TYPE_INT, 44100, "channels", G_TYPE_INT, 1, NULL);    audioCapsStereo = gst_caps_new_simple("audio/x-raw", "format", G_TYPE_STRING, "F32LE", "rate", G_TYPE_INT, 44100, "channels", G_TYPE_INT, 2, NULL);
     audioCapsMono = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 1, NULL);
     g_object_set(filter, "caps", audioCapsStereo, NULL);
-    if (!pitch)
+    if (!pitch2)
     {
         qCritical() << "gst plugin 'pitch' not found, key changing disabled";
         gst_bin_add_many(GST_BIN (sinkBin), rgVolume, audioConvert, filter, level, volumeElement, autoAudioSink, NULL);
@@ -65,9 +64,9 @@ AudioBackendHybrid::AudioBackendHybrid(QObject *parent) :
     }
     else
     {
-        gst_bin_add_many(GST_BIN (sinkBin), rgVolume, pitch, level, volumeElement, autoAudioSink, NULL);
-        gst_element_link_many(rgVolume, pitch, level, volumeElement, autoAudioSink, NULL);
-        g_object_set(G_OBJECT(pitch), "pitch", 1.0, "tempo", 1.0, NULL);
+        gst_bin_add_many(GST_BIN (sinkBin), rgVolume, audioConvert, pitch2, level, volumeElement, autoAudioSink, NULL);
+        gst_element_link_many(rgVolume, audioConvert, pitch2, level, volumeElement, autoAudioSink, NULL);
+        g_object_set(G_OBJECT(pitch2), "semitones", 1.0, NULL);
     }
     pad = gst_element_get_static_pad(rgVolume, "sink");
     ghostPad = gst_ghost_pad_new("sink", pad);
@@ -88,11 +87,11 @@ AudioBackendHybrid::AudioBackendHybrid(QObject *parent) :
     fastTimer->start(40);
 }
 
-AudioBackendHybrid::~AudioBackendHybrid()
+AudioBackendGstreamer::~AudioBackendGstreamer()
 {
 }
 
-void AudioBackendHybrid::processGstMessages()
+void AudioBackendGstreamer::processGstMessages()
 {
     GstMessage *message = NULL;
     bool done = false;
@@ -140,12 +139,12 @@ void AudioBackendHybrid::processGstMessages()
     }
 }
 
-int AudioBackendHybrid::volume()
+int AudioBackendGstreamer::volume()
 {
     return m_volume;
 }
 
-qint64 AudioBackendHybrid::position()
+qint64 AudioBackendGstreamer::position()
 {
     gint64 pos;
     GstFormat fmt = GST_FORMAT_TIME;
@@ -156,12 +155,12 @@ qint64 AudioBackendHybrid::position()
     return 0;
 }
 
-bool AudioBackendHybrid::isMuted()
+bool AudioBackendGstreamer::isMuted()
 {
     return false;
 }
 
-qint64 AudioBackendHybrid::duration()
+qint64 AudioBackendGstreamer::duration()
 {
     gint64 duration;
     GstFormat fmt = GST_FORMAT_TIME;
@@ -172,7 +171,7 @@ qint64 AudioBackendHybrid::duration()
     return 0;
 }
 
-AbstractAudioBackend::State AudioBackendHybrid::state()
+AbstractAudioBackend::State AudioBackendGstreamer::state()
 {
     GstState state;
     gst_element_get_state(playBin, &state, NULL, GST_CLOCK_TIME_NONE);
@@ -185,17 +184,17 @@ AbstractAudioBackend::State AudioBackendHybrid::state()
     return AbstractAudioBackend::StoppedState;
 }
 
-QString AudioBackendHybrid::backendName()
+QString AudioBackendGstreamer::backendName()
 {
     return "GStreamer";
 }
 
-bool AudioBackendHybrid::stopping()
+bool AudioBackendGstreamer::stopping()
 {
     return false;
 }
 
-void AudioBackendHybrid::keyChangerOn()
+void AudioBackendGstreamer::keyChangerOn()
 {
 //    AbstractAudioBackend::State curstate = state();
 //    int pos = position();
@@ -219,7 +218,7 @@ void AudioBackendHybrid::keyChangerOn()
     m_keyChangerOn = true;
 }
 
-void AudioBackendHybrid::keyChangerOff()
+void AudioBackendGstreamer::keyChangerOff()
 {
 //    AbstractAudioBackend::State curstate = state();
 //    int pos = position();
@@ -245,7 +244,7 @@ void AudioBackendHybrid::keyChangerOff()
     m_keyChangerOn = false;
 }
 
-void AudioBackendHybrid::play()
+void AudioBackendGstreamer::play()
 {
     if (state() == AbstractAudioBackend::PausedState)
     {
@@ -259,14 +258,14 @@ void AudioBackendHybrid::play()
     }
 }
 
-void AudioBackendHybrid::pause()
+void AudioBackendGstreamer::pause()
 {
     if (m_fade)
         fadeOut();
     gst_element_set_state(playBin, GST_STATE_PAUSED);
 }
 
-void AudioBackendHybrid::setMedia(QString filename)
+void AudioBackendGstreamer::setMedia(QString filename)
 {
     m_filename = filename;
 #ifdef Q_OS_WIN
@@ -278,7 +277,7 @@ void AudioBackendHybrid::setMedia(QString filename)
     g_object_set(GST_OBJECT(playBin), "uri", uri.c_str(), NULL);
 }
 
-void AudioBackendHybrid::setMuted(bool muted)
+void AudioBackendGstreamer::setMuted(bool muted)
 {
     if (muted)
     {
@@ -293,7 +292,7 @@ void AudioBackendHybrid::setMuted(bool muted)
 
 }
 
-void AudioBackendHybrid::setPosition(qint64 position)
+void AudioBackendGstreamer::setPosition(qint64 position)
 {
     qDebug() << "Seeking to: " << position << "ms";
     GstSeekFlags flags = GST_SEEK_FLAG_FLUSH;
@@ -304,7 +303,7 @@ void AudioBackendHybrid::setPosition(qint64 position)
     emit positionChanged(position);
 }
 
-void AudioBackendHybrid::setVolume(int volume)
+void AudioBackendGstreamer::setVolume(int volume)
 {
     m_volume = volume;
     fader->setBaseVolume(volume);
@@ -312,7 +311,7 @@ void AudioBackendHybrid::setVolume(int volume)
     emit volumeChanged(volume);
 }
 
-void AudioBackendHybrid::stop(bool skipFade)
+void AudioBackendGstreamer::stop(bool skipFade)
 {
     int curVolume = volume();
     if ((m_fade) && (!skipFade) && (state() == AbstractAudioBackend::PlayingState))
@@ -323,7 +322,7 @@ void AudioBackendHybrid::stop(bool skipFade)
         setVolume(curVolume);
 }
 
-void AudioBackendHybrid::fastTimer_timeout()
+void AudioBackendGstreamer::fastTimer_timeout()
 {
     static int curDuration;
     if (duration() != curDuration)
@@ -340,7 +339,7 @@ void AudioBackendHybrid::fastTimer_timeout()
     }
 }
 
-void AudioBackendHybrid::slowTimer_timeout()
+void AudioBackendGstreamer::slowTimer_timeout()
 {
     static AbstractAudioBackend::State currentState;
     if (state() != currentState)
@@ -374,7 +373,7 @@ void AudioBackendHybrid::slowTimer_timeout()
     }
 }
 
-void AudioBackendHybrid::faderChangedVolume(int volume)
+void AudioBackendGstreamer::faderChangedVolume(int volume)
 {
     m_volume = volume;
     emit volumeChanged(volume);
@@ -382,25 +381,25 @@ void AudioBackendHybrid::faderChangedVolume(int volume)
 
 
 
-bool AudioBackendHybrid::canPitchShift()
+bool AudioBackendGstreamer::canPitchShift()
 {
     return m_canKeyChange;
 }
 
-int AudioBackendHybrid::pitchShift()
+int AudioBackendGstreamer::pitchShift()
 {
     return m_keyChange;
 }
 
-void AudioBackendHybrid::setPitchShift(int pitchShift)
+void AudioBackendGstreamer::setPitchShift(int pitchShift)
 {
-    m_keyChange = pitchShift;
-    if ((pitchShift == 0) && (m_keyChangerOn))
-        keyChangerOff();
-    else if ((pitchShift != 0) && (!m_keyChangerOn))
-        keyChangerOn();
-    qDebug() << "executing g_object_set(GST_OBJECT(pitch), \"pitch\", " << getPitchForSemitone(pitchShift) << ", NULL)";
-    g_object_set(G_OBJECT(pitch), "pitch", getPitchForSemitone(pitchShift), "tempo", 1.0, NULL);
+//    m_keyChange = pitchShift;
+//    if ((pi& (m_keyChangerOn))
+//            keyChangerOff();
+//        else if ((pitchShift != 0) && (!m_keyChangerOn))ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo0
+//            keyChangerOn();
+//        qDebug() << "executing g_object_set(GST_OBJECT(pitch), \"pitch\", " << getPitchForSemitone(pitchShift) << ", NULL)";tchShift == 0) &
+    g_object_set(G_OBJECT(pitch2), "semitones", pitchShift, NULL);
     emit pitchChanged(pitchShift);
 }
 
@@ -507,51 +506,51 @@ double FaderGStreamer::volume()
     return curVolume;
 }
 
-bool AudioBackendHybrid::canFade()
+bool AudioBackendGstreamer::canFade()
 {
     return true;
 }
 
-void AudioBackendHybrid::fadeOut()
+void AudioBackendGstreamer::fadeOut()
 {
     fader->fadeOut();
 }
 
-void AudioBackendHybrid::fadeIn()
+void AudioBackendGstreamer::fadeIn()
 {
     fader->fadeIn();
 }
 
-void AudioBackendHybrid::setUseFader(bool fade)
+void AudioBackendGstreamer::setUseFader(bool fade)
 {
     m_fade = fade;
 }
 
 
-bool AudioBackendHybrid::canDetectSilence()
+bool AudioBackendGstreamer::canDetectSilence()
 {
     return true;
 }
 
-bool AudioBackendHybrid::isSilent()
+bool AudioBackendGstreamer::isSilent()
 {
     if (m_currentRmsLevel <= 0.01)
         return true;
     return false;
 }
 
-void AudioBackendHybrid::setUseSilenceDetection(bool enabled)
+void AudioBackendGstreamer::setUseSilenceDetection(bool enabled)
 {
     m_silenceDetect = enabled;
 }
 
 
-bool AudioBackendHybrid::canDownmix()
+bool AudioBackendGstreamer::canDownmix()
 {
     return true;
 }
 
-void AudioBackendHybrid::setDownmix(bool enabled)
+void AudioBackendGstreamer::setDownmix(bool enabled)
 {
     qDebug() << "AudioBackendHybrid::setDownmix(" << enabled << ") called";
     if (enabled)

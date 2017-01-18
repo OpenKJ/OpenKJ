@@ -56,7 +56,7 @@ public slots:
 
 };
 
-class AudioBackendHybrid : public AbstractAudioBackend
+class AudioBackendGstreamer : public AbstractAudioBackend
 {
     Q_OBJECT
 
@@ -68,6 +68,7 @@ private:
     GstElement *autoAudioSink;
     GstElement *rgVolume;
     GstElement *pitch;
+    GstElement *pitch2;
     GstElement *volumeElement;
     GstElement *level;
     GstElement *filter;
@@ -91,8 +92,8 @@ private:
     double m_currentRmsLevel;
 
 public:
-    explicit AudioBackendHybrid(QObject *parent = 0);
-    ~AudioBackendHybrid();
+    explicit AudioBackendGstreamer(QObject *parent = 0);
+    ~AudioBackendGstreamer();
     int volume();
     qint64 position();
     bool isMuted();

@@ -19,6 +19,7 @@
 */
 
 #include "abstractaudiobackend.h"
+#include <math.h>
 
 AbstractAudioBackend::AbstractAudioBackend(QObject *parent) :
     QObject(parent)
@@ -35,9 +36,11 @@ QString AbstractAudioBackend::msToMMSS(qint64 msec)
     if (seconds < 10)
         sec = "0" + QString::number(seconds);
     else
+    {
         sec = QString::number(seconds);
-        min = QString::number(minutes);
-        return QString(min + ":" + sec);
+    }
+    min = QString::number(minutes);
+    return QString(min + ":" + sec);
 }
 
 QStringList AbstractAudioBackend::getOutputDevices()
