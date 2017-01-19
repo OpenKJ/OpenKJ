@@ -1,6 +1,6 @@
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install qt5-base qt5-multimedia qt5-tools libgstreamer1.0-dev libpulse-dev libtag1-dev libtagc0-dev 
+  - sudo apt-get install qtbase5-dev qtmultimedia5-dev qttools5-dev libkf5threadweaver-dev libkf5karchive-dev libgstreamer1.0-dev libpulse-dev libtag1-dev libtagc0-dev 
 
 script:
   - qmake
