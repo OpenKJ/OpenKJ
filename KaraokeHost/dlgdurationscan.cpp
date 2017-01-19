@@ -133,7 +133,7 @@ int DlgDurationScan::numUpdatesNeeded()
     return needed;
 }
 
-bool DlgDurationScan::getDuration(const QString filename)
+void DlgDurationScan::getDuration(const QString filename)
 {
     if (filename.endsWith(".zip", Qt::CaseInsensitive))
     {
@@ -143,21 +143,17 @@ bool DlgDurationScan::getDuration(const QString filename)
         if (duration == -1)
         {
             qWarning() << "Unable to get duration for file: " << filename;
-            return true;
+            return;
         }
         QSqlQuery query;
         query.exec("UPDATE dbsongs SET duration = " + QString::number(duration) + " WHERE path == \"" + filename + "\"");
-        return false;
     }
-    else if (filename.endsWith(".zip", Qt::CaseInsensitive))
+    else if (filename.endsWith(".cdg", Qt::CaseInsensitive))
     {
         QFile cdgFile(filename);
         int size = cdgFile.size();
         int duration = ((size / 96) / 75) * 1000;
         QSqlQuery query;
         query.exec("UPDATE dbsongs SET duration = " + QString::number(duration) + " WHERE path == \"" + filename + "\"");
-        return false;
     }
-    else
-        return true;
 }

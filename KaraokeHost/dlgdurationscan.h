@@ -43,7 +43,7 @@ private:
     int numUpdatesNeeded();
     Ui::DlgDurationScan *ui;
     KhDb db;
-    static bool getDuration(const QString filename);
+    static void getDuration(const QString filename);
     QStringList needDurationFiles;
     QFutureWatcher<void> watcher;
 public:
