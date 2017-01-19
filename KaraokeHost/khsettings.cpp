@@ -312,12 +312,15 @@ void KhSettings::setAudioVolume(int volume)
 
 QString KhSettings::cdgDisplayBackgroundImage()
 {
-    return settings->value("cdgDisplayBackgroundImage", "").toString();
+    return settings->value("cdgDisplayBackgroundImage", QString()).toString();
 }
 
 void KhSettings::setCdgDisplayBackgroundImage(QString imageFile)
 {
-    settings->setValue("cdgDisplayBackgroundImage", imageFile);
+    if (imageFile == "")
+        settings->remove("cdgDisplayBackgroundImage");
+    else
+        settings->setValue("cdgDisplayBackgroundImage", imageFile);
     emit cdgBgImageChanged();
 }
 
