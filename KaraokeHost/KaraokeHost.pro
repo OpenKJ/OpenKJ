@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT += core gui sql network widgets multimedia KArchive ThreadWeaver
+QT += core gui sql network widgets multimedia KArchive concurrent
 
 unix: DEFINES += USE_GL
 #win32: DEFINES += USE_GL

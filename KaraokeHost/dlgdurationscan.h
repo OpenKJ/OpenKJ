@@ -25,30 +25,10 @@
 #include "khdb.h"
 #include <QStringList>
 #include "okarchive.h"
-#include <ThreadWeaver/ThreadWeaver>
 #include <QSqlQuery>
-#include <QTimer>
+#include <QtConcurrent>
+#include <QFutureWatcher>
 
-
-class DurationUpdaterZip : public ThreadWeaver::Job
-{
-public:
-    DurationUpdaterZip(QString filename) : m_fileName(filename) {}
-protected:
-    void run(ThreadWeaver::JobPointer, ThreadWeaver::Thread*);
-private:
-    QString m_fileName;
-};
-
-class DurationUpdaterCdg : public ThreadWeaver::Job
-{
-public:
-    DurationUpdaterCdg(QString filename) : m_fileName(filename) {}
-protected:
-    void run(ThreadWeaver::JobPointer, ThreadWeaver::Thread*);
-private:
-    QString m_fileName;
-};
 
 namespace Ui {
 class DlgDurationScan;
@@ -62,17 +42,10 @@ private:
     QStringList findNeedUpdateSongs();
     int numUpdatesNeeded();
     Ui::DlgDurationScan *ui;
-    //OkArchive archiveFile;
-    bool stopProcessing;
-    bool queueing;
     KhDb db;
-    ThreadWeaver::Queue *threadQueue;
-    QSqlQuery *m_query;
-    QTimer *uiUpdateTimer;
-    int needed;
-    int processed;
-    bool transactionStarted;
-
+    static bool getDuration(const QString filename);
+    QStringList needDurationFiles;
+    QFutureWatcher<void> watcher;
 public:
     explicit DlgDurationScan(QWidget *parent = 0);
     ~DlgDurationScan();
@@ -81,9 +54,12 @@ private slots:
     void on_buttonClose_clicked();
     void on_buttonStop_clicked();
     void on_buttonStart_clicked();
-    void on_durationProcessed(int duration, QString filePath);
-    void on_uiUpdateTimer();
-
+    void progressRangeChanged(int min, int max);
+    void processingComplete();
+    void processingStopped();
+    void processingPaused();
+    void processingStarted();
+    void progressValueChanged(int progress);
 };
 
 
