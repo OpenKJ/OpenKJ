@@ -4,5 +4,5 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
     KaraokeHost \
-    BreakMusic \
+    BreakMusic 
 

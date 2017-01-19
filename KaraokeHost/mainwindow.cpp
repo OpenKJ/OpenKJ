@@ -24,7 +24,6 @@
 #include <iostream>
 #include <QTemporaryDir>
 #include <QDir>
-//#include "audiobackendqtmultimedia.h"
 #include "audiobackendgstreamer.h"
 #include <QDesktopWidget>
 #include <QStandardPaths>
@@ -114,7 +113,8 @@ MainWindow::MainWindow(QWidget *parent) :
         activeAudioBackend->setUseFader(settings->audioUseFader());
     if (!activeAudioBackend->canPitchShift())
     {
-        ui->groupBoxKey->hide();
+        ui->spinBoxKey->hide();
+        ui->lblKey->hide();
         ui->tableViewQueue->hideColumn(7);
     }
     audioRecorder = new KhAudioRecorder(this);
@@ -541,6 +541,10 @@ void MainWindow::on_spinBoxKey_valueChanged(int arg1)
     if ((activeAudioBackend->state() == AbstractAudioBackend::PlayingState) || (activeAudioBackend->state() == AbstractAudioBackend::PausedState))
     {
         activeAudioBackend->setPitchShift(arg1);
+        if (arg1 > 0)
+            ui->spinBoxKey->setPrefix("+");
+        else
+            ui->spinBoxKey->setPrefix("");
     }
     else
         ui->spinBoxKey->setValue(0);

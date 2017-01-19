@@ -37,25 +37,22 @@ AudioBackendGstreamer::AudioBackendGstreamer(QObject *parent) :
     m_silenceDetect = false;
     m_outputChannels = 0;
     m_currentRmsLevel = 0.0;
-    m_keyChangerOn = false;
     m_keyChange = 0;
 
     gst_init(NULL,NULL);
     audioConvert = gst_element_factory_make("audioconvert", "audioConvert");
-    audioConvert2 = gst_element_factory_make("audioconvert", "audioConvert2");
     autoAudioSink = gst_element_factory_make("autoaudiosink", "autoAudioSink");
     rgVolume = gst_element_factory_make("rgvolume", "rgVolume");
     volumeElement = gst_element_factory_make("volume", "volumeElement");
     level = gst_element_factory_make("level", "level");
-    pitch = gst_element_factory_make("pitch", "pitch");
-    pitch2 = gst_element_factory_make("ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo", "ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo");
+    pitchShifter = gst_element_factory_make("ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo", "ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo");
     playBin = gst_element_factory_make("playbin", "playBin");
     filter = gst_element_factory_make("capsfilter", "filter");
     sinkBin = gst_bin_new("sinkBin");
     audioCapsStereo = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 2, NULL);
     audioCapsMono = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 1, NULL);
     g_object_set(filter, "caps", audioCapsStereo, NULL);
-    if (!pitch2)
+    if (!pitchShifter)
     {
         qCritical() << "gst plugin 'pitch' not found, key changing disabled";
         gst_bin_add_many(GST_BIN (sinkBin), rgVolume, audioConvert, filter, level, volumeElement, autoAudioSink, NULL);
@@ -64,9 +61,11 @@ AudioBackendGstreamer::AudioBackendGstreamer(QObject *parent) :
     }
     else
     {
-        gst_bin_add_many(GST_BIN (sinkBin), rgVolume, audioConvert, pitch2, level, volumeElement, autoAudioSink, NULL);
-        gst_element_link_many(rgVolume, audioConvert, pitch2, level, volumeElement, autoAudioSink, NULL);
-        g_object_set(G_OBJECT(pitch2), "semitones", 1.0, NULL);
+        gst_bin_add_many(GST_BIN (sinkBin), rgVolume, filter, audioConvert, pitchShifter, level, volumeElement, autoAudioSink, NULL);
+        gst_element_link_many(rgVolume, filter, audioConvert, pitchShifter, level, volumeElement, autoAudioSink, NULL);
+        g_object_set(G_OBJECT(pitchShifter), "formant-preserving", true, NULL);
+        g_object_set(G_OBJECT(pitchShifter), "crispness", 1, NULL);
+        g_object_set(G_OBJECT(pitchShifter), "semitones", 1.0, NULL);
     }
     pad = gst_element_get_static_pad(rgVolume, "sink");
     ghostPad = gst_ghost_pad_new("sink", pad);
@@ -192,56 +191,6 @@ QString AudioBackendGstreamer::backendName()
 bool AudioBackendGstreamer::stopping()
 {
     return false;
-}
-
-void AudioBackendGstreamer::keyChangerOn()
-{
-//    AbstractAudioBackend::State curstate = state();
-//    int pos = position();
-//    qDebug() << "keyChangerOn() fired";
-//    if (curstate != AbstractAudioBackend::StoppedState)
-//    {
-//        gst_element_set_state(playBin, GST_STATE_NULL);
-//        while (state() != AbstractAudioBackend::StoppedState)
-//            QApplication::processEvents();
-//    }
-//    gst_element_unlink(audioConvert,audioConvert2);
-//    if (curstate != AbstractAudioBackend::StoppedState)
-//    {
-//        gst_element_set_state(playBin, GST_STATE_PLAYING);
-//        while (state() != AbstractAudioBackend::PlayingState)
-//            QApplication::processEvents();
-//        setPosition(pos);
-//        if (curstate == AbstractAudioBackend::PausedState)
-//            pause();
-//    }
-    m_keyChangerOn = true;
-}
-
-void AudioBackendGstreamer::keyChangerOff()
-{
-//    AbstractAudioBackend::State curstate = state();
-//    int pos = position();
-//    if (curstate != AbstractAudioBackend::StoppedState)
-//    {
-//        gst_element_set_state(playBin, GST_STATE_NULL);
-//        while (state() != AbstractAudioBackend::StoppedState)
-//            QApplication::processEvents();
-//    }
-//    gst_element_unlink(audioConvert,pitch);
-//    gst_element_unlink(pitch,audioConvert2);
-//    if (!gst_element_link(audioConvert,audioConvert2))
-//        qDebug() << "Failed to link gstreamer elements";
-//    if (curstate != AbstractAudioBackend::StoppedState)
-//    {
-//        gst_element_set_state(playBin, GST_STATE_PLAYING);
-//        while (state() != AbstractAudioBackend::PlayingState)
-//            QApplication::processEvents();
-//        setPosition(pos);
-//        if (curstate == AbstractAudioBackend::PausedState)
-//            pause();
-//    }
-    m_keyChangerOn = false;
 }
 
 void AudioBackendGstreamer::play()
@@ -399,7 +348,7 @@ void AudioBackendGstreamer::setPitchShift(int pitchShift)
 //        else if ((pitchShift != 0) && (!m_keyChangerOn))ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo0
 //            keyChangerOn();
 //        qDebug() << "executing g_object_set(GST_OBJECT(pitch), \"pitch\", " << getPitchForSemitone(pitchShift) << ", NULL)";tchShift == 0) &
-    g_object_set(G_OBJECT(pitch2), "semitones", pitchShift, NULL);
+    g_object_set(G_OBJECT(pitchShifter), "semitones", pitchShift, NULL);
     emit pitchChanged(pitchShift);
 }
 

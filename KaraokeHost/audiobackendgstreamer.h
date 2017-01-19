@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef AUDIOBACKENDHYBRID_H
-#define AUDIOBACKENDHYBRID_H
+#ifndef AUDIOBACKENDGSTREAMER_H
+#define AUDIOBACKENDGSTREAMER_H
 
 #include "abstractaudiobackend.h"
 #define GLIB_DISABLE_DEPRECATION_WARNINGS
@@ -64,11 +64,9 @@ private:
     GstElement *sinkBin;
     GstElement *playBin;
     GstElement *audioConvert;
-    GstElement *audioConvert2;
     GstElement *autoAudioSink;
     GstElement *rgVolume;
-    GstElement *pitch;
-    GstElement *pitch2;
+    GstElement *pitchShifter;
     GstElement *volumeElement;
     GstElement *level;
     GstElement *filter;
@@ -80,7 +78,6 @@ private:
     QString m_filename;
     QTimer *fastTimer;
     QTimer *slowTimer;
-    bool m_keyChangerOn;
     int m_keyChange;
     int m_volume;
     FaderGStreamer *fader;
@@ -133,4 +130,4 @@ public slots:
 
 };
 
-#endif // AUDIOBACKENDHYBRID_H
+#endif // AUDIOBACKENDGSTREAMER_H

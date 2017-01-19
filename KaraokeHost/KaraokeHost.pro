@@ -10,8 +10,6 @@ unix: DEFINES += USE_GL
 #win32: DEFINES += USE_GL
 
 win32: RC_FILE = KaraokeHost.rc
-#win32: LIBS += -L"K:/fftw" -lfftw3-3
-
 
 contains(DEFINES, USE_GL) {
     QT += opengl
@@ -21,8 +19,6 @@ TARGET = KaraokeHost
 TEMPLATE = app
 
 #DEFINES += USE_QTMULTIMEDIA
-
-win32: INCLUDEPATH += "K:/fftw"
 
 SOURCES += main.cpp\
     mainwindow.cpp \
@@ -110,7 +106,6 @@ FORMS    += mainwindow.ui \
     dlgdurationscan.ui
 
 unix: CONFIG += link_pkgconfig
-#unix: PKGCONFIG += fftw3
 unix: PKGCONFIG += gstreamer-1.0
 
 
@@ -127,8 +122,3 @@ unix {
     INSTALLS += binaryfiles iconfiles desktopfiles
 }
 
-
-win32: LIBS += -L"K:/fftw-3.3.4/fftw-3.3-libs/Release/" -llibfftw-3.3
-
-win32: INCLUDEPATH += "K:/fftw-3.3.4/api"
-win32: DEPENDPATH += "K:/fftw-3.3.4/api"
