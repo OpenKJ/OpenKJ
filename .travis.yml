@@ -8,3 +8,6 @@ before_install:
 script:
   - qmake
   - make
+
+dist: precise
+os: linux
