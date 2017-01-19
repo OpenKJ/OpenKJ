@@ -54,7 +54,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(QObject *parent) :
     g_object_set(filter, "caps", audioCapsStereo, NULL);
     if (!pitchShifter)
     {
-        qCritical() << "gst plugin 'pitch' not found, key changing disabled";
+        qCritical() << "LADSPA plugin rubberband pitchshifter not found, key changing disabled";
         gst_bin_add_many(GST_BIN (sinkBin), rgVolume, audioConvert, filter, level, volumeElement, autoAudioSink, NULL);
         gst_element_link_many(rgVolume, audioConvert, filter, level, volumeElement, autoAudioSink, NULL);
         m_canKeyChange = false;
