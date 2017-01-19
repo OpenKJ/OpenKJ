@@ -23,12 +23,14 @@
 #include <QDebug>
 #include <QFile>
 #include <QBuffer>
+#include <quazipfile.h>
 
 
 OkArchive::OkArchive(QString ArchiveFile, QObject *parent) : QObject(parent)
 {
     archiveFile = ArchiveFile;
     zipFile = new KZip(archiveFile);
+    q_zipFile = new QuaZip(ArchiveFile);
     zipFile->open(QIODevice::ReadOnly);
     mp3Located = false;
     cdgLocated = false;
@@ -59,14 +61,24 @@ int OkArchive::getSongDuration()
 
 QByteArray OkArchive::getCDGData()
 {
+    //    QByteArray data;
+    //    findCDG(zipFile->directory());
+    //    if (cdgFile->isFile())
+    //    {
+    //        return cdgFile->data();
+    //    }
+    //    else
+    //        qCritical() << "Error opening CDG IODevice!";
+    //    return data;
     QByteArray data;
-    findCDG(zipFile->directory());
-    if (cdgFile->isFile())
+    if (findCDG())
     {
-        return cdgFile->data();
+        q_zipFile->setCurrentFile(cdgFileName);
+        QuaZipFile file(q_zipFile);
+        file.open(QIODevice::ReadOnly);
+        data = file.readAll();
+        file.close();
     }
-    else
-        qCritical() << "Error opening CDG IODevice!";
     return data;
 }
 
@@ -78,12 +90,17 @@ QString OkArchive::getArchiveFile() const
 void OkArchive::setArchiveFile(const QString &value)
 {
     archiveFile = value;
+    q_zipFile->close();
+    q_zipFile = new QuaZip(value);
+    zipFile->open(QIODevice::ReadOnly);
 }
 
 bool OkArchive::checkCDG()
 {
     findCDG(zipFile->directory());
-    if ((cdgLocated) && (cdgFile->size() > 0))
+    //if ((cdgLocated) && (cdgFile->size() > 0))
+    if (cdgLocated)
+
         return true;
     else
         return false;
@@ -146,6 +163,28 @@ void OkArchive::findCDG(const KArchiveEntry *dir)
             }
         }
     }
+}
+
+bool OkArchive::findCDG()
+{
+    cdgLocated = false;
+    if (!q_zipFile->isOpen()) return false;
+    QStringList filenames = q_zipFile->getFileNameList();
+    for (int i=0; i < filenames.count(); i++)
+    {
+        if (filenames.at(i).endsWith(".cdg"))
+        {
+            cdgFileName = filenames.at(i);
+            cdgLocated = true;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool OkArchive::findMp3()
+{
+    return false;
 }
 
 void OkArchive::findMP3(const KArchiveEntry *dir)

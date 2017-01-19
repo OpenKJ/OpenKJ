@@ -25,6 +25,8 @@
 #include <QObject>
 #include <KZip>
 #include <K7Zip>
+#include <quazip.h>
+
 
 class OkArchive : public QObject
 {
@@ -46,7 +48,12 @@ private:
     KZip *zipFile;
     const KArchiveFile *cdgFile;
     const KArchiveFile *mp3File;
+    QString cdgFileName;
+    QString mp3FileName;
+    QuaZip *q_zipFile;
     void findCDG(const KArchiveEntry *dir);
+    bool findCDG();
+    bool findMp3();
     void findMP3(const KArchiveEntry *dir);
     bool mp3Located;
     bool cdgLocated;
