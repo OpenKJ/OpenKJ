@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2017 Thomas Isaac Lightburn
  *
  *
  * This file is part of libCDG.
