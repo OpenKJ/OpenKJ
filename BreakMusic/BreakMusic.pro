@@ -10,11 +10,7 @@ TARGET = BreakMusic
 TEMPLATE = app
 
 win32: RC_FILE = BreakMusic.rc
-
-#win32: INCLUDEPATH += "K:/fftw"
-#win32: LIBS += -L"K:/fftw" -l"libfftw3-3.lib"
-
-
+#win32: CONFIG += static
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -53,8 +49,9 @@ unix: PKGCONFIG += taglib_c
 unix: PKGCONFIG += gstreamer-1.0
 #unix: PKGCONFIG += fftw3
 
-win32: INCLUDEPATH += "K:\k\include\taglib"
-win32: LIBS += -ltag
+win32: CONFIG += link_pkgconfig
+win32: PKGCONFIG += taglib_c
+win32: PKGCONFIG += gstreamer-1.0
 
 unix {
     iconfiles.files += icons/bmicon64x64.png
@@ -71,8 +68,3 @@ DISTFILES += \
     BreakMusic.rc \
     LICENSE
 
-
-win32: LIBS += -L"K:/fftw-3.3.4/fftw-3.3-libs/Release/" -llibfftw-3.3
-
-win32: INCLUDEPATH += "K:/fftw-3.3.4/api"
-win32: DEPENDPATH += "K:/fftw-3.3.4/api"

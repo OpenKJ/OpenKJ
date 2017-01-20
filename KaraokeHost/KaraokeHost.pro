@@ -106,6 +106,11 @@ FORMS    += mainwindow.ui \
 unix: CONFIG += link_pkgconfig
 unix: PKGCONFIG += gstreamer-1.0
 
+win32: CONFIG += link_pkgconfig
+win32: PKGCONFIG += gstreamer-1.0
+
+win64: CONFIG += link_pkgconfig
+win64: PKGCONFIG += gstreamer-1.0
 
 RESOURCES += \
     resources.qrc
