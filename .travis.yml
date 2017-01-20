@@ -4,7 +4,7 @@ before_install:
   - sudo apt-get install -y qtbase5-dev qtmultimedia5-dev qttools5-dev qt5-qmake libgstreamer1.0-dev libpulse-dev libtag1-dev libtagc0-dev 
 
 script:
-  - qmake-qt5
+  - qmake
   - make
 
 dist: trusty 
