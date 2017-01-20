@@ -23,8 +23,6 @@
 #define KHARCHIVE_H
 
 #include <QObject>
-#include <KZip>
-#include <K7Zip>
 #include <quazip.h>
 
 
@@ -45,18 +43,10 @@ public:
 
 private:
     QString archiveFile;
-    KZip *zipFile;
-    const KArchiveFile *cdgFile;
-    const KArchiveFile *mp3File;
     QString cdgFileName;
     QString mp3FileName;
-    QuaZip *q_zipFile;
-    void findCDG(const KArchiveEntry *dir);
     bool findCDG();
     bool findMp3();
-    void findMP3(const KArchiveEntry *dir);
-    bool mp3Located;
-    bool cdgLocated;
 
 signals:
 

@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT += core gui sql network widgets multimedia KArchive concurrent
+QT += core gui sql network widgets multimedia concurrent
 
 unix: DEFINES += USE_GL
 #win32: DEFINES += USE_GL
@@ -17,8 +17,6 @@ contains(DEFINES, USE_GL) {
 
 TARGET = KaraokeHost
 TEMPLATE = app
-
-#DEFINES += USE_QTMULTIMEDIA
 
 SOURCES += main.cpp\
     mainwindow.cpp \

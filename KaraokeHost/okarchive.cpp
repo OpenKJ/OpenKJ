@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2017 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -29,11 +29,6 @@
 OkArchive::OkArchive(QString ArchiveFile, QObject *parent) : QObject(parent)
 {
     archiveFile = ArchiveFile;
-    zipFile = new KZip(archiveFile);
-    q_zipFile = new QuaZip(ArchiveFile);
-    zipFile->open(QIODevice::ReadOnly);
-    mp3Located = false;
-    cdgLocated = false;
 }
 
 OkArchive::OkArchive(QObject *parent) : QObject(parent)
@@ -43,38 +38,35 @@ OkArchive::OkArchive(QObject *parent) : QObject(parent)
 
 OkArchive::~OkArchive()
 {
-    zipFile->close();
-    delete(zipFile);
+
 }
 
 int OkArchive::getSongDuration()
 {
-    findCDG(zipFile->directory());
-    if (cdgLocated)
+    QuaZip zipFile(archiveFile);
+    zipFile.open(QuaZip::mdUnzip);
+    if (!zipFile.isOpen()) return 0;
+    QList<QuaZipFileInfo> infos = zipFile.getFileInfoList();
+    for (int i=0; i < infos.count(); i++)
     {
-        int size = cdgFile->size();
-        return ((size /96) / 75) * 1000;
+        if (infos.at(i).name.endsWith(".cdg"))
+        {
+            return ((infos.at(i).uncompressedSize / 96) / 75) * 1000;
+        }
     }
-    else
-        return -1;
+    zipFile.close();
+    return 0;
 }
 
 QByteArray OkArchive::getCDGData()
 {
-    //    QByteArray data;
-    //    findCDG(zipFile->directory());
-    //    if (cdgFile->isFile())
-    //    {
-    //        return cdgFile->data();
-    //    }
-    //    else
-    //        qCritical() << "Error opening CDG IODevice!";
-    //    return data;
     QByteArray data;
     if (findCDG())
     {
-        q_zipFile->setCurrentFile(cdgFileName);
-        QuaZipFile file(q_zipFile);
+        QuaZip zipFile(archiveFile);
+        zipFile.open(QuaZip::mdUnzip);
+        QuaZipFile file(&zipFile);
+        zipFile.setCurrentFile(cdgFileName);
         file.open(QIODevice::ReadOnly);
         data = file.readAll();
         file.close();
@@ -90,39 +82,40 @@ QString OkArchive::getArchiveFile() const
 void OkArchive::setArchiveFile(const QString &value)
 {
     archiveFile = value;
-    q_zipFile->close();
-    q_zipFile = new QuaZip(value);
-    zipFile->open(QIODevice::ReadOnly);
 }
 
 bool OkArchive::checkCDG()
 {
-    findCDG(zipFile->directory());
-    //if ((cdgLocated) && (cdgFile->size() > 0))
-    if (cdgLocated)
-
-        return true;
-    else
-        return false;
+    return findCDG();
 }
 
 bool OkArchive::checkMP3()
 {
-    findMP3(zipFile->directory());
-    if ((cdgLocated) && (cdgFile->size() > 0))
-        return true;
-    else
-        return false;
+    return findMp3();
 }
 
 bool OkArchive::extractMP3(QString destPath)
 {
-    findMP3(zipFile->directory());
     QByteArray data;
-    if ((mp3Located) && (mp3File->size() > 0))
+    if (findMp3())
     {
-        data = mp3File->data();
+        QuaZip zipFile(archiveFile);
+        zipFile.open(QuaZip::mdUnzip);
+        QuaZipFile file(&zipFile);
+        zipFile.setCurrentFile(mp3FileName);
+        file.open(QIODevice::ReadOnly);
+        data = file.readAll();
+        file.close();
+
         QFile destFile(destPath);
+        if (!destFile.open(QFile::WriteOnly | QFile::Truncate))
+        {
+            qCritical() << "Unable to create destination file while extracting mp3: " << destPath;
+            return false;
+        }
+        destFile.write(data);
+        destFile.close();
+        return true;//        QFile destFile(destPath);
         if (!destFile.open(QFile::WriteOnly | QFile::Truncate))
         {
             qCritical() << "Unable to create destination file while extracting mp3: " << destPath;
@@ -132,87 +125,43 @@ bool OkArchive::extractMP3(QString destPath)
         destFile.close();
         return true;
     }
-    qCritical() << "Unable to locate valid mp3 file in archive.";
     return false;
-}
-
-void OkArchive::findCDG(const KArchiveEntry *dir)
-{
-    if (cdgLocated)
-        return;
-    const KArchiveDirectory *ad = dynamic_cast<const KArchiveDirectory *>(dir);
-    for (int i=0; i < ad->entries().size(); i++)
-    {
-        QString filename = ad->entries().at(i);
-        QString filepath = ad->name() + "/" + filename;
-        if (ad->entry(filename)->isFile())
-        {
-            if (filename.endsWith(".cdg", Qt::CaseInsensitive))
-            {
-                cdgLocated = true;
-                cdgFile = ad->file(filename);
-                return;
-            }
-        }
-        else if (ad->entry(filename)->isDirectory())
-        {
-            if (filename != ad->name())
-            {
-                findCDG(ad->entry(filename));
-
-            }
-        }
-    }
 }
 
 bool OkArchive::findCDG()
 {
-    cdgLocated = false;
-    if (!q_zipFile->isOpen()) return false;
-    QStringList filenames = q_zipFile->getFileNameList();
+    QuaZip zipFile(archiveFile);
+    zipFile.open(QuaZip::mdUnzip);
+    if (!zipFile.isOpen()) return false;
+    QStringList filenames = zipFile.getFileNameList();
     for (int i=0; i < filenames.count(); i++)
     {
         if (filenames.at(i).endsWith(".cdg"))
         {
             cdgFileName = filenames.at(i);
-            cdgLocated = true;
             return true;
         }
     }
+    zipFile.close();
     return false;
 }
 
 bool OkArchive::findMp3()
 {
+    QuaZip zipFile(archiveFile);
+    zipFile.open(QuaZip::mdUnzip);
+    if (!zipFile.isOpen()) return false;
+    QStringList filenames = zipFile.getFileNameList();
+    for (int i=0; i < filenames.count(); i++)
+    {
+        if (filenames.at(i).endsWith(".mp3"))
+        {
+            mp3FileName = filenames.at(i);
+            return true;
+        }
+    }
+    zipFile.close();
     return false;
 }
 
-void OkArchive::findMP3(const KArchiveEntry *dir)
-{
-    if (mp3Located)
-            return;
-    const KArchiveDirectory *ad = dynamic_cast<const KArchiveDirectory *>(dir);
-    for (int i=0; i < ad->entries().size(); i++)
-    {
-        QString filename = ad->entries().at(i);
-        QString filepath = ad->name() + "/" + filename;
-        if (ad->entry(filename)->isFile())
-        {
-            if (filename.endsWith(".mp3", Qt::CaseInsensitive))
-            {
-                mp3Located = true;
-                mp3File = ad->file(filename);
-                return;
-            }
-        }
-        else if (ad->entry(filename)->isDirectory())
-        {
-            if (filename != ad->name())
-            {
-                findMP3(ad->entry(filename));
-
-            }
-        }
-    }
-}
 
