@@ -56,20 +56,20 @@ AudioBackendGstreamer::AudioBackendGstreamer(QObject *parent) :
     if (!pitchShifter)
     {
         qCritical() << "LADSPA plugin rubberband pitchshifter not found, key changing disabled";
-        gst_bin_add_many(GST_BIN (sinkBin), rgVolume, audioConvert, filter, level, volumeElement, autoAudioSink, NULL);
-        gst_element_link_many(rgVolume, audioConvert, filter, level, volumeElement, autoAudioSink, NULL);
+        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, level, volumeElement, autoAudioSink, NULL);
+        gst_element_link_many(filter, rgVolume, audioConvert, level, volumeElement, autoAudioSink, NULL);
         m_canKeyChange = false;
     }
     else
     {
         qCritical() << "Pitch shift plugin found, enabling";
-        gst_bin_add_many(GST_BIN (sinkBin), rgVolume, filter, audioConvert, pitchShifter, level, volumeElement, autoAudioSink, NULL);
-        gst_element_link_many(rgVolume, filter, audioConvert, pitchShifter, level, volumeElement, autoAudioSink, NULL);
+        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, pitchShifter, level, volumeElement, autoAudioSink, NULL);
+        gst_element_link_many(filter, rgVolume, audioConvert, pitchShifter, level, volumeElement, autoAudioSink, NULL);
         g_object_set(G_OBJECT(pitchShifter), "formant-preserving", true, NULL);
         g_object_set(G_OBJECT(pitchShifter), "crispness", 1, NULL);
         g_object_set(G_OBJECT(pitchShifter), "semitones", 1.0, NULL);
     }
-    pad = gst_element_get_static_pad(rgVolume, "sink");
+    pad = gst_element_get_static_pad(filter, "sink");
     ghostPad = gst_ghost_pad_new("sink", pad);
     gst_pad_set_active(ghostPad, true);
     gst_element_add_pad(sinkBin, ghostPad);
