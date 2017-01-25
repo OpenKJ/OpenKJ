@@ -39,6 +39,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(QObject *parent) :
     m_currentRmsLevel = 0.0;
     m_keyChange = 0;
 
+    qCritical() << "Initializing gst\n";
     gst_init(NULL,NULL);
     audioConvert = gst_element_factory_make("audioconvert", "audioConvert");
     autoAudioSink = gst_element_factory_make("autoaudiosink", "autoAudioSink");
@@ -61,6 +62,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(QObject *parent) :
     }
     else
     {
+        qCritical() << "Pitch shift plugin found, enabling";
         gst_bin_add_many(GST_BIN (sinkBin), rgVolume, filter, audioConvert, pitchShifter, level, volumeElement, autoAudioSink, NULL);
         gst_element_link_many(rgVolume, filter, audioConvert, pitchShifter, level, volumeElement, autoAudioSink, NULL);
         g_object_set(G_OBJECT(pitchShifter), "formant-preserving", true, NULL);
