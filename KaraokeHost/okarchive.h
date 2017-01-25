@@ -23,7 +23,7 @@
 #define KHARCHIVE_H
 
 #include <QObject>
-#include <quazip.h>
+//#include <quazip.h>
 
 
 class OkArchive : public QObject
@@ -33,7 +33,7 @@ public:
     explicit OkArchive(QString ArchiveFile, QObject *parent = 0);
     explicit OkArchive(QObject *parent = 0);
     ~OkArchive();
-    int getSongDuration();
+    unsigned int getSongDuration();
     QByteArray getCDGData();
     QString getArchiveFile() const;
     void setArchiveFile(const QString &value);
@@ -47,6 +47,12 @@ private:
     QString mp3FileName;
     bool findCDG();
     bool findMp3();
+    int cdgSize();
+    int mp3Size();
+    int m_cdgSize;
+    int m_mp3Size;
+    bool m_cdgFound;
+    bool m_mp3Found;
 
 signals:
 

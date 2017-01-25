@@ -23,17 +23,25 @@
 #include <QDebug>
 #include <QFile>
 #include <QBuffer>
-#include <quazipfile.h>
+#include <QTemporaryDir>
+#include "miniz.c"
 
 
 OkArchive::OkArchive(QString ArchiveFile, QObject *parent) : QObject(parent)
 {
     archiveFile = ArchiveFile;
+    m_cdgFound = false;
+    m_mp3Found = false;
+    m_cdgSize = 0;
+    m_mp3Size = 0;
 }
 
 OkArchive::OkArchive(QObject *parent) : QObject(parent)
 {
-
+    m_cdgFound = false;
+    m_mp3Found = false;
+    m_cdgSize = 0;
+    m_mp3Size = 0;
 }
 
 OkArchive::~OkArchive()
@@ -41,21 +49,14 @@ OkArchive::~OkArchive()
 
 }
 
-int OkArchive::getSongDuration()
+unsigned int OkArchive::getSongDuration()
 {
-    QuaZip zipFile(archiveFile);
-    zipFile.open(QuaZip::mdUnzip);
-    if (!zipFile.isOpen()) return 0;
-    QList<QuaZipFileInfo> infos = zipFile.getFileInfoList();
-    for (int i=0; i < infos.count(); i++)
-    {
-        if (infos.at(i).name.endsWith(".cdg"))
-        {
-            return ((infos.at(i).uncompressedSize / 96) / 75) * 1000;
-        }
-    }
-    zipFile.close();
-    return 0;
+    if ((m_cdgFound) && (m_cdgSize > 0))
+        return ((m_cdgSize / 96) / 75) * 1000;
+    else if (findCDG())
+        return ((m_cdgSize / 96) / 75) * 1000;
+    else
+        return 0;
 }
 
 QByteArray OkArchive::getCDGData()
@@ -63,13 +64,21 @@ QByteArray OkArchive::getCDGData()
     QByteArray data;
     if (findCDG())
     {
-        QuaZip zipFile(archiveFile);
-        zipFile.open(QuaZip::mdUnzip);
-        QuaZipFile file(&zipFile);
-        zipFile.setCurrentFile(cdgFileName);
-        file.open(QIODevice::ReadOnly);
-        data = file.readAll();
-        file.close();
+        mz_zip_archive archive;
+        memset(&archive, 0, sizeof(archive));
+        mz_zip_reader_init_file(&archive, archiveFile.toLocal8Bit(),0);
+        QTemporaryDir dir;
+        QString cdgTmpFile = dir.path() + QDir::separator() + "tmp.cdg";
+        if (mz_zip_reader_extract_file_to_file(&archive, cdgFileName.toLocal8Bit(), cdgTmpFile.toLocal8Bit(),0))
+        {
+            QFile cdg(cdgTmpFile);
+            cdg.open(QFile::ReadOnly);
+            data = cdg.readAll();
+            mz_zip_reader_end(&archive);
+            return data;
+        }
+        mz_zip_reader_end(&archive);
+        return data;
     }
     return data;
 }
@@ -82,6 +91,10 @@ QString OkArchive::getArchiveFile() const
 void OkArchive::setArchiveFile(const QString &value)
 {
     archiveFile = value;
+    m_cdgFound = false;
+    m_mp3Found = false;
+    m_cdgSize = 0;
+    m_mp3Size = 0;
 }
 
 bool OkArchive::checkCDG()
@@ -96,71 +109,66 @@ bool OkArchive::checkMP3()
 
 bool OkArchive::extractMP3(QString destPath)
 {
-    QByteArray data;
     if (findMp3())
     {
-        QuaZip zipFile(archiveFile);
-        zipFile.open(QuaZip::mdUnzip);
-        QuaZipFile file(&zipFile);
-        zipFile.setCurrentFile(mp3FileName);
-        file.open(QIODevice::ReadOnly);
-        data = file.readAll();
-        file.close();
-
-        QFile destFile(destPath);
-        if (!destFile.open(QFile::WriteOnly | QFile::Truncate))
+        mz_zip_archive archive;
+        memset(&archive, 0, sizeof(archive));
+        mz_zip_reader_init_file(&archive, archiveFile.toLocal8Bit(),0);
+        if (mz_zip_reader_extract_file_to_file(&archive, mp3FileName.toLocal8Bit(), destPath.toLocal8Bit(),0))
         {
-            qCritical() << "Unable to create destination file while extracting mp3: " << destPath;
-            return false;
+            mz_zip_reader_end(&archive);
+            return true;
         }
-        destFile.write(data);
-        destFile.close();
-        return true;//        QFile destFile(destPath);
-        if (!destFile.open(QFile::WriteOnly | QFile::Truncate))
-        {
-            qCritical() << "Unable to create destination file while extracting mp3: " << destPath;
-            return false;
-        }
-        destFile.write(data);
-        destFile.close();
-        return true;
+        mz_zip_reader_end(&archive);
     }
     return false;
 }
 
 bool OkArchive::findCDG()
 {
-    QuaZip zipFile(archiveFile);
-    zipFile.open(QuaZip::mdUnzip);
-    if (!zipFile.isOpen()) return false;
-    QStringList filenames = zipFile.getFileNameList();
-    for (int i=0; i < filenames.count(); i++)
+    mz_zip_archive archive;
+    memset(&archive, 0, sizeof(archive));
+    mz_zip_archive_file_stat fStat;
+    mz_zip_reader_init_file(&archive, archiveFile.toLocal8Bit(),0);
+    unsigned int files = mz_zip_reader_get_num_files(&archive);
+    for (unsigned int i=0; i < files; i++)
     {
-        if (filenames.at(i).endsWith(".cdg"))
+        mz_zip_reader_file_stat(&archive, i, &fStat);
+        QString fileName = fStat.m_filename;
+        if (fileName.endsWith(".cdg",Qt::CaseInsensitive))
         {
-            cdgFileName = filenames.at(i);
+            cdgFileName = fileName;
+            m_cdgSize = fStat.m_uncomp_size;
+            m_cdgFound = true;
+            mz_zip_reader_end(&archive);
             return true;
         }
     }
-    zipFile.close();
+    mz_zip_reader_end(&archive);
     return false;
 }
 
 bool OkArchive::findMp3()
 {
-    QuaZip zipFile(archiveFile);
-    zipFile.open(QuaZip::mdUnzip);
-    if (!zipFile.isOpen()) return false;
-    QStringList filenames = zipFile.getFileNameList();
-    for (int i=0; i < filenames.count(); i++)
+    mz_zip_archive archive;
+    memset(&archive, 0, sizeof(archive));
+    mz_zip_archive_file_stat fStat;
+    mz_zip_reader_init_file(&archive, archiveFile.toLocal8Bit(),0);
+    unsigned int files = mz_zip_reader_get_num_files(&archive);
+    for (unsigned int i=0; i < files; i++)
     {
-        if (filenames.at(i).endsWith(".mp3"))
+        mz_zip_reader_file_stat(&archive, i, &fStat);
+        QString fileName = fStat.m_filename;
+        if (fileName.endsWith(".mp3",Qt::CaseInsensitive))
         {
-            mp3FileName = filenames.at(i);
+            mp3FileName = fileName;
+            m_mp3Size = fStat.m_uncomp_size;
+            m_mp3Found = true;
+            mz_zip_reader_end(&archive);
             return true;
         }
     }
-    zipFile.close();
+    mz_zip_reader_end(&archive);
     return false;
 }
 
