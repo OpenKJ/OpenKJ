@@ -414,7 +414,7 @@ void FaderGStreamer::fadeOut()
     }
     else
     {
-        qDebug() << "fadeIn() - A fade operation is already in progress... skipping";
+        qDebug() << "fadeOut() - A fade operation is already in progress... skipping";
         return;
     }
     while(fading)
