@@ -76,13 +76,19 @@ void KhAudioRecorder::stop()
 void KhAudioRecorder::pause()
 {
     qDebug() << "KhAudioRecorder::pause() called";
-    audioRecorder->pause();
+    if (audioRecorder->state() == QMediaRecorder::RecordingState)
+    {
+        audioRecorder->pause();
+    }
 }
 
 void KhAudioRecorder::unpause()
 {
     qDebug() << "KhAudioRecorder::unpause() called";
-    audioRecorder->record();
+    if (audioRecorder->state() == QMediaRecorder::PausedState)
+    {
+        audioRecorder->record();
+    }
 }
 
 void KhAudioRecorder::audioRecorderError(QMediaRecorder::Error error)
