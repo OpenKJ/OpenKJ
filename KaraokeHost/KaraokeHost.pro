@@ -125,4 +125,9 @@ unix {
     INSTALLS += binaryfiles iconfiles desktopfiles
 }
 
-
+win32 {
+    INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\gstreamer-1.0
+    INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0
+    INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0\gobject
+    LIBS += -LC:\gstreamer\1.0\x86_64\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0
+}
