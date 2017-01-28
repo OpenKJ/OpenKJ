@@ -39,15 +39,19 @@ KhAudioRecorder::KhAudioRecorder(QObject *parent) :
 
 void KhAudioRecorder::record(QString filename)
 {
-    outputFile = filename;
-    qDebug() << "KhAudioRecorder::record(" << filename << ") called";
+    QString outputDir = settings->recordingOutputDir() + QDir::separator() + "Karaoke Recordings" + QDir::separator() + "Show Beginning " + startDateTime;
+    QDir dir;
+    QString outFile = outputDir + QDir::separator() + filename + "." + settings->recordingContainer();
+    dir.mkpath(outputDir);
+    //outputFile = filename;
+    qCritical() << "KhAudioRecorder::record(" << filename << ") called";
     QAudioEncoderSettings audioSettings;
     audioSettings.setCodec(settings->recordingCodec());
     audioSettings.setQuality(QMultimedia::HighQuality);
     audioRecorder->setAudioInput(settings->recordingInput());
     audioRecorder->setEncodingSettings(audioSettings);
     audioRecorder->setContainerFormat(settings->recordingContainer());
-    audioRecorder->setOutputLocation(QUrl(filename));
+    audioRecorder->setOutputLocation(QUrl(outFile));
     audioRecorder->setVolume(1.0);
     audioRecorder->record();
     qDebug() << "Output file location: " << audioRecorder->outputLocation().toString();
@@ -94,5 +98,5 @@ void KhAudioRecorder::unpause()
 void KhAudioRecorder::audioRecorderError(QMediaRecorder::Error error)
 {
     Q_UNUSED(error);
-    qDebug() << "QAudioRecorder error: " << audioRecorder->errorString();
+    qCritical() << "QAudioRecorder error: " << audioRecorder->errorString();
 }

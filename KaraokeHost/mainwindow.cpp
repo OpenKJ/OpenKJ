@@ -613,7 +613,17 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
     {
             audioRecorder->pause();
     }
-
+    if (state == AbstractAudioBackend::PlayingState)
+    {
+        if (settings->recordingEnabled())
+        {
+            int curSingerId = rotModel->currentSinger();
+            QString singerName = rotModel->getSingerName(curSingerId);
+            QString artist = ui->labelArtist->text();
+            QString title = ui->labelTitle->text();
+            audioRecorder->record(singerName + " - " + artist + " - " + title);
+        }
+    }
 }
 
 void MainWindow::on_sliderProgress_sliderMoved(int position)
