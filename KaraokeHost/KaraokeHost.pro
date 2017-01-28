@@ -106,11 +106,11 @@ FORMS    += mainwindow.ui \
 unix: CONFIG += link_pkgconfig
 unix: PKGCONFIG += gstreamer-1.0
 
-win32: CONFIG += link_pkgconfig
-win32: PKGCONFIG += gstreamer-1.0
+#win32: CONFIG += link_pkgconfig
+#win32: PKGCONFIG += gstreamer-1.0
 
-win64: CONFIG += link_pkgconfig
-win64: PKGCONFIG += gstreamer-1.0
+#win64: CONFIG += link_pkgconfig
+#win64: PKGCONFIG += gstreamer-1.0
 
 RESOURCES += \
     resources.qrc
@@ -128,6 +128,7 @@ unix {
 win32 {
     INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\gstreamer-1.0
     INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0
+    INCLUDEPATH += C:/gstreamer/1.0/x86_64/lib/glib-2.0/include
     INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0\gobject
     LIBS += -LC:\gstreamer\1.0\x86_64\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0
 }

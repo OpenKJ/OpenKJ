@@ -49,9 +49,16 @@ unix: PKGCONFIG += taglib_c
 unix: PKGCONFIG += gstreamer-1.0
 #unix: PKGCONFIG += fftw3
 
-win32: CONFIG += link_pkgconfig
-win32: PKGCONFIG += taglib_c
-win32: PKGCONFIG += gstreamer-1.0
+win32 {
+    DEFINES += TAGLIB_STATIC
+    INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\gstreamer-1.0
+    INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0
+    INCLUDEPATH += C:/gstreamer/1.0/x86_64/lib/glib-2.0/include
+    INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0\gobject
+    LIBS += -LC:\gstreamer\1.0\x86_64\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0
+    INCLUDEPATH += "C:\Program Files\taglib\include\taglib"
+    LIBS += -L"C:\Program Files\taglib\lib" -ltag -ltag_c
+}
 
 unix {
     iconfiles.files += icons/bmicon64x64.png
