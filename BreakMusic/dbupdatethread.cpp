@@ -21,11 +21,9 @@
 #include "dbupdatethread.h"
 #include <QDir>
 #include <QDirIterator>
-#include <tag.h>
-#include <taglib.h>
-#include <fileref.h>
 #include <QSqlQuery>
 #include <QFileInfo>
+#include "tagreader.h"
 
 DbUpdateThread::DbUpdateThread(QObject *parent) :
     QThread(parent)
@@ -62,22 +60,20 @@ QStringList *DbUpdateThread::findMediaFiles(QString directory)
 
 void DbUpdateThread::run()
 {
+    TagReader reader;
     QStringList *files = findMediaFiles(m_path);
     QSqlQuery query;
     query.exec("BEGIN TRANSACTION");
     for (int i=0; i < files->size(); i++)
     {
-        TagLib::FileRef f(files->at(i).toUtf8().data());
-        if (!f.isNull())
-        {
-            int secs = f.audioProperties()->length();
-            QString duration = QString::number(secs);
-            QString artist = QString::fromStdString(f.tag()->artist().to8Bit(true));
-            QString title = QString::fromStdString(f.tag()->title().to8Bit(true));
-            QString filename = QFileInfo(files->at(i)).fileName();
-            QString queryString = "INSERT OR IGNORE INTO songs (artist,title,path,filename,duration,searchstring) VALUES(\"" + artist + "\",\"" + title + "\",\"" + files->at(i) + "\",\"" + filename + "\",\"" + duration + "\",\"" + artist + title + filename + "\")";
-            query.exec(queryString);
-        }
+        //TagReader reader;
+        reader.setMedia(files->at(i).toLocal8Bit());
+        QString duration = QString::number(reader.getDuration() / 1000);
+        QString artist = reader.getArtist();
+        QString title = reader.getTitle();
+        QString filename = QFileInfo(files->at(i)).fileName();
+        QString queryString = "INSERT OR IGNORE INTO songs (artist,title,path,filename,duration,searchstring) VALUES(\"" + artist + "\",\"" + title + "\",\"" + files->at(i) + "\",\"" + filename + "\",\"" + duration + "\",\"" + artist + title + filename + "\")";
+        query.exec(queryString);
     }
     query.exec("COMMIT TRANSACTION");
     delete files;

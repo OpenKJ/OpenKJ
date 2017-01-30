@@ -26,9 +26,8 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QTime>
-#include <tag.h>
-#include <fileref.h>
 #include "bmsettings.h"
+#include "tagreader.h"
 
 BmSettings *settings;
 
@@ -322,16 +321,18 @@ void MainWindow::on_actionImport_Playlist_triggered()
         }
         QSqlQuery query;
         query.exec("BEGIN TRANSACTION");
+        TagReader reader;
         for (int i=0; i < files.size(); i++)
         {
-            TagLib::FileRef f(files.at(i).toUtf8().data());
-            if (!f.isNull())
+            if (QFile(files.at(i)).exists())
             {
-                QString artist = QString::fromStdString(f.tag()->artist().to8Bit(true));
-                QString title = QString::fromStdString(f.tag()->title().to8Bit(true));
-                QString duration = QString::number(f.audioProperties()->length());
+                reader.setMedia(files.at(i).toLocal8Bit());
+                QString duration = QString::number(reader.getDuration() / 1000);
+                QString artist = reader.getArtist();
+                QString title = reader.getTitle();
                 QString filename = QFileInfo(files.at(i)).fileName();
-                query.exec("INSERT OR IGNORE INTO songs (artist,title,path,filename,duration) VALUES(\"" + artist + "\",\"" + title + "\",\"" + files.at(i) + "\",\"" + filename + "\"," + duration + ")");
+                QString queryString = "INSERT OR IGNORE INTO songs (artist,title,path,filename,duration,searchstring) VALUES(\"" + artist + "\",\"" + title + "\",\"" + files.at(i) + "\",\"" + filename + "\",\"" + duration + "\",\"" + artist + title + filename + "\")";
+                query.exec(queryString);
             }
         }
         query.exec("COMMIT TRANSACTION");

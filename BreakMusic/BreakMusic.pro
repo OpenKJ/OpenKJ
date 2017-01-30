@@ -23,7 +23,8 @@ SOURCES += main.cpp\
     dbupdatethread.cpp \
     dbitemdelegate.cpp \
     abstractaudiobackend.cpp \
-    audiobackendgstreamer.cpp
+    audiobackendgstreamer.cpp \
+    tagreader.cpp
 
 HEADERS  += mainwindow.h \
     databasedialog.h \
@@ -35,7 +36,8 @@ HEADERS  += mainwindow.h \
     dbupdatethread.h \
     dbitemdelegate.h \
     abstractaudiobackend.h \
-    audiobackendgstreamer.h
+    audiobackendgstreamer.h \
+    tagreader.h
 
 FORMS    += mainwindow.ui \
     databasedialog.ui
@@ -45,19 +47,15 @@ RESOURCES += \
 
 unix: QT_CONFIG -= no-pkg-config
 unix: CONFIG += link_pkgconfig
-unix: PKGCONFIG += taglib_c
 unix: PKGCONFIG += gstreamer-1.0
-#unix: PKGCONFIG += fftw3
 
 win32 {
     DEFINES += TAGLIB_STATIC
     INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\gstreamer-1.0
     INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0
-    INCLUDEPATH += C:/gstreamer/1.0/x86_64/lib/glib-2.0/include
+    INCLUDEPATH += C:\gstreamer\1.0\x86_64\lib\glib-2.0\include
     INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0\gobject
     LIBS += -LC:\gstreamer\1.0\x86_64\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0
-    INCLUDEPATH += "C:\Program Files\taglib\include\taglib"
-    LIBS += -L"C:\Program Files\taglib\lib" -ltag -ltag_c
 }
 
 unix {
