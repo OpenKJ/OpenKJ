@@ -443,18 +443,6 @@ void DlgSettings::on_comboBoxContainer_currentIndexChanged(const QString &arg1)
                 ui->lineEditExtension->setText(settings->recordingRawExtension());
 
         }
-        else if (arg1 == "ogg")
-        {
-           settings->setRecordingRawExtension("ogg");
-        }
-        else if (arg1 == "matroska")
-        {
-            settings->setRecordingRawExtension("mkv");
-        }
-        else if (arg1 == "avi")
-        {
-            settings->setRecordingRawExtension("avi");
-        }
         else
         {
             ui->labelExtension->hide();

@@ -41,20 +41,21 @@ void KhAudioRecorder::record(QString filename)
 {
     QString outputDir = settings->recordingOutputDir() + QDir::separator() + "Karaoke Recordings" + QDir::separator() + "Show Beginning " + startDateTime;
     QDir dir;
-    QString outFile = outputDir + QDir::separator() + filename + "." + settings->recordingContainer();
+    QString outputFilePath;
+    if (settings->recordingContainer() == "raw")
+        outputFilePath = outputDir + QDir::separator() + filename + "." + settings->recordingRawExtension();
+    else
+        outputFilePath = outputDir + QDir::separator() + filename + "." + settings->recordingContainer();
     dir.mkpath(outputDir);
-    //outputFile = filename;
-    qCritical() << "KhAudioRecorder::record(" << filename << ") called";
     QAudioEncoderSettings audioSettings;
     audioSettings.setCodec(settings->recordingCodec());
     audioSettings.setQuality(QMultimedia::HighQuality);
     audioRecorder->setAudioInput(settings->recordingInput());
     audioRecorder->setEncodingSettings(audioSettings);
     audioRecorder->setContainerFormat(settings->recordingContainer());
-    audioRecorder->setOutputLocation(QUrl(outFile));
+    audioRecorder->setOutputLocation(QUrl(outputFilePath));
     audioRecorder->setVolume(1.0);
     audioRecorder->record();
-    qDebug() << "Output file location: " << audioRecorder->outputLocation().toString();
 }
 
 void KhAudioRecorder::stop()
@@ -63,17 +64,6 @@ void KhAudioRecorder::stop()
     if (audioRecorder->state() == QMediaRecorder::RecordingState)
     {
         audioRecorder->stop();
-        QFileInfo fileInfo(audioRecorder->actualLocation().toString());
-        QString outputDir = settings->recordingOutputDir() + QDir::separator() + "Karaoke Recordings" + QDir::separator() + "Show Beginning " + startDateTime;
-
-        QString outputFilePath;
-        if (settings->recordingContainer() != "raw")
-            outputFilePath = outputDir + QDir::separator() + fileInfo.fileName() + "." + audioRecorder->containerFormat();
-        else
-            outputFilePath = outputDir + QDir::separator() + fileInfo.fileName() + "." + settings->recordingRawExtension();
-        QDir dir;
-        dir.mkpath(outputDir);
-        QFile::rename(fileInfo.absoluteFilePath(), outputFilePath);
     }
 }
 
