@@ -103,19 +103,12 @@ FORMS    += mainwindow.ui \
     dlgcdg.ui \
     dlgdurationscan.ui
 
-unix: CONFIG += link_pkgconfig
-unix: PKGCONFIG += gstreamer-1.0
-
-#win32: CONFIG += link_pkgconfig
-#win32: PKGCONFIG += gstreamer-1.0
-
-#win64: CONFIG += link_pkgconfig
-#win64: PKGCONFIG += gstreamer-1.0
-
 RESOURCES += \
     resources.qrc
 
 unix {
+    CONFIG += link_pkgconfig
+    PKGCONFIG += gstreamer-1.0
     iconfiles.files += Icons/khicon-64x64.png
     iconfiles.path = /usr/share/pixmaps
     desktopfiles.files += karaokehost.desktop
@@ -126,9 +119,21 @@ unix {
 }
 
 win32 {
-    INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\gstreamer-1.0
-    INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0
-    INCLUDEPATH += C:/gstreamer/1.0/x86_64/lib/glib-2.0/include
-    INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0\gobject
-    LIBS += -LC:\gstreamer\1.0\x86_64\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0
+    ## Windows common build here
+
+    !contains(QMAKE_TARGET.arch, x86_64) {
+        ## Windows x86 (32bit) specific build here
+        INCLUDEPATH += C:\gstreamer\1.0\x86\include\gstreamer-1.0
+        INCLUDEPATH += C:\gstreamer\1.0\x86\include\glib-2.0
+        INCLUDEPATH += C:\gstreamer\1.0\x86\lib\glib-2.0\include
+        INCLUDEPATH += C:\gstreamer\1.0\x86\include\glib-2.0\gobject
+        LIBS += -LC:\gstreamer\1.0\x86\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0
+    } else {
+        ## Windows x64 (64bit) specific build here
+        INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\gstreamer-1.0
+        INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0
+        INCLUDEPATH += C:\gstreamer\1.0\x86_64\lib\glib-2.0\include
+        INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0\gobject
+        LIBS += -LC:\gstreamer\1.0\x86_64\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0
+    }
 }

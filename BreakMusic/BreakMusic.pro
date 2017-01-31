@@ -10,10 +10,9 @@ TARGET = BreakMusic
 TEMPLATE = app
 
 win32: RC_FILE = BreakMusic.rc
-#win32: CONFIG += static
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
+    mainwindow.cpp \
     databasedialog.cpp \
     bmipcserver.cpp \
     bmsettings.cpp \
@@ -45,20 +44,10 @@ FORMS    += mainwindow.ui \
 RESOURCES += \
     resources.qrc
 
-unix: QT_CONFIG -= no-pkg-config
-unix: CONFIG += link_pkgconfig
-unix: PKGCONFIG += gstreamer-1.0
-
-win32 {
-    DEFINES += TAGLIB_STATIC
-    INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\gstreamer-1.0
-    INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0
-    INCLUDEPATH += C:\gstreamer\1.0\x86_64\lib\glib-2.0\include
-    INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0\gobject
-    LIBS += -LC:\gstreamer\1.0\x86_64\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0
-}
-
 unix {
+    QT_CONFIG -= no-pkg-config
+    CONFIG += link_pkgconfig
+    PKGCONFIG += gstreamer-1.0
     iconfiles.files += icons/bmicon64x64.png
     iconfiles.path = /usr/share/pixmaps
     desktopfiles.files += breakmusic.desktop
@@ -66,6 +55,26 @@ unix {
     binaryfiles.files += BreakMusic
     binaryfiles.path = /usr/bin
     INSTALLS += binaryfiles iconfiles desktopfiles
+}
+
+win32 {
+    ## Windows common build here
+
+    !contains(QMAKE_TARGET.arch, x86_64) {
+        ## Windows x86 (32bit) specific build here
+        INCLUDEPATH += C:\gstreamer\1.0\x86\include\gstreamer-1.0
+        INCLUDEPATH += C:\gstreamer\1.0\x86\include\glib-2.0
+        INCLUDEPATH += C:\gstreamer\1.0\x86\lib\glib-2.0\include
+        INCLUDEPATH += C:\gstreamer\1.0\x86\include\glib-2.0\gobject
+        LIBS += -LC:\gstreamer\1.0\x86\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0
+    } else {
+        ## Windows x64 (64bit) specific build here
+        INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\gstreamer-1.0
+        INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0
+        INCLUDEPATH += C:\gstreamer\1.0\x86_64\lib\glib-2.0\include
+        INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0\gobject
+        LIBS += -LC:\gstreamer\1.0\x86_64\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0
+    }
 }
 
 DISTFILES += \
