@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package>
+    <DisplayName>KaraokeHost</DisplayName>
+    <Description>Karaoke show hosting software</Description>
+    <Version>0.9.0</Version>
+    <ReleaseDate>2017-01-30</ReleaseDate>
+    <Licenses>
+        <License name="GNU GPL" file="license.txt" />
+    </Licenses>
+    <Default>true</Default>
+	<Script>startmenu.qs</Script>
+</Package>
