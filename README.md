@@ -1,8 +1,6 @@
 OpenKJ
 ======
 
-NOTE! - Building the current main branch on Windows or OSX will require some work and tinkering in order to get the KDE Frameworks 5 KArchive and ThreadWeaver modules compiled and working.  Linux is my primary platform, so I haven't gotten around to seeing what's required to make it work on Windows or Mac.
-
 Cross-platform open source karaoke show hosting software.
 
 KaraokeHost is a full featured karaoke hosting program.
@@ -29,58 +27,27 @@ Both are experimental but usable at this point.  I am using it to run my shows e
 **Requirements to build KaraokeHost:**
 
 * Qt 5.x
-* KF5 ThreadWeaver
-* KF5 KArchive
-* FFTW3
+* gstreamer 1.x
 
 **Requirements to build BreakMusic:**
 
 * Qt 5.x
-* Taglib
-* FFTW3 (due to sharing an audio backend with KaraokeHost - I'll fix this with defines/ifdefs later)
+* gstreamer 1.x
 
 **Linux**
 
-I develop the software and host my shows on Linux (Fedora specifically), so it is known to build and work there.  (It "should" work similarly on any Linux distor or the BSD's.)  Everything needed will most likely be available via the package manager on any common distro.  On Fedora the packages are fftw3 gstreamer-devel gstreamer gstreamer-plugins-good gstreamer-plugins-bad and the Qt5 stuff (I just yum install qt5-* because I'm lazy).  On Fedora you will also need to have the rpmfusion repo enabled to get mp3 support, as the app is pretty useless w/o it.  "qmake-qt5" or possibly just "qmake", depending on your distro, followed by a "make" should get it built. A "make install" will put the binaries in /usr/bin and copy .desktop files and icons into the appropriate places for it to appear in the app menu.  Tweak the KaraokeHost.pro file to turn audio backends on/off and to enable or disable OpenGL support prior to building.  One thing to note, you'll probably need to turn off flat volumes in your pulseaudio config if you're using it, otherwise the applicaitons may mess with your system-wide volume instead of just the application volume.
+I develop the software and host my shows on Linux (Fedora specifically), so it is known to build and work there.  (It "should" work similarly on any Linux distor or the BSD's.)  Everything needed will most likely be available via the package manager on any common distro.  On Fedora the packages are gstreamer-devel gstreamer gstreamer-plugins-good gstreamer-plugins-bad and the Qt5 stuff (I just yum install qt5-* because I'm lazy).  On Fedora you will also need to have the rpmfusion repo enabled to get mp3 support, as the app is pretty useless w/o it.  "qmake-qt5" or possibly just "qmake", depending on your distro, followed by a "make" should get it built. A "make install" will put the binaries in /usr/bin and copy .desktop files and icons into the appropriate places for it to appear in the app menu.  Tweak the KaraokeHost.pro file to enable or disable OpenGL support prior to building.  One thing to note, you'll probably need to turn off flat volumes in your pulseaudio config if you're using it, otherwise the applicaitons may mess with your system-wide volume instead of just the application volume.
 
 **Mac**
 
-I have verified that it will build and run on Mac OS X, though only with the QMediaPlayer backend.  It builds okay with the gstreamer.com GStreamer SDK, and GStreamer isn't throwing errors, but isn't playing either.  Looks like there may be something it doesn't like about the pipeline, but I've been unable to figure it out as of yet.  Not spending a lot of time on this until it becomes important to someone who can test on a real Mac (I test builds on a hackintosh).
+TODO.  If anyone experienced with development on the Mac platform wants to tackle this, it will probably happen faster, as I don't own a Mac.
 
 **Windows**
 
-Karaokehost is building and working on Windows (only tested on Win7) using the msvc 2012 build system (only testing 32bit builds atm).  GStreamer works fine built against the gstreamer.com GStreamer SDK.  You will likely need to modify the paths in the KaraokeHost.pro file to match your devel environment.  Experimental build installers can be found at http://openkj.org/downloads
+Karaokehost is building and working on Windows using the msvc 2015 build system (both 32 and 64 bit) with Qt Creator.  GStreamer works fine built against the gstreamer.com GStreamer SDK.  You will likely need to modify the paths in the KaraokeHost.pro file to match your devel environment.  Experimental build installers can be found at http://openkj.org/ if you just want to run the software and not build it yourself or help out with development.
 
 
 The goal is to have it work consistently across all three platforms.
-
-**The KaraokeHost audio backends**
-
-QtMultimedia
-
-* Fader - working
-* Downmix - working
-* Silence detect - working
-* Key changer - working
-* Output device selection - working
-* Automatic performance recording - working
-
-GStreamer (Deprecated)
-
-* Fader - working
-* Downmix - working
-* Silence detect - working
-* Key changer - working
-* Output device selection - Not implemented (waiting for upcoming features in GStreamer)
-
-QMediaPlayer (Deprecated)
-
-* Fader - Working
-* Downmix - Not implemented
-* Silence detect - Not implemented
-* Key changer - Not implemented
-* Output device selection - Not implemented
-
 
 Things that are still work in progress or to do:
 
