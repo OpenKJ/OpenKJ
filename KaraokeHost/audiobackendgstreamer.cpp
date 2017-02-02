@@ -24,10 +24,6 @@
 #include <string.h>
 #include <math.h>
 
-
-
-
-
 AudioBackendGstreamer::AudioBackendGstreamer(QObject *parent) :
     AbstractAudioBackend(parent)
 {
@@ -44,6 +40,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(QObject *parent) :
     qCritical() << "Initializing gst\n";
     gst_init(NULL,NULL);
     audioConvert = gst_element_factory_make("audioconvert", "audioConvert");
+    audioConvert2 = gst_element_factory_make("audioconvert", "audioConvert2");
     autoAudioSink = gst_element_factory_make("autoaudiosink", "autoAudioSink");
     rgVolume = gst_element_factory_make("rgvolume", "rgVolume");
     volumeElement = gst_element_factory_make("volume", "volumeElement");
@@ -72,8 +69,8 @@ AudioBackendGstreamer::AudioBackendGstreamer(QObject *parent) :
     {
         // This is our fallback, and the only one reliably available on Windows.  It's not ideal, but it works.
         qCritical() << "Pitch shift plugin \"soundtouch pitch\" found, enabling key changing";
-        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, pitchShifterSoundtouch, level, volumeElement, autoAudioSink, NULL);
-        gst_element_link_many(filter, rgVolume, audioConvert, pitchShifterSoundtouch, level, volumeElement, autoAudioSink, NULL);
+        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, pitchShifterSoundtouch, audioConvert2, level, volumeElement, autoAudioSink, NULL);
+        gst_element_link_many(filter, rgVolume, audioConvert, pitchShifterSoundtouch, audioConvert2, level, volumeElement, autoAudioSink, NULL);
         g_object_set(G_OBJECT(pitchShifterSoundtouch), "pitch", 1.0, "tempo", 1.0, NULL);
         m_canKeyChange = true;
         m_keyChangerSoundtouch = true;
@@ -361,16 +358,13 @@ int AudioBackendGstreamer::pitchShift()
 
 void AudioBackendGstreamer::setPitchShift(int pitchShift)
 {
-//    m_keyChange = pitchShift;
-//    if ((pi& (m_keyChangerOn))
-//            keyChangerOff();
-//        else if ((pitchShift != 0) && (!m_keyChangerOn))ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo0
-//            keyChangerOn();
-//        qDebug() << "executing g_object_set(GST_OBJECT(pitch), \"pitch\", " << getPitchForSemitone(pitchShift) << ", NULL)";tchShift == 0) &
+    m_keyChange = pitchShift;
     if (m_keyChangerRubberBand)
-        g_object_set(G_OBJECT(pitchShifterRubberBand), "semitones", pitchShift, NULL);
+        g_object_set(G_OBJECT(pitchShifterRubberBand), "semitones", pitchShift, "tempo", 1.0, NULL);
     else if (m_keyChangerSoundtouch)
+    {
         g_object_set(G_OBJECT(pitchShifterSoundtouch), "pitch", getPitchForSemitone(pitchShift), NULL);
+    }
     emit pitchChanged(pitchShift);
 }
 

@@ -64,6 +64,7 @@ private:
     GstElement *sinkBin;
     GstElement *playBin;
     GstElement *audioConvert;
+    GstElement *audioConvert2;
     GstElement *autoAudioSink;
     GstElement *rgVolume;
     GstElement *pitchShifterRubberBand;
