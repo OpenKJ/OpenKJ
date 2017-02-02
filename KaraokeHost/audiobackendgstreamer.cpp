@@ -58,6 +58,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(QObject *parent) :
     g_object_set(filter, "caps", audioCapsStereo, NULL);
     if (pitchShifterRubberBand)
     {
+        // This is our preferred pitch shifter because it sounds better, but it's only available on Linux
         qCritical() << "Pitch shift ladspa plugin \"Rubber Band\" found, enabling key changing";
         gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, pitchShifterRubberBand, level, volumeElement, autoAudioSink, NULL);
         gst_element_link_many(filter, rgVolume, audioConvert, pitchShifterRubberBand, level, volumeElement, autoAudioSink, NULL);
@@ -69,7 +70,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(QObject *parent) :
     }
     else if (pitchShifterSoundtouch)
     {
-        // This is our preferred pitch shifter because it sounds better, but it's only available on Linux
+        // This is our fallback, and the only one reliably available on Windows.  It's not ideal, but it works.
         qCritical() << "Pitch shift plugin \"soundtouch pitch\" found, enabling key changing";
         gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, pitchShifterSoundtouch, level, volumeElement, autoAudioSink, NULL);
         gst_element_link_many(filter, rgVolume, audioConvert, pitchShifterSoundtouch, level, volumeElement, autoAudioSink, NULL);
@@ -79,7 +80,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(QObject *parent) :
     }
     else
     {
-        // This is our fallback, and the only one reliably available on Windows.  It's not ideal, but it works.
+        // No supported pitch shift plugin on the system
         qCritical() << "No supported pitch shifting gstreamer plugin found, key changing disabled";
         gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, level, volumeElement, autoAudioSink, NULL);
         gst_element_link_many(filter, rgVolume, audioConvert, level, volumeElement, autoAudioSink, NULL);
