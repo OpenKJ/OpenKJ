@@ -66,7 +66,8 @@ private:
     GstElement *audioConvert;
     GstElement *autoAudioSink;
     GstElement *rgVolume;
-    GstElement *pitchShifter;
+    GstElement *pitchShifterRubberBand;
+    GstElement *pitchShifterSoundtouch;
     GstElement *volumeElement;
     GstElement *level;
     GstElement *filter;
@@ -84,6 +85,8 @@ private:
     bool m_fade;
     bool m_silenceDetect;
     bool m_canKeyChange;
+    bool m_keyChangerRubberBand;
+    bool m_keyChangerSoundtouch;
     void processGstMessages();
     int m_outputChannels;
     double m_currentRmsLevel;

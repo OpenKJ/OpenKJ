@@ -92,14 +92,16 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewDB->setColumnHidden(0, true);
     ui->tableViewDB->setColumnHidden(3, true);
     ui->tableViewDB->setColumnHidden(6, true);
-    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(5, QHeaderView::ResizeToContents);
+//    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(5, QHeaderView::ResizeToContents);
+    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(5, QHeaderView::Fixed);
+    ui->tableViewDB->horizontalHeader()->resizeSection(5,75);
     ui->tableViewPlaylist->setColumnHidden(0, true);
     ui->tableViewPlaylist->setColumnHidden(1, true);
     ui->tableViewPlaylist->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Fixed);
     ui->tableViewPlaylist->horizontalHeader()->resizeSection(2,25);
     ui->tableViewPlaylist->horizontalHeader()->setSectionResizeMode(7, QHeaderView::Fixed);
     ui->tableViewPlaylist->horizontalHeader()->resizeSection(7,25);
-    ui->tableViewPlaylist->horizontalHeader()->setSectionResizeMode(6, QHeaderView::ResizeToContents);
+//    ui->tableViewPlaylist->horizontalHeader()->setSectionResizeMode(6, QHeaderView::ResizeToContents);
     mPlayer->setVolume(settings->volume());
 
     connect(ipcServer, SIGNAL(messageReceived(int)), this, SLOT(ipcMessageReceived(int)));

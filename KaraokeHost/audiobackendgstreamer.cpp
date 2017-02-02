@@ -32,7 +32,9 @@ AudioBackendGstreamer::AudioBackendGstreamer(QObject *parent) :
     AbstractAudioBackend(parent)
 {
     m_volume = 0;
-    m_canKeyChange = true;
+    m_canKeyChange = false;
+    m_keyChangerRubberBand = false;
+    m_keyChangerSoundtouch = false;
     m_fade = false;
     m_silenceDetect = false;
     m_outputChannels = 0;
@@ -46,28 +48,42 @@ AudioBackendGstreamer::AudioBackendGstreamer(QObject *parent) :
     rgVolume = gst_element_factory_make("rgvolume", "rgVolume");
     volumeElement = gst_element_factory_make("volume", "volumeElement");
     level = gst_element_factory_make("level", "level");
-    pitchShifter = gst_element_factory_make("ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo", "ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo");
+    pitchShifterSoundtouch = gst_element_factory_make("pitch", "pitch");
+    pitchShifterRubberBand = gst_element_factory_make("ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo", "ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo");
     playBin = gst_element_factory_make("playbin", "playBin");
     filter = gst_element_factory_make("capsfilter", "filter");
     sinkBin = gst_bin_new("sinkBin");
     audioCapsStereo = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 2, NULL);
     audioCapsMono = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 1, NULL);
     g_object_set(filter, "caps", audioCapsStereo, NULL);
-    if (!pitchShifter)
+    if (pitchShifterRubberBand)
     {
-        qCritical() << "LADSPA plugin rubberband pitchshifter not found, key changing disabled";
-        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, level, volumeElement, autoAudioSink, NULL);
-        gst_element_link_many(filter, rgVolume, audioConvert, level, volumeElement, autoAudioSink, NULL);
-        m_canKeyChange = false;
+        qCritical() << "Pitch shift ladspa plugin \"Rubber Band\" found, enabling key changing";
+        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, pitchShifterRubberBand, level, volumeElement, autoAudioSink, NULL);
+        gst_element_link_many(filter, rgVolume, audioConvert, pitchShifterRubberBand, level, volumeElement, autoAudioSink, NULL);
+        g_object_set(G_OBJECT(pitchShifterRubberBand), "formant-preserving", true, NULL);
+        g_object_set(G_OBJECT(pitchShifterRubberBand), "crispness", 1, NULL);
+        g_object_set(G_OBJECT(pitchShifterRubberBand), "semitones", 1.0, NULL);
+        m_canKeyChange = true;
+        m_keyChangerRubberBand = true;
+    }
+    else if (pitchShifterSoundtouch)
+    {
+        // This is our preferred pitch shifter because it sounds better, but it's only available on Linux
+        qCritical() << "Pitch shift plugin \"soundtouch pitch\" found, enabling key changing";
+        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, pitchShifterSoundtouch, level, volumeElement, autoAudioSink, NULL);
+        gst_element_link_many(filter, rgVolume, audioConvert, pitchShifterSoundtouch, level, volumeElement, autoAudioSink, NULL);
+        g_object_set(G_OBJECT(pitchShifterSoundtouch), "pitch", 1.0, "tempo", 1.0, NULL);
+        m_canKeyChange = true;
+        m_keyChangerSoundtouch = true;
     }
     else
     {
-        qCritical() << "Pitch shift plugin found, enabling";
-        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, pitchShifter, level, volumeElement, autoAudioSink, NULL);
-        gst_element_link_many(filter, rgVolume, audioConvert, pitchShifter, level, volumeElement, autoAudioSink, NULL);
-        g_object_set(G_OBJECT(pitchShifter), "formant-preserving", true, NULL);
-        g_object_set(G_OBJECT(pitchShifter), "crispness", 1, NULL);
-        g_object_set(G_OBJECT(pitchShifter), "semitones", 1.0, NULL);
+        // This is our fallback, and the only one reliably available on Windows.  It's not ideal, but it works.
+        qCritical() << "No supported pitch shifting gstreamer plugin found, key changing disabled";
+        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, level, volumeElement, autoAudioSink, NULL);
+        gst_element_link_many(filter, rgVolume, audioConvert, level, volumeElement, autoAudioSink, NULL);
+        m_canKeyChange = false;
     }
     pad = gst_element_get_static_pad(filter, "sink");
     ghostPad = gst_ghost_pad_new("sink", pad);
@@ -350,7 +366,10 @@ void AudioBackendGstreamer::setPitchShift(int pitchShift)
 //        else if ((pitchShift != 0) && (!m_keyChangerOn))ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo0
 //            keyChangerOn();
 //        qDebug() << "executing g_object_set(GST_OBJECT(pitch), \"pitch\", " << getPitchForSemitone(pitchShift) << ", NULL)";tchShift == 0) &
-    g_object_set(G_OBJECT(pitchShifter), "semitones", pitchShift, NULL);
+    if (m_keyChangerRubberBand)
+        g_object_set(G_OBJECT(pitchShifterRubberBand), "semitones", pitchShift, NULL);
+    else if (m_keyChangerSoundtouch)
+        g_object_set(G_OBJECT(pitchShifterSoundtouch), "pitch", getPitchForSemitone(pitchShift), NULL);
     emit pitchChanged(pitchShift);
 }
 
