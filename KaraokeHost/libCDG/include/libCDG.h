@@ -29,7 +29,6 @@
 #include <stdlib.h>
 #include "libCDG_Frame_Image.h"
 #include "libCDG_Color.h"
-//#include <boost/scoped_ptr.hpp>
 #include <QByteArray>
 #include <QBuffer>
 
@@ -208,7 +207,6 @@ private:
 	bool CDGFileOpened;
 	FILE *CDGFile;
     QByteArray cdgData;
-    QBuffer *buffer;
 	unsigned int CurPos;
     CDG_Frame_Image *CDGImage;
 	char masks[6];
