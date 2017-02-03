@@ -40,7 +40,12 @@ I develop the software and host my shows on Linux (Fedora specifically), so it i
 
 **Mac**
 
-TODO.  If anyone experienced with development on the Mac platform wants to tackle this, it will probably happen faster, as I don't own a Mac.
+Building now works on OS X.  You must install the homebrew version of the gstreamer packages.  The gst-plugins-bad package must be installed using the --with-sound-touch option if you want to enable the key chager.
+
+Install brew (https://brew.sh)
+brew install gstreamer gst-plugins-good gst-plugins-bad gst-plugins-ugly gst-plugins-base
+brew install sound-touch
+brew install gst-plugins-bad --with-sound-touch
 
 **Windows**
 
