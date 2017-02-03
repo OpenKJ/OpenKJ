@@ -261,25 +261,25 @@ void QueueModel::sort(int column, Qt::SortOrder order)
     switch (column) {
     case 3:
         if (order == Qt::AscendingOrder)
-            artistOrder == "ASC";
+            artistOrder = "ASC";
         else
-            artistOrder == "DESC";
+            artistOrder = "DESC";
         orderByClause = " ORDER BY dbsongs.artist " + artistOrder + ", dbsongs.title " + titleOrder + ", dbsongs.discid " + discIdOrder;
         break;
     case 4:
         sortField = "title";
         if (order == Qt::AscendingOrder)
-            titleOrder == "ASC";
+            titleOrder = "ASC";
         else
-            titleOrder == "DESC";
+            titleOrder = "DESC";
         orderByClause = " ORDER BY dbsongs.title " + titleOrder + ", dbsongs.artist " + artistOrder + ", dbsongs.discid " + discIdOrder;
         break;
     case 5:
         sortField = "discid";
         if (order == Qt::AscendingOrder)
-            discIdOrder == "ASC";
+            discIdOrder = "ASC";
         else
-            discIdOrder == "DESC";
+            discIdOrder = "DESC";
         orderByClause = " ORDER BY dbsongs.discid " + discIdOrder + ", dbsongs.artist " + artistOrder + ", dbsongs.title " + titleOrder;
         break;
     default:
