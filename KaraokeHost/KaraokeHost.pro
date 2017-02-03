@@ -106,7 +106,7 @@ FORMS    += mainwindow.ui \
 RESOURCES += \
     resources.qrc
 
-unix {
+unix:!macx {
     CONFIG += link_pkgconfig
     PKGCONFIG += gstreamer-1.0
     iconfiles.files += Icons/khicon-64x64.png
@@ -116,6 +116,12 @@ unix {
     binaryfiles.files += KaraokeHost
     binaryfiles.path = /usr/bin
     INSTALLS += binaryfiles iconfiles desktopfiles
+}
+
+macx: {
+    PKG_CONFIG = /usr/local/bin/pkg-config
+    CONFIG += link_pkgconfig
+    PKGCONFIG += gstreamer-1.0
 }
 
 win32 {
