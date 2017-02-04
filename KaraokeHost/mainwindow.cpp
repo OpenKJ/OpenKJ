@@ -805,8 +805,8 @@ void MainWindow::previewCdg()
 
 void MainWindow::setShowBgImage(bool show)
 {
-    ui->bgImage->setPixmap(QPixmap(":/icons/Icons/openkjlogo1.png"));
-    ui->bgImage->setVisible(show);
+    if (show)
+        ui->cdgVideoWidget->videoSurface()->present(QVideoFrame(QImage(":/icons/Icons/openkjlogo1.png")));
 }
 
 void MainWindow::onBgImageChange()

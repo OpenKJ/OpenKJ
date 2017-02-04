@@ -840,19 +840,6 @@
                     <property name="bottomMargin">
                      <number>0</number>
                     </property>
-                    <item>
-                     <widget class="ImageWidget" name="bgImage">
-                      <property name="text">
-                       <string/>
-                      </property>
-                      <property name="pixmap">
-                       <pixmap resource="resources.qrc">:/icons/Icons/openkjlogo1.png</pixmap>
-                      </property>
-                      <property name="scaledContents">
-                       <bool>true</bool>
-                      </property>
-                     </widget>
-                    </item>
                    </layout>
                   </widget>
                  </item>
@@ -1723,7 +1710,7 @@
      <x>0</x>
      <y>0</y>
      <width>964</width>
-     <height>25</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1795,11 +1782,6 @@
    <extends>QWidget</extends>
    <header>cdgvideowidget.h</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>ImageWidget</class>
-   <extends>QLabel</extends>
-   <header>imagewidget.h</header>
   </customwidget>
  </customwidgets>
  <resources>

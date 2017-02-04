@@ -471,19 +471,6 @@
       <property name="bottomMargin">
        <number>0</number>
       </property>
-      <item>
-       <widget class="ImageWidget" name="bgImage">
-        <property name="text">
-         <string/>
-        </property>
-        <property name="pixmap">
-         <pixmap resource="resources.qrc">:/icons/Icons/openkjlogo1.png</pixmap>
-        </property>
-        <property name="scaledContents">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
      </layout>
     </widget>
    </item>
@@ -501,25 +488,18 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>ScrollText</class>
-   <extends>QWidget</extends>
-   <header>scrolltext.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>CdgVideoWidget</class>
    <extends>QWidget</extends>
    <header>cdgvideowidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>ImageWidget</class>
-   <extends>QLabel</extends>
-   <header>imagewidget.h</header>
+   <class>ScrollText</class>
+   <extends>QWidget</extends>
+   <header>scrolltext.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="resources.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

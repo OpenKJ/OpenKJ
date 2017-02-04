@@ -79,7 +79,7 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
     fullScreenTimer = new QTimer(this);
     connect(fullScreenTimer, SIGNAL(timeout()), this, SLOT(fullScreenTimerTimeout()));
     fullScreenTimer->setInterval(500);
-    ui->bgImage->setVisible(false);
+    setShowBgImage(true);
 }
 
 DlgCdg::~DlgCdg()
@@ -224,11 +224,13 @@ void DlgCdg::setHSizeAdjustment(int pixels)
 
 void DlgCdg::setShowBgImage(bool show)
 {
-    if (settings->cdgDisplayBackgroundImage() != QString::null)
-        ui->bgImage->setPixmap(QPixmap(settings->cdgDisplayBackgroundImage()));
-    else
-        ui->bgImage->setPixmap(QPixmap(":/icons/Icons/openkjlogo1.png"));
-    ui->bgImage->setVisible(show);
+    if (show)
+    {
+        if (settings->cdgDisplayBackgroundImage() != QString::null)
+            ui->cdgVideo->videoSurface()->present(QVideoFrame(QImage(settings->cdgDisplayBackgroundImage())));
+        else
+            ui->cdgVideo->videoSurface()->present(QVideoFrame(QImage(":/icons/Icons/openkjlogo1.png")));
+    }
 }
 
 void DlgCdg::mouseDoubleClickEvent(QMouseEvent *e)
