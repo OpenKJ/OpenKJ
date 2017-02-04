@@ -7,7 +7,6 @@
 QT += core gui sql network widgets multimedia concurrent
 
 unix: DEFINES += USE_GL
-#win32: DEFINES += USE_GL
 
 win32: RC_FILE = KaraokeHost.rc
 
@@ -103,8 +102,7 @@ FORMS    += mainwindow.ui \
     dlgcdg.ui \
     dlgdurationscan.ui
 
-RESOURCES += \
-    resources.qrc
+RESOURCES += resources.qrc
 
 unix:!macx {
     CONFIG += link_pkgconfig
