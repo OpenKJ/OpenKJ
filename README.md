@@ -40,16 +40,12 @@ I develop the software and host my shows on Linux (Fedora specifically), so it i
 
 **Mac**
 
-Building now works on OS X.  You must install the homebrew version of the gstreamer packages.  The gst-plugins-bad package must be installed using the --with-sound-touch option if you want to enable the key chager.
+Building now works on OS X in Qt Creator using the native xcode compiler.  Use the latest stable version of the GStreamer SDK from http://gstreamer.freedesktop.org.
 
-* Install brew (https://brew.sh)
-* brew install gstreamer gst-plugins-good gst-plugins-ugly gst-plugins-base
-* brew install sound-touch
-* brew install gst-plugins-bad --with-sound-touch
 
 **Windows**
 
-Karaokehost is building and working on Windows using the msvc 2015 build system (both 32 and 64 bit) with Qt Creator.  GStreamer works fine built against the gstreamer.com GStreamer SDK.  You will likely need to modify the paths in the KaraokeHost.pro file to match your devel environment.  Experimental build installers can be found at http://openkj.org/ if you just want to run the software and not build it yourself or help out with development.
+Building now works on Windows in Qt Creator using the msvc 2015 build system (both 32 and 64 bit).  Use the latest stable version of the GStreamer SDK from http://gstreamer.freedesktop.org.  You will likely need to modify the paths in the KaraokeHost.pro and BreakMusic.pro file to match your devel environment.  Experimental build installers can be found at http://openkj.org/ if you just want to run the software and not build it yourself or help out with development.
 
 
 The goal is to have it work consistently across all three platforms.
