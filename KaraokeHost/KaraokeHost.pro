@@ -117,9 +117,8 @@ unix:!macx {
 }
 
 macx: {
-    PKG_CONFIG = /usr/local/bin/pkg-config
-    CONFIG += link_pkgconfig
-    PKGCONFIG += gstreamer-1.0
+    LIBS += -F/Library/Frameworks -framework GStreamer
+    INCLUDEPATH += /Library/Frameworks/GStreamer.framework/Headers
 }
 
 win32 {
