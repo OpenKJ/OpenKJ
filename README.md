@@ -40,7 +40,7 @@ I develop the software and host my shows on Linux (Fedora specifically), so it i
 
 **Mac**
 
-Building now works on OS X in Qt Creator using the native xcode compiler.  Use the latest stable version of the GStreamer SDK from http://gstreamer.freedesktop.org.
+Building now works on OS X in Qt Creator using the native xcode compiler.  Use the latest stable version of the GStreamer SDK from http://gstreamer.freedesktop.org.  There is an extremely experimental installer for OS X on the main website at http://openkj.org/ in the downloads section.  If anyone tests this, please let me know, as I only have one Mac to test with, and it's the machine I build it on, so it's not a good test case as to whether or not it runs on machines without all of the devel packages installed.
 
 
 **Windows**
