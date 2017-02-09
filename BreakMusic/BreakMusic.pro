@@ -60,6 +60,7 @@ unix:!macx {
 macx: {
     LIBS += -F/Library/Frameworks -framework GStreamer
     INCLUDEPATH += /Library/Frameworks/GStreamer.framework/Headers
+    ICON = icons/BreakMusic.icns
 }
 
 win32 {
