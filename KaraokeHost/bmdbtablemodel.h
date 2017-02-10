@@ -18,26 +18,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef DBITEMDELEGATE_H
-#define DBITEMDELEGATE_H
+#ifndef BMDBTABLEMODEL_H
+#define BMDBTABLEMODEL_H
 
-#include <QItemDelegate>
-#include <QPainter>
+#include <QSqlTableModel>
 
-class BmDbItemDelegate : public QItemDelegate
+class BmDbTableModel : public QSqlTableModel
 {
     Q_OBJECT
+private:
+    int sortColumn;
+    QString artistOrder;
+    QString titleOrder;
+    QString filenameOrder;
 public:
-    explicit BmDbItemDelegate(QObject *parent = 0);
+    explicit BmDbTableModel(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
+    void search(QString searchString);
+    enum {SORT_ARTIST=1,SORT_TITLE=2,SORT_FILENAME=4,SORT_DURATION=5};
 
-signals:
-
-public slots:
-
-
-    // QAbstractItemDelegate interface
+    // QAbstractItemModel interface
 public:
-    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    QMimeData *mimeData(const QModelIndexList &indexes) const;
+    void sort(int column, Qt::SortOrder order);
+    Qt::ItemFlags flags(const QModelIndex &index) const;
+
+    // QSqlTableModel interface
+protected:
+    QString orderByClause() const;
+
 };
 
-#endif // DBITEMDELEGATE_H
+#endif // SONGSTABLEMODEL_H

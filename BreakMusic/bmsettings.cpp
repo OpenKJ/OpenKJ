@@ -22,7 +22,7 @@
 #include <QCoreApplication>
 #include <QHeaderView>
 
-BmSettings::BmSettings(QObject *parent) :
+Settings::Settings(QObject *parent) :
     QObject(parent)
 {
     QCoreApplication::setOrganizationName("OpenKJ");
@@ -31,7 +31,7 @@ BmSettings::BmSettings(QObject *parent) :
     settings = new QSettings(this);
 }
 
-void BmSettings::saveWindowState(QWidget *window)
+void Settings::saveWindowState(QWidget *window)
 {
     settings->beginGroup(window->objectName());
     settings->setValue("size", window->size());
@@ -39,7 +39,7 @@ void BmSettings::saveWindowState(QWidget *window)
     settings->endGroup();
 }
 
-void BmSettings::restoreWindowState(QWidget *window)
+void Settings::restoreWindowState(QWidget *window)
 {
     settings->beginGroup(window->objectName());
     window->resize(settings->value("size", QSize(640, 480)).toSize());
@@ -47,47 +47,47 @@ void BmSettings::restoreWindowState(QWidget *window)
     settings->endGroup();
 }
 
-bool BmSettings::showFilenames()
+bool Settings::bmShowFilenames()
 {
     return settings->value("showFilenames", false).toBool();
 }
 
-void BmSettings::setShowFilenames(bool show)
+void Settings::bmSetShowFilenames(bool show)
 {
     settings->setValue("showFilenames", show);
 }
 
-bool BmSettings::showMetadata()
+bool Settings::bmShowMetadata()
 {
     return settings->value("showMetadata", true).toBool();
 }
 
-void BmSettings::setShowMetadata(bool show)
+void Settings::bmSetShowMetadata(bool show)
 {
     settings->setValue("showMetadata", show);
 }
 
-int BmSettings::volume()
+int Settings::bmVolume()
 {
     return settings->value("volume", 50).toInt();
 }
 
-void BmSettings::setVolume(int volume)
+void Settings::bmSetVolume(int volume)
 {
     settings->setValue("volume", volume);
 }
 
-int BmSettings::playlistIndex()
+int Settings::bmPlaylistIndex()
 {
     return settings->value("playlistIndex",0).toInt();
 }
 
-void BmSettings::setPlaylistIndex(int index)
+void Settings::bmSetPlaylistIndex(int index)
 {
     settings->setValue("playlistIndex", index);
 }
 
-void BmSettings::saveColumnWidths(QTreeView *treeView)
+void Settings::saveColumnWidths(QTreeView *treeView)
 {
     settings->beginGroup(treeView->objectName());
     settings->setValue("headerState", treeView->header()->saveState());
@@ -96,7 +96,7 @@ void BmSettings::saveColumnWidths(QTreeView *treeView)
     settings->endGroup();
 }
 
-void BmSettings::saveColumnWidths(QTableView *tableView)
+void Settings::saveColumnWidths(QTableView *tableView)
 {
     settings->beginGroup(tableView->objectName());
     for (int i=0; i < tableView->horizontalHeader()->count(); i++)
@@ -109,7 +109,7 @@ void BmSettings::saveColumnWidths(QTableView *tableView)
     settings->endGroup();
 }
 
-void BmSettings::restoreColumnWidths(QTreeView *treeView)
+void Settings::restoreColumnWidths(QTreeView *treeView)
 {
     settings->beginGroup(treeView->objectName());
     if ((settings->contains("headerState")) && (settings->value("hiddenSections").toInt() == treeView->header()->hiddenSectionCount()) && (settings->value("sections").toInt() == treeView->header()->count()))
@@ -117,7 +117,7 @@ void BmSettings::restoreColumnWidths(QTreeView *treeView)
     settings->endGroup();
 }
 
-void BmSettings::restoreColumnWidths(QTableView *tableView)
+void Settings::restoreColumnWidths(QTableView *tableView)
 {
     settings->beginGroup(tableView->objectName());
     QStringList headers = settings->childGroups();
@@ -134,14 +134,14 @@ void BmSettings::restoreColumnWidths(QTableView *tableView)
     settings->endGroup();
 }
 
-void BmSettings::saveSplitterState(QSplitter *splitter)
+void Settings::saveSplitterState(QSplitter *splitter)
 {
     settings->beginGroup(splitter->objectName());
     settings->setValue("splitterState", splitter->saveState());
     settings->endGroup();
 }
 
-void BmSettings::restoreSplitterState(QSplitter *splitter)
+void Settings::restoreSplitterState(QSplitter *splitter)
 {
     settings->beginGroup(splitter->objectName());
     if (settings->contains("splitterState"))

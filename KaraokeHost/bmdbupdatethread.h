@@ -18,26 +18,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef DBITEMDELEGATE_H
-#define DBITEMDELEGATE_H
+#ifndef BMDBUPDATETHREAD_H
+#define BMDBUPDATETHREAD_H
 
-#include <QItemDelegate>
-#include <QPainter>
+#include <QThread>
+#include <QStringList>
 
-class BmDbItemDelegate : public QItemDelegate
+class BmDbUpdateThread : public QThread
 {
     Q_OBJECT
 public:
-    explicit BmDbItemDelegate(QObject *parent = 0);
+    explicit BmDbUpdateThread(QObject *parent = 0);
+    void run();
+    QString path() const;
+    void setPath(const QString &path);
 
 signals:
-
+    
 public slots:
 
-
-    // QAbstractItemDelegate interface
-public:
-    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+private:
+    QString m_path;
+    QStringList *findMediaFiles(QString directory);
+    
 };
 
-#endif // DBITEMDELEGATE_H
+#endif // DATABASEUPDATETHREAD_H

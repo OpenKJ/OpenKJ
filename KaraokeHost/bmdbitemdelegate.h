@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef DBITEMDELEGATE_H
-#define DBITEMDELEGATE_H
+#ifndef BMDBITEMDELEGATE_H
+#define BMDBITEMDELEGATE_H
 
 #include <QItemDelegate>
 #include <QPainter>

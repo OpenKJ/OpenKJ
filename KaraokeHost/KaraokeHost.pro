@@ -25,7 +25,6 @@ SOURCES += main.cpp\
     sourcedirtablemodel.cpp \
     dbupdatethread.cpp \
     khipcclient.cpp \
-    khsettings.cpp \
     scrolltext.cpp \
     requeststablemodel.cpp \
     khdb.cpp \
@@ -52,7 +51,14 @@ SOURCES += main.cpp\
     cdgvideowidget.cpp \
     imagewidget.cpp \
     abstractaudiobackend.cpp \
-    audiobackendgstreamer.cpp
+    audiobackendgstreamer.cpp \
+    tagreader.cpp \
+    bmdbitemdelegate.cpp \
+    bmdbtablemodel.cpp \
+    bmdbupdatethread.cpp \
+    bmpltablemodel.cpp \
+    bmplitemdelegate.cpp \
+    settings.cpp
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -61,7 +67,6 @@ HEADERS  += mainwindow.h \
     sourcedirtablemodel.h \
     dbupdatethread.h \
     khipcclient.h \
-    khsettings.h \
     scrolltext.h \
     requeststablemodel.h \
     khdb.h \
@@ -88,7 +93,14 @@ HEADERS  += mainwindow.h \
     cdgvideowidget.h \
     imagewidget.h \
     abstractaudiobackend.h \
-    audiobackendgstreamer.h
+    audiobackendgstreamer.h \
+    tagreader.h \
+    bmdbitemdelegate.h \
+    bmdbtablemodel.h \
+    bmdbupdatethread.h \
+    bmplitemdelegate.h \
+    bmpltablemodel.h \
+    settings.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \

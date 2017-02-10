@@ -24,7 +24,7 @@
 #include <QDialog>
 #include <QList>
 #include <QNetworkAccessManager>
-#include "khsettings.h"
+#include "settings.h"
 #include "abstractaudiobackend.h"
 
 namespace Ui {

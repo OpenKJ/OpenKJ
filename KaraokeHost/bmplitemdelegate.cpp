@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "plitemdelegate.h"
+#include "bmplitemdelegate.h"
 #include <QPainter>
 #include <QTime>
 #include <QDebug>

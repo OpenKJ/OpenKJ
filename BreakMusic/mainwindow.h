@@ -55,18 +55,18 @@ private:
     QSqlDatabase *database;
     QDir *khDir;
     DatabaseDialog *dbDialog;
-    DbTableModel *dbModel;
-    DbItemDelegate *dbDelegate;
-    PlTableModel *plModel;
-    PlItemDelegate *plDelegate;
-    QSqlTableModel *playlistsModel;
-    AudioBackendGstreamer *mPlayer;
+    BmDbTableModel *bmDbModel;
+    BmDbItemDelegate *bmDbDelegate;
+    BmPlTableModel *bmPlModel;
+    BmPlItemDelegate *bmPlDelegate;
+    QSqlTableModel *bmPlaylistsModel;
+    AudioBackendGstreamer *bmAudioBackend;
     //AudioBackendQtMultimedia *mPlayer;
 
-    int currentPosition;
-    int currentPlaylist;
+    int bmCurrentPosition;
+    int bmCurrentPlaylist;
     bool playlistExists(QString name);
-    void addPlaylist(QString title);
+    void bmAddPlaylist(QString title);
 
 private slots:
     void ipcMessageReceived(int ipcCommand);

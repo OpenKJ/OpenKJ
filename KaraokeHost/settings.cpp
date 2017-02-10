@@ -18,13 +18,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "khsettings.h"
+#include "settings.h"
 #include <QCoreApplication>
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QStandardPaths>
 
-KhSettings::KhSettings(QObject *parent) :
+Settings::Settings(QObject *parent) :
     QObject(parent)
 {
     QCoreApplication::setOrganizationName("OpenKJ");
@@ -33,42 +33,42 @@ KhSettings::KhSettings(QObject *parent) :
     settings = new QSettings(this);
 }
 
-bool KhSettings::cdgWindowFullscreen()
+bool Settings::cdgWindowFullscreen()
 {
     return settings->value("cdgWindowFullscreen", false).toBool();
 }
 
-void KhSettings::setCdgWindowFullscreen(bool fullScreen)
+void Settings::setCdgWindowFullscreen(bool fullScreen)
 {
     settings->setValue("cdgWindowFullscreen", fullScreen);
     emit cdgWindowFullscreenChanged(fullScreen);
 }
 
 
-bool KhSettings::showCdgWindow()
+bool Settings::showCdgWindow()
 {
     return settings->value("showCdgWindow", false).toBool();
 }
 
-void KhSettings::setShowCdgWindow(bool show)
+void Settings::setShowCdgWindow(bool show)
 {
     settings->setValue("showCdgWindow", show);
     emit cdgShowCdgWindowChanged(show);
 }
 
-void KhSettings::setCdgWindowFullscreenMonitor(int monitor)
+void Settings::setCdgWindowFullscreenMonitor(int monitor)
 {
     settings->setValue("cdgWindowFullScreenMonitor", monitor);
 }
 
-int KhSettings::cdgWindowFullScreenMonitor()
+int Settings::cdgWindowFullScreenMonitor()
 {
     //We default to the highest mointor present, by default, rather than the primary display.  Seems to make more sense
     //and will help prevent people from popping up a full screen window in front of the main window and getting confused.
     return settings->value("cdgWindowFullScreenMonitor", QApplication::desktop()->screenCount() - 1).toInt();
 }
 
-void KhSettings::saveWindowState(QWidget *window)
+void Settings::saveWindowState(QWidget *window)
 {
     settings->beginGroup(window->objectName());
     settings->setValue("size", window->size());
@@ -76,7 +76,7 @@ void KhSettings::saveWindowState(QWidget *window)
     settings->endGroup();
 }
 
-void KhSettings::restoreWindowState(QWidget *window)
+void Settings::restoreWindowState(QWidget *window)
 {
 
     settings->beginGroup(window->objectName());
@@ -88,7 +88,7 @@ void KhSettings::restoreWindowState(QWidget *window)
     settings->endGroup();
 }
 
-void KhSettings::saveColumnWidths(QTreeView *treeView)
+void Settings::saveColumnWidths(QTreeView *treeView)
 {
     settings->beginGroup(treeView->objectName());
     settings->setValue("headerState", treeView->header()->saveState());
@@ -97,7 +97,7 @@ void KhSettings::saveColumnWidths(QTreeView *treeView)
     settings->endGroup();
 }
 
-void KhSettings::saveColumnWidths(QTableView *tableView)
+void Settings::saveColumnWidths(QTableView *tableView)
 {
     settings->beginGroup(tableView->objectName());
     for (int i=0; i < tableView->horizontalHeader()->count(); i++)
@@ -110,7 +110,7 @@ void KhSettings::saveColumnWidths(QTableView *tableView)
     settings->endGroup();
 }
 
-void KhSettings::restoreColumnWidths(QTreeView *treeView)
+void Settings::restoreColumnWidths(QTreeView *treeView)
 {
     settings->beginGroup(treeView->objectName());
     if ((settings->contains("headerState")) && (settings->value("hiddenSections").toInt() == treeView->header()->hiddenSectionCount()) && (settings->value("sections").toInt() == treeView->header()->count()))
@@ -118,7 +118,7 @@ void KhSettings::restoreColumnWidths(QTreeView *treeView)
     settings->endGroup();
 }
 
-void KhSettings::restoreColumnWidths(QTableView *tableView)
+void Settings::restoreColumnWidths(QTableView *tableView)
 {
     settings->beginGroup(tableView->objectName());
     QStringList headers = settings->childGroups();
@@ -135,14 +135,14 @@ void KhSettings::restoreColumnWidths(QTableView *tableView)
     settings->endGroup();
 }
 
-void KhSettings::saveSplitterState(QSplitter *splitter)
+void Settings::saveSplitterState(QSplitter *splitter)
 {
     settings->beginGroup(splitter->objectName());
     settings->setValue("splitterState", splitter->saveState());
     settings->endGroup();
 }
 
-void KhSettings::restoreSplitterState(QSplitter *splitter)
+void Settings::restoreSplitterState(QSplitter *splitter)
 {
     settings->beginGroup(splitter->objectName());
     if (settings->contains("splitterState"))
@@ -150,172 +150,172 @@ void KhSettings::restoreSplitterState(QSplitter *splitter)
     settings->endGroup();
 }
 
-void KhSettings::setTickerFont(QFont font)
+void Settings::setTickerFont(QFont font)
 {
     settings->setValue("tickerFont", font.toString());
     emit tickerFontChanged();
 }
 
-QFont KhSettings::tickerFont()
+QFont Settings::tickerFont()
 {
     QFont font;
     font.fromString(settings->value("tickerFont", QApplication::font().toString()).toString());
     return font;
 }
 
-int KhSettings::tickerHeight()
+int Settings::tickerHeight()
 {
     return settings->value("tickerHeight", 25).toInt();
 }
 
-void KhSettings::setTickerHeight(int height)
+void Settings::setTickerHeight(int height)
 {
     settings->setValue("tickerHeight", height);
     emit tickerHeightChanged(height);
 }
 
-int KhSettings::tickerSpeed()
+int Settings::tickerSpeed()
 {
     return settings->value("tickerSpeed", 50).toInt();
 }
 
-void KhSettings::setTickerSpeed(int speed)
+void Settings::setTickerSpeed(int speed)
 {
     settings->setValue("tickerSpeed", speed);
     emit tickerSpeedChanged();
 }
 
-QColor KhSettings::tickerTextColor()
+QColor Settings::tickerTextColor()
 {
     return settings->value("tickerTextColor", QApplication::palette().foreground().color()).value<QColor>();
 }
 
-void KhSettings::setTickerTextColor(QColor color)
+void Settings::setTickerTextColor(QColor color)
 {
     settings->setValue("tickerTextColor", color);
     emit tickerTextColorChanged();
 }
 
-QColor KhSettings::tickerBgColor()
+QColor Settings::tickerBgColor()
 {
     return settings->value("tickerBgColor", QApplication::palette().background().color()).value<QColor>();
 }
 
-void KhSettings::setTickerBgColor(QColor color)
+void Settings::setTickerBgColor(QColor color)
 {
     settings->setValue("tickerBgColor", color);
     emit tickerBgColorChanged();
 }
 
-bool KhSettings::tickerFullRotation()
+bool Settings::tickerFullRotation()
 {
     return settings->value("tickerFullRotation", true).toBool();
 }
 
-void KhSettings::setTickerFullRotation(bool full)
+void Settings::setTickerFullRotation(bool full)
 {
     settings->setValue("tickerFullRotation", full);
     emit tickerOutputModeChanged();
 }
 
-int KhSettings::tickerShowNumSingers()
+int Settings::tickerShowNumSingers()
 {
     return settings->value("tickerShowNumSingers", 10).toInt();
 }
 
-void KhSettings::setTickerShowNumSingers(int limit)
+void Settings::setTickerShowNumSingers(int limit)
 {
     settings->setValue("tickerShowNumSingers", limit);
     emit tickerOutputModeChanged();
 }
 
-void KhSettings::setTickerEnabled(bool enable)
+void Settings::setTickerEnabled(bool enable)
 {
     settings->setValue("tickerEnabled", enable);
     emit tickerEnableChanged();
 }
 
-bool KhSettings::tickerEnabled()
+bool Settings::tickerEnabled()
 {
     return settings->value("tickerEnabled", false).toBool();
 }
 
-bool KhSettings::requestServerEnabled()
+bool Settings::requestServerEnabled()
 {
     return settings->value("requestServerEnabled", false).toBool();
 }
 
-void KhSettings::setRequestServerEnabled(bool enable)
+void Settings::setRequestServerEnabled(bool enable)
 {
     settings->setValue("requestServerEnabled", enable);
 }
 
-QString KhSettings::requestServerUrl()
+QString Settings::requestServerUrl()
 {
     return settings->value("requestServerUrl", "").toString();
 }
 
-void KhSettings::setRequestServerUrl(QString url)
+void Settings::setRequestServerUrl(QString url)
 {
     settings->setValue("requestServerUrl", url);
 }
 
-QString KhSettings::requestServerUsername()
+QString Settings::requestServerUsername()
 {
     return settings->value("requestServerUsername","").toString();
 }
 
-void KhSettings::setRequestServerUsername(QString username)
+void Settings::setRequestServerUsername(QString username)
 {
     settings->setValue("requestServerUsername", username);
 }
 
-QString KhSettings::requestServerPassword()
+QString Settings::requestServerPassword()
 {
     return settings->value("requestServerPassword", "").toString();
 }
 
-void KhSettings::setRequestServerPassword(QString password)
+void Settings::setRequestServerPassword(QString password)
 {
     settings->setValue("requestServerPassword", password);
 }
 
-bool KhSettings::requestServerIgnoreCertErrors()
+bool Settings::requestServerIgnoreCertErrors()
 {
     return settings->value("requestServerIgnoreCertErrors", false).toBool();
 }
 
-void KhSettings::setRequestServerIgnoreCertErrors(bool ignore)
+void Settings::setRequestServerIgnoreCertErrors(bool ignore)
 {
     settings->setValue("requestServerIgnoreCertErrors", ignore);
 }
 
-bool KhSettings::audioUseFader()
+bool Settings::audioUseFader()
 {
     return settings->value("audioUseFader", true).toBool();
 }
 
-void KhSettings::setAudioUseFader(bool fader)
+void Settings::setAudioUseFader(bool fader)
 {
     settings->setValue("audioUseFader", fader);
 }
 
-int KhSettings::audioVolume()
+int Settings::audioVolume()
 {
     return settings->value("audioVolume", 50).toInt();
 }
 
-void KhSettings::setAudioVolume(int volume)
+void Settings::setAudioVolume(int volume)
 {
     settings->setValue("audioVolume", volume);
 }
 
-QString KhSettings::cdgDisplayBackgroundImage()
+QString Settings::cdgDisplayBackgroundImage()
 {
     return settings->value("cdgDisplayBackgroundImage", QString()).toString();
 }
 
-void KhSettings::setCdgDisplayBackgroundImage(QString imageFile)
+void Settings::setCdgDisplayBackgroundImage(QString imageFile)
 {
     if (imageFile == "")
         settings->remove("cdgDisplayBackgroundImage");
@@ -324,153 +324,193 @@ void KhSettings::setCdgDisplayBackgroundImage(QString imageFile)
     emit cdgBgImageChanged();
 }
 
-bool KhSettings::audioDownmix()
+bool Settings::audioDownmix()
 {
     return settings->value("audioDownmix", false).toBool();
 }
 
-void KhSettings::setAudioDownmix(bool downmix)
+void Settings::setAudioDownmix(bool downmix)
 {
     settings->setValue("audioDownmix", downmix);
 }
 
-bool KhSettings::audioDetectSilence()
+bool Settings::audioDetectSilence()
 {
     return settings->value("audioDetectSilence", false).toBool();
 }
 
-void KhSettings::setAudioDetectSilence(bool enabled)
+void Settings::setAudioDetectSilence(bool enabled)
 {
     settings->setValue("audioDetectSilence", enabled);
 }
 
-QString KhSettings::audioOutputDevice()
+QString Settings::audioOutputDevice()
 {
     return settings->value("audioOutputDevice", 0).toString();
 }
 
-void KhSettings::setAudioOutputDevice(QString device)
+void Settings::setAudioOutputDevice(QString device)
 {
     settings->setValue("audioOutputDevice", device);
 }
 
-int KhSettings::audioBackend()
+int Settings::audioBackend()
 {
     return settings->value("audioBackend", 0).toInt();
 }
 
-void KhSettings::setAudioBackend(int index)
+void Settings::setAudioBackend(int index)
 {
     settings->setValue("audioBackend", index);
     emit audioBackendChanged(index);
 }
 
-QString KhSettings::recordingContainer()
+QString Settings::recordingContainer()
 {
     return settings->value("recordingContainer", "ogg").toString();
 }
 
-void KhSettings::setRecordingContainer(QString container)
+void Settings::setRecordingContainer(QString container)
 {
     settings->setValue("recordingContainer", container);
     emit recordingSetupChanged();
 }
 
-QString KhSettings::recordingCodec()
+QString Settings::recordingCodec()
 {
     return settings->value("recordingCodec", "audio/vorbis").toString();
 }
 
-void KhSettings::setRecordingCodec(QString codec)
+void Settings::setRecordingCodec(QString codec)
 {
     settings->setValue("recordingCodec", codec);
     emit recordingSetupChanged();
 }
 
-QString KhSettings::recordingInput()
+QString Settings::recordingInput()
 {
     return settings->value("recordingInput", "undefined").toString();
 }
 
-void KhSettings::setRecordingInput(QString input)
+void Settings::setRecordingInput(QString input)
 {
     settings->setValue("recordingInput", input);
     emit recordingSetupChanged();
 }
 
-QString KhSettings::recordingOutputDir()
+QString Settings::recordingOutputDir()
 {
     QString defaultPath = QStandardPaths::writableLocation(QStandardPaths::MusicLocation);
     return settings->value("recordingOutputDir", defaultPath).toString();
 }
 
-void KhSettings::setRecordingOutputDir(QString path)
+void Settings::setRecordingOutputDir(QString path)
 {
     settings->setValue("recordingOutputDir", path);
     emit recordingSetupChanged();
 }
 
-bool KhSettings::recordingEnabled()
+bool Settings::recordingEnabled()
 {
     return settings->value("recordingEnabled", false).toBool();
 }
 
-void KhSettings::setRecordingEnabled(bool enabled)
+void Settings::setRecordingEnabled(bool enabled)
 {
     settings->setValue("recordingEnabled", enabled);
     emit recordingSetupChanged();
 }
 
-QString KhSettings::recordingRawExtension()
+QString Settings::recordingRawExtension()
 {
     return settings->value("recordingRawExtension", QString()).toString();
 }
 
-void KhSettings::setRecordingRawExtension(QString extension)
+void Settings::setRecordingRawExtension(QString extension)
 {
     settings->setValue("recordingRawExtension", extension);
 }
 
-int KhSettings::cdgVOffset()
+int Settings::cdgVOffset()
 {
     return settings->value("cdgVOffset", 0).toInt();
 }
 
-void KhSettings::setCdgVOffset(int pixels)
+void Settings::setCdgVOffset(int pixels)
 {
     settings->setValue("cdgVOffset", pixels);
     emit cdgVOffsetChanged(pixels);
 }
 
-int KhSettings::cdgHOffset()
+int Settings::cdgHOffset()
 {
     return settings->value("cdgHOffset", 0).toInt();
 }
 
-void KhSettings::setCdgHOffset(int pixels)
+void Settings::setCdgHOffset(int pixels)
 {
     settings->setValue("cdgHOffset", pixels);
     emit cdgHOffsetChanged(pixels);
 }
 
-int KhSettings::cdgVSizeAdjustment()
+int Settings::cdgVSizeAdjustment()
 {
     return settings->value("cdgVSizeAdjustment", 0).toInt();
 }
 
-void KhSettings::setCdgVSizeAdjustment(int pixels)
+void Settings::setCdgVSizeAdjustment(int pixels)
 {
     settings->setValue("cdgVSizeAdjustment", pixels);
     emit cdgVSizeAdjustmentChanged(pixels);
 }
 
-int KhSettings::cdgHSizeAdjustment()
+int Settings::cdgHSizeAdjustment()
 {
     return settings->value("cdgHSizeAdjustment", 0).toInt();
 }
 
-void KhSettings::setCdgHSizeAdjustment(int pixels)
+void Settings::setCdgHSizeAdjustment(int pixels)
 {
     settings->setValue("cdgHSizeAdjustment", pixels);
     emit cdgHSizeAdjustmentChanged(pixels);
+}
+
+bool Settings::bmShowFilenames()
+{
+    return settings->value("showFilenames", false).toBool();
+}
+
+void Settings::bmSetShowFilenames(bool show)
+{
+    settings->setValue("showFilenames", show);
+}
+
+bool Settings::bmShowMetadata()
+{
+    return settings->value("showMetadata", true).toBool();
+}
+
+void Settings::bmSetShowMetadata(bool show)
+{
+    settings->setValue("showMetadata", show);
+}
+
+int Settings::bmVolume()
+{
+    return settings->value("volume", 50).toInt();
+}
+
+void Settings::bmSetVolume(int volume)
+{
+    settings->setValue("volume", volume);
+}
+
+int Settings::bmPlaylistIndex()
+{
+    return settings->value("playlistIndex",0).toInt();
+}
+
+void Settings::bmSetPlaylistIndex(int index)
+{
+    settings->setValue("playlistIndex", index);
 }

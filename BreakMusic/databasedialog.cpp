@@ -64,7 +64,7 @@ void DatabaseDialog::on_pushButtonUpdate_clicked()
         msgBox->setStandardButtons(0);
         msgBox->setText("Updating Database, please wait...");
         msgBox->show();
-        DbUpdateThread thread;
+        BmDbUpdateThread thread;
         thread.setPath(pathsModel->data(pathsModel->index(selectedDirectoryIdx, 0)).toString());
         thread.start();
         while (thread.isRunning())
@@ -84,7 +84,7 @@ void DatabaseDialog::on_pushButtonUpdateAll_clicked()
     for (int i=0; i < pathsModel->rowCount(); i++)
     {
         QApplication::processEvents();
-        DbUpdateThread thread;
+        BmDbUpdateThread thread;
         thread.setPath(pathsModel->data(pathsModel->index(i, 0)).toString());
         thread.start();
         while (thread.isRunning())

@@ -7,7 +7,7 @@
 #else
     #include <QWidget>
 #endif
-#include "khsettings.h"
+#include "settings.h"
 
 
 #ifdef USE_GL

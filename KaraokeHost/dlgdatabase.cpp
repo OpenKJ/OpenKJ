@@ -26,9 +26,9 @@
 #include <QSqlQuery>
 #include <QMessageBox>
 #include "dbupdatethread.h"
-#include "khsettings.h"
+#include "settings.h"
 
-extern KhSettings *settings;
+extern Settings *settings;
 
 DlgDatabase::DlgDatabase(QWidget *parent) :
     QDialog(parent),

@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KHSETTINGS_H
-#define KHSETTINGS_H
+#ifndef SETTINGS_H
+#define SETTINGS_H
 
 #include <QHeaderView>
 #include <QObject>
@@ -29,7 +29,7 @@
 #include <QTreeView>
 #include <QWidget>
 
-class KhSettings : public QObject
+class Settings : public QObject
 {
     Q_OBJECT
 
@@ -37,7 +37,7 @@ private:
     QSettings *settings;
 
 public:
-    explicit KhSettings(QObject *parent = 0);
+    explicit Settings(QObject *parent = 0);
     bool cdgWindowFullscreen();
     bool showCdgWindow();
     void setCdgWindowFullscreenMonitor(int monitor);
@@ -118,6 +118,15 @@ public:
     int cdgHOffset();
     int cdgVSizeAdjustment();
     int cdgHSizeAdjustment();
+
+    bool bmShowFilenames();
+    void bmSetShowFilenames(bool show);
+    bool bmShowMetadata();
+    void bmSetShowMetadata(bool show);
+    int bmVolume();
+    void bmSetVolume(int bmVolume);
+    int bmPlaylistIndex();
+    void bmSetPlaylistIndex(int index);
 
 signals:
     void tickerFontChanged();

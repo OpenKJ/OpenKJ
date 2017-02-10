@@ -24,7 +24,7 @@
 #include <QApplication>
 #include <QDesktopWidget>
 
-extern KhSettings *settings;
+extern Settings *settings;
 
 
 DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :

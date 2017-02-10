@@ -23,14 +23,14 @@
 
 #include <QItemDelegate>
 
-class PlItemDelegate : public QItemDelegate
+class BmPlItemDelegate : public QItemDelegate
 {
     Q_OBJECT
 private:
     int m_currentSong;
 
 public:
-    explicit PlItemDelegate(QObject *parent = 0);
+    explicit BmPlItemDelegate(QObject *parent = 0);
 
 signals:
 

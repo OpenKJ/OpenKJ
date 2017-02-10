@@ -33,8 +33,9 @@
 #include "dlgsettings.h"
 #include "khipcclient.h"
 #include "abstractaudiobackend.h"
+#include "audiobackendgstreamer.h"
 #include "dlgcdg.h"
-#include "khsettings.h"
+#include "settings.h"
 #include "dlgregularsingers.h"
 #include "dlgregularexport.h"
 #include "dlgregularimport.h"
@@ -48,6 +49,10 @@
 #include "rotationmodel.h"
 #include "rotationitemdelegate.h"
 #include "dbitemdelegate.h"
+#include "bmdbtablemodel.h"
+#include "bmdbitemdelegate.h"
+#include "bmpltablemodel.h"
+#include "bmplitemdelegate.h"
 #include <QThread>
 
 using namespace std;
@@ -82,6 +87,7 @@ private:
     AbstractAudioBackend *activeAudioBackend;
     KhAudioBackends *audioBackends;
     KhAudioRecorder *audioRecorder;
+    AudioBackendGstreamer *bmAudioBackend;
     KhIPCClient *ipcClient;
     QLabel *labelSingerCount;
     bool sliderPositionPressed;
@@ -94,6 +100,16 @@ private:
     int sortColDB;
     int sortDirDB;
     QString previewZip;
+
+    BmDbTableModel *bmDbModel;
+    BmDbItemDelegate *bmDbDelegate;
+    BmPlTableModel *bmPlModel;
+    BmPlItemDelegate *bmPlDelegate;
+    QSqlTableModel *bmPlaylistsModel;
+    int bmCurrentPosition;
+    int bmCurrentPlaylist;
+    void bmAddPlaylist(QString title);
+
 
 public:
     explicit MainWindow(QWidget *parent = 0);

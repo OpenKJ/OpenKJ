@@ -23,7 +23,7 @@
 
 #include <QSqlTableModel>
 
-class DbTableModel : public QSqlTableModel
+class BmDbTableModel : public QSqlTableModel
 {
     Q_OBJECT
 private:
@@ -32,7 +32,7 @@ private:
     QString titleOrder;
     QString filenameOrder;
 public:
-    explicit DbTableModel(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
+    explicit BmDbTableModel(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
     void search(QString searchString);
     enum {SORT_ARTIST=1,SORT_TITLE=2,SORT_FILENAME=4,SORT_DURATION=5};
 

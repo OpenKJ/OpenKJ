@@ -23,7 +23,7 @@
 
 #include <QDialog>
 #include <QMouseEvent>
-#include "khsettings.h"
+#include "settings.h"
 #include "scrolltext.h"
 #include "cdgvideowidget.h"
 #include <QTimer>

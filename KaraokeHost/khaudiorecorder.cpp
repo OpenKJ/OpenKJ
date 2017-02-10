@@ -22,11 +22,11 @@
 #include <QAudioEncoderSettings>
 #include <QUrl>
 #include <QDir>
-#include "khsettings.h"
+#include "settings.h"
 #include <QDebug>
 #include <QDateTime>
 
-extern KhSettings *settings;
+extern Settings *settings;
 
 KhAudioRecorder::KhAudioRecorder(QObject *parent) :
     QObject(parent)

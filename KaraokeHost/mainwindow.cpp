@@ -34,7 +34,7 @@
 #include "okarchive.h"
 
 
-KhSettings *settings;
+Settings *settings;
 KhDb *db;
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -55,7 +55,7 @@ MainWindow::MainWindow(QWidget *parent) :
     {
         khDir->mkpath(khDir->absolutePath());
     }
-    settings = new KhSettings(this);
+    settings = new Settings(this);
     settings->restoreWindowState(this);
     database = new QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE"));
     database->setDatabaseName(khDir->absolutePath() + QDir::separator() + "karaokehost.sqlite");
@@ -66,6 +66,10 @@ MainWindow::MainWindow(QWidget *parent) :
     query.exec("CREATE TABLE IF NOT EXISTS regularSingers ( regsingerid INTEGER PRIMARY KEY AUTOINCREMENT, Name COLLATE NOCASE UNIQUE, ph1 INT, ph2 INT, ph3 INT)");
     query.exec("CREATE TABLE IF NOT EXISTS regularSongs ( regsongid INTEGER PRIMARY KEY AUTOINCREMENT, regsingerid INTEGER NOT NULL, songid INTEGER NOT NULL, 'keychg' INTEGER, 'position' INTEGER)");
     query.exec("CREATE TABLE IF NOT EXISTS sourceDirs ( path VARCHAR(255) UNIQUE, pattern INTEGER)");
+    query.exec("CREATE TABLE IF NOT EXISTS bmsongs ( songid INTEGER PRIMARY KEY AUTOINCREMENT, Artist COLLATE NOCASE, Title COLLATE NOCASE, path VARCHAR(700) NOT NULL UNIQUE, Filename COLLATE NOCASE, Duration TEXT, searchstring TEXT)");
+    query.exec("CREATE TABLE IF NOT EXISTS bmplaylists ( playlistid INTEGER PRIMARY KEY AUTOINCREMENT, title COLLATE NOCASE NOT NULL UNIQUE)");
+    query.exec("CREATE TABLE IF NOT EXISTS bmplsongs ( plsongid INTEGER PRIMARY KEY AUTOINCREMENT, playlist INT, position INT, Artist INT, Title INT, Filename INT, Duration INT, path INT)");
+    query.exec("CREATE TABLE IF NOT EXISTS bmsrcdirs ( path NOT NULL)");
     query.exec("PRAGMA synchronous = OFF");
     sortColDB = 1;
     sortDirDB = 0;
@@ -97,6 +101,7 @@ MainWindow::MainWindow(QWidget *parent) :
     dbDelegate = new DbItemDelegate(this);
     ui->tableViewDB->setItemDelegate(dbDelegate);
     ipcClient = new KhIPCClient("bmControl",this);
+    bmAudioBackend = new AudioBackendGstreamer(this);
     audioBackends = new KhAudioBackends;
 //    audioBackends->push_back(new AudioBackendQtMultimedia());
     audioBackends->push_back(new AudioBackendGstreamer(this));
@@ -188,6 +193,54 @@ MainWindow::MainWindow(QWidget *parent) :
     rotModel->setHeaderData(3,Qt::Horizontal,"");
     rotModel->setHeaderData(4,Qt::Horizontal,"");
     ui->statusBar->addWidget(labelSingerCount);
+
+
+
+    bmCurrentPosition = 0;
+    bmAudioBackend->setUseFader(true);
+    bmAudioBackend->setUseSilenceDetection(true);
+
+    bmPlaylistsModel = new QSqlTableModel(this, *database);
+    bmPlaylistsModel->setTable("bmplaylists");
+    bmPlaylistsModel->sort(2, Qt::AscendingOrder);
+    bmDbModel = new BmDbTableModel(this, *database);
+    bmDbModel->setTable("bmsongs");
+    bmDbModel->select();
+    bmCurrentPlaylist = settings->bmPlaylistIndex();
+    bmPlModel = new BmPlTableModel(this, *database);
+    bmPlModel->select();
+//    ui->actionShow_Filenames->setChecked(settings->bmShowFilenames());
+//    ui->actionShow_Metadata->setChecked(settings->bmShowMetadata());
+    ui->comboBoxPlaylists->setModel(bmPlaylistsModel);
+    ui->comboBoxPlaylists->setModelColumn(1);
+    ui->comboBoxPlaylists->setCurrentIndex(settings->bmPlaylistIndex());
+    if (bmPlaylistsModel->rowCount() == 0)
+    {
+        bmAddPlaylist("Default");
+        ui->comboBoxPlaylists->setCurrentIndex(0);
+    }
+    bmDbDelegate = new BmDbItemDelegate(this);
+    ui->tableViewBmDb->setModel(bmDbModel);
+    ui->tableViewBmDb->setItemDelegate(bmDbDelegate);
+    ui->tableViewBmPlaylist->setModel(bmPlModel);
+    bmPlDelegate = new BmPlItemDelegate(this);
+    ui->tableViewBmPlaylist->setItemDelegate(bmPlDelegate);
+    settings->restoreSplitterState(ui->splitterBm);
+    settings->restoreColumnWidths(ui->tableViewBmDb);
+    settings->restoreColumnWidths(ui->tableViewBmPlaylist);
+    ui->tableViewBmDb->setColumnHidden(0, true);
+    ui->tableViewBmDb->setColumnHidden(3, true);
+    ui->tableViewBmDb->setColumnHidden(6, true);
+    ui->tableViewBmDb->horizontalHeader()->setSectionResizeMode(5, QHeaderView::Fixed);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(5,75);
+    ui->tableViewBmPlaylist->setColumnHidden(0, true);
+    ui->tableViewBmPlaylist->setColumnHidden(1, true);
+    ui->tableViewBmPlaylist->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Fixed);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(2,25);
+    ui->tableViewBmPlaylist->horizontalHeader()->setSectionResizeMode(7, QHeaderView::Fixed);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(7,25);
+    bmAudioBackend->setVolume(settings->bmVolume());
+
 }
 
 void MainWindow::play(QString karaokeFilePath)
@@ -813,4 +866,16 @@ void MainWindow::onBgImageChange()
 {
    if (activeAudioBackend->state() == AbstractAudioBackend::StoppedState)
        cdgWindow->setShowBgImage(true);
+}
+
+void MainWindow::bmAddPlaylist(QString title)
+{
+    if (bmPlaylistsModel->insertRow(bmPlaylistsModel->rowCount()))
+    {
+        QModelIndex index = bmPlaylistsModel->index(bmPlaylistsModel->rowCount() - 1, 1);
+        bmPlaylistsModel->setData(index, title);
+        bmPlaylistsModel->submitAll();
+        bmPlaylistsModel->select();
+        ui->comboBoxPlaylists->setCurrentIndex(index.row());
+    }
 }

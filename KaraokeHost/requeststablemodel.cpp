@@ -28,10 +28,10 @@
 #include <QJsonValue>
 #include <QJsonArray>
 #include <QDateTime>
-#include "khsettings.h"
+#include "settings.h"
 
 
-extern KhSettings *settings;
+extern Settings *settings;
 
 RequestsTableModel::RequestsTableModel(QObject *parent) :
     QAbstractTableModel(parent)

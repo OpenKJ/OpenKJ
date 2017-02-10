@@ -22,9 +22,9 @@
 #include "ui_dlgrequests.h"
 #include <QMenu>
 #include <QMessageBox>
-#include "khsettings.h"
+#include "settings.h"
 
-extern KhSettings *settings;
+extern Settings *settings;
 
 DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     QDialog(parent),

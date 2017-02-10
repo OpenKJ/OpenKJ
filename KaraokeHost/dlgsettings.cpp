@@ -35,7 +35,7 @@
 #include <QNetworkReply>
 #include <QAuthenticator>
 
-extern KhSettings *settings;
+extern Settings *settings;
 
 
 DlgSettings::DlgSettings(KhAudioBackends *AudioBackends, QWidget *parent) :

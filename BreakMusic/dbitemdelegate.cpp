@@ -21,12 +21,12 @@
 #include "dbitemdelegate.h"
 #include <QTime>
 
-DbItemDelegate::DbItemDelegate(QObject *parent) :
+BmDbItemDelegate::BmDbItemDelegate(QObject *parent) :
     QItemDelegate(parent)
 {
 }
 
-void DbItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+void BmDbItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     if (option.state & QStyle::State_Selected)
         painter->fillRect(option.rect, option.palette.highlight());

@@ -18,17 +18,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef DBITEMDELEGATE_H
-#define DBITEMDELEGATE_H
+#ifndef BMDBPLITEMDELEGATE_H
+#define BMDBPLITEMDELEGATE_H
 
 #include <QItemDelegate>
-#include <QPainter>
 
-class BmDbItemDelegate : public QItemDelegate
+class BmPlItemDelegate : public QItemDelegate
 {
     Q_OBJECT
+private:
+    int m_currentSong;
+
 public:
-    explicit BmDbItemDelegate(QObject *parent = 0);
+    explicit BmPlItemDelegate(QObject *parent = 0);
 
 signals:
 
@@ -38,6 +40,12 @@ public slots:
     // QAbstractItemDelegate interface
 public:
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    int currentSong() const;
+    void setCurrentSong(int value);
+
+    // QAbstractItemDelegate interface
+public:
+    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const;
 };
 
-#endif // DBITEMDELEGATE_H
+#endif // PLAYLISTITEMDELEGATE_H

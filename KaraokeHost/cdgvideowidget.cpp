@@ -5,7 +5,7 @@
 #include <QRegion>
 #include <QDebug>
 
-extern KhSettings *settings;
+extern Settings *settings;
 
 #ifdef USE_GL
 CdgVideoWidget::CdgVideoWidget(QWidget *parent) : QGLWidget(parent) , surface(0)
