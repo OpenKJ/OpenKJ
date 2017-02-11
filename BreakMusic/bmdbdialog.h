@@ -18,29 +18,50 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef DATABASEUPDATETHREAD_H
-#define DATABASEUPDATETHREAD_H
+#ifndef BMDBDIALOG_H
+#define BMDBDIALOG_H
 
-#include <QThread>
-#include <QStringList>
+#include <QDialog>
+#include <QSqlTableModel>
+#include <QSqlDatabase>
 
-class BmDbUpdateThread : public QThread
+namespace Ui {
+class BmDbDialog;
+}
+
+class BmDbDialog : public QDialog
 {
     Q_OBJECT
+    
 public:
-    explicit BmDbUpdateThread(QObject *parent = 0);
-    void run();
-    QString path() const;
-    void setPath(const QString &path);
+    explicit BmDbDialog(QSqlDatabase *db, QWidget *parent = 0);
+    ~BmDbDialog();
+    
+private slots:
+    void on_pushButtonAdd_clicked();
+
+    void on_pushButtonUpdateAll_clicked();
+
+    void on_pushButtonClose_clicked();
+
+    void on_pushButtonClearDb_clicked();
+
+    void on_pushButtonDelete_clicked();
+
+    void on_tableViewPaths_clicked(const QModelIndex &index);
+
+    void on_pushButtonUpdate_clicked();
 
 signals:
-    
-public slots:
+    void bmDbUpdated();
+    void bmDbCleared();
 
 private:
-    QString m_path;
-    QStringList *findMediaFiles(QString directory);
-    
+    Ui::BmDbDialog *ui;
+    QSqlTableModel *pathsModel;
+    int selectedDirectoryIdx;
+    QSqlDatabase *m_db;
+
 };
 
-#endif // DATABASEUPDATETHREAD_H
+#endif // DATABASEDIALOG_H

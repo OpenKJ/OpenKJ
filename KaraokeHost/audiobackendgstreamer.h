@@ -42,8 +42,8 @@ private:
 public:
     explicit FaderGStreamer(GstElement *GstVolumeElement, QObject *parent = 0);
     void run();
-    void fadeIn();
-    void fadeOut();
+    void fadeIn(bool waitForFade = true);
+    void fadeOut(bool waitForFade = true);
     bool isFading();
     void restoreVolume();
     void setVolumeElement(GstElement *GstVolumeElement);
@@ -69,7 +69,7 @@ private:
     GstElement *rgVolume;
     GstElement *pitchShifterRubberBand;
     GstElement *pitchShifterSoundtouch;
-    GstElement *volumeElement;
+//    GstElement *volumeElement;
     GstElement *level;
     GstElement *filter;
     GstCaps *audioCapsStereo;
@@ -93,7 +93,7 @@ private:
     double m_currentRmsLevel;
 
 public:
-    explicit AudioBackendGstreamer(QObject *parent = 0);
+    explicit AudioBackendGstreamer(bool loadPitchShift = true, QObject *parent = 0);
     ~AudioBackendGstreamer();
     int volume();
     qint64 position();
@@ -126,8 +126,8 @@ public slots:
     void setVolume(int volume);
     void stop(bool skipFade = false);
     void setPitchShift(int pitchShift);
-    void fadeOut();
-    void fadeIn();
+    void fadeOut(bool waitForFade = true);
+    void fadeIn(bool waitForFade = true);
     void setUseFader(bool fade);
     void setUseSilenceDetection(bool enabled);
     void setDownmix(bool enabled);

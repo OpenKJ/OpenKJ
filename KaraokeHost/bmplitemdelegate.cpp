@@ -57,7 +57,7 @@ void BmPlItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     {
         if (index.row() != m_currentSong)
             return;
-        painter->drawImage(QRect(option.rect.x(),option.rect.y(), 16, 16), QImage(":/icons/play-small.png"));
+        painter->drawImage(QRect(option.rect.x(),option.rect.y(), 16, 16), QImage(":/icons/Icons/play-small.png"));
         return;
     }
     if (index.column() == 6)
@@ -75,7 +75,7 @@ void BmPlItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     }
     if (index.column() == 7)
     {
-        painter->drawImage(QRect(option.rect.x() + leftPad, option.rect.y() + topPad, 16, 16), QImage(":/icons/edit-delete.png"));
+        painter->drawImage(QRect(option.rect.x() + leftPad, option.rect.y() + topPad, 16, 16), QImage(":/icons/Icons/edit-delete.png"));
         return;
     }
     if (index.column() == 6)

@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef PLAYLISTITEMDELEGATE_H
-#define PLAYLISTITEMDELEGATE_H
+#ifndef BMPLITEMDELEGATE_H
+#define BMPLITEMDELEGATE_H
 
 #include <QItemDelegate>
 

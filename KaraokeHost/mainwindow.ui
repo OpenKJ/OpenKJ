@@ -51,7 +51,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <property name="usesScrollButtons">
        <bool>true</bool>
@@ -1834,7 +1834,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLabel" name="labelPlaying">
+                   <widget class="QLabel" name="labelBmPlaying">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -1926,7 +1926,7 @@
                          </widget>
                         </item>
                         <item>
-                         <widget class="QLabel" name="labelDuration">
+                         <widget class="QLabel" name="labelBmDuration">
                           <property name="text">
                            <string>00:00</string>
                           </property>
@@ -1940,7 +1940,7 @@
                          </widget>
                         </item>
                         <item>
-                         <widget class="QLabel" name="labelPosition">
+                         <widget class="QLabel" name="labelBmPosition">
                           <property name="text">
                            <string>00:00</string>
                           </property>
@@ -1954,7 +1954,7 @@
                          </widget>
                         </item>
                         <item>
-                         <widget class="QLabel" name="labelRemaining">
+                         <widget class="QLabel" name="labelBmRemaining">
                           <property name="text">
                            <string>00:00</string>
                           </property>
@@ -1985,7 +1985,7 @@
                          <number>0</number>
                         </property>
                         <item>
-                         <widget class="QSlider" name="sliderPosition">
+                         <widget class="QSlider" name="sliderBmPosition">
                           <property name="focusPolicy">
                            <enum>Qt::NoFocus</enum>
                           </property>
@@ -2016,7 +2016,7 @@
                             <number>0</number>
                            </property>
                            <item>
-                            <widget class="QPushButton" name="buttonPauseBm">
+                            <widget class="QPushButton" name="buttonBmPause">
                              <property name="focusPolicy">
                               <enum>Qt::NoFocus</enum>
                              </property>
@@ -2024,8 +2024,8 @@
                               <string/>
                              </property>
                              <property name="icon">
-                              <iconset resource="../BreakMusic/resources.qrc">
-                               <normaloff>:/icons/media-playback-pause.png</normaloff>:/icons/media-playback-pause.png</iconset>
+                              <iconset resource="resources.qrc">
+                               <normaloff>:/icons/pause</normaloff>:/icons/pause</iconset>
                              </property>
                              <property name="iconSize">
                               <size>
@@ -2042,7 +2042,7 @@
                             </widget>
                            </item>
                            <item>
-                            <widget class="QPushButton" name="buttonStopBm">
+                            <widget class="QPushButton" name="buttonBmStop">
                              <property name="focusPolicy">
                               <enum>Qt::NoFocus</enum>
                              </property>
@@ -2050,8 +2050,8 @@
                               <string/>
                              </property>
                              <property name="icon">
-                              <iconset resource="../BreakMusic/resources.qrc">
-                               <normaloff>:/icons/media-playback-stop.png</normaloff>:/icons/media-playback-stop.png</iconset>
+                              <iconset resource="resources.qrc">
+                               <normaloff>:/icons/stop</normaloff>:/icons/stop</iconset>
                              </property>
                              <property name="iconSize">
                               <size>
@@ -2078,7 +2078,7 @@
                             </spacer>
                            </item>
                            <item>
-                            <widget class="QCheckBox" name="checkBoxBreak">
+                            <widget class="QCheckBox" name="checkBoxBmBreak">
                              <property name="focusPolicy">
                               <enum>Qt::NoFocus</enum>
                              </property>
@@ -2130,7 +2130,7 @@
                        </property>
                        <layout class="QHBoxLayout" name="horizontalLayout_4">
                         <item>
-                         <widget class="QSlider" name="sliderVolumeBm">
+                         <widget class="QSlider" name="sliderBmVolume">
                           <property name="focusPolicy">
                            <enum>Qt::NoFocus</enum>
                           </property>
@@ -2186,7 +2186,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLabel" name="labelNext">
+                   <widget class="QLabel" name="labelBmNext">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -2308,10 +2308,10 @@
                    <number>2</number>
                   </property>
                   <item>
-                   <widget class="QLineEdit" name="lineEditSearchBm"/>
+                   <widget class="QLineEdit" name="lineEditBmSearch"/>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="buttonSearchBm">
+                   <widget class="QPushButton" name="buttonBmSearch">
                     <property name="minimumSize">
                      <size>
                       <width>24</width>
@@ -2337,8 +2337,8 @@
                      <string/>
                     </property>
                     <property name="icon">
-                     <iconset resource="../BreakMusic/resources.qrc">
-                      <normaloff>:/icons/system-search.png</normaloff>:/icons/system-search.png</iconset>
+                     <iconset resource="resources.qrc">
+                      <normaloff>:/icons/Icons/system-search.png</normaloff>:/icons/Icons/system-search.png</iconset>
                     </property>
                     <property name="iconSize">
                      <size>
@@ -2436,7 +2436,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QComboBox" name="comboBoxPlaylists">
+                   <widget class="QComboBox" name="comboBoxBmPlaylists">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                       <horstretch>0</horstretch>
@@ -2541,6 +2541,7 @@
      <string>Tools</string>
     </property>
     <addaction name="actionManage_DB"/>
+    <addaction name="actionManage_Break_DB"/>
     <addaction name="actionRegulars"/>
     <addaction name="actionIncoming_Requests"/>
     <addaction name="actionSettings"/>
@@ -2556,7 +2557,7 @@
   </action>
   <action name="actionManage_DB">
    <property name="text">
-    <string>Manage DB</string>
+    <string>Manage Karaoke DB</string>
    </property>
   </action>
   <action name="actionRegulars">
@@ -2589,6 +2590,11 @@
     <string>Import Regulars</string>
    </property>
   </action>
+  <action name="actionManage_Break_DB">
+   <property name="text">
+    <string>Manage Break DB</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -2601,7 +2607,6 @@
  </customwidgets>
  <resources>
   <include location="resources.qrc"/>
-  <include location="../BreakMusic/resources.qrc"/>
  </resources>
  <connections/>
  <slots>

@@ -31,7 +31,7 @@
 #include <QLabel>
 #include "dlgdatabase.h"
 #include "dlgsettings.h"
-#include "khipcclient.h"
+//#include "khipcclient.h"
 #include "abstractaudiobackend.h"
 #include "audiobackendgstreamer.h"
 #include "dlgcdg.h"
@@ -53,6 +53,7 @@
 #include "bmdbitemdelegate.h"
 #include "bmpltablemodel.h"
 #include "bmplitemdelegate.h"
+#include "bmdbdialog.h"
 #include <QThread>
 
 using namespace std;
@@ -88,7 +89,7 @@ private:
     KhAudioBackends *audioBackends;
     KhAudioRecorder *audioRecorder;
     AudioBackendGstreamer *bmAudioBackend;
-    KhIPCClient *ipcClient;
+//    KhIPCClient *ipcClient;
     QLabel *labelSingerCount;
     bool sliderPositionPressed;
     void play(QString karaokeFilePath);
@@ -101,6 +102,7 @@ private:
     int sortDirDB;
     QString previewZip;
 
+    BmDbDialog *bmDbDialog;
     BmDbTableModel *bmDbModel;
     BmDbItemDelegate *bmDbDelegate;
     BmPlTableModel *bmPlModel;
@@ -109,6 +111,8 @@ private:
     int bmCurrentPosition;
     int bmCurrentPlaylist;
     void bmAddPlaylist(QString title);
+    bool bmPlaylistExists(QString name);
+
 
 
 public:
@@ -165,6 +169,24 @@ private slots:
     void setShowBgImage(bool show);
     void onBgImageChange();
 
+    void bmDbUpdated();
+    void bmDbCleared();
+    void bmShowMetadata(bool checked);
+    void bmShowFilenames(bool checked);
+    void bmMediaStateChanged(AbstractAudioBackend::State newState);
+    void bmMediaPositionChanged(qint64 position);
+    void bmMediaDurationChanged(qint64 duration);
+    void on_actionManage_Break_DB_triggered();
+    void on_tableViewBmPlaylist_clicked(const QModelIndex &index);
+    void on_comboBoxBmPlaylists_currentIndexChanged(int index);
+    void on_checkBoxBmBreak_toggled(bool checked);
+    void on_tableViewBmDb_activated(const QModelIndex &index);
+    void on_buttonBmStop_clicked();
+    void on_lineEditBmSearch_returnPressed();
+    void on_tableViewBmPlaylist_activated(const QModelIndex &index);
+    void on_sliderBmVolume_valueChanged(int value);
+    void on_sliderBmPosition_sliderMoved(int position);
+    void on_buttonBmPause_clicked(bool checked);
 };
 
 

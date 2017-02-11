@@ -18,36 +18,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef BMDBITEMDELEGATE_H
+#define BMDBITEMDELEGATE_H
 
-#ifndef KHIPCCLIENT_H
-#define KHIPCCLIENT_H
+#include <QItemDelegate>
+#include <QPainter>
 
-#include <QObject>
-#include <QtNetwork/QLocalSocket>
-
-class KhIPCClient : public QObject
+class BmDbItemDelegate : public QItemDelegate
 {
     Q_OBJECT
-
-private:
-    QLocalSocket*   m_socket;
-    quint16 m_blockSize;
-    QString m_message;
-    QString m_serverName;
-    int m_command;
-
 public:
-    KhIPCClient(QString remoteServername, QObject *parent = 0);
-    ~KhIPCClient();
-    enum{CMD_NOOP=0,CMD_FADE_OUT,CMD_FADE_IN,CMD_STOP,CMD_PAUSE,CMD_PLAY};
+    explicit BmDbItemDelegate(QObject *parent = 0);
+
+signals:
 
 public slots:
-    void send_MessageToServer(int command);
-    void socket_connected();
-    void socket_disconnected();
-    void socket_readReady();
-    void socket_error(QLocalSocket::LocalSocketError);
 
+
+    // QAbstractItemDelegate interface
+public:
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
 };
 
-#endif // KHIPCCLIENT_H
+#endif // DBITEMDELEGATE_H

@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "dbtablemodel.h"
+#include "bmdbtablemodel.h"
 #include <QMimeData>
 #include <QStringList>
 

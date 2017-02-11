@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "pltablemodel.h"
+#include "bmpltablemodel.h"
 #include <QSqlQuery>
 #include <QDebug>
 
@@ -26,13 +26,13 @@ BmPlTableModel::BmPlTableModel(QObject *parent, QSqlDatabase db) :
     QSqlRelationalTableModel(parent, db)
 {
     m_playlistId = -1;
-    setTable("plsongs");
-    setRelation(1, QSqlRelation("playlists", "playlistid", "title"));
-    setRelation(3, QSqlRelation("songs", "songid", "artist"));
-    setRelation(4, QSqlRelation("songs", "songid", "title"));
-    setRelation(5, QSqlRelation("songs", "songid", "filename"));
-    setRelation(6, QSqlRelation("songs", "songid", "duration"));
-    setRelation(7, QSqlRelation("songs", "songid", "path"));
+    setTable("bmplsongs");
+    setRelation(1, QSqlRelation("bmplaylists", "playlistid", "title"));
+    setRelation(3, QSqlRelation("bmsongs", "songid", "artist"));
+    setRelation(4, QSqlRelation("bmsongs", "songid", "title"));
+    setRelation(5, QSqlRelation("bmsongs", "songid", "filename"));
+    setRelation(6, QSqlRelation("bmsongs", "songid", "duration"));
+    setRelation(7, QSqlRelation("bmsongs", "songid", "path"));
     setHeaderData(2, Qt::Horizontal, "");
     setHeaderData(7, Qt::Horizontal, "");
     setSort(2, Qt::AscendingOrder);
@@ -46,17 +46,17 @@ void BmPlTableModel::moveSong(int oldPosition, int newPosition)
     if (newPosition > oldPosition)
     {
         // Moving down
-        QString sql = "UPDATE plsongs SET position = position - 1 WHERE position > " + QString::number(oldPosition) + " AND position <= " + QString::number(newPosition) + " AND plsongid != " + QString::number(plSongId);
+        QString sql = "UPDATE bmplsongs SET position = position - 1 WHERE position > " + QString::number(oldPosition) + " AND position <= " + QString::number(newPosition) + " AND plsongid != " + QString::number(plSongId);
         query.exec(sql);
-        sql = "UPDATE plsongs SET position = " + QString::number(newPosition) + " WHERE plsongid == " + QString::number(plSongId);
+        sql = "UPDATE bmplsongs SET position = " + QString::number(newPosition) + " WHERE plsongid == " + QString::number(plSongId);
         query.exec(sql);
     }
     else if (newPosition < oldPosition)
     {
         // Moving up
-        QString sql = "UPDATE plsongs SET position = position + 1 WHERE position >= " + QString::number(newPosition) + " AND position < " + QString::number(oldPosition) + " AND plsongid != " + QString::number(plSongId);
+        QString sql = "UPDATE bmplsongs SET position = position + 1 WHERE position >= " + QString::number(newPosition) + " AND position < " + QString::number(oldPosition) + " AND plsongid != " + QString::number(plSongId);
         query.exec(sql);
-        sql = "UPDATE plsongs SET position = " + QString::number(newPosition) + " WHERE plsongid == " + QString::number(plSongId);
+        sql = "UPDATE bmplsongs SET position = " + QString::number(newPosition) + " WHERE plsongid == " + QString::number(plSongId);
         query.exec(sql);
     }
     query.exec("COMMIT TRANSACTION");
@@ -67,7 +67,7 @@ void BmPlTableModel::addSong(int songId)
 {
     QSqlQuery query;
     QString sIdStr = QString::number(songId);
-    QString sql = "INSERT INTO plsongs (playlist,position,artist,title,filename,duration,path) VALUES(" + QString::number(m_playlistId) + "," + QString::number(rowCount()) + "," + sIdStr + "," + sIdStr + "," + sIdStr + "," + sIdStr + "," + sIdStr + ")";
+    QString sql = "INSERT INTO bmplsongs (playlist,position,artist,title,filename,duration,path) VALUES(" + QString::number(m_playlistId) + "," + QString::number(rowCount()) + "," + sIdStr + "," + sIdStr + "," + sIdStr + "," + sIdStr + "," + sIdStr + ")";
     qDebug() << sql;
     query.exec(sql);
     select();
@@ -82,8 +82,8 @@ void BmPlTableModel::insertSong(int songId, int position)
 void BmPlTableModel::deleteSong(int position)
 {
     int plSongId = index(position,0).data().toInt();
-    QSqlQuery query("DELETE FROM plsongs WHERE plsongid == " + QString::number(plSongId));
-    query.exec("UPDATE plsongs SET position = position - 1 WHERE position > " + QString::number(position));
+    QSqlQuery query("DELETE FROM bmplsongs WHERE plsongid == " + QString::number(plSongId));
+    query.exec("UPDATE bmplsongs SET position = position - 1 WHERE position > " + QString::number(position));
     select();
 }
 
@@ -101,7 +101,7 @@ int BmPlTableModel::currentPlaylist()
 
 int BmPlTableModel::getSongIdByFilePath(QString filePath)
 {
-    QSqlQuery query("SELECT songid FROM songs WHERE path == \"" + filePath + "\" LIMIT 1");
+    QSqlQuery query("SELECT songid FROM bmsongs WHERE path == \"" + filePath + "\" LIMIT 1");
     if (query.first())
         return query.value(0).toInt();
 

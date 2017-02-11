@@ -18,34 +18,50 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SONGSTABLEMODEL_H
-#define SONGSTABLEMODEL_H
+#ifndef BMDBDIALOG_H
+#define BMDBDIALOG_H
 
+#include <QDialog>
 #include <QSqlTableModel>
+#include <QSqlDatabase>
 
-class BmDbTableModel : public QSqlTableModel
+namespace Ui {
+class BmDbDialog;
+}
+
+class BmDbDialog : public QDialog
 {
     Q_OBJECT
+    
+public:
+    explicit BmDbDialog(QSqlDatabase *db, QWidget *parent = 0);
+    ~BmDbDialog();
+    
+private slots:
+    void on_pushButtonAdd_clicked();
+
+    void on_pushButtonUpdateAll_clicked();
+
+    void on_pushButtonClose_clicked();
+
+    void on_pushButtonClearDb_clicked();
+
+    void on_pushButtonDelete_clicked();
+
+    void on_tableViewPaths_clicked(const QModelIndex &index);
+
+    void on_pushButtonUpdate_clicked();
+
+signals:
+    void bmDbUpdated();
+    void bmDbCleared();
+
 private:
-    int sortColumn;
-    QString artistOrder;
-    QString titleOrder;
-    QString filenameOrder;
-public:
-    explicit BmDbTableModel(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
-    void search(QString searchString);
-    enum {SORT_ARTIST=1,SORT_TITLE=2,SORT_FILENAME=4,SORT_DURATION=5};
-
-    // QAbstractItemModel interface
-public:
-    QMimeData *mimeData(const QModelIndexList &indexes) const;
-    void sort(int column, Qt::SortOrder order);
-    Qt::ItemFlags flags(const QModelIndex &index) const;
-
-    // QSqlTableModel interface
-protected:
-    QString orderByClause() const;
+    Ui::BmDbDialog *ui;
+    QSqlTableModel *pathsModel;
+    int selectedDirectoryIdx;
+    QSqlDatabase *m_db;
 
 };
 
-#endif // SONGSTABLEMODEL_H
+#endif // DATABASEDIALOG_H

@@ -72,7 +72,7 @@ void BmDbUpdateThread::run()
         QString artist = reader.getArtist();
         QString title = reader.getTitle();
         QString filename = QFileInfo(files->at(i)).fileName();
-        QString queryString = "INSERT OR IGNORE INTO songs (artist,title,path,filename,duration,searchstring) VALUES(\"" + artist + "\",\"" + title + "\",\"" + files->at(i) + "\",\"" + filename + "\",\"" + duration + "\",\"" + artist + title + filename + "\")";
+        QString queryString = "INSERT OR IGNORE INTO bmsongs (artist,title,path,filename,duration,searchstring) VALUES(\"" + artist + "\",\"" + title + "\",\"" + files->at(i) + "\",\"" + filename + "\",\"" + duration + "\",\"" + artist + title + filename + "\")";
         query.exec(queryString);
     }
     query.exec("COMMIT TRANSACTION");

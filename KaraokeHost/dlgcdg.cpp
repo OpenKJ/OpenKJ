@@ -67,6 +67,7 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
     connect(settings, SIGNAL(cdgShowCdgWindowChanged(bool)), this, SLOT(setVisible(bool)));
     connect(settings, SIGNAL(cdgWindowFullscreenChanged(bool)), this, SLOT(setFullScreen(bool)));
     fullScreenTimer = new QTimer(this);
+    setShowBgImage(true);
     connect(fullScreenTimer, SIGNAL(timeout()), this, SLOT(fullScreenTimerTimeout()));
     fullScreenTimer->setInterval(500);
     ui->cdgVideo->videoSurface()->start();
@@ -76,10 +77,9 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
     }
     else if (settings->showCdgWindow())
         show();
-    fullScreenTimer = new QTimer(this);
-    connect(fullScreenTimer, SIGNAL(timeout()), this, SLOT(fullScreenTimerTimeout()));
-    fullScreenTimer->setInterval(500);
-    setShowBgImage(true);
+    else
+        hide();
+
 }
 
 DlgCdg::~DlgCdg()
@@ -118,7 +118,8 @@ void DlgCdg::makeWindowed()
 {
     setWindowFlags(Qt::Window);
     resize(300, 216);
-    show();
+    if (settings->showCdgWindow())
+        show();
     ui->cdgVideo->repaint();
     m_fullScreen = false;
 }
@@ -248,8 +249,11 @@ void DlgCdg::fullScreenTimerTimeout()
 {
     // This is to work around Windows 10 opening the window offset from the top left corner unless we wait a bit
     // before moving it.
-    setVOffset(settings->cdgVOffset());
-    setHOffset(settings->cdgHOffset());
-    fullScreenTimer->stop();
+    if ((settings->showCdgWindow()) && (settings->cdgWindowFullscreen()))
+    {
+        setVOffset(settings->cdgVOffset());
+        setHOffset(settings->cdgHOffset());
+        fullScreenTimer->stop();
+    }
 }
 

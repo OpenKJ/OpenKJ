@@ -117,7 +117,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="labelPlaying">
+               <widget class="QLabel" name="labelBmPlaying">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
                   <horstretch>0</horstretch>
@@ -209,7 +209,7 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLabel" name="labelDuration">
+                     <widget class="QLabel" name="labelBmDuration">
                       <property name="text">
                        <string>00:00</string>
                       </property>
@@ -223,7 +223,7 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLabel" name="labelPosition">
+                     <widget class="QLabel" name="labelBmPosition">
                       <property name="text">
                        <string>00:00</string>
                       </property>
@@ -237,7 +237,7 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLabel" name="labelRemaining">
+                     <widget class="QLabel" name="labelBmRemaining">
                       <property name="text">
                        <string>00:00</string>
                       </property>
@@ -268,7 +268,7 @@
                      <number>0</number>
                     </property>
                     <item>
-                     <widget class="QSlider" name="sliderPosition">
+                     <widget class="QSlider" name="sliderBmPosition">
                       <property name="focusPolicy">
                        <enum>Qt::NoFocus</enum>
                       </property>
@@ -299,7 +299,7 @@
                         <number>0</number>
                        </property>
                        <item>
-                        <widget class="QPushButton" name="buttonPause">
+                        <widget class="QPushButton" name="buttonBmPause">
                          <property name="focusPolicy">
                           <enum>Qt::NoFocus</enum>
                          </property>
@@ -325,7 +325,7 @@
                         </widget>
                        </item>
                        <item>
-                        <widget class="QPushButton" name="buttonStop">
+                        <widget class="QPushButton" name="buttonBmStop">
                          <property name="focusPolicy">
                           <enum>Qt::NoFocus</enum>
                          </property>
@@ -361,7 +361,7 @@
                         </spacer>
                        </item>
                        <item>
-                        <widget class="QCheckBox" name="checkBoxBreak">
+                        <widget class="QCheckBox" name="checkBoxBmBreak">
                          <property name="focusPolicy">
                           <enum>Qt::NoFocus</enum>
                          </property>
@@ -413,7 +413,7 @@
                    </property>
                    <layout class="QHBoxLayout" name="horizontalLayout_4">
                     <item>
-                     <widget class="QSlider" name="sliderVolume">
+                     <widget class="QSlider" name="sliderBmVolume">
                       <property name="focusPolicy">
                        <enum>Qt::NoFocus</enum>
                       </property>
@@ -469,7 +469,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="labelNext">
+               <widget class="QLabel" name="labelBmNext">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
                   <horstretch>0</horstretch>
@@ -515,7 +515,7 @@
             <number>0</number>
            </property>
            <item>
-            <widget class="QTableView" name="tableViewDB">
+            <widget class="QTableView" name="tableViewBmDb">
              <property name="frameShape">
               <enum>QFrame::Box</enum>
              </property>
@@ -591,10 +591,10 @@
                <number>2</number>
               </property>
               <item>
-               <widget class="QLineEdit" name="lineEditSearch"/>
+               <widget class="QLineEdit" name="lineEditBmSearch"/>
               </item>
               <item>
-               <widget class="QPushButton" name="buttonSearch">
+               <widget class="QPushButton" name="buttonBmSearch">
                 <property name="minimumSize">
                  <size>
                   <width>24</width>
@@ -719,7 +719,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QComboBox" name="comboBoxPlaylists">
+               <widget class="QComboBox" name="comboBoxBmPlaylists">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -732,7 +732,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QTableView" name="tableViewPlaylist">
+            <widget class="QTableView" name="tableViewBmPlaylist">
              <property name="focusPolicy">
               <enum>Qt::WheelFocus</enum>
              </property>

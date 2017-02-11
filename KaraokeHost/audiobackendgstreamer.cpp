@@ -24,7 +24,7 @@
 #include <string.h>
 #include <math.h>
 
-AudioBackendGstreamer::AudioBackendGstreamer(QObject *parent) :
+AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *parent) :
     AbstractAudioBackend(parent)
 {
     m_volume = 0;
@@ -43,7 +43,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(QObject *parent) :
     audioConvert2 = gst_element_factory_make("audioconvert", "audioConvert2");
     autoAudioSink = gst_element_factory_make("autoaudiosink", "autoAudioSink");
     rgVolume = gst_element_factory_make("rgvolume", "rgVolume");
-    volumeElement = gst_element_factory_make("volume", "volumeElement");
+//    volumeElement = gst_element_factory_make("volume", "volumeElement");
     level = gst_element_factory_make("level", "level");
     pitchShifterSoundtouch = gst_element_factory_make("pitch", "pitch");
     pitchShifterRubberBand = gst_element_factory_make("ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo", "ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo");
@@ -53,24 +53,24 @@ AudioBackendGstreamer::AudioBackendGstreamer(QObject *parent) :
     audioCapsStereo = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 2, NULL);
     audioCapsMono = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 1, NULL);
     g_object_set(filter, "caps", audioCapsStereo, NULL);
-    if (pitchShifterRubberBand)
+    if ((pitchShifterRubberBand) && (loadPitchShift))
     {
         // This is our preferred pitch shifter because it sounds better, but it's only available on Linux
         qCritical() << "Pitch shift ladspa plugin \"Rubber Band\" found, enabling key changing";
-        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, pitchShifterRubberBand, level, volumeElement, autoAudioSink, NULL);
-        gst_element_link_many(filter, rgVolume, audioConvert, pitchShifterRubberBand, level, volumeElement, autoAudioSink, NULL);
+        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, pitchShifterRubberBand, level, autoAudioSink, NULL);
+        gst_element_link_many(filter, rgVolume, audioConvert, pitchShifterRubberBand, level, autoAudioSink, NULL);
         g_object_set(G_OBJECT(pitchShifterRubberBand), "formant-preserving", true, NULL);
         g_object_set(G_OBJECT(pitchShifterRubberBand), "crispness", 1, NULL);
         g_object_set(G_OBJECT(pitchShifterRubberBand), "semitones", 1.0, NULL);
         m_canKeyChange = true;
         m_keyChangerRubberBand = true;
     }
-    else if (pitchShifterSoundtouch)
+    else if ((pitchShifterSoundtouch) && (loadPitchShift))
     {
         // This is our fallback, and the only one reliably available on Windows.  It's not ideal, but it works.
         qCritical() << "Pitch shift plugin \"soundtouch pitch\" found, enabling key changing";
-        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, pitchShifterSoundtouch, audioConvert2, level, volumeElement, autoAudioSink, NULL);
-        gst_element_link_many(filter, rgVolume, audioConvert, pitchShifterSoundtouch, audioConvert2, level, volumeElement, autoAudioSink, NULL);
+        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, pitchShifterSoundtouch, audioConvert2, level, autoAudioSink, NULL);
+        gst_element_link_many(filter, rgVolume, audioConvert, pitchShifterSoundtouch, audioConvert2, level, autoAudioSink, NULL);
         g_object_set(G_OBJECT(pitchShifterSoundtouch), "pitch", 1.0, "tempo", 1.0, NULL);
         m_canKeyChange = true;
         m_keyChangerSoundtouch = true;
@@ -79,8 +79,8 @@ AudioBackendGstreamer::AudioBackendGstreamer(QObject *parent) :
     {
         // No supported pitch shift plugin on the system
         qCritical() << "No supported pitch shifting gstreamer plugin found, key changing disabled";
-        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, level, volumeElement, autoAudioSink, NULL);
-        gst_element_link_many(filter, rgVolume, audioConvert, level, volumeElement, autoAudioSink, NULL);
+        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, level, autoAudioSink, NULL);
+        gst_element_link_many(filter, rgVolume, audioConvert, level, autoAudioSink, NULL);
         m_canKeyChange = false;
     }
     pad = gst_element_get_static_pad(filter, "sink");
@@ -92,7 +92,8 @@ AudioBackendGstreamer::AudioBackendGstreamer(QObject *parent) :
     g_object_set(G_OBJECT(rgVolume), "album-mode", false, NULL);
     g_object_set(G_OBJECT (level), "message", TRUE, NULL);
     bus = gst_element_get_bus (playBin);
-    fader = new FaderGStreamer(volumeElement, this);
+//    fader = new FaderGStreamer(volumeElement, this);
+    fader = new FaderGStreamer(playBin, this);
     slowTimer = new QTimer(this);
     connect(slowTimer, SIGNAL(timeout()), this, SLOT(slowTimer_timeout()));
     slowTimer->start(1000);
@@ -246,12 +247,12 @@ void AudioBackendGstreamer::setMuted(bool muted)
 {
     if (muted)
     {
-        g_object_set(G_OBJECT(volumeElement), "volume", 0.0, NULL);
+        g_object_set(G_OBJECT(playBin), "volume", 0.0, NULL);
         muted = true;
     }
     else
     {
-        g_object_set(G_OBJECT(volumeElement), "volume", m_volume * .01, NULL);
+        g_object_set(G_OBJECT(playBin), "volume", m_volume * .01, NULL);
         muted = false;
     }
 
@@ -272,7 +273,7 @@ void AudioBackendGstreamer::setVolume(int volume)
 {
     m_volume = volume;
     fader->setBaseVolume(volume);
-    g_object_set(G_OBJECT(volumeElement), "volume", volume * .01, NULL);
+    g_object_set(G_OBJECT(playBin), "volume", volume * .01, NULL);
     emit volumeChanged(volume);
 }
 
@@ -360,7 +361,7 @@ void AudioBackendGstreamer::setPitchShift(int pitchShift)
 {
     m_keyChange = pitchShift;
     if (m_keyChangerRubberBand)
-        g_object_set(G_OBJECT(pitchShifterRubberBand), "semitones", pitchShift, "tempo", 1.0, NULL);
+        g_object_set(G_OBJECT(pitchShifterRubberBand), "semitones", NULL);
     else if (m_keyChangerSoundtouch)
     {
         g_object_set(G_OBJECT(pitchShifterSoundtouch), "pitch", getPitchForSemitone(pitchShift), NULL);
@@ -375,7 +376,6 @@ FaderGStreamer::FaderGStreamer(GstElement *GstVolumeElement, QObject *parent) :
     m_preOutVolume = 0;
     m_targetVolume = 0;
     fading = false;
-
 }
 
 void FaderGStreamer::run()
@@ -385,19 +385,19 @@ void FaderGStreamer::run()
     {
         if (volume() > m_targetVolume)
         {
-            if (volume() < .01)
+            if (volume() < .02)
                 setVolume(0);
             else
-                setVolume(volume() - .01);
+                setVolume(volume() - .02);
         }
         if (volume() < m_targetVolume)
-            setVolume(volume() + .01);
-        QThread::msleep(30);
+            setVolume(volume() + .02);
+        QThread::msleep(100);
     }
     fading = false;
 }
 
-void FaderGStreamer::fadeIn()
+void FaderGStreamer::fadeIn(bool waitForFade)
 {
     qDebug() << "fadeIn() - Started";
     m_targetVolume = m_preOutVolume;
@@ -411,12 +411,15 @@ void FaderGStreamer::fadeIn()
         qDebug() << "fadeIn() - A fade operation is already in progress... skipping";
         return;
     }
-    while(fading)
-        QApplication::processEvents();
+    if (waitForFade)
+    {
+        while(fading)
+            QApplication::processEvents();
+    }
     qDebug() << "fadeIn() - Finished";
 }
 
-void FaderGStreamer::fadeOut()
+void FaderGStreamer::fadeOut(bool waitForFade)
 {
     qDebug() << "fadeOut() - Started";
     m_targetVolume = 0;
@@ -431,8 +434,11 @@ void FaderGStreamer::fadeOut()
         qDebug() << "fadeOut() - A fade operation is already in progress... skipping";
         return;
     }
-    while(fading)
-        QApplication::processEvents();
+    if (waitForFade)
+    {
+        while(fading)
+            QApplication::processEvents();
+    }
     qDebug() << "fadeOut() - Finished";
 }
 
@@ -476,14 +482,14 @@ bool AudioBackendGstreamer::canFade()
     return true;
 }
 
-void AudioBackendGstreamer::fadeOut()
+void AudioBackendGstreamer::fadeOut(bool waitForFade)
 {
-    fader->fadeOut();
+    fader->fadeOut(waitForFade);
 }
 
-void AudioBackendGstreamer::fadeIn()
+void AudioBackendGstreamer::fadeIn(bool waitForFade)
 {
-    fader->fadeIn();
+    fader->fadeIn(waitForFade);
 }
 
 void AudioBackendGstreamer::setUseFader(bool fade)

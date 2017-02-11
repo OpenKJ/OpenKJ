@@ -13,33 +13,33 @@ win32: RC_FILE = BreakMusic.rc
 
 SOURCES += main.cpp\
     mainwindow.cpp \
-    databasedialog.cpp \
     bmipcserver.cpp \
     bmsettings.cpp \
-    pltablemodel.cpp \
-    plitemdelegate.cpp \
-    dbtablemodel.cpp \
-    dbupdatethread.cpp \
-    dbitemdelegate.cpp \
     abstractaudiobackend.cpp \
     audiobackendgstreamer.cpp \
-    tagreader.cpp
+    tagreader.cpp \
+    bmdbdialog.cpp \
+    bmdbupdatethread.cpp \
+    bmdbitemdelegate.cpp \
+    bmdbtablemodel.cpp \
+    bmpltablemodel.cpp \
+    bmplitemdelegate.cpp
 
 HEADERS  += mainwindow.h \
-    databasedialog.h \
     bmipcserver.h \
     bmsettings.h \
-    pltablemodel.h \
-    plitemdelegate.h \
-    dbtablemodel.h \
-    dbupdatethread.h \
-    dbitemdelegate.h \
     abstractaudiobackend.h \
     audiobackendgstreamer.h \
-    tagreader.h
+    tagreader.h \
+    bmdbdialog.h \
+    bmdbupdatethread.h \
+    bmdbitemdelegate.h \
+    bmdbtablemodel.h \
+    bmpltablemodel.h \
+    bmplitemdelegate.h
 
 FORMS    += mainwindow.ui \
-    databasedialog.ui
+    bmdbdialog.ui
 
 RESOURCES += \
     resources.qrc

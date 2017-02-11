@@ -25,15 +25,15 @@
 #include "bmipcserver.h"
 #include <QtSql>
 #include <QDir>
-#include "databasedialog.h"
+#include "bmdbdialog.h"
 //#include "audiobackendqtmultimedia.h"
 //#include "bmabstractaudiobackend.h"
 #include "abstractaudiobackend.h"
 #include "audiobackendgstreamer.h"
-#include "dbtablemodel.h"
-#include "pltablemodel.h"
-#include "plitemdelegate.h"
-#include "dbitemdelegate.h"
+#include "bmdbtablemodel.h"
+#include "bmpltablemodel.h"
+#include "bmplitemdelegate.h"
+#include "bmdbitemdelegate.h"
 #include <QSqlTableModel>
 
 
@@ -54,7 +54,7 @@ private:
     BmIPCServer *ipcServer;
     QSqlDatabase *database;
     QDir *khDir;
-    DatabaseDialog *dbDialog;
+    BmDbDialog *bmDbDialog;
     BmDbTableModel *bmDbModel;
     BmDbItemDelegate *bmDbDelegate;
     BmPlTableModel *bmPlModel;
@@ -65,35 +65,44 @@ private:
 
     int bmCurrentPosition;
     int bmCurrentPlaylist;
-    bool playlistExists(QString name);
+    bool bmPlaylistExists(QString name);
     void bmAddPlaylist(QString title);
 
 private slots:
     void ipcMessageReceived(int ipcCommand);
-    void on_tableViewDB_activated(const QModelIndex &index);
-    void on_buttonStop_clicked();
-    void on_lineEditSearch_returnPressed();
-    void on_tableViewPlaylist_activated(const QModelIndex &index);
-    void on_sliderVolume_valueChanged(int value);
-    void on_sliderPosition_sliderMoved(int position);
-    void on_mediaPositionChanged(qint64 position);
-    void on_mediaDurationChanged(qint64 duration);
-    void on_buttonPause_clicked(bool checked);
-    void showMetadata(bool checked);
-    void showFilenames(bool checked);
+
     void on_actionImport_Playlist_triggered();
     void on_actionExport_Playlist_triggered();
     void on_actionNew_Playlist_triggered();
     void on_actionRemove_Playlist_triggered();
+
+
+    //Migrated
+    void bmMediaStateChanged(AbstractAudioBackend::State newState);
+    void bmMediaPositionChanged(qint64 position);
+    void bmMediaDurationChanged(qint64 duration);
+    void bmDbUpdated();
+    void bmDbCleared();
+    void bmShowMetadata(bool checked);
+    void bmShowFilenames(bool checked);
+    void on_tableViewBmPlaylist_clicked(const QModelIndex &index);
+    void on_comboBoxBmPlaylists_currentIndexChanged(int index);
+    void on_checkBoxBmBreak_toggled(bool checked);
+    void on_tableViewBmDb_activated(const QModelIndex &index);
+    void on_buttonBmStop_clicked();
+    void on_lineEditBmSearch_returnPressed();
+    void on_tableViewBmPlaylist_activated(const QModelIndex &index);
+    void on_sliderBmVolume_valueChanged(int value);
+    void on_sliderBmPosition_sliderMoved(int position);
+    void on_buttonBmPause_clicked(bool checked);
+
+    //Ruled out
     void on_actionAbout_triggered();
-    void mediaStateChanged(AbstractAudioBackend::State newState);
-    void dbUpdated();
-    void dbCleared();
-    void on_tableViewPlaylist_clicked(const QModelIndex &index);
-    void on_comboBoxPlaylists_currentIndexChanged(int index);
-    void on_checkBoxBreak_toggled(bool checked);
+
 
 public slots:
+
+    //Migrated
     void onActionManageDatabase();
 
 };

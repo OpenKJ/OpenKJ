@@ -56,11 +56,11 @@ MainWindow::MainWindow(QWidget *parent) :
     database->setDatabaseName(khDir->absolutePath() + QDir::separator() + "breakmusic.sqlite");
     database->open();
     QSqlQuery query;
-    query.exec("CREATE TABLE IF NOT EXISTS songs ( songid INTEGER PRIMARY KEY AUTOINCREMENT, Artist COLLATE NOCASE, Title COLLATE NOCASE, path VARCHAR(700) NOT NULL UNIQUE, Filename COLLATE NOCASE, Duration TEXT, searchstring TEXT)");
-    query.exec("CREATE TABLE IF NOT EXISTS playlists ( playlistid INTEGER PRIMARY KEY AUTOINCREMENT, title COLLATE NOCASE NOT NULL UNIQUE)");
-    query.exec("CREATE TABLE IF NOT EXISTS plsongs ( plsongid INTEGER PRIMARY KEY AUTOINCREMENT, playlist INT, position INT, Artist INT, Title INT, Filename INT, Duration INT, path INT)");
-    query.exec("CREATE TABLE IF NOT EXISTS srcdirs ( path NOT NULL)");
-    dbDialog = new DatabaseDialog(database,this);
+    query.exec("CREATE TABLE IF NOT EXISTS bmsongs ( songid INTEGER PRIMARY KEY AUTOINCREMENT, Artist COLLATE NOCASE, Title COLLATE NOCASE, path VARCHAR(700) NOT NULL UNIQUE, Filename COLLATE NOCASE, Duration TEXT, searchstring TEXT)");
+    query.exec("CREATE TABLE IF NOT EXISTS bmplaylists ( playlistid INTEGER PRIMARY KEY AUTOINCREMENT, title COLLATE NOCASE NOT NULL UNIQUE)");
+    query.exec("CREATE TABLE IF NOT EXISTS bmplsongs ( plsongid INTEGER PRIMARY KEY AUTOINCREMENT, playlist INT, position INT, Artist INT, Title INT, Filename INT, Duration INT, path INT)");
+    query.exec("CREATE TABLE IF NOT EXISTS bmsrcdirs ( path NOT NULL)");
+    bmDbDialog = new BmDbDialog(database,this);
     bmPlaylistsModel = new QSqlTableModel(this, *database);
     bmPlaylistsModel->setTable("bmplaylists");
     bmPlaylistsModel->sort(2, Qt::AscendingOrder);
@@ -72,56 +72,56 @@ MainWindow::MainWindow(QWidget *parent) :
     bmPlModel->select();
     ui->actionShow_Filenames->setChecked(settings->bmShowFilenames());
     ui->actionShow_Metadata->setChecked(settings->bmShowMetadata());
-    ui->comboBoxPlaylists->setModel(bmPlaylistsModel);
-    ui->comboBoxPlaylists->setModelColumn(1);
-    ui->comboBoxPlaylists->setCurrentIndex(settings->bmPlaylistIndex());
+    ui->comboBoxBmPlaylists->setModel(bmPlaylistsModel);
+    ui->comboBoxBmPlaylists->setModelColumn(1);
+    ui->comboBoxBmPlaylists->setCurrentIndex(settings->bmPlaylistIndex());
     if (bmPlaylistsModel->rowCount() == 0)
     {
         bmAddPlaylist("Default");
-        ui->comboBoxPlaylists->setCurrentIndex(0);
+        ui->comboBoxBmPlaylists->setCurrentIndex(0);
     }
     bmDbDelegate = new BmDbItemDelegate(this);
-    ui->tableViewDB->setModel(bmDbModel);
-    ui->tableViewDB->setItemDelegate(bmDbDelegate);
-    ui->tableViewPlaylist->setModel(bmPlModel);
+    ui->tableViewBmDb->setModel(bmDbModel);
+    ui->tableViewBmDb->setItemDelegate(bmDbDelegate);
+    ui->tableViewBmPlaylist->setModel(bmPlModel);
     bmPlDelegate = new BmPlItemDelegate(this);
-    ui->tableViewPlaylist->setItemDelegate(bmPlDelegate);
+    ui->tableViewBmPlaylist->setItemDelegate(bmPlDelegate);
     settings->restoreSplitterState(ui->splitter);
-    settings->restoreColumnWidths(ui->tableViewDB);
-    settings->restoreColumnWidths(ui->tableViewPlaylist);
-    ui->tableViewDB->setColumnHidden(0, true);
-    ui->tableViewDB->setColumnHidden(3, true);
-    ui->tableViewDB->setColumnHidden(6, true);
-    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(5, QHeaderView::Fixed);
-    ui->tableViewDB->horizontalHeader()->resizeSection(5,75);
-    ui->tableViewPlaylist->setColumnHidden(0, true);
-    ui->tableViewPlaylist->setColumnHidden(1, true);
-    ui->tableViewPlaylist->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Fixed);
-    ui->tableViewPlaylist->horizontalHeader()->resizeSection(2,25);
-    ui->tableViewPlaylist->horizontalHeader()->setSectionResizeMode(7, QHeaderView::Fixed);
-    ui->tableViewPlaylist->horizontalHeader()->resizeSection(7,25);
+    settings->restoreColumnWidths(ui->tableViewBmDb);
+    settings->restoreColumnWidths(ui->tableViewBmPlaylist);
+    ui->tableViewBmDb->setColumnHidden(0, true);
+    ui->tableViewBmDb->setColumnHidden(3, true);
+    ui->tableViewBmDb->setColumnHidden(6, true);
+    ui->tableViewBmDb->horizontalHeader()->setSectionResizeMode(5, QHeaderView::Fixed);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(5,75);
+    ui->tableViewBmPlaylist->setColumnHidden(0, true);
+    ui->tableViewBmPlaylist->setColumnHidden(1, true);
+    ui->tableViewBmPlaylist->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Fixed);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(2,25);
+    ui->tableViewBmPlaylist->horizontalHeader()->setSectionResizeMode(7, QHeaderView::Fixed);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(7,25);
     bmAudioBackend->setVolume(settings->bmVolume());
 
     connect(ipcServer, SIGNAL(messageReceived(int)), this, SLOT(ipcMessageReceived(int)));
-    connect(ui->actionShow_Filenames, SIGNAL(triggered(bool)), this, SLOT(showFilenames(bool)));
-    connect(ui->actionShow_Metadata, SIGNAL(triggered(bool)), this, SLOT(showMetadata(bool)));
-    connect(ui->actionManage_Database, SIGNAL(triggered()), dbDialog, SLOT(show()));
-    connect(bmAudioBackend, SIGNAL(stateChanged(BmAbstractAudioBackend::State)), this, SLOT(mediaStateChanged(BmAbstractAudioBackend::State)));
-    connect(bmAudioBackend, SIGNAL(positionChanged(qint64)), this, SLOT(on_mediaPositionChanged(qint64)));
-    connect(bmAudioBackend, SIGNAL(durationChanged(qint64)), this, SLOT(on_mediaDurationChanged(qint64)));
-    connect(bmAudioBackend, SIGNAL(volumeChanged(int)), ui->sliderVolume, SLOT(setValue(int)));
-    connect(dbDialog, SIGNAL(dbUpdated()), this, SLOT(dbUpdated()));
-    connect(dbDialog, SIGNAL(dbCleared()), this, SLOT(dbCleared()));
+    connect(ui->actionShow_Filenames, SIGNAL(triggered(bool)), this, SLOT(bmShowFilenames(bool)));
+    connect(ui->actionShow_Metadata, SIGNAL(triggered(bool)), this, SLOT(bmShowMetadata(bool)));
+    connect(ui->actionManage_Database, SIGNAL(triggered()), bmDbDialog, SLOT(show()));
+    connect(bmAudioBackend, SIGNAL(stateChanged(BmAbstractAudioBackend::State)), this, SLOT(bmMediaStateChanged(BmAbstractAudioBackend::State)));
+    connect(bmAudioBackend, SIGNAL(positionChanged(qint64)), this, SLOT(bmMediaPositionChanged(qint64)));
+    connect(bmAudioBackend, SIGNAL(durationChanged(qint64)), this, SLOT(bmMediaDurationChanged(qint64)));
+    connect(bmAudioBackend, SIGNAL(volumeChanged(int)), ui->sliderBmVolume, SLOT(setValue(int)));
+    connect(bmDbDialog, SIGNAL(bmDbUpdated()), this, SLOT(bmDbUpdated()));
+    connect(bmDbDialog, SIGNAL(bmDbCleared()), this, SLOT(bmDbCleared()));
 }
 
 MainWindow::~MainWindow()
 {
     settings->saveWindowState(this);
     settings->saveSplitterState(ui->splitter);
-    settings->saveColumnWidths(ui->tableViewDB);
-    settings->saveColumnWidths(ui->tableViewPlaylist);
-    settings->bmSetVolume(ui->sliderVolume->value());
-    settings->bmSetPlaylistIndex(ui->comboBoxPlaylists->currentIndex());
+    settings->saveColumnWidths(ui->tableViewBmDb);
+    settings->saveColumnWidths(ui->tableViewBmPlaylist);
+    settings->bmSetVolume(ui->sliderBmVolume->value());
+    settings->bmSetPlaylistIndex(ui->comboBoxBmPlaylists->currentIndex());
     delete database;
     delete khDir;
     delete ui;
@@ -160,33 +160,33 @@ void MainWindow::ipcMessageReceived(int ipcCommand)
 
 void MainWindow::onActionManageDatabase()
 {
-    dbDialog->show();
+    bmDbDialog->show();
 }
 
-void MainWindow::on_tableViewDB_activated(const QModelIndex &index)
+void MainWindow::on_tableViewBmDb_activated(const QModelIndex &index)
 {
     int songId = index.sibling(index.row(), 0).data().toInt();
     bmPlModel->addSong(songId);
 }
 
-void MainWindow::on_buttonStop_clicked()
+void MainWindow::on_buttonBmStop_clicked()
 {
     bmAudioBackend->stop(false);
 }
 
-void MainWindow::on_lineEditSearch_returnPressed()
+void MainWindow::on_lineEditBmSearch_returnPressed()
 {
-    bmDbModel->search(ui->lineEditSearch->text());
+    bmDbModel->search(ui->lineEditBmSearch->text());
 }
 
-void MainWindow::on_tableViewPlaylist_activated(const QModelIndex &index)
+void MainWindow::on_tableViewBmPlaylist_activated(const QModelIndex &index)
 {
     bmAudioBackend->stop(false);
     bmCurrentPosition = index.row();
     QString path = index.sibling(index.row(), 7).data().toString();
     QString song = index.sibling(index.row(), 3).data().toString() + " - " + index.sibling(index.row(), 4).data().toString();
     QString nextSong;
-    if (!ui->checkBoxBreak->isChecked())
+    if (!ui->checkBoxBmBreak->isChecked())
     {
         if (bmCurrentPosition == bmPlModel->rowCount() - 1)
             nextSong = bmPlModel->index(0, 3).data().toString() + " - " + bmPlModel->index(0, 4).data().toString();
@@ -197,36 +197,36 @@ void MainWindow::on_tableViewPlaylist_activated(const QModelIndex &index)
         nextSong = "None - Breaking after current song";
     bmAudioBackend->setMedia(path);
     bmAudioBackend->play();
-    ui->labelPlaying->setText(song);
-    ui->labelNext->setText(nextSong);
+    ui->labelBmPlaying->setText(song);
+    ui->labelBmNext->setText(nextSong);
     bmPlDelegate->setCurrentSong(index.row());
     bmPlModel->select();
 }
 
-void MainWindow::on_sliderVolume_valueChanged(int value)
+void MainWindow::on_sliderBmVolume_valueChanged(int value)
 {
     bmAudioBackend->setVolume(value);
 }
 
-void MainWindow::on_sliderPosition_sliderMoved(int position)
+void MainWindow::on_sliderBmPosition_sliderMoved(int position)
 {
     bmAudioBackend->setPosition(position);
 }
 
-void MainWindow::on_mediaPositionChanged(qint64 position)
+void MainWindow::bmMediaPositionChanged(qint64 position)
 {
-    ui->sliderPosition->setValue(position);
-    ui->labelPosition->setText(QTime(0,0,0,0).addMSecs(position).toString("m:ss"));
-    ui->labelRemaining->setText(QTime(0,0,0,0).addMSecs(bmAudioBackend->duration() - position).toString("m:ss"));
+    ui->sliderBmPosition->setValue(position);
+    ui->labelBmPosition->setText(QTime(0,0,0,0).addMSecs(position).toString("m:ss"));
+    ui->labelBmRemaining->setText(QTime(0,0,0,0).addMSecs(bmAudioBackend->duration() - position).toString("m:ss"));
 }
 
-void MainWindow::on_mediaDurationChanged(qint64 duration)
+void MainWindow::bmMediaDurationChanged(qint64 duration)
 {
-    ui->sliderPosition->setMaximum(duration);
-    ui->labelDuration->setText(QTime(0,0,0,0).addMSecs(duration).toString("m:ss"));
+    ui->sliderBmPosition->setMaximum(duration);
+    ui->labelBmDuration->setText(QTime(0,0,0,0).addMSecs(duration).toString("m:ss"));
 }
 
-bool MainWindow::playlistExists(QString name)
+bool MainWindow::bmPlaylistExists(QString name)
 {
     for (int i=0; i < bmPlaylistsModel->rowCount(); i++)
     {
@@ -244,11 +244,11 @@ void MainWindow::bmAddPlaylist(QString title)
         bmPlaylistsModel->setData(index, title);
         bmPlaylistsModel->submitAll();
         bmPlaylistsModel->select();
-        ui->comboBoxPlaylists->setCurrentIndex(index.row());
+        ui->comboBoxBmPlaylists->setCurrentIndex(index.row());
     }
 }
 
-void MainWindow::on_buttonPause_clicked(bool checked)
+void MainWindow::on_buttonBmPause_clicked(bool checked)
 {
     if (checked)
         bmAudioBackend->pause();
@@ -256,26 +256,26 @@ void MainWindow::on_buttonPause_clicked(bool checked)
         bmAudioBackend->play();
 }
 
-void MainWindow::showMetadata(bool checked)
+void MainWindow::bmShowMetadata(bool checked)
 {
-    ui->tableViewDB->setColumnHidden(1, !checked);
-    ui->tableViewDB->setColumnHidden(2, !checked);
-    ui->tableViewDB->horizontalHeader()->resizeSection(1, 100);
-    ui->tableViewDB->horizontalHeader()->resizeSection(2, 100);
-    ui->tableViewPlaylist->setColumnHidden(3, !checked);
-    ui->tableViewPlaylist->setColumnHidden(4, !checked);
-    ui->tableViewPlaylist->horizontalHeader()->resizeSection(3, 100);
-    ui->tableViewPlaylist->horizontalHeader()->resizeSection(4, 100);
+    ui->tableViewBmDb->setColumnHidden(1, !checked);
+    ui->tableViewBmDb->setColumnHidden(2, !checked);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(1, 100);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(2, 100);
+    ui->tableViewBmPlaylist->setColumnHidden(3, !checked);
+    ui->tableViewBmPlaylist->setColumnHidden(4, !checked);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(3, 100);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(4, 100);
     settings->bmSetShowMetadata(checked);
 }
 
 
-void MainWindow::showFilenames(bool checked)
+void MainWindow::bmShowFilenames(bool checked)
 {
-    ui->tableViewDB->setColumnHidden(4, !checked);
-    ui->tableViewDB->horizontalHeader()->resizeSection(4, 100);
-    ui->tableViewPlaylist->setColumnHidden(5, !checked);
-    ui->tableViewPlaylist->horizontalHeader()->resizeSection(5, 100);
+    ui->tableViewBmDb->setColumnHidden(4, !checked);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(4, 100);
+    ui->tableViewBmPlaylist->setColumnHidden(5, !checked);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(5, 100);
     settings->bmSetShowFilenames(checked);
 }
 
@@ -305,7 +305,7 @@ void MainWindow::on_actionImport_Playlist_triggered()
 
         if (ok && !title.isEmpty())
         {
-            if (!playlistExists(title))
+            if (!bmPlaylistExists(title))
             {
                 if (bmPlaylistsModel->insertRow(bmPlaylistsModel->rowCount()))
                 {
@@ -313,7 +313,7 @@ void MainWindow::on_actionImport_Playlist_triggered()
                     bmPlaylistsModel->setData(index, title);
                     bmPlaylistsModel->submitAll();
                     bmPlaylistsModel->select();
-                    ui->comboBoxPlaylists->setCurrentIndex(index.row());
+                    ui->comboBoxBmPlaylists->setCurrentIndex(index.row());
                     bmPlModel->setCurrentPlaylist(bmPlaylistsModel->index(index.row(),0).data().toInt());
 
                 }
@@ -359,7 +359,7 @@ void MainWindow::on_actionImport_Playlist_triggered()
 
 void MainWindow::on_actionExport_Playlist_triggered()
 {
-    QString defaultFilePath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QDir::separator() + ui->comboBoxPlaylists->currentText() + ".m3u";
+    QString defaultFilePath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QDir::separator() + ui->comboBoxBmPlaylists->currentText() + ".m3u";
     qDebug() << "Default save location: " << defaultFilePath;
     QString saveFilePath = QFileDialog::getSaveFileName(this,tr("Select filename to save playlist as"), defaultFilePath, tr("(*.m3u)"));
     if (saveFilePath != "")
@@ -406,7 +406,7 @@ void MainWindow::on_actionRemove_Playlist_triggered()
         {
             bmAddPlaylist("Default");
         }
-        ui->comboBoxPlaylists->setCurrentIndex(0);
+        ui->comboBoxBmPlaylists->setCurrentIndex(0);
         bmPlModel->setCurrentPlaylist(bmPlaylistsModel->index(0,0).data().toInt());
     }
 }
@@ -422,7 +422,7 @@ void MainWindow::on_actionAbout_triggered()
     QMessageBox::about(this, title, text);
 }
 
-void MainWindow::mediaStateChanged(AbstractAudioBackend::State newState)
+void MainWindow::bmMediaStateChanged(AbstractAudioBackend::State newState)
 {
     static AbstractAudioBackend::State lastState = AbstractAudioBackend::StoppedState;
     if (newState != lastState)
@@ -430,7 +430,7 @@ void MainWindow::mediaStateChanged(AbstractAudioBackend::State newState)
         lastState = newState;
         if (newState == AbstractAudioBackend::EndOfMediaState)
         {
-            if (ui->checkBoxBreak->isChecked())
+            if (ui->checkBoxBmBreak->isChecked())
             {
                 bmAudioBackend->stop(true);
                 return;
@@ -443,7 +443,7 @@ void MainWindow::mediaStateChanged(AbstractAudioBackend::State newState)
             QString path = bmPlModel->index(bmCurrentPosition, 7).data().toString();
             QString song = bmPlModel->index(bmCurrentPosition, 3).data().toString() + " - " + bmPlModel->index(bmCurrentPosition, 4).data().toString();
             QString nextSong;
-            if (!ui->checkBoxBreak->isChecked())
+            if (!ui->checkBoxBmBreak->isChecked())
             {
             if (bmCurrentPosition == bmPlModel->rowCount() - 1)
                 nextSong = bmPlModel->index(0, 3).data().toString() + " - " + bmPlModel->index(0, 4).data().toString();
@@ -454,27 +454,27 @@ void MainWindow::mediaStateChanged(AbstractAudioBackend::State newState)
                 nextSong = "None - Breaking after current song";
             bmAudioBackend->setMedia(path);
             bmAudioBackend->play();
-            ui->labelPlaying->setText(song);
-            ui->labelNext->setText(nextSong);
+            ui->labelBmPlaying->setText(song);
+            ui->labelBmNext->setText(nextSong);
             bmPlDelegate->setCurrentSong(bmCurrentPosition);
             bmPlModel->select();
         }
     }
 }
 
-void MainWindow::dbUpdated()
+void MainWindow::bmDbUpdated()
 {
     bmDbModel->select();
 }
 
-void MainWindow::dbCleared()
+void MainWindow::bmDbCleared()
 {
     bmDbModel->select();
     bmAddPlaylist("Default");
-    ui->comboBoxPlaylists->setCurrentIndex(0);
+    ui->comboBoxBmPlaylists->setCurrentIndex(0);
 }
 
-void MainWindow::on_tableViewPlaylist_clicked(const QModelIndex &index)
+void MainWindow::on_tableViewBmPlaylist_clicked(const QModelIndex &index)
 {
     if (index.column() == 7)
     {
@@ -482,13 +482,13 @@ void MainWindow::on_tableViewPlaylist_clicked(const QModelIndex &index)
     }
 }
 
-void MainWindow::on_comboBoxPlaylists_currentIndexChanged(int index)
+void MainWindow::on_comboBoxBmPlaylists_currentIndexChanged(int index)
 {
     bmCurrentPlaylist = bmPlaylistsModel->index(index, 0).data().toInt();
     bmPlModel->setCurrentPlaylist(bmCurrentPlaylist);
 }
 
-void MainWindow::on_checkBoxBreak_toggled(bool checked)
+void MainWindow::on_checkBoxBmBreak_toggled(bool checked)
 {
     QString nextSong;
     if (!checked)
@@ -500,6 +500,6 @@ void MainWindow::on_checkBoxBreak_toggled(bool checked)
     }
     else
         nextSong = "None - Breaking after current song";
-    ui->labelNext->setText(nextSong);
+    ui->labelBmNext->setText(nextSong);
 }
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>DatabaseDialog</class>
- <widget class="QDialog" name="DatabaseDialog">
+ <class>BmDbDialog</class>
+ <widget class="QDialog" name="BmDbDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -56,7 +56,7 @@
          <bool>true</bool>
         </property>
         <attribute name="horizontalHeaderVisible">
-         <bool>true</bool>
+         <bool>false</bool>
         </attribute>
         <attribute name="horizontalHeaderStretchLastSection">
          <bool>true</bool>

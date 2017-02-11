@@ -18,34 +18,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "databasedialog.h"
-#include "ui_databasedialog.h"
-#include "dbupdatethread.h"
+#include "bmdbdialog.h"
+#include "ui_bmdbdialog.h"
+#include "bmdbupdatethread.h"
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QSqlQuery>
 #include <QDebug>
 
-DatabaseDialog::DatabaseDialog(QSqlDatabase *db, QWidget *parent) :
+BmDbDialog::BmDbDialog(QSqlDatabase *db, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::DatabaseDialog)
+    ui(new Ui::BmDbDialog)
 {
     m_db = db;
     ui->setupUi(this);
     pathsModel = new QSqlTableModel(this, *db);
-    pathsModel->setTable("srcdirs");
+    pathsModel->setTable("bmsrcdirs");
     pathsModel->select();
     ui->tableViewPaths->setModel(pathsModel);
     pathsModel->sort(0, Qt::AscendingOrder);
     selectedDirectoryIdx = -1;
 }
 
-DatabaseDialog::~DatabaseDialog()
+BmDbDialog::~BmDbDialog()
 {
     delete ui;
 }
 
-void DatabaseDialog::on_pushButtonAdd_clicked()
+void BmDbDialog::on_pushButtonAdd_clicked()
 {
     QString fileName = QFileDialog::getExistingDirectory(this);
     if (fileName != "")
@@ -56,7 +56,7 @@ void DatabaseDialog::on_pushButtonAdd_clicked()
     }
 }
 
-void DatabaseDialog::on_pushButtonUpdate_clicked()
+void BmDbDialog::on_pushButtonUpdate_clicked()
 {
     if (selectedDirectoryIdx >= 0)
     {
@@ -70,12 +70,12 @@ void DatabaseDialog::on_pushButtonUpdate_clicked()
         while (thread.isRunning())
             QApplication::processEvents();
         msgBox->close();
-        emit dbUpdated();
+        emit bmDbUpdated();
         delete msgBox;
     }
 }
 
-void DatabaseDialog::on_pushButtonUpdateAll_clicked()
+void BmDbDialog::on_pushButtonUpdateAll_clicked()
 {
     QMessageBox *msgBox = new QMessageBox(this);
     msgBox->setStandardButtons(0);
@@ -91,16 +91,16 @@ void DatabaseDialog::on_pushButtonUpdateAll_clicked()
             QApplication::processEvents();
     }
     msgBox->close();
-    emit dbUpdated();
+    emit bmDbUpdated();
     delete msgBox;
 }
 
-void DatabaseDialog::on_pushButtonClose_clicked()
+void BmDbDialog::on_pushButtonClose_clicked()
 {
     close();
 }
 
-void DatabaseDialog::on_pushButtonClearDb_clicked()
+void BmDbDialog::on_pushButtonClearDb_clicked()
 {
     QMessageBox msgBox;
     msgBox.setText("Are you sure?");
@@ -111,25 +111,25 @@ void DatabaseDialog::on_pushButtonClearDb_clicked()
     msgBox.exec();
     if (msgBox.clickedButton() == yesButton) {
         QSqlQuery query;
-        query.exec("DELETE FROM playlists");
-        query.exec("DELETE FROM plsongs");
-        query.exec("DELETE FROM songs");
-        query.exec("DELETE FROM srcDirs");
+        query.exec("DELETE FROM bmplaylists");
+        query.exec("DELETE FROM bmplsongs");
+        query.exec("DELETE FROM bmsongs");
+        query.exec("DELETE FROM bmsrcDirs");
         query.exec("UPDATE sqlite_sequence SET seq = 0");
         query.exec("VACUUM");
         pathsModel->select();
-        emit dbCleared();
+        emit bmDbCleared();
     }
 }
 
-void DatabaseDialog::on_pushButtonDelete_clicked()
+void BmDbDialog::on_pushButtonDelete_clicked()
 {
     pathsModel->removeRow(selectedDirectoryIdx);
     pathsModel->select();
     pathsModel->submitAll();
 }
 
-void DatabaseDialog::on_tableViewPaths_clicked(const QModelIndex &index)
+void BmDbDialog::on_tableViewPaths_clicked(const QModelIndex &index)
 {
     if (index.row() >= 0)
         selectedDirectoryIdx = index.row();

@@ -24,7 +24,6 @@ SOURCES += main.cpp\
     libCDG/src/libCDG.cpp \
     sourcedirtablemodel.cpp \
     dbupdatethread.cpp \
-    khipcclient.cpp \
     scrolltext.cpp \
     requeststablemodel.cpp \
     khdb.cpp \
@@ -58,7 +57,8 @@ SOURCES += main.cpp\
     bmdbupdatethread.cpp \
     bmpltablemodel.cpp \
     bmplitemdelegate.cpp \
-    settings.cpp
+    settings.cpp \
+    bmdbdialog.cpp
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -66,7 +66,6 @@ HEADERS  += mainwindow.h \
     libCDG/include/libCDG_Color.h \
     sourcedirtablemodel.h \
     dbupdatethread.h \
-    khipcclient.h \
     scrolltext.h \
     requeststablemodel.h \
     khdb.h \
@@ -100,7 +99,8 @@ HEADERS  += mainwindow.h \
     bmdbupdatethread.h \
     bmplitemdelegate.h \
     bmpltablemodel.h \
-    settings.h
+    settings.h \
+    bmdbdialog.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \
@@ -112,7 +112,8 @@ FORMS    += mainwindow.ui \
     dlgregularsingers.ui \
     dlgsettings.ui \
     dlgcdg.ui \
-    dlgdurationscan.ui
+    dlgdurationscan.ui \
+    bmdbdialog.ui
 
 RESOURCES += resources.qrc
 

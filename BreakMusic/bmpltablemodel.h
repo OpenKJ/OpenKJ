@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef PLAYLISTMODEL_H
-#define PLAYLISTMODEL_H
+#ifndef BMPLTABLEMODEL_H
+#define BMPLTABLEMODEL_H
 
 #include <QSqlRelationalTableModel>
 #include <QMimeData>
