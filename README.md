@@ -1,5 +1,8 @@
 **NOTE:** If you are going to build from source, you should use tagged version 0.9.3 for the time being.  Master is currently in an unusable state due to work I'm doing to merge KaraokeHost and BreakMusic into a single unified OpenKJ program.
 
+If you are looking for binary installers for Windows or macOS, please visit https://openkj.org
+
+
 OpenKJ
 ======
 
