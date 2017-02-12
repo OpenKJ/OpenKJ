@@ -187,6 +187,13 @@ private slots:
     void on_sliderBmVolume_valueChanged(int value);
     void on_sliderBmPosition_sliderMoved(int position);
     void on_buttonBmPause_clicked(bool checked);
+    void on_actionDisplay_Metadata_toggled(bool arg1);
+    void on_actionDisplay_Filenames_toggled(bool arg1);
+    void on_actionManage_Karaoke_DB_triggered();
+    void on_actionPlaylistNew_triggered();
+    void on_actionPlaylistImport_triggered();
+    void on_actionPlaylistExport_triggered();
+    void on_actionPlaylistDelete_triggered();
 };
 
 

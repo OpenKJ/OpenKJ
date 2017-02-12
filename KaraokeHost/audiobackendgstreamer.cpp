@@ -78,7 +78,8 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     else
     {
         // No supported pitch shift plugin on the system
-        qCritical() << "No supported pitch shifting gstreamer plugin found, key changing disabled";
+        if (loadPitchShift)
+            qCritical() << "No supported pitch shifting gstreamer plugin found, key changing disabled";
         gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, level, autoAudioSink, NULL);
         gst_element_link_many(filter, rgVolume, audioConvert, level, autoAudioSink, NULL);
         m_canKeyChange = false;

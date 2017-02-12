@@ -2532,22 +2532,46 @@
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="actionImport_Regulars"/>
-    <addaction name="actionExport_Regulars"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
      <string>Tools</string>
     </property>
-    <addaction name="actionManage_DB"/>
-    <addaction name="actionManage_Break_DB"/>
-    <addaction name="actionRegulars"/>
-    <addaction name="actionIncoming_Requests"/>
     <addaction name="actionSettings"/>
+   </widget>
+   <widget class="QMenu" name="menuKaraoke">
+    <property name="title">
+     <string>Karaoke</string>
+    </property>
+    <addaction name="actionManage_Karaoke_DB"/>
+    <addaction name="actionRegulars"/>
+    <addaction name="actionImport_Regulars"/>
+    <addaction name="actionExport_Regulars"/>
+    <addaction name="actionIncoming_Requests"/>
+   </widget>
+   <widget class="QMenu" name="menuBreak_Music">
+    <property name="title">
+     <string>Break Music</string>
+    </property>
+    <widget class="QMenu" name="menuPlaylists">
+     <property name="title">
+      <string>Playlist</string>
+     </property>
+     <addaction name="actionPlaylistNew"/>
+     <addaction name="actionPlaylistImport"/>
+     <addaction name="actionPlaylistExport"/>
+     <addaction name="actionPlaylistDelete"/>
+    </widget>
+    <addaction name="actionManage_Break_DB"/>
+    <addaction name="actionDisplay_Metadata"/>
+    <addaction name="actionDisplay_Filenames"/>
+    <addaction name="menuPlaylists"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTools"/>
+   <addaction name="menuKaraoke"/>
+   <addaction name="menuBreak_Music"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionExit">
@@ -2593,6 +2617,57 @@
   <action name="actionManage_Break_DB">
    <property name="text">
     <string>Manage Break DB</string>
+   </property>
+  </action>
+  <action name="actionManage_Karaoke_DB">
+   <property name="text">
+    <string>Manage Karaoke DB</string>
+   </property>
+  </action>
+  <action name="actionRegulars_2">
+   <property name="text">
+    <string>Regulars</string>
+   </property>
+  </action>
+  <action name="actionIncoming_Requests_2">
+   <property name="text">
+    <string>Incoming Requests</string>
+   </property>
+  </action>
+  <action name="actionDisplay_Metadata">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Display Metadata</string>
+   </property>
+  </action>
+  <action name="actionDisplay_Filenames">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Display Filenames</string>
+   </property>
+  </action>
+  <action name="actionPlaylistNew">
+   <property name="text">
+    <string>New</string>
+   </property>
+  </action>
+  <action name="actionPlaylistImport">
+   <property name="text">
+    <string>Import</string>
+   </property>
+  </action>
+  <action name="actionPlaylistExport">
+   <property name="text">
+    <string>Export Current</string>
+   </property>
+  </action>
+  <action name="actionPlaylistDelete">
+   <property name="text">
+    <string>Delete Current</string>
    </property>
   </action>
  </widget>

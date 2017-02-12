@@ -30,8 +30,10 @@
 #include <QCoreApplication>
 #include <QMenu>
 #include <QInputDialog>
+#include <QFileDialog>
 #include "khdb.h"
 #include "okarchive.h"
+#include "tagreader.h"
 
 
 Settings *settings;
@@ -240,6 +242,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewBmPlaylist->horizontalHeader()->setSectionResizeMode(7, QHeaderView::Fixed);
     ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(7,25);
     bmAudioBackend->setVolume(settings->bmVolume());
+    ui->actionDisplay_Filenames->setChecked(settings->bmShowFilenames());
+    ui->actionDisplay_Metadata->setChecked(settings->bmShowMetadata());
 
     connect(bmAudioBackend, SIGNAL(stateChanged(AbstractAudioBackend::State)), this, SLOT(bmMediaStateChanged(AbstractAudioBackend::State)));
     connect(bmAudioBackend, SIGNAL(positionChanged(qint64)), this, SLOT(bmMediaPositionChanged(qint64)));
@@ -1096,4 +1100,163 @@ bool MainWindow::bmPlaylistExists(QString name)
             return true;
     }
     return false;
+}
+
+void MainWindow::on_actionDisplay_Metadata_toggled(bool arg1)
+{
+    ui->tableViewBmDb->setColumnHidden(1, !arg1);
+    ui->tableViewBmDb->setColumnHidden(2, !arg1);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(1, 100);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(2, 100);
+    ui->tableViewBmPlaylist->setColumnHidden(3, !arg1);
+    ui->tableViewBmPlaylist->setColumnHidden(4, !arg1);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(3, 100);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(4, 100);
+    settings->bmSetShowMetadata(arg1);
+}
+
+void MainWindow::on_actionDisplay_Filenames_toggled(bool arg1)
+{
+    ui->tableViewBmDb->setColumnHidden(4, !arg1);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(4, 100);
+    ui->tableViewBmPlaylist->setColumnHidden(5, !arg1);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(5, 100);
+    settings->bmSetShowFilenames(arg1);
+}
+
+void MainWindow::on_actionManage_Karaoke_DB_triggered()
+{
+    dbDialog->showNormal();
+}
+
+void MainWindow::on_actionPlaylistNew_triggered()
+{
+    bool ok;
+    QString title = QInputDialog::getText(this, tr("New Playlist"), tr("Playlist title:"), QLineEdit::Normal, tr("New Playlist"), &ok);
+    if (ok && !title.isEmpty())
+    {
+        bmAddPlaylist(title);
+    }
+}
+
+void MainWindow::on_actionPlaylistImport_triggered()
+{
+    QString importFile = QFileDialog::getOpenFileName(this,tr("Select playlist to import"), QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), tr("(*.m3u)"));
+    if (importFile != "")
+    {
+        QStringList files;
+        QFile textFile;
+        textFile.setFileName(importFile);
+        textFile.open(QFile::ReadOnly);
+        QTextStream textStream(&textFile);
+        while (true)
+        {
+            QString line = textStream.readLine();
+            if (line.isNull())
+                break;
+            else
+            {
+                if (!line.startsWith("#"))
+                    files.append(line.replace("\\", "/"));
+            }
+        }
+        bool ok;
+        QString title = QInputDialog::getText(this, tr("New Playlist"), tr("Playlist title:"), QLineEdit::Normal, tr("New Playlist"), &ok);
+
+        if (ok && !title.isEmpty())
+        {
+            if (!bmPlaylistExists(title))
+            {
+                if (bmPlaylistsModel->insertRow(bmPlaylistsModel->rowCount()))
+                {
+                    QModelIndex index = bmPlaylistsModel->index(bmPlaylistsModel->rowCount() - 1, 1);
+                    bmPlaylistsModel->setData(index, title);
+                    bmPlaylistsModel->submitAll();
+                    bmPlaylistsModel->select();
+                    ui->comboBoxBmPlaylists->setCurrentIndex(index.row());
+                    bmPlModel->setCurrentPlaylist(bmPlaylistsModel->index(index.row(),0).data().toInt());
+
+                }
+            }
+        }
+        QSqlQuery query;
+        query.exec("BEGIN TRANSACTION");
+        TagReader reader;
+        for (int i=0; i < files.size(); i++)
+        {
+            if (QFile(files.at(i)).exists())
+            {
+                reader.setMedia(files.at(i).toLocal8Bit());
+                QString duration = QString::number(reader.getDuration() / 1000);
+                QString artist = reader.getArtist();
+                QString title = reader.getTitle();
+                QString filename = QFileInfo(files.at(i)).fileName();
+                QString queryString = "INSERT OR IGNORE INTO bmsongs (artist,title,path,filename,duration,searchstring) VALUES(\"" + artist + "\",\"" + title + "\",\"" + files.at(i) + "\",\"" + filename + "\",\"" + duration + "\",\"" + artist + title + filename + "\")";
+                query.exec(queryString);
+            }
+        }
+        query.exec("COMMIT TRANSACTION");
+        bmDbModel->select();
+        QApplication::processEvents();
+        QList<int> songIds;
+        for (int i=0; i < files.size(); i++)
+        {
+            int songId = bmPlModel->getSongIdByFilePath(files.at(i));
+            if (songId >= 0)
+                songIds.push_back(songId);
+        }
+        query.exec("BEGIN TRANSACTION");
+        for (int i=0; i < songIds.size(); i++)
+        {
+            QString sIdStr = QString::number(songIds.at(i));
+            QString sql = "INSERT INTO bmplsongs (playlist,position,artist,title,filename,duration,path) VALUES(" + QString::number(bmCurrentPlaylist) + "," + QString::number(i) + "," + sIdStr + "," + sIdStr + "," + sIdStr + "," + sIdStr + "," + sIdStr + ")";
+            query.exec(sql);
+        }
+        query.exec("COMMIT TRANSACTION");
+        bmPlModel->select();
+    }
+}
+
+void MainWindow::on_actionPlaylistExport_triggered()
+{
+    QString defaultFilePath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QDir::separator() + ui->comboBoxBmPlaylists->currentText() + ".m3u";
+    qDebug() << "Default save location: " << defaultFilePath;
+    QString saveFilePath = QFileDialog::getSaveFileName(this,tr("Select filename to save playlist as"), defaultFilePath, tr("(*.m3u)"));
+    if (saveFilePath != "")
+    {
+        QFile file(saveFilePath);
+        if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+        {
+            QMessageBox::warning(this, tr("Error saving file"), tr("Unable to open selected file for writing.  Please verify that you have the proper permissions to write to that location."),QMessageBox::Close);
+            return;
+        }
+        QTextStream out(&file);
+        for (int i=0; i < bmPlModel->rowCount(); i++)
+        {
+            out << bmPlModel->index(i, 7).data().toString() << "\n";
+        }
+    }
+}
+
+void MainWindow::on_actionPlaylistDelete_triggered()
+{
+    QMessageBox msgBox;
+    msgBox.setText("Are you sure?");
+    msgBox.setInformativeText("Are you sure you want to delete the current playlist?  If you have not exported it, you will not be able to undo this action!");
+    msgBox.setIcon(QMessageBox::Warning);
+    msgBox.addButton(QMessageBox::Cancel);
+    QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
+    msgBox.exec();
+    if (msgBox.clickedButton() == yesButton) {
+        QSqlQuery query;
+        query.exec("DELETE FROM bmplsongs WHERE playlist == " + QString::number(bmPlModel->currentPlaylist()));
+        query.exec("DELETE FROM bmplaylists WHERE playlistid == " + QString::number(bmPlModel->currentPlaylist()));
+        bmPlaylistsModel->select();
+        if (bmPlaylistsModel->rowCount() == 0)
+        {
+            bmAddPlaylist("Default");
+        }
+        ui->comboBoxBmPlaylists->setCurrentIndex(0);
+        bmPlModel->setCurrentPlaylist(bmPlaylistsModel->index(0,0).data().toInt());
+    }
 }
