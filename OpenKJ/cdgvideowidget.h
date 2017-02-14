@@ -24,11 +24,13 @@ public:
     QSize sizeHint() const;
 private:
     CdgVideoSurface *surface;
-    void presentScaledBgImage(QSize newSize);
 
 protected:
     void paintEvent(QPaintEvent *event);
     void resizeEvent(QResizeEvent *event);
+
+signals:
+    void resized(QSize size);
 
 };
 

@@ -23,6 +23,7 @@
 #include <QDebug>
 #include <QApplication>
 #include <QDesktopWidget>
+#include <QSvgRenderer>
 
 extern Settings *settings;
 
@@ -66,8 +67,8 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
     connect(settings, SIGNAL(cdgVSizeAdjustmentChanged(int)), this, SLOT(setVSizeAdjustment(int)));
     connect(settings, SIGNAL(cdgShowCdgWindowChanged(bool)), this, SLOT(setVisible(bool)));
     connect(settings, SIGNAL(cdgWindowFullscreenChanged(bool)), this, SLOT(setFullScreen(bool)));
+    connect(ui->cdgVideo, SIGNAL(resized(QSize)), this, SLOT(cdgSurfaceResized(QSize)));
     fullScreenTimer = new QTimer(this);
-    setShowBgImage(true);
     connect(fullScreenTimer, SIGNAL(timeout()), this, SLOT(fullScreenTimerTimeout()));
     fullScreenTimer->setInterval(500);
     ui->cdgVideo->videoSurface()->start();
@@ -79,6 +80,7 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
         show();
     else
         hide();
+    setShowBgImage(true);
 
 }
 
@@ -231,12 +233,23 @@ void DlgCdg::setShowBgImage(bool show)
             ui->cdgVideo->videoSurface()->present(QVideoFrame(QImage(settings->cdgDisplayBackgroundImage())));
         else
         {
-            QImage bgImage = QImage(":icons/Icons/openkjlogo1.png");
-            //ui->cdgVideo->videoSurface()->present(QVideoFrame(bgImage.scaled(ui->cdgVideo->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation)));
+            QImage bgImage(ui->cdgVideo->size(), QImage::Format_ARGB32);
+            QPainter painter(&bgImage);
+            QSvgRenderer renderer(QString(":icons/Icons/okjlogo.svg"));
+            renderer.render(&painter);
             ui->cdgVideo->videoSurface()->present(QVideoFrame(bgImage));
+//            QImage bgImage = QImage(":icons/Icons/openkjlogo1.png");
+//            //ui->cdgVideo->videoSurface()->present(QVideoFrame(bgImage.scaled(ui->cdgVideo->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation)));
+//            ui->cdgVideo->videoSurface()->present(QVideoFrame(bgImage));
         }
 
     }
+}
+
+void DlgCdg::cdgSurfaceResized(QSize size)
+{
+    Q_UNUSED(size)
+    setShowBgImage(true);
 }
 
 void DlgCdg::mouseDoubleClickEvent(QMouseEvent *e)

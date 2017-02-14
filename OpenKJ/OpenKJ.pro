@@ -4,11 +4,11 @@
 #
 #-------------------------------------------------
 
-QT += core gui sql network widgets multimedia concurrent
+QT += core gui sql network widgets multimedia concurrent svg
 
 unix: DEFINES += USE_GL
 
-win32: RC_FILE = OpenKJ.rc
+win32: RC_ICONS = Icons/okjicon.ico
 
 contains(DEFINES, USE_GL) {
     QT += opengl
@@ -120,11 +120,11 @@ RESOURCES += resources.qrc
 unix:!macx {
     CONFIG += link_pkgconfig
     PKGCONFIG += gstreamer-1.0
-    iconfiles.files += Icons/khicon-64x64.png
+    iconfiles.files += Icons/okjicon.svg
     iconfiles.path = /usr/share/pixmaps
-    desktopfiles.files += karaokehost.desktop
+    desktopfiles.files += openkj.desktop
     desktopfiles.path = /usr/share/applications
-    binaryfiles.files += KaraokeHost
+    binaryfiles.files += OpenKJ
     binaryfiles.path = /usr/bin
     INSTALLS += binaryfiles iconfiles desktopfiles
 }
@@ -132,7 +132,7 @@ unix:!macx {
 macx: {
     LIBS += -F/Library/Frameworks -framework GStreamer
     INCLUDEPATH += /Library/Frameworks/GStreamer.framework/Headers
-    ICON = Icons/KaraokeHost.icns
+    ICON = Icons/OpenKJ.icns
 }
 
 win32 {

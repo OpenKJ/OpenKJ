@@ -78,6 +78,7 @@ public slots:
     void setVSizeAdjustment(int pixels);
     void setHSizeAdjustment(int pixels);
     void setShowBgImage(bool show);
+    void cdgSurfaceResized(QSize size);
 
 };
 

@@ -26,7 +26,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="resources.qrc">
-    <normaloff>:/icons/Icons/khicon-32x32.png</normaloff>:/icons/Icons/khicon-32x32.png</iconset>
+    <normaloff>:/icons/Icons/okicon.svg</normaloff>:/icons/Icons/okicon.svg</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -165,7 +165,7 @@
                   <widget class="QLineEdit" name="lineEdit"/>
                  </item>
                  <item>
-                  <widget class="QPushButton" name="pushButton_2">
+                  <widget class="QPushButton" name="pushButton">
                    <property name="focusPolicy">
                     <enum>Qt::NoFocus</enum>
                    </property>

@@ -30,7 +30,7 @@ CdgVideoWidget::~CdgVideoWidget()
 
 QSize CdgVideoWidget::sizeHint() const
 {
-         return surface->surfaceFormat().sizeHint();
+    return surface->surfaceFormat().sizeHint();
 }
 
 
@@ -38,6 +38,7 @@ void CdgVideoWidget::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
     surface->updateVideoRect();
+    emit resized(event->size());
 }
 
 void CdgVideoWidget::paintEvent(QPaintEvent *event)

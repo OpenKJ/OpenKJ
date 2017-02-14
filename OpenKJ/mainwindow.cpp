@@ -34,6 +34,7 @@
 #include "khdb.h"
 #include "okarchive.h"
 #include "tagreader.h"
+#include <QSvgRenderer>
 
 
 Settings *settings;
@@ -883,8 +884,11 @@ void MainWindow::setShowBgImage(bool show)
 {
     if (show)
     {
-        QImage bgImage = QImage(":icons/Icons/openkjlogosmall.png");
-        ui->cdgVideoWidget->videoSurface()->present(QVideoFrame(bgImage.scaled(ui->cdgVideoWidget->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation)));
+        QImage bgImage(ui->cdgVideoWidget->size(), QImage::Format_ARGB32);
+        QPainter painter(&bgImage);
+        QSvgRenderer renderer(QString(":icons/Icons/okjlogo.svg"));
+        renderer.render(&painter);
+        ui->cdgVideoWidget->videoSurface()->present(QVideoFrame(bgImage));
     }
 }
 
@@ -1263,3 +1267,5 @@ void MainWindow::on_actionPlaylistDelete_triggered()
         bmPlModel->setCurrentPlaylist(bmPlaylistsModel->index(0,0).data().toInt());
     }
 }
+
+
