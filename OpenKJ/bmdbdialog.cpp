@@ -21,10 +21,12 @@
 #include "bmdbdialog.h"
 #include "ui_bmdbdialog.h"
 #include "bmdbupdatethread.h"
+#include "tagreader.h"
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QSqlQuery>
 #include <QDebug>
+#include <QtConcurrent>
 
 BmDbDialog::BmDbDialog(QSqlDatabase *db, QWidget *parent) :
     QDialog(parent),
@@ -56,23 +58,65 @@ void BmDbDialog::on_pushButtonAdd_clicked()
     }
 }
 
+QMutex mutex;
+int BmDbDialog::processFile(QString fileName)
+{
+    TagReader reader;
+    QSqlQuery query;
+    reader.setMedia(fileName.toLocal8Bit());
+    QString duration = QString::number(reader.getDuration() / 1000);
+    QString artist = reader.getArtist();
+    QString title = reader.getTitle();
+    QString queryString = "INSERT OR IGNORE INTO bmsongs (artist,title,path,filename,duration,searchstring) VALUES(\"" + artist + "\",\"" + title + "\",\"" + fileName + "\",\"" + fileName + "\",\"" + duration + "\",\"" + artist + title + fileName + "\")";
+    mutex.lock();
+    query.exec(queryString);
+    mutex.unlock();
+    return 0;
+}
+
 void BmDbDialog::on_pushButtonUpdate_clicked()
 {
-    if (selectedDirectoryIdx >= 0)
-    {
+//    if (selectedDirectoryIdx >= 0)
+//    {
         QMessageBox *msgBox = new QMessageBox(this);
-        msgBox->setStandardButtons(0);
-        msgBox->setText("Updating Database, please wait...");
-        msgBox->show();
-        BmDbUpdateThread thread;
-        thread.setPath(pathsModel->data(pathsModel->index(selectedDirectoryIdx, 0)).toString());
-        thread.start();
-        while (thread.isRunning())
-            QApplication::processEvents();
-        msgBox->close();
-        emit bmDbUpdated();
-        delete msgBox;
+//        msgBox->setStandardButtons(0);
+//        msgBox->setText("Updating Database, please wait...");
+//        msgBox->show();
+//        BmDbUpdateThread thread;
+//        thread.setPath(pathsModel->data(pathsModel->index(selectedDirectoryIdx, 0)).toString());
+//        thread.start();
+//        while (thread.isRunning())
+//            QApplication::processEvents();
+//        msgBox->close();
+//        emit bmDbUpdated();
+//        delete msgBox;
+//    }
+    QString searchPath = pathsModel->data(pathsModel->index(selectedDirectoryIdx, 0)).toString();
+    QList<QString> files = findMediaFiles(searchPath);
+    QtConcurrent::blockingMap(files, &BmDbDialog::processFile);
+   // QtConcurrent::blockingMap()
+    msgBox->close();
+    emit bmDbUpdated();
+}
+
+
+
+QList<QString> BmDbDialog::findMediaFiles(QString directory)
+{
+    QList<QString> files;
+    QDir dir(directory);
+    QDirIterator iterator(dir.absolutePath(), QDirIterator::Subdirectories);
+    while (iterator.hasNext()) {
+        iterator.next();
+        if (!iterator.fileInfo().isDir()) {
+            QString filename = iterator.filePath();
+            if (filename.endsWith(".mp3",Qt::CaseInsensitive) || filename.endsWith(".wav",Qt::CaseInsensitive) || filename.endsWith(".ogg",Qt::CaseInsensitive) || filename.endsWith(".flac",Qt::CaseInsensitive) || filename.endsWith(".m4a", Qt::CaseInsensitive))
+            {
+                files.append(filename);
+            }
+        }
     }
+    return files;
 }
 
 void BmDbDialog::on_pushButtonUpdateAll_clicked()
