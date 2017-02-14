@@ -22,7 +22,7 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>OpenKJ KaraokeHost</string>
+   <string>OpenKJ</string>
   </property>
   <property name="windowIcon">
    <iconset resource="resources.qrc">
@@ -312,6 +312,12 @@
                         </sizepolicy>
                        </property>
                        <property name="minimumSize">
+                        <size>
+                         <width>300</width>
+                         <height>216</height>
+                        </size>
+                       </property>
+                       <property name="maximumSize">
                         <size>
                          <width>300</width>
                          <height>216</height>

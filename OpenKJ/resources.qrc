@@ -28,6 +28,7 @@
         <file>Icons/khicon-144x144.png</file>
         <file>Icons/view-refresh.png</file>
         <file>Icons/play-small.png</file>
+        <file>Icons/openkjlogosmall.png</file>
     </qresource>
     <qresource prefix="/"/>
 </RCC>

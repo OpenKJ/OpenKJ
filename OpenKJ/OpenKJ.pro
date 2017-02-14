@@ -8,13 +8,13 @@ QT += core gui sql network widgets multimedia concurrent
 
 unix: DEFINES += USE_GL
 
-win32: RC_FILE = KaraokeHost.rc
+win32: RC_FILE = OpenKJ.rc
 
 contains(DEFINES, USE_GL) {
     QT += opengl
 }
 
-TARGET = KaraokeHost
+TARGET = OpenKJ 
 TEMPLATE = app
 
 SOURCES += main.cpp\

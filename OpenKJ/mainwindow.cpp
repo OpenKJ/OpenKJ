@@ -882,7 +882,10 @@ void MainWindow::previewCdg()
 void MainWindow::setShowBgImage(bool show)
 {
     if (show)
-        ui->cdgVideoWidget->videoSurface()->present(QVideoFrame(QImage(":/icons/Icons/openkjlogo1.png")));
+    {
+        QImage bgImage = QImage(":icons/Icons/openkjlogosmall.png");
+        ui->cdgVideoWidget->videoSurface()->present(QVideoFrame(bgImage.scaled(ui->cdgVideoWidget->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation)));
+    }
 }
 
 void MainWindow::onBgImageChange()

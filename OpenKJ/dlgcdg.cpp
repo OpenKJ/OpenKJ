@@ -230,7 +230,12 @@ void DlgCdg::setShowBgImage(bool show)
         if (settings->cdgDisplayBackgroundImage() != QString::null)
             ui->cdgVideo->videoSurface()->present(QVideoFrame(QImage(settings->cdgDisplayBackgroundImage())));
         else
-            ui->cdgVideo->videoSurface()->present(QVideoFrame(QImage(":/icons/Icons/openkjlogo1.png")));
+        {
+            QImage bgImage = QImage(":icons/Icons/openkjlogo1.png");
+            //ui->cdgVideo->videoSurface()->present(QVideoFrame(bgImage.scaled(ui->cdgVideo->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation)));
+            ui->cdgVideo->videoSurface()->present(QVideoFrame(bgImage));
+        }
+
     }
 }
 

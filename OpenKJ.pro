@@ -2,6 +2,6 @@ cache()
 
 TEMPLATE = subdirs
 
-SUBDIRS += KaraokeHost 
+SUBDIRS += OpenKJ 
 
 
