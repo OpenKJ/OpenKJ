@@ -24,6 +24,7 @@
 #include <QSqlQuery>
 #include <QFileInfo>
 #include "tagreader.h"
+#include <QtConcurrent>
 
 BmDbUpdateThread::BmDbUpdateThread(QObject *parent) :
     QThread(parent)
@@ -40,9 +41,9 @@ void BmDbUpdateThread::setPath(const QString &path)
     m_path = path;
 }
 
-QStringList *BmDbUpdateThread::findMediaFiles(QString directory)
+QStringList BmDbUpdateThread::findMediaFiles(QString directory)
 {
-    QStringList *files = new QStringList();
+    QStringList files;
     QDir dir(directory);
     QDirIterator iterator(dir.absolutePath(), QDirIterator::Subdirectories);
     while (iterator.hasNext()) {
@@ -51,30 +52,51 @@ QStringList *BmDbUpdateThread::findMediaFiles(QString directory)
             QString filename = iterator.filePath();
             if (filename.endsWith(".mp3",Qt::CaseInsensitive) || filename.endsWith(".wav",Qt::CaseInsensitive) || filename.endsWith(".ogg",Qt::CaseInsensitive) || filename.endsWith(".flac",Qt::CaseInsensitive) || filename.endsWith(".m4a", Qt::CaseInsensitive))
             {
-                files->append(filename);
+                files.append(filename);
             }
         }
     }
     return files;
 }
 
+QMutex mutexBmDb;
+int processFile(QString fileName)
+{
+    TagReader reader;
+    QSqlQuery query;
+    reader.setMedia(fileName.toLocal8Bit());
+    QString duration = QString::number(reader.getDuration() / 1000);
+    QString artist = reader.getArtist();
+    QString title = reader.getTitle();
+    QString queryString = "INSERT OR IGNORE INTO bmsongs (artist,title,path,filename,duration,searchstring) VALUES(\"" + artist + "\",\"" + title + "\",\"" + fileName + "\",\"" + fileName + "\",\"" + duration + "\",\"" + artist + title + fileName + "\")";
+    mutexBmDb.lock();
+    query.exec(queryString);
+    mutexBmDb.unlock();
+    return 0;
+}
+
 void BmDbUpdateThread::run()
 {
     TagReader reader;
-    QStringList *files = findMediaFiles(m_path);
+    QStringList files = findMediaFiles(m_path);
     QSqlQuery query;
+//    query.exec("BEGIN TRANSACTION");
+//    for (int i=0; i < files->size(); i++)
+//    {
+//        //TagReader reader;
+//        reader.setMedia(files->at(i).toLocal8Bit());
+//        QString duration = QString::number(reader.getDuration() / 1000);
+//        QString artist = reader.getArtist();
+//        QString title = reader.getTitle();
+//        QString filename = QFileInfo(files->at(i)).fileName();
+//        QString queryString = "INSERT OR IGNORE INTO bmsongs (artist,title,path,filename,duration,searchstring) VALUES(\"" + artist + "\",\"" + title + "\",\"" + files->at(i) + "\",\"" + filename + "\",\"" + duration + "\",\"" + artist + title + filename + "\")";
+//        query.exec(queryString);
+//    }
+
     query.exec("BEGIN TRANSACTION");
-    for (int i=0; i < files->size(); i++)
-    {
-        //TagReader reader;
-        reader.setMedia(files->at(i).toLocal8Bit());
-        QString duration = QString::number(reader.getDuration() / 1000);
-        QString artist = reader.getArtist();
-        QString title = reader.getTitle();
-        QString filename = QFileInfo(files->at(i)).fileName();
-        QString queryString = "INSERT OR IGNORE INTO bmsongs (artist,title,path,filename,duration,searchstring) VALUES(\"" + artist + "\",\"" + title + "\",\"" + files->at(i) + "\",\"" + filename + "\",\"" + duration + "\",\"" + artist + title + filename + "\")";
-        query.exec(queryString);
-    }
+    QtConcurrent::blockingMap(files, &processFile);
     query.exec("COMMIT TRANSACTION");
-    delete files;
+
+
+    query.exec("COMMIT TRANSACTION");
 }

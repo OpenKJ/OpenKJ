@@ -61,9 +61,6 @@ private:
     QSqlTableModel *pathsModel;
     int selectedDirectoryIdx;
     QSqlDatabase *m_db;
-    int processFile(QString fileName);
-    QList<QString> findMediaFiles(QString directory);
-
 
 };
 
