@@ -1,7 +1,6 @@
 #include "tagreader.h"
 #include <QDebug>
-#include <chrono>
-#include <thread>
+#include <QThread>
 
 TagReader::TagReader(QObject *parent) : QObject(parent)
 {
@@ -57,7 +56,6 @@ void TagReader::setMedia(QString path)
 
     gint64 duration;
     GstFormat fmt = GST_FORMAT_TIME;
-    bool giveUp = false;
     int tries = 0;
     while (m_duration <= 0)
     {
@@ -66,7 +64,8 @@ void TagReader::setMedia(QString path)
             m_duration = duration / 1000000;
         }
         else
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            QThread::msleep(10);
+           // std::this_thread::sleep_for(std::chrono::milliseconds(10));
         if (tries > 50)
         {
             qWarning() << "Failed to get duration for: " << path;
