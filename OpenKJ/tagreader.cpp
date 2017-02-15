@@ -1,5 +1,7 @@
 #include "tagreader.h"
 #include <QDebug>
+#include <chrono>
+#include <thread>
 
 TagReader::TagReader(QObject *parent) : QObject(parent)
 {
@@ -51,7 +53,29 @@ void TagReader::setMedia(QString path)
     sink = gst_element_factory_make ("fakesink", NULL);
     gst_bin_add (GST_BIN (pipe), sink);
     g_signal_connect (dec, "pad-added", G_CALLBACK (on_new_pad), sink);
-    gst_element_set_state (pipe, GST_STATE_PAUSED);
+    gst_element_set_state (pipe, GST_STATE_PLAYING);
+
+    gint64 duration;
+    GstFormat fmt = GST_FORMAT_TIME;
+    bool giveUp = false;
+    int tries = 0;
+    while (m_duration <= 0)
+    {
+        if (gst_element_query_duration (dec, fmt, &duration))
+        {
+            m_duration = duration / 1000000;
+        }
+        else
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        if (tries > 10)
+        {
+            qWarning() << "Failed to get duration for: " << path;
+            break;
+        }
+        tries++;
+
+    }
+    gst_element_set_state(pipe, GST_STATE_PAUSED);
     while (TRUE) {
       GstTagList *tags = NULL;
       msg = gst_bus_timed_pop_filtered (GST_ELEMENT_BUS (pipe), GST_CLOCK_TIME_NONE, (GstMessageType)(GST_MESSAGE_ASYNC_DONE | GST_MESSAGE_TAG | GST_MESSAGE_ERROR));
@@ -80,12 +104,7 @@ void TagReader::setMedia(QString path)
       g_printerr ("Got error: %s\n", err->message);
       g_error_free (err);
     }
-    gint64 duration;
-    GstFormat fmt = GST_FORMAT_TIME;
-    if (gst_element_query_duration (dec, fmt, &duration))
-    {
-        m_duration = duration / 1000000;
-    }
+
     gst_message_unref (msg);
     gst_element_set_state (pipe, GST_STATE_NULL);
     gst_object_unref (pipe);
