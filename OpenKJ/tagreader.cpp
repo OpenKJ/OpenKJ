@@ -67,7 +67,7 @@ void TagReader::setMedia(QString path)
         }
         else
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        if (tries > 10)
+        if (tries > 50)
         {
             qWarning() << "Failed to get duration for: " << path;
             break;

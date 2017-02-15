@@ -60,7 +60,6 @@ void KhAudioRecorder::record(QString filename)
 
 void KhAudioRecorder::stop()
 {
-    qDebug() << "KhAudioRecorder::stop() called";
     if (audioRecorder->state() == QMediaRecorder::RecordingState)
     {
         audioRecorder->stop();

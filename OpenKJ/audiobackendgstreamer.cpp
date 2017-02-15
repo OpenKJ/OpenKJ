@@ -506,7 +506,7 @@ bool AudioBackendGstreamer::canDetectSilence()
 
 bool AudioBackendGstreamer::isSilent()
 {
-    if (m_currentRmsLevel <= 0.01)
+    if ((m_currentRmsLevel <= 0.01) && (m_volume > 0))
         return true;
     return false;
 }
