@@ -41,7 +41,6 @@ DlgDatabase::DlgDatabase(QWidget *parent) :
     ui->tableViewFolders->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     ui->tableViewFolders->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
     selectedRow = -1;
-    dlgDurationScan = new DlgDurationScan(this);
 }
 
 DlgDatabase::~DlgDatabase()
@@ -166,9 +165,4 @@ void DlgDatabase::on_btnClearDatabase_clicked()
 
 void DlgDatabase::dbupdate_thread_finished()
 {
-}
-
-void DlgDatabase::on_pushButtonGetDurations_clicked()
-{
-    dlgDurationScan->show();
 }

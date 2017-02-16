@@ -39,7 +39,7 @@ public:
     void setPath(const QString &value);
     int getPattern() const;
     void setPattern(int value);
-    QStringList *findKaraokeFiles(QString directory);
+    QStringList findKaraokeFiles(QString directory);
 
 signals:
     void threadFinished();

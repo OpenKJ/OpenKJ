@@ -25,11 +25,16 @@
 #include <QDirIterator>
 #include <QDebug>
 #include "sourcedirtablemodel.h"
+#include <QtConcurrent>
+#include "okarchive.h"
+
+int g_pattern;
 
 DbUpdateThread::DbUpdateThread(QObject *parent) :
     QThread(parent)
 {
     pattern = SourceDir::DAT;
+    g_pattern = pattern;
 }
 
 int DbUpdateThread::getPattern() const
@@ -40,6 +45,7 @@ int DbUpdateThread::getPattern() const
 void DbUpdateThread::setPattern(int value)
 {
     pattern = value;
+    g_pattern = value;
 }
 
 QString DbUpdateThread::getPath() const
@@ -47,9 +53,9 @@ QString DbUpdateThread::getPath() const
     return path;
 }
 
-QStringList *DbUpdateThread::findKaraokeFiles(QString directory)
+QStringList DbUpdateThread::findKaraokeFiles(QString directory)
 {
-    QStringList *files = new QStringList();
+    QStringList files;
     QDir dir(directory);
     QDirIterator iterator(dir.absolutePath(), QDirIterator::Subdirectories);
     while (iterator.hasNext()) {
@@ -57,17 +63,73 @@ QStringList *DbUpdateThread::findKaraokeFiles(QString directory)
         if (!iterator.fileInfo().isDir()) {
             QString filename = iterator.filePath();
             if (filename.endsWith(".zip",Qt::CaseInsensitive))
-                files->append(filename);
+                files.append(filename);
             else if (filename.endsWith(".cdg", Qt::CaseInsensitive))
             {
                 QString mp3filename = filename;
                 mp3filename.chop(3);
                 if ((QFile::exists(mp3filename + "mp3")) || (QFile::exists(mp3filename + "MP3")) || (QFile::exists(mp3filename + "Mp3")) || (QFile::exists(mp3filename + "mP3")))
-                    files->append(filename);
+                    files.append(filename);
             }
         }
     }
     return files;
+}
+
+QMutex kDbMutex;
+int processKaraokeFile(QString fileName)
+{
+    // make sure the file is a valid karaoke file
+    OkArchive archive(fileName);
+    if (!archive.isValidKaraokeFile())
+    {
+        qWarning() << "File is not a valid karaoke file: " << fileName;
+        return 0;
+    }
+
+    QSqlQuery query;
+    QString artist;
+    QString title;
+    QString discid;
+    QFileInfo file(fileName);
+    QStringList entries = file.completeBaseName().split(" - ");
+    switch (g_pattern)
+    {
+    case SourceDir::DTA:
+        if (entries.size() >= 3) artist = entries[2];
+        if (entries.size() >= 2) title = entries[1];
+        if (entries.size() >= 1) discid = entries[0];
+        break;
+    case SourceDir::DAT:
+        if (entries.size() >= 2) artist = entries[1];
+        if (entries.size() >= 3) title = entries[2];
+        if (entries.size() >= 1) discid = entries[0];
+        break;
+    case SourceDir::ATD:
+        if (entries.size() >= 1) artist = entries[0];
+        if (entries.size() >= 2) title = entries[1];
+        if (entries.size() >= 3) discid = entries[2];
+        break;
+    case SourceDir::TAD:
+        if (entries.size() >= 2) artist = entries[1];
+        if (entries.size() >= 1) title = entries[0];
+        if (entries.size() >= 3) discid = entries[2];
+        break;
+    case SourceDir::AT:
+        if (entries.size() >= 1) artist = entries[0];
+        if (entries.size() >= 2) title = entries[1];
+        break;
+    case SourceDir::TA:
+        if (entries.size() >= 2) artist = entries[1];
+        if (entries.size() >= 1) title = entries[0];
+        break;
+    }
+    QString sql = "INSERT OR IGNORE INTO dbSongs (discid,artist,title,path,filename,duration) VALUES(\"" + discid + "\",\"" + artist + "\",\""
+            + title + "\",\"" + file.filePath() + "\",\"" + file.completeBaseName() + "\"," + QString::number(archive.getSongDuration()) + ")";
+    kDbMutex.lock();
+    query.exec(sql);
+    kDbMutex.unlock();
+    return 0;
 }
 
 void DbUpdateThread::setPath(const QString &value)
@@ -75,52 +137,54 @@ void DbUpdateThread::setPath(const QString &value)
     path = value;
 }
 
+
+
 void DbUpdateThread::run()
 {
-    QStringList *files = findKaraokeFiles(path);
+    QStringList files = findKaraokeFiles(path);
     QSqlQuery query("BEGIN TRANSACTION");
-    for (int i=0; i < files->size(); i++)
-    {
-        QString artist;
-        QString title;
-        QString discid;
-        QFileInfo file(files->at(i));
-        QStringList entries = file.completeBaseName().split(" - ");
-        switch (pattern)
-        {
-        case SourceDir::DTA:
-            if (entries.size() >= 3) artist = entries[2];
-            if (entries.size() >= 2) title = entries[1];
-            if (entries.size() >= 1) discid = entries[0];
-            break;
-        case SourceDir::DAT:
-            if (entries.size() >= 2) artist = entries[1];
-            if (entries.size() >= 3) title = entries[2];
-            if (entries.size() >= 1) discid = entries[0];
-            break;
-        case SourceDir::ATD:
-            if (entries.size() >= 1) artist = entries[0];
-            if (entries.size() >= 2) title = entries[1];
-            if (entries.size() >= 3) discid = entries[2];
-            break;
-        case SourceDir::TAD:
-            if (entries.size() >= 2) artist = entries[1];
-            if (entries.size() >= 1) title = entries[0];
-            if (entries.size() >= 3) discid = entries[2];
-            break;
-        case SourceDir::AT:
-            if (entries.size() >= 1) artist = entries[0];
-            if (entries.size() >= 2) title = entries[1];
-            break;
-        case SourceDir::TA:
-            if (entries.size() >= 2) artist = entries[1];
-            if (entries.size() >= 1) title = entries[0];
-            break;
-        }
-        QString sql = "INSERT OR IGNORE INTO dbSongs (discid,artist,title,path,filename) VALUES(\"" + discid + "\",\"" + artist + "\",\""
-                + title + "\",\"" + file.filePath() + "\",\"" + file.completeBaseName() + "\")";
-        query.exec(sql);
-    }
+    QtConcurrent::blockingMap(files, processKaraokeFile);
+//    for (int i=0; i < files.size(); i++)
+//    {
+//        QString artist;
+//        QString title;
+//        QString discid;
+//        QFileInfo file(files.at(i));
+//        QStringList entries = file.completeBaseName().split(" - ");
+//        switch (pattern)
+//        {
+//        case SourceDir::DTA:
+//            if (entries.size() >= 3) artist = entries[2];
+//            if (entries.size() >= 2) title = entries[1];
+//            if (entries.size() >= 1) discid = entries[0];
+//            break;
+//        case SourceDir::DAT:
+//            if (entries.size() >= 2) artist = entries[1];
+//            if (entries.size() >= 3) title = entries[2];
+//            if (entries.size() >= 1) discid = entries[0];
+//            break;
+//        case SourceDir::ATD:
+//            if (entries.size() >= 1) artist = entries[0];
+//            if (entries.size() >= 2) title = entries[1];
+//            if (entries.size() >= 3) discid = entries[2];
+//            break;
+//        case SourceDir::TAD:
+//            if (entries.size() >= 2) artist = entries[1];
+//            if (entries.size() >= 1) title = entries[0];
+//            if (entries.size() >= 3) discid = entries[2];
+//            break;
+//        case SourceDir::AT:
+//            if (entries.size() >= 1) artist = entries[0];
+//            if (entries.size() >= 2) title = entries[1];
+//            break;
+//        case SourceDir::TA:
+//            if (entries.size() >= 2) artist = entries[1];
+//            if (entries.size() >= 1) title = entries[0];
+//            break;
+//        }
+//        QString sql = "INSERT OR IGNORE INTO dbSongs (discid,artist,title,path,filename) VALUES(\"" + discid + "\",\"" + artist + "\",\""
+//                + title + "\",\"" + file.filePath() + "\",\"" + file.completeBaseName() + "\")";
+//        query.exec(sql);
+//    }
     query.exec("COMMIT TRANSACTION");
-    delete files;
 }

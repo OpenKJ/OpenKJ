@@ -99,12 +99,20 @@ void OkArchive::setArchiveFile(const QString &value)
 
 bool OkArchive::checkCDG()
 {
-    return findCDG();
+    if (!findCDG())
+        return false;
+    if (m_cdgSize <= 0)
+        return false;
+    return true;
 }
 
 bool OkArchive::checkMP3()
 {
-    return findMp3();
+    if (!findMp3())
+        return false;
+    if (m_mp3Size <= 0)
+        return false;
+    return true;
 }
 
 bool OkArchive::extractMP3(QString destPath)
@@ -122,6 +130,17 @@ bool OkArchive::extractMP3(QString destPath)
         mz_zip_reader_end(&archive);
     }
     return false;
+}
+
+bool OkArchive::isValidKaraokeFile()
+{
+    if (!findEntries())
+        return false;
+    if (m_mp3Size <= 0)
+        return false;
+    if (m_cdgSize <= 0)
+        return false;
+    return true;
 }
 
 bool OkArchive::findCDG()
@@ -164,6 +183,39 @@ bool OkArchive::findMp3()
             mp3FileName = fileName;
             m_mp3Size = fStat.m_uncomp_size;
             m_mp3Found = true;
+            mz_zip_reader_end(&archive);
+            return true;
+        }
+    }
+    mz_zip_reader_end(&archive);
+    return false;
+}
+
+bool OkArchive::findEntries()
+{
+    mz_zip_archive archive;
+    memset(&archive, 0, sizeof(archive));
+    mz_zip_archive_file_stat fStat;
+    mz_zip_reader_init_file(&archive, archiveFile.toLocal8Bit(),0);
+    unsigned int files = mz_zip_reader_get_num_files(&archive);
+    for (unsigned int i=0; i < files; i++)
+    {
+        mz_zip_reader_file_stat(&archive, i, &fStat);
+        QString fileName = fStat.m_filename;
+        if (fileName.endsWith(".mp3",Qt::CaseInsensitive))
+        {
+            mp3FileName = fileName;
+            m_mp3Size = fStat.m_uncomp_size;
+            m_mp3Found = true;
+        }
+        else if (fileName.endsWith(".cdg",Qt::CaseInsensitive))
+        {
+            cdgFileName = fileName;
+            m_cdgSize = fStat.m_uncomp_size;
+            m_cdgFound = true;
+        }
+        if (m_mp3Found && m_cdgFound)
+        {
             mz_zip_reader_end(&archive);
             return true;
         }

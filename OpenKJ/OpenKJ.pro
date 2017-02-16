@@ -36,7 +36,6 @@ SOURCES += main.cpp\
     dlgregularsingers.cpp \
     dlgsettings.cpp \
     dlgcdg.cpp \
-    dlgdurationscan.cpp \
     khaudiorecorder.cpp \
     dbtablemodel.cpp \
     queuemodel.cpp \
@@ -78,7 +77,6 @@ HEADERS  += mainwindow.h \
     dlgregularsingers.h \
     dlgsettings.h \
     dlgcdg.h \
-    dlgdurationscan.h \
     khaudiorecorder.h \
     dbtablemodel.h \
     queuemodel.h \
@@ -112,7 +110,6 @@ FORMS    += mainwindow.ui \
     dlgregularsingers.ui \
     dlgsettings.ui \
     dlgcdg.ui \
-    dlgdurationscan.ui \
     bmdbdialog.ui
 
 RESOURCES += resources.qrc

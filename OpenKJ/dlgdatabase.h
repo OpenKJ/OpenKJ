@@ -25,7 +25,6 @@
 #include <QDir>
 #include <QDirIterator>
 #include "sourcedirtablemodel.h"
-#include "dlgdurationscan.h"
 
 namespace Ui {
 class DlgDatabase;
@@ -38,7 +37,6 @@ class DlgDatabase : public QDialog
 private:
     Ui::DlgDatabase *ui;
     SourceDirTableModel *sourcedirmodel;
-    DlgDurationScan *dlgDurationScan;
     int selectedRow;
 
 public:
@@ -58,7 +56,6 @@ private slots:
     void on_buttonUpdate_clicked();
     void on_btnClearDatabase_clicked();
     void dbupdate_thread_finished();
-    void on_pushButtonGetDurations_clicked();
 
 };
 

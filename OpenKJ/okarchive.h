@@ -40,6 +40,7 @@ public:
     bool checkCDG();
     bool checkMP3();
     bool extractMP3(QString destPath);
+    bool isValidKaraokeFile();
 
 private:
     QString archiveFile;
@@ -53,6 +54,7 @@ private:
     int m_mp3Size;
     bool m_cdgFound;
     bool m_mp3Found;
+    bool findEntries();
 
 signals:
 
