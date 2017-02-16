@@ -79,14 +79,30 @@ QStringList DbUpdateThread::findKaraokeFiles(QString directory)
 QMutex kDbMutex;
 int processKaraokeFile(QString fileName)
 {
+    int duration = 0;
     // make sure the file is a valid karaoke file
-    OkArchive archive(fileName);
-    if (!archive.isValidKaraokeFile())
+    if (fileName.endsWith(".zip", Qt::CaseInsensitive))
     {
-        qWarning() << "File is not a valid karaoke file: " << fileName;
-        return 0;
+        OkArchive archive(fileName);
+        if (!archive.isValidKaraokeFile())
+        {
+            qWarning() << "File is not a valid karaoke file: " << fileName;
+            return 0;
+        }
+        else duration = archive.getSongDuration();
     }
-
+    else if (fileName.endsWith(".cdg", Qt::CaseInsensitive))
+    {
+        QString baseFn = fileName;
+        baseFn.chop(3);
+        QString mp3Fn;
+        if ((!QFile::exists(baseFn + "mp3")) && (!QFile::exists(baseFn + "Mp3")) && (!QFile::exists(baseFn + "MP3")) && (!QFile::exists(baseFn + "mP3")))
+        {
+            qWarning() << "No matching mp3 file for CDG file: " << fileName;
+            return 0;
+        }
+        duration = ((QFile(fileName).size() / 96) / 75) * 1000;
+    }
     QSqlQuery query;
     QString artist;
     QString title;
@@ -125,7 +141,7 @@ int processKaraokeFile(QString fileName)
         break;
     }
     QString sql = "INSERT OR IGNORE INTO dbSongs (discid,artist,title,path,filename,duration) VALUES(\"" + discid + "\",\"" + artist + "\",\""
-            + title + "\",\"" + file.filePath() + "\",\"" + file.completeBaseName() + "\"," + QString::number(archive.getSongDuration()) + ")";
+            + title + "\",\"" + file.filePath() + "\",\"" + file.completeBaseName() + "\"," + QString::number(duration) + ")";
     kDbMutex.lock();
     query.exec(sql);
     kDbMutex.unlock();
