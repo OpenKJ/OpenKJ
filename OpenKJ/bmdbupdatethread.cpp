@@ -64,7 +64,7 @@ int processFile(QString fileName)
 {
     TagReader reader;
     QSqlQuery query;
-    reader.setMedia(fileName.toLocal8Bit());
+    reader.setMedia(fileName);
     QString duration = QString::number(reader.getDuration() / 1000);
     QString artist = reader.getArtist();
     QString title = reader.getTitle();
@@ -80,19 +80,6 @@ void BmDbUpdateThread::run()
     TagReader reader;
     QStringList files = findMediaFiles(m_path);
     QSqlQuery query;
-//    query.exec("BEGIN TRANSACTION");
-//    for (int i=0; i < files->size(); i++)
-//    {
-//        //TagReader reader;
-//        reader.setMedia(files->at(i).toLocal8Bit());
-//        QString duration = QString::number(reader.getDuration() / 1000);
-//        QString artist = reader.getArtist();
-//        QString title = reader.getTitle();
-//        QString filename = QFileInfo(files->at(i)).fileName();
-//        QString queryString = "INSERT OR IGNORE INTO bmsongs (artist,title,path,filename,duration,searchstring) VALUES(\"" + artist + "\",\"" + title + "\",\"" + files->at(i) + "\",\"" + filename + "\",\"" + duration + "\",\"" + artist + title + filename + "\")";
-//        query.exec(queryString);
-//    }
-
     query.exec("BEGIN TRANSACTION");
     QtConcurrent::blockingMap(files, &processFile);
     query.exec("COMMIT TRANSACTION");

@@ -24,6 +24,7 @@
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QSvgRenderer>
+#include <QPainter>
 
 extern Settings *settings;
 

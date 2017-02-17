@@ -42,12 +42,16 @@ void TagReader::setMedia(QString path)
     m_title = QString();
     GstElement *pipe, *dec, *sink;
     GstMessage *msg;
-    std::string uri = "file:///" + m_path.toStdString();
-
+    QString uri;
+#ifdef Q_OS_WIN
+    uri = "file:///" + path;
+#else
+    uri = "file://" + path;
+#endif
     gst_init (NULL, NULL);
     pipe = gst_pipeline_new ("pipeline");
     dec = gst_element_factory_make ("uridecodebin", NULL);
-    g_object_set (dec, "uri", uri.c_str(), NULL);
+    g_object_set (dec, "uri", uri.toUtf8().toPercentEncoding("!$&'()*+,;=:/?[]@").constData(), NULL);
     gst_bin_add (GST_BIN (pipe), dec);
     sink = gst_element_factory_make ("fakesink", NULL);
     gst_bin_add (GST_BIN (pipe), sink);
@@ -66,7 +70,7 @@ void TagReader::setMedia(QString path)
         else
             QThread::msleep(10);
            // std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        if (tries > 50)
+        if (tries > 200)
         {
             qWarning() << "Failed to get duration for: " << path;
             break;
