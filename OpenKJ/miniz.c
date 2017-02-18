@@ -161,7 +161,11 @@
 
 #include <stdlib.h>
 // Added by Isaac (OpenKJ) for _dup use in file descriptor mz_zip_reader_init_filehandle
+#ifdef _MSC_VER
 #include <io.h>
+#else
+#include <unistd.h>
+#endif
 
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #pragma GCC diagnostic ignored "-Wmisleading-indentation"
@@ -3361,7 +3365,11 @@ mz_bool mz_zip_reader_init_file(mz_zip_archive *pZip, const char *pFilename, mz_
 mz_bool mz_zip_reader_init_filehandle(mz_zip_archive *pZip, int fileHandle, mz_uint32 flags)
 {
     mz_uint64 file_size;
+#ifdef MSC_VER
     MZ_FILE *pFile = fdopen(_dup(fileHandle), "rb");
+#else
+    MZ_FILE *pFile = fdopen(dup(fileHandle), "rb");
+#endif
     if (!pFile)
       return MZ_FALSE;
     if (MZ_FSEEK64(pFile, 0, SEEK_END))
