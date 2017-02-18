@@ -57,7 +57,8 @@ SOURCES += main.cpp\
     bmpltablemodel.cpp \
     bmplitemdelegate.cpp \
     settings.cpp \
-    bmdbdialog.cpp
+    bmdbdialog.cpp \
+    miniz.c
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \

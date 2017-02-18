@@ -160,47 +160,5 @@ void DbUpdateThread::run()
     QStringList files = findKaraokeFiles(path);
     QSqlQuery query("BEGIN TRANSACTION");
     QtConcurrent::blockingMap(files, processKaraokeFile);
-//    for (int i=0; i < files.size(); i++)
-//    {
-//        QString artist;
-//        QString title;
-//        QString discid;
-//        QFileInfo file(files.at(i));
-//        QStringList entries = file.completeBaseName().split(" - ");
-//        switch (pattern)
-//        {
-//        case SourceDir::DTA:
-//            if (entries.size() >= 3) artist = entries[2];
-//            if (entries.size() >= 2) title = entries[1];
-//            if (entries.size() >= 1) discid = entries[0];
-//            break;
-//        case SourceDir::DAT:
-//            if (entries.size() >= 2) artist = entries[1];
-//            if (entries.size() >= 3) title = entries[2];
-//            if (entries.size() >= 1) discid = entries[0];
-//            break;
-//        case SourceDir::ATD:
-//            if (entries.size() >= 1) artist = entries[0];
-//            if (entries.size() >= 2) title = entries[1];
-//            if (entries.size() >= 3) discid = entries[2];
-//            break;
-//        case SourceDir::TAD:
-//            if (entries.size() >= 2) artist = entries[1];
-//            if (entries.size() >= 1) title = entries[0];
-//            if (entries.size() >= 3) discid = entries[2];
-//            break;
-//        case SourceDir::AT:
-//            if (entries.size() >= 1) artist = entries[0];
-//            if (entries.size() >= 2) title = entries[1];
-//            break;
-//        case SourceDir::TA:
-//            if (entries.size() >= 2) artist = entries[1];
-//            if (entries.size() >= 1) title = entries[0];
-//            break;
-//        }
-//        QString sql = "INSERT OR IGNORE INTO dbSongs (discid,artist,title,path,filename) VALUES(\"" + discid + "\",\"" + artist + "\",\""
-//                + title + "\",\"" + file.filePath() + "\",\"" + file.completeBaseName() + "\")";
-//        query.exec(sql);
-//    }
     query.exec("COMMIT TRANSACTION");
 }

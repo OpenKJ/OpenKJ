@@ -64,9 +64,11 @@ QByteArray OkArchive::getCDGData()
     QByteArray data;
     if (findCDG())
     {
+        QFile zipFile(archiveFile);
+        zipFile.open(QFile::ReadOnly);
         mz_zip_archive archive;
         memset(&archive, 0, sizeof(archive));
-        mz_zip_reader_init_file(&archive, archiveFile.toLocal8Bit(),0);
+        mz_zip_reader_init_filehandle(&archive, zipFile.handle(), 0);
         QTemporaryDir dir;
         QString cdgTmpFile = dir.path() + QDir::separator() + "tmp.cdg";
         if (mz_zip_reader_extract_file_to_file(&archive, cdgFileName.toLocal8Bit(), cdgTmpFile.toLocal8Bit(),0))
@@ -74,9 +76,11 @@ QByteArray OkArchive::getCDGData()
             QFile cdg(cdgTmpFile);
             cdg.open(QFile::ReadOnly);
             data = cdg.readAll();
+            zipFile.close();
             mz_zip_reader_end(&archive);
             return data;
         }
+        zipFile.close();
         mz_zip_reader_end(&archive);
         return data;
     }
@@ -119,15 +123,22 @@ bool OkArchive::extractMP3(QString destPath)
 {
     if (findMp3())
     {
+        QFile zipFile(archiveFile);
+        zipFile.open(QFile::ReadOnly);
         mz_zip_archive archive;
         memset(&archive, 0, sizeof(archive));
-        mz_zip_reader_init_file(&archive, archiveFile.toLocal8Bit(),0);
+        mz_zip_reader_init_filehandle(&archive, zipFile.handle(), 0);
         if (mz_zip_reader_extract_file_to_file(&archive, mp3FileName.toLocal8Bit(), destPath.toLocal8Bit(),0))
         {
+            zipFile.close();
             mz_zip_reader_end(&archive);
             return true;
         }
+        else
+        qCritical() << "Failed to extract mp3 file";
+        zipFile.close();
         mz_zip_reader_end(&archive);
+        return false;
     }
     return false;
 }
@@ -145,58 +156,26 @@ bool OkArchive::isValidKaraokeFile()
 
 bool OkArchive::findCDG()
 {
-    mz_zip_archive archive;
-    memset(&archive, 0, sizeof(archive));
-    mz_zip_archive_file_stat fStat;
-    mz_zip_reader_init_file(&archive, archiveFile.toLocal8Bit(),0);
-    unsigned int files = mz_zip_reader_get_num_files(&archive);
-    for (unsigned int i=0; i < files; i++)
-    {
-        mz_zip_reader_file_stat(&archive, i, &fStat);
-        QString fileName = fStat.m_filename;
-        if (fileName.endsWith(".cdg",Qt::CaseInsensitive))
-        {
-            cdgFileName = fileName;
-            m_cdgSize = fStat.m_uncomp_size;
-            m_cdgFound = true;
-            mz_zip_reader_end(&archive);
-            return true;
-        }
-    }
-    mz_zip_reader_end(&archive);
-    return false;
+    findEntries();
+    return m_cdgFound;
 }
 
 bool OkArchive::findMp3()
 {
-    mz_zip_archive archive;
-    memset(&archive, 0, sizeof(archive));
-    mz_zip_archive_file_stat fStat;
-    mz_zip_reader_init_file(&archive, archiveFile.toLocal8Bit(),0);
-    unsigned int files = mz_zip_reader_get_num_files(&archive);
-    for (unsigned int i=0; i < files; i++)
-    {
-        mz_zip_reader_file_stat(&archive, i, &fStat);
-        QString fileName = fStat.m_filename;
-        if (fileName.endsWith(".mp3",Qt::CaseInsensitive))
-        {
-            mp3FileName = fileName;
-            m_mp3Size = fStat.m_uncomp_size;
-            m_mp3Found = true;
-            mz_zip_reader_end(&archive);
-            return true;
-        }
-    }
-    mz_zip_reader_end(&archive);
-    return false;
+    findEntries();
+    return m_mp3Found;
 }
 
 bool OkArchive::findEntries()
 {
+    if ((m_mp3Found) && (m_cdgFound))
+        return true;
+    QFile zipFile(archiveFile);
+    zipFile.open(QFile::ReadOnly);
     mz_zip_archive archive;
     memset(&archive, 0, sizeof(archive));
     mz_zip_archive_file_stat fStat;
-    mz_zip_reader_init_file(&archive, archiveFile.toLocal8Bit(),0);
+    mz_zip_reader_init_filehandle(&archive, zipFile.handle(), 0);
     unsigned int files = mz_zip_reader_get_num_files(&archive);
     for (unsigned int i=0; i < files; i++)
     {
@@ -220,6 +199,7 @@ bool OkArchive::findEntries()
             return true;
         }
     }
+    zipFile.close();
     mz_zip_reader_end(&archive);
     return false;
 }
