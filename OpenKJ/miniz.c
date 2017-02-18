@@ -160,7 +160,8 @@
 #define MINIZ_HEADER_INCLUDED
 
 #include <stdlib.h>
-
+// Added by Isaac (OpenKJ) for _dup use in file descriptor mz_zip_reader_init_filehandle
+#include <io.h>
 
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #pragma GCC diagnostic ignored "-Wmisleading-indentation"
@@ -576,6 +577,9 @@ mz_bool mz_zip_reader_init_mem(mz_zip_archive *pZip, const void *pMem, size_t si
 
 #ifndef MINIZ_NO_STDIO
 mz_bool mz_zip_reader_init_file(mz_zip_archive *pZip, const char *pFilename, mz_uint32 flags);
+
+// Added by Isaac (OpenKJ) to allow passing a file handle
+mz_bool mz_zip_reader_init_filehandle(mz_zip_archive *pZip, int fileHandle, mz_uint32 flags);
 #endif
 
 // Returns the total number of files in the archive.
@@ -3352,6 +3356,37 @@ mz_bool mz_zip_reader_init_file(mz_zip_archive *pZip, const char *pFilename, mz_
   }
   return MZ_TRUE;
 }
+
+// Added by Isaac (OpenKJ) to allow passing a file handle
+mz_bool mz_zip_reader_init_filehandle(mz_zip_archive *pZip, int fileHandle, mz_uint32 flags)
+{
+    mz_uint64 file_size;
+    MZ_FILE *pFile = fdopen(_dup(fileHandle), "rb");
+    if (!pFile)
+      return MZ_FALSE;
+    if (MZ_FSEEK64(pFile, 0, SEEK_END))
+    {
+      MZ_FCLOSE(pFile);
+      return MZ_FALSE;
+    }
+    file_size = MZ_FTELL64(pFile);
+    if (!mz_zip_reader_init_internal(pZip, flags))
+    {
+      MZ_FCLOSE(pFile);
+      return MZ_FALSE;
+    }
+    pZip->m_pRead = mz_zip_file_read_func;
+    pZip->m_pIO_opaque = pZip;
+    pZip->m_pState->m_pFile = pFile;
+    pZip->m_archive_size = file_size;
+    if (!mz_zip_reader_read_central_dir(pZip, flags))
+    {
+      mz_zip_reader_end(pZip);
+      return MZ_FALSE;
+    }
+    return MZ_TRUE;
+}
+
 #endif // #ifndef MINIZ_NO_STDIO
 
 mz_uint mz_zip_reader_get_num_files(mz_zip_archive *pZip)
