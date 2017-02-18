@@ -74,8 +74,8 @@ public slots:
     virtual void setVolume(int volume) {Q_UNUSED(volume);}
     virtual void stop(bool skipFade = false) {Q_UNUSED(skipFade);}
     virtual void setPitchShift(int pitchShift) {Q_UNUSED(pitchShift);}
-    virtual void fadeOut() {}
-    virtual void fadeIn() {}
+    virtual void fadeOut(bool waitForFade = true) {Q_UNUSED(waitForFade);}
+    virtual void fadeIn(bool waitForFade = true) {Q_UNUSED(waitForFade);}
     virtual void setUseFader(bool fade) {Q_UNUSED(fade);}
     virtual void setUseSilenceDetection(bool enabled) {Q_UNUSED(enabled);}
     virtual void setDownmix(bool enabled) {Q_UNUSED(enabled);}
