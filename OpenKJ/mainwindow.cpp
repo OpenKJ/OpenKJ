@@ -180,7 +180,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewQueue->hideColumn(12);
     ui->tableViewQueue->horizontalHeader()->resizeSection(8, 25);
     ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(8, QHeaderView::Fixed);
+    if (activeAudioBackend->canPitchShift())
+    {
+        ui->tableViewQueue->horizontalHeader()->showSection(7);
+    }
     ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(7, QHeaderView::ResizeToContents);
+//    ui->tableViewQueue->horizontalHeader()->resizeSection(7,25);
     qModel->setHeaderData(8, Qt::Horizontal,"");
     qModel->setHeaderData(7, Qt::Horizontal, "Key");
     ui->tableViewRotation->horizontalHeader()->resizeSection(0, 25);
@@ -228,6 +233,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewBmPlaylist->setModel(bmPlModel);
     bmPlDelegate = new BmPlItemDelegate(this);
     ui->tableViewBmPlaylist->setItemDelegate(bmPlDelegate);
+    ui->actionDisplay_Filenames->setChecked(settings->bmShowFilenames());
+    ui->actionDisplay_Metadata->setChecked(settings->bmShowMetadata());
     settings->restoreSplitterState(ui->splitterBm);
     settings->restoreColumnWidths(ui->tableViewBmDb);
     settings->restoreColumnWidths(ui->tableViewBmPlaylist);
@@ -243,8 +250,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewBmPlaylist->horizontalHeader()->setSectionResizeMode(7, QHeaderView::Fixed);
     ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(7,25);
     bmAudioBackend->setVolume(settings->bmVolume());
-    ui->actionDisplay_Filenames->setChecked(settings->bmShowFilenames());
-    ui->actionDisplay_Metadata->setChecked(settings->bmShowMetadata());
+
 
     connect(bmAudioBackend, SIGNAL(stateChanged(AbstractAudioBackend::State)), this, SLOT(bmMediaStateChanged(AbstractAudioBackend::State)));
     connect(bmAudioBackend, SIGNAL(positionChanged(qint64)), this, SLOT(bmMediaPositionChanged(qint64)));
