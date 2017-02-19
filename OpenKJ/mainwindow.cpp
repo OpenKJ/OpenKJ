@@ -49,7 +49,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_rtClickRotationSingerId = -1;
     QCoreApplication::setOrganizationName("OpenKJ");
     QCoreApplication::setOrganizationDomain("OpenKJ.org");
-    QCoreApplication::setApplicationName("KaraokeHost");
+    QCoreApplication::setApplicationName("OpenKJ");
     ui->setupUi(this);
 #ifdef Q_OS_WIN
     ui->sliderBmPosition->setMaximumHeight(12);
