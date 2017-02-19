@@ -29,7 +29,7 @@ Settings::Settings(QObject *parent) :
 {
     QCoreApplication::setOrganizationName("OpenKJ");
     QCoreApplication::setOrganizationDomain("OpenKJ.org");
-    QCoreApplication::setApplicationName("KaraokeHost");
+    QCoreApplication::setApplicationName("OpenKJ");
     settings = new QSettings(this);
 }
 

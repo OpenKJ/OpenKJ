@@ -67,7 +67,7 @@ MainWindow::MainWindow(QWidget *parent) :
     settings = new Settings(this);
     settings->restoreWindowState(this);
     database = new QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE"));
-    database->setDatabaseName(khDir->absolutePath() + QDir::separator() + "karaokehost.sqlite");
+    database->setDatabaseName(khDir->absolutePath() + QDir::separator() + "openkj.sqlite");
     database->open();
     QSqlQuery query("CREATE TABLE IF NOT EXISTS dbSongs ( songid INTEGER PRIMARY KEY AUTOINCREMENT, Artist COLLATE NOCASE, Title COLLATE NOCASE, DiscId COLLATE NOCASE, 'Duration' INTEGER, path VARCHAR(700) NOT NULL UNIQUE, filename COLLATE NOCASE)");
     query.exec("CREATE TABLE IF NOT EXISTS rotationSingers ( singerid INTEGER PRIMARY KEY AUTOINCREMENT, name COLLATE NOCASE UNIQUE, 'position' INTEGER NOT NULL, 'regular' LOGICAL DEFAULT(0), 'regularid' INTEGER)");
