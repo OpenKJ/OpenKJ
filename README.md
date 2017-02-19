@@ -1,5 +1,6 @@
 If you are looking for binary installers for Windows or macOS, please visit https://openkj.org
 
+**Note:** If you are going from a version prior to 0.10.0 to 0.10.0 or later, you will need to export your regular singers and playlists **BEFORE** updating and reimport them after installing the new version and updating your karaoke and break music databases due to database changes.
 
 OpenKJ
 ======
