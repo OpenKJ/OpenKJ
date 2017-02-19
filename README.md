@@ -19,7 +19,8 @@ It currently only handles mp3g+zip files (zip files containing an mp3 and cdg fi
 
 Database entries for the songs are based on the file naming scheme.  I've included the commone ones I've come across, if anyone needs something added just tell me or submit the appropriate code changes if you're a programmer.  They're pretty trivial to add.  I plan on adding the ability to do custom definitons in the future, but it's pretty far down on my list.
 
-![Main window screen shot](/screenShots/KhMainWindow.png "Main KaraokeHost Window")
+![Karaoke screen shot](/screenShots/okjlinux-0.10.1-karaoke.png "Main OpenKJ Window - Karaoke")
+![Break music screen shot](/screenShots/okjlinux-0.10.1-breakmusic.png "Main OpenKJ Window - Break Music")
 ![Full screen CDG Display](/screenShots/KhCDGWindowFullScreen.png "Fullscreen CDG Display")
 
 OpenKJ is experimental but usable at this point.  I am using it to run my shows, but if you do so and it kills kittens or eats your firstborn don't come screaming at me ;) Some features are still incomplete. To any other developers looking at this code, please don't laugh too hard, as I'm self taught primarily for the purpose of writing this.  Well, okay, you can laugh, but only if you're willing to fix the code that you're making fun of ;)
