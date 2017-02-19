@@ -51,6 +51,12 @@ MainWindow::MainWindow(QWidget *parent) :
     QCoreApplication::setOrganizationDomain("OpenKJ.org");
     QCoreApplication::setApplicationName("KaraokeHost");
     ui->setupUi(this);
+#ifdef Q_OS_WIN
+    ui->sliderBmPosition->setMaximumHeight(12);
+    ui->sliderBmVolume->setMaximumWidth(12);
+    ui->sliderProgress->setMaximumHeight(12);
+    ui->sliderVolume->setMaximumWidth(12);
+#endif
     db = new KhDb(this);
     labelSingerCount = new QLabel(ui->statusBar);
     khDir = new QDir(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
