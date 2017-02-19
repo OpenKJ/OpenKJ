@@ -1,5 +1,3 @@
-**NOTE:** If you are going to build from source, you should use tagged version 0.9.3 for the time being.  Master is currently in an unusable state due to work I'm doing to merge KaraokeHost and BreakMusic into a single unified OpenKJ program.
-
 If you are looking for binary installers for Windows or macOS, please visit https://openkj.org
 
 
@@ -8,13 +6,13 @@ OpenKJ
 
 Cross-platform open source karaoke show hosting software.
 
-KaraokeHost is a full featured karaoke hosting program.
+OpenKJ is a full featured karaoke hosting program.
 A few features:
 * Save/track/load regular singers
 * Key changer
 * End of track silence detection (after last CDG draw command)
 * Rotation ticker on the CDG display
-* Remotely fades BreakMusic in and out when karaoke tracks start/end
+* Fades break music in and out automatically when karaoke tracks start/end
 * Lots of other little things
 
 It currently only handles mp3g+zip files (zip files containing an mp3 and cdg file) and paired mp3 and cdg files.  I'll be adding others in the future (wav+cdg, ogg+cdg, etc) if anyone expresses interest.  It does not support playing non cdg-based tracks (wmv, avi, mpg, etc) and I have zero plans to ever do so, as professional KJ's generally don't use them.
@@ -24,24 +22,16 @@ Database entries for the songs are based on the file naming scheme.  I've includ
 ![Main window screen shot](/screenShots/KhMainWindow.png "Main KaraokeHost Window")
 ![Full screen CDG Display](/screenShots/KhCDGWindowFullScreen.png "Fullscreen CDG Display")
 
-BreakMusic is a VERY basic bare bones media player.
-The only real reason it exists is so that I could have something that would receive IPC commands from KaraokeHost to tell it to fade out when a karaoke track starts playing and fade back in when it is stopped. (I'm a lazy KJ like that).
+OpenKJ is experimental but usable at this point.  I am using it to run my shows, but if you do so and it kills kittens or eats your firstborn don't come screaming at me ;) Some features are still incomplete. To any other developers looking at this code, please don't laugh too hard, as I'm self taught primarily for the purpose of writing this.  Well, okay, you can laugh, but only if you're willing to fix the code that you're making fun of ;)
 
-Both are experimental but usable at this point.  I am using it to run my shows every weekend now, but if you do so and it kills kittens or eats your firstborn don't come screaming at me ;) Some features are still incomplete. To any other developers looking at this code, please don't laugh too hard, as I'm self taught primarily for the purpose of writing this.  Well, okay, you can laugh, but only if you're willing to fix the code that you're making fun of ;)
-
-**Requirements to build KaraokeHost:**
-
-* Qt 5.x
-* gstreamer 1.x
-
-**Requirements to build BreakMusic:**
+**Requirements to build OpenKJ:**
 
 * Qt 5.x
 * gstreamer 1.x
 
 **Linux**
 
-I develop the software and host my shows on Linux (Fedora specifically), so it is known to build and work there.  (It "should" work similarly on any Linux distor or the BSD's.)  Everything needed will most likely be available via the package manager on any common distro.  On Fedora the packages are gstreamer-devel gstreamer gstreamer-plugins-good gstreamer-plugins-bad and the Qt5 stuff (I just yum install qt5-* because I'm lazy).  On Fedora you will also need to have the rpmfusion repo enabled to get mp3 support, as the app is pretty useless w/o it.  "qmake-qt5" or possibly just "qmake", depending on your distro, followed by a "make" should get it built. A "make install" will put the binaries in /usr/bin and copy .desktop files and icons into the appropriate places for it to appear in the app menu.  Tweak the KaraokeHost.pro file to enable or disable OpenGL support prior to building.  One thing to note, you'll probably need to turn off flat volumes in your pulseaudio config if you're using it, otherwise the applicaitons may mess with your system-wide volume instead of just the application volume.
+I develop the software and host my shows on Linux (Fedora specifically), so it is known to build and work there.  (It "should" work similarly on any Linux distor or the BSD's.)  Everything needed will most likely be available via the package manager on any common distro.  On Fedora the packages are gstreamer-devel gstreamer gstreamer-plugins-good gstreamer-plugins-bad and the Qt5 stuff (I just yum install qt5-* because I'm lazy).  On Fedora you will also need to have the rpmfusion repo enabled to get mp3 support, as the app is pretty useless w/o it.  "qmake-qt5" or possibly just "qmake", depending on your distro, followed by a "make" should get it built. A "make install" will put the binaries in /usr/bin and copy .desktop file and icon into the appropriate places for it to appear in the app menu.  Tweak the OpenKJ.pro file to enable or disable OpenGL support prior to building.  One thing to note, you'll probably need to turn off flat volumes in your pulseaudio config if you're using it, otherwise the applicaitons may mess with your system-wide volume instead of just the application volume.
 
 **Mac**
 
@@ -50,24 +40,20 @@ Building now works on OS X in Qt Creator using the native xcode compiler.  Use t
 
 **Windows**
 
-Building now works on Windows in Qt Creator using the msvc 2015 build system (both 32 and 64 bit).  Use the latest stable version of the GStreamer SDK from http://gstreamer.freedesktop.org.  You will likely need to modify the paths in the KaraokeHost.pro and BreakMusic.pro file to match your devel environment.  Experimental build installers can be found at http://openkj.org/ if you just want to run the software and not build it yourself or help out with development.
+Building now works on Windows in Qt Creator using the msvc 2015 build system (both 32 and 64 bit).  Use the latest stable version of the GStreamer SDK from http://gstreamer.freedesktop.org.  You will likely need to modify the paths in the OpenKJ.pro file to match your devel environment.  Experimental build installers can be found at http://openkj.org/ if you just want to run the software and not build it yourself or help out with development.
 
 
 The goal is to have it work consistently across all three platforms.
 
 Things that are still work in progress or to do:
 
-KaraokeHost:
+OpenKJ:
 
 * Regular singers - Name conflict resolution on import (Rename/Merge/Replace) 
-* Regular singers - Name conflict resolution on save (Merge/Replace)
+* Regular singers - Name conflict resolution on save (Rename/Merge/Replace)
 * Settings - Output device selection
 * And a million more things I'm forgetting
 
-BreakMusic:
-
-* Work on tighter integration with KaraokeHost
-* Work on general look/feel
 
 libCDG:
 
