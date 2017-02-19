@@ -158,7 +158,7 @@
         <item>
          <widget class="QStackedWidget" name="stackedWidget">
           <property name="currentIndex">
-           <number>1</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="audioPage">
            <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -232,7 +232,7 @@
             <item>
              <widget class="QCheckBox" name="checkBoxSilenceDetection">
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If enabled, the program will monitor for silent periods of greater than 2 seconds after the last draw instruction has been rendered, stopping the audio track immediately. (avoids long silences when BreakMusic audo fade)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If enabled, the program will monitor for silent periods of greater than 2 seconds after the last draw instruction has been rendered, stopping the audio track immediately. (Avoids long silences before fading break music back in)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>Silence detection</string>
