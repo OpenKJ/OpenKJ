@@ -1281,3 +1281,8 @@ void MainWindow::on_actionPlaylistDelete_triggered()
 }
 
 
+
+void MainWindow::on_buttonBmSearch_clicked()
+{
+    bmDbModel->search(ui->lineEditBmSearch->text());
+}

@@ -194,6 +194,7 @@ private slots:
     void on_actionPlaylistImport_triggered();
     void on_actionPlaylistExport_triggered();
     void on_actionPlaylistDelete_triggered();
+    void on_buttonBmSearch_clicked();
 };
 
 
