@@ -47,7 +47,6 @@ SOURCES += main.cpp\
     okarchive.cpp \
     cdgvideosurface.cpp \
     cdgvideowidget.cpp \
-    imagewidget.cpp \
     abstractaudiobackend.cpp \
     audiobackendgstreamer.cpp \
     tagreader.cpp \
@@ -89,7 +88,6 @@ HEADERS  += mainwindow.h \
     okarchive.h \
     cdgvideosurface.h \
     cdgvideowidget.h \
-    imagewidget.h \
     abstractaudiobackend.h \
     audiobackendgstreamer.h \
     tagreader.h \
