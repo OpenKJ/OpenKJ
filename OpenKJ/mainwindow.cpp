@@ -994,6 +994,7 @@ void MainWindow::bmMediaStateChanged(AbstractAudioBackend::State newState)
                 nextSong = "None - Breaking after current song";
             bmAudioBackend->setMedia(path);
             bmAudioBackend->play();
+            bmAudioBackend->setVolume(ui->sliderBmVolume->value());
             ui->labelBmPlaying->setText(song);
             ui->labelBmNext->setText(nextSong);
             bmPlDelegate->setCurrentSong(bmCurrentPosition);
