@@ -362,7 +362,7 @@ void AudioBackendGstreamer::setPitchShift(int pitchShift)
 {
     m_keyChange = pitchShift;
     if (m_keyChangerRubberBand)
-        g_object_set(G_OBJECT(pitchShifterRubberBand), "semitones", NULL);
+        g_object_set(G_OBJECT(pitchShifterRubberBand), "semitones", pitchShift, NULL);
     else if (m_keyChangerSoundtouch)
     {
         g_object_set(G_OBJECT(pitchShifterSoundtouch), "pitch", getPitchForSemitone(pitchShift), NULL);
