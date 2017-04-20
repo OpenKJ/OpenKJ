@@ -65,6 +65,9 @@ MainWindow::MainWindow(QWidget *parent) :
         khDir->mkpath(khDir->absolutePath());
     }
     settings = new Settings(this);
+    int initialKVol = settings->audioVolume();
+    int initialBMVol = settings->bmVolume();
+    qWarning() << "Initial volumes - K: " << initialKVol << " BM: " << initialBMVol;
     settings->restoreWindowState(this);
     database = new QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE"));
     database->setDatabaseName(khDir->absolutePath() + QDir::separator() + "openkj.sqlite");
@@ -142,7 +145,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(activeAudioBackend, SIGNAL(stateChanged(AbstractAudioBackend::State)), this, SLOT(audioBackend_stateChanged(AbstractAudioBackend::State)));
     connect(activeAudioBackend, SIGNAL(pitchChanged(int)), ui->spinBoxKey, SLOT(setValue(int)));
     qDebug() << "Setting volume to " << settings->audioVolume();
-    activeAudioBackend->setVolume(settings->audioVolume());
     ui->sliderBmVolume->setValue(settings->audioVolume());
     connect(rotModel, SIGNAL(rotationModified()), this, SLOT(rotationDataChanged()));
     connect(settings, SIGNAL(tickerOutputModeChanged()), this, SLOT(rotationDataChanged()));
@@ -255,7 +257,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(2,25);
     ui->tableViewBmPlaylist->horizontalHeader()->setSectionResizeMode(7, QHeaderView::Fixed);
     ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(7,25);
-    bmAudioBackend->setVolume(settings->bmVolume());
 
 
     connect(bmAudioBackend, SIGNAL(stateChanged(AbstractAudioBackend::State)), this, SLOT(bmMediaStateChanged(AbstractAudioBackend::State)));
@@ -264,6 +265,11 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(bmAudioBackend, SIGNAL(volumeChanged(int)), ui->sliderBmVolume, SLOT(setValue(int)));
     connect(bmDbDialog, SIGNAL(bmDbUpdated()), this, SLOT(bmDbUpdated()));
     connect(bmDbDialog, SIGNAL(bmDbCleared()), this, SLOT(bmDbCleared()));
+
+    ui->sliderBmVolume->setValue(initialBMVol);
+    ui->sliderVolume->setValue(initialKVol);
+//    bmAudioBackend->setVolume(initialBMVol);
+//    activeAudioBackend->setVolume(initialKVol);
 
 }
 
@@ -352,6 +358,9 @@ void MainWindow::play(QString karaokeFilePath)
 
 MainWindow::~MainWindow()
 {
+    settings->bmSetVolume(ui->sliderBmVolume->value());
+    settings->setAudioVolume(ui->sliderBmVolume->value());
+    qWarning() << "Saving volumes - K: " << settings->audioVolume() << " BM: " << settings->bmVolume();
     settings->saveSplitterState(ui->splitter);
     settings->saveSplitterState(ui->splitter_2);
     settings->saveColumnWidths(ui->tableViewDB);
@@ -363,12 +372,10 @@ MainWindow::~MainWindow()
     settings->saveWindowState(regularSingersDialog);
     settings->saveWindowState(this);
     settings->setShowCdgWindow(cdgWindow->isVisible());
-    settings->setAudioVolume(ui->sliderBmVolume->value());
 
     settings->saveSplitterState(ui->splitterBm);
     settings->saveColumnWidths(ui->tableViewBmDb);
     settings->saveColumnWidths(ui->tableViewBmPlaylist);
-    settings->bmSetVolume(ui->sliderBmVolume->value());
     settings->bmSetPlaylistIndex(ui->comboBoxBmPlaylists->currentIndex());
 
     delete cdg;
@@ -695,7 +702,7 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
     {
         audioRecorder->stop();
 //        ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
-        bmAudioBackend->fadeIn();
+        bmAudioBackend->fadeIn(false);
         activeAudioBackend->stop(true);
     }
     if (state == AbstractAudioBackend::PausedState)
