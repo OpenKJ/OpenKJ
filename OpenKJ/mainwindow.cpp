@@ -697,12 +697,12 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
         ui->sliderProgress->setValue(0);
         setShowBgImage(true);
         cdgWindow->setShowBgImage(true);
+        bmAudioBackend->fadeIn(false);
     }
     if (state == AbstractAudioBackend::EndOfMediaState)
     {
         audioRecorder->stop();
 //        ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
-        bmAudioBackend->fadeIn(false);
         activeAudioBackend->stop(true);
     }
     if (state == AbstractAudioBackend::PausedState)
