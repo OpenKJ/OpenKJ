@@ -684,6 +684,10 @@ void MainWindow::audioBackend_durationChanged(qint64 duration)
 
 void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
 {
+    static AbstractAudioBackend::State lastState = AbstractAudioBackend::StoppedState;
+    if (state == lastState)
+        return;
+    lastState = state;
     if (state == AbstractAudioBackend::StoppedState)
     {
         audioRecorder->stop();
