@@ -44,6 +44,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    m_lastAudioState = AbstractAudioBackend::StoppedState;
     sliderPositionPressed = false;
     m_rtClickQueueSongId = -1;
     m_rtClickRotationSingerId = -1;
@@ -684,10 +685,9 @@ void MainWindow::audioBackend_durationChanged(qint64 duration)
 
 void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
 {
-    static AbstractAudioBackend::State lastState = AbstractAudioBackend::StoppedState;
-    if (state == lastState)
+    if (state == m_lastAudioState)
         return;
-    lastState = state;
+    m_lastAudioState = state;
     if (state == AbstractAudioBackend::StoppedState)
     {
         audioRecorder->stop();
@@ -699,6 +699,7 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
         ui->labelRemainTime->setText("0:00");
         ui->labelTotalTime->setText("0:00");
         ui->sliderProgress->setValue(0);
+        ui->cdgVideoWidget->clear();
         setShowBgImage(true);
         cdgWindow->setShowBgImage(true);
         bmAudioBackend->fadeIn(false);
@@ -787,6 +788,7 @@ void MainWindow::rotationDataChanged()
 
 void MainWindow::silenceDetected()
 {
+    qWarning() << "Detected silence.  Cur Pos: " << activeAudioBackend->position() << " Last CDG update pos: " << cdg->GetLastCDGUpdate();
     if (cdg->GetLastCDGUpdate() < activeAudioBackend->position())
     {
         activeAudioBackend->stop(true);

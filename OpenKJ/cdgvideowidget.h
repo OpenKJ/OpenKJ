@@ -22,6 +22,7 @@ public:
     ~CdgVideoWidget();
     CdgVideoSurface *videoSurface() const { return surface; }
     QSize sizeHint() const;
+    void clear();
 private:
     CdgVideoSurface *surface;
 

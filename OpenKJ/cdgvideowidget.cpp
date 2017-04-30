@@ -33,6 +33,11 @@ QSize CdgVideoWidget::sizeHint() const
     return surface->surfaceFormat().sizeHint();
 }
 
+void CdgVideoWidget::clear()
+{
+    surface->blankImage();
+}
+
 
 void CdgVideoWidget::resizeEvent(QResizeEvent *event)
 {

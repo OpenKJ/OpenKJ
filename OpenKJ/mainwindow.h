@@ -112,6 +112,7 @@ private:
     int bmCurrentPlaylist;
     void bmAddPlaylist(QString title);
     bool bmPlaylistExists(QString name);
+    AbstractAudioBackend::State m_lastAudioState;
 
 
 

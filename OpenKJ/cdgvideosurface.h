@@ -19,6 +19,7 @@ public:
     void updateVideoRect();
     QRect videoRect() const { return targetRect; }
     void paint(QPainter *painter);
+    void blankImage();
 
 private:
     QWidget *widget;

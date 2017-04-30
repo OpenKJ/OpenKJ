@@ -88,6 +88,7 @@ private:
     bool m_canKeyChange;
     bool m_keyChangerRubberBand;
     bool m_keyChangerSoundtouch;
+    int m_silenceDuration;
     void processGstMessages();
     int m_outputChannels;
     double m_currentRmsLevel;

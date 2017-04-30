@@ -36,6 +36,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     m_outputChannels = 0;
     m_currentRmsLevel = 0.0;
     m_keyChange = 0;
+    m_silenceDuration = 0;
 
     qCritical() << "Initializing gst\n";
     gst_init(NULL,NULL);
@@ -141,6 +142,7 @@ void AudioBackendGstreamer::processGstMessages()
                         rmsValues = rmsValues + rms;
                     }
                     m_currentRmsLevel = rmsValues / channels;
+                    //qWarning() << "RMS Level: " << m_currentRmsLevel;
                 }
             }
             else if (message->type == GST_MESSAGE_EOS)
@@ -320,23 +322,24 @@ void AudioBackendGstreamer::slowTimer_timeout()
             setPitchShift(0);
 
     processGstMessages();
-
-    static int seconds = 0;
+    //qWarning() << "Silence detection enabled state: " << m_silenceDetect;
+    //qWarning() << "Audio backend state            : " << state();
     if (m_silenceDetect)
     {
         if ((state() == AbstractAudioBackend::PlayingState) && (isSilent()))
         {
-            qDebug() << "Silence detected for " << seconds + 1 << " seconds";
-            if (seconds >= 2)
+            qWarning() << "Silence detected for " << m_silenceDuration + 1 << " seconds";
+            if (m_silenceDuration >= 2)
             {
-                seconds = 0;
+                //m_silenceDuration = 0;
                 emit silenceDetected();
+                m_silenceDuration++;
                 return;
             }
-            seconds++;
+            m_silenceDuration++;
         }
         else
-            seconds = 0;
+            m_silenceDuration = 0;
     }
 }
 

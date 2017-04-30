@@ -109,3 +109,9 @@ void CdgVideoSurface::paint(QPainter *painter)
         currentFrame.unmap();
     }
 }
+
+void CdgVideoSurface::blankImage()
+{
+    QVideoFrame frame;
+    present(frame);
+}
