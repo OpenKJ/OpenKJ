@@ -690,6 +690,7 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
     m_lastAudioState = state;
     if (state == AbstractAudioBackend::StoppedState)
     {
+        qWarning() << "Audio entered StoppedState";
         audioRecorder->stop();
         cdg->VideoClose();
         ui->labelArtist->setText("None");
@@ -706,16 +707,19 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
     }
     if (state == AbstractAudioBackend::EndOfMediaState)
     {
+        qWarning() << "Audio entered EndOfMediaState";
         audioRecorder->stop();
 //        ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
         activeAudioBackend->stop(true);
     }
     if (state == AbstractAudioBackend::PausedState)
     {
+        qWarning() << "Audio entered PausedState";
             audioRecorder->pause();
     }
     if (state == AbstractAudioBackend::PlayingState)
     {
+        qWarning() << "Audio entered PlayingState";
         if (settings->recordingEnabled())
         {
             int curSingerId = rotModel->currentSinger();
@@ -724,6 +728,10 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
             QString title = ui->labelTitle->text();
             audioRecorder->record(singerName + " - " + artist + " - " + title);
         }
+    }
+    if (state == AbstractAudioBackend::UnknownState)
+    {
+        qWarning() << "Audio entered UnknownState";
     }
 }
 

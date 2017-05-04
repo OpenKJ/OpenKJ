@@ -118,6 +118,19 @@ void AudioBackendGstreamer::processGstMessages()
         message = gst_bus_pop(bus);
         if (message != NULL)
         {
+            if (message->type == GST_MESSAGE_STATE_CHANGED)
+            {
+                GstState state;
+                gst_element_get_state(playBin, &state, NULL, GST_CLOCK_TIME_NONE);
+                if (state == GST_STATE_PLAYING)
+                    emit stateChanged(AbstractAudioBackend::PlayingState);
+                else if (state == GST_STATE_PAUSED)
+                    emit stateChanged(AbstractAudioBackend::PausedState);
+                else if (state == GST_STATE_NULL)
+                    emit stateChanged(AbstractAudioBackend::StoppedState);
+                else
+                    emit stateChanged(AbstractAudioBackend::UnknownState);
+            }
             if (message->type == GST_MESSAGE_ELEMENT) {
                 const GstStructure *s = gst_message_get_structure (message);
                 const gchar *name = gst_structure_get_name (s);

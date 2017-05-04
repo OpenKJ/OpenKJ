@@ -31,7 +31,7 @@ class AbstractAudioBackend : public QObject
 {
     Q_OBJECT
 public:
-    enum State{PlayingState=0,PausedState,StoppedState,EndOfMediaState};
+    enum State{PlayingState=0,PausedState,StoppedState,EndOfMediaState,UnknownState};
     explicit AbstractAudioBackend(QObject *parent = 0);
     virtual int volume() {return 0;}
     virtual qint64 position() {return 0;}
