@@ -341,7 +341,6 @@ void AudioBackendGstreamer::slowTimer_timeout()
     {
         if ((state() == AbstractAudioBackend::PlayingState) && (isSilent()))
         {
-            qWarning() << "Silence detected for " << m_silenceDuration + 1 << " seconds";
             if (m_silenceDuration >= 2)
             {
                 //m_silenceDuration = 0;
@@ -401,7 +400,7 @@ void FaderGStreamer::run()
     fading = true;
     while ((volume() != m_targetVolume) && (fading))
     {
-        qWarning() << "Fader - current: " << volume() << " target: " << m_targetVolume;
+//        qWarning() << "Fader - current: " << volume() << " target: " << m_targetVolume;
         if (volume() > m_targetVolume)
         {
             if (volume() < m_targetVolume + .02)
