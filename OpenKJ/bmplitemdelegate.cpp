@@ -22,6 +22,7 @@
 #include <QPainter>
 #include <QTime>
 #include <QDebug>
+#include <QFileInfo>
 
 int BmPlItemDelegate::currentSong() const
 {
@@ -58,6 +59,17 @@ void BmPlItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         if (index.row() != m_currentSong)
             return;
         painter->drawImage(QRect(option.rect.x(),option.rect.y(), 16, 16), QImage(":/icons/Icons/play-small.png"));
+        return;
+    }
+    if (index.column() == 5)
+    {
+        QFileInfo fi(index.data().toString());
+        QString fn = fi.fileName();
+        painter->save();
+        if (option.state & QStyle::State_Selected)
+            painter->setPen(option.palette.highlightedText().color());
+        painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + fn);
+        painter->restore();
         return;
     }
     if (index.column() == 6)

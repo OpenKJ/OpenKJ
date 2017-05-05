@@ -20,6 +20,7 @@
 
 #include "bmdbitemdelegate.h"
 #include <QTime>
+#include <QFileInfo>
 
 BmDbItemDelegate::BmDbItemDelegate(QObject *parent) :
     QItemDelegate(parent)
@@ -30,6 +31,17 @@ void BmDbItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
 {
     if (option.state & QStyle::State_Selected)
         painter->fillRect(option.rect, option.palette.highlight());
+    if (index.column() == 4)
+    {
+        QFileInfo fi(index.data().toString());
+        QString fn = fi.fileName();
+        painter->save();
+        if (option.state & QStyle::State_Selected)
+            painter->setPen(option.palette.highlightedText().color());
+        painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + fn);
+        painter->restore();
+        return;
+    }
     if (index.column() == 5)
     {
         int sec = index.data().toInt();
