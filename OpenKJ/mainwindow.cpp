@@ -437,12 +437,16 @@ void MainWindow::on_tableViewDB_activated(const QModelIndex &index)
 
 void MainWindow::on_buttonAddSinger_clicked()
 {
+    if (ui->editAddSinger->text() == "")
+        return;
     rotModel->singerAdd(ui->editAddSinger->text());
     ui->editAddSinger->clear();
 }
 
 void MainWindow::on_editAddSinger_returnPressed()
 {
+    if (ui->editAddSinger->text() == "")
+        return;
     rotModel->singerAdd(ui->editAddSinger->text());
     ui->editAddSinger->clear();
 }
