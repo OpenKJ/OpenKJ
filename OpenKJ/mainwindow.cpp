@@ -31,6 +31,7 @@
 #include <QMenu>
 #include <QInputDialog>
 #include <QFileDialog>
+#include <QImageReader>
 #include "khdb.h"
 #include "okarchive.h"
 #include "tagreader.h"
@@ -271,7 +272,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->sliderVolume->setValue(initialKVol);
 //    bmAudioBackend->setVolume(initialBMVol);
 //    activeAudioBackend->setVolume(initialKVol);
-
 }
 
 void MainWindow::play(QString karaokeFilePath)

@@ -102,6 +102,7 @@ private:
     int sortDirDB;
     QString previewZip;
 
+
     BmDbDialog *bmDbDialog;
     BmDbTableModel *bmDbModel;
     BmDbItemDelegate *bmDbDelegate;
@@ -113,8 +114,6 @@ private:
     void bmAddPlaylist(QString title);
     bool bmPlaylistExists(QString name);
     AbstractAudioBackend::State m_lastAudioState;
-
-
 
 public:
     explicit MainWindow(QWidget *parent = 0);

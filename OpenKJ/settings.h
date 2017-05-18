@@ -37,6 +37,7 @@ private:
     QSettings *settings;
 
 public:
+    enum BgMode { BG_MODE_IMAGE = 0, BG_MODE_SLIDESHOW };
     explicit Settings(QObject *parent = 0);
     bool cdgWindowFullscreen();
     bool showCdgWindow();
@@ -94,6 +95,10 @@ public:
     void setAudioVolume(int volume);
     QString cdgDisplayBackgroundImage();
     void setCdgDisplayBackgroundImage(QString imageFile);
+    BgMode bgMode();
+    void setBgMode(BgMode mode);
+    QString bgSlideShowDir();
+    void setBgSlideShowDir(QString dir);
     bool audioDownmix();
     void setAudioDownmix(bool downmix);
     bool audioDetectSilence();
@@ -145,6 +150,8 @@ signals:
     void cdgVSizeAdjustmentChanged(int pixels);
     void cdgHOffsetChanged(int pixels);
     void cdgVOffsetChanged(int pixels);
+    void bgModeChanged(BgMode mode);
+    void bgSlideShowDirChanged(QString dir);
 
 public slots:
     void setShowCdgWindow(bool show);

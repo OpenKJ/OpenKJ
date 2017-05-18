@@ -90,6 +90,9 @@ private slots:
     void setAuth(QNetworkReply * reply, QAuthenticator * authenticator);
 
     void on_pushButtonClearBgImg_clicked();
+    void on_pushButtonSlideshowBrowse_clicked();
+    void on_rbSlideshow_toggled(bool checked);
+    void on_rbBgImage_toggled(bool checked);
 };
 
 #endif // SETTINGSDIALOG_H

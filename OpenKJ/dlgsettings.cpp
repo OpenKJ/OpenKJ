@@ -93,7 +93,12 @@ DlgSettings::DlgSettings(KhAudioBackends *AudioBackends, QWidget *parent) :
     ui->lineEditUsername->setText(settings->requestServerUsername());
     ui->lineEditPassword->setText(settings->requestServerPassword());
     ui->checkBoxIgnoreCertErrors->setChecked(settings->requestServerIgnoreCertErrors());
+    if ((settings->bgMode() == settings->BG_MODE_IMAGE) || (settings->bgSlideShowDir() == ""))
+        ui->rbBgImage->setChecked(true);
+    else
+        ui->rbSlideshow->setChecked(true);
     ui->lineEditCdgBackground->setText(settings->cdgDisplayBackgroundImage());
+    ui->lineEditSlideshowDir->setText(settings->bgSlideShowDir());
     ui->checkBoxFader->setChecked(settings->audioUseFader());
     ui->checkBoxDownmix->setChecked(settings->audioDownmix());
     ui->checkBoxSilenceDetection->setChecked(settings->audioDetectSilence());
@@ -529,4 +534,33 @@ void DlgSettings::on_pushButtonClearBgImg_clicked()
 {
     settings->setCdgDisplayBackgroundImage(QString::null);
     ui->lineEditCdgBackground->setText(QString::null);
+}
+
+void DlgSettings::on_pushButtonSlideshowBrowse_clicked()
+{
+    QString initialPath = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
+    if (settings->bgSlideShowDir() != "")
+        initialPath = settings->bgSlideShowDir();
+    QString dirName = QFileDialog::getExistingDirectory(this, "Select the slideshow directory", initialPath);
+    if (dirName != "")
+    {
+        settings->setBgSlideShowDir(dirName);
+        ui->lineEditSlideshowDir->setText(dirName);
+    }
+}
+
+void DlgSettings::on_rbSlideshow_toggled(bool checked)
+{
+    if (checked)
+        settings->setBgMode(settings->BG_MODE_SLIDESHOW);
+    else
+        settings->setBgMode(settings->BG_MODE_IMAGE);
+}
+
+void DlgSettings::on_rbBgImage_toggled(bool checked)
+{
+    if (checked)
+        settings->setBgMode(settings->BG_MODE_IMAGE);
+    else
+        settings->setBgMode(settings->BG_MODE_SLIDESHOW);
 }

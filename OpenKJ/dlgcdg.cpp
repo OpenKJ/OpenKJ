@@ -25,6 +25,8 @@
 #include <QDesktopWidget>
 #include <QSvgRenderer>
 #include <QPainter>
+#include <QDir>
+#include <QImageReader>
 
 extern Settings *settings;
 
@@ -70,7 +72,10 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
     connect(settings, SIGNAL(cdgWindowFullscreenChanged(bool)), this, SLOT(setFullScreen(bool)));
     connect(ui->cdgVideo, SIGNAL(resized(QSize)), this, SLOT(cdgSurfaceResized(QSize)));
     fullScreenTimer = new QTimer(this);
+    slideShowTimer = new QTimer(this);
     connect(fullScreenTimer, SIGNAL(timeout()), this, SLOT(fullScreenTimerTimeout()));
+    connect(slideShowTimer, SIGNAL(timeout()), this, SLOT(slideShowTimerTimeout()));
+    slideShowTimer->start(15000);
     fullScreenTimer->setInterval(500);
     ui->cdgVideo->videoSurface()->start();
     if ((settings->cdgWindowFullscreen()) && (settings->showCdgWindow()))
@@ -82,6 +87,7 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
     else
         hide();
     setShowBgImage(true);
+    slideShowTimerTimeout();
 
 }
 
@@ -228,7 +234,7 @@ void DlgCdg::setHSizeAdjustment(int pixels)
 
 void DlgCdg::setShowBgImage(bool show)
 {
-    if (show)
+    if ((show) && (settings->bgMode() == settings->BG_MODE_IMAGE))
     {
         if (settings->cdgDisplayBackgroundImage() != QString::null)
             ui->cdgVideo->videoSurface()->present(QVideoFrame(QImage(settings->cdgDisplayBackgroundImage())));
@@ -239,12 +245,10 @@ void DlgCdg::setShowBgImage(bool show)
             QSvgRenderer renderer(QString(":icons/Icons/okjlogo.svg"));
             renderer.render(&painter);
             ui->cdgVideo->videoSurface()->present(QVideoFrame(bgImage));
-//            QImage bgImage = QImage(":icons/Icons/openkjlogo1.png");
-//            //ui->cdgVideo->videoSurface()->present(QVideoFrame(bgImage.scaled(ui->cdgVideo->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation)));
-//            ui->cdgVideo->videoSurface()->present(QVideoFrame(bgImage));
         }
 
     }
+    showBgImage = show;
 }
 
 void DlgCdg::cdgSurfaceResized(QSize size)
@@ -252,6 +256,8 @@ void DlgCdg::cdgSurfaceResized(QSize size)
     Q_UNUSED(size)
     setShowBgImage(true);
 }
+
+
 
 void DlgCdg::mouseDoubleClickEvent(QMouseEvent *e)
 {
@@ -273,6 +279,42 @@ void DlgCdg::fullScreenTimerTimeout()
         setVOffset(settings->cdgVOffset());
         setHOffset(settings->cdgHOffset());
         fullScreenTimer->stop();
+    }
+}
+
+QFileInfoList DlgCdg::getSlideShowImages()
+{
+    QFileInfoList images;
+    QDir srcDir(settings->bgSlideShowDir());
+    QFileInfoList files = srcDir.entryInfoList(QDir::Files, QDir::Name | QDir::IgnoreCase);
+    for (int i=0; i < files.size(); i++)
+    {
+        if (QImageReader::imageFormat(files.at(i).absoluteFilePath()) != "")
+            images << files.at(i);
+    }
+    return images;
+}
+
+void DlgCdg::slideShowTimerTimeout()
+{
+    if ((showBgImage) && (settings->bgMode() == settings->BG_MODE_SLIDESHOW))
+    {
+        static int position = 0;
+        QFileInfoList images = getSlideShowImages();
+        if (images.size() == 0)
+        {
+            QImage bgImage(ui->cdgVideo->size(), QImage::Format_ARGB32);
+            QPainter painter(&bgImage);
+            QSvgRenderer renderer(QString(":icons/Icons/okjlogo.svg"));
+            renderer.render(&painter);
+            ui->cdgVideo->videoSurface()->present(QVideoFrame(bgImage));
+            return;
+        }
+        if (position >= images.size())
+            position = 0;
+        qWarning() << "Switching slide show image. Image " << position + 1 << " of " << images.size();
+        ui->cdgVideo->videoSurface()->present(QVideoFrame(QImage(images.at(position).absoluteFilePath())));
+        position++;
     }
 }
 

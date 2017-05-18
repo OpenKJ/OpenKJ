@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>618</width>
+    <width>624</width>
     <height>643</height>
    </rect>
   </property>
@@ -158,7 +158,7 @@
         <item>
          <widget class="QStackedWidget" name="stackedWidget">
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="audioPage">
            <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -527,37 +527,71 @@
              </widget>
             </item>
             <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_8">
+             <layout class="QVBoxLayout" name="verticalLayout_12">
               <property name="topMargin">
-               <number>0</number>
+               <number>10</number>
+              </property>
+              <property name="bottomMargin">
+               <number>10</number>
               </property>
               <item>
-               <widget class="QLabel" name="label_9">
-                <property name="text">
-                 <string>Background image</string>
+               <layout class="QHBoxLayout" name="horizontalLayout_8">
+                <property name="topMargin">
+                 <number>0</number>
                 </property>
-               </widget>
+                <item>
+                 <widget class="QRadioButton" name="rbBgImage">
+                  <property name="text">
+                   <string>Background Image</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="lineEditCdgBackground"/>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="pushButtonClearBgImg">
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="resources.qrc">
+                    <normaloff>:/icons/Icons/edit-clear.png</normaloff>:/icons/Icons/edit-clear.png</iconset>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="pushButtonBrowse">
+                  <property name="text">
+                   <string>Browse</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
               <item>
-               <widget class="QLineEdit" name="lineEditCdgBackground"/>
-              </item>
-              <item>
-               <widget class="QPushButton" name="pushButtonClearBgImg">
-                <property name="text">
-                 <string/>
+               <layout class="QHBoxLayout" name="horizontalLayout_10">
+                <property name="topMargin">
+                 <number>10</number>
                 </property>
-                <property name="icon">
-                 <iconset resource="resources.qrc">
-                  <normaloff>:/icons/Icons/edit-clear.png</normaloff>:/icons/Icons/edit-clear.png</iconset>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="pushButtonBrowse">
-                <property name="text">
-                 <string>Browse</string>
-                </property>
-               </widget>
+                <item>
+                 <widget class="QRadioButton" name="rbSlideshow">
+                  <property name="text">
+                   <string>Slideshow Directory</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="lineEditSlideshowDir"/>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="pushButtonSlideshowBrowse">
+                  <property name="text">
+                   <string>Browse</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
              </layout>
             </item>

@@ -324,6 +324,28 @@ void Settings::setCdgDisplayBackgroundImage(QString imageFile)
     emit cdgBgImageChanged();
 }
 
+Settings::BgMode Settings::bgMode()
+{
+    return (Settings::BgMode)settings->value("bgMode", 0).toInt();
+}
+
+void Settings::setBgMode(Settings::BgMode mode)
+{
+    settings->setValue("bgMode", mode);
+    emit bgModeChanged(mode);
+}
+
+QString Settings::bgSlideShowDir()
+{
+    return settings->value("bgSlideShowDir", QString()).toString();
+}
+
+void Settings::setBgSlideShowDir(QString dir)
+{
+    settings->setValue("bgSlideShowDir", dir);
+    emit bgSlideShowDirChanged(dir);
+}
+
 bool Settings::audioDownmix()
 {
     return settings->value("audioDownmix", false).toBool();

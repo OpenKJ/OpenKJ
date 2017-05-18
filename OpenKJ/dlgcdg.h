@@ -22,6 +22,7 @@
 #define CDGWINDOW_H
 
 #include <QDialog>
+#include <QFileInfoList>
 #include <QMouseEvent>
 #include "settings.h"
 #include "scrolltext.h"
@@ -45,6 +46,9 @@ private:
     int vSizeAdjustment;
     int hSizeAdjustment;
     QTimer *fullScreenTimer;
+    QTimer *slideShowTimer;
+    bool showBgImage;
+
 
 public:
     explicit DlgCdg(QWidget *parent = 0, Qt::WindowFlags f = 0);
@@ -63,6 +67,7 @@ protected:
 
 private slots:
     void fullScreenTimerTimeout();
+    void slideShowTimerTimeout();
 
 public slots:
     void setFullScreen(bool fullscreen);
@@ -79,6 +84,7 @@ public slots:
     void setHSizeAdjustment(int pixels);
     void setShowBgImage(bool show);
     void cdgSurfaceResized(QSize size);
+    QFileInfoList getSlideShowImages();
 
 };
 
