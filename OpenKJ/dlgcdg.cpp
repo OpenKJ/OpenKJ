@@ -313,7 +313,16 @@ void DlgCdg::slideShowTimerTimeout()
         if (position >= images.size())
             position = 0;
         qWarning() << "Switching slide show image. Image " << position + 1 << " of " << images.size();
-        ui->cdgVideo->videoSurface()->present(QVideoFrame(QImage(images.at(position).absoluteFilePath())));
+        if (images.at(position).fileName().endsWith("svg", Qt::CaseInsensitive))
+        {
+            QImage bgImage(ui->cdgVideo->size(), QImage::Format_ARGB32);
+            QPainter painter(&bgImage);
+            QSvgRenderer renderer(images.at(position).absoluteFilePath());
+            renderer.render(&painter);
+            ui->cdgVideo->videoSurface()->present(QVideoFrame(bgImage));
+        }
+        else
+            ui->cdgVideo->videoSurface()->present(QVideoFrame(QImage(images.at(position).absoluteFilePath())));
         position++;
     }
 }
