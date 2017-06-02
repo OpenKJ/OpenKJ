@@ -73,6 +73,7 @@ public:
     Qt::DropActions supportedDropActions() const;
     int currentSinger() const;
     void setCurrentSinger(int currentSingerId);
+    bool rotationIsValid();
 
 signals:
     void songDroppedOnSinger(int singerId, int songId, int dropRow);

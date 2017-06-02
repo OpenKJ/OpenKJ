@@ -35,6 +35,18 @@ void RotationModel::setCurrentSinger(int currentSingerId)
     emit layoutChanged();
 }
 
+bool RotationModel::rotationIsValid()
+{
+    for (int i = 0; i < singers().size(); i++)
+    {
+        int id = singerIdAtPosition(i);
+        if (id == -1)
+            qCritical() << "Rotation position corruption detected!";
+            return false;
+    }
+    return true;
+}
+
 RotationModel::RotationModel(QObject *parent, QSqlDatabase db) :
     QSqlTableModel(parent, db)
 {
@@ -54,7 +66,6 @@ int RotationModel::singerAdd(QString name)
 
 void RotationModel::singerMove(int oldPosition, int newPosition)
 {
-    qDebug() << "moveSinger(" << oldPosition << "," << newPosition << ")";
     if (oldPosition == newPosition)
         return;
     QSqlQuery query;
@@ -68,6 +79,7 @@ void RotationModel::singerMove(int oldPosition, int newPosition)
     query.exec(sql);
     query.exec("UPDATE rotationsingers SET position = " + QString::number(newPosition) + " WHERE singerid == " + QString::number(qSingerId));
     query.exec("COMMIT TRANSACTION");
+    rotationIsValid();
     select();
     emit rotationModified();
 }
@@ -391,6 +403,11 @@ bool RotationModel::dropMimeData(const QMimeData *data, Qt::DropAction action, i
         int oldPosition;
         QByteArray bytedata = data->data("integer/rotationpos");
         oldPosition =  QString(bytedata.data()).toInt();
+        if ((droprow == oldPosition + 1) || (droprow == oldPosition))
+        {
+            // Singer dropped, but would result in same position, ignore to prevent rotation corruption.
+            return false;
+        }
         if ((oldPosition < droprow) && (droprow != rowCount() - 1))
             singerMove(oldPosition, droprow - 1);
         else
