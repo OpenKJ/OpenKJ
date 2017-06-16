@@ -260,6 +260,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(bmDbDialog, SIGNAL(bmDbUpdated()), this, SLOT(bmDbUpdated()));
     connect(bmDbDialog, SIGNAL(bmDbCleared()), this, SLOT(bmDbCleared()));
     connect(bmAudioBackend, SIGNAL(newVideoFrame(QImage, QString)), this, SLOT(videoFrameReceived(QImage, QString)));
+    connect(kAudioBackend, SIGNAL(newVideoFrame(QImage,QString)), this, SLOT(videoFrameReceived(QImage,QString)));
 
     ui->sliderBmVolume->setValue(initialBMVol);
     ui->sliderVolume->setValue(initialKVol);
@@ -340,7 +341,10 @@ void MainWindow::play(QString karaokeFilePath)
             kAudioBackend->play();
         }
         else
-            return;
+        {
+            kAudioBackend->setMedia(karaokeFilePath);
+            kAudioBackend->play();
+        }
     }
     else if (kAudioBackend->state() == AbstractAudioBackend::PausedState)
     {

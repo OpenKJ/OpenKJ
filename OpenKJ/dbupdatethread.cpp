@@ -27,6 +27,7 @@
 #include "sourcedirtablemodel.h"
 #include <QtConcurrent>
 #include "okarchive.h"
+#include "tagreader.h"
 
 int g_pattern;
 
@@ -61,16 +62,18 @@ QStringList DbUpdateThread::findKaraokeFiles(QString directory)
     while (iterator.hasNext()) {
         iterator.next();
         if (!iterator.fileInfo().isDir()) {
-            QString filename = iterator.filePath();
-            if (filename.endsWith(".zip",Qt::CaseInsensitive))
-                files.append(filename);
-            else if (filename.endsWith(".cdg", Qt::CaseInsensitive))
+            QString fn = iterator.filePath();
+            if (fn.endsWith(".zip",Qt::CaseInsensitive))
+                files.append(fn);
+            else if (fn.endsWith(".cdg", Qt::CaseInsensitive))
             {
-                QString mp3filename = filename;
+                QString mp3filename = fn;
                 mp3filename.chop(3);
                 if ((QFile::exists(mp3filename + "mp3")) || (QFile::exists(mp3filename + "MP3")) || (QFile::exists(mp3filename + "Mp3")) || (QFile::exists(mp3filename + "mP3")))
-                    files.append(filename);
+                    files.append(fn);
             }
+            else if (fn.endsWith(".mkv", Qt::CaseInsensitive) || fn.endsWith(".avi", Qt::CaseInsensitive) || fn.endsWith(".wmv", Qt::CaseInsensitive) || fn.endsWith(".mp4", Qt::CaseInsensitive) || fn.endsWith(".mpg", Qt::CaseInsensitive) || fn.endsWith(".mpeg", Qt::CaseInsensitive))
+                files.append(fn);
         }
     }
     return files;
@@ -102,6 +105,12 @@ int processKaraokeFile(QString fileName)
             return 0;
         }
         duration = ((QFile(fileName).size() / 96) / 75) * 1000;
+    }
+    else
+    {
+        TagReader reader;
+        reader.setMedia(fileName);
+        duration = reader.getDuration();
     }
     QSqlQuery query;
     QString artist;
