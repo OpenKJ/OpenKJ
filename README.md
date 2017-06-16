@@ -16,7 +16,7 @@ A few features:
 * Fades break music in and out automatically when karaoke tracks start/end
 * Lots of other little things
 
-It currently only handles mp3g+zip files (zip files containing an mp3 and cdg file) and paired mp3 and cdg files.  I'll be adding others in the future (wav+cdg, ogg+cdg, etc) if anyone expresses interest.  It does not support playing non cdg-based tracks (wmv, avi, mpg, etc) and I have zero plans to ever do so, as professional KJ's generally don't use them.
+It currently handles mp3g+zip files (zip files containing an mp3 and cdg file) and paired mp3 and cdg files.  I'll be adding others in the future (wav+cdg, ogg+cdg, etc) if anyone expresses interest.  It also can play non-cdg based video files (mkv, mp4, mpg, avi) for both break music and karaoke.
 
 Database entries for the songs are based on the file naming scheme.  I've included the commone ones I've come across, if anyone needs something added just tell me or submit the appropriate code changes if you're a programmer.  They're pretty trivial to add.  I plan on adding the ability to do custom definitons in the future, but it's pretty far down on my list.
 
