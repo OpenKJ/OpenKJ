@@ -622,8 +622,6 @@ GstFlowReturn AudioBackendGstreamer::NewPrerollCallback(GstAppSink* appsink, gpo
 {
     Q_UNUSED(user_data)
     Q_UNUSED(appsink)
-//    GstSample* sample = gst_app_sink_pull_preroll(appsink);
-//    gst_sample_unref(sample);
     return GST_FLOW_OK;
 
 }
