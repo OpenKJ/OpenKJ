@@ -116,49 +116,41 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewDB->setItemDelegate(dbDelegate);
 //    ipcClient = new KhIPCClient("bmControl",this);
     bmAudioBackend = new AudioBackendGstreamer(false, this);
-    audioBackends = new KhAudioBackends;
-    audioBackends->push_back(new AudioBackendGstreamer(true, this));
-    if (audioBackends->count() < 1)
-        qCritical("No audio backends available!");
-    if (settings->audioBackend() < audioBackends->count())
-        activeAudioBackend = audioBackends->at(settings->audioBackend());
-    else
-    {
-        settings->setAudioBackend(0);
-        activeAudioBackend = audioBackends->at(0);
-    }
-    if (activeAudioBackend->canFade())
-        activeAudioBackend->setUseFader(settings->audioUseFader());
-    if (!activeAudioBackend->canPitchShift())
+    bmAudioBackend->setName("break");
+    kAudioBackend = new AudioBackendGstreamer(true, this);
+    kAudioBackend->setName("karaoke");
+    if (kAudioBackend->canFade())
+        kAudioBackend->setUseFader(settings->audioUseFader());
+    if (!kAudioBackend->canPitchShift())
     {
         ui->spinBoxKey->hide();
         ui->lblKey->hide();
         ui->tableViewQueue->hideColumn(7);
     }
     audioRecorder = new KhAudioRecorder(this);
-    settingsDialog = new DlgSettings(audioBackends, this);
+    settingsDialog = new DlgSettings(kAudioBackend, this);
     connect(rotModel, SIGNAL(songDroppedOnSinger(int,int,int)), this, SLOT(songDroppedOnSinger(int,int,int)));
-    connect(activeAudioBackend, SIGNAL(volumeChanged(int)), ui->sliderVolume, SLOT(setValue(int)));
+    connect(kAudioBackend, SIGNAL(volumeChanged(int)), ui->sliderVolume, SLOT(setValue(int)));
     connect(dbDialog, SIGNAL(databaseUpdated()), this, SLOT(songdbUpdated()));
     connect(dbDialog, SIGNAL(databaseCleared()), this, SLOT(databaseCleared()));
     connect(dbDialog, SIGNAL(databaseCleared()), regularSingersDialog, SLOT(regularsChanged()));
-    connect(activeAudioBackend, SIGNAL(positionChanged(qint64)), this, SLOT(audioBackend_positionChanged(qint64)));
-    connect(activeAudioBackend, SIGNAL(durationChanged(qint64)), this, SLOT(audioBackend_durationChanged(qint64)));
-    connect(activeAudioBackend, SIGNAL(stateChanged(AbstractAudioBackend::State)), this, SLOT(audioBackend_stateChanged(AbstractAudioBackend::State)));
-    connect(activeAudioBackend, SIGNAL(pitchChanged(int)), ui->spinBoxKey, SLOT(setValue(int)));
+    connect(kAudioBackend, SIGNAL(positionChanged(qint64)), this, SLOT(audioBackend_positionChanged(qint64)));
+    connect(kAudioBackend, SIGNAL(durationChanged(qint64)), this, SLOT(audioBackend_durationChanged(qint64)));
+    connect(kAudioBackend, SIGNAL(stateChanged(AbstractAudioBackend::State)), this, SLOT(audioBackend_stateChanged(AbstractAudioBackend::State)));
+    connect(kAudioBackend, SIGNAL(pitchChanged(int)), ui->spinBoxKey, SLOT(setValue(int)));
     qDebug() << "Setting volume to " << settings->audioVolume();
     ui->sliderBmVolume->setValue(settings->audioVolume());
     connect(rotModel, SIGNAL(rotationModified()), this, SLOT(rotationDataChanged()));
     connect(settings, SIGNAL(tickerOutputModeChanged()), this, SLOT(rotationDataChanged()));
     connect(settings, SIGNAL(audioBackendChanged(int)), this, SLOT(audioBackendChanged(int)));
     connect(settings, SIGNAL(cdgBgImageChanged()), this, SLOT(onBgImageChange()));
-    connect(activeAudioBackend, SIGNAL(silenceDetected()), this, SLOT(silenceDetected()));
-    connect(settingsDialog, SIGNAL(audioUseFaderChanged(bool)), activeAudioBackend, SLOT(setUseFader(bool)));
-    activeAudioBackend->setUseFader(settings->audioUseFader());
-    connect(settingsDialog, SIGNAL(audioSilenceDetectChanged(bool)), activeAudioBackend, SLOT(setUseSilenceDetection(bool)));
-    activeAudioBackend->setUseSilenceDetection(settings->audioDetectSilence());
-    connect(settingsDialog, SIGNAL(audioDownmixChanged(bool)), activeAudioBackend, SLOT(setDownmix(bool)));
-    activeAudioBackend->setDownmix(settings->audioDownmix());
+    connect(kAudioBackend, SIGNAL(silenceDetected()), this, SLOT(silenceDetected()));
+    connect(settingsDialog, SIGNAL(audioUseFaderChanged(bool)), kAudioBackend, SLOT(setUseFader(bool)));
+    kAudioBackend->setUseFader(settings->audioUseFader());
+    connect(settingsDialog, SIGNAL(audioSilenceDetectChanged(bool)), kAudioBackend, SLOT(setUseSilenceDetection(bool)));
+    kAudioBackend->setUseSilenceDetection(settings->audioDetectSilence());
+    connect(settingsDialog, SIGNAL(audioDownmixChanged(bool)), kAudioBackend, SLOT(setDownmix(bool)));
+    kAudioBackend->setDownmix(settings->audioDownmix());
     connect(qModel, SIGNAL(queueModified(int)), rotModel, SLOT(queueModified(int)));
     connect(requestsDialog, SIGNAL(addRequestSong(int,int)), qModel, SLOT(songAdd(int,int)));
     cdgWindow->setShowBgImage(true);
@@ -190,7 +182,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewQueue->hideColumn(12);
     ui->tableViewQueue->horizontalHeader()->resizeSection(8, 25);
     ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(8, QHeaderView::Fixed);
-    if (activeAudioBackend->canPitchShift())
+    if (kAudioBackend->canPitchShift())
     {
         ui->tableViewQueue->horizontalHeader()->showSection(7);
     }
@@ -267,6 +259,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(bmAudioBackend, SIGNAL(volumeChanged(int)), ui->sliderBmVolume, SLOT(setValue(int)));
     connect(bmDbDialog, SIGNAL(bmDbUpdated()), this, SLOT(bmDbUpdated()));
     connect(bmDbDialog, SIGNAL(bmDbCleared()), this, SLOT(bmDbCleared()));
+    connect(bmAudioBackend, SIGNAL(newVideoFrame(QImage, QString)), this, SLOT(videoFrameReceived(QImage, QString)));
 
     ui->sliderBmVolume->setValue(initialBMVol);
     ui->sliderVolume->setValue(initialKVol);
@@ -276,10 +269,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
 void MainWindow::play(QString karaokeFilePath)
 {
-    if (activeAudioBackend->state() != AbstractAudioBackend::PausedState)
+    if (kAudioBackend->state() != AbstractAudioBackend::PausedState)
     {
-        if (activeAudioBackend->state() == AbstractAudioBackend::PlayingState)
-            activeAudioBackend->stop();
+        if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
+            kAudioBackend->stop();
         if (karaokeFilePath.endsWith(".zip", Qt::CaseInsensitive))
         {
             OkArchive archive(karaokeFilePath);
@@ -294,10 +287,10 @@ void MainWindow::play(QString karaokeFilePath)
                 cdg->Process();
                 cdgWindow->setShowBgImage(false);
                 setShowBgImage(false);
-                activeAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + "tmp.mp3");
+                kAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + "tmp.mp3");
 //                ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
                 bmAudioBackend->fadeOut(false);
-                activeAudioBackend->play();
+                kAudioBackend->play();
             }
             else
             {
@@ -341,19 +334,19 @@ void MainWindow::play(QString karaokeFilePath)
             }
             cdg->FileOpen(cdgFile.fileName().toStdString());
             cdg->Process();
-            activeAudioBackend->setMedia(mp3fn);
+            kAudioBackend->setMedia(mp3fn);
 //            ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
             bmAudioBackend->fadeOut();
-            activeAudioBackend->play();
+            kAudioBackend->play();
         }
         else
             return;
     }
-    else if (activeAudioBackend->state() == AbstractAudioBackend::PausedState)
+    else if (kAudioBackend->state() == AbstractAudioBackend::PausedState)
     {
         if (settings->recordingEnabled())
             audioRecorder->unpause();
-        activeAudioBackend->play();
+        kAudioBackend->play();
     }
 }
 
@@ -383,8 +376,6 @@ MainWindow::~MainWindow()
     delete khDir;
     delete database;
     delete ui;
-    qDeleteAll(audioBackends->begin(), audioBackends->end());
-    delete audioBackends;
     delete khTmpDir;
 }
 
@@ -407,19 +398,19 @@ void MainWindow::databaseCleared()
 
 void MainWindow::on_buttonStop_clicked()
 {
-    activeAudioBackend->stop();
+    kAudioBackend->stop();
     bmAudioBackend->fadeIn();
 //    ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
 }
 
 void MainWindow::on_buttonPause_clicked()
 {
-    if (activeAudioBackend->state() == AbstractAudioBackend::PausedState)
+    if (kAudioBackend->state() == AbstractAudioBackend::PausedState)
     {
-        activeAudioBackend->play();
+        kAudioBackend->play();
     }
     else
-        activeAudioBackend->pause();
+        kAudioBackend->pause();
 }
 
 void MainWindow::on_lineEdit_returnPressed()
@@ -460,7 +451,7 @@ void MainWindow::on_tableViewRotation_activated(const QModelIndex &index)
         if (nextSongPath != "")
         {
             play(nextSongPath);
-            activeAudioBackend->setPitchShift(rotModel->nextSongKeyChg(singerId));
+            kAudioBackend->setPitchShift(rotModel->nextSongKeyChg(singerId));
             rotDelegate->setCurrentSinger(singerId);
             rotModel->setCurrentSinger(singerId);
             ui->labelArtist->setText(rotModel->nextSongArtist(singerId));
@@ -527,7 +518,7 @@ void MainWindow::on_tableViewQueue_activated(const QModelIndex &index)
 {
 
     play(index.sibling(index.row(), 6).data().toString());
-    activeAudioBackend->setPitchShift(index.sibling(index.row(),7).data().toInt());
+    kAudioBackend->setPitchShift(index.sibling(index.row(),7).data().toInt());
     ui->labelSinger->setText(rotModel->getSingerName(index.sibling(index.row(),1).data().toInt()));
     ui->labelArtist->setText(index.sibling(index.row(),3).data().toString());
     ui->labelTitle->setText(index.sibling(index.row(),4).data().toString());
@@ -638,9 +629,9 @@ void MainWindow::on_buttonClearQueue_clicked()
 
 void MainWindow::on_spinBoxKey_valueChanged(int arg1)
 {
-    if ((activeAudioBackend->state() == AbstractAudioBackend::PlayingState) || (activeAudioBackend->state() == AbstractAudioBackend::PausedState))
+    if ((kAudioBackend->state() == AbstractAudioBackend::PlayingState) || (kAudioBackend->state() == AbstractAudioBackend::PausedState))
     {
-        activeAudioBackend->setPitchShift(arg1);
+        kAudioBackend->setPitchShift(arg1);
         if (arg1 > 0)
             ui->spinBoxKey->setPrefix("+");
         else
@@ -652,12 +643,12 @@ void MainWindow::on_spinBoxKey_valueChanged(int arg1)
 
 void MainWindow::on_sliderVolume_valueChanged(int value)
 {
-    activeAudioBackend->setVolume(value);
+    kAudioBackend->setVolume(value);
 }
 
 void MainWindow::audioBackend_positionChanged(qint64 position)
 {
-    if (activeAudioBackend->state() == AbstractAudioBackend::PlayingState)
+    if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
     {
         if (cdg->GetLastCDGUpdate() >= position)
         {
@@ -674,17 +665,17 @@ void MainWindow::audioBackend_positionChanged(qint64 position)
         }
         if (!sliderPositionPressed)
         {
-            ui->sliderProgress->setMaximum(activeAudioBackend->duration());
+            ui->sliderProgress->setMaximum(kAudioBackend->duration());
             ui->sliderProgress->setValue(position);
         }
-        ui->labelElapsedTime->setText(activeAudioBackend->msToMMSS(position));
-        ui->labelRemainTime->setText(activeAudioBackend->msToMMSS(activeAudioBackend->duration() - position));
+        ui->labelElapsedTime->setText(kAudioBackend->msToMMSS(position));
+        ui->labelRemainTime->setText(kAudioBackend->msToMMSS(kAudioBackend->duration() - position));
     }
 }
 
 void MainWindow::audioBackend_durationChanged(qint64 duration)
 {
-    ui->labelTotalTime->setText(activeAudioBackend->msToMMSS(duration));
+    ui->labelTotalTime->setText(kAudioBackend->msToMMSS(duration));
 }
 
 void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
@@ -714,7 +705,7 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
         qWarning() << "Audio entered EndOfMediaState";
         audioRecorder->stop();
 //        ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
-        activeAudioBackend->stop(true);
+        kAudioBackend->stop(true);
     }
     if (state == AbstractAudioBackend::PausedState)
     {
@@ -800,10 +791,10 @@ void MainWindow::rotationDataChanged()
 
 void MainWindow::silenceDetected()
 {
-    qWarning() << "Detected silence.  Cur Pos: " << activeAudioBackend->position() << " Last CDG update pos: " << cdg->GetLastCDGUpdate();
-    if (cdg->GetLastCDGUpdate() < activeAudioBackend->position())
+    qWarning() << "Detected silence.  Cur Pos: " << kAudioBackend->position() << " Last CDG update pos: " << cdg->GetLastCDGUpdate();
+    if (cdg->GetLastCDGUpdate() < kAudioBackend->position())
     {
-        activeAudioBackend->stop(true);
+        kAudioBackend->stop(true);
 //        ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
         bmAudioBackend->fadeIn();
     }
@@ -811,7 +802,7 @@ void MainWindow::silenceDetected()
 
 void MainWindow::audioBackendChanged(int index)
 {
-    activeAudioBackend = audioBackends->at(index);
+    kAudioBackend = audioBackends->at(index);
 }
 
 void MainWindow::on_tableViewDB_customContextMenuRequested(const QPoint &pos)
@@ -885,7 +876,7 @@ void MainWindow::on_sliderProgress_sliderPressed()
 
 void MainWindow::on_sliderProgress_sliderReleased()
 {
-    activeAudioBackend->setPosition(ui->sliderProgress->value());
+    kAudioBackend->setPosition(ui->sliderProgress->value());
     sliderPositionPressed = false;
 }
 
@@ -931,7 +922,7 @@ void MainWindow::setShowBgImage(bool show)
 
 void MainWindow::onBgImageChange()
 {
-   if (activeAudioBackend->state() == AbstractAudioBackend::StoppedState)
+   if (kAudioBackend->state() == AbstractAudioBackend::StoppedState)
        cdgWindow->setShowBgImage(true);
 }
 
@@ -1033,6 +1024,12 @@ void MainWindow::bmMediaStateChanged(AbstractAudioBackend::State newState)
             ui->labelBmRemaining->setText("00:00");
             ui->labelBmPosition->setText("00:00");
             ui->sliderBmPosition->setValue(0);
+            if (kAudioBackend->state() != AbstractAudioBackend::PlayingState)
+            {
+                ui->cdgVideoWidget->clear();
+                setShowBgImage(true);
+                cdgWindow->setShowBgImage(true);
+            }
         }
     }
 }
@@ -1311,4 +1308,13 @@ void MainWindow::on_actionPlaylistDelete_triggered()
 void MainWindow::on_buttonBmSearch_clicked()
 {
     bmDbModel->search(ui->lineEditBmSearch->text());
+}
+
+void MainWindow::videoFrameReceived(QImage frame, QString backendName)
+{
+    if (backendName == "break" && kAudioBackend->state() == AbstractAudioBackend::PlayingState)
+        return;
+    //QImage img = frame.copy();
+    ui->cdgVideoWidget->videoSurface()->present(QVideoFrame(frame));
+    cdgWindow->updateCDG(frame);
 }

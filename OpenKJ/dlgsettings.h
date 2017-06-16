@@ -38,13 +38,12 @@ class DlgSettings : public QDialog
 private:
     Ui::DlgSettings *ui;
     QStringList getMonitors();
-    AbstractAudioBackend *audioBackend;
-    KhAudioBackends *audioBackends;
+    AbstractAudioBackend *kAudioBackend;
     QNetworkAccessManager *networkManager;
     bool pageSetupDone;
 
 public:
-    explicit DlgSettings(KhAudioBackends *AudioBackends, QWidget *parent = 0);
+    explicit DlgSettings(AbstractAudioBackend *AudioBackend, QWidget *parent = 0);
     ~DlgSettings();
     void createIcons();
 
@@ -76,8 +75,6 @@ private slots:
     void on_checkBoxSilenceDetection_toggled(bool checked);
     void on_checkBoxDownmix_toggled(bool checked);
     void on_listWidgetAudioDevices_itemSelectionChanged();
-    void on_comboBoxBackend_currentIndexChanged(int index);
-    void audioBackendChanged(int index);
     void on_comboBoxDevice_currentIndexChanged(const QString &arg1);
     void on_comboBoxCodec_currentIndexChanged(const QString &arg1);
     void on_comboBoxContainer_currentIndexChanged(const QString &arg1);

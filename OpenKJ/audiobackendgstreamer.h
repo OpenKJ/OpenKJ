@@ -24,8 +24,10 @@
 #include "abstractaudiobackend.h"
 #define GLIB_DISABLE_DEPRECATION_WARNINGS
 #include <gst/gst.h>
+#include <gst/app/gstappsink.h>
 #include <QTimer>
 #include <QThread>
+#include <QImage>
 
 class FaderGStreamer : public QThread
 {
@@ -62,6 +64,7 @@ class AudioBackendGstreamer : public AbstractAudioBackend
 
 private:
     GstElement *sinkBin;
+    GstElement *videoAppSink;
     GstElement *playBin;
     GstElement *audioConvert;
     GstElement *audioConvert2;
@@ -74,6 +77,7 @@ private:
     GstElement *filter;
     GstCaps *audioCapsStereo;
     GstCaps *audioCapsMono;
+    GstCaps *videoCaps;
     GstPad *pad;
     GstPad *ghostPad;
     GstBus *bus;
@@ -93,6 +97,10 @@ private:
     int m_outputChannels;
     double m_currentRmsLevel;
 
+    static void EndOfStreamCallback(GstAppSink *appsink, gpointer user_data);
+    static GstFlowReturn NewPrerollCallback(GstAppSink *appsink, gpointer user_data);
+    static GstFlowReturn NewSampleCallback(GstAppSink *appsink, gpointer user_data);
+    static void DestroyCallback(gpointer user_data);
 public:
     explicit AudioBackendGstreamer(bool loadPitchShift = true, QObject *parent = 0);
     ~AudioBackendGstreamer();
@@ -112,6 +120,7 @@ public:
     bool canFade();
     bool canDownmix();
     bool downmixChangeRequiresRestart() { return false; }
+    void newFrame();
 
 private slots:
     void fastTimer_timeout();

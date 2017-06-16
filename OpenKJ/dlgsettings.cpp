@@ -38,25 +38,19 @@
 extern Settings *settings;
 
 
-DlgSettings::DlgSettings(KhAudioBackends *AudioBackends, QWidget *parent) :
+DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DlgSettings)
 {
 
     pageSetupDone = false;
-    audioBackends = AudioBackends;
-    audioBackend = AudioBackends->at(settings->audioBackend());
+    kAudioBackend = AudioBackend;
     networkManager = new QNetworkAccessManager(this);
     ui->setupUi(this);
     ui->spinBoxHAdjust->setValue(settings->cdgHSizeAdjustment());
     ui->spinBoxVAdjust->setValue(settings->cdgVSizeAdjustment());
     ui->spinBoxHOffset->setValue(settings->cdgHOffset());
     ui->spinBoxVOffset->setValue(settings->cdgVOffset());
-    for (int i=0; i < audioBackends->size(); i++)
-    {
-        ui->comboBoxBackend->addItem(audioBackends->at(i)->backendName());
-    }
-    ui->comboBoxBackend->setCurrentIndex(settings->audioBackend());
     createIcons();
     ui->listWidget->setCurrentRow(0);
     QStringList screens = getMonitors();
@@ -120,9 +114,6 @@ DlgSettings::DlgSettings(KhAudioBackends *AudioBackends, QWidget *parent) :
         ui->lineEditExtension->hide();
         ui->labelExtension->hide();
     }
-    audioBackendChanged(settings->audioBackend());
-    connect(settings, SIGNAL(audioBackendChanged(int)), this, SLOT(audioBackendChanged(int)));
-
     connect(networkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
     connect(networkManager, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(onSslErrors(QNetworkReply*)));
     connect(networkManager, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)), this, SLOT(setAuth(QNetworkReply*,QAuthenticator*)));
@@ -368,48 +359,48 @@ void DlgSettings::on_listWidgetAudioDevices_itemSelectionChanged()
     {
         QString device = ui->listWidgetAudioDevices->selectedItems().at(0)->text();
         settings->setAudioOutputDevice(device);
-        int deviceIndex = audioBackend->getOutputDevices().indexOf(QRegExp(device,Qt::CaseSensitive,QRegExp::FixedString));
+        int deviceIndex = kAudioBackend->getOutputDevices().indexOf(QRegExp(device,Qt::CaseSensitive,QRegExp::FixedString));
         if (deviceIndex != -1)
-            audioBackend->setOutputDevice(deviceIndex);
+            kAudioBackend->setOutputDevice(deviceIndex);
     }
 }
 
-void DlgSettings::on_comboBoxBackend_currentIndexChanged(int index)
-{
-    if (pageSetupDone)
-    {
-        qDebug() << "SettingsDialog::on_comboBoxBackend_currentIndexChanged(" << index << ") fired";
-        if (audioBackend->state() != AbstractAudioBackend::StoppedState)
-        {
-            QMessageBox::warning(this, "Unable to complete action","You can not change the audio backend while there is an active song playing or paused.  Please stop the current song and try again");
-            ui->comboBoxBackend->setCurrentIndex(settings->audioBackend());
-        }
-        else
-            settings->setAudioBackend(index);
-    }
-}
+//void DlgSettings::on_comboBoxBackend_currentIndexChanged(int index)
+//{
+////    if (pageSetupDone)
+////    {
+////        qDebug() << "SettingsDialog::on_comboBoxBackend_currentIndexChanged(" << index << ") fired";
+////        if (kAudioBackend->state() != AbstractAudioBackend::StoppedState)
+////        {
+////            QMessageBox::warning(this, "Unable to complete action","You can not change the audio backend while there is an active song playing or paused.  Please stop the current song and try again");
+////            ui->comboBoxBackend->setCurrentIndex(settings->audioBackend());
+////        }
+////        else
+////            settings->setAudioBackend(index);
+////    }
+//}
 
-void DlgSettings::audioBackendChanged(int index)
-{
-    pageSetupDone = false;
-    audioBackend = audioBackends->at(index);
-    ui->checkBoxSilenceDetection->setHidden(!audioBackend->canDetectSilence());
-    ui->checkBoxDownmix->setHidden(!audioBackend->canDownmix());
-    ui->checkBoxFader->setHidden(!audioBackend->canFade());
-    ui->listWidgetAudioDevices->clear();
-    ui->listWidgetAudioDevices->addItems(audioBackend->getOutputDevices());
-    pageSetupDone = true;
-    if (audioBackend->getOutputDevices().contains(settings->audioOutputDevice()))
-    {
-        ui->listWidgetAudioDevices->findItems(settings->audioOutputDevice(),Qt::MatchExactly).at(0)->setSelected(true);
-    }
-    else
-//        ui->listWidgetAudioDevices->item(0)->setSelected(true);
-    if (!audioBackend->downmixChangeRequiresRestart())
-        ui->checkBoxDownmix->setText("Downmix to mono");
-    else
-        ui->checkBoxDownmix->setText("Dowmix to mono (requires restart)");
-}
+//void DlgSettings::audioBackendChanged(int index)
+//{
+////    pageSetupDone = false;
+////    kAudioBackend = audioBackends->at(index);
+////    ui->checkBoxSilenceDetection->setHidden(!kAudioBackend->canDetectSilence());
+////    ui->checkBoxDownmix->setHidden(!kAudioBackend->canDownmix());
+////    ui->checkBoxFader->setHidden(!kAudioBackend->canFade());
+////    ui->listWidgetAudioDevices->clear();
+////    ui->listWidgetAudioDevices->addItems(kAudioBackend->getOutputDevices());
+////    pageSetupDone = true;
+////    if (kAudioBackend->getOutputDevices().contains(settings->audioOutputDevice()))
+////    {
+////        ui->listWidgetAudioDevices->findItems(settings->audioOutputDevice(),Qt::MatchExactly).at(0)->setSelected(true);
+////    }
+////    else
+//////        ui->listWidgetAudioDevices->item(0)->setSelected(true);
+////    if (!kAudioBackend->downmixChangeRequiresRestart())
+////        ui->checkBoxDownmix->setText("Downmix to mono");
+////    else
+////        ui->checkBoxDownmix->setText("Dowmix to mono (requires restart)");
+//}
 
 void DlgSettings::on_comboBoxDevice_currentIndexChanged(const QString &arg1)
 {

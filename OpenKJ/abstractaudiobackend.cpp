@@ -21,6 +21,16 @@
 #include "abstractaudiobackend.h"
 #include <math.h>
 
+QString AbstractAudioBackend::getName() const
+{
+    return name;
+}
+
+void AbstractAudioBackend::setName(const QString &value)
+{
+    name = value;
+}
+
 AbstractAudioBackend::AbstractAudioBackend(QObject *parent) :
     QObject(parent)
 {

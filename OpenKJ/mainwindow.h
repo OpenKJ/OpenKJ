@@ -85,7 +85,7 @@ private:
     DlgKeyChange *dlgKeyChange;
     DlgRequests *requestsDialog;
     DlgCdgPreview *cdgPreviewDialog;
-    AbstractAudioBackend *activeAudioBackend;
+    AbstractAudioBackend *kAudioBackend;
     KhAudioBackends *audioBackends;
     KhAudioRecorder *audioRecorder;
     AudioBackendGstreamer *bmAudioBackend;
@@ -195,6 +195,7 @@ private slots:
     void on_actionPlaylistExport_triggered();
     void on_actionPlaylistDelete_triggered();
     void on_buttonBmSearch_clicked();
+    void videoFrameReceived(QImage frame, QString backendName);
 };
 
 

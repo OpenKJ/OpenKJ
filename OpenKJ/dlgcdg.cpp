@@ -101,7 +101,8 @@ void DlgCdg::updateCDG(QImage image, bool overrideVisibleCheck)
     if ((isVisible()) || (overrideVisibleCheck))
     {
         if (image.size().height() > ui->cdgVideo->size().height() || image.size().width() > ui->cdgVideo->size().width())
-            ui->cdgVideo->videoSurface()->present(QVideoFrame(image.scaled(ui->cdgVideo->size(), Qt::IgnoreAspectRatio)));
+            ui->cdgVideo->videoSurface()->present(QVideoFrame(image));
+//            ui->cdgVideo->videoSurface()->present(QVideoFrame(image.scaled(ui->cdgVideo->size(), Qt::IgnoreAspectRatio)));
         else
             ui->cdgVideo->videoSurface()->present(QVideoFrame(image));
     }

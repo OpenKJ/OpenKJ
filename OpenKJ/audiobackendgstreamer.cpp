@@ -24,6 +24,19 @@
 #include <string.h>
 #include <math.h>
 
+
+static void on_new_buffer (GstElement* object,
+                           gpointer user_data)
+{
+  qWarning() << "on_new_buffer called";
+  //FILE* file = (FILE*) user_data;
+  GstAppSink* app_sink = (GstAppSink*) object;
+  GstSample * sample = gst_app_sink_pull_sample(app_sink);
+  gst_sample_unref(sample);
+  qWarning() << "Received video frame";
+
+}
+
 AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *parent) :
     AbstractAudioBackend(parent)
 {
@@ -38,11 +51,17 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     m_keyChange = 0;
     m_silenceDuration = 0;
 
+    GstAppSinkCallbacks appsinkCallbacks;
+    appsinkCallbacks.new_preroll	= &AudioBackendGstreamer::NewPrerollCallback;
+    appsinkCallbacks.new_sample		= &AudioBackendGstreamer::NewSampleCallback;
+    appsinkCallbacks.eos			= &AudioBackendGstreamer::EndOfStreamCallback;
+
     qCritical() << "Initializing gst\n";
     gst_init(NULL,NULL);
     audioConvert = gst_element_factory_make("audioconvert", "audioConvert");
     audioConvert2 = gst_element_factory_make("audioconvert", "audioConvert2");
     autoAudioSink = gst_element_factory_make("autoaudiosink", "autoAudioSink");
+    videoAppSink = gst_element_factory_make("appsink", "videoAppSink");
     rgVolume = gst_element_factory_make("rgvolume", "rgVolume");
 //    volumeElement = gst_element_factory_make("volume", "volumeElement");
     level = gst_element_factory_make("level", "level");
@@ -53,7 +72,9 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     sinkBin = gst_bin_new("sinkBin");
     audioCapsStereo = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 2, NULL);
     audioCapsMono = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 1, NULL);
+    videoCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "BGRx", NULL);
     g_object_set(filter, "caps", audioCapsStereo, NULL);
+    g_object_set(videoAppSink, "caps", videoCaps, NULL);
     if ((pitchShifterRubberBand) && (loadPitchShift))
     {
         // This is our preferred pitch shifter because it sounds better, but it's only available on Linux
@@ -91,9 +112,12 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     gst_element_add_pad(sinkBin, ghostPad);
     gst_object_unref(pad);
     g_object_set(G_OBJECT(playBin), "audio-sink", sinkBin, NULL);
+    g_object_set(G_OBJECT(playBin), "video-sink", videoAppSink, NULL);
+//    gst_app_sink_set_emit_signals ((GstAppSink*) videoAppSink, TRUE);
     g_object_set(G_OBJECT(rgVolume), "album-mode", false, NULL);
     g_object_set(G_OBJECT (level), "message", TRUE, NULL);
     bus = gst_element_get_bus (playBin);
+//    g_signal_connect (videoAppSink, "new-sample",  G_CALLBACK (on_new_buffer), NULL);
 //    fader = new FaderGStreamer(volumeElement, this);
     fader = new FaderGStreamer(playBin, this);
     slowTimer = new QTimer(this);
@@ -103,11 +127,15 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     connect(fastTimer, SIGNAL(timeout()), this, SLOT(fastTimer_timeout()));
     connect(fader, SIGNAL(volumeChanged(int)), this, SLOT(faderChangedVolume(int)));
     fastTimer->start(40);
+    gst_app_sink_set_callbacks(GST_APP_SINK(videoAppSink), &appsinkCallbacks, this, (GDestroyNotify)AudioBackendGstreamer::DestroyCallback);
+
 }
 
 AudioBackendGstreamer::~AudioBackendGstreamer()
 {
 }
+
+
 
 void AudioBackendGstreamer::processGstMessages()
 {
@@ -131,7 +159,7 @@ void AudioBackendGstreamer::processGstMessages()
                 else
                     emit stateChanged(AbstractAudioBackend::UnknownState);
             }
-            if (message->type == GST_MESSAGE_ELEMENT) {
+            else if (message->type == GST_MESSAGE_ELEMENT) {
                 const GstStructure *s = gst_message_get_structure (message);
                 const gchar *name = gst_structure_get_name (s);
                 if (strcmp (name, "level") == 0)
@@ -161,6 +189,14 @@ void AudioBackendGstreamer::processGstMessages()
             else if (message->type == GST_MESSAGE_EOS)
             {
                 emit stateChanged(EndOfMediaState);
+            }
+            else if (message->type == GST_MESSAGE_TAG)
+            {
+                // do nothing
+            }
+            else
+            {
+                g_print("Msg type[%d], Msg type name[%s]\n", GST_MESSAGE_TYPE(message), GST_MESSAGE_TYPE_NAME(message));
             }
             gst_message_unref(message);
         }
@@ -555,6 +591,52 @@ bool AudioBackendGstreamer::canDownmix()
     return true;
 }
 
+void AudioBackendGstreamer::newFrame()
+{
+    GstSample* sample = gst_app_sink_pull_sample((GstAppSink*)videoAppSink);
+
+    if (sample) {
+      GstBuffer *buffer;
+      GstCaps *caps;
+      GstStructure *s;
+      int width, height;
+      /* get the snapshot buffer format now. We set the caps on the appsink so
+       * that it can only be an rgb buffer. The only thing we have not specified
+       * on the caps is the height, which is dependant on the pixel-aspect-ratio
+       * of the source material */
+      caps = gst_sample_get_caps (sample);
+      s = gst_caps_get_structure (caps, 0);
+      /* we need to get the final caps on the buffer to get the size */
+      gst_structure_get_int (s, "width", &width);
+      gst_structure_get_int (s, "height", &height);
+
+      /* create pixmap from buffer and save, gstreamer video buffers have a stride
+       * that is rounded up to the nearest multiple of 4 */
+      buffer = gst_sample_get_buffer (sample);
+
+      GstMapInfo bufferInfo;
+          gst_buffer_map(buffer,&bufferInfo,GST_MAP_READ);
+          guint8 *rawFrame = bufferInfo.data;
+          QImage frame = QImage(rawFrame,width,height,QImage::Format_RGBX8888);
+      emit newVideoFrame(frame, getName());
+
+ //     gst_sample_unref(sample);
+
+//      gst_buffer_map (buffer, &map, GST_MAP_READ);
+//      pixbuf = gdk_pixbuf_new_from_data (map.data,
+//          GDK_COLORSPACE_RGB, FALSE, 8, width, height,
+//          GST_ROUND_UP_4 (width * 3), NULL, NULL);
+
+      /* save the pixbuf */
+//      gdk_pixbuf_save (pixbuf, "snapshot.png", "png", &error, NULL);
+//      gst_buffer_unmap (buffer, &map);
+//    } else {
+//      g_print ("could not make snapshot\n");
+    }
+
+
+}
+
 void AudioBackendGstreamer::setDownmix(bool enabled)
 {
     qDebug() << "AudioBackendHybrid::setDownmix(" << enabled << ") called";
@@ -562,4 +644,31 @@ void AudioBackendGstreamer::setDownmix(bool enabled)
         g_object_set(filter, "caps", audioCapsMono, NULL);
     else
         g_object_set(filter, "caps", audioCapsStereo, NULL);
+}
+
+void AudioBackendGstreamer::EndOfStreamCallback(GstAppSink* appsink, gpointer user_data)
+{
+}
+
+GstFlowReturn AudioBackendGstreamer::NewPrerollCallback(GstAppSink* appsink, gpointer user_data)
+{
+    GstSample* sample = gst_app_sink_pull_preroll(appsink);
+    gst_sample_unref(sample);
+    return GST_FLOW_OK;
+
+}
+
+GstFlowReturn AudioBackendGstreamer::NewSampleCallback(GstAppSink* appsink, gpointer user_data)
+{
+    //static double timer = glfwGetTime(); std::cout << "SAMPLE" << (glfwGetTime()-timer)*1000 << std::endl; timer = glfwGetTime();
+    //((GstAppSinkPipeline*) user_data)->ReceiveNewSample();
+    AudioBackendGstreamer *myObject = (AudioBackendGstreamer*) user_data;
+    myObject->newFrame();
+    return GST_FLOW_OK;
+
+}
+
+void AudioBackendGstreamer::DestroyCallback(gpointer user_data)
+{
+    //std::cout << "DESTROY" << std::endl;
 }

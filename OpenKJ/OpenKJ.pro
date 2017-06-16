@@ -115,7 +115,7 @@ RESOURCES += resources.qrc
 
 unix:!macx {
     CONFIG += link_pkgconfig
-    PKGCONFIG += gstreamer-1.0
+    PKGCONFIG += gstreamer-1.0 gstreamer-app-1.0
     iconfiles.files += Icons/okjicon.svg
     iconfiles.path = /usr/share/pixmaps
     desktopfiles.files += openkj.desktop

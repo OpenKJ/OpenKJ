@@ -23,6 +23,7 @@
 
 #include <QObject>
 #include <QStringList>
+#include <QImage>
 
 #define STUP 1.0594630943592952645618252949461
 #define STDN 0.94387431268169349664191315666784
@@ -30,6 +31,8 @@
 class AbstractAudioBackend : public QObject
 {
     Q_OBJECT
+private:
+    QString name;
 public:
     enum State{PlayingState=0,PausedState,StoppedState,EndOfMediaState,UnknownState};
     explicit AbstractAudioBackend(QObject *parent = 0);
@@ -52,6 +55,9 @@ public:
     virtual bool stopping() {return false;}
     float getPitchForSemitone(int semitone);
 
+    QString getName() const;
+    void setName(const QString &value);
+
 signals:
     void audioAvailableChanged(bool);
     void bufferStatusChanged(int);
@@ -63,6 +69,7 @@ signals:
     void volumeChanged(int);
     void silenceDetected();
     void pitchChanged(int);
+    void newVideoFrame(QImage frame, QString backendName);
 
 
 public slots:
