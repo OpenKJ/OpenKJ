@@ -40,19 +40,19 @@ OpenKJ is experimental but usable at this point.  I am using it to run my shows,
 
 I develop the software and host my shows on Linux (Fedora specifically), so it is known to build and work there.  (It "should" work similarly on any Linux distro or the BSD's.)  Everything needed will most likely be available via the package manager on any common distro.  On Fedora the packages are gstreamer-devel gstreamer gstreamer-plugins-good gstreamer-plugins-bad and the Qt5 stuff (I just yum install qt5-* because I'm lazy).  On Fedora you will also need to have the rpmfusion repo enabled to get mp3 support, as the app is pretty useless w/o it.  "qmake-qt5" or possibly just "qmake", depending on your distro, followed by a "make" should get it built. A "make install" will put the binaries in /usr/bin and copy .desktop file and icon into the appropriate places for it to appear in the app menu.  Tweak the OpenKJ.pro file to enable or disable OpenGL support prior to building.  One thing to note, you'll probably need to turn off flat volumes in your pulseaudio config if you're using it, otherwise the applicaitons may mess with your system-wide volume instead of just the application volume.
 
-**Contributed notes for building on Ubuntu 16.04 courtesy of Henry74**
+**Contributed notes for building on Ubuntu 16.04 courtesy of Henry74**  
 
-`sudo apt install qt5-qmake
-sudo apt install qt5-multimedia
-sudo apt install libqt5svg5-dev`
+```
+sudo apt install qt5-qmake  
+sudo apt install qt5-multimedia  
+sudo apt install libqt5svg5-dev  `
+```
 
-In a terminal switch to the OpenKJ/OpenKJ directory in the repository.
-
+In a terminal switch to the OpenKJ/OpenKJ directory in the repository.  
 `/usr/lib/x86_64-linux-gnu/qt5/bin/qmake
 make`
 
-Suggest installing and using checkinstall to create a .deb file
-
+Suggest installing and using checkinstall to create a .deb file  
 `sudo checkinstall`
 
 Install the .deb file.
