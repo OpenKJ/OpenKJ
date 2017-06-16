@@ -25,18 +25,6 @@
 #include <math.h>
 
 
-static void on_new_buffer (GstElement* object,
-                           gpointer user_data)
-{
-  qWarning() << "on_new_buffer called";
-  //FILE* file = (FILE*) user_data;
-  GstAppSink* app_sink = (GstAppSink*) object;
-  GstSample * sample = gst_app_sink_pull_sample(app_sink);
-  gst_sample_unref(sample);
-  qWarning() << "Received video frame";
-
-}
-
 AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *parent) :
     AbstractAudioBackend(parent)
 {
@@ -596,45 +584,23 @@ void AudioBackendGstreamer::newFrame()
     GstSample* sample = gst_app_sink_pull_sample((GstAppSink*)videoAppSink);
 
     if (sample) {
-      GstBuffer *buffer;
-      GstCaps *caps;
-      GstStructure *s;
-      int width, height;
-      /* get the snapshot buffer format now. We set the caps on the appsink so
-       * that it can only be an rgb buffer. The only thing we have not specified
-       * on the caps is the height, which is dependant on the pixel-aspect-ratio
-       * of the source material */
-      caps = gst_sample_get_caps (sample);
-      s = gst_caps_get_structure (caps, 0);
-      /* we need to get the final caps on the buffer to get the size */
-      gst_structure_get_int (s, "width", &width);
-      gst_structure_get_int (s, "height", &height);
-
-      /* create pixmap from buffer and save, gstreamer video buffers have a stride
-       * that is rounded up to the nearest multiple of 4 */
-      buffer = gst_sample_get_buffer (sample);
-
-      GstMapInfo bufferInfo;
-          gst_buffer_map(buffer,&bufferInfo,GST_MAP_READ);
-          guint8 *rawFrame = bufferInfo.data;
-          QImage frame = QImage(rawFrame,width,height,QImage::Format_RGBX8888);
-      emit newVideoFrame(frame, getName());
-
- //     gst_sample_unref(sample);
-
-//      gst_buffer_map (buffer, &map, GST_MAP_READ);
-//      pixbuf = gdk_pixbuf_new_from_data (map.data,
-//          GDK_COLORSPACE_RGB, FALSE, 8, width, height,
-//          GST_ROUND_UP_4 (width * 3), NULL, NULL);
-
-      /* save the pixbuf */
-//      gdk_pixbuf_save (pixbuf, "snapshot.png", "png", &error, NULL);
-//      gst_buffer_unmap (buffer, &map);
-//    } else {
-//      g_print ("could not make snapshot\n");
+        GstBuffer *buffer;
+        GstCaps *caps;
+        GstStructure *s;
+        int width, height;
+        caps = gst_sample_get_caps (sample);
+        s = gst_caps_get_structure (caps, 0);
+        gst_structure_get_int (s, "width", &width);
+        gst_structure_get_int (s, "height", &height);
+        buffer = gst_sample_get_buffer (sample);
+        GstMapInfo bufferInfo;
+        gst_buffer_map(buffer,&bufferInfo,GST_MAP_READ);
+        guint8 *rawFrame = bufferInfo.data;
+        QImage frame = QImage(rawFrame,width,height,QImage::Format_RGBX8888);
+        emit newVideoFrame(frame, getName());
+        gst_buffer_unmap(buffer, &bufferInfo);
+        gst_sample_unref(sample);
     }
-
-
 }
 
 void AudioBackendGstreamer::setDownmix(bool enabled)
@@ -648,20 +614,23 @@ void AudioBackendGstreamer::setDownmix(bool enabled)
 
 void AudioBackendGstreamer::EndOfStreamCallback(GstAppSink* appsink, gpointer user_data)
 {
+    Q_UNUSED(appsink)
+    Q_UNUSED(user_data)
 }
 
 GstFlowReturn AudioBackendGstreamer::NewPrerollCallback(GstAppSink* appsink, gpointer user_data)
 {
-    GstSample* sample = gst_app_sink_pull_preroll(appsink);
-    gst_sample_unref(sample);
+    Q_UNUSED(user_data)
+    Q_UNUSED(appsink)
+//    GstSample* sample = gst_app_sink_pull_preroll(appsink);
+//    gst_sample_unref(sample);
     return GST_FLOW_OK;
 
 }
 
 GstFlowReturn AudioBackendGstreamer::NewSampleCallback(GstAppSink* appsink, gpointer user_data)
 {
-    //static double timer = glfwGetTime(); std::cout << "SAMPLE" << (glfwGetTime()-timer)*1000 << std::endl; timer = glfwGetTime();
-    //((GstAppSinkPipeline*) user_data)->ReceiveNewSample();
+    Q_UNUSED(appsink)
     AudioBackendGstreamer *myObject = (AudioBackendGstreamer*) user_data;
     myObject->newFrame();
     return GST_FLOW_OK;
@@ -670,5 +639,5 @@ GstFlowReturn AudioBackendGstreamer::NewSampleCallback(GstAppSink* appsink, gpoi
 
 void AudioBackendGstreamer::DestroyCallback(gpointer user_data)
 {
-    //std::cout << "DESTROY" << std::endl;
+    Q_UNUSED(user_data)
 }
