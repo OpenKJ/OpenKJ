@@ -343,6 +343,7 @@ void MainWindow::play(QString karaokeFilePath)
         else
         {
             kAudioBackend->setMedia(karaokeFilePath);
+            bmAudioBackend->fadeOut();
             kAudioBackend->play();
         }
     }
@@ -654,7 +655,7 @@ void MainWindow::audioBackend_positionChanged(qint64 position)
 {
     if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
     {
-        if (cdg->GetLastCDGUpdate() >= position)
+        if (cdg->IsOpen() && cdg->GetLastCDGUpdate() >= position)
         {
             if (!cdg->SkipFrame(position))
             {
@@ -796,7 +797,7 @@ void MainWindow::rotationDataChanged()
 void MainWindow::silenceDetected()
 {
     qWarning() << "Detected silence.  Cur Pos: " << kAudioBackend->position() << " Last CDG update pos: " << cdg->GetLastCDGUpdate();
-    if (cdg->GetLastCDGUpdate() < kAudioBackend->position())
+    if (cdg->IsOpen() && cdg->GetLastCDGUpdate() < kAudioBackend->position())
     {
         kAudioBackend->stop(true);
 //        ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
