@@ -41,6 +41,7 @@ public:
     QString singerGetNextSong(int singerId);
     bool rotationClear();
     bool songSetDuration(int sondId, int duration);
+    void songMarkBad(QString filename);
 
 };
 

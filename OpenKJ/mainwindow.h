@@ -100,7 +100,7 @@ private:
     CDG *cdg;
     int sortColDB;
     int sortDirDB;
-    QString previewZip;
+    QString dbRtClickFile;
 
 
     BmDbDialog *bmDbDialog;
@@ -166,6 +166,8 @@ private slots:
     void regularNameConflict(QString name);
     void regularAddError(QString errorText);
     void previewCdg();
+    void editSong();
+    void markSongBad();
     void setShowBgImage(bool show);
     void onBgImageChange();
 

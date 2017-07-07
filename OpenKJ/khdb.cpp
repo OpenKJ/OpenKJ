@@ -115,3 +115,10 @@ bool KhDb::songSetDuration(int songId, int duration)
     QString sql = "UPDATE dbsongs SET 'duration'=" + QString::number(duration) + " WHERE ROWID == " + QString::number(songId);
     return query.exec(sql);
 }
+
+void KhDb::songMarkBad(QString filename)
+{
+    QSqlQuery query;
+    QString sql = "UPDATE dbsongs SET 'discid'=\"!!BAD!!\" WHERE path == \"" + filename + "\"";
+    query.exec(sql);
+}

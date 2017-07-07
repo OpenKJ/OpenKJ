@@ -815,9 +815,12 @@ void MainWindow::on_tableViewDB_customContextMenuRequested(const QPoint &pos)
     QModelIndex index = ui->tableViewDB->indexAt(pos);
     if (index.isValid())
     {
-        previewZip = index.sibling(index.row(), 5).data().toString();
+        dbRtClickFile = index.sibling(index.row(), 5).data().toString();
         QMenu contextMenu(this);
         contextMenu.addAction("Preview", this, SLOT(previewCdg()));
+        contextMenu.addSeparator();
+//        contextMenu.addAction("Edit", this, SLOT(editSong()));
+        contextMenu.addAction("Mark bad", this, SLOT(markSongBad()));
         contextMenu.exec(QCursor::pos());
     }
 }
@@ -863,7 +866,7 @@ void MainWindow::on_tableViewQueue_customContextMenuRequested(const QPoint &pos)
     QModelIndex index = ui->tableViewQueue->indexAt(pos);
     if (index.isValid())
     {   
-        previewZip = index.sibling(index.row(), 6).data().toString();
+        dbRtClickFile = index.sibling(index.row(), 6).data().toString();
         m_rtClickQueueSongId = index.sibling(index.row(), 0).data().toInt();
         dlgKeyChange->setActiveSong(m_rtClickQueueSongId);
         QMenu contextMenu(this);
@@ -909,8 +912,48 @@ void MainWindow::previewCdg()
 {
     cdgPreviewDialog = new DlgCdgPreview(this);
     cdgPreviewDialog->setAttribute(Qt::WA_DeleteOnClose);
-    cdgPreviewDialog->setSourceFile(previewZip);
+    cdgPreviewDialog->setSourceFile(dbRtClickFile);
     cdgPreviewDialog->preview();
+}
+
+void MainWindow::editSong()
+{
+
+}
+
+void MainWindow::markSongBad()
+{
+    QMessageBox msgBox;
+    msgBox.setText("Marking song as bad");
+    msgBox.setInformativeText("Would you like mark the file as bad in the DB, or remove it from disk permanently?");
+    QPushButton *markBadButton = msgBox.addButton(tr("Mark Bad"), QMessageBox::ActionRole);
+    QPushButton *removeFileButton = msgBox.addButton(tr("Remove File"), QMessageBox::ActionRole);
+    QPushButton *cancelButton = msgBox.addButton(QMessageBox::Cancel);
+
+    msgBox.exec();
+
+    if (msgBox.clickedButton() == markBadButton) {
+        db->songMarkBad(dbRtClickFile);
+        songdbUpdated();
+        // connect
+    } else if (msgBox.clickedButton() == removeFileButton) {
+        QFile file(dbRtClickFile);
+        if (file.remove())
+        {
+            db->songMarkBad(dbRtClickFile);
+            songdbUpdated();
+        }
+        else
+        {
+            QMessageBox msgBoxErr;
+            msgBoxErr.setText("Error deleting file");
+            msgBoxErr.setInformativeText("Unable to remove the file.  Please check file permissions.  Operation cancelled.");
+            msgBoxErr.setStandardButtons(QMessageBox::Ok);
+            msgBoxErr.exec();
+        }
+    } else if (msgBox.clickedButton() == cancelButton){
+        //abort
+    }
 }
 
 void MainWindow::setShowBgImage(bool show)
