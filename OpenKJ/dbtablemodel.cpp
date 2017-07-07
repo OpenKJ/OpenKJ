@@ -57,10 +57,10 @@ void DbTableModel::search(QString searchString)
     terms = searchString.split(" ",QString::SkipEmptyParts);
     if (terms.size() < 1)
     {
-        setFilter("");
+        setFilter("discid != \"!!BAD!!\"");
         return;
     }
-    QString whereClause = "filename LIKE \"%" + terms.at(0) + "%\"";
+    QString whereClause = "discid != \"!!BAD!!\" AND filename LIKE \"%" + terms.at(0) + "%\"";
     for (int i=1; i < terms.size(); i++)
     {
         whereClause = whereClause + " AND filename LIKE \"%" + terms.at(i) + "%\"";

@@ -110,7 +110,9 @@ int processKaraokeFile(QString fileName)
     {
         TagReader reader;
         reader.setMedia(fileName);
+        try {
         duration = reader.getDuration();
+        } catch (...){}
     }
     QSqlQuery query;
     QString artist;
