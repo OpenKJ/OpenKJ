@@ -19,7 +19,7 @@ key changer, and all of the various bits and pieces required to host karaoke.
 
 
 %build
-%configure
+qmake-qt5
 %make_build
 
 
