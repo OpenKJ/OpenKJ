@@ -1,3 +1,47 @@
+sudo: required
+services:
+  - docker
+
+cache:
+    directories:
+     - $HOME/.cache
+
+language: C
+
+env:
+    matrix:
+      - OS=el DIST=7
+      - OS=fedora DIST=26
+      - OS=fedora DIST=25
+      - OS=ubuntu DIST=trusty
+      - OS=ubuntu DIST=precise
+      - OS=debian DIST=jessie
+      - OS=debian DIST=wheezy
+
+script:
+ - git submodule update --init --recursive
+ - git describe --long
+ - git clone https://github.com/packpack/packpack.git packpack
+ - packpack/packpack
+
+deploy:
+  # Deploy packages to PackageCloud
+  provider: packagecloud
+  username: ${PACKAGECLOUD_USER}
+  repository: ${PACKAGECLOUD_REPO}
+  token: ${PACKAGECLOUD_TOKEN}
+  dist: ${OS}/${DIST}
+  package_glob: build/*.{deb,rpm}
+  skip_cleanup: true
+  on:
+    branch: master
+    condition: -n "${OS}" && -n "${DIST}" && -n "${PACKAGECLOUD_TOKEN}"
+
+
+
+
+
+
 before_install:
   - sudo add-apt-repository ppa:kubuntu-ppa/backports -y
   - sudo apt-get update -qq
