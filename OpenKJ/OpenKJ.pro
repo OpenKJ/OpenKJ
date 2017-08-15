@@ -117,11 +117,11 @@ unix:!macx {
     CONFIG += link_pkgconfig
     PKGCONFIG += gstreamer-1.0 gstreamer-app-1.0
     iconfiles.files += Icons/okjicon.svg
-    iconfiles.path = /usr/share/pixmaps
+#    iconfiles.path = /usr/share/pixmaps
     desktopfiles.files += openkj.desktop
-    desktopfiles.path = /usr/share/applications
+#    desktopfiles.path = /usr/share/applications
     binaryfiles.files += OpenKJ
-    binaryfiles.path = /usr/bin
+#    binaryfiles.path = /usr/bin
     INSTALLS += binaryfiles iconfiles desktopfiles
 }
 
