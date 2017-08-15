@@ -7,7 +7,7 @@ License:        GPL
 URL:            https://openkj.org
 Source0:        
 
-BuildRequires:  qt5-qtbase-devel qt5-qtsvg-devel qt5-qtmultimedia-devel gstreamer1-devel
+BuildRequires:  qt5-qtbase-devel qt5-qtsvg-devel qt5-qtmultimedia-devel gstreamer1-devel gstreamer1-plugins-base-devel
 Requires:       qt5-qtbase qt5-qtsvg qt5-qtmultimedia gstreamer1
 
 %description
