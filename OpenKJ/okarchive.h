@@ -38,23 +38,26 @@ public:
     QString getArchiveFile() const;
     void setArchiveFile(const QString &value);
     bool checkCDG();
-    bool checkMP3();
-    bool extractMP3(QString destPath);
+    bool checkAudio();
+    QString audioExtension();
+    bool extractAudio(QString destPath);
     bool isValidKaraokeFile();
 
 private:
     QString archiveFile;
     QString cdgFileName;
-    QString mp3FileName;
+    QString audioFileName;
+    QString audioExt;
     bool findCDG();
-    bool findMp3();
+    bool findAudio();
     int cdgSize();
-    int mp3Size();
+    int audioSize();
     int m_cdgSize;
-    int m_mp3Size;
+    int m_audioSize;
     bool m_cdgFound;
-    bool m_mp3Found;
+    bool m_audioFound;
     bool findEntries();
+    QStringList audioExtensions;
 
 signals:
 

@@ -58,7 +58,7 @@ void DlgCdgPreview::preview()
     if (m_srcFile.endsWith(".zip", Qt::CaseInsensitive))
     {
         OkArchive archive(m_srcFile);
-        if ((!archive.checkCDG()) || (!archive.checkMP3()))
+        if ((!archive.checkCDG()) || (!archive.checkAudio()))
         {
             QMessageBox::warning(this, tr("Bad karaoke file"),tr("Zip file does not contain a valid karaoke track.  CDG or mp3 file missing or corrupt."),QMessageBox::Ok);
             close();

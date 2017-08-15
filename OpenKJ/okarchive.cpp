@@ -31,17 +31,21 @@ OkArchive::OkArchive(QString ArchiveFile, QObject *parent) : QObject(parent)
 {
     archiveFile = ArchiveFile;
     m_cdgFound = false;
-    m_mp3Found = false;
+    m_audioFound = false;
     m_cdgSize = 0;
-    m_mp3Size = 0;
+    m_audioSize = 0;
+    audioExtensions.append(".mp3");
+    audioExtensions.append(".wav");
+    audioExtensions.append(".ogg");
+    audioExtensions.append(".mov");
 }
 
 OkArchive::OkArchive(QObject *parent) : QObject(parent)
 {
     m_cdgFound = false;
-    m_mp3Found = false;
+    m_audioFound = false;
     m_cdgSize = 0;
-    m_mp3Size = 0;
+    m_audioSize = 0;
 }
 
 OkArchive::~OkArchive()
@@ -96,9 +100,9 @@ void OkArchive::setArchiveFile(const QString &value)
 {
     archiveFile = value;
     m_cdgFound = false;
-    m_mp3Found = false;
+    m_audioFound = false;
     m_cdgSize = 0;
-    m_mp3Size = 0;
+    m_audioSize = 0;
 }
 
 bool OkArchive::checkCDG()
@@ -110,25 +114,30 @@ bool OkArchive::checkCDG()
     return true;
 }
 
-bool OkArchive::checkMP3()
+bool OkArchive::checkAudio()
 {
-    if (!findMp3())
+    if (!findAudio())
         return false;
-    if (m_mp3Size <= 0)
+    if (m_audioSize <= 0)
         return false;
     return true;
 }
 
-bool OkArchive::extractMP3(QString destPath)
+QString OkArchive::audioExtension()
 {
-    if (findMp3())
+    return audioExt;
+}
+
+bool OkArchive::extractAudio(QString destPath)
+{
+    if (findAudio())
     {
         QFile zipFile(archiveFile);
         zipFile.open(QFile::ReadOnly);
         mz_zip_archive archive;
         memset(&archive, 0, sizeof(archive));
         mz_zip_reader_init_filehandle(&archive, zipFile.handle(), 0);
-        if (mz_zip_reader_extract_file_to_file(&archive, mp3FileName.toLocal8Bit(), destPath.toLocal8Bit(),0))
+        if (mz_zip_reader_extract_file_to_file(&archive, audioFileName.toLocal8Bit(), destPath.toLocal8Bit(),0))
         {
             zipFile.close();
             mz_zip_reader_end(&archive);
@@ -147,7 +156,7 @@ bool OkArchive::isValidKaraokeFile()
 {
     if (!findEntries())
         return false;
-    if (m_mp3Size <= 0)
+    if (m_audioSize <= 0)
         return false;
     if (m_cdgSize <= 0)
         return false;
@@ -160,15 +169,15 @@ bool OkArchive::findCDG()
     return m_cdgFound;
 }
 
-bool OkArchive::findMp3()
+bool OkArchive::findAudio()
 {
     findEntries();
-    return m_mp3Found;
+    return m_audioFound;
 }
 
 bool OkArchive::findEntries()
 {
-    if ((m_mp3Found) && (m_cdgFound))
+    if ((m_audioFound) && (m_cdgFound))
         return true;
     QFile zipFile(archiveFile);
     zipFile.open(QFile::ReadOnly);
@@ -181,19 +190,38 @@ bool OkArchive::findEntries()
     {
         mz_zip_reader_file_stat(&archive, i, &fStat);
         QString fileName = fStat.m_filename;
-        if (fileName.endsWith(".mp3",Qt::CaseInsensitive))
-        {
-            mp3FileName = fileName;
-            m_mp3Size = fStat.m_uncomp_size;
-            m_mp3Found = true;
-        }
-        else if (fileName.endsWith(".cdg",Qt::CaseInsensitive))
+        if (fileName.endsWith(".cdg",Qt::CaseInsensitive))
         {
             cdgFileName = fileName;
             m_cdgSize = fStat.m_uncomp_size;
             m_cdgFound = true;
         }
-        if (m_mp3Found && m_cdgFound)
+        else
+        {
+            for (int e=0; e < audioExtensions.size(); e++)
+            {
+                if (fileName.endsWith(audioExtensions.at(e), Qt::CaseInsensitive))
+                {
+                    audioFileName = fileName;
+                    audioExt = audioExtensions.at(e);
+                    m_audioSize = fStat.m_uncomp_size;
+                    m_audioFound = true;
+                }
+            }
+        }
+//        if (fileName.endsWith(".mp3",Qt::CaseInsensitive))
+//        {
+//            audioFileName = fileName;
+//            m_audioSize = fStat.m_uncomp_size;
+//            m_audioFound = true;
+//        }
+//        else if (fileName.endsWith(".cdg",Qt::CaseInsensitive))
+//        {
+//            cdgFileName = fileName;
+//            m_cdgSize = fStat.m_uncomp_size;
+//            m_cdgFound = true;
+//        }
+        if (m_audioFound && m_cdgFound)
         {
             mz_zip_reader_end(&archive);
             return true;

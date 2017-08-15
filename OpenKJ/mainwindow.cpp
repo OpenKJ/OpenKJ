@@ -277,25 +277,28 @@ void MainWindow::play(QString karaokeFilePath)
         if (karaokeFilePath.endsWith(".zip", Qt::CaseInsensitive))
         {
             OkArchive archive(karaokeFilePath);
-            if ((archive.checkCDG()) && (archive.checkMP3()))
+            if ((archive.checkCDG()) && (archive.checkAudio()))
             {
-                if (!archive.extractMP3(khTmpDir->path() + QDir::separator() + "tmp.mp3"))
+                if (archive.checkAudio())
                 {
-                    QMessageBox::warning(this, tr("Bad karaoke file"), tr("Failed to extract mp3 file."),QMessageBox::Ok);
-                    return;
+                    if (!archive.extractAudio(khTmpDir->path() + QDir::separator() + "tmp" + archive.audioExtension()))
+                    {
+                        QMessageBox::warning(this, tr("Bad karaoke file"), tr("Failed to extract audio file."),QMessageBox::Ok);
+                        return;
+                    }
+                    cdg->FileOpen(archive.getCDGData());
+                    cdg->Process();
+                    cdgWindow->setShowBgImage(false);
+                    setShowBgImage(false);
+                    kAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + "tmp" + archive.audioExtension());
+                    //                ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
+                    bmAudioBackend->fadeOut(false);
+                    kAudioBackend->play();
                 }
-                cdg->FileOpen(archive.getCDGData());
-                cdg->Process();
-                cdgWindow->setShowBgImage(false);
-                setShowBgImage(false);
-                kAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + "tmp.mp3");
-//                ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
-                bmAudioBackend->fadeOut(false);
-                kAudioBackend->play();
             }
             else
             {
-                QMessageBox::warning(this, tr("Bad karaoke file"),tr("Zip file does not contain a valid karaoke track.  CDG or mp3 file missing or corrupt."),QMessageBox::Ok);
+                QMessageBox::warning(this, tr("Bad karaoke file"),tr("Zip file does not contain a valid karaoke track.  CDG or audio file missing or corrupt."),QMessageBox::Ok);
             }
         }
         else if (karaokeFilePath.endsWith(".cdg", Qt::CaseInsensitive))
