@@ -114,17 +114,17 @@ FORMS    += mainwindow.ui \
 RESOURCES += resources.qrc
 
 unix:!macx {
-    isEmpty(DESTDIR) {
-      DESTDIR = /usr
+    isEmpty(PREFIX) {
+      PREFIX = /usr
     }
     CONFIG += link_pkgconfig
     PKGCONFIG += gstreamer-1.0 gstreamer-app-1.0
     iconfiles.files += Icons/okjicon.svg
-    iconfiles.path = $$DESTDIR/share/pixmaps
+    iconfiles.path = $$PREFIX/share/pixmaps
     desktopfiles.files += openkj.desktop
-    desktopfiles.path = $$DESTDIR/share/applications
+    desktopfiles.path = $$PREFIX/share/applications
     binaryfiles.files += OpenKJ
-    binaryfiles.path = $$DESTDIR/bin
+    binaryfiles.path = $$PREFIX/bin
     INSTALLS += binaryfiles iconfiles desktopfiles
 }
 
