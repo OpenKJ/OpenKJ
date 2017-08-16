@@ -2,7 +2,7 @@ Source: openkj
 Section: unknown
 Priority: optional
 Maintainer: Isaac Lightburn <isaac@hozed.net>
-Build-Depends: qt5-default, qttools5-dev-tools, qtbase5-dev, qtmultimedia5-dev, libqt5svg5-dev, qttools5-dev, qt5-qmake, libgstreamer1.0-dev, libgstreamer-plugins-base1.0-dev, libpulse-dev, debhelper (>=9)
+Build-Depends: qt5-default, qttools5-dev-tools, qtbase5-dev, qtmultimedia5-dev, libqt5svg5-dev, qttools5-dev, qt5-qmake, libgstreamer1.0-dev, libgstreamer-plugins-base1.0-dev, libqt5opengl5-dev, libpulse-dev, debhelper (>=9)
 Standards-Version: 3.9.6
 Homepage: https://www.openkj.org
 #Vcs-Git: git://anonscm.debian.org/collab-maint/openkj.git
@@ -10,6 +10,6 @@ Homepage: https://www.openkj.org
 
 Package: openkj
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, qt5-default, qtbase5, qtmultimedia5, libqt5svg5, libgstreamer1.0, libgstreamer-plugins-base1.0, libqt5opengl5, libpulse
 Description: OpenKJ karaoke hosting software
  Open source karaoke hosting software targeted at professional KJs. 
