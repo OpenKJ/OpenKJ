@@ -1,0 +1,11 @@
+openkj (0.11.0-1ubuntu1) UNRELEASED; urgency=medium
+
+  * Fighting stupid packaging tricks 
+
+ -- root <root@eddf8c66e7f2>  Wed, 16 Aug 2017 06:06:38 +0000
+
+openkj (0.11.0-1) unstable; urgency=medium
+
+  * Initial ubuntu package
+
+ -- Isaac Lightburn <isaac@hozed.net>  Wed, 16 Aug 2017 04:51:05 +0000

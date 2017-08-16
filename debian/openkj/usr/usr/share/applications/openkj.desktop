@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=OpenKJ
+Comment=Karaoke Hosting Software
+Exec=/usr/bin/OpenKJ
+Icon=/usr/share/pixmaps/okjicon64x64.png
+Terminal=false
+Categories=AudioVideo;Audio;Player;
