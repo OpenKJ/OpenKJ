@@ -26,7 +26,9 @@ qmake-qt5 PREFIX=$RPM_BUILD_ROOT
 
 %install
 rm -rf $RPM_BUILD_ROOT
-%make_install
+cd OpenKJ
+make install
+#%make_install
 
 
 %files
