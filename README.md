@@ -1,5 +1,7 @@
 If you are looking for binary installers for Windows or macOS, please visit https://openkj.org
 
+If you are looking for binary packages for Fedora, CentOS/SL/RHEL, Debian, or Ubuntu, you can find builds based on the current development state in master at https://packagecloud.io/OpenKJ/OpenKJ
+
 **Note:** If you are going from a version prior to 0.10.0 to 0.10.0 or later, you will need to export your regular singers and playlists **BEFORE** updating and reimport them after installing the new version and updating your karaoke and break music databases due to database changes.
 
 OpenKJ
