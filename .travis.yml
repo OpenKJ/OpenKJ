@@ -12,6 +12,7 @@ env:
     matrix:
       - OS=el DIST=7
       - OS=fedora DIST=25
+      - OS=ubuntu DIST=trusty
 
 script:
  - git submodule update --init --recursive
