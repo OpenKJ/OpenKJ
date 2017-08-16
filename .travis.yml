@@ -12,10 +12,6 @@ env:
     matrix:
       - OS=el DIST=7
       - OS=fedora DIST=25
-      - OS=ubuntu DIST=trusty
-      - OS=ubuntu DIST=precise
-      - OS=debian DIST=jessie
-      - OS=debian DIST=wheezy
 
 script:
  - git submodule update --init --recursive
