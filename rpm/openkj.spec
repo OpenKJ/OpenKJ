@@ -19,7 +19,8 @@ key changer, and all of the various bits and pieces required to host karaoke.
 
 
 %build
-qmake-qt5
+cd OpenKJ
+qmake-qt5 PREFIX=$RPM_BUILD_ROOT
 %make_build
 
 
@@ -29,10 +30,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %files
-%license add-license-file-here
-%doc add-docs-here
-
-
+/usr/bin/OpenKJ
+/usr/share/applications/openkj.desktop
+/usr/share/pixmaps/okjicon.svg
 
 %changelog
 * Tue Aug 15 2017 T. Isaac Lightburn <isaac@hozed.net>
