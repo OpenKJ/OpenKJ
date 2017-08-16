@@ -361,7 +361,7 @@ void MainWindow::play(QString karaokeFilePath)
 MainWindow::~MainWindow()
 {
     settings->bmSetVolume(ui->sliderBmVolume->value());
-    settings->setAudioVolume(ui->sliderBmVolume->value());
+    settings->setAudioVolume(ui->sliderVolume->value());
     qWarning() << "Saving volumes - K: " << settings->audioVolume() << " BM: " << settings->bmVolume();
     settings->saveSplitterState(ui->splitter);
     settings->saveSplitterState(ui->splitter_2);
