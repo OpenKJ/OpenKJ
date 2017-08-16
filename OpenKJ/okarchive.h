@@ -23,6 +23,7 @@
 #define KHARCHIVE_H
 
 #include <QObject>
+#include <QStringList>
 //#include <quazip.h>
 
 
