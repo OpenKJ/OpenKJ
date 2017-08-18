@@ -34,7 +34,7 @@ KhAudioRecorder::KhAudioRecorder(QObject *parent) :
     audioRecorder = new QAudioRecorder(this);
     connect(audioRecorder, SIGNAL(error(QMediaRecorder::Error)), this, SLOT(audioRecorderError(QMediaRecorder::Error)));
     outputFile = "";
-    startDateTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm");
+    startDateTime = QDateTime::currentDateTime().toString("yyyy-MM-dd-hhmm");
 }
 
 void KhAudioRecorder::record(QString filename)
