@@ -1040,6 +1040,7 @@ void MainWindow::bmMediaStateChanged(AbstractAudioBackend::State newState)
             if (ui->checkBoxBmBreak->isChecked())
             {
                 bmAudioBackend->stop(true);
+                ui->checkBoxBmBreak->setChecked(false);
                 return;
             }
             if (bmCurrentPosition < bmPlModel->rowCount() - 1)
