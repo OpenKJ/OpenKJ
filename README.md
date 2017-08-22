@@ -15,7 +15,7 @@ Quick and dirty install method for Debian/Ubuntu:
 curl -s https://packagecloud.io/install/repositories/OpenKJ/OpenKJ/script.deb.sh | sudo bash
 apt-get install openkj
 ```
-Either of the above will setup the approprite repos for your distribution, allowing you to update to the latest versions via your normal package management tools.  Note that these repos track master on github, so any code changes will result in upgraded packages being available based on the current development state.  I try not to break things, but it does happen occasionally, so I wouldn't recommend updating OpenKJ right before you plan on hosting a show unless you're prepared to downgrade if something goes sideways.
+Either of the above will setup the approprite repos for your distribution, allowing you to update to the latest version via your normal package management tools.  Note that these repos track master on github, so any code changes will result in upgraded packages being available based on the current development state.  I try not to break things, but it does happen occasionally, so I wouldn't recommend updating OpenKJ right before you plan on hosting a show unless you're prepared to downgrade if something goes sideways.
 
 **Note:** If you are going from a version prior to 0.10.0 to 0.10.0 or later, you will need to export your regular singers and playlists **BEFORE** updating and reimport them after installing the new version and updating your karaoke and break music databases due to database changes.
 
