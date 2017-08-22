@@ -19,7 +19,7 @@ Either of the above will setup the approprite repos for your distribution, allow
 
 **Note:** If you are going from a version prior to 0.10.0 to 0.10.0 or later, you will need to export your regular singers and playlists **BEFORE** updating and reimport them after installing the new version and updating your karaoke and break music databases due to database changes.
 
-**Note** There is a known issue while running under Windows that prevents you from changing the output audio device from the default.  This is due to a limitation in the GStreamer directsound audio sink.  Until that changes, the Windows version will always output audio via the default sound device set in the OS.
+**Note:** There is a known issue while running under Windows that prevents you from changing the output audio device from the default.  This is due to a limitation in the GStreamer directsound audio sink.  Until that changes, the Windows version will always output audio via the default sound device set in the OS.
 
 OpenKJ
 ======
