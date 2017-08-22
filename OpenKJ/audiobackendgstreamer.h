@@ -25,6 +25,8 @@
 #define GLIB_DISABLE_DEPRECATION_WARNINGS
 #include <gst/gst.h>
 #include <gst/app/gstappsink.h>
+#include <gst/gstdevicemonitor.h>
+#include <gst/gstdevice.h>
 #include <gst/gstplugin.h>
 #include <QTimer>
 #include <QThread>
