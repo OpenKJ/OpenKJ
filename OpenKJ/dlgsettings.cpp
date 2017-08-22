@@ -55,6 +55,16 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, QWidget *parent) :
     ui->listWidget->setCurrentRow(0);
     QStringList screens = getMonitors();
     ui->listWidgetMonitors->addItems(screens);
+    audioOutputDevices = kAudioBackend->getOutputDevices();
+    ui->listWidgetAudioDevices->addItems(audioOutputDevices);
+    int selDevice = audioOutputDevices.indexOf(settings->audioOutputDevice());
+    if (selDevice == -1)
+        ui->listWidgetAudioDevices->item(0)->setSelected(true);
+    else
+    {
+        ui->listWidgetAudioDevices->item(selDevice)->setSelected(true);
+        kAudioBackend->setOutputDevice(selDevice);
+    }
     ui->checkBoxShowCdgWindow->setChecked(settings->showCdgWindow());
     ui->groupBoxMonitors->setChecked(settings->cdgWindowFullscreen());
     ui->listWidgetMonitors->setEnabled(settings->showCdgWindow());
@@ -359,7 +369,7 @@ void DlgSettings::on_listWidgetAudioDevices_itemSelectionChanged()
     {
         QString device = ui->listWidgetAudioDevices->selectedItems().at(0)->text();
         settings->setAudioOutputDevice(device);
-        int deviceIndex = kAudioBackend->getOutputDevices().indexOf(QRegExp(device,Qt::CaseSensitive,QRegExp::FixedString));
+        int deviceIndex = audioOutputDevices.indexOf(QRegExp(device,Qt::CaseSensitive,QRegExp::FixedString));
         if (deviceIndex != -1)
             kAudioBackend->setOutputDevice(deviceIndex);
     }

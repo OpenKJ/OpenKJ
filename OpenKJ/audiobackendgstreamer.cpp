@@ -48,7 +48,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     gst_init(NULL,NULL);
     audioConvert = gst_element_factory_make("audioconvert", "audioConvert");
     audioConvert2 = gst_element_factory_make("audioconvert", "audioConvert2");
-    autoAudioSink = gst_element_factory_make("autoaudiosink", "autoAudioSink");
+    audioSink = gst_element_factory_make("autoaudiosink", "autoAudioSink");
     videoAppSink = gst_element_factory_make("appsink", "videoAppSink");
     rgVolume = gst_element_factory_make("rgvolume", "rgVolume");
 //    volumeElement = gst_element_factory_make("volume", "volumeElement");
@@ -63,12 +63,15 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     videoCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "BGRx", NULL);
     g_object_set(filter, "caps", audioCapsStereo, NULL);
     g_object_set(videoAppSink, "caps", videoCaps, NULL);
+
     if ((pitchShifterRubberBand) && (loadPitchShift))
     {
         // This is our preferred pitch shifter because it sounds better, but it's only available on Linux
         qCritical() << "Pitch shift ladspa plugin \"Rubber Band\" found, enabling key changing";
-        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, pitchShifterRubberBand, level, autoAudioSink, NULL);
-        gst_element_link_many(filter, rgVolume, audioConvert, pitchShifterRubberBand, level, autoAudioSink, NULL);
+//        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, pitchShifterRubberBand, level, autoAudioSink, NULL);
+//        gst_element_link_many(filter, rgVolume, audioConvert, pitchShifterRubberBand, level, autoAudioSink, NULL);
+        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, pitchShifterRubberBand, level, audioSink, NULL);
+        gst_element_link_many(filter, rgVolume, audioConvert, pitchShifterRubberBand, level, audioSink, NULL);
         g_object_set(G_OBJECT(pitchShifterRubberBand), "formant-preserving", true, NULL);
         g_object_set(G_OBJECT(pitchShifterRubberBand), "crispness", 1, NULL);
         g_object_set(G_OBJECT(pitchShifterRubberBand), "semitones", 1.0, NULL);
@@ -79,8 +82,8 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     {
         // This is our fallback, and the only one reliably available on Windows.  It's not ideal, but it works.
         qCritical() << "Pitch shift plugin \"soundtouch pitch\" found, enabling key changing";
-        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, pitchShifterSoundtouch, audioConvert2, level, autoAudioSink, NULL);
-        gst_element_link_many(filter, rgVolume, audioConvert, pitchShifterSoundtouch, audioConvert2, level, autoAudioSink, NULL);
+        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, pitchShifterSoundtouch, audioConvert2, level, audioSink, NULL);
+        gst_element_link_many(filter, rgVolume, audioConvert, pitchShifterSoundtouch, audioConvert2, level, audioSink, NULL);
         g_object_set(G_OBJECT(pitchShifterSoundtouch), "pitch", 1.0, "tempo", 1.0, NULL);
         m_canKeyChange = true;
         m_keyChangerSoundtouch = true;
@@ -90,8 +93,8 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
         // No supported pitch shift plugin on the system
         if (loadPitchShift)
             qCritical() << "No supported pitch shifting gstreamer plugin found, key changing disabled";
-        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, level, autoAudioSink, NULL);
-        gst_element_link_many(filter, rgVolume, audioConvert, level, autoAudioSink, NULL);
+        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, level, audioSink, NULL);
+        gst_element_link_many(filter, rgVolume, audioConvert, level, audioSink, NULL);
         m_canKeyChange = false;
     }
     pad = gst_element_get_static_pad(filter, "sink");
@@ -101,12 +104,9 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     gst_object_unref(pad);
     g_object_set(G_OBJECT(playBin), "audio-sink", sinkBin, NULL);
     g_object_set(G_OBJECT(playBin), "video-sink", videoAppSink, NULL);
-//    gst_app_sink_set_emit_signals ((GstAppSink*) videoAppSink, TRUE);
     g_object_set(G_OBJECT(rgVolume), "album-mode", false, NULL);
     g_object_set(G_OBJECT (level), "message", TRUE, NULL);
     bus = gst_element_get_bus (playBin);
-//    g_signal_connect (videoAppSink, "new-sample",  G_CALLBACK (on_new_buffer), NULL);
-//    fader = new FaderGStreamer(volumeElement, this);
     fader = new FaderGStreamer(playBin, this);
     slowTimer = new QTimer(this);
     connect(slowTimer, SIGNAL(timeout()), this, SLOT(slowTimer_timeout()));
@@ -116,6 +116,22 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     connect(fader, SIGNAL(volumeChanged(int)), this, SLOT(faderChangedVolume(int)));
     fastTimer->start(40);
     gst_app_sink_set_callbacks(GST_APP_SINK(videoAppSink), &appsinkCallbacks, this, (GDestroyNotify)AudioBackendGstreamer::DestroyCallback);
+
+    monitor = gst_device_monitor_new ();
+    GstCaps *moncaps;
+    moncaps = gst_caps_new_empty_simple ("audio/x-raw");
+    gst_device_monitor_add_filter (monitor, "Audio/Sink", moncaps);
+    gst_caps_unref (moncaps);
+    gst_device_monitor_start (monitor);
+    outputDeviceNames.clear();
+    outputDeviceNames.append("Default");
+    GList *devices, *elem;
+    devices = gst_device_monitor_get_devices(monitor);
+    for(elem = devices; elem; elem = elem->next) {
+        GstDevice *device = (GstDevice*)elem->data;
+        outputDeviceNames.append(gst_device_get_display_name(device));
+        outputDevices.append(device);
+    }
 
 }
 
@@ -535,6 +551,57 @@ double FaderGStreamer::volume()
     return curVolume;
 }
 
+QStringList AudioBackendGstreamer::GstGetPlugins()
+{
+    QStringList list;
+    GList* plugins; /* The head of the plug-in list */
+    GList* pnode;   /* The currently viewed node */
+
+    /* Empty the list out here */
+    list.clear();
+
+    plugins = pnode = gst_registry_get_plugin_list(gst_registry_get());
+    while(pnode) {
+            /* plugin: the plug-in info object pointed to by pnode */
+            GstPlugin* plugin = (GstPlugin*)pnode->data;
+
+            list << gst_plugin_get_name(plugin);
+            qWarning() << gst_plugin_get_name(plugin);
+            pnode = g_list_next(pnode);
+    }
+
+    /* Clean-up */
+    gst_plugin_list_free (plugins);
+    return list;
+}
+
+QStringList AudioBackendGstreamer::GstGetElements(QString plugin)
+{
+    QStringList list;
+    GList* features;        /* The list of plug-in features */
+    GList* fnode;           /* The currently viewed node */
+
+    /* Empty the list out here */
+    list.clear();
+
+    features = fnode = gst_registry_get_feature_list_by_plugin( gst_registry_get(), plugin.toUtf8().data());
+    while(fnode) {
+        if (fnode->data) {
+            /* Currently pointed-to feature */
+            GstPluginFeature* feature = GST_PLUGIN_FEATURE(fnode->data);
+
+            if (GST_IS_ELEMENT_FACTORY (feature)) {
+                GstElementFactory* factory = GST_ELEMENT_FACTORY(gst_plugin_feature_load(feature));
+                list << QString(GST_OBJECT_NAME(factory));
+                qWarning() << QString(GST_OBJECT_NAME(factory));
+            }
+        }
+        fnode = g_list_next(fnode);
+    }
+    gst_plugin_feature_list_free(features);
+    return list;
+}
+
 bool AudioBackendGstreamer::canFade()
 {
     return true;
@@ -610,6 +677,30 @@ void AudioBackendGstreamer::setDownmix(bool enabled)
         g_object_set(filter, "caps", audioCapsMono, NULL);
     else
         g_object_set(filter, "caps", audioCapsStereo, NULL);
+}
+
+QStringList AudioBackendGstreamer::getOutputDevices()
+{
+    return outputDeviceNames;
+}
+
+void AudioBackendGstreamer::setOutputDevice(int deviceIndex)
+{
+    gst_element_unlink(level, audioSink);
+    gst_bin_remove(GST_BIN(sinkBin), audioSink);
+    if (deviceIndex == 0)
+    {
+        qWarning() << "Default device selected";
+        //default device selected
+        audioSink = gst_element_factory_make("autoaudiosink", "audioSink");;
+    }
+    else
+    {
+        audioSink = gst_device_create_element(outputDevices.at(deviceIndex - 1), NULL);
+        qWarning() << "Non default device selected: " << outputDeviceNames.at(deviceIndex);
+    }
+    gst_bin_add(GST_BIN(sinkBin), audioSink);
+    gst_element_link(level, audioSink);
 }
 
 void AudioBackendGstreamer::EndOfStreamCallback(GstAppSink* appsink, gpointer user_data)

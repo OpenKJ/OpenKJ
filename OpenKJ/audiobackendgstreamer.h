@@ -25,9 +25,11 @@
 #define GLIB_DISABLE_DEPRECATION_WARNINGS
 #include <gst/gst.h>
 #include <gst/app/gstappsink.h>
+#include <gst/gstplugin.h>
 #include <QTimer>
 #include <QThread>
 #include <QImage>
+#include <QAudioOutput>
 
 class FaderGStreamer : public QThread
 {
@@ -68,7 +70,8 @@ private:
     GstElement *playBin;
     GstElement *audioConvert;
     GstElement *audioConvert2;
-    GstElement *autoAudioSink;
+    GstElement *defaultSink;
+    GstElement *audioSink;
     GstElement *rgVolume;
     GstElement *pitchShifterRubberBand;
     GstElement *pitchShifterSoundtouch;
@@ -81,6 +84,7 @@ private:
     GstPad *pad;
     GstPad *ghostPad;
     GstBus *bus;
+    GstDeviceMonitor *monitor;
     QString m_filename;
     QTimer *fastTimer;
     QTimer *slowTimer;
@@ -100,6 +104,13 @@ private:
     static void EndOfStreamCallback(GstAppSink *appsink, gpointer user_data);
     static GstFlowReturn NewPrerollCallback(GstAppSink *appsink, gpointer user_data);
     static GstFlowReturn NewSampleCallback(GstAppSink *appsink, gpointer user_data);
+    static GstFlowReturn NewAudioSampleCallback(GstAppSink *appsink, gpointer user_data);
+
+    QStringList GstGetPlugins();
+    QStringList GstGetElements(QString plugin);
+    QStringList outputDeviceNames;
+    QList<GstDevice*> outputDevices;
+
     static void DestroyCallback(gpointer user_data);
 public:
     explicit AudioBackendGstreamer(bool loadPitchShift = true, QObject *parent = 0);
@@ -142,6 +153,17 @@ public slots:
     void setUseSilenceDetection(bool enabled);
     void setDownmix(bool enabled);
 
+signals:
+
+
+
+    // AbstractAudioBackend interface
+public:
+    QStringList getOutputDevices();
+
+    // AbstractAudioBackend interface
+public:
+    void setOutputDevice(int deviceIndex);
 };
 
 #endif // AUDIOBACKENDGSTREAMER_H

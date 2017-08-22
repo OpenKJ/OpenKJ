@@ -41,6 +41,7 @@ private:
     AbstractAudioBackend *kAudioBackend;
     QNetworkAccessManager *networkManager;
     bool pageSetupDone;
+    QStringList audioOutputDevices;
 
 public:
     explicit DlgSettings(AbstractAudioBackend *AudioBackend, QWidget *parent = 0);
