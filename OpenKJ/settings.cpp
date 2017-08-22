@@ -295,9 +295,19 @@ bool Settings::audioUseFader()
     return settings->value("audioUseFader", true).toBool();
 }
 
+bool Settings::audioUseFaderBm()
+{
+    return settings->value("audioUseFaderBm", true).toBool();
+}
+
 void Settings::setAudioUseFader(bool fader)
 {
     settings->setValue("audioUseFader", fader);
+}
+
+void Settings::setAudioUseFaderBm(bool fader)
+{
+    settings->setValue("audioUseFaderBm", fader);
 }
 
 int Settings::audioVolume()
@@ -356,9 +366,24 @@ void Settings::setAudioDownmix(bool downmix)
     settings->setValue("audioDownmix", downmix);
 }
 
+bool Settings::audioDownmixBm()
+{
+    return settings->value("audioDownmixBm", false).toBool();
+}
+
+void Settings::setAudioDownmixBm(bool downmix)
+{
+    settings->setValue("audioDownmixBm", downmix);
+}
+
 bool Settings::audioDetectSilence()
 {
     return settings->value("audioDetectSilence", false).toBool();
+}
+
+bool Settings::audioDetectSilenceBm()
+{
+    return settings->value("audioDetectSilenceBm", false).toBool();
 }
 
 void Settings::setAudioDetectSilence(bool enabled)
@@ -366,14 +391,29 @@ void Settings::setAudioDetectSilence(bool enabled)
     settings->setValue("audioDetectSilence", enabled);
 }
 
+void Settings::setAudioDetectSilenceBm(bool enabled)
+{
+    settings->setValue("audioDetectSilenceBm", enabled);
+}
+
 QString Settings::audioOutputDevice()
 {
     return settings->value("audioOutputDevice", 0).toString();
 }
 
+QString Settings::audioOutputDeviceBm()
+{
+    return settings->value("audioOutputDeviceBm", 0).toString();
+}
+
 void Settings::setAudioOutputDevice(QString device)
 {
     settings->setValue("audioOutputDevice", device);
+}
+
+void Settings::setAudioOutputDeviceBm(QString device)
+{
+    settings->setValue("audioOutputDeviceBm", device);
 }
 
 int Settings::audioBackend()

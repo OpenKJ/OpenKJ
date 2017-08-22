@@ -128,7 +128,7 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->tableViewQueue->hideColumn(7);
     }
     audioRecorder = new KhAudioRecorder(this);
-    settingsDialog = new DlgSettings(kAudioBackend, this);
+    settingsDialog = new DlgSettings(kAudioBackend, bmAudioBackend, this);
     connect(rotModel, SIGNAL(songDroppedOnSinger(int,int,int)), this, SLOT(songDroppedOnSinger(int,int,int)));
     connect(kAudioBackend, SIGNAL(volumeChanged(int)), ui->sliderVolume, SLOT(setValue(int)));
     connect(dbDialog, SIGNAL(databaseUpdated()), this, SLOT(songdbUpdated()));
@@ -149,8 +149,16 @@ MainWindow::MainWindow(QWidget *parent) :
     kAudioBackend->setUseFader(settings->audioUseFader());
     connect(settingsDialog, SIGNAL(audioSilenceDetectChanged(bool)), kAudioBackend, SLOT(setUseSilenceDetection(bool)));
     kAudioBackend->setUseSilenceDetection(settings->audioDetectSilence());
+
+    connect(settingsDialog, SIGNAL(audioUseFaderChangedBm(bool)), bmAudioBackend, SLOT(setUseFader(bool)));
+    bmAudioBackend->setUseFader(settings->audioUseFaderBm());
+    connect(settingsDialog, SIGNAL(audioSilenceDetectChangedBm(bool)), bmAudioBackend, SLOT(setUseSilenceDetection(bool)));
+    bmAudioBackend->setUseSilenceDetection(settings->audioDetectSilenceBm());
+
     connect(settingsDialog, SIGNAL(audioDownmixChanged(bool)), kAudioBackend, SLOT(setDownmix(bool)));
+    connect(settingsDialog, SIGNAL(audioDownmixChangedBm(bool)), bmAudioBackend, SLOT(setDownmix(bool)));
     kAudioBackend->setDownmix(settings->audioDownmix());
+    bmAudioBackend->setDownmix(settings->audioDownmixBm());
     connect(qModel, SIGNAL(queueModified(int)), rotModel, SLOT(queueModified(int)));
     connect(requestsDialog, SIGNAL(addRequestSong(int,int)), qModel, SLOT(songAdd(int,int)));
     cdgWindow->setShowBgImage(true);

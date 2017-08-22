@@ -38,13 +38,14 @@
 extern Settings *settings;
 
 
-DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, QWidget *parent) :
+DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBackend *BmAudioBackend, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DlgSettings)
 {
 
     pageSetupDone = false;
     kAudioBackend = AudioBackend;
+    bmAudioBackend = BmAudioBackend;
     networkManager = new QNetworkAccessManager(this);
     ui->setupUi(this);
     ui->spinBoxHAdjust->setValue(settings->cdgHSizeAdjustment());
@@ -64,6 +65,15 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, QWidget *parent) :
     {
         ui->listWidgetAudioDevices->item(selDevice)->setSelected(true);
         kAudioBackend->setOutputDevice(selDevice);
+    }
+    ui->listWidgetAudioDevicesBm->addItems(audioOutputDevices);
+    selDevice = audioOutputDevices.indexOf(settings->audioOutputDeviceBm());
+    if (selDevice == -1)
+        ui->listWidgetAudioDevicesBm->item(0)->setSelected(true);
+    else
+    {
+        ui->listWidgetAudioDevicesBm->item(selDevice)->setSelected(true);
+        bmAudioBackend->setOutputDevice(selDevice);
     }
     ui->checkBoxShowCdgWindow->setChecked(settings->showCdgWindow());
     ui->groupBoxMonitors->setChecked(settings->cdgWindowFullscreen());
@@ -106,6 +116,9 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, QWidget *parent) :
     ui->checkBoxFader->setChecked(settings->audioUseFader());
     ui->checkBoxDownmix->setChecked(settings->audioDownmix());
     ui->checkBoxSilenceDetection->setChecked(settings->audioDetectSilence());
+    ui->checkBoxFaderBm->setChecked(settings->audioUseFaderBm());
+    ui->checkBoxDownmixBm->setChecked(settings->audioDownmixBm());
+    ui->checkBoxSilenceDetectionBm->setChecked(settings->audioDetectSilenceBm());
     QAudioRecorder audioRecorder;
     QStringList inputs = audioRecorder.audioInputs();
     QStringList codecs = audioRecorder.supportedAudioCodecs();
@@ -351,16 +364,34 @@ void DlgSettings::on_checkBoxFader_toggled(bool checked)
     emit audioUseFaderChanged(checked);
 }
 
+void DlgSettings::on_checkBoxFaderBm_toggled(bool checked)
+{
+    settings->setAudioUseFaderBm(checked);
+    emit audioUseFaderChangedBm(checked);
+}
+
 void DlgSettings::on_checkBoxSilenceDetection_toggled(bool checked)
 {
     settings->setAudioDetectSilence(checked);
     emit audioSilenceDetectChanged(checked);
 }
 
+void DlgSettings::on_checkBoxSilenceDetectionBm_toggled(bool checked)
+{
+    settings->setAudioDetectSilenceBm(checked);
+    emit audioSilenceDetectChangedBm(checked);
+}
+
 void DlgSettings::on_checkBoxDownmix_toggled(bool checked)
 {
     settings->setAudioDownmix(checked);
     emit audioDownmixChanged(checked);
+}
+
+void DlgSettings::on_checkBoxDownmixBm_toggled(bool checked)
+{
+    settings->setAudioDownmixBm(checked);
+    emit audioDownmixChangedBm(checked);
 }
 
 void DlgSettings::on_listWidgetAudioDevices_itemSelectionChanged()
@@ -372,6 +403,18 @@ void DlgSettings::on_listWidgetAudioDevices_itemSelectionChanged()
         int deviceIndex = audioOutputDevices.indexOf(QRegExp(device,Qt::CaseSensitive,QRegExp::FixedString));
         if (deviceIndex != -1)
             kAudioBackend->setOutputDevice(deviceIndex);
+    }
+}
+
+void DlgSettings::on_listWidgetAudioDevicesBm_itemSelectionChanged()
+{
+    if (pageSetupDone)
+    {
+        QString device = ui->listWidgetAudioDevicesBm->selectedItems().at(0)->text();
+        settings->setAudioOutputDeviceBm(device);
+        int deviceIndex = audioOutputDevices.indexOf(QRegExp(device,Qt::CaseSensitive,QRegExp::FixedString));
+        if (deviceIndex != -1)
+            bmAudioBackend->setOutputDevice(deviceIndex);
     }
 }
 

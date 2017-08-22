@@ -39,19 +39,23 @@ private:
     Ui::DlgSettings *ui;
     QStringList getMonitors();
     AbstractAudioBackend *kAudioBackend;
+    AbstractAudioBackend *bmAudioBackend;
     QNetworkAccessManager *networkManager;
     bool pageSetupDone;
     QStringList audioOutputDevices;
 
 public:
-    explicit DlgSettings(AbstractAudioBackend *AudioBackend, QWidget *parent = 0);
+    explicit DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBackend *BmAudioBackend, QWidget *parent = 0);
     ~DlgSettings();
     void createIcons();
 
 signals:
     void audioUseFaderChanged(bool);
+    void audioUseFaderChangedBm(bool);
     void audioSilenceDetectChanged(bool);
+    void audioSilenceDetectChangedBm(bool);
     void audioDownmixChanged(bool);
+    void audioDownmixChangedBm(bool);
 
 private slots:
     void on_btnClose_clicked();
@@ -73,9 +77,13 @@ private slots:
     void on_groupBoxRequestServer_toggled(bool arg1);
     void on_pushButtonBrowse_clicked();
     void on_checkBoxFader_toggled(bool checked);
+    void on_checkBoxFaderBm_toggled(bool checked);
     void on_checkBoxSilenceDetection_toggled(bool checked);
+    void on_checkBoxSilenceDetectionBm_toggled(bool checked);
     void on_checkBoxDownmix_toggled(bool checked);
+    void on_checkBoxDownmixBm_toggled(bool checked);
     void on_listWidgetAudioDevices_itemSelectionChanged();
+    void on_listWidgetAudioDevicesBm_itemSelectionChanged();
     void on_comboBoxDevice_currentIndexChanged(const QString &arg1);
     void on_comboBoxCodec_currentIndexChanged(const QString &arg1);
     void on_comboBoxContainer_currentIndexChanged(const QString &arg1);

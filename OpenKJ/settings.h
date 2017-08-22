@@ -90,7 +90,9 @@ public:
     bool requestServerIgnoreCertErrors();
     void setRequestServerIgnoreCertErrors(bool ignore);
     bool audioUseFader();
+    bool audioUseFaderBm();
     void setAudioUseFader(bool fader);
+    void setAudioUseFaderBm(bool fader);
     int audioVolume();
     void setAudioVolume(int volume);
     QString cdgDisplayBackgroundImage();
@@ -101,10 +103,16 @@ public:
     void setBgSlideShowDir(QString dir);
     bool audioDownmix();
     void setAudioDownmix(bool downmix);
+    bool audioDownmixBm();
+    void setAudioDownmixBm(bool downmix);
     bool audioDetectSilence();
+    bool audioDetectSilenceBm();
     void setAudioDetectSilence(bool enabled);
+    void setAudioDetectSilenceBm(bool enabled);
     QString audioOutputDevice();
+    QString audioOutputDeviceBm();
     void setAudioOutputDevice(QString device);
+    void setAudioOutputDeviceBm(QString device);
     int audioBackend();
     void setAudioBackend(int index);
     QString recordingContainer();
