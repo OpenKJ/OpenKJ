@@ -51,7 +51,7 @@ OpenKJ is experimental but usable at this point.  I am using it to run my shows,
 **Requirements to build OpenKJ:**
 
 * Qt 5.x
-* gstreamer 1.x
+* gstreamer 1.4 or above
 
 **Linux**
 
