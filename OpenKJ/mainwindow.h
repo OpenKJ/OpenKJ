@@ -154,6 +154,7 @@ private slots:
     void on_buttonRegulars_clicked();
     void rotationDataChanged();
     void silenceDetected();
+    void silenceDetectedBm();
     void audioBackendChanged(int index);
     void on_tableViewDB_customContextMenuRequested(const QPoint &pos);
     void on_tableViewRotation_customContextMenuRequested(const QPoint &pos);

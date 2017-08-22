@@ -145,6 +145,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(settings, SIGNAL(audioBackendChanged(int)), this, SLOT(audioBackendChanged(int)));
     connect(settings, SIGNAL(cdgBgImageChanged()), this, SLOT(onBgImageChange()));
     connect(kAudioBackend, SIGNAL(silenceDetected()), this, SLOT(silenceDetected()));
+    connect(bmAudioBackend, SIGNAL(silenceDetected()), this, SLOT(silenceDetectedBm()));
     connect(settingsDialog, SIGNAL(audioUseFaderChanged(bool)), kAudioBackend, SLOT(setUseFader(bool)));
     kAudioBackend->setUseFader(settings->audioUseFader());
     connect(settingsDialog, SIGNAL(audioSilenceDetectChanged(bool)), kAudioBackend, SLOT(setUseSilenceDetection(bool)));
@@ -813,6 +814,15 @@ void MainWindow::silenceDetected()
         kAudioBackend->stop(true);
 //        ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
         bmAudioBackend->fadeIn();
+    }
+}
+
+void MainWindow::silenceDetectedBm()
+{
+    if (bmAudioBackend->position() > 10000)
+    {
+        qWarning() << "Break music silence detected";
+        bmMediaStateChanged(AbstractAudioBackend::EndOfMediaState);
     }
 }
 
