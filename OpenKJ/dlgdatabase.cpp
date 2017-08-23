@@ -56,18 +56,42 @@ void DlgDatabase::on_buttonNew_clicked()
     {
         bool okPressed = false;
         QStringList items;
+        QSqlQuery query;
+        query.exec("SELECT * FROM custompatterns ORDER BY name");
+        while (query.next())
+        {
+            QString name = query.value("name").toString();
+//            g_artistRegex = query.value("artistregex").toString();
+//            g_titleRegex  = query.value("titleregex").toString();
+//            g_discIdRegex = query.value("discidregex").toString();
+//            g_artistCaptureGrp = query.value("artistcapturegrp").toInt();
+//            g_titleCaptureGrp  = query.value("titlecapturegrp").toInt();
+//            g_discIdCaptureGrp = query.value("discidcapturegrp").toInt();
+            items << QString("Custom: " + name);
+        }
+
+
         items << "DiscID - Artist - Title" << "DiscID - Title - Artist" << "Artist - Title - DiscID" << "Title - Artist - DiscID" << "Artist - Title" << "Title - Artist";
         QString selected = QInputDialog::getItem(this,"Select a file naming pattern","Pattern",items,0,false,&okPressed);
         if (okPressed)
         {
             int pattern = 0;
+            int customPattern = -1;
             if (selected == "DiscID - Artist - Title") pattern = SourceDir::DAT;
             if (selected == "DiscID - Title - Artist") pattern = SourceDir::DTA;
             if (selected == "Artist - Title - DiscID") pattern = SourceDir::ATD;
             if (selected == "Title - Artist - DiscID") pattern = SourceDir::TAD;
             if (selected == "Artist - Title") pattern = SourceDir::AT;
             if (selected == "Title - Artist") pattern = SourceDir::TA;
-            sourcedirmodel->addSourceDir(fileName, pattern);
+            if (selected.contains("Custom"))
+            {
+                pattern = SourceDir::CUSTOM;
+                QString name = selected.split(": ").at(1);
+                query.exec("SELECT patternid FROM custompatterns WHERE name == \"" + name + "\"");
+                if (query.first())
+                    customPattern = query.value(0).toInt();
+            }
+            sourcedirmodel->addSourceDir(fileName, pattern, customPattern);
         }
     }
 }

@@ -56,7 +56,7 @@ QVariant SourceDirTableModel::data(const QModelIndex &index, int role) const
 
     if(index.row() >= mydata->size() || index.row() < 0)
         return QVariant();
-
+    QSqlQuery query;
     if(role == Qt::DisplayRole)
     {
         switch(index.column())
@@ -78,6 +78,12 @@ QVariant SourceDirTableModel::data(const QModelIndex &index, int role) const
                 return QString("Artist - Title");
             case SourceDir::TA:
                 return QString("Title - Artist");
+            case SourceDir::CUSTOM:
+                QString customName;
+                query.exec("SELECT name FROM custompatterns WHERE patternid == " + QString::number(mydata->at(index.row())->getCustomPattern()));
+                if (query.first())
+                    customName = query.value("name").toString();
+                return QString("Custom: " + customName);
             }
         }
     }
@@ -113,15 +119,13 @@ Qt::ItemFlags SourceDirTableModel::flags(const QModelIndex &index) const
 void SourceDirTableModel::loadFromDB()
 {
     mydata->clear();
-    QSqlQuery query("SELECT ROWID,path,pattern FROM sourceDirs ORDER BY path");
-    int sourcedirid = query.record().indexOf("ROWID");
-    int path = query.record().indexOf("path");
-    int pattern = query.record().indexOf("pattern");
+    QSqlQuery query("SELECT ROWID,path,pattern,custompattern FROM sourceDirs ORDER BY path");
     while (query.next()) {
         SourceDir *dir = new SourceDir();
-        dir->setIndex(query.value(sourcedirid).toInt());
-        dir->setPath(query.value(path).toString());
-        dir->setPattern(query.value(pattern).toInt());
+        dir->setIndex(query.value("ROWID").toInt());
+        dir->setPath(query.value("path").toString());
+        dir->setPattern(query.value("pattern").toInt());
+        dir->setCustomPattern(query.value("custompattern").toInt());
         addSourceDir(dir);
     }
 }
@@ -166,11 +170,11 @@ void SourceDirTableModel::addSourceDir(SourceDir *dir)
     endInsertRows();
 }
 
-void SourceDirTableModel::addSourceDir(QString dirpath, int pattern)
+void SourceDirTableModel::addSourceDir(QString dirpath, int pattern, int customPattern = 0)
 {
     layoutAboutToBeChanged();
     QSqlQuery query;
-    query.exec("INSERT INTO sourceDirs (path,pattern) VALUES('" + dirpath + "'," + QString::number(pattern) + ")");
+    query.exec("INSERT INTO sourceDirs (path,pattern,custompattern) VALUES('" + dirpath + "'," + QString::number(pattern) + "," + QString::number(customPattern) + ")");
     loadFromDB();
     layoutChanged();
 }

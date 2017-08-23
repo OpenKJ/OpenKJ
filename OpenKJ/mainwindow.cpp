@@ -86,6 +86,25 @@ MainWindow::MainWindow(QWidget *parent) :
     query.exec("CREATE TABLE IF NOT EXISTS bmplsongs ( plsongid INTEGER PRIMARY KEY AUTOINCREMENT, playlist INT, position INT, Artist INT, Title INT, Filename INT, Duration INT, path INT)");
     query.exec("CREATE TABLE IF NOT EXISTS bmsrcdirs ( path NOT NULL)");
     query.exec("PRAGMA synchronous = OFF");
+
+    int schemaVersion = 0;
+    query.exec("PRAGMA user_version");
+    if (query.first())
+         schemaVersion = query.value(0).toInt();
+    qWarning() << "Database schema version: " << schemaVersion;
+
+    if (schemaVersion < 100)
+    {
+        query.exec("ALTER TABLE sourceDirs ADD COLUMN custompattern INTEGER");
+        query.exec("PRAGMA user_version = 100");
+    }
+    if (schemaVersion < 101)
+    {
+        query.exec("CREATE TABLE custompatterns ( patternid INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, artistregex TEXT, artistcapturegrp INT, titleregex TEXT, titlecapturegrp INT, discidregex TEXT, discidcapturegrp INT)");
+        query.exec("PRAGMA user_version = 101");
+    }
+
+
     sortColDB = 1;
     sortDirDB = 0;
     dbModel = new DbTableModel(this, *database);
@@ -274,16 +293,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->sliderBmVolume->setValue(initialBMVol);
     ui->sliderVolume->setValue(initialKVol);
-//    bmAudioBackend->setVolume(initialBMVol);
-//    activeAudioBackend->setVolume(initialKVol);
-    FilenameParser *parser = new FilenameParser(this);
-    parser->setFileName("SC0000-00 - blahs, the - blah blah, yackety schmackety.ziperz");
-    parser->setDiscIdRegEx("^\\S+");
-    parser->setArtistRegEx("(?<=\\s-\\s)(.*?)(?=\\s-\\s)");
-    parser->setTitleRegEx("(^\\S+\\s-\\s.+\\s-\\s)(.+)(?=\\.\\S+$)", 2);
-    qWarning() << "DiscID: " << parser->getDiscId();
-    qWarning() << "Artist: " << parser->getArtist();
-    qWarning() << "Title:  " << parser->getTitle();
 }
 
 void MainWindow::play(QString karaokeFilePath)

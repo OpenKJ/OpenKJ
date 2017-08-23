@@ -30,15 +30,18 @@ private:
     int index;
     QString path;
     int pattern;
+    int customPattern;
 
 public:
-    enum {DAT=0,DTA,ATD,TAD,AT,TA};
+    enum {DAT=0,DTA,ATD,TAD,AT,TA,CUSTOM};
     SourceDir() {
         index = -1;
         pattern = DAT;
     }
     int getPattern() const;
+    int getCustomPattern() {return customPattern;}
     void setPattern(int value);
+    void setCustomPattern(int value) {customPattern = value;}
     QString getPath() const;
     void setPath(const QString &value);
     int getIndex() const;
@@ -63,7 +66,7 @@ public:
     QVariant data(const QModelIndex &index, int role) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
-    void addSourceDir(QString dirpath, int pattern);
+    void addSourceDir(QString dirpath, int pattern, int customPattern);
     void delSourceDir(int index);
     int size();
     void loadFromDB();
