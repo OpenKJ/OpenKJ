@@ -36,6 +36,7 @@
 #include "okarchive.h"
 #include "tagreader.h"
 #include <QSvgRenderer>
+#include "filenameparser.h"
 
 
 Settings *settings;
@@ -275,6 +276,14 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->sliderVolume->setValue(initialKVol);
 //    bmAudioBackend->setVolume(initialBMVol);
 //    activeAudioBackend->setVolume(initialKVol);
+    FilenameParser *parser = new FilenameParser(this);
+    parser->setFileName("SC0000-00 - blahs, the - blah blah, yackety schmackety.ziperz");
+    parser->setDiscIdRegEx("^\\S+");
+    parser->setArtistRegEx("(?<=\\s-\\s)(.*?)(?=\\s-\\s)");
+    parser->setTitleRegEx("(^\\S+\\s-\\s.+\\s-\\s)(.+)(?=\\.\\S+$)", 2);
+    qWarning() << "DiscID: " << parser->getDiscId();
+    qWarning() << "Artist: " << parser->getArtist();
+    qWarning() << "Title:  " << parser->getTitle();
 }
 
 void MainWindow::play(QString karaokeFilePath)

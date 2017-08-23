@@ -28,6 +28,7 @@
 #include <QtConcurrent>
 #include "okarchive.h"
 #include "tagreader.h"
+#include "filenameparser.h"
 
 int g_pattern;
 
@@ -119,36 +120,55 @@ int processKaraokeFile(QString fileName)
     QString title;
     QString discid;
     QFileInfo file(fileName);
-    QStringList entries = file.completeBaseName().split(" - ");
+    FilenameParser parser;
+    parser.setFileName(file.completeBaseName());
     switch (g_pattern)
     {
     case SourceDir::DTA:
-        if (entries.size() >= 3) artist = entries[2];
-        if (entries.size() >= 2) title = entries[1];
-        if (entries.size() >= 1) discid = entries[0];
+        parser.setDiscIdRegEx("^\\S+");
+        parser.setTitleRegEx("(?<=\\s-\\s)(.*?)(?=\\s-\\s)");
+        parser.setArtistRegEx("(^\\S+\\s-\\s.+\\s-\\s)(.+)", 2);
+        artist = parser.getArtist();
+        title = parser.getTitle();
+        discid = parser.getDiscId();
         break;
     case SourceDir::DAT:
-        if (entries.size() >= 2) artist = entries[1];
-        if (entries.size() >= 3) title = entries[2];
-        if (entries.size() >= 1) discid = entries[0];
+        parser.setDiscIdRegEx("^\\S+");
+        parser.setArtistRegEx("(?<=\\s-\\s)(.*?)(?=\\s-\\s)");
+        parser.setTitleRegEx("(?:^\\S+\\s-\\s.+\\s-\\s)(.+)", 1);
+        artist = parser.getArtist();
+        title = parser.getTitle();
+        discid = parser.getDiscId();
         break;
     case SourceDir::ATD:
-        if (entries.size() >= 1) artist = entries[0];
-        if (entries.size() >= 2) title = entries[1];
-        if (entries.size() >= 3) discid = entries[2];
+        parser.setArtistRegEx(".+?(?=\\s-\\s)",0);
+        parser.setTitleRegEx("(?<=\\s-\\s)(.*?)(?=\\s-\\s)");
+        parser.setDiscIdRegEx("(?:^.+\\s-\\s.+\\s-\\s)(.+)", 1);
+        artist = parser.getArtist();
+        title = parser.getTitle();
+        discid = parser.getDiscId();
         break;
     case SourceDir::TAD:
-        if (entries.size() >= 2) artist = entries[1];
-        if (entries.size() >= 1) title = entries[0];
-        if (entries.size() >= 3) discid = entries[2];
+        parser.setTitleRegEx(".+?(?=\\s-\\s)",0);
+        parser.setArtistRegEx("(?<=\\s-\\s)(.*?)(?=\\s-\\s)");
+        parser.setDiscIdRegEx("(?:^.+\\s-\\s.+\\s-\\s)(.+)", 1);
+        artist = parser.getArtist();
+        title = parser.getTitle();
+        discid = parser.getDiscId();
         break;
     case SourceDir::AT:
-        if (entries.size() >= 1) artist = entries[0];
-        if (entries.size() >= 2) title = entries[1];
+        parser.setArtistRegEx(".+?(?=\\s-\\s)");
+        parser.setTitleRegEx("(?<=\\s-\\s)(.*)");
+        artist = parser.getArtist();
+        title = parser.getTitle();
+        discid = "";
         break;
     case SourceDir::TA:
-        if (entries.size() >= 2) artist = entries[1];
-        if (entries.size() >= 1) title = entries[0];
+        parser.setTitleRegEx(".+?(?=\\s-\\s)");
+        parser.setArtistRegEx("(?<=\\s-\\s)(.*)");
+        artist = parser.getArtist();
+        title = parser.getTitle();
+        discid = "";
         break;
     }
     QString sql = "INSERT OR IGNORE INTO dbSongs (discid,artist,title,path,filename,duration) VALUES(\"" + discid + "\",\"" + artist + "\",\""

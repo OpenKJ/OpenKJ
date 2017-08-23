@@ -65,7 +65,8 @@ SOURCES += main.cpp\
     bmplitemdelegate.cpp \
     settings.cpp \
     bmdbdialog.cpp \
-    miniz.c
+    miniz.c \
+    filenameparser.cpp
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -105,7 +106,8 @@ HEADERS  += mainwindow.h \
     bmplitemdelegate.h \
     bmpltablemodel.h \
     settings.h \
-    bmdbdialog.h
+    bmdbdialog.h \
+    filenameparser.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \
