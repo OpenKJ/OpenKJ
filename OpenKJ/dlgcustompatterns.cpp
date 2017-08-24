@@ -27,6 +27,8 @@ DlgCustomPatterns::DlgCustomPatterns(QWidget *parent) :
     ui->setupUi(this);
     patternsModel = new CustomPatternsModel(this);
     ui->tableViewPatterns->setModel(patternsModel);
+    settings->restoreColumnWidths(ui->tableViewPatterns);
+    settings->restoreWindowState(this);
     selectedRow = -1;
 }
 
@@ -37,7 +39,8 @@ DlgCustomPatterns::~DlgCustomPatterns()
 
 void DlgCustomPatterns::on_btnClose_clicked()
 {
-//    settings->saveColumnWidths(ui->tableViewFolders);
+    settings->saveColumnWidths(ui->tableViewPatterns);
+    settings->saveWindowState(this);
     hide();
 }
 

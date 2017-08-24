@@ -18,19 +18,25 @@ QString FilenameParser::getArtist()
 {
     QRegularExpression r(artistPattern);
     QRegularExpressionMatch match = r.match(fileName);
-    return match.captured(artistCaptureGroup);
+    QString result = match.captured(artistCaptureGroup);
+    result.replace("_", " ");
+    return result;
 }
 
 QString FilenameParser::getTitle()
 {
     QRegularExpression r(titlePattern);
     QRegularExpressionMatch match = r.match(fileName);
-    return match.captured(titleCaptureGroup);
+    QString result = match.captured(titleCaptureGroup);
+    result.replace("_", " ");
+    return result;
 }
 
 QString FilenameParser::getDiscId()
 {
     QRegularExpression r(discIdPattern);
     QRegularExpressionMatch match = r.match(fileName);
-    return match.captured(discIdCaptureGroup);
+    QString result = match.captured(discIdCaptureGroup);
+    result.replace("_", " ");
+    return result;
 }

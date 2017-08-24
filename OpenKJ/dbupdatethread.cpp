@@ -127,47 +127,47 @@ int processKaraokeFile(QString fileName)
     switch (g_pattern)
     {
     case SourceDir::DTA:
-        parser.setDiscIdRegEx("^\\S+");
-        parser.setTitleRegEx("(?<=\\s-\\s)(.*?)(?=\\s-\\s)");
-        parser.setArtistRegEx("(^\\S+\\s-\\s.+\\s-\\s)(.+)", 2);
+        parser.setDiscIdRegEx("^\\S+?(?=(\\s|_)-(\\s|_))");
+        parser.setArtistRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))", 1);
+        parser.setTitleRegEx("(?:^\\S+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|_))(.+)");
         artist = parser.getArtist();
         title = parser.getTitle();
         discid = parser.getDiscId();
         break;
     case SourceDir::DAT:
-        parser.setDiscIdRegEx("^\\S+");
-        parser.setArtistRegEx("(?<=\\s-\\s)(.*?)(?=\\s-\\s)");
-        parser.setTitleRegEx("(?:^\\S+\\s-\\s.+\\s-\\s)(.+)", 1);
+        parser.setDiscIdRegEx("^\\S+?(?=(\\s|_)-(\\s|_))");
+        parser.setArtistRegEx("(?:^\\S+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|_))(.+)");
+        parser.setTitleRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))", 1);
         artist = parser.getArtist();
         title = parser.getTitle();
         discid = parser.getDiscId();
         break;
     case SourceDir::ATD:
-        parser.setArtistRegEx(".+?(?=\\s-\\s)",0);
-        parser.setTitleRegEx("(?<=\\s-\\s)(.*?)(?=\\s-\\s)");
-        parser.setDiscIdRegEx("(?:^.+\\s-\\s.+\\s-\\s)(.+)", 1);
+        parser.setArtistRegEx(".+?(?=(\\s|_)-(\\s|_))",0);
+        parser.setTitleRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))");
+        parser.setDiscIdRegEx("(?:^.+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|))(.+)", 1);
         artist = parser.getArtist();
         title = parser.getTitle();
         discid = parser.getDiscId();
         break;
     case SourceDir::TAD:
-        parser.setTitleRegEx(".+?(?=\\s-\\s)",0);
-        parser.setArtistRegEx("(?<=\\s-\\s)(.*?)(?=\\s-\\s)");
-        parser.setDiscIdRegEx("(?:^.+\\s-\\s.+\\s-\\s)(.+)", 1);
+        parser.setTitleRegEx(".+?(?=(\\s|_)-(\\s|_))",0);
+        parser.setArtistRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))");
+        parser.setDiscIdRegEx("(?:^.+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|))(.+)", 1);
         artist = parser.getArtist();
         title = parser.getTitle();
         discid = parser.getDiscId();
         break;
     case SourceDir::AT:
-        parser.setArtistRegEx(".+?(?=\\s-\\s)");
-        parser.setTitleRegEx("(?<=\\s-\\s)(.*)");
+        parser.setArtistRegEx(".+?(?=(\\s|_)-(\\s|_))");
+        parser.setTitleRegEx("(?<=(\\s|_)-(\\s|_))(.*)");
         artist = parser.getArtist();
         title = parser.getTitle();
         discid = "";
         break;
     case SourceDir::TA:
-        parser.setTitleRegEx(".+?(?=\\s-\\s)");
-        parser.setArtistRegEx("(?<=\\s-\\s)(.*)");
+        parser.setTitleRegEx(".+?(?=(\\s|_)-(\\s|_))");
+        parser.setArtistRegEx("(?<=(\\s|_)-(\\s|_))(.*)");
         artist = parser.getArtist();
         title = parser.getTitle();
         discid = "";
