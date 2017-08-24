@@ -21,6 +21,8 @@ Either of the above will setup the approprite repos for your distribution, allow
 
 **Note:** There is a known issue while running under Windows that prevents you from changing the output audio device from the default.  This is due to a limitation in the GStreamer directsound audio sink.  Until that changes, the Windows version will always output audio via the default sound device set in the OS.
 
+If you need help with OpenKJ, you can reach out to support@openkj.org via email.
+
 OpenKJ
 ======
 
@@ -37,7 +39,7 @@ A few features:
 
 It currently handles media+g zip files (zip files containing an mp3, wav, or ogg file and a cdg file) and paired mp3 and cdg files.  I'll be adding others in the future if anyone expresses interest.  It also can play non-cdg based video files (mkv, mp4, mpg, avi) for both break music and karaoke (EXPERIMENTAL!).
 
-Database entries for the songs are based on the file naming scheme.  I've included the commone ones I've come across, if anyone needs something added just tell me or submit the appropriate code changes if you're a programmer.  They're pretty trivial to add.  I plan on adding the ability to do custom definitons in the future, but it's pretty far down on my list.
+Database entries for the songs are based on the file naming scheme.  I've included the commone ones I've come across which should cover 90% of what's out there. Custom patterns can be also defined in the program using regular expressions.
 
 OpenKJ is experimental but usable at this point.  I am using it to run my shows, but if you do so and it kills kittens or eats your firstborn don't come screaming at me ;) Some features are still incomplete. To any other developers looking at this code, please don't laugh too hard, as I'm self taught primarily for the purpose of writing this.  Well, okay, you can laugh, but only if you're willing to fix the code that you're making fun of ;)
 
