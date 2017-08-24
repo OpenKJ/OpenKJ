@@ -128,16 +128,16 @@ int processKaraokeFile(QString fileName)
     {
     case SourceDir::DTA:
         parser.setDiscIdRegEx("^\\S+?(?=(\\s|_)-(\\s|_))");
-        parser.setArtistRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))", 1);
-        parser.setTitleRegEx("(?:^\\S+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|_))(.+)");
+        parser.setTitleRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))", 0);
+        parser.setArtistRegEx("(?:^\\S+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|_))(.+)",1);
         artist = parser.getArtist();
         title = parser.getTitle();
         discid = parser.getDiscId();
         break;
     case SourceDir::DAT:
         parser.setDiscIdRegEx("^\\S+?(?=(\\s|_)-(\\s|_))");
-        parser.setArtistRegEx("(?:^\\S+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|_))(.+)");
-        parser.setTitleRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))", 1);
+        parser.setTitleRegEx("(?:^\\S+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|_))(.+)",1);
+        parser.setArtistRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))", 0);
         artist = parser.getArtist();
         title = parser.getTitle();
         discid = parser.getDiscId();
