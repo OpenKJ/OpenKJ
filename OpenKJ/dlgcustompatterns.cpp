@@ -1,0 +1,139 @@
+#include "dlgcustompatterns.h"
+#include "ui_dlgcustompatterns.h"
+#include "settings.h"
+#include <QRegularExpression>
+#include <QInputDialog>
+#include <QSqlQuery>
+#include "filenameparser.h"
+
+extern Settings *settings;
+
+void DlgCustomPatterns::evaluateRegEx()
+{
+    FilenameParser parser;
+    parser.setArtistRegEx(ui->lineEditArtistRegEx->text(), ui->spinBoxArtistCaptureGrp->value());
+    parser.setTitleRegEx(ui->lineEditTitleRegEx->text(), ui->spinBoxTitleCaptureGrp->value());
+    parser.setDiscIdRegEx(ui->lineEditDiscIdRegEx->text(), ui->spinBoxDiscIdCaptureGrp->value());
+    parser.setFileName(ui->lineEditFilenameExample->text());
+    ui->labelArtistExample->setText(parser.getArtist());
+    ui->labelTitleExample->setText(parser.getTitle());
+    ui->labelDiscIdExample->setText(parser.getDiscId());
+}
+
+DlgCustomPatterns::DlgCustomPatterns(QWidget *parent) :
+    QDialog(parent),
+    ui(new Ui::DlgCustomPatterns)
+{
+    ui->setupUi(this);
+    patternsModel = new CustomPatternsModel(this);
+    ui->tableViewPatterns->setModel(patternsModel);
+    selectedRow = -1;
+}
+
+DlgCustomPatterns::~DlgCustomPatterns()
+{
+    delete ui;
+}
+
+void DlgCustomPatterns::on_btnClose_clicked()
+{
+//    settings->saveColumnWidths(ui->tableViewFolders);
+    hide();
+}
+
+void DlgCustomPatterns::on_tableViewPatterns_clicked(const QModelIndex &index)
+{
+    selectedRow = index.row();
+    Pattern pattern = patternsModel->getPattern(selectedRow);
+    selectedPattern = pattern;
+    ui->lineEditDiscIdRegEx->setText(pattern.getDiscIdRegex());
+    ui->spinBoxDiscIdCaptureGrp->setValue(pattern.getDiscIdCaptureGrp());
+    ui->lineEditArtistRegEx->setText(pattern.getArtistRegex());
+    ui->spinBoxArtistCaptureGrp->setValue(pattern.getArtistCaptureGrp());
+    ui->lineEditTitleRegEx->setText(pattern.getTitleRegex());
+    ui->spinBoxTitleCaptureGrp->setValue(pattern.getTitleCaptureGrp());
+}
+
+void DlgCustomPatterns::on_lineEditDiscIdRegEx_textChanged(const QString &arg1)
+{
+    Q_UNUSED(arg1);
+    evaluateRegEx();
+}
+
+void DlgCustomPatterns::on_lineEditArtistRegEx_textChanged(const QString &arg1)
+{
+    Q_UNUSED(arg1);
+    evaluateRegEx();
+}
+
+void DlgCustomPatterns::on_lineEditTitleRegEx_textChanged(const QString &arg1)
+{
+    Q_UNUSED(arg1);
+    evaluateRegEx();
+}
+
+void DlgCustomPatterns::on_lineEditFilenameExample_textChanged(const QString &arg1)
+{
+    Q_UNUSED(arg1);
+    evaluateRegEx();
+}
+
+void DlgCustomPatterns::on_spinBoxDiscIdCaptureGrp_valueChanged(int arg1)
+{
+    Q_UNUSED(arg1);
+    evaluateRegEx();
+}
+
+void DlgCustomPatterns::on_spinBoxArtistCaptureGrp_valueChanged(int arg1)
+{
+    Q_UNUSED(arg1);
+    evaluateRegEx();
+}
+
+void DlgCustomPatterns::on_spinBoxTitleCaptureGrp_valueChanged(int arg1)
+{
+    Q_UNUSED(arg1);
+    evaluateRegEx();
+}
+
+void DlgCustomPatterns::on_btnAdd_clicked()
+{
+    bool ok;
+    QString name = QInputDialog::getText(this, tr("New Custom Pattern"), tr("Pattern name:"), QLineEdit::Normal, tr("New Pattern"), &ok);
+    if (ok && !name.isEmpty())
+    {
+        QSqlQuery query;
+        query.exec("INSERT INTO custompatterns (name) VALUES(\"" + name + "\")");
+        patternsModel->loadFromDB();
+        //bmAddPlaylist(title);
+    }
+}
+
+void DlgCustomPatterns::on_btnDelete_clicked()
+{
+    if (ui->tableViewPatterns->selectionModel()->selectedIndexes().count() > 0)
+    {
+        QSqlQuery query;
+        query.exec("DELETE FROM custompatterns WHERE name == \"" + selectedPattern.getName() + "\"");
+        patternsModel->loadFromDB();
+    }
+}
+
+void DlgCustomPatterns::on_btnApplyChanges_clicked()
+{
+    if (ui->tableViewPatterns->selectionModel()->selectedIndexes().count() > 0)
+    {
+        QSqlQuery query;
+        QString arx, trx, drx, acg, tcg, dcg, name;
+        arx = ui->lineEditArtistRegEx->text();
+        trx = ui->lineEditTitleRegEx->text();
+        drx = ui->lineEditDiscIdRegEx->text();
+        acg = QString::number(ui->spinBoxArtistCaptureGrp->value());
+        tcg = QString::number(ui->spinBoxTitleCaptureGrp->value());
+        dcg = QString::number(ui->spinBoxDiscIdCaptureGrp->value());
+        name = selectedPattern.getName();
+        query.exec("UPDATE custompatterns SET artistregex = \"" + arx + "\", titleregex = \"" + trx + "\", discidregex = \"" + drx + \
+                   "\", artistcapturegrp = " + acg + ", titlecapturegrp = " + tcg + ", discidcapturegrp = " + dcg + " WHERE name = \"" + name + "\"");
+        patternsModel->loadFromDB();
+    }
+}

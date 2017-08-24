@@ -41,6 +41,7 @@ DlgDatabase::DlgDatabase(QWidget *parent) :
     ui->tableViewFolders->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     ui->tableViewFolders->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
     selectedRow = -1;
+    customPatternsDlg = new DlgCustomPatterns(this);
 }
 
 DlgDatabase::~DlgDatabase()
@@ -189,4 +190,9 @@ void DlgDatabase::on_btnClearDatabase_clicked()
 
 void DlgDatabase::dbupdate_thread_finished()
 {
+}
+
+void DlgDatabase::on_btnCustomPatterns_clicked()
+{
+    customPatternsDlg->show();
 }

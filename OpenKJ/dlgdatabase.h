@@ -25,6 +25,7 @@
 #include <QDir>
 #include <QDirIterator>
 #include "sourcedirtablemodel.h"
+#include "dlgcustompatterns.h"
 
 namespace Ui {
 class DlgDatabase;
@@ -37,6 +38,7 @@ class DlgDatabase : public QDialog
 private:
     Ui::DlgDatabase *ui;
     SourceDirTableModel *sourcedirmodel;
+    DlgCustomPatterns *customPatternsDlg;
     int selectedRow;
 
 public:
@@ -57,6 +59,7 @@ private slots:
     void on_btnClearDatabase_clicked();
     void dbupdate_thread_finished();
 
+    void on_btnCustomPatterns_clicked();
 };
 
 #endif // DATABASEDIALOG_H

@@ -66,7 +66,9 @@ SOURCES += main.cpp\
     settings.cpp \
     bmdbdialog.cpp \
     miniz.c \
-    filenameparser.cpp
+    filenameparser.cpp \
+    dlgcustompatterns.cpp \
+    custompatternsmodel.cpp
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -107,7 +109,9 @@ HEADERS  += mainwindow.h \
     bmpltablemodel.h \
     settings.h \
     bmdbdialog.h \
-    filenameparser.h
+    filenameparser.h \
+    dlgcustompatterns.h \
+    custompatternsmodel.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \
@@ -119,7 +123,8 @@ FORMS    += mainwindow.ui \
     dlgregularsingers.ui \
     dlgsettings.ui \
     dlgcdg.ui \
-    bmdbdialog.ui
+    bmdbdialog.ui \
+    dlgcustompatterns.ui
 
 RESOURCES += resources.qrc
 
