@@ -15,11 +15,11 @@ Karaoke hosting software targeted at professional KJ's.  Includes rotation manag
 key changer, and all of the various bits and pieces required to host karaoke.
 
 %prep
-cd OpenKJ
 %setup -q
 
 
 %build
+cd OpenKJ
 %{qmake_qt5} PREFIX=$RPM_BUILD_ROOT/usr
 %make_build
 
