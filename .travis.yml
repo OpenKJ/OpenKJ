@@ -10,7 +10,6 @@ language: C
 
 env:
     matrix:
-      - OS=el DIST=7
       - OS=ubuntu DIST=xenial
       - OS=ubuntu DIST=zesty
       - OS=debian DIST=jessie
