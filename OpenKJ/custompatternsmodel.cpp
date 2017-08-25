@@ -64,6 +64,7 @@ QVariant CustomPatternsModel::headerData(int section, Qt::Orientation orientatio
 
 int CustomPatternsModel::rowCount(const QModelIndex &parent) const
 {
+    Q_UNUSED(parent);
     return myData.count();
 }
 
