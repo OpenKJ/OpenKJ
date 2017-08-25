@@ -11,8 +11,6 @@ language: C
 env:
     matrix:
       - OS=el DIST=7
-      - OS=fedora DIST=25
-      - OS=fedora DIST=26
       - OS=ubuntu DIST=xenial
       - OS=ubuntu DIST=zesty
       - OS=debian DIST=jessie
