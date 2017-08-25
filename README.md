@@ -1,6 +1,6 @@
 If you are looking for binary installers for Windows or macOS, please visit https://openkj.org  
 
-If you are looking for binary packages for Fedora 25, CentOS/SL/RHEL 7, Debian Jessie, or Ubuntu Xenial/Zesty, you can find builds based on the current development state in master at https://packagecloud.io/OpenKJ/OpenKJ
+If you are looking for binary packages for Fedora 25/26, CentOS/SL/RHEL 7, Debian Jessie, or Ubuntu Xenial/Zesty, you can find builds based on the current development state in master at https://packagecloud.io/OpenKJ/OpenKJ
 
 Quick and dirty install method for CentOS/SL/RHEL/Fedora:
 
@@ -8,6 +8,7 @@ Quick and dirty install method for CentOS/SL/RHEL/Fedora:
 curl -s https://packagecloud.io/install/repositories/OpenKJ/OpenKJ/script.rpm.sh | sudo bash
 yum install openkj
 ```
+Note that on Red Hat derived OSs (Fedora/EL), you'll need to install 3rd party repos to get mp3 support in gstreamer 1.0.  This is not included in the official repos due to patent concerns.
 
 Quick and dirty install method for Debian/Ubuntu:
 
