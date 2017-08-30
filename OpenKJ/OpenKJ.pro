@@ -68,7 +68,8 @@ SOURCES += main.cpp\
     miniz.c \
     filenameparser.cpp \
     dlgcustompatterns.cpp \
-    custompatternsmodel.cpp
+    custompatternsmodel.cpp \
+    audiorecorder.cpp
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -111,7 +112,8 @@ HEADERS  += mainwindow.h \
     bmdbdialog.h \
     filenameparser.h \
     dlgcustompatterns.h \
-    custompatternsmodel.h
+    custompatternsmodel.h \
+    audiorecorder.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \

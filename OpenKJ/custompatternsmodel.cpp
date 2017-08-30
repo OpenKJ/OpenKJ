@@ -27,10 +27,6 @@ CustomPatternsModel::CustomPatternsModel(QObject *parent)
     : QAbstractTableModel(parent)
 {
     loadFromDB();
-    for (int i=0; i < myData.count(); i++)
-    {
-        qWarning() << myData.at(i).getName() << " - " << myData.at(i).getArtistRegex() << " - " << myData.at(i).getTitleRegex() << " - " << myData.at(i).getDiscIdRegex();
-    }
 }
 
 QVariant CustomPatternsModel::headerData(int section, Qt::Orientation orientation, int role) const

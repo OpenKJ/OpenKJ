@@ -34,6 +34,7 @@
 #include <QXmlStreamWriter>
 #include <QNetworkReply>
 #include <QAuthenticator>
+#include "audiorecorder.h"
 
 extern Settings *settings;
 
@@ -119,24 +120,18 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     ui->checkBoxFaderBm->setChecked(settings->audioUseFaderBm());
     ui->checkBoxDownmixBm->setChecked(settings->audioDownmixBm());
     ui->checkBoxSilenceDetectionBm->setChecked(settings->audioDetectSilenceBm());
+    AudioRecorder recorder;
     QAudioRecorder audioRecorder;
-    QStringList inputs = audioRecorder.audioInputs();
-    QStringList codecs = audioRecorder.supportedAudioCodecs();
-    QStringList containers = audioRecorder.supportedContainers();
+    QStringList inputs = recorder.getDeviceList();
+    QStringList codecs = recorder.getCodecs();
+//    QStringList containers = audioRecorder.supportedContainers();
     ui->groupBoxRecording->setChecked(settings->recordingEnabled());
     ui->comboBoxDevice->addItems(inputs);
     ui->comboBoxCodec->addItems(codecs);
-    ui->comboBoxContainer->addItems(containers);
+//    ui->comboBoxContainer->addItems(containers);
     ui->comboBoxDevice->setCurrentIndex(ui->comboBoxDevice->findText(settings->recordingInput()));
     ui->comboBoxCodec->setCurrentIndex(ui->comboBoxCodec->findText(settings->recordingCodec()));
-    ui->comboBoxContainer->setCurrentIndex(ui->comboBoxContainer->findText(settings->recordingContainer()));
-    ui->lineEditExtension->setText(settings->recordingRawExtension());
     ui->lineEditOutputDir->setText(settings->recordingOutputDir());
-    if (settings->recordingContainer() != "raw")
-    {
-        ui->lineEditExtension->hide();
-        ui->labelExtension->hide();
-    }
     connect(networkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
     connect(networkManager, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(onSslErrors(QNetworkReply*)));
     connect(networkManager, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)), this, SLOT(setAuth(QNetworkReply*,QAuthenticator*)));
@@ -468,34 +463,7 @@ void DlgSettings::on_comboBoxCodec_currentIndexChanged(const QString &arg1)
         settings->setRecordingCodec(arg1);
         if (arg1 == "audio/mpeg")
         {
-            ui->lineEditExtension->setText("mp3");
             settings->setRecordingRawExtension("mp3");
-        }
-    }
-}
-
-void DlgSettings::on_comboBoxContainer_currentIndexChanged(const QString &arg1)
-{
-    if (pageSetupDone)
-    {
-        settings->setRecordingContainer(arg1);
-        if (arg1 == "raw")
-        {
-            ui->labelExtension->show();
-            ui->lineEditExtension->show();
-            if (settings->recordingCodec() == "audio/mpeg")
-            {
-                ui->lineEditExtension->setText("mp3");
-                settings->setRecordingRawExtension("mp3");
-            }
-            else
-                ui->lineEditExtension->setText(settings->recordingRawExtension());
-
-        }
-        else
-        {
-            ui->labelExtension->hide();
-            ui->lineEditExtension->hide();
         }
     }
 }
@@ -504,11 +472,6 @@ void DlgSettings::on_groupBoxRecording_toggled(bool arg1)
 {
     if (pageSetupDone)
         settings->setRecordingEnabled(arg1);
-}
-
-void DlgSettings::on_lineEditExtension_editingFinished()
-{
-    settings->setRecordingRawExtension(ui->lineEditExtension->text());
 }
 
 void DlgSettings::on_buttonBrowse_clicked()

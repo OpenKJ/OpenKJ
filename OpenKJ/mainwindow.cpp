@@ -36,8 +36,7 @@
 #include "okarchive.h"
 #include "tagreader.h"
 #include <QSvgRenderer>
-#include "filenameparser.h"
-
+#include "audiorecorder.h"
 
 Settings *settings;
 KhDb *db;
@@ -147,7 +146,7 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->lblKey->hide();
         ui->tableViewQueue->hideColumn(7);
     }
-    audioRecorder = new KhAudioRecorder(this);
+    audioRecorder = new AudioRecorder(this);
     settingsDialog = new DlgSettings(kAudioBackend, bmAudioBackend, this);
     connect(rotModel, SIGNAL(songDroppedOnSinger(int,int,int)), this, SLOT(songDroppedOnSinger(int,int,int)));
     connect(kAudioBackend, SIGNAL(volumeChanged(int)), ui->sliderVolume, SLOT(setValue(int)));
@@ -326,6 +325,7 @@ void MainWindow::play(QString karaokeFilePath)
             else
             {
                 QMessageBox::warning(this, tr("Bad karaoke file"),tr("Zip file does not contain a valid karaoke track.  CDG or audio file missing or corrupt."),QMessageBox::Ok);
+                return;
             }
         }
         else if (karaokeFilePath.endsWith(".cdg", Qt::CaseInsensitive))
@@ -375,6 +375,14 @@ void MainWindow::play(QString karaokeFilePath)
             kAudioBackend->setMedia(karaokeFilePath);
             bmAudioBackend->fadeOut();
             kAudioBackend->play();
+        }
+        if (settings->recordingEnabled())
+        {
+            qWarning() << "Starting recording";
+            QString singerName = ui->labelSinger->text();
+            QString artist = ui->labelArtist->text();
+            QString title = ui->labelTitle->text();
+            audioRecorder->record(curSinger + " - " + curArtist + " - " + curTitle);
         }
     }
     else if (kAudioBackend->state() == AbstractAudioBackend::PausedState)
@@ -433,6 +441,7 @@ void MainWindow::databaseCleared()
 
 void MainWindow::on_buttonStop_clicked()
 {
+    audioRecorder->stop();
     kAudioBackend->stop();
     bmAudioBackend->fadeIn();
 //    ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
@@ -485,13 +494,18 @@ void MainWindow::on_tableViewRotation_activated(const QModelIndex &index)
         QString nextSongPath = rotModel->nextSongPath(singerId);
         if (nextSongPath != "")
         {
-            play(nextSongPath);
-            kAudioBackend->setPitchShift(rotModel->nextSongKeyChg(singerId));
+ //           play(nextSongPath);
+ //           kAudioBackend->setPitchShift(rotModel->nextSongKeyChg(singerId));
             rotDelegate->setCurrentSinger(singerId);
             rotModel->setCurrentSinger(singerId);
-            ui->labelArtist->setText(rotModel->nextSongArtist(singerId));
-            ui->labelTitle->setText(rotModel->nextSongTitle(singerId));
-            ui->labelSinger->setText(rotModel->getSingerName(singerId));
+            curSinger = rotModel->getSingerName(singerId);
+            curArtist = rotModel->nextSongArtist(singerId);
+            curTitle = rotModel->nextSongTitle(singerId);
+            ui->labelArtist->setText(curArtist);
+            ui->labelTitle->setText(curTitle);
+            ui->labelSinger->setText(curSinger);
+            play(nextSongPath);
+            kAudioBackend->setPitchShift(rotModel->nextSongKeyChg(singerId));
             qModel->songSetPlayed(rotModel->nextSongQueueId(singerId));
         }
     }
@@ -551,14 +565,16 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
 
 void MainWindow::on_tableViewQueue_activated(const QModelIndex &index)
 {
-
-    play(index.sibling(index.row(), 6).data().toString());
-    kAudioBackend->setPitchShift(index.sibling(index.row(),7).data().toInt());
-    ui->labelSinger->setText(rotModel->getSingerName(index.sibling(index.row(),1).data().toInt()));
-    ui->labelArtist->setText(index.sibling(index.row(),3).data().toString());
-    ui->labelTitle->setText(index.sibling(index.row(),4).data().toString());
+    curSinger = rotModel->getSingerName(index.sibling(index.row(),1).data().toInt());
+    curArtist = index.sibling(index.row(),3).data().toString();
+    curTitle = index.sibling(index.row(),4).data().toString();
+    ui->labelSinger->setText(curSinger);
+    ui->labelArtist->setText(curArtist);
+    ui->labelTitle->setText(curTitle);
     rotModel->setCurrentSinger(index.sibling(index.row(),1).data().toInt());
     rotDelegate->setCurrentSinger(index.sibling(index.row(),1).data().toInt());
+    play(index.sibling(index.row(), 6).data().toString());
+    kAudioBackend->setPitchShift(index.sibling(index.row(),7).data().toInt());
     qModel->songSetPlayed(index.sibling(index.row(),0).data().toInt());
 }
 
@@ -749,15 +765,7 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
     }
     if (state == AbstractAudioBackend::PlayingState)
     {
-        qWarning() << "Audio entered PlayingState";
-        if (settings->recordingEnabled())
-        {
-            int curSingerId = rotModel->currentSinger();
-            QString singerName = rotModel->getSingerName(curSingerId);
-            QString artist = ui->labelArtist->text();
-            QString title = ui->labelTitle->text();
-            audioRecorder->record(singerName + " - " + artist + " - " + title);
-        }
+
     }
     if (state == AbstractAudioBackend::UnknownState)
     {

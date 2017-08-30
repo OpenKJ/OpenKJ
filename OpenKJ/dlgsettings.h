@@ -86,9 +86,7 @@ private slots:
     void on_listWidgetAudioDevicesBm_itemSelectionChanged();
     void on_comboBoxDevice_currentIndexChanged(const QString &arg1);
     void on_comboBoxCodec_currentIndexChanged(const QString &arg1);
-    void on_comboBoxContainer_currentIndexChanged(const QString &arg1);
     void on_groupBoxRecording_toggled(bool arg1);
-    void on_lineEditExtension_editingFinished();
     void on_buttonBrowse_clicked();
     void on_pushButtonUpdateRemoteDb_clicked();
     void onNetworkReply(QNetworkReply* reply);

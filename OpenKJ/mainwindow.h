@@ -55,6 +55,7 @@
 #include "bmplitemdelegate.h"
 #include "bmdbdialog.h"
 #include <QThread>
+#include "audiorecorder.h"
 
 using namespace std;
 
@@ -87,7 +88,8 @@ private:
     DlgCdgPreview *cdgPreviewDialog;
     AbstractAudioBackend *kAudioBackend;
     KhAudioBackends *audioBackends;
-    KhAudioRecorder *audioRecorder;
+//    KhAudioRecorder *audioRecorder;
+    AudioRecorder *audioRecorder;
     AudioBackendGstreamer *bmAudioBackend;
 //    KhIPCClient *ipcClient;
     QLabel *labelSingerCount;
@@ -101,6 +103,9 @@ private:
     int sortColDB;
     int sortDirDB;
     QString dbRtClickFile;
+    QString curSinger;
+    QString curArtist;
+    QString curTitle;
 
 
     BmDbDialog *bmDbDialog;
