@@ -440,7 +440,7 @@ void Settings::setRecordingContainer(QString container)
 
 QString Settings::recordingCodec()
 {
-    return settings->value("recordingCodec", "audio/vorbis").toString();
+    return settings->value("recordingCodec", "undefined").toString();
 }
 
 void Settings::setRecordingCodec(QString codec)

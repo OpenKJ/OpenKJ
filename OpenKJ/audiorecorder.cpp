@@ -33,7 +33,12 @@ void AudioRecorder::generateDeviceList()
 void AudioRecorder::initGStreamer()
 {
     qWarning() << "AudioRecorder::initGStreamer() called";
+#ifndef Q_OS_WIN
     generateDeviceList();
+#else
+    // Give Windows users something to look at in the dropdown
+    inputDeviceNames.append("System default");
+#endif
     qWarning() << "AudioRecorder - Initializing gstreamer";
     gst_init(NULL,NULL);
     qWarning() << "AudioRecorder - Creating elements";

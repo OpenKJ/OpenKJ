@@ -129,8 +129,16 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     ui->comboBoxDevice->addItems(inputs);
     ui->comboBoxCodec->addItems(codecs);
 //    ui->comboBoxContainer->addItems(containers);
-    ui->comboBoxDevice->setCurrentIndex(ui->comboBoxDevice->findText(settings->recordingInput()));
-    ui->comboBoxCodec->setCurrentIndex(ui->comboBoxCodec->findText(settings->recordingCodec()));
+    QString recordingInput = settings->recordingInput();
+    if (recordingInput == "undefined")
+        ui->comboBoxDevice->setCurrentIndex(0);
+    else
+        ui->comboBoxDevice->setCurrentIndex(ui->comboBoxDevice->findText(settings->recordingInput()));
+    QString recordingCodec = settings->recordingCodec();
+    if (recordingCodec == "undefined")
+        ui->comboBoxCodec->setCurrentIndex(1);
+    else
+        ui->comboBoxCodec->setCurrentIndex(ui->comboBoxCodec->findText(settings->recordingCodec()));
     ui->lineEditOutputDir->setText(settings->recordingOutputDir());
     connect(networkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
     connect(networkManager, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(onSslErrors(QNetworkReply*)));
