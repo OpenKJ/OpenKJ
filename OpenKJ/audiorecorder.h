@@ -2,6 +2,7 @@
 #define AUDIORECORDER_H
 
 #include <QObject>
+#include <QStringList>
 #include <QTimer>
 #define GLIB_DISABLE_DEPRECATION_WARNINGS
 #include <gst/gst.h>
