@@ -23,6 +23,7 @@ private:
     GstElement *lameMp3Enc;
     GstElement *wavEnc;
     GstElement *audioRate;
+    GstElement *autoAudioSrc;
     GstPad *pad;
     GstPad *ghostPad;
     GstBus *bus;

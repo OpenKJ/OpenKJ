@@ -37,6 +37,7 @@ void AudioRecorder::initGStreamer()
     qWarning() << "AudioRecorder - Initializing gstreamer";
     gst_init(NULL,NULL);
     qWarning() << "AudioRecorder - Creating elements";
+    autoAudioSrc    = gst_element_factory_make("autoaudiosrc", NULL);
     audioConvert    = gst_element_factory_make("audioconvert", NULL);
     fileSink        = gst_element_factory_make("filesink", NULL);
     audioRate       = gst_element_factory_make("audiorate", NULL);
@@ -44,13 +45,20 @@ void AudioRecorder::initGStreamer()
     vorbisEnc       = gst_element_factory_make("vorbisenc", NULL);
     lameMp3Enc      = gst_element_factory_make("lamemp3enc", NULL);
     wavEnc          = gst_element_factory_make("wavenc", NULL);
+#ifndef Q_OS_WIN
     audioSrc        = gst_device_create_element(inputDevices.at(0), NULL);
+#endif
     pipeline        = gst_pipeline_new("pipeline");
     bus             = gst_element_get_bus (pipeline);
-
+    qWarning() << "Elements created, adding to pipeline and linking";
     g_object_set(vorbisEnc, "quality", 0.9, NULL);
-    gst_bin_add_many(GST_BIN (pipeline), audioSrc, audioRate, audioConvert, lameMp3Enc, wavEnc, vorbisEnc, oggMux, fileSink, NULL);
+#ifdef Q_OS_WIN
+    gst_bin_add_many(GST_BIN (pipeline), autoAudioSrc, audioRate, audioConvert, lameMp3Enc, wavEnc, vorbisEnc, oggMux, fileSink, NULL);
+    bool result = gst_element_link_many(autoAudioSrc, audioRate, audioConvert, vorbisEnc, oggMux, fileSink, NULL);
+#else
+    gst_bin_add_many(GST_BIN (pipeline), audioSrc, audioRate, audioConvert, lameMp3Enc, wavEnc, vorbisEnc, oggMux, fileSink, autoAudioSrc, NULL);
     bool result = gst_element_link_many(audioSrc, audioRate, audioConvert, vorbisEnc, oggMux, fileSink, NULL);
+#endif
     if (result == false)
         qWarning() << "Gst - Error linking elements";
     getRecordingSettings();
@@ -217,6 +225,7 @@ void AudioRecorder::setOutputFile(QString filename)
 
 void AudioRecorder::setInputDevice(int inputDeviceId)
 {
+#ifndef Q_OS_WIN
     qWarning() << "AudioRecorder::setInputDevice(" << inputDeviceId << ") called";
     gst_element_unlink(audioSrc, audioRate);
     gst_bin_remove(GST_BIN(pipeline), audioSrc);
@@ -225,6 +234,7 @@ void AudioRecorder::setInputDevice(int inputDeviceId)
         qWarning() << "Error creating audio source element";
     gst_bin_add(GST_BIN(pipeline), audioSrc);
     gst_element_link(audioSrc, audioRate);
+#endif
 }
 
 void AudioRecorder::setCurrentCodec(int value)
