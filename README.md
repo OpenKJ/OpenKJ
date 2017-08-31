@@ -50,7 +50,7 @@ OpenKJ is experimental but usable at this point.  I am using it to run my shows,
 
 ![Break music screen shot](https://openkj.org/screenshots/okjlinux-0.10.1-breakmusic.png "Main OpenKJ Window - Break Music")
 
-![Full screen CDG Display](https://openkj.org/screenShots/KhCDGWindowFullScreen.png "Fullscreen CDG Display")
+![Full screen CDG Display](https://openkj.org/screenshots/KhCDGWindowFullScreen.png "Fullscreen CDG Display")
 
 
 **Requirements to build OpenKJ:**
