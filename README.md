@@ -1,22 +1,4 @@
-If you are looking for binary installers for Windows or macOS, please visit https://openkj.org  
-
-If you are looking for binary packages for Fedora 25/26, CentOS/SL/RHEL 7, Debian Jessie, or Ubuntu Xenial/Zesty, you can find builds based on the current development state in master at https://packagecloud.io/OpenKJ/OpenKJ
-
-Quick and dirty install method for CentOS/SL/RHEL/Fedora:
-
-```
-curl -s https://packagecloud.io/install/repositories/OpenKJ/OpenKJ/script.rpm.sh | sudo bash
-yum install openkj
-```
-Note that on Red Hat derived OSs (Fedora/EL), you'll need to install 3rd party repos to get mp3 support in gstreamer 1.0.  This is not included in the official repos due to patent concerns.
-
-Quick and dirty install method for Debian/Ubuntu:
-
-```
-curl -s https://packagecloud.io/install/repositories/OpenKJ/OpenKJ/script.deb.sh | sudo bash
-apt-get install openkj
-```
-Either of the above will setup the approprite repos for your distribution, allowing you to update to the latest version via your normal package management tools.  Note that these repos track master on github, so any code changes will result in upgraded packages being available based on the current development state.  I try not to break things, but it does happen occasionally, so I wouldn't recommend updating OpenKJ right before you plan on hosting a show unless you're prepared to downgrade if something goes sideways.
+If you are looking for binary installers for Windows or macOS or binary packages for Fedora, RHEL, Debian, or Ubuntu, please visit the Downloads section at https://openkj.org  
 
 **Note:** If you are going from a version prior to 0.10.0 to 0.10.0 or later, you will need to export your regular singers and playlists **BEFORE** updating and reimport them after installing the new version and updating your karaoke and break music databases due to database changes.
 
