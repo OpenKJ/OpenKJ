@@ -43,25 +43,45 @@ void AudioRecorder::initGStreamer()
     gst_init(NULL,NULL);
     qWarning() << "AudioRecorder - Creating elements";
     autoAudioSrc    = gst_element_factory_make("autoaudiosrc", NULL);
+    if (!autoAudioSrc)
+        qCritical() << "Failed to create autoAudioSrc";
     audioConvert    = gst_element_factory_make("audioconvert", NULL);
+    if (!audioConvert)
+        qCritical() << "Failed to create audioConvert";
     fileSink        = gst_element_factory_make("filesink", NULL);
+    if (!fileSink)
+        qCritical() << "Failed to create fileSink";
     audioRate       = gst_element_factory_make("audiorate", NULL);
+    if (!audioRate)
+        qCritical() << "Failed to create audioRate";
     oggMux          = gst_element_factory_make("oggmux", NULL);
+    if (!oggMux)
+        qCritical() << "Failed to create oggMux";
     vorbisEnc       = gst_element_factory_make("vorbisenc", NULL);
+    if (!vorbisEnc)
+        qCritical() << "Failed to create vorbisEnc";
     lameMp3Enc      = gst_element_factory_make("lamemp3enc", NULL);
+    if (!lameMp3Enc)
+        qCritical() << "Failed to create lameMp3Enc";
     wavEnc          = gst_element_factory_make("wavenc", NULL);
+    if (!wavEnc)
+        qCritical() << "Failed to create wavEnc";
 #ifndef Q_OS_WIN
     audioSrc        = gst_device_create_element(inputDevices.at(0), NULL);
 #endif
     pipeline        = gst_pipeline_new("pipeline");
+    if (!pipeline)
+        qCritical() << "Failed to create pipeline";
     bus             = gst_element_get_bus (pipeline);
+    if (!bus)
+        qCritical() << "Failed to create bus";
     qWarning() << "Elements created, adding to pipeline and linking";
     g_object_set(vorbisEnc, "quality", 0.9, NULL);
 #ifdef Q_OS_WIN
     gst_bin_add_many(GST_BIN (pipeline), autoAudioSrc, audioRate, audioConvert, lameMp3Enc, wavEnc, vorbisEnc, oggMux, fileSink, NULL);
     bool result = gst_element_link_many(autoAudioSrc, audioRate, audioConvert, vorbisEnc, oggMux, fileSink, NULL);
 #else
-    gst_bin_add_many(GST_BIN (pipeline), audioSrc, audioRate, audioConvert, lameMp3Enc, wavEnc, vorbisEnc, oggMux, fileSink, autoAudioSrc, NULL);
+    gst_bin_add_many(GST_BIN (pipeline), audioSrc, audioRate, audioConvert, lameMp3Enc, wavEnc, vorbisEnc, oggMux, fileSink, NULL);
     bool result = gst_element_link_many(audioSrc, audioRate, audioConvert, vorbisEnc, oggMux, fileSink, NULL);
 #endif
     if (result == false)
@@ -69,6 +89,7 @@ void AudioRecorder::initGStreamer()
     getRecordingSettings();
     qWarning() << "AudioRecorder::initGStreamer() completed";
 }
+
 
 void AudioRecorder::processGstMessage()
 {
