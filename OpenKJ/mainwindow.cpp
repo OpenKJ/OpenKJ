@@ -121,6 +121,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewRotation->setItemDelegate(rotDelegate);
     ui->tableViewQueue->setModel(qModel);
     ui->tableViewQueue->setItemDelegate(qDelegate);
+    QStringList posChoices;
+    posChoices.append("Fair");
+    posChoices.append("Bottom");
+    posChoices.append("Next");
+    ui->cbxSingerAddPos->addItems(posChoices);
+    ui->cbxSingerAddPos->setCurrentIndex(0);
     khTmpDir = new QTemporaryDir();
     dbDialog = new DlgDatabase(this);
     dlgKeyChange = new DlgKeyChange(qModel, this);
@@ -475,6 +481,14 @@ void MainWindow::on_buttonAddSinger_clicked()
     if (ui->editAddSinger->text() == "")
         return;
     rotModel->singerAdd(ui->editAddSinger->text());
+    if (rotModel->currentSinger() != -1)
+    {
+        int curSingerPos = rotModel->getSingerPosition(rotModel->currentSinger());
+        if (ui->cbxSingerAddPos->currentIndex() == 2)
+            rotModel->singerMove(rotModel->rowCount() -1, curSingerPos + 1);
+        else if ((ui->cbxSingerAddPos->currentIndex() == 0) && (curSingerPos != 0))
+            rotModel->singerMove(rotModel->rowCount() -1, curSingerPos);
+    }
     ui->editAddSinger->clear();
 }
 
@@ -483,6 +497,14 @@ void MainWindow::on_editAddSinger_returnPressed()
     if (ui->editAddSinger->text() == "")
         return;
     rotModel->singerAdd(ui->editAddSinger->text());
+    if (rotModel->currentSinger() != -1)
+    {
+        int curSingerPos = rotModel->getSingerPosition(rotModel->currentSinger());
+        if (ui->cbxSingerAddPos->currentIndex() == 2)
+            rotModel->singerMove(rotModel->rowCount() -1, curSingerPos + 1);
+        else if ((ui->cbxSingerAddPos->currentIndex() == 0) && (curSingerPos != 0))
+            rotModel->singerMove(rotModel->rowCount() -1, curSingerPos);
+    }
     ui->editAddSinger->clear();
 }
 

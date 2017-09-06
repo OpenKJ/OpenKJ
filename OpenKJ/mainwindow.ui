@@ -1593,7 +1593,17 @@
                     </spacer>
                    </item>
                    <item>
+                    <widget class="QLabel" name="label_2">
+                     <property name="text">
+                      <string>New Singer:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
                     <widget class="QLineEdit" name="editAddSinger"/>
+                   </item>
+                   <item>
+                    <widget class="QComboBox" name="cbxSingerAddPos"/>
                    </item>
                    <item>
                     <widget class="QPushButton" name="buttonAddSinger">
