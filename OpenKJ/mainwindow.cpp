@@ -1436,3 +1436,13 @@ void MainWindow::videoFrameReceived(QImage frame, QString backendName)
     ui->cdgVideoWidget->videoSurface()->present(QVideoFrame(frame));
     cdgWindow->updateCDG(frame);
 }
+
+void MainWindow::on_actionAbout_triggered()
+{
+    QString title;
+    QString text;
+    QString date = QString::fromLocal8Bit(__DATE__) + " " + QString(__TIME__);
+    title = "About OpenKJ";
+    text = "OpenKJ\n\nVersion: " + QString(GIT_VERSION) + "\nBuilt: " + date + "\nLicense: GPL v3+";
+    QMessageBox::about(this,title,text);
+}

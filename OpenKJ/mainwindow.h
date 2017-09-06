@@ -204,6 +204,7 @@ private slots:
     void on_actionPlaylistDelete_triggered();
     void on_buttonBmSearch_clicked();
     void videoFrameReceived(QImage frame, QString backendName);
+    void on_actionAbout_triggered();
 };
 
 

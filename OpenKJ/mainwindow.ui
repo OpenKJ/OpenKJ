@@ -2612,10 +2612,17 @@
     <addaction name="actionDisplay_Filenames"/>
     <addaction name="menuPlaylists"/>
    </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTools"/>
    <addaction name="menuKaraoke"/>
    <addaction name="menuBreak_Music"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionExit">
@@ -2712,6 +2719,11 @@
   <action name="actionPlaylistDelete">
    <property name="text">
     <string>Delete Current</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
    </property>
   </action>
  </widget>

@@ -19,11 +19,14 @@ TEMPLATE = app
 
 # Populate version with version from git describe
 VERSION = $$system(git --git-dir $$_PRO_FILE_PWD_/../.git --work-tree $$_PRO_FILE_PWD_ describe --always --tags|tr "-" "." | cut -d"." -f1-3)
+DEFINES += GIT_VERSION=\\"\"$$VERSION\\"\"
 QMAKE_TARGET_COMPANY = OpenKJ.org
 QMAKE_TARGET_PRODUCT = OpenKJ
 QMAKE_TARGET_DESCRIPTION = OpenKJ karaoke hosting software
 
-
+unix: BLDDATE = $$system(date -R)
+win32: BLDDATE = $$system(date /t)
+DEFINES += BUILD_DATE=__DATE__
 
 SOURCES += main.cpp\
     mainwindow.cpp \
