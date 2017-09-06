@@ -53,6 +53,7 @@ RotationModel::RotationModel(QObject *parent, QSqlDatabase db) :
     m_currentSingerId = -1;
     setTable("rotationsingers");
     sort(2, Qt::AscendingOrder);
+    singerCount = singers().size();
 }
 
 int RotationModel::singerAdd(QString name)
@@ -60,6 +61,7 @@ int RotationModel::singerAdd(QString name)
     QSqlQuery query;
     query.exec("INSERT INTO rotationsingers (name,position,regular,regularid) VALUES(\"" + name + "\"," + QString::number(rowCount()) + ",0,-1)");
     select();
+    singerCount = singers().size();
     emit rotationModified();
     return query.lastInsertId().toInt();
 }
@@ -100,6 +102,7 @@ void RotationModel::singerDelete(int singerId)
     query.exec("UPDATE rotationsingers SET position = position - 1 WHERE position > " + QString::number(position));
     query.exec("DELETE FROM rotationsingers WHERE singerid == " + QString::number(singerId));
     select();
+    singerCount = singers().size();
     emit rotationModified();
 }
 
@@ -318,6 +321,7 @@ void RotationModel::clearRotation()
     query.exec("DELETE from queuesongs");
     query.exec("DELETE FROM rotationsingers");
     select();
+    singerCount = singers().size();
     emit rotationModified();
 }
 
@@ -440,4 +444,30 @@ Qt::ItemFlags RotationModel::flags(const QModelIndex &index) const
 Qt::DropActions RotationModel::supportedDropActions() const
 {
     return Qt::CopyAction | Qt::MoveAction;
+}
+
+
+QVariant RotationModel::data(const QModelIndex &index, int role) const
+{
+    if (role == Qt::ToolTipRole)
+    {
+        int curSingerPos = 0;
+        int hoverSingerPos = index.row();
+        QSqlQuery query;
+        query.exec("SELECT position FROM rotationsingers WHERE singerId == " + QString::number(m_currentSingerId) + " LIMIT 1");
+        if (query.first())
+        {
+            curSingerPos = query.value("position").toInt();
+        }
+        QString wait;
+        if (curSingerPos == hoverSingerPos)
+            wait = "Current singer";
+        else if (curSingerPos < hoverSingerPos)
+            wait = "Wait: " + QString::number(hoverSingerPos - curSingerPos) + " songs";
+        else if (curSingerPos > hoverSingerPos)
+            wait = "Wait: " + QString::number(hoverSingerPos + (singerCount - curSingerPos)) + " songs";
+        return QString(wait);
+    }
+    else
+        return QSqlTableModel::data(index, role);
 }

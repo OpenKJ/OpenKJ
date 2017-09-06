@@ -36,6 +36,7 @@ public:
     explicit RotationModel(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
     enum {ADD_FAIR=0,ADD_BOTTOM,ADD_NEXT};
     int singerAdd(QString name);
+    int singerCount;
     void singerMove(int oldPosition, int newPosition);
     void singerSetName(int singerId, QString newName);
     void singerDelete(int singerId);
@@ -86,6 +87,10 @@ signals:
 public slots:
     void queueModified(int singerId);
 
+
+    // QAbstractItemModel interface
+public:
+    QVariant data(const QModelIndex &index, int role) const;
 };
 
 #endif // ROTATIONMODEL_H
