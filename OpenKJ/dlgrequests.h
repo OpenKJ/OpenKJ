@@ -28,6 +28,7 @@
 #include "dbitemdelegate.h"
 #include "rotationmodel.h"
 #include "dlgcdgpreview.h"
+#include "okjsongbookapi.h"
 
 namespace Ui {
 class DlgRequests;
@@ -45,6 +46,7 @@ private:
     DbItemDelegate *dbDelegate;
     RotationModel *rotModel;
     DlgCdgPreview *cdgPreviewDialog;
+    bool setupDone;
 
 public:
     explicit DlgRequests(RotationModel *rotationModel, QWidget *parent = 0);
@@ -72,6 +74,7 @@ private slots:
     void delayError(int seconds);
     void on_checkBoxAccepting_clicked(bool checked);
 
+    void on_comboBoxVenue_currentIndexChanged(int index);
 };
 
 #endif // KHREQUESTSDIALOG_H

@@ -26,6 +26,7 @@
 #include <QNetworkAccessManager>
 #include "settings.h"
 #include "abstractaudiobackend.h"
+#include "okjsongbookapi.h"
 
 namespace Ui {
 class DlgSettings;
@@ -43,6 +44,9 @@ private:
     QNetworkAccessManager *networkManager;
     bool pageSetupDone;
     QStringList audioOutputDevices;
+    bool transmitJsonSongList();
+    QList<QJsonDocument> generateJsonSongList();
+    OKJSongbookAPI *songbookApi;
 
 public:
     explicit DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBackend *BmAudioBackend, QWidget *parent = 0);
@@ -72,8 +76,6 @@ private slots:
     void on_groupBoxTicker_toggled(bool arg1);
     void on_lineEditUrl_editingFinished();
     void on_checkBoxIgnoreCertErrors_toggled(bool checked);
-    void on_lineEditUsername_editingFinished();
-    void on_lineEditPassword_editingFinished();
     void on_groupBoxRequestServer_toggled(bool arg1);
     void on_pushButtonBrowse_clicked();
     void on_checkBoxFader_toggled(bool checked);
@@ -91,12 +93,12 @@ private slots:
     void on_pushButtonUpdateRemoteDb_clicked();
     void onNetworkReply(QNetworkReply* reply);
     void onSslErrors(QNetworkReply * reply);
-    void setAuth(QNetworkReply * reply, QAuthenticator * authenticator);
 
     void on_pushButtonClearBgImg_clicked();
     void on_pushButtonSlideshowBrowse_clicked();
     void on_rbSlideshow_toggled(bool checked);
     void on_rbBgImage_toggled(bool checked);
+    void on_lineEditApiKey_editingFinished();
 };
 
 #endif // SETTINGSDIALOG_H

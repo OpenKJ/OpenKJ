@@ -260,24 +260,25 @@ void Settings::setRequestServerUrl(QString url)
     settings->setValue("requestServerUrl", url);
 }
 
-QString Settings::requestServerUsername()
+int Settings::requestServerVenue()
 {
-    return settings->value("requestServerUsername","").toString();
+    return settings->value("requestServerVenue", 0).toInt();
 }
 
-void Settings::setRequestServerUsername(QString username)
+void Settings::setRequestServerVenue(int venueId)
 {
-    settings->setValue("requestServerUsername", username);
+    settings->setValue("requestServerVenue", venueId);
+    emit requestServerVenueChanged(venueId);
 }
 
-QString Settings::requestServerPassword()
+QString Settings::requestServerApiKey()
 {
-    return settings->value("requestServerPassword", "").toString();
+    return settings->value("requestServerApiKey","").toString();
 }
 
-void Settings::setRequestServerPassword(QString password)
+void Settings::setRequestServerApiKey(QString apiKey)
 {
-    settings->setValue("requestServerPassword", password);
+    settings->setValue("requestServerApiKey", apiKey);
 }
 
 bool Settings::requestServerIgnoreCertErrors()

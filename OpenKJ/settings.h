@@ -83,10 +83,10 @@ public:
     void setRequestServerEnabled(bool enable);
     QString requestServerUrl();
     void setRequestServerUrl(QString url);
-    QString requestServerUsername();
-    void setRequestServerUsername(QString username);
-    QString requestServerPassword();
-    void setRequestServerPassword(QString password);
+    int requestServerVenue();
+    void setRequestServerVenue(int venueId);
+    QString requestServerApiKey();
+    void setRequestServerApiKey(QString apiKey);
     bool requestServerIgnoreCertErrors();
     void setRequestServerIgnoreCertErrors(bool ignore);
     bool audioUseFader();
@@ -160,6 +160,7 @@ signals:
     void cdgVOffsetChanged(int pixels);
     void bgModeChanged(BgMode mode);
     void bgSlideShowDirChanged(QString dir);
+    void requestServerVenueChanged(int venueId);
 
 public slots:
     void setShowCdgWindow(bool show);

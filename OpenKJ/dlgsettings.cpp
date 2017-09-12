@@ -36,6 +36,7 @@
 #include <QAuthenticator>
 #include "audiorecorder.h"
 
+
 extern Settings *settings;
 
 
@@ -43,7 +44,7 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     QDialog(parent),
     ui(new Ui::DlgSettings)
 {
-
+    songbookApi = new OKJSongbookAPI(this);
     pageSetupDone = false;
     kAudioBackend = AudioBackend;
     bmAudioBackend = BmAudioBackend;
@@ -105,8 +106,7 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     ui->spinBoxTickerSingers->setValue(settings->tickerShowNumSingers());
     ui->groupBoxRequestServer->setChecked(settings->requestServerEnabled());
     ui->lineEditUrl->setText(settings->requestServerUrl());
-    ui->lineEditUsername->setText(settings->requestServerUsername());
-    ui->lineEditPassword->setText(settings->requestServerPassword());
+    ui->lineEditApiKey->setText(settings->requestServerApiKey());
     ui->checkBoxIgnoreCertErrors->setChecked(settings->requestServerIgnoreCertErrors());
     if ((settings->bgMode() == settings->BG_MODE_IMAGE) || (settings->bgSlideShowDir() == ""))
         ui->rbBgImage->setChecked(true);
@@ -142,14 +142,11 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     ui->lineEditOutputDir->setText(settings->recordingOutputDir());
     connect(networkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
     connect(networkManager, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(onSslErrors(QNetworkReply*)));
-    connect(networkManager, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)), this, SLOT(setAuth(QNetworkReply*,QAuthenticator*)));
     connect(settings, SIGNAL(tickerHeightChanged(int)), ui->spinBoxTickerHeight, SLOT(setValue(int)));
     connect(ui->spinBoxHAdjust, SIGNAL(valueChanged(int)), settings, SLOT(setCdgHSizeAdjustment(int)));
     connect(ui->spinBoxVAdjust, SIGNAL(valueChanged(int)), settings, SLOT(setCdgVSizeAdjustment(int)));
     connect(ui->spinBoxHOffset, SIGNAL(valueChanged(int)), settings, SLOT(setCdgHOffset(int)));
     connect(ui->spinBoxVOffset, SIGNAL(valueChanged(int)), settings, SLOT(setCdgVOffset(int)));
-
-    pageSetupDone = true;
 }
 
 DlgSettings::~DlgSettings()
@@ -169,6 +166,83 @@ QStringList DlgSettings::getMonitors()
     return screenStrings;
 }
 
+bool DlgSettings::transmitJsonSongList()
+{
+    QUrl url(settings->requestServerUrl());
+    qWarning() << "Generating data for update";
+    QList<QJsonDocument> jsonDocs = generateJsonSongList();
+    qWarning() << "Clearing remote database";
+    // Clear remote table
+    QJsonObject mainObject;
+    mainObject.insert("apikey", settings->requestServerApiKey());
+    mainObject.insert("command","clearDatabase");
+    QJsonDocument jsonDocument;
+    jsonDocument.setObject(mainObject);
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+    QNetworkReply *reply = manager->post(request, jsonDocument.toJson());
+    while (!reply->isFinished())
+        QApplication::processEvents();
+
+    qWarning() << "Transmitting data to server";
+    for (int i=0; i < jsonDocs.size(); i++)
+    {
+        qWarning() << "Transmitting chunk " << i + 1 << " of " << jsonDocs.size();
+        QNetworkRequest request(url);
+        request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+        QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+        QNetworkReply *reply = manager->post(request, jsonDocs.at(i).toJson());
+        while (!reply->isFinished())
+            QApplication::processEvents();
+        QFile tmpfile("/tmp/webreply.txt");
+        tmpfile.open(QFile::ReadWrite | QFile::Truncate);
+        tmpfile.write(reply->readAll());
+        tmpfile.close();
+        qWarning() << "Remote songlist update complete!";
+    }
+    return true;
+}
+
+QList<QJsonDocument> DlgSettings::generateJsonSongList()
+{
+    QList<QJsonDocument> documents;
+    QSqlQuery query;
+    query.exec("SELECT DISTINCT artist,title FROM dbsongs ORDER BY artist ASC, title ASC");
+    bool done = false;
+    int docs = 0;
+    while (!done)
+    {
+        QJsonArray songsArray;
+        int songsPerDoc = 5000;
+        int count = 0;
+        while ((query.next()) && (count < songsPerDoc))
+        {
+            QJsonObject songObject;
+            songObject.insert("artist", query.value(0).toString());
+            songObject.insert("title", query.value(1).toString());
+            songsArray.insert(0, songObject);
+            QApplication::processEvents();
+            count++;
+        }
+        docs++;
+        if (count < songsPerDoc)
+            done = true;
+        QJsonObject mainObject;
+        mainObject.insert("apikey", "13b1db54453dd5f925421d4d8f7db9a1e4bf295cde92e3ee");
+        mainObject.insert("command","addSongs");
+        mainObject.insert("songs", songsArray);
+        QJsonDocument jsonDocument;
+        jsonDocument.setObject(mainObject);
+        QFile jsonfile("/tmp/songs" + QString::number(docs) + ".json");
+        jsonfile.open(QFile::ReadWrite | QFile::Truncate);
+        jsonfile.write(jsonDocument.toJson(QJsonDocument::Compact));
+        jsonfile.close();
+        documents.append(jsonDocument);
+    }
+    return documents;
+}
+
 void DlgSettings::onNetworkReply(QNetworkReply *reply)
 {
     Q_UNUSED(reply);
@@ -183,32 +257,6 @@ void DlgSettings::onSslErrors(QNetworkReply *reply)
         QMessageBox::warning(this, "SSL Error", "Unable to establish secure conneciton with server.");
     }
 }
-
-void DlgSettings::setAuth(QNetworkReply *reply, QAuthenticator *authenticator)
-{
-    Q_UNUSED(reply);
-    static bool firstTry = true;
-    static QString lastUser;
-    static QString lastPass;
-    static QString lastUrl;
-    if ((lastUser != settings->requestServerUsername()) || (lastPass != settings->requestServerPassword()) || (lastUrl != settings->requestServerUrl()))
-    {
-        firstTry = true;
-    }
-    if (!firstTry)
-    {
-        QMessageBox::warning(this, "Authentication Error", "Server rejected the provided username and password.");
-        return;
-    }
-    qDebug() << "RequestsClient - Received authentication request, sending username and password";
-    authenticator->setUser(settings->requestServerUsername());
-    authenticator->setPassword(settings->requestServerPassword());
-    lastUser = settings->requestServerUsername();
-    lastPass = settings->requestServerPassword();
-    lastUrl = settings->requestServerUrl();
-    firstTry = false;
-}
-
 
 void DlgSettings::createIcons()
 {
@@ -326,16 +374,6 @@ void DlgSettings::on_lineEditUrl_editingFinished()
 void DlgSettings::on_checkBoxIgnoreCertErrors_toggled(bool checked)
 {
     settings->setRequestServerIgnoreCertErrors(checked);
-}
-
-void DlgSettings::on_lineEditUsername_editingFinished()
-{
-    settings->setRequestServerUsername(ui->lineEditUsername->text());
-}
-
-void DlgSettings::on_lineEditPassword_editingFinished()
-{
-    settings->setRequestServerPassword(ui->lineEditPassword->text());
 }
 
 void DlgSettings::on_groupBoxRequestServer_toggled(bool arg1)
@@ -498,48 +536,7 @@ void DlgSettings::on_pushButtonUpdateRemoteDb_clicked()
     msgBox->setStandardButtons(0);
     msgBox->setText("Updating remote database.  Please wait...");
     msgBox->show();
-    msgBox->setInformativeText("Generating data for transmission...");
-    QTemporaryDir dir;
-    QFile xmlFile(dir.path() + QDir::separator() + "songdata.xml");
-    xmlFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate);
-    QXmlStreamWriter xml(&xmlFile);
-    xml.setAutoFormatting(true);
-    xml.writeStartDocument();
-    xml.writeStartElement("songs");
-
-    QApplication::processEvents();
-    QSqlQuery query;
-    query.exec("SELECT DISTINCT artist,title FROM dbsongs ORDER BY artist ASC, title ASC");
-    while (query.next())
-    {
-        QApplication::processEvents();
-        xml.writeStartElement("song");
-        xml.writeAttribute("artist", query.value(0).toString());
-        xml.writeAttribute("title", query.value(1).toString());
-        xml.writeEndElement();
-    }
-    xml.writeEndElement();
-    xml.writeEndDocument();
-    xmlFile.close();
-    msgBox->setInformativeText("Uploading data to server...");
-    QNetworkRequest request(QUrl(settings->requestServerUrl() + "/updateSongs.php"));
-    QString bound="margin";
-    QByteArray data(QString("--" + bound + "\r\n").toLocal8Bit());
-    data.append("Content-Disposition: form-data; name=\"action\"\r\n\r\n");
-    data.append("updateSongs.php\r\n");
-    data.append("--" + bound + "\r\n");
-    data.append("Content-Disposition: form-data; name=\"uploaded\"; filename=\"songData.xml\"\r\n");
-    data.append("Content-Type: text/xml\r\n\r\n");
-    if (!xmlFile.open(QIODevice::ReadOnly))
-        return;
-    data.append(xmlFile.readAll());
-    data.append("\r\n");
-    data.append("--" + bound + "--\r\n");
-    request.setRawHeader(QString("Content-Type").toLocal8Bit(),QString("multipart/form-data; boundary=" + bound).toLocal8Bit());
-    request.setRawHeader(QString("Content-Length").toLocal8Bit(), QString::number(data.length()).toLocal8Bit());
-    QNetworkReply *reply = networkManager->post(request,data);
-    while (!reply->isFinished())
-        QApplication::processEvents();
+    transmitJsonSongList();
     msgBox->close();
     delete msgBox;
     QMessageBox::information(this, "Update complete", "Remote database update complete.");
@@ -578,4 +575,9 @@ void DlgSettings::on_rbBgImage_toggled(bool checked)
         settings->setBgMode(settings->BG_MODE_IMAGE);
     else
         settings->setBgMode(settings->BG_MODE_SLIDESHOW);
+}
+
+void DlgSettings::on_lineEditApiKey_editingFinished()
+{
+    settings->setRequestServerApiKey(ui->lineEditApiKey->text());
 }

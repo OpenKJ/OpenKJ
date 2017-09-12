@@ -72,7 +72,8 @@ SOURCES += main.cpp\
     filenameparser.cpp \
     dlgcustompatterns.cpp \
     custompatternsmodel.cpp \
-    audiorecorder.cpp
+    audiorecorder.cpp \
+    okjsongbookapi.cpp
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -116,7 +117,8 @@ HEADERS  += mainwindow.h \
     filenameparser.h \
     dlgcustompatterns.h \
     custompatternsmodel.h \
-    audiorecorder.h
+    audiorecorder.h \
+    okjsongbookapi.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \

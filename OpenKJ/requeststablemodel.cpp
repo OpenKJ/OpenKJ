@@ -37,7 +37,6 @@ RequestsTableModel::RequestsTableModel(QObject *parent) :
     QAbstractTableModel(parent)
 {
     networkManager = new QNetworkAccessManager(this);
-    curSerial = -1;
     m_clearingCache = false;
     m_connectionReset = false;
     m_delayWarningShown = false;
@@ -49,7 +48,9 @@ RequestsTableModel::RequestsTableModel(QObject *parent) :
     connect(timer, SIGNAL(timeout()), this, SLOT(timerExpired()));
     connect(networkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
     connect(networkManager, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(onSslErrors(QNetworkReply*)));
-    connect(networkManager, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)), this, SLOT(setAuth(QNetworkReply*,QAuthenticator*)));
+    songbookApi = new OKJSongbookAPI(this);
+    connect(settings, SIGNAL(requestServerVenueChanged(int)), this, SLOT(requestServerVenueChanged(int)));
+    curSerial = songbookApi->getSerial();
 }
 
 void RequestsTableModel::timerExpired()
@@ -72,12 +73,19 @@ void RequestsTableModel::timerExpired()
             m_connectionReset = false;
             m_delayWarningShown = false;
         }
+        int serial = songbookApi->getSerial();
+        qWarning() << "SongbookAPI returned serial: " << serial;
+        if (curSerial != serial)
+        {
+            qWarning() << "Serial changed, refreshing requests";
+            // refresh all the things
+            refreshRequests();
+            curSerial = serial;
+
+
+
+        }
         qDebug() << "RequestsClient -" << QTime::currentTime().toString() << " - Sending request for current serial";
-        QUrl url(settings->requestServerUrl() + "/getSerial.php");
-        QNetworkRequest request;
-        request.setUrl(url);
-        request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
-        networkManager->get(request);
     }
 }
 
@@ -199,42 +207,10 @@ void RequestsTableModel::onSslErrors(QNetworkReply *reply)
     lastUrl = settings->requestServerUrl();
 }
 
-void RequestsTableModel::setAuth(QNetworkReply *reply, QAuthenticator *authenticator)
+void RequestsTableModel::requestServerVenueChanged(int venueId)
 {
-    Q_UNUSED(reply);
-    static bool firstTry = true;
-    static bool errorSignalSent = false;
-    static QString lastUser;
-    static QString lastPass;
-    static QString lastUrl;
-
-    if (m_clearingCache)
-    {
-        firstTry = true;
-        errorSignalSent = false;
-        m_clearingCache = false;
-    }
-
-    if ((lastUser != settings->requestServerUsername()) || (lastPass != settings->requestServerPassword()) || (lastUrl != settings->requestServerUrl()))
-    {
-        firstTry = true;
-        errorSignalSent = false;
-    }
-    if ((!firstTry) && (!errorSignalSent))
-    {
-        emit authenticationError();
-        errorSignalSent = true;
-        return;
-    }
-    qDebug() << "RequestsClient - Received authentication request, sending username and password";
-    authenticator->setUser(settings->requestServerUsername());
-    authenticator->setPassword(settings->requestServerPassword());
-    lastUser = settings->requestServerUsername();
-    lastPass = settings->requestServerPassword();
-    lastUrl = settings->requestServerUrl();
-    firstTry = false;
+    refreshRequests();
 }
-
 
 int RequestsTableModel::rowCount(const QModelIndex &parent) const
 {
@@ -308,6 +284,34 @@ Qt::ItemFlags RequestsTableModel::flags(const QModelIndex &index) const
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
 
+OKJSongbookAPI *RequestsTableModel::getSongbookApiObject()
+{
+    return songbookApi;
+}
+
+bool RequestsTableModel::getAccepting()
+{
+    return songbookApi->requestsEnabled();
+}
+
+void RequestsTableModel::refreshRequests()
+{
+    emit layoutAboutToBeChanged();
+    requests.clear();
+    OkjsRequests l_requests = songbookApi->refreshRequests();
+    for (int i=0; i < l_requests.size(); i++)
+    {
+        int index = l_requests.at(i).requestId;
+        QString singer = l_requests.at(i).singer;
+        QString artist = l_requests.at(i).artist;
+        QString title = l_requests.at(i).title;
+        int reqtime = l_requests.at(i).time;
+        requests << Request(index,singer,artist,title,reqtime);
+    }
+    emit layoutChanged();
+    emit acceptingReceived(songbookApi->requestsEnabled());
+}
+
 void RequestsTableModel::deleteAll()
 {
     qDebug() << "RequestsClient - " << QTime::currentTime().toString() << " - Requesting clear all";
@@ -321,11 +325,8 @@ void RequestsTableModel::deleteAll()
 void RequestsTableModel::deleteRequestId(int requestId)
 {
     qDebug() << "RequestsClient - " << QTime::currentTime().toString() << " - Requesting delete for request id: " << requestId;
-    QUrl url(settings->requestServerUrl() + "/delRequest.php?reqID=" + QString::number(requestId));
-    QNetworkRequest request;
-    request.setUrl(url);
-    request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
-    networkManager->get(request);
+    songbookApi->removeRequest(requestId);
+    refreshRequests();
 }
 
 int RequestsTableModel::count()
@@ -350,27 +351,10 @@ void RequestsTableModel::forceFullUpdate()
     networkManager->get(request);
 }
 
-void RequestsTableModel::getAccepting()
-{
-    qDebug() << "RequestsClient - Requesting current accepting state.";
-    QUrl url(settings->requestServerUrl() + "/getAccepting.php");
-    QNetworkRequest request;
-    request.setUrl(url);
-    request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
-    networkManager->get(request);
-}
-
 void RequestsTableModel::setAccepting(bool accepting)
 {
-    QUrl url;
-    if (accepting)
-        url.setUrl(settings->requestServerUrl() + "/acceptRequests.php");
-    else
-        url.setUrl(settings->requestServerUrl() + "/rejectRequests.php");
-    QNetworkRequest request;
-    request.setUrl(url);
-    request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
-    networkManager->get(request);
+    songbookApi->setRequestsEnabled(accepting);
+    emit acceptingReceived(getAccepting());
 }
 
 Request::Request(int RequestId, QString Singer, QString Artist, QString Title, int ts)

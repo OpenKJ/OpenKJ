@@ -26,6 +26,7 @@
 #include <QAuthenticator>
 #include <QTimer>
 #include <QTime>
+#include "okjsongbookapi.h"
 
 
 class Request
@@ -66,6 +67,7 @@ private:
     bool m_connectionReset;
     bool m_delayWarningShown;
     bool m_clearingCache;
+    OKJSongbookAPI *songbookApi;
 
 public:
     explicit RequestsTableModel(QObject *parent = 0);
@@ -75,13 +77,15 @@ public:
     int count();
     QTime lastUpdate();
     void forceFullUpdate();
-    void getAccepting();
+    bool getAccepting();
     void setAccepting(bool accepting);
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
+    OKJSongbookAPI *getSongbookApiObject();
+    void refreshRequests();
 
 signals:
     void updateReceived(QTime);
@@ -94,7 +98,7 @@ private slots:
     void timerExpired();
     void onNetworkReply(QNetworkReply* reply);
     void onSslErrors(QNetworkReply * reply);
-    void setAuth(QNetworkReply * reply, QAuthenticator * authenticator);
+    void requestServerVenueChanged(int venueId);
 
 };
 

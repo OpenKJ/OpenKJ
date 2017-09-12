@@ -30,6 +30,7 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DlgRequests)
 {
+    setupDone = false;
     ui->setupUi(this);
     requestsModel = new RequestsTableModel(this);
     dbModel = new DbTableModel(this);
@@ -68,6 +69,22 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     ui->tableViewSearch->hideColumn(0);
     ui->tableViewSearch->hideColumn(5);
     ui->tableViewSearch->hideColumn(6);
+    int venue = settings->requestServerVenue();
+    qWarning() << "Venue from settings: " << venue;
+    int selItem = 0;
+    OkjsVenues venues = requestsModel->getSongbookApiObject()->getVenues();
+    for (int i=0; i < venues.size(); i++)
+    {
+        ui->comboBoxVenue->addItem(venues.at(i).name, venues.at(i).venueId);
+        if (venues.at(i).venueId == venue)
+        {
+            qWarning() << "Setting selected index to venue " << venues.at(i).name << "  index: " << i;
+            selItem = i;
+        }
+    }
+    ui->comboBoxVenue->setCurrentIndex(selItem);
+    ui->checkBoxAccepting->setChecked(requestsModel->getAccepting());
+    setupDone = true;
 }
 
 DlgRequests::~DlgRequests()
@@ -175,7 +192,8 @@ void DlgRequests::on_pushButtonClearReqs_clicked()
     msgBox.exec();
     if (msgBox.clickedButton() == yesButton)
     {
-        requestsModel->deleteAll();
+        requestsModel->getSongbookApiObject()->clearRequests();
+        requestsModel->refreshRequests();
     }
 }
 
@@ -263,4 +281,15 @@ void DlgRequests::delayError(int seconds)
 void DlgRequests::on_checkBoxAccepting_clicked(bool checked)
 {
     requestsModel->setAccepting(checked);
+}
+
+void DlgRequests::on_comboBoxVenue_currentIndexChanged(int index)
+{
+    if (setupDone)
+    {
+        int venue = ui->comboBoxVenue->itemData(index).toInt();
+        settings->setRequestServerVenue(venue);
+        qWarning() << "Set venue_id to " << venue;
+        qWarning() << "Settings now reporting venue as " << settings->requestServerVenue();
+    }
 }

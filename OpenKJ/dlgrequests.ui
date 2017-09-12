@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>852</width>
-    <height>543</height>
+    <height>556</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -84,12 +84,22 @@
          </spacer>
         </item>
         <item>
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Venue</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="comboBoxVenue"/>
+        </item>
+        <item>
          <widget class="QCheckBox" name="checkBoxAccepting">
           <property name="focusPolicy">
            <enum>Qt::NoFocus</enum>
           </property>
           <property name="text">
-           <string>Accept new requests</string>
+           <string>Accept requests</string>
           </property>
          </widget>
         </item>
