@@ -195,10 +195,10 @@ bool DlgSettings::transmitJsonSongList()
         QNetworkReply *reply = manager->post(request, jsonDocs.at(i).toJson());
         while (!reply->isFinished())
             QApplication::processEvents();
-        QFile tmpfile("webreply.txt");
-        tmpfile.open(QFile::ReadWrite | QFile::Truncate);
-        tmpfile.write(reply->readAll());
-        tmpfile.close();
+//        QFile tmpfile("webreply.txt");
+//        tmpfile.open(QFile::ReadWrite | QFile::Truncate);
+//        tmpfile.write(reply->readAll());
+//        tmpfile.close();
         qWarning() << "Remote songlist update complete!";
     }
     return true;
@@ -234,10 +234,10 @@ QList<QJsonDocument> DlgSettings::generateJsonSongList()
         mainObject.insert("songs", songsArray);
         QJsonDocument jsonDocument;
         jsonDocument.setObject(mainObject);
-        QFile jsonfile("songs" + QString::number(docs) + ".json");
-        jsonfile.open(QFile::ReadWrite | QFile::Truncate);
-        jsonfile.write(jsonDocument.toJson(QJsonDocument::Compact));
-        jsonfile.close();
+//        QFile jsonfile("songs" + QString::number(docs) + ".json");
+//        jsonfile.open(QFile::ReadWrite | QFile::Truncate);
+//        jsonfile.write(jsonDocument.toJson(QJsonDocument::Compact));
+//        jsonfile.close();
         documents.append(jsonDocument);
     }
     return documents;

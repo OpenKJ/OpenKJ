@@ -113,10 +113,10 @@ bool OKJSongbookAPI::requestsEnabled()
     QByteArray replyData = reply->readAll();
     QJsonDocument json = QJsonDocument::fromJson(replyData);
     bool accepting = json.object().value("accepting").toBool();
-    QFile tmpfile("/tmp/requestsreply.txt");
-    tmpfile.open(QFile::ReadWrite | QFile::Truncate);
-    tmpfile.write(replyData);
-    tmpfile.close();
+//    QFile tmpfile("/tmp/requestsreply.txt");
+//    tmpfile.open(QFile::ReadWrite | QFile::Truncate);
+//    tmpfile.write(replyData);
+//    tmpfile.close();
     delete(manager);
     return accepting;
 }
@@ -172,11 +172,11 @@ OkjsVenues OKJSongbookAPI::refreshVenues()
         l_venues.append(venue);
     }
     venues = l_venues;
-    qWarning() << l_venues;
-    QFile tmpfile("/tmp/venuesreply.txt");
-    tmpfile.open(QFile::ReadWrite | QFile::Truncate);
-    tmpfile.write(replyData);
-    tmpfile.close();
+//    qWarning() << l_venues;
+//    QFile tmpfile("/tmp/venuesreply.txt");
+//    tmpfile.open(QFile::ReadWrite | QFile::Truncate);
+//    tmpfile.write(replyData);
+//    tmpfile.close();
     delete(manager);
     return venues;
 }
