@@ -252,7 +252,7 @@ void Settings::setRequestServerEnabled(bool enable)
 
 QString Settings::requestServerUrl()
 {
-    return settings->value("requestServerUrl", "").toString();
+    return settings->value("requestServerUrl", "http://songbook.openkj.org/api").toString();
 }
 
 void Settings::setRequestServerUrl(QString url)
