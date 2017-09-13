@@ -174,7 +174,7 @@ bool DlgSettings::transmitJsonSongList()
     qWarning() << "Clearing remote database";
     // Clear remote table
     QJsonObject mainObject;
-    mainObject.insert("apikey", settings->requestServerApiKey());
+    mainObject.insert("api_key", settings->requestServerApiKey());
     mainObject.insert("command","clearDatabase");
     QJsonDocument jsonDocument;
     jsonDocument.setObject(mainObject);
@@ -195,7 +195,7 @@ bool DlgSettings::transmitJsonSongList()
         QNetworkReply *reply = manager->post(request, jsonDocs.at(i).toJson());
         while (!reply->isFinished())
             QApplication::processEvents();
-        QFile tmpfile("/tmp/webreply.txt");
+        QFile tmpfile("webreply.txt");
         tmpfile.open(QFile::ReadWrite | QFile::Truncate);
         tmpfile.write(reply->readAll());
         tmpfile.close();
@@ -229,12 +229,12 @@ QList<QJsonDocument> DlgSettings::generateJsonSongList()
         if (count < songsPerDoc)
             done = true;
         QJsonObject mainObject;
-        mainObject.insert("apikey", "13b1db54453dd5f925421d4d8f7db9a1e4bf295cde92e3ee");
+        mainObject.insert("api_key", "13b1db54453dd5f925421d4d8f7db9a1e4bf295cde92e3ee");
         mainObject.insert("command","addSongs");
         mainObject.insert("songs", songsArray);
         QJsonDocument jsonDocument;
         jsonDocument.setObject(mainObject);
-        QFile jsonfile("/tmp/songs" + QString::number(docs) + ".json");
+        QFile jsonfile("songs" + QString::number(docs) + ".json");
         jsonfile.open(QFile::ReadWrite | QFile::Truncate);
         jsonfile.write(jsonDocument.toJson(QJsonDocument::Compact));
         jsonfile.close();
