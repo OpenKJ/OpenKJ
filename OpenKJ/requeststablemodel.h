@@ -68,6 +68,8 @@ private:
     bool m_delayWarningShown;
     bool m_clearingCache;
     OKJSongbookAPI *songbookApi;
+    OkjsVenues m_venues;
+
 
 public:
     explicit RequestsTableModel(QObject *parent = 0);
@@ -93,6 +95,7 @@ signals:
     void sslError();
     void delayError(int);
     void acceptingReceived(bool);
+    void venuesChanged();
 
 private slots:
     void timerExpired();

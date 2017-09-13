@@ -50,7 +50,7 @@ RequestsTableModel::RequestsTableModel(QObject *parent) :
     connect(networkManager, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(onSslErrors(QNetworkReply*)));
     songbookApi = new OKJSongbookAPI(this);
     connect(settings, SIGNAL(requestServerVenueChanged(int)), this, SLOT(requestServerVenueChanged(int)));
-    curSerial = songbookApi->getSerial();
+    curSerial = 0;
 }
 
 void RequestsTableModel::timerExpired()
@@ -81,9 +81,12 @@ void RequestsTableModel::timerExpired()
             // refresh all the things
             refreshRequests();
             curSerial = serial;
-
-
-
+            OkjsVenues venues = songbookApi->refreshVenues();
+            if (m_venues != venues)
+            {
+                emit venuesChanged();
+                m_venues = venues;
+            }
         }
         qDebug() << "RequestsClient -" << QTime::currentTime().toString() << " - Sending request for current serial";
     }
@@ -341,14 +344,7 @@ QTime RequestsTableModel::lastUpdate()
 
 void RequestsTableModel::forceFullUpdate()
 {
-    qDebug() << "Full update forced - Clearing cache and trying to connect again";
-    networkManager->clearAccessCache();
-    QUrl url(settings->requestServerUrl() + "/getRequests.php");
-    QNetworkRequest request;
-    request.setUrl(url);
-    request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
-    m_clearingCache = true;
-    networkManager->get(request);
+    refreshRequests();
 }
 
 void RequestsTableModel::setAccepting(bool accepting)

@@ -171,19 +171,19 @@ OkjsVenues OKJSongbookAPI::refreshVenues()
         venue.accepting = jsonObject.value("accepting").toBool();
         l_venues.append(venue);
     }
-    venues = l_venues;
+      //venues = l_venues;
 //    qWarning() << l_venues;
 //    QFile tmpfile("/tmp/venuesreply.txt");
 //    tmpfile.open(QFile::ReadWrite | QFile::Truncate);
 //    tmpfile.write(replyData);
 //    tmpfile.close();
     delete(manager);
-    return venues;
+    return l_venues;
 }
 
 OkjsVenues OKJSongbookAPI::getVenues()
 {
-    return venues;
+    return refreshVenues();
 }
 
 void OKJSongbookAPI::clearRequests()
@@ -201,4 +201,17 @@ void OKJSongbookAPI::clearRequests()
     while (!reply->isFinished())
         QApplication::processEvents();
     delete(manager);
+}
+
+bool OkjsVenue::operator ==(const OkjsVenue &v) const
+{
+    if (venueId != v.venueId)
+        return false;
+    if (name != v.name)
+        return false;
+    if (urlName != v.urlName)
+        return false;
+    if (accepting != v.accepting)
+        return false;
+    return true;
 }

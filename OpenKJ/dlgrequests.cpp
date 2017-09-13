@@ -69,22 +69,9 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     ui->tableViewSearch->hideColumn(0);
     ui->tableViewSearch->hideColumn(5);
     ui->tableViewSearch->hideColumn(6);
-    int venue = settings->requestServerVenue();
-    qWarning() << "Venue from settings: " << venue;
-    int selItem = 0;
-    OkjsVenues venues = requestsModel->getSongbookApiObject()->getVenues();
-    for (int i=0; i < venues.size(); i++)
-    {
-        ui->comboBoxVenue->addItem(venues.at(i).name, venues.at(i).venueId);
-        if (venues.at(i).venueId == venue)
-        {
-            qWarning() << "Setting selected index to venue " << venues.at(i).name << "  index: " << i;
-            selItem = i;
-        }
-    }
-    ui->comboBoxVenue->setCurrentIndex(selItem);
-    ui->checkBoxAccepting->setChecked(requestsModel->getAccepting());
+    venuesChanged();
     setupDone = true;
+    connect(requestsModel, SIGNAL(venuesChanged()), this, SLOT(venuesChanged()));
 }
 
 DlgRequests::~DlgRequests()
@@ -292,4 +279,23 @@ void DlgRequests::on_comboBoxVenue_currentIndexChanged(int index)
         qWarning() << "Set venue_id to " << venue;
         qWarning() << "Settings now reporting venue as " << settings->requestServerVenue();
     }
+}
+
+void DlgRequests::venuesChanged()
+{
+    ui->comboBoxVenue->clear();
+    int venue = settings->requestServerVenue();
+    int selItem = 0;
+    OkjsVenues venues = requestsModel->getSongbookApiObject()->getVenues();
+    for (int i=0; i < venues.size(); i++)
+    {
+        ui->comboBoxVenue->addItem(venues.at(i).name, venues.at(i).venueId);
+        if (venues.at(i).venueId == venue)
+        {
+            qWarning() << "Setting selected index to venue " << venues.at(i).name << "  index: " << i;
+            selItem = i;
+        }
+    }
+    ui->comboBoxVenue->setCurrentIndex(selItem);
+    ui->checkBoxAccepting->setChecked(requestsModel->getAccepting());
 }

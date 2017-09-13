@@ -73,8 +73,8 @@ private slots:
     void sslError();
     void delayError(int seconds);
     void on_checkBoxAccepting_clicked(bool checked);
-
     void on_comboBoxVenue_currentIndexChanged(int index);
+    void venuesChanged();
 };
 
 #endif // KHREQUESTSDIALOG_H

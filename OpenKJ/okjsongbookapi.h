@@ -27,6 +27,7 @@ public:
     QString name;
     QString urlName;
     bool accepting;
+    bool operator == (const OkjsVenue& v) const;
 };
 
 QDebug operator<<(QDebug dbg, const OkjsVenue &okjsvenue);
@@ -57,6 +58,7 @@ public:
 
 signals:
     void serialChanged();
+    void venuesChanged();
 
 public slots:
 };
