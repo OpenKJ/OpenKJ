@@ -69,6 +69,7 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     ui->tableViewSearch->hideColumn(0);
     ui->tableViewSearch->hideColumn(5);
     ui->tableViewSearch->hideColumn(6);
+    ui->tableViewSearch->horizontalHeader()->resizeSection(4,75);
     venuesChanged();
     setupDone = true;
     connect(requestsModel, SIGNAL(venuesChanged()), this, SLOT(venuesChanged()));
