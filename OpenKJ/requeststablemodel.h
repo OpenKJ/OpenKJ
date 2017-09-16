@@ -67,7 +67,7 @@ private:
     bool m_connectionReset;
     bool m_delayWarningShown;
     bool m_clearingCache;
-    OKJSongbookAPI *songbookApi;
+//    OKJSongbookAPI *songbookApi;
     OkjsVenues m_venues;
 
 

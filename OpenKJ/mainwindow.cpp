@@ -37,8 +37,10 @@
 #include "tagreader.h"
 #include <QSvgRenderer>
 #include "audiorecorder.h"
+#include "okjsongbookapi.h"
 
 Settings *settings;
+OKJSongbookAPI *songbookApi;
 KhDb *db;
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -67,6 +69,7 @@ MainWindow::MainWindow(QWidget *parent) :
         khDir->mkpath(khDir->absolutePath());
     }
     settings = new Settings(this);
+    songbookApi = new OKJSongbookAPI(this);
     int initialKVol = settings->audioVolume();
     int initialBMVol = settings->bmVolume();
     qWarning() << "Initial volumes - K: " << initialKVol << " BM: " << initialBMVol;

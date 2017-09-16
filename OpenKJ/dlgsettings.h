@@ -46,7 +46,6 @@ private:
     QStringList audioOutputDevices;
     bool transmitJsonSongList();
     QList<QJsonDocument> generateJsonSongList();
-    OKJSongbookAPI *songbookApi;
 
 public:
     explicit DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBackend *BmAudioBackend, QWidget *parent = 0);

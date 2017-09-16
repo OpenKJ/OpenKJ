@@ -32,6 +32,7 @@
 
 
 extern Settings *settings;
+extern OKJSongbookAPI *songbookApi;
 
 RequestsTableModel::RequestsTableModel(QObject *parent) :
     QAbstractTableModel(parent)
@@ -48,7 +49,8 @@ RequestsTableModel::RequestsTableModel(QObject *parent) :
     connect(timer, SIGNAL(timeout()), this, SLOT(timerExpired()));
     connect(networkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
     connect(networkManager, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(onSslErrors(QNetworkReply*)));
-    songbookApi = new OKJSongbookAPI(this);
+//    songbookApi = new OKJSongbookAPI(this);
+    connect(songbookApi, SIGNAL(sslError()), this, SIGNAL(sslError()));
     connect(settings, SIGNAL(requestServerVenueChanged(int)), this, SLOT(requestServerVenueChanged(int)));
     curSerial = 0;
 }
@@ -57,7 +59,7 @@ void RequestsTableModel::timerExpired()
 {
     if (settings->requestServerEnabled())
     {
-        qDebug() << "RequestsClient - Seconds since last update: " << m_lastUpdate.secsTo(QTime::currentTime());
+        qWarning() << "RequestsClient - Seconds since last update: " << m_lastUpdate.secsTo(QTime::currentTime());
         if ((m_lastUpdate.secsTo(QTime::currentTime()) > 300) && (!m_delayWarningShown))
         {
             emit delayError(m_lastUpdate.secsTo(QTime::currentTime()));
@@ -74,6 +76,9 @@ void RequestsTableModel::timerExpired()
             m_delayWarningShown = false;
         }
         int serial = songbookApi->getSerial();
+        if (serial > 0)
+            m_lastUpdate = QTime::currentTime();
+        qWarning() << "RequestsClient -" << QTime::currentTime().toString() << " - Sending request for current serial";
         qWarning() << "SongbookAPI returned serial: " << serial;
         if (curSerial != serial)
         {
@@ -88,7 +93,6 @@ void RequestsTableModel::timerExpired()
                 m_venues = venues;
             }
         }
-        qDebug() << "RequestsClient -" << QTime::currentTime().toString() << " - Sending request for current serial";
     }
 }
 

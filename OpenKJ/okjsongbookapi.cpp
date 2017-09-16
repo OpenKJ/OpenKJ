@@ -20,7 +20,8 @@ QDebug operator<<(QDebug dbg, const OkjsVenue &okjsvenue)
 
 OKJSongbookAPI::OKJSongbookAPI(QObject *parent) : QObject(parent)
 {
-   // manager = new QNetworkAccessManager(this);
+    manager = new QNetworkAccessManager(this);
+    connect(manager, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(onSslErrors(QNetworkReply*,QList<QSslError>)));
     refreshVenues();
     refreshRequests();
 }
@@ -34,14 +35,12 @@ int OKJSongbookAPI::getSerial()
     jsonDocument.setObject(mainObject);
     QNetworkRequest request(QUrl(settings->requestServerUrl()));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    QNetworkAccessManager *manager = new QNetworkAccessManager();
     QNetworkReply *reply = manager->post(request, jsonDocument.toJson());
     while (!reply->isFinished())
         QApplication::processEvents();
     QByteArray replyData = reply->readAll();
     QJsonDocument json = QJsonDocument::fromJson(replyData);
     int serial = json.object().value("serial").toInt();
-    delete(manager);
     return serial;
 }
 
@@ -55,7 +54,6 @@ OkjsRequests OKJSongbookAPI::refreshRequests()
     jsonDocument.setObject(jsonObject);
     QNetworkRequest request(QUrl(settings->requestServerUrl()));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    QNetworkAccessManager *manager = new QNetworkAccessManager();
     QNetworkReply *reply = manager->post(request, jsonDocument.toJson());
     while (!reply->isFinished())
         QApplication::processEvents();
@@ -74,7 +72,6 @@ OkjsRequests OKJSongbookAPI::refreshRequests()
         request.time = jsonObject.value("request_time").toInt();
         l_requests.append(request);
     }
-    delete(manager);
     return l_requests;
 }
 
@@ -89,11 +86,9 @@ void OKJSongbookAPI::removeRequest(int requestId)
     jsonDocument.setObject(mainObject);
     QNetworkRequest request(QUrl(settings->requestServerUrl()));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    QNetworkAccessManager *manager = new QNetworkAccessManager();
     QNetworkReply *reply = manager->post(request, jsonDocument.toJson());
     while (!reply->isFinished())
         QApplication::processEvents();
-    delete(manager);
 }
 
 bool OKJSongbookAPI::requestsEnabled()
@@ -106,7 +101,6 @@ bool OKJSongbookAPI::requestsEnabled()
     jsonDocument.setObject(mainObject);
     QNetworkRequest request(QUrl(settings->requestServerUrl()));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    QNetworkAccessManager *manager = new QNetworkAccessManager();
     QNetworkReply *reply = manager->post(request, jsonDocument.toJson());
     while (!reply->isFinished())
         QApplication::processEvents();
@@ -117,7 +111,6 @@ bool OKJSongbookAPI::requestsEnabled()
 //    tmpfile.open(QFile::ReadWrite | QFile::Truncate);
 //    tmpfile.write(replyData);
 //    tmpfile.close();
-    delete(manager);
     return accepting;
 }
 
@@ -132,11 +125,9 @@ void OKJSongbookAPI::setRequestsEnabled(bool enabled)
     jsonDocument.setObject(mainObject);
     QNetworkRequest request(QUrl(settings->requestServerUrl()));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    QNetworkAccessManager *manager = new QNetworkAccessManager();
     QNetworkReply *reply = manager->post(request, jsonDocument.toJson());
     while (!reply->isFinished())
         QApplication::processEvents();
-    delete(manager);
 }
 
 void OKJSongbookAPI::setApiKey(QString apiKey)
@@ -153,7 +144,6 @@ OkjsVenues OKJSongbookAPI::refreshVenues()
     jsonDocument.setObject(mainObject);
     QNetworkRequest request(QUrl(settings->requestServerUrl()));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    QNetworkAccessManager *manager = new QNetworkAccessManager();
     QNetworkReply *reply = manager->post(request, jsonDocument.toJson());
     while (!reply->isFinished())
         QApplication::processEvents();
@@ -177,7 +167,6 @@ OkjsVenues OKJSongbookAPI::refreshVenues()
 //    tmpfile.open(QFile::ReadWrite | QFile::Truncate);
 //    tmpfile.write(replyData);
 //    tmpfile.close();
-    delete(manager);
     return l_venues;
 }
 
@@ -196,11 +185,26 @@ void OKJSongbookAPI::clearRequests()
     jsonDocument.setObject(mainObject);
     QNetworkRequest request(QUrl(settings->requestServerUrl()));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    QNetworkAccessManager *manager = new QNetworkAccessManager();
     QNetworkReply *reply = manager->post(request, jsonDocument.toJson());
     while (!reply->isFinished())
         QApplication::processEvents();
-    delete(manager);
+}
+
+void OKJSongbookAPI::onSslErrors(QNetworkReply *reply, QList<QSslError> errors)
+{
+    static QString lastUrl;
+    static bool errorEmitted = false;
+    if (lastUrl != settings->requestServerUrl())
+        errorEmitted = false;
+    if (settings->requestServerIgnoreCertErrors())
+        reply->ignoreSslErrors();
+    else if (!errorEmitted)
+    {
+        emit sslError();
+        errorEmitted = true;
+
+    }
+    lastUrl = settings->requestServerUrl();
 }
 
 bool OkjsVenue::operator ==(const OkjsVenue &v) const

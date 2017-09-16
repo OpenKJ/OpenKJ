@@ -42,7 +42,7 @@ private:
     int serial;
     QUrl serverUrl;
     OkjsVenues venues;
- //   QNetworkAccessManager *manager;
+    QNetworkAccessManager *manager;
 
 public:
     explicit OKJSongbookAPI(QObject *parent = 0);
@@ -59,8 +59,12 @@ public:
 signals:
     void serialChanged();
     void venuesChanged();
+    void sslError();
 
 public slots:
+
+private slots:
+        void onSslErrors(QNetworkReply * reply, QList<QSslError> errors);
 };
 
 #endif // OKJSONGBOOKAPI_H

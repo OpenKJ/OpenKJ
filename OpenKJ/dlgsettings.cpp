@@ -38,13 +38,13 @@
 
 
 extern Settings *settings;
+extern OKJSongbookAPI *songbookApi;
 
 
 DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBackend *BmAudioBackend, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DlgSettings)
 {
-    songbookApi = new OKJSongbookAPI(this);
     pageSetupDone = false;
     kAudioBackend = AudioBackend;
     bmAudioBackend = BmAudioBackend;
@@ -195,10 +195,11 @@ bool DlgSettings::transmitJsonSongList()
         QNetworkReply *reply = manager->post(request, jsonDocs.at(i).toJson());
         while (!reply->isFinished())
             QApplication::processEvents();
-//        QFile tmpfile("webreply.txt");
+//        QFile tmpfile("/tmp/webreply.txt");
 //        tmpfile.open(QFile::ReadWrite | QFile::Truncate);
 //        tmpfile.write(reply->readAll());
 //        tmpfile.close();
+//        qWarning() << "JSON reply: " << QString(reply->readAll());
         qWarning() << "Remote songlist update complete!";
     }
     return true;
@@ -214,7 +215,7 @@ QList<QJsonDocument> DlgSettings::generateJsonSongList()
     while (!done)
     {
         QJsonArray songsArray;
-        int songsPerDoc = 5000;
+        int songsPerDoc = 1000;
         int count = 0;
         while ((query.next()) && (count < songsPerDoc))
         {
@@ -229,12 +230,12 @@ QList<QJsonDocument> DlgSettings::generateJsonSongList()
         if (count < songsPerDoc)
             done = true;
         QJsonObject mainObject;
-        mainObject.insert("api_key", "13b1db54453dd5f925421d4d8f7db9a1e4bf295cde92e3ee");
+        mainObject.insert("api_key", settings->requestServerApiKey());
         mainObject.insert("command","addSongs");
         mainObject.insert("songs", songsArray);
         QJsonDocument jsonDocument;
         jsonDocument.setObject(mainObject);
-//        QFile jsonfile("songs" + QString::number(docs) + ".json");
+//        QFile jsonfile("/tmp/songs" + QString::number(docs) + ".json");
 //        jsonfile.open(QFile::ReadWrite | QFile::Truncate);
 //        jsonfile.write(jsonDocument.toJson(QJsonDocument::Compact));
 //        jsonfile.close();
