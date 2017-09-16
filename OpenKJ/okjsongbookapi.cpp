@@ -97,6 +97,8 @@ bool OKJSongbookAPI::requestsEnabled()
     mainObject.insert("api_key", settings->requestServerApiKey());
     mainObject.insert("command","getAccepting");
     mainObject.insert("venue_id", settings->requestServerVenue());
+    qWarning() << "OKJSongbookAPI::requestsEnabled() called";
+    qWarning() << "Using venue_id " << settings->requestServerVenue();
     QJsonDocument jsonDocument;
     jsonDocument.setObject(mainObject);
     QNetworkRequest request(QUrl(settings->requestServerUrl()));
@@ -107,6 +109,7 @@ bool OKJSongbookAPI::requestsEnabled()
     QByteArray replyData = reply->readAll();
     QJsonDocument json = QJsonDocument::fromJson(replyData);
     bool accepting = json.object().value("accepting").toBool();
+    qWarning() << "Got result: " << accepting;
 //    QFile tmpfile("/tmp/requestsreply.txt");
 //    tmpfile.open(QFile::ReadWrite | QFile::Truncate);
 //    tmpfile.write(replyData);
@@ -116,11 +119,13 @@ bool OKJSongbookAPI::requestsEnabled()
 
 void OKJSongbookAPI::setRequestsEnabled(bool enabled)
 {
+    qWarning() << "OKJSongbookAPI::setRequestsEnabled(" << enabled << ") called";
     QJsonObject mainObject;
     mainObject.insert("api_key", settings->requestServerApiKey());
     mainObject.insert("command","setAccepting");
     mainObject.insert("venue_id", settings->requestServerVenue());
     mainObject.insert("accepting", enabled);
+    qWarning() << "Using values - venue_id: " << settings->requestServerVenue() << " - accepting: " << enabled;
     QJsonDocument jsonDocument;
     jsonDocument.setObject(mainObject);
     QNetworkRequest request(QUrl(settings->requestServerUrl()));
@@ -128,6 +133,7 @@ void OKJSongbookAPI::setRequestsEnabled(bool enabled)
     QNetworkReply *reply = manager->post(request, jsonDocument.toJson());
     while (!reply->isFinished())
         QApplication::processEvents();
+    qWarning() << QString(reply->readAll());
 }
 
 void OKJSongbookAPI::setApiKey(QString apiKey)

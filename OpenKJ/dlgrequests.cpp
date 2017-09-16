@@ -298,5 +298,6 @@ void DlgRequests::venuesChanged()
         }
     }
     ui->comboBoxVenue->setCurrentIndex(selItem);
+    settings->setRequestServerVenue(ui->comboBoxVenue->itemData(selItem).toInt());
     ui->checkBoxAccepting->setChecked(requestsModel->getAccepting());
 }
