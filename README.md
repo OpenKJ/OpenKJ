@@ -84,7 +84,6 @@ OpenKJ:
 
 * Regular singers - Name conflict resolution on import (Rename/Merge/Replace) 
 * Regular singers - Name conflict resolution on save (Rename/Merge/Replace)
-* Settings - Output device selection
 * And a million more things I'm forgetting
 
 
