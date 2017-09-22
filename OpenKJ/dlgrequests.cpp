@@ -190,6 +190,11 @@ void DlgRequests::on_treeViewRequests_clicked(const QModelIndex &index)
     if (index.column() == 5)
     {
         requestsModel->deleteRequestId(index.sibling(index.row(),0).data().toInt());
+        ui->treeViewRequests->selectionModel()->clearSelection();
+        ui->lineEditSearch->clear();
+        ui->lineEditSingerName->clear();
+        ui->comboBoxSingers->clear();
+        ui->radioButtonExistingSinger->setChecked(true);
     }
 }
 
