@@ -77,7 +77,10 @@ void RequestsTableModel::timerExpired()
         }
         int serial = songbookApi->getSerial();
         if (serial > 0)
+        {
             m_lastUpdate = QTime::currentTime();
+            emit updateReceived(m_lastUpdate);
+        }
         qWarning() << "RequestsClient -" << QTime::currentTime().toString() << " - Sending request for current serial";
         qWarning() << "SongbookAPI returned serial: " << serial;
         if (curSerial != serial)
