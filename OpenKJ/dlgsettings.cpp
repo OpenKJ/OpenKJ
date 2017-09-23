@@ -166,84 +166,6 @@ QStringList DlgSettings::getMonitors()
     return screenStrings;
 }
 
-bool DlgSettings::transmitJsonSongList()
-{
-    QUrl url(settings->requestServerUrl());
-    qWarning() << "Generating data for update";
-    QList<QJsonDocument> jsonDocs = generateJsonSongList();
-    qWarning() << "Clearing remote database";
-    // Clear remote table
-    QJsonObject mainObject;
-    mainObject.insert("api_key", settings->requestServerApiKey());
-    mainObject.insert("command","clearDatabase");
-    QJsonDocument jsonDocument;
-    jsonDocument.setObject(mainObject);
-    QNetworkRequest request(url);
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
-    QNetworkReply *reply = manager->post(request, jsonDocument.toJson());
-    while (!reply->isFinished())
-        QApplication::processEvents();
-
-    qWarning() << "Transmitting data to server";
-    for (int i=0; i < jsonDocs.size(); i++)
-    {
-        qWarning() << "Transmitting chunk " << i + 1 << " of " << jsonDocs.size();
-        QNetworkRequest request(url);
-        request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-        QNetworkAccessManager *manager = new QNetworkAccessManager(this);
-        QNetworkReply *reply = manager->post(request, jsonDocs.at(i).toJson());
-        while (!reply->isFinished())
-            QApplication::processEvents();
-//        QFile tmpfile("/tmp/webreply.txt");
-//        tmpfile.open(QFile::ReadWrite | QFile::Truncate);
-//        tmpfile.write(reply->readAll());
-//        tmpfile.close();
-//        qWarning() << "JSON reply: " << QString(reply->readAll());
-        qWarning() << "Remote songlist update complete!";
-    }
-    return true;
-}
-
-QList<QJsonDocument> DlgSettings::generateJsonSongList()
-{
-    QList<QJsonDocument> documents;
-    QSqlQuery query;
-    query.exec("SELECT DISTINCT artist,title FROM dbsongs ORDER BY artist ASC, title ASC");
-    bool done = false;
-    int docs = 0;
-    while (!done)
-    {
-        QJsonArray songsArray;
-        int songsPerDoc = 1000;
-        int count = 0;
-        while ((query.next()) && (count < songsPerDoc))
-        {
-            QJsonObject songObject;
-            songObject.insert("artist", query.value(0).toString());
-            songObject.insert("title", query.value(1).toString());
-            songsArray.insert(0, songObject);
-            QApplication::processEvents();
-            count++;
-        }
-        docs++;
-        if (count < songsPerDoc)
-            done = true;
-        QJsonObject mainObject;
-        mainObject.insert("api_key", settings->requestServerApiKey());
-        mainObject.insert("command","addSongs");
-        mainObject.insert("songs", songsArray);
-        QJsonDocument jsonDocument;
-        jsonDocument.setObject(mainObject);
-//        QFile jsonfile("/tmp/songs" + QString::number(docs) + ".json");
-//        jsonfile.open(QFile::ReadWrite | QFile::Truncate);
-//        jsonfile.write(jsonDocument.toJson(QJsonDocument::Compact));
-//        jsonfile.close();
-        documents.append(jsonDocument);
-    }
-    return documents;
-}
-
 void DlgSettings::onNetworkReply(QNetworkReply *reply)
 {
     Q_UNUSED(reply);
@@ -529,18 +451,6 @@ void DlgSettings::on_buttonBrowse_clicked()
         settings->setRecordingOutputDir(dirName);
         ui->lineEditOutputDir->setText(dirName);
     }
-}
-
-void DlgSettings::on_pushButtonUpdateRemoteDb_clicked()
-{
-    QMessageBox *msgBox = new QMessageBox(this);
-    msgBox->setStandardButtons(0);
-    msgBox->setText("Updating remote database.  Please wait...");
-    msgBox->show();
-    transmitJsonSongList();
-    msgBox->close();
-    delete msgBox;
-    QMessageBox::information(this, "Update complete", "Remote database update complete.");
 }
 
 void DlgSettings::on_pushButtonClearBgImg_clicked()

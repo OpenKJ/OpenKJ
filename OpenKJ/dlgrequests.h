@@ -75,6 +75,7 @@ private slots:
     void on_checkBoxAccepting_clicked(bool checked);
     void on_comboBoxVenue_currentIndexChanged(int index);
     void venuesChanged();
+    void on_pushButtonUpdateDb_clicked();
 };
 
 #endif // KHREQUESTSDIALOG_H

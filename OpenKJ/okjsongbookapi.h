@@ -55,11 +55,16 @@ public:
     OkjsVenues refreshVenues();
     OkjsVenues getVenues();
     void clearRequests();
+    void updateSongDb();
 
 signals:
     void serialChanged();
     void venuesChanged();
     void sslError();
+    void remoteSongDbUpdateProgress(int);
+    void remoteSongDbUpdateNumDocs(int);
+    void remoteSongDbUpdateDone();
+    void remoteSongDbUpdateStart();
 
 public slots:
 

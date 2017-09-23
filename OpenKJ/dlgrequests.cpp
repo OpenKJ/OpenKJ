@@ -23,8 +23,11 @@
 #include <QMenu>
 #include <QMessageBox>
 #include "settings.h"
+#include "okjsongbookapi.h"
+#include <QProgressDialog>
 
 extern Settings *settings;
+extern OKJSongbookAPI *songbookApi;
 
 DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     QDialog(parent),
@@ -73,6 +76,7 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     venuesChanged();
     setupDone = true;
     connect(requestsModel, SIGNAL(venuesChanged()), this, SLOT(venuesChanged()));
+
 }
 
 DlgRequests::~DlgRequests()
@@ -305,4 +309,21 @@ void DlgRequests::venuesChanged()
     ui->comboBoxVenue->setCurrentIndex(selItem);
     settings->setRequestServerVenue(ui->comboBoxVenue->itemData(selItem).toInt());
     ui->checkBoxAccepting->setChecked(requestsModel->getAccepting());
+}
+
+void DlgRequests::on_pushButtonUpdateDb_clicked()
+{
+    QProgressDialog *progressDialog = new QProgressDialog(this);
+    progressDialog->setCancelButton(0);
+    progressDialog->setMinimum(0);
+    progressDialog->setMaximum(20);
+    progressDialog->setValue(0);
+    progressDialog->setLabelText("Updating request server song database");
+    progressDialog->show();
+    QApplication::processEvents();
+    connect(songbookApi, SIGNAL(remoteSongDbUpdateNumDocs(int)), progressDialog, SLOT(setMaximum(int)));
+    connect(songbookApi, SIGNAL(remoteSongDbUpdateProgress(int)), progressDialog, SLOT(setValue(int)));
+//    progressDialog->show();
+    songbookApi->updateSongDb();
+    progressDialog->close();
 }

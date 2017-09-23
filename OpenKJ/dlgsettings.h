@@ -44,8 +44,6 @@ private:
     QNetworkAccessManager *networkManager;
     bool pageSetupDone;
     QStringList audioOutputDevices;
-    bool transmitJsonSongList();
-    QList<QJsonDocument> generateJsonSongList();
 
 public:
     explicit DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBackend *BmAudioBackend, QWidget *parent = 0);
@@ -89,7 +87,6 @@ private slots:
     void on_comboBoxCodec_currentIndexChanged(const QString &arg1);
     void on_groupBoxRecording_toggled(bool arg1);
     void on_buttonBrowse_clicked();
-    void on_pushButtonUpdateRemoteDb_clicked();
     void onNetworkReply(QNetworkReply* reply);
     void onSslErrors(QNetworkReply * reply);
 
