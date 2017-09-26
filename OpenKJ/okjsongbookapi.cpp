@@ -21,13 +21,19 @@ QDebug operator<<(QDebug dbg, const OkjsVenue &okjsvenue)
 
 OKJSongbookAPI::OKJSongbookAPI(QObject *parent) : QObject(parent)
 {
+    serial = 0;
+    timer = new QTimer(this);
+    timer->setInterval(10000);
     manager = new QNetworkAccessManager(this);
     connect(manager, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(onSslErrors(QNetworkReply*,QList<QSslError>)));
-    refreshVenues();
-    refreshRequests();
+    connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
+    connect(timer, SIGNAL(timeout()), this, SLOT(timerTimeout()));
+    if (settings->requestServerEnabled())
+        refreshVenues();
+    timer->start();
 }
 
-int OKJSongbookAPI::getSerial()
+void OKJSongbookAPI::getSerial()
 {
     QJsonObject mainObject;
     mainObject.insert("api_key", settings->requestServerApiKey());
@@ -36,16 +42,10 @@ int OKJSongbookAPI::getSerial()
     jsonDocument.setObject(mainObject);
     QNetworkRequest request(QUrl(settings->requestServerUrl()));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    QNetworkReply *reply = manager->post(request, jsonDocument.toJson());
-    while (!reply->isFinished())
-        QApplication::processEvents();
-    QByteArray replyData = reply->readAll();
-    QJsonDocument json = QJsonDocument::fromJson(replyData);
-    int serial = json.object().value("serial").toInt();
-    return serial;
+    manager->post(request, jsonDocument.toJson());
 }
 
-OkjsRequests OKJSongbookAPI::refreshRequests()
+void OKJSongbookAPI::refreshRequests()
 {
     QJsonObject jsonObject;
     jsonObject.insert("api_key", settings->requestServerApiKey());
@@ -55,25 +55,7 @@ OkjsRequests OKJSongbookAPI::refreshRequests()
     jsonDocument.setObject(jsonObject);
     QNetworkRequest request(QUrl(settings->requestServerUrl()));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    QNetworkReply *reply = manager->post(request, jsonDocument.toJson());
-    while (!reply->isFinished())
-        QApplication::processEvents();
-    QByteArray replyData = reply->readAll();
-    QJsonDocument json = QJsonDocument::fromJson(replyData);
-    QJsonArray requestsArray = json.object().value("requests").toArray();
-    OkjsRequests l_requests;
-    for (int i=0; i < requestsArray.size(); i++)
-    {
-        OkjsRequest request;
-        QJsonObject jsonObject = requestsArray.at(i).toObject();
-        request.requestId = jsonObject.value("request_id").toInt();
-        request.artist = jsonObject.value("artist").toString();
-        request.title = jsonObject.value("title").toString();
-        request.singer = jsonObject.value("singer").toString();
-        request.time = jsonObject.value("request_time").toInt();
-        l_requests.append(request);
-    }
-    return l_requests;
+    manager->post(request, jsonDocument.toJson());
 }
 
 void OKJSongbookAPI::removeRequest(int requestId)
@@ -87,38 +69,20 @@ void OKJSongbookAPI::removeRequest(int requestId)
     jsonDocument.setObject(mainObject);
     QNetworkRequest request(QUrl(settings->requestServerUrl()));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    QNetworkReply *reply = manager->post(request, jsonDocument.toJson());
-    while (!reply->isFinished())
-        QApplication::processEvents();
+    manager->post(request, jsonDocument.toJson());
 }
 
-bool OKJSongbookAPI::requestsEnabled()
+bool OKJSongbookAPI::getAccepting()
 {
-    QJsonObject mainObject;
-    mainObject.insert("api_key", settings->requestServerApiKey());
-    mainObject.insert("command","getAccepting");
-    mainObject.insert("venue_id", settings->requestServerVenue());
-    qWarning() << "OKJSongbookAPI::requestsEnabled() called";
-    qWarning() << "Using venue_id " << settings->requestServerVenue();
-    QJsonDocument jsonDocument;
-    jsonDocument.setObject(mainObject);
-    QNetworkRequest request(QUrl(settings->requestServerUrl()));
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    QNetworkReply *reply = manager->post(request, jsonDocument.toJson());
-    while (!reply->isFinished())
-        QApplication::processEvents();
-    QByteArray replyData = reply->readAll();
-    QJsonDocument json = QJsonDocument::fromJson(replyData);
-    bool accepting = json.object().value("accepting").toBool();
-    qWarning() << "Got result: " << accepting;
-//    QFile tmpfile("/tmp/requestsreply.txt");
-//    tmpfile.open(QFile::ReadWrite | QFile::Truncate);
-//    tmpfile.write(replyData);
-//    tmpfile.close();
-    return accepting;
+    for (int i=0; i<venues.size(); i++)
+    {
+        if (venues.at(i).venueId == settings->requestServerVenue())
+            return venues.at(i).accepting;
+    }
+    return false;
 }
 
-void OKJSongbookAPI::setRequestsEnabled(bool enabled)
+void OKJSongbookAPI::setAccepting(bool enabled)
 {
     qWarning() << "OKJSongbookAPI::setRequestsEnabled(" << enabled << ") called";
     QJsonObject mainObject;
@@ -131,18 +95,10 @@ void OKJSongbookAPI::setRequestsEnabled(bool enabled)
     jsonDocument.setObject(mainObject);
     QNetworkRequest request(QUrl(settings->requestServerUrl()));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    QNetworkReply *reply = manager->post(request, jsonDocument.toJson());
-    while (!reply->isFinished())
-        QApplication::processEvents();
-    qWarning() << QString(reply->readAll());
+    manager->post(request, jsonDocument.toJson());
 }
 
-void OKJSongbookAPI::setApiKey(QString apiKey)
-{
-    this->apiKey = apiKey;
-}
-
-OkjsVenues OKJSongbookAPI::refreshVenues()
+void OKJSongbookAPI::refreshVenues(bool blocking)
 {
     QJsonObject mainObject;
     mainObject.insert("api_key", settings->requestServerApiKey());
@@ -152,34 +108,11 @@ OkjsVenues OKJSongbookAPI::refreshVenues()
     QNetworkRequest request(QUrl(settings->requestServerUrl()));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     QNetworkReply *reply = manager->post(request, jsonDocument.toJson());
-    while (!reply->isFinished())
-        QApplication::processEvents();
-    QByteArray replyData = reply->readAll();
-    QJsonDocument json = QJsonDocument::fromJson(replyData);
-    QJsonArray venuesArray = json.object().value("venues").toArray();
-    OkjsVenues l_venues;
-    for (int i=0; i < venuesArray.size(); i++)
+    if (blocking)
     {
-        OkjsVenue venue;
-        QJsonObject jsonObject = venuesArray.at(i).toObject();
-        venue.venueId = jsonObject.value("venue_id").toInt();
-        venue.name = jsonObject.value("name").toString();
-        venue.urlName = jsonObject.value("url_name").toString();
-        venue.accepting = jsonObject.value("accepting").toBool();
-        l_venues.append(venue);
+        while (!reply->isFinished())
+            QApplication::processEvents();
     }
-      //venues = l_venues;
-//    qWarning() << l_venues;
-//    QFile tmpfile("/tmp/venuesreply.txt");
-//    tmpfile.open(QFile::ReadWrite | QFile::Truncate);
-//    tmpfile.write(replyData);
-//    tmpfile.close();
-    return l_venues;
-}
-
-OkjsVenues OKJSongbookAPI::getVenues()
-{
-    return refreshVenues();
 }
 
 void OKJSongbookAPI::clearRequests()
@@ -192,9 +125,7 @@ void OKJSongbookAPI::clearRequests()
     jsonDocument.setObject(mainObject);
     QNetworkRequest request(QUrl(settings->requestServerUrl()));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    QNetworkReply *reply = manager->post(request, jsonDocument.toJson());
-    while (!reply->isFinished())
-        QApplication::processEvents();
+    manager->post(request, jsonDocument.toJson());
 }
 
 void OKJSongbookAPI::updateSongDb()
@@ -268,6 +199,7 @@ void OKJSongbookAPI::updateSongDb()
 
 void OKJSongbookAPI::onSslErrors(QNetworkReply *reply, QList<QSslError> errors)
 {
+    Q_UNUSED(errors)
     static QString lastUrl;
     static bool errorEmitted = false;
     if (lastUrl != settings->requestServerUrl())
@@ -283,6 +215,142 @@ void OKJSongbookAPI::onSslErrors(QNetworkReply *reply, QList<QSslError> errors)
     lastUrl = settings->requestServerUrl();
 }
 
+void OKJSongbookAPI::onNetworkReply(QNetworkReply *reply)
+{
+    if (settings->requestServerIgnoreCertErrors())
+        reply->ignoreSslErrors();
+    if (reply->error() != QNetworkReply::NoError)
+    {
+        qDebug() << reply->errorString();
+        //output some meaningful error msg
+        return;
+    }
+    QByteArray data = reply->readAll();
+    QJsonDocument json = QJsonDocument::fromJson(data);
+    QString command = json.object().value("command").toString();
+    bool error = json.object().value("error").toBool();
+    if (error)
+    {
+        qWarning() << "Got error json reply";
+        qWarning() << "Error string: " << json.object().value("errorString");
+        return;
+    }
+    if (command == "getSerial")
+    {
+        int newSerial = json.object().value("serial").toInt();
+        if (newSerial == 0)
+        {
+            qWarning() << "Server didn't return valid serial";
+            return;
+        }
+        if (serial == newSerial)
+        {
+            lastSync = QTime::currentTime();
+            emit synchronized(lastSync);
+            qWarning() << "Got serial: " << newSerial << " - No Change";
+        }
+        else
+        {
+            qWarning() << "Got serial: " << newSerial << " - Changed, previous: " << serial;
+            qWarning() << "Refreshing venues and requests";
+            serial = newSerial;
+            refreshRequests();
+            refreshVenues();
+            lastSync = QTime::currentTime();
+            emit synchronized(lastSync);
+        }
+    }
+    if (command == "getVenues")
+    {
+        qWarning() << "Venues received from server";
+        QJsonArray venuesArray = json.object().value("venues").toArray();
+        OkjsVenues l_venues;
+        for (int i=0; i < venuesArray.size(); i++)
+        {
+            OkjsVenue venue;
+            QJsonObject jsonObject = venuesArray.at(i).toObject();
+            venue.venueId = jsonObject.value("venue_id").toInt();
+            venue.name = jsonObject.value("name").toString();
+            venue.urlName = jsonObject.value("url_name").toString();
+            venue.accepting = jsonObject.value("accepting").toBool();
+            l_venues.append(venue);
+        }
+        if (venues != l_venues)
+        {
+            venues = l_venues;
+            emit venuesChanged(venues);
+        }
+    }
+    if (command == "clearRequests")
+    {
+        qWarning() << "Requests cleared received from server";
+        refreshRequests();
+        refreshVenues();
+    }
+    if (command == "getRequests")
+    {
+        qWarning() << "Requests received from server";
+        QJsonArray requestsArray = json.object().value("requests").toArray();
+        OkjsRequests l_requests;
+        for (int i=0; i < requestsArray.size(); i++)
+        {
+            OkjsRequest request;
+            QJsonObject jsonObject = requestsArray.at(i).toObject();
+            request.requestId = jsonObject.value("request_id").toInt();
+            request.artist = jsonObject.value("artist").toString();
+            request.title = jsonObject.value("title").toString();
+            request.singer = jsonObject.value("singer").toString();
+            request.time = jsonObject.value("request_time").toInt();
+            l_requests.append(request);
+        }
+        if (requests != l_requests)
+        {
+            requests = l_requests;
+            emit requestsChanged(requests);
+        }
+    }
+    if (command == "setAccepting")
+    {
+        int venue_id = json.object().value("venue_id").toInt();
+        bool accepting = json.object().value("accepting").toBool();
+        qWarning() << "Server replied to setAccepting command. Venue: " << venue_id << " Accepting: " << accepting;
+        qWarning() << "Requesting refresh of venues from server";
+        refreshVenues();
+        refreshRequests();
+    }
+    if (command == "deleteRequest")
+    {
+        qWarning() << "Server replied to deleteRequest command, refreshing requests";
+        refreshRequests();
+        refreshVenues();
+    }
+}
+
+void OKJSongbookAPI::timerTimeout()
+{
+    if (settings->requestServerEnabled())
+    {
+        qWarning() << "RequestsClient - Seconds since last update: " << lastSync.secsTo(QTime::currentTime());
+        if ((lastSync.secsTo(QTime::currentTime()) > 300) && (!delayErrorEmitted))
+        {
+            emit delayError(lastSync.secsTo(QTime::currentTime()));
+            delayErrorEmitted = true;
+        }
+        else if ((lastSync.secsTo(QTime::currentTime()) > 200) && (!connectionReset))
+        {
+            refreshRequests();
+            refreshVenues();
+            connectionReset = true;
+        }
+        else
+        {
+            connectionReset = false;
+            delayErrorEmitted = false;
+        }
+        getSerial();
+    }
+}
+
 bool OkjsVenue::operator ==(const OkjsVenue &v) const
 {
     if (venueId != v.venueId)
@@ -292,6 +360,21 @@ bool OkjsVenue::operator ==(const OkjsVenue &v) const
     if (urlName != v.urlName)
         return false;
     if (accepting != v.accepting)
+        return false;
+    return true;
+}
+
+bool OkjsRequest::operator ==(const OkjsRequest r) const
+{
+    if (r.requestId != requestId)
+        return false;
+    if (r.artist != artist)
+        return false;
+    if (r.title != title)
+        return false;
+    if (r.time != time)
+        return false;
+    if (r.singer != singer)
         return false;
     return true;
 }

@@ -22,10 +22,6 @@
 #define REQUESTSTABLEMODEL_H
 
 #include <QAbstractTableModel>
-#include <QNetworkAccessManager>
-#include <QAuthenticator>
-#include <QTimer>
-#include <QTime>
 #include "okjsongbookapi.h"
 
 
@@ -59,50 +55,20 @@ class RequestsTableModel : public QAbstractTableModel
     Q_OBJECT
 
 private:
-    QTimer *timer;
-    QList<Request> requests;
-    QNetworkAccessManager *networkManager;
-    int curSerial;
-    QTime m_lastUpdate;
-    bool m_connectionReset;
-    bool m_delayWarningShown;
-    bool m_clearingCache;
-//    OKJSongbookAPI *songbookApi;
-    OkjsVenues m_venues;
-
+    QList<Request> m_requests;
 
 public:
     explicit RequestsTableModel(QObject *parent = 0);
     enum {REQUESTID=0,SINGER,ARTIST,TITLE,TIMESTAMP};
-    void deleteAll();
-    void deleteRequestId(int requestId);
     int count();
-    QTime lastUpdate();
-    void forceFullUpdate();
-    bool getAccepting();
-    void setAccepting(bool accepting);
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
-    OKJSongbookAPI *getSongbookApiObject();
-    void refreshRequests();
-
-signals:
-    void updateReceived(QTime);
-    void authenticationError();
-    void sslError();
-    void delayError(int);
-    void acceptingReceived(bool);
-    void venuesChanged();
 
 private slots:
-    void timerExpired();
-    void onNetworkReply(QNetworkReply* reply);
-    void onSslErrors(QNetworkReply * reply);
-    void requestServerVenueChanged(int venueId);
-
+    void requestsChanged(OkjsRequests requests);
 };
 
 #endif // REQUESTSTABLEMODEL_H

@@ -389,7 +389,7 @@
        <item>
         <widget class="QLabel" name="label_2">
          <property name="text">
-          <string>Last update:</string>
+          <string>Last sync:</string>
          </property>
         </widget>
        </item>

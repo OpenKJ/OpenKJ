@@ -46,7 +46,6 @@ private:
     DbItemDelegate *dbDelegate;
     RotationModel *rotModel;
     DlgCdgPreview *cdgPreviewDialog;
-    bool setupDone;
 
 public:
     explicit DlgRequests(RotationModel *rotationModel, QWidget *parent = 0);
@@ -69,13 +68,12 @@ private slots:
     void on_tableViewSearch_customContextMenuRequested(const QPoint &pos);
     void updateReceived(QTime updateTime);
     void on_buttonRefresh_clicked();
-    void authError();
     void sslError();
     void delayError(int seconds);
     void on_checkBoxAccepting_clicked(bool checked);
-    void on_comboBoxVenue_currentIndexChanged(int index);
-    void venuesChanged();
+    void venuesChanged(OkjsVenues venues);
     void on_pushButtonUpdateDb_clicked();
+    void on_comboBoxVenue_activated(int index);
 };
 
 #endif // KHREQUESTSDIALOG_H

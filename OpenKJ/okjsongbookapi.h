@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QUrl>
 #include <QDebug>
+#include <QTimer>
 
 
 class OkjsRequest
@@ -15,6 +16,7 @@ public:
     QString artist;
     QString title;
     int time;
+    bool operator == (const OkjsRequest r) const;
 };
 
 
@@ -38,38 +40,43 @@ class OKJSongbookAPI : public QObject
 {
     Q_OBJECT
 private:
-    QString apiKey;
     int serial;
-    QUrl serverUrl;
     OkjsVenues venues;
+    OkjsRequests requests;
     QNetworkAccessManager *manager;
+    QTimer *timer;
+    QTime lastSync;
+    bool delayErrorEmitted;
+    bool connectionReset;
 
 public:
     explicit OKJSongbookAPI(QObject *parent = 0);
-    int getSerial();
-    OkjsRequests refreshRequests();
+    void getSerial();
+    void refreshRequests();
     void removeRequest(int requestId);
-    bool requestsEnabled();
-    void setRequestsEnabled(bool enabled);
-    void setApiKey(QString apiKey);
-    OkjsVenues refreshVenues();
-    OkjsVenues getVenues();
+    bool getAccepting();
+    void setAccepting(bool enabled);
+    void refreshVenues(bool blocking = false);
     void clearRequests();
     void updateSongDb();
 
 signals:
-    void serialChanged();
-    void venuesChanged();
+    void venuesChanged(OkjsVenues);
     void sslError();
     void remoteSongDbUpdateProgress(int);
     void remoteSongDbUpdateNumDocs(int);
     void remoteSongDbUpdateDone();
     void remoteSongDbUpdateStart();
+    void requestsChanged(OkjsRequests);
+    void synchronized(QTime);
+    void delayError(int);
 
 public slots:
 
 private slots:
         void onSslErrors(QNetworkReply * reply, QList<QSslError> errors);
+        void onNetworkReply(QNetworkReply* reply);
+        void timerTimeout();
 };
 
 #endif // OKJSONGBOOKAPI_H

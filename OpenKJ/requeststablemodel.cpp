@@ -20,13 +20,6 @@
 
 #include "requeststablemodel.h"
 #include <QDebug>
-#include <QUrl>
-#include <QNetworkRequest>
-#include <QNetworkReply>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonValue>
-#include <QJsonArray>
 #include <QDateTime>
 #include "settings.h"
 
@@ -37,195 +30,29 @@ extern OKJSongbookAPI *songbookApi;
 RequestsTableModel::RequestsTableModel(QObject *parent) :
     QAbstractTableModel(parent)
 {
-    networkManager = new QNetworkAccessManager(this);
-    m_clearingCache = false;
-    m_connectionReset = false;
-    m_delayWarningShown = false;
-    timer = new QTimer(this);
-    timer->setInterval(10000);
-    timer->start();
-    if (settings->requestServerEnabled())
-        timerExpired();
-    connect(timer, SIGNAL(timeout()), this, SLOT(timerExpired()));
-    connect(networkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
-    connect(networkManager, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(onSslErrors(QNetworkReply*)));
-//    songbookApi = new OKJSongbookAPI(this);
-    connect(songbookApi, SIGNAL(sslError()), this, SIGNAL(sslError()));
-    connect(settings, SIGNAL(requestServerVenueChanged(int)), this, SLOT(requestServerVenueChanged(int)));
-    curSerial = 0;
+    connect(songbookApi, SIGNAL(requestsChanged(OkjsRequests)), this, SLOT(requestsChanged(OkjsRequests)));
 }
 
-void RequestsTableModel::timerExpired()
+void RequestsTableModel::requestsChanged(OkjsRequests requests)
 {
-    if (settings->requestServerEnabled())
+    emit layoutAboutToBeChanged();
+    m_requests.clear();
+    for (int i=0; i < requests.size(); i++)
     {
-        qWarning() << "RequestsClient - Seconds since last update: " << m_lastUpdate.secsTo(QTime::currentTime());
-        if ((m_lastUpdate.secsTo(QTime::currentTime()) > 300) && (!m_delayWarningShown))
-        {
-            emit delayError(m_lastUpdate.secsTo(QTime::currentTime()));
-            m_delayWarningShown = true;
-        }
-        else if ((m_lastUpdate.secsTo(QTime::currentTime()) > 200) && (!m_connectionReset))
-        {
-            forceFullUpdate();
-            m_connectionReset = true;
-        }
-        else
-        {
-            m_connectionReset = false;
-            m_delayWarningShown = false;
-        }
-        int serial = songbookApi->getSerial();
-        if (serial > 0)
-        {
-            m_lastUpdate = QTime::currentTime();
-            emit updateReceived(m_lastUpdate);
-        }
-        qWarning() << "RequestsClient -" << QTime::currentTime().toString() << " - Sending request for current serial";
-        qWarning() << "SongbookAPI returned serial: " << serial;
-        if (curSerial != serial)
-        {
-            qWarning() << "Serial changed, refreshing requests";
-            // refresh all the things
-            refreshRequests();
-            curSerial = serial;
-            OkjsVenues venues = songbookApi->refreshVenues();
-            if (m_venues != venues)
-            {
-                emit venuesChanged();
-                m_venues = venues;
-            }
-        }
+        int index = requests.at(i).requestId;
+        QString singer = requests.at(i).singer;
+        QString artist = requests.at(i).artist;
+        QString title = requests.at(i).title;
+        int reqtime = requests.at(i).time;
+        m_requests << Request(index,singer,artist,title,reqtime);
     }
-}
-
-void RequestsTableModel::onNetworkReply(QNetworkReply *reply)
-{
-    if (settings->requestServerIgnoreCertErrors())
-        reply->ignoreSslErrors();
-    if (reply->error() != QNetworkReply::NoError)
-    {
-        qDebug() << reply->errorString();
-        //output some meaningful error msg
-        return;
-    }
-    QByteArray data = reply->readAll();
-    QJsonDocument json = QJsonDocument::fromJson(data);
-
-    int recordType = json.object().value("recordtype").toDouble();
-    int serial = json.object().value("serial").toDouble();
-    qDebug() << "RequestsClient -" << QTime::currentTime().toString() <<  " - Received reply from server";
-    m_lastUpdate = QTime::currentTime();
-    emit updateReceived(m_lastUpdate);
-    if (recordType == 0)
-    {
-        //serial only
-        if (curSerial != serial)
-        {
-            qDebug() << "RequestsClient - Received serial - " << curSerial << " != " << serial << " - Serial mismatch.  Requesting full list.";
-            QUrl url(settings->requestServerUrl() + "/getRequests.php");
-            QNetworkRequest request;
-            request.setUrl(url);
-            request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
-            networkManager->get(request);
-        }
-        else
-        {
-            qDebug() << "RequestsClient - Received serial - " << serial << " - Serials match.";
-        }
-    }
-    else if (recordType == 1)
-    {
-        qDebug() << "RequestsClient - Recieved full list";
-        curSerial = serial;
-        QJsonArray reqArray = json.object().value("requests").toArray();
-        emit layoutAboutToBeChanged();
-        requests.clear();
-        for (int i=0; i < reqArray.size(); i++)
-        {
-            QString artist = reqArray.at(i).toObject().value("artist").toString();
-            QString title = reqArray.at(i).toObject().value("title").toString();
-            QString singer = reqArray.at(i).toObject().value("singer").toString();
-            int index = reqArray.at(i).toObject().value("id").toDouble();
-            int reqtime = reqArray.at(i).toObject().value("reqtime").toDouble();
-            requests << Request(index,singer,artist,title,reqtime);
-        }
-        emit layoutChanged();
-        getAccepting();
-    }
-    else if (recordType == 2)
-    {
-        curSerial = serial;
-        int reqID = json.object().value("delreq").toDouble();
-        qDebug() << "RequestsClient - Received delete for request " << reqID << " - Removing request";
-        int delIndex = -1;
-        for (int i=0; i < requests.size(); i++)
-        {
-            if (requests.at(i).requestId() == reqID)
-                delIndex = i;
-        }
-        if (delIndex != -1)
-        {
-            emit layoutAboutToBeChanged();
-            requests.removeAt(delIndex);
-            emit layoutChanged();
-        }
-        // Go ahead and force a full download.  Occasionally new requests are being missed if they're
-        // entered at just the right time while deleting a request or clearing the requests.
-        QUrl url(settings->requestServerUrl() + "/getRequests.php");
-        QNetworkRequest request;
-        request.setUrl(url);
-        request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
-        networkManager->get(request);
-    }
-    else if (recordType == 3)
-    {
-        emit layoutAboutToBeChanged();
-        qDebug() << "RequestsClient - Received clear - clearing all requests - new serial " << serial;
-        curSerial = serial;
-        requests.clear();
-        emit layoutChanged();
-        // Go ahead and force a full download.  Occasionally new requests are being missed if they're
-        // entered at just the right time while deleting a request or clearing the requests.
-        QUrl url(settings->requestServerUrl() + "/getRequests.php");
-        QNetworkRequest request;
-        request.setUrl(url);
-        request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
-        networkManager->get(request);
-    }
-    else if (recordType == 4)
-    {
-        bool accepting = json.object().value("accepting").toBool();
-        emit acceptingReceived(accepting);
-    }
-}
-
-void RequestsTableModel::onSslErrors(QNetworkReply *reply)
-{
-    static QString lastUrl;
-    static bool errorEmitted = false;
-    if (lastUrl != settings->requestServerUrl())
-        errorEmitted = false;
-    if (settings->requestServerIgnoreCertErrors())
-        reply->ignoreSslErrors();
-    else if (!errorEmitted)
-    {
-        emit sslError();
-        errorEmitted = true;
-
-    }
-    lastUrl = settings->requestServerUrl();
-}
-
-void RequestsTableModel::requestServerVenueChanged(int venueId)
-{
-    refreshRequests();
+    emit layoutChanged();
 }
 
 int RequestsTableModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    return requests.size();
+    return m_requests.size();
 }
 
 int RequestsTableModel::columnCount(const QModelIndex &parent) const
@@ -239,7 +66,7 @@ QVariant RequestsTableModel::data(const QModelIndex &index, int role) const
     if(!index.isValid())
         return QVariant();
 
-    if(index.row() >= requests.size() || index.row() < 0)
+    if(index.row() >= m_requests.size() || index.row() < 0)
         return QVariant();
     if ((index.column() == 5) && (role == Qt::DecorationRole))
     {
@@ -251,16 +78,16 @@ QVariant RequestsTableModel::data(const QModelIndex &index, int role) const
         switch(index.column())
         {
         case REQUESTID:
-            return QString::number(requests.at(index.row()).requestId());
+            return QString::number(m_requests.at(index.row()).requestId());
         case SINGER:
-            return requests.at(index.row()).singer();
+            return m_requests.at(index.row()).singer();
         case ARTIST:
-            return requests.at(index.row()).artist();
+            return m_requests.at(index.row()).artist();
         case TITLE:
-            return requests.at(index.row()).title();
+            return m_requests.at(index.row()).title();
         case TIMESTAMP:
             QDateTime ts;
-            ts.setTime_t(requests.at(index.row()).timeStamp());
+            ts.setTime_t(m_requests.at(index.row()).timeStamp());
             return ts.toString("M-d-yy h:mm ap");
         }
     }
@@ -294,70 +121,9 @@ Qt::ItemFlags RequestsTableModel::flags(const QModelIndex &index) const
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
 
-OKJSongbookAPI *RequestsTableModel::getSongbookApiObject()
-{
-    return songbookApi;
-}
-
-bool RequestsTableModel::getAccepting()
-{
-    return songbookApi->requestsEnabled();
-}
-
-void RequestsTableModel::refreshRequests()
-{
-    emit layoutAboutToBeChanged();
-    requests.clear();
-    OkjsRequests l_requests = songbookApi->refreshRequests();
-    for (int i=0; i < l_requests.size(); i++)
-    {
-        int index = l_requests.at(i).requestId;
-        QString singer = l_requests.at(i).singer;
-        QString artist = l_requests.at(i).artist;
-        QString title = l_requests.at(i).title;
-        int reqtime = l_requests.at(i).time;
-        requests << Request(index,singer,artist,title,reqtime);
-    }
-    emit layoutChanged();
-    emit acceptingReceived(songbookApi->requestsEnabled());
-}
-
-void RequestsTableModel::deleteAll()
-{
-    qDebug() << "RequestsClient - " << QTime::currentTime().toString() << " - Requesting clear all";
-    QUrl url(settings->requestServerUrl() + "/clearRequests.php");
-    QNetworkRequest request;
-    request.setUrl(url);
-    request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
-    networkManager->get(request);
-}
-
-void RequestsTableModel::deleteRequestId(int requestId)
-{
-    qDebug() << "RequestsClient - " << QTime::currentTime().toString() << " - Requesting delete for request id: " << requestId;
-    songbookApi->removeRequest(requestId);
-    refreshRequests();
-}
-
 int RequestsTableModel::count()
 {
-    return requests.count();
-}
-
-QTime RequestsTableModel::lastUpdate()
-{
-    return m_lastUpdate;
-}
-
-void RequestsTableModel::forceFullUpdate()
-{
-    refreshRequests();
-}
-
-void RequestsTableModel::setAccepting(bool accepting)
-{
-    songbookApi->setRequestsEnabled(accepting);
-    emit acceptingReceived(getAccepting());
+    return m_requests.count();
 }
 
 Request::Request(int RequestId, QString Singer, QString Artist, QString Title, int ts)

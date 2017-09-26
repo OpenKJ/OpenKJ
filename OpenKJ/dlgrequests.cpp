@@ -33,7 +33,6 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DlgRequests)
 {
-    setupDone = false;
     ui->setupUi(this);
     requestsModel = new RequestsTableModel(this);
     dbModel = new DbTableModel(this);
@@ -48,14 +47,11 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     cdgPreviewDialog = new DlgCdgPreview(this);
     ui->groupBoxAddSong->setDisabled(true);
     ui->groupBoxSongDb->setDisabled(true);
-    requestsModel->getAccepting();
     connect(ui->treeViewRequests->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(requestSelectionChanged(QItemSelection,QItemSelection)));
     connect(ui->tableViewSearch->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(songSelectionChanged(QItemSelection,QItemSelection)));
-    connect(requestsModel, SIGNAL(updateReceived(QTime)), this, SLOT(updateReceived(QTime)));
-    connect(requestsModel, SIGNAL(authenticationError()), this, SLOT(authError()));
-    connect(requestsModel, SIGNAL(sslError()), this, SLOT(sslError()));
-    connect(requestsModel, SIGNAL(delayError(int)), this, SLOT(delayError(int)));
-    connect(requestsModel, SIGNAL(acceptingReceived(bool)), ui->checkBoxAccepting, SLOT(setChecked(bool)));
+    connect(songbookApi, SIGNAL(synchronized(QTime)), this, SLOT(updateReceived(QTime)));
+    connect(songbookApi, SIGNAL(sslError()), this, SLOT(sslError()));
+    connect(songbookApi, SIGNAL(delayError(int)), this, SLOT(delayError(int)));
     rotModel = rotationModel;
     ui->comboBoxAddPosition->setEnabled(false);
     ui->comboBoxSingers->setEnabled(true);
@@ -73,10 +69,7 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     ui->tableViewSearch->hideColumn(5);
     ui->tableViewSearch->hideColumn(6);
     ui->tableViewSearch->horizontalHeader()->resizeSection(4,75);
-    venuesChanged();
-    setupDone = true;
-    connect(requestsModel, SIGNAL(venuesChanged()), this, SLOT(venuesChanged()));
-
+    connect(songbookApi, SIGNAL(venuesChanged(OkjsVenues)), this, SLOT(venuesChanged(OkjsVenues)));
 }
 
 DlgRequests::~DlgRequests()
@@ -184,8 +177,12 @@ void DlgRequests::on_pushButtonClearReqs_clicked()
     msgBox.exec();
     if (msgBox.clickedButton() == yesButton)
     {
-        requestsModel->getSongbookApiObject()->clearRequests();
-        requestsModel->refreshRequests();
+        ui->treeViewRequests->selectionModel()->clearSelection();
+        ui->lineEditSearch->clear();
+        ui->lineEditSingerName->clear();
+        ui->comboBoxSingers->clear();
+        ui->radioButtonExistingSinger->setChecked(true);
+        songbookApi->clearRequests();
     }
 }
 
@@ -193,7 +190,7 @@ void DlgRequests::on_treeViewRequests_clicked(const QModelIndex &index)
 {
     if (index.column() == 5)
     {
-        requestsModel->deleteRequestId(index.sibling(index.row(),0).data().toInt());
+        songbookApi->removeRequest(index.sibling(index.row(),0).data().toInt());
         ui->treeViewRequests->selectionModel()->clearSelection();
         ui->lineEditSearch->clear();
         ui->lineEditSingerName->clear();
@@ -257,12 +254,8 @@ void DlgRequests::updateReceived(QTime updateTime)
 
 void DlgRequests::on_buttonRefresh_clicked()
 {
-    requestsModel->forceFullUpdate();
-}
-
-void DlgRequests::authError()
-{
-    QMessageBox::warning(this, "Authentication Error", "An authentication error was encountered while trying to connect to the requests server.  Please verify that your username, password, and the requests server URL are correct.");
+    songbookApi->refreshRequests();
+    songbookApi->refreshVenues();
 }
 
 void DlgRequests::sslError()
@@ -277,26 +270,15 @@ void DlgRequests::delayError(int seconds)
 
 void DlgRequests::on_checkBoxAccepting_clicked(bool checked)
 {
-    requestsModel->setAccepting(checked);
+    songbookApi->setAccepting(checked);
 }
 
-void DlgRequests::on_comboBoxVenue_currentIndexChanged(int index)
+void DlgRequests::venuesChanged(OkjsVenues venues)
 {
-    if (setupDone)
-    {
-        int venue = ui->comboBoxVenue->itemData(index).toInt();
-        settings->setRequestServerVenue(venue);
-        qWarning() << "Set venue_id to " << venue;
-        qWarning() << "Settings now reporting venue as " << settings->requestServerVenue();
-    }
-}
-
-void DlgRequests::venuesChanged()
-{
-    ui->comboBoxVenue->clear();
+    qWarning() << "Received venues: " << venues;
     int venue = settings->requestServerVenue();
+    ui->comboBoxVenue->clear();
     int selItem = 0;
-    OkjsVenues venues = requestsModel->getSongbookApiObject()->getVenues();
     for (int i=0; i < venues.size(); i++)
     {
         ui->comboBoxVenue->addItem(venues.at(i).name, venues.at(i).venueId);
@@ -308,7 +290,7 @@ void DlgRequests::venuesChanged()
     }
     ui->comboBoxVenue->setCurrentIndex(selItem);
     settings->setRequestServerVenue(ui->comboBoxVenue->itemData(selItem).toInt());
-    ui->checkBoxAccepting->setChecked(requestsModel->getAccepting());
+    ui->checkBoxAccepting->setChecked(songbookApi->getAccepting());
 }
 
 void DlgRequests::on_pushButtonUpdateDb_clicked()
@@ -326,4 +308,14 @@ void DlgRequests::on_pushButtonUpdateDb_clicked()
 //    progressDialog->show();
     songbookApi->updateSongDb();
     progressDialog->close();
+}
+
+void DlgRequests::on_comboBoxVenue_activated(int index)
+{
+    int venue = ui->comboBoxVenue->itemData(index).toInt();
+    settings->setRequestServerVenue(venue);
+    songbookApi->refreshRequests();
+    ui->checkBoxAccepting->setChecked(songbookApi->getAccepting());
+    qWarning() << "Set venue_id to " << venue;
+    qWarning() << "Settings now reporting venue as " << settings->requestServerVenue();
 }
