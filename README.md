@@ -31,14 +31,9 @@ Database entries for the songs are based on the file naming scheme.  I've includ
 OpenKJ is experimental but usable at this point.  I am using it to run my shows, but if you do so and it kills kittens or eats your firstborn don't come screaming at me ;) Some features are still incomplete. To any other developers looking at this code, please don't laugh too hard, as I'm self taught primarily for the purpose of writing this.  Well, okay, you can laugh, but only if you're willing to fix the code that you're making fun of ;)
 
 **Screenshots**
-
-![Karaoke screen shot](https://openkj.org/screenshots/okjlinux-0.10.1-karaoke.png "Main OpenKJ Window - Karaoke")
-
-![Break music screen shot](https://openkj.org/screenshots/okjlinux-0.10.1-breakmusic.png "Main OpenKJ Window - Break Music")
-
-![Full screen CDG Display](https://openkj.org/screenshots/KhCDGWindowFullScreen.png "Fullscreen CDG Display")
-
-
+  
+See https://openkj.org  
+  
 **Requirements to build OpenKJ:**
 
 * Qt 5.x
