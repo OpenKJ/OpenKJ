@@ -124,28 +124,29 @@ void DlgDatabase::on_buttonUpdate_clicked()
 {
     if (selectedRow >= 0)
     {
-        DbUpdateThread updateThread(this);
+        DbUpdateThread *updateThread = new DbUpdateThread(this);
         QMessageBox msgBox;
         msgBox.setStandardButtons(0);
         msgBox.setText("Updating Database, please wait...");
         msgBox.show();
         QApplication::processEvents();
-        updateThread.setPath(sourcedirmodel->getDirByIndex(selectedRow)->getPath());
-        updateThread.setPattern(sourcedirmodel->getDirByIndex(selectedRow)->getPattern());
-        updateThread.start();
-        while (updateThread.isRunning())
+        updateThread->setPath(sourcedirmodel->getDirByIndex(selectedRow)->getPath());
+        updateThread->setPattern(sourcedirmodel->getDirByIndex(selectedRow)->getPattern());
+        updateThread->start();
+        while (updateThread->isRunning())
         {
             QApplication::processEvents();
         }
         emit databaseUpdated();
         msgBox.hide();
+        showDbUpdateErrors(updateThread->getErrors());
         QMessageBox::information(this, "Update Complete", "Database update complete.");
     }
 }
 
 void DlgDatabase::on_buttonUpdateAll_clicked()
 {
-    DbUpdateThread updateThread(this);
+    DbUpdateThread *updateThread = new DbUpdateThread(this);
     QMessageBox msgBox;
     msgBox.setStandardButtons(0);
     msgBox.setText("Updating Database, please wait...");
@@ -153,10 +154,10 @@ void DlgDatabase::on_buttonUpdateAll_clicked()
     for (int i=0; i < sourcedirmodel->size(); i++)
     {
         msgBox.setInformativeText("Processing path: " + sourcedirmodel->getDirByIndex(i)->getPath());
-        updateThread.setPath(sourcedirmodel->getDirByIndex(i)->getPath());
-        updateThread.setPattern(sourcedirmodel->getDirByIndex(i)->getPattern());
-        updateThread.start();
-        while (updateThread.isRunning())
+        updateThread->setPath(sourcedirmodel->getDirByIndex(i)->getPath());
+        updateThread->setPattern(sourcedirmodel->getDirByIndex(i)->getPattern());
+        updateThread->start();
+        while (updateThread->isRunning())
         {
             QApplication::processEvents();
         }
@@ -164,7 +165,9 @@ void DlgDatabase::on_buttonUpdateAll_clicked()
     msgBox.setInformativeText("Reloading song database into cache");
     emit databaseUpdated();
     msgBox.hide();
+    showDbUpdateErrors(updateThread->getErrors());
     QMessageBox::information(this, "Update Complete", "Database update complete.");
+    delete(updateThread);
 }
 
 void DlgDatabase::on_btnClearDatabase_clicked()
@@ -190,6 +193,20 @@ void DlgDatabase::on_btnClearDatabase_clicked()
 
 void DlgDatabase::dbupdate_thread_finished()
 {
+}
+
+void DlgDatabase::showDbUpdateErrors(QStringList errors)
+{
+    if (errors.count() > 0)
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Some files were skipped due to problems");
+        msgBox.setDetailedText(errors.join("\n"));
+        QSpacerItem* horizontalSpacer = new QSpacerItem(600, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+        QGridLayout* layout = (QGridLayout*)msgBox.layout();
+        layout->addItem(horizontalSpacer, layout->rowCount(), 0, 1, layout->columnCount());
+        msgBox.exec();
+    }
 }
 
 void DlgDatabase::on_btnCustomPatterns_clicked()

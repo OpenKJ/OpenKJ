@@ -40,9 +40,11 @@ public:
     int getPattern() const;
     void setPattern(int value);
     QStringList findKaraokeFiles(QString directory);
+    QStringList getErrors();
 
 signals:
     void threadFinished();
+    void errorsGenerated(QStringList);
 
 };
 

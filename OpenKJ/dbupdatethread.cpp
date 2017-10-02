@@ -33,6 +33,7 @@
 int g_pattern;
 int g_customPatternId, g_artistCaptureGrp, g_titleCaptureGrp, g_discIdCaptureGrp;
 QString g_artistRegex, g_titleRegex, g_discIdRegex;
+QStringList errors;
 
 DbUpdateThread::DbUpdateThread(QObject *parent) :
     QThread(parent)
@@ -82,18 +83,41 @@ QStringList DbUpdateThread::findKaraokeFiles(QString directory)
     return files;
 }
 
+QMutex errorMutex;
+QStringList DbUpdateThread::getErrors()
+{
+    QStringList l_errors = errors;
+    errorMutex.lock();
+    errors.clear();
+    errorMutex.unlock();
+    return l_errors;
+}
+
 QMutex kDbMutex;
 int processKaraokeFile(QString fileName)
 {
     int duration = 0;
     // make sure the file is a valid karaoke file
+#ifdef Q_OS_WIN
+    if (fileName.contains("*") || fileName.contains(":") || fileName.contains("?") || fileName.contains("<") || fileName.contains(">") || fileName.contains("|"))
+    {
+        // illegal character
+        errorMutex.lock();
+        errors.append("Illegal character in filename: " + fileName);
+        errorMutex.unlock();
+        return -1;
+    }
+#endif
     if (fileName.endsWith(".zip", Qt::CaseInsensitive))
     {
         OkArchive archive(fileName);
         if (!archive.isValidKaraokeFile())
         {
             qWarning() << "File is not a valid karaoke file: " << fileName;
-            return 0;
+            errorMutex.lock();
+            errors.append("Bad or invalid karaoke file: " + fileName);
+            errorMutex.unlock();
+            return -1;
         }
         else duration = archive.getSongDuration();
     }
@@ -105,7 +129,10 @@ int processKaraokeFile(QString fileName)
         if ((!QFile::exists(baseFn + "mp3")) && (!QFile::exists(baseFn + "Mp3")) && (!QFile::exists(baseFn + "MP3")) && (!QFile::exists(baseFn + "mP3")))
         {
             qWarning() << "No matching mp3 file for CDG file: " << fileName;
-            return 0;
+            errorMutex.lock();
+            errors.append("Missing CDG file for mp3 file: " + fileName);
+            errorMutex.unlock();
+            return -1;
         }
         duration = ((QFile(fileName).size() / 96) / 75) * 1000;
     }
@@ -113,9 +140,16 @@ int processKaraokeFile(QString fileName)
     {
         TagReader reader;
         reader.setMedia(fileName);
-        try {
-        duration = reader.getDuration();
-        } catch (...){}
+        try
+        {
+            duration = reader.getDuration();
+        }
+        catch (...)
+        {
+            errorMutex.lock();
+            errors.append("Unable to get duration for file: " + fileName);
+            errorMutex.unlock();
+        }
     }
     QSqlQuery query;
     QString artist;
@@ -199,7 +233,6 @@ void DbUpdateThread::setPath(const QString &value)
 
 void DbUpdateThread::run()
 {
-
     if (pattern == SourceDir::CUSTOM)
     {
     QSqlQuery query;
@@ -230,4 +263,8 @@ void DbUpdateThread::run()
     QSqlQuery query("BEGIN TRANSACTION");
     QtConcurrent::blockingMap(files, processKaraokeFile);
     query.exec("COMMIT TRANSACTION");
+    if (errors.size() > 0)
+    {
+        emit errorsGenerated(errors);
+    }
 }

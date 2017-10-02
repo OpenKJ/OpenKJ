@@ -58,7 +58,7 @@ private slots:
     void on_buttonUpdate_clicked();
     void on_btnClearDatabase_clicked();
     void dbupdate_thread_finished();
-
+    void showDbUpdateErrors(QStringList errors);
     void on_btnCustomPatterns_clicked();
 };
 
