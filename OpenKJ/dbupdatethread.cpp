@@ -97,7 +97,6 @@ QMutex kDbMutex;
 int processKaraokeFile(QString fileName)
 {
     int duration = 0;
-    // make sure the file is a valid karaoke file
 #ifdef Q_OS_WIN
     if (fileName.contains("*") || fileName.contains(":") || fileName.contains("?") || fileName.contains("<") || fileName.contains(">") || fileName.contains("|"))
     {
@@ -113,7 +112,6 @@ int processKaraokeFile(QString fileName)
         OkArchive archive(fileName);
         if (!archive.isValidKaraokeFile())
         {
-            qWarning() << "File is not a valid karaoke file: " << fileName;
             errorMutex.lock();
             errors.append("Bad or invalid karaoke file: " + fileName);
             errorMutex.unlock();
@@ -128,7 +126,6 @@ int processKaraokeFile(QString fileName)
         QString mp3Fn;
         if ((!QFile::exists(baseFn + "mp3")) && (!QFile::exists(baseFn + "Mp3")) && (!QFile::exists(baseFn + "MP3")) && (!QFile::exists(baseFn + "mP3")))
         {
-            qWarning() << "No matching mp3 file for CDG file: " << fileName;
             errorMutex.lock();
             errors.append("Missing CDG file for mp3 file: " + fileName);
             errorMutex.unlock();
@@ -235,29 +232,25 @@ void DbUpdateThread::run()
 {
     if (pattern == SourceDir::CUSTOM)
     {
-    QSqlQuery query;
-    query.exec("SELECT custompattern FROM sourcedirs WHERE path == \"" + path + "\"" );
-    if (query.first())
-        g_customPatternId = query.value(0).toInt();
-    if (g_customPatternId < 1)
-    {
-        qCritical() << "Custom pattern set for path, but pattern ID is invalid!  Bailing out!";
-        return;
-    }
-    query.exec("SELECT * FROM custompatterns WHERE patternid == " + QString::number(g_customPatternId));
-    if (query.first())
-    {
-        g_artistRegex = query.value("artistregex").toString();
-        g_titleRegex  = query.value("titleregex").toString();
-        g_discIdRegex = query.value("discidregex").toString();
-        g_artistCaptureGrp = query.value("artistcapturegrp").toInt();
-        g_titleCaptureGrp  = query.value("titlecapturegrp").toInt();
-        g_discIdCaptureGrp = query.value("discidcapturegrp").toInt();
-    }
-    qWarning() << "We are woking with a custom regex pattern";
-    qWarning() << "artistRegex: " << g_artistRegex << " Group: " << g_artistCaptureGrp;
-    qWarning() << "titleRegex:  " << g_titleRegex  << " Group: " << g_titleCaptureGrp;
-    qWarning() << "discidRegex: " << g_discIdRegex << " Group: " << g_discIdCaptureGrp;
+        QSqlQuery query;
+        query.exec("SELECT custompattern FROM sourcedirs WHERE path == \"" + path + "\"" );
+        if (query.first())
+            g_customPatternId = query.value(0).toInt();
+        if (g_customPatternId < 1)
+        {
+            qCritical() << "Custom pattern set for path, but pattern ID is invalid!  Bailing out!";
+            return;
+        }
+        query.exec("SELECT * FROM custompatterns WHERE patternid == " + QString::number(g_customPatternId));
+        if (query.first())
+        {
+            g_artistRegex = query.value("artistregex").toString();
+            g_titleRegex  = query.value("titleregex").toString();
+            g_discIdRegex = query.value("discidregex").toString();
+            g_artistCaptureGrp = query.value("artistcapturegrp").toInt();
+            g_titleCaptureGrp  = query.value("titlecapturegrp").toInt();
+            g_discIdCaptureGrp = query.value("discidcapturegrp").toInt();
+        }
     }
     QStringList files = findKaraokeFiles(path);
     QSqlQuery query("BEGIN TRANSACTION");
