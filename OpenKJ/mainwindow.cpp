@@ -388,10 +388,8 @@ void MainWindow::play(QString karaokeFilePath)
         if (settings->recordingEnabled())
         {
             qWarning() << "Starting recording";
-            QString singerName = ui->labelSinger->text();
-            QString artist = ui->labelArtist->text();
-            QString title = ui->labelTitle->text();
-            audioRecorder->record(curSinger + " - " + curArtist + " - " + curTitle);
+            QString timeStamp = QDateTime::currentDateTime().toString("yyyy-MM-dd-hhmm");
+            audioRecorder->record(curSinger + " - " + curArtist + " - " + curTitle + " - " + timeStamp);
         }
     }
     else if (kAudioBackend->state() == AbstractAudioBackend::PausedState)
