@@ -295,19 +295,28 @@ void DlgRequests::venuesChanged(OkjsVenues venues)
 
 void DlgRequests::on_pushButtonUpdateDb_clicked()
 {
-    QProgressDialog *progressDialog = new QProgressDialog(this);
-    progressDialog->setCancelButton(0);
-    progressDialog->setMinimum(0);
-    progressDialog->setMaximum(20);
-    progressDialog->setValue(0);
-    progressDialog->setLabelText("Updating request server song database");
-    progressDialog->show();
-    QApplication::processEvents();
-    connect(songbookApi, SIGNAL(remoteSongDbUpdateNumDocs(int)), progressDialog, SLOT(setMaximum(int)));
-    connect(songbookApi, SIGNAL(remoteSongDbUpdateProgress(int)), progressDialog, SLOT(setValue(int)));
-//    progressDialog->show();
-    songbookApi->updateSongDb();
-    progressDialog->close();
+    QMessageBox msgBox;
+    msgBox.setText("Are you sure?");
+    msgBox.setInformativeText("This operation can take serveral minutes depending on the size of your song database and the speed of your internet connection.");
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::Cancel);
+    int ret = msgBox.exec();
+    if (ret == QMessageBox::Yes)
+    {
+        QProgressDialog *progressDialog = new QProgressDialog(this);
+        progressDialog->setCancelButton(0);
+        progressDialog->setMinimum(0);
+        progressDialog->setMaximum(20);
+        progressDialog->setValue(0);
+        progressDialog->setLabelText("Updating request server song database");
+        progressDialog->show();
+        QApplication::processEvents();
+        connect(songbookApi, SIGNAL(remoteSongDbUpdateNumDocs(int)), progressDialog, SLOT(setMaximum(int)));
+        connect(songbookApi, SIGNAL(remoteSongDbUpdateProgress(int)), progressDialog, SLOT(setValue(int)));
+        //    progressDialog->show();
+        songbookApi->updateSongDb();
+        progressDialog->close();
+    }
 }
 
 void DlgRequests::on_comboBoxVenue_activated(int index)
