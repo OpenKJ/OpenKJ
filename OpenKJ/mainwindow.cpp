@@ -481,34 +481,53 @@ void MainWindow::on_tableViewDB_activated(const QModelIndex &index)
 
 void MainWindow::on_buttonAddSinger_clicked()
 {
-    if (ui->editAddSinger->text() == "")
-        return;
-    rotModel->singerAdd(ui->editAddSinger->text());
-    if (rotModel->currentSinger() != -1)
+    if (rotModel->singerExists(ui->editAddSinger->text()))
     {
-        int curSingerPos = rotModel->getSingerPosition(rotModel->currentSinger());
-        if (ui->cbxSingerAddPos->currentIndex() == 2)
-            rotModel->singerMove(rotModel->rowCount() -1, curSingerPos + 1);
-        else if ((ui->cbxSingerAddPos->currentIndex() == 0) && (curSingerPos != 0))
-            rotModel->singerMove(rotModel->rowCount() -1, curSingerPos);
+        QMessageBox msgBox;
+        msgBox.setText("A singer by that name already exists.");
+        msgBox.exec();
     }
-    ui->editAddSinger->clear();
+    else
+    {
+        if (ui->editAddSinger->text() == "")
+            return;
+        rotModel->singerAdd(ui->editAddSinger->text());
+        if (rotModel->currentSinger() != -1)
+        {
+            int curSingerPos = rotModel->getSingerPosition(rotModel->currentSinger());
+            if (ui->cbxSingerAddPos->currentIndex() == 2)
+                rotModel->singerMove(rotModel->rowCount() -1, curSingerPos + 1);
+            else if ((ui->cbxSingerAddPos->currentIndex() == 0) && (curSingerPos != 0))
+                rotModel->singerMove(rotModel->rowCount() -1, curSingerPos);
+        }
+        ui->editAddSinger->clear();
+    }
 }
 
 void MainWindow::on_editAddSinger_returnPressed()
 {
-    if (ui->editAddSinger->text() == "")
-        return;
-    rotModel->singerAdd(ui->editAddSinger->text());
-    if (rotModel->currentSinger() != -1)
+    if (rotModel->singerExists(ui->editAddSinger->text()))
     {
-        int curSingerPos = rotModel->getSingerPosition(rotModel->currentSinger());
-        if (ui->cbxSingerAddPos->currentIndex() == 2)
-            rotModel->singerMove(rotModel->rowCount() -1, curSingerPos + 1);
-        else if ((ui->cbxSingerAddPos->currentIndex() == 0) && (curSingerPos != 0))
-            rotModel->singerMove(rotModel->rowCount() -1, curSingerPos);
+        QMessageBox msgBox;
+        msgBox.setText("A singer by that name already exists.");
+        msgBox.exec();
     }
-    ui->editAddSinger->clear();
+    else
+    {
+        if (ui->editAddSinger->text() == "")
+            return;
+        rotModel->singerAdd(ui->editAddSinger->text());
+        if (rotModel->currentSinger() != -1)
+        {
+            int curSingerPos = rotModel->getSingerPosition(rotModel->currentSinger());
+            if (ui->cbxSingerAddPos->currentIndex() == 2)
+                rotModel->singerMove(rotModel->rowCount() -1, curSingerPos + 1);
+            else if ((ui->cbxSingerAddPos->currentIndex() == 0) && (curSingerPos != 0))
+                rotModel->singerMove(rotModel->rowCount() -1, curSingerPos);
+        }
+        ui->editAddSinger->clear();
+
+    }
 }
 
 void MainWindow::on_tableViewRotation_activated(const QModelIndex &index)
