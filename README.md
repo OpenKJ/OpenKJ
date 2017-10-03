@@ -1,7 +1,7 @@
 **News - Sep 13 2017**  
 Preview/beta version of the requests server is live at https://songbook.openkj.org. This is currently free while in testing, but will eventually cost a small amount per month to cover the hosting fees. I'm not sure how much yet, as I don't really know yet how much it's going to cost in Google App Engine usage fees once it scales up to usage beyond my testing.  
 
-You can sign up using any google account. Once the account is active, you will receive an API key which you can plug into settings in the latest version of OpenKJ. Once you've done that, you can update the songbook database from the settings dialog, set the venue to "accepting" in the incoming requests dialog, and users should be able to submit songs to you via the web search/submission forms. I think things should be fairly self explanatory beyond that, but feel free to reach out for help here, via the facebook page https://facebook.com/OpenKJ, or via email to support@openkj.org
+You can sign up using any google account. Once the account is active, you will receive an API key which you can plug into settings in the latest version of OpenKJ. Once you've done that, you can update the remote songbook database and set the venue to "accepting" in the incoming requests dialog and users should be able to submit songs to you via the web search/submission forms. I think things should be fairly self explanatory beyond that, but feel free to reach out for help here, via the facebook page https://facebook.com/OpenKJ, or via email to support@openkj.org
   
 **Downloads**  
 If you are looking for installers for Windows or macOS or binary packages for Fedora, RHEL, Debian, or Ubuntu, please visit the Downloads section at https://openkj.org
