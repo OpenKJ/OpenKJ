@@ -247,7 +247,7 @@ void OKJSongbookAPI::onNetworkReply(QNetworkReply *reply)
         {
             lastSync = QTime::currentTime();
             emit synchronized(lastSync);
-            qWarning() << "Got serial: " << newSerial << " - No Change";
+            //qWarning() << "Got serial: " << newSerial << " - No Change";
         }
         else
         {
@@ -330,7 +330,7 @@ void OKJSongbookAPI::timerTimeout()
 {
     if (settings->requestServerEnabled())
     {
-        qWarning() << "RequestsClient - Seconds since last update: " << lastSync.secsTo(QTime::currentTime());
+        //qWarning() << "RequestsClient - Seconds since last update: " << lastSync.secsTo(QTime::currentTime());
         if ((lastSync.secsTo(QTime::currentTime()) > 300) && (!delayErrorEmitted))
         {
             emit delayError(lastSync.secsTo(QTime::currentTime()));

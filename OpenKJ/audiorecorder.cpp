@@ -102,16 +102,16 @@ void AudioRecorder::processGstMessage()
         {
             if (message->type == GST_MESSAGE_STATE_CHANGED)
             {
-                GstState state;
-                gst_element_get_state(pipeline, &state, NULL, GST_CLOCK_TIME_NONE);
-                if (state == GST_STATE_PLAYING)
-                    qWarning() << "AudioRecorder - Gst - State changed to PLAYING";
-                else if (state == GST_STATE_PAUSED)
-                    qWarning() << "AudioRecorder - Gst - State changed to PAUSED";
-                else if (state == GST_STATE_NULL)
-                    qWarning() << "AudioRecorder - Gst - State changed to NULL";
-                else
-                    qWarning() << "AudioRecorder - Gst - State changed to undefined state";
+//                GstState state;
+//                gst_element_get_state(pipeline, &state, NULL, GST_CLOCK_TIME_NONE);
+//                if (state == GST_STATE_PLAYING)
+//                    qWarning() << "AudioRecorder - Gst - State changed to PLAYING";
+//                else if (state == GST_STATE_PAUSED)
+//                    qWarning() << "AudioRecorder - Gst - State changed to PAUSED";
+//                else if (state == GST_STATE_NULL)
+//                    qWarning() << "AudioRecorder - Gst - State changed to NULL";
+//                else
+//                    qWarning() << "AudioRecorder - Gst - State changed to undefined state";
             }
             else if (message->type == GST_MESSAGE_WARNING || message->type == GST_MESSAGE_ERROR)
             {
