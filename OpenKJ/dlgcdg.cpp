@@ -100,10 +100,10 @@ void DlgCdg::updateCDG(QImage image, bool overrideVisibleCheck)
 {
     if ((isVisible()) || (overrideVisibleCheck))
     {
-        if (image.size().height() > ui->cdgVideo->size().height() || image.size().width() > ui->cdgVideo->size().width())
-            ui->cdgVideo->videoSurface()->present(QVideoFrame(image));
-//            ui->cdgVideo->videoSurface()->present(QVideoFrame(image.scaled(ui->cdgVideo->size(), Qt::IgnoreAspectRatio)));
-        else
+     //   if (image.size().height() > ui->cdgVideo->size().height() || image.size().width() > ui->cdgVideo->size().width())
+     //       ui->cdgVideo->videoSurface()->present(QVideoFrame(image));
+     //       ui->cdgVideo->videoSurface()->present(QVideoFrame(image.scaled(ui->cdgVideo->size(), Qt::IgnoreAspectRatio)));
+     //   else
             ui->cdgVideo->videoSurface()->present(QVideoFrame(image));
     }
 }
@@ -235,6 +235,7 @@ void DlgCdg::setHSizeAdjustment(int pixels)
 
 void DlgCdg::setShowBgImage(bool show)
 {
+    qWarning() << "DlgCdg::setShowBgImage(" << show << ") called";
     if ((show) && (settings->bgMode() == settings->BG_MODE_IMAGE))
     {
         if (settings->cdgDisplayBackgroundImage() != QString::null)

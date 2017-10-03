@@ -801,6 +801,7 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
         audioRecorder->stop();
 //        ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
         kAudioBackend->stop(true);
+        cdgWindow->setShowBgImage(true);
     }
     if (state == AbstractAudioBackend::PausedState)
     {
@@ -809,7 +810,7 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
     }
     if (state == AbstractAudioBackend::PlayingState)
     {
-
+        cdgWindow->setShowBgImage(false);
     }
     if (state == AbstractAudioBackend::UnknownState)
     {
