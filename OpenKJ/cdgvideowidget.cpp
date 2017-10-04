@@ -53,7 +53,7 @@ void CdgVideoWidget::paintEvent(QPaintEvent *event)
         const QRect videoRect = surface->videoRect();
         if (!videoRect.contains(event->rect())) {
             QRegion region = event->region();
-            region.subtracted(videoRect);
+         //   region.subtracted(videoRect);
             QBrush brush = palette().background();
             foreach (const QRect &rect, region.rects())
                 painter.fillRect(rect, brush);
