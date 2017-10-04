@@ -4,6 +4,6 @@ Version=1.0
 Name=OpenKJ
 Comment=Karaoke Hosting Software
 Exec=/usr/bin/OpenKJ
-Icon=/usr/share/pixmaps/okjicon64x64.png
+Icon=/usr/share/pixmaps/okjicon.png
 Terminal=false
 Categories=AudioVideo;Audio;Player;
