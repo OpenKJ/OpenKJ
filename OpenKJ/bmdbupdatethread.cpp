@@ -91,11 +91,13 @@ int processFile(QString fileName)
 
 void BmDbUpdateThread::run()
 {
-    TagReader reader;
+//    TagReader reader;
     QStringList files = findMediaFiles(m_path);
     QSqlQuery query;
     query.exec("BEGIN TRANSACTION");
-    QtConcurrent::blockingMap(files, &processFile);
+    for (int i=0; i < files.size(); i++)
+        processFile(files.at(i));
+    //QtConcurrent::blockingMap(files, &processFile);
     query.exec("COMMIT TRANSACTION");
 
 

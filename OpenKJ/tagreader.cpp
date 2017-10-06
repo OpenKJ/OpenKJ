@@ -36,6 +36,7 @@ static void on_new_pad (GstElement * dec, GstPad * pad, GstElement * fakesink)
 
 void TagReader::setMedia(QString path)
 {
+    qWarning() << "Getting tags for: " << path;
     m_path = path;
     m_duration = 0;
     m_artist = QString();
@@ -66,6 +67,7 @@ void TagReader::setMedia(QString path)
         if (gst_element_query_duration (dec, fmt, &duration))
         {
             m_duration = duration / 1000000;
+            qWarning() << "Got duration: " << m_duration;
         }
         else
             QThread::msleep(10);
@@ -111,4 +113,5 @@ void TagReader::setMedia(QString path)
     gst_message_unref (msg);
     gst_element_set_state (pipe, GST_STATE_NULL);
     gst_object_unref (pipe);
+    qWarning() << "Done getting tags for: " << path;
 }
