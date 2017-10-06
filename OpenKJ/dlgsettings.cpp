@@ -217,7 +217,24 @@ void DlgSettings::on_checkBoxShowCdgWindow_stateChanged(int arg1)
 
 void DlgSettings::on_listWidgetMonitors_itemSelectionChanged()
 {
+    if (!pageSetupDone)
+        return;
+    if (ui->listWidgetMonitors->selectedItems().count() < 1)
+        return;
+    QDesktopWidget widget;
+    int appMonitor = widget.screenNumber(ui->videoPage);
     int selMonitor = ui->listWidgetMonitors->selectionModel()->selectedIndexes().at(0).row();
+    if ((selMonitor == appMonitor) && (settings->cdgWindowFullscreen()))
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Warning: The selected CDG fullscreen display monitor is the same as the one that the main app is displayed on!");
+        msgBox.setInformativeText("This is probably not what you want. Are you sure you want to do this?");
+        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+        msgBox.setDefaultButton(QMessageBox::Cancel);
+        int ret = msgBox.exec();
+        if (ret == QMessageBox::Cancel)
+            return;
+    }
     settings->setCdgWindowFullscreenMonitor(selMonitor);
 }
 
@@ -457,5 +474,26 @@ void DlgSettings::on_lineEditTickerMessage_textChanged(const QString &arg1)
 
 void DlgSettings::on_checkBoxCdgFullscreen_toggled(bool checked)
 {
+    if (checked)
+    {
+        QDesktopWidget widget;
+        int appMonitor = widget.screenNumber(ui->videoPage);
+        int selMonitor = settings->cdgWindowFullScreenMonitor();
+        if (selMonitor == appMonitor)
+        {
+            QMessageBox msgBox;
+            msgBox.setText("Warning: The selected CDG fullscreen display monitor is the same as the one that the main app is displayed on!");
+            msgBox.setInformativeText("This is probably not what you want. Are you sure you want to do this?");
+            msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+            msgBox.setDefaultButton(QMessageBox::Cancel);
+            int ret = msgBox.exec();
+            if (ret == QMessageBox::Cancel)
+            {
+                ui->checkBoxCdgFullscreen->setChecked(false);
+                settings->setCdgWindowFullscreen(false);
+                return;
+            }
+        }
+    }
     settings->setCdgWindowFullscreen(checked);
 }

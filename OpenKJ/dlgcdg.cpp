@@ -284,6 +284,7 @@ void DlgCdg::fullScreenTimerTimeout()
     {
         setVOffset(settings->cdgVOffset());
         setHOffset(settings->cdgHOffset());
+        ui->cdgVideo->repaint();
         fullScreenTimer->stop();
     }
 }
