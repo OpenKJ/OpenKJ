@@ -190,6 +190,7 @@ MainWindow::MainWindow(QWidget *parent) :
     bmAudioBackend->setDownmix(settings->audioDownmixBm());
     connect(qModel, SIGNAL(queueModified(int)), rotModel, SLOT(queueModified(int)));
     connect(requestsDialog, SIGNAL(addRequestSong(int,int)), qModel, SLOT(songAdd(int,int)));
+    connect(settings, SIGNAL(tickerCustomStringChanged()), this, SLOT(rotationDataChanged()));
     cdgWindow->setShowBgImage(true);
     setShowBgImage(true);
     settings->restoreWindowState(cdgWindow);
@@ -831,7 +832,10 @@ void MainWindow::rotationDataChanged()
     QString statusBarText = "Singers: ";
     statusBarText += QString::number(rotModel->rowCount());
     labelSingerCount->setText(statusBarText);
-    QString tickerText = "Singers: ";
+    QString tickerText;
+    if (settings->tickerCustomString() != "")
+        tickerText += settings->tickerCustomString() + " | ";
+    tickerText += "Singers: ";
     tickerText += QString::number(rotModel->rowCount());
     tickerText += " | Current: ";
     int displayPos;
@@ -849,8 +853,12 @@ void MainWindow::rotationDataChanged()
     int listSize;
     if (settings->tickerFullRotation() || (rotModel->rowCount() < settings->tickerShowNumSingers()))
     {
-        listSize = rotModel->rowCount();
-        tickerText += " | Upcoming: ";
+        if (curSinger == "")
+            listSize = rotModel->rowCount();
+        else
+            listSize = rotModel->rowCount() - 1;
+        if (listSize > 0)
+            tickerText += " | Upcoming: ";
     }
     else
     {

@@ -79,6 +79,8 @@ public:
     void setTickerShowNumSingers(int limit);
     void setTickerEnabled(bool enable);
     bool tickerEnabled();
+    QString tickerCustomString();
+    void setTickerCustomString(QString value);
     bool requestServerEnabled();
     void setRequestServerEnabled(bool enable);
     QString requestServerUrl();
@@ -161,6 +163,7 @@ signals:
     void bgModeChanged(BgMode mode);
     void bgSlideShowDirChanged(QString dir);
     void requestServerVenueChanged(int venueId);
+    void tickerCustomStringChanged();
 
 public slots:
     void setShowCdgWindow(bool show);

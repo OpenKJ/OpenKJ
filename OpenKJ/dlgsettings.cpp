@@ -140,6 +140,7 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     else
         ui->comboBoxCodec->setCurrentIndex(ui->comboBoxCodec->findText(settings->recordingCodec()));
     ui->lineEditOutputDir->setText(settings->recordingOutputDir());
+    ui->lineEditTickerMessage->setText(settings->tickerCustomString());
     connect(networkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
     connect(networkManager, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(onSslErrors(QNetworkReply*)));
     connect(settings, SIGNAL(tickerHeightChanged(int)), ui->spinBoxTickerHeight, SLOT(setValue(int)));
@@ -492,4 +493,9 @@ void DlgSettings::on_rbBgImage_toggled(bool checked)
 void DlgSettings::on_lineEditApiKey_editingFinished()
 {
     settings->setRequestServerApiKey(ui->lineEditApiKey->text());
+}
+
+void DlgSettings::on_lineEditTickerMessage_textChanged(const QString &arg1)
+{
+    settings->setTickerCustomString(arg1);
 }

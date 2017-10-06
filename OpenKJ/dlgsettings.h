@@ -95,6 +95,7 @@ private slots:
     void on_rbSlideshow_toggled(bool checked);
     void on_rbBgImage_toggled(bool checked);
     void on_lineEditApiKey_editingFinished();
+    void on_lineEditTickerMessage_textChanged(const QString &arg1);
 };
 
 #endif // SETTINGSDIALOG_H

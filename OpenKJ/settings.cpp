@@ -240,6 +240,17 @@ bool Settings::tickerEnabled()
     return settings->value("tickerEnabled", false).toBool();
 }
 
+QString Settings::tickerCustomString()
+{
+    return settings->value("tickerCustomString", "").toString();
+}
+
+void Settings::setTickerCustomString(QString value)
+{
+    settings->setValue("tickerCustomString", value);
+    emit tickerCustomStringChanged();
+}
+
 bool Settings::requestServerEnabled()
 {
     return settings->value("requestServerEnabled", false).toBool();
