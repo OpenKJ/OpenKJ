@@ -26,9 +26,10 @@
 #include <gst/audio/streamvolume.h>
 
 
-AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *parent) :
+AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *parent, QString objectName) :
     AbstractAudioBackend(parent)
 {
+    objName = objectName;
     m_volume = 0;
     m_canKeyChange = false;
     m_keyChangerRubberBand = false;
@@ -109,6 +110,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     g_object_set(G_OBJECT (level), "message", TRUE, NULL);
     bus = gst_element_get_bus (playBin);
     fader = new FaderGStreamer(playBin, this);
+    fader->objName = objName;
     slowTimer = new QTimer(this);
     connect(slowTimer, SIGNAL(timeout()), this, SLOT(slowTimer_timeout()));
     slowTimer->start(1000);
@@ -338,13 +340,27 @@ void AudioBackendGstreamer::setVolume(int volume)
 
 void AudioBackendGstreamer::stop(bool skipFade)
 {
+    qWarning() << objName << " - AudioBackendGstreamer::stop(" << skipFade << ") called";
+    if (state() == AbstractAudioBackend::StoppedState)
+    {
+        qWarning() << objName << " - AudioBackendGstreamer::stop -- Already stopped, skipping";
+        return;
+    }
     int curVolume = volume();
     if ((m_fade) && (!skipFade) && (state() == AbstractAudioBackend::PlayingState))
+    {
+        qWarning() << objName << " - AudioBackendGstreamer::stop -- Fading enabled.  Fading out audio volume";
         fadeOut(true);
+        qWarning() << objName << " - AudioBackendGstreamer::stop -- Fading complete";
+    }
+    qWarning() << objName << " - AudioBackendGstreamer::stop -- Stoping playback";
     gst_element_set_state(playBin, GST_STATE_NULL);
     emit stateChanged(AbstractAudioBackend::StoppedState);
     if ((m_fade) && (!skipFade))
+    {
+        qWarning() << objName << " - AudioBackendGstreamer::stop -- Setting volume back to original setting: " << curVolume;
         setVolume(curVolume);
+    }
 }
 
 void AudioBackendGstreamer::fastTimer_timeout()
@@ -371,8 +387,8 @@ void AudioBackendGstreamer::slowTimer_timeout()
     {
         currentState = state();
         emit stateChanged(currentState);
-        if (currentState == AbstractAudioBackend::StoppedState)
-            stop();
+//        if (currentState == AbstractAudioBackend::StoppedState)
+//            stop();
     }
     else if((state() == AbstractAudioBackend::StoppedState) && (pitchShift() != 0))
             setPitchShift(0);
@@ -439,7 +455,7 @@ FaderGStreamer::FaderGStreamer(GstElement *GstVolumeElement, QObject *parent) :
 
 void FaderGStreamer::run()
 {
-    qWarning() << "Fader started - Target volume: " << m_targetVolume;
+    qWarning() << objName << " - Fader started - Target volume: " << m_targetVolume;
     fading = true;
     while ((volume() != m_targetVolume) && (fading))
     {
@@ -448,7 +464,7 @@ void FaderGStreamer::run()
         {
             if (volume() < m_targetVolume + .02)
             {
-                qWarning() << "Fader - Approximate target reached, exiting";
+                qWarning() << objName << " - Fader - Approximate target reached, exiting";
                 setVolume(m_targetVolume);
                 fading = false;
                 return;
@@ -460,7 +476,7 @@ void FaderGStreamer::run()
         {
             if (volume() > m_targetVolume - .02)
             {
-                qWarning() << "Fader - Approximate target reached, exiting";
+                qWarning() << objName << " - Fader - Approximate target reached, exiting";
                 setVolume(m_targetVolume);
                 fading = false;
                 return;
@@ -475,7 +491,7 @@ void FaderGStreamer::run()
 
 void FaderGStreamer::fadeIn(bool waitForFade)
 {
-    qWarning() << "fadeIn() - Started";
+    qWarning() << objName << " - fadeIn() - Started";
     m_targetVolume = m_preOutVolume;
     if (!fading)
     {
@@ -484,7 +500,7 @@ void FaderGStreamer::fadeIn(bool waitForFade)
     }
     else
     {
-        qWarning() << "fadeIn() - A fade operation is already in progress... skipping";
+        qWarning() << objName << " - fadeIn() - A fade operation is already in progress... skipping";
         return;
     }
     if (waitForFade)
@@ -492,12 +508,12 @@ void FaderGStreamer::fadeIn(bool waitForFade)
         while(fading)
             QApplication::processEvents();
     }
-    qWarning() << "fadeIn() - Finished";
+    qWarning() << objName << " - fadeIn() - Finished";
 }
 
 void FaderGStreamer::fadeOut(bool waitForFade)
 {
-    qWarning() << "fadeOut() - Started";
+    qWarning() << objName << " - fadeOut() - Started";
     m_targetVolume = 0;
     if (!fading)
     {
@@ -507,7 +523,7 @@ void FaderGStreamer::fadeOut(bool waitForFade)
     }
     else
     {
-        qWarning() << "fadeOut() - A fade operation is already in progress... skipping";
+        qWarning() << objName << " - fadeOut() - A fade operation is already in progress... skipping";
         return;
     }
     if (waitForFade)
@@ -515,7 +531,7 @@ void FaderGStreamer::fadeOut(bool waitForFade)
         while(fading)
             QApplication::processEvents();
     }
-    qWarning() << "fadeOut() - Finished";
+    qWarning() << objName << " - fadeOut() - Finished";
 }
 
 bool FaderGStreamer::isFading()

@@ -143,9 +143,9 @@ MainWindow::MainWindow(QWidget *parent) :
     dbDelegate = new DbItemDelegate(this);
     ui->tableViewDB->setItemDelegate(dbDelegate);
 //    ipcClient = new KhIPCClient("bmControl",this);
-    bmAudioBackend = new AudioBackendGstreamer(false, this);
+    bmAudioBackend = new AudioBackendGstreamer(false, this, "BM");
     bmAudioBackend->setName("break");
-    kAudioBackend = new AudioBackendGstreamer(true, this);
+    kAudioBackend = new AudioBackendGstreamer(true, this, "KA");
     kAudioBackend->setName("karaoke");
     if (kAudioBackend->canFade())
         kAudioBackend->setUseFader(settings->audioUseFader());

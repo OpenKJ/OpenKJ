@@ -53,6 +53,7 @@ public:
     bool isFading();
     void restoreVolume();
     void setVolumeElement(GstElement *GstVolumeElement);
+    QString objName;
 
 signals:
     void volumeChanged(int);
@@ -115,7 +116,7 @@ private:
 
     static void DestroyCallback(gpointer user_data);
 public:
-    explicit AudioBackendGstreamer(bool loadPitchShift = true, QObject *parent = 0);
+    explicit AudioBackendGstreamer(bool loadPitchShift = true, QObject *parent = 0, QString objectName = "unknown");
     ~AudioBackendGstreamer();
     int volume();
     qint64 position();
@@ -134,6 +135,7 @@ public:
     bool canDownmix();
     bool downmixChangeRequiresRestart() { return false; }
     void newFrame();
+    QString objName;
 
 private slots:
     void fastTimer_timeout();
