@@ -23,6 +23,7 @@
 #include <QDebug>
 #include <string.h>
 #include <math.h>
+#include <gst/audio/streamvolume.h>
 
 
 AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *parent) :
@@ -327,9 +328,11 @@ void AudioBackendGstreamer::setPosition(qint64 position)
 
 void AudioBackendGstreamer::setVolume(int volume)
 {
+    double cubicVolume = volume * .01;
+    double linearVolume = gst_stream_volume_convert_volume(GST_STREAM_VOLUME_FORMAT_CUBIC, GST_STREAM_VOLUME_FORMAT_LINEAR, cubicVolume);
     m_volume = volume;
 //    fader->setBaseVolume(volume);
-    g_object_set(G_OBJECT(playBin), "volume", volume * .01, NULL);
+    g_object_set(G_OBJECT(playBin), "volume", linearVolume, NULL);
     emit volumeChanged(volume);
 }
 
@@ -540,15 +543,18 @@ void FaderGStreamer::setBaseVolume(int volume)
 
 void FaderGStreamer::setVolume(double targetVolume)
 {
-    g_object_set(G_OBJECT(volumeElement), "volume", targetVolume, NULL);
-    emit volumeChanged(targetVolume * 100);
+    double cubicVolume = targetVolume;
+    double linearVolume = gst_stream_volume_convert_volume(GST_STREAM_VOLUME_FORMAT_CUBIC, GST_STREAM_VOLUME_FORMAT_LINEAR, cubicVolume);
+    g_object_set(G_OBJECT(volumeElement), "volume", linearVolume, NULL);
+    emit volumeChanged(cubicVolume * 100);
 }
 
 double FaderGStreamer::volume()
 {
     gdouble curVolume;
     g_object_get(G_OBJECT(volumeElement), "volume", &curVolume, NULL);
-    return curVolume;
+    double linearVolume = gst_stream_volume_convert_volume(GST_STREAM_VOLUME_FORMAT_LINEAR, GST_STREAM_VOLUME_FORMAT_CUBIC, curVolume);
+    return linearVolume;
 }
 
 QStringList AudioBackendGstreamer::GstGetPlugins()

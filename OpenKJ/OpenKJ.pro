@@ -140,7 +140,7 @@ unix:!macx {
       PREFIX=/usr
     }
     CONFIG += link_pkgconfig
-    PKGCONFIG += gstreamer-1.0 gstreamer-app-1.0
+    PKGCONFIG += gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0
     iconfiles.files += Icons/okjicon.svg
     iconfiles.path = $$PREFIX/share/pixmaps
     desktopfiles.files += openkj.desktop
