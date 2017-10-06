@@ -156,6 +156,7 @@ signals:
     void cdgBgImageChanged();
     void cdgShowCdgWindowChanged(bool show);
     void cdgWindowFullscreenChanged(bool fullscreen);
+    void cdgWindowFullscreenMonitorChanged(int monitor);
     void cdgHSizeAdjustmentChanged(int pixels);
     void cdgVSizeAdjustmentChanged(int pixels);
     void cdgHOffsetChanged(int pixels);

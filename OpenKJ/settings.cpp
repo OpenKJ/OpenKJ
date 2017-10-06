@@ -59,6 +59,7 @@ void Settings::setShowCdgWindow(bool show)
 void Settings::setCdgWindowFullscreenMonitor(int monitor)
 {
     settings->setValue("cdgWindowFullScreenMonitor", monitor);
+    emit cdgWindowFullscreenMonitorChanged(monitor);
 }
 
 int Settings::cdgWindowFullScreenMonitor()

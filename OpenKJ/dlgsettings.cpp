@@ -78,9 +78,7 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
         bmAudioBackend->setOutputDevice(selDevice);
     }
     ui->checkBoxShowCdgWindow->setChecked(settings->showCdgWindow());
-    ui->groupBoxMonitors->setChecked(settings->cdgWindowFullscreen());
-    ui->listWidgetMonitors->setEnabled(settings->showCdgWindow());
-    ui->groupBoxMonitors->setEnabled(settings->showCdgWindow());
+    ui->checkBoxCdgFullscreen->setChecked(settings->cdgWindowFullscreen());
     if (screens.count() > settings->cdgWindowFullScreenMonitor())
         ui->listWidgetMonitors->item(settings->cdgWindowFullScreenMonitor())->setSelected(true);
     else
@@ -215,12 +213,6 @@ void DlgSettings::on_checkBoxShowCdgWindow_stateChanged(int arg1)
     ui->pushButtonBrowse->setEnabled(arg1);
     ui->lineEditCdgBackground->setEnabled(arg1);
     ui->pushButtonClearBgImg->setEnabled(arg1);
-}
-
-void DlgSettings::on_groupBoxMonitors_toggled(bool arg1)
-{
-    settings->setCdgWindowFullscreen(arg1);
-    //emit cdgWindowFullScreenChanged(arg1);
 }
 
 void DlgSettings::on_listWidgetMonitors_itemSelectionChanged()
@@ -384,43 +376,6 @@ void DlgSettings::on_listWidgetAudioDevicesBm_itemSelectionChanged()
     }
 }
 
-//void DlgSettings::on_comboBoxBackend_currentIndexChanged(int index)
-//{
-////    if (pageSetupDone)
-////    {
-////        qDebug() << "SettingsDialog::on_comboBoxBackend_currentIndexChanged(" << index << ") fired";
-////        if (kAudioBackend->state() != AbstractAudioBackend::StoppedState)
-////        {
-////            QMessageBox::warning(this, "Unable to complete action","You can not change the audio backend while there is an active song playing or paused.  Please stop the current song and try again");
-////            ui->comboBoxBackend->setCurrentIndex(settings->audioBackend());
-////        }
-////        else
-////            settings->setAudioBackend(index);
-////    }
-//}
-
-//void DlgSettings::audioBackendChanged(int index)
-//{
-////    pageSetupDone = false;
-////    kAudioBackend = audioBackends->at(index);
-////    ui->checkBoxSilenceDetection->setHidden(!kAudioBackend->canDetectSilence());
-////    ui->checkBoxDownmix->setHidden(!kAudioBackend->canDownmix());
-////    ui->checkBoxFader->setHidden(!kAudioBackend->canFade());
-////    ui->listWidgetAudioDevices->clear();
-////    ui->listWidgetAudioDevices->addItems(kAudioBackend->getOutputDevices());
-////    pageSetupDone = true;
-////    if (kAudioBackend->getOutputDevices().contains(settings->audioOutputDevice()))
-////    {
-////        ui->listWidgetAudioDevices->findItems(settings->audioOutputDevice(),Qt::MatchExactly).at(0)->setSelected(true);
-////    }
-////    else
-//////        ui->listWidgetAudioDevices->item(0)->setSelected(true);
-////    if (!kAudioBackend->downmixChangeRequiresRestart())
-////        ui->checkBoxDownmix->setText("Downmix to mono");
-////    else
-////        ui->checkBoxDownmix->setText("Dowmix to mono (requires restart)");
-//}
-
 void DlgSettings::on_comboBoxDevice_currentIndexChanged(const QString &arg1)
 {
     if (pageSetupDone)
@@ -498,4 +453,9 @@ void DlgSettings::on_lineEditApiKey_editingFinished()
 void DlgSettings::on_lineEditTickerMessage_textChanged(const QString &arg1)
 {
     settings->setTickerCustomString(arg1);
+}
+
+void DlgSettings::on_checkBoxCdgFullscreen_toggled(bool checked)
+{
+    settings->setCdgWindowFullscreen(checked);
 }

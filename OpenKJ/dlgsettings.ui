@@ -383,15 +383,22 @@
              </widget>
             </item>
             <item>
+             <widget class="QCheckBox" name="checkBoxCdgFullscreen">
+              <property name="text">
+               <string>CDG window fullscreen</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QGroupBox" name="groupBoxMonitors">
               <property name="enabled">
                <bool>true</bool>
               </property>
               <property name="title">
-               <string>CDG window fullscreen</string>
+               <string>CDG fullscreen settings</string>
               </property>
               <property name="checkable">
-               <bool>true</bool>
+               <bool>false</bool>
               </property>
               <property name="checked">
                <bool>false</bool>

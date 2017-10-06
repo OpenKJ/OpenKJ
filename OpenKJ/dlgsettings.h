@@ -61,7 +61,6 @@ signals:
 private slots:
     void on_btnClose_clicked();
     void on_checkBoxShowCdgWindow_stateChanged(int arg1);
-    void on_groupBoxMonitors_toggled(bool arg1);
     void on_listWidgetMonitors_itemSelectionChanged();
     void on_pushButtonFont_clicked();
     void on_spinBoxTickerHeight_valueChanged(int arg1);
@@ -96,6 +95,7 @@ private slots:
     void on_rbBgImage_toggled(bool checked);
     void on_lineEditApiKey_editingFinished();
     void on_lineEditTickerMessage_textChanged(const QString &arg1);
+    void on_checkBoxCdgFullscreen_toggled(bool checked);
 };
 
 #endif // SETTINGSDIALOG_H

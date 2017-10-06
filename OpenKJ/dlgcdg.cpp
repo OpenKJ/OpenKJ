@@ -70,6 +70,7 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
     connect(settings, SIGNAL(cdgVSizeAdjustmentChanged(int)), this, SLOT(setVSizeAdjustment(int)));
     connect(settings, SIGNAL(cdgShowCdgWindowChanged(bool)), this, SLOT(setVisible(bool)));
     connect(settings, SIGNAL(cdgWindowFullscreenChanged(bool)), this, SLOT(setFullScreen(bool)));
+    connect(settings, SIGNAL(cdgWindowFullscreenMonitorChanged(int)), this, SLOT(setFullScreenMonitor(int)));
     connect(ui->cdgVideo, SIGNAL(resized(QSize)), this, SLOT(cdgSurfaceResized(QSize)));
     fullScreenTimer = new QTimer(this);
     slideShowTimer = new QTimer(this);
@@ -150,8 +151,11 @@ void DlgCdg::setFullScreen(bool fullscreen)
 void DlgCdg::setFullScreenMonitor(int monitor)
 {
     Q_UNUSED(monitor);
-    makeWindowed();
-    makeFullscreen();
+    if (settings->cdgWindowFullscreen())
+    {
+        makeWindowed();
+        makeFullscreen();
+    }
 }
 
 void DlgCdg::tickerFontChanged()
