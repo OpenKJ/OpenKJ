@@ -118,7 +118,6 @@ void BmDbDialog::on_pushButtonClearDb_clicked()
         query.exec("DELETE FROM bmplaylists");
         query.exec("DELETE FROM bmplsongs");
         query.exec("DELETE FROM bmsongs");
-        query.exec("DELETE FROM bmsrcDirs");
         query.exec("UPDATE sqlite_sequence SET seq = 0");
         query.exec("VACUUM");
         pathsModel->select();
