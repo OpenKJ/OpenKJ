@@ -29,6 +29,16 @@
 BmDbUpdateThread::BmDbUpdateThread(QObject *parent) :
     QThread(parent)
 {
+    supportedExtensions.append(".mp3");
+    supportedExtensions.append(".wav");
+    supportedExtensions.append(".ogg");
+    supportedExtensions.append(".flac");
+    supportedExtensions.append(".m4a");
+    supportedExtensions.append(".mkv");
+    supportedExtensions.append(".avi");
+    supportedExtensions.append(".mp4");
+    supportedExtensions.append(".mpg");
+    supportedExtensions.append(".mpeg");
 }
 
 QString BmDbUpdateThread::path() const
@@ -50,9 +60,13 @@ QStringList BmDbUpdateThread::findMediaFiles(QString directory)
         iterator.next();
         if (!iterator.fileInfo().isDir()) {
             QString filename = iterator.filePath();
-            if (filename.endsWith(".mp3",Qt::CaseInsensitive) || filename.endsWith(".wav",Qt::CaseInsensitive) || filename.endsWith(".ogg",Qt::CaseInsensitive) || filename.endsWith(".flac",Qt::CaseInsensitive) || filename.endsWith(".m4a", Qt::CaseInsensitive) || filename.endsWith(".mkv", Qt::CaseInsensitive))
+            for (int i=0; i<supportedExtensions.size(); i++)
             {
-                files.append(filename);
+                if (filename.endsWith(supportedExtensions.at(i)))
+                {
+                    files.append(filename);
+                    break;
+                }
             }
         }
     }
