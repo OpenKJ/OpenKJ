@@ -279,6 +279,7 @@ void AudioBackendGstreamer::play()
     }
     else
     {
+        setVolume(m_volume);
         gst_element_set_state(playBin, GST_STATE_PLAYING);
     }
 }
