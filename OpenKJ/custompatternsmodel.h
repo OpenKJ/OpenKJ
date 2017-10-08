@@ -93,7 +93,7 @@ private:
 
     // QAbstractItemModel interface
 public:
-    Qt::ItemFlags flags(const QModelIndex &index) const;
+    Qt::ItemFlags flags(const QModelIndex &index) const override;
     Pattern getPattern(int index);
     void loadFromDB();
 };
