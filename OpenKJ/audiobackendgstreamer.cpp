@@ -33,14 +33,10 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
 {
 #ifdef Q_OS_MACOS
     QString appPath = qApp->applicationDirPath();
-    QString env1 = "GST_PLUGIN_SYSTEM_PATH=" + appPath + "/../Contents/Frameworks/GStreamer.framework/Versions/Current/lib/gstreamer-1.0";
-    QString env2 = "GST_PLUGIN_SCANNER=" + appPath + "/../Contents/Frameworks/GStreamer.framework/Versions/Current/libexec/gstreamer-1.0/gst-plugin-scanner";
-    QString env3 = "GTK_PATH=" + appPath + "/../Contents/Frameworks/GStreamer.framework/Versions/Current/";
-    QString env4 = "GIO_EXTRA_MODULES=" + appPath + "/../Contents/Frameworks/GStreamer.framework/Versions/Current/lib/gio/modules";
-    qputenv("GST_PLUGIN_SYSTEM_PATH", QString(appPath + "/../Contents/Frameworks/GStreamer.framework/Versions/Current/lib/gstreamer-1.0").toLocal8Bit());
-    qputenv("GST_PLUGIN_SCANNER", QString(appPath + "/../Contents/Frameworks/GStreamer.framework/Versions/Current/libexec/gstreamer-1.0/gst-plugin-scanner").toLocal8Bit());
-    qputenv("GTK_PATH", QString(appPath + "/../Contents/Frameworks/GStreamer.framework/Versions/Current/").toLocal8Bit());
-    qputenv("GIO_EXTRA_MODULES", QString(appPath + "/../Contents/Frameworks/GStreamer.framework/Versions/Current/lib/gio/modules").toLocal8Bit());
+    qputenv("GST_PLUGIN_SYSTEM_PATH", QString(appPath + "/../Frameworks/GStreamer.framework/Versions/Current/lib/gstreamer-1.0").toLocal8Bit());
+    qputenv("GST_PLUGIN_SCANNER", QString(appPath + "/../Frameworks/GStreamer.framework/Versions/Current/libexec/gstreamer-1.0/gst-plugin-scanner").toLocal8Bit());
+    qputenv("GTK_PATH", QString(appPath + "/../Frameworks/GStreamer.framework/Versions/Current/").toLocal8Bit());
+    qputenv("GIO_EXTRA_MODULES", QString(appPath + "/../Frameworks/GStreamer.framework/Versions/Current/lib/gio/modules").toLocal8Bit());
     qWarning() << "MacOS detected, changed GST env vars to be application relative";
     qWarning() << qgetenv("GST_PLUGIN_SYSTEM_PATH") << endl << qgetenv("GST_PLUGIN_SCANNER") << endl << qgetenv("GTK_PATH") << endl << qgetenv("GIO_EXTRA_MODULES") << endl;
 #endif
