@@ -1,3 +1,8 @@
+**News - Oct 10 2017**  
+Debian and Ubuntu builds should be working properly now.  Discovered several other issues with the dependency configuration after packpack based packaging randomly stopped working and I decided to just roll my own automated system with Docker and some bash scripts.  I've verified that they seem to be working fine now via fresh OS installs in VMs.
+  
+I've also completely re-worked the macOS installer after issues were discovered with the package/installer signing. Apple users should no longer receive warnings when they install the software.
+  
 **News - Sep 13 2017**  
 Preview/beta version of the requests server is live at https://songbook.openkj.org. This is currently free while in testing, but will eventually cost a small amount per month to cover the hosting fees. I'm not sure how much yet, as I don't really know yet how much it's going to cost in Google App Engine usage fees once it scales up to usage beyond my testing.  
 
