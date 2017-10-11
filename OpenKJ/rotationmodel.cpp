@@ -41,8 +41,10 @@ bool RotationModel::rotationIsValid()
     {
         int id = singerIdAtPosition(i);
         if (id == -1)
+        {
             qCritical() << "Rotation position corruption detected!";
             return false;
+        }
     }
     return true;
 }
