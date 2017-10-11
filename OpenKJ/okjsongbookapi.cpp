@@ -134,65 +134,70 @@ void OKJSongbookAPI::updateSongDb()
     int songsPerDoc = 1000;
     QList<QJsonDocument> jsonDocs;
     QSqlQuery query;
-    query.exec("SELECT COUNT(DISTINCT artist||title) FROM dbsongs");
-    query.next();
-    int numEntries = query.value(0).toInt();
-    query.exec("SELECT DISTINCT artist,title FROM dbsongs ORDER BY artist ASC, title ASC");
-    bool done = false;
-    qWarning() << "Number of results: " << numEntries;
-    int numDocs = numEntries / songsPerDoc;
-    if (numEntries % songsPerDoc > 0)
-        numDocs++;
-    emit remoteSongDbUpdateNumDocs(numDocs);
-    qWarning() << "Emitted remoteSongDbUpdateNumDocs(" << numDocs << ")";
-    int docs = 0;
-    while (!done)
+    int numEntries = 0;
+    if (query.exec("SELECT COUNT(DISTINCT artist||title) FROM dbsongs"))
     {
-        QApplication::processEvents();
-        QJsonArray songsArray;
-        int count = 0;
-        while ((query.next()) && (count < songsPerDoc))
+        if (query.next())
+            numEntries = query.value(0).toInt();
+    }
+    if (query.exec("SELECT DISTINCT artist,title FROM dbsongs ORDER BY artist ASC, title ASC"))
+    {
+        bool done = false;
+        qWarning() << "Number of results: " << numEntries;
+        int numDocs = numEntries / songsPerDoc;
+        if (numEntries % songsPerDoc > 0)
+            numDocs++;
+        emit remoteSongDbUpdateNumDocs(numDocs);
+        qWarning() << "Emitted remoteSongDbUpdateNumDocs(" << numDocs << ")";
+        int docs = 0;
+        while (!done)
         {
-            QJsonObject songObject;
-            songObject.insert("artist", query.value(0).toString());
-            songObject.insert("title", query.value(1).toString());
-            songsArray.insert(0, songObject);
             QApplication::processEvents();
-            count++;
+            QJsonArray songsArray;
+            int count = 0;
+            while ((query.next()) && (count < songsPerDoc))
+            {
+                QJsonObject songObject;
+                songObject.insert("artist", query.value(0).toString());
+                songObject.insert("title", query.value(1).toString());
+                songsArray.insert(0, songObject);
+                QApplication::processEvents();
+                count++;
+            }
+            docs++;
+            if (count < songsPerDoc)
+                done = true;
+            QJsonObject mainObject;
+            mainObject.insert("api_key", settings->requestServerApiKey());
+            mainObject.insert("command","addSongs");
+            mainObject.insert("songs", songsArray);
+            QJsonDocument jsonDocument;
+            jsonDocument.setObject(mainObject);
+            jsonDocs.append(jsonDocument);
         }
-        docs++;
-        if (count < songsPerDoc)
-            done = true;
+        QUrl url(settings->requestServerUrl());
         QJsonObject mainObject;
         mainObject.insert("api_key", settings->requestServerApiKey());
-        mainObject.insert("command","addSongs");
-        mainObject.insert("songs", songsArray);
+        mainObject.insert("command","clearDatabase");
         QJsonDocument jsonDocument;
         jsonDocument.setObject(mainObject);
-        jsonDocs.append(jsonDocument);
-    }
-    QUrl url(settings->requestServerUrl());
-    QJsonObject mainObject;
-    mainObject.insert("api_key", settings->requestServerApiKey());
-    mainObject.insert("command","clearDatabase");
-    QJsonDocument jsonDocument;
-    jsonDocument.setObject(mainObject);
-    QNetworkRequest request(url);
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
-    QNetworkReply *reply = manager->post(request, jsonDocument.toJson());
-    while (!reply->isFinished())
-        QApplication::processEvents();
-    for (int i=0; i < jsonDocs.size(); i++)
-    {
-        QApplication::processEvents();
         QNetworkRequest request(url);
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
         QNetworkAccessManager *manager = new QNetworkAccessManager(this);
-        QNetworkReply *reply = manager->post(request, jsonDocs.at(i).toJson());
+        QNetworkReply *reply = manager->post(request, jsonDocument.toJson());
         while (!reply->isFinished())
             QApplication::processEvents();
-        emit remoteSongDbUpdateProgress(i);
+        for (int i=0; i < jsonDocs.size(); i++)
+        {
+            QApplication::processEvents();
+            QNetworkRequest request(url);
+            request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+            QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+            QNetworkReply *reply = manager->post(request, jsonDocs.at(i).toJson());
+            while (!reply->isFinished())
+                QApplication::processEvents();
+            emit remoteSongDbUpdateProgress(i);
+        }
     }
     emit remoteSongDbUpdateDone();
 }
