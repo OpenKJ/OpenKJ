@@ -24,8 +24,6 @@ private:
     GstElement *wavEnc;
     GstElement *audioRate;
     GstElement *autoAudioSrc;
-    GstPad *pad;
-    GstPad *ghostPad;
     GstBus *bus;
     GstDeviceMonitor *monitor;
     QList<GstDevice*> inputDevices;
