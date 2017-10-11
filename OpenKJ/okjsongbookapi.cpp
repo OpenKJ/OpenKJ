@@ -21,6 +21,8 @@ QDebug operator<<(QDebug dbg, const OkjsVenue &okjsvenue)
 
 OKJSongbookAPI::OKJSongbookAPI(QObject *parent) : QObject(parent)
 {
+    delayErrorEmitted = false;
+    connectionReset = false;
     serial = 0;
     timer = new QTimer(this);
     timer->setInterval(10000);
