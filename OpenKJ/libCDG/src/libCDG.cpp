@@ -322,16 +322,13 @@ void CDG::CMDColors(char data[16], int Table)
     {
         original[i] = colors[i];
     }
-    int i;
-    int j;
-    char highbyte;
-    char lowbyte;
-    int red;
-    int green;
-    int blue;
+    char highbyte, lowbyte;
+    int i, j, red, green, blue;
     i = 0;
-    if (Table == CDG_COLOR_TABLE_HIGH) j = 8;
-    else j = 0;
+    if (Table == CDG_COLOR_TABLE_HIGH)
+        j = 8;
+    else
+        j = 0;
     while (i < 15)
     {
         lowbyte = data[i];
@@ -340,53 +337,29 @@ void CDG::CMDColors(char data[16], int Table)
         green = 0;
         blue = 0;
         if ((lowbyte & 0x20) > 0)
-        {
             red = 8;
-        }
         if ((lowbyte & 0x10) > 0)
-        {
             red = red + 4;
-        }
         if ((lowbyte & 0x08) > 0)
-        {
             red = red + 2;
-        }
         if ((lowbyte & 0x04) > 0)
-        {
             red = red + 1;
-        }
         if ((lowbyte & 0x02) > 0)
-        {
             green = 8;
-        }
         if ((lowbyte & 0x01) > 0)
-        {
             green = green + 4;
-        }
         if ((highbyte & 0x20) > 0)
-        {
             green = green + 2;
-        }
         if ((highbyte & 0x10) > 0)
-        {
             green = green + 1;
-        }
         if ((highbyte & 0x08) > 0)
-        {
             blue = 8;
-        }
         if ((highbyte & 0x04) > 0)
-        {
             blue = blue + 4;
-        }
         if ((highbyte & 0x02) > 0)
-        {
             blue = blue + 2;
-        }
         if ((highbyte & 0x01) > 0)
-        {
             blue = blue + 1;
-        }
         blue  = blue  * 17;
         red   = red   * 17;
         green = green * 17;
