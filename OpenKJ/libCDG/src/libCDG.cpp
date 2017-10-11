@@ -39,6 +39,7 @@ CDG::CDG()
     CurPos = 0;
     needupdate = true;
     NeedFullUpdate = true;
+    mode = MODE_FILE;
 }
 
 bool CDG::FileOpen(string filename)
