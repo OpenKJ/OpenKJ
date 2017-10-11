@@ -37,6 +37,7 @@ public:
     SourceDir() {
         index = -1;
         pattern = DAT;
+        customPattern = 0;
     }
     int getPattern() const;
     int getCustomPattern() {return customPattern;}
