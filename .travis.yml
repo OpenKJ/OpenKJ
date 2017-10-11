@@ -17,7 +17,9 @@ addons:
     build_command:   "make -j 4"
     branch_pattern: coverity_scan
 
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get -y install qt5-default qttools5-dev-tools qtbase5-dev qtmultimedia5-dev libqt5svg5-dev qttools5-dev qt5-qmake libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libqt5opengl5-dev libpulse-dev build-essential
 script:
-  - apt-get -y install qt5-default qttools5-dev-tools qtbase5-dev qtmultimedia5-dev libqt5svg5-dev qttools5-dev qt5-qmake libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libqt5opengl5-dev libpulse-dev build-essential
   - qmake
   - make -j4
