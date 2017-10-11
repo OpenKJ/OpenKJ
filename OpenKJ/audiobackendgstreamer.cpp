@@ -52,6 +52,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     m_currentRmsLevel = 0.0;
     m_keyChange = 0;
     m_silenceDuration = 0;
+    m_muted = false;
 
     GstAppSinkCallbacks appsinkCallbacks;
     appsinkCallbacks.new_preroll	= &AudioBackendGstreamer::NewPrerollCallback;
@@ -244,7 +245,7 @@ qint64 AudioBackendGstreamer::position()
 
 bool AudioBackendGstreamer::isMuted()
 {
-    return false;
+    return m_muted;
 }
 
 qint64 AudioBackendGstreamer::duration()
@@ -320,13 +321,12 @@ void AudioBackendGstreamer::setMuted(bool muted)
     if (muted)
     {
         g_object_set(G_OBJECT(playBin), "volume", 0.0, NULL);
-        muted = true;
     }
     else
     {
         g_object_set(G_OBJECT(playBin), "volume", m_volume * .01, NULL);
-        muted = false;
     }
+    m_muted = muted;
 
 }
 

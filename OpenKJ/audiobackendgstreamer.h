@@ -99,6 +99,7 @@ private:
     bool m_canKeyChange;
     bool m_keyChangerRubberBand;
     bool m_keyChangerSoundtouch;
+    bool m_muted;
     int m_silenceDuration;
     void processGstMessages();
     int m_outputChannels;
