@@ -4,7 +4,7 @@
 
 TagReader::TagReader(QObject *parent) : QObject(parent)
 {
-
+    m_duration = 0;
 }
 
 QString TagReader::getArtist()
