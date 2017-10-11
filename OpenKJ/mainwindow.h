@@ -85,9 +85,9 @@ private:
     DlgRegularImport *regularImportDialog;
     DlgKeyChange *dlgKeyChange;
     DlgRequests *requestsDialog;
-    DlgCdgPreview *cdgPreviewDialog;
+    //DlgCdgPreview *cdgPreviewDialog;
     AbstractAudioBackend *kAudioBackend;
-    KhAudioBackends *audioBackends;
+//    KhAudioBackends *audioBackends;
 //    KhAudioRecorder *audioRecorder;
     AudioRecorder *audioRecorder;
     AudioBackendGstreamer *bmAudioBackend;

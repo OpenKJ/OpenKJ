@@ -116,6 +116,7 @@ void DlgCdgPreview::on_pushButtonClose_clicked()
     cdg->VideoClose();
     cdgPosition = 0;
     close();
+    deleteLater();
 }
 
 
@@ -125,6 +126,7 @@ void DlgCdgPreview::closeEvent(QCloseEvent *)
     cdg->VideoClose();
     cdgPosition = 0;
     close();
+    deleteLater();
 }
 
 

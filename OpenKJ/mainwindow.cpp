@@ -905,7 +905,8 @@ void MainWindow::silenceDetectedBm()
 
 void MainWindow::audioBackendChanged(int index)
 {
-    kAudioBackend = audioBackends->at(index);
+    Q_UNUSED(index)
+    //kAudioBackend = audioBackends->at(index);
 }
 
 void MainWindow::on_tableViewDB_customContextMenuRequested(const QPoint &pos)
@@ -1008,7 +1009,7 @@ void MainWindow::regularAddError(QString errorText)
 
 void MainWindow::previewCdg()
 {
-    cdgPreviewDialog = new DlgCdgPreview(this);
+    DlgCdgPreview *cdgPreviewDialog = new DlgCdgPreview(this);
     cdgPreviewDialog->setAttribute(Qt::WA_DeleteOnClose);
     cdgPreviewDialog->setSourceFile(dbRtClickFile);
     cdgPreviewDialog->preview();
