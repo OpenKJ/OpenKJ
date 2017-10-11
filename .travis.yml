@@ -13,6 +13,6 @@ addons:
       name: "OpenKJ/OpenKJ"
       description: "Build submitted via Travis CI"
     notification_email: isaac@hozed.net
-    build_command_prepend: "./configure; make clean"
+    build_command_prepend: "apt-get -y install qt5-default qttools5-dev-tools qtbase5-dev qtmultimedia5-dev libqt5svg5-dev qttools5-dev qt5-qmake libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libqt5opengl5-dev libpulse-dev build-essential; qmake; make clean"
     build_command:   "make -j 4"
     branch_pattern: coverity_scan
