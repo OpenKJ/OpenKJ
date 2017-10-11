@@ -10,6 +10,7 @@ CdgVideoSurface::CdgVideoSurface(QWidget *widget, QObject *parent)
 {
     Q_UNUSED(parent);
     CdgVideoSurface::widget = widget;
+    imageFormat = QImage::Format_Invalid;
 }
 
 QList<QVideoFrame::PixelFormat> CdgVideoSurface::supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const
