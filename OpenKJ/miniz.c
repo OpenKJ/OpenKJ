@@ -6301,6 +6301,8 @@ mz_bool mz_zip_writer_add_mem_ex_v2(mz_zip_archive *pZip, const char *pArchive_n
 mz_bool mz_zip_writer_add_cfile(mz_zip_archive *pZip, const char *pArchive_name, MZ_FILE *pSrc_file, mz_uint64 size_to_add, const MZ_TIME_T *pFile_time, const void *pComment, mz_uint16 comment_size, mz_uint level_and_flags,
                                 const char *user_extra_data, mz_uint user_extra_data_len, const char *user_extra_data_central, mz_uint user_extra_data_central_len)
 {
+    if (!pZip)
+        return MZ_FALSE;
     mz_uint16 gen_flags = MZ_ZIP_LDH_BIT_FLAG_HAS_LOCATOR;
     mz_uint uncomp_crc32 = MZ_CRC32_INIT, level, num_alignment_padding_bytes;
     mz_uint16 method = 0, dos_time = 0, dos_date = 0, ext_attributes = 0;
@@ -6320,7 +6322,7 @@ mz_bool mz_zip_writer_add_cfile(mz_zip_archive *pZip, const char *pArchive_name,
     level = level_and_flags & 0xF;
 
     /* Sanity checks */
-    if ((!pZip) || (!pZip->m_pState) || (pZip->m_zip_mode != MZ_ZIP_MODE_WRITING) || (!pArchive_name) || ((comment_size) && (!pComment)) || (level > MZ_UBER_COMPRESSION))
+    if ((!pZip->m_pState) || (pZip->m_zip_mode != MZ_ZIP_MODE_WRITING) || (!pArchive_name) || ((comment_size) && (!pComment)) || (level > MZ_UBER_COMPRESSION))
         return mz_zip_set_error(pZip, MZ_ZIP_INVALID_PARAMETER);
 
     pState = pZip->m_pState;
