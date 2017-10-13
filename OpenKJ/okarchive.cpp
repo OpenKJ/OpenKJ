@@ -206,31 +206,33 @@ bool OkArchive::findEntries()
     unsigned int files = mz_zip_reader_get_num_files(&archive);
     for (unsigned int i=0; i < files; i++)
     {
-        mz_zip_reader_file_stat(&archive, i, &fStat);
-        QString fileName = fStat.m_filename;
-        if (fileName.endsWith(".cdg",Qt::CaseInsensitive))
+        if (mz_zip_reader_file_stat(&archive, i, &fStat))
         {
-            cdgFileName = fileName;
-            m_cdgSize = fStat.m_uncomp_size;
-            m_cdgFound = true;
-        }
-        else
-        {
-            for (int e=0; e < audioExtensions.size(); e++)
+            QString fileName = fStat.m_filename;
+            if (fileName.endsWith(".cdg",Qt::CaseInsensitive))
             {
-                if (fileName.endsWith(audioExtensions.at(e), Qt::CaseInsensitive))
+                cdgFileName = fileName;
+                m_cdgSize = fStat.m_uncomp_size;
+                m_cdgFound = true;
+            }
+            else
+            {
+                for (int e=0; e < audioExtensions.size(); e++)
                 {
-                    audioFileName = fileName;
-                    audioExt = audioExtensions.at(e);
-                    m_audioSize = fStat.m_uncomp_size;
-                    m_audioFound = true;
+                    if (fileName.endsWith(audioExtensions.at(e), Qt::CaseInsensitive))
+                    {
+                        audioFileName = fileName;
+                        audioExt = audioExtensions.at(e);
+                        m_audioSize = fStat.m_uncomp_size;
+                        m_audioFound = true;
+                    }
                 }
             }
-        }
-        if (m_audioFound && m_cdgFound)
-        {
-            mz_zip_reader_end(&archive);
-            return true;
+            if (m_audioFound && m_cdgFound)
+            {
+                mz_zip_reader_end(&archive);
+                return true;
+            }
         }
     }
     zipFile.close();
