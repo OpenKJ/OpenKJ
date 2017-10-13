@@ -79,7 +79,10 @@ QByteArray OkArchive::getCDGData()
         int fd = zipFile.handle();
         if (fd < 0)
             return data;
-        FILE* f = fdopen(dup(fd), "rb");
+        int dupfd = dup(fd);
+        if (dupfd < 0)
+            return data;
+        FILE* f = fdopen(dupfd, "rb");
         mz_zip_reader_init_cfile(&archive, f, zipFile.size(), 0);
         QTemporaryDir dir;
         QString cdgTmpFile = dir.path() + QDir::separator() + "tmp.cdg";
@@ -148,7 +151,10 @@ bool OkArchive::extractAudio(QString destPath)
         int fd = zipFile.handle();
         if (fd < 0)
             return false;
-        FILE* f = fdopen(dup(fd), "rb");
+        int dupfd = dup(fd);
+        if (dupfd < 0)
+            return false;
+        FILE* f = fdopen(dupfd, "rb");
         mz_zip_reader_init_cfile(&archive, f, zipFile.size(), 0);
         if (mz_zip_reader_extract_file_to_file(&archive, audioFileName.toLocal8Bit(), destPath.toLocal8Bit(),0))
         {
@@ -201,7 +207,10 @@ bool OkArchive::findEntries()
     int fd = zipFile.handle();
     if (fd < 0)
         return false;
-    FILE* f = fdopen(dup(fd), "rb");
+    int dupfd = dup(fd);
+    if (dupfd < 0)
+        return false;
+    FILE* f = fdopen(dupfd, "rb");
     mz_zip_reader_init_cfile(&archive, f, zipFile.size(), 0);
     unsigned int files = mz_zip_reader_get_num_files(&archive);
     for (unsigned int i=0; i < files; i++)
