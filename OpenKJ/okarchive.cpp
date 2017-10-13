@@ -76,8 +76,9 @@ QByteArray OkArchive::getCDGData()
         zipFile.open(QFile::ReadOnly);
         mz_zip_archive archive;
         memset(&archive, 0, sizeof(archive));
-//        mz_zip_reader_init_filehandle(&archive, zipFile.handle(), 0);
         int fd = zipFile.handle();
+        if (fd < 0)
+            return data;
         FILE* f = fdopen(dup(fd), "rb");
         mz_zip_reader_init_cfile(&archive, f, zipFile.size(), 0);
         QTemporaryDir dir;
@@ -144,8 +145,9 @@ bool OkArchive::extractAudio(QString destPath)
         zipFile.open(QFile::ReadOnly);
         mz_zip_archive archive;
         memset(&archive, 0, sizeof(archive));
-//        mz_zip_reader_init_filehandle(&archive, zipFile.handle(), 0);
         int fd = zipFile.handle();
+        if (fd < 0)
+            return false;
         FILE* f = fdopen(dup(fd), "rb");
         mz_zip_reader_init_cfile(&archive, f, zipFile.size(), 0);
         if (mz_zip_reader_extract_file_to_file(&archive, audioFileName.toLocal8Bit(), destPath.toLocal8Bit(),0))
@@ -196,8 +198,9 @@ bool OkArchive::findEntries()
     mz_zip_archive archive;
     memset(&archive, 0, sizeof(archive));
     mz_zip_archive_file_stat fStat;
-//    mz_zip_reader_init_filehandle(&archive, zipFile.handle(), 0);
     int fd = zipFile.handle();
+    if (fd < 0)
+        return false;
     FILE* f = fdopen(dup(fd), "rb");
     mz_zip_reader_init_cfile(&archive, f, zipFile.size(), 0);
     unsigned int files = mz_zip_reader_get_num_files(&archive);
@@ -224,18 +227,6 @@ bool OkArchive::findEntries()
                 }
             }
         }
-//        if (fileName.endsWith(".mp3",Qt::CaseInsensitive))
-//        {
-//            audioFileName = fileName;
-//            m_audioSize = fStat.m_uncomp_size;
-//            m_audioFound = true;
-//        }
-//        else if (fileName.endsWith(".cdg",Qt::CaseInsensitive))
-//        {
-//            cdgFileName = fileName;
-//            m_cdgSize = fStat.m_uncomp_size;
-//            m_cdgFound = true;
-//        }
         if (m_audioFound && m_cdgFound)
         {
             mz_zip_reader_end(&archive);
