@@ -24,8 +24,12 @@
 #include <QFile>
 #include <QBuffer>
 #include <QTemporaryDir>
-#include "miniz.c"
-
+#include "miniz.h"
+#ifdef Q_OS_WIN
+#include <io.h>
+#else
+#include <unistd.h>
+#endif
 
 OkArchive::OkArchive(QString ArchiveFile, QObject *parent) : QObject(parent)
 {
@@ -72,7 +76,10 @@ QByteArray OkArchive::getCDGData()
         zipFile.open(QFile::ReadOnly);
         mz_zip_archive archive;
         memset(&archive, 0, sizeof(archive));
-        mz_zip_reader_init_filehandle(&archive, zipFile.handle(), 0);
+//        mz_zip_reader_init_filehandle(&archive, zipFile.handle(), 0);
+        int fd = zipFile.handle();
+        FILE* f = fdopen(dup(fd), "rb");
+        mz_zip_reader_init_cfile(&archive, f, zipFile.size(), 0);
         QTemporaryDir dir;
         QString cdgTmpFile = dir.path() + QDir::separator() + "tmp.cdg";
         if (mz_zip_reader_extract_file_to_file(&archive, cdgFileName.toLocal8Bit(), cdgTmpFile.toLocal8Bit(),0))
@@ -85,6 +92,7 @@ QByteArray OkArchive::getCDGData()
             return data;
         }
         zipFile.close();
+        fclose(f);
         mz_zip_reader_end(&archive);
         return data;
     }
@@ -136,7 +144,10 @@ bool OkArchive::extractAudio(QString destPath)
         zipFile.open(QFile::ReadOnly);
         mz_zip_archive archive;
         memset(&archive, 0, sizeof(archive));
-        mz_zip_reader_init_filehandle(&archive, zipFile.handle(), 0);
+//        mz_zip_reader_init_filehandle(&archive, zipFile.handle(), 0);
+        int fd = zipFile.handle();
+        FILE* f = fdopen(dup(fd), "rb");
+        mz_zip_reader_init_cfile(&archive, f, zipFile.size(), 0);
         if (mz_zip_reader_extract_file_to_file(&archive, audioFileName.toLocal8Bit(), destPath.toLocal8Bit(),0))
         {
             zipFile.close();
@@ -146,6 +157,7 @@ bool OkArchive::extractAudio(QString destPath)
         else
         qCritical() << "Failed to extract mp3 file";
         zipFile.close();
+        fclose(f);
         mz_zip_reader_end(&archive);
         return false;
     }
@@ -184,7 +196,10 @@ bool OkArchive::findEntries()
     mz_zip_archive archive;
     memset(&archive, 0, sizeof(archive));
     mz_zip_archive_file_stat fStat;
-    mz_zip_reader_init_filehandle(&archive, zipFile.handle(), 0);
+//    mz_zip_reader_init_filehandle(&archive, zipFile.handle(), 0);
+    int fd = zipFile.handle();
+    FILE* f = fdopen(dup(fd), "rb");
+    mz_zip_reader_init_cfile(&archive, f, zipFile.size(), 0);
     unsigned int files = mz_zip_reader_get_num_files(&archive);
     for (unsigned int i=0; i < files; i++)
     {
@@ -228,6 +243,7 @@ bool OkArchive::findEntries()
         }
     }
     zipFile.close();
+    fclose(f);
     mz_zip_reader_end(&archive);
     return false;
 }

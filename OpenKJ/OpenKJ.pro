@@ -36,6 +36,7 @@ SOURCES += main.cpp\
     libCDG/src/libCDG_Frame_Image.cpp \
     libCDG/src/libCDG_Color.cpp \
     libCDG/src/libCDG.cpp \
+    miniz.c \
     sourcedirtablemodel.cpp \
     dbupdatethread.cpp \
     scrolltext.cpp \
@@ -71,7 +72,6 @@ SOURCES += main.cpp\
     bmplitemdelegate.cpp \
     settings.cpp \
     bmdbdialog.cpp \
-    miniz.c \
     filenameparser.cpp \
     dlgcustompatterns.cpp \
     custompatternsmodel.cpp \
@@ -121,7 +121,8 @@ HEADERS  += mainwindow.h \
     dlgcustompatterns.h \
     custompatternsmodel.h \
     audiorecorder.h \
-    okjsongbookapi.h
+    okjsongbookapi.h \
+    miniz.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \
