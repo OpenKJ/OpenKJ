@@ -44,7 +44,6 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     connect(requestsModel, SIGNAL(layoutChanged()), this, SLOT(requestsModified()));
     ui->tableViewSearch->setModel(dbModel);
     ui->tableViewSearch->setItemDelegate(dbDelegate);
-    cdgPreviewDialog = new DlgCdgPreview(this);
     ui->groupBoxAddSong->setDisabled(true);
     ui->groupBoxSongDb->setDisabled(true);
     connect(ui->treeViewRequests->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(requestSelectionChanged(QItemSelection,QItemSelection)));
@@ -239,10 +238,9 @@ void DlgRequests::on_tableViewSearch_customContextMenuRequested(const QPoint &po
     QModelIndex index = ui->tableViewSearch->indexAt(pos);
     if (index.isValid())
     {
-        QString zipPath = index.sibling(index.row(),5).data().toString();
-        cdgPreviewDialog->setSourceFile(zipPath);
+        rtClickFile = index.sibling(index.row(),5).data().toString();
         QMenu contextMenu(this);
-        contextMenu.addAction("Preview", cdgPreviewDialog, SLOT(preview()));
+        contextMenu.addAction("Preview", this, SLOT(previewCdg()));
         contextMenu.exec(QCursor::pos());
     }
 }
@@ -327,4 +325,12 @@ void DlgRequests::on_comboBoxVenue_activated(int index)
     ui->checkBoxAccepting->setChecked(songbookApi->getAccepting());
     qWarning() << "Set venue_id to " << venue;
     qWarning() << "Settings now reporting venue as " << settings->requestServerVenue();
+}
+
+void DlgRequests::previewCdg()
+{
+    DlgCdgPreview *cdgPreviewDialog = new DlgCdgPreview(this);
+    cdgPreviewDialog->setAttribute(Qt::WA_DeleteOnClose);
+    cdgPreviewDialog->setSourceFile(rtClickFile);
+    cdgPreviewDialog->preview();
 }

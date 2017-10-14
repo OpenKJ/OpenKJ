@@ -45,7 +45,7 @@ private:
     DbTableModel *dbModel;
     DbItemDelegate *dbDelegate;
     RotationModel *rotModel;
-    DlgCdgPreview *cdgPreviewDialog;
+    QString rtClickFile;
 
 public:
     explicit DlgRequests(RotationModel *rotationModel, QWidget *parent = 0);
@@ -74,6 +74,7 @@ private slots:
     void venuesChanged(OkjsVenues venues);
     void on_pushButtonUpdateDb_clicked();
     void on_comboBoxVenue_activated(int index);
+    void previewCdg();
 };
 
 #endif // KHREQUESTSDIALOG_H
