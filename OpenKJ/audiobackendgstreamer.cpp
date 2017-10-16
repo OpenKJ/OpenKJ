@@ -31,6 +31,7 @@
 AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *parent, QString objectName) :
     AbstractAudioBackend(parent)
 {
+/*
 #ifdef Q_OS_MACOS
     QString appPath = qApp->applicationDirPath();
     qputenv("GST_PLUGIN_SYSTEM_PATH", QString("/Applications/OpenKJ.app/Contents/Frameworks/GStreamer.framework/Versions/Current/lib/gstreamer-1.0").toLocal8Bit());
@@ -40,7 +41,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     qWarning() << "MacOS detected, changed GST env vars to point to the bundled framework";
     qWarning() << qgetenv("GST_PLUGIN_SYSTEM_PATH") << endl << qgetenv("GST_PLUGIN_SCANNER") << endl << qgetenv("GTK_PATH") << endl << qgetenv("GIO_EXTRA_MODULES") << endl;
 #endif
-
+*/
     objName = objectName;
     m_volume = 0;
     m_canKeyChange = false;
@@ -113,7 +114,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
         gst_element_link_many(audioPanorama, filter, rgVolume, audioConvert, level, audioSink, NULL);
         m_canKeyChange = false;
     }
-    pad = gst_element_get_static_pad(filter, "sink");
+    pad = gst_element_get_static_pad(audioPanorama, "sink");
     ghostPad = gst_ghost_pad_new("sink", pad);
     gst_pad_set_active(ghostPad, true);
     gst_element_add_pad(sinkBin, ghostPad);
@@ -171,9 +172,17 @@ void AudioBackendGstreamer::processGstMessages()
             {
                 GError *err;
                 gchar *debug;
-                gst_message_parse_error (message, &err, &debug);
-                      g_print ("GStreamer error: %s\n", err->message);
-                      g_print ("GStreamer debug output: %s\n", debug);
+                gst_message_parse_error(message, &err, &debug);
+                g_print("GStreamer error: %s\n", err->message);
+                g_print("GStreamer debug output: %s\n", debug);
+            }
+            else if (message->type == GST_MESSAGE_WARNING)
+            {
+                GError *err;
+                gchar *debug;
+                gst_message_parse_warning(message, &err, &debug);
+                g_print("GStreamer warning: %s\n", err->message);
+                g_print("GStreamer debug output: %s\n", debug);
             }
             else if (message->type == GST_MESSAGE_STATE_CHANGED)
             {
