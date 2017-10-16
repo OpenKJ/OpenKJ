@@ -79,3 +79,9 @@ float AbstractAudioBackend::getPitchForSemitone(int semitone)
     }
     return pitch;
 }
+
+void AbstractAudioBackend::setMultiplexChannel(AbstractAudioBackend::Multiplex srcChannel)
+{
+    Q_UNUSED(srcChannel);
+    return;
+}

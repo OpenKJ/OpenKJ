@@ -81,6 +81,7 @@ private:
 //    GstElement *volumeElement;
     GstElement *level;
     GstElement *filter;
+    GstElement *audioPanorama;
     GstCaps *audioCapsStereo;
     GstCaps *audioCapsMono;
     GstCaps *videoCaps;
@@ -169,6 +170,10 @@ public:
     // AbstractAudioBackend interface
 public:
     void setOutputDevice(int deviceIndex);
+
+    // AbstractAudioBackend interface
+public:
+    void setMultiplexChannel(Multiplex srcChannel);
 };
 
 #endif // AUDIOBACKENDGSTREAMER_H

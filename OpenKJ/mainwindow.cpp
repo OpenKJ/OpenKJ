@@ -1476,3 +1476,22 @@ void MainWindow::on_actionAbout_triggered()
     text = "OpenKJ\n\nVersion: " + QString(GIT_VERSION) + "\nBuilt: " + date + "\nLicense: GPL v3+";
     QMessageBox::about(this,title,text);
 }
+
+
+void MainWindow::on_pushButtonMplxLeft_toggled(bool checked)
+{
+    if (checked)
+        kAudioBackend->setMultiplexChannel(AbstractAudioBackend::Multiplex::LeftChannel);
+}
+
+void MainWindow::on_pushButtonMplxBoth_toggled(bool checked)
+{
+    if (checked)
+        kAudioBackend->setMultiplexChannel(AbstractAudioBackend::Multiplex::Normal);
+}
+
+void MainWindow::on_pushButtonMplxRight_toggled(bool checked)
+{
+    if (checked)
+        kAudioBackend->setMultiplexChannel(AbstractAudioBackend::Multiplex::RightChannel);
+}

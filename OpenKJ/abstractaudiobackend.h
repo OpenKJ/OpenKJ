@@ -35,6 +35,7 @@ private:
     QString name;
 public:
     enum State{PlayingState=0,PausedState,StoppedState,EndOfMediaState,UnknownState};
+    enum Multiplex{Normal=0,LeftChannel,RightChannel};
     explicit AbstractAudioBackend(QObject *parent = 0);
     virtual int volume() {return 0;}
     virtual qint64 position() {return 0;}
@@ -54,6 +55,7 @@ public:
     virtual void setOutputDevice(int deviceIndex) {Q_UNUSED(deviceIndex);}
     virtual bool stopping() {return false;}
     float getPitchForSemitone(int semitone);
+    virtual void setMultiplexChannel(Multiplex srcChannel);
 
     QString getName() const;
     void setName(const QString &value);

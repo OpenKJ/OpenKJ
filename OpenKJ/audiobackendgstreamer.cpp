@@ -68,6 +68,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     rgVolume = gst_element_factory_make("rgvolume", "rgVolume");
 //    volumeElement = gst_element_factory_make("volume", "volumeElement");
     level = gst_element_factory_make("level", "level");
+    audioPanorama = gst_element_factory_make("audiopanorama", "audioPanorama");
     pitchShifterSoundtouch = gst_element_factory_make("pitch", "pitch");
     pitchShifterRubberBand = gst_element_factory_make("ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo", "ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo");
     playBin = gst_element_factory_make("playbin", "playBin");
@@ -85,8 +86,8 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
         qCritical() << "Pitch shift ladspa plugin \"Rubber Band\" found, enabling key changing";
 //        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, pitchShifterRubberBand, level, autoAudioSink, NULL);
 //        gst_element_link_many(filter, rgVolume, audioConvert, pitchShifterRubberBand, level, autoAudioSink, NULL);
-        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, pitchShifterRubberBand, level, audioSink, NULL);
-        gst_element_link_many(filter, rgVolume, audioConvert, pitchShifterRubberBand, level, audioSink, NULL);
+        gst_bin_add_many(GST_BIN (sinkBin), audioPanorama, filter, rgVolume, audioConvert, pitchShifterRubberBand, level, audioSink, NULL);
+        gst_element_link_many(audioPanorama, filter, rgVolume, audioConvert, pitchShifterRubberBand, level, audioSink, NULL);
         g_object_set(G_OBJECT(pitchShifterRubberBand), "formant-preserving", true, NULL);
         g_object_set(G_OBJECT(pitchShifterRubberBand), "crispness", 1, NULL);
         g_object_set(G_OBJECT(pitchShifterRubberBand), "semitones", 1.0, NULL);
@@ -97,8 +98,8 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     {
         // This is our fallback, and the only one reliably available on Windows.  It's not ideal, but it works.
         qCritical() << "Pitch shift plugin \"soundtouch pitch\" found, enabling key changing";
-        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, pitchShifterSoundtouch, audioConvert2, level, audioSink, NULL);
-        gst_element_link_many(filter, rgVolume, audioConvert, pitchShifterSoundtouch, audioConvert2, level, audioSink, NULL);
+        gst_bin_add_many(GST_BIN (sinkBin), audioPanorama, filter, rgVolume, audioConvert, pitchShifterSoundtouch, audioConvert2, level, audioSink, NULL);
+        gst_element_link_many(audioPanorama, filter, rgVolume, audioConvert, pitchShifterSoundtouch, audioConvert2, level, audioSink, NULL);
         g_object_set(G_OBJECT(pitchShifterSoundtouch), "pitch", 1.0, "tempo", 1.0, NULL);
         m_canKeyChange = true;
         m_keyChangerSoundtouch = true;
@@ -108,8 +109,8 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
         // No supported pitch shift plugin on the system
         if (loadPitchShift)
             qCritical() << "No supported pitch shifting gstreamer plugin found, key changing disabled";
-        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, level, audioSink, NULL);
-        gst_element_link_many(filter, rgVolume, audioConvert, level, audioSink, NULL);
+        gst_bin_add_many(GST_BIN (sinkBin), audioPanorama, filter, rgVolume, audioConvert, level, audioSink, NULL);
+        gst_element_link_many(audioPanorama, filter, rgVolume, audioConvert, level, audioSink, NULL);
         m_canKeyChange = false;
     }
     pad = gst_element_get_static_pad(filter, "sink");
@@ -166,7 +167,15 @@ void AudioBackendGstreamer::processGstMessages()
         message = gst_bus_pop(bus);
         if (message != NULL)
         {
-            if (message->type == GST_MESSAGE_STATE_CHANGED)
+            if (message->type == GST_MESSAGE_ERROR)
+            {
+                GError *err;
+                gchar *debug;
+                gst_message_parse_error (message, &err, &debug);
+                      g_print ("GStreamer error: %s\n", err->message);
+                      g_print ("GStreamer debug output: %s\n", debug);
+            }
+            else if (message->type == GST_MESSAGE_STATE_CHANGED)
             {
                 GstState state;
                 gst_element_get_state(playBin, &state, NULL, GST_CLOCK_TIME_NONE);
@@ -736,6 +745,18 @@ void AudioBackendGstreamer::setOutputDevice(int deviceIndex)
     }
     gst_bin_add(GST_BIN(sinkBin), audioSink);
     gst_element_link(level, audioSink);
+}
+
+void AudioBackendGstreamer::setMultiplexChannel(AbstractAudioBackend::Multiplex srcChannel)
+{
+    qWarning() << "setMultiplexChannel(" << srcChannel << ") called";
+    float panning = 0.0;
+    if (srcChannel == Multiplex::LeftChannel)
+        panning = -1.0;
+    else if (srcChannel == Multiplex::RightChannel)
+        panning = 1.0;
+    g_object_set(G_OBJECT(audioPanorama), "panorama", panning, NULL);
+    qWarning() << "audiopanorama set to " << panning;
 }
 
 void AudioBackendGstreamer::EndOfStreamCallback(GstAppSink* appsink, gpointer user_data)
