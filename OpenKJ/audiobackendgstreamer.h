@@ -73,11 +73,15 @@ private:
     GstElement *playBin;
     GstElement *audioConvert;
     GstElement *audioConvert2;
+    GstElement *audioConvert3;
+    GstElement *audioConvert4;
     GstElement *defaultSink;
     GstElement *audioSink;
     GstElement *rgVolume;
     GstElement *pitchShifterRubberBand;
     GstElement *pitchShifterSoundtouch;
+    GstElement *audioMixer;
+    GstElement *deInterleave;
 //    GstElement *volumeElement;
     GstElement *level;
     GstElement *filter;
@@ -88,6 +92,8 @@ private:
     GstPad *pad;
     GstPad *ghostPad;
     GstBus *bus;
+    GstPad *mixerPadL;
+    GstPad *mixerPadR;
     GstDeviceMonitor *monitor;
     QString m_filename;
     QTimer *fastTimer;
@@ -110,6 +116,7 @@ private:
     static GstFlowReturn NewPrerollCallback(GstAppSink *appsink, gpointer user_data);
     static GstFlowReturn NewSampleCallback(GstAppSink *appsink, gpointer user_data);
     static GstFlowReturn NewAudioSampleCallback(GstAppSink *appsink, gpointer user_data);
+    static void cb_new_pad (GstElement *element, GstPad *pad, gpointer data);
 
     QStringList GstGetPlugins();
     QStringList GstGetElements(QString plugin);
@@ -172,8 +179,8 @@ public:
     void setOutputDevice(int deviceIndex);
 
     // AbstractAudioBackend interface
-public:
-    void setMultiplexChannel(Multiplex srcChannel);
+public slots:
+    void setMplxMode(int mode);
 };
 
 #endif // AUDIOBACKENDGSTREAMER_H

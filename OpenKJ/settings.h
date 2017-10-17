@@ -142,6 +142,9 @@ public:
     void bmSetVolume(int bmVolume);
     int bmPlaylistIndex();
     void bmSetPlaylistIndex(int index);
+    int mplxMode();
+    void setMplxMode(int mode);
+
 
 signals:
     void tickerFontChanged();
@@ -165,6 +168,7 @@ signals:
     void bgSlideShowDirChanged(QString dir);
     void requestServerVenueChanged(int venueId);
     void tickerCustomStringChanged();
+    void mplxModeChanged(int mode);
 
 public slots:
     void setShowCdgWindow(bool show);

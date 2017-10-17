@@ -589,3 +589,14 @@ void Settings::bmSetPlaylistIndex(int index)
 {
     settings->setValue("playlistIndex", index);
 }
+
+int Settings::mplxMode()
+{
+    settings->value("mplxMode", 0).toInt();
+}
+
+void Settings::setMplxMode(int mode)
+{
+    settings->setValue("mplxMode", mode);
+    emit mplxModeChanged(mode);
+}

@@ -24,14 +24,13 @@
 #include <string.h>
 #include <math.h>
 #include <gst/audio/streamvolume.h>
+#include "settings.h"
 
-
-
+extern Settings *settings;
 
 AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *parent, QString objectName) :
     AbstractAudioBackend(parent)
 {
-/*
 #ifdef Q_OS_MACOS
     QString appPath = qApp->applicationDirPath();
     qputenv("GST_PLUGIN_SYSTEM_PATH", QString("/Applications/OpenKJ.app/Contents/Frameworks/GStreamer.framework/Versions/Current/lib/gstreamer-1.0").toLocal8Bit());
@@ -41,7 +40,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     qWarning() << "MacOS detected, changed GST env vars to point to the bundled framework";
     qWarning() << qgetenv("GST_PLUGIN_SYSTEM_PATH") << endl << qgetenv("GST_PLUGIN_SCANNER") << endl << qgetenv("GTK_PATH") << endl << qgetenv("GIO_EXTRA_MODULES") << endl;
 #endif
-*/
+
     objName = objectName;
     m_volume = 0;
     m_canKeyChange = false;
@@ -64,6 +63,8 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     gst_init(NULL,NULL);
     audioConvert = gst_element_factory_make("audioconvert", "audioConvert");
     audioConvert2 = gst_element_factory_make("audioconvert", "audioConvert2");
+    audioConvert3 = gst_element_factory_make("audioconvert", NULL);
+    audioConvert4 = gst_element_factory_make("audioconvert", NULL);
     audioSink = gst_element_factory_make("autoaudiosink", "autoAudioSink");
     videoAppSink = gst_element_factory_make("appsink", "videoAppSink");
     rgVolume = gst_element_factory_make("rgvolume", "rgVolume");
@@ -81,14 +82,21 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     g_object_set(filter, "caps", audioCapsStereo, NULL);
     g_object_set(videoAppSink, "caps", videoCaps, NULL);
 
+    audioMixer = gst_element_factory_make("audiomixer", NULL);
+    mixerPadL = gst_element_get_request_pad(audioMixer, "sink_0");
+    mixerPadR = gst_element_get_request_pad(audioMixer, "sink_1");
+    deInterleave = gst_element_factory_make("deinterleave", NULL);
+    g_signal_connect (deInterleave, "pad-added", G_CALLBACK (this->cb_new_pad), this);
+
     if ((pitchShifterRubberBand) && (loadPitchShift))
     {
         // This is our preferred pitch shifter because it sounds better, but it's only available on Linux
         qCritical() << "Pitch shift ladspa plugin \"Rubber Band\" found, enabling key changing";
 //        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, pitchShifterRubberBand, level, autoAudioSink, NULL);
 //        gst_element_link_many(filter, rgVolume, audioConvert, pitchShifterRubberBand, level, autoAudioSink, NULL);
-        gst_bin_add_many(GST_BIN (sinkBin), audioPanorama, filter, rgVolume, audioConvert, pitchShifterRubberBand, level, audioSink, NULL);
-        gst_element_link_many(audioPanorama, filter, rgVolume, audioConvert, pitchShifterRubberBand, level, audioSink, NULL);
+        gst_bin_add_many(GST_BIN (sinkBin), audioConvert3, deInterleave, audioMixer, audioConvert4, filter, rgVolume, audioConvert, pitchShifterRubberBand, level, audioSink, NULL);
+        gst_element_link(audioConvert3, deInterleave);
+        gst_element_link_many(audioMixer, audioConvert4, filter, rgVolume, audioConvert, pitchShifterRubberBand, level, audioSink, NULL);
         g_object_set(G_OBJECT(pitchShifterRubberBand), "formant-preserving", true, NULL);
         g_object_set(G_OBJECT(pitchShifterRubberBand), "crispness", 1, NULL);
         g_object_set(G_OBJECT(pitchShifterRubberBand), "semitones", 1.0, NULL);
@@ -99,8 +107,9 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     {
         // This is our fallback, and the only one reliably available on Windows.  It's not ideal, but it works.
         qCritical() << "Pitch shift plugin \"soundtouch pitch\" found, enabling key changing";
-        gst_bin_add_many(GST_BIN (sinkBin), audioPanorama, filter, rgVolume, audioConvert, pitchShifterSoundtouch, audioConvert2, level, audioSink, NULL);
-        gst_element_link_many(audioPanorama, filter, rgVolume, audioConvert, pitchShifterSoundtouch, audioConvert2, level, audioSink, NULL);
+        gst_bin_add_many(GST_BIN (sinkBin), audioConvert3, deInterleave, audioMixer, audioConvert4, filter, rgVolume, audioConvert, pitchShifterSoundtouch, audioConvert2, level, audioSink, NULL);
+        gst_element_link(audioConvert3, deInterleave);
+        gst_element_link_many(audioMixer, audioConvert4, filter, rgVolume, audioConvert, pitchShifterSoundtouch, audioConvert2, level, audioSink, NULL);
         g_object_set(G_OBJECT(pitchShifterSoundtouch), "pitch", 1.0, "tempo", 1.0, NULL);
         m_canKeyChange = true;
         m_keyChangerSoundtouch = true;
@@ -110,11 +119,11 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
         // No supported pitch shift plugin on the system
         if (loadPitchShift)
             qCritical() << "No supported pitch shifting gstreamer plugin found, key changing disabled";
-        gst_bin_add_many(GST_BIN (sinkBin), audioPanorama, filter, rgVolume, audioConvert, level, audioSink, NULL);
-        gst_element_link_many(audioPanorama, filter, rgVolume, audioConvert, level, audioSink, NULL);
+        gst_bin_add_many(GST_BIN (sinkBin), audioConvert3, deInterleave, audioMixer, audioConvert4, filter, rgVolume, audioConvert, level, audioSink, NULL);
+        gst_element_link_many(audioMixer, audioConvert4, filter, rgVolume, audioConvert, level, audioSink, NULL);
         m_canKeyChange = false;
     }
-    pad = gst_element_get_static_pad(audioPanorama, "sink");
+    pad = gst_element_get_static_pad(audioConvert3, "sink");
     ghostPad = gst_ghost_pad_new("sink", pad);
     gst_pad_set_active(ghostPad, true);
     gst_element_add_pad(sinkBin, ghostPad);
@@ -150,6 +159,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
         outputDeviceNames.append(gst_device_get_display_name(device));
         outputDevices.append(device);
     }
+    connect(settings, SIGNAL(mplxModeChanged(int)), this, SLOT(setMplxMode(int)));
 
 }
 
@@ -756,18 +766,6 @@ void AudioBackendGstreamer::setOutputDevice(int deviceIndex)
     gst_element_link(level, audioSink);
 }
 
-void AudioBackendGstreamer::setMultiplexChannel(AbstractAudioBackend::Multiplex srcChannel)
-{
-    qWarning() << "setMultiplexChannel(" << srcChannel << ") called";
-    float panning = 0.0;
-    if (srcChannel == Multiplex::LeftChannel)
-        panning = -1.0;
-    else if (srcChannel == Multiplex::RightChannel)
-        panning = 1.0;
-    g_object_set(G_OBJECT(audioPanorama), "panorama", panning, NULL);
-    qWarning() << "audiopanorama set to " << panning;
-}
-
 void AudioBackendGstreamer::EndOfStreamCallback(GstAppSink* appsink, gpointer user_data)
 {
     Q_UNUSED(appsink)
@@ -791,7 +789,55 @@ GstFlowReturn AudioBackendGstreamer::NewSampleCallback(GstAppSink* appsink, gpoi
 
 }
 
+void AudioBackendGstreamer::cb_new_pad(GstElement *element, GstPad *pad, gpointer data)
+{
+    Q_UNUSED(element);
+    AudioBackendGstreamer *parent = reinterpret_cast<AudioBackendGstreamer*>(data);
+    QString name = QString(gst_pad_get_name(pad));
+    qWarning() << "Pad created on deinterleave object: " << name;
+    if (name == "src_0")
+    {
+        qWarning() << "Pad src0 created, linking to mixer on left channel";
+        gst_pad_link(pad, parent->mixerPadL);
+        if (settings->mplxMode() == 2)
+            g_object_set(parent->mixerPadL, "mute", true, NULL);
+        else
+            g_object_set(parent->mixerPadL, "mute", false, NULL);
+    }
+    if (name == "src_1")
+    {
+        qWarning() << "Pad src1 created, linking to mixer on right channel";
+        gst_pad_link(pad, parent->mixerPadR);
+        if (settings->mplxMode() == 1)
+            g_object_set(parent->mixerPadR, "mute", true, NULL);
+        else
+            g_object_set(parent->mixerPadR, "mute", false, NULL);
+    }
+}
+
 void AudioBackendGstreamer::DestroyCallback(gpointer user_data)
 {
     Q_UNUSED(user_data)
+}
+
+
+void AudioBackendGstreamer::setMplxMode(int mode)
+{
+
+    if (mode == Multiplex::Normal)
+    {
+        g_object_set(mixerPadL, "mute", false, NULL);
+        g_object_set(mixerPadR, "mute", false, NULL);
+    }
+    else if (mode == Multiplex::LeftChannel)
+    {
+        g_object_set(mixerPadL, "mute", false, NULL);
+        g_object_set(mixerPadR, "mute", true, NULL);
+    }
+    else if (mode == Multiplex::RightChannel)
+    {
+        g_object_set(mixerPadL, "mute", true, NULL);
+        g_object_set(mixerPadR, "mute", false, NULL);
+    }
+    //settings->setMplxMode(mode);
 }

@@ -1481,17 +1481,17 @@ void MainWindow::on_actionAbout_triggered()
 void MainWindow::on_pushButtonMplxLeft_toggled(bool checked)
 {
     if (checked)
-        kAudioBackend->setMultiplexChannel(AbstractAudioBackend::Multiplex::LeftChannel);
+        settings->setMplxMode(AbstractAudioBackend::Multiplex::LeftChannel);
 }
 
 void MainWindow::on_pushButtonMplxBoth_toggled(bool checked)
 {
     if (checked)
-        kAudioBackend->setMultiplexChannel(AbstractAudioBackend::Multiplex::Normal);
+        settings->setMplxMode(AbstractAudioBackend::Multiplex::RightChannel);
 }
 
 void MainWindow::on_pushButtonMplxRight_toggled(bool checked)
 {
     if (checked)
-        kAudioBackend->setMultiplexChannel(AbstractAudioBackend::Multiplex::RightChannel);
+        settings->setMplxMode(AbstractAudioBackend::Multiplex::Normal);
 }

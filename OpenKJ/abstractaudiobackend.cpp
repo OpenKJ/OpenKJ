@@ -31,6 +31,11 @@ void AbstractAudioBackend::setName(const QString &value)
     name = value;
 }
 
+void AbstractAudioBackend::setMplxMode(int mode)
+{
+    Q_UNUSED(mode);
+}
+
 AbstractAudioBackend::AbstractAudioBackend(QObject *parent) :
     QObject(parent)
 {
@@ -78,10 +83,4 @@ float AbstractAudioBackend::getPitchForSemitone(int semitone)
         pitch = 1.0;
     }
     return pitch;
-}
-
-void AbstractAudioBackend::setMultiplexChannel(AbstractAudioBackend::Multiplex srcChannel)
-{
-    Q_UNUSED(srcChannel);
-    return;
 }

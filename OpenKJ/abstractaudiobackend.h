@@ -55,8 +55,6 @@ public:
     virtual void setOutputDevice(int deviceIndex) {Q_UNUSED(deviceIndex);}
     virtual bool stopping() {return false;}
     float getPitchForSemitone(int semitone);
-    virtual void setMultiplexChannel(Multiplex srcChannel);
-
     QString getName() const;
     void setName(const QString &value);
 
@@ -89,6 +87,7 @@ public slots:
     virtual void setUseSilenceDetection(bool enabled) {Q_UNUSED(enabled);}
     virtual void setDownmix(bool enabled) {Q_UNUSED(enabled);}
     virtual void initialize() {}
+    virtual void setMplxMode(int mode);
 
 };
 

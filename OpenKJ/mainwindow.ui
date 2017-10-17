@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>964</width>
-    <height>741</height>
+    <height>748</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -1440,8 +1440,17 @@
                     </item>
                     <item>
                      <layout class="QGridLayout" name="gridLayout">
+                      <property name="horizontalSpacing">
+                       <number>2</number>
+                      </property>
                       <item row="0" column="0">
                        <widget class="QPushButton" name="pushButtonMplxLeft">
+                        <property name="maximumSize">
+                         <size>
+                          <width>75</width>
+                          <height>22</height>
+                         </size>
+                        </property>
                         <property name="text">
                          <string>Left</string>
                         </property>
@@ -1458,6 +1467,12 @@
                       </item>
                       <item row="0" column="1">
                        <widget class="QPushButton" name="pushButtonMplxBoth">
+                        <property name="maximumSize">
+                         <size>
+                          <width>75</width>
+                          <height>22</height>
+                         </size>
+                        </property>
                         <property name="text">
                          <string>Both</string>
                         </property>
@@ -1474,6 +1489,12 @@
                       </item>
                       <item row="0" column="2">
                        <widget class="QPushButton" name="pushButtonMplxRight">
+                        <property name="maximumSize">
+                         <size>
+                          <width>75</width>
+                          <height>22</height>
+                         </size>
+                        </property>
                         <property name="text">
                          <string>Right</string>
                         </property>
@@ -2648,7 +2669,7 @@
      <x>0</x>
      <y>0</y>
      <width>964</width>
-     <height>22</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
