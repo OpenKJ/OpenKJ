@@ -1494,11 +1494,11 @@ void MainWindow::on_pushButtonMplxLeft_toggled(bool checked)
 void MainWindow::on_pushButtonMplxBoth_toggled(bool checked)
 {
     if (checked)
-        settings->setMplxMode(AbstractAudioBackend::Multiplex::RightChannel);
+        settings->setMplxMode(AbstractAudioBackend::Multiplex::Normal);
 }
 
 void MainWindow::on_pushButtonMplxRight_toggled(bool checked)
 {
     if (checked)
-        settings->setMplxMode(AbstractAudioBackend::Multiplex::Normal);
+        settings->setMplxMode(AbstractAudioBackend::Multiplex::RightChannel);
 }
