@@ -303,11 +303,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->sliderBmVolume->setValue(initialBMVol);
     ui->sliderVolume->setValue(initialKVol);
 
-    if (settings->mplxMode() == AbstractAudioBackend::Multiplex::Normal)
+    if (settings->mplxMode() == Multiplex::Normal)
         ui->pushButtonMplxBoth->setChecked(true);
-    else if (settings->mplxMode() == AbstractAudioBackend::Multiplex::LeftChannel)
+    else if (settings->mplxMode() == Multiplex::LeftChannel)
         ui->pushButtonMplxLeft->setChecked(true);
-    else if (settings->mplxMode() == AbstractAudioBackend::Multiplex::RightChannel)
+    else if (settings->mplxMode() == Multiplex::RightChannel)
         ui->pushButtonMplxRight->setChecked(true);
 }
 
@@ -1488,17 +1488,17 @@ void MainWindow::on_actionAbout_triggered()
 void MainWindow::on_pushButtonMplxLeft_toggled(bool checked)
 {
     if (checked)
-        settings->setMplxMode(AbstractAudioBackend::Multiplex::LeftChannel);
+        settings->setMplxMode(Multiplex::LeftChannel);
 }
 
 void MainWindow::on_pushButtonMplxBoth_toggled(bool checked)
 {
     if (checked)
-        settings->setMplxMode(AbstractAudioBackend::Multiplex::Normal);
+        settings->setMplxMode(Multiplex::Normal);
 }
 
 void MainWindow::on_pushButtonMplxRight_toggled(bool checked)
 {
     if (checked)
-        settings->setMplxMode(AbstractAudioBackend::Multiplex::RightChannel);
+        settings->setMplxMode(Multiplex::RightChannel);
 }
