@@ -303,11 +303,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->sliderBmVolume->setValue(initialBMVol);
     ui->sliderVolume->setValue(initialKVol);
 
-    if (settings->mplxMode() == Multiplex::Normal)
+    if (settings->mplxMode() == Multiplex_Normal)
         ui->pushButtonMplxBoth->setChecked(true);
-    else if (settings->mplxMode() == Multiplex::LeftChannel)
+    else if (settings->mplxMode() == Multiplex_LeftChannel)
         ui->pushButtonMplxLeft->setChecked(true);
-    else if (settings->mplxMode() == Multiplex::RightChannel)
+    else if (settings->mplxMode() == Multiplex_RightChannel)
         ui->pushButtonMplxRight->setChecked(true);
 }
 
@@ -1488,17 +1488,17 @@ void MainWindow::on_actionAbout_triggered()
 void MainWindow::on_pushButtonMplxLeft_toggled(bool checked)
 {
     if (checked)
-        settings->setMplxMode(Multiplex::LeftChannel);
+        settings->setMplxMode(Multiplex_LeftChannel);
 }
 
 void MainWindow::on_pushButtonMplxBoth_toggled(bool checked)
 {
     if (checked)
-        settings->setMplxMode(Multiplex::Normal);
+        settings->setMplxMode(Multiplex_Normal);
 }
 
 void MainWindow::on_pushButtonMplxRight_toggled(bool checked)
 {
     if (checked)
-        settings->setMplxMode(Multiplex::RightChannel);
+        settings->setMplxMode(Multiplex_RightChannel);
 }

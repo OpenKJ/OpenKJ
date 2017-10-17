@@ -797,7 +797,7 @@ void AudioBackendGstreamer::cb_new_pad(GstElement *element, GstPad *pad, gpointe
     if (name == "src_0")
     {
         gst_pad_link(pad, parent->mixerPadL);
-        if (settings->mplxMode() == Multiplex::RightChannel)
+        if (settings->mplxMode() == Multiplex_RightChannel)
             g_object_set(parent->mixerPadL, "mute", true, NULL);
         else
             g_object_set(parent->mixerPadL, "mute", false, NULL);
@@ -805,7 +805,7 @@ void AudioBackendGstreamer::cb_new_pad(GstElement *element, GstPad *pad, gpointe
     if (name == "src_1")
     {
         gst_pad_link(pad, parent->mixerPadR);
-        if (settings->mplxMode() == Multiplex::LeftChannel)
+        if (settings->mplxMode() == Multiplex_LeftChannel)
             g_object_set(parent->mixerPadR, "mute", true, NULL);
         else
             g_object_set(parent->mixerPadR, "mute", false, NULL);
@@ -821,17 +821,17 @@ void AudioBackendGstreamer::DestroyCallback(gpointer user_data)
 void AudioBackendGstreamer::setMplxMode(int mode)
 {
 
-    if (mode == Multiplex::Normal)
+    if (mode == Multiplex_Normal)
     {
         g_object_set(mixerPadL, "mute", false, NULL);
         g_object_set(mixerPadR, "mute", false, NULL);
     }
-    else if (mode == Multiplex::LeftChannel)
+    else if (mode == Multiplex_LeftChannel)
     {
         g_object_set(mixerPadL, "mute", false, NULL);
         g_object_set(mixerPadR, "mute", true, NULL);
     }
-    else if (mode == Multiplex::RightChannel)
+    else if (mode == Multiplex_RightChannel)
     {
         g_object_set(mixerPadL, "mute", true, NULL);
         g_object_set(mixerPadR, "mute", false, NULL);

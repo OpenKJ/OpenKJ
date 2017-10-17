@@ -28,7 +28,9 @@
 #define STUP 1.0594630943592952645618252949461
 #define STDN 0.94387431268169349664191315666784
 
-enum Multiplex{Normal=0,LeftChannel,RightChannel};
+#define Multiplex_Normal 0
+#define Multiplex_LeftChannel 1
+#define Multiplex_RightChannel 2
 
 class AbstractAudioBackend : public QObject
 {
