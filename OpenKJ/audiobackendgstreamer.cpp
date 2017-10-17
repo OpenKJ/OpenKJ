@@ -794,21 +794,18 @@ void AudioBackendGstreamer::cb_new_pad(GstElement *element, GstPad *pad, gpointe
     Q_UNUSED(element);
     AudioBackendGstreamer *parent = reinterpret_cast<AudioBackendGstreamer*>(data);
     QString name = QString(gst_pad_get_name(pad));
-    qWarning() << "Pad created on deinterleave object: " << name;
     if (name == "src_0")
     {
-        qWarning() << "Pad src0 created, linking to mixer on left channel";
         gst_pad_link(pad, parent->mixerPadL);
-        if (settings->mplxMode() == 2)
+        if (settings->mplxMode() == Multiplex::RightChannel)
             g_object_set(parent->mixerPadL, "mute", true, NULL);
         else
             g_object_set(parent->mixerPadL, "mute", false, NULL);
     }
     if (name == "src_1")
     {
-        qWarning() << "Pad src1 created, linking to mixer on right channel";
         gst_pad_link(pad, parent->mixerPadR);
-        if (settings->mplxMode() == 1)
+        if (settings->mplxMode() == Multiplex::LeftChannel)
             g_object_set(parent->mixerPadR, "mute", true, NULL);
         else
             g_object_set(parent->mixerPadR, "mute", false, NULL);

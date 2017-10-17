@@ -23,6 +23,7 @@
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QStandardPaths>
+#include <QDebug>
 
 Settings::Settings(QObject *parent) :
     QObject(parent)
@@ -592,7 +593,7 @@ void Settings::bmSetPlaylistIndex(int index)
 
 int Settings::mplxMode()
 {
-    settings->value("mplxMode", 0).toInt();
+    return settings->value("mplxMode", 0).toInt();
 }
 
 void Settings::setMplxMode(int mode)

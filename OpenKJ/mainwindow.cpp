@@ -302,6 +302,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->sliderBmVolume->setValue(initialBMVol);
     ui->sliderVolume->setValue(initialKVol);
+
+    if (settings->mplxMode() == AbstractAudioBackend::Multiplex::Normal)
+        ui->pushButtonMplxBoth->setChecked(true);
+    else if (settings->mplxMode() == AbstractAudioBackend::Multiplex::LeftChannel)
+        ui->pushButtonMplxLeft->setChecked(true);
+    else if (settings->mplxMode() == AbstractAudioBackend::Multiplex::RightChannel)
+        ui->pushButtonMplxRight->setChecked(true);
 }
 
 void MainWindow::play(QString karaokeFilePath)
