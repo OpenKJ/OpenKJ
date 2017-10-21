@@ -82,6 +82,8 @@ private:
     GstElement *pitchShifterSoundtouch;
     GstElement *audioMixer;
     GstElement *deInterleave;
+    GstElement *queueL;
+    GstElement *queueR;
 //    GstElement *volumeElement;
     GstElement *level;
     GstElement *filter;

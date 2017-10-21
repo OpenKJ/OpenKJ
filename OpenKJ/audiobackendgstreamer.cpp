@@ -86,6 +86,8 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     mixerPadL = gst_element_get_request_pad(audioMixer, "sink_0");
     mixerPadR = gst_element_get_request_pad(audioMixer, "sink_1");
     deInterleave = gst_element_factory_make("deinterleave", NULL);
+    queueL = gst_element_factory_make("queue", NULL);
+    queueR = gst_element_factory_make("queue", NULL);
     g_signal_connect (deInterleave, "pad-added", G_CALLBACK (this->cb_new_pad), this);
 
     if ((pitchShifterRubberBand) && (loadPitchShift))
@@ -94,8 +96,10 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
         qCritical() << "Pitch shift ladspa plugin \"Rubber Band\" found, enabling key changing";
 //        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, pitchShifterRubberBand, level, autoAudioSink, NULL);
 //        gst_element_link_many(filter, rgVolume, audioConvert, pitchShifterRubberBand, level, autoAudioSink, NULL);
-        gst_bin_add_many(GST_BIN (sinkBin), audioConvert3, deInterleave, audioMixer, audioConvert4, filter, rgVolume, audioConvert, pitchShifterRubberBand, level, audioSink, NULL);
+        gst_bin_add_many(GST_BIN (sinkBin), audioConvert3, deInterleave, queueL, queueR, audioMixer, audioConvert4, filter, rgVolume, audioConvert, pitchShifterRubberBand, level, audioSink, NULL);
         gst_element_link(audioConvert3, deInterleave);
+        gst_pad_link(gst_element_get_static_pad(queueL, "src"), mixerPadL);
+        gst_pad_link(gst_element_get_static_pad(queueR, "src"), mixerPadR);
         gst_element_link_many(audioMixer, audioConvert4, filter, rgVolume, audioConvert, pitchShifterRubberBand, level, audioSink, NULL);
         g_object_set(G_OBJECT(pitchShifterRubberBand), "formant-preserving", true, NULL);
         g_object_set(G_OBJECT(pitchShifterRubberBand), "crispness", 1, NULL);
@@ -796,7 +800,7 @@ void AudioBackendGstreamer::cb_new_pad(GstElement *element, GstPad *pad, gpointe
     QString name = QString(gst_pad_get_name(pad));
     if (name == "src_0")
     {
-        gst_pad_link(pad, parent->mixerPadL);
+        gst_pad_link(pad, gst_element_get_static_pad(parent->queueL, "sink"));
         if (settings->mplxMode() == Multiplex_RightChannel)
             g_object_set(parent->mixerPadL, "mute", true, NULL);
         else
@@ -804,7 +808,7 @@ void AudioBackendGstreamer::cb_new_pad(GstElement *element, GstPad *pad, gpointe
     }
     if (name == "src_1")
     {
-        gst_pad_link(pad, parent->mixerPadR);
+        gst_pad_link(pad, gst_element_get_static_pad(parent->queueR, "sink"));
         if (settings->mplxMode() == Multiplex_LeftChannel)
             g_object_set(parent->mixerPadR, "mute", true, NULL);
         else
