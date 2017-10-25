@@ -22,18 +22,23 @@
 #include <QMimeData>
 #include <QByteArray>
 #include <QStringList>
+#include <QSqlQuery>
 
 DbTableModel::DbTableModel(QObject *parent, QSqlDatabase db) :
     QSqlTableModel(parent, db)
 {
-    setTable("dbsongs");
+//    QSqlQuery query;
+//    query.exec("ATTACH DATABASE :memory: AS mem");
+//    query.exec("CREATE TABLE mem.songdb AS SELECT * FROM main.songdb");
+
+    setTable("mem.dbsongs");
     sortColumn = SORT_ARTIST;
     artistOrder = "ASC";
     titleOrder = "ASC";
     discIdOrder = "ASC";
     durationOrder = "ASC";
     select();
-    search("yeahjustsomethingitllneverfind.imlazylikethat");
+//    search("yeahjustsomethingitllneverfind.imlazylikethat");
 }
 
 

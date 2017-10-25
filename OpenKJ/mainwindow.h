@@ -208,6 +208,7 @@ private slots:
     void on_pushButtonMplxLeft_toggled(bool checked);
     void on_pushButtonMplxBoth_toggled(bool checked);
     void on_pushButtonMplxRight_toggled(bool checked);
+    void on_lineEdit_textChanged(const QString &arg1);
 };
 
 

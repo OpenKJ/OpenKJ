@@ -105,7 +105,8 @@ MainWindow::MainWindow(QWidget *parent) :
         query.exec("CREATE TABLE custompatterns ( patternid INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, artistregex TEXT, artistcapturegrp INT, titleregex TEXT, titlecapturegrp INT, discidregex TEXT, discidcapturegrp INT)");
         query.exec("PRAGMA user_version = 101");
     }
-
+    query.exec("ATTACH DATABASE ':memory:' AS mem");
+    query.exec("CREATE TABLE mem.dbsongs AS SELECT * FROM main.dbsongs");
 
     sortColDB = 1;
     sortDirDB = 0;
@@ -1501,4 +1502,14 @@ void MainWindow::on_pushButtonMplxRight_toggled(bool checked)
 {
     if (checked)
         settings->setMplxMode(Multiplex_RightChannel);
+}
+
+void MainWindow::on_lineEdit_textChanged(const QString &arg1)
+{
+    static QString lastVal;
+    if (arg1.trimmed() != lastVal)
+    {
+        dbModel->search(arg1);
+        lastVal = arg1.trimmed();
+    }
 }
