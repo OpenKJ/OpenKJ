@@ -68,25 +68,57 @@ class AudioBackendGstreamer : public AbstractAudioBackend
     Q_OBJECT
 
 private:
+
+    GstElement *tee;
+    GstElement *queueS;
+    GstElement *queueM;
+    GstElement *queueL;
+    GstElement *queueR;
+    GstElement *fakeSink;
+    GstElement *fakeSinkM;
+    GstElement *fakeSinkL;
+    GstElement *fakeSinkR;
+    GstElement *aConvR;
+    GstElement *aConvL;
+    GstElement *audioMixer;
+    GstElement *fltrPostMixer;
+    GstPad *teeSrcPadN;
+    GstPad *teeSrcPadM;
+    GstPad *queueSinkPadN;
+    GstPad *queueSinkPadM;
+    GstPad *queueSrcPadN;
+    GstPad *queueSrcPadM;
+    GstPad *queueSrcPadL;
+    GstPad *queueSinkPadL;
+    GstPad *queueSrcPadR;
+    GstPad *queueSinkPadR;
+    GstPad *mixerSinkPadL;
+    GstPad *mixerSinkPadR;
+    GstPad *mixerSinkPadN;
+    GstPad *aConvSrcPadR;
+    GstPad *aConvSrcPadL;
+    GstElement *aConvPostMixer;
+    GstElement *newBin;
+
     GstElement *sinkBin;
     GstElement *videoAppSink;
     GstElement *playBin;
-    GstElement *audioConvert;
-    GstElement *audioConvert2;
-    GstElement *audioConvert3;
-    GstElement *audioConvert4;
+    GstElement *aConvInput;
+    GstElement *aConvPreSplit;
+    GstElement *aConvPrePitchShift;
+    GstElement *aConvPostPitchShift;
+    GstElement *aConvEnd;
     GstElement *defaultSink;
     GstElement *audioSink;
     GstElement *rgVolume;
     GstElement *pitchShifterRubberBand;
     GstElement *pitchShifterSoundtouch;
-    GstElement *audioMixer;
+//    GstElement *audioMixer;
     GstElement *deInterleave;
-    GstElement *queueL;
-    GstElement *queueR;
-//    GstElement *volumeElement;
+//    GstElement *queueL;
+//    GstElement *queueR;
     GstElement *level;
-    GstElement *filter;
+    GstElement *fltrMplxInput;
     GstElement *audioPanorama;
     GstCaps *audioCapsStereo;
     GstCaps *audioCapsMono;
@@ -94,8 +126,8 @@ private:
     GstPad *pad;
     GstPad *ghostPad;
     GstBus *bus;
-    GstPad *mixerPadL;
-    GstPad *mixerPadR;
+//    GstPad *mixerPadL;
+//    GstPad *mixerPadR;
     GstDeviceMonitor *monitor;
     QString m_filename;
     QTimer *fastTimer;

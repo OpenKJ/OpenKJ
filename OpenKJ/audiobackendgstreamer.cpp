@@ -61,79 +61,126 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
 
     qCritical() << "Initializing gst\n";
     gst_init(NULL,NULL);
-    audioConvert = gst_element_factory_make("audioconvert", "audioConvert");
-    audioConvert2 = gst_element_factory_make("audioconvert", "audioConvert2");
-    audioConvert3 = gst_element_factory_make("audioconvert", NULL);
-    audioConvert4 = gst_element_factory_make("audioconvert", NULL);
+    aConvInput = gst_element_factory_make("audioconvert", NULL);
+    aConvPreSplit = gst_element_factory_make("audioconvert", NULL);
+    aConvPrePitchShift = gst_element_factory_make("audioconvert", NULL);
+    aConvPostPitchShift = gst_element_factory_make("audioconvert", NULL);
     audioSink = gst_element_factory_make("autoaudiosink", "autoAudioSink");
     videoAppSink = gst_element_factory_make("appsink", "videoAppSink");
-    rgVolume = gst_element_factory_make("rgvolume", "rgVolume");
-//    volumeElement = gst_element_factory_make("volume", "volumeElement");
+    rgVolume = gst_element_factory_make("rgvolume", NULL);
     level = gst_element_factory_make("level", "level");
     audioPanorama = gst_element_factory_make("audiopanorama", "audioPanorama");
     pitchShifterSoundtouch = gst_element_factory_make("pitch", "pitch");
     pitchShifterRubberBand = gst_element_factory_make("ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo", "ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo");
     playBin = gst_element_factory_make("playbin", "playBin");
-    filter = gst_element_factory_make("capsfilter", "filter");
+    fltrMplxInput = gst_element_factory_make("capsfilter", "filter");
     sinkBin = gst_bin_new("sinkBin");
     audioCapsStereo = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 2, NULL);
     audioCapsMono = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 1, NULL);
     videoCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "BGRx", NULL);
-    g_object_set(filter, "caps", audioCapsStereo, NULL);
+    g_object_set(fltrMplxInput, "caps", audioCapsStereo, NULL);
     g_object_set(videoAppSink, "caps", videoCaps, NULL);
 
     audioMixer = gst_element_factory_make("audiomixer", NULL);
-    mixerPadL = gst_element_get_request_pad(audioMixer, "sink_0");
-    mixerPadR = gst_element_get_request_pad(audioMixer, "sink_1");
+    mixerSinkPadL = gst_element_get_request_pad(audioMixer, "sink_0");
+    mixerSinkPadR = gst_element_get_request_pad(audioMixer, "sink_1");
     deInterleave = gst_element_factory_make("deinterleave", NULL);
-    queueL = gst_element_factory_make("queue", NULL);
-    queueR = gst_element_factory_make("queue", NULL);
     g_signal_connect (deInterleave, "pad-added", G_CALLBACK (this->cb_new_pad), this);
 
-    if ((pitchShifterRubberBand) && (loadPitchShift))
-    {
-        // This is our preferred pitch shifter because it sounds better, but it's only available on Linux
-        qCritical() << "Pitch shift ladspa plugin \"Rubber Band\" found, enabling key changing";
-//        gst_bin_add_many(GST_BIN (sinkBin), filter, rgVolume, audioConvert, pitchShifterRubberBand, level, autoAudioSink, NULL);
-//        gst_element_link_many(filter, rgVolume, audioConvert, pitchShifterRubberBand, level, autoAudioSink, NULL);
-        gst_bin_add_many(GST_BIN (sinkBin), audioConvert3, deInterleave, queueL, queueR, audioMixer, audioConvert4, filter, rgVolume, audioConvert, pitchShifterRubberBand, level, audioSink, NULL);
-        gst_element_link(audioConvert3, deInterleave);
-        gst_pad_link(gst_element_get_static_pad(queueL, "src"), mixerPadL);
-        gst_pad_link(gst_element_get_static_pad(queueR, "src"), mixerPadR);
-        gst_element_link_many(audioMixer, audioConvert4, filter, rgVolume, audioConvert, pitchShifterRubberBand, level, audioSink, NULL);
-        g_object_set(G_OBJECT(pitchShifterRubberBand), "formant-preserving", true, NULL);
-        g_object_set(G_OBJECT(pitchShifterRubberBand), "crispness", 1, NULL);
-        g_object_set(G_OBJECT(pitchShifterRubberBand), "semitones", 1.0, NULL);
-        m_canKeyChange = true;
-        m_keyChangerRubberBand = true;
-    }
-    else if ((pitchShifterSoundtouch) && (loadPitchShift))
-    {
-        // This is our fallback, and the only one reliably available on Windows.  It's not ideal, but it works.
-        qCritical() << "Pitch shift plugin \"soundtouch pitch\" found, enabling key changing";
-        gst_bin_add_many(GST_BIN (sinkBin), audioConvert3, deInterleave, audioMixer, audioConvert4, filter, rgVolume, audioConvert, pitchShifterSoundtouch, audioConvert2, level, audioSink, NULL);
-        gst_element_link(audioConvert3, deInterleave);
-        gst_element_link_many(audioMixer, audioConvert4, filter, rgVolume, audioConvert, pitchShifterSoundtouch, audioConvert2, level, audioSink, NULL);
-        g_object_set(G_OBJECT(pitchShifterSoundtouch), "pitch", 1.0, "tempo", 1.0, NULL);
-        m_canKeyChange = true;
-        m_keyChangerSoundtouch = true;
-    }
-    else
-    {
-        // No supported pitch shift plugin on the system
-        if (loadPitchShift)
-            qCritical() << "No supported pitch shifting gstreamer plugin found, key changing disabled";
-        gst_bin_add_many(GST_BIN (sinkBin), audioConvert3, deInterleave, audioMixer, audioConvert4, filter, rgVolume, audioConvert, level, audioSink, NULL);
-        gst_element_link_many(audioMixer, audioConvert4, filter, rgVolume, audioConvert, level, audioSink, NULL);
-        m_canKeyChange = false;
-    }
-    pad = gst_element_get_static_pad(audioConvert3, "sink");
-    ghostPad = gst_ghost_pad_new("sink", pad);
-    gst_pad_set_active(ghostPad, true);
-    gst_element_add_pad(sinkBin, ghostPad);
-    gst_object_unref(pad);
-    g_object_set(G_OBJECT(playBin), "audio-sink", sinkBin, NULL);
-    g_object_set(G_OBJECT(playBin), "video-sink", videoAppSink, NULL);
+
+        newBin = gst_bin_new("newBin");
+        tee = gst_element_factory_make("tee", NULL);
+        teeSrcPadN = gst_element_get_request_pad(tee, "src_1");
+        teeSrcPadM = gst_element_get_request_pad(tee, "src_0");
+        queueS = gst_element_factory_make("queue", NULL);
+        queueSinkPadN = gst_element_get_static_pad(queueS, "sink");
+        queueSrcPadN = gst_element_get_static_pad(queueS, "src");
+        queueM = gst_element_factory_make("queue", NULL);
+        queueSinkPadM = gst_element_get_static_pad(queueM, "sink");
+        queueSrcPadM = gst_element_get_static_pad(queueM, "src");
+        fakeSink = gst_element_factory_make("fakesink", NULL);
+        aConvL = gst_element_factory_make("audioconvert", NULL);
+        aConvSrcPadL = gst_element_get_static_pad(aConvL, "src");
+        aConvR = gst_element_factory_make("audioconvert", NULL);
+        aConvSrcPadR = gst_element_get_static_pad(aConvR, "src");
+        audioMixer = gst_element_factory_make("audiomixer", NULL);
+        aConvPostMixer = gst_element_factory_make("audioconvert", NULL);
+        aConvEnd = gst_element_factory_make("audioconvert", NULL);
+        mixerSinkPadL = gst_element_get_request_pad(audioMixer, "sink_0");
+        mixerSinkPadR = gst_element_get_request_pad(audioMixer, "sink_1");
+        mixerSinkPadN = gst_element_get_request_pad(audioMixer, "sink_2");
+        queueL = gst_element_factory_make("queue", NULL);
+        queueSinkPadL = gst_element_get_static_pad(queueL, "sink");
+        queueSrcPadL = gst_element_get_static_pad(queueL, "src");
+        queueR = gst_element_factory_make("queue", NULL);
+        queueSinkPadR = gst_element_get_static_pad(queueR, "sink");
+        queueSrcPadR = gst_element_get_static_pad(queueR, "src");
+        fltrPostMixer = gst_element_factory_make("capsfilter", NULL);
+        g_object_set(fltrPostMixer, "caps", audioCapsStereo, NULL);
+
+
+        gst_bin_add_many(GST_BIN(newBin), aConvInput, aConvPreSplit, rgVolume, aConvL, aConvR, fltrMplxInput, tee, queueS, queueM, queueR, queueL, audioMixer, deInterleave, aConvPostMixer, fltrPostMixer, NULL);
+        gst_element_link(aConvInput, rgVolume);
+        gst_element_link(rgVolume, tee);
+
+        // Stereo path
+        gst_pad_link(teeSrcPadN, queueSinkPadN);
+        gst_pad_link(queueSrcPadN, mixerSinkPadN);
+
+        // Multiplex path input to deinterleave
+        gst_pad_link(teeSrcPadM, queueSinkPadM);
+        gst_element_link(queueM, aConvPreSplit);
+        gst_element_link(aConvPreSplit, fltrMplxInput);
+        gst_element_link(fltrMplxInput, deInterleave);
+        // Left Channel to mixer
+        gst_element_link(queueL, aConvL);
+        gst_pad_link(aConvSrcPadL, mixerSinkPadL);
+        // Right Channel to mixer
+        gst_element_link(queueR, aConvR);
+        gst_pad_link(aConvSrcPadR, mixerSinkPadR);
+        gst_element_link(audioMixer, aConvPostMixer);
+        gst_element_link(aConvPostMixer, fltrPostMixer);
+
+
+        // Signal out to effects and end of chain
+        //gst_element_link(audioMixer, fakeSink);
+
+        if ((pitchShifterRubberBand) && (loadPitchShift))
+        {
+            qWarning() << "Pitch shift RubberBand enabled";
+            gst_bin_add_many(GST_BIN(newBin), aConvPrePitchShift, pitchShifterRubberBand, aConvPostPitchShift, level, aConvEnd, audioSink, NULL);
+            gst_element_link_many(fltrPostMixer, aConvPrePitchShift, pitchShifterRubberBand, aConvPostPitchShift, level, aConvEnd, audioSink, NULL);
+            m_canKeyChange = true;
+            m_keyChangerRubberBand = true;
+            g_object_set(G_OBJECT(pitchShifterRubberBand), "formant-preserving", true, NULL);
+            g_object_set(G_OBJECT(pitchShifterRubberBand), "crispness", 1, NULL);
+            g_object_set(G_OBJECT(pitchShifterRubberBand), "semitones", 1.0, NULL);
+        }
+        else if ((pitchShifterSoundtouch) && (loadPitchShift))
+        {
+            gst_bin_add_many(GST_BIN(newBin), aConvPrePitchShift, pitchShifterSoundtouch, aConvPostPitchShift, level, audioSink, NULL);
+            gst_element_link_many(fltrPostMixer, aConvPrePitchShift, pitchShifterSoundtouch, aConvPostPitchShift, level, audioSink, NULL);
+            m_canKeyChange = true;
+            m_keyChangerSoundtouch = true;
+            g_object_set(G_OBJECT(pitchShifterSoundtouch), "pitch", 1.0, "tempo", 1.0, NULL);
+        }
+        else
+        {
+            gst_bin_add_many(GST_BIN(newBin), level, audioSink, NULL);
+            gst_element_link_many(fltrPostMixer, level, audioSink, NULL);
+        }
+
+
+        // Setup outputs from playBin
+        pad = gst_element_get_static_pad(aConvInput, "sink");
+        ghostPad = gst_ghost_pad_new("sink", pad);
+        gst_pad_set_active(ghostPad, true);
+        gst_element_add_pad(newBin, ghostPad);
+        gst_object_unref(pad);
+        g_object_set(G_OBJECT(playBin), "audio-sink", newBin, NULL);
+        g_object_set(G_OBJECT(playBin), "video-sink", videoAppSink, NULL);
+
+
     g_object_set(G_OBJECT(rgVolume), "album-mode", false, NULL);
     g_object_set(G_OBJECT (level), "message", TRUE, NULL);
     bus = gst_element_get_bus (playBin);
@@ -741,9 +788,9 @@ void AudioBackendGstreamer::setDownmix(bool enabled)
 {
     qDebug() << "AudioBackendHybrid::setDownmix(" << enabled << ") called";
     if (enabled)
-        g_object_set(filter, "caps", audioCapsMono, NULL);
+        g_object_set(fltrMplxInput, "caps", audioCapsMono, NULL);
     else
-        g_object_set(filter, "caps", audioCapsStereo, NULL);
+        g_object_set(fltrMplxInput, "caps", audioCapsStereo, NULL);
 }
 
 QStringList AudioBackendGstreamer::getOutputDevices()
@@ -800,20 +847,16 @@ void AudioBackendGstreamer::cb_new_pad(GstElement *element, GstPad *pad, gpointe
     QString name = QString(gst_pad_get_name(pad));
     if (name == "src_0")
     {
-        gst_pad_link(pad, gst_element_get_static_pad(parent->queueL, "sink"));
-        if (settings->mplxMode() == Multiplex_RightChannel)
-            g_object_set(parent->mixerPadL, "mute", true, NULL);
-        else
-            g_object_set(parent->mixerPadL, "mute", false, NULL);
+        qWarning() << "Linking deinterleave pad src_0 to queueSinkPadL";
+        gst_pad_link(pad, parent->queueSinkPadL);
     }
     if (name == "src_1")
     {
-        gst_pad_link(pad, gst_element_get_static_pad(parent->queueR, "sink"));
-        if (settings->mplxMode() == Multiplex_LeftChannel)
-            g_object_set(parent->mixerPadR, "mute", true, NULL);
-        else
-            g_object_set(parent->mixerPadR, "mute", false, NULL);
+        qWarning() << "Linking deinterleave pad src_1 to queueSinkPadR";
+        gst_pad_link(pad, parent->queueSinkPadR);
     }
+    qWarning() << "Linking complete";
+    parent->setMplxMode(settings->mplxMode());
 }
 
 void AudioBackendGstreamer::DestroyCallback(gpointer user_data)
@@ -827,18 +870,21 @@ void AudioBackendGstreamer::setMplxMode(int mode)
 
     if (mode == Multiplex_Normal)
     {
-        g_object_set(mixerPadL, "mute", false, NULL);
-        g_object_set(mixerPadR, "mute", false, NULL);
+        g_object_set(mixerSinkPadN, "mute", false, NULL);
+        g_object_set(mixerSinkPadL, "mute", true, NULL);
+        g_object_set(mixerSinkPadR, "mute", true, NULL);
     }
     else if (mode == Multiplex_LeftChannel)
     {
-        g_object_set(mixerPadL, "mute", false, NULL);
-        g_object_set(mixerPadR, "mute", true, NULL);
+        g_object_set(mixerSinkPadN, "mute", true, NULL);
+        g_object_set(mixerSinkPadL, "mute", false, NULL);
+        g_object_set(mixerSinkPadR, "mute", true, NULL);
     }
     else if (mode == Multiplex_RightChannel)
     {
-        g_object_set(mixerPadL, "mute", true, NULL);
-        g_object_set(mixerPadR, "mute", false, NULL);
+        g_object_set(mixerSinkPadN, "mute", true, NULL);
+        g_object_set(mixerSinkPadL, "mute", true, NULL);
+        g_object_set(mixerSinkPadR, "mute", false, NULL);
     }
     //settings->setMplxMode(mode);
 }
