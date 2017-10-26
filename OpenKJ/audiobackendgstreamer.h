@@ -74,10 +74,6 @@ private:
     GstElement *queueM;
     GstElement *queueL;
     GstElement *queueR;
-    GstElement *fakeSink;
-    GstElement *fakeSinkM;
-    GstElement *fakeSinkL;
-    GstElement *fakeSinkR;
     GstElement *aConvR;
     GstElement *aConvL;
     GstElement *audioMixer;
@@ -98,9 +94,7 @@ private:
     GstPad *aConvSrcPadR;
     GstPad *aConvSrcPadL;
     GstElement *aConvPostMixer;
-    GstElement *newBin;
-
-    GstElement *sinkBin;
+    GstElement *customBin;
     GstElement *videoAppSink;
     GstElement *playBin;
     GstElement *aConvInput;
@@ -113,21 +107,18 @@ private:
     GstElement *rgVolume;
     GstElement *pitchShifterRubberBand;
     GstElement *pitchShifterSoundtouch;
-//    GstElement *audioMixer;
     GstElement *deInterleave;
-//    GstElement *queueL;
-//    GstElement *queueR;
     GstElement *level;
     GstElement *fltrMplxInput;
+    GstElement *fltrEnd;
     GstElement *audioPanorama;
+    GstElement *audioResample;
     GstCaps *audioCapsStereo;
     GstCaps *audioCapsMono;
     GstCaps *videoCaps;
     GstPad *pad;
     GstPad *ghostPad;
     GstBus *bus;
-//    GstPad *mixerPadL;
-//    GstPad *mixerPadR;
     GstDeviceMonitor *monitor;
     QString m_filename;
     QTimer *fastTimer;
