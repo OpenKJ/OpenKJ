@@ -74,9 +74,9 @@ MainWindow::MainWindow(QWidget *parent) :
     int initialBMVol = settings->bmVolume();
     qWarning() << "Initial volumes - K: " << initialKVol << " BM: " << initialBMVol;
     settings->restoreWindowState(this);
-    database = new QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE"));
-    database->setDatabaseName(khDir->absolutePath() + QDir::separator() + "openkj.sqlite");
-    database->open();
+    database = QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE"));
+    database.setDatabaseName(khDir->absolutePath() + QDir::separator() + "openkj.sqlite");
+    database.open();
     QSqlQuery query("CREATE TABLE IF NOT EXISTS dbSongs ( songid INTEGER PRIMARY KEY AUTOINCREMENT, Artist COLLATE NOCASE, Title COLLATE NOCASE, DiscId COLLATE NOCASE, 'Duration' INTEGER, path VARCHAR(700) NOT NULL UNIQUE, filename COLLATE NOCASE)");
     query.exec("CREATE TABLE IF NOT EXISTS rotationSingers ( singerid INTEGER PRIMARY KEY AUTOINCREMENT, name COLLATE NOCASE UNIQUE, 'position' INTEGER NOT NULL, 'regular' LOGICAL DEFAULT(0), 'regularid' INTEGER)");
     query.exec("CREATE TABLE IF NOT EXISTS queueSongs ( qsongid INTEGER PRIMARY KEY AUTOINCREMENT, singer INT, song INTEGER NOT NULL, artist INT, title INT, discid INT, path INT, keychg INT, played LOGICAL DEFAULT(0), 'position' INT)");
@@ -105,17 +105,18 @@ MainWindow::MainWindow(QWidget *parent) :
         query.exec("CREATE TABLE custompatterns ( patternid INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, artistregex TEXT, artistcapturegrp INT, titleregex TEXT, titlecapturegrp INT, discidregex TEXT, discidcapturegrp INT)");
         query.exec("PRAGMA user_version = 101");
     }
-    query.exec("ATTACH DATABASE ':memory:' AS mem");
-    query.exec("CREATE TABLE mem.dbsongs AS SELECT * FROM main.dbsongs");
+//    query.exec("ATTACH DATABASE ':memory:' AS mem");
+//    query.exec("CREATE TABLE mem.dbsongs AS SELECT * FROM main.dbsongs");
+//    refreshSongDbCache();
 
     sortColDB = 1;
     sortDirDB = 0;
-    dbModel = new DbTableModel(this, *database);
+    dbModel = new DbTableModel(this, database);
     dbModel->select();
-    qModel = new QueueModel(this, *database);
+    qModel = new QueueModel(this, database);
     qModel->select();
     qDelegate = new QueueItemDelegate(this);
-    rotModel = new RotationModel(this, *database);
+    rotModel = new RotationModel(this, database);
     rotModel->select();
     ui->tableViewDB->hideColumn(0);
     ui->tableViewDB->hideColumn(5);
@@ -132,7 +133,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->cbxSingerAddPos->addItems(posChoices);
     ui->cbxSingerAddPos->setCurrentIndex(0);
     khTmpDir = new QTemporaryDir();
-    dbDialog = new DlgDatabase(this);
+    dbDialog = new DlgDatabase(database, this);
     dlgKeyChange = new DlgKeyChange(qModel, this);
     regularSingersDialog = new DlgRegularSingers(rotModel, this);
     regularExportDialog = new DlgRegularExport(rotModel, this);
@@ -248,15 +249,15 @@ MainWindow::MainWindow(QWidget *parent) :
     bmAudioBackend->setUseFader(true);
     bmAudioBackend->setUseSilenceDetection(true);
 
-    bmPlaylistsModel = new QSqlTableModel(this, *database);
+    bmPlaylistsModel = new QSqlTableModel(this, database);
     bmPlaylistsModel->setTable("bmplaylists");
     bmPlaylistsModel->sort(2, Qt::AscendingOrder);
     bmDbDialog = new BmDbDialog(database,this);
-    bmDbModel = new BmDbTableModel(this, *database);
+    bmDbModel = new BmDbTableModel(this, database);
     bmDbModel->setTable("bmsongs");
     bmDbModel->select();
     bmCurrentPlaylist = settings->bmPlaylistIndex();
-    bmPlModel = new BmPlTableModel(this, *database);
+    bmPlModel = new BmPlTableModel(this, database);
     bmPlModel->select();
 //    ui->actionShow_Filenames->setChecked(settings->bmShowFilenames());
 //    ui->actionShow_Metadata->setChecked(settings->bmShowMetadata());
@@ -433,7 +434,6 @@ MainWindow::~MainWindow()
 
     delete cdg;
     delete khDir;
-    delete database;
     delete ui;
     delete khTmpDir;
 }
@@ -445,14 +445,26 @@ void MainWindow::search()
 
 void MainWindow::songdbUpdated()
 {
+    dbModel->refreshCache();
     dbModel->select();
+    ui->tableViewDB->hideColumn(0);
+    ui->tableViewDB->hideColumn(5);
+    ui->tableViewDB->hideColumn(6);
+    ui->tableViewDB->horizontalHeader()->resizeSection(4,75);
+    settings->restoreColumnWidths(ui->tableViewDB);
 }
 
 void MainWindow::databaseCleared()
 {
+    dbModel->refreshCache();
     dbModel->select();
     rotModel->select();
     qModel->setSinger(-1);
+    ui->tableViewDB->hideColumn(0);
+    ui->tableViewDB->hideColumn(5);
+    ui->tableViewDB->hideColumn(6);
+    ui->tableViewDB->horizontalHeader()->resizeSection(4,75);
+    settings->restoreColumnWidths(ui->tableViewDB);
 }
 
 void MainWindow::on_buttonStop_clicked()
@@ -1298,6 +1310,14 @@ bool MainWindow::bmPlaylistExists(QString name)
             return true;
     }
     return false;
+}
+
+void MainWindow::refreshSongDbCache()
+{
+    QSqlQuery query;
+    query.exec("DETACH DATABASE mem");
+    query.exec("ATTACH DATABASE ':memory:' AS mem");
+    query.exec("CREATE TABLE mem.dbsongs AS SELECT * FROM main.dbsongs");
 }
 
 void MainWindow::on_actionDisplay_Metadata_toggled(bool arg1)

@@ -30,10 +30,11 @@
 
 extern Settings *settings;
 
-DlgDatabase::DlgDatabase(QWidget *parent) :
+DlgDatabase::DlgDatabase(QSqlDatabase db, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DlgDatabase)
 {
+    this->db = db;
     ui->setupUi(this);
     sourcedirmodel = new SourceDirTableModel();
     sourcedirmodel->loadFromDB();

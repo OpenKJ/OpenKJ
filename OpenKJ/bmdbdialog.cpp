@@ -28,13 +28,13 @@
 #include <QDebug>
 #include <QtConcurrent>
 
-BmDbDialog::BmDbDialog(QSqlDatabase *db, QWidget *parent) :
+BmDbDialog::BmDbDialog(QSqlDatabase db, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::BmDbDialog)
 {
     m_db = db;
     ui->setupUi(this);
-    pathsModel = new QSqlTableModel(this, *db);
+    pathsModel = new QSqlTableModel(this, db);
     pathsModel->setTable("bmsrcdirs");
     pathsModel->select();
     ui->tableViewPaths->setModel(pathsModel);

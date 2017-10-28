@@ -34,7 +34,7 @@ class BmDbDialog : public QDialog
     Q_OBJECT
     
 public:
-    explicit BmDbDialog(QSqlDatabase *db, QWidget *parent = 0);
+    explicit BmDbDialog(QSqlDatabase db, QWidget *parent = 0);
     ~BmDbDialog();
     
 private slots:
@@ -60,7 +60,7 @@ private:
     Ui::BmDbDialog *ui;
     QSqlTableModel *pathsModel;
     int selectedDirectoryIdx;
-    QSqlDatabase *m_db;
+    QSqlDatabase m_db;
 
 };
 

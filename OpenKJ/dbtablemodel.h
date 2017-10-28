@@ -33,6 +33,7 @@ private:
     QString titleOrder;
     QString discIdOrder;
     QString durationOrder;
+    QSqlDatabase db;
 
 public:
     explicit DbTableModel(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
@@ -41,6 +42,7 @@ public:
     QMimeData *mimeData(const QModelIndexList &indexes) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
     void sort(int column, Qt::SortOrder order);
+    void refreshCache();
 
 protected:
     QString orderByClause() const;

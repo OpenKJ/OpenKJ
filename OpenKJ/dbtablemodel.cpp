@@ -23,14 +23,16 @@
 #include <QByteArray>
 #include <QStringList>
 #include <QSqlQuery>
+#include <QDebug>
 
 DbTableModel::DbTableModel(QObject *parent, QSqlDatabase db) :
     QSqlTableModel(parent, db)
 {
-//    QSqlQuery query;
-//    query.exec("ATTACH DATABASE :memory: AS mem");
-//    query.exec("CREATE TABLE mem.songdb AS SELECT * FROM main.songdb");
-
+    this->db = db;
+    QSqlQuery query(db);
+    query.exec("ATTACH DATABASE ':memory:' AS mem");
+    query.exec("CREATE TABLE mem.dbsongs AS SELECT * FROM main.dbsongs");
+    refreshCache();
     setTable("mem.dbsongs");
     sortColumn = SORT_ARTIST;
     artistOrder = "ASC";
@@ -116,5 +118,16 @@ void DbTableModel::sort(int column, Qt::SortOrder order)
         durationOrder = orderString;
         break;
     }
+    select();
+}
+
+void DbTableModel::refreshCache()
+{
+    qWarning() << "Refreshing dbsongs cache";
+    QSqlQuery query(db);
+    query.exec("DELETE FROM mem.dbsongs");
+    query.exec("VACUUM mem");
+    query.exec("INSERT INTO mem.dbsongs SELECT * FROM main.dbsongs");
+    setTable("mem.dbsongs");
     select();
 }

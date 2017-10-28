@@ -75,6 +75,7 @@ private slots:
     void on_pushButtonUpdateDb_clicked();
     void on_comboBoxVenue_activated(int index);
     void previewCdg();
+    void on_lineEditSearch_textChanged(const QString &arg1);
 };
 
 #endif // KHREQUESTSDIALOG_H

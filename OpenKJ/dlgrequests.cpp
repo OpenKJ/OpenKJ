@@ -334,3 +334,13 @@ void DlgRequests::previewCdg()
     cdgPreviewDialog->setSourceFile(rtClickFile);
     cdgPreviewDialog->preview();
 }
+
+void DlgRequests::on_lineEditSearch_textChanged(const QString &arg1)
+{
+    static QString lastVal;
+    if (arg1.trimmed() != lastVal)
+    {
+        dbModel->search(arg1);
+        lastVal = arg1.trimmed();
+    }
+}

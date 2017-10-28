@@ -26,6 +26,7 @@
 #include <QDirIterator>
 #include "sourcedirtablemodel.h"
 #include "dlgcustompatterns.h"
+#include <QSqlDatabase>
 
 namespace Ui {
 class DlgDatabase;
@@ -40,9 +41,10 @@ private:
     SourceDirTableModel *sourcedirmodel;
     DlgCustomPatterns *customPatternsDlg;
     int selectedRow;
+    QSqlDatabase db;
 
 public:
-    explicit DlgDatabase(QWidget *parent = 0);
+    explicit DlgDatabase(QSqlDatabase db, QWidget *parent = 0);
     ~DlgDatabase();
 
 signals:

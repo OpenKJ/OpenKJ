@@ -69,7 +69,7 @@ class MainWindow : public QMainWindow
     
 private:
     Ui::MainWindow *ui;
-    QSqlDatabase *database;
+    QSqlDatabase database;
     DbTableModel *dbModel;
     DbItemDelegate *dbDelegate;
     QueueModel *qModel;
@@ -119,6 +119,7 @@ private:
     void bmAddPlaylist(QString title);
     bool bmPlaylistExists(QString name);
     AbstractAudioBackend::State m_lastAudioState;
+    void refreshSongDbCache();
 
 public:
     explicit MainWindow(QWidget *parent = 0);
