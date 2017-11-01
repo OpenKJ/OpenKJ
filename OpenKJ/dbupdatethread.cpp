@@ -98,7 +98,7 @@ int processKaraokeFile(QString fileName)
 {
     int duration = 0;
 #ifdef Q_OS_WIN
-    if (fileName.contains("*") || fileName.contains(":") || fileName.contains("?") || fileName.contains("<") || fileName.contains(">") || fileName.contains("|"))
+    if (fileName.contains("*") || fileName.contains("?") || fileName.contains("<") || fileName.contains(">") || fileName.contains("|"))
     {
         // illegal character
         errorMutex.lock();
