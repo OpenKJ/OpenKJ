@@ -60,6 +60,7 @@ Qt::ItemFlags DbTableModel::flags(const QModelIndex &index) const
 
 void DbTableModel::search(QString searchString)
 {
+    lastSearch = searchString;
     QStringList terms;
     terms = searchString.split(" ",QString::SkipEmptyParts);
     if (terms.size() < 1)
@@ -130,4 +131,5 @@ void DbTableModel::refreshCache()
     query.exec("INSERT INTO mem.dbsongs SELECT * FROM main.dbsongs");
     setTable("mem.dbsongs");
     select();
+    search(lastSearch);
 }

@@ -33,6 +33,7 @@ private:
     QString titleOrder;
     QString discIdOrder;
     QString durationOrder;
+    QString lastSearch;
     QSqlDatabase db;
 
 public:
