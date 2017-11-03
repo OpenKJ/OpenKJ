@@ -2,6 +2,7 @@
 #define OKJSONGBOOKAPI_H
 
 #include <QNetworkAccessManager>
+#include <QNetworkReply>
 #include <QObject>
 #include <QUrl>
 #include <QDebug>

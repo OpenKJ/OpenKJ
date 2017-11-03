@@ -37,6 +37,7 @@ OKJSongbookAPI::OKJSongbookAPI(QObject *parent) : QObject(parent)
 
 void OKJSongbookAPI::getSerial()
 {
+    qWarning() << "SongbookAPI - Requesting serial";
     QJsonObject mainObject;
     mainObject.insert("api_key", settings->requestServerApiKey());
     mainObject.insert("command","getSerial");
@@ -224,15 +225,17 @@ void OKJSongbookAPI::onSslErrors(QNetworkReply *reply, QList<QSslError> errors)
 
 void OKJSongbookAPI::onNetworkReply(QNetworkReply *reply)
 {
+    qWarning() << "SongbookAPI - Got network reply";
     if (settings->requestServerIgnoreCertErrors())
         reply->ignoreSslErrors();
     if (reply->error() != QNetworkReply::NoError)
     {
-        qDebug() << reply->errorString();
+        qWarning() << reply->errorString();
         //output some meaningful error msg
         return;
     }
     QByteArray data = reply->readAll();
+    qWarning() << "SongbookAPI - Reply data: " << data;
     QJsonDocument json = QJsonDocument::fromJson(data);
     QString command = json.object().value("command").toString();
     bool error = json.object().value("error").toBool();
@@ -244,6 +247,7 @@ void OKJSongbookAPI::onNetworkReply(QNetworkReply *reply)
     }
     if (command == "getSerial")
     {
+        qWarning() << "SongbookAPI - reply type 'serial'";
         int newSerial = json.object().value("serial").toInt();
         if (newSerial == 0)
         {
@@ -254,12 +258,12 @@ void OKJSongbookAPI::onNetworkReply(QNetworkReply *reply)
         {
             lastSync = QTime::currentTime();
             emit synchronized(lastSync);
-            //qWarning() << "Got serial: " << newSerial << " - No Change";
+            qWarning() << "SongbookAPI - Serial: " << newSerial << " - No Change";
         }
         else
         {
-            qWarning() << "Got serial: " << newSerial << " - Changed, previous: " << serial;
-            qWarning() << "Refreshing venues and requests";
+            qWarning() << "SongbookAPI - serial: " << newSerial << " - Changed, previous: " << serial;
+            qWarning() << "SongbookAPI - Refreshing venues and requests";
             serial = newSerial;
             refreshRequests();
             refreshVenues();
