@@ -1,5 +1,5 @@
 Source: openkj
-Section: unknown
+Section: video 
 Priority: optional
 Maintainer: Isaac Lightburn <isaac@hozed.net>
 Build-Depends: qt5-default, qttools5-dev-tools, qtbase5-dev, qtmultimedia5-dev, libqt5svg5-dev, qttools5-dev, qt5-qmake, libgstreamer1.0-dev, libgstreamer-plugins-base1.0-dev, libqt5opengl5-dev, libpulse-dev, debhelper (>=9)
