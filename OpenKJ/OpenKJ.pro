@@ -144,7 +144,7 @@ unix:!macx {
       PREFIX=/usr
     }
     CONFIG += link_pkgconfig
-    PKGCONFIG += gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0
+    PKGCONFIG += gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0 gstreamer-pbutils-1.0
     iconfiles.files += Icons/okjicon.svg
     iconfiles.path = $$PREFIX/share/pixmaps
     desktopfiles.files += openkj.desktop
@@ -169,13 +169,13 @@ win32 {
         INCLUDEPATH += C:\gstreamer\1.0\x86\include\glib-2.0
         INCLUDEPATH += C:\gstreamer\1.0\x86\lib\glib-2.0\include
         INCLUDEPATH += C:\gstreamer\1.0\x86\include\glib-2.0\gobject
-        LIBS += -LC:\gstreamer\1.0\x86\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0 -lgstapp-1.0 -lgstaudio-1.0
+        LIBS += -LC:\gstreamer\1.0\x86\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0 -lgstapp-1.0 -lgstaudio-1.0 -lgstpbutils-1.0
     } else {
         ## Windows x64 (64bit) specific build here
         INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\gstreamer-1.0
         INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0
         INCLUDEPATH += C:\gstreamer\1.0\x86_64\lib\glib-2.0\include
         INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0\gobject
-        LIBS += -LC:\gstreamer\1.0\x86_64\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0 -lgstapp-1.0 -lgstaudio-1.0
+        LIBS += -LC:\gstreamer\1.0\x86_64\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0 -lgstapp-1.0 -lgstaudio-1.0 -lgstpbutils-1.0
     }
 }

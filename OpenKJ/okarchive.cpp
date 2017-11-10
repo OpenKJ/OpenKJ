@@ -50,6 +50,10 @@ OkArchive::OkArchive(QObject *parent) : QObject(parent)
     m_audioFound = false;
     m_cdgSize = 0;
     m_audioSize = 0;
+    audioExtensions.append(".mp3");
+    audioExtensions.append(".wav");
+    audioExtensions.append(".ogg");
+    audioExtensions.append(".mov");
 }
 
 OkArchive::~OkArchive()
@@ -110,6 +114,7 @@ QString OkArchive::getArchiveFile() const
 
 void OkArchive::setArchiveFile(const QString &value)
 {
+    //qWarning() << "OkArchive - setArchiveFile(" << value << ") called";
     archiveFile = value;
     m_cdgFound = false;
     m_audioFound = false;
@@ -175,11 +180,23 @@ bool OkArchive::extractAudio(QString destPath)
 bool OkArchive::isValidKaraokeFile()
 {
     if (!findEntries())
+    {
+        if (!m_cdgFound)
+            qWarning() << archiveFile << " - Missing CDG file";
+        if (!m_audioFound)
+            qWarning() << archiveFile << " - Missing audio file";
         return false;
+    }
     if (m_audioSize <= 0)
+    {
+        qWarning() << archiveFile << " - Zero byte audio file";
         return false;
+    }
     if (m_cdgSize <= 0)
+    {
+        qWarning() << archiveFile << " - Zero byte CDG file";
         return false;
+    }
     return true;
 }
 
@@ -206,23 +223,36 @@ bool OkArchive::findEntries()
     mz_zip_archive_file_stat fStat;
     int fd = zipFile.handle();
     if (fd < 0)
+    {
+        qWarning() << "Error getting zip file handle";
         return false;
-    int dupfd = dup(fd);
-    if (dupfd < 0)
-        return false;
-    FILE* f = fdopen(dupfd, "rb");
-    mz_zip_reader_init_cfile(&archive, f, zipFile.size(), 0);
+    }
+//    int dupfd = dup(fd);
+//    if (dupfd < 0)
+//    {
+       // qWarning() << "Error duplicating file handle";
+       // return false;
+//    }
+    //FILE* f = fdopen(dupfd, "rb");
+    FILE* f = fdopen(fd, "rb");
+    if (!mz_zip_reader_init_cfile(&archive, f, zipFile.size(), 0))
+    {
+        qWarning() << "Error initializing zip file object";
+    }
     unsigned int files = mz_zip_reader_get_num_files(&archive);
+    //qWarning() << "Entries in zip file: " << files;
     for (unsigned int i=0; i < files; i++)
     {
         if (mz_zip_reader_file_stat(&archive, i, &fStat))
         {
             QString fileName = fStat.m_filename;
+            //qWarning() << "Processing zip entry: " << fileName;
             if (fileName.endsWith(".cdg",Qt::CaseInsensitive))
             {
                 cdgFileName = fileName;
                 m_cdgSize = fStat.m_uncomp_size;
                 m_cdgFound = true;
+                //qWarning() << "Found cdg file: " << fileName << " size: " << m_cdgSize;
             }
             else
             {
@@ -234,6 +264,7 @@ bool OkArchive::findEntries()
                         audioExt = audioExtensions.at(e);
                         m_audioSize = fStat.m_uncomp_size;
                         m_audioFound = true;
+                        //qWarning() << "Found audio file: " << audioFileName << " size: " << m_audioSize;
                     }
                 }
             }

@@ -3,6 +3,8 @@
 
 #include <QObject>
 #include <gst/gst.h>
+#include <gst/pbutils/pbutils.h>
+
 
 class TagReader : public QObject
 {
@@ -12,6 +14,7 @@ private:
     QString m_title;
     unsigned int m_duration;
     QString m_path;
+    GstDiscoverer *discoverer;
 
 public:
     explicit TagReader(QObject *parent = 0);

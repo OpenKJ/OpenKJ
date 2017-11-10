@@ -93,133 +93,6 @@ QStringList DbUpdateThread::getErrors()
     return l_errors;
 }
 
-QMutex kDbMutex;
-int processKaraokeFile(QString fileName)
-{
-    int duration = 0;
-#ifdef Q_OS_WIN
-    if (fileName.contains("*") || fileName.contains("?") || fileName.contains("<") || fileName.contains(">") || fileName.contains("|"))
-    {
-        // illegal character
-        errorMutex.lock();
-        errors.append("Illegal character in filename: " + fileName);
-        errorMutex.unlock();
-        return -1;
-    }
-#endif
-    if (fileName.endsWith(".zip", Qt::CaseInsensitive))
-    {
-        OkArchive archive(fileName);
-        if (!archive.isValidKaraokeFile())
-        {
-            errorMutex.lock();
-            errors.append("Bad or invalid karaoke file: " + fileName);
-            errorMutex.unlock();
-            return -1;
-        }
-        else duration = archive.getSongDuration();
-    }
-    else if (fileName.endsWith(".cdg", Qt::CaseInsensitive))
-    {
-        QString baseFn = fileName;
-        baseFn.chop(3);
-        QString mp3Fn;
-        if ((!QFile::exists(baseFn + "mp3")) && (!QFile::exists(baseFn + "Mp3")) && (!QFile::exists(baseFn + "MP3")) && (!QFile::exists(baseFn + "mP3")))
-        {
-            errorMutex.lock();
-            errors.append("Missing CDG file for mp3 file: " + fileName);
-            errorMutex.unlock();
-            return -1;
-        }
-        duration = ((QFile(fileName).size() / 96) / 75) * 1000;
-    }
-    else
-    {
-        TagReader reader;
-        reader.setMedia(fileName);
-        try
-        {
-            duration = reader.getDuration();
-        }
-        catch (...)
-        {
-            errorMutex.lock();
-            errors.append("Unable to get duration for file: " + fileName);
-            errorMutex.unlock();
-        }
-    }
-    QSqlQuery query;
-    QString artist;
-    QString title;
-    QString discid;
-    QFileInfo file(fileName);
-    FilenameParser parser;
-    parser.setFileName(file.completeBaseName());
-    switch (g_pattern)
-    {
-    case SourceDir::DTA:
-        parser.setDiscIdRegEx("^\\S+?(?=(\\s|_)-(\\s|_))");
-        parser.setTitleRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))", 0);
-        parser.setArtistRegEx("(?:^\\S+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|_))(.+)",1);
-        artist = parser.getArtist();
-        title = parser.getTitle();
-        discid = parser.getDiscId();
-        break;
-    case SourceDir::DAT:
-        parser.setDiscIdRegEx("^\\S+?(?=(\\s|_)-(\\s|_))");
-        parser.setTitleRegEx("(?:^\\S+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|_))(.+)",1);
-        parser.setArtistRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))", 0);
-        artist = parser.getArtist();
-        title = parser.getTitle();
-        discid = parser.getDiscId();
-        break;
-    case SourceDir::ATD:
-        parser.setArtistRegEx(".+?(?=(\\s|_)-(\\s|_))",0);
-        parser.setTitleRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))");
-        parser.setDiscIdRegEx("(?:^.+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|))(.+)", 1);
-        artist = parser.getArtist();
-        title = parser.getTitle();
-        discid = parser.getDiscId();
-        break;
-    case SourceDir::TAD:
-        parser.setTitleRegEx(".+?(?=(\\s|_)-(\\s|_))",0);
-        parser.setArtistRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))");
-        parser.setDiscIdRegEx("(?:^.+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|))(.+)", 1);
-        artist = parser.getArtist();
-        title = parser.getTitle();
-        discid = parser.getDiscId();
-        break;
-    case SourceDir::AT:
-        parser.setArtistRegEx(".+?(?=(\\s|_)-(\\s|_))");
-        parser.setTitleRegEx("(?<=(\\s|_)-(\\s|_))(.*)");
-        artist = parser.getArtist();
-        title = parser.getTitle();
-        discid = "";
-        break;
-    case SourceDir::TA:
-        parser.setTitleRegEx(".+?(?=(\\s|_)-(\\s|_))");
-        parser.setArtistRegEx("(?<=(\\s|_)-(\\s|_))(.*)");
-        artist = parser.getArtist();
-        title = parser.getTitle();
-        discid = "";
-        break;
-    case SourceDir::CUSTOM:
-        parser.setTitleRegEx(g_titleRegex, g_titleCaptureGrp);
-        parser.setArtistRegEx(g_artistRegex, g_artistCaptureGrp);
-        parser.setDiscIdRegEx(g_discIdRegex, g_discIdCaptureGrp);
-        artist = parser.getArtist();
-        title = parser.getTitle();
-        discid = parser.getDiscId();
-        break;
-    }
-    QString sql = "INSERT OR IGNORE INTO dbSongs (discid,artist,title,path,filename,duration) VALUES(\"" + discid + "\",\"" + artist + "\",\""
-            + title + "\",\"" + file.filePath() + "\",\"" + file.completeBaseName() + "\"," + QString::number(duration) + ")";
-    kDbMutex.lock();
-    query.exec(sql);
-    kDbMutex.unlock();
-    return 0;
-}
-
 void DbUpdateThread::setPath(const QString &value)
 {
     path = value;
@@ -230,6 +103,8 @@ void DbUpdateThread::setPath(const QString &value)
 
 void DbUpdateThread::run()
 {
+    TagReader reader;
+    OkArchive archive;
     if (pattern == SourceDir::CUSTOM)
     {
         QSqlQuery query;
@@ -253,8 +128,131 @@ void DbUpdateThread::run()
         }
     }
     QStringList files = findKaraokeFiles(path);
+    QString fileName;
     QSqlQuery query("BEGIN TRANSACTION");
-    QtConcurrent::blockingMap(files, processKaraokeFile);
+    for (int i=0; i < files.count(); i++)
+    {
+        fileName = files.at(i);
+        int duration = 0;
+        //qWarning() << "OpenKJ - dbupdate - processing file: " << fileName;
+#ifdef Q_OS_WIN
+        if (fileName.contains("*") || fileName.contains("?") || fileName.contains("<") || fileName.contains(">") || fileName.contains("|"))
+        {
+            // illegal character
+            errorMutex.lock();
+            errors.append("Illegal character in filename: " + fileName);
+            errorMutex.unlock();
+            continue;
+        }
+#endif
+        if (fileName.endsWith(".zip", Qt::CaseInsensitive))
+        {
+            archive.setArchiveFile(fileName);
+            if (!archive.isValidKaraokeFile())
+            {
+                errorMutex.lock();
+                errors.append("Bad or invalid karaoke file: " + fileName);
+                errorMutex.unlock();
+                continue;
+            }
+            else duration = archive.getSongDuration();
+        }
+        else if (fileName.endsWith(".cdg", Qt::CaseInsensitive))
+        {
+            QString baseFn = fileName;
+            baseFn.chop(3);
+            if ((!QFile::exists(baseFn + "mp3")) && (!QFile::exists(baseFn + "Mp3")) && (!QFile::exists(baseFn + "MP3")) && (!QFile::exists(baseFn + "mP3")))
+            {
+                errorMutex.lock();
+                errors.append("Missing CDG file for mp3 file: " + fileName);
+                errorMutex.unlock();
+                continue;
+            }
+            duration = ((QFile(fileName).size() / 96) / 75) * 1000;
+        }
+        else
+        {
+            reader.setMedia(fileName);
+            try
+            {
+                duration = reader.getDuration();
+            }
+            catch (...)
+            {
+                errorMutex.lock();
+                errors.append("Unable to get duration for file: " + fileName);
+                errorMutex.unlock();
+            }
+        }
+        QSqlQuery query;
+        QString artist;
+        QString title;
+        QString discid;
+        QFileInfo file(fileName);
+        FilenameParser parser;
+        parser.setFileName(file.completeBaseName());
+        switch (g_pattern)
+        {
+        case SourceDir::DTA:
+            parser.setDiscIdRegEx("^\\S+?(?=(\\s|_)-(\\s|_))");
+            parser.setTitleRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))", 0);
+            parser.setArtistRegEx("(?:^\\S+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|_))(.+)",1);
+            artist = parser.getArtist();
+            title = parser.getTitle();
+            discid = parser.getDiscId();
+            break;
+        case SourceDir::DAT:
+            parser.setDiscIdRegEx("^\\S+?(?=(\\s|_)-(\\s|_))");
+            parser.setTitleRegEx("(?:^\\S+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|_))(.+)",1);
+            parser.setArtistRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))", 0);
+            artist = parser.getArtist();
+            title = parser.getTitle();
+            discid = parser.getDiscId();
+            break;
+        case SourceDir::ATD:
+            parser.setArtistRegEx(".+?(?=(\\s|_)-(\\s|_))",0);
+            parser.setTitleRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))");
+            parser.setDiscIdRegEx("(?:^.+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|))(.+)", 1);
+            artist = parser.getArtist();
+            title = parser.getTitle();
+            discid = parser.getDiscId();
+            break;
+        case SourceDir::TAD:
+            parser.setTitleRegEx(".+?(?=(\\s|_)-(\\s|_))",0);
+            parser.setArtistRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))");
+            parser.setDiscIdRegEx("(?:^.+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|))(.+)", 1);
+            artist = parser.getArtist();
+            title = parser.getTitle();
+            discid = parser.getDiscId();
+            break;
+        case SourceDir::AT:
+            parser.setArtistRegEx(".+?(?=(\\s|_)-(\\s|_))");
+            parser.setTitleRegEx("(?<=(\\s|_)-(\\s|_))(.*)");
+            artist = parser.getArtist();
+            title = parser.getTitle();
+            discid = "";
+            break;
+        case SourceDir::TA:
+            parser.setTitleRegEx(".+?(?=(\\s|_)-(\\s|_))");
+            parser.setArtistRegEx("(?<=(\\s|_)-(\\s|_))(.*)");
+            artist = parser.getArtist();
+            title = parser.getTitle();
+            discid = "";
+            break;
+        case SourceDir::CUSTOM:
+            parser.setTitleRegEx(g_titleRegex, g_titleCaptureGrp);
+            parser.setArtistRegEx(g_artistRegex, g_artistCaptureGrp);
+            parser.setDiscIdRegEx(g_discIdRegex, g_discIdCaptureGrp);
+            artist = parser.getArtist();
+            title = parser.getTitle();
+            discid = parser.getDiscId();
+            break;
+        }
+        QString sql = "INSERT OR IGNORE INTO dbSongs (discid,artist,title,path,filename,duration) VALUES(\"" + discid + "\",\"" + artist + "\",\""
+                + title + "\",\"" + file.filePath() + "\",\"" + file.completeBaseName() + "\"," + QString::number(duration) + ")";
+        query.exec(sql);
+        //qWarning() << "OpenKJ - dbupdate - processing done: " << fileName;
+    }
     query.exec("COMMIT TRANSACTION");
     if (errors.size() > 0)
     {
