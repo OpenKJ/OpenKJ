@@ -216,43 +216,25 @@ bool OkArchive::findEntries()
 {
     if ((m_audioFound) && (m_cdgFound))
         return true;
-    QFile zipFile(archiveFile);
-    zipFile.open(QFile::ReadOnly);
     mz_zip_archive archive;
     memset(&archive, 0, sizeof(archive));
     mz_zip_archive_file_stat fStat;
-    int fd = zipFile.handle();
-    if (fd < 0)
+    if (!mz_zip_reader_init_file(&archive, archiveFile.toLocal8Bit(), 0))
     {
-        qWarning() << "Error getting zip file handle";
+        qWarning() << "Error opening zip file";
         return false;
     }
-//    int dupfd = dup(fd);
-//    if (dupfd < 0)
-//    {
-       // qWarning() << "Error duplicating file handle";
-       // return false;
-//    }
-    //FILE* f = fdopen(dupfd, "rb");
-    FILE* f = fdopen(fd, "rb");
-    if (!mz_zip_reader_init_cfile(&archive, f, zipFile.size(), 0))
-    {
-        qWarning() << "Error initializing zip file object";
-    }
     unsigned int files = mz_zip_reader_get_num_files(&archive);
-    //qWarning() << "Entries in zip file: " << files;
     for (unsigned int i=0; i < files; i++)
     {
         if (mz_zip_reader_file_stat(&archive, i, &fStat))
         {
             QString fileName = fStat.m_filename;
-            //qWarning() << "Processing zip entry: " << fileName;
             if (fileName.endsWith(".cdg",Qt::CaseInsensitive))
             {
                 cdgFileName = fileName;
                 m_cdgSize = fStat.m_uncomp_size;
                 m_cdgFound = true;
-                //qWarning() << "Found cdg file: " << fileName << " size: " << m_cdgSize;
             }
             else
             {
@@ -264,7 +246,6 @@ bool OkArchive::findEntries()
                         audioExt = audioExtensions.at(e);
                         m_audioSize = fStat.m_uncomp_size;
                         m_audioFound = true;
-                        //qWarning() << "Found audio file: " << audioFileName << " size: " << m_audioSize;
                     }
                 }
             }
@@ -275,8 +256,6 @@ bool OkArchive::findEntries()
             }
         }
     }
-    zipFile.close();
-    fclose(f);
     mz_zip_reader_end(&archive);
     return false;
 }

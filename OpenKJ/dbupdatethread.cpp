@@ -134,7 +134,7 @@ void DbUpdateThread::run()
     {
         fileName = files.at(i);
         int duration = 0;
-        //qWarning() << "OpenKJ - dbupdate - processing file: " << fileName;
+        qWarning() << "OpenKJ - dbupdate - processing file: " << fileName;
 #ifdef Q_OS_WIN
         if (fileName.contains("*") || fileName.contains("?") || fileName.contains("<") || fileName.contains(">") || fileName.contains("|"))
         {
@@ -251,7 +251,7 @@ void DbUpdateThread::run()
         QString sql = "INSERT OR IGNORE INTO dbSongs (discid,artist,title,path,filename,duration) VALUES(\"" + discid + "\",\"" + artist + "\",\""
                 + title + "\",\"" + file.filePath() + "\",\"" + file.completeBaseName() + "\"," + QString::number(duration) + ")";
         query.exec(sql);
-        //qWarning() << "OpenKJ - dbupdate - processing done: " << fileName;
+        qWarning() << "OpenKJ - dbupdate - processing done: " << fileName;
     }
     query.exec("COMMIT TRANSACTION");
     if (errors.size() > 0)
