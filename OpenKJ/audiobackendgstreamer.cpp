@@ -218,8 +218,8 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     }
     connect(settings, SIGNAL(mplxModeChanged(int)), this, SLOT(setMplxMode(int)));
 
-    if (!playBin)
-        qWarning() << objName << " - playBin object not valid";
+    g_object_set(G_OBJECT(playBin), "volume", 1.0, NULL);
+
     csource = gst_interpolation_control_source_new ();
     if (!csource)
         qWarning() << objName << " - Error createing control source";
@@ -383,6 +383,7 @@ bool AudioBackendGstreamer::stopping()
 void AudioBackendGstreamer::play()
 {
     gst_timed_value_control_source_unset_all(tv_csource);
+    g_object_set(G_OBJECT(playBin), "volume", 1.0, NULL);
     if (state() == AbstractAudioBackend::PausedState)
     {
         gst_element_set_state(playBin, GST_STATE_PLAYING);
@@ -419,11 +420,11 @@ void AudioBackendGstreamer::setMuted(bool muted)
 {
     if (muted)
     {
-        g_object_set(G_OBJECT(playBin), "volume", 0.0, NULL);
+        g_object_set(G_OBJECT(volumeElement), "volume", 0.0, NULL);
     }
     else
     {
-        g_object_set(G_OBJECT(playBin), "volume", m_volume * .01, NULL);
+        g_object_set(G_OBJECT(volumeElement), "volume", m_volume * .01, NULL);
     }
     m_muted = muted;
 
