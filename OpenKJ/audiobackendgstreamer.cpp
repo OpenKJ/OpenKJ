@@ -53,6 +53,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     m_keyChange = 0;
     m_silenceDuration = 0;
     m_muted = false;
+    isFading = false;
 
     GstAppSinkCallbacks appsinkCallbacks;
     appsinkCallbacks.new_preroll	= &AudioBackendGstreamer::NewPrerollCallback;
@@ -119,15 +120,18 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     queueSrcPadR = gst_element_get_static_pad(queueR, "src");
     fltrPostMixer = gst_element_factory_make("capsfilter", NULL);
     g_object_set(fltrPostMixer, "caps", audioCapsStereo, NULL);
+    volumeElement = gst_element_factory_make("volume", NULL);
 
 //    if (settings->audioDownmix())
 //        g_object_set(fltrEnd, "caps", audioCapsMono, NULL);
 //    else
 //        g_object_set(fltrEnd, "caps", audioCapsStereo, NULL);
 
-    gst_bin_add_many(GST_BIN(customBin), aConvInput, aConvPreSplit, rgVolume, aConvL, aConvR, fltrMplxInput, tee, queueS, queueM, queueR, queueL, audioMixer, deInterleave, aConvPostMixer, fltrPostMixer, NULL);
+    gst_bin_add_many(GST_BIN(customBin), level, aConvInput, aConvPreSplit, rgVolume, volumeElement, aConvL, aConvR, fltrMplxInput, tee, queueS, queueM, queueR, queueL, audioMixer, deInterleave, aConvPostMixer, fltrPostMixer, NULL);
     gst_element_link(aConvInput, rgVolume);
-    gst_element_link(rgVolume, tee);
+    gst_element_link(rgVolume, level);
+    gst_element_link(level, volumeElement);
+    gst_element_link(volumeElement, tee);
 
     // Normal path
     gst_pad_link(teeSrcPadN, queueSinkPadN);
@@ -153,8 +157,8 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     if ((pitchShifterRubberBand) && (loadPitchShift))
     {
         qWarning() << "Pitch shift RubberBand enabled";
-        gst_bin_add_many(GST_BIN(customBin), aConvPrePitchShift, pitchShifterRubberBand, aConvPostPitchShift, level, aConvEnd, audioSink, NULL);
-        gst_element_link_many(fltrPostMixer, aConvPrePitchShift, pitchShifterRubberBand, aConvPostPitchShift, level, aConvEnd, audioSink, NULL);
+        gst_bin_add_many(GST_BIN(customBin), aConvPrePitchShift, pitchShifterRubberBand, aConvPostPitchShift, aConvEnd, audioSink, NULL);
+        gst_element_link_many(fltrPostMixer, aConvPrePitchShift, pitchShifterRubberBand, aConvPostPitchShift, aConvEnd, audioSink, NULL);
         m_canKeyChange = true;
         m_keyChangerRubberBand = true;
         g_object_set(G_OBJECT(pitchShifterRubberBand), "formant-preserving", true, NULL);
@@ -163,16 +167,16 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     }
     else if ((pitchShifterSoundtouch) && (loadPitchShift))
     {
-        gst_bin_add_many(GST_BIN(customBin), aConvPrePitchShift, pitchShifterSoundtouch, aConvPostPitchShift, level, aConvEnd, audioSink, NULL);
-        gst_element_link_many(fltrPostMixer, aConvPrePitchShift, pitchShifterSoundtouch, aConvPostPitchShift, level, aConvEnd, audioSink, NULL);
+        gst_bin_add_many(GST_BIN(customBin), aConvPrePitchShift, pitchShifterSoundtouch, aConvPostPitchShift, aConvEnd, audioSink, NULL);
+        gst_element_link_many(fltrPostMixer, aConvPrePitchShift, pitchShifterSoundtouch, aConvPostPitchShift, aConvEnd, audioSink, NULL);
         m_canKeyChange = true;
         m_keyChangerSoundtouch = true;
         g_object_set(G_OBJECT(pitchShifterSoundtouch), "pitch", 1.0, "tempo", 1.0, NULL);
     }
     else
     {
-        gst_bin_add_many(GST_BIN(customBin), level, aConvEnd, audioSink, NULL);
-        gst_element_link_many(fltrPostMixer, level, aConvEnd, audioSink, NULL);
+        gst_bin_add_many(GST_BIN(customBin), aConvEnd, audioSink, NULL);
+        gst_element_link_many(fltrPostMixer, aConvEnd, audioSink, NULL);
     }
 
 
@@ -189,14 +193,11 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     g_object_set(G_OBJECT(rgVolume), "album-mode", false, NULL);
     g_object_set(G_OBJECT (level), "message", TRUE, NULL);
     bus = gst_element_get_bus (playBin);
-    fader = new FaderGStreamer(playBin, this);
-    fader->objName = objName;
     slowTimer = new QTimer(this);
     connect(slowTimer, SIGNAL(timeout()), this, SLOT(slowTimer_timeout()));
     slowTimer->start(1000);
     fastTimer = new QTimer(this);
     connect(fastTimer, SIGNAL(timeout()), this, SLOT(fastTimer_timeout()));
-    connect(fader, SIGNAL(volumeChanged(int)), this, SLOT(faderChangedVolume(int)));
     fastTimer->start(40);
     gst_app_sink_set_callbacks(GST_APP_SINK(videoAppSink), &appsinkCallbacks, this, (GDestroyNotify)AudioBackendGstreamer::DestroyCallback);
 
@@ -217,6 +218,19 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     }
     connect(settings, SIGNAL(mplxModeChanged(int)), this, SLOT(setMplxMode(int)));
 
+    if (!playBin)
+        qWarning() << objName << " - playBin object not valid";
+    csource = gst_interpolation_control_source_new ();
+    if (!csource)
+        qWarning() << objName << " - Error createing control source";
+    GstControlBinding *cbind = gst_direct_control_binding_new (GST_OBJECT_CAST(volumeElement), "volume", csource);
+    if (!cbind)
+        qWarning() << objName << " - Error creating control binding";
+    if (!gst_object_add_control_binding (GST_OBJECT_CAST(volumeElement), cbind))
+        qWarning() << objName << " - Error adding control binding to volumeElement for fader control";
+
+    g_object_set(csource, "mode", GST_INTERPOLATION_MODE_LINEAR, NULL);
+    tv_csource = (GstTimedValueControlSource *)csource;
 }
 
 AudioBackendGstreamer::~AudioBackendGstreamer()
@@ -368,6 +382,7 @@ bool AudioBackendGstreamer::stopping()
 
 void AudioBackendGstreamer::play()
 {
+    gst_timed_value_control_source_unset_all(tv_csource);
     if (state() == AbstractAudioBackend::PausedState)
     {
         gst_element_set_state(playBin, GST_STATE_PLAYING);
@@ -431,7 +446,7 @@ void AudioBackendGstreamer::setVolume(int volume)
     double linearVolume = gst_stream_volume_convert_volume(GST_STREAM_VOLUME_FORMAT_CUBIC, GST_STREAM_VOLUME_FORMAT_LINEAR, cubicVolume);
     m_volume = volume;
 //    fader->setBaseVolume(volume);
-    g_object_set(G_OBJECT(playBin), "volume", linearVolume, NULL);
+    g_object_set(G_OBJECT(volumeElement), "volume", linearVolume, NULL);
     emit volumeChanged(volume);
 }
 
@@ -475,10 +490,25 @@ void AudioBackendGstreamer::fastTimer_timeout()
             emit positionChanged(position());
         curPosition = position();
     }
+    gdouble curVolume;
+    g_object_get(G_OBJECT(volumeElement), "volume", &curVolume, NULL);
+    double cubicVolume = gst_stream_volume_convert_volume(GST_STREAM_VOLUME_FORMAT_LINEAR, GST_STREAM_VOLUME_FORMAT_CUBIC, curVolume);
+    int intVol = cubicVolume * 100;
+//    qWarning() << objName << " - volume currently" << intVol;
+//    qWarning() << objName << " - last volume: " << m_volume;
+    if (m_volume != intVol)
+    {
+        qWarning() << objName << " - emitting volume changed: " << intVol;
+        emit faderChangedVolume(intVol);
+        //m_volume = curVolume * 100;
+        m_volume = intVol;
+    }
 }
 
 void AudioBackendGstreamer::slowTimer_timeout()
 {
+
+
     static AbstractAudioBackend::State currentState;
     if (state() != currentState)
     {
@@ -541,135 +571,6 @@ void AudioBackendGstreamer::setPitchShift(int pitchShift)
     emit pitchChanged(pitchShift);
 }
 
-FaderGStreamer::FaderGStreamer(GstElement *GstVolumeElement, QObject *parent) :
-    QThread(parent)
-{
-    volumeElement = GstVolumeElement;
-    m_preOutVolume = 0;
-    m_targetVolume = 0;
-    fading = false;
-}
-
-void FaderGStreamer::run()
-{
-    qWarning() << objName << " - Fader started - Target volume: " << m_targetVolume;
-    fading = true;
-    while ((volume() != m_targetVolume) && (fading))
-    {
-//        qWarning() << "Fader - current: " << volume() << " target: " << m_targetVolume;
-        if (volume() > m_targetVolume)
-        {
-            if (volume() < m_targetVolume + .02)
-            {
-                qWarning() << objName << " - Fader - Approximate target reached, exiting";
-                setVolume(m_targetVolume);
-                fading = false;
-                return;
-            }
-            else
-                setVolume(volume() - .02);
-        }
-        if (volume() < m_targetVolume)
-        {
-            if (volume() > m_targetVolume - .02)
-            {
-                qWarning() << objName << " - Fader - Approximate target reached, exiting";
-                setVolume(m_targetVolume);
-                fading = false;
-                return;
-            }
-            else
-                setVolume(volume() + .02);
-        }
-        QThread::msleep(100);
-    }
-    fading = false;
-}
-
-void FaderGStreamer::fadeIn(bool waitForFade)
-{
-    qWarning() << objName << " - fadeIn() - Started";
-    m_targetVolume = m_preOutVolume;
-    if (!fading)
-    {
-        fading = true;
-        start();
-    }
-    else
-    {
-        qWarning() << objName << " - fadeIn() - A fade operation is already in progress... skipping";
-        return;
-    }
-    if (waitForFade)
-    {
-        while(fading)
-            QApplication::processEvents();
-    }
-    qWarning() << objName << " - fadeIn() - Finished";
-}
-
-void FaderGStreamer::fadeOut(bool waitForFade)
-{
-    qWarning() << objName << " - fadeOut() - Started";
-    m_targetVolume = 0;
-    if (!fading)
-    {
-        fading = true;
-        m_preOutVolume = volume();
-        start();
-    }
-    else
-    {
-        qWarning() << objName << " - fadeOut() - A fade operation is already in progress... skipping";
-        return;
-    }
-    if (waitForFade)
-    {
-        while(fading)
-            QApplication::processEvents();
-    }
-    qWarning() << objName << " - fadeOut() - Finished";
-}
-
-bool FaderGStreamer::isFading()
-{
-    return fading;
-}
-
-void FaderGStreamer::restoreVolume()
-{
-    fading = false;
-    setVolume(m_preOutVolume);
-}
-
-void FaderGStreamer::setVolumeElement(GstElement *GstVolumeElement)
-{
-    volumeElement = GstVolumeElement;
-    m_preOutVolume = volume();
-}
-
-void FaderGStreamer::setBaseVolume(int volume)
-{
-    if (!fading)
-        m_preOutVolume = volume * .01;
-}
-
-void FaderGStreamer::setVolume(double targetVolume)
-{
-    double cubicVolume = targetVolume;
-    double linearVolume = gst_stream_volume_convert_volume(GST_STREAM_VOLUME_FORMAT_CUBIC, GST_STREAM_VOLUME_FORMAT_LINEAR, cubicVolume);
-    g_object_set(G_OBJECT(volumeElement), "volume", linearVolume, NULL);
-    emit volumeChanged(cubicVolume * 100);
-}
-
-double FaderGStreamer::volume()
-{
-    gdouble curVolume;
-    g_object_get(G_OBJECT(volumeElement), "volume", &curVolume, NULL);
-    double linearVolume = gst_stream_volume_convert_volume(GST_STREAM_VOLUME_FORMAT_LINEAR, GST_STREAM_VOLUME_FORMAT_CUBIC, curVolume);
-    return linearVolume;
-}
-
 QStringList AudioBackendGstreamer::GstGetPlugins()
 {
     QStringList list;
@@ -728,12 +629,66 @@ bool AudioBackendGstreamer::canFade()
 
 void AudioBackendGstreamer::fadeOut(bool waitForFade)
 {
-    fader->fadeOut(waitForFade);
+    qWarning() << objName << " - fadeOut called";
+    gst_timed_value_control_source_unset_all(tv_csource);
+    gdouble curVolume;
+    g_object_get(G_OBJECT(volumeElement), "volume", &curVolume, NULL);
+    qWarning() << objName << " - fadeOut - Current volume: " << curVolume;
+    m_preFadeVolume = curVolume;
+    m_preFadeVolumeInt = m_volume;
+    if (state() != PlayingState)
+    {
+        qWarning() << objName << " - fadeOut - State not playing, skipping fade and setting volume directly";
+        setVolume(0);
+        return;
+    }
+    isFading = true;
+    gint64 pos;
+    GstFormat fmt = GST_FORMAT_TIME;
+    gst_element_query_position(playBin, fmt, &pos);
+    qWarning() << objName << " - faceOut - Current pos: " << pos;
+    if (!gst_timed_value_control_source_set (tv_csource, pos + (10 * GST_MSECOND), curVolume * .12))
+        qWarning() << objName << " - fadeOut - Error adding start fade timed value";
+    if (!gst_timed_value_control_source_set (tv_csource, pos + (10 * GST_MSECOND) + (5 * GST_SECOND), 0.0))
+        qWarning() << objName << " - fadeOut - Error adding end fade timed value";
+    while (m_volume > 0)
+    {
+        QApplication::processEvents();
+    }
+//    gst_timed_value_control_source_unset_all(tv_csource);
+//    setVolume(0);
+    qWarning() << objName << " - fadeOut done";
+    isFading = false;
 }
 
 void AudioBackendGstreamer::fadeIn(bool waitForFade)
 {
-    fader->fadeIn(waitForFade);
+    qWarning() << objName << " - fadeIn called";
+    gst_timed_value_control_source_unset_all(tv_csource);
+    if (state() != PlayingState)
+    {
+        qWarning() << objName << " - fadeIn - State not playing, skipping fade and setting volume";
+        setVolume(m_preFadeVolume * 100);
+        return;
+    }
+    isFading = true;
+    gint64 pos;
+    GstFormat fmt = GST_FORMAT_TIME;
+    gst_element_query_position(playBin, fmt, &pos);
+    qWarning() << objName << " - fadeIn - Current pos: " << pos;
+    qWarning() << objName << " - fadeIn - Target volume: " << m_preFadeVolume;
+    if (!gst_timed_value_control_source_set (tv_csource, pos + (10 * GST_MSECOND), 0.0))
+        qWarning() << objName << " - fadeIn - Error adding start fade timed value";
+    if (!gst_timed_value_control_source_set (tv_csource, pos + (10 * GST_MSECOND) + (5 * GST_SECOND), m_preFadeVolume * .12))
+        qWarning() << objName << " - fadeIn - Error adding end fade timed value";
+    while (m_volume < m_preFadeVolumeInt)
+        QApplication::processEvents();
+    qWarning() << objName << " - fadeIn done";
+    isFading = false;
+    gst_timed_value_control_source_unset_all(tv_csource);
+    qWarning() << objName << " - forcing volume back to prefade value to work around weirdness in gstreamer control elements";
+    qWarning() << objName << " - preFade volume was: " << m_preFadeVolumeInt;
+    setVolume(m_preFadeVolumeInt);
 }
 
 void AudioBackendGstreamer::setUseFader(bool fade)
@@ -749,7 +704,7 @@ bool AudioBackendGstreamer::canDetectSilence()
 
 bool AudioBackendGstreamer::isSilent()
 {
-    if ((m_currentRmsLevel <= 0.01) && (m_volume > 0))
+    if ((m_currentRmsLevel <= 0.01) && (m_volume > 0) && (!isFading))
         return true;
     return false;
 }

@@ -28,40 +28,13 @@
 #include <gst/gstdevicemonitor.h>
 #include <gst/gstdevice.h>
 #include <gst/gstplugin.h>
+#include <gst/controller/gstinterpolationcontrolsource.h>
+#include <gst/controller/gstdirectcontrolbinding.h>
+
 #include <QTimer>
 #include <QThread>
 #include <QImage>
 #include <QAudioOutput>
-
-class FaderGStreamer : public QThread
-{
-    Q_OBJECT
-
-private:
-    double m_targetVolume;
-    double m_preOutVolume;
-    GstElement *volumeElement;
-    bool fading;
-    void setVolume(double targetVolume);
-    double volume();
-
-public:
-    explicit FaderGStreamer(GstElement *GstVolumeElement, QObject *parent = 0);
-    void run();
-    void fadeIn(bool waitForFade = true);
-    void fadeOut(bool waitForFade = true);
-    bool isFading();
-    void restoreVolume();
-    void setVolumeElement(GstElement *GstVolumeElement);
-    QString objName;
-
-signals:
-    void volumeChanged(int);
-
-public slots:
-    void setBaseVolume(int volume);
-
-};
 
 class AudioBackendGstreamer : public AbstractAudioBackend
 {
@@ -113,6 +86,7 @@ private:
     GstElement *fltrEnd;
     GstElement *audioPanorama;
     GstElement *audioResample;
+    GstElement *volumeElement;
     GstCaps *audioCapsStereo;
     GstCaps *audioCapsMono;
     GstCaps *videoCaps;
@@ -120,22 +94,26 @@ private:
     GstPad *ghostPad;
     GstBus *bus;
     GstDeviceMonitor *monitor;
+    GstControlSource *csource;
+    GstTimedValueControlSource *tv_csource;
     QString m_filename;
     QTimer *fastTimer;
     QTimer *slowTimer;
     int m_keyChange;
     int m_volume;
-    FaderGStreamer *fader;
     bool m_fade;
     bool m_silenceDetect;
     bool m_canKeyChange;
     bool m_keyChangerRubberBand;
     bool m_keyChangerSoundtouch;
     bool m_muted;
+    bool isFading;
     int m_silenceDuration;
     void processGstMessages();
     int m_outputChannels;
     double m_currentRmsLevel;
+    double m_preFadeVolume;
+    int m_preFadeVolumeInt;
 
     static void EndOfStreamCallback(GstAppSink *appsink, gpointer user_data);
     static GstFlowReturn NewPrerollCallback(GstAppSink *appsink, gpointer user_data);
