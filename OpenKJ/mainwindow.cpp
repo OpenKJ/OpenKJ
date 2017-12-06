@@ -557,6 +557,19 @@ void MainWindow::on_tableViewRotation_activated(const QModelIndex &index)
         QString nextSongPath = rotModel->nextSongPath(singerId);
         if (nextSongPath != "")
         {
+            if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
+            {
+                QMessageBox msgBox(this);
+                msgBox.setText("Interrupt currenly playing karaoke song?");
+                msgBox.setInformativeText("There is currently a karaoke song playing.  If you continue, the current song will be stopped.  Are you sure?");
+                QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
+                msgBox.addButton(QMessageBox::Cancel);
+                msgBox.exec();
+                if (msgBox.clickedButton() != yesButton)
+                {
+                    return;
+                }
+            }
  //           play(nextSongPath);
  //           kAudioBackend->setPitchShift(rotModel->nextSongKeyChg(singerId));
             rotDelegate->setCurrentSinger(singerId);
@@ -628,6 +641,19 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
 
 void MainWindow::on_tableViewQueue_activated(const QModelIndex &index)
 {
+    if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
+    {
+        QMessageBox msgBox(this);
+        msgBox.setText("Interrupt currenly playing karaoke song?");
+        msgBox.setInformativeText("There is currently a karaoke song playing.  If you continue, the current song will be stopped.  Are you sure?");
+        QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
+        msgBox.addButton(QMessageBox::Cancel);
+        msgBox.exec();
+        if (msgBox.clickedButton() != yesButton)
+        {
+            return;
+        }
+    }
     curSinger = rotModel->getSingerName(index.sibling(index.row(),1).data().toInt());
     curArtist = index.sibling(index.row(),3).data().toString();
     curTitle = index.sibling(index.row(),4).data().toString();
