@@ -251,7 +251,15 @@ void DlgSettings::on_pushButtonFont_clicked()
 
 void DlgSettings::on_spinBoxTickerHeight_valueChanged(int arg1)
 {
-    settings->setTickerHeight(arg1);
+    if (arg1 >= 1)
+    {
+        settings->setTickerHeight(arg1);
+    }
+    else
+    {
+        settings->setTickerHeight(1);
+        ui->spinBoxTickerHeight->setValue(1);
+    }
 }
 
 void DlgSettings::on_horizontalSliderTickerSpeed_valueChanged(int value)
