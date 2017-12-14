@@ -138,6 +138,7 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     else
         ui->comboBoxCodec->setCurrentIndex(ui->comboBoxCodec->findText(settings->recordingCodec()));
     ui->lineEditOutputDir->setText(settings->recordingOutputDir());
+    ui->groupBoxTicker->setChecked(settings->tickerEnabled());
     ui->lineEditTickerMessage->setText(settings->tickerCustomString());
     connect(networkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
     connect(networkManager, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(onSslErrors(QNetworkReply*)));
