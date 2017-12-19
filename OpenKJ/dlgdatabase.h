@@ -27,6 +27,7 @@
 #include "sourcedirtablemodel.h"
 #include "dlgcustompatterns.h"
 #include <QSqlDatabase>
+#include "dlgdbupdate.h"
 
 namespace Ui {
 class DlgDatabase;
@@ -40,6 +41,7 @@ private:
     Ui::DlgDatabase *ui;
     SourceDirTableModel *sourcedirmodel;
     DlgCustomPatterns *customPatternsDlg;
+    DlgDbUpdate *dbUpdateDlg;
     int selectedRow;
     QSqlDatabase db;
 

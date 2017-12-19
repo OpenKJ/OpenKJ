@@ -76,7 +76,8 @@ SOURCES += main.cpp\
     dlgcustompatterns.cpp \
     custompatternsmodel.cpp \
     audiorecorder.cpp \
-    okjsongbookapi.cpp
+    okjsongbookapi.cpp \
+    dlgdbupdate.cpp
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -122,7 +123,8 @@ HEADERS  += mainwindow.h \
     custompatternsmodel.h \
     audiorecorder.h \
     okjsongbookapi.h \
-    miniz.h
+    miniz.h \
+    dlgdbupdate.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \
@@ -135,7 +137,8 @@ FORMS    += mainwindow.ui \
     dlgsettings.ui \
     dlgcdg.ui \
     bmdbdialog.ui \
-    dlgcustompatterns.ui
+    dlgcustompatterns.ui \
+    dlgdbupdate.ui
 
 RESOURCES += resources.qrc
 

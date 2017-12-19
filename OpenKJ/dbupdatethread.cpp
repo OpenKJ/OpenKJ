@@ -60,6 +60,7 @@ QString DbUpdateThread::getPath() const
 
 QStringList DbUpdateThread::findKaraokeFiles(QString directory)
 {
+    emit progressMessage("Finding karaoke files in " + directory);
     QStringList files;
     QDir dir(directory);
     QDirIterator iterator(dir.absolutePath(), QDirIterator::Subdirectories);
@@ -80,6 +81,7 @@ QStringList DbUpdateThread::findKaraokeFiles(QString directory)
                 files.append(fn);
         }
     }
+    emit progressMessage("Done searching for files.");
     return files;
 }
 
@@ -127,14 +129,22 @@ void DbUpdateThread::run()
             g_discIdCaptureGrp = query.value("discidcapturegrp").toInt();
         }
     }
+    emit progressChanged(0);
+    emit progressMaxChanged(0);
+    emit stateChanged("Finding potential karaoke files...");
     QStringList files = findKaraokeFiles(path);
+    emit progressMaxChanged(files.size());
+    emit progressMessage("Found " + QString::number(files.size()) + " potential karaoke files.");
     QString fileName;
     QSqlQuery query("BEGIN TRANSACTION");
+    emit progressMessage("Checking if files are valid and getting durations...");
+    emit stateChanged("Validating karaoke files and getting song durations...");
     for (int i=0; i < files.count(); i++)
     {
         fileName = files.at(i);
         int duration = 0;
-        qWarning() << "OpenKJ - dbupdate - processing file: " << fileName;
+        QFileInfo file(fileName);
+        emit progressMessage("Processing file: " + file.fileName());
 #ifdef Q_OS_WIN
         if (fileName.contains("*") || fileName.contains("?") || fileName.contains("<") || fileName.contains(">") || fileName.contains("|"))
         {
@@ -142,6 +152,7 @@ void DbUpdateThread::run()
             errorMutex.lock();
             errors.append("Illegal character in filename: " + fileName);
             errorMutex.unlock();
+            emit progressMessage("Illegal character in filename: " + fileName);
             continue;
         }
 #endif
@@ -153,6 +164,7 @@ void DbUpdateThread::run()
                 errorMutex.lock();
                 errors.append("Bad or invalid karaoke file: " + fileName);
                 errorMutex.unlock();
+                emit progressMessage("Bad or invalid karaoke file: " + fileName);
                 continue;
             }
             else duration = archive.getSongDuration();
@@ -166,6 +178,7 @@ void DbUpdateThread::run()
                 errorMutex.lock();
                 errors.append("Missing CDG file for mp3 file: " + fileName);
                 errorMutex.unlock();
+                emit progressMessage("Missing CDG file for mp3 file: " + fileName);
                 continue;
             }
             duration = ((QFile(fileName).size() / 96) / 75) * 1000;
@@ -182,13 +195,13 @@ void DbUpdateThread::run()
                 errorMutex.lock();
                 errors.append("Unable to get duration for file: " + fileName);
                 errorMutex.unlock();
+                emit progressMessage("Unable to get duration for file: " + fileName);
             }
         }
         QSqlQuery query;
         QString artist;
         QString title;
         QString discid;
-        QFileInfo file(fileName);
         FilenameParser parser;
         parser.setFileName(file.completeBaseName());
         switch (g_pattern)
@@ -251,9 +264,10 @@ void DbUpdateThread::run()
         QString sql = "INSERT OR IGNORE INTO dbSongs (discid,artist,title,path,filename,duration) VALUES(\"" + discid + "\",\"" + artist + "\",\""
                 + title + "\",\"" + file.filePath() + "\",\"" + file.completeBaseName() + "\"," + QString::number(duration) + ")";
         query.exec(sql);
-        qWarning() << "OpenKJ - dbupdate - processing done: " << fileName;
+        emit progressChanged(i + 1);
     }
     query.exec("COMMIT TRANSACTION");
+    emit progressMessage("Done processing files.");
     if (errors.size() > 0)
     {
         emit errorsGenerated(errors);
