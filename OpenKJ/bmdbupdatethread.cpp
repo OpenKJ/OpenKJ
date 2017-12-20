@@ -76,17 +76,29 @@ QStringList BmDbUpdateThread::findMediaFiles(QString directory)
 void BmDbUpdateThread::run()
 {
     TagReader reader;
+    emit progressMaxChanged(0);
+    emit progressChanged(0);
+    emit progressMessage("Getting list of files in " + m_path);
+    emit stateChanged("Finding media files...");
     QStringList files = findMediaFiles(m_path);
+    emit progressMessage("Found " + QString::number(files.size()) + " files.");
     QSqlQuery query;
+    emit stateChanged("Getting metadata and adding songs to the database");
+    emit progressMessage("Getting metadata and adding songs to the database");
+    emit progressMaxChanged(files.size());
     query.exec("BEGIN TRANSACTION");
     for (int i=0; i < files.size(); i++)
     {
+        QFileInfo fi(files.at(i));
+        emit progressMessage("Processing file: " + fi.fileName());
         reader.setMedia(files.at(i));
         QString duration = QString::number(reader.getDuration() / 1000);
         QString artist = reader.getArtist();
         QString title = reader.getTitle();
         QString queryString = "INSERT OR IGNORE INTO bmsongs (artist,title,path,filename,duration,searchstring) VALUES(\"" + artist + "\",\"" + title + "\",\"" + files.at(i) + "\",\"" + files.at(i) + "\",\"" + duration + "\",\"" + artist + title + files.at(i) + "\")";
         query.exec(queryString);
+        emit progressChanged(i + 1);
     }
     query.exec("COMMIT TRANSACTION");
+    emit progressMessage("Finished processing files for directory: " + m_path);
 }

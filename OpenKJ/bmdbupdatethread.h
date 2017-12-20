@@ -34,6 +34,10 @@ public:
     void setPath(const QString &path);
 
 signals:
+    void progressMessage(QString msg);
+    void stateChanged(QString state);
+    void progressChanged(int progress);
+    void progressMaxChanged(int max);
     
 public slots:
 

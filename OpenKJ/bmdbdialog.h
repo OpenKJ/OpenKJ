@@ -24,6 +24,8 @@
 #include <QDialog>
 #include <QSqlTableModel>
 #include <QSqlDatabase>
+#include "dlgdbupdate.h"
+
 
 namespace Ui {
 class BmDbDialog;
@@ -61,6 +63,7 @@ private:
     QSqlTableModel *pathsModel;
     int selectedDirectoryIdx;
     QSqlDatabase m_db;
+    DlgDbUpdate *dbUpdateDlg;
 
 };
 
