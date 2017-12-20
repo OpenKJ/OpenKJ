@@ -504,6 +504,12 @@ void MainWindow::on_tableViewDB_activated(const QModelIndex &index)
     {
         qModel->songAdd(index.sibling(index.row(),0).data().toInt());
     }
+    else
+    {
+        QMessageBox msgBox;
+        msgBox.setText("No singer selected.  You must select a singer before you can double-click to add to a queue.");
+        msgBox.exec();
+    }
 }
 
 void MainWindow::on_buttonAddSinger_clicked()
