@@ -47,6 +47,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    kAASkip = false;
     kAANextSinger = -1;
     kAANextSongPath = "";
     m_lastAudioState = AbstractAudioBackend::StoppedState;
@@ -474,6 +475,7 @@ void MainWindow::databaseCleared()
 
 void MainWindow::on_buttonStop_clicked()
 {
+    kAASkip = true;
     audioRecorder->stop();
     kAudioBackend->stop();
     bmAudioBackend->fadeIn();
@@ -846,45 +848,52 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
         bmAudioBackend->fadeIn(false);
         if (settings->karaokeAutoAdvance())
         {
-            int nextSinger = -1;
-            int nextPos;
-            QString nextSongPath;
-            bool empty = false;
-            int loops = 0;
-            while ((nextSongPath == "") && (!empty))
+            if (kAASkip == true)
             {
-                if (loops > rotModel->singerCount)
+                kAASkip = false;
+            }
+            else
+            {
+                int nextSinger = -1;
+                int nextPos;
+                QString nextSongPath;
+                bool empty = false;
+                int loops = 0;
+                while ((nextSongPath == "") && (!empty))
                 {
-                    empty = true;
-                }
-                else
-                {
-                    int curSinger = rotModel->currentSinger();
-                    int curPos = rotModel->getSingerPosition(curSinger);
-                    if ((curPos + 1) < rotModel->singerCount)
+                    if (loops > rotModel->singerCount)
                     {
-                        nextPos = curPos + 1;
+                        empty = true;
                     }
                     else
                     {
-                        nextPos = 0;
+                        int curSinger = rotModel->currentSinger();
+                        int curPos = rotModel->getSingerPosition(curSinger);
+                        if ((curPos + 1) < rotModel->singerCount)
+                        {
+                            nextPos = curPos + 1;
+                        }
+                        else
+                        {
+                            nextPos = 0;
+                        }
+                        nextSinger = rotModel->singerIdAtPosition(nextPos);
+                        rotModel->setCurrentSinger(nextSinger);
+                        rotDelegate->setCurrentSinger(nextSinger);
+                        nextSongPath = rotModel->nextSongPath(nextSinger);
+                        loops++;
                     }
-                    nextSinger = rotModel->singerIdAtPosition(nextPos);
-                    rotModel->setCurrentSinger(nextSinger);
-                    rotDelegate->setCurrentSinger(nextSinger);
-                    nextSongPath = rotModel->nextSongPath(nextSinger);
-                    loops++;
                 }
-            }
-            if (empty)
-                qWarning() << "KaraokeAA - No more songs to play, giving up";
-            else
-            {
-                kAANextSinger = nextSinger;
-                kAANextSongPath = nextSongPath;
-                qWarning() << "KaraokeAA - Will play: " << rotModel->getSingerName(nextSinger) << " - " << nextSongPath;
-                qWarning() << "KaraokeAA - Starting " << settings->karaokeAATimeout() << " second timer";
-                karaokeAATimer->start(settings->karaokeAATimeout() * 1000);
+                if (empty)
+                    qWarning() << "KaraokeAA - No more songs to play, giving up";
+                else
+                {
+                    kAANextSinger = nextSinger;
+                    kAANextSongPath = nextSongPath;
+                    qWarning() << "KaraokeAA - Will play: " << rotModel->getSingerName(nextSinger) << " - " << nextSongPath;
+                    qWarning() << "KaraokeAA - Starting " << settings->karaokeAATimeout() << " second timer";
+                    karaokeAATimer->start(settings->karaokeAATimeout() * 1000);
+                }
             }
         }
     }
@@ -1171,17 +1180,23 @@ void MainWindow::karaokeAATimerTimeout()
 {
     qWarning() << "KaraokeAA - timer timeout";
     karaokeAATimer->stop();
-
-    curSinger = rotModel->getSingerName(kAANextSinger);
-    curArtist = rotModel->nextSongArtist(kAANextSinger);
-    curTitle = rotModel->nextSongTitle(kAANextSinger);
-    ui->labelArtist->setText(curArtist);
-    ui->labelTitle->setText(curTitle);
-    ui->labelSinger->setText(curSinger);
-    play(kAANextSongPath);
-    kAudioBackend->setPitchShift(rotModel->nextSongKeyChg(kAANextSinger));
-    qModel->songSetPlayed(rotModel->nextSongQueueId(kAANextSinger));
-
+    if (kAASkip)
+    {
+        qWarning() << "KaraokeAA - Aborted via stop button";
+        kAASkip = false;
+    }
+    else
+    {
+        curSinger = rotModel->getSingerName(kAANextSinger);
+        curArtist = rotModel->nextSongArtist(kAANextSinger);
+        curTitle = rotModel->nextSongTitle(kAANextSinger);
+        ui->labelArtist->setText(curArtist);
+        ui->labelTitle->setText(curTitle);
+        ui->labelSinger->setText(curSinger);
+        play(kAANextSongPath);
+        kAudioBackend->setPitchShift(rotModel->nextSongKeyChg(kAANextSinger));
+        qModel->songSetPlayed(rotModel->nextSongQueueId(kAANextSinger));
+    }
 }
 
 void MainWindow::bmAddPlaylist(QString title)

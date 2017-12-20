@@ -108,6 +108,7 @@ private:
     QString curTitle;
     int kAANextSinger;
     QString kAANextSongPath;
+    bool kAASkip;
 
 
     BmDbDialog *bmDbDialog;
