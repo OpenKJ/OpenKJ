@@ -148,6 +148,8 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     connect(ui->spinBoxHOffset, SIGNAL(valueChanged(int)), settings, SLOT(setCdgHOffset(int)));
     connect(ui->spinBoxVOffset, SIGNAL(valueChanged(int)), settings, SLOT(setCdgVOffset(int)));
     pageSetupDone = true;
+    ui->spinBoxAADelay->setValue(settings->karaokeAATimeout());
+    ui->checkBoxKAA->setChecked(settings->karaokeAutoAdvance());
 }
 
 DlgSettings::~DlgSettings()
@@ -199,6 +201,11 @@ void DlgSettings::createIcons()
     networkButton->setText(tr("Network"));
     networkButton->setTextAlignment(Qt::AlignHCenter);
     networkButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+    QListWidgetItem *otherButton = new QListWidgetItem(ui->listWidget);
+    otherButton->setIcon(QIcon(":/Icons/other-settings.png"));
+    otherButton->setText(tr("Other"));
+    otherButton->setTextAlignment(Qt::AlignHCenter);
+    otherButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 }
 
 void DlgSettings::on_btnClose_clicked()

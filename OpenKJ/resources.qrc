@@ -30,5 +30,7 @@
         <file>Icons/okjicon64x64.png</file>
         <file>Icons/okicon.svg</file>
     </qresource>
-    <qresource prefix="/"/>
+    <qresource prefix="/">
+        <file>Icons/other-settings.png</file>
+    </qresource>
 </RCC>

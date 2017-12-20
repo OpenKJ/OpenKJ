@@ -106,6 +106,8 @@ private:
     QString curSinger;
     QString curArtist;
     QString curTitle;
+    int kAANextSinger;
+    QString kAANextSongPath;
 
 
     BmDbDialog *bmDbDialog;
@@ -120,6 +122,7 @@ private:
     bool bmPlaylistExists(QString name);
     AbstractAudioBackend::State m_lastAudioState;
     void refreshSongDbCache();
+    QTimer *karaokeAATimer;
 
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -177,6 +180,7 @@ private slots:
     void markSongBad();
     void setShowBgImage(bool show);
     void onBgImageChange();
+    void karaokeAATimerTimeout();
 
     void bmDbUpdated();
     void bmDbCleared();

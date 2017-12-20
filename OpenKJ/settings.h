@@ -144,6 +144,10 @@ public:
     void bmSetPlaylistIndex(int index);
     int mplxMode();
     void setMplxMode(int mode);
+    bool karaokeAutoAdvance();
+    void setKaraokeAutoAdvance(bool enabled);
+    int karaokeAATimeout();
+    void setKaraokeAATimeout(int secs);
 
 
 signals:

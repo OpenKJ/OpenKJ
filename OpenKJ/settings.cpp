@@ -601,3 +601,23 @@ void Settings::setMplxMode(int mode)
     settings->setValue("mplxMode", mode);
     emit mplxModeChanged(mode);
 }
+
+bool Settings::karaokeAutoAdvance()
+{
+    return settings->value("karaokeAutoAdvance", false).toBool();
+}
+
+void Settings::setKaraokeAutoAdvance(bool enabled)
+{
+    settings->setValue("karaokeAutoAdvance", enabled);
+}
+
+int Settings::karaokeAATimeout()
+{
+    return settings->value("karaokeAATimeout", 30).toInt();
+}
+
+void Settings::setKaraokeAATimeout(int secs)
+{
+    settings->setValue("karaokeAATimeout", secs);
+}

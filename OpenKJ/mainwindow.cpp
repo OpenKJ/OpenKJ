@@ -47,6 +47,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    kAANextSinger = -1;
+    kAANextSongPath = "";
     m_lastAudioState = AbstractAudioBackend::StoppedState;
     sliderPositionPressed = false;
     m_rtClickQueueSongId = -1;
@@ -311,6 +313,9 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->pushButtonMplxLeft->setChecked(true);
     else if (settings->mplxMode() == Multiplex_RightChannel)
         ui->pushButtonMplxRight->setChecked(true);
+
+    karaokeAATimer = new QTimer(this);
+    connect(karaokeAATimer, SIGNAL(timeout()), this, SLOT(karaokeAATimerTimeout()));
 }
 
 void MainWindow::play(QString karaokeFilePath)
@@ -839,6 +844,49 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
         setShowBgImage(true);
         cdgWindow->setShowBgImage(true);
         bmAudioBackend->fadeIn(false);
+        if (settings->karaokeAutoAdvance())
+        {
+            int nextSinger = -1;
+            int nextPos;
+            QString nextSongPath;
+            bool empty = false;
+            int loops = 0;
+            while ((nextSongPath == "") && (!empty))
+            {
+                if (loops > rotModel->singerCount)
+                {
+                    empty = true;
+                }
+                else
+                {
+                    int curSinger = rotModel->currentSinger();
+                    int curPos = rotModel->getSingerPosition(curSinger);
+                    if ((curPos + 1) < rotModel->singerCount)
+                    {
+                        nextPos = curPos + 1;
+                    }
+                    else
+                    {
+                        nextPos = 0;
+                    }
+                    nextSinger = rotModel->singerIdAtPosition(nextPos);
+                    rotModel->setCurrentSinger(nextSinger);
+                    rotDelegate->setCurrentSinger(nextSinger);
+                    nextSongPath = rotModel->nextSongPath(nextSinger);
+                    loops++;
+                }
+            }
+            if (empty)
+                qWarning() << "KaraokeAA - No more songs to play, giving up";
+            else
+            {
+                kAANextSinger = nextSinger;
+                kAANextSongPath = nextSongPath;
+                qWarning() << "KaraokeAA - Will play: " << rotModel->getSingerName(nextSinger) << " - " << nextSongPath;
+                qWarning() << "KaraokeAA - Starting " << settings->karaokeAATimeout() << " second timer";
+                karaokeAATimer->start(settings->karaokeAATimeout() * 1000);
+            }
+        }
     }
     if (state == AbstractAudioBackend::EndOfMediaState)
     {
@@ -1117,6 +1165,23 @@ void MainWindow::onBgImageChange()
 {
    if (kAudioBackend->state() == AbstractAudioBackend::StoppedState)
        cdgWindow->setShowBgImage(true);
+}
+
+void MainWindow::karaokeAATimerTimeout()
+{
+    qWarning() << "KaraokeAA - timer timeout";
+    karaokeAATimer->stop();
+
+    curSinger = rotModel->getSingerName(kAANextSinger);
+    curArtist = rotModel->nextSongArtist(kAANextSinger);
+    curTitle = rotModel->nextSongTitle(kAANextSinger);
+    ui->labelArtist->setText(curArtist);
+    ui->labelTitle->setText(curTitle);
+    ui->labelSinger->setText(curSinger);
+    play(kAANextSongPath);
+    kAudioBackend->setPitchShift(rotModel->nextSongKeyChg(kAANextSinger));
+    qModel->songSetPlayed(rotModel->nextSongQueueId(kAANextSinger));
+
 }
 
 void MainWindow::bmAddPlaylist(QString title)
