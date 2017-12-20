@@ -150,6 +150,7 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     pageSetupDone = true;
     ui->spinBoxAADelay->setValue(settings->karaokeAATimeout());
     ui->checkBoxKAA->setChecked(settings->karaokeAutoAdvance());
+    ui->checkBoxShowKAAAlert->setChecked(settings->karaokeAAAlertEnabled());
 }
 
 DlgSettings::~DlgSettings()
@@ -512,4 +513,29 @@ void DlgSettings::on_checkBoxCdgFullscreen_toggled(bool checked)
         }
     }
     settings->setCdgWindowFullscreen(checked);
+}
+
+void DlgSettings::on_checkBoxShowKAAAlert_toggled(bool checked)
+{
+    settings->setKaraokeAAAlertEnabled(checked);
+}
+
+void DlgSettings::on_checkBoxKAA_toggled(bool checked)
+{
+    settings->setKaraokeAutoAdvance(checked);
+}
+
+void DlgSettings::on_spinBoxAADelay_valueChanged(int arg1)
+{
+    settings->setKaraokeAATimeout(arg1);
+}
+
+void DlgSettings::on_btnAlertFont_clicked()
+{
+    bool ok;
+    QFont font = QFontDialog::getFont(&ok, settings->karaokeAAAlertFont(), this, "Select alert font");
+    if (ok)
+    {
+        settings->setKaraokeAAAlertFont(font);
+    }
 }

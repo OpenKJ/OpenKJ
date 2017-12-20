@@ -72,6 +72,7 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
     connect(settings, SIGNAL(cdgWindowFullscreenChanged(bool)), this, SLOT(setFullScreen(bool)));
     connect(settings, SIGNAL(cdgWindowFullscreenMonitorChanged(int)), this, SLOT(setFullScreenMonitor(int)));
     connect(ui->cdgVideo, SIGNAL(resized(QSize)), this, SLOT(cdgSurfaceResized(QSize)));
+    connect(settings, SIGNAL(karaokeAAAlertFontChanged(QFont)), this, SLOT(alertFontChanged(QFont)));
     fullScreenTimer = new QTimer(this);
     slideShowTimer = new QTimer(this);
     connect(fullScreenTimer, SIGNAL(timeout()), this, SLOT(fullScreenTimerTimeout()));
@@ -95,6 +96,7 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
     alertCountdownTimer->setInterval(1000);
     connect(alertCountdownTimer, SIGNAL(timeout()), this, SLOT(countdownTimerTimeout()));
     ui->widgetAlert->setAutoFillBackground(true);
+    alertFontChanged(settings->karaokeAAAlertFont());
 }
 
 DlgCdg::~DlgCdg()
@@ -314,7 +316,7 @@ void DlgCdg::setAlert(QString text)
 
 void DlgCdg::showAlert(bool show)
 {
-    if (show)
+    if ((show) && (settings->karaokeAAAlertEnabled()))
         ui->widgetAlert->show();
     else
         ui->widgetAlert->hide();
@@ -377,5 +379,15 @@ void DlgCdg::slideShowTimerTimeout()
             ui->cdgVideo->videoSurface()->present(QVideoFrame(QImage(images.at(position).absoluteFilePath())));
         position++;
     }
+}
+
+void DlgCdg::alertFontChanged(QFont font)
+{
+    ui->label->setFont(font);
+    ui->label_2->setFont(font);
+    ui->label_4->setFont(font);
+    ui->lblNextSinger->setFont(font);
+    ui->lblNextSong->setFont(font);
+    ui->lblSeconds->setFont(font);
 }
 

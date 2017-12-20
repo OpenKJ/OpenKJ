@@ -621,3 +621,26 @@ void Settings::setKaraokeAATimeout(int secs)
 {
     settings->setValue("karaokeAATimeout", secs);
 }
+
+bool Settings::karaokeAAAlertEnabled()
+{
+    return settings->value("karaokeAAAlertEnabled", false).toBool();
+}
+
+void Settings::setKaraokeAAAlertEnabled(bool enabled)
+{
+    settings->setValue("karaokeAAAlertEnabled", enabled);
+}
+
+QFont Settings::karaokeAAAlertFont()
+{
+    QFont font;
+    font.fromString(settings->value("karaokeAAAlertFont", QApplication::font().toString()).toString());
+    return font;
+}
+
+void Settings::setKaraokeAAAlertFont(QFont font)
+{
+    settings->setValue("karaokeAAAlertFont", font.toString());
+    emit karaokeAAAlertFontChanged(font);
+}

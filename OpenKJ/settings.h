@@ -148,6 +148,10 @@ public:
     void setKaraokeAutoAdvance(bool enabled);
     int karaokeAATimeout();
     void setKaraokeAATimeout(int secs);
+    bool karaokeAAAlertEnabled();
+    void setKaraokeAAAlertEnabled(bool enabled);
+    QFont karaokeAAAlertFont();
+    void setKaraokeAAAlertFont(QFont font);
 
 
 signals:
@@ -173,6 +177,7 @@ signals:
     void requestServerVenueChanged(int venueId);
     void tickerCustomStringChanged();
     void mplxModeChanged(int mode);
+    void karaokeAAAlertFontChanged(QFont font);
 
 public slots:
     void setShowCdgWindow(bool show);

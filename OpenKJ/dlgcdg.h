@@ -70,6 +70,7 @@ protected:
 private slots:
     void fullScreenTimerTimeout();
     void slideShowTimerTimeout();
+    void alertFontChanged(QFont font);
 
 public slots:
     void setFullScreen(bool fullscreen);
