@@ -476,6 +476,7 @@ void MainWindow::databaseCleared()
 void MainWindow::on_buttonStop_clicked()
 {
     kAASkip = true;
+    cdgWindow->showAlert(false);
     audioRecorder->stop();
     kAudioBackend->stop();
     bmAudioBackend->fadeIn();
@@ -893,6 +894,10 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
                     qWarning() << "KaraokeAA - Will play: " << rotModel->getSingerName(nextSinger) << " - " << nextSongPath;
                     qWarning() << "KaraokeAA - Starting " << settings->karaokeAATimeout() << " second timer";
                     karaokeAATimer->start(settings->karaokeAATimeout() * 1000);
+                    cdgWindow->setNextSinger(rotModel->getSingerName(nextSinger));
+                    cdgWindow->setNextSong(rotModel->nextSongArtist(nextSinger) + " - " + rotModel->nextSongTitle(nextSinger));
+                    cdgWindow->setCountdownSecs(settings->karaokeAATimeout());
+                    cdgWindow->showAlert(true);
                 }
             }
         }
@@ -1180,6 +1185,7 @@ void MainWindow::karaokeAATimerTimeout()
 {
     qWarning() << "KaraokeAA - timer timeout";
     karaokeAATimer->stop();
+    cdgWindow->showAlert(false);
     if (kAASkip)
     {
         qWarning() << "KaraokeAA - Aborted via stop button";

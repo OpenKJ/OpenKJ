@@ -89,7 +89,12 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
         hide();
     setShowBgImage(true);
     slideShowTimerTimeout();
-
+    showAlert(false);
+    countdownPos = 0;
+    alertCountdownTimer = new QTimer(this);
+    alertCountdownTimer->setInterval(1000);
+    connect(alertCountdownTimer, SIGNAL(timeout()), this, SLOT(countdownTimerTimeout()));
+    ui->widgetAlert->setAutoFillBackground(true);
 }
 
 DlgCdg::~DlgCdg()
@@ -300,6 +305,46 @@ QFileInfoList DlgCdg::getSlideShowImages()
             images << files.at(i);
     }
     return images;
+}
+
+void DlgCdg::setAlert(QString text)
+{
+    //ui->lblAlert->setText(text);
+}
+
+void DlgCdg::showAlert(bool show)
+{
+    if (show)
+        ui->widgetAlert->show();
+    else
+        ui->widgetAlert->hide();
+}
+
+void DlgCdg::setNextSinger(QString name)
+{
+    ui->lblNextSinger->setText(name);
+}
+
+void DlgCdg::setNextSong(QString song)
+{
+    ui->lblNextSong->setText(song);
+}
+
+void DlgCdg::setCountdownSecs(int seconds)
+{
+    countdownPos = seconds;
+    ui->lblSeconds->setText(QString::number(seconds) + " seconds");
+    alertCountdownTimer->stop();
+    alertCountdownTimer->start();
+}
+
+void DlgCdg::countdownTimerTimeout()
+{
+    if (countdownPos > 0)
+        countdownPos--;
+    ui->lblSeconds->setText(QString::number(countdownPos) + " seconds");
+    ui->lblSeconds->repaint();
+    ui->widgetAlert->repaint();
 }
 
 void DlgCdg::slideShowTimerTimeout()

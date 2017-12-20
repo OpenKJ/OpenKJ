@@ -48,6 +48,8 @@ private:
     QTimer *fullScreenTimer;
     QTimer *slideShowTimer;
     bool showBgImage;
+    QTimer *alertCountdownTimer;
+    int countdownPos;
 
 
 public:
@@ -85,6 +87,12 @@ public slots:
     void setShowBgImage(bool show);
     void cdgSurfaceResized(QSize size);
     QFileInfoList getSlideShowImages();
+    void setAlert(QString text);
+    void showAlert(bool show);
+    void setNextSinger(QString name);
+    void setNextSong(QString song);
+    void setCountdownSecs(int seconds);
+    void countdownTimerTimeout();
 
 };
 
