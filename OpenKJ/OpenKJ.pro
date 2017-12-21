@@ -17,7 +17,9 @@ contains(DEFINES, USE_GL) {
 TARGET = OpenKJ 
 TEMPLATE = app
 
-
+# fix macOS build after upgrading xcode
+QMAKE_MAC_SDK = MacOSX10.13
+QMAKE_MAC_SDK.macosx.version = 10.13
 
 # Populate version with version from git describe
 VERSION = $$system(git -C $$_PRO_FILE_PWD_ describe --always --tags|tr "-" "." | cut -d"." -f1-3)
