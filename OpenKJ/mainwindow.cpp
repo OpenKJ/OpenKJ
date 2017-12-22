@@ -310,19 +310,20 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(bmDbDialog, SIGNAL(bmDbCleared()), this, SLOT(bmDbCleared()));
     connect(bmAudioBackend, SIGNAL(newVideoFrame(QImage, QString)), this, SLOT(videoFrameReceived(QImage, QString)));
     connect(kAudioBackend, SIGNAL(newVideoFrame(QImage,QString)), this, SLOT(videoFrameReceived(QImage,QString)));
-
+    qWarning() << "Setting up volume sliders";
     ui->sliderBmVolume->setValue(initialBMVol);
     ui->sliderVolume->setValue(initialKVol);
-
+    qWarning() << "Restoring multiplex button states";
     if (settings->mplxMode() == Multiplex_Normal)
         ui->pushButtonMplxBoth->setChecked(true);
     else if (settings->mplxMode() == Multiplex_LeftChannel)
         ui->pushButtonMplxLeft->setChecked(true);
     else if (settings->mplxMode() == Multiplex_RightChannel)
         ui->pushButtonMplxRight->setChecked(true);
-
+    qWarning() << "Creating karaoke autoplay timer";
     karaokeAATimer = new QTimer(this);
     connect(karaokeAATimer, SIGNAL(timeout()), this, SLOT(karaokeAATimerTimeout()));
+    qWarning() << "Initial UI stup complete";
 }
 
 void MainWindow::play(QString karaokeFilePath)
