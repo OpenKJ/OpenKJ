@@ -196,8 +196,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(qModel, SIGNAL(queueModified(int)), rotModel, SLOT(queueModified(int)));
     connect(requestsDialog, SIGNAL(addRequestSong(int,int)), qModel, SLOT(songAdd(int,int)));
     connect(settings, SIGNAL(tickerCustomStringChanged()), this, SLOT(rotationDataChanged()));
+    qWarning() << "Setting backgrounds on CDG displays";
     cdgWindow->setShowBgImage(true);
     setShowBgImage(true);
+    qWarning() << "Restoring window and listview states";
     settings->restoreWindowState(cdgWindow);
     settings->restoreWindowState(requestsDialog);
     settings->restoreWindowState(regularSingersDialog);
@@ -208,9 +210,12 @@ MainWindow::MainWindow(QWidget *parent) :
     settings->restoreColumnWidths(ui->tableViewRotation);
     if ((settings->cdgWindowFullscreen()) && (settings->showCdgWindow()))
     {
+        qWarning() << "Making CDG window fullscreen";
         cdgWindow->makeFullscreen();
     }
+    qWarning() << "Refreshing rotation data";
     rotationDataChanged();
+    qWarning() << "Adjusting karaoke listviews column visibility and state";
     ui->tableViewDB->hideColumn(0);
     ui->tableViewDB->hideColumn(5);
     ui->tableViewDB->hideColumn(6);
@@ -244,6 +249,7 @@ MainWindow::MainWindow(QWidget *parent) :
     rotModel->setHeaderData(2,Qt::Horizontal,"Next Song");
     rotModel->setHeaderData(3,Qt::Horizontal,"");
     rotModel->setHeaderData(4,Qt::Horizontal,"");
+    qWarning() << "Adding singer count to status bar";
     ui->statusBar->addWidget(labelSingerCount);
 
 
@@ -295,7 +301,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewBmPlaylist->horizontalHeader()->setSectionResizeMode(7, QHeaderView::Fixed);
     ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(7,25);
 
-
+    qWarning() << "Connecting signals & slots";
     connect(bmAudioBackend, SIGNAL(stateChanged(AbstractAudioBackend::State)), this, SLOT(bmMediaStateChanged(AbstractAudioBackend::State)));
     connect(bmAudioBackend, SIGNAL(positionChanged(qint64)), this, SLOT(bmMediaPositionChanged(qint64)));
     connect(bmAudioBackend, SIGNAL(durationChanged(qint64)), this, SLOT(bmMediaDurationChanged(qint64)));
