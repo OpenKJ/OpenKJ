@@ -331,7 +331,14 @@ void MainWindow::play(QString karaokeFilePath)
     if (kAudioBackend->state() != AbstractAudioBackend::PausedState)
     {
         if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
+        {
+            if (settings->karaokeAutoAdvance())
+            {
+                kAASkip = true;
+                cdgWindow->showAlert(false);
+            }
             kAudioBackend->stop();
+        }
         if (karaokeFilePath.endsWith(".zip", Qt::CaseInsensitive))
         {
             OkArchive archive(karaokeFilePath);
