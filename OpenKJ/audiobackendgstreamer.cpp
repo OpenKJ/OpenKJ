@@ -459,6 +459,10 @@ void AudioBackendGstreamer::stop(bool skipFade)
         qWarning() << objName << " - AudioBackendGstreamer::stop -- Already stopped, skipping";
         return;
     }
+    if (state() == AbstractAudioBackend::PausedState)
+    {
+        setVolume(m_preFadeVolumeInt);
+    }
     int curVolume = volume();
     if ((m_fade) && (!skipFade) && (state() == AbstractAudioBackend::PlayingState))
     {

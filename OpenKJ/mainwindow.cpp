@@ -598,6 +598,16 @@ void MainWindow::on_tableViewRotation_activated(const QModelIndex &index)
                     return;
                 }
             }
+            if (kAudioBackend->state() == AbstractAudioBackend::PausedState)
+            {
+                if (settings->karaokeAutoAdvance())
+                {
+                    kAASkip = true;
+                    cdgWindow->showAlert(false);
+                }
+                audioRecorder->stop();
+                kAudioBackend->stop(true);
+            }
  //           play(nextSongPath);
  //           kAudioBackend->setPitchShift(rotModel->nextSongKeyChg(singerId));
             rotDelegate->setCurrentSinger(singerId);
@@ -681,6 +691,16 @@ void MainWindow::on_tableViewQueue_activated(const QModelIndex &index)
         {
             return;
         }
+    }
+    if (kAudioBackend->state() == AbstractAudioBackend::PausedState)
+    {
+        if (settings->karaokeAutoAdvance())
+        {
+            kAASkip = true;
+            cdgWindow->showAlert(false);
+        }
+        audioRecorder->stop();
+        kAudioBackend->stop(true);
     }
     curSinger = rotModel->getSingerName(index.sibling(index.row(),1).data().toInt());
     curArtist = index.sibling(index.row(),3).data().toString();
