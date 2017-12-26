@@ -99,6 +99,8 @@ public slots:
     void setNextSong(QString song);
     void setCountdownSecs(int seconds);
     void countdownTimerTimeout();
+    void alertBgColorChanged(QColor color);
+    void alertTxtColorChanged(QColor color);
 
 };
 

@@ -631,6 +631,18 @@ void Settings::setShowSongInterruptionWarning(bool enabled)
     emit showSongInterruptionWarningChanged(enabled);
 }
 
+void Settings::setAlertBgColor(QColor color)
+{
+    settings->setValue("alertBgColor", color);
+    emit alertBgColorChanged(color);
+}
+
+void Settings::setAlertTxtColor(QColor color)
+{
+    settings->setValue("alertTxtColor", color);
+    emit alertTxtColorChanged(color);
+}
+
 int Settings::karaokeAATimeout()
 {
     return settings->value("karaokeAATimeout", 30).toInt();
@@ -677,4 +689,14 @@ bool Settings::showSingerRemovalWarning()
 bool Settings::showSongInterruptionWarning()
 {
     return settings->value("showSongInterruptionWarning", true).toBool();
+}
+
+QColor Settings::alertTxtColor()
+{
+    return settings->value("alertTxtColor", QApplication::palette().foreground().color()).value<QColor>();
+}
+
+QColor Settings::alertBgColor()
+{
+    return settings->value("alertBgColor", QApplication::palette().background().color()).value<QColor>();
 }

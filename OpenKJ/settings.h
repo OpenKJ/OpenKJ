@@ -154,6 +154,8 @@ public:
     bool showQueueRemovalWarning();
     bool showSingerRemovalWarning();
     bool showSongInterruptionWarning();
+    QColor alertTxtColor();
+    QColor alertBgColor();
 
 signals:
     void tickerFontChanged();
@@ -183,6 +185,8 @@ signals:
     void showQueueRemovalWarningChanged(bool enabled);
     void showSingerRemovalWarningChanged(bool enabled);
     void showSongInterruptionWarningChanged(bool enabled);
+    void alertTxtColorChanged(QColor color);
+    void alertBgColorChanged(QColor color);
 
 public slots:
     void setShowCdgWindow(bool show);
@@ -195,6 +199,8 @@ public slots:
     void setShowSingerRemovalWarning(bool show);
     void setKaraokeAutoAdvance(bool enabled);
     void setShowSongInterruptionWarning(bool enabled);
+    void setAlertBgColor(QColor color);
+    void setAlertTxtColor(QColor color);
 
 };
 

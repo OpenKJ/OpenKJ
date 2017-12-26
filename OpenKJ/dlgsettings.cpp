@@ -91,6 +91,15 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     QPalette bgpalette = ui->pushButtonBgColor->palette();
     bgpalette.setColor(QPalette::Button, settings->tickerBgColor());
     ui->pushButtonBgColor->setPalette(bgpalette);
+
+    QPalette alertTxtPalette = ui->btnAlertTxtColor->palette();
+    alertTxtPalette.setColor(QPalette::Button, settings->alertTxtColor());
+    ui->btnAlertTxtColor->setPalette(alertTxtPalette);
+
+    QPalette alertBgPalette = ui->btnAlertBgColor->palette();
+    alertBgPalette.setColor(QPalette::Button, settings->alertBgColor());
+    ui->btnAlertBgColor->setPalette(alertBgPalette);
+
     if (settings->tickerFullRotation())
     {
         ui->radioButtonFullRotation->setChecked(true);
@@ -547,5 +556,29 @@ void DlgSettings::on_btnAlertFont_clicked()
     if (ok)
     {
         settings->setKaraokeAAAlertFont(font);
+    }
+}
+
+void DlgSettings::on_btnAlertTxtColor_clicked()
+{
+    QColor color = QColorDialog::getColor(settings->alertTxtColor(),this,"Select ticker background color");
+    if (color.isValid())
+    {
+        settings->setAlertTxtColor(color);
+        QPalette palette = ui->btnAlertTxtColor->palette();
+        palette.setColor(ui->btnAlertTxtColor->backgroundRole(), color);
+        ui->btnAlertTxtColor->setPalette(palette);
+    }
+}
+
+void DlgSettings::on_btnAlertBgColor_clicked()
+{
+    QColor color = QColorDialog::getColor(settings->alertBgColor(),this,"Select ticker background color");
+    if (color.isValid())
+    {
+        settings->setAlertBgColor(color);
+        QPalette palette = ui->btnAlertBgColor->palette();
+        palette.setColor(ui->btnAlertBgColor->backgroundRole(), color);
+        ui->btnAlertBgColor->setPalette(palette);
     }
 }

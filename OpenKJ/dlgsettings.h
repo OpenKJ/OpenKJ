@@ -100,6 +100,8 @@ private slots:
     void on_checkBoxKAA_toggled(bool checked);
     void on_spinBoxAADelay_valueChanged(int arg1);
     void on_btnAlertFont_clicked();
+    void on_btnAlertTxtColor_clicked();
+    void on_btnAlertBgColor_clicked();
 };
 
 #endif // SETTINGSDIALOG_H

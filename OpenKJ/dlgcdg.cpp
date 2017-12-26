@@ -98,13 +98,19 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
     ui->widgetAlert->setAutoFillBackground(true);
     alertFontChanged(settings->karaokeAAAlertFont());
     ui->cdgVideo->setMouseTracking(true);
-    ui->btnToggleFullscreen->hide();
+    ui->fsToggleWidget->hide();
+    ui->widgetAlert->hide();
     ui->widgetAlert->setAttribute(Qt::WA_TransparentForMouseEvents);
     ui->widgetAlert->setMouseTracking(true);
     connect(ui->cdgVideo, SIGNAL(mouseMoveEvent(QMouseEvent*)), this, SLOT(mouseMove(QMouseEvent*)));
     buttonShowTimer = new QTimer(this);
     buttonShowTimer->setInterval(1000);
     connect(buttonShowTimer, SIGNAL(timeout()), this, SLOT(buttonShowTimerTimeout()));
+    alertBgColorChanged(settings->alertBgColor());
+    alertTxtColorChanged(settings->alertTxtColor());
+    connect(settings, SIGNAL(alertBgColorChanged(QColor)), this, SLOT(alertBgColorChanged(QColor)));
+    connect(settings, SIGNAL(alertTxtColorChanged(QColor)), this, SLOT(alertTxtColorChanged(QColor)));
+
 }
 
 DlgCdg::~DlgCdg()
@@ -325,9 +331,15 @@ void DlgCdg::setAlert(QString text)
 void DlgCdg::showAlert(bool show)
 {
     if ((show) && (settings->karaokeAAAlertEnabled()))
+    {
+        ui->cdgVideo->hide();
         ui->widgetAlert->show();
+    }
     else
+    {
         ui->widgetAlert->hide();
+        ui->cdgVideo->show();
+    }
 }
 
 void DlgCdg::setNextSinger(QString name)
@@ -355,6 +367,20 @@ void DlgCdg::countdownTimerTimeout()
     ui->lblSeconds->setText(QString::number(countdownPos) + " seconds");
     ui->lblSeconds->repaint();
     ui->widgetAlert->repaint();
+}
+
+void DlgCdg::alertBgColorChanged(QColor color)
+{
+    QPalette palette = ui->widgetAlert->palette();
+    palette.setColor(ui->widgetAlert->backgroundRole(), color);
+    ui->widgetAlert->setPalette(palette);
+}
+
+void DlgCdg::alertTxtColorChanged(QColor color)
+{
+    QPalette palette = ui->widgetAlert->palette();
+    palette.setColor(ui->widgetAlert->foregroundRole(), color);
+    ui->widgetAlert->setPalette(palette);
 }
 
 void DlgCdg::slideShowTimerTimeout()
@@ -406,13 +432,13 @@ void DlgCdg::mouseMove(QMouseEvent *event)
         ui->btnToggleFullscreen->setText("Make Windowed");
     else
         ui->btnToggleFullscreen->setText("Make Fullscreen");
-    ui->btnToggleFullscreen->show();
+    ui->fsToggleWidget->show();
     buttonShowTimer->start();
 }
 
 void DlgCdg::buttonShowTimerTimeout()
 {
-    ui->btnToggleFullscreen->hide();
+    ui->fsToggleWidget->hide();
 }
 
 
