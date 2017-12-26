@@ -102,6 +102,7 @@ private slots:
     void on_btnAlertFont_clicked();
     void on_btnAlertTxtColor_clicked();
     void on_btnAlertBgColor_clicked();
+    void on_cbxBmAutostart_clicked(bool checked);
 };
 
 #endif // SETTINGSDIALOG_H

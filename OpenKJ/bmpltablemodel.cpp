@@ -34,7 +34,7 @@ BmPlTableModel::BmPlTableModel(QObject *parent, QSqlDatabase db) :
     setRelation(6, QSqlRelation("bmsongs", "songid", "duration"));
     setRelation(7, QSqlRelation("bmsongs", "songid", "path"));
 
-    setHeaderData(2, Qt::Horizontal, "Pos");
+    setHeaderData(2, Qt::Horizontal, "");
     setHeaderData(7, Qt::Horizontal, "");
     setSort(2, Qt::AscendingOrder);
 }
@@ -107,6 +107,11 @@ int BmPlTableModel::getSongIdByFilePath(QString filePath)
         return query.value(0).toInt();
 
     return -1;
+}
+
+int BmPlTableModel::numSongs()
+{
+    return this->rowCount();
 }
 
 bool BmPlTableModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent)

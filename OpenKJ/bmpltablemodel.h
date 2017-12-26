@@ -42,6 +42,7 @@ public:
     int getSongIdByFilePath(QString filePath);
     QString currentSongString();
     QString nextSongString();
+    int numSongs();
 
 signals:
 

@@ -166,6 +166,7 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     ui->cbxQueueRemovalWarning->setChecked(settings->showQueueRemovalWarning());
     ui->cbxSingerRemovalWarning->setChecked(settings->showSingerRemovalWarning());
     ui->cbxSongInterruptionWarning->setChecked(settings->showSongInterruptionWarning());
+    ui->cbxBmAutostart->setChecked(settings->bmAutoStart());
     connect(settings, SIGNAL(karaokeAutoAdvanceChanged(bool)), ui->checkBoxKAA, SLOT(setChecked(bool)));
     connect(settings, SIGNAL(showQueueRemovalWarningChanged(bool)), ui->cbxQueueRemovalWarning, SLOT(setChecked(bool)));
     connect(settings, SIGNAL(showSingerRemovalWarningChanged(bool)), ui->cbxSingerRemovalWarning, SLOT(setChecked(bool)));
@@ -581,4 +582,9 @@ void DlgSettings::on_btnAlertBgColor_clicked()
         palette.setColor(ui->btnAlertBgColor->backgroundRole(), color);
         ui->btnAlertBgColor->setPalette(palette);
     }
+}
+
+void DlgSettings::on_cbxBmAutostart_clicked(bool checked)
+{
+    settings->setBmAutoStart(checked);
 }

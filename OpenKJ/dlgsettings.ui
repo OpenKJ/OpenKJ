@@ -1024,6 +1024,22 @@
              </widget>
             </item>
             <item>
+             <widget class="QGroupBox" name="groupBox_3">
+              <property name="title">
+               <string>Other</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_18">
+               <item>
+                <widget class="QCheckBox" name="cbxBmAutostart">
+                 <property name="text">
+                  <string>Start break music playback on program launch</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
              <spacer name="verticalSpacer_2">
               <property name="orientation">
                <enum>Qt::Vertical</enum>

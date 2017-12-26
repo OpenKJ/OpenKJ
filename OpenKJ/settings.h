@@ -156,6 +156,8 @@ public:
     bool showSongInterruptionWarning();
     QColor alertTxtColor();
     QColor alertBgColor();
+    bool bmAutoStart();
+    void setBmAutoStart(bool enabled);
 
 signals:
     void tickerFontChanged();

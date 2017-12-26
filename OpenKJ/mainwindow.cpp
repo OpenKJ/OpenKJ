@@ -326,6 +326,31 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->actionAutoplay_mode->setChecked(settings->karaokeAutoAdvance());
     connect(ui->actionAutoplay_mode, SIGNAL(toggled(bool)), settings, SLOT(setKaraokeAutoAdvance(bool)));
     connect(settings, SIGNAL(karaokeAutoAdvanceChanged(bool)), ui->actionAutoplay_mode, SLOT(setChecked(bool)));
+
+    if ((settings->bmAutoStart()) && (bmPlModel->rowCount() > 0))
+    {
+        qWarning() << "Playlist contains " << bmPlModel->rowCount() << " songs";
+        bmCurrentPosition = 0;
+        QString path = bmPlModel->index(bmCurrentPosition, 7).data().toString();
+        QString song = bmPlModel->index(bmCurrentPosition, 3).data().toString() + " - " + bmPlModel->index(bmCurrentPosition, 4).data().toString();
+        QString nextSong;
+        if (!ui->checkBoxBmBreak->isChecked())
+        {
+        if (bmCurrentPosition == bmPlModel->rowCount() - 1)
+            nextSong = bmPlModel->index(0, 3).data().toString() + " - " + bmPlModel->index(0, 4).data().toString();
+        else
+            nextSong = bmPlModel->index(bmCurrentPosition + 1, 3).data().toString() + " - " + bmPlModel->index(bmCurrentPosition + 1, 4).data().toString();
+        }
+        else
+            nextSong = "None - Breaking after current song";
+        bmAudioBackend->setMedia(path);
+        bmAudioBackend->play();
+        bmAudioBackend->setVolume(ui->sliderBmVolume->value());
+        ui->labelBmPlaying->setText(song);
+        ui->labelBmNext->setText(nextSong);
+        bmPlDelegate->setCurrentSong(bmCurrentPosition);
+        bmPlModel->select();
+    }
     qWarning() << "Initial UI stup complete";
 }
 
@@ -1458,7 +1483,8 @@ void MainWindow::on_lineEditBmSearch_returnPressed()
 
 void MainWindow::on_tableViewBmPlaylist_activated(const QModelIndex &index)
 {
-    bmAudioBackend->stop(false);
+    if (bmAudioBackend->state() == AbstractAudioBackend::PlayingState)
+        bmAudioBackend->stop(false);
     bmCurrentPosition = index.row();
     QString path = index.sibling(index.row(), 7).data().toString();
     QString song = index.sibling(index.row(), 3).data().toString() + " - " + index.sibling(index.row(), 4).data().toString();

@@ -700,3 +700,13 @@ QColor Settings::alertBgColor()
 {
     return settings->value("alertBgColor", QApplication::palette().background().color()).value<QColor>();
 }
+
+bool Settings::bmAutoStart()
+{
+    return settings->value("bmAutoStart", false).toBool();
+}
+
+void Settings::setBmAutoStart(bool enabled)
+{
+    settings->setValue("bmAutoStart", enabled);
+}
