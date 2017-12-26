@@ -2693,6 +2693,7 @@
     <addaction name="actionImport_Regulars"/>
     <addaction name="actionExport_Regulars"/>
     <addaction name="actionIncoming_Requests"/>
+    <addaction name="actionAutoplay_mode"/>
    </widget>
    <widget class="QMenu" name="menuBreak_Music">
     <property name="title">
@@ -2824,6 +2825,14 @@
   <action name="actionAbout">
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="actionAutoplay_mode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Autoplay mode</string>
    </property>
   </action>
  </widget>

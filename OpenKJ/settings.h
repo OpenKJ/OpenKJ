@@ -145,7 +145,6 @@ public:
     int mplxMode();
     void setMplxMode(int mode);
     bool karaokeAutoAdvance();
-    void setKaraokeAutoAdvance(bool enabled);
     int karaokeAATimeout();
     void setKaraokeAATimeout(int secs);
     bool karaokeAAAlertEnabled();
@@ -179,6 +178,7 @@ signals:
     void tickerCustomStringChanged();
     void mplxModeChanged(int mode);
     void karaokeAAAlertFontChanged(QFont font);
+    void karaokeAutoAdvanceChanged(bool enabled);
 
 public slots:
     void setShowCdgWindow(bool show);
@@ -188,6 +188,8 @@ public slots:
     void setCdgHOffset(int pixels);
     void setCdgVOffset(int pixels);
     void setShowQueueRemovalWarning(bool show);
+    void setKaraokeAutoAdvance(bool enabled);
+
 };
 
 #endif // KHSETTINGS_H

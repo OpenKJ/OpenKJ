@@ -615,6 +615,7 @@ bool Settings::karaokeAutoAdvance()
 void Settings::setKaraokeAutoAdvance(bool enabled)
 {
     settings->setValue("karaokeAutoAdvance", enabled);
+    emit karaokeAutoAdvanceChanged(enabled);
 }
 
 int Settings::karaokeAATimeout()

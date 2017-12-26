@@ -153,6 +153,7 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     ui->checkBoxKAA->setChecked(settings->karaokeAutoAdvance());
     ui->checkBoxShowKAAAlert->setChecked(settings->karaokeAAAlertEnabled());
     ui->cbxQueueRemovalWarning->setChecked(settings->showQueueRemovalWarning());
+    connect(settings, SIGNAL(karaokeAutoAdvanceChanged(bool)), ui->checkBoxKAA, SLOT(setChecked(bool)));
 }
 
 DlgSettings::~DlgSettings()

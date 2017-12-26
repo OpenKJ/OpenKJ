@@ -323,6 +323,9 @@ MainWindow::MainWindow(QWidget *parent) :
     qWarning() << "Creating karaoke autoplay timer";
     karaokeAATimer = new QTimer(this);
     connect(karaokeAATimer, SIGNAL(timeout()), this, SLOT(karaokeAATimerTimeout()));
+    ui->actionAutoplay_mode->setChecked(settings->karaokeAutoAdvance());
+    connect(ui->actionAutoplay_mode, SIGNAL(toggled(bool)), settings, SLOT(setKaraokeAutoAdvance(bool)));
+    connect(settings, SIGNAL(karaokeAutoAdvanceChanged(bool)), ui->actionAutoplay_mode, SLOT(setChecked(bool)));
     qWarning() << "Initial UI stup complete";
 }
 
