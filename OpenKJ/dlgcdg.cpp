@@ -97,6 +97,14 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
     connect(alertCountdownTimer, SIGNAL(timeout()), this, SLOT(countdownTimerTimeout()));
     ui->widgetAlert->setAutoFillBackground(true);
     alertFontChanged(settings->karaokeAAAlertFont());
+    ui->cdgVideo->setMouseTracking(true);
+    ui->btnToggleFullscreen->hide();
+    ui->widgetAlert->setAttribute(Qt::WA_TransparentForMouseEvents);
+    ui->widgetAlert->setMouseTracking(true);
+    connect(ui->cdgVideo, SIGNAL(mouseMoveEvent(QMouseEvent*)), this, SLOT(mouseMove(QMouseEvent*)));
+    buttonShowTimer = new QTimer(this);
+    buttonShowTimer->setInterval(1000);
+    connect(buttonShowTimer, SIGNAL(timeout()), this, SLOT(buttonShowTimerTimeout()));
 }
 
 DlgCdg::~DlgCdg()
@@ -391,3 +399,29 @@ void DlgCdg::alertFontChanged(QFont font)
     ui->lblSeconds->setFont(font);
 }
 
+void DlgCdg::mouseMove(QMouseEvent *event)
+{
+    qWarning() << "Mouse moved pos:" << event->pos();
+    if (m_fullScreen)
+        ui->btnToggleFullscreen->setText("Make Windowed");
+    else
+        ui->btnToggleFullscreen->setText("Make Fullscreen");
+    ui->btnToggleFullscreen->show();
+    buttonShowTimer->start();
+}
+
+void DlgCdg::buttonShowTimerTimeout()
+{
+    ui->btnToggleFullscreen->hide();
+}
+
+
+void DlgCdg::on_btnToggleFullscreen_clicked()
+{
+    if (m_fullScreen)
+    {
+        makeWindowed();
+    }
+    else
+        makeFullscreen();
+}

@@ -50,6 +50,7 @@ private:
     bool showBgImage;
     QTimer *alertCountdownTimer;
     int countdownPos;
+    QTimer *buttonShowTimer;
 
 
 public:
@@ -71,6 +72,10 @@ private slots:
     void fullScreenTimerTimeout();
     void slideShowTimerTimeout();
     void alertFontChanged(QFont font);
+    void mouseMove(QMouseEvent *event);
+    void buttonShowTimerTimeout();
+
+    void on_btnToggleFullscreen_clicked();
 
 public slots:
     void setFullScreen(bool fullscreen);
