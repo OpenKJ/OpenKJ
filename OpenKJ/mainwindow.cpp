@@ -588,13 +588,18 @@ void MainWindow::on_tableViewRotation_activated(const QModelIndex &index)
         QString nextSongPath = rotModel->nextSongPath(singerId);
         if (nextSongPath != "")
         {
-            if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
+            if ((kAudioBackend->state() == AbstractAudioBackend::PlayingState) && (settings->showSongInterruptionWarning()))
             {
                 QMessageBox msgBox(this);
+                QCheckBox *cb = new QCheckBox("Show this warning in the future");
+                cb->setChecked(settings->showSongInterruptionWarning());
+                msgBox.setIcon(QMessageBox::Warning);
                 msgBox.setText("Interrupt currenly playing karaoke song?");
                 msgBox.setInformativeText("There is currently a karaoke song playing.  If you continue, the current song will be stopped.  Are you sure?");
                 QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
                 msgBox.addButton(QMessageBox::Cancel);
+                msgBox.setCheckBox(cb);
+                connect(cb, SIGNAL(toggled(bool)), settings, SLOT(setShowSongInterruptionWarning(bool)));
                 msgBox.exec();
                 if (msgBox.clickedButton() != yesButton)
                 {
@@ -692,13 +697,18 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
 
 void MainWindow::on_tableViewQueue_activated(const QModelIndex &index)
 {
-    if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
+    if ((kAudioBackend->state() == AbstractAudioBackend::PlayingState) && (settings->showSongInterruptionWarning()))
     {
         QMessageBox msgBox(this);
+        QCheckBox *cb = new QCheckBox("Show this warning in the future");
+        cb->setChecked(settings->showSongInterruptionWarning());
+        msgBox.setIcon(QMessageBox::Warning);
         msgBox.setText("Interrupt currenly playing karaoke song?");
         msgBox.setInformativeText("There is currently a karaoke song playing.  If you continue, the current song will be stopped.  Are you sure?");
         QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
         msgBox.addButton(QMessageBox::Cancel);
+        msgBox.setCheckBox(cb);
+        connect(cb, SIGNAL(toggled(bool)), settings, SLOT(setShowSongInterruptionWarning(bool)));
         msgBox.exec();
         if (msgBox.clickedButton() != yesButton)
         {

@@ -972,6 +972,13 @@
                  </property>
                 </widget>
                </item>
+               <item>
+                <widget class="QCheckBox" name="cbxSongInterruptionWarning">
+                 <property name="text">
+                  <string>Warn when playing a karaoke song will interrupt one currently playing</string>
+                 </property>
+                </widget>
+               </item>
               </layout>
              </widget>
             </item>

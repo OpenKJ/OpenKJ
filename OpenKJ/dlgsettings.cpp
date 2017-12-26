@@ -149,15 +149,18 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     connect(ui->spinBoxVOffset, SIGNAL(valueChanged(int)), settings, SLOT(setCdgVOffset(int)));
     connect(ui->cbxQueueRemovalWarning, SIGNAL(toggled(bool)), settings, SLOT(setShowQueueRemovalWarning(bool)));
     connect(ui->cbxSingerRemovalWarning, SIGNAL(toggled(bool)), settings, SLOT(setShowSingerRemovalWarning(bool)));
+    connect(ui->cbxSongInterruptionWarning, SIGNAL(toggled(bool)), settings, SLOT(setShowSongInterruptionWarning(bool)));
     pageSetupDone = true;
     ui->spinBoxAADelay->setValue(settings->karaokeAATimeout());
     ui->checkBoxKAA->setChecked(settings->karaokeAutoAdvance());
     ui->checkBoxShowKAAAlert->setChecked(settings->karaokeAAAlertEnabled());
     ui->cbxQueueRemovalWarning->setChecked(settings->showQueueRemovalWarning());
     ui->cbxSingerRemovalWarning->setChecked(settings->showSingerRemovalWarning());
+    ui->cbxSongInterruptionWarning->setChecked(settings->showSongInterruptionWarning());
     connect(settings, SIGNAL(karaokeAutoAdvanceChanged(bool)), ui->checkBoxKAA, SLOT(setChecked(bool)));
     connect(settings, SIGNAL(showQueueRemovalWarningChanged(bool)), ui->cbxQueueRemovalWarning, SLOT(setChecked(bool)));
     connect(settings, SIGNAL(showSingerRemovalWarningChanged(bool)), ui->cbxSingerRemovalWarning, SLOT(setChecked(bool)));
+    connect(settings, SIGNAL(showSongInterruptionWarningChanged(bool)), ui->cbxSongInterruptionWarning, SLOT(setChecked(bool)));
 }
 
 DlgSettings::~DlgSettings()

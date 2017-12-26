@@ -625,6 +625,12 @@ void Settings::setKaraokeAutoAdvance(bool enabled)
     emit karaokeAutoAdvanceChanged(enabled);
 }
 
+void Settings::setShowSongInterruptionWarning(bool enabled)
+{
+    settings->setValue("showSongInterruptionWarning", enabled);
+    emit showSongInterruptionWarningChanged(enabled);
+}
+
 int Settings::karaokeAATimeout()
 {
     return settings->value("karaokeAATimeout", 30).toInt();
@@ -666,4 +672,9 @@ bool Settings::showQueueRemovalWarning()
 bool Settings::showSingerRemovalWarning()
 {
     return settings->value("showSingerRemovalWarning", true).toBool();
+}
+
+bool Settings::showSongInterruptionWarning()
+{
+    return settings->value("showSongInterruptionWarning", true).toBool();
 }

@@ -153,6 +153,7 @@ public:
     void setKaraokeAAAlertFont(QFont font);
     bool showQueueRemovalWarning();
     bool showSingerRemovalWarning();
+    bool showSongInterruptionWarning();
 
 signals:
     void tickerFontChanged();
@@ -181,6 +182,7 @@ signals:
     void karaokeAutoAdvanceChanged(bool enabled);
     void showQueueRemovalWarningChanged(bool enabled);
     void showSingerRemovalWarningChanged(bool enabled);
+    void showSongInterruptionWarningChanged(bool enabled);
 
 public slots:
     void setShowCdgWindow(bool show);
@@ -192,6 +194,7 @@ public slots:
     void setShowQueueRemovalWarning(bool show);
     void setShowSingerRemovalWarning(bool show);
     void setKaraokeAutoAdvance(bool enabled);
+    void setShowSongInterruptionWarning(bool enabled);
 
 };
 
