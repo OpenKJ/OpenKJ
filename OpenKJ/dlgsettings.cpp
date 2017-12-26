@@ -147,10 +147,12 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     connect(ui->spinBoxVAdjust, SIGNAL(valueChanged(int)), settings, SLOT(setCdgVSizeAdjustment(int)));
     connect(ui->spinBoxHOffset, SIGNAL(valueChanged(int)), settings, SLOT(setCdgHOffset(int)));
     connect(ui->spinBoxVOffset, SIGNAL(valueChanged(int)), settings, SLOT(setCdgVOffset(int)));
+    connect(ui->cbxQueueRemovalWarning, SIGNAL(toggled(bool)), settings, SLOT(setShowQueueRemovalWarning(bool)));
     pageSetupDone = true;
     ui->spinBoxAADelay->setValue(settings->karaokeAATimeout());
     ui->checkBoxKAA->setChecked(settings->karaokeAutoAdvance());
     ui->checkBoxShowKAAAlert->setChecked(settings->karaokeAAAlertEnabled());
+    ui->cbxQueueRemovalWarning->setChecked(settings->showQueueRemovalWarning());
 }
 
 DlgSettings::~DlgSettings()

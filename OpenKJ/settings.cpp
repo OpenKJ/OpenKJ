@@ -518,6 +518,11 @@ void Settings::setCdgVOffset(int pixels)
     emit cdgVOffsetChanged(pixels);
 }
 
+void Settings::setShowQueueRemovalWarning(bool show)
+{
+    settings->setValue("showQueueRemovalWarning", show);
+}
+
 int Settings::cdgHOffset()
 {
     return settings->value("cdgHOffset", 0).toInt();
@@ -643,4 +648,9 @@ void Settings::setKaraokeAAAlertFont(QFont font)
 {
     settings->setValue("karaokeAAAlertFont", font.toString());
     emit karaokeAAAlertFontChanged(font);
+}
+
+bool Settings::showQueueRemovalWarning()
+{
+    return settings->value("showQueueRemovalWarning", true).toBool();
 }

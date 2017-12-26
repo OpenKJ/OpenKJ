@@ -873,72 +873,100 @@
           <widget class="QWidget" name="otherPage">
            <layout class="QVBoxLayout" name="verticalLayout_15">
             <item>
-             <widget class="QCheckBox" name="checkBoxKAA">
-              <property name="text">
-               <string>Automatically play next karaoke song on song end</string>
+             <widget class="QGroupBox" name="groupBox">
+              <property name="title">
+               <string>Karaoke Autoplay</string>
               </property>
+              <property name="flat">
+               <bool>false</bool>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_16">
+               <item>
+                <widget class="QCheckBox" name="checkBoxKAA">
+                 <property name="text">
+                  <string>Automatically play next karaoke song on song end</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_11">
+                 <item>
+                  <widget class="QLabel" name="label_9">
+                   <property name="text">
+                    <string>Autoplay delay (seconds)</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="spinBoxAADelay"/>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_6">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="checkBoxShowKAAAlert">
+                 <property name="text">
+                  <string>Show autoplay alert with next singer info on CDG display</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_13">
+                 <property name="topMargin">
+                  <number>10</number>
+                 </property>
+                 <item>
+                  <widget class="QPushButton" name="btnAlertFont">
+                   <property name="text">
+                    <string>Alert Font</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_7">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+              </layout>
              </widget>
             </item>
             <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_11">
-              <item>
-               <widget class="QLabel" name="label_9">
-                <property name="text">
-                 <string>Autoplay delay (seconds)</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QSpinBox" name="spinBoxAADelay"/>
-              </item>
-              <item>
-               <spacer name="horizontalSpacer_6">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="checkBoxShowKAAAlert">
-              <property name="text">
-               <string>Show autoplay alert with next singer info on CDG display</string>
+             <widget class="QGroupBox" name="groupBox_2">
+              <property name="title">
+               <string>Warnings</string>
               </property>
+              <layout class="QVBoxLayout" name="verticalLayout_17">
+               <item>
+                <widget class="QCheckBox" name="cbxQueueRemovalWarning">
+                 <property name="text">
+                  <string>Warn when removing unplayed song from queue</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </widget>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_13">
-              <property name="topMargin">
-               <number>10</number>
-              </property>
-              <item>
-               <widget class="QPushButton" name="btnAlertFont">
-                <property name="text">
-                 <string>Alert Font</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <spacer name="horizontalSpacer_7">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-             </layout>
             </item>
             <item>
              <spacer name="verticalSpacer_2">

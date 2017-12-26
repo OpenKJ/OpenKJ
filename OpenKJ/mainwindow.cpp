@@ -768,7 +768,28 @@ void MainWindow::on_tableViewQueue_clicked(const QModelIndex &index)
 {
     if (index.column() == 8)
     {
-        qModel->songDelete(index.sibling(index.row(),0).data().toInt());
+        if (settings->showQueueRemovalWarning())
+        {
+            QMessageBox msgBox(this);
+            QCheckBox *cb = new QCheckBox("Show this warning in the future");
+            cb->setChecked(settings->showQueueRemovalWarning());
+            msgBox.setIcon(QMessageBox::Warning);
+            msgBox.setText("Removing un-played song from queue");
+            msgBox.setInformativeText("This song has not been played yet, are you sure you want to remove it?");
+            QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
+            msgBox.addButton(QMessageBox::Cancel);
+            msgBox.setCheckBox(cb);
+            connect(cb, SIGNAL(toggled(bool)), settings, SLOT(setShowQueueRemovalWarning(bool)));
+            msgBox.exec();
+            if (msgBox.clickedButton() == yesButton)
+            {
+                qModel->songDelete(index.sibling(index.row(),0).data().toInt());
+            }
+        }
+        else
+        {
+            qModel->songDelete(index.sibling(index.row(),0).data().toInt());
+        }
     }
 }
 

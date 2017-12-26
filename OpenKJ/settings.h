@@ -152,6 +152,7 @@ public:
     void setKaraokeAAAlertEnabled(bool enabled);
     QFont karaokeAAAlertFont();
     void setKaraokeAAAlertFont(QFont font);
+    bool showQueueRemovalWarning();
 
 
 signals:
@@ -186,6 +187,7 @@ public slots:
     void setCdgVSizeAdjustment(int pixels);
     void setCdgHOffset(int pixels);
     void setCdgVOffset(int pixels);
+    void setShowQueueRemovalWarning(bool show);
 };
 
 #endif // KHSETTINGS_H
