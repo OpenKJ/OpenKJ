@@ -57,7 +57,10 @@ void BmPlItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     if (index.column() == 2)
     {
         if (index.row() != m_currentSong)
+        {
+            //painter->drawText(option.rect, Qt::AlignCenter, index.data().toString());
             return;
+        }
         painter->drawImage(QRect(option.rect.x(),option.rect.y(), 16, 16), QImage(":/icons/Icons/play-small.png"));
         return;
     }
