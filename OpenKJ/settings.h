@@ -152,7 +152,7 @@ public:
     QFont karaokeAAAlertFont();
     void setKaraokeAAAlertFont(QFont font);
     bool showQueueRemovalWarning();
-
+    bool showSingerRemovalWarning();
 
 signals:
     void tickerFontChanged();
@@ -179,6 +179,8 @@ signals:
     void mplxModeChanged(int mode);
     void karaokeAAAlertFontChanged(QFont font);
     void karaokeAutoAdvanceChanged(bool enabled);
+    void showQueueRemovalWarningChanged(bool enabled);
+    void showSingerRemovalWarningChanged(bool enabled);
 
 public slots:
     void setShowCdgWindow(bool show);
@@ -188,6 +190,7 @@ public slots:
     void setCdgHOffset(int pixels);
     void setCdgVOffset(int pixels);
     void setShowQueueRemovalWarning(bool show);
+    void setShowSingerRemovalWarning(bool show);
     void setKaraokeAutoAdvance(bool enabled);
 
 };

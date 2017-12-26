@@ -632,27 +632,37 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
 {
     if (index.column() == 4)
     {
-        QMessageBox msgBox(this);
-        msgBox.setText("Are you sure you want to remove this singer?");
-        msgBox.setInformativeText("Unless this singer is a tracked regular, you will be unable retrieve any queue data for this singer once they are deleted.");
-        QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
-        msgBox.addButton(QMessageBox::Cancel);
-        msgBox.exec();
-        if (msgBox.clickedButton() == yesButton)
+        if (settings->showSingerRemovalWarning())
         {
-            int singerId = index.sibling(index.row(),0).data().toInt();
-            qModel->setSinger(-1);
-            if (rotModel->currentSinger() == singerId)
+            QMessageBox msgBox(this);
+            QCheckBox *cb = new QCheckBox("Show this warning in the future");
+            cb->setChecked(settings->showSingerRemovalWarning());
+            msgBox.setIcon(QMessageBox::Warning);
+            msgBox.setText("Are you sure you want to remove this singer?");
+            msgBox.setInformativeText("Unless this singer is a tracked regular, you will be unable retrieve any queue data for this singer once they are deleted.");
+            QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
+            msgBox.addButton(QMessageBox::Cancel);
+            msgBox.setCheckBox(cb);
+            connect(cb, SIGNAL(toggled(bool)), settings, SLOT(setShowSingerRemovalWarning(bool)));
+            msgBox.exec();
+            if (msgBox.clickedButton() != yesButton)
             {
-                rotModel->setCurrentSinger(-1);
-                rotDelegate->setCurrentSinger(-1);
+                return;
             }
-            rotModel->singerDelete(singerId);
-            ui->tableViewRotation->clearSelection();
-            ui->tableViewQueue->clearSelection();
-            return;
         }
-    }
+        int singerId = index.sibling(index.row(),0).data().toInt();
+        qModel->setSinger(-1);
+        if (rotModel->currentSinger() == singerId)
+        {
+            rotModel->setCurrentSinger(-1);
+            rotDelegate->setCurrentSinger(-1);
+        }
+        rotModel->singerDelete(singerId);
+        ui->tableViewRotation->clearSelection();
+        ui->tableViewQueue->clearSelection();
+        return;
+
+        }
     if (index.column() == 3)
     {
         if (!rotModel->singerIsRegular(index.sibling(index.row(),0).data().toInt()))

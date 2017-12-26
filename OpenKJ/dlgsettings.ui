@@ -965,6 +965,13 @@
                  </property>
                 </widget>
                </item>
+               <item>
+                <widget class="QCheckBox" name="cbxSingerRemovalWarning">
+                 <property name="text">
+                  <string>Warn when removing a singer from the rotation</string>
+                 </property>
+                </widget>
+               </item>
               </layout>
              </widget>
             </item>
