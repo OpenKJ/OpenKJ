@@ -1,5 +1,7 @@
 #include "tagreader.h"
 #include <QDebug>
+#include <tag.h>
+#include <taglib/fileref.h>
 
 TagReader::TagReader(QObject *parent) : QObject(parent)
 {
@@ -26,6 +28,11 @@ unsigned int TagReader::getDuration()
 void TagReader::setMedia(QString path)
 {
     qWarning() << "Getting tags for: " << path;
+    if ((path.endsWith(".mp3", Qt::CaseInsensitive)) || (path.endsWith(".ogg", Qt::CaseInsensitive)))
+    {
+        taglibTags(path);
+        return;
+    }
     QString uri;
 #ifdef Q_OS_WIN
     uri = "file:///" + path;
@@ -66,4 +73,12 @@ void TagReader::setMedia(QString path)
     else
         qWarning() << "Error retreiving discovererInfo";
     qWarning() << "Done getting tags for: " << path;
+}
+
+void TagReader::taglibTags(QString path)
+{
+    TagLib::FileRef f(path.toLocal8Bit().data());
+    m_artist = f.tag()->artist().toCString(true);
+    m_title = f.tag()->title().toCString(true);
+    m_duration = f.audioProperties()->lengthInMilliseconds();
 }

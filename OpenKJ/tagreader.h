@@ -22,6 +22,7 @@ public:
     QString getTitle();
     unsigned int getDuration();
     void setMedia(QString path);
+    void taglibTags(QString path);
 
 signals:
 
