@@ -108,6 +108,12 @@ MainWindow::MainWindow(QWidget *parent) :
         query.exec("CREATE TABLE custompatterns ( patternid INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, artistregex TEXT, artistcapturegrp INT, titleregex TEXT, titlecapturegrp INT, discidregex TEXT, discidcapturegrp INT)");
         query.exec("PRAGMA user_version = 101");
     }
+    if (schemaVersion < 102)
+    {
+        query.exec("CREATE UNIQUE INDEX idx_path ON dbsongs(path)");
+        query.exec("PRAGMA user_version = 102");
+    }
+
 //    query.exec("ATTACH DATABASE ':memory:' AS mem");
 //    query.exec("CREATE TABLE mem.dbsongs AS SELECT * FROM main.dbsongs");
 //    refreshSongDbCache();

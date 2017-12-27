@@ -31,6 +31,7 @@ class DbUpdateThread : public QThread
 private:
     QString path;
     int pattern;
+    bool dbEntryExists(QString filepath);
 
 public:
     explicit DbUpdateThread(QObject *parent = 0);
