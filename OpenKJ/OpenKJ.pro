@@ -17,6 +17,7 @@ contains(DEFINES, USE_GL) {
 TARGET = OpenKJ 
 TEMPLATE = app
 
+DEFINES += TAGLIB_STATIC
 INCLUDEPATH += taglib
 INCLUDEPATH += taglib/toolkit
 INCLUDEPATH += taglib/mpeg/id3v2
