@@ -32,7 +32,9 @@ DbTableModel::DbTableModel(QObject *parent, QSqlDatabase db) :
     QSqlQuery query(db);
     query.exec("ATTACH DATABASE ':memory:' AS mem");
     query.exec("CREATE TABLE mem.dbsongs AS SELECT * FROM main.dbsongs");
-    refreshCache();
+    query.exec("CREATE UNIQUE INDEX mem.idx_mem_path ON dbsongs(path)");
+    query.exec("CREATE UNIQUE INDEX mem.idx_mem_songid ON dbsongs(songid)");
+    //refreshCache();
     setTable("mem.dbsongs");
     sortColumn = SORT_ARTIST;
     artistOrder = "ASC";

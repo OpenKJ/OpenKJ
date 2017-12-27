@@ -79,7 +79,7 @@ QStringList DbUpdateThread::findKaraokeFiles(QString directory)
     int total = 0;
     QSqlQuery query;
     bool alreadyInDb = false;
-    query.prepare("SELECT EXISTS(SELECT 1 FROM mem.dbsongs WHERE path = :filepath)");
+    query.prepare("SELECT EXISTS(SELECT 1 FROM mem.dbsongs WHERE path = :filepath LIMIT 1)");
     while (iterator.hasNext()) {
         iterator.next();
         if (!iterator.fileInfo().isDir()) {
@@ -90,7 +90,6 @@ QStringList DbUpdateThread::findKaraokeFiles(QString directory)
                 alreadyInDb = query.value(0).toBool();
             else
             {
-                qWarning() << "Not in DB: " << iterator.filePath();
                 alreadyInDb = false;
             }
             if (alreadyInDb)

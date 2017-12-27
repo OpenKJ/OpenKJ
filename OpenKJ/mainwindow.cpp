@@ -90,7 +90,9 @@ MainWindow::MainWindow(QWidget *parent) :
     query.exec("CREATE TABLE IF NOT EXISTS bmplaylists ( playlistid INTEGER PRIMARY KEY AUTOINCREMENT, title COLLATE NOCASE NOT NULL UNIQUE)");
     query.exec("CREATE TABLE IF NOT EXISTS bmplsongs ( plsongid INTEGER PRIMARY KEY AUTOINCREMENT, playlist INT, position INT, Artist INT, Title INT, Filename INT, Duration INT, path INT)");
     query.exec("CREATE TABLE IF NOT EXISTS bmsrcdirs ( path NOT NULL)");
-    query.exec("PRAGMA synchronous = OFF");
+    query.exec("PRAGMA synchronous=OFF");
+    query.exec("PRAGMA cache_size=200000");
+    query.exec("PRAGMA temp_store=2");
 
     int schemaVersion = 0;
     query.exec("PRAGMA user_version");
