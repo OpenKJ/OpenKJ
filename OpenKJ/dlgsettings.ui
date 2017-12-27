@@ -1036,6 +1036,18 @@
                  </property>
                 </widget>
                </item>
+               <item>
+                <widget class="QCheckBox" name="cbxIgnoreApos">
+                 <property name="toolTip">
+                  <string>If set, karaoke searches will ignore the apostrophe character. 
+For example, searching for &quot;im&quot; will find songs that contain &quot;I'm&quot;, 
+&quot;hes&quot; will find &quot;he's&quot;, etc.</string>
+                 </property>
+                 <property name="text">
+                  <string>Ignore apostrophe characters in karaoke searches</string>
+                 </property>
+                </widget>
+               </item>
               </layout>
              </widget>
             </item>

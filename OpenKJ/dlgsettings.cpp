@@ -167,10 +167,12 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     ui->cbxSingerRemovalWarning->setChecked(settings->showSingerRemovalWarning());
     ui->cbxSongInterruptionWarning->setChecked(settings->showSongInterruptionWarning());
     ui->cbxBmAutostart->setChecked(settings->bmAutoStart());
+    ui->cbxIgnoreApos->setChecked(settings->ignoreAposInSearch());
     connect(settings, SIGNAL(karaokeAutoAdvanceChanged(bool)), ui->checkBoxKAA, SLOT(setChecked(bool)));
     connect(settings, SIGNAL(showQueueRemovalWarningChanged(bool)), ui->cbxQueueRemovalWarning, SLOT(setChecked(bool)));
     connect(settings, SIGNAL(showSingerRemovalWarningChanged(bool)), ui->cbxSingerRemovalWarning, SLOT(setChecked(bool)));
     connect(settings, SIGNAL(showSongInterruptionWarningChanged(bool)), ui->cbxSongInterruptionWarning, SLOT(setChecked(bool)));
+    connect(ui->cbxIgnoreApos, SIGNAL(toggled(bool)), settings, SLOT(setIgnoreAposInSearch(bool)));
 }
 
 DlgSettings::~DlgSettings()

@@ -25,9 +25,11 @@
 #include <QSqlQuery>
 #include <QDebug>
 
+
 DbTableModel::DbTableModel(QObject *parent, QSqlDatabase db) :
     QSqlTableModel(parent, db)
 {
+    settings = new Settings(this);
     this->db = db;
     QSqlQuery query(db);
     query.exec("ATTACH DATABASE ':memory:' AS mem");
@@ -63,6 +65,8 @@ Qt::ItemFlags DbTableModel::flags(const QModelIndex &index) const
 void DbTableModel::search(QString searchString)
 {
     lastSearch = searchString;
+    if (settings->ignoreAposInSearch())
+        searchString.remove("'");
     QStringList terms;
     terms = searchString.split(" ",QString::SkipEmptyParts);
     if (terms.size() < 1)
@@ -70,7 +74,11 @@ void DbTableModel::search(QString searchString)
         setFilter("discid != \"!!BAD!!\"");
         return;
     }
-    QString whereClause = "discid != \"!!BAD!!\" AND filename LIKE \"%" + terms.at(0) + "%\"";
+    QString whereClause;
+    if (settings->ignoreAposInSearch())
+        whereClause = "discid != \"!!BAD!!\" AND replace(filename, \"'\", \"\") LIKE \"%" + terms.at(0) + "%\"";
+    else
+        whereClause = "discid != \"!!BAD!!\" AND filename LIKE \"%" + terms.at(0) + "%\"";
     for (int i=1; i < terms.size(); i++)
     {
         whereClause = whereClause + " AND filename LIKE \"%" + terms.at(i) + "%\"";

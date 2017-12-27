@@ -22,6 +22,7 @@
 #define DBTABLEMODEL_H
 
 #include <QSqlTableModel>
+#include "settings.h"
 
 class DbTableModel : public QSqlTableModel
 {
@@ -35,6 +36,7 @@ private:
     QString durationOrder;
     QString lastSearch;
     QSqlDatabase db;
+    Settings *settings;
 
 public:
     explicit DbTableModel(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());

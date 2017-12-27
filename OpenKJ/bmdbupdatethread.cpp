@@ -87,6 +87,7 @@ void BmDbUpdateThread::run()
     emit progressMessage("Getting metadata and adding songs to the database");
     emit progressMaxChanged(files.size());
     query.exec("BEGIN TRANSACTION");
+    query.prepare("INSERT OR IGNORE INTO bmsongs (artist,title,path,filename,duration,searchstring) VALUES(:artist, :title, :path, :filename, :duration, :searchstring)");
     for (int i=0; i < files.size(); i++)
     {
         QFileInfo fi(files.at(i));
@@ -95,8 +96,13 @@ void BmDbUpdateThread::run()
         QString duration = QString::number(reader.getDuration() / 1000);
         QString artist = reader.getArtist();
         QString title = reader.getTitle();
-        QString queryString = "INSERT OR IGNORE INTO bmsongs (artist,title,path,filename,duration,searchstring) VALUES(\"" + artist + "\",\"" + title + "\",\"" + files.at(i) + "\",\"" + files.at(i) + "\",\"" + duration + "\",\"" + artist + title + files.at(i) + "\")";
-        query.exec(queryString);
+        query.bindValue(":artist", artist);
+        query.bindValue(":title", title);
+        query.bindValue(":path", files.at(i));
+        query.bindValue(":filename", files.at(i));
+        query.bindValue(":duration", duration);
+        query.bindValue(":searchstring", artist + title + files.at(i));
+        query.exec();
         emit progressChanged(i + 1);
     }
     query.exec("COMMIT TRANSACTION");

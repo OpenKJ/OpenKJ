@@ -133,6 +133,7 @@ public:
     int cdgHOffset();
     int cdgVSizeAdjustment();
     int cdgHSizeAdjustment();
+    bool ignoreAposInSearch();
 
     bool bmShowFilenames();
     void bmSetShowFilenames(bool show);
@@ -203,6 +204,8 @@ public slots:
     void setShowSongInterruptionWarning(bool enabled);
     void setAlertBgColor(QColor color);
     void setAlertTxtColor(QColor color);
+    void setIgnoreAposInSearch(bool ignore);
+
 
 };
 

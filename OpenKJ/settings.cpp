@@ -557,6 +557,16 @@ int Settings::cdgHSizeAdjustment()
     return settings->value("cdgHSizeAdjustment", 0).toInt();
 }
 
+bool Settings::ignoreAposInSearch()
+{
+    return settings->value("ignoreAposInSearch", false).toBool();
+}
+
+void Settings::setIgnoreAposInSearch(bool ignore)
+{
+    settings->setValue("ignoreAposInSearch", ignore);
+}
+
 void Settings::setCdgHSizeAdjustment(int pixels)
 {
     settings->setValue("cdgHSizeAdjustment", pixels);
