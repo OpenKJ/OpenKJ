@@ -824,7 +824,7 @@ void MainWindow::on_tableViewQueue_clicked(const QModelIndex &index)
 {
     if (index.column() == 8)
     {
-        if (settings->showQueueRemovalWarning())
+        if ((settings->showQueueRemovalWarning()) && (!qModel->getSongPlayed(index.sibling(index.row(),0).data().toInt())))
         {
             QMessageBox msgBox(this);
             QCheckBox *cb = new QCheckBox("Show this warning in the future");
