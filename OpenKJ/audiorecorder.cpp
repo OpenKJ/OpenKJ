@@ -65,8 +65,8 @@ void AudioRecorder::initGStreamer()
         qCritical() << "Failed to create lameMp3Enc";
     else
     {
-        g_object_set(lameMp3Enc, "quality", 2, NULL);
-        g_object_set(lameMp3Enc, "mono", false, NULL);
+        //g_object_set(lameMp3Enc, "quality", 2, NULL);
+        //g_object_set(lameMp3Enc, "mono", false, NULL);
     }
     wavEnc          = gst_element_factory_make("wavenc", NULL);
     if (!wavEnc)
