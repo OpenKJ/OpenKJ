@@ -527,6 +527,27 @@ void MainWindow::databaseCleared()
 
 void MainWindow::on_buttonStop_clicked()
 {
+    if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
+    {
+        if (settings->showSongPauseStopWarning())
+        {
+            QMessageBox msgBox(this);
+            QCheckBox *cb = new QCheckBox("Show warning on pause/stop in the future");
+            cb->setChecked(settings->showSongPauseStopWarning());
+            msgBox.setIcon(QMessageBox::Warning);
+            msgBox.setText("Stop currenly playing karaoke song?");
+            msgBox.setInformativeText("There is currently a karaoke song playing.  If you continue, the current song will be stopped.  Are you sure?");
+            QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
+            msgBox.addButton(QMessageBox::Cancel);
+            msgBox.setCheckBox(cb);
+            connect(cb, SIGNAL(toggled(bool)), settings, SLOT(setShowSongPauseStopWarning(bool)));
+            msgBox.exec();
+            if (msgBox.clickedButton() != yesButton)
+            {
+                return;
+            }
+        }
+    }
     kAASkip = true;
     cdgWindow->showAlert(false);
     audioRecorder->stop();
@@ -541,8 +562,28 @@ void MainWindow::on_buttonPause_clicked()
     {
         kAudioBackend->play();
     }
-    else
+    else if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
+    {
+        if (settings->showSongPauseStopWarning())
+        {
+            QMessageBox msgBox(this);
+            QCheckBox *cb = new QCheckBox("Show warning on pause/stop in the future");
+            cb->setChecked(settings->showSongPauseStopWarning());
+            msgBox.setIcon(QMessageBox::Warning);
+            msgBox.setText("Pause currenly playing karaoke song?");
+            msgBox.setInformativeText("There is currently a karaoke song playing.  If you continue, the current song will be paused.  Are you sure?");
+            QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
+            msgBox.addButton(QMessageBox::Cancel);
+            msgBox.setCheckBox(cb);
+            connect(cb, SIGNAL(toggled(bool)), settings, SLOT(setShowSongPauseStopWarning(bool)));
+            msgBox.exec();
+            if (msgBox.clickedButton() != yesButton)
+            {
+                return;
+            }
+        }
         kAudioBackend->pause();
+    }
 }
 
 void MainWindow::on_lineEdit_returnPressed()

@@ -1020,6 +1020,13 @@
                  </property>
                 </widget>
                </item>
+               <item>
+                <widget class="QCheckBox" name="cbxStopPauseWarning">
+                 <property name="text">
+                  <string>Warn before pausing/stopping when pause/stop button is clicked</string>
+                 </property>
+                </widget>
+               </item>
               </layout>
              </widget>
             </item>

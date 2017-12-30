@@ -573,6 +573,13 @@ void Settings::setCdgDisplayOffset(int offset)
     emit cdgDisplayOffsetChanged(offset);
 }
 
+void Settings::setShowSongPauseStopWarning(bool enabled)
+{
+    settings->setValue("showStopPauseInterruptWarning", enabled);
+    emit showSongStopPauseWarningChanged(enabled);
+
+}
+
 void Settings::setCdgHSizeAdjustment(int pixels)
 {
     settings->setValue("cdgHSizeAdjustment", pixels);
@@ -706,6 +713,13 @@ bool Settings::showSongInterruptionWarning()
 {
     return settings->value("showSongInterruptionWarning", true).toBool();
 }
+
+bool Settings::showSongPauseStopWarning()
+{
+    return settings->value("showStopPauseInterruptWarning", false).toBool();
+}
+
+
 
 QColor Settings::alertTxtColor()
 {

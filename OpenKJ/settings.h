@@ -155,6 +155,7 @@ public:
     bool showQueueRemovalWarning();
     bool showSingerRemovalWarning();
     bool showSongInterruptionWarning();
+    bool showSongPauseStopWarning();
     QColor alertTxtColor();
     QColor alertBgColor();
     bool bmAutoStart();
@@ -192,6 +193,7 @@ signals:
     void alertTxtColorChanged(QColor color);
     void alertBgColorChanged(QColor color);
     void cdgDisplayOffsetChanged(int offset);
+    void showSongStopPauseWarningChanged(bool enabled);
 
 public slots:
     void setShowCdgWindow(bool show);
@@ -208,6 +210,7 @@ public slots:
     void setAlertTxtColor(QColor color);
     void setIgnoreAposInSearch(bool ignore);
     void setCdgDisplayOffset(int offset);
+    void setShowSongPauseStopWarning(bool enabled);
 
 
 };
