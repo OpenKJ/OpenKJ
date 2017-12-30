@@ -159,6 +159,7 @@ public:
     QColor alertBgColor();
     bool bmAutoStart();
     void setBmAutoStart(bool enabled);
+    int cdgDisplayOffset();
 
 signals:
     void tickerFontChanged();
@@ -190,6 +191,7 @@ signals:
     void showSongInterruptionWarningChanged(bool enabled);
     void alertTxtColorChanged(QColor color);
     void alertBgColorChanged(QColor color);
+    void cdgDisplayOffsetChanged(int offset);
 
 public slots:
     void setShowCdgWindow(bool show);
@@ -205,6 +207,7 @@ public slots:
     void setAlertBgColor(QColor color);
     void setAlertTxtColor(QColor color);
     void setIgnoreAposInSearch(bool ignore);
+    void setCdgDisplayOffset(int offset);
 
 
 };

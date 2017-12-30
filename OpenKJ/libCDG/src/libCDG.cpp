@@ -101,6 +101,7 @@ unsigned int CDG::GetPosMS()
 
 bool CDG::SkipFrame(int ms)
 {
+    return false;
     bool retval = false;
     unsigned int frame = ms / 40;
     if ((ms % 40 < 0) && (SkipFrames.size() > frame + 1) && (SkipFrames.at(frame + 1)))

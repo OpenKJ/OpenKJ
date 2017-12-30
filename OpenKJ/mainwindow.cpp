@@ -359,6 +359,8 @@ MainWindow::MainWindow(QWidget *parent) :
         bmPlDelegate->setCurrentSong(bmCurrentPosition);
         bmPlModel->select();
     }
+    cdgOffset = settings->cdgDisplayOffset();
+    connect(settings, SIGNAL(cdgDisplayOffsetChanged(int)), this, SLOT(cdgOffsetChanged(int)));
     qWarning() << "Initial UI stup complete";
 }
 
@@ -920,7 +922,7 @@ void MainWindow::audioBackend_positionChanged(qint64 position)
             if (!cdg->SkipFrame(position))
             {
                 unsigned char* rgbdata;
-                rgbdata = cdg->GetImageByTime(position);
+                rgbdata = cdg->GetImageByTime(position + cdgOffset);
                 QImage img(rgbdata, 300, 216, QImage::Format_RGB888);
 //                ui->cdgOutput->setPixmap(QPixmap::fromImage(img));
                 ui->cdgVideoWidget->videoSurface()->present(QVideoFrame(img));
@@ -1762,4 +1764,9 @@ void MainWindow::on_lineEdit_textChanged(const QString &arg1)
         dbModel->search(arg1);
         lastVal = arg1.trimmed();
     }
+}
+
+void MainWindow::cdgOffsetChanged(int offset)
+{
+    cdgOffset = offset;
 }

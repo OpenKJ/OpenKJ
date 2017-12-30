@@ -567,6 +567,12 @@ void Settings::setIgnoreAposInSearch(bool ignore)
     settings->setValue("ignoreAposInSearch", ignore);
 }
 
+void Settings::setCdgDisplayOffset(int offset)
+{
+    settings->setValue("CDGDisplayOffset", offset);
+    emit cdgDisplayOffsetChanged(offset);
+}
+
 void Settings::setCdgHSizeAdjustment(int pixels)
 {
     settings->setValue("cdgHSizeAdjustment", pixels);
@@ -719,4 +725,9 @@ bool Settings::bmAutoStart()
 void Settings::setBmAutoStart(bool enabled)
 {
     settings->setValue("bmAutoStart", enabled);
+}
+
+int Settings::cdgDisplayOffset()
+{
+    return settings->value("CDGDisplayOffset", 0).toInt();
 }
