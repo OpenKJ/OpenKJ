@@ -217,6 +217,8 @@ private slots:
     void on_pushButtonMplxRight_toggled(bool checked);
     void on_lineEdit_textChanged(const QString &arg1);
     void cdgOffsetChanged(int offset);
+    void setMultiPlayed();
+    void setMultiUnplayed();
 };
 
 

@@ -1230,16 +1230,27 @@ void MainWindow::renameSinger()
 
 void MainWindow::on_tableViewQueue_customContextMenuRequested(const QPoint &pos)
 {
-    QModelIndex index = ui->tableViewQueue->indexAt(pos);
-    if (index.isValid())
-    {   
-        dbRtClickFile = index.sibling(index.row(), 6).data().toString();
-        m_rtClickQueueSongId = index.sibling(index.row(), 0).data().toInt();
-        dlgKeyChange->setActiveSong(m_rtClickQueueSongId);
+    int selCount = ui->tableViewQueue->selectionModel()->selectedRows().size();
+    if (selCount == 1)
+    {
+        QModelIndex index = ui->tableViewQueue->indexAt(pos);
+        if (index.isValid())
+        {
+            dbRtClickFile = index.sibling(index.row(), 6).data().toString();
+            m_rtClickQueueSongId = index.sibling(index.row(), 0).data().toInt();
+            dlgKeyChange->setActiveSong(m_rtClickQueueSongId);
+            QMenu contextMenu(this);
+            contextMenu.addAction("Preview", this, SLOT(previewCdg()));
+            contextMenu.addAction("Set Key Change", this, SLOT(setKeyChange()));
+            contextMenu.addAction("Toggle played", this, SLOT(toggleQueuePlayed()));
+            contextMenu.exec(QCursor::pos());
+        }
+    }
+    else if (selCount > 1)
+    {
         QMenu contextMenu(this);
-        contextMenu.addAction("Preview", this, SLOT(previewCdg()));
-        contextMenu.addAction("Set Key Change", this, SLOT(setKeyChange()));
-        contextMenu.addAction("Toggle played", this, SLOT(toggleQueuePlayed()));
+        contextMenu.addAction("Set Played", this, SLOT(setMultiPlayed()));
+        contextMenu.addAction("Set Unplayed", this, SLOT(setMultiUnplayed()));
         contextMenu.exec(QCursor::pos());
     }
 }
@@ -1811,3 +1822,34 @@ void MainWindow::cdgOffsetChanged(int offset)
 {
     cdgOffset = offset;
 }
+
+void MainWindow::setMultiPlayed()
+{
+    QModelIndexList indexes = ui->tableViewQueue->selectionModel()->selectedIndexes();
+    QModelIndex index;
+
+    foreach(index, indexes) {
+        if (index.column() == 0)
+        {
+            int queueId = index.sibling(index.row(), 0).data().toInt();
+            qWarning() << "Selected row: " << index.row() << " queueId: " << queueId;
+            qModel->songSetPlayed(queueId);
+        }
+    }
+}
+
+void MainWindow::setMultiUnplayed()
+{
+    QModelIndexList indexes = ui->tableViewQueue->selectionModel()->selectedIndexes();
+    QModelIndex index;
+
+    foreach(index, indexes) {
+        if (index.column() == 0)
+        {
+            int queueId = index.sibling(index.row(), 0).data().toInt();
+            qWarning() << "Selected row: " << index.row() << " queueId: " << queueId;
+            qModel->songSetPlayed(queueId,false);
+        }
+    }
+}
+
