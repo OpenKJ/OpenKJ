@@ -179,6 +179,7 @@ void DbUpdateThread::run()
     for (int i=0; i < files.count(); i++)
     {
         fileName = files.at(i);
+        QString mediaFile;
         int duration = 0;
         QFileInfo file(fileName);
         emit progressMessage("Processing file: " + file.fileName());
@@ -212,7 +213,15 @@ void DbUpdateThread::run()
         {
             QString baseFn = fileName;
             baseFn.chop(3);
-            if ((!QFile::exists(baseFn + "mp3")) && (!QFile::exists(baseFn + "Mp3")) && (!QFile::exists(baseFn + "MP3")) && (!QFile::exists(baseFn + "mP3")))
+            if (QFile::exists(baseFn + "mp3"))
+                mediaFile = baseFn + "mp3";
+            else if (QFile::exists(baseFn + "Mp3"))
+                mediaFile = baseFn + "Mp3";
+            else if (QFile::exists(baseFn + "MP3"))
+                mediaFile = baseFn + "MP3";
+            else if (QFile::exists(baseFn + "mP3"))
+                mediaFile = baseFn + "mP3";
+            else
             {
                 errorMutex.lock();
                 errors.append("Missing CDG file for mp3 file: " + fileName);
@@ -298,6 +307,39 @@ void DbUpdateThread::run()
             artist = parser.getArtist();
             title = parser.getTitle();
             discid = parser.getDiscId();
+            break;
+        case SourceDir::METADATA:
+            if (fileName.endsWith(".cdg", Qt::CaseInsensitive))
+            {
+                TagReader reader;
+                reader.setMedia(mediaFile);
+                artist = reader.getArtist();
+                title = reader.getTitle();
+                discid = reader.getAlbum();
+                QString track = reader.getTrack();
+                if (track != "")
+                {
+                    discid.append("-" + track);
+                }
+            }
+            else if (fileName.endsWith(".zip", Qt::CaseInsensitive))
+            {
+                QTemporaryDir dir;
+                archive.setArchiveFile(fileName);
+                archive.checkAudio();
+                QString audioFile = "temp" + archive.audioExtension();
+                archive.extractAudio(dir.path() + QDir::separator() + audioFile);
+                TagReader reader;
+                reader.setMedia(dir.path() + QDir::separator() + audioFile);
+                artist = reader.getArtist();
+                title = reader.getTitle();
+                discid = reader.getAlbum();
+                QString track = reader.getTrack();
+                if (track != "")
+                {
+                    discid.append("-" + track);
+                }
+            }
             break;
         }
         query.bindValue(":discid", discid);

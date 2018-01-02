@@ -20,6 +20,16 @@ QString TagReader::getTitle()
     return m_title;
 }
 
+QString TagReader::getAlbum()
+{
+    return m_album;
+}
+
+QString TagReader::getTrack()
+{
+    return m_track;
+}
+
 unsigned int TagReader::getDuration()
 {
     return m_duration;
@@ -81,4 +91,12 @@ void TagReader::taglibTags(QString path)
     m_artist = f.tag()->artist().toCString(true);
     m_title = f.tag()->title().toCString(true);
     m_duration = f.audioProperties()->lengthInMilliseconds();
+    m_album = f.tag()->album().toCString(true);
+    int track = f.tag()->track();
+    if (track == 0)
+        m_track = QString();
+    else if (track < 10)
+        m_track = "0" + QString::number(track);
+    else
+        m_track = QString::number(track);
 }

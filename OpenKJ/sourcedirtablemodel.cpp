@@ -78,6 +78,8 @@ QVariant SourceDirTableModel::data(const QModelIndex &index, int role) const
                 return QString("Artist - Title");
             case SourceDir::TA:
                 return QString("Title - Artist");
+            case SourceDir::METADATA:
+                return QString("Media Tags");
             case SourceDir::CUSTOM:
                 QString customName;
                 query.exec("SELECT name FROM custompatterns WHERE patternid == " + QString::number(mydata->at(index.row())->getCustomPattern()));

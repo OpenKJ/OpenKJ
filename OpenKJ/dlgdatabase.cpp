@@ -74,7 +74,7 @@ void DlgDatabase::on_buttonNew_clicked()
         }
 
 
-        items << "DiscID - Artist - Title" << "DiscID - Title - Artist" << "Artist - Title - DiscID" << "Title - Artist - DiscID" << "Artist - Title" << "Title - Artist";
+        items << "DiscID - Artist - Title" << "DiscID - Title - Artist" << "Artist - Title - DiscID" << "Title - Artist - DiscID" << "Artist - Title" << "Title - Artist" << "Media Tags";
         QString selected = QInputDialog::getItem(this,"Select a file naming pattern","Pattern",items,0,false,&okPressed);
         if (okPressed)
         {
@@ -86,6 +86,7 @@ void DlgDatabase::on_buttonNew_clicked()
             if (selected == "Title - Artist - DiscID") pattern = SourceDir::TAD;
             if (selected == "Artist - Title") pattern = SourceDir::AT;
             if (selected == "Title - Artist") pattern = SourceDir::TA;
+            if (selected == "Media Tags") pattern = SourceDir::METADATA;
             if (selected.contains("Custom"))
             {
                 pattern = SourceDir::CUSTOM;

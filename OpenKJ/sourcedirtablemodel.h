@@ -33,7 +33,7 @@ private:
     int customPattern;
 
 public:
-    enum {DAT=0,DTA,ATD,TAD,AT,TA,CUSTOM};
+    enum {DAT=0,DTA,ATD,TAD,AT,TA,CUSTOM,METADATA};
     SourceDir() {
         index = -1;
         pattern = DAT;
