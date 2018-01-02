@@ -46,6 +46,7 @@ public:
     virtual qint64 duration() {return 0;}
     virtual AbstractAudioBackend::State state() {return AbstractAudioBackend::StoppedState;}
     virtual bool canPitchShift() {return false;}
+    virtual bool canChangeTempo() {return false;}
     virtual int pitchShift() {return 0;}
     virtual bool canFade() { return false; }
     QString msToMMSS(qint64 msec);
@@ -91,6 +92,7 @@ public slots:
     virtual void setDownmix(bool enabled) {Q_UNUSED(enabled);}
     virtual void initialize() {}
     virtual void setMplxMode(int mode);
+    virtual void setTempo(int percent) {Q_UNUSED(percent);}
 
 };
 

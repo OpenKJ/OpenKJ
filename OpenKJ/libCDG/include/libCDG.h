@@ -190,8 +190,11 @@ public:
     unsigned char *GetCDGRowByTime(unsigned int ms, unsigned int row);
     bool RowNeedsUpdate(unsigned int ms, int row);
     bool AllNeedUpdate(unsigned int ms);
+    int tempo();
+    void setTempo(int percent);
 protected:
 private:
+    int m_tempo;
 	void FileClose();
 	void CDG_Read_SubCode_Packet(CDG_SubCode &SubCode);
 	void CMDScrollPreset(char data[16]);

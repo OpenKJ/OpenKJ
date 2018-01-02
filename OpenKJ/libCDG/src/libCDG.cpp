@@ -40,6 +40,7 @@ CDG::CDG()
     needupdate = true;
     NeedFullUpdate = true;
     mode = MODE_FILE;
+    m_tempo = 100;
 }
 
 bool CDG::FileOpen(string filename)
@@ -461,7 +462,8 @@ CDG::~CDG()
 
 unsigned char *CDG::GetImageByTime(unsigned int ms)
 {
-    unsigned int frameno = ms / 40;
+    int scaledMs = ms * ((float)m_tempo / 100.0);
+    unsigned int frameno = scaledMs / 40;
     if (ms % 40 > 0) frameno++;
     if (frameno < CDGVideo.size())
         return CDGVideo.at(frameno)->Get_RGB_Data();
@@ -473,7 +475,8 @@ unsigned char *CDG::GetImageByTime(unsigned int ms)
 
 void CDG::GetImageByTime(unsigned int ms, unsigned char * pRGB)
 {
-    unsigned int frameno = ms / 40;
+    int scaledMs = ms * ((float)m_tempo / 100.0);
+    unsigned int frameno = scaledMs / 40;
     if (ms % 40 > 0) frameno++;
     if (frameno < CDGVideo.size())
         CDGVideo.at(frameno)->Get_RGB_Data(pRGB);
@@ -512,4 +515,14 @@ bool CDG::AllNeedUpdate(unsigned int ms)
     if (frameno < CDGVideo.size())
     return CDGVideo.at(frameno)->NeedFullUpdate;
     else return false;
+}
+
+int CDG::tempo()
+{
+    return m_tempo;
+}
+
+void CDG::setTempo(int percent)
+{
+    m_tempo = percent;
 }

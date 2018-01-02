@@ -80,6 +80,7 @@ private:
     GstElement *rgVolume;
     GstElement *pitchShifterRubberBand;
     GstElement *pitchShifterSoundtouch;
+    GstElement *scaleTempo;
     GstElement *deInterleave;
     GstElement *level;
     GstElement *fltrMplxInput;
@@ -104,6 +105,7 @@ private:
     bool m_fade;
     bool m_silenceDetect;
     bool m_canKeyChange;
+    bool m_canChangeTempo;
     bool m_keyChangerRubberBand;
     bool m_keyChangerSoundtouch;
     bool m_muted;
@@ -141,6 +143,7 @@ public:
     void keyChangerOff();
     bool canPitchShift();
     int pitchShift();
+    bool canChangeTempo();
     bool canDetectSilence();
     bool isSilent();
     bool canFade();
@@ -148,6 +151,8 @@ public:
     bool downmixChangeRequiresRestart() { return false; }
     void newFrame();
     QString objName;
+    int m_tempo;
+    int tempo();
 
 private slots:
     void fastTimer_timeout();
@@ -168,6 +173,7 @@ public slots:
     void setUseFader(bool fade);
     void setUseSilenceDetection(bool enabled);
     void setDownmix(bool enabled);
+    void setTempo(int percent);
 
 signals:
 

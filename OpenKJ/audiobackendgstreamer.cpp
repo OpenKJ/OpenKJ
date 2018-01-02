@@ -43,7 +43,9 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
 
     objName = objectName;
     m_volume = 0;
+    m_tempo = 100;
     m_canKeyChange = false;
+    m_canChangeTempo = false;
     m_keyChangerRubberBand = false;
     m_keyChangerSoundtouch = false;
     m_fade = false;
@@ -101,6 +103,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     queueM = gst_element_factory_make("queue", NULL);
     queueSinkPadM = gst_element_get_static_pad(queueM, "sink");
     queueSrcPadM = gst_element_get_static_pad(queueM, "src");
+    scaleTempo = gst_element_factory_make("scaletempo", NULL);
     aConvL = gst_element_factory_make("audioconvert", NULL);
     aConvSrcPadL = gst_element_get_static_pad(aConvL, "src");
     aConvR = gst_element_factory_make("audioconvert", NULL);
@@ -154,11 +157,13 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
 
     // Normal or Multiplex stream to effects and end of chain
 
-    if ((pitchShifterRubberBand) && (loadPitchShift))
+    if ((pitchShifterRubberBand) && (pitchShifterSoundtouch) && (loadPitchShift))
     {
         qWarning() << "Pitch shift RubberBand enabled";
-        gst_bin_add_many(GST_BIN(customBin), aConvPrePitchShift, pitchShifterRubberBand, aConvPostPitchShift, aConvEnd, audioSink, NULL);
-        gst_element_link_many(fltrPostMixer, aConvPrePitchShift, pitchShifterRubberBand, aConvPostPitchShift, aConvEnd, audioSink, NULL);
+        qWarning() << "Also loaded SoundTouch for tempo control";
+        m_canChangeTempo = true;
+        gst_bin_add_many(GST_BIN(customBin), aConvPrePitchShift, pitchShifterRubberBand, aConvPostPitchShift, pitchShifterSoundtouch, aConvEnd, audioSink, NULL);
+        gst_element_link_many(fltrPostMixer, aConvPrePitchShift, pitchShifterRubberBand, aConvPostPitchShift, pitchShifterSoundtouch, aConvEnd, audioSink, NULL);
         m_canKeyChange = true;
         m_keyChangerRubberBand = true;
         g_object_set(G_OBJECT(pitchShifterRubberBand), "formant-preserving", true, NULL);
@@ -167,6 +172,8 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     }
     else if ((pitchShifterSoundtouch) && (loadPitchShift))
     {
+        m_canChangeTempo = true;
+        qWarning() << "Pitch shifter SoundTouch enabled";
         gst_bin_add_many(GST_BIN(customBin), aConvPrePitchShift, pitchShifterSoundtouch, aConvPostPitchShift, aConvEnd, audioSink, NULL);
         gst_element_link_many(fltrPostMixer, aConvPrePitchShift, pitchShifterSoundtouch, aConvPostPitchShift, aConvEnd, audioSink, NULL);
         m_canKeyChange = true;
@@ -564,6 +571,11 @@ int AudioBackendGstreamer::pitchShift()
     return m_keyChange;
 }
 
+bool AudioBackendGstreamer::canChangeTempo()
+{
+    return m_canChangeTempo;
+}
+
 void AudioBackendGstreamer::setPitchShift(int pitchShift)
 {
     m_keyChange = pitchShift;
@@ -749,6 +761,11 @@ void AudioBackendGstreamer::newFrame()
     }
 }
 
+int AudioBackendGstreamer::tempo()
+{
+    return m_tempo;
+}
+
 void AudioBackendGstreamer::setDownmix(bool enabled)
 {
     qDebug() << "AudioBackendHybrid::setDownmix(" << enabled << ") called";
@@ -756,6 +773,15 @@ void AudioBackendGstreamer::setDownmix(bool enabled)
         g_object_set(fltrPostMixer, "caps", audioCapsMono, NULL);
     else
         g_object_set(fltrPostMixer, "caps", audioCapsStereo, NULL);
+}
+
+void AudioBackendGstreamer::setTempo(int percent)
+{
+    float tempo = (float)percent / 100.0;
+    m_tempo = percent;
+    g_object_set(pitchShifterSoundtouch, "tempo", tempo, NULL);
+    setPosition(position());
+    qWarning() << "Tempo changed to " << tempo;
 }
 
 QStringList AudioBackendGstreamer::getOutputDevices()

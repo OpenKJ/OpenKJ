@@ -219,6 +219,7 @@ private slots:
     void cdgOffsetChanged(int offset);
     void setMultiPlayed();
     void setMultiUnplayed();
+    void on_spinBoxTempo_valueChanged(int arg1);
 };
 
 

@@ -168,6 +168,11 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->lblKey->hide();
         ui->tableViewQueue->hideColumn(7);
     }
+    if (!kAudioBackend->canChangeTempo())
+    {
+        ui->spinBoxTempo->hide();
+        ui->lblTempo->hide();
+    }
     audioRecorder = new AudioRecorder(this);
     settingsDialog = new DlgSettings(kAudioBackend, bmAudioBackend, this);
     connect(rotModel, SIGNAL(songDroppedOnSinger(int,int,int)), this, SLOT(songDroppedOnSinger(int,int,int)));
@@ -1004,6 +1009,7 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
         ui->labelTotalTime->setText("0:00");
         ui->sliderProgress->setValue(0);
         ui->cdgVideoWidget->clear();
+        ui->spinBoxTempo->setValue(100);
         setShowBgImage(true);
         cdgWindow->setShowBgImage(true);
         bmAudioBackend->fadeIn(false);
@@ -1853,3 +1859,9 @@ void MainWindow::setMultiUnplayed()
     }
 }
 
+
+void MainWindow::on_spinBoxTempo_valueChanged(int arg1)
+{
+    kAudioBackend->setTempo(arg1);
+    cdg->setTempo(arg1);
+}
