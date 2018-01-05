@@ -33,7 +33,6 @@ and all of the various bits and pieces required to host karaoke.
 
 %build
 pushd %oname
- %oname
 %qmake_qt5 PREFIX=%buildroot%_prefix
 %make_build
 popd
