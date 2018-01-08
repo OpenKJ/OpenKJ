@@ -27,6 +27,7 @@
 #include <QMessageBox>
 #include "dbupdatethread.h"
 #include "settings.h"
+#include <QStandardPaths>
 
 extern Settings *settings;
 
@@ -233,4 +234,32 @@ void DlgDatabase::showDbUpdateErrors(QStringList errors)
 void DlgDatabase::on_btnCustomPatterns_clicked()
 {
     customPatternsDlg->show();
+}
+
+void DlgDatabase::on_btnExport_clicked()
+{
+    QString defaultFilePath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QDir::separator() + "dbexport.csv";
+    qDebug() << "Default save location: " << defaultFilePath;
+    QString saveFilePath = QFileDialog::getSaveFileName(this,tr("Select DB export filename"), defaultFilePath, tr("(*.csv)"));
+    if (saveFilePath != "")
+    {
+        QFile csvFile(saveFilePath);
+        if (!csvFile.open(QIODevice::WriteOnly | QIODevice::Text))
+        {
+            QMessageBox::warning(this, tr("Error saving file"), tr("Unable to open selected file for writing.  Please verify that you have the proper permissions to write to that location."),QMessageBox::Close);
+            return;
+        }
+        QSqlQuery query;
+        query.exec("SELECT * from dbsongs ORDER BY artist,title,filename");
+        while (query.next())
+        {
+            QString artist = query.value("artist").toString();
+            QString title = query.value("title").toString();
+            QString discid = query.value("discid").toString();
+            QString filepath = query.value("path").toString();
+            QString data = "\"" + artist + "\",\"" + title + "\",\"" + discid + "\",\"" + filepath + "\"" + "\n";
+            csvFile.write(data.toLocal8Bit().data());
+        }
+        csvFile.close();
+    }
 }

@@ -64,6 +64,7 @@ private slots:
     void dbupdate_thread_finished();
     void showDbUpdateErrors(QStringList errors);
     void on_btnCustomPatterns_clicked();
+    void on_btnExport_clicked();
 };
 
 #endif // DATABASEDIALOG_H
