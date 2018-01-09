@@ -88,15 +88,25 @@ void TagReader::setMedia(QString path)
 void TagReader::taglibTags(QString path)
 {
     TagLib::FileRef f(path.toLocal8Bit().data());
-    m_artist = f.tag()->artist().toCString(true);
-    m_title = f.tag()->title().toCString(true);
-    m_duration = f.audioProperties()->lengthInMilliseconds();
-    m_album = f.tag()->album().toCString(true);
-    int track = f.tag()->track();
-    if (track == 0)
-        m_track = QString();
-    else if (track < 10)
-        m_track = "0" + QString::number(track);
+    if (!f.isNull())
+    {
+        m_artist = f.tag()->artist().toCString(true);
+        m_title = f.tag()->title().toCString(true);
+        m_duration = f.audioProperties()->lengthInMilliseconds();
+        m_album = f.tag()->album().toCString(true);
+        int track = f.tag()->track();
+        if (track == 0)
+            m_track = QString();
+        else if (track < 10)
+            m_track = "0" + QString::number(track);
+        else
+            m_track = QString::number(track);
+    }
     else
-        m_track = QString::number(track);
+    {
+        m_artist = QString();
+        m_title = QString();
+        m_album = QString();
+        m_duration = 0;
+    }
 }
