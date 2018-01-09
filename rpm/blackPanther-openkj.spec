@@ -17,7 +17,7 @@ BuildRequires:	devel(libQt5Svg)
 BuildRequires:	devel(libQt5Multimedia)
 BuildRequires:  devel(libgstreamer-1.0)
 BuildRequires:  libgstreamer-plugins-base1.0-devel
-Requires:       qtbase5-common libqt5svg5 libqt5multimedia5 gstreamer1.0-plugins-base
+Requires:       qtbase5-common libqt5svg5 libqt5multimedia5 gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad
 
 %description
 Karaoke hosting software targeted at professional KJ's.

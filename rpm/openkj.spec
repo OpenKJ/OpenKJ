@@ -8,7 +8,7 @@ URL:            https://openkj.org
 Source0:        openkj-0.11.0.tar.bz2 
 
 BuildRequires:  qt5-qtbase-devel qt5-qtsvg-devel qt5-qtmultimedia-devel gstreamer1-devel gstreamer1-plugins-base-devel
-Requires:       qt5-qtbase qt5-qtsvg qt5-qtmultimedia gstreamer1
+Requires:       qt5-qtbase qt5-qtsvg qt5-qtmultimedia gstreamer1 gstreamer1-plugins-good gstreamer1-plugins-bad
 
 %description
 Karaoke hosting software targeted at professional KJ's.  Includes rotation management, break music player,
