@@ -150,6 +150,7 @@ MainWindow::MainWindow(QWidget *parent) :
     regularExportDialog = new DlgRegularExport(rotModel, this);
     regularImportDialog = new DlgRegularImport(rotModel, this);
     requestsDialog = new DlgRequests(rotModel, this);
+    dlgBookCreator = new DlgBookCreator(this);
     cdgWindow = new DlgCdg(this, Qt::Window);
     cdg = new CDG;
     ui->tableViewDB->setModel(dbModel);
@@ -1864,4 +1865,9 @@ void MainWindow::on_spinBoxTempo_valueChanged(int arg1)
 {
     kAudioBackend->setTempo(arg1);
     cdg->setTempo(arg1);
+}
+
+void MainWindow::on_actionSongbook_Generator_triggered()
+{
+    dlgBookCreator->show();
 }

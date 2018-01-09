@@ -161,6 +161,13 @@ public:
     bool bmAutoStart();
     void setBmAutoStart(bool enabled);
     int cdgDisplayOffset();
+    QFont bookCreatorItemFont();
+    QFont bookCreatorHeaderFont();
+    int bookCreatorSortCol();
+    double bookCreatorMarginRt();
+    double bookCreatorMarginLft();
+    double bookCreatorMarginTop();
+    double bookCreatorMarginBtm();
 
 signals:
     void tickerFontChanged();
@@ -211,7 +218,13 @@ public slots:
     void setIgnoreAposInSearch(bool ignore);
     void setCdgDisplayOffset(int offset);
     void setShowSongPauseStopWarning(bool enabled);
-
+    void setBookCreatorHeaderFont(QFont font);
+    void setBookCreatorItemFont(QFont font);
+    void setBookCreatorSortCol(int col);
+    void setBookCreatorMarginRt(double margin);
+    void setBookCreatorMarginLft(double margin);
+    void setBookCreatorMarginTop(double margin);
+    void setBookCreatorMarginBtm(double margin);
 
 };
 

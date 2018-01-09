@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>964</width>
-    <height>748</height>
+    <height>776</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -2647,7 +2647,7 @@
      <x>0</x>
      <y>0</y>
      <width>964</width>
-     <height>25</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -2661,6 +2661,7 @@
      <string>Tools</string>
     </property>
     <addaction name="actionSettings"/>
+    <addaction name="actionSongbook_Generator"/>
    </widget>
    <widget class="QMenu" name="menuKaraoke">
     <property name="title">
@@ -2811,6 +2812,11 @@
    </property>
    <property name="text">
     <string>Autoplay mode</string>
+   </property>
+  </action>
+  <action name="actionSongbook_Generator">
+   <property name="text">
+    <string>Songbook Generator</string>
    </property>
   </action>
  </widget>

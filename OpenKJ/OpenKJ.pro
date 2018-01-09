@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT += core gui sql network widgets multimedia concurrent svg
+QT += core gui sql network widgets multimedia concurrent svg printsupport
 
 unix: DEFINES += USE_GL
 
@@ -210,7 +210,8 @@ SOURCES += main.cpp\
     taglib/fileref.cpp \
     taglib/tag.cpp \
     taglib/tagunion.cpp \
-    taglib/tagutils.cpp
+    taglib/tagutils.cpp \
+    dlgbookcreator.cpp
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -369,7 +370,8 @@ HEADERS  += mainwindow.h \
     taglib/tag.h \
     taglib/taglib_export.h \
     taglib/tagunion.h \
-    taglib/tagutils.h
+    taglib/tagutils.h \
+    dlgbookcreator.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \
@@ -383,7 +385,8 @@ FORMS    += mainwindow.ui \
     dlgcdg.ui \
     bmdbdialog.ui \
     dlgcustompatterns.ui \
-    dlgdbupdate.ui
+    dlgdbupdate.ui \
+    dlgbookcreator.ui
 
 RESOURCES += resources.qrc
 

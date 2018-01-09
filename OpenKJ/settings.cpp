@@ -577,7 +577,42 @@ void Settings::setShowSongPauseStopWarning(bool enabled)
 {
     settings->setValue("showStopPauseInterruptWarning", enabled);
     emit showSongStopPauseWarningChanged(enabled);
+    
+}
 
+void Settings::setBookCreatorHeaderFont(QFont font)
+{
+    settings->setValue("bookCreatorHeaderFont", font.toString());
+}
+
+void Settings::setBookCreatorItemFont(QFont font)
+{
+    settings->setValue("bookCreatorItemFont", font.toString());
+}
+
+void Settings::setBookCreatorSortCol(int col)
+{
+    settings->setValue("bookCreatorSortCol", col);
+}
+
+void Settings::setBookCreatorMarginRt(double margin)
+{
+    settings->setValue("bookCreatorMarginRt", margin);
+}
+
+void Settings::setBookCreatorMarginLft(double margin)
+{
+    settings->setValue("bookCreatorMarginLft", margin);
+}
+
+void Settings::setBookCreatorMarginTop(double margin)
+{
+    settings->setValue("bookCreatorMarginTop", margin);
+}
+
+void Settings::setBookCreatorMarginBtm(double margin)
+{
+    settings->setValue("bookCreatorMarginBtm", margin);
 }
 
 void Settings::setCdgHSizeAdjustment(int pixels)
@@ -744,4 +779,43 @@ void Settings::setBmAutoStart(bool enabled)
 int Settings::cdgDisplayOffset()
 {
     return settings->value("CDGDisplayOffset", 0).toInt();
+}
+
+QFont Settings::bookCreatorItemFont()
+{
+    QFont font;
+    font.fromString(settings->value("bookCreatorItemFont", QApplication::font().toString()).toString());
+    return font;
+}
+
+QFont Settings::bookCreatorHeaderFont()
+{
+    QFont font;
+    font.fromString(settings->value("bookCreatorHeaderFont", QApplication::font().toString()).toString());
+    return font;
+}
+
+int Settings::bookCreatorSortCol()
+{
+    return settings->value("bookCreatorSortCol", 0).toInt();
+}
+
+double Settings::bookCreatorMarginRt()
+{
+    return settings->value("bookCreatorMarginRt", 0.25).toDouble();
+}
+
+double Settings::bookCreatorMarginLft()
+{
+    return settings->value("bookCreatorMarginLft", 0.25).toDouble();
+}
+
+double Settings::bookCreatorMarginTop()
+{
+    return settings->value("bookCreatorMarginTop", 0.25).toDouble();
+}
+
+double Settings::bookCreatorMarginBtm()
+{
+    return settings->value("bookCreatorMarginBtm", 0.25).toDouble();
 }

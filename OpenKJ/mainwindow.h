@@ -56,6 +56,7 @@
 #include "bmdbdialog.h"
 #include <QThread>
 #include "audiorecorder.h"
+#include "dlgbookcreator.h"
 
 using namespace std;
 
@@ -85,6 +86,7 @@ private:
     DlgRegularImport *regularImportDialog;
     DlgKeyChange *dlgKeyChange;
     DlgRequests *requestsDialog;
+    DlgBookCreator *dlgBookCreator;
     //DlgCdgPreview *cdgPreviewDialog;
     AbstractAudioBackend *kAudioBackend;
 //    KhAudioBackends *audioBackends;
@@ -220,6 +222,7 @@ private slots:
     void setMultiPlayed();
     void setMultiUnplayed();
     void on_spinBoxTempo_valueChanged(int arg1);
+    void on_actionSongbook_Generator_triggered();
 };
 
 
