@@ -43,18 +43,22 @@ public:
     QString audioExtension();
     bool extractAudio(QString destPath);
     bool isValidKaraokeFile();
+    QString getLastError();
 
 private:
     QString archiveFile;
     QString cdgFileName;
     QString audioFileName;
     QString audioExt;
+    QString lastError;
     bool findCDG();
     bool findAudio();
     int cdgSize();
     int audioSize();
     int m_cdgSize;
     int m_audioSize;
+    bool m_audioSupportedCompression;
+    bool m_cdgSupportedCompression;
     bool m_cdgFound;
     bool m_audioFound;
     bool findEntries();

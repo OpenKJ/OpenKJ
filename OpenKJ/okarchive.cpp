@@ -38,6 +38,9 @@ OkArchive::OkArchive(QString ArchiveFile, QObject *parent) : QObject(parent)
     m_audioFound = false;
     m_cdgSize = 0;
     m_audioSize = 0;
+    m_audioSupportedCompression = false;
+    m_cdgSupportedCompression = false;
+    lastError = "";
     audioExtensions.append(".mp3");
     audioExtensions.append(".wav");
     audioExtensions.append(".ogg");
@@ -50,6 +53,9 @@ OkArchive::OkArchive(QObject *parent) : QObject(parent)
     m_audioFound = false;
     m_cdgSize = 0;
     m_audioSize = 0;
+    m_audioSupportedCompression = false;
+    m_cdgSupportedCompression = false;
+    lastError = "";
     audioExtensions.append(".mp3");
     audioExtensions.append(".wav");
     audioExtensions.append(".ogg");
@@ -76,31 +82,31 @@ QByteArray OkArchive::getCDGData()
     QByteArray data;
     if (findCDG())
     {
-        QFile zipFile(archiveFile);
-        zipFile.open(QFile::ReadOnly);
         mz_zip_archive archive;
         memset(&archive, 0, sizeof(archive));
-        int fd = zipFile.handle();
-        if (fd < 0)
-            return data;
-        int dupfd = dup(fd);
-        if (dupfd < 0)
-            return data;
-        FILE* f = fdopen(dupfd, "rb");
-        mz_zip_reader_init_cfile(&archive, f, zipFile.size(), 0);
+        if (!mz_zip_reader_init_file(&archive, archiveFile.toLocal8Bit(), 0))
+        {
+             QString err(mz_zip_get_error_string(mz_zip_get_last_error(&archive)));
+             qWarning() << "unzip error: " << err;
+             return data;
+        }
+
         QTemporaryDir dir;
         QString cdgTmpFile = dir.path() + QDir::separator() + "tmp.cdg";
+        qWarning() << "Extracting CDG file to tmp path: " << cdgTmpFile;
         if (mz_zip_reader_extract_file_to_file(&archive, cdgFileName.toLocal8Bit(), cdgTmpFile.toLocal8Bit(),0))
         {
             QFile cdg(cdgTmpFile);
             cdg.open(QFile::ReadOnly);
             data = cdg.readAll();
-            zipFile.close();
             mz_zip_reader_end(&archive);
             return data;
         }
-        zipFile.close();
-        fclose(f);
+        else
+        {
+            QString err(mz_zip_get_error_string(mz_zip_get_last_error(&archive)));
+            qWarning() << "unzip error: " << err;
+        }
         mz_zip_reader_end(&archive);
         return data;
     }
@@ -120,6 +126,9 @@ void OkArchive::setArchiveFile(const QString &value)
     m_audioFound = false;
     m_cdgSize = 0;
     m_audioSize = 0;
+    lastError = "";
+    m_audioSupportedCompression = false;
+    m_cdgSupportedCompression = false;
 }
 
 bool OkArchive::checkCDG()
@@ -149,30 +158,22 @@ bool OkArchive::extractAudio(QString destPath)
 {
     if (findAudio())
     {
-        QFile zipFile(archiveFile);
-        zipFile.open(QFile::ReadOnly);
         mz_zip_archive archive;
         memset(&archive, 0, sizeof(archive));
-        int fd = zipFile.handle();
-        if (fd < 0)
-            return false;
-        int dupfd = dup(fd);
-        if (dupfd < 0)
-            return false;
-        FILE* f = fdopen(dupfd, "rb");
-        mz_zip_reader_init_cfile(&archive, f, zipFile.size(), 0);
+        mz_zip_reader_init_file(&archive, archiveFile.toLocal8Bit(), 0);
         if (mz_zip_reader_extract_file_to_file(&archive, audioFileName.toLocal8Bit(), destPath.toLocal8Bit(),0))
         {
-            zipFile.close();
             mz_zip_reader_end(&archive);
             return true;
         }
         else
-        qCritical() << "Failed to extract mp3 file";
-        zipFile.close();
-        fclose(f);
-        mz_zip_reader_end(&archive);
-        return false;
+        {
+            qCritical() << "Failed to extract mp3 file";
+            QString err(mz_zip_get_error_string(mz_zip_get_last_error(&archive)));
+            qWarning() << "unzip error: " << err;
+            mz_zip_reader_end(&archive);
+            return false;
+        }
     }
     return false;
 }
@@ -182,39 +183,66 @@ bool OkArchive::isValidKaraokeFile()
     if (!findEntries())
     {
         if (!m_cdgFound)
+        {
             qWarning() << archiveFile << " - Missing CDG file";
+            lastError = "CDG not found in zip file";
+        }
         if (!m_audioFound)
+        {
             qWarning() << archiveFile << " - Missing audio file";
+            lastError = "Audio file not found in zip file";
+        }
+        if (!m_audioSupportedCompression)
+        {
+            qWarning() << archiveFile << " - Unsupported compression method on audio file";
+            lastError = "Unsupported compression method";
+        }
+        if (!m_cdgSupportedCompression)
+        {
+            qWarning() << archiveFile << " - Unsupported compression method on CDG file";
+            lastError = "Unsupported compression method";
+        }
         return false;
     }
     if (m_audioSize <= 0)
     {
         qWarning() << archiveFile << " - Zero byte audio file";
+        lastError = "Zero byte audio file";
         return false;
     }
     if (m_cdgSize <= 0)
     {
         qWarning() << archiveFile << " - Zero byte CDG file";
+        lastError = "Zero byte CDG file";
         return false;
     }
     return true;
 }
 
+QString OkArchive::getLastError()
+{
+    return lastError;
+}
+
 bool OkArchive::findCDG()
 {
     findEntries();
-    return m_cdgFound;
+    if (m_cdgFound && m_cdgSupportedCompression)
+        return true;
+    return false;
 }
 
 bool OkArchive::findAudio()
 {
     findEntries();
-    return m_audioFound;
+    if (m_audioFound && m_audioSupportedCompression)
+        return true;
+    return false;
 }
 
 bool OkArchive::findEntries()
 {
-    if ((m_audioFound) && (m_cdgFound))
+    if (m_audioFound && m_cdgFound && m_audioSupportedCompression && m_cdgSupportedCompression)
         return true;
     mz_zip_archive archive;
     memset(&archive, 0, sizeof(archive));
@@ -234,6 +262,7 @@ bool OkArchive::findEntries()
             {
                 cdgFileName = fileName;
                 m_cdgSize = fStat.m_uncomp_size;
+                m_cdgSupportedCompression = fStat.m_is_supported;
                 m_cdgFound = true;
             }
             else
@@ -245,11 +274,12 @@ bool OkArchive::findEntries()
                         audioFileName = fileName;
                         audioExt = audioExtensions.at(e);
                         m_audioSize = fStat.m_uncomp_size;
+                        m_audioSupportedCompression = fStat.m_is_supported;
                         m_audioFound = true;
                     }
                 }
             }
-            if (m_audioFound && m_cdgFound)
+            if (m_audioFound && m_cdgFound && m_cdgSupportedCompression && m_audioSupportedCompression)
             {
                 mz_zip_reader_end(&archive);
                 return true;

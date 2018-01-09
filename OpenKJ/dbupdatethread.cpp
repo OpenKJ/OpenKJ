@@ -201,9 +201,9 @@ void DbUpdateThread::run()
             if (!archive.isValidKaraokeFile())
             {
                 errorMutex.lock();
-                errors.append("Bad or invalid karaoke file: " + fileName);
+                errors.append(archive.getLastError() + ": " + fileName);
                 errorMutex.unlock();
-                emit progressMessage("Bad or invalid karaoke file: " + fileName);
+                emit progressMessage(archive.getLastError() + ": " + fileName);
                 emit progressChanged(i + 1);
                 continue;
             }
