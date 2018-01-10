@@ -151,6 +151,7 @@ MainWindow::MainWindow(QWidget *parent) :
     regularImportDialog = new DlgRegularImport(rotModel, this);
     requestsDialog = new DlgRequests(rotModel, this);
     dlgBookCreator = new DlgBookCreator(this);
+    dlgEq = new DlgEq(this);
     cdgWindow = new DlgCdg(this, Qt::Window);
     cdg = new CDG;
     ui->tableViewDB->setModel(dbModel);
@@ -367,6 +368,52 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     cdgOffset = settings->cdgDisplayOffset();
     connect(settings, SIGNAL(cdgDisplayOffsetChanged(int)), this, SLOT(cdgOffsetChanged(int)));
+
+    connect(settings, SIGNAL(eqBBypassChanged(bool)), bmAudioBackend, SLOT(setEqBypass(bool)));
+    connect(settings, SIGNAL(eqBLevel1Changed(int)), bmAudioBackend, SLOT(setEqLevel1(int)));
+    connect(settings, SIGNAL(eqBLevel2Changed(int)), bmAudioBackend, SLOT(setEqLevel2(int)));
+    connect(settings, SIGNAL(eqBLevel3Changed(int)), bmAudioBackend, SLOT(setEqLevel3(int)));
+    connect(settings, SIGNAL(eqBLevel4Changed(int)), bmAudioBackend, SLOT(setEqLevel4(int)));
+    connect(settings, SIGNAL(eqBLevel5Changed(int)), bmAudioBackend, SLOT(setEqLevel5(int)));
+    connect(settings, SIGNAL(eqBLevel6Changed(int)), bmAudioBackend, SLOT(setEqLevel6(int)));
+    connect(settings, SIGNAL(eqBLevel7Changed(int)), bmAudioBackend, SLOT(setEqLevel7(int)));
+    connect(settings, SIGNAL(eqBLevel8Changed(int)), bmAudioBackend, SLOT(setEqLevel8(int)));
+    connect(settings, SIGNAL(eqBLevel9Changed(int)), bmAudioBackend, SLOT(setEqLevel9(int)));
+    connect(settings, SIGNAL(eqBLevel10Changed(int)), bmAudioBackend, SLOT(setEqLevel10(int)));
+    connect(settings, SIGNAL(eqKBypassChanged(bool)), kAudioBackend, SLOT(setEqBypass(bool)));
+    connect(settings, SIGNAL(eqKLevel1Changed(int)), kAudioBackend, SLOT(setEqLevel1(int)));
+    connect(settings, SIGNAL(eqKLevel2Changed(int)), kAudioBackend, SLOT(setEqLevel2(int)));
+    connect(settings, SIGNAL(eqKLevel3Changed(int)), kAudioBackend, SLOT(setEqLevel3(int)));
+    connect(settings, SIGNAL(eqKLevel4Changed(int)), kAudioBackend, SLOT(setEqLevel4(int)));
+    connect(settings, SIGNAL(eqKLevel5Changed(int)), kAudioBackend, SLOT(setEqLevel5(int)));
+    connect(settings, SIGNAL(eqKLevel6Changed(int)), kAudioBackend, SLOT(setEqLevel6(int)));
+    connect(settings, SIGNAL(eqKLevel7Changed(int)), kAudioBackend, SLOT(setEqLevel7(int)));
+    connect(settings, SIGNAL(eqKLevel8Changed(int)), kAudioBackend, SLOT(setEqLevel8(int)));
+    connect(settings, SIGNAL(eqKLevel9Changed(int)), kAudioBackend, SLOT(setEqLevel9(int)));
+    connect(settings, SIGNAL(eqKLevel10Changed(int)), kAudioBackend, SLOT(setEqLevel10(int)));
+    kAudioBackend->setEqBypass(settings->eqKBypass());
+    kAudioBackend->setEqLevel1(settings->eqKLevel1());
+    kAudioBackend->setEqLevel2(settings->eqKLevel2());
+    kAudioBackend->setEqLevel3(settings->eqKLevel3());
+    kAudioBackend->setEqLevel4(settings->eqKLevel4());
+    kAudioBackend->setEqLevel5(settings->eqKLevel5());
+    kAudioBackend->setEqLevel6(settings->eqKLevel6());
+    kAudioBackend->setEqLevel7(settings->eqKLevel7());
+    kAudioBackend->setEqLevel8(settings->eqKLevel8());
+    kAudioBackend->setEqLevel9(settings->eqKLevel9());
+    kAudioBackend->setEqLevel10(settings->eqKLevel10());
+    bmAudioBackend->setEqBypass(settings->eqBBypass());
+    bmAudioBackend->setEqLevel1(settings->eqBLevel1());
+    bmAudioBackend->setEqLevel2(settings->eqBLevel2());
+    bmAudioBackend->setEqLevel3(settings->eqBLevel3());
+    bmAudioBackend->setEqLevel4(settings->eqBLevel4());
+    bmAudioBackend->setEqLevel5(settings->eqBLevel5());
+    bmAudioBackend->setEqLevel6(settings->eqBLevel6());
+    bmAudioBackend->setEqLevel7(settings->eqBLevel7());
+    bmAudioBackend->setEqLevel8(settings->eqBLevel8());
+    bmAudioBackend->setEqLevel9(settings->eqBLevel9());
+    bmAudioBackend->setEqLevel10(settings->eqBLevel10());
+
     qWarning() << "Initial UI stup complete";
 }
 
@@ -1870,4 +1917,9 @@ void MainWindow::on_spinBoxTempo_valueChanged(int arg1)
 void MainWindow::on_actionSongbook_Generator_triggered()
 {
     dlgBookCreator->show();
+}
+
+void MainWindow::on_actionEqualizer_triggered()
+{
+    dlgEq->show();
 }

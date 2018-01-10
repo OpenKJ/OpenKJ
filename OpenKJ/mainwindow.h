@@ -57,6 +57,7 @@
 #include <QThread>
 #include "audiorecorder.h"
 #include "dlgbookcreator.h"
+#include "dlgeq.h"
 
 using namespace std;
 
@@ -87,6 +88,7 @@ private:
     DlgKeyChange *dlgKeyChange;
     DlgRequests *requestsDialog;
     DlgBookCreator *dlgBookCreator;
+    DlgEq *dlgEq;
     //DlgCdgPreview *cdgPreviewDialog;
     AbstractAudioBackend *kAudioBackend;
 //    KhAudioBackends *audioBackends;
@@ -223,6 +225,7 @@ private slots:
     void setMultiUnplayed();
     void on_spinBoxTempo_valueChanged(int arg1);
     void on_actionSongbook_Generator_triggered();
+    void on_actionEqualizer_triggered();
 };
 
 

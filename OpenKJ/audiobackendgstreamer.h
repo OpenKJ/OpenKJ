@@ -88,6 +88,7 @@ private:
     GstElement *audioPanorama;
     GstElement *audioResample;
     GstElement *volumeElement;
+    GstElement *equalizer;
     GstCaps *audioCapsStereo;
     GstCaps *audioCapsMono;
     GstCaps *videoCaps;
@@ -116,6 +117,8 @@ private:
     double m_currentRmsLevel;
     double m_preFadeVolume;
     int m_preFadeVolumeInt;
+    int eq1, eq2, eq3, eq4, eq5, eq6, eq7, eq8, eq9, eq10;
+    bool bypass;
 
     static void EndOfStreamCallback(GstAppSink *appsink, gpointer user_data);
     static GstFlowReturn NewPrerollCallback(GstAppSink *appsink, gpointer user_data);
@@ -190,6 +193,20 @@ public:
     // AbstractAudioBackend interface
 public slots:
     void setMplxMode(int mode);
+
+    // AbstractAudioBackend interface
+public slots:
+    void setEqBypass(bool bypass);
+    void setEqLevel1(int level);
+    void setEqLevel2(int level);
+    void setEqLevel3(int level);
+    void setEqLevel4(int level);
+    void setEqLevel5(int level);
+    void setEqLevel6(int level);
+    void setEqLevel7(int level);
+    void setEqLevel8(int level);
+    void setEqLevel9(int level);
+    void setEqLevel10(int level);
 };
 
 #endif // AUDIOBACKENDGSTREAMER_H

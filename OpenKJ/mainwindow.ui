@@ -2647,7 +2647,7 @@
      <x>0</x>
      <y>0</y>
      <width>964</width>
-     <height>22</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -2662,6 +2662,7 @@
     </property>
     <addaction name="actionSettings"/>
     <addaction name="actionSongbook_Generator"/>
+    <addaction name="actionEqualizer"/>
    </widget>
    <widget class="QMenu" name="menuKaraoke">
     <property name="title">
@@ -2817,6 +2818,11 @@
   <action name="actionSongbook_Generator">
    <property name="text">
     <string>Songbook Generator</string>
+   </property>
+  </action>
+  <action name="actionEqualizer">
+   <property name="text">
+    <string>Equalizer</string>
    </property>
   </action>
  </widget>

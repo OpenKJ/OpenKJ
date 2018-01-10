@@ -211,7 +211,8 @@ SOURCES += main.cpp\
     taglib/tag.cpp \
     taglib/tagunion.cpp \
     taglib/tagutils.cpp \
-    dlgbookcreator.cpp
+    dlgbookcreator.cpp \
+    dlgeq.cpp
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -371,7 +372,8 @@ HEADERS  += mainwindow.h \
     taglib/taglib_export.h \
     taglib/tagunion.h \
     taglib/tagutils.h \
-    dlgbookcreator.h
+    dlgbookcreator.h \
+    dlgeq.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \
@@ -386,7 +388,8 @@ FORMS    += mainwindow.ui \
     bmdbdialog.ui \
     dlgcustompatterns.ui \
     dlgdbupdate.ui \
-    dlgbookcreator.ui
+    dlgbookcreator.ui \
+    dlgeq.ui
 
 RESOURCES += resources.qrc
 

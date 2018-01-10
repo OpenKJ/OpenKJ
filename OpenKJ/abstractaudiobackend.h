@@ -93,6 +93,18 @@ public slots:
     virtual void initialize() {}
     virtual void setMplxMode(int mode);
     virtual void setTempo(int percent) {Q_UNUSED(percent);}
+    virtual void setEqBypass(bool bypass) {Q_UNUSED(bypass);}
+    virtual void setEqLevel1(int level) {Q_UNUSED(level);}
+    virtual void setEqLevel2(int level) {Q_UNUSED(level);}
+    virtual void setEqLevel3(int level) {Q_UNUSED(level);}
+    virtual void setEqLevel4(int level) {Q_UNUSED(level);}
+    virtual void setEqLevel5(int level) {Q_UNUSED(level);}
+    virtual void setEqLevel6(int level) {Q_UNUSED(level);}
+    virtual void setEqLevel7(int level) {Q_UNUSED(level);}
+    virtual void setEqLevel8(int level) {Q_UNUSED(level);}
+    virtual void setEqLevel9(int level) {Q_UNUSED(level);}
+    virtual void setEqLevel10(int level) {Q_UNUSED(level);}
+
 
 };
 

@@ -56,6 +56,16 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     m_silenceDuration = 0;
     m_muted = false;
     isFading = false;
+    eq1 = 0;
+    eq2 = 0;
+    eq3 = 0;
+    eq4 = 0;
+    eq5 = 0;
+    eq6 = 0;
+    eq7 = 0;
+    eq8 = 0;
+    eq9 = 0;
+    eq10 = 0;
 
     GstAppSinkCallbacks appsinkCallbacks;
     appsinkCallbacks.new_preroll	= &AudioBackendGstreamer::NewPrerollCallback;
@@ -75,6 +85,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     audioPanorama = gst_element_factory_make("audiopanorama", "audioPanorama");
     pitchShifterSoundtouch = gst_element_factory_make("pitch", "pitch");
     pitchShifterRubberBand = gst_element_factory_make("ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo", "ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo");
+    equalizer = gst_element_factory_make("equalizer-10bands", NULL);
     playBin = gst_element_factory_make("playbin", "playBin");
     fltrMplxInput = gst_element_factory_make("capsfilter", "filter");
     fltrEnd = gst_element_factory_make("capsfilter", NULL);
@@ -130,11 +141,13 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
 //    else
 //        g_object_set(fltrEnd, "caps", audioCapsStereo, NULL);
 
-    gst_bin_add_many(GST_BIN(customBin), level, aConvInput, aConvPreSplit, rgVolume, volumeElement, aConvL, aConvR, fltrMplxInput, tee, queueS, queueM, queueR, queueL, audioMixer, deInterleave, aConvPostMixer, fltrPostMixer, NULL);
+    gst_bin_add_many(GST_BIN(customBin), level, aConvInput, aConvPreSplit, rgVolume, volumeElement, equalizer, aConvL, aConvR, fltrMplxInput, tee, queueS, queueM, queueR, queueL, audioMixer, deInterleave, aConvPostMixer, fltrPostMixer, NULL);
     gst_element_link(aConvInput, rgVolume);
     gst_element_link(rgVolume, level);
     gst_element_link(level, volumeElement);
-    gst_element_link(volumeElement, tee);
+    //gst_element_link(volumeElement, tee);
+    gst_element_link(volumeElement, equalizer);
+    gst_element_link(equalizer, tee);
 
     // Normal path
     gst_pad_link(teeSrcPadN, queueSinkPadN);
@@ -878,4 +891,106 @@ void AudioBackendGstreamer::setMplxMode(int mode)
         g_object_set(mixerSinkPadR, "mute", false, NULL);
     }
     //settings->setMplxMode(mode);
+}
+
+
+void AudioBackendGstreamer::setEqBypass(bool bypass)
+{
+    if (bypass)
+    {
+        g_object_set(equalizer, "band0", 0.0, NULL);
+        g_object_set(equalizer, "band1", 0.0, NULL);
+        g_object_set(equalizer, "band2", 0.0, NULL);
+        g_object_set(equalizer, "band3", 0.0, NULL);
+        g_object_set(equalizer, "band4", 0.0, NULL);
+        g_object_set(equalizer, "band5", 0.0, NULL);
+        g_object_set(equalizer, "band6", 0.0, NULL);
+        g_object_set(equalizer, "band7", 0.0, NULL);
+        g_object_set(equalizer, "band8", 0.0, NULL);
+        g_object_set(equalizer, "band0", 0.0, NULL);
+    }
+    else
+    {
+        g_object_set(equalizer, "band1", (double)eq1, NULL);
+        g_object_set(equalizer, "band2", (double)eq2, NULL);
+        g_object_set(equalizer, "band3", (double)eq3, NULL);
+        g_object_set(equalizer, "band4", (double)eq4, NULL);
+        g_object_set(equalizer, "band5", (double)eq5, NULL);
+        g_object_set(equalizer, "band6", (double)eq6, NULL);
+        g_object_set(equalizer, "band7", (double)eq7, NULL);
+        g_object_set(equalizer, "band8", (double)eq8, NULL);
+        g_object_set(equalizer, "band0", (double)eq9, NULL);
+        g_object_set(equalizer, "band9", (double)eq10, NULL);
+
+    }
+    this->bypass = bypass;
+}
+
+void AudioBackendGstreamer::setEqLevel1(int level)
+{
+    g_object_set(equalizer, "band0", (double)level, NULL);
+    eq1 = level;
+}
+
+void AudioBackendGstreamer::setEqLevel2(int level)
+{
+    if (!bypass)
+        g_object_set(equalizer, "band1", (double)level, NULL);
+    eq2 = level;
+}
+
+void AudioBackendGstreamer::setEqLevel3(int level)
+{
+    if (!bypass)
+        g_object_set(equalizer, "band2", (double)level, NULL);
+    eq3 = level;
+}
+
+void AudioBackendGstreamer::setEqLevel4(int level)
+{
+    if (!bypass)
+        g_object_set(equalizer, "band3", (double)level, NULL);
+    eq4 = level;
+}
+
+void AudioBackendGstreamer::setEqLevel5(int level)
+{
+    if (!bypass)
+        g_object_set(equalizer, "band4", (double)level, NULL);
+    eq5 = level;
+}
+
+void AudioBackendGstreamer::setEqLevel6(int level)
+{
+    if (!bypass)
+        g_object_set(equalizer, "band5", (double)level, NULL);
+    eq6 = level;
+}
+
+void AudioBackendGstreamer::setEqLevel7(int level)
+{
+    if (!bypass)
+        g_object_set(equalizer, "band6", (double)level, NULL);
+    eq7 = level;
+}
+
+void AudioBackendGstreamer::setEqLevel8(int level)
+{
+    if (!bypass)
+        g_object_set(equalizer, "band7", (double)level, NULL);
+    eq8 = level;
+}
+
+void AudioBackendGstreamer::setEqLevel9(int level)
+{
+    if (!bypass)
+        g_object_set(equalizer, "band8", (double)level, NULL);
+    eq9 = level;
+}
+
+void AudioBackendGstreamer::setEqLevel10(int level)
+{
+    if (!bypass)
+        g_object_set(equalizer, "band9", (double)level, NULL);
+    eq10 = level;
 }

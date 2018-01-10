@@ -168,6 +168,28 @@ public:
     double bookCreatorMarginLft();
     double bookCreatorMarginTop();
     double bookCreatorMarginBtm();
+    bool eqKBypass();
+    bool eqBBypass();
+    int eqKLevel1();
+    int eqKLevel2();
+    int eqKLevel3();
+    int eqKLevel4();
+    int eqKLevel5();
+    int eqKLevel6();
+    int eqKLevel7();
+    int eqKLevel8();
+    int eqKLevel9();
+    int eqKLevel10();
+    int eqBLevel1();
+    int eqBLevel2();
+    int eqBLevel3();
+    int eqBLevel4();
+    int eqBLevel5();
+    int eqBLevel6();
+    int eqBLevel7();
+    int eqBLevel8();
+    int eqBLevel9();
+    int eqBLevel10();
 
 signals:
     void tickerFontChanged();
@@ -201,6 +223,28 @@ signals:
     void alertBgColorChanged(QColor color);
     void cdgDisplayOffsetChanged(int offset);
     void showSongStopPauseWarningChanged(bool enabled);
+    void eqKBypassChanged(bool bypass);
+    void eqBBypassChanged(bool bypass);
+    void eqKLevel1Changed(int level);
+    void eqKLevel2Changed(int level);
+    void eqKLevel3Changed(int level);
+    void eqKLevel4Changed(int level);
+    void eqKLevel5Changed(int level);
+    void eqKLevel6Changed(int level);
+    void eqKLevel7Changed(int level);
+    void eqKLevel8Changed(int level);
+    void eqKLevel9Changed(int level);
+    void eqKLevel10Changed(int level);
+    void eqBLevel1Changed(int level);
+    void eqBLevel2Changed(int level);
+    void eqBLevel3Changed(int level);
+    void eqBLevel4Changed(int level);
+    void eqBLevel5Changed(int level);
+    void eqBLevel6Changed(int level);
+    void eqBLevel7Changed(int level);
+    void eqBLevel8Changed(int level);
+    void eqBLevel9Changed(int level);
+    void eqBLevel10Changed(int level);
 
 public slots:
     void setShowCdgWindow(bool show);
@@ -225,6 +269,29 @@ public slots:
     void setBookCreatorMarginLft(double margin);
     void setBookCreatorMarginTop(double margin);
     void setBookCreatorMarginBtm(double margin);
+    void setEqKBypass(bool bypass);
+    void setEqBBypass(bool bypass);
+    void setEqKLevel1(int level);
+    void setEqKLevel2(int level);
+    void setEqKLevel3(int level);
+    void setEqKLevel4(int level);
+    void setEqKLevel5(int level);
+    void setEqKLevel6(int level);
+    void setEqKLevel7(int level);
+    void setEqKLevel8(int level);
+    void setEqKLevel9(int level);
+    void setEqKLevel10(int level);
+    void setEqBLevel1(int level);
+    void setEqBLevel2(int level);
+    void setEqBLevel3(int level);
+    void setEqBLevel4(int level);
+    void setEqBLevel5(int level);
+    void setEqBLevel6(int level);
+    void setEqBLevel7(int level);
+    void setEqBLevel8(int level);
+    void setEqBLevel9(int level);
+    void setEqBLevel10(int level);
+
 
 };
 
