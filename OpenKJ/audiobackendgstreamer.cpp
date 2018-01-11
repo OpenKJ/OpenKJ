@@ -660,6 +660,13 @@ bool AudioBackendGstreamer::canFade()
 void AudioBackendGstreamer::fadeOut(bool waitForFade)
 {
     qWarning() << objName << " - fadeOut called";
+    if (isFading)
+    {
+        qWarning() << objName << "- fadeOut - Fade already in progress, waiting...";
+        while (isFading)
+            QApplication::processEvents();
+        qWarning() << objName << "- fadeOut - In progress fade finished, continuing...";
+    }
     gst_timed_value_control_source_unset_all(tv_csource);
     gdouble curVolume;
     g_object_get(G_OBJECT(volumeElement), "volume", &curVolume, NULL);
@@ -711,6 +718,13 @@ void AudioBackendGstreamer::fadeOut(bool waitForFade)
 void AudioBackendGstreamer::fadeIn(bool waitForFade)
 {
     qWarning() << objName << " - fadeIn called";
+    if (isFading)
+    {
+        qWarning() << objName << "- fadeOut - Fade already in progress, waiting...";
+        while (isFading)
+            QApplication::processEvents();
+        qWarning() << objName << "- fadeOut - In progress fade finished, continuing...";
+    }
     gst_timed_value_control_source_unset_all(tv_csource);
     if (state() != PlayingState)
     {
