@@ -1923,3 +1923,26 @@ void MainWindow::on_actionEqualizer_triggered()
 {
     dlgEq->show();
 }
+
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
+    {
+        QMessageBox msgBox(this);
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.setText("Are you sure you want to exit?");
+        msgBox.setInformativeText("There is currently a karaoke song playing.  If you continue, the current song will be stopped. Are you sure?");
+        QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
+        msgBox.addButton(QMessageBox::Cancel);
+        msgBox.exec();
+        if (msgBox.clickedButton() != yesButton)
+        {
+            event->ignore();
+        }
+        else
+            event->accept();
+    }
+    else
+        event->accept();
+}

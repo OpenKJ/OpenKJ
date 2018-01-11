@@ -226,6 +226,10 @@ private slots:
     void on_spinBoxTempo_valueChanged(int arg1);
     void on_actionSongbook_Generator_triggered();
     void on_actionEqualizer_triggered();
+
+    // QWidget interface
+protected:
+    void closeEvent(QCloseEvent *event);
 };
 
 
