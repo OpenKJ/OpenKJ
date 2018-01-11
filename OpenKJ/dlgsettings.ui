@@ -167,7 +167,7 @@
         <item>
          <widget class="QStackedWidget" name="stackedWidget">
           <property name="currentIndex">
-           <number>3</number>
+           <number>2</number>
           </property>
           <widget class="QWidget" name="audioPage">
            <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -838,6 +838,9 @@
                  </item>
                  <item row="0" column="1">
                   <widget class="QLineEdit" name="lineEditUrl">
+                   <property name="toolTip">
+                    <string>URL of the server to use for remote requests</string>
+                   </property>
                    <property name="inputMethodHints">
                     <set>Qt::ImhUrlCharactersOnly</set>
                    </property>
@@ -848,6 +851,9 @@
                  </item>
                  <item row="1" column="1">
                   <widget class="QCheckBox" name="checkBoxIgnoreCertErrors">
+                   <property name="toolTip">
+                    <string>If enabled, OpenKJ will ignore any problems with SSL certificates.  Useful if you are hosing your own request server and are using a self-signed cert.</string>
+                   </property>
                    <property name="text">
                     <string>Ignore HTTPS certificate errors</string>
                    </property>
@@ -861,9 +867,72 @@
                   </widget>
                  </item>
                  <item row="2" column="1">
-                  <widget class="QLineEdit" name="lineEditApiKey"/>
+                  <widget class="QLineEdit" name="lineEditApiKey">
+                   <property name="toolTip">
+                    <string>API key provided by the request server.  Can be blank if using a custom server that doesn't require a key.</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="0">
+                  <widget class="QLabel" name="label_22">
+                   <property name="text">
+                    <string>Interval</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="1">
+                  <layout class="QHBoxLayout" name="horizontalLayout_15">
+                   <property name="rightMargin">
+                    <number>50</number>
+                   </property>
+                   <item>
+                    <widget class="QSpinBox" name="spinBoxInterval">
+                     <property name="toolTip">
+                      <string>How often to check the server for new requests</string>
+                     </property>
+                     <property name="suffix">
+                      <string> seconds</string>
+                     </property>
+                     <property name="minimum">
+                      <number>10</number>
+                     </property>
+                     <property name="maximum">
+                      <number>10000</number>
+                     </property>
+                     <property name="singleStep">
+                      <number>10</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_11">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>40</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                  </layout>
                  </item>
                 </layout>
+               </item>
+               <item>
+                <spacer name="verticalSpacer_3">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
                </item>
               </layout>
              </widget>

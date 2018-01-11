@@ -190,6 +190,7 @@ public:
     int eqBLevel8();
     int eqBLevel9();
     int eqBLevel10();
+    int requestServerInterval();
 
 signals:
     void tickerFontChanged();
@@ -245,6 +246,7 @@ signals:
     void eqBLevel8Changed(int level);
     void eqBLevel9Changed(int level);
     void eqBLevel10Changed(int level);
+    void requestServerIntervalChanged(int interval);
 
 public slots:
     void setShowCdgWindow(bool show);
@@ -291,6 +293,7 @@ public slots:
     void setEqBLevel8(int level);
     void setEqBLevel9(int level);
     void setEqBLevel10(int level);
+    void setRequestServerInterval(int interval);
 
 
 };

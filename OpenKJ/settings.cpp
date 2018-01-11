@@ -747,6 +747,12 @@ void Settings::setEqBLevel10(int level)
     emit eqBLevel10Changed(level);
 }
 
+void Settings::setRequestServerInterval(int interval)
+{
+    settings->setValue("requestServerInterval", interval);
+    emit requestServerIntervalChanged(interval);
+}
+
 void Settings::setCdgHSizeAdjustment(int pixels)
 {
     settings->setValue("cdgHSizeAdjustment", pixels);
@@ -1060,4 +1066,9 @@ int Settings::eqBLevel9()
 int Settings::eqBLevel10()
 {
     return settings->value("eqBLevel10", 0).toInt();
+}
+
+int Settings::requestServerInterval()
+{
+    return settings->value("requestServerInterval", 30).toInt();
 }

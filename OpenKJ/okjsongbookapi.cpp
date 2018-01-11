@@ -25,11 +25,12 @@ OKJSongbookAPI::OKJSongbookAPI(QObject *parent) : QObject(parent)
     connectionReset = false;
     serial = 0;
     timer = new QTimer(this);
-    timer->setInterval(10000);
+    timer->setInterval(settings->requestServerInterval() * 1000);
     manager = new QNetworkAccessManager(this);
     connect(manager, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(onSslErrors(QNetworkReply*,QList<QSslError>)));
     connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
     connect(timer, SIGNAL(timeout()), this, SLOT(timerTimeout()));
+    connect(settings, SIGNAL(requestServerIntervalChanged(int)), this, SLOT(setInterval(int)));
     if (settings->requestServerEnabled())
         refreshVenues();
     timer->start();
@@ -360,6 +361,11 @@ void OKJSongbookAPI::timerTimeout()
         }
         getSerial();
     }
+}
+
+void OKJSongbookAPI::setInterval(int interval)
+{
+    timer->setInterval(interval * 1000);
 }
 
 bool OkjsVenue::operator ==(const OkjsVenue &v) const

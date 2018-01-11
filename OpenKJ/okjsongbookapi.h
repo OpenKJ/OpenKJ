@@ -78,6 +78,7 @@ private slots:
         void onSslErrors(QNetworkReply * reply, QList<QSslError> errors);
         void onNetworkReply(QNetworkReply* reply);
         void timerTimeout();
+        void setInterval(int interval);
 };
 
 #endif // OKJSONGBOOKAPI_H

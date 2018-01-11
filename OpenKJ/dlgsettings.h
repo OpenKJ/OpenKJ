@@ -103,6 +103,7 @@ private slots:
     void on_btnAlertTxtColor_clicked();
     void on_btnAlertBgColor_clicked();
     void on_cbxBmAutostart_clicked(bool checked);
+    void on_spinBoxInterval_valueChanged(int arg1);
 };
 
 #endif // SETTINGSDIALOG_H

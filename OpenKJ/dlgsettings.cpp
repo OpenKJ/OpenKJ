@@ -127,6 +127,7 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     ui->checkBoxFaderBm->setChecked(settings->audioUseFaderBm());
     ui->checkBoxDownmixBm->setChecked(settings->audioDownmixBm());
     ui->checkBoxSilenceDetectionBm->setChecked(settings->audioDetectSilenceBm());
+    ui->spinBoxInterval->setValue(settings->requestServerInterval());
     AudioRecorder recorder;
     QAudioRecorder audioRecorder;
     QStringList inputs = recorder.getDeviceList();
@@ -594,4 +595,10 @@ void DlgSettings::on_btnAlertBgColor_clicked()
 void DlgSettings::on_cbxBmAutostart_clicked(bool checked)
 {
     settings->setBmAutoStart(checked);
+}
+
+void DlgSettings::on_spinBoxInterval_valueChanged(int arg1)
+{
+    if (pageSetupDone)
+        settings->setRequestServerInterval(arg1);
 }
