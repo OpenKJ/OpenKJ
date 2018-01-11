@@ -249,7 +249,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     if (!gst_object_add_control_binding (GST_OBJECT_CAST(volumeElement), cbind))
         qWarning() << objName << " - Error adding control binding to volumeElement for fader control";
 
-    g_object_set(csource, "mode", GST_INTERPOLATION_MODE_LINEAR, NULL);
+    g_object_set(csource, "mode", GST_INTERPOLATION_MODE_CUBIC, NULL);
     tv_csource = (GstTimedValueControlSource *)csource;
 }
 
@@ -672,15 +672,32 @@ void AudioBackendGstreamer::fadeOut(bool waitForFade)
         setVolume(0);
         return;
     }
+    if (isSilent())
+    {
+        qWarning() << objName << "- fadeOut - Audio is currently slient, skipping fade and setting volume to zero immediately";
+        setVolume(0);
+        return;
+    }
     isFading = true;
     gint64 pos;
     GstFormat fmt = GST_FORMAT_TIME;
     gst_element_query_position(playBin, fmt, &pos);
     qWarning() << objName << " - faceOut - Current pos: " << pos;
+    //if (!gst_timed_value_control_source_set (tv_csource, pos + (10 * GST_MSECOND), curVolume * .12))
     if (!gst_timed_value_control_source_set (tv_csource, pos + (10 * GST_MSECOND), curVolume * .12))
+    {
         qWarning() << objName << " - fadeOut - Error adding start fade timed value";
+        isFading = false;
+        gst_timed_value_control_source_unset_all(tv_csource);
+        return;
+    }
     if (!gst_timed_value_control_source_set (tv_csource, pos + (10 * GST_MSECOND) + (5 * GST_SECOND), 0.0))
+    {
         qWarning() << objName << " - fadeOut - Error adding end fade timed value";
+        isFading = false;
+        gst_timed_value_control_source_unset_all(tv_csource);
+        return;
+    }
     while (m_volume > 0)
     {
         QApplication::processEvents();
@@ -701,6 +718,12 @@ void AudioBackendGstreamer::fadeIn(bool waitForFade)
         setVolume(m_preFadeVolume * 100);
         return;
     }
+    if (isSilent())
+    {
+        qWarning() << objName << "- fadeOut - Audio is currently slient, skipping fade and setting volume immediately";
+        setVolume(m_preFadeVolume * 100);
+        return;
+    }
     isFading = true;
     gint64 pos;
     GstFormat fmt = GST_FORMAT_TIME;
@@ -708,9 +731,19 @@ void AudioBackendGstreamer::fadeIn(bool waitForFade)
     qWarning() << objName << " - fadeIn - Current pos: " << pos;
     qWarning() << objName << " - fadeIn - Target volume: " << m_preFadeVolume;
     if (!gst_timed_value_control_source_set (tv_csource, pos + (10 * GST_MSECOND), 0.0))
+    {
         qWarning() << objName << " - fadeIn - Error adding start fade timed value";
+        isFading = false;
+        gst_timed_value_control_source_unset_all(tv_csource);
+        return;
+    }
     if (!gst_timed_value_control_source_set (tv_csource, pos + (10 * GST_MSECOND) + (5 * GST_SECOND), m_preFadeVolume * .12))
+    {
         qWarning() << objName << " - fadeIn - Error adding end fade timed value";
+        isFading = false;
+        gst_timed_value_control_source_unset_all(tv_csource);
+        return;
+    }
     while (m_volume < m_preFadeVolumeInt)
         QApplication::processEvents();
     qWarning() << objName << " - fadeIn done";
