@@ -175,7 +175,7 @@ void DbUpdateThread::run()
     QSqlQuery query("BEGIN TRANSACTION");
     emit progressMessage("Checking if files are valid and getting durations...");
     emit stateChanged("Validating karaoke files and getting song durations...");
-    query.prepare("INSERT OR IGNORE INTO dbSongs (discid,artist,title,path,filename,duration) VALUES(:discid, :artist, :title, :path, :filename, :duration)");
+    query.prepare("INSERT OR IGNORE INTO dbSongs (discid,artist,title,path,filename,duration,searchstring) VALUES(:discid, :artist, :title, :path, :filename, :duration, :searchstring)");
     for (int i=0; i < files.count(); i++)
     {
         fileName = files.at(i);
@@ -348,6 +348,7 @@ void DbUpdateThread::run()
         query.bindValue(":path", file.filePath());
         query.bindValue(":filename", file.completeBaseName());
         query.bindValue(":duration", duration);
+        query.bindValue(":searchstring", QString(file.completeBaseName() + " " + artist + " " + title + " " + discid));
         query.exec();
         emit progressChanged(i + 1);
         emit stateChanged("Validating karaoke files and getting song durations... " + QString::number(i + 1) + " of " + QString::number(files.size()));
