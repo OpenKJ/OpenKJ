@@ -76,12 +76,12 @@ void DbTableModel::search(QString searchString)
     }
     QString whereClause;
     if (settings->ignoreAposInSearch())
-        whereClause = "discid != \"!!BAD!!\" AND replace(filename, \"'\", \"\") LIKE \"%" + terms.at(0) + "%\"";
+        whereClause = "discid != \"!!BAD!!\" AND replace(searchstring, \"'\", \"\") LIKE \"%" + terms.at(0) + "%\"";
     else
-        whereClause = "discid != \"!!BAD!!\" AND filename LIKE \"%" + terms.at(0) + "%\"";
+        whereClause = "discid != \"!!BAD!!\" AND searchstring LIKE \"%" + terms.at(0) + "%\"";
     for (int i=1; i < terms.size(); i++)
     {
-        whereClause = whereClause + " AND filename LIKE \"%" + terms.at(i) + "%\"";
+        whereClause = whereClause + " AND searchstring LIKE \"%" + terms.at(i) + "%\"";
     }
     setFilter(whereClause);
 }

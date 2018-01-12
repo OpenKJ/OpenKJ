@@ -80,7 +80,7 @@ MainWindow::MainWindow(QWidget *parent) :
     database = QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE"));
     database.setDatabaseName(khDir->absolutePath() + QDir::separator() + "openkj.sqlite");
     database.open();
-    QSqlQuery query("CREATE TABLE IF NOT EXISTS dbSongs ( songid INTEGER PRIMARY KEY AUTOINCREMENT, Artist COLLATE NOCASE, Title COLLATE NOCASE, DiscId COLLATE NOCASE, 'Duration' INTEGER, path VARCHAR(700) NOT NULL UNIQUE, filename COLLATE NOCASE)");
+    QSqlQuery query("CREATE TABLE IF NOT EXISTS dbSongs ( songid INTEGER PRIMARY KEY AUTOINCREMENT, Artist COLLATE NOCASE, Title COLLATE NOCASE, DiscId COLLATE NOCASE, 'Duration' INTEGER, path VARCHAR(700) NOT NULL UNIQUE, filename COLLATE NOCASE, searchstring TEXT)");
     query.exec("CREATE TABLE IF NOT EXISTS rotationSingers ( singerid INTEGER PRIMARY KEY AUTOINCREMENT, name COLLATE NOCASE UNIQUE, 'position' INTEGER NOT NULL, 'regular' LOGICAL DEFAULT(0), 'regularid' INTEGER)");
     query.exec("CREATE TABLE IF NOT EXISTS queueSongs ( qsongid INTEGER PRIMARY KEY AUTOINCREMENT, singer INT, song INTEGER NOT NULL, artist INT, title INT, discid INT, path INT, keychg INT, played LOGICAL DEFAULT(0), 'position' INT)");
     query.exec("CREATE TABLE IF NOT EXISTS regularSingers ( regsingerid INTEGER PRIMARY KEY AUTOINCREMENT, Name COLLATE NOCASE UNIQUE, ph1 INT, ph2 INT, ph3 INT)");
@@ -114,6 +114,12 @@ MainWindow::MainWindow(QWidget *parent) :
     {
         query.exec("CREATE UNIQUE INDEX idx_path ON dbsongs(path)");
         query.exec("PRAGMA user_version = 102");
+    }
+    if (schemaVersion < 103)
+    {
+        query.exec("ALTER TABLE dbsongs ADD COLUMN searchstring TEXT");
+        query.exec("UPDATE dbsongs SET searchstring = filename || ' ' || artist || ' ' || title || ' ' || discid");
+        query.exec("PRAGMA user_version = 103");
     }
 
 //    query.exec("ATTACH DATABASE ':memory:' AS mem");
