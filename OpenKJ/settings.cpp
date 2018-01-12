@@ -253,6 +253,11 @@ void Settings::setTickerCustomString(QString value)
     emit tickerCustomStringChanged();
 }
 
+bool Settings::tickerShowRotationInfo()
+{
+    return settings->value("tickerShowRotationInfo", true).toBool();
+}
+
 bool Settings::requestServerEnabled()
 {
     return settings->value("requestServerEnabled", false).toBool();
@@ -751,6 +756,13 @@ void Settings::setRequestServerInterval(int interval)
 {
     settings->setValue("requestServerInterval", interval);
     emit requestServerIntervalChanged(interval);
+}
+
+void Settings::setTickerShowRotationInfo(bool show)
+{
+    settings->setValue("tickerShowRotationInfo", show);
+    emit tickerShowRotationInfoChanged(show);
+    emit tickerOutputModeChanged();
 }
 
 void Settings::setCdgHSizeAdjustment(int pixels)

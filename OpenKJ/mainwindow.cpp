@@ -1157,52 +1157,79 @@ void MainWindow::rotationDataChanged()
     labelSingerCount->setText(statusBarText);
     QString tickerText;
     if (settings->tickerCustomString() != "")
+    {
         tickerText += settings->tickerCustomString() + " | ";
-    tickerText += "Singers: ";
-    tickerText += QString::number(rotModel->rowCount());
-    tickerText += " | Current: ";
-    int displayPos;
-    QString curSinger = rotModel->getSingerName(rotModel->currentSinger());
-    if (curSinger != "")
-    {
-        tickerText += curSinger;
-        displayPos = rotModel->getSingerPosition(rotModel->currentSinger());
-    }
-    else
-    {
-        tickerText += "None";
-        displayPos = -1;
-    }
-    int listSize;
-    if (settings->tickerFullRotation() || (rotModel->rowCount() < settings->tickerShowNumSingers()))
-    {
-        if (curSinger == "")
-            listSize = rotModel->rowCount();
+        QString cs = rotModel->getSingerName(rotModel->currentSinger());
+        int nsPos;
+        if (cs == "")
+        {
+            cs = "none";
+            nsPos = -1;
+        }
         else
-            listSize = rotModel->rowCount() - 1;
-        if (listSize > 0)
-            tickerText += " | Upcoming: ";
+            nsPos = rotModel->getSingerPosition(rotModel->currentSinger());
+        QString ns = "none";
+        if (rotModel->rowCount() > 0)
+        {
+            if (nsPos + 1 < rotModel->rowCount())
+                nsPos++;
+            else
+                nsPos = 0;
+            ns = rotModel->getSingerName(rotModel->singerIdAtPosition(nsPos));
+        }
+        tickerText.replace("%cs", cs);
+        tickerText.replace("%ns", ns);
+        tickerText.replace("%rc", QString::number(rotModel->rowCount()));
+
     }
-    else
+    if (settings->tickerShowRotationInfo())
     {
-        listSize = settings->tickerShowNumSingers();
-        tickerText += " | Next ";
-        tickerText += QString::number(settings->tickerShowNumSingers());
-        tickerText += " Singers: ";
-    }
-    for (int i=0; i < listSize; i++)
-    {
-        if (displayPos + 1 < rotModel->rowCount())
-            displayPos++;
+        tickerText += "Singers: ";
+        tickerText += QString::number(rotModel->rowCount());
+        tickerText += " | Current: ";
+        int displayPos;
+        QString curSinger = rotModel->getSingerName(rotModel->currentSinger());
+        if (curSinger != "")
+        {
+            tickerText += curSinger;
+            displayPos = rotModel->getSingerPosition(rotModel->currentSinger());
+        }
         else
-            displayPos = 0;
-        tickerText += QString::number(i + 1);
-        tickerText += ") ";
-        tickerText += rotModel->getSingerName(rotModel->singerIdAtPosition(displayPos));
-        tickerText += "  ";
+        {
+            tickerText += "None";
+            displayPos = -1;
+        }
+        int listSize;
+        if (settings->tickerFullRotation() || (rotModel->rowCount() < settings->tickerShowNumSingers()))
+        {
+            if (curSinger == "")
+                listSize = rotModel->rowCount();
+            else
+                listSize = rotModel->rowCount() - 1;
+            if (listSize > 0)
+                tickerText += " | Upcoming: ";
+        }
+        else
+        {
+            listSize = settings->tickerShowNumSingers();
+            tickerText += " | Next ";
+            tickerText += QString::number(settings->tickerShowNumSingers());
+            tickerText += " Singers: ";
+        }
+        for (int i=0; i < listSize; i++)
+        {
+            if (displayPos + 1 < rotModel->rowCount())
+                displayPos++;
+            else
+                displayPos = 0;
+            tickerText += QString::number(i + 1);
+            tickerText += ") ";
+            tickerText += rotModel->getSingerName(rotModel->singerIdAtPosition(displayPos));
+            tickerText += "  ";
+        }
+        if (rotModel->rowCount() == 0)
+            tickerText += " None";
     }
-    if (rotModel->rowCount() == 0)
-        tickerText += " None";
     cdgWindow->setTickerText(tickerText);
 }
 

@@ -167,7 +167,7 @@
         <item>
          <widget class="QStackedWidget" name="stackedWidget">
           <property name="currentIndex">
-           <number>2</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="audioPage">
            <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -751,6 +751,13 @@
                 </layout>
                </item>
                <item>
+                <widget class="QCheckBox" name="cbxTickerShowRotationInfo">
+                 <property name="text">
+                  <string>Show rotation info</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
                 <widget class="QRadioButton" name="radioButtonFullRotation">
                  <property name="text">
                   <string>Show Full Rotation</string>
@@ -759,6 +766,9 @@
                </item>
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_7">
+                 <property name="spacing">
+                  <number>6</number>
+                 </property>
                  <property name="topMargin">
                   <number>0</number>
                  </property>
@@ -813,6 +823,19 @@
                </item>
               </layout>
              </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_4">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
             </item>
            </layout>
           </widget>

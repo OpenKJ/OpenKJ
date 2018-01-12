@@ -104,6 +104,7 @@ private slots:
     void on_btnAlertBgColor_clicked();
     void on_cbxBmAutostart_clicked(bool checked);
     void on_spinBoxInterval_valueChanged(int arg1);
+    void tickerShowRotationInfoChanged(bool show);
 };
 
 #endif // SETTINGSDIALOG_H

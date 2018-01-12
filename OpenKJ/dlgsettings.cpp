@@ -148,6 +148,7 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     else
         ui->comboBoxCodec->setCurrentIndex(ui->comboBoxCodec->findText(settings->recordingCodec()));
     ui->lineEditOutputDir->setText(settings->recordingOutputDir());
+    tickerShowRotationInfoChanged(settings->tickerShowRotationInfo());
     ui->groupBoxTicker->setChecked(settings->tickerEnabled());
     ui->lineEditTickerMessage->setText(settings->tickerCustomString());
     connect(networkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
@@ -161,6 +162,8 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     connect(ui->cbxSingerRemovalWarning, SIGNAL(toggled(bool)), settings, SLOT(setShowSingerRemovalWarning(bool)));
     connect(ui->cbxSongInterruptionWarning, SIGNAL(toggled(bool)), settings, SLOT(setShowSongInterruptionWarning(bool)));
     connect(ui->cbxStopPauseWarning, SIGNAL(toggled(bool)), settings, SLOT(setShowSongPauseStopWarning(bool)));
+    connect(ui->cbxTickerShowRotationInfo, SIGNAL(clicked(bool)), settings, SLOT(setTickerShowRotationInfo(bool)));
+    connect(settings, SIGNAL(tickerShowRotationInfoChanged(bool)), this, SLOT(tickerShowRotationInfoChanged(bool)));
     pageSetupDone = true;
     ui->spinBoxAADelay->setValue(settings->karaokeAATimeout());
     ui->checkBoxKAA->setChecked(settings->karaokeAutoAdvance());
@@ -601,4 +604,13 @@ void DlgSettings::on_spinBoxInterval_valueChanged(int arg1)
 {
     if (pageSetupDone)
         settings->setRequestServerInterval(arg1);
+}
+
+void DlgSettings::tickerShowRotationInfoChanged(bool show)
+{
+    ui->radioButtonFullRotation->setEnabled(show);
+    ui->radioButtonPartialRotation->setEnabled(show);
+    ui->spinBoxTickerSingers->setEnabled(show);
+    ui->label_5->setEnabled(show);
+    ui->cbxTickerShowRotationInfo->setChecked(show);
 }

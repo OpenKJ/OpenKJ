@@ -81,6 +81,7 @@ public:
     bool tickerEnabled();
     QString tickerCustomString();
     void setTickerCustomString(QString value);
+    bool tickerShowRotationInfo();
     bool requestServerEnabled();
     void setRequestServerEnabled(bool enable);
     QString requestServerUrl();
@@ -200,6 +201,7 @@ signals:
     void tickerBgColorChanged();
     void tickerOutputModeChanged();
     void tickerEnableChanged();
+    void tickerShowRotationInfoChanged(bool show);
     void audioBackendChanged(int index);
     void recordingSetupChanged();
     void cdgBgImageChanged();
@@ -294,6 +296,7 @@ public slots:
     void setEqBLevel9(int level);
     void setEqBLevel10(int level);
     void setRequestServerInterval(int interval);
+    void setTickerShowRotationInfo(bool show);
 
 
 };
