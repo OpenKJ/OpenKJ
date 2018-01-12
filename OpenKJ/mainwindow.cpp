@@ -1002,11 +1002,6 @@ void MainWindow::on_spinBoxKey_valueChanged(int arg1)
         ui->spinBoxKey->setValue(0);
 }
 
-void MainWindow::on_sliderVolume_valueChanged(int value)
-{
-    kAudioBackend->setVolume(value);
-}
-
 void MainWindow::audioBackend_positionChanged(qint64 position)
 {
     if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
@@ -1622,11 +1617,6 @@ void MainWindow::on_tableViewBmPlaylist_activated(const QModelIndex &index)
     bmPlModel->select();
 }
 
-void MainWindow::on_sliderBmVolume_valueChanged(int value)
-{
-    bmAudioBackend->setVolume(value);
-}
-
 void MainWindow::on_sliderBmPosition_sliderMoved(int position)
 {
     bmAudioBackend->setPosition(position);
@@ -1945,4 +1935,14 @@ void MainWindow::closeEvent(QCloseEvent *event)
     }
     else
         event->accept();
+}
+
+void MainWindow::on_sliderVolume_sliderMoved(int position)
+{
+    kAudioBackend->setVolume(position);
+}
+
+void MainWindow::on_sliderBmVolume_sliderMoved(int position)
+{
+    bmAudioBackend->setVolume(position);
 }

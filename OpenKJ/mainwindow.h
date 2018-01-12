@@ -161,7 +161,6 @@ private slots:
     void clearQueueSort();
     void on_buttonClearQueue_clicked();
     void on_spinBoxKey_valueChanged(int arg1);
-    void on_sliderVolume_valueChanged(int value);
     void audioBackend_positionChanged(qint64 position);
     void audioBackend_durationChanged(qint64 duration);
     void audioBackend_stateChanged(AbstractAudioBackend::State state);
@@ -203,7 +202,6 @@ private slots:
     void on_buttonBmStop_clicked();
     void on_lineEditBmSearch_returnPressed();
     void on_tableViewBmPlaylist_activated(const QModelIndex &index);
-    void on_sliderBmVolume_valueChanged(int value);
     void on_sliderBmPosition_sliderMoved(int position);
     void on_buttonBmPause_clicked(bool checked);
     void on_actionDisplay_Metadata_toggled(bool arg1);
@@ -228,6 +226,10 @@ private slots:
     void on_actionEqualizer_triggered();
 
     // QWidget interface
+    void on_sliderVolume_sliderMoved(int position);
+
+    void on_sliderBmVolume_sliderMoved(int position);
+
 protected:
     void closeEvent(QCloseEvent *event);
 };
