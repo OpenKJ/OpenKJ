@@ -705,12 +705,12 @@ void AudioBackendGstreamer::fadeOut(bool waitForFade)
         gst_timed_value_control_source_unset_all(tv_csource);
         return;
     }
-    while (m_volume > 0)
+    while ((m_volume > 0) && state() == PlayingState)
     {
         QApplication::processEvents();
     }
-//    gst_timed_value_control_source_unset_all(tv_csource);
-//    setVolume(0);
+    gst_timed_value_control_source_unset_all(tv_csource);
+    setVolume(0);
     qWarning() << objName << " - fadeOut done";
     isFading = false;
 }
@@ -758,7 +758,7 @@ void AudioBackendGstreamer::fadeIn(bool waitForFade)
         gst_timed_value_control_source_unset_all(tv_csource);
         return;
     }
-    while (m_volume < m_preFadeVolumeInt)
+    while ((m_volume < m_preFadeVolumeInt) && (state() == PlayingState))
         QApplication::processEvents();
     qWarning() << objName << " - fadeIn done";
     isFading = false;
