@@ -32,6 +32,8 @@ void RegItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
 {
     int topPad = (option.rect.height() - 16) / 2;
     int leftPad = (option.rect.width() - 16) / 2;
+    if (option.state & QStyle::State_Selected)
+        painter->fillRect(option.rect, option.palette.highlight());
     if (index.column() == 2)
     {
         QSqlQuery query;
@@ -40,7 +42,10 @@ void RegItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
         {
             painter->save();
             if (option.state & QStyle::State_Selected)
+            {
                 painter->setPen(option.palette.highlightedText().color());
+                painter->fillRect(option.rect, option.palette.highlight());
+            }
             painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter | Qt::AlignCenter, query.value(0).toString());
             painter->restore();
 
