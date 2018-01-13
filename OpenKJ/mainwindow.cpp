@@ -240,6 +240,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewDB->hideColumn(0);
     ui->tableViewDB->hideColumn(5);
     ui->tableViewDB->hideColumn(6);
+    ui->tableViewDB->hideColumn(7);
     ui->tableViewDB->horizontalHeader()->resizeSection(4,75);
     ui->tableViewQueue->hideColumn(0);
     ui->tableViewQueue->hideColumn(1);
