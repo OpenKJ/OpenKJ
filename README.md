@@ -53,7 +53,6 @@ I develop the software and host my shows on Linux (Fedora specifically), so it i
 
 ```
 sudo apt install qt5-qmake  
-sudo apt install qt5-multimedia  
 sudo apt install libqt5svg5-dev
 sudo apt install libgstreamer-plugins-base1.0-dev
 ```
