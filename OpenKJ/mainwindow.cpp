@@ -455,7 +455,7 @@ void MainWindow::play(QString karaokeFilePath)
                     setShowBgImage(false);
                     kAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + "tmp" + archive.audioExtension());
                     //                ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
-                    bmAudioBackend->fadeOut(false);
+                    bmAudioBackend->fadeOut(true);
                     kAudioBackend->play();
                 }
             }
@@ -504,7 +504,7 @@ void MainWindow::play(QString karaokeFilePath)
             cdg->Process();
             kAudioBackend->setMedia(mp3fn);
 //            ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
-            bmAudioBackend->fadeOut();
+            bmAudioBackend->fadeOut(true);
             kAudioBackend->play();
         }
         else
