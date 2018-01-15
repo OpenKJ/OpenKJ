@@ -167,6 +167,12 @@ bool QueueModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int 
     Q_UNUSED(action);
     Q_UNUSED(column);
 
+    if (singer() == -1)
+    {
+        qWarning() << "Song dropped into queue w/ no singer selected";
+        emit songDroppedWithoutSinger();
+        return false;
+    }
     if (data->hasFormat("integer/queuepos"))
     {
         int droprow;

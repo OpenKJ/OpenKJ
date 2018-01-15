@@ -230,6 +230,7 @@ private slots:
     void on_sliderVolume_sliderMoved(int position);
 
     void on_sliderBmVolume_sliderMoved(int position);
+    void songDropNoSingerSel();
 
 protected:
     void closeEvent(QCloseEvent *event);

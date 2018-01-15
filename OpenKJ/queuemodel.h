@@ -59,6 +59,7 @@ protected:
 
 signals:
     void queueModified(int singerId);
+    void songDroppedWithoutSinger();
 
 public slots:
     void songAdd(int songId, int singerId);

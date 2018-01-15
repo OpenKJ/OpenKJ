@@ -422,6 +422,7 @@ MainWindow::MainWindow(QWidget *parent) :
     bmAudioBackend->setEqLevel10(settings->eqBLevel10());
     connect(ui->lineEdit, SIGNAL(escapePressed()), ui->lineEdit, SLOT(clear()));
     connect(ui->lineEditBmSearch, SIGNAL(escapePressed()), ui->lineEditBmSearch, SLOT(clear()));
+    connect(qModel, SIGNAL(songDroppedWithoutSinger()), this, SLOT(songDropNoSingerSel()));
 
     qWarning() << "Initial UI stup complete";
 }
@@ -1989,4 +1990,11 @@ void MainWindow::on_sliderVolume_sliderMoved(int position)
 void MainWindow::on_sliderBmVolume_sliderMoved(int position)
 {
     bmAudioBackend->setVolume(position);
+}
+
+void MainWindow::songDropNoSingerSel()
+{
+    QMessageBox msgBox;
+    msgBox.setText("No singer selected.  You must select a singer before you can add songs to a queue.");
+    msgBox.exec();
 }
