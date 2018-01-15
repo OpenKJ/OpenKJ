@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>626</width>
-    <height>784</height>
+    <height>822</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -167,7 +167,7 @@
         <item>
          <widget class="QStackedWidget" name="stackedWidget">
           <property name="currentIndex">
-           <number>1</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="audioPage">
            <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -198,6 +198,13 @@
                   </property>
                   <property name="text">
                    <string>Fader</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="cbxCrossFade">
+                  <property name="text">
+                   <string>Cross fade between karaoke and break music (allow overlap)</string>
                   </property>
                  </widget>
                 </item>

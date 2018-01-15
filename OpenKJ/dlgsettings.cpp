@@ -182,6 +182,8 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     connect(settings, SIGNAL(showSongStopPauseWarningChanged(bool)), ui->cbxStopPauseWarning, SLOT(setChecked(bool)));
     connect(ui->cbxIgnoreApos, SIGNAL(toggled(bool)), settings, SLOT(setIgnoreAposInSearch(bool)));
     connect(ui->spinBoxCdgOffset, SIGNAL(valueChanged(int)), settings, SLOT(setCdgDisplayOffset(int)));
+    ui->cbxCrossFade->setChecked(settings->bmKCrossFade());
+    connect(ui->cbxCrossFade, SIGNAL(clicked(bool)), settings, SLOT(setBmKCrossfade(bool)));
 }
 
 DlgSettings::~DlgSettings()

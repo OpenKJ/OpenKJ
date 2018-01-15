@@ -192,6 +192,7 @@ public:
     int eqBLevel9();
     int eqBLevel10();
     int requestServerInterval();
+    bool bmKCrossFade();
 
 signals:
     void tickerFontChanged();
@@ -251,6 +252,7 @@ signals:
     void requestServerIntervalChanged(int interval);
 
 public slots:
+    void setBmKCrossfade(bool enabled);
     void setShowCdgWindow(bool show);
     void setCdgWindowFullscreen(bool fullScreen);
     void setCdgHSizeAdjustment(int pixels);

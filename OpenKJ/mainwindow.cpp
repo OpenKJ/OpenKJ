@@ -192,8 +192,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(kAudioBackend, SIGNAL(durationChanged(qint64)), this, SLOT(audioBackend_durationChanged(qint64)));
     connect(kAudioBackend, SIGNAL(stateChanged(AbstractAudioBackend::State)), this, SLOT(audioBackend_stateChanged(AbstractAudioBackend::State)));
     connect(kAudioBackend, SIGNAL(pitchChanged(int)), ui->spinBoxKey, SLOT(setValue(int)));
-    qDebug() << "Setting volume to " << settings->audioVolume();
-    ui->sliderBmVolume->setValue(settings->audioVolume());
     connect(rotModel, SIGNAL(rotationModified()), this, SLOT(rotationDataChanged()));
     connect(settings, SIGNAL(tickerOutputModeChanged()), this, SLOT(rotationDataChanged()));
     connect(settings, SIGNAL(audioBackendChanged(int)), this, SLOT(audioBackendChanged(int)));
@@ -334,7 +332,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(kAudioBackend, SIGNAL(newVideoFrame(QImage,QString)), this, SLOT(videoFrameReceived(QImage,QString)));
     qWarning() << "Setting up volume sliders";
     ui->sliderBmVolume->setValue(initialBMVol);
+    bmAudioBackend->setVolume(initialBMVol);
     ui->sliderVolume->setValue(initialKVol);
+    kAudioBackend->setVolume(initialKVol);
     qWarning() << "Restoring multiplex button states";
     if (settings->mplxMode() == Multiplex_Normal)
         ui->pushButtonMplxBoth->setChecked(true);
@@ -455,7 +455,7 @@ void MainWindow::play(QString karaokeFilePath)
                     setShowBgImage(false);
                     kAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + "tmp" + archive.audioExtension());
                     //                ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
-                    bmAudioBackend->fadeOut(false);
+                    bmAudioBackend->fadeOut(!settings->bmKCrossFade());
                     kAudioBackend->play();
                 }
             }
@@ -504,7 +504,7 @@ void MainWindow::play(QString karaokeFilePath)
             cdg->Process();
             kAudioBackend->setMedia(mp3fn);
 //            ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
-            bmAudioBackend->fadeOut();
+            bmAudioBackend->fadeOut(!settings->bmKCrossFade());
             kAudioBackend->play();
         }
         else
@@ -611,8 +611,16 @@ void MainWindow::on_buttonStop_clicked()
     kAASkip = true;
     cdgWindow->showAlert(false);
     audioRecorder->stop();
-    kAudioBackend->stop();
-    bmAudioBackend->fadeIn();
+    if (settings->bmKCrossFade())
+    {
+        bmAudioBackend->fadeIn(false);
+        kAudioBackend->stop();
+    }
+    else
+    {
+        kAudioBackend->stop();
+        bmAudioBackend->fadeIn();
+    }
 //    ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
 }
 

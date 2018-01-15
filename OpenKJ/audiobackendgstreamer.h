@@ -35,6 +35,7 @@
 #include <QThread>
 #include <QImage>
 #include <QAudioOutput>
+#include "audiofader.h"
 
 class AudioBackendGstreamer : public AbstractAudioBackend
 {
@@ -96,8 +97,8 @@ private:
     GstPad *ghostPad;
     GstBus *bus;
     GstDeviceMonitor *monitor;
-    GstControlSource *csource;
-    GstTimedValueControlSource *tv_csource;
+//    GstControlSource *csource;
+//    GstTimedValueControlSource *tv_csource;
     QString m_filename;
     QTimer *fastTimer;
     QTimer *slowTimer;
@@ -130,6 +131,7 @@ private:
     QStringList GstGetElements(QString plugin);
     QStringList outputDeviceNames;
     QList<GstDevice*> outputDevices;
+    AudioFader *fader;
 
     static void DestroyCallback(gpointer user_data);
 public:

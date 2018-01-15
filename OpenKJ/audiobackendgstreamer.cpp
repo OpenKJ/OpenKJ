@@ -240,6 +240,8 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
 
     g_object_set(G_OBJECT(playBin), "volume", 1.0, NULL);
 
+    fader = new AudioFader(volumeElement, this);
+    /*
     csource = gst_interpolation_control_source_new ();
     if (!csource)
         qWarning() << objName << " - Error createing control source";
@@ -251,6 +253,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
 
     g_object_set(csource, "mode", GST_INTERPOLATION_MODE_CUBIC, NULL);
     tv_csource = (GstTimedValueControlSource *)csource;
+    */
 }
 
 AudioBackendGstreamer::~AudioBackendGstreamer()
@@ -402,7 +405,7 @@ bool AudioBackendGstreamer::stopping()
 
 void AudioBackendGstreamer::play()
 {
-    gst_timed_value_control_source_unset_all(tv_csource);
+    //gst_timed_value_control_source_unset_all(tv_csource);
     g_object_set(G_OBJECT(playBin), "volume", 1.0, NULL);
     if (state() == AbstractAudioBackend::PausedState)
     {
@@ -519,7 +522,7 @@ void AudioBackendGstreamer::fastTimer_timeout()
     g_object_get(G_OBJECT(volumeElement), "volume", &curVolume, NULL);
     double cubicVolume = gst_stream_volume_convert_volume(GST_STREAM_VOLUME_FORMAT_LINEAR, GST_STREAM_VOLUME_FORMAT_CUBIC, curVolume);
     int intVol = cubicVolume * 100;
-//    qWarning() << objName << " - volume currently" << intVol;
+//    qWarning() << objName << " - volume currently" << curVolume;
 //    qWarning() << objName << " - last volume: " << m_volume;
     if (m_volume != intVol)
     {
@@ -659,6 +662,24 @@ bool AudioBackendGstreamer::canFade()
 
 void AudioBackendGstreamer::fadeOut(bool waitForFade)
 {
+    gdouble curVolume;
+    g_object_get(G_OBJECT(volumeElement), "volume", &curVolume, NULL);
+    m_preFadeVolume = curVolume;
+    m_preFadeVolumeInt = m_volume;
+    if (state() != PlayingState)
+    {
+        qWarning() << objName << " - fadeOut - State not playing, skipping fade and setting volume directly";
+        setVolume(0);
+        return;
+    }
+    if (isSilent())
+    {
+        qWarning() << objName << "- fadeOut - Audio is currently slient, skipping fade and setting volume to zero immediately";
+        setVolume(0);
+        return;
+    }
+    fader->fadeOut(waitForFade);
+    /*
     qWarning() << objName << " - fadeOut called";
     if (isFading)
     {
@@ -713,10 +734,25 @@ void AudioBackendGstreamer::fadeOut(bool waitForFade)
     setVolume(0);
     qWarning() << objName << " - fadeOut done";
     isFading = false;
+    */
 }
 
 void AudioBackendGstreamer::fadeIn(bool waitForFade)
 {
+    if (state() != PlayingState)
+    {
+        qWarning() << objName << " - fadeIn - State not playing, skipping fade and setting volume";
+        setVolume(m_preFadeVolume * 100);
+        return;
+    }
+    if (isSilent())
+    {
+        qWarning() << objName << "- fadeOut - Audio is currently slient, skipping fade and setting volume immediately";
+        setVolume(m_preFadeVolume * 100);
+        return;
+    }
+    fader->fadeIn(waitForFade);
+    /*
     qWarning() << objName << " - fadeIn called";
     if (isFading)
     {
@@ -766,6 +802,7 @@ void AudioBackendGstreamer::fadeIn(bool waitForFade)
     qWarning() << objName << " - forcing volume back to prefade value to work around weirdness in gstreamer control elements";
     qWarning() << objName << " - preFade volume was: " << m_preFadeVolumeInt;
     setVolume(m_preFadeVolumeInt);
+    */
 }
 
 void AudioBackendGstreamer::setUseFader(bool fade)
