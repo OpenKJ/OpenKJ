@@ -192,8 +192,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(kAudioBackend, SIGNAL(durationChanged(qint64)), this, SLOT(audioBackend_durationChanged(qint64)));
     connect(kAudioBackend, SIGNAL(stateChanged(AbstractAudioBackend::State)), this, SLOT(audioBackend_stateChanged(AbstractAudioBackend::State)));
     connect(kAudioBackend, SIGNAL(pitchChanged(int)), ui->spinBoxKey, SLOT(setValue(int)));
-    qDebug() << "Setting volume to " << settings->audioVolume();
-    ui->sliderBmVolume->setValue(settings->audioVolume());
     connect(rotModel, SIGNAL(rotationModified()), this, SLOT(rotationDataChanged()));
     connect(settings, SIGNAL(tickerOutputModeChanged()), this, SLOT(rotationDataChanged()));
     connect(settings, SIGNAL(audioBackendChanged(int)), this, SLOT(audioBackendChanged(int)));
@@ -334,7 +332,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(kAudioBackend, SIGNAL(newVideoFrame(QImage,QString)), this, SLOT(videoFrameReceived(QImage,QString)));
     qWarning() << "Setting up volume sliders";
     ui->sliderBmVolume->setValue(initialBMVol);
+    bmAudioBackend->setVolume(initialBMVol);
     ui->sliderVolume->setValue(initialKVol);
+    kAudioBackend->setVolume(initialKVol);
     qWarning() << "Restoring multiplex button states";
     if (settings->mplxMode() == Multiplex_Normal)
         ui->pushButtonMplxBoth->setChecked(true);
