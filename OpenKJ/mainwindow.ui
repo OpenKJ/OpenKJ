@@ -51,7 +51,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <property name="usesScrollButtons">
        <bool>true</bool>
@@ -162,7 +162,7 @@
                   <number>4</number>
                  </property>
                  <item>
-                  <widget class="QLineEdit" name="lineEdit"/>
+                  <widget class="CustomLineEdit" name="lineEdit"/>
                  </item>
                  <item>
                   <widget class="QPushButton" name="pushButton">
@@ -2430,7 +2430,7 @@
                    <number>2</number>
                   </property>
                   <item>
-                   <widget class="QLineEdit" name="lineEditBmSearch"/>
+                   <widget class="CustomLineEdit" name="lineEditBmSearch"/>
                   </item>
                   <item>
                    <widget class="QPushButton" name="buttonBmSearch">
@@ -2833,6 +2833,11 @@
    <extends>QWidget</extends>
    <header>cdgvideowidget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CustomLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>customlineedit.h</header>
   </customwidget>
  </customwidgets>
  <resources>

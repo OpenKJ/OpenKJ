@@ -22,6 +22,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "customlineedit.h"
 #include <QtSql>
 #include "libCDG/include/libCDG.h"
 #include <QSortFilterProxyModel>

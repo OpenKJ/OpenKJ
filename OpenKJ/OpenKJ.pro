@@ -213,7 +213,8 @@ SOURCES += main.cpp\
     taglib/tagutils.cpp \
     dlgbookcreator.cpp \
     dlgeq.cpp \
-    audiofader.cpp
+    audiofader.cpp \
+    customlineedit.cpp
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -375,7 +376,8 @@ HEADERS  += mainwindow.h \
     taglib/tagutils.h \
     dlgbookcreator.h \
     dlgeq.h \
-    audiofader.h
+    audiofader.h \
+    customlineedit.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \

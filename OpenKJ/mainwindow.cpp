@@ -420,6 +420,8 @@ MainWindow::MainWindow(QWidget *parent) :
     bmAudioBackend->setEqLevel8(settings->eqBLevel8());
     bmAudioBackend->setEqLevel9(settings->eqBLevel9());
     bmAudioBackend->setEqLevel10(settings->eqBLevel10());
+    connect(ui->lineEdit, SIGNAL(escapePressed()), ui->lineEdit, SLOT(clear()));
+    connect(ui->lineEditBmSearch, SIGNAL(escapePressed()), ui->lineEditBmSearch, SLOT(clear()));
 
     qWarning() << "Initial UI stup complete";
 }
