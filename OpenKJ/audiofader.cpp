@@ -63,6 +63,7 @@ void AudioFader::fadeIn(bool block)
 void AudioFader::timerTimeout()
 {
     qWarning() << "Timer fader - Current: " << volume() << " Target: " << targetVol;
+    double increment = .03;
     if (fading)
     {
         if (volume() == targetVol)
@@ -75,7 +76,7 @@ void AudioFader::timerTimeout()
 
         if (volume() > targetVol)
         {
-            if ((volume() - .02) < targetVol)
+            if ((volume() - increment) < targetVol)
             {
                 setVolume(targetVol);
                 timer->stop();
@@ -83,11 +84,11 @@ void AudioFader::timerTimeout()
                 return;
             }
             else
-                setVolume(volume() - .02);
+                setVolume(volume() - increment);
         }
         if (volume() < targetVol)
         {
-            if ((volume() + .02) > targetVol)
+            if ((volume() + increment) > targetVol)
             {
                 setVolume(targetVol);
                 timer->stop();
@@ -95,7 +96,7 @@ void AudioFader::timerTimeout()
                 return;
             }
             else
-                setVolume(volume() + .02);
+                setVolume(volume() + increment);
         }
     }
 }

@@ -1084,3 +1084,13 @@ int Settings::requestServerInterval()
 {
     return settings->value("requestServerInterval", 30).toInt();
 }
+
+bool Settings::bmKCrossFade()
+{
+    return settings->value("bmKCrossFade", true).toBool();
+}
+
+void Settings::setBmKCrossfade(bool enabled)
+{
+    settings->setValue("bmKCrossFade", enabled);
+}
