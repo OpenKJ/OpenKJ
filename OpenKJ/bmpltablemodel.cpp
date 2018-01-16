@@ -21,6 +21,7 @@
 #include "bmpltablemodel.h"
 #include <QSqlQuery>
 #include <QDebug>
+#include <QDataStream>
 
 BmPlTableModel::BmPlTableModel(QObject *parent, QSqlDatabase db) :
     QSqlRelationalTableModel(parent, db)
@@ -136,19 +137,24 @@ bool BmPlTableModel::dropMimeData(const QMimeData *data, Qt::DropAction action, 
             moveSong(oldPosition, droprow);
         return true;
     }
-    if (data->hasFormat("integer/songid"))
+    if (data->hasFormat("application/vnd.bmsongid.list"))
     {
-                unsigned int droprow;
-                if (parent.row() >= 0)
-                    droprow = parent.row();
-                else if (row >= 0)
-                    droprow = row;
-                else
-                    droprow = rowCount();
-                int songid;
-                QByteArray bytedata = data->data("integer/songid");
-                songid = QString(bytedata.data()).toInt();
-                insertSong(songid, droprow);
+        QByteArray encodedData = data->data("application/vnd.bmsongid.list");
+        QDataStream stream(&encodedData, QIODevice::ReadOnly);
+        QList<int> songids;
+        stream >> songids;
+        qWarning() << songids;
+        unsigned int droprow;
+        for (int i=0; i < songids.size(); i++)
+        {
+            if (parent.row() >= 0)
+                droprow = parent.row();
+            else if (row >= 0)
+                droprow = row;
+            else
+                droprow = rowCount();
+            insertSong(songids.at(i), droprow);
+        }
     }
     return false;
 }
@@ -158,6 +164,7 @@ QStringList BmPlTableModel::mimeTypes() const
     QStringList types;
     types << "integer/songid";
     types << "integer/queuepos";
+    types << "application/vnd.bmsongid.list";
     return types;
 }
 

@@ -23,6 +23,7 @@
 #include <QSqlQuery>
 #include <QStringList>
 #include <QDebug>
+#include <QDataStream>
 
 BmDbTableModel::BmDbTableModel(QObject *parent, QSqlDatabase db) :
     QSqlTableModel(parent, db)
@@ -81,7 +82,18 @@ void BmDbTableModel::refreshCache()
 QMimeData *BmDbTableModel::mimeData(const QModelIndexList &indexes) const
 {
     QMimeData *mimeData = new QMimeData();
-    mimeData->setData("integer/songid", data(indexes.at(0).sibling(indexes.at(0).row(),0)).toByteArray().data());
+    QByteArray encodedData;
+    QDataStream stream(&encodedData, QIODevice::WriteOnly);
+    QList<int> songids;
+    foreach (const QModelIndex &index, indexes) {
+        if (index.isValid()) {
+            if(index.column() == 5)
+                songids.append(index.sibling(index.row(),0).data().toInt());
+        }
+    }
+    stream << songids;
+    mimeData->setData("application/vnd.bmsongid.list", encodedData);
+    qWarning() << songids;
     return mimeData;
 }
 
