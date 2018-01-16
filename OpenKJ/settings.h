@@ -193,6 +193,7 @@ public:
     int eqBLevel10();
     int requestServerInterval();
     bool bmKCrossFade();
+    bool requestRemoveOnRotAdd();
 
 signals:
     void tickerFontChanged();
@@ -299,6 +300,7 @@ public slots:
     void setEqBLevel10(int level);
     void setRequestServerInterval(int interval);
     void setTickerShowRotationInfo(bool show);
+    void setRequestRemoveOnRotAdd(bool remove);
 
 
 };

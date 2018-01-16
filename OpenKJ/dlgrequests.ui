@@ -327,6 +327,13 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_10">
               <item>
+               <widget class="QCheckBox" name="checkBoxDelOnAdd">
+                <property name="text">
+                 <string>Remove request after adding</string>
+                </property>
+               </widget>
+              </item>
+              <item>
                <spacer name="horizontalSpacer_8">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>

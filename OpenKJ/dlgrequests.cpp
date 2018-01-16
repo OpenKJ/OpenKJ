@@ -33,6 +33,7 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DlgRequests)
 {
+    curRequestId = -1;
     ui->setupUi(this);
     requestsModel = new RequestsTableModel(this);
     dbModel = new DbTableModel(this);
@@ -68,8 +69,10 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     ui->tableViewSearch->hideColumn(5);
     ui->tableViewSearch->hideColumn(6);
     ui->tableViewSearch->horizontalHeader()->resizeSection(4,75);
+    ui->checkBoxDelOnAdd->setChecked(settings->requestRemoveOnRotAdd());
     connect(songbookApi, SIGNAL(venuesChanged(OkjsVenues)), this, SLOT(venuesChanged(OkjsVenues)));
     connect(ui->lineEditSearch, SIGNAL(escapePressed()), this, SLOT(lineEditSearchEscapePressed()));
+    connect(ui->checkBoxDelOnAdd, SIGNAL(clicked(bool)), settings, SLOT(setRequestRemoveOnRotAdd(bool)));
 }
 
 DlgRequests::~DlgRequests()
@@ -197,6 +200,10 @@ void DlgRequests::on_treeViewRequests_clicked(const QModelIndex &index)
         ui->comboBoxSingers->clear();
         ui->radioButtonExistingSinger->setChecked(true);
     }
+    else
+    {
+        curRequestId = index.sibling(index.row(),0).data().toInt();
+    }
 }
 
 void DlgRequests::on_pushButtonAddSong_clicked()
@@ -231,6 +238,16 @@ void DlgRequests::on_pushButtonAddSong_clicked()
     else if (ui->radioButtonExistingSinger->isChecked())
     {
         emit addRequestSong(songid, rotModel->getSingerId(ui->comboBoxSingers->currentText()));
+    }
+    if (settings->requestRemoveOnRotAdd())
+    {
+
+        songbookApi->removeRequest(curRequestId);
+        ui->treeViewRequests->selectionModel()->clearSelection();
+        ui->lineEditSearch->clear();
+        ui->lineEditSingerName->clear();
+        ui->comboBoxSingers->clear();
+        ui->radioButtonExistingSinger->setChecked(true);
     }
 }
 
