@@ -8,6 +8,7 @@ QT += core gui sql network widgets multimedia concurrent svg printsupport
 
 unix: DEFINES += USE_GL
 
+
 win32: RC_ICONS = Icons/okjicon.ico
 
 contains(DEFINES, USE_GL) {
@@ -56,6 +57,8 @@ DEFINES += GIT_VERSION=\\"\"$$VERSION\\"\"
 QMAKE_TARGET_COMPANY = OpenKJ.org
 QMAKE_TARGET_PRODUCT = OpenKJ
 QMAKE_TARGET_DESCRIPTION = OpenKJ karaoke hosting software
+DEFINES += OKJ_UNSTABLE
+
 
 unix: BLDDATE = $$system(date -R)
 win32: BLDDATE = $$system(date /t)
@@ -214,7 +217,8 @@ SOURCES += main.cpp\
     dlgbookcreator.cpp \
     dlgeq.cpp \
     audiofader.cpp \
-    customlineedit.cpp
+    customlineedit.cpp \
+    updatechecker.cpp
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -377,7 +381,8 @@ HEADERS  += mainwindow.h \
     dlgbookcreator.h \
     dlgeq.h \
     audiofader.h \
-    customlineedit.h
+    customlineedit.h \
+    updatechecker.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \
