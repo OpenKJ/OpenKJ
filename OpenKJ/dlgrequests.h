@@ -46,6 +46,7 @@ private:
     DbItemDelegate *dbDelegate;
     RotationModel *rotModel;
     QString rtClickFile;
+    int curRequestId;
 
 public:
     explicit DlgRequests(RotationModel *rotationModel, QWidget *parent = 0);

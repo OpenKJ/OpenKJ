@@ -765,6 +765,11 @@ void Settings::setTickerShowRotationInfo(bool show)
     emit tickerOutputModeChanged();
 }
 
+void Settings::setRequestRemoveOnRotAdd(bool remove)
+{
+    settings->setValue("requestRemoveOnRotAdd", remove);
+}
+
 void Settings::setCdgHSizeAdjustment(int pixels)
 {
     settings->setValue("cdgHSizeAdjustment", pixels);
@@ -1088,6 +1093,11 @@ int Settings::requestServerInterval()
 bool Settings::bmKCrossFade()
 {
     return settings->value("bmKCrossFade", true).toBool();
+}
+
+bool Settings::requestRemoveOnRotAdd()
+{
+    return settings->value("requestRemoveOnRotAdd", false).toBool();
 }
 
 void Settings::setBmKCrossfade(bool enabled)
