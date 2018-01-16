@@ -22,6 +22,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "customlineedit.h"
 #include <QtSql>
 #include "libCDG/include/libCDG.h"
 #include <QSortFilterProxyModel>
@@ -58,6 +59,7 @@
 #include "audiorecorder.h"
 #include "dlgbookcreator.h"
 #include "dlgeq.h"
+#include "updatechecker.h"
 
 using namespace std;
 
@@ -129,6 +131,7 @@ private:
     AbstractAudioBackend::State m_lastAudioState;
     void refreshSongDbCache();
     QTimer *karaokeAATimer;
+    UpdateChecker *checker;
 
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -229,6 +232,8 @@ private slots:
     void on_sliderVolume_sliderMoved(int position);
 
     void on_sliderBmVolume_sliderMoved(int position);
+    void songDropNoSingerSel();
+    void newVersionAvailable(QString version);
 
 protected:
     void closeEvent(QCloseEvent *event);

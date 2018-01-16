@@ -69,6 +69,7 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     ui->tableViewSearch->hideColumn(6);
     ui->tableViewSearch->horizontalHeader()->resizeSection(4,75);
     connect(songbookApi, SIGNAL(venuesChanged(OkjsVenues)), this, SLOT(venuesChanged(OkjsVenues)));
+    connect(ui->lineEditSearch, SIGNAL(escapePressed()), this, SLOT(lineEditSearchEscapePressed()));
 }
 
 DlgRequests::~DlgRequests()
@@ -343,4 +344,13 @@ void DlgRequests::on_lineEditSearch_textChanged(const QString &arg1)
         dbModel->search(arg1);
         lastVal = arg1.trimmed();
     }
+}
+
+void DlgRequests::lineEditSearchEscapePressed()
+{
+    QModelIndex index;
+    index = ui->treeViewRequests->selectionModel()->selectedIndexes().at(0);
+    QString filterStr = index.sibling(index.row(),2).data().toString() + " " + index.sibling(index.row(),3).data().toString();
+    dbModel->search(filterStr);
+    ui->lineEditSearch->setText(filterStr);
 }

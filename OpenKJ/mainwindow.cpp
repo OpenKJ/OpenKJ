@@ -38,6 +38,7 @@
 #include <QSvgRenderer>
 #include "audiorecorder.h"
 #include "okjsongbookapi.h"
+#include "updatechecker.h"
 
 Settings *settings;
 OKJSongbookAPI *songbookApi;
@@ -420,6 +421,13 @@ MainWindow::MainWindow(QWidget *parent) :
     bmAudioBackend->setEqLevel8(settings->eqBLevel8());
     bmAudioBackend->setEqLevel9(settings->eqBLevel9());
     bmAudioBackend->setEqLevel10(settings->eqBLevel10());
+    connect(ui->lineEdit, SIGNAL(escapePressed()), ui->lineEdit, SLOT(clear()));
+    connect(ui->lineEditBmSearch, SIGNAL(escapePressed()), ui->lineEditBmSearch, SLOT(clear()));
+    connect(qModel, SIGNAL(songDroppedWithoutSinger()), this, SLOT(songDropNoSingerSel()));
+
+    checker = new UpdateChecker(this);
+    connect(checker, SIGNAL(newVersionAvailable(QString)), this, SLOT(newVersionAvailable(QString)));
+    checker->checkForUpdates();
 
     qWarning() << "Initial UI stup complete";
 }
@@ -1987,4 +1995,32 @@ void MainWindow::on_sliderVolume_sliderMoved(int position)
 void MainWindow::on_sliderBmVolume_sliderMoved(int position)
 {
     bmAudioBackend->setVolume(position);
+}
+
+void MainWindow::songDropNoSingerSel()
+{
+    QMessageBox msgBox;
+    msgBox.setText("No singer selected.  You must select a singer before you can add songs to a queue.");
+    msgBox.exec();
+}
+
+void MainWindow::newVersionAvailable(QString version)
+{
+    QMessageBox msgBox;
+    msgBox.setTextFormat(Qt::RichText);
+    msgBox.setText("New version of OpenKJ is available: " + version);
+    msgBox.setIcon(QMessageBox::Information);
+    if (checker->getOS() == "Linux")
+    {
+        msgBox.setInformativeText("To install the update, please use your distribution's package manager.");
+    }
+    if (checker->getOS() == "Linux" || checker->getOS() == "Win64")
+    {
+        msgBox.setInformativeText("You can download the new version at <a href=https://openkj.org/windows_downloads>https://openkj.org/windows_downloads</a>");
+    }
+    if (checker->getOS() == "MacOS")
+    {
+        msgBox.setInformativeText("You can download the new version at <a href=https://openkj.org/macos_downloads>https://openkj.org/macos_downloads</a>");
+    }
+    msgBox.exec();
 }

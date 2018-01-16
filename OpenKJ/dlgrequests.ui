@@ -179,7 +179,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEditSearch"/>
+         <widget class="CustomLineEdit" name="lineEditSearch"/>
         </item>
         <item>
          <widget class="QPushButton" name="pushButtonSearch">
@@ -483,6 +483,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CustomLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>customlineedit.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="resources.qrc"/>
  </resources>
