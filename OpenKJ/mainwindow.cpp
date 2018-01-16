@@ -2010,13 +2010,17 @@ void MainWindow::newVersionAvailable(QString version)
     msgBox.setTextFormat(Qt::RichText);
     msgBox.setText("New version of OpenKJ is available: " + version);
     msgBox.setIcon(QMessageBox::Information);
-//    if (checker->getOS() == "Linux")
-//    {
-//        msgBox.setInformativeText("To install the update, please use your distribution's package manager.");
-//    }
+    if (checker->getOS() == "Linux")
+    {
+        msgBox.setInformativeText("To install the update, please use your distribution's package manager.");
+    }
     if (checker->getOS() == "Linux" || checker->getOS() == "Win64")
     {
         msgBox.setInformativeText("You can download the new version at <a href=https://openkj.org/windows_downloads>https://openkj.org/windows_downloads</a>");
+    }
+    if (checker->getOS() == "MacOS")
+    {
+        msgBox.setInformativeText("You can download the new version at <a href=https://openkj.org/macos_downloads>https://openkj.org/macos_downloads</a>");
     }
     msgBox.exec();
 }
