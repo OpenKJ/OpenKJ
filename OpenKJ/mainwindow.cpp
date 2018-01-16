@@ -284,7 +284,7 @@ MainWindow::MainWindow(QWidget *parent) :
     bmPlaylistsModel->sort(2, Qt::AscendingOrder);
     bmDbDialog = new BmDbDialog(database,this);
     bmDbModel = new BmDbTableModel(this, database);
-    bmDbModel->setTable("bmsongs");
+    bmDbModel->setTable("mem.bmsongs");
     bmDbModel->select();
     bmCurrentPlaylist = settings->bmPlaylistIndex();
     bmPlModel = new BmPlTableModel(this, database);
@@ -323,6 +323,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(7,25);
 
     qWarning() << "Connecting signals & slots";
+    connect(ui->lineEditBmSearch, SIGNAL(textChanged(QString)), bmDbModel, SLOT(search(QString)));
     connect(bmAudioBackend, SIGNAL(stateChanged(AbstractAudioBackend::State)), this, SLOT(bmMediaStateChanged(AbstractAudioBackend::State)));
     connect(bmAudioBackend, SIGNAL(positionChanged(qint64)), this, SLOT(bmMediaPositionChanged(qint64)));
     connect(bmAudioBackend, SIGNAL(durationChanged(qint64)), this, SLOT(bmMediaDurationChanged(qint64)));
@@ -1489,14 +1490,39 @@ void MainWindow::bmAddPlaylist(QString title)
 
 void MainWindow::bmDbUpdated()
 {
+    bmDbModel->refreshCache();
     bmDbModel->select();
+    ui->comboBoxBmPlaylists->setCurrentIndex(0);
+    ui->tableViewBmDb->setColumnHidden(0, true);
+    ui->tableViewBmDb->setColumnHidden(3, true);
+    ui->tableViewBmDb->setColumnHidden(6, true);
+    ui->tableViewBmDb->setColumnHidden(4, !settings->bmShowFilenames());
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(4, 100);
+    ui->tableViewBmDb->setColumnHidden(1, !settings->bmShowMetadata());
+    ui->tableViewBmDb->setColumnHidden(2, !settings->bmShowMetadata());
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(1, 100);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(2, 100);
+    ui->tableViewBmDb->horizontalHeader()->setSectionResizeMode(5, QHeaderView::Fixed);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(5,75);
 }
 
 void MainWindow::bmDbCleared()
 {
+    bmDbModel->refreshCache();
     bmDbModel->select();
     bmAddPlaylist("Default");
     ui->comboBoxBmPlaylists->setCurrentIndex(0);
+    ui->tableViewBmDb->setColumnHidden(0, true);
+    ui->tableViewBmDb->setColumnHidden(3, true);
+    ui->tableViewBmDb->setColumnHidden(6, true);
+    ui->tableViewBmDb->horizontalHeader()->setSectionResizeMode(5, QHeaderView::Fixed);
+    ui->tableViewBmDb->setColumnHidden(4, !settings->bmShowFilenames());
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(4, 100);
+    ui->tableViewBmDb->setColumnHidden(1, !settings->bmShowMetadata());
+    ui->tableViewBmDb->setColumnHidden(2, !settings->bmShowMetadata());
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(1, 100);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(2, 100);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(5,75);
 }
 
 void MainWindow::bmShowMetadata(bool checked)

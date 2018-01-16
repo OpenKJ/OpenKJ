@@ -31,9 +31,10 @@ private:
     QString artistOrder;
     QString titleOrder;
     QString filenameOrder;
+    QSqlDatabase db;
+    QString lastSearch;
 public:
     explicit BmDbTableModel(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
-    void search(QString searchString);
     enum {SORT_ARTIST=1,SORT_TITLE=2,SORT_FILENAME=4,SORT_DURATION=5};
 
     // QAbstractItemModel interface
@@ -41,6 +42,11 @@ public:
     QMimeData *mimeData(const QModelIndexList &indexes) const;
     void sort(int column, Qt::SortOrder order);
     Qt::ItemFlags flags(const QModelIndex &index) const;
+
+public slots:
+    void search(QString searchString);
+    void refreshCache();
+
 
     // QSqlTableModel interface
 protected:

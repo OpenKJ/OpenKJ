@@ -20,7 +20,9 @@
 
 #include "bmdbtablemodel.h"
 #include <QMimeData>
+#include <QSqlQuery>
 #include <QStringList>
+#include <QDebug>
 
 BmDbTableModel::BmDbTableModel(QObject *parent, QSqlDatabase db) :
     QSqlTableModel(parent, db)
@@ -29,6 +31,12 @@ BmDbTableModel::BmDbTableModel(QObject *parent, QSqlDatabase db) :
     artistOrder = "ASC";
     titleOrder = "ASC";
     filenameOrder = "ASC";
+    this->db = db;
+    QSqlQuery query;
+    query.exec("ATTACH DATABASE ':memory:' AS mem");
+    query.exec("CREATE TABLE mem.bmsongs AS SELECT * FROM main.bmsongs");
+    query.exec("CREATE UNIQUE INDEX mem.idx_mem_path ON dbsongs(path)");
+    query.exec("CREATE UNIQUE INDEX mem.idx_mem_songid ON dbsongs(songid)");
 }
 
 Qt::ItemFlags BmDbTableModel::flags(const QModelIndex &index) const
@@ -54,6 +62,19 @@ void BmDbTableModel::search(QString searchString)
         whereClause = whereClause + " AND searchstring LIKE \"%" + terms.at(i) + "%\"";
     }
     setFilter(whereClause);
+    lastSearch = searchString;
+}
+
+void BmDbTableModel::refreshCache()
+{
+    qWarning() << "Refreshing bmsongs cache";
+    QSqlQuery query(db);
+    query.exec("DELETE FROM mem.bmsongs");
+    query.exec("VACUUM mem");
+    query.exec("INSERT INTO mem.bmsongs SELECT * FROM main.bmsongs");
+    setTable("mem.bmsongs");
+    select();
+    search(lastSearch);
 }
 
 
