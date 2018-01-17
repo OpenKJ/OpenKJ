@@ -1502,6 +1502,11 @@ void MainWindow::timerButtonFlashTimeout()
         ui->pushButtonIncomingRequests->setText("Requests");
         update();
     }
+    else if (ui->pushButtonIncomingRequests->text() != "Requests")
+    {
+        ui->pushButtonIncomingRequests->setText("Requests");
+        update();
+    }
 }
 
 void MainWindow::bmAddPlaylist(QString title)
