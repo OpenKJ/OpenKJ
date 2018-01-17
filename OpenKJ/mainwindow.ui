@@ -187,6 +187,29 @@
                    </property>
                   </widget>
                  </item>
+                 <item>
+                  <spacer name="horizontalSpacerRequests">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Minimum</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>80</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="pushButtonIncomingRequests">
+                   <property name="text">
+                    <string>Requests</string>
+                   </property>
+                  </widget>
+                 </item>
                 </layout>
                </item>
               </layout>

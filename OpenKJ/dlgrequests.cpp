@@ -73,6 +73,13 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     connect(songbookApi, SIGNAL(venuesChanged(OkjsVenues)), this, SLOT(venuesChanged(OkjsVenues)));
     connect(ui->lineEditSearch, SIGNAL(escapePressed()), this, SLOT(lineEditSearchEscapePressed()));
     connect(ui->checkBoxDelOnAdd, SIGNAL(clicked(bool)), settings, SLOT(setRequestRemoveOnRotAdd(bool)));
+    ui->cbxAutoShowRequestsDlg->setChecked(settings->requestDialogAutoShow());
+    connect(ui->cbxAutoShowRequestsDlg, SIGNAL(clicked(bool)), settings, SLOT(setRequestDialogAutoShow(bool)));
+}
+
+int DlgRequests::numRequests()
+{
+    return requestsModel->count();
 }
 
 DlgRequests::~DlgRequests()
@@ -90,7 +97,7 @@ void DlgRequests::on_pushButtonClose_clicked()
 
 void DlgRequests::requestsModified()
 {
-    if (requestsModel->count() > 0)
+    if ((requestsModel->count() > 0) && (settings->requestDialogAutoShow()))
     {
         this->show();
     }
@@ -291,7 +298,6 @@ void DlgRequests::on_checkBoxAccepting_clicked(bool checked)
 
 void DlgRequests::venuesChanged(OkjsVenues venues)
 {
-    qWarning() << "Received venues: " << venues;
     int venue = settings->requestServerVenue();
     ui->comboBoxVenue->clear();
     int selItem = 0;
@@ -300,7 +306,6 @@ void DlgRequests::venuesChanged(OkjsVenues venues)
         ui->comboBoxVenue->addItem(venues.at(i).name, venues.at(i).venueId);
         if (venues.at(i).venueId == venue)
         {
-            qWarning() << "Setting selected index to venue " << venues.at(i).name << "  index: " << i;
             selItem = i;
         }
     }

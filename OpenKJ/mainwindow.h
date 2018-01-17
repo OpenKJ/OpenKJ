@@ -132,6 +132,8 @@ private:
     void refreshSongDbCache();
     QTimer *karaokeAATimer;
     UpdateChecker *checker;
+    QTimer *timerButtonFlash;
+    bool blinkRequestsBtn;
 
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -189,6 +191,7 @@ private slots:
     void setShowBgImage(bool show);
     void onBgImageChange();
     void karaokeAATimerTimeout();
+    void timerButtonFlashTimeout();
 
     void bmDbUpdated();
     void bmDbCleared();
@@ -234,6 +237,8 @@ private slots:
     void on_sliderBmVolume_sliderMoved(int position);
     void songDropNoSingerSel();
     void newVersionAvailable(QString version);
+
+    void on_pushButtonIncomingRequests_clicked();
 
 protected:
     void closeEvent(QCloseEvent *event);
