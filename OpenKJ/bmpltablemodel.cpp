@@ -145,14 +145,14 @@ bool BmPlTableModel::dropMimeData(const QMimeData *data, Qt::DropAction action, 
         stream >> songids;
         qWarning() << songids;
         unsigned int droprow;
-        for (int i=0; i < songids.size(); i++)
+        if (parent.row() >= 0)
+            droprow = parent.row();
+        else if (row >= 0)
+            droprow = row;
+        else
+            droprow = rowCount();
+        for (int i = songids.size() -1; i >= 0; i--)
         {
-            if (parent.row() >= 0)
-                droprow = parent.row();
-            else if (row >= 0)
-                droprow = row;
-            else
-                droprow = rowCount();
             insertSong(songids.at(i), droprow);
         }
     }
