@@ -48,6 +48,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    blinkRequestsBtn = false;
     kAASkip = false;
     kAANextSinger = -1;
     kAANextSongPath = "";
@@ -429,6 +430,11 @@ MainWindow::MainWindow(QWidget *parent) :
     checker = new UpdateChecker(this);
     connect(checker, SIGNAL(newVersionAvailable(QString)), this, SLOT(newVersionAvailable(QString)));
     checker->checkForUpdates();
+    timerButtonFlash = new QTimer(this);
+    connect(timerButtonFlash, SIGNAL(timeout()), this, SLOT(timerButtonFlashTimeout()));
+    timerButtonFlash->start(1000);
+    ui->pushButtonIncomingRequests->setVisible(settings->requestServerEnabled());
+    connect(settings, SIGNAL(requestServerEnabledChanged(bool)), ui->pushButtonIncomingRequests, SLOT(setVisible(bool)));
 
     qWarning() << "Initial UI stup complete";
 }
@@ -1476,6 +1482,28 @@ void MainWindow::karaokeAATimerTimeout()
     }
 }
 
+void MainWindow::timerButtonFlashTimeout()
+{
+    if (requestsDialog->numRequests() > 0)
+    {
+        ui->pushButtonIncomingRequests->setText("Requests (" + QString::number(requestsDialog->numRequests()) + ")");
+        static bool flashed = false;
+        QColor normal = this->palette().button().color();
+        QColor blink = QColor("yellow");
+        QPalette palette = QPalette(ui->pushButtonIncomingRequests->palette());
+        palette.setColor(QPalette::Button, (flashed) ? normal : blink);
+        ui->pushButtonIncomingRequests->setPalette(palette);
+        flashed = !flashed;
+        update();
+    }
+    else if (ui->pushButtonIncomingRequests->palette().color(QPalette::Button) != this->palette().color(QPalette::Button))
+    {
+        ui->pushButtonIncomingRequests->setPalette(this->palette());
+        ui->pushButtonIncomingRequests->setText("Requests");
+        update();
+    }
+}
+
 void MainWindow::bmAddPlaylist(QString title)
 {
     if (bmPlaylistsModel->insertRow(bmPlaylistsModel->rowCount()))
@@ -2049,4 +2077,9 @@ void MainWindow::newVersionAvailable(QString version)
         msgBox.setInformativeText("You can download the new version at <a href=https://openkj.org/macos_downloads>https://openkj.org/macos_downloads</a>");
     }
     msgBox.exec();
+}
+
+void MainWindow::on_pushButtonIncomingRequests_clicked()
+{
+    requestsDialog->show();
 }

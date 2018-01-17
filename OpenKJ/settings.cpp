@@ -266,6 +266,7 @@ bool Settings::requestServerEnabled()
 void Settings::setRequestServerEnabled(bool enable)
 {
     settings->setValue("requestServerEnabled", enable);
+    emit requestServerEnabledChanged(enable);
 }
 
 QString Settings::requestServerUrl()
@@ -770,6 +771,11 @@ void Settings::setRequestRemoveOnRotAdd(bool remove)
     settings->setValue("requestRemoveOnRotAdd", remove);
 }
 
+void Settings::setRequestDialogAutoShow(bool enabled)
+{
+    settings->setValue("requestDialogAutoShow", enabled);
+}
+
 void Settings::setCdgHSizeAdjustment(int pixels)
 {
     settings->setValue("cdgHSizeAdjustment", pixels);
@@ -1098,6 +1104,11 @@ bool Settings::bmKCrossFade()
 bool Settings::requestRemoveOnRotAdd()
 {
     return settings->value("requestRemoveOnRotAdd", false).toBool();
+}
+
+bool Settings::requestDialogAutoShow()
+{
+    return settings->value("requestDialogAutoShow", true).toBool();
 }
 
 void Settings::setBmKCrossfade(bool enabled)

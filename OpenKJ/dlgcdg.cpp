@@ -325,6 +325,7 @@ QFileInfoList DlgCdg::getSlideShowImages()
 
 void DlgCdg::setAlert(QString text)
 {
+    Q_UNUSED(text)
     //ui->lblAlert->setText(text);
 }
 
@@ -400,7 +401,6 @@ void DlgCdg::slideShowTimerTimeout()
         }
         if (position >= images.size())
             position = 0;
-        qWarning() << "Switching slide show image. Image " << position + 1 << " of " << images.size();
         if (images.at(position).fileName().endsWith("svg", Qt::CaseInsensitive))
         {
             QImage bgImage(ui->cdgVideo->size(), QImage::Format_ARGB32);

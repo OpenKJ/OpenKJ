@@ -50,6 +50,7 @@ private:
 
 public:
     explicit DlgRequests(RotationModel *rotationModel, QWidget *parent = 0);
+    int numRequests();
     ~DlgRequests();
 
 signals:
