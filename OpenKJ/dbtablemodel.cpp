@@ -26,6 +26,7 @@
 #include <QDebug>
 
 
+
 DbTableModel::DbTableModel(QObject *parent, QSqlDatabase db) :
     QSqlTableModel(parent, db)
 {
@@ -81,7 +82,10 @@ void DbTableModel::search(QString searchString)
         whereClause = "discid != \"!!BAD!!\" AND searchstring LIKE \"%" + terms.at(0) + "%\"";
     for (int i=1; i < terms.size(); i++)
     {
-        whereClause = whereClause + " AND searchstring LIKE \"%" + terms.at(i) + "%\"";
+        if (settings->ignoreAposInSearch())
+            whereClause = whereClause + " AND replace(searchstring, \"'\", \"\") LIKE \"%" + terms.at(i) + "%\"";
+        else
+            whereClause = whereClause + " AND searchstring LIKE \"%" + terms.at(i) + "%\"";
     }
     setFilter(whereClause);
 }
