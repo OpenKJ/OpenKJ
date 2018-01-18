@@ -144,9 +144,9 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     gst_bin_add_many(GST_BIN(customBin), level, aConvInput, aConvPreSplit, rgVolume, volumeElement, equalizer, aConvL, aConvR, fltrMplxInput, tee, queueS, queueM, queueR, queueL, audioMixer, deInterleave, aConvPostMixer, fltrPostMixer, NULL);
     gst_element_link(aConvInput, rgVolume);
     gst_element_link(rgVolume, level);
-    gst_element_link(level, equalizer);
+    gst_element_link(level, volumeElement);
     //gst_element_link(volumeElement, tee);
-    //gst_element_link(volumeElement, equalizer);
+    gst_element_link(volumeElement, equalizer);
     gst_element_link(equalizer, tee);
 
     // Normal path
@@ -176,7 +176,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
         qWarning() << "Also loaded SoundTouch for tempo control";
         m_canChangeTempo = true;
         gst_bin_add_many(GST_BIN(customBin), aConvPrePitchShift, pitchShifterRubberBand, aConvPostPitchShift, pitchShifterSoundtouch, aConvEnd, audioSink, NULL);
-        gst_element_link_many(fltrPostMixer, aConvPrePitchShift, pitchShifterRubberBand, aConvPostPitchShift, pitchShifterSoundtouch, aConvEnd, volumeElement, audioSink, NULL);
+        gst_element_link_many(fltrPostMixer, aConvPrePitchShift, pitchShifterRubberBand, aConvPostPitchShift, pitchShifterSoundtouch, aConvEnd, audioSink, NULL);
         m_canKeyChange = true;
         m_keyChangerRubberBand = true;
         g_object_set(G_OBJECT(pitchShifterRubberBand), "formant-preserving", true, NULL);
@@ -188,7 +188,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
         m_canChangeTempo = true;
         qWarning() << "Pitch shifter SoundTouch enabled";
         gst_bin_add_many(GST_BIN(customBin), aConvPrePitchShift, pitchShifterSoundtouch, aConvPostPitchShift, aConvEnd, audioSink, NULL);
-        gst_element_link_many(fltrPostMixer, aConvPrePitchShift, pitchShifterSoundtouch, aConvPostPitchShift, aConvEnd, volumeElement, audioSink, NULL);
+        gst_element_link_many(fltrPostMixer, aConvPrePitchShift, pitchShifterSoundtouch, aConvPostPitchShift, aConvEnd, audioSink, NULL);
         m_canKeyChange = true;
         m_keyChangerSoundtouch = true;
         g_object_set(G_OBJECT(pitchShifterSoundtouch), "pitch", 1.0, "tempo", 1.0, NULL);
@@ -196,7 +196,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     else
     {
         gst_bin_add_many(GST_BIN(customBin), aConvEnd, audioSink, NULL);
-        gst_element_link_many(fltrPostMixer, aConvEnd, volumeElement, audioSink, NULL);
+        gst_element_link_many(fltrPostMixer, aConvEnd, audioSink, NULL);
     }
 
     // Setup outputs from playBin
