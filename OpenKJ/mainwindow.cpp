@@ -160,7 +160,6 @@ MainWindow::MainWindow(QWidget *parent) :
     requestsDialog = new DlgRequests(rotModel, this);
     dlgBookCreator = new DlgBookCreator(this);
     dlgEq = new DlgEq(this);
-    cdgWindow = new DlgCdg(this, Qt::Window);
     cdg = new CDG;
     ui->tableViewDB->setModel(dbModel);
     dbDelegate = new DbItemDelegate(this);
@@ -185,6 +184,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     audioRecorder = new AudioRecorder(this);
     settingsDialog = new DlgSettings(kAudioBackend, bmAudioBackend, this);
+    cdgWindow = new DlgCdg(kAudioBackend, bmAudioBackend, this, Qt::Window);
     connect(rotModel, SIGNAL(songDroppedOnSinger(int,int,int)), this, SLOT(songDroppedOnSinger(int,int,int)));
     connect(kAudioBackend, SIGNAL(volumeChanged(int)), ui->sliderVolume, SLOT(setValue(int)));
     connect(dbDialog, SIGNAL(databaseUpdated()), this, SLOT(songdbUpdated()));
@@ -1085,6 +1085,7 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
         ui->spinBoxTempo->setValue(100);
         setShowBgImage(true);
         cdgWindow->setShowBgImage(true);
+        cdgWindow->triggerBg();
         bmAudioBackend->fadeIn(false);
         if (settings->karaokeAutoAdvance())
         {
@@ -1638,6 +1639,7 @@ void MainWindow::bmMediaStateChanged(AbstractAudioBackend::State newState)
                 ui->cdgVideoWidget->clear();
                 setShowBgImage(true);
                 cdgWindow->setShowBgImage(true);
+                cdgWindow->triggerBg();
             }
         }
     }

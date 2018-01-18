@@ -61,6 +61,7 @@ public:
     float getPitchForSemitone(int semitone);
     QString getName() const;
     void setName(const QString &value);
+    virtual bool hasVideo() {return false;}
 
 signals:
     void audioAvailableChanged(bool);

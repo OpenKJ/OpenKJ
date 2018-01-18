@@ -31,10 +31,22 @@
 extern Settings *settings;
 
 
-DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
+void DlgCdg::setKAudioBackend(AbstractAudioBackend *value)
+{
+    kAudioBackend = value;
+}
+
+void DlgCdg::setBAudioBackend(AbstractAudioBackend *value)
+{
+    bAudioBackend = value;
+}
+
+DlgCdg::DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *BreakBackend, QWidget *parent, Qt::WindowFlags f) :
     QDialog(parent, f),
     ui(new Ui::DlgCdg)
 {
+    kAudioBackend = KaraokeBackend;
+    bAudioBackend = BreakBackend;
     if (settings->cdgWindowFullScreenMonitor() > QApplication::desktop()->numScreens())
     {
         settings->setCdgWindowFullscreen(false);
@@ -110,6 +122,7 @@ DlgCdg::DlgCdg(QWidget *parent, Qt::WindowFlags f) :
     alertTxtColorChanged(settings->alertTxtColor());
     connect(settings, SIGNAL(alertBgColorChanged(QColor)), this, SLOT(alertBgColorChanged(QColor)));
     connect(settings, SIGNAL(alertTxtColorChanged(QColor)), this, SLOT(alertTxtColorChanged(QColor)));
+    connect(kAudioBackend, SIGNAL(stateChanged(AbstractAudioBackend::State)), this, SLOT(triggerBg(AbstractAudioBackend::State)));
 
 }
 
@@ -261,8 +274,13 @@ void DlgCdg::setHSizeAdjustment(int pixels)
 void DlgCdg::setShowBgImage(bool show)
 {
     qWarning() << "DlgCdg::setShowBgImage(" << show << ") called";
+    showBgImage = show;
     if ((show) && (settings->bgMode() == settings->BG_MODE_IMAGE))
     {
+        if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
+            return;
+        if (bAudioBackend->state() == AbstractAudioBackend::PlayingState && bAudioBackend->hasVideo())
+            return;
         if (settings->cdgDisplayBackgroundImage() != QString::null)
             ui->cdgVideo->videoSurface()->present(QVideoFrame(QImage(settings->cdgDisplayBackgroundImage())));
         else
@@ -275,7 +293,6 @@ void DlgCdg::setShowBgImage(bool show)
         }
 
     }
-    showBgImage = show;
 }
 
 void DlgCdg::cdgSurfaceResized(QSize size)
@@ -384,10 +401,22 @@ void DlgCdg::alertTxtColorChanged(QColor color)
     ui->widgetAlert->setPalette(palette);
 }
 
+void DlgCdg::triggerBg()
+{
+        showBgImage = true;
+        qWarning() << "triggerBg called";
+        slideShowTimerTimeout();
+        setShowBgImage(true);
+}
+
 void DlgCdg::slideShowTimerTimeout()
 {
     if ((showBgImage) && (settings->bgMode() == settings->BG_MODE_SLIDESHOW))
     {
+        if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
+            return;
+        if (bAudioBackend->state() == AbstractAudioBackend::PlayingState && bAudioBackend->hasVideo())
+            return;
         static int position = 0;
         QFileInfoList images = getSlideShowImages();
         if (images.size() == 0)
@@ -412,6 +441,7 @@ void DlgCdg::slideShowTimerTimeout()
         else
             ui->cdgVideo->videoSurface()->present(QVideoFrame(QImage(images.at(position).absoluteFilePath())));
         position++;
+
     }
 }
 

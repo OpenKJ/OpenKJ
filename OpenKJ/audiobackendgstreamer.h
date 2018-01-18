@@ -158,6 +158,7 @@ public:
     QString objName;
     int m_tempo;
     int tempo();
+    bool m_hasVideo;
 
 private slots:
     void fastTimer_timeout();
@@ -209,6 +210,10 @@ public slots:
     void setEqLevel8(int level);
     void setEqLevel9(int level);
     void setEqLevel10(int level);
+
+    // AbstractAudioBackend interface
+public:
+    bool hasVideo();
 };
 
 #endif // AUDIOBACKENDGSTREAMER_H
