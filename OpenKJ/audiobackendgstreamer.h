@@ -97,8 +97,8 @@ private:
     GstPad *ghostPad;
     GstBus *bus;
     GstDeviceMonitor *monitor;
-//    GstControlSource *csource;
-//    GstTimedValueControlSource *tv_csource;
+    GstControlSource *csource;
+    GstTimedValueControlSource *tv_csource;
     QString m_filename;
     QTimer *fastTimer;
     QTimer *slowTimer;

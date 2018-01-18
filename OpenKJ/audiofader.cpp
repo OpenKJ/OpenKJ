@@ -8,6 +8,7 @@ void AudioFader::setVolume(double volume)
 {
     double linearVolume = gst_stream_volume_convert_volume(GST_STREAM_VOLUME_FORMAT_CUBIC, GST_STREAM_VOLUME_FORMAT_LINEAR, volume);
     g_object_set(G_OBJECT(volumeElement), "volume", linearVolume, NULL);
+//    g_object_set(G_OBJECT(volumeElement), "volume", volume, NULL);
     emit volumeChanged(volume);
 }
 
@@ -17,7 +18,7 @@ double AudioFader::volume()
     g_object_get(G_OBJECT(volumeElement), "volume", &volume, NULL);
 //    qWarning() << "Linear volume: " << volume;
     double cubicVolume = gst_stream_volume_convert_volume(GST_STREAM_VOLUME_FORMAT_LINEAR, GST_STREAM_VOLUME_FORMAT_CUBIC, volume);
-//    qWarning() << "Cubic volume: " << QString::number(cubicVolume);
+    qWarning() << "Cubic volume: " << QString::number(cubicVolume);
     return cubicVolume;
 }
 
@@ -25,7 +26,7 @@ AudioFader::AudioFader(GstElement *volElement, QObject *parent) : QObject(parent
 {
     volumeElement = volElement;
     timer = new QTimer(this);
-    timer->setInterval(100);
+    timer->setInterval(200);
     connect(timer, SIGNAL(timeout()), this, SLOT(timerTimeout()));
 }
 
@@ -63,7 +64,7 @@ void AudioFader::fadeIn(bool block)
 void AudioFader::timerTimeout()
 {
     qWarning() << "Timer fader - Current: " << volume() << " Target: " << targetVol;
-    double increment = .03;
+    double increment = .05;
     if (fading)
     {
         if (volume() == targetVol)
