@@ -93,14 +93,14 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     clr = settings->tickerBgColor();
     ss.replace("0,0,0", QString(QString::number(clr.red()) + "," + QString::number(clr.green()) + "," + QString::number(clr.blue())));
     ui->pushButtonBgColor->setStyleSheet(ss);
-
-    QPalette alertTxtPalette = ui->btnAlertTxtColor->palette();
-    alertTxtPalette.setColor(QPalette::Button, settings->alertTxtColor());
-    ui->btnAlertTxtColor->setPalette(alertTxtPalette);
-
-    QPalette alertBgPalette = ui->btnAlertBgColor->palette();
-    alertBgPalette.setColor(QPalette::Button, settings->alertBgColor());
-    ui->btnAlertBgColor->setPalette(alertBgPalette);
+    ss = ui->btnAlertTxtColor->styleSheet();
+    clr = settings->alertTxtColor();
+    ss.replace("0,0,0", QString(QString::number(clr.red()) + "," + QString::number(clr.green()) + "," + QString::number(clr.blue())));
+    ui->btnAlertTxtColor->setStyleSheet(ss);
+    ss = ui->btnAlertBgColor->styleSheet();
+    clr = settings->alertBgColor();
+    ss.replace("0,0,0", QString(QString::number(clr.red()) + "," + QString::number(clr.green()) + "," + QString::number(clr.blue())));
+    ui->btnAlertBgColor->setStyleSheet(ss);
 
     if (settings->tickerFullRotation())
     {
@@ -579,25 +579,27 @@ void DlgSettings::on_btnAlertFont_clicked()
 
 void DlgSettings::on_btnAlertTxtColor_clicked()
 {
-    QColor color = QColorDialog::getColor(settings->alertTxtColor(),this,"Select ticker background color");
-    if (color.isValid())
+    QColor clr = QColorDialog::getColor(settings->alertTxtColor(),this,"Select alert text color");
+    if (clr.isValid())
     {
-        settings->setAlertTxtColor(color);
-        QPalette palette = ui->btnAlertTxtColor->palette();
-        palette.setColor(ui->btnAlertTxtColor->backgroundRole(), color);
-        ui->btnAlertTxtColor->setPalette(palette);
+        QString ss = ui->btnAlertTxtColor->styleSheet();
+        QColor oclr = settings->alertTxtColor();
+        ss.replace(QString(QString::number(oclr.red()) + "," + QString::number(oclr.green()) + "," + QString::number(oclr.blue())), QString(QString::number(clr.red()) + "," + QString::number(clr.green()) + "," + QString::number(clr.blue())));
+        ui->btnAlertTxtColor->setStyleSheet(ss);
+        settings->setAlertTxtColor(clr);
     }
 }
 
 void DlgSettings::on_btnAlertBgColor_clicked()
 {
-    QColor color = QColorDialog::getColor(settings->alertBgColor(),this,"Select ticker background color");
-    if (color.isValid())
+    QColor clr = QColorDialog::getColor(settings->alertBgColor(),this,"Select alert background color");
+    if (clr.isValid())
     {
-        settings->setAlertBgColor(color);
-        QPalette palette = ui->btnAlertBgColor->palette();
-        palette.setColor(ui->btnAlertBgColor->backgroundRole(), color);
-        ui->btnAlertBgColor->setPalette(palette);
+        QString ss = ui->btnAlertBgColor->styleSheet();
+        QColor oclr = settings->alertBgColor();
+        ss.replace(QString(QString::number(oclr.red()) + "," + QString::number(oclr.green()) + "," + QString::number(oclr.blue())), QString(QString::number(clr.red()) + "," + QString::number(clr.green()) + "," + QString::number(clr.blue())));
+        ui->btnAlertBgColor->setStyleSheet(ss);
+        settings->setAlertBgColor(clr);
     }
 }
 
