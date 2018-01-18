@@ -1488,22 +1488,25 @@ void MainWindow::timerButtonFlashTimeout()
     {
         ui->pushButtonIncomingRequests->setText("Requests (" + QString::number(requestsDialog->numRequests()) + ")");
         static bool flashed = false;
-        QColor normal = this->palette().button().color();
-        QColor blink = QColor("yellow");
-        QPalette palette = QPalette(ui->pushButtonIncomingRequests->palette());
-        palette.setColor(QPalette::Button, (flashed) ? normal : blink);
-        ui->pushButtonIncomingRequests->setPalette(palette);
+//        QColor normal = this->palette().button().color();
+//        QColor blink = QColor("yellow");
+//        QPalette palette = QPalette(ui->pushButtonIncomingRequests->palette());
+//        palette.setColor(QPalette::Button, (flashed) ? normal : blink);
+//        ui->pushButtonIncomingRequests->setPalette(palette);
+        qWarning() << ui->pushButtonIncomingRequests->styleSheet();
+
+        if (!flashed)
+            ui->pushButtonIncomingRequests->setStyleSheet("background-color: yellow;");
+        else
+        {
+            ui->pushButtonIncomingRequests->setStyleSheet("");
+        }
         flashed = !flashed;
-        update();
-    }
-    else if (ui->pushButtonIncomingRequests->palette().color(QPalette::Button) != this->palette().color(QPalette::Button))
-    {
-        ui->pushButtonIncomingRequests->setPalette(this->palette());
-        ui->pushButtonIncomingRequests->setText("Requests");
         update();
     }
     else if (ui->pushButtonIncomingRequests->text() != "Requests")
     {
+        ui->pushButtonIncomingRequests->setStyleSheet("");
         ui->pushButtonIncomingRequests->setText("Requests");
         update();
     }
