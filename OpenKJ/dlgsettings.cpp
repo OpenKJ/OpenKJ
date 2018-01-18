@@ -85,12 +85,14 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
         settings->setCdgWindowFullscreen(false);
     ui->spinBoxTickerHeight->setValue(settings->tickerHeight());
     ui->horizontalSliderTickerSpeed->setValue(settings->tickerSpeed());
-    QPalette txtpalette = ui->pushButtonTextColor->palette();
-    txtpalette.setColor(QPalette::Button, settings->tickerTextColor());
-    ui->pushButtonTextColor->setPalette(txtpalette);
-    QPalette bgpalette = ui->pushButtonBgColor->palette();
-    bgpalette.setColor(QPalette::Button, settings->tickerBgColor());
-    ui->pushButtonBgColor->setPalette(bgpalette);
+    QString ss = ui->pushButtonTextColor->styleSheet();
+    QColor clr = settings->tickerTextColor();
+    ss.replace("0,0,0", QString(QString::number(clr.red()) + "," + QString::number(clr.green()) + "," + QString::number(clr.blue())));
+    ui->pushButtonTextColor->setStyleSheet(ss);
+    ss = ui->pushButtonBgColor->styleSheet();
+    clr = settings->tickerBgColor();
+    ss.replace("0,0,0", QString(QString::number(clr.red()) + "," + QString::number(clr.green()) + "," + QString::number(clr.blue())));
+    ui->pushButtonBgColor->setStyleSheet(ss);
 
     QPalette alertTxtPalette = ui->btnAlertTxtColor->palette();
     alertTxtPalette.setColor(QPalette::Button, settings->alertTxtColor());
@@ -310,25 +312,27 @@ void DlgSettings::on_horizontalSliderTickerSpeed_valueChanged(int value)
 
 void DlgSettings::on_pushButtonTextColor_clicked()
 {
-    QColor color = QColorDialog::getColor(settings->tickerTextColor(),this,"Select ticker text color");
-    if (color.isValid())
+    QColor clr = QColorDialog::getColor(settings->tickerTextColor(),this,"Select ticker text color");
+    if (clr.isValid())
     {
-        settings->setTickerTextColor(color);
-        QPalette palette = ui->pushButtonTextColor->palette();
-        palette.setColor(ui->pushButtonTextColor->backgroundRole(), color);
-        ui->pushButtonTextColor->setPalette(palette);
+        QString ss = ui->pushButtonTextColor->styleSheet();
+        QColor oclr = settings->tickerTextColor();
+        ss.replace(QString(QString::number(oclr.red()) + "," + QString::number(oclr.green()) + "," + QString::number(oclr.blue())), QString(QString::number(clr.red()) + "," + QString::number(clr.green()) + "," + QString::number(clr.blue())));
+        ui->pushButtonTextColor->setStyleSheet(ss);
+        settings->setTickerTextColor(clr);
     }
 }
 
 void DlgSettings::on_pushButtonBgColor_clicked()
 {
-    QColor color = QColorDialog::getColor(settings->tickerTextColor(),this,"Select ticker background color");
-    if (color.isValid())
+    QColor clr = QColorDialog::getColor(settings->tickerBgColor(),this,"Select ticker background color");
+    if (clr.isValid())
     {
-        settings->setTickerBgColor(color);
-        QPalette palette = ui->pushButtonBgColor->palette();
-        palette.setColor(ui->pushButtonBgColor->backgroundRole(), color);
-        ui->pushButtonBgColor->setPalette(palette);
+        QString ss = ui->pushButtonBgColor->styleSheet();
+        QColor oclr = settings->tickerBgColor();
+        ss.replace(QString(QString::number(oclr.red()) + "," + QString::number(oclr.green()) + "," + QString::number(oclr.blue())), QString(QString::number(clr.red()) + "," + QString::number(clr.green()) + "," + QString::number(clr.blue())));
+        ui->pushButtonBgColor->setStyleSheet(ss);
+        settings->setTickerBgColor(clr);
     }
 }
 

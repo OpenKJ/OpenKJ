@@ -167,7 +167,7 @@
         <item>
          <widget class="QStackedWidget" name="stackedWidget">
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="audioPage">
            <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -669,7 +669,7 @@
                     <number>1</number>
                    </property>
                    <property name="maximum">
-                    <number>100</number>
+                    <number>150</number>
                    </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
@@ -698,6 +698,30 @@
                  </item>
                  <item>
                   <widget class="QPushButton" name="pushButtonTextColor">
+                   <property name="styleSheet">
+                    <string notr="true">QPushButton {
+    border: 2px solid #8f8f91;
+    border-radius: 6px;
+    background-color: rgb(0,0,0);
+    min-width: 40px;
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+QPushButton:pressed {
+    background-color: rgb(0,0,0);
+}
+
+QPushButton:flat {
+    border: none; /* no border for a flat push button */
+}
+
+QPushButton:default {
+    border-color: navy; /* make the default button prominent */
+}</string>
+                   </property>
                    <property name="text">
                     <string/>
                    </property>
@@ -731,6 +755,30 @@
                  </item>
                  <item>
                   <widget class="QPushButton" name="pushButtonBgColor">
+                   <property name="styleSheet">
+                    <string notr="true">QPushButton {
+    border: 2px solid #8f8f91;
+    border-radius: 6px;
+    background-color: rgb(0,0,0);
+    min-width: 40px;
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+QPushButton:pressed {
+    background-color: rgb(0,0,0);
+}
+
+QPushButton:flat {
+    border: none; /* no border for a flat push button */
+}
+
+QPushButton:default {
+    border-color: navy; /* make the default button prominent */
+}</string>
+                   </property>
                    <property name="text">
                     <string/>
                    </property>
