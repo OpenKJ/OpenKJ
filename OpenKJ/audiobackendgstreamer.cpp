@@ -42,6 +42,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
 #endif
 
     objName = objectName;
+    m_hasVideo = false;
     m_volume = 0;
     m_tempo = 100;
     m_canKeyChange = false;
@@ -414,6 +415,7 @@ void AudioBackendGstreamer::play()
     }
     else
     {
+        m_hasVideo = false;
         setVolume(m_volume);
         gst_element_set_state(playBin, GST_STATE_PLAYING);
     }
@@ -428,6 +430,7 @@ void AudioBackendGstreamer::pause()
 
 void AudioBackendGstreamer::setMedia(QString filename)
 {
+    m_hasVideo = false;
     m_filename = filename;
 #ifdef Q_OS_WIN
     std::string uri = "file:///" + filename.toStdString();
@@ -839,6 +842,7 @@ void AudioBackendGstreamer::newFrame()
     GstSample* sample = gst_app_sink_pull_sample((GstAppSink*)videoAppSink);
 
     if (sample) {
+        m_hasVideo = true;
         GstBuffer *buffer;
         GstCaps *caps;
         GstStructure *s;
@@ -1077,4 +1081,10 @@ void AudioBackendGstreamer::setEqLevel10(int level)
     if (!bypass)
         g_object_set(equalizer, "band9", (double)level, NULL);
     eq10 = level;
+}
+
+
+bool AudioBackendGstreamer::hasVideo()
+{
+   return m_hasVideo;
 }

@@ -28,6 +28,7 @@
 #include "scrolltext.h"
 #include "cdgvideowidget.h"
 #include <QTimer>
+#include "abstractaudiobackend.h"
 
 namespace Ui {
 class DlgCdg;
@@ -51,10 +52,12 @@ private:
     QTimer *alertCountdownTimer;
     int countdownPos;
     QTimer *buttonShowTimer;
+    AbstractAudioBackend *kAudioBackend;
+    AbstractAudioBackend *bAudioBackend;
 
 
 public:
-    explicit DlgCdg(QWidget *parent = 0, Qt::WindowFlags f = 0);
+    explicit DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *BreakBackend, QWidget *parent = 0, Qt::WindowFlags f = 0);
     ~DlgCdg();
     void updateCDG(QImage image, bool overrideVisibleCheck = false);
     void makeFullscreen();
@@ -64,6 +67,8 @@ public:
     int getHOffset() { return hOffset; }
     int getVAdjustment() { return vSizeAdjustment; }
     int getHAdjustment() { return hSizeAdjustment; }
+    void setKAudioBackend(AbstractAudioBackend *value);
+    void setBAudioBackend(AbstractAudioBackend *value);
 
 protected:
     void mouseDoubleClickEvent(QMouseEvent *e);
@@ -101,6 +106,8 @@ public slots:
     void countdownTimerTimeout();
     void alertBgColorChanged(QColor color);
     void alertTxtColorChanged(QColor color);
+    void triggerBg();
+
 
 };
 

@@ -160,7 +160,6 @@ MainWindow::MainWindow(QWidget *parent) :
     requestsDialog = new DlgRequests(rotModel, this);
     dlgBookCreator = new DlgBookCreator(this);
     dlgEq = new DlgEq(this);
-    cdgWindow = new DlgCdg(this, Qt::Window);
     cdg = new CDG;
     ui->tableViewDB->setModel(dbModel);
     dbDelegate = new DbItemDelegate(this);
@@ -185,6 +184,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     audioRecorder = new AudioRecorder(this);
     settingsDialog = new DlgSettings(kAudioBackend, bmAudioBackend, this);
+    cdgWindow = new DlgCdg(kAudioBackend, bmAudioBackend, this, Qt::Window);
     connect(rotModel, SIGNAL(songDroppedOnSinger(int,int,int)), this, SLOT(songDroppedOnSinger(int,int,int)));
     connect(kAudioBackend, SIGNAL(volumeChanged(int)), ui->sliderVolume, SLOT(setValue(int)));
     connect(dbDialog, SIGNAL(databaseUpdated()), this, SLOT(songdbUpdated()));
@@ -1085,6 +1085,7 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
         ui->spinBoxTempo->setValue(100);
         setShowBgImage(true);
         cdgWindow->setShowBgImage(true);
+        cdgWindow->triggerBg();
         bmAudioBackend->fadeIn(false);
         if (settings->karaokeAutoAdvance())
         {
@@ -1484,27 +1485,73 @@ void MainWindow::karaokeAATimerTimeout()
 
 void MainWindow::timerButtonFlashTimeout()
 {
+    QString normalSS = " \
+        QPushButton { \
+            border: 2px solid #8f8f91; \
+            border-radius: 6px; \
+            background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #f6f7fa, stop: 1 #dadbde); \
+            min-width: 80px; \
+            padding-left: 5px; \
+            padding-right: 5px; \
+            padding-top: 3px; \
+            padding-bottom: 3px; \
+        } \
+        QPushButton:pressed { \
+            background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #dadbde, stop: 1 #f6f7fa); \
+        } \
+        QPushButton:flat { \
+            border: none; /* no border for a flat push button */ \
+        } \
+        QPushButton:default { \
+            border-color: navy; /* make the default button prominent */ \
+        }";
+
+    QString blinkSS = " \
+        QPushButton { \
+            border: 2px solid #8f8f91; \
+            border-radius: 6px; \
+            background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #f6f700, stop: 1 #dadb00); \
+            min-width: 80px; \
+            padding-left: 5px; \
+            padding-right: 5px; \
+            padding-top: 3px; \
+            padding-bottom: 3px; \
+        } \
+        QPushButton:pressed { \
+            background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #dadbde, stop: 1 #f6f7fa); \
+        } \
+        QPushButton:flat { \
+            border: none; /* no border for a flat push button */ \
+        } \
+        QPushButton:default { \
+            border-color: navy; /* make the default button prominent */ \
+        } \
+    ";
+
     if (requestsDialog->numRequests() > 0)
     {
-        ui->pushButtonIncomingRequests->setText("Requests (" + QString::number(requestsDialog->numRequests()) + ")");
+        ui->pushButtonIncomingRequests->setText(" Requests (" + QString::number(requestsDialog->numRequests()) + ") ");
         static bool flashed = false;
-        QColor normal = this->palette().button().color();
-        QColor blink = QColor("yellow");
-        QPalette palette = QPalette(ui->pushButtonIncomingRequests->palette());
-        palette.setColor(QPalette::Button, (flashed) ? normal : blink);
-        ui->pushButtonIncomingRequests->setPalette(palette);
+//        QColor normal = this->palette().button().color();
+//        QColor blink = QColor("yellow");
+//        QPalette palette = QPalette(ui->pushButtonIncomingRequests->palette());
+//        palette.setColor(QPalette::Button, (flashed) ? normal : blink);
+//        ui->pushButtonIncomingRequests->setPalette(palette);
+        ui->pushButtonIncomingRequests->setStyleSheet((flashed) ? normalSS : blinkSS);
         flashed = !flashed;
         update();
     }
-    else if (ui->pushButtonIncomingRequests->palette().color(QPalette::Button) != this->palette().color(QPalette::Button))
-    {
-        ui->pushButtonIncomingRequests->setPalette(this->palette());
-        ui->pushButtonIncomingRequests->setText("Requests");
-        update();
-    }
+//    else if (ui->pushButtonIncomingRequests->palette().color(QPalette::Button) != this->palette().color(QPalette::Button))
+//    {
+//        ui->pushButtonIncomingRequests->setPalette(this->palette());
+//        ui->pushButtonIncomingRequests->setStyleSheet(normalSS);
+//        ui->pushButtonIncomingRequests->setText("Requests");
+//        update();
+//    }
     else if (ui->pushButtonIncomingRequests->text() != "Requests")
     {
-        ui->pushButtonIncomingRequests->setText("Requests");
+        ui->pushButtonIncomingRequests->setStyleSheet(normalSS);
+        ui->pushButtonIncomingRequests->setText(" Requests ");
         update();
     }
 }
@@ -1638,6 +1685,7 @@ void MainWindow::bmMediaStateChanged(AbstractAudioBackend::State newState)
                 ui->cdgVideoWidget->clear();
                 setShowBgImage(true);
                 cdgWindow->setShowBgImage(true);
+                cdgWindow->triggerBg();
             }
         }
     }
