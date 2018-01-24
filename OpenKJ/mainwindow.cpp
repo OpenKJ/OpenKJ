@@ -2121,7 +2121,7 @@ void MainWindow::newVersionAvailable(QString version)
     {
         msgBox.setInformativeText("To install the update, please use your distribution's package manager.");
     }
-    if (checker->getOS() == "Linux" || checker->getOS() == "Win64")
+    if (checker->getOS() == "Win32" || checker->getOS() == "Win64")
     {
         msgBox.setInformativeText("You can download the new version at <a href=https://openkj.org/windows_downloads>https://openkj.org/windows_downloads</a>");
     }
