@@ -482,6 +482,8 @@ void MainWindow::play(QString karaokeFilePath)
         }
         else if (karaokeFilePath.endsWith(".cdg", Qt::CaseInsensitive))
         {
+            QFile::remove(khTmpDir->path() + QDir::separator() + "tmp.cdg");
+            QFile::remove(khTmpDir->path() + QDir::separator() + "tmp.mp3");
             QFile cdgFile(karaokeFilePath);
             if (!cdgFile.exists())
             {
