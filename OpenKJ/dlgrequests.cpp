@@ -68,6 +68,7 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     ui->tableViewSearch->hideColumn(0);
     ui->tableViewSearch->hideColumn(5);
     ui->tableViewSearch->hideColumn(6);
+    ui->tableViewSearch->hideColumn(7);
     ui->tableViewSearch->horizontalHeader()->resizeSection(4,75);
     ui->checkBoxDelOnAdd->setChecked(settings->requestRemoveOnRotAdd());
     connect(songbookApi, SIGNAL(venuesChanged(OkjsVenues)), this, SLOT(venuesChanged(OkjsVenues)));
