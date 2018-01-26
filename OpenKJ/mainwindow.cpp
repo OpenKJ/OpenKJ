@@ -515,9 +515,11 @@ void MainWindow::play(QString karaokeFilePath)
                 QMessageBox::warning(this, tr("Bad karaoke file"), tr("mp3 file contains no data"),QMessageBox::Ok);
                 return;
             }
-            cdg->FileOpen(cdgFile.fileName().toStdString());
+            cdgFile.copy(khTmpDir->path() + QDir::separator() + "tmp.cdg");
+            QFile::copy(mp3fn, khTmpDir->path() + QDir::separator() + "tmp.mp3");
+            cdg->FileOpen(QString(khTmpDir->path() + QDir::separator() + "tmp.cdg").toStdString());
             cdg->Process();
-            kAudioBackend->setMedia(mp3fn);
+            kAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + "tmp.mp3");
 //            ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
             bmAudioBackend->fadeOut(!settings->bmKCrossFade());
             kAudioBackend->play();
@@ -2121,7 +2123,7 @@ void MainWindow::newVersionAvailable(QString version)
     {
         msgBox.setInformativeText("To install the update, please use your distribution's package manager.");
     }
-    if (checker->getOS() == "Linux" || checker->getOS() == "Win64")
+    if (checker->getOS() == "Win32" || checker->getOS() == "Win64")
     {
         msgBox.setInformativeText("You can download the new version at <a href=https://openkj.org/windows_downloads>https://openkj.org/windows_downloads</a>");
     }

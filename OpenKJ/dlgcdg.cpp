@@ -123,6 +123,7 @@ DlgCdg::DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *Break
     connect(settings, SIGNAL(alertBgColorChanged(QColor)), this, SLOT(alertBgColorChanged(QColor)));
     connect(settings, SIGNAL(alertTxtColorChanged(QColor)), this, SLOT(alertTxtColorChanged(QColor)));
     connect(kAudioBackend, SIGNAL(stateChanged(AbstractAudioBackend::State)), this, SLOT(triggerBg(AbstractAudioBackend::State)));
+    connect(settings, SIGNAL(bgModeChanged(BgMode)), this, SLOT(triggerBg()));
 
 }
 
