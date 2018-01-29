@@ -78,7 +78,7 @@ void UpdateChecker::onNetworkReply(QNetworkReply *reply)
     availVersion = availVersion.trimmed();
     QStringList curVersionParts = currentVer.split(".");
     QStringList availVersionParts = availVersion.split(".");
-    if (availVersionParts.size() != 3 && curVersionParts.size() != 3)
+    if (availVersionParts.size() != 3 || curVersionParts.size() != 3)
         return;
     int availMajor = availVersionParts.at(0).toInt();
     int availMinor = availVersionParts.at(1).toInt();
