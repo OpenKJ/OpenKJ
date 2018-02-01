@@ -218,7 +218,8 @@ SOURCES += main.cpp\
     dlgeq.cpp \
     audiofader.cpp \
     customlineedit.cpp \
-    updatechecker.cpp
+    updatechecker.cpp \
+    volslider.cpp
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -382,7 +383,8 @@ HEADERS  += mainwindow.h \
     dlgeq.h \
     audiofader.h \
     customlineedit.h \
-    updatechecker.h
+    updatechecker.h \
+    volslider.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \

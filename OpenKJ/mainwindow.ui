@@ -1419,7 +1419,7 @@ QPushButton:default {
                        </layout>
                       </item>
                       <item>
-                       <widget class="QSlider" name="sliderVolume">
+                       <widget class="VolSlider" name="sliderVolume">
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
                           <horstretch>0</horstretch>
@@ -2301,7 +2301,7 @@ QPushButton:default {
                        </property>
                        <layout class="QHBoxLayout" name="horizontalLayout_4">
                         <item>
-                         <widget class="QSlider" name="sliderBmVolume">
+                         <widget class="VolSlider" name="sliderBmVolume">
                           <property name="focusPolicy">
                            <enum>Qt::NoFocus</enum>
                           </property>
@@ -2696,7 +2696,7 @@ QPushButton:default {
      <x>0</x>
      <y>0</y>
      <width>964</width>
-     <height>25</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -2887,6 +2887,11 @@ QPushButton:default {
    <class>CustomLineEdit</class>
    <extends>QLineEdit</extends>
    <header>customlineedit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>VolSlider</class>
+   <extends>QSlider</extends>
+   <header location="global">volslider.h</header>
   </customwidget>
  </customwidgets>
  <resources>
