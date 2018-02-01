@@ -44,6 +44,21 @@ Settings *settings;
 OKJSongbookAPI *songbookApi;
 KhDb *db;
 
+QString MainWindow::GetRandomString() const
+{
+   const QString possibleCharacters("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
+   const int randomStringLength = 12; // assuming you want random strings of 12 characters
+
+   QString randomString;
+   for(int i=0; i<randomStringLength; ++i)
+   {
+       int index = qrand() % possibleCharacters.length();
+       QChar nextChar = possibleCharacters.at(index);
+       randomString.append(nextChar);
+   }
+   return randomString;
+}
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -482,8 +497,15 @@ void MainWindow::play(QString karaokeFilePath)
         }
         else if (karaokeFilePath.endsWith(".cdg", Qt::CaseInsensitive))
         {
-            QFile::remove(khTmpDir->path() + QDir::separator() + "tmp.cdg");
-            QFile::remove(khTmpDir->path() + QDir::separator() + "tmp.mp3");
+            static QString prevCdgTmpFile;
+            static QString prevAudioTmpFile;
+            QFile::remove(khTmpDir->path() + QDir::separator() + prevCdgTmpFile);
+            QFile::remove(khTmpDir->path() + QDir::separator() + prevAudioTmpFile);
+            QString tmpString = GetRandomString();
+            QString cdgTmpFile = tmpString + ".cdg";
+            QString audTmpFile = tmpString + ".mp3";
+            prevCdgTmpFile = cdgTmpFile;
+            prevAudioTmpFile = audTmpFile;
             QFile cdgFile(karaokeFilePath);
             if (!cdgFile.exists())
             {
@@ -517,11 +539,11 @@ void MainWindow::play(QString karaokeFilePath)
                 QMessageBox::warning(this, tr("Bad karaoke file"), tr("mp3 file contains no data"),QMessageBox::Ok);
                 return;
             }
-            cdgFile.copy(khTmpDir->path() + QDir::separator() + "tmp.cdg");
-            QFile::copy(mp3fn, khTmpDir->path() + QDir::separator() + "tmp.mp3");
-            cdg->FileOpen(QString(khTmpDir->path() + QDir::separator() + "tmp.cdg").toStdString());
+            cdgFile.copy(khTmpDir->path() + QDir::separator() + cdgTmpFile);
+            QFile::copy(mp3fn, khTmpDir->path() + QDir::separator() + audTmpFile);
+            cdg->FileOpen(QString(khTmpDir->path() + QDir::separator() + cdgTmpFile).toStdString());
             cdg->Process();
-            kAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + "tmp.mp3");
+            kAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + audTmpFile);
 //            ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
             bmAudioBackend->fadeOut(!settings->bmKCrossFade());
             kAudioBackend->play();
