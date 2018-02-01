@@ -134,10 +134,13 @@ private:
     UpdateChecker *checker;
     QTimer *timerButtonFlash;
     bool blinkRequestsBtn;
-
     QString GetRandomString() const;
+    QSharedMemory *_singular;
+
 public:
     explicit MainWindow(QWidget *parent = 0);
+    bool isSingleInstance();
+
     ~MainWindow();
     
 private slots:
