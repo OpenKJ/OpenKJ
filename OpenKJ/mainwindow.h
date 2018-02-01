@@ -135,6 +135,7 @@ private:
     QTimer *timerButtonFlash;
     bool blinkRequestsBtn;
 
+    QString GetRandomString() const;
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
