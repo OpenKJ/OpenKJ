@@ -62,7 +62,7 @@ QStringList BmDbUpdateThread::findMediaFiles(QString directory)
             QString filename = iterator.filePath();
             for (int i=0; i<supportedExtensions.size(); i++)
             {
-                if (filename.endsWith(supportedExtensions.at(i)))
+                if (filename.endsWith(supportedExtensions.at(i),Qt::CaseInsensitive))
                 {
                     files.append(filename);
                     break;
