@@ -59,10 +59,24 @@ QString MainWindow::GetRandomString() const
    return randomString;
 }
 
+bool MainWindow::isSingleInstance()
+{
+    if(_singular->attach(QSharedMemory::ReadOnly)){
+        _singular->detach();
+        return false;
+    }
+
+    if(_singular->create(1))
+        return true;
+
+    return false;
+}
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    _singular = new QSharedMemory("SharedMemorySingleInstanceProtectorOpenKJ", this);
     blinkRequestsBtn = false;
     kAASkip = false;
     kAANextSinger = -1;
@@ -595,6 +609,8 @@ MainWindow::~MainWindow()
     delete khDir;
     delete ui;
     delete khTmpDir;
+    if(_singular->isAttached())
+        _singular->detach();
 }
 
 void MainWindow::search()

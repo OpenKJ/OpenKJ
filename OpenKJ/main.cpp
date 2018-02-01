@@ -26,12 +26,23 @@
 #include <QSplashScreen>
 #include <QStringList>
 #include <QDebug>
+#include <QMessageBox>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 //    QApplication::setStyle(QStyleFactory::create("Fusion"));
     MainWindow w;
+    if (!w.isSingleInstance())
+    {
+        QMessageBox msgBox;
+        msgBox.setText("OpenKJ is already running!");
+        msgBox.setInformativeText("In order to protect the database, you can only run one instance of OpenKJ at a time.\nExiting now.");
+        msgBox.setIcon(QMessageBox::Critical);
+        msgBox.exec();
+        return 1;
+    }
     w.show();
+
     return a.exec();
 }
