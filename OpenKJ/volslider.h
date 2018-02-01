@@ -8,7 +8,7 @@ class VolSlider : public QSlider
 {
     Q_OBJECT
 public:
-    explicit VolSlider(QWidget *parent = nullptr);
+    explicit VolSlider(QWidget *parent = 0);
 
 signals:
 
