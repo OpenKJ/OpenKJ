@@ -342,6 +342,49 @@ void DbUpdateThread::run()
             }
             break;
         }
+
+        if (artist == "" && title == "" && discid == "")
+        {
+            // Something went wrong, no metadata found. File is probably named wrong. If we didn't try media tags, give it a shot
+            if (g_pattern != SourceDir::METADATA)
+            {
+                if (fileName.endsWith(".cdg", Qt::CaseInsensitive))
+                {
+                    TagReader reader;
+                    reader.setMedia(mediaFile);
+                    artist = reader.getArtist();
+                    title = reader.getTitle();
+                    discid = reader.getAlbum();
+                    QString track = reader.getTrack();
+                    if (track != "")
+                    {
+                        discid.append("-" + track);
+                    }
+                }
+                else if (fileName.endsWith(".zip", Qt::CaseInsensitive))
+                {
+                    QTemporaryDir dir;
+                    archive.setArchiveFile(fileName);
+                    archive.checkAudio();
+                    QString audioFile = "temp" + archive.audioExtension();
+                    archive.extractAudio(dir.path() + QDir::separator() + audioFile);
+                    TagReader reader;
+                    reader.setMedia(dir.path() + QDir::separator() + audioFile);
+                    artist = reader.getArtist();
+                    title = reader.getTitle();
+                    discid = reader.getAlbum();
+                    QString track = reader.getTrack();
+                    if (track != "")
+                    {
+                        discid.append("-" + track);
+                    }
+                }
+            }
+            // If we still don't have any metadata, just throw filename into the title field
+            if (artist == "" && title == "" && discid == "")
+                title = file.completeBaseName();
+        }
+
         query.bindValue(":discid", discid);
         query.bindValue(":artist", artist);
         query.bindValue(":title", title);
