@@ -776,6 +776,16 @@ void Settings::setRequestDialogAutoShow(bool enabled)
     settings->setValue("requestDialogAutoShow", enabled);
 }
 
+void Settings::setCheckUpdates(bool enabled)
+{
+    return settings->setValue("checkUpdates", enabled);
+}
+
+void Settings::setUpdatesBranch(int index)
+{
+    settings->setValue("updatesBranch", index);
+}
+
 void Settings::setCdgHSizeAdjustment(int pixels)
 {
     settings->setValue("cdgHSizeAdjustment", pixels);
@@ -1109,6 +1119,16 @@ bool Settings::requestRemoveOnRotAdd()
 bool Settings::requestDialogAutoShow()
 {
     return settings->value("requestDialogAutoShow", true).toBool();
+}
+
+bool Settings::checkUpdates()
+{
+    return settings->value("checkUpdates", true).toBool();
+}
+
+int Settings::updatesBranch()
+{
+    return settings->value("updatesBranch", 0).toInt();
 }
 
 void Settings::setBmKCrossfade(bool enabled)

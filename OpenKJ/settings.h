@@ -195,6 +195,8 @@ public:
     bool bmKCrossFade();
     bool requestRemoveOnRotAdd();
     bool requestDialogAutoShow();
+    bool checkUpdates();
+    int updatesBranch();
 
 signals:
     void tickerFontChanged();
@@ -304,8 +306,8 @@ public slots:
     void setTickerShowRotationInfo(bool show);
     void setRequestRemoveOnRotAdd(bool remove);
     void setRequestDialogAutoShow(bool enabled);
-
-
+    void setCheckUpdates(bool enabled);
+    void setUpdatesBranch(int index);
 };
 
 #endif // KHSETTINGS_H
