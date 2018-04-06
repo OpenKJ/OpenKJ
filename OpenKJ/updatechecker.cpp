@@ -2,7 +2,9 @@
 #include <QApplication>
 #include <QDebug>
 #include <QNetworkReply>
+#include <settings.h>
 
+extern Settings *settings;
 
 QString UpdateChecker::getOS() const
 {
@@ -43,21 +45,18 @@ UpdateChecker::UpdateChecker(QObject *parent) : QObject(parent)
     OS = "Linux";
 #endif
 
-#ifdef OKJ_UNSTABLE
-    channel = "unstable";
-#endif
-#ifdef OKJ_BETA
-    channel = "beta";
-#endif
-#ifdef OKJ_STABLE
+if (settings->updatesBranch() == 0)
     channel = "stable";
-#endif
+else
+    channel = "unstable";
 //    connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
 }
 
 void UpdateChecker::checkForUpdates()
 {
-    qWarning() << "Requesting current version info";
+    if (!settings->checkUpdates())
+        return;
+    qWarning() << "Requesting current version info for branch: " << channel;
     connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
     QNetworkReply *reply = manager->get(QNetworkRequest(QUrl("http://openkj.org/downloads/" + OS + "-" + channel + "-curversion.txt")));
     while (!reply->isFinished())
@@ -79,7 +78,10 @@ void UpdateChecker::onNetworkReply(QNetworkReply *reply)
     QStringList curVersionParts = currentVer.split(".");
     QStringList availVersionParts = availVersion.split(".");
     if (availVersionParts.size() != 3 || curVersionParts.size() != 3)
+    {
+        qWarning() << "Got invalid version info from server";
         return;
+    }
     int availMajor = availVersionParts.at(0).toInt();
     int availMinor = availVersionParts.at(1).toInt();
     int availRevis = availVersionParts.at(2).toInt();
