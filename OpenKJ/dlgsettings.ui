@@ -1294,6 +1294,23 @@ by the number of ms specified.</string>
                  </item>
                 </layout>
                </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_16">
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <widget class="QCheckBox" name="cbxCheckUpdates">
+                   <property name="text">
+                    <string>Check for updates on startup</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="comboBoxUpdateBranch"/>
+                 </item>
+                </layout>
+               </item>
               </layout>
              </widget>
             </item>

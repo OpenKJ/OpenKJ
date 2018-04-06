@@ -149,6 +149,8 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
         ui->comboBoxCodec->setCurrentIndex(1);
     else
         ui->comboBoxCodec->setCurrentIndex(ui->comboBoxCodec->findText(settings->recordingCodec()));
+    ui->comboBoxUpdateBranch->addItem("Stable");
+    ui->comboBoxUpdateBranch->addItem("Development");
     ui->lineEditOutputDir->setText(settings->recordingOutputDir());
     tickerShowRotationInfoChanged(settings->tickerShowRotationInfo());
     ui->groupBoxTicker->setChecked(settings->tickerEnabled());
@@ -177,6 +179,8 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     ui->cbxIgnoreApos->setChecked(settings->ignoreAposInSearch());
     ui->spinBoxCdgOffset->setValue(settings->cdgDisplayOffset());
     ui->cbxStopPauseWarning->setChecked(settings->showSongPauseStopWarning());
+    ui->cbxCheckUpdates->setChecked(settings->checkUpdates());
+    ui->comboBoxUpdateBranch->setCurrentIndex(settings->updatesBranch());
     connect(settings, SIGNAL(karaokeAutoAdvanceChanged(bool)), ui->checkBoxKAA, SLOT(setChecked(bool)));
     connect(settings, SIGNAL(showQueueRemovalWarningChanged(bool)), ui->cbxQueueRemovalWarning, SLOT(setChecked(bool)));
     connect(settings, SIGNAL(showSingerRemovalWarningChanged(bool)), ui->cbxSingerRemovalWarning, SLOT(setChecked(bool)));
@@ -186,6 +190,8 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     connect(ui->spinBoxCdgOffset, SIGNAL(valueChanged(int)), settings, SLOT(setCdgDisplayOffset(int)));
     ui->cbxCrossFade->setChecked(settings->bmKCrossFade());
     connect(ui->cbxCrossFade, SIGNAL(clicked(bool)), settings, SLOT(setBmKCrossfade(bool)));
+    connect(ui->cbxCheckUpdates, SIGNAL(clicked(bool)), settings, SLOT(setCheckUpdates(bool)));
+    connect(ui->comboBoxUpdateBranch, SIGNAL(currentIndexChanged(int)), settings, SLOT(setUpdatesBranch(int)));
 }
 
 DlgSettings::~DlgSettings()
