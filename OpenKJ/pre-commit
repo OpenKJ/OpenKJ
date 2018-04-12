@@ -1,0 +1,25 @@
+#!/bin/bash
+# pre-commit file for autoincrementing the OpenKJ version header
+# goes in .git/hooks/
+
+versionfile="OpenKJ/okjversion.h"
+oldmaj=`grep MAJOR $versionfile| cut -d " " -f 3`
+oldmin=`grep MINOR $versionfile| cut -d " " -f 3`
+oldbld=`grep BUILD $versionfile| cut -d " " -f 3`
+branch=`grep BRANCH $versionfile| cut -d " " -f 3`
+newbld=$(($oldbld+1))
+
+rm -f $versionfile
+
+echo "#ifndef OKJVERSION_H" > $versionfile
+echo "#define OKJVERSION_H" >> $versionfile
+echo >> $versionfile
+echo "#define OKJ_VERSION_MAJOR $oldmaj" >> $versionfile
+echo "#define OKJ_VERSION_MINOR $oldmin" >> $versionfile
+echo "#define OKJ_VERSION_BUILD $newbld" >> $versionfile
+echo "#define OKJ_VERSION_STRING \"$oldmaj.$oldmin.$newbld\"" >> $versionfile
+echo "#define OKJ_VERSION_BRANCH $branch" >> $versionfile
+echo >> $versionfile
+echo "#endif //OKJVERSION_H" >> $versionfile
+
+git add 
