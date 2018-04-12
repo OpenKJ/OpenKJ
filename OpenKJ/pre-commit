@@ -22,4 +22,7 @@ echo "#define OKJ_VERSION_BRANCH $branch" >> $versionfile
 echo >> $versionfile
 echo "#endif //OKJVERSION_H" >> $versionfile
 
-git add 
+git add OpenKJ/okjversion.h
+
+sed -i "s/Version:.*/Version:\t$oldmaj.$oldmin.$newbld/" rpm/openkj.spec
+git add rpm/openkj.spec
