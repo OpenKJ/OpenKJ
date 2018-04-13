@@ -1,5 +1,5 @@
 Name:           openkj
-Version:	1.3.10
+Version:	1.3.5
 Release:        1%{?dist}
 Summary:        Karaoke show hosting software
 
