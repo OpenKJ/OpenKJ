@@ -26,3 +26,7 @@ git add OpenKJ/okjversion.h
 
 sed -i "s/Version:.*/Version:\t$oldmaj.$oldmin.$newbld/" rpm/openkj.spec
 git add rpm/openkj.spec
+
+dch -D xenial -v $oldmaj.$oldmin.$newbld-1~xenial "Autobuild from git tag"
+dch -r "Autobuild from git tag"
+git add debian

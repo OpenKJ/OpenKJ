@@ -31,7 +31,7 @@ UpdateChecker::UpdateChecker(QObject *parent) : QObject(parent)
     OS = "unknown";
     channel = "stable";
     manager = new QNetworkAccessManager(this);
-    currentVer = GIT_VERSION;
+    currentVer = OKJ_VERSION_STRING;
 #ifdef Q_OS_WIN32
     OS = "Win32";
 #endif
@@ -85,9 +85,9 @@ void UpdateChecker::onNetworkReply(QNetworkReply *reply)
     int availMajor = availVersionParts.at(0).toInt();
     int availMinor = availVersionParts.at(1).toInt();
     int availRevis = availVersionParts.at(2).toInt();
-    int curMajor = curVersionParts.at(0).toInt();
-    int curMinor = curVersionParts.at(1).toInt();
-    int curRevis = curVersionParts.at(2).toInt();
+    int curMajor = OKJ_VERSION_MAJOR;
+    int curMinor = OKJ_VERSION_MINOR;
+    int curRevis = OKJ_VERSION_BUILD;
     if (availMajor > curMajor)
         emit newVersionAvailable(availVersion);
     else if (availMajor == curMajor && availMinor > curMinor)
