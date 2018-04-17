@@ -3,6 +3,7 @@
 
 #include <QNetworkAccessManager>
 #include <QObject>
+#include "okjversion.h"
 
 class UpdateChecker : public QObject
 {

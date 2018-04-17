@@ -384,7 +384,8 @@ HEADERS  += mainwindow.h \
     audiofader.h \
     customlineedit.h \
     updatechecker.h \
-    volslider.h
+    volslider.h \
+    okjversion.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \

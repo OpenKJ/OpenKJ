@@ -39,6 +39,7 @@
 #include "audiorecorder.h"
 #include "okjsongbookapi.h"
 #include "updatechecker.h"
+#include "okjversion.h"
 
 Settings *settings;
 OKJSongbookAPI *songbookApi;
@@ -2028,7 +2029,7 @@ void MainWindow::on_actionAbout_triggered()
     QString text;
     QString date = QString::fromLocal8Bit(__DATE__) + " " + QString(__TIME__);
     title = "About OpenKJ";
-    text = "OpenKJ\n\nVersion: " + QString(GIT_VERSION) + "\nBuilt: " + date + "\nLicense: GPL v3+";
+    text = "OpenKJ\n\nVersion: " + QString(OKJ_VERSION_STRING) + " " + QString(OKJ_VERSION_BRANCH) + "\nBuilt: " + date + "\nLicense: GPL v3+";
     QMessageBox::about(this,title,text);
 }
 
