@@ -31,3 +31,17 @@ git add rpm/openkj.spec
 dch -D xenial -v $oldmaj.$oldmin.$newbld-1~xenial "Autobuild from git tag"
 dch -r "Autobuild from git tag"
 git add ./debian
+
+sed -i "s/version:.*/version: $oldmaj.$oldmin.$newbld/" appveyor.yml
+sed -i "s/  OKJVERSION:.*/  OKJVERSION: $oldmaj.$oldmin.$newbld/" appveyor.yml
+git add appveyor.yml
+
+sed -i "s/#define MyAppVersion.*/#define MyAppVersion \"$oldmaj.$oldmin.$newbld\"/" appveyor/openkj_x86_64.iss
+sed -i "s/#define MyAppVersion.*/#define MyAppVersion \"$oldmaj.$oldmin.$newbld\"/" appveyor/openkj_x86.iss
+unix2dos appveyor/openkj_x86_64.iss
+unix2dos appveyor/openkj_x86.iss
+git add appveyor/openkj_x86_64.iss
+git add appveyor/openkj_x86.iss
+
+sed -i "s/VERSION =.*/VERSION = $oldmaj.$oldmin.$newbld/" OpenKJ/OpenKJ.pro
+git add OpenKJ/OpenKJ.pro
