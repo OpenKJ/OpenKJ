@@ -1,0 +1,70 @@
+image: Visual Studio 2015
+
+version: 1.3.8
+
+branches:
+  only:
+    - master
+    - release
+
+environment:
+  OKJVERSION: 1.3.8
+  matrix:
+  - TARGET_ARCH: x64
+    QT: C:\Qt\5.10.1\msvc2015_64
+    PLATFORM: amd64
+    COMPILER: msvc
+    VSVER: 14
+    LONGARCH: x86_64
+    BITS: 64bit
+  - TARGET_ARCH: x86
+    QT: C:\Qt\5.10.1\msvc2015
+    PLATFORM: x86
+    COMPILER: msvc
+    VSVER: 14
+    LONGARCH: x86
+    BITS: 32bit
+
+clone_depth: 1
+
+init:
+  - set TAG_NAME=%APPVEYOR_REPO_TAG_NAME%
+
+clone_folder: c:\projects\openkj
+
+install:
+  - ps: |
+      Write-Host "Installing GStreamer..." -ForegroundColor Cyan
+      Write-Host "Platform - $($env:LONGARCH)"
+      $msiPath = "$($env:USERPROFILE)\gstreamer.msi"
+      $gstInstallUrl = "https://gstreamer.freedesktop.org/data/pkg/windows/1.14.0.1/gstreamer-1.0-$($env:LONGARCH)-1.14.0.1.msi"
+      $gstDevelInstallUrl = "https://gstreamer.freedesktop.org/data/pkg/windows/1.14.0.1/gstreamer-1.0-devel-$($env:LONGARCH)-1.14.0.1.msi"
+      Write-Host "Downloading..."
+      (New-Object Net.WebClient).DownloadFile($gstInstallUrl, $msiPath)
+      Write-Host "Installing..."
+      cmd /c start /wait msiexec /package $msiPath /passive ADDLOCAL=ALL
+      Write-Host "Installed" -ForegroundColor Green
+  - ps: |
+      Write-Host "Installing GStreamer dev..." -ForegroundColor Cyan
+      $msiPath = "$($env:USERPROFILE)\gstreamer-devel.msi"
+      Write-Host "Downloading..."
+      (New-Object Net.WebClient).DownloadFile($gstDevelInstallUrl, $msiPath)
+      Write-Host "Installing..."
+      cmd /c start /wait msiexec /package $msiPath /passive ADDLOCAL=ALL
+      Write-Host "Installed" -ForegroundColor Green
+
+build_script:
+  - call "appveyor/build_windows.cmd"
+
+artifacts:
+  - path: OpenKJ-$(OKJVERSION)-$(BITS)-setup.exe
+    name: installer
+
+deploy:
+  provider: FTP
+  protocol: sftp
+  host: openkj.org
+  username: $(deploy_user)
+  password: $(deploy_pass)
+  folder: $(APPVEYOR_REPO_BRANCH) 
+  artifact: installer
