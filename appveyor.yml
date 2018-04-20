@@ -1,6 +1,6 @@
 image: Visual Studio 2015
 
-version: 1.3.8
+version: 1.3.9
 
 branches:
   only:
@@ -8,7 +8,7 @@ branches:
     - release
 
 environment:
-  OKJVERSION: 1.3.8
+  OKJVERSION: 1.3.9
   matrix:
   - TARGET_ARCH: x64
     QT: C:\Qt\5.10.1\msvc2015_64
