@@ -38,3 +38,5 @@ sed -i "s/#define MyAppVersion.*/#define MyAppVersion \"$oldmaj.$oldmin.$newbld\
 sed -i "s/#define MyAppVersion.*/#define MyAppVersion \"$oldmaj.$oldmin.$newbld\"/" appveyor/openkj_x86.iss
 unix2dos appveyor/openkj_x86_64.iss
 unix2dos appveyor/openkj_x86.iss
+
+sed -i "s/VERSION =.*/VERSION = $oldmaj.$oldmin.$newbld/" OpenKJ/OpenKJ.pro
