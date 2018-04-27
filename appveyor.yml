@@ -1,6 +1,6 @@
 image: Visual Studio 2015
 
-version: 1.3.10
+version: 1.3.11
 
 branches:
   only:
@@ -10,7 +10,7 @@ branches:
 max_jobs: 4
 
 environment:
-  OKJVERSION: 1.3.10
+  OKJVERSION: 1.3.11
   matrix:
   - TARGET_ARCH: x64
     QT: C:\Qt\5.10.1\msvc2015_64
@@ -54,7 +54,10 @@ install:
       Write-Host "Installing..."
       cmd /c start /wait msiexec /package $msiPath /passive ADDLOCAL=ALL
       Write-Host "Installed" -ForegroundColor Green
-
+  - ps: |
+      Write-Host "Downloading OpenSSL dll's"
+      (New-Object Net.WebClient).DownloadFile("https://openkj.org/downloads/ssl-$($env:LONGARCH).zip", "c:\projects\openkj\ssl.zip")
+      Write-Host "Done."
 build_script:
   - call "appveyor/build_windows.cmd"
 
