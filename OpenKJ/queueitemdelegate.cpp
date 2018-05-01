@@ -67,7 +67,7 @@ void QueueItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
     painter->save();
     if (option.state & QStyle::State_Selected)
         painter->setPen(option.palette.highlightedText().color());
-    if (!index.sibling(index.row(), 8).data().toBool() && settings->theme() == 1)
+    if (index.sibling(index.row(), 8).data().toBool() && settings->theme() == 1)
     {
         painter->setPen("darkGrey");
         QFont font = painter->font();
