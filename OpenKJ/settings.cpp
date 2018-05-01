@@ -786,6 +786,11 @@ void Settings::setUpdatesBranch(int index)
     settings->setValue("updatesBranch", index);
 }
 
+void Settings::setTheme(int theme)
+{
+    settings->setValue("theme", theme);
+}
+
 void Settings::setCdgHSizeAdjustment(int pixels)
 {
     settings->setValue("cdgHSizeAdjustment", pixels);
@@ -1129,6 +1134,11 @@ bool Settings::checkUpdates()
 int Settings::updatesBranch()
 {
     return settings->value("updatesBranch", 0).toInt();
+}
+
+int Settings::theme()
+{
+    return settings->value("theme", 0).toInt();
 }
 
 void Settings::setBmKCrossfade(bool enabled)

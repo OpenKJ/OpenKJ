@@ -197,6 +197,7 @@ public:
     bool requestDialogAutoShow();
     bool checkUpdates();
     int updatesBranch();
+    int theme();
 
 signals:
     void tickerFontChanged();
@@ -308,6 +309,7 @@ public slots:
     void setRequestDialogAutoShow(bool enabled);
     void setCheckUpdates(bool enabled);
     void setUpdatesBranch(int index);
+    void setTheme(int theme);
 };
 
 #endif // KHSETTINGS_H

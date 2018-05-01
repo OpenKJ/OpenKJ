@@ -151,6 +151,10 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
         ui->comboBoxCodec->setCurrentIndex(ui->comboBoxCodec->findText(settings->recordingCodec()));
     ui->comboBoxUpdateBranch->addItem("Stable");
     ui->comboBoxUpdateBranch->addItem("Development");
+    ui->cbxTheme->addItem("OS Native");
+    ui->cbxTheme->addItem("Fusion Dark");
+    ui->cbxTheme->addItem("Fusion Light");
+    ui->cbxTheme->setCurrentIndex(settings->theme());
     ui->lineEditOutputDir->setText(settings->recordingOutputDir());
     tickerShowRotationInfoChanged(settings->tickerShowRotationInfo());
     ui->groupBoxTicker->setChecked(settings->tickerEnabled());
@@ -192,6 +196,7 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     connect(ui->cbxCrossFade, SIGNAL(clicked(bool)), settings, SLOT(setBmKCrossfade(bool)));
     connect(ui->cbxCheckUpdates, SIGNAL(clicked(bool)), settings, SLOT(setCheckUpdates(bool)));
     connect(ui->comboBoxUpdateBranch, SIGNAL(currentIndexChanged(int)), settings, SLOT(setUpdatesBranch(int)));
+
 }
 
 DlgSettings::~DlgSettings()
@@ -248,6 +253,11 @@ void DlgSettings::createIcons()
     otherButton->setText(tr("Other"));
     otherButton->setTextAlignment(Qt::AlignHCenter);
     otherButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+    QListWidgetItem *appearanceButton = new QListWidgetItem(ui->listWidget);
+    appearanceButton->setIcon(QIcon(":/icons/Icons/theme.png"));
+    appearanceButton->setText("Theme");
+    appearanceButton->setTextAlignment(Qt::AlignHCenter);
+    appearanceButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 }
 
 void DlgSettings::on_btnClose_clicked()
@@ -627,4 +637,10 @@ void DlgSettings::tickerShowRotationInfoChanged(bool show)
     ui->spinBoxTickerSingers->setEnabled(show);
     ui->label_5->setEnabled(show);
     ui->cbxTickerShowRotationInfo->setChecked(show);
+}
+
+void DlgSettings::on_cbxTheme_currentIndexChanged(int index)
+{
+    if (pageSetupDone)
+        settings->setTheme(index);
 }

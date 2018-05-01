@@ -105,6 +105,7 @@ private slots:
     void on_cbxBmAutostart_clicked(bool checked);
     void on_spinBoxInterval_valueChanged(int arg1);
     void tickerShowRotationInfoChanged(bool show);
+    void on_cbxTheme_currentIndexChanged(int index);
 };
 
 #endif // SETTINGSDIALOG_H

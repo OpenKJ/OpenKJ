@@ -78,6 +78,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     _singular = new QSharedMemory("SharedMemorySingleInstanceProtectorOpenKJ", this);
+
     blinkRequestsBtn = false;
     kAASkip = false;
     kAANextSinger = -1;
@@ -104,6 +105,11 @@ MainWindow::MainWindow(QWidget *parent) :
         khDir->mkpath(khDir->absolutePath());
     }
     settings = new Settings(this);
+    if (settings->theme() != 0)
+    {
+        ui->pushButtonIncomingRequests->setStyleSheet("");
+        update();
+    }
     songbookApi = new OKJSongbookAPI(this);
     int initialKVol = settings->audioVolume();
     int initialBMVol = settings->bmVolume();
@@ -1573,28 +1579,40 @@ void MainWindow::timerButtonFlashTimeout()
 
     if (requestsDialog->numRequests() > 0)
     {
-        ui->pushButtonIncomingRequests->setText(" Requests (" + QString::number(requestsDialog->numRequests()) + ") ");
         static bool flashed = false;
-//        QColor normal = this->palette().button().color();
-//        QColor blink = QColor("yellow");
-//        QPalette palette = QPalette(ui->pushButtonIncomingRequests->palette());
-//        palette.setColor(QPalette::Button, (flashed) ? normal : blink);
-//        ui->pushButtonIncomingRequests->setPalette(palette);
-        ui->pushButtonIncomingRequests->setStyleSheet((flashed) ? normalSS : blinkSS);
-        flashed = !flashed;
+        if (settings->theme() != 0)
+        {
+            QColor normal = this->palette().button().color();
+            QColor blink = QColor("yellow");
+            QColor blinkTxt = QColor("black");
+            QColor normalTxt = this->palette().buttonText().color();
+            QPalette palette = QPalette(ui->pushButtonIncomingRequests->palette());
+            palette.setColor(QPalette::Button, (flashed) ? normal : blink);
+            palette.setColor(QPalette::ButtonText, (flashed) ? normalTxt : blinkTxt);
+            ui->pushButtonIncomingRequests->setPalette(palette);
+            ui->pushButtonIncomingRequests->setText(" Requests (" + QString::number(requestsDialog->numRequests()) + ") ");
+            flashed = !flashed;
+        }
+        else
+        {
+            ui->pushButtonIncomingRequests->setText(" Requests (" + QString::number(requestsDialog->numRequests()) + ") ");
+            ui->pushButtonIncomingRequests->setStyleSheet((flashed) ? normalSS : blinkSS);
+            flashed = !flashed;
+        }
         update();
     }
-//    else if (ui->pushButtonIncomingRequests->palette().color(QPalette::Button) != this->palette().color(QPalette::Button))
-//    {
-//        ui->pushButtonIncomingRequests->setPalette(this->palette());
-//        ui->pushButtonIncomingRequests->setStyleSheet(normalSS);
-//        ui->pushButtonIncomingRequests->setText("Requests");
-//        update();
-//    }
     else if (ui->pushButtonIncomingRequests->text() != "Requests")
     {
-        ui->pushButtonIncomingRequests->setStyleSheet(normalSS);
-        ui->pushButtonIncomingRequests->setText(" Requests ");
+        if (settings->theme() != 0)
+        {
+            ui->pushButtonIncomingRequests->setPalette(this->palette());
+            ui->pushButtonIncomingRequests->setText("Requests");
+        }
+        else
+        {
+            ui->pushButtonIncomingRequests->setStyleSheet(normalSS);
+            ui->pushButtonIncomingRequests->setText(" Requests ");
+        }
         update();
     }
 }

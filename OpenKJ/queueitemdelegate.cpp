@@ -19,6 +19,9 @@
 */
 
 #include "queueitemdelegate.h"
+#include "settings.h"
+
+extern Settings *settings;
 
 QueueItemDelegate::QueueItemDelegate(QObject *parent) :
     QItemDelegate(parent)
@@ -30,17 +33,18 @@ void QueueItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
 {
     int topPad = (option.rect.height() - 16) / 2;
     int leftPad = (option.rect.width() - 16) / 2;
-
-    if (option.state & QStyle::State_Selected)
-        painter->fillRect(option.rect, option.palette.highlight());
-
-    if (index.sibling(index.row(), 8).data().toBool())
+    if ((index.sibling(index.row(), 8).data().toBool()) && (index.column() != 7) && (index.column() != 8))
     {
         if (option.state & QStyle::State_Selected)
             painter->fillRect(option.rect, option.palette.highlight());
         else
-            painter->fillRect(option.rect, QColor("darkGrey"));
+        {
+            if (settings->theme() != 1)
+                painter->fillRect(option.rect, QColor("darkGrey"));
+        }
     }
+    if (option.state & QStyle::State_Selected)
+        painter->fillRect(option.rect, option.palette.highlight());
     if (index.column() == 7)
     {
         QString displayText = index.data().toString();
@@ -63,6 +67,13 @@ void QueueItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
     painter->save();
     if (option.state & QStyle::State_Selected)
         painter->setPen(option.palette.highlightedText().color());
+    if (!index.sibling(index.row(), 8).data().toBool() && settings->theme() == 1)
+    {
+        painter->setPen("darkGrey");
+        QFont font = painter->font();
+        font.setStrikeOut(true);
+        painter->setFont(font);
+    }
     painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + index.data().toString());
     painter->restore();
 }
