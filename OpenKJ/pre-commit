@@ -45,3 +45,6 @@ git add appveyor/openkj_x86.iss
 
 sed -i "s/VERSION =.*/VERSION = $oldmaj.$oldmin.$newbld/" OpenKJ/OpenKJ.pro
 git add OpenKJ/OpenKJ.pro
+
+sed -i "s/  - OKJVER=.*/  - OKJVER=$oldmaj.$oldmin.$newbld/" .travis.yml
+git add .travis.yml
