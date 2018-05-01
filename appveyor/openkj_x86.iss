@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "OpenKJ"
-#define MyAppVersion "1.3.11"
+#define MyAppVersion "1.3.12"
 #define MyAppPublisher "OpenKJ Project"
 #define MyAppURL "https://openkj.org/"
 #define MyAppExeName "OpenKJ.exe"

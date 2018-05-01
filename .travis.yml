@@ -1,0 +1,26 @@
+language: c++
+os:
+- osx
+env:
+  - OKJVER=1.3.12
+
+
+cache:
+  directories:
+  - "/Library/Frameworks/GStreamer.framework"
+  - "/Library/Frameworks/GStreamer.framework.deploy"
+  - "$HOME/Qt"
+before_install:
+- source travis/before_install.sh
+install:
+- "./travis/install.sh"
+script:
+- "./travis/build.sh"
+deploy:
+  provider: gcs
+  access_key_id: "GOOGCQNIBMNORKT3EC2Y"
+  bucket: ${BRANCH_BUCKET}
+  skip_cleanup: true
+  secret_access_key:
+    secure: RsIfgbdUvgnvCzuqFjyu0m1TyISBP/s4EaQw0FQo9H4tRmNT2ZWyKQp775F1hY14JYLDGPd+zavsKAHNBDO93s+f47gOpOEBqEmqSQcJlfMPUdNThkTwwXdu7Lqmvsq6RPiUczt7hwKoiXy/kpRmNdkvBFnv/uiM6H/WkALP+tvhPKo3pJ9XGdyfSviJhD+FeQUC2sF6Eb/v2GdfyGNJxPlKS3rGzdBZlfFtTrj0rlMryRLU3rIk6jap//3DSuvlL8YLYzM8wMM3rS2R3xTLG3YxhwvviuB9odBX4bbZI1fdqHmGnOrQdJ+6sz+SsH/P/unN2+WoZYnMbfg1c2rG2XfL6indX2kd57GFL1+6fO2/zufni7GZXt2Ao566ItjSrrl6CxKjsAAT0UdvICeqpF4jG7uSAYIg+x97xac2Nq7M5zmpXGUF1CYMmZhDhz6I8ZkT7lusyhzdbbbjbot6HnUl++yERbbZKQ4dYKYy4POk4pPb+tK2Q9iABOfRzfervrI3KqxUgUHuFeDjeemibjb1jttrZoaUS/e+lWr9XkwsWUIDzeP2Qpp4Y8l3FdMUMtCzpNzfCn/TDW1PPw5nDMHH7o7a0j1sETFosuOSH0fYvbK4HzgWOCZZ2xKXriDxe2byuJ39YO9GiGZT7B3TRzlRyX6UYApzj6jMnSIIU04=
+  local-dir: "deploy"
