@@ -1,0 +1,24 @@
+language: c++
+os:
+- osx
+env:
+- OKJVER=1.3.12
+cache:
+  directories:
+  - "/Library/Frameworks/GStreamer.framework"
+  - "/Library/Frameworks/GStreamer.framework.deploy"
+  - "$HOME/Qt"
+before_install:
+- source travis/before_install.sh
+install:
+- "./travis/install.sh"
+script:
+- "./travis/build.sh"
+deploy:
+  provider: gcs
+  access_key_id: GOOGCQNIBMNORKT3EC2Y
+  bucket: "${BRANCH_BUCKET}"
+  skip_cleanup: true
+  local-dir: deploy
+  secret_access_key:
+    secure: iirfuhyOzBRXXsKdK/KEwd2g5Pmer3Xf9g3Gw3qdlAJQPBrIUcNY7/I6zNbsxmHpqqTNlDA/KUX+9jBt466CQgKmcjsQQLbU6+1NteDAsb+pOU9u9ckT9Mc2/D/Og7mGcFLeTqEGeuwseZdGaJ7JMV3eQqquc2cAREV6MhvYCXI=

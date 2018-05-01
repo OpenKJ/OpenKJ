@@ -1,0 +1,9 @@
+{
+  "title": "OpenKJ",
+  "icon": "/Users/travis/build/OpenKJ/OpenKJ/OpenKJ/Icons/OpenKJ.icns",
+  "background": "/Users/lightburnisaac/dmgbkg.png",
+  "contents": [
+    { "x": 378, "y": 225, "type": "link", "path": "/Applications" },
+    { "x": 138, "y": 225, "type": "file", "path": "/Users/travis/build/OpenKJ/OpenKJ/OpenKJ/OpenKJ.app" }
+  ]
+}
