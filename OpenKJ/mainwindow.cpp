@@ -469,7 +469,6 @@ MainWindow::MainWindow(QWidget *parent) :
     timerButtonFlash->start(1000);
     ui->pushButtonIncomingRequests->setVisible(settings->requestServerEnabled());
     connect(settings, SIGNAL(requestServerEnabledChanged(bool)), ui->pushButtonIncomingRequests, SLOT(setVisible(bool)));
-
     qWarning() << "Initial UI stup complete";
 }
 

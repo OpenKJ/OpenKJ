@@ -58,7 +58,7 @@
       </property>
       <widget class="QWidget" name="tabKaraoke">
        <attribute name="title">
-        <string>Page</string>
+        <string>Karaoke</string>
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout_24">
         <item>

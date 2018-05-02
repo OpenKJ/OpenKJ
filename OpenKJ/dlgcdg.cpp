@@ -196,7 +196,7 @@ void DlgCdg::setFullScreenMonitor(int monitor)
 void DlgCdg::tickerFontChanged()
 {
     ui->scroll->setFont(settings->tickerFont());
-    ui->scroll->refresh();
+    //ui->scroll->refresh();
     int newHeight = QFontMetrics(ui->scroll->font()).height() * 1.2;
     settings->setTickerHeight(newHeight);
 }
@@ -205,7 +205,7 @@ void DlgCdg::tickerHeightChanged()
 {
     ui->scroll->setMinimumHeight(settings->tickerHeight());
     ui->scroll->setMaximumHeight(settings->tickerHeight());
-    ui->scroll->refresh();
+   // ui->scroll->refresh();
 }
 
 void DlgCdg::tickerSpeedChanged()
@@ -229,7 +229,7 @@ void DlgCdg::tickerBgColorChanged()
 
 void DlgCdg::tickerEnableChanged()
 {
-    ui->scroll->enable(settings->tickerEnabled());
+    //ui->scroll->enable(settings->tickerEnabled());
 }
 
 void DlgCdg::setVOffset(int pixels)

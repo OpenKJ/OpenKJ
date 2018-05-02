@@ -27,7 +27,7 @@
 #include <QStringList>
 #include <QDebug>
 #include <QMessageBox>
-#include "settings.h";
+#include "settings.h"
 
 int main(int argc, char *argv[])
 {
