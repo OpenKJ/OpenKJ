@@ -1,6 +1,6 @@
 image: Visual Studio 2015
 
-version: 1.2.17
+version: 1.2.18
 
 branches:
   only:
@@ -10,7 +10,7 @@ branches:
 max_jobs: 4
 
 environment:
-  OKJVERSION: 1.2.17
+  OKJVERSION: 1.2.18
   matrix:
   - TARGET_ARCH: x64
     QT: C:\Qt\5.10.1\msvc2015_64
@@ -39,8 +39,8 @@ install:
       Write-Host "Installing GStreamer..." -ForegroundColor Cyan
       Write-Host "Platform - $($env:LONGARCH)"
       $msiPath = "$($env:USERPROFILE)\gstreamer.msi"
-      $gstInstallUrl = "https://gstreamer.freedesktop.org/data/pkg/windows/1.14.0.1/gstreamer-1.0-$($env:LONGARCH)-1.14.0.1.msi"
-      $gstDevelInstallUrl = "https://gstreamer.freedesktop.org/data/pkg/windows/1.14.0.1/gstreamer-1.0-devel-$($env:LONGARCH)-1.14.0.1.msi"
+      $gstInstallUrl = "https://gstreamer.freedesktop.org/data/pkg/windows/1.12.4/gstreamer-1.0-$($env:LONGARCH)-1.12.4.msi"
+      $gstDevelInstallUrl = "https://gstreamer.freedesktop.org/data/pkg/windows/1.12.4/gstreamer-1.0-devel-$($env:LONGARCH)-1.12.4.msi"
       Write-Host "Downloading..."
       (New-Object Net.WebClient).DownloadFile($gstInstallUrl, $msiPath)
       Write-Host "Installing..."
