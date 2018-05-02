@@ -2,7 +2,7 @@
 #define CDGVIDEOWIDGET_H
 
 #include "cdgvideosurface.h"
-#ifdef USE_GL
+#ifdef USE_GL2
     #include <QGLWidget>
 #else
     #include <QWidget>
@@ -10,7 +10,7 @@
 #include "settings.h"
 
 
-#ifdef USE_GL
+#ifdef USE_GL2
 class CdgVideoWidget : public QGLWidget
 #else
 class CdgVideoWidget : public QWidget
@@ -23,9 +23,10 @@ public:
     CdgVideoSurface *videoSurface() const { return surface; }
     QSize sizeHint() const;
     void clear();
+    void setKeepAspect(bool keep);
 private:
     CdgVideoSurface *surface;
-
+    bool keepAspect;
 protected:
     void paintEvent(QPaintEvent *event);
     void resizeEvent(QResizeEvent *event);

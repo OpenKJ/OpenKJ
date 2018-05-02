@@ -60,6 +60,7 @@
 #include "dlgbookcreator.h"
 #include "dlgeq.h"
 #include "updatechecker.h"
+#include "dlgaddsinger.h"
 
 using namespace std;
 
@@ -91,6 +92,7 @@ private:
     DlgRequests *requestsDialog;
     DlgBookCreator *dlgBookCreator;
     DlgEq *dlgEq;
+    DlgAddSinger *dlgAddSinger;
     //DlgCdgPreview *cdgPreviewDialog;
     AbstractAudioBackend *kAudioBackend;
 //    KhAudioBackends *audioBackends;
@@ -152,7 +154,6 @@ private slots:
     void on_lineEdit_returnPressed();
     void on_tableViewDB_activated(const QModelIndex &index);
     void on_buttonAddSinger_clicked();
-    void on_editAddSinger_returnPressed();
     void on_tableViewRotation_activated(const QModelIndex &index);
     void on_tableViewRotation_clicked(const QModelIndex &index);
     void on_tableViewQueue_activated(const QModelIndex &index);

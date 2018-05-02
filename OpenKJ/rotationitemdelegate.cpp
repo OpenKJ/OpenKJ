@@ -21,6 +21,9 @@
 #include "rotationitemdelegate.h"
 #include <QDebug>
 #include <QSqlQuery>
+#include "settings.h"
+
+extern Settings *settings;
 
 RotationItemDelegate::RotationItemDelegate(QObject *parent) :
     QItemDelegate(parent)
@@ -73,6 +76,10 @@ void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
         painter->save();
         if (option.state & QStyle::State_Selected)
             painter->setPen(option.palette.highlightedText().color());
+        else if (index.sibling(index.row(), 0).data().toInt() == m_currentSingerId)
+        {
+            painter->setPen(QColor("black"));
+        }
         painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, nextSong);
         painter->restore();
         return;
@@ -91,6 +98,10 @@ void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
     painter->save();
     if (option.state & QStyle::State_Selected)
         painter->setPen(option.palette.highlightedText().color());
+    else if ((index.sibling(index.row(), 0).data().toInt() == m_currentSingerId) && (settings->theme() == 1))
+    {
+        painter->setPen(QColor("black"));
+    }
     painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + index.data().toString());
     painter->restore();
 }

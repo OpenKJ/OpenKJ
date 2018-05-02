@@ -181,12 +181,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewRotation->setItemDelegate(rotDelegate);
     ui->tableViewQueue->setModel(qModel);
     ui->tableViewQueue->setItemDelegate(qDelegate);
-    QStringList posChoices;
-    posChoices.append("Fair");
-    posChoices.append("Bottom");
-    posChoices.append("Next");
-    ui->cbxSingerAddPos->addItems(posChoices);
-    ui->cbxSingerAddPos->setCurrentIndex(0);
     khTmpDir = new QTemporaryDir();
     dbDialog = new DlgDatabase(database, this);
     dlgKeyChange = new DlgKeyChange(qModel, this);
@@ -196,6 +190,7 @@ MainWindow::MainWindow(QWidget *parent) :
     requestsDialog = new DlgRequests(rotModel, this);
     dlgBookCreator = new DlgBookCreator(this);
     dlgEq = new DlgEq(this);
+    dlgAddSinger = new DlgAddSinger(rotModel, this);
     cdg = new CDG;
     ui->tableViewDB->setModel(dbModel);
     dbDelegate = new DbItemDelegate(this);
@@ -254,6 +249,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(requestsDialog, SIGNAL(addRequestSong(int,int)), qModel, SLOT(songAdd(int,int)));
     connect(settings, SIGNAL(tickerCustomStringChanged()), this, SLOT(rotationDataChanged()));
     qWarning() << "Setting backgrounds on CDG displays";
+    ui->cdgVideoWidget->setKeepAspect(true);
     cdgWindow->setShowBgImage(true);
     setShowBgImage(true);
     qWarning() << "Restoring window and listview states";
@@ -307,6 +303,7 @@ MainWindow::MainWindow(QWidget *parent) :
     rotModel->setHeaderData(2,Qt::Horizontal,"Next Song");
     rotModel->setHeaderData(3,Qt::Horizontal,"");
     rotModel->setHeaderData(4,Qt::Horizontal,"");
+    ui->tableViewRotation->hideColumn(2);
     qWarning() << "Adding singer count to status bar";
     ui->statusBar->addWidget(labelSingerCount);
 
@@ -358,6 +355,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(2,25);
     ui->tableViewBmPlaylist->horizontalHeader()->setSectionResizeMode(7, QHeaderView::Fixed);
     ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(7,25);
+    settings->restoreSplitterState(ui->splitter_3);
 
     qWarning() << "Connecting signals & slots";
     connect(ui->lineEditBmSearch, SIGNAL(textChanged(QString)), bmDbModel, SLOT(search(QString)));
@@ -597,6 +595,7 @@ MainWindow::~MainWindow()
     qWarning() << "Saving volumes - K: " << settings->audioVolume() << " BM: " << settings->bmVolume();
     settings->saveSplitterState(ui->splitter);
     settings->saveSplitterState(ui->splitter_2);
+    settings->saveSplitterState(ui->splitter_3);
     settings->saveColumnWidths(ui->tableViewDB);
     settings->saveColumnWidths(ui->tableViewRotation);
     settings->saveColumnWidths(ui->tableViewQueue);
@@ -739,54 +738,9 @@ void MainWindow::on_tableViewDB_activated(const QModelIndex &index)
 
 void MainWindow::on_buttonAddSinger_clicked()
 {
-    if (rotModel->singerExists(ui->editAddSinger->text()))
-    {
-        QMessageBox msgBox;
-        msgBox.setText("A singer by that name already exists.");
-        msgBox.exec();
-    }
-    else
-    {
-        if (ui->editAddSinger->text() == "")
-            return;
-        rotModel->singerAdd(ui->editAddSinger->text());
-        if (rotModel->currentSinger() != -1)
-        {
-            int curSingerPos = rotModel->getSingerPosition(rotModel->currentSinger());
-            if (ui->cbxSingerAddPos->currentIndex() == 2)
-                rotModel->singerMove(rotModel->rowCount() -1, curSingerPos + 1);
-            else if ((ui->cbxSingerAddPos->currentIndex() == 0) && (curSingerPos != 0))
-                rotModel->singerMove(rotModel->rowCount() -1, curSingerPos);
-        }
-        ui->editAddSinger->clear();
-    }
+    dlgAddSinger->show();
 }
 
-void MainWindow::on_editAddSinger_returnPressed()
-{
-    if (rotModel->singerExists(ui->editAddSinger->text()))
-    {
-        QMessageBox msgBox;
-        msgBox.setText("A singer by that name already exists.");
-        msgBox.exec();
-    }
-    else
-    {
-        if (ui->editAddSinger->text() == "")
-            return;
-        rotModel->singerAdd(ui->editAddSinger->text());
-        if (rotModel->currentSinger() != -1)
-        {
-            int curSingerPos = rotModel->getSingerPosition(rotModel->currentSinger());
-            if (ui->cbxSingerAddPos->currentIndex() == 2)
-                rotModel->singerMove(rotModel->rowCount() -1, curSingerPos + 1);
-            else if ((ui->cbxSingerAddPos->currentIndex() == 0) && (curSingerPos != 0))
-                rotModel->singerMove(rotModel->rowCount() -1, curSingerPos);
-        }
-        ui->editAddSinger->clear();
-
-    }
-}
 
 void MainWindow::on_tableViewRotation_activated(const QModelIndex &index)
 {
@@ -901,6 +855,7 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
         }
     }
     qModel->setSinger(index.sibling(index.row(),0).data().toInt());
+    ui->gbxQueue->setTitle(QString("Song Queue - " + rotModel->getSingerName(index.sibling(index.row(),0).data().toInt())));
 }
 
 void MainWindow::on_tableViewQueue_activated(const QModelIndex &index)
