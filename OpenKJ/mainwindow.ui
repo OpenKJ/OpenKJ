@@ -585,7 +585,7 @@ QPushButton:default {
           </property>
           <property name="maximumSize">
            <size>
-            <width>304</width>
+            <width>256</width>
             <height>16777215</height>
            </size>
           </property>
@@ -654,8 +654,14 @@ QPushButton:default {
                 </property>
                 <property name="minimumSize">
                  <size>
-                  <width>300</width>
-                  <height>216</height>
+                  <width>250</width>
+                  <height>180</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>250</width>
+                  <height>180</height>
                  </size>
                 </property>
                 <property name="baseSize">
@@ -1650,6 +1656,9 @@ QPushButton:default {
                    </property>
                    <item row="1" column="0">
                     <widget class="QSpinBox" name="spinBoxTempo">
+                     <property name="buttonSymbols">
+                      <enum>QAbstractSpinBox::UpDownArrows</enum>
+                     </property>
                      <property name="suffix">
                       <string>%</string>
                      </property>

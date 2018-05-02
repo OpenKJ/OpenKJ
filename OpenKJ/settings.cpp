@@ -1138,7 +1138,7 @@ int Settings::updatesBranch()
 
 int Settings::theme()
 {
-    return settings->value("theme", 0).toInt();
+    return settings->value("theme", 1).toInt();
 }
 
 void Settings::setBmKCrossfade(bool enabled)

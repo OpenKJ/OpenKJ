@@ -48,33 +48,33 @@ void CdgVideoWidget::setKeepAspect(bool keep)
 void CdgVideoWidget::resizeEvent(QResizeEvent *event)
 {
 
-    if (keepAspect)
-    {
-        event->accept();
-        int width = event->size().width();
-        int newHeight = width * 0.5625;
-        if (event->size() == QSize(width, newHeight))
-            return;
-        QWidget::resize(width, newHeight);
-        //    if(event->size().width() > event->size().height()){
-        //        QWidget::resize(event->size().height(),event->size().height());
-        //    }else{
-        //        QWidget::resize(event->size().width(),event->size().width());
-        //    }
-        //    QWidget::resizeEvent(event);
-        qWarning() << "Width: " << width << " target height: " << newHeight;
-        emit resized(QSize(event->size().width(), event->size().height() * 0.5625));
-        surface->updateVideoRect();
-        emit resizeEvent(new QResizeEvent(QSize(width, newHeight), event->size()));
-    }
-    else
-    {
+//    if (keepAspect)
+//    {
+//        event->accept();
+//        int width = event->size().width();
+//        int newHeight = width * 0.5625;
+//        if (event->size() == QSize(width, newHeight))
+//            return;
+//        QWidget::resize(width, newHeight);
+//        //    if(event->size().width() > event->size().height()){
+//        //        QWidget::resize(event->size().height(),event->size().height());
+//        //    }else{
+//        //        QWidget::resize(event->size().width(),event->size().width());
+//        //    }
+//        //    QWidget::resizeEvent(event);
+//        qWarning() << "Width: " << width << " target height: " << newHeight;
+//        emit resized(QSize(event->size().width(), event->size().height() * 0.5625));
+//        surface->updateVideoRect();
+//        emit resizeEvent(new QResizeEvent(QSize(width, newHeight), event->size()));
+//    }
+//    else
+//    {
         QWidget::resizeEvent(event);
         surface->updateVideoRect();
         emit resized(event->size());
-    }
-    //    if (keepAspect)
-//        resize(width, newHeight);
+//    }
+//    //    if (keepAspect)
+// //        resize(width, newHeight);
 
 }
 
