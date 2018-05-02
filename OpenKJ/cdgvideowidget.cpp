@@ -7,7 +7,7 @@
 
 extern Settings *settings;
 
-#ifdef USE_GL2
+#ifdef USE_GL
 CdgVideoWidget::CdgVideoWidget(QWidget *parent) : QGLWidget(parent) , surface(0)
 #else
 CdgVideoWidget::CdgVideoWidget(QWidget *parent) : QWidget(parent) , surface(0)

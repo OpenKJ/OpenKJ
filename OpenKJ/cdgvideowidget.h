@@ -2,7 +2,7 @@
 #define CDGVIDEOWIDGET_H
 
 #include "cdgvideosurface.h"
-#ifdef USE_GL2
+#ifdef USE_GL
     #include <QGLWidget>
 #else
     #include <QWidget>
@@ -10,7 +10,7 @@
 #include "settings.h"
 
 
-#ifdef USE_GL2
+#ifdef USE_GL
 class CdgVideoWidget : public QGLWidget
 #else
 class CdgVideoWidget : public QWidget
