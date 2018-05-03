@@ -75,6 +75,9 @@ public:
     int currentSinger() const;
     void setCurrentSinger(int currentSingerId);
     bool rotationIsValid();
+    int numSongs(int singerId);
+    int numSongsSung(int singerId) const;
+    int numSongsUnsung(int singerId) const;
 
 signals:
     void songDroppedOnSinger(int singerId, int songId, int dropRow);
