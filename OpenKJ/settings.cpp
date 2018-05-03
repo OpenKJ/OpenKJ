@@ -178,7 +178,9 @@ void Settings::setTickerHeight(int height)
 
 int Settings::tickerSpeed()
 {
-    return settings->value("tickerSpeed", 50).toInt();
+    if (settings->value("tickerSpeed") > 50)
+        return 25;
+    return settings->value("tickerSpeed", 25).toInt();
 }
 
 void Settings::setTickerSpeed(int speed)
