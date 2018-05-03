@@ -51,7 +51,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <property name="usesScrollButtons">
        <bool>true</bool>
@@ -68,6 +68,9 @@
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
           </property>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -247,7 +250,7 @@
            <property name="childrenCollapsible">
             <bool>false</bool>
            </property>
-           <widget class="QFrame" name="frame_3">
+           <widget class="QFrame" name="frameDb">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -258,7 +261,7 @@
              <enum>QFrame::NoFrame</enum>
             </property>
             <property name="frameShadow">
-             <enum>QFrame::Raised</enum>
+             <enum>QFrame::Plain</enum>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_8">
              <property name="leftMargin">
@@ -421,7 +424,7 @@ QPushButton:default {
              </item>
             </layout>
            </widget>
-           <widget class="QFrame" name="frame_8">
+           <widget class="QFrame" name="frameQueue">
             <property name="frameShape">
              <enum>QFrame::NoFrame</enum>
             </property>
@@ -591,6 +594,9 @@ QPushButton:default {
           </property>
           <property name="frameShape">
            <enum>QFrame::Box</enum>
+          </property>
+          <property name="lineWidth">
+           <number>0</number>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_14">
            <property name="spacing">
@@ -1895,10 +1901,10 @@ QPushButton:default {
             </sizepolicy>
            </property>
            <property name="frameShape">
-            <enum>QFrame::Box</enum>
+            <enum>QFrame::NoFrame</enum>
            </property>
            <property name="frameShadow">
-            <enum>QFrame::Plain</enum>
+            <enum>QFrame::Sunken</enum>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_3">
             <property name="leftMargin">
@@ -1916,7 +1922,7 @@ QPushButton:default {
             <item>
              <widget class="QGroupBox" name="groupBox">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
@@ -1932,74 +1938,33 @@ QPushButton:default {
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_4">
                <property name="spacing">
-                <number>4</number>
+                <number>2</number>
                </property>
                <property name="leftMargin">
-                <number>0</number>
+                <number>6</number>
                </property>
                <property name="topMargin">
-                <number>4</number>
+                <number>6</number>
                </property>
                <property name="rightMargin">
-                <number>0</number>
+                <number>6</number>
                </property>
                <property name="bottomMargin">
-                <number>0</number>
+                <number>2</number>
                </property>
-               <item>
-                <widget class="QFrame" name="frame_4">
-                 <property name="frameShape">
-                  <enum>QFrame::Box</enum>
-                 </property>
-                 <property name="frameShadow">
-                  <enum>QFrame::Plain</enum>
-                 </property>
-                 <layout class="QHBoxLayout" name="horizontalLayout_2">
-                  <property name="topMargin">
-                   <number>3</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>3</number>
-                  </property>
-                  <item>
-                   <widget class="QLabel" name="label">
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
-                    <property name="text">
-                     <string>Now Playing:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="labelBmPlaying">
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
-                    <property name="frameShape">
-                     <enum>QFrame::NoFrame</enum>
-                    </property>
-                    <property name="text">
-                     <string/>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
                <item>
                 <widget class="QFrame" name="frame_12">
                  <property name="sizePolicy">
-                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                    <horstretch>0</horstretch>
                    <verstretch>0</verstretch>
                   </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>420</width>
+                   <height>0</height>
+                  </size>
                  </property>
                  <property name="frameShape">
                   <enum>QFrame::NoFrame</enum>
@@ -2032,7 +1997,7 @@ QPushButton:default {
                      </size>
                     </property>
                     <property name="frameShape">
-                     <enum>QFrame::Box</enum>
+                     <enum>QFrame::NoFrame</enum>
                     </property>
                     <property name="frameShadow">
                      <enum>QFrame::Plain</enum>
@@ -2264,7 +2229,7 @@ QPushButton:default {
                      <item>
                       <widget class="QFrame" name="frame_15">
                        <property name="frameShape">
-                        <enum>QFrame::Box</enum>
+                        <enum>QFrame::NoFrame</enum>
                        </property>
                        <property name="frameShadow">
                         <enum>QFrame::Plain</enum>
@@ -2299,9 +2264,56 @@ QPushButton:default {
                 </widget>
                </item>
                <item>
+                <widget class="QFrame" name="frame_4">
+                 <property name="frameShape">
+                  <enum>QFrame::NoFrame</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <layout class="QHBoxLayout" name="horizontalLayout_2">
+                  <property name="topMargin">
+                   <number>3</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>3</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="label">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string>Now Playing:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="labelBmPlaying">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="frameShape">
+                     <enum>QFrame::NoFrame</enum>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
                 <widget class="QFrame" name="frame_16">
                  <property name="frameShape">
-                  <enum>QFrame::Box</enum>
+                  <enum>QFrame::NoFrame</enum>
                  </property>
                  <property name="frameShadow">
                   <enum>QFrame::Plain</enum>
@@ -2354,28 +2366,28 @@ QPushButton:default {
                </sizepolicy>
               </property>
               <property name="title">
-               <string>Song Database</string>
+               <string>Database</string>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_6">
                <property name="spacing">
-                <number>4</number>
+                <number>2</number>
                </property>
                <property name="leftMargin">
-                <number>0</number>
+                <number>6</number>
                </property>
                <property name="topMargin">
-                <number>4</number>
+                <number>6</number>
                </property>
                <property name="rightMargin">
-                <number>0</number>
+                <number>6</number>
                </property>
                <property name="bottomMargin">
-                <number>0</number>
+                <number>2</number>
                </property>
                <item>
                 <widget class="QTableView" name="tableViewBmDb">
                  <property name="frameShape">
-                  <enum>QFrame::Box</enum>
+                  <enum>QFrame::StyledPanel</enum>
                  </property>
                  <property name="frameShadow">
                   <enum>QFrame::Sunken</enum>
@@ -2442,6 +2454,9 @@ QPushButton:default {
                   <enum>QFrame::Plain</enum>
                  </property>
                  <layout class="QHBoxLayout" name="horizontalLayout_7">
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
                   <property name="topMargin">
                    <number>2</number>
                   </property>
@@ -2492,6 +2507,19 @@ QPushButton:default {
                     </property>
                    </widget>
                   </item>
+                  <item>
+                   <spacer name="horizontalSpacer_3">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
                  </layout>
                 </widget>
                </item>
@@ -2508,17 +2536,23 @@ QPushButton:default {
             </sizepolicy>
            </property>
            <property name="frameShape">
-            <enum>QFrame::Box</enum>
+            <enum>QFrame::NoFrame</enum>
            </property>
            <property name="frameShadow">
-            <enum>QFrame::Plain</enum>
+            <enum>QFrame::Sunken</enum>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout">
+            <property name="spacing">
+             <number>0</number>
+            </property>
             <property name="leftMargin">
-             <number>3</number>
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
             </property>
             <property name="rightMargin">
-             <number>3</number>
+             <number>0</number>
             </property>
             <property name="bottomMargin">
              <number>0</number>
@@ -2529,22 +2563,25 @@ QPushButton:default {
                <string>Playlist</string>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_7">
-               <property name="leftMargin">
-                <number>0</number>
-               </property>
-               <property name="topMargin">
-                <number>4</number>
-               </property>
-               <property name="rightMargin">
+               <property name="spacing">
                 <number>2</number>
                </property>
+               <property name="leftMargin">
+                <number>6</number>
+               </property>
+               <property name="topMargin">
+                <number>6</number>
+               </property>
+               <property name="rightMargin">
+                <number>6</number>
+               </property>
                <property name="bottomMargin">
-                <number>4</number>
+                <number>2</number>
                </property>
                <item>
                 <widget class="QFrame" name="frame_18">
                  <property name="frameShape">
-                  <enum>QFrame::Box</enum>
+                  <enum>QFrame::NoFrame</enum>
                  </property>
                  <property name="frameShadow">
                   <enum>QFrame::Plain</enum>
@@ -2595,7 +2632,7 @@ QPushButton:default {
                   <enum>Qt::WheelFocus</enum>
                  </property>
                  <property name="frameShape">
-                  <enum>QFrame::Box</enum>
+                  <enum>QFrame::StyledPanel</enum>
                  </property>
                  <property name="editTriggers">
                   <set>QAbstractItemView::NoEditTriggers</set>
