@@ -2186,7 +2186,7 @@ QPushButton:default {
                               <enum>Qt::NoFocus</enum>
                              </property>
                              <property name="text">
-                              <string>Break after song end</string>
+                              <string>Stop after current song</string>
                              </property>
                             </widget>
                            </item>

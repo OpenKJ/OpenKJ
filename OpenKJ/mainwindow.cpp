@@ -1744,7 +1744,7 @@ void MainWindow::on_checkBoxBmBreak_toggled(bool checked)
             nextSong = bmPlModel->index(bmCurrentPosition + 1, 3).data().toString() + " - " + bmPlModel->index(bmCurrentPosition + 1, 4).data().toString();
     }
     else
-        nextSong = "None - Breaking after current song";
+        nextSong = "None - Stopping after current song";
     ui->labelBmNext->setText(nextSong);
 }
 
