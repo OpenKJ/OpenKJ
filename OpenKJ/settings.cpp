@@ -588,14 +588,24 @@ void Settings::setShowSongPauseStopWarning(bool enabled)
     
 }
 
+void Settings::setBookCreatorArtistFont(QFont font)
+{
+    settings->setValue("bookCreatorArtistFont", font.toString());
+}
+
+void Settings::setBookCreatorTitleFont(QFont font)
+{
+    settings->setValue("bookCreatorTitleFont", font.toString());
+}
+
 void Settings::setBookCreatorHeaderFont(QFont font)
 {
     settings->setValue("bookCreatorHeaderFont", font.toString());
 }
 
-void Settings::setBookCreatorItemFont(QFont font)
+void Settings::setBookCreatorHeaderText(QString text)
 {
-    settings->setValue("bookCreatorItemFont", font.toString());
+    settings->setValue("bookCreatorHeaderText", text);
 }
 
 void Settings::setBookCreatorSortCol(int col)
@@ -793,6 +803,16 @@ void Settings::setTheme(int theme)
     settings->setValue("theme", theme);
 }
 
+void Settings::setBookCreatorCols(int cols)
+{
+    settings->setValue("bookCreatorCols", cols);
+}
+
+void Settings::setBookCreatorPageSize(int size)
+{
+    settings->setValue("bookCreatorPageSize", size);
+}
+
 void Settings::setCdgHSizeAdjustment(int pixels)
 {
     settings->setValue("cdgHSizeAdjustment", pixels);
@@ -959,10 +979,17 @@ int Settings::cdgDisplayOffset()
     return settings->value("CDGDisplayOffset", 0).toInt();
 }
 
-QFont Settings::bookCreatorItemFont()
+QFont Settings::bookCreatorTitleFont()
 {
     QFont font;
-    font.fromString(settings->value("bookCreatorItemFont", QApplication::font().toString()).toString());
+    font.fromString(settings->value("bookCreatorTitleFont", QApplication::font().toString()).toString());
+    return font;
+}
+
+QFont Settings::bookCreatorArtistFont()
+{
+    QFont font;
+    font.fromString(settings->value("bookCreatorArtistFont", QApplication::font().toString()).toString());
     return font;
 }
 
@@ -971,6 +998,11 @@ QFont Settings::bookCreatorHeaderFont()
     QFont font;
     font.fromString(settings->value("bookCreatorHeaderFont", QApplication::font().toString()).toString());
     return font;
+}
+
+QString Settings::bookCreatorHeaderText()
+{
+    return settings->value("bookCreatorHeaderText", QString()).toString();
 }
 
 int Settings::bookCreatorSortCol()
@@ -996,6 +1028,16 @@ double Settings::bookCreatorMarginTop()
 double Settings::bookCreatorMarginBtm()
 {
     return settings->value("bookCreatorMarginBtm", 0.25).toDouble();
+}
+
+int Settings::bookCreatorCols()
+{
+    return settings->value("bookCreatorCols", 2).toInt();
+}
+
+int Settings::bookCreatorPageSize()
+{
+    return settings->value("bookCreatorPageSize", 0).toInt();
 }
 
 bool Settings::eqKBypass()

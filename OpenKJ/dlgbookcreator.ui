@@ -6,27 +6,56 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>591</width>
-    <height>406</height>
+    <width>698</width>
+    <height>559</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Songbook Creator</string>
   </property>
+  <property name="sizeGripEnabled">
+   <bool>true</bool>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
-    <widget class="QGroupBox" name="groupBox">
-     <property name="title">
-      <string>Header Font</string>
+    <widget class="QGroupBox" name="groupBox_4">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout">
+     <property name="title">
+      <string>Page Header</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout">
+       <layout class="QHBoxLayout" name="horizontalLayout_6">
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="label_9">
+          <property name="text">
+           <string>Header Text</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="lineEditHeaderText"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_7">
+        <property name="topMargin">
+         <number>10</number>
+        </property>
         <item>
          <widget class="QFontComboBox" name="fontCbxHeader"/>
         </item>
         <item>
-         <widget class="QLabel" name="label">
+         <widget class="QLabel" name="label_10">
           <property name="text">
            <string>Size</string>
           </property>
@@ -41,6 +70,56 @@
         </item>
         <item>
          <widget class="QCheckBox" name="checkBoxBoldHeader">
+          <property name="text">
+           <string>Bold</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_6">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>Artist Font</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QFontComboBox" name="fontCbxArtist"/>
+        </item>
+        <item>
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>Size</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="spinBoxSizeArtist">
+          <property name="suffix">
+           <string>pt</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="checkBoxBoldArtist">
           <property name="text">
            <string>Bold</string>
           </property>
@@ -67,13 +146,13 @@
    <item>
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
-      <string>Item font</string>
+      <string>Title Font</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <widget class="QFontComboBox" name="fontCbxItem"/>
+         <widget class="QFontComboBox" name="fontCbxTitle"/>
         </item>
         <item>
          <widget class="QLabel" name="label_2">
@@ -83,14 +162,14 @@
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="spinBoxSizeItem">
+         <widget class="QSpinBox" name="spinBoxSizeTitle">
           <property name="suffix">
            <string>pt</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QCheckBox" name="checkBoxBoldItem">
+         <widget class="QCheckBox" name="checkBoxBoldTitle">
           <property name="text">
            <string>Bold</string>
           </property>
@@ -199,16 +278,38 @@
      <item>
       <widget class="QLabel" name="label_3">
        <property name="text">
-        <string>Sort by</string>
+        <string>Columns:</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QComboBox" name="comboBoxSort">
-       <property name="currentIndex">
-        <number>-1</number>
+      <widget class="QComboBox" name="cbxColumns"/>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_5">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Fixed</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_8">
+       <property name="text">
+        <string>Page size:</string>
        </property>
       </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="cbxPageSize"/>
      </item>
      <item>
       <spacer name="horizontalSpacer_3">

@@ -162,13 +162,17 @@ public:
     bool bmAutoStart();
     void setBmAutoStart(bool enabled);
     int cdgDisplayOffset();
-    QFont bookCreatorItemFont();
+    QFont bookCreatorTitleFont();
+    QFont bookCreatorArtistFont();
     QFont bookCreatorHeaderFont();
+    QString bookCreatorHeaderText();
     int bookCreatorSortCol();
     double bookCreatorMarginRt();
     double bookCreatorMarginLft();
     double bookCreatorMarginTop();
     double bookCreatorMarginBtm();
+    int bookCreatorCols();
+    int bookCreatorPageSize();
     bool eqKBypass();
     bool eqBBypass();
     int eqKLevel1();
@@ -274,8 +278,10 @@ public slots:
     void setIgnoreAposInSearch(bool ignore);
     void setCdgDisplayOffset(int offset);
     void setShowSongPauseStopWarning(bool enabled);
+    void setBookCreatorArtistFont(QFont font);
+    void setBookCreatorTitleFont(QFont font);
     void setBookCreatorHeaderFont(QFont font);
-    void setBookCreatorItemFont(QFont font);
+    void setBookCreatorHeaderText(QString text);
     void setBookCreatorSortCol(int col);
     void setBookCreatorMarginRt(double margin);
     void setBookCreatorMarginLft(double margin);
@@ -310,6 +316,8 @@ public slots:
     void setCheckUpdates(bool enabled);
     void setUpdatesBranch(int index);
     void setTheme(int theme);
+    void setBookCreatorCols(int cols);
+    void setBookCreatorPageSize(int size);
 };
 
 #endif // KHSETTINGS_H
