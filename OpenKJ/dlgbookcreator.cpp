@@ -278,7 +278,7 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
             }
             else
                 entry = entries.takeFirst();
-            if (entry.at(0) == "-")
+            if (entry.at(0) == QString("-"))
             {
                 painter.setFont(aFont);
                 txtRect = painter.fontMetrics().boundingRect(entry);
@@ -286,7 +286,7 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
                 painter.drawText(lineOffset + 200, curDrawPos, txtRect.width(), txtRect.height(), Qt::AlignLeft, entry);
                 lastArtist = entry;
             }
-            else if (entry.at(0) == "+")
+            else if (entry.at(0) == QString("+"))
             {
                 painter.setFont(tFont);
                 txtRect = painter.fontMetrics().boundingRect(entry);
