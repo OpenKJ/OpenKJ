@@ -2,12 +2,7 @@ language: c++
 os:
 - osx
 env:
-  - OKJVER=1.3.28
-cache:
-  directories:
-  - "/Library/Frameworks/GStreamer.framework"
-  - "/Library/Frameworks/GStreamer.framework.deploy"
-  - "$HOME/Qt"
+  - OKJVER=1.3.29
 before_install:
 - source travis/before_install.sh
 install:
