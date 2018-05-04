@@ -603,9 +603,24 @@ void Settings::setBookCreatorHeaderFont(QFont font)
     settings->setValue("bookCreatorHeaderFont", font.toString());
 }
 
+void Settings::setBookCreatorFooterFont(QFont font)
+{
+    settings->setValue("bookCreatorFooterFont", font.toString());
+}
+
 void Settings::setBookCreatorHeaderText(QString text)
 {
     settings->setValue("bookCreatorHeaderText", text);
+}
+
+void Settings::setBookCreatorFooterText(QString text)
+{
+    settings->setValue("bookCreatorFooterText", text);
+}
+
+void Settings::setBookCreatorPageNumbering(bool show)
+{
+    settings->setValue("bookCreatorPageNumbering", show);
 }
 
 void Settings::setBookCreatorSortCol(int col)
@@ -1000,9 +1015,26 @@ QFont Settings::bookCreatorHeaderFont()
     return font;
 }
 
+QFont Settings::bookCreatorFooterFont()
+{
+    QFont font;
+    font.fromString(settings->value("bookCreatorFooterFont", QApplication::font().toString()).toString());
+    return font;
+}
+
 QString Settings::bookCreatorHeaderText()
 {
     return settings->value("bookCreatorHeaderText", QString()).toString();
+}
+
+QString Settings::bookCreatorFooterText()
+{
+    return settings->value("bookCreatorFooterText", QString()).toString();
+}
+
+bool Settings::bookCreatorPageNumbering()
+{
+    return settings->value("bookCreatorPageNumbering", false).toBool();
 }
 
 int Settings::bookCreatorSortCol()

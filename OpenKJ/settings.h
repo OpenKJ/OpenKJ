@@ -165,7 +165,10 @@ public:
     QFont bookCreatorTitleFont();
     QFont bookCreatorArtistFont();
     QFont bookCreatorHeaderFont();
+    QFont bookCreatorFooterFont();
     QString bookCreatorHeaderText();
+    QString bookCreatorFooterText();
+    bool bookCreatorPageNumbering();
     int bookCreatorSortCol();
     double bookCreatorMarginRt();
     double bookCreatorMarginLft();
@@ -281,7 +284,10 @@ public slots:
     void setBookCreatorArtistFont(QFont font);
     void setBookCreatorTitleFont(QFont font);
     void setBookCreatorHeaderFont(QFont font);
+    void setBookCreatorFooterFont(QFont font);
     void setBookCreatorHeaderText(QString text);
+    void setBookCreatorFooterText(QString text);
+    void setBookCreatorPageNumbering(bool show);
     void setBookCreatorSortCol(int col);
     void setBookCreatorMarginRt(double margin);
     void setBookCreatorMarginLft(double margin);
