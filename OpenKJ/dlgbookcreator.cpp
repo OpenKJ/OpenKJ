@@ -28,7 +28,7 @@ DlgBookCreator::DlgBookCreator(QWidget *parent) :
     ui->fontCbxFooter->setCurrentFont(settings->bookCreatorFooterFont());
     ui->spinBoxSizeArtist->setValue(settings->bookCreatorArtistFont().pointSize());
     ui->spinBoxSizeTitle->setValue(settings->bookCreatorTitleFont().pointSize());
-    ui->spinBoxSizeHeader->setValue(settings->bookCreatorTitleFont().pointSize());
+    ui->spinBoxSizeHeader->setValue(settings->bookCreatorHeaderFont().pointSize());
     ui->spinBoxSizeFooter->setValue(settings->bookCreatorFooterFont().pointSize());
     ui->checkBoxBoldArtist->setChecked(settings->bookCreatorArtistFont().bold());
     ui->checkBoxBoldTitle->setChecked(settings->bookCreatorTitleFont().bold());
@@ -265,12 +265,12 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
             if (entries.isEmpty())
                 break;
             QString entry;
-            if ((curDrawPos == (topOffset + headerOffset)) && (entries.at(0).at(0) == "+"))
+            if ((curDrawPos == (topOffset + headerOffset)) && (entries.at(0).at(0) == QString("+")))
             {
                 // We're at the top and it's not an artist entry, re-display artist
                 entry = "-" + lastArtist + " (cont'd)";
             }
-            else if ((curDrawPos + (2 * fontHeight) >= (painter.viewport().height() - bottomOffset)) && (entries.at(0).at(0) == "-"))
+            else if ((curDrawPos + (2 * fontHeight) >= (painter.viewport().height() - bottomOffset)) && (entries.at(0).at(0) == QString("-")))
             {
                 // We're on the last line and it's an artist, skip it to the next col/page
                 curDrawPos = curDrawPos + fontHeight;
@@ -302,12 +302,12 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
                 if (entries.isEmpty())
                     break;
                 QString entry;
-                if ((curDrawPos == (topOffset + headerOffset)) && (entries.at(0).at(0) == "+"))
+                if ((curDrawPos == (topOffset + headerOffset)) && (entries.at(0).at(0) == QString("+")))
                 {
                     // We're at the top and it's not an artist entry, re-display artist
                     entry = "-" + lastArtist + " (cont'd)";
                 }
-                else if ((curDrawPos + (2 * fontHeight) >= (painter.viewport().height() - bottomOffset)) && (entries.at(0).at(0) == "-"))
+                else if ((curDrawPos + (2 * fontHeight) >= (painter.viewport().height() - bottomOffset)) && (entries.at(0).at(0) == QString("-")))
                 {
                     // We're on the last line and it's an artist, skip it to the next col/page
                     curDrawPos = curDrawPos + fontHeight;
