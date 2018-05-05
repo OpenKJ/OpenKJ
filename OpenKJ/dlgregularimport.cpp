@@ -154,7 +154,28 @@ void DlgRegularImport::importSinger(QString name)
                         position++;
                     }
                     else
+                    {
+                        QString vendorPart;
+                        for (int i=0; i < discId.size(); i++)
+                        {
+                            QChar character = discId.at(i);
+                            if (character.isLetter())
+                                vendorPart.append(character);
+                            else
+                                break;
+                        }
+                       sql = "SELECT songid FROM dbsongs WHERE artist == \"" + artist + "\" AND title == \"" + title + "\" AND discid LIKE \"%" + vendorPart + "%\" LIMIT 1";
+                       query.exec(sql);
+                       if (query.first())
+                       {
+                           QString songId = query.value(0).toString();
+                           sql = "INSERT INTO regularsongs (regsingerid, songid, keychg, position) VALUES(" + QString::number(regSingerId) + "," + songId + "," + keyChg + "," + QString::number(position) + ")";
+                           query.exec(sql);
+                           position++;
+                       }
+                       else
                        QMessageBox::warning(this, tr("No song match found"),QString("An exact song DB match for the song \"" + discId + " - " + artist + " - " + title + "\" could not be found while importing singer \"" + name + "\", skipping import for this song."));
+                    }
                 }
                 xml.readNext();
             }
