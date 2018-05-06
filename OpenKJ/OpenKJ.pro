@@ -51,7 +51,7 @@ QMAKE_MAC_SDK = MacOSX10.13
 QMAKE_MAC_SDK.macosx.version = 10.13
 
 # Populate version with version from git describe
-VERSION = 1.3.36
+VERSION = 1.3.37
 message($$VERSION)
 DEFINES += GIT_VERSION=\\"\"$$VERSION\\"\"
 QMAKE_TARGET_COMPANY = OpenKJ.org
@@ -221,7 +221,8 @@ SOURCES += main.cpp\
     updatechecker.cpp \
     volslider.cpp \
     dlgaddsinger.cpp \
-    ticker.cpp
+    ticker.cpp \
+    songshop.cpp
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -389,7 +390,8 @@ HEADERS  += mainwindow.h \
     volslider.h \
     okjversion.h \
     dlgaddsinger.h \
-    ticker.h
+    ticker.h \
+    songshop.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \

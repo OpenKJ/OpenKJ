@@ -39,7 +39,7 @@ void Ticker::paintEvent(QPaintEvent * /* event */)
     int x = -offset;
     while (x < width()) {
         painter.drawText(x, 0, textWidth, height(),
-                         Qt::AlignLeft | Qt::AlignVCenter, text());
+                         Qt::AlignLeft | Qt::AlignTop, text());
         x += textWidth;
     }
 }
