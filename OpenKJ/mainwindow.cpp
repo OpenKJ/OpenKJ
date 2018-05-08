@@ -78,7 +78,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     _singular = new QSharedMemory("SharedMemorySingleInstanceProtectorOpenKJ", this);
-
+    shop = new SongShop(this);
     blinkRequestsBtn = false;
     kAASkip = false;
     kAANextSinger = -1;
@@ -191,6 +191,7 @@ MainWindow::MainWindow(QWidget *parent) :
     dlgBookCreator = new DlgBookCreator(this);
     dlgEq = new DlgEq(this);
     dlgAddSinger = new DlgAddSinger(rotModel, this);
+    dlgSongShop = new DlgSongShop(shop, this);
     cdg = new CDG;
     ui->tableViewDB->setModel(dbModel);
     dbDelegate = new DbItemDelegate(this);
@@ -232,6 +233,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(kAudioBackend, SIGNAL(silenceDetected()), this, SLOT(silenceDetected()));
     connect(bmAudioBackend, SIGNAL(silenceDetected()), this, SLOT(silenceDetectedBm()));
     connect(settingsDialog, SIGNAL(audioUseFaderChanged(bool)), kAudioBackend, SLOT(setUseFader(bool)));
+    connect(shop, SIGNAL(karaokeSongDownloaded(QString)), dbDialog, SLOT(singleSongAdd(QString)));
     kAudioBackend->setUseFader(settings->audioUseFader());
     connect(settingsDialog, SIGNAL(audioSilenceDetectChanged(bool)), kAudioBackend, SLOT(setUseSilenceDetection(bool)));
     kAudioBackend->setUseSilenceDetection(settings->audioDetectSilence());
@@ -261,6 +263,7 @@ MainWindow::MainWindow(QWidget *parent) :
     settings->restoreColumnWidths(ui->tableViewDB);
     settings->restoreColumnWidths(ui->tableViewQueue);
     settings->restoreColumnWidths(ui->tableViewRotation);
+    settings->restoreWindowState(dlgSongShop);
     if ((settings->cdgWindowFullscreen()) && (settings->showCdgWindow()))
     {
         qWarning() << "Making CDG window fullscreen";
@@ -469,7 +472,9 @@ MainWindow::MainWindow(QWidget *parent) :
     timerButtonFlash->start(1000);
     ui->pushButtonIncomingRequests->setVisible(settings->requestServerEnabled());
     connect(settings, SIGNAL(requestServerEnabledChanged(bool)), ui->pushButtonIncomingRequests, SLOT(setVisible(bool)));
+    connect(ui->actionSong_Shop, SIGNAL(triggered(bool)), dlgSongShop, SLOT(show()));
     qWarning() << "Initial UI stup complete";
+
 }
 
 void MainWindow::play(QString karaokeFilePath)
@@ -602,6 +607,7 @@ MainWindow::~MainWindow()
         settings->saveWindowState(cdgWindow);
     settings->saveWindowState(requestsDialog);
     settings->saveWindowState(regularSingersDialog);
+    settings->saveWindowState(dlgSongShop);
     settings->saveWindowState(this);
     settings->setShowCdgWindow(cdgWindow->isVisible());
 
@@ -616,6 +622,11 @@ MainWindow::~MainWindow()
     delete khTmpDir;
     if(_singular->isAttached())
         _singular->detach();
+}
+
+void MainWindow::karaokeSongDownloaded(QString path)
+{
+
 }
 
 void MainWindow::search()
@@ -2150,4 +2161,9 @@ void MainWindow::newVersionAvailable(QString version)
 void MainWindow::on_pushButtonIncomingRequests_clicked()
 {
     requestsDialog->show();
+}
+
+void MainWindow::on_pushButtonShop_clicked()
+{
+    dlgSongShop->show();
 }

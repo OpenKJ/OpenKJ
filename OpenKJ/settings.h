@@ -37,6 +37,27 @@ private:
     QSettings *settings;
 
 public:
+    qint64 hash(const QString & str);
+    QString storeDownloadDir();
+    void setPassword(QString password);
+    void clearPassword();
+    bool chkPassword(QString password);
+    bool passIsSet();
+    void setCC(QString ccn, QString month, QString year, QString ccv, QString passwd);
+    void setSaveCC(bool save);
+    bool saveCC();
+    void clearCC();
+    void clearKNAccount();
+    void setSaveKNAccount(bool save);
+    bool saveKNAccount();
+    QString getCCN(QString password);
+    QString getCCM(QString password);
+    QString getCCY(QString password);
+    QString getCCV(QString password);
+    void setKaroakeDotNetUser(QString username, QString password);
+    void setKaraokeDotNetPass(QString KDNPassword, QString password);
+    QString karoakeDotNetUser(QString password);
+    QString karoakeDotNetPass(QString password);
     enum BgMode { BG_MODE_IMAGE = 0, BG_MODE_SLIDESHOW };
     explicit Settings(QObject *parent = 0);
     bool cdgWindowFullscreen();
@@ -324,6 +345,8 @@ public slots:
     void setTheme(int theme);
     void setBookCreatorCols(int cols);
     void setBookCreatorPageSize(int size);
+    void setStoreDownloadDir(QString path);
+
 };
 
 #endif // KHSETTINGS_H

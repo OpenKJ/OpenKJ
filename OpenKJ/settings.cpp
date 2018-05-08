@@ -24,6 +24,183 @@
 #include <QDesktopWidget>
 #include <QStandardPaths>
 #include <QDebug>
+#include <QCryptographicHash>
+#include <QDataStream>
+#include "simplecrypt.h"
+#include <QStandardPaths>
+#include <QDir>
+
+qint64 Settings::hash(const QString &str)
+{
+    QByteArray hash = QCryptographicHash::hash(
+      QByteArray::fromRawData((const char*)str.utf16(), str.length()*2),
+      QCryptographicHash::Md5
+    );
+    Q_ASSERT(hash.size() == 16);
+    QDataStream stream(hash);
+    qint64 a, b;
+    stream >> a >> b;
+    return a ^ b;
+}
+
+QString Settings::storeDownloadDir()
+{
+    return settings->value("storeDownloadDir", QStandardPaths::writableLocation(QStandardPaths::MusicLocation) + QDir::separator() + "OpenKJ_Downloads" + QDir::separator()).toString();
+}
+
+void Settings::setStoreDownloadDir(QString path)
+{
+    settings->setValue("storeDownloadDir", path);
+}
+
+void Settings::setPassword(QString password)
+{
+    qint64 passHash = this->hash(password);
+    SimpleCrypt simpleCrypt(passHash);
+    QString pchk = simpleCrypt.encryptToString(QString("testpass"));
+    settings->setValue("pchk", pchk);
+}
+
+void Settings::clearPassword()
+{
+    settings->remove("pchk");
+    clearCC();
+    clearKNAccount();
+}
+
+bool Settings::chkPassword(QString password)
+{
+    qint64 passHash = this->hash(password);
+    SimpleCrypt simpleCrypt(passHash);
+    QString pchk = simpleCrypt.decryptToString(settings->value("pchk", QString()).toString());
+    if (pchk == "testpass")
+        return true;
+    else
+        return false;
+}
+
+bool Settings::passIsSet()
+{
+    if (settings->contains("pchk"))
+        return true;
+    return false;
+}
+
+void Settings::setCC(QString ccn, QString month, QString year, QString ccv, QString passwd)
+{
+    QString cc = ccn + "," + month + "," + year + "," + ccv;
+    SimpleCrypt simpleCrypt(this->hash(passwd));
+    settings->setValue("cc", simpleCrypt.encryptToString(cc));
+}
+
+void Settings::setSaveCC(bool save)
+{
+    settings->setValue("saveCC", save);
+}
+
+bool Settings::saveCC()
+{
+    return settings->value("saveCC", false).toBool();
+}
+
+void Settings::clearCC()
+{
+    settings->remove("cc");
+}
+
+void Settings::clearKNAccount()
+{
+    settings->remove("karaokeDotNetUser");
+    settings->remove("karaokeDotNetPass");
+}
+
+
+
+void Settings::setSaveKNAccount(bool save)
+{
+    settings->setValue("saveKNAccount", save);
+}
+
+bool Settings::saveKNAccount()
+{
+    return settings->value("saveKNAccount", false).toBool();
+}
+
+QString Settings::getCCN(QString password)
+{
+    SimpleCrypt simpleCrypt(this->hash(password));
+    QString encrypted = settings->value("cc", QString()).toString();
+    if (encrypted == QString())
+        return QString();
+    QString cc = simpleCrypt.decryptToString(encrypted);
+    QStringList parts = cc.split(",");
+    return parts.at(0);
+}
+
+QString Settings::getCCM(QString password)
+{
+    SimpleCrypt simpleCrypt(this->hash(password));
+    QString encrypted = settings->value("cc", QString()).toString();
+    if (encrypted == QString())
+        return QString();
+    QString cc = simpleCrypt.decryptToString(encrypted);
+    QStringList parts = cc.split(",");
+    return parts.at(1);
+}
+
+QString Settings::getCCY(QString password)
+{
+    SimpleCrypt simpleCrypt(this->hash(password));
+    QString encrypted = settings->value("cc", QString()).toString();
+    if (encrypted == QString())
+        return QString();
+    QString cc = simpleCrypt.decryptToString(encrypted);
+    QStringList parts = cc.split(",");
+    return parts.at(2);
+}
+
+QString Settings::getCCV(QString password)
+{
+    SimpleCrypt simpleCrypt(this->hash(password));
+    QString encrypted = settings->value("cc", QString()).toString();
+    if (encrypted == QString())
+        return QString();
+    QString cc = simpleCrypt.decryptToString(encrypted);
+    QStringList parts = cc.split(",");
+    return parts.at(3);
+}
+
+void Settings::setKaroakeDotNetUser(QString username, QString password)
+{
+    SimpleCrypt simpleCrypt(this->hash(password));
+    settings->setValue("karaokeDotNetUser", simpleCrypt.encryptToString(username));
+}
+
+void Settings::setKaraokeDotNetPass(QString KDNPassword, QString password)
+{
+    SimpleCrypt simpleCrypt(this->hash(password));
+    settings->setValue("karaokeDotNetPass", simpleCrypt.encryptToString(KDNPassword));
+}
+
+QString Settings::karoakeDotNetUser(QString password)
+{
+    SimpleCrypt simpleCrypt(this->hash(password));
+    QString encrypted = settings->value("karaokeDotNetUser", QString()).toString();
+    if (encrypted == QString())
+        return QString();
+    QString username = simpleCrypt.decryptToString(encrypted);
+    return username;
+}
+
+QString Settings::karoakeDotNetPass(QString password)
+{
+    SimpleCrypt simpleCrypt(this->hash(password));
+    QString encrypted = settings->value("karaokeDotNetPass", QString()).toString();
+    if (encrypted == QString())
+        return QString();
+    QString KDNpassword = simpleCrypt.decryptToString(encrypted);
+    return KDNpassword;
+}
 
 Settings::Settings(QObject *parent) :
     QObject(parent)

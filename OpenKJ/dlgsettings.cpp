@@ -196,6 +196,7 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     connect(ui->cbxCrossFade, SIGNAL(clicked(bool)), settings, SLOT(setBmKCrossfade(bool)));
     connect(ui->cbxCheckUpdates, SIGNAL(clicked(bool)), settings, SLOT(setCheckUpdates(bool)));
     connect(ui->comboBoxUpdateBranch, SIGNAL(currentIndexChanged(int)), settings, SLOT(setUpdatesBranch(int)));
+    ui->lineEditDownloadsDir->setText(settings->storeDownloadDir());
 
 }
 
@@ -643,4 +644,22 @@ void DlgSettings::on_cbxTheme_currentIndexChanged(int index)
 {
     if (pageSetupDone)
         settings->setTheme(index);
+}
+
+void DlgSettings::on_btnBrowse_clicked()
+{
+    QString fileName = QFileDialog::getExistingDirectory(this, "Select directory to put store downloads in",settings->storeDownloadDir());
+    if (fileName != "")
+    {
+        QFileInfo fi(fileName);
+        if (!fi.isWritable() || !fi.isReadable())
+        {
+            QMessageBox msgBox;
+            msgBox.setWindowTitle("Directory not writable!");
+            msgBox.setText("You do not have permission to write to the selected directory, aborting.");
+            msgBox.exec();
+        }
+        settings->setStoreDownloadDir(fileName + QDir::separator());
+        ui->lineEditDownloadsDir->setText(fileName + QDir::separator());
+    }
 }

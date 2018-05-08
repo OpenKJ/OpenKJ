@@ -53,6 +53,14 @@ DlgDatabase::~DlgDatabase()
     delete ui;
 }
 
+void DlgDatabase::singleSongAdd(QString path)
+{
+            DbUpdateThread *updateThread = new DbUpdateThread(this);
+            updateThread->addSingleTrack(path);
+            delete updateThread;
+            emit databaseUpdated();
+}
+
 void DlgDatabase::on_buttonNew_clicked()
 {
     QString fileName = QFileDialog::getExistingDirectory(this);

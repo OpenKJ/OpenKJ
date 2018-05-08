@@ -1875,6 +1875,39 @@ QPushButton:default {
              </property>
             </spacer>
            </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_25">
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <spacer name="horizontalSpacer_4">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QPushButton" name="pushButtonShop">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Song Shop</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
           </layout>
          </widget>
         </item>
@@ -2727,6 +2760,8 @@ QPushButton:default {
     <addaction name="actionExport_Regulars"/>
     <addaction name="actionIncoming_Requests"/>
     <addaction name="actionAutoplay_mode"/>
+    <addaction name="separator"/>
+    <addaction name="actionSong_Shop"/>
    </widget>
    <widget class="QMenu" name="menuBreak_Music">
     <property name="title">
@@ -2876,6 +2911,11 @@ QPushButton:default {
   <action name="actionEqualizer">
    <property name="text">
     <string>Equalizer</string>
+   </property>
+  </action>
+  <action name="actionSong_Shop">
+   <property name="text">
+    <string>Song Shop</string>
    </property>
   </action>
  </widget>

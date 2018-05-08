@@ -1,0 +1,46 @@
+#ifndef DLGSONGSHOP_H
+#define DLGSONGSHOP_H
+
+#include <QDialog>
+#include "shopsortfilterproxymodel.h"
+#include "songshopmodel.h"
+#include "dlgsongshoppurchase.h"
+#include "settings.h"
+
+extern Settings *settings;
+
+namespace Ui {
+class DlgSongShop;
+}
+
+class DlgSongShop : public QDialog
+{
+    Q_OBJECT
+
+public:
+    explicit DlgSongShop(SongShop *songShop, QWidget *parent = 0);
+    ~DlgSongShop();
+
+private slots:
+    void on_btnClose_clicked();
+
+    void on_lineEditSearch_textChanged(const QString &arg1);
+
+    void on_btnPurchase_clicked();
+
+private:
+    Ui::DlgSongShop *ui;
+    SongShopModel *modelSongs;
+    ShopSortFilterProxyModel *sortFilterModel;
+    DlgSongShopPurchase *dlgPurchase;
+    SongShop *shop;
+
+    // QWidget interface
+public slots:
+    void setVisible(bool visible);
+
+signals:
+    void karaokeSongDownloaded(QString path);
+};
+
+#endif // DLGSONGSHOP_H

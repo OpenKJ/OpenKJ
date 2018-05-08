@@ -131,6 +131,36 @@ QStringList DbUpdateThread::getErrors()
     return l_errors;
 }
 
+void DbUpdateThread::addSingleTrack(QString path)
+{
+    OkArchive archive;
+    QSqlQuery query;
+    query.prepare("INSERT OR IGNORE INTO dbSongs (discid,artist,title,path,filename,duration,searchstring) VALUES(:discid, :artist, :title, :path, :filename, :duration, :searchstring)");
+    int duration = 0;
+    QFileInfo file(path);
+    archive.setArchiveFile(path);
+    duration = archive.getSongDuration();
+    QString artist;
+    QString title;
+    QString discid;
+    FilenameParser parser;
+    parser.setFileName(file.completeBaseName());
+    parser.setDiscIdRegEx("^\\S+?(?=(\\s|_)-(\\s|_))");
+    parser.setTitleRegEx("(?:^\\S+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|_))(.+)",1);
+    parser.setArtistRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))", 0);
+    artist = parser.getArtist();
+    title = parser.getTitle();
+    discid = parser.getDiscId();
+    query.bindValue(":discid", discid);
+    query.bindValue(":artist", artist);
+    query.bindValue(":title", title);
+    query.bindValue(":path", file.filePath());
+    query.bindValue(":filename", file.completeBaseName());
+    query.bindValue(":duration", duration);
+    query.bindValue(":searchstring", QString(file.completeBaseName() + " " + artist + " " + title + " " + discid));
+    query.exec();
+}
+
 void DbUpdateThread::setPath(const QString &value)
 {
     path = value;

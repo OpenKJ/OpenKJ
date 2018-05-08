@@ -61,6 +61,8 @@
 #include "dlgeq.h"
 #include "updatechecker.h"
 #include "dlgaddsinger.h"
+#include "dlgsongshop.h"
+#include "songshop.h"
 
 using namespace std;
 
@@ -93,6 +95,7 @@ private:
     DlgBookCreator *dlgBookCreator;
     DlgEq *dlgEq;
     DlgAddSinger *dlgAddSinger;
+    DlgSongShop *dlgSongShop;
     //DlgCdgPreview *cdgPreviewDialog;
     AbstractAudioBackend *kAudioBackend;
 //    KhAudioBackends *audioBackends;
@@ -118,6 +121,7 @@ private:
     QString kAANextSongPath;
     bool kAASkip;
     int cdgOffset;
+    SongShop *shop;
 
 
     BmDbDialog *bmDbDialog;
@@ -146,6 +150,7 @@ public:
     ~MainWindow();
     
 private slots:
+    void karaokeSongDownloaded(QString path);
     void search();
     void songdbUpdated();
     void databaseCleared();
@@ -244,6 +249,8 @@ private slots:
     void newVersionAvailable(QString version);
 
     void on_pushButtonIncomingRequests_clicked();
+
+    void on_pushButtonShop_clicked();
 
 protected:
     void closeEvent(QCloseEvent *event);

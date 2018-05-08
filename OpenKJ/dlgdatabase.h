@@ -53,6 +53,9 @@ signals:
     void databaseUpdated();
     void databaseCleared();
 
+public slots:
+    void singleSongAdd(QString path);
+
 private slots:
     void on_buttonUpdateAll_clicked();
     void on_buttonNew_clicked();
