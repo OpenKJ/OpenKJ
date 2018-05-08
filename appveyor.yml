@@ -1,6 +1,6 @@
 image: Visual Studio 2015
 
-version: 1.3.38
+version: 1.3.39
 
 branches:
   only:
@@ -10,7 +10,7 @@ branches:
 max_jobs: 4
 
 environment:
-  OKJVERSION: 1.3.38
+  OKJVERSION: 1.3.39
   matrix:
   - TARGET_ARCH: x64
     QT: C:\Qt\5.10.1\msvc2015_64

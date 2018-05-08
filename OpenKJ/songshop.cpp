@@ -44,7 +44,7 @@ void SongShop::knLogin(QString userName, QString password)
     knLoginError = false;
     QByteArray md5hash = QCryptographicHash::hash(QByteArray::fromRawData((const char*)password.toLocal8Bit(), password.length()), QCryptographicHash::Md5).toHex();
     QString passHash = QString(md5hash);
-    QString urlstr = "https://www.karaoke.net/songshop/cat/api_account_setup.php?action=validate_login&username=" + userName + "&md5=" + passHash;
+    QString urlstr = "https://www.karaoke.net/songshop/cat/api_account_setup.php?action=validate_login&username=" + userName + "&md5=" + passHash + "&merchant=99";
     QUrl url = QUrl(urlstr);
     QNetworkRequest request(url);
     manager->get(request);
