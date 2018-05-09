@@ -310,6 +310,7 @@ void DlgSongShopPurchase::on_lineEditCCN_textChanged(const QString &arg1)
 {
     if (!setupDone)
         return;
+    ui->lineEditCCN->setEchoMode(QLineEdit::Normal);
     setupDone = false;
     if (settings->saveCC() && authenticated)
         settings->setCC(ui->lineEditCCN->text(), ui->lineEditCCM->text(),ui->lineEditCCY->text(), ui->lineEditCCV->text(), password);
@@ -344,4 +345,16 @@ void DlgSongShopPurchase::on_lineEditCCV_textChanged(const QString &arg1)
     if (settings->saveCC() && authenticated)
         settings->setCC(ui->lineEditCCN->text(), ui->lineEditCCM->text(),ui->lineEditCCY->text(), ui->lineEditCCV->text(), password);
     setupDone = true;
+}
+
+void DlgSongShopPurchase::on_lineEditCCN_cursorPositionChanged(int arg1, int arg2)
+{
+    if (!setupDone)
+        return;
+    ui->lineEditCCN->setEchoMode(QLineEdit::Normal);
+}
+
+void DlgSongShopPurchase::on_lineEditCCN_editingFinished()
+{
+    ui->lineEditCCN->setEchoMode(QLineEdit::Password);
 }

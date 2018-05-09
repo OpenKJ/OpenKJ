@@ -52,6 +52,10 @@ private slots:
 
     void on_lineEditCCV_textChanged(const QString &arg1);
 
+    void on_lineEditCCN_cursorPositionChanged(int arg1, int arg2);
+
+    void on_lineEditCCN_editingFinished();
+
 private:
     Ui::DlgSongShopPurchase *ui;
     QString songId;

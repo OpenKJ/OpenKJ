@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>686</width>
+    <width>687</width>
     <height>520</height>
    </rect>
   </property>
@@ -179,8 +179,14 @@
               <height>0</height>
              </size>
             </property>
+            <property name="focusPolicy">
+             <enum>Qt::ClickFocus</enum>
+            </property>
             <property name="inputMethodHints">
-             <set>Qt::ImhDigitsOnly</set>
+             <set>Qt::ImhDigitsOnly|Qt::ImhHiddenText|Qt::ImhNoAutoUppercase|Qt::ImhNoPredictiveText|Qt::ImhSensitiveData</set>
+            </property>
+            <property name="echoMode">
+             <enum>QLineEdit::Password</enum>
             </property>
             <property name="placeholderText">
              <string>Credit Card #</string>
