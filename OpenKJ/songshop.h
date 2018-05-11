@@ -58,12 +58,14 @@ signals:
     void knLoginFailure();
     void karaokeSongDownloaded(QString path);
     void paymentProcessingFailed();
+    void downloadProgress(qint64 received, qint64 total);
 
 public slots:
 
 private slots:
     void onSslErrors(QNetworkReply * reply, QList<QSslError> errors);
     void onNetworkReply(QNetworkReply* reply);
+    void onDownloadProgress(qint64 received, qint64 total);
 };
 
 #endif // SONGSHOP_H

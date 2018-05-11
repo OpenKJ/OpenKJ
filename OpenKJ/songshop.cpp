@@ -90,6 +90,7 @@ void SongShop::downloadFile(const QString &url, const QString &destFn)
     QNetworkReply *reply= m_NetworkMngr.get(QNetworkRequest(url));
     QEventLoop loop;
     QObject::connect(reply, SIGNAL(finished()),&loop, SLOT(quit()));
+    connect(reply, SIGNAL(downloadProgress(qint64,qint64)), this, SLOT(onDownloadProgress(qint64,qint64)));
     loop.exec();
     QUrl aUrl(url);
     QFileInfo fileInfo=aUrl.path();
@@ -177,4 +178,10 @@ void SongShop::onNetworkReply(QNetworkReply *reply)
         qWarning() << "JSON REPLY: " << data;
 
 
+}
+
+void SongShop::onDownloadProgress(qint64 received, qint64 total)
+{
+    qWarning() << "onDownloadProgress(" << received << "," << total << ") called";
+    emit downloadProgress(received, total);
 }

@@ -51,7 +51,7 @@ QMAKE_MAC_SDK = MacOSX10.13
 QMAKE_MAC_SDK.macosx.version = 10.13
 
 # Populate version with version from git describe
-VERSION = 1.3.42
+VERSION = 1.3.43
 message($$VERSION)
 DEFINES += GIT_VERSION=\\"\"$$VERSION\\"\"
 QMAKE_TARGET_COMPANY = OpenKJ.org
@@ -229,7 +229,8 @@ SOURCES += main.cpp\
     simplecrypt.cpp \
     dlgsongshoppurchase.cpp \
     dlgsetpassword.cpp \
-    dlgpassword.cpp
+    dlgpassword.cpp \
+    dlgpurchaseprogress.cpp
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -405,7 +406,8 @@ HEADERS  += mainwindow.h \
     simplecrypt.h \
     dlgsongshoppurchase.h \
     dlgsetpassword.h \
-    dlgpassword.h
+    dlgpassword.h \
+    dlgpurchaseprogress.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \
@@ -426,7 +428,8 @@ FORMS    += mainwindow.ui \
     dlgsongshop.ui \
     dlgsongshoppurchase.ui \
     dlgsetpassword.ui \
-    dlgpassword.ui
+    dlgpassword.ui \
+    dlgpurchaseprogress.ui
 
 RESOURCES += resources.qrc
 

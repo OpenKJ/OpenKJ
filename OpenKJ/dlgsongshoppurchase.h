@@ -5,6 +5,7 @@
 #include "settings.h"
 #include "songshop.h"
 #include <QMessageBox>
+#include "dlgpurchaseprogress.h"
 
 extern Settings *settings;
 
@@ -55,6 +56,7 @@ private slots:
     void on_lineEditCCN_cursorPositionChanged(int arg1, int arg2);
 
     void on_lineEditCCN_editingFinished();
+    void downloadProgress(qint64 received, qint64 total);
 
 private:
     Ui::DlgSongShopPurchase *ui;
@@ -66,7 +68,7 @@ private:
     bool authenticated;
     QString password;
     bool setupDone;
-    QMessageBox *msgBoxInfo;
+    DlgPurchaseProgress *msgBoxInfo;
 
     // QWidget interface
 protected:

@@ -22,10 +22,8 @@ DlgSongShopPurchase::DlgSongShopPurchase(SongShop *songShop, QWidget *parent) :
     setupDone = true;
     connect(shop, SIGNAL(paymentProcessingFailed()), this, SLOT(paymentProcessingFailed()));
     connect(shop, SIGNAL(karaokeSongDownloaded(QString)), this, SLOT(purchaseSuccess()));
-    msgBoxInfo = new QMessageBox();
-    msgBoxInfo->buttons().clear();
-    msgBoxInfo->setStandardButtons(0);
-
+    msgBoxInfo = new DlgPurchaseProgress;
+    connect(shop, SIGNAL(downloadProgress(qint64,qint64)), this, SLOT(downloadProgress(qint64,qint64)));
 }
 
 DlgSongShopPurchase::~DlgSongShopPurchase()
@@ -150,10 +148,10 @@ void DlgSongShopPurchase::on_pushButtonCancel_clicked()
 void DlgSongShopPurchase::on_btnPurchase_clicked()
 {
     msgBoxInfo->setWindowTitle("Purchasing Song");
+    msgBoxInfo->show();
     if (!shop->loggedIn())
     {
         msgBoxInfo->setText("Logging you in to Karoake.NET");
-        msgBoxInfo->show();
         shop->knLogin(ui->lineEditKNUser->text(), ui->lineEditKNPass->text());
         while (!shop->loggedIn() && !shop->loginError())
             QApplication::processEvents();
@@ -357,4 +355,9 @@ void DlgSongShopPurchase::on_lineEditCCN_cursorPositionChanged(int arg1, int arg
 void DlgSongShopPurchase::on_lineEditCCN_editingFinished()
 {
     ui->lineEditCCN->setEchoMode(QLineEdit::Password);
+}
+
+void DlgSongShopPurchase::downloadProgress(qint64 received, qint64 total)
+{
+    msgBoxInfo->setProgress(received, total);
 }
