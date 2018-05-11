@@ -2207,11 +2207,11 @@ void MainWindow::filesDroppedOnQueue(QList<QUrl> urls, int singerId, int positio
                     continue;
                 }
             }
-            else
+            else if (!file.endsWith(".mp4", Qt::CaseInsensitive) && !file.endsWith(".mkv", Qt::CaseInsensitive) && !file.endsWith(".avi", Qt::CaseInsensitive) && !file.endsWith(".m4v", Qt::CaseInsensitive))
             {
                 QMessageBox msgBox;
                 msgBox.setWindowTitle("Invalid karoake file!");
-                msgBox.setText("Unsupported file type dropped on queue.  Only mp3+g zip files and cdg files are supported");
+                msgBox.setText("Unsupported file type dropped on queue.  Supported file types: mp3+g zip, cdg, mp4, mkv, avi");
                 msgBox.setInformativeText(file);
                 msgBox.exec();
                 continue;
