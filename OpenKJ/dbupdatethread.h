@@ -23,6 +23,7 @@
 
 #include <QThread>
 #include <QStringList>
+#include "sourcedirtablemodel.h"
 
 class DbUpdateThread : public QThread
 {
@@ -30,7 +31,7 @@ class DbUpdateThread : public QThread
 
 private:
     QString path;
-    int pattern;
+    SourceDir::NamingPattern pattern;
     bool dbEntryExists(QString filepath);
 
 public:
@@ -39,11 +40,14 @@ public:
     QString getPath() const;
     void setPath(const QString &value);
     int getPattern() const;
-    void setPattern(int value);
+    void setPattern(SourceDir::NamingPattern value);
     QStringList findKaraokeFiles(QString directory);
+    QStringList getMissingDbFiles();
+    QStringList getDragDropFiles();
     QStringList getErrors();
     void addSingleTrack(QString path);
     int addDroppedFile(QString path);
+    void unthreadedRun();
 
 signals:
     void threadFinished();

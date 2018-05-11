@@ -34,11 +34,13 @@ QVariant SongShopModel::headerData(int section, Qt::Orientation orientation, int
 
 int SongShopModel::rowCount(const QModelIndex &parent) const
 {
+    Q_UNUSED(parent)
     return songs.size();
 }
 
 int SongShopModel::columnCount(const QModelIndex &parent) const
 {
+    Q_UNUSED(parent)
     return 5;
 }
 

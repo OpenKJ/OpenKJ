@@ -24,13 +24,14 @@
 #include <QDir>
 #include <QDirIterator>
 #include <QDebug>
+#include <QStandardPaths>
 #include "sourcedirtablemodel.h"
 #include <QtConcurrent>
 #include "okarchive.h"
 #include "tagreader.h"
-#include "filenameparser.h"
+#include "karaokefileinfo.h"
 
-int g_pattern;
+SourceDir::NamingPattern g_pattern;
 int g_customPatternId, g_artistCaptureGrp, g_titleCaptureGrp, g_discIdCaptureGrp;
 QString g_artistRegex, g_titleRegex, g_discIdRegex;
 QStringList errors;
@@ -57,7 +58,7 @@ int DbUpdateThread::getPattern() const
     return pattern;
 }
 
-void DbUpdateThread::setPattern(int value)
+void DbUpdateThread::setPattern(SourceDir::NamingPattern value)
 {
     pattern = value;
     g_pattern = value;
@@ -70,8 +71,9 @@ QString DbUpdateThread::getPath() const
 
 QStringList DbUpdateThread::findKaraokeFiles(QString directory)
 {
-    emit progressMessage("Finding karaoke files in " + directory);
     QStringList files;
+    emit progressMessage("Finding karaoke files in " + directory);
+    files.clear();
     QDir dir(directory);
     QDirIterator iterator(dir.absolutePath(), QDirIterator::Subdirectories);
     int existing = 0;
@@ -79,7 +81,7 @@ QStringList DbUpdateThread::findKaraokeFiles(QString directory)
     int total = 0;
     QSqlQuery query;
     bool alreadyInDb = false;
-    query.prepare("SELECT EXISTS(SELECT 1 FROM mem.dbsongs WHERE path = :filepath LIMIT 1)");
+    query.prepare("SELECT songid FROM mem.dbsongs WHERE path = :filepath AND discid != '!!DROPPED!!' LIMIT 1");
     while (iterator.hasNext()) {
         iterator.next();
         if (!iterator.fileInfo().isDir()) {
@@ -87,7 +89,9 @@ QStringList DbUpdateThread::findKaraokeFiles(QString directory)
             query.bindValue(":filepath", iterator.filePath());
             query.exec();
             if (query.first())
-                alreadyInDb = query.value(0).toBool();
+            {
+                alreadyInDb = true;
+            }
             else
             {
                 alreadyInDb = false;
@@ -98,7 +102,6 @@ QStringList DbUpdateThread::findKaraokeFiles(QString directory)
                 emit stateChanged("Finding potential karaoke files... " + QString::number(total) + " found. " + QString::number(notInDb) + " new/" + QString::number(existing) + " existing");
                 continue;
             }
-            qWarning() << "Not in DB: " << iterator.filePath();
             QString fn = iterator.filePath();
             if (fn.endsWith(".zip",Qt::CaseInsensitive))
                 files.append(fn);
@@ -118,6 +121,34 @@ QStringList DbUpdateThread::findKaraokeFiles(QString directory)
         //emit stateChanged("Finding potential karaoke files... " + QString::number(files.size()) + " found.");
     }
     emit progressMessage("Done searching for files.");
+    return files;
+}
+
+QStringList DbUpdateThread::getMissingDbFiles()
+{
+    QStringList files;
+    QSqlQuery query;
+    query.exec("SELECT path from mem.dbsongs");
+    while (query.next())
+    {
+        QString path = query.value("path").toString();
+        if (!QFile(path).exists())
+        {
+            files.append(path);
+        }
+    }
+    return files;
+}
+
+QStringList DbUpdateThread::getDragDropFiles()
+{
+    QStringList files;
+    QSqlQuery query;
+    query.exec("SELECT path from mem.dbsongs WHERE discid = '!!DROPPED!!'");
+    while (query.next())
+    {
+        files.append(query.value("path").toString());
+    }
     return files;
 }
 
@@ -143,7 +174,7 @@ void DbUpdateThread::addSingleTrack(QString path)
     QString artist;
     QString title;
     QString discid;
-    FilenameParser parser;
+    KaraokeFileInfo parser;
     parser.setFileName(file.completeBaseName());
     parser.setDiscIdRegEx("^\\S+?(?=(\\s|_)-(\\s|_))");
     parser.setTitleRegEx("(?:^\\S+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|_))(.+)",1);
@@ -188,54 +219,127 @@ int DbUpdateThread::addDroppedFile(QString path)
         return -1;
 }
 
+void DbUpdateThread::unthreadedRun()
+{
+
+}
+
 void DbUpdateThread::setPath(const QString &value)
 {
     path = value;
 
 }
 
-
-
 void DbUpdateThread::run()
 {
-    TagReader reader;
-    OkArchive archive;
-    if (pattern == SourceDir::CUSTOM)
-    {
-        QSqlQuery query;
-        query.exec("SELECT custompattern FROM sourcedirs WHERE path == \"" + path + "\"" );
-        if (query.first())
-            g_customPatternId = query.value(0).toInt();
-        if (g_customPatternId < 1)
-        {
-            qCritical() << "Custom pattern set for path, but pattern ID is invalid!  Bailing out!";
-            return;
-        }
-        query.exec("SELECT * FROM custompatterns WHERE patternid == " + QString::number(g_customPatternId));
-        if (query.first())
-        {
-            g_artistRegex = query.value("artistregex").toString();
-            g_titleRegex  = query.value("titleregex").toString();
-            g_discIdRegex = query.value("discidregex").toString();
-            g_artistCaptureGrp = query.value("artistcapturegrp").toInt();
-            g_titleCaptureGrp  = query.value("titlecapturegrp").toInt();
-            g_discIdCaptureGrp = query.value("discidcapturegrp").toInt();
-        }
-    }
     emit progressChanged(0);
     emit progressMaxChanged(0);
+    emit stateChanged("Verifing that files in DB are present on disk");
     emit stateChanged("Finding potential karaoke files...");
-    QStringList files = findKaraokeFiles(path);
-    emit progressMaxChanged(files.size());
-    emit progressMessage("Found " + QString::number(files.size()) + " potential karaoke files.");
+    QStringList missingFiles = getMissingDbFiles();
+    QStringList newSongs = findKaraokeFiles(path);
+    QStringList dragDropFiles = getDragDropFiles();
+    QSqlQuery query;
+
+    // Try to find out if any of the new files found have been moved and fix the db entry
+    emit stateChanged("Detecting and updating moved files...");
+    emit progressMaxChanged(missingFiles.size());
+    int count = 0;
+    query.exec("BEGIN TRANSACTION");
+    for (int f=0; f<missingFiles.size(); f++)
+    {
+        emit progressMessage("Looking for matches to missing db song: " + missingFiles.at(f));
+        qWarning() << "Looking for match for missing file: " << missingFiles.at(f);
+        bool matchfound = false;
+        for (int i=0; i < newSongs.size(); i++)
+        {
+            QString missingFile = missingFiles.at(f);
+            QString newFile = newSongs.at(i);
+            if (QFileInfo(newSongs.at(i)).fileName() == QFileInfo(missingFiles.at(f)).fileName())
+            {
+                query.prepare("UPDATE dbsongs SET path = :newpath WHERE path = :oldpath");
+                query.bindValue(":newpath", newFile);
+                query.bindValue(":oldpath", missingFile);
+                query.exec();
+                qWarning() << "Missing file found at new location";
+                qWarning() << "  old: " << missingFile;
+                qWarning() << "  new: " << newFile;
+                newSongs.removeAt(i);
+                emit progressMessage("Found match! Modifying existing song.");
+                matchfound = true;
+                break;
+            }
+        }
+        if (!matchfound)
+            emit progressMessage("No match found");
+
+        count++;
+        emit progressChanged(count);
+    }
+    query.exec("COMMIT TRANSACTION");
+
+    for (int f=0; f < dragDropFiles.size(); f++)
+    {
+        QString dropFile = dragDropFiles.at(f);
+        qWarning() << "Looking for matches for drop file: " << dropFile;
+        for (int i=0; i < newSongs.size(); i++)
+        {
+            if (newSongs.at(i) == dropFile)
+            {
+                qWarning() << "Found match for drop file: " << dropFile;
+                QFileInfo file(dropFile);
+                int duration = 0;
+                query.prepare("UPDATE dbsongs SET discid = :discid, artist = :artist, title = :title, filename = :filename, duration = :duration, searchstring = :searchstring WHERE path = :path");
+                QString artist;
+                QString title;
+                QString discid;
+                KaraokeFileInfo parser;
+                parser.setFileName(dropFile);
+                parser.setPattern(g_pattern, path);
+                artist = parser.getArtist();
+                title = parser.getTitle();
+                discid = parser.getDiscId();
+                duration = parser.getDuration();
+
+                if (artist == "" && title == "" && discid == "")
+                {
+                    // Something went wrong, no metadata found. File is probably named wrong. If we didn't try media tags, give it a shot
+                    if (g_pattern != SourceDir::METADATA)
+                    {
+                        parser.setPattern(SourceDir::METADATA, path);
+                        artist = parser.getArtist();
+                        title = parser.getTitle();
+                        discid = parser.getDiscId();
+                    }
+                    // If we still don't have any metadata, just throw filename into the title field
+                    if (artist == "" && title == "" && discid == "")
+                        title = file.completeBaseName();
+                }
+                query.bindValue(":discid", discid);
+                query.bindValue(":artist", artist);
+                query.bindValue(":title", title);
+                query.bindValue(":path", file.filePath());
+                query.bindValue(":filename", file.completeBaseName());
+                query.bindValue(":duration", duration);
+                query.bindValue(":searchstring", QString(file.completeBaseName() + " " + artist + " " + title + " " + discid));
+                query.exec();
+                newSongs.removeAt(i);
+                break;
+            }
+        }
+    }
+
+    // Add new songs to the database
+    emit progressMaxChanged(newSongs.size());
+    emit progressMessage("Found " + QString::number(newSongs.size()) + " potential karaoke files.");
     QString fileName;
-    QSqlQuery query("BEGIN TRANSACTION");
+    query.exec("BEGIN TRANSACTION");
     emit progressMessage("Checking if files are valid and getting durations...");
     emit stateChanged("Validating karaoke files and getting song durations...");
     query.prepare("INSERT OR IGNORE INTO dbSongs (discid,artist,title,path,filename,duration,searchstring) VALUES(:discid, :artist, :title, :path, :filename, :duration, :searchstring)");
-    for (int i=0; i < files.count(); i++)
+    for (int i=0; i < newSongs.count(); i++)
     {
-        fileName = files.at(i);
+        fileName = newSongs.at(i);
         QString mediaFile;
         int duration = 0;
         QFileInfo file(fileName);
@@ -254,6 +358,7 @@ void DbUpdateThread::run()
 #endif
         if (fileName.endsWith(".zip", Qt::CaseInsensitive))
         {
+            OkArchive archive;
             archive.setArchiveFile(fileName);
             if (!archive.isValidKaraokeFile())
             {
@@ -264,184 +369,32 @@ void DbUpdateThread::run()
                 emit progressChanged(i + 1);
                 continue;
             }
-            else duration = archive.getSongDuration();
-        }
-        else if (fileName.endsWith(".cdg", Qt::CaseInsensitive))
-        {
-            QString baseFn = fileName;
-            baseFn.chop(3);
-            if (QFile::exists(baseFn + "mp3"))
-                mediaFile = baseFn + "mp3";
-            else if (QFile::exists(baseFn + "Mp3"))
-                mediaFile = baseFn + "Mp3";
-            else if (QFile::exists(baseFn + "MP3"))
-                mediaFile = baseFn + "MP3";
-            else if (QFile::exists(baseFn + "mP3"))
-                mediaFile = baseFn + "mP3";
-            else
-            {
-                errorMutex.lock();
-                errors.append("Missing CDG file for mp3 file: " + fileName);
-                errorMutex.unlock();
-                emit progressMessage("Missing CDG file for mp3 file: " + fileName);
-                emit progressChanged(i + 1);
-                continue;
-            }
-            duration = ((QFile(fileName).size() / 96) / 75) * 1000;
-        }
-        else
-        {
-            reader.setMedia(fileName);
-            try
-            {
-                duration = reader.getDuration();
-            }
-            catch (...)
-            {
-                errorMutex.lock();
-                errors.append("Unable to get duration for file: " + fileName);
-                errorMutex.unlock();
-                emit progressMessage("Unable to get duration for file: " + fileName);
-            }
         }
         QString artist;
         QString title;
         QString discid;
-        FilenameParser parser;
-        parser.setFileName(file.completeBaseName());
-        switch (g_pattern)
-        {
-        case SourceDir::DTA:
-            parser.setDiscIdRegEx("^\\S+?(?=(\\s|_)-(\\s|_))");
-            parser.setTitleRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))", 0);
-            parser.setArtistRegEx("(?:^\\S+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|_))(.+)",1);
-            artist = parser.getArtist();
-            title = parser.getTitle();
-            discid = parser.getDiscId();
-            break;
-        case SourceDir::DAT:
-            parser.setDiscIdRegEx("^\\S+?(?=(\\s|_)-(\\s|_))");
-            parser.setTitleRegEx("(?:^\\S+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|_))(.+)",1);
-            parser.setArtistRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))", 0);
-            artist = parser.getArtist();
-            title = parser.getTitle();
-            discid = parser.getDiscId();
-            break;
-        case SourceDir::ATD:
-            parser.setArtistRegEx(".+?(?=(\\s|_)-(\\s|_))",0);
-            parser.setTitleRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))");
-            parser.setDiscIdRegEx("(?:^.+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|))(.+)", 1);
-            artist = parser.getArtist();
-            title = parser.getTitle();
-            discid = parser.getDiscId();
-            break;
-        case SourceDir::TAD:
-            parser.setTitleRegEx(".+?(?=(\\s|_)-(\\s|_))",0);
-            parser.setArtistRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))");
-            parser.setDiscIdRegEx("(?:^.+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|))(.+)", 1);
-            artist = parser.getArtist();
-            title = parser.getTitle();
-            discid = parser.getDiscId();
-            break;
-        case SourceDir::AT:
-            parser.setArtistRegEx(".+?(?=(\\s|_)-(\\s|_))");
-            parser.setTitleRegEx("(?<=(\\s|_)-(\\s|_))(.*)");
-            artist = parser.getArtist();
-            title = parser.getTitle();
-            discid = "";
-            break;
-        case SourceDir::TA:
-            parser.setTitleRegEx(".+?(?=(\\s|_)-(\\s|_))");
-            parser.setArtistRegEx("(?<=(\\s|_)-(\\s|_))(.*)");
-            artist = parser.getArtist();
-            title = parser.getTitle();
-            discid = "";
-            break;
-        case SourceDir::CUSTOM:
-            parser.setTitleRegEx(g_titleRegex, g_titleCaptureGrp);
-            parser.setArtistRegEx(g_artistRegex, g_artistCaptureGrp);
-            parser.setDiscIdRegEx(g_discIdRegex, g_discIdCaptureGrp);
-            artist = parser.getArtist();
-            title = parser.getTitle();
-            discid = parser.getDiscId();
-            break;
-        case SourceDir::METADATA:
-            if (fileName.endsWith(".cdg", Qt::CaseInsensitive))
-            {
-                TagReader reader;
-                reader.setMedia(mediaFile);
-                artist = reader.getArtist();
-                title = reader.getTitle();
-                discid = reader.getAlbum();
-                QString track = reader.getTrack();
-                if (track != "")
-                {
-                    discid.append("-" + track);
-                }
-            }
-            else if (fileName.endsWith(".zip", Qt::CaseInsensitive))
-            {
-                QTemporaryDir dir;
-                archive.setArchiveFile(fileName);
-                archive.checkAudio();
-                QString audioFile = "temp" + archive.audioExtension();
-                archive.extractAudio(dir.path() + QDir::separator() + audioFile);
-                TagReader reader;
-                reader.setMedia(dir.path() + QDir::separator() + audioFile);
-                artist = reader.getArtist();
-                title = reader.getTitle();
-                discid = reader.getAlbum();
-                QString track = reader.getTrack();
-                if (track != "")
-                {
-                    discid.append("-" + track);
-                }
-            }
-            break;
-        }
+        KaraokeFileInfo parser;
+        parser.setFileName(fileName);
+        parser.setPattern(g_pattern, path);
+        artist = parser.getArtist();
+        title = parser.getTitle();
+        discid = parser.getDiscId();
+        duration = parser.getDuration();
 
         if (artist == "" && title == "" && discid == "")
         {
             // Something went wrong, no metadata found. File is probably named wrong. If we didn't try media tags, give it a shot
             if (g_pattern != SourceDir::METADATA)
             {
-                if (fileName.endsWith(".cdg", Qt::CaseInsensitive))
-                {
-                    TagReader reader;
-                    reader.setMedia(mediaFile);
-                    artist = reader.getArtist();
-                    title = reader.getTitle();
-                    discid = reader.getAlbum();
-                    QString track = reader.getTrack();
-                    if (track != "")
-                    {
-                        discid.append("-" + track);
-                    }
-                }
-                else if (fileName.endsWith(".zip", Qt::CaseInsensitive))
-                {
-                    QTemporaryDir dir;
-                    archive.setArchiveFile(fileName);
-                    archive.checkAudio();
-                    QString audioFile = "temp" + archive.audioExtension();
-                    archive.extractAudio(dir.path() + QDir::separator() + audioFile);
-                    TagReader reader;
-                    reader.setMedia(dir.path() + QDir::separator() + audioFile);
-                    artist = reader.getArtist();
-                    title = reader.getTitle();
-                    discid = reader.getAlbum();
-                    QString track = reader.getTrack();
-                    if (track != "")
-                    {
-                        discid.append("-" + track);
-                    }
-                }
+                parser.setPattern(SourceDir::METADATA, path);
+                artist = parser.getArtist();
+                title = parser.getTitle();
+                discid = parser.getDiscId();
             }
             // If we still don't have any metadata, just throw filename into the title field
             if (artist == "" && title == "" && discid == "")
                 title = file.completeBaseName();
         }
-
         query.bindValue(":discid", discid);
         query.bindValue(":artist", artist);
         query.bindValue(":title", title);
@@ -451,12 +404,13 @@ void DbUpdateThread::run()
         query.bindValue(":searchstring", QString(file.completeBaseName() + " " + artist + " " + title + " " + discid));
         query.exec();
         emit progressChanged(i + 1);
-        emit stateChanged("Validating karaoke files and getting song durations... " + QString::number(i + 1) + " of " + QString::number(files.size()));
+        emit stateChanged("Validating karaoke files and getting song durations... " + QString::number(i + 1) + " of " + QString::number(newSongs.size()));
     }
     query.exec("COMMIT TRANSACTION");
-    emit progressMessage("Done processing files.");
+    emit progressMessage("Done processing new files.");
     if (errors.size() > 0)
     {
         emit errorsGenerated(errors);
     }
+
 }

@@ -51,7 +51,7 @@ QMAKE_MAC_SDK = MacOSX10.13
 QMAKE_MAC_SDK.macosx.version = 10.13
 
 # Populate version with version from git describe
-VERSION = 1.3.44
+VERSION = 1.3.45
 message($$VERSION)
 DEFINES += GIT_VERSION=\\"\"$$VERSION\\"\"
 QMAKE_TARGET_COMPANY = OpenKJ.org
@@ -105,7 +105,6 @@ SOURCES += main.cpp\
     bmplitemdelegate.cpp \
     settings.cpp \
     bmdbdialog.cpp \
-    filenameparser.cpp \
     dlgcustompatterns.cpp \
     custompatternsmodel.cpp \
     audiorecorder.cpp \
@@ -230,7 +229,8 @@ SOURCES += main.cpp\
     dlgsongshoppurchase.cpp \
     dlgsetpassword.cpp \
     dlgpassword.cpp \
-    dlgpurchaseprogress.cpp
+    dlgpurchaseprogress.cpp \
+    karaokefileinfo.cpp
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -271,7 +271,6 @@ HEADERS  += mainwindow.h \
     bmpltablemodel.h \
     settings.h \
     bmdbdialog.h \
-    filenameparser.h \
     dlgcustompatterns.h \
     custompatternsmodel.h \
     audiorecorder.h \
@@ -407,7 +406,8 @@ HEADERS  += mainwindow.h \
     dlgsongshoppurchase.h \
     dlgsetpassword.h \
     dlgpassword.h \
-    dlgpurchaseprogress.h
+    dlgpurchaseprogress.h \
+    karaokefileinfo.h
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \

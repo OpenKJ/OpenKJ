@@ -306,6 +306,7 @@ void DlgSongShopPurchase::on_lineEditKNPass_textChanged(const QString &arg1)
 
 void DlgSongShopPurchase::on_lineEditCCN_textChanged(const QString &arg1)
 {
+    Q_UNUSED(arg1)
     if (!setupDone)
         return;
     ui->lineEditCCN->setEchoMode(QLineEdit::Normal);
@@ -317,6 +318,7 @@ void DlgSongShopPurchase::on_lineEditCCN_textChanged(const QString &arg1)
 
 void DlgSongShopPurchase::on_lineEditCCM_textChanged(const QString &arg1)
 {
+    Q_UNUSED(arg1)
     if (!setupDone)
         return;
     setupDone = false;
@@ -327,6 +329,7 @@ void DlgSongShopPurchase::on_lineEditCCM_textChanged(const QString &arg1)
 
 void DlgSongShopPurchase::on_lineEditCCY_textChanged(const QString &arg1)
 {
+    Q_UNUSED(arg1)
     if (!setupDone)
         return;
     setupDone = false;
@@ -337,6 +340,7 @@ void DlgSongShopPurchase::on_lineEditCCY_textChanged(const QString &arg1)
 
 void DlgSongShopPurchase::on_lineEditCCV_textChanged(const QString &arg1)
 {
+    Q_UNUSED(arg1)
     if (!setupDone)
         return;
     setupDone = false;
@@ -347,6 +351,8 @@ void DlgSongShopPurchase::on_lineEditCCV_textChanged(const QString &arg1)
 
 void DlgSongShopPurchase::on_lineEditCCN_cursorPositionChanged(int arg1, int arg2)
 {
+    Q_UNUSED(arg1)
+    Q_UNUSED(arg2)
     if (!setupDone)
         return;
     ui->lineEditCCN->setEchoMode(QLineEdit::Normal);

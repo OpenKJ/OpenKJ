@@ -315,8 +315,6 @@
         <file>dlgrequests.h</file>
         <file>dlgsettings.cpp</file>
         <file>dlgsettings.h</file>
-        <file>filenameparser.cpp</file>
-        <file>filenameparser.h</file>
         <file>khaudiorecorder.cpp</file>
         <file>khaudiorecorder.h</file>
         <file>khdb.cpp</file>

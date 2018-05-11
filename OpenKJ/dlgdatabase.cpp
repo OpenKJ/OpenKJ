@@ -160,17 +160,21 @@ void DlgDatabase::on_buttonUpdate_clicked()
         QApplication::processEvents();
         updateThread->setPath(sourcedirmodel->getDirByIndex(selectedRow)->getPath());
         updateThread->setPattern(sourcedirmodel->getDirByIndex(selectedRow)->getPattern());
+        QApplication::processEvents();
         updateThread->start();
         while (updateThread->isRunning())
         {
             QApplication::processEvents();
         }
         emit databaseUpdated();
+        dbUpdateDlg->changeStatusTxt("Database update complete!");
+        dbUpdateDlg->setProgressMax(100);
+        dbUpdateDlg->changeProgress(100);
 //        msgBox.hide();
-
+        QApplication::processEvents();
         showDbUpdateErrors(updateThread->getErrors());
-        dbUpdateDlg->hide();
         QMessageBox::information(this, "Update Complete", "Database update complete.");
+        dbUpdateDlg->hide();
     }
 }
 

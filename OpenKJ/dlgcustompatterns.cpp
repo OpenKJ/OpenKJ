@@ -4,13 +4,13 @@
 #include <QRegularExpression>
 #include <QInputDialog>
 #include <QSqlQuery>
-#include "filenameparser.h"
+#include "karaokefileinfo.h"
 
 extern Settings *settings;
 
 void DlgCustomPatterns::evaluateRegEx()
 {
-    FilenameParser parser;
+    KaraokeFileInfo parser;
     parser.setArtistRegEx(ui->lineEditArtistRegEx->text(), ui->spinBoxArtistCaptureGrp->value());
     parser.setTitleRegEx(ui->lineEditTitleRegEx->text(), ui->spinBoxTitleCaptureGrp->value());
     parser.setDiscIdRegEx(ui->lineEditDiscIdRegEx->text(), ui->spinBoxDiscIdCaptureGrp->value());

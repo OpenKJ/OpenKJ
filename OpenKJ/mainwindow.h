@@ -150,7 +150,6 @@ public:
     ~MainWindow();
     
 private slots:
-    void karaokeSongDownloaded(QString path);
     void search();
     void songdbUpdated();
     void databaseCleared();

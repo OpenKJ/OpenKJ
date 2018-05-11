@@ -625,11 +625,6 @@ MainWindow::~MainWindow()
         _singular->detach();
 }
 
-void MainWindow::karaokeSongDownloaded(QString path)
-{
-
-}
-
 void MainWindow::search()
 {
     dbModel->search(ui->lineEdit->text());

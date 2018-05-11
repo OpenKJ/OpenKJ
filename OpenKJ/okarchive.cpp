@@ -34,6 +34,7 @@
 OkArchive::OkArchive(QString ArchiveFile, QObject *parent) : QObject(parent)
 {
     archiveFile = ArchiveFile;
+    qWarning() << "OkArchive opening file: " << archiveFile;
     m_cdgFound = false;
     m_audioFound = false;
     m_cdgSize = 0;
@@ -120,7 +121,7 @@ QString OkArchive::getArchiveFile() const
 
 void OkArchive::setArchiveFile(const QString &value)
 {
-    //qWarning() << "OkArchive - setArchiveFile(" << value << ") called";
+    qWarning() << "OkArchive opening archive file: " << value;
     archiveFile = value;
     m_cdgFound = false;
     m_audioFound = false;

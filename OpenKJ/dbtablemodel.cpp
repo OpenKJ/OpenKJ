@@ -24,6 +24,8 @@
 #include <QStringList>
 #include <QSqlQuery>
 #include <QDebug>
+#include <QStandardPaths>
+#include <QDir>
 
 
 

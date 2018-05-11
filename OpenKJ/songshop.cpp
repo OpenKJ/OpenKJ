@@ -103,7 +103,9 @@ void SongShop::downloadFile(const QString &url, const QString &destFn)
 
 void SongShop::onSslErrors(QNetworkReply *reply, QList<QSslError> errors)
 {
+    reply->abort();
     qWarning() << "Got ssl error";
+    qWarning() << errors;
 }
 
 void SongShop::onNetworkReply(QNetworkReply *reply)

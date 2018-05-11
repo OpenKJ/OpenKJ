@@ -126,7 +126,7 @@ void SourceDirTableModel::loadFromDB()
         SourceDir *dir = new SourceDir();
         dir->setIndex(query.value("ROWID").toInt());
         dir->setPath(query.value("path").toString());
-        dir->setPattern(query.value("pattern").toInt());
+        dir->setPattern(static_cast<SourceDir::NamingPattern>(query.value("pattern").toInt()));
         dir->setCustomPattern(query.value("custompattern").toInt());
         addSourceDir(dir);
     }
@@ -152,12 +152,12 @@ void SourceDir::setPath(const QString &value)
     path = value;
 }
 
-int SourceDir::getPattern() const
+SourceDir::NamingPattern SourceDir::getPattern() const
 {
     return pattern;
 }
 
-void SourceDir::setPattern(int value)
+void SourceDir::setPattern(SourceDir::NamingPattern value)
 {
     pattern = value;
 }
