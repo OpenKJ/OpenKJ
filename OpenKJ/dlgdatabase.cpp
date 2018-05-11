@@ -167,10 +167,10 @@ void DlgDatabase::on_buttonUpdate_clicked()
             QApplication::processEvents();
         }
         emit databaseUpdated();
+        QApplication::processEvents();
         dbUpdateDlg->changeStatusTxt("Database update complete!");
         dbUpdateDlg->setProgressMax(100);
         dbUpdateDlg->changeProgress(100);
-//        msgBox.hide();
         QApplication::processEvents();
         showDbUpdateErrors(updateThread->getErrors());
         QMessageBox::information(this, "Update Complete", "Database update complete.");
