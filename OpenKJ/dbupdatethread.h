@@ -43,6 +43,7 @@ public:
     QStringList findKaraokeFiles(QString directory);
     QStringList getErrors();
     void addSingleTrack(QString path);
+    int addDroppedFile(QString path);
 
 signals:
     void threadFinished();

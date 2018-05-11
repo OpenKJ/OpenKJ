@@ -161,6 +161,33 @@ void DbUpdateThread::addSingleTrack(QString path)
     query.exec();
 }
 
+int DbUpdateThread::addDroppedFile(QString path)
+{
+    QSqlQuery query;
+    query.prepare("SELECT songid FROM dbsongs WHERE path = :path LIMIT 1");
+    query.bindValue(":path", path);
+    query.exec();
+    if (query.first())
+    {
+        return query.value("songid").toInt();
+    }
+    query.prepare("INSERT OR IGNORE INTO dbSongs (discid,artist,title,path,filename) VALUES(:discid, :artist, :title, :path, :filename)");
+    QFileInfo file(path);
+    QString artist = "-Dropped File-";
+    QString title = QFileInfo(path).fileName();
+    QString discid = "!!DROPPED!!";
+    query.bindValue(":discid", discid);
+    query.bindValue(":artist", artist);
+    query.bindValue(":title", title);
+    query.bindValue(":path", file.filePath());
+    query.bindValue(":filename", file.completeBaseName());
+    query.exec();
+    if (query.lastInsertId().isValid())
+        return query.lastInsertId().toInt();
+    else
+        return -1;
+}
+
 void DbUpdateThread::setPath(const QString &value)
 {
     path = value;

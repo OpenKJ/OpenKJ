@@ -21,6 +21,7 @@
 #include "queuemodel.h"
 #include <QSqlQuery>
 #include <QDebug>
+#include <QUrl>
 
 QueueModel::QueueModel(QObject *parent, QSqlDatabase db) :
     QSqlRelationalTableModel(parent, db)
@@ -206,6 +207,27 @@ bool QueueModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int 
         songid = QString(bytedata.data()).toInt();
         songInsert(songid, droprow);
     }
+    else if (data->hasFormat("text/uri-list"))
+    {
+        QString dataIn = data->data("text/urilist");
+        QList<QUrl> items = data->urls();
+        if (items.size() > 0)
+        {
+            unsigned int droprow;
+            if (parent.row() >= 0)
+                droprow = parent.row();
+            else if (row >= 0)
+                droprow = row;
+            else
+                droprow = rowCount();
+            emit filesDroppedOnSinger(items, m_singerId, droprow);
+        }
+    }
+    else
+    {
+
+        qWarning() << data->data("text/plain");
+    }
     return false;
 }
 
@@ -215,9 +237,9 @@ bool QueueModel::canDropMimeData(const QMimeData *data, Qt::DropAction action, i
     Q_UNUSED(row);
     Q_UNUSED(column);
     Q_UNUSED(parent);
-    if ((data->hasFormat("integer/songid")) || (data->hasFormat("integer/queuepos")))
+    if ((data->hasFormat("integer/songid")) || (data->hasFormat("integer/queuepos")) || data->hasFormat("text/plain") || data->hasFormat("text/uri-list"))
         return true;
-
+    qWarning() << "Unknown data type dropped on queue: " << data->formats();
     return false;
 }
 

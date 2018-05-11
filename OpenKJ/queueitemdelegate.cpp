@@ -64,6 +64,10 @@ void QueueItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
         painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, 16, 16), QImage(":/icons/Icons/edit-delete.png"));
         return;
     }
+    if ((index.column() == 5) && (index.data().toString() == "!!DROPPED!!"))
+    {
+        return;
+    }
     painter->save();
     if (option.state & QStyle::State_Selected)
         painter->setPen(option.palette.highlightedText().color());

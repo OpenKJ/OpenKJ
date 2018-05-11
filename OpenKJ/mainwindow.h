@@ -251,6 +251,7 @@ private slots:
     void on_pushButtonIncomingRequests_clicked();
 
     void on_pushButtonShop_clicked();
+    void filesDroppedOnQueue(QList<QUrl> urls, int singerId, int position);
 
 protected:
     void closeEvent(QCloseEvent *event);

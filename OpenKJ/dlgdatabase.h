@@ -55,6 +55,7 @@ signals:
 
 public slots:
     void singleSongAdd(QString path);
+    int dropFileAdd(QString path);
 
 private slots:
     void on_buttonUpdateAll_clicked();

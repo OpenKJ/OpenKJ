@@ -53,7 +53,7 @@ void DlgSongShopPurchase::setSongId(QString songId)
 
 void DlgSongShopPurchase::setPrice(QString price)
 {
-    ui->labelPrice->setText(price);
+    ui->labelPrice->setText(price + " (additional taxes may apply)");
 }
 
 void DlgSongShopPurchase::doAuth()

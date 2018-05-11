@@ -55,10 +55,19 @@ DlgDatabase::~DlgDatabase()
 
 void DlgDatabase::singleSongAdd(QString path)
 {
-            DbUpdateThread *updateThread = new DbUpdateThread(this);
-            updateThread->addSingleTrack(path);
-            delete updateThread;
-            emit databaseUpdated();
+    DbUpdateThread *updateThread = new DbUpdateThread(this);
+    updateThread->addSingleTrack(path);
+    delete updateThread;
+    emit databaseUpdated();
+}
+
+int DlgDatabase::dropFileAdd(QString path)
+{
+    DbUpdateThread *updateThread = new DbUpdateThread(this);
+    int songId = updateThread->addDroppedFile(path);
+    delete updateThread;
+    emit databaseUpdated();
+    return songId;
 }
 
 void DlgDatabase::on_buttonNew_clicked()

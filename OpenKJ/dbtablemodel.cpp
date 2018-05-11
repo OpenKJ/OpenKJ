@@ -46,6 +46,7 @@ DbTableModel::DbTableModel(QObject *parent, QSqlDatabase db) :
     durationOrder = "ASC";
     select();
 //    search("yeahjustsomethingitllneverfind.imlazylikethat");
+    search("");
 }
 
 
@@ -72,14 +73,14 @@ void DbTableModel::search(QString searchString)
     terms = searchString.split(" ",QString::SkipEmptyParts);
     if (terms.size() < 1)
     {
-        setFilter("discid != \"!!BAD!!\"");
+        setFilter("discid != \"!!BAD!!\" AND discid != \"!!DROPPED!!\"");
         return;
     }
     QString whereClause;
     if (settings->ignoreAposInSearch())
-        whereClause = "discid != \"!!BAD!!\" AND replace(searchstring, \"'\", \"\") LIKE \"%" + terms.at(0) + "%\"";
+        whereClause = "discid != \"!!BAD!!\" AND discid != \"!!DROPPED!!\" AND replace(searchstring, \"'\", \"\") LIKE \"%" + terms.at(0) + "%\"";
     else
-        whereClause = "discid != \"!!BAD!!\" AND searchstring LIKE \"%" + terms.at(0) + "%\"";
+        whereClause = "discid != \"!!BAD!!\" AND discid != \"!!DROPPED!!\" AND searchstring LIKE \"%" + terms.at(0) + "%\"";
     for (int i=1; i < terms.size(); i++)
     {
         if (settings->ignoreAposInSearch())

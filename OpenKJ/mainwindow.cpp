@@ -474,6 +474,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(settings, SIGNAL(requestServerEnabledChanged(bool)), ui->pushButtonIncomingRequests, SLOT(setVisible(bool)));
     connect(ui->actionSong_Shop, SIGNAL(triggered(bool)), dlgSongShop, SLOT(show()));
     qWarning() << "Initial UI stup complete";
+    connect(qModel, SIGNAL(filesDroppedOnSinger(QList<QUrl>,int,int)), this, SLOT(filesDroppedOnQueue(QList<QUrl>,int,int)));
 
 }
 
@@ -1009,7 +1010,7 @@ void MainWindow::on_buttonClearRotation_clicked()
     {
         rotModel->clearRotation();
         qModel->setSinger(-1);
-    }
+    }    
 }
 
 void MainWindow::clearQueueSort()
@@ -2166,4 +2167,60 @@ void MainWindow::on_pushButtonIncomingRequests_clicked()
 void MainWindow::on_pushButtonShop_clicked()
 {
     dlgSongShop->show();
+}
+
+void MainWindow::filesDroppedOnQueue(QList<QUrl> urls, int singerId, int position)
+{
+    foreach (QUrl url, urls)
+    {
+        QString file = url.toLocalFile();
+        if (QFile(file).exists())
+        {
+            if (file.endsWith(".zip", Qt::CaseInsensitive))
+            {
+                OkArchive archive(file);
+                if (!archive.isValidKaraokeFile())
+                {
+                    QMessageBox msgBox;
+                    msgBox.setWindowTitle("Invalid karoake file!");
+                    msgBox.setText("Invalid karaoke file dropped on queue");
+                    msgBox.setInformativeText(file);
+                    msgBox.exec();
+                    continue;
+                }
+            }
+            else if (file.endsWith(".cdg", Qt::CaseInsensitive))
+            {
+                QString noext = file;
+                noext.chop(3);
+                QString mp3_1 = noext + "mp3";
+                QString mp3_2 = noext + "MP3";
+                QString mp3_3 = noext + "Mp3";
+                QString mp3_4 = noext + "mP3";
+                if (!QFile(mp3_1).exists() && !QFile(mp3_2).exists() && !QFile(mp3_3).exists() && !QFile(mp3_4).exists())
+                {
+                    QMessageBox msgBox;
+                    msgBox.setWindowTitle("Invalid karoake file!");
+                    msgBox.setText("CDG file dropped on queue has no matching mp3 file");
+                    msgBox.setInformativeText(file);
+                    msgBox.exec();
+                    continue;
+                }
+            }
+            else
+            {
+                QMessageBox msgBox;
+                msgBox.setWindowTitle("Invalid karoake file!");
+                msgBox.setText("Unsupported file type dropped on queue.  Only mp3+g zip files and cdg files are supported");
+                msgBox.setInformativeText(file);
+                msgBox.exec();
+                continue;
+            }
+            qWarning() << "Karaoke file dropped. Singer: " << singerId << " Pos: " << position << " Path: " << file;
+            int songId = dbDialog->dropFileAdd(file);
+            if (songId == -1)
+                continue;
+            qModel->songInsert(songId, position);
+        }
+    }
 }
