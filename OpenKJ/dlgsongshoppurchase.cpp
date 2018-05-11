@@ -151,7 +151,7 @@ void DlgSongShopPurchase::on_btnPurchase_clicked()
     msgBoxInfo->show();
     if (!shop->loggedIn())
     {
-        msgBoxInfo->setText("Logging you in to Karoake.NET");
+        msgBoxInfo->setText("Logging you in to Karoake.NET...");
         shop->knLogin(ui->lineEditKNUser->text(), ui->lineEditKNPass->text());
         while (!shop->loggedIn() && !shop->loginError())
             QApplication::processEvents();
@@ -161,7 +161,7 @@ void DlgSongShopPurchase::on_btnPurchase_clicked()
         msgBoxInfo->hide();
         return;
     }
-    msgBoxInfo->setText("Purchasing and downloading...");
+    msgBoxInfo->setText("Purchasing song...");
     shop->setDlSongInfo(artist, title, songId);
     shop->knPurchase(songId, ui->lineEditCCN->text(), ui->lineEditCCM->text(), ui->lineEditCCY->text(), ui->lineEditCCV->text());
 }
@@ -359,5 +359,6 @@ void DlgSongShopPurchase::on_lineEditCCN_editingFinished()
 
 void DlgSongShopPurchase::downloadProgress(qint64 received, qint64 total)
 {
+    msgBoxInfo->setText("Downloading song...");
     msgBoxInfo->setProgress(received, total);
 }
