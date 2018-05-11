@@ -68,7 +68,7 @@ KaraokeFileInfo::KaraokeFileInfo(QObject *parent) : QObject(parent)
 void KaraokeFileInfo::setFileName(QString filename)
 {
     fileName = filename;
-    fileBaseName = QFileInfo(filename).fileName();
+    fileBaseName = QFileInfo(filename).completeBaseName();
     tagArtist = "";
     tagTitle = "";
     tagSongid = "";
