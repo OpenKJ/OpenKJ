@@ -1,6 +1,6 @@
 image: Visual Studio 2015
 
-version: 1.3.49
+version: 1.3.50
 
 branches:
   only:
@@ -10,7 +10,7 @@ branches:
 max_jobs: 4
 
 environment:
-  OKJVERSION: 1.3.49
+  OKJVERSION: 1.3.50
   matrix:
   - TARGET_ARCH: x64
     QT: C:\Qt\5.10.1\msvc2015_64
@@ -60,7 +60,7 @@ install:
       Write-Host "Done."
   - ps: |
       Write-Host "Downloading info-zip binary"
-      (New-Object Net.WebClient).DownloadFile("https://storage.googleapis.com/okj-installer-deps/unzip.exe", "c:\projects\openkj\ssl.zip")
+      (New-Object Net.WebClient).DownloadFile("https://storage.googleapis.com/okj-installer-deps/unzip.exe", "c:\projects\openkj\unzip.exe")
       Write-Host "Done."
     
 build_script:
