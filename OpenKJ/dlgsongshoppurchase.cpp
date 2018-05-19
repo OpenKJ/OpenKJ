@@ -23,6 +23,7 @@ DlgSongShopPurchase::DlgSongShopPurchase(SongShop *songShop, QWidget *parent) :
     connect(shop, SIGNAL(paymentProcessingFailed()), this, SLOT(paymentProcessingFailed()));
     connect(shop, SIGNAL(karaokeSongDownloaded(QString)), this, SLOT(purchaseSuccess()));
     msgBoxInfo = new DlgPurchaseProgress;
+    msgBoxInfo->setModal(false);
     connect(shop, SIGNAL(downloadProgress(qint64,qint64)), this, SLOT(downloadProgress(qint64,qint64)));
 }
 

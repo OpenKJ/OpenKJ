@@ -17,6 +17,7 @@ DlgSongShop::DlgSongShop(SongShop *songShop, QWidget *parent) :
     sortFilterModel->setFilterKeyColumn(-1);
     ui->tableViewSongs->setModel(sortFilterModel);
     dlgPurchase = new DlgSongShopPurchase(shop, this);
+    dlgPurchase->setModal(false);
     settings->restoreColumnWidths(ui->tableViewSongs);
     connect(modelSongs->getShop(), SIGNAL(karaokeSongDownloaded(QString)), this, SIGNAL(karaokeSongDownloaded(QString)));
 }

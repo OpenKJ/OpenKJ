@@ -191,7 +191,8 @@ MainWindow::MainWindow(QWidget *parent) :
     dlgBookCreator = new DlgBookCreator(this);
     dlgEq = new DlgEq(this);
     dlgAddSinger = new DlgAddSinger(rotModel, this);
-    dlgSongShop = new DlgSongShop(shop, this);
+    dlgSongShop = new DlgSongShop(shop);
+    dlgSongShop->setModal(false);
     cdg = new CDG;
     ui->tableViewDB->setModel(dbModel);
     dbDelegate = new DbItemDelegate(this);
@@ -595,6 +596,7 @@ void MainWindow::play(QString karaokeFilePath)
 
 MainWindow::~MainWindow()
 {
+    dlgSongShop->close();
     settings->bmSetVolume(ui->sliderBmVolume->value());
     settings->setAudioVolume(ui->sliderVolume->value());
     qWarning() << "Saving volumes - K: " << settings->audioVolume() << " BM: " << settings->bmVolume();
@@ -621,6 +623,7 @@ MainWindow::~MainWindow()
     delete khDir;
     delete ui;
     delete khTmpDir;
+    delete dlgSongShop;
     if(_singular->isAttached())
         _singular->detach();
 }
@@ -2162,6 +2165,7 @@ void MainWindow::on_pushButtonIncomingRequests_clicked()
 void MainWindow::on_pushButtonShop_clicked()
 {
     dlgSongShop->show();
+    dlgSongShop->setModal(false);
 }
 
 void MainWindow::filesDroppedOnQueue(QList<QUrl> urls, int singerId, int position)
