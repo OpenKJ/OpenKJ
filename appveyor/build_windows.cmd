@@ -27,7 +27,9 @@ copy "%project_dir%\README.md" "OpenKJ\release\README.md"
 copy "%project_dir%\LICENSE" "OpenKJ\release\LICENSE.txt"
 
 mkdir "%project_dir%\output"
-7z e "%project_dir%\ssl.zip" -o"%project_dir%\output
+7z e "%project_dir%\ssl.zip" -o"%project_dir%\output"
+
+copy "%project_dir%\unzip.exe" "%project_dir%\output"
 
 echo Copying files for installer...
 robocopy OpenKJ\release\ "%project_dir%\output" /E /np

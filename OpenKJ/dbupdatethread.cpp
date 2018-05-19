@@ -337,13 +337,14 @@ void DbUpdateThread::run()
     emit progressMessage("Checking if files are valid and getting durations...");
     emit stateChanged("Validating karaoke files and getting song durations...");
     query.prepare("INSERT OR IGNORE INTO dbSongs (discid,artist,title,path,filename,duration,searchstring) VALUES(:discid, :artist, :title, :path, :filename, :duration, :searchstring)");
+    QProcess *process = new QProcess(this);
+    OkArchive *archive = new OkArchive(process);
     for (int i=0; i < newSongs.count(); i++)
     {
         fileName = newSongs.at(i);
-        QString mediaFile;
         int duration = 0;
         QFileInfo file(fileName);
-        emit progressMessage("Processing file: " + file.fileName());
+        //emit progressMessage("Processing file: " + file.fileName());
 #ifdef Q_OS_WIN
         if (fileName.contains("*") || fileName.contains("?") || fileName.contains("<") || fileName.contains(">") || fileName.contains("|"))
         {
@@ -358,28 +359,35 @@ void DbUpdateThread::run()
 #endif
         if (fileName.endsWith(".zip", Qt::CaseInsensitive))
         {
-            OkArchive archive;
-            archive.setArchiveFile(fileName);
-            if (!archive.isValidKaraokeFile())
+            //OkArchive *archive = new OkArchive(process);
+            archive->setArchiveFile(fileName);
+
+            if (!archive->isValidKaraokeFile())
             {
                 errorMutex.lock();
-                errors.append(archive.getLastError() + ": " + fileName);
+                errors.append(archive->getLastError() + ": " + fileName);
                 errorMutex.unlock();
-                emit progressMessage(archive.getLastError() + ": " + fileName);
+                emit progressMessage(archive->getLastError() + ": " + fileName);
                 emit progressChanged(i + 1);
                 continue;
             }
+
+            duration = archive->getSongDuration();
         }
+
         QString artist;
         QString title;
         QString discid;
+
         KaraokeFileInfo parser;
         parser.setFileName(fileName);
+
         parser.setPattern(g_pattern, path);
         artist = parser.getArtist();
         title = parser.getTitle();
         discid = parser.getDiscId();
-        duration = parser.getDuration();
+        if (!fileName.endsWith(".zip", Qt::CaseInsensitive))
+            duration = parser.getDuration();
 
         if (artist == "" && title == "" && discid == "")
         {
@@ -395,6 +403,7 @@ void DbUpdateThread::run()
             if (artist == "" && title == "" && discid == "")
                 title = file.completeBaseName();
         }
+
         query.bindValue(":discid", discid);
         query.bindValue(":artist", artist);
         query.bindValue(":title", title);
@@ -405,7 +414,11 @@ void DbUpdateThread::run()
         query.exec();
         emit progressChanged(i + 1);
         emit stateChanged("Validating karaoke files and getting song durations... " + QString::number(i + 1) + " of " + QString::number(newSongs.size()));
+       // msleep(60);
+
     }
+    delete process;
+    delete archive;
     query.exec("COMMIT TRANSACTION");
     emit progressMessage("Done processing new files.");
     if (errors.size() > 0)

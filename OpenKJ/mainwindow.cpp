@@ -498,7 +498,7 @@ void MainWindow::play(QString karaokeFilePath)
             {
                 if (archive.checkAudio())
                 {
-                    if (!archive.extractAudio(khTmpDir->path() + QDir::separator() + "tmp" + archive.audioExtension()))
+                    if (!archive.extractAudio(khTmpDir->path(), "tmp" + archive.audioExtension()))
                     {
                         QMessageBox::warning(this, tr("Bad karaoke file"), tr("Failed to extract audio file."),QMessageBox::Ok);
                         return;

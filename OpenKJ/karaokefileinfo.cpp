@@ -10,6 +10,8 @@ void KaraokeFileInfo::readTags()
 {
     if (tagsRead)
         return;
+    TagReader *tagReader = new TagReader(this);
+
     if (fileName.endsWith(".cdg", Qt::CaseInsensitive))
     {
         QString baseFn = fileName;
@@ -40,7 +42,7 @@ void KaraokeFileInfo::readTags()
         archive.setArchiveFile(fileName);
         archive.checkAudio();
         QString audioFile = "temp" + archive.audioExtension();
-        archive.extractAudio(dir.path() + QDir::separator() + audioFile);
+        archive.extractAudio(dir.path(), audioFile);
         tagReader->setMedia(dir.path() + QDir::separator() + audioFile);
         tagArtist = tagReader->getArtist();
         tagTitle = tagReader->getTitle();
@@ -53,6 +55,7 @@ void KaraokeFileInfo::readTags()
         }
     }
     tagsRead = true;
+    delete tagReader;
 }
 
 KaraokeFileInfo::KaraokeFileInfo(QObject *parent) : QObject(parent)
@@ -61,7 +64,6 @@ KaraokeFileInfo::KaraokeFileInfo(QObject *parent) : QObject(parent)
     titleCaptureGroup  = 0;
     discIdCaptureGroup = 0;
     useMetadata = false;
-    tagReader = new TagReader(this);
     tagsRead = false;
 }
 

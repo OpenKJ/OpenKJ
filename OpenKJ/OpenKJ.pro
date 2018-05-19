@@ -8,7 +8,6 @@ QT += core gui sql network widgets multimedia concurrent svg printsupport
 
 unix: DEFINES += USE_GL
 
-
 win32: RC_ICONS = Icons/okjicon.ico
 
 contains(DEFINES, USE_GL) {
@@ -51,7 +50,7 @@ QMAKE_MAC_SDK = MacOSX10.13
 QMAKE_MAC_SDK.macosx.version = 10.13
 
 # Populate version with version from git describe
-VERSION = 1.3.47
+VERSION = 1.3.48
 message($$VERSION)
 DEFINES += GIT_VERSION=\\"\"$$VERSION\\"\"
 QMAKE_TARGET_COMPANY = OpenKJ.org
@@ -407,7 +406,7 @@ HEADERS  += mainwindow.h \
     dlgsetpassword.h \
     dlgpassword.h \
     dlgpurchaseprogress.h \
-    karaokefileinfo.h
+    karaokefileinfo.h \
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \

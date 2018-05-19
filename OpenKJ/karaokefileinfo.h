@@ -17,7 +17,6 @@ class KaraokeFileInfo : public QObject
     QString fileName;
     QString fileBaseName;
     bool useMetadata;
-    TagReader *tagReader;
     bool tagsRead;
     void readTags();
     QString tagArtist;

@@ -25,7 +25,15 @@
 #include <QObject>
 #include <QStringList>
 //#include <quazip.h>
+#include <QProcess>
 
+struct zipEntry
+{
+    QString fileName;
+    int fileSize;
+};
+
+typedef QList<zipEntry> zipEntries;
 
 class OkArchive : public QObject
 {
@@ -33,6 +41,7 @@ class OkArchive : public QObject
 public:
     explicit OkArchive(QString ArchiveFile, QObject *parent = 0);
     explicit OkArchive(QObject *parent = 0);
+    explicit OkArchive(QProcess *process, QObject *parent = 0);
     ~OkArchive();
     unsigned int getSongDuration();
     QByteArray getCDGData();
@@ -41,7 +50,7 @@ public:
     bool checkCDG();
     bool checkAudio();
     QString audioExtension();
-    bool extractAudio(QString destPath);
+    bool extractAudio(QString destPath, QString destFile);
     bool isValidKaraokeFile();
     QString getLastError();
 
@@ -57,12 +66,18 @@ private:
     int audioSize();
     int m_cdgSize;
     int m_audioSize;
-    bool m_audioSupportedCompression;
-    bool m_cdgSupportedCompression;
     bool m_cdgFound;
     bool m_audioFound;
+    bool m_entriesProcessed;
+    zipEntries m_entries;
     bool findEntries();
     QStringList audioExtensions;
+    zipEntries getZipContents();
+    bool extractFile(QString fileName, QString destDir, QString destFile);
+    bool zipIsValid();
+    QProcess *process;
+    bool goodArchive;
+    QString minizipPath;
 
 signals:
 
