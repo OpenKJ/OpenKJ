@@ -338,7 +338,7 @@ void DbUpdateThread::run()
     emit stateChanged("Validating karaoke files and getting song durations...");
     query.prepare("INSERT OR IGNORE INTO dbSongs (discid,artist,title,path,filename,duration,searchstring) VALUES(:discid, :artist, :title, :path, :filename, :duration, :searchstring)");
     QProcess *process = new QProcess(this);
-    OkArchive *archive = new OkArchive(process);
+    OkArchive *archive = new OkArchive(this);
     for (int i=0; i < newSongs.count(); i++)
     {
         fileName = newSongs.at(i);

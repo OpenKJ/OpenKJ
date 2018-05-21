@@ -41,7 +41,6 @@ class OkArchive : public QObject
 public:
     explicit OkArchive(QString ArchiveFile, QObject *parent = 0);
     explicit OkArchive(QObject *parent = 0);
-    explicit OkArchive(QProcess *process, QObject *parent = 0);
     ~OkArchive();
     unsigned int getSongDuration();
     QByteArray getCDGData();
@@ -77,7 +76,6 @@ private:
     bool zipIsValid();
     QProcess *process;
     bool goodArchive;
-    QString minizipPath;
 
 signals:
 

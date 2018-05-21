@@ -32,6 +32,7 @@
 #include <unistd.h>
 #endif
 
+QString infoZipPath;
 
 OkArchive::OkArchive(QString ArchiveFile, QObject *parent) : QObject(parent)
 {
@@ -52,12 +53,12 @@ OkArchive::OkArchive(QString ArchiveFile, QObject *parent) : QObject(parent)
     audioExtensions.append(".ogg");
     audioExtensions.append(".mov");
     audioExtensions.append(".flac");
-
 #ifdef Q_OS_WIN
-    minizipPath = "unzip.exe";
+    infoZipPath = "unzip.exe";
 #else
-    minizipPath = "/usr/bin/unzip";
+    infoZipPath = "/usr/bin/unzip";
 #endif
+
 }
 
 OkArchive::OkArchive(QObject *parent) : QObject(parent)
@@ -77,25 +78,11 @@ OkArchive::OkArchive(QObject *parent) : QObject(parent)
     audioExtensions.append(".ogg");
     audioExtensions.append(".mov");
     audioExtensions.append(".flac");
-}
-
-OkArchive::OkArchive(QProcess *process, QObject *parent) : QObject(parent)
-{
-    this->process = process;
-    m_cdgFound = false;
-    m_audioFound = false;
-    m_cdgSize = 0;
-    m_audioSize = 0;
-    audioFileName = "";
-    cdgFileName = "";
-    audioExt = "";
-    m_entriesProcessed = false;
-    lastError = "";
-    audioExtensions.append(".mp3");
-    audioExtensions.append(".wav");
-    audioExtensions.append(".ogg");
-    audioExtensions.append(".mov");
-    audioExtensions.append(".flac");
+#ifdef Q_OS_WIN
+    infoZipPath = "unzip.exe";
+#else
+    infoZipPath = "/usr/bin/unzip";
+#endif
 }
 
 OkArchive::~OkArchive()
@@ -295,8 +282,7 @@ zipEntries OkArchive::getZipContents()
     arguments << "-l";
     arguments << archiveFile;
     process->setProcessChannelMode(QProcess::MergedChannels);
-    //        process->start("/usr/bin/unzip", arguments, QProcess::ReadOnly);
-    process->setProgram("/usr/bin/unzip");
+    process->setProgram(infoZipPath);
     process->setArguments(arguments);
     process->start(QProcess::ReadOnly);
     process->waitForFinished();
@@ -311,7 +297,6 @@ zipEntries OkArchive::getZipContents()
     }
     QString output = process->readAll();
     QStringList data = output.split(QRegExp("[\r\n]"),QString::SkipEmptyParts);
-
     int fnStart = data.at(1).indexOf("Name");
     data.removeFirst();
     data.removeFirst();
@@ -345,7 +330,7 @@ bool OkArchive::extractFile(QString fileName, QString destDir, QString destFile)
     arguments << fileName;
     arguments << "-d";
     arguments << destDir;
-    process->start("/usr/bin/unzip", arguments, QProcess::ReadOnly);
+    process->start(infoZipPath, arguments, QProcess::ReadOnly);
     process->waitForFinished();
     QFile::rename(destDir + QDir::separator() + fileName, destDir + QDir::separator() + destFile);
     if (process->exitCode() != 0)
@@ -365,7 +350,7 @@ bool OkArchive::zipIsValid()
     arguments << "-t";
     arguments << archiveFile;
     process->setProcessChannelMode(QProcess::ForwardedChannels);
-    process->start("/usr/bin/unzip", arguments, QProcess::ReadOnly);
+    process->start(infoZipPath, arguments, QProcess::ReadOnly);
     process->waitForFinished();
     //qWarning() << process->readAll();
     qWarning() << process->state();
