@@ -87,6 +87,7 @@ MainWindow::MainWindow(QWidget *parent) :
     sliderPositionPressed = false;
     m_rtClickQueueSongId = -1;
     m_rtClickRotationSingerId = -1;
+    k2kTransition = false;
     QCoreApplication::setOrganizationName("OpenKJ");
     QCoreApplication::setOrganizationDomain("OpenKJ.org");
     QCoreApplication::setApplicationName("OpenKJ");
@@ -479,7 +480,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 }
 
-void MainWindow::play(QString karaokeFilePath)
+void MainWindow::play(QString karaokeFilePath, bool k2k)
 {
     if (kAudioBackend->state() != AbstractAudioBackend::PausedState)
     {
@@ -510,7 +511,8 @@ void MainWindow::play(QString karaokeFilePath)
                     setShowBgImage(false);
                     kAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + "tmp" + archive.audioExtension());
                     //                ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
-                    bmAudioBackend->fadeOut(!settings->bmKCrossFade());
+                    if (!k2k)
+                        bmAudioBackend->fadeOut(!settings->bmKCrossFade());
                     kAudioBackend->play();
                 }
             }
@@ -570,13 +572,15 @@ void MainWindow::play(QString karaokeFilePath)
             cdg->Process();
             kAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + audTmpFile);
 //            ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
-            bmAudioBackend->fadeOut(!settings->bmKCrossFade());
+            if (!k2k)
+                bmAudioBackend->fadeOut(!settings->bmKCrossFade());
             kAudioBackend->play();
         }
         else
         {
             kAudioBackend->setMedia(karaokeFilePath);
-            bmAudioBackend->fadeOut();
+            if (!k2k)
+                bmAudioBackend->fadeOut();
             kAudioBackend->play();
         }
         if (settings->recordingEnabled())
@@ -592,6 +596,7 @@ void MainWindow::play(QString karaokeFilePath)
             audioRecorder->unpause();
         kAudioBackend->play();
     }
+    k2kTransition = false;
 }
 
 MainWindow::~MainWindow()
@@ -755,6 +760,7 @@ void MainWindow::on_tableViewRotation_activated(const QModelIndex &index)
 {
     if (index.column() < 3)
     {
+        k2kTransition = false;
         int singerId = index.sibling(index.row(),0).data().toInt();
         QString nextSongPath = rotModel->nextSongPath(singerId);
         if (nextSongPath != "")
@@ -776,6 +782,7 @@ void MainWindow::on_tableViewRotation_activated(const QModelIndex &index)
                 {
                     return;
                 }
+                k2kTransition = true;
             }
             if (kAudioBackend->state() == AbstractAudioBackend::PausedState)
             {
@@ -797,7 +804,7 @@ void MainWindow::on_tableViewRotation_activated(const QModelIndex &index)
             ui->labelArtist->setText(curArtist);
             ui->labelTitle->setText(curTitle);
             ui->labelSinger->setText(curSinger);
-            play(nextSongPath);
+            play(nextSongPath, k2kTransition);
             kAudioBackend->setPitchShift(rotModel->nextSongKeyChg(singerId));
             qModel->songSetPlayed(rotModel->nextSongQueueId(singerId));
         }
@@ -869,6 +876,7 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
 
 void MainWindow::on_tableViewQueue_activated(const QModelIndex &index)
 {
+    k2kTransition = false;
     if ((kAudioBackend->state() == AbstractAudioBackend::PlayingState) && (settings->showSongInterruptionWarning()))
     {
         QMessageBox msgBox(this);
@@ -886,6 +894,7 @@ void MainWindow::on_tableViewQueue_activated(const QModelIndex &index)
         {
             return;
         }
+        k2kTransition = true;
     }
     if (kAudioBackend->state() == AbstractAudioBackend::PausedState)
     {
@@ -905,7 +914,7 @@ void MainWindow::on_tableViewQueue_activated(const QModelIndex &index)
     ui->labelTitle->setText(curTitle);
     rotModel->setCurrentSinger(index.sibling(index.row(),1).data().toInt());
     rotDelegate->setCurrentSinger(index.sibling(index.row(),1).data().toInt());
-    play(index.sibling(index.row(), 6).data().toString());
+    play(index.sibling(index.row(), 6).data().toString(), k2kTransition);
     kAudioBackend->setPitchShift(index.sibling(index.row(),7).data().toInt());
     qModel->songSetPlayed(index.sibling(index.row(),0).data().toInt());
 }
@@ -1099,6 +1108,8 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
         setShowBgImage(true);
         cdgWindow->setShowBgImage(true);
         cdgWindow->triggerBg();
+        if (k2kTransition)
+            return;
         bmAudioBackend->fadeIn(false);
         if (settings->karaokeAutoAdvance())
         {

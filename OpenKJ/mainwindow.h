@@ -105,7 +105,7 @@ private:
 //    KhIPCClient *ipcClient;
     QLabel *labelSingerCount;
     bool sliderPositionPressed;
-    void play(QString karaokeFilePath);
+    void play(QString karaokeFilePath, bool k2k = false);
     int m_rtClickQueueSongId;
     int m_rtClickRotationSingerId;
     QTemporaryDir *khTmpDir;
@@ -122,7 +122,7 @@ private:
     bool kAASkip;
     int cdgOffset;
     SongShop *shop;
-
+    bool k2kTransition;
 
     BmDbDialog *bmDbDialog;
     BmDbTableModel *bmDbModel;
