@@ -71,6 +71,8 @@ void BmPlItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         painter->save();
         if (option.state & QStyle::State_Selected)
             painter->setPen(option.palette.highlightedText().color());
+        else if (index.row() == m_currentSong)
+            painter->setPen(QColor("black"));
         painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + fn);
         painter->restore();
         return;
@@ -84,6 +86,8 @@ void BmPlItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         painter->save();
         if (option.state & QStyle::State_Selected)
             painter->setPen(option.palette.highlightedText().color());
+        else if (index.row() == m_currentSong)
+            painter->setPen(QColor("black"));
         painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter | Qt::AlignCenter, duration);
         painter->restore();
         return;
@@ -101,6 +105,8 @@ void BmPlItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     painter->save();
     if (option.state & QStyle::State_Selected)
         painter->setPen(option.palette.highlightedText().color());
+    if (index.row() == m_currentSong)
+        painter->setPen(QColor("black"));
     painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + index.data().toString());
     painter->restore();
 }
