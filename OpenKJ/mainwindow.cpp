@@ -482,6 +482,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
 void MainWindow::play(QString karaokeFilePath, bool k2k)
 {
+    khTmpDir->remove();
+    delete khTmpDir;
+    khTmpDir = new QTemporaryDir();
     if (kAudioBackend->state() != AbstractAudioBackend::PausedState)
     {
         if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
