@@ -124,7 +124,7 @@ QString OkArchive::getArchiveFile() const
 
 void OkArchive::setArchiveFile(const QString &value)
 {
-    qWarning() << "OkArchive opening archive file: " << value;
+//    qWarning() << "OkArchive opening archive file: " << value;
     archiveFile = value;
     m_cdgFound = false;
     m_audioFound = false;
@@ -286,19 +286,39 @@ zipEntries OkArchive::getZipContents()
     process->setArguments(arguments);
     process->start(QProcess::ReadOnly);
     process->waitForFinished();
-    if (process->exitCode() != 0)
+    if (process->exitCode() == 0)
     {
+        // no error
+        goodArchive = true;
+    }
+    else if (process->exitCode() <= 2)
+    {
+        qWarning() << "Non-fatal error while processing zip: " << archiveFile;
+        qWarning() << "infozip returned error code: " << process->exitCode();
+        goodArchive = true;
+    }
+    else if (process->exitCode() >= 3)
+    {
+        qWarning() << "Fatal error while processing zip: " << archiveFile;
+        qWarning() << "infozip returned error code: " << process->exitCode();
         goodArchive = false;
         return zipEntries();
     }
-    else
-    {
-        goodArchive = true;
-    }
     QString output = process->readAll();
     QStringList data = output.split(QRegExp("[\r\n]"),QString::SkipEmptyParts);
-    int fnStart = data.at(1).indexOf("Name");
-    data.removeFirst();
+    int fnStart = 0;
+    int listStart = 0;
+    for (int l=0; l < data.size(); l++)
+    {
+        if (data.at(l).contains("Name", Qt::CaseInsensitive) && data.at(l).contains("Length", Qt::CaseInsensitive) && data.at(l).contains("Date", Qt::CaseInsensitive))
+        {
+            fnStart = data.at(l).indexOf("Name");
+            listStart = l;
+            break;
+        }
+    }
+    for (int l=0; l < listStart; l++)
+        data.removeFirst();
     data.removeFirst();
     data.removeFirst();
     data.removeLast();
@@ -317,6 +337,7 @@ zipEntries OkArchive::getZipContents()
 
 bool OkArchive::extractFile(QString fileName, QString destDir, QString destFile)
 {
+    qWarning() << "OkArchive(" << fileName << ", " << destDir << ", " << destFile << ") called";
     QTemporaryDir tmpDir;
     QString tmpZipPath = tmpDir.path() + QDir::separator() + "tmp.zip";
     if (!QFile::copy(archiveFile, tmpZipPath))
@@ -332,15 +353,28 @@ bool OkArchive::extractFile(QString fileName, QString destDir, QString destFile)
     arguments << destDir;
     process->start(infoZipPath, arguments, QProcess::ReadOnly);
     process->waitForFinished();
-    QFile::rename(destDir + QDir::separator() + fileName, destDir + QDir::separator() + destFile);
-    if (process->exitCode() != 0)
+    if (process->exitCode() == 0)
     {
+        // no error
+    }
+    else if (process->exitCode() <= 2)
+    {
+        qWarning() << "Non-fatal error while processing zip: " << archiveFile;
+        qWarning() << "infozip returned error code: " << process->exitCode();
+    }
+    else if (process->exitCode() >= 3)
+    {
+        qWarning() << "Fatal error while processing zip: " << archiveFile;
+        qWarning() << "infozip returned error code: " << process->exitCode();
         return false;
     }
-    else
+    if (!QFile::rename(destDir + QDir::separator() + fileName, destDir + QDir::separator() + destFile))
     {
-        return true;
+        qWarning() << "infozip didn't report fatal error, but file was not unzipped successfully";
+        return false;
     }
+    return true;
+
 }
 
 bool OkArchive::zipIsValid()
