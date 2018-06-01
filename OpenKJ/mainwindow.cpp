@@ -352,28 +352,32 @@ MainWindow::MainWindow(QWidget *parent) :
 
     settings->restoreSplitterState(ui->splitter_3);
 
-    if (settings->bmShowFilenames())
-    {
-        ui->tableViewBmDb->showColumn(4);
-        ui->actionDisplay_Filenames->setChecked(true);
-    }
-    else
-    {
-        ui->tableViewBmDb->hideColumn(4);
-        ui->actionDisplay_Filenames->setChecked(false);
-    }
-    if (settings->bmShowMetadata())
-    {
-        ui->tableViewBmDb->showColumn(1);
-        ui->tableViewBmDb->showColumn(2);
-        ui->actionDisplay_Filenames->setChecked(true);
-    }
-    else
-    {
-        ui->tableViewBmDb->hideColumn(1);
-        ui->tableViewBmDb->hideColumn(2);
-        ui->actionDisplay_Filenames->setChecked(false);
-    }
+//    if (settings->bmShowFilenames())
+//    {
+//        ui->tableViewBmDb->showColumn(4);
+//        ui->actionDisplay_Filenames->setChecked(true);
+//    }
+//    else
+//    {
+//        ui->tableViewBmDb->hideColumn(4);
+//        ui->actionDisplay_Filenames->setChecked(false);
+//    }
+//    if (settings->bmShowMetadata())
+//    {
+//        ui->tableViewBmDb->showColumn(1);
+//        ui->tableViewBmDb->showColumn(2);
+//        ui->actionDisplay_Filenames->setChecked(true);
+//    }
+//    else
+//    {
+//        ui->tableViewBmDb->hideColumn(1);
+//        ui->tableViewBmDb->hideColumn(2);
+//        ui->actionDisplay_Filenames->setChecked(false);
+//    }
+
+    on_actionDisplay_Filenames_toggled(settings->bmShowFilenames());
+    on_actionDisplay_Metadata_toggled(settings->bmShowMetadata());
+
 
     qWarning() << "Connecting signals & slots";
     connect(ui->lineEditBmSearch, SIGNAL(textChanged(QString)), bmDbModel, SLOT(search(QString)));
@@ -1874,12 +1878,8 @@ void MainWindow::on_actionDisplay_Metadata_toggled(bool arg1)
 {
     ui->tableViewBmDb->setColumnHidden(1, !arg1);
     ui->tableViewBmDb->setColumnHidden(2, !arg1);
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(1, 100);
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(2, 100);
     ui->tableViewBmPlaylist->setColumnHidden(3, !arg1);
     ui->tableViewBmPlaylist->setColumnHidden(4, !arg1);
-    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(3, 100);
-    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(4, 100);
     settings->bmSetShowMetadata(arg1);
     autosizeBmViews();
 }
@@ -1887,9 +1887,7 @@ void MainWindow::on_actionDisplay_Metadata_toggled(bool arg1)
 void MainWindow::on_actionDisplay_Filenames_toggled(bool arg1)
 {
     ui->tableViewBmDb->setColumnHidden(4, !arg1);
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(4, 100);
     ui->tableViewBmPlaylist->setColumnHidden(5, !arg1);
-    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(5, 100);
     settings->bmSetShowFilenames(arg1);
     autosizeBmViews();
 }
