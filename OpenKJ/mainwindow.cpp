@@ -60,6 +60,8 @@ QString MainWindow::GetRandomString() const
    return randomString;
 }
 
+
+
 bool MainWindow::isSingleInstance()
 {
     if(_singular->attach(QSharedMemory::ReadOnly)){
@@ -77,6 +79,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    kNeedAutoSize = false;
+    bNeedAutoSize = true;
     _singular = new QSharedMemory("SharedMemorySingleInstanceProtectorOpenKJ", this);
     shop = new SongShop(this);
     blinkRequestsBtn = false;
@@ -262,9 +266,10 @@ MainWindow::MainWindow(QWidget *parent) :
     settings->restoreWindowState(regularSingersDialog);
     settings->restoreSplitterState(ui->splitter);
     settings->restoreSplitterState(ui->splitter_2);
-    settings->restoreColumnWidths(ui->tableViewDB);
-    settings->restoreColumnWidths(ui->tableViewQueue);
-    settings->restoreColumnWidths(ui->tableViewRotation);
+    settings->restoreSplitterState(ui->splitterBm);
+//    settings->restoreColumnWidths(ui->tableViewDB);
+//    settings->restoreColumnWidths(ui->tableViewQueue);
+//    settings->restoreColumnWidths(ui->tableViewRotation);
     settings->restoreWindowState(dlgSongShop);
     if ((settings->cdgWindowFullscreen()) && (settings->showCdgWindow()))
     {
@@ -278,7 +283,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewDB->hideColumn(5);
     ui->tableViewDB->hideColumn(6);
     ui->tableViewDB->hideColumn(7);
-    ui->tableViewDB->horizontalHeader()->resizeSection(4,75);
+//    ui->tableViewDB->horizontalHeader()->resizeSection(4,75);
     ui->tableViewQueue->hideColumn(0);
     ui->tableViewQueue->hideColumn(1);
     ui->tableViewQueue->hideColumn(2);
@@ -287,25 +292,14 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewQueue->hideColumn(10);
     ui->tableViewQueue->hideColumn(11);
     ui->tableViewQueue->hideColumn(12);
-    ui->tableViewQueue->horizontalHeader()->resizeSection(8, 25);
-    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(8, QHeaderView::Fixed);
-    if (kAudioBackend->canPitchShift())
+    if (!kAudioBackend->canPitchShift())
     {
-        ui->tableViewQueue->horizontalHeader()->showSection(7);
+        ui->tableViewQueue->hideColumn(7);
     }
-    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(7, QHeaderView::ResizeToContents);
-//    ui->tableViewQueue->horizontalHeader()->resizeSection(7,25);
     qModel->setHeaderData(8, Qt::Horizontal,"");
     qModel->setHeaderData(7, Qt::Horizontal, "Key");
-    ui->tableViewRotation->horizontalHeader()->resizeSection(0, 25);
-    ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
-    ui->tableViewRotation->horizontalHeader()->resizeSection(3,25);
-    ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Fixed);
-    ui->tableViewRotation->horizontalHeader()->resizeSection(4,25);
-    ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Fixed);
     rotModel->setHeaderData(0,Qt::Horizontal,"");
     rotModel->setHeaderData(1,Qt::Horizontal,"Singer");
-    rotModel->setHeaderData(2,Qt::Horizontal,"Next Song");
     rotModel->setHeaderData(3,Qt::Horizontal,"");
     rotModel->setHeaderData(4,Qt::Horizontal,"");
     ui->tableViewRotation->hideColumn(2);
@@ -347,20 +341,39 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->actionDisplay_Filenames->setChecked(settings->bmShowFilenames());
     ui->actionDisplay_Metadata->setChecked(settings->bmShowMetadata());
     settings->restoreSplitterState(ui->splitterBm);
-    settings->restoreColumnWidths(ui->tableViewBmDb);
-    settings->restoreColumnWidths(ui->tableViewBmPlaylist);
+//    settings->restoreColumnWidths(ui->tableViewBmDb);
+//    settings->restoreColumnWidths(ui->tableViewBmPlaylist);
     ui->tableViewBmDb->setColumnHidden(0, true);
     ui->tableViewBmDb->setColumnHidden(3, true);
     ui->tableViewBmDb->setColumnHidden(6, true);
-    ui->tableViewBmDb->horizontalHeader()->setSectionResizeMode(5, QHeaderView::Fixed);
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(5,75);
+
     ui->tableViewBmPlaylist->setColumnHidden(0, true);
     ui->tableViewBmPlaylist->setColumnHidden(1, true);
-    ui->tableViewBmPlaylist->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Fixed);
-    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(2,25);
-    ui->tableViewBmPlaylist->horizontalHeader()->setSectionResizeMode(7, QHeaderView::Fixed);
-    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(7,25);
+
     settings->restoreSplitterState(ui->splitter_3);
+
+    if (settings->bmShowFilenames())
+    {
+        ui->tableViewBmDb->showColumn(4);
+        ui->actionDisplay_Filenames->setChecked(true);
+    }
+    else
+    {
+        ui->tableViewBmDb->hideColumn(4);
+        ui->actionDisplay_Filenames->setChecked(false);
+    }
+    if (settings->bmShowMetadata())
+    {
+        ui->tableViewBmDb->showColumn(1);
+        ui->tableViewBmDb->showColumn(2);
+        ui->actionDisplay_Filenames->setChecked(true);
+    }
+    else
+    {
+        ui->tableViewBmDb->hideColumn(1);
+        ui->tableViewBmDb->hideColumn(2);
+        ui->actionDisplay_Filenames->setChecked(false);
+    }
 
     qWarning() << "Connecting signals & slots";
     connect(ui->lineEditBmSearch, SIGNAL(textChanged(QString)), bmDbModel, SLOT(search(QString)));
@@ -465,6 +478,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->lineEdit, SIGNAL(escapePressed()), ui->lineEdit, SLOT(clear()));
     connect(ui->lineEditBmSearch, SIGNAL(escapePressed()), ui->lineEditBmSearch, SLOT(clear()));
     connect(qModel, SIGNAL(songDroppedWithoutSinger()), this, SLOT(songDropNoSingerSel()));
+    connect(ui->splitter_3, SIGNAL(splitterMoved(int,int)), this, SLOT(autosizeViews()));
+    connect(ui->splitterBm, SIGNAL(splitterMoved(int,int)), this, SLOT(autosizeBmViews()));
 
     checker = new UpdateChecker(this);
     connect(checker, SIGNAL(newVersionAvailable(QString)), this, SLOT(newVersionAvailable(QString)));
@@ -478,7 +493,16 @@ MainWindow::MainWindow(QWidget *parent) :
     qWarning() << "Initial UI stup complete";
     connect(qModel, SIGNAL(filesDroppedOnSinger(QList<QUrl>,int,int)), this, SLOT(filesDroppedOnQueue(QList<QUrl>,int,int)));
     connect(settings, SIGNAL(applicationFontChanged(QFont)), this, SLOT(appFontChanged(QFont)));
+    QApplication::processEvents();
+    QApplication::processEvents();
     appFontChanged(settings->applicationFont());
+    startupOneShot = new QTimer(this);
+    connect(startupOneShot, SIGNAL(timeout()), this, SLOT(autosizeViews()));
+    connect(startupOneShot, SIGNAL(timeout()), this, SLOT(autosizeBmViews()));
+    startupOneShot->setSingleShot(true);
+    startupOneShot->start(500);
+
+
 
 }
 
@@ -1857,6 +1881,7 @@ void MainWindow::on_actionDisplay_Metadata_toggled(bool arg1)
     ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(3, 100);
     ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(4, 100);
     settings->bmSetShowMetadata(arg1);
+    autosizeBmViews();
 }
 
 void MainWindow::on_actionDisplay_Filenames_toggled(bool arg1)
@@ -1866,6 +1891,7 @@ void MainWindow::on_actionDisplay_Filenames_toggled(bool arg1)
     ui->tableViewBmPlaylist->setColumnHidden(5, !arg1);
     ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(5, 100);
     settings->bmSetShowFilenames(arg1);
+    autosizeBmViews();
 }
 
 void MainWindow::on_actionManage_Karaoke_DB_triggered()
@@ -2245,13 +2271,14 @@ void MainWindow::appFontChanged(QFont font)
     QApplication::setFont(font, "QWidget");
     setFont(font);
     QFontMetrics fm(settings->applicationFont());
-    int cvwWidth = fm.width("Total: 00:00  Current:00:00  Remain: 00:00");
+    int cvwWidth = max(300, fm.width("Total: 00:00  Current:00:00  Remain: 00:00"));
     qWarning() << "Resizing cdgVideoWidget to width: " << cvwWidth;
     ui->cdgVideoWidget->arResize(cvwWidth);
-    ui->cdgFrame->setMinimumWidth(ui->cdgVideoWidget->minimumWidth());
-    ui->cdgFrame->setMaximumWidth(ui->cdgVideoWidget->minimumWidth());
+    ui->cdgFrame->setMinimumWidth(cvwWidth);
+    ui->cdgFrame->setMaximumWidth(cvwWidth);
     ui->mediaFrame->setMinimumWidth(cvwWidth);
     ui->mediaFrame->setMaximumWidth(cvwWidth);
+
     QSize mcbSize(fm.height(), fm.height());
     ui->buttonStop->resize(mcbSize);
     ui->buttonPause->resize(mcbSize);
@@ -2291,4 +2318,141 @@ void MainWindow::appFontChanged(QFont font)
     ui->buttonRegulars->setIcon(QIcon(QPixmap(":/icons/Icons/emblem-favorite.png").scaled(mcbSize)));
     ui->buttonRegulars->setIconSize(mcbSize);
 
+    autosizeViews();
+
+}
+
+void MainWindow::autosizeViews()
+{
+    int fH = QFontMetrics(settings->applicationFont()).height();
+    int durationColSize = QFontMetrics(settings->applicationFont()).width(" Duration ");
+    int songidColSize = QFontMetrics(settings->applicationFont()).width(" AA0000000-0000 ");
+    int remainingSpace = ui->tableViewDB->width() - durationColSize - songidColSize;
+    int artistColSize = (remainingSpace / 2) - 120;
+    int titleColSize = (remainingSpace / 2) + 100;
+    ui->tableViewDB->horizontalHeader()->resizeSection(1, artistColSize);
+    ui->tableViewDB->horizontalHeader()->resizeSection(2, titleColSize);
+    ui->tableViewDB->horizontalHeader()->resizeSection(4, durationColSize);
+    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Fixed);
+    ui->tableViewDB->horizontalHeader()->resizeSection(3, songidColSize);
+
+    int iconWidth = fH + fH;
+    int singerColSize = ui->tableViewRotation->width() - (iconWidth * 3) - 5;
+    ui->tableViewRotation->horizontalHeader()->resizeSection(0, iconWidth);
+    ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
+    ui->tableViewRotation->horizontalHeader()->resizeSection(1, singerColSize);
+    ui->tableViewRotation->horizontalHeader()->resizeSection(3, iconWidth);
+    ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Fixed);
+    ui->tableViewRotation->horizontalHeader()->resizeSection(4, iconWidth);
+    ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Fixed);
+
+    int keyColSize = QFontMetrics(settings->applicationFont()).width("Key") + iconWidth;
+    remainingSpace = ui->tableViewQueue->width() - iconWidth - keyColSize - songidColSize - 4;
+    artistColSize = (remainingSpace / 2);
+    titleColSize = (remainingSpace / 2);
+    ui->tableViewQueue->horizontalHeader()->resizeSection(3, artistColSize);
+    ui->tableViewQueue->horizontalHeader()->resizeSection(4, titleColSize);
+    ui->tableViewQueue->horizontalHeader()->resizeSection(5, songidColSize);
+    ui->tableViewQueue->horizontalHeader()->resizeSection(8, iconWidth);
+    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(8, QHeaderView::Fixed);
+    ui->tableViewQueue->horizontalHeader()->resizeSection(7, keyColSize);
+    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(7, QHeaderView::Fixed);
+
+
+}
+
+void MainWindow::autosizeBmViews()
+{
+
+    int fH = QFontMetrics(settings->applicationFont()).height();
+    int iconWidth = fH + fH;
+    int durationColSize = QFontMetrics(settings->applicationFont()).width("Duration") + fH;
+
+    // 4 = filename 1 = metadata artist 2 = medatada title
+
+    int artistColSize = 0;
+    int titleColSize = 0;
+    int fnameColSize = 0;
+    int remainingSpace = ui->tableViewBmDb->width() - durationColSize - 5;
+    if (settings->bmShowMetadata() && settings->bmShowFilenames())
+    {
+        artistColSize = (float)remainingSpace * .25;
+        titleColSize = (float)remainingSpace * .25;
+        fnameColSize = (float)remainingSpace * .5;
+    }
+    else if (settings->bmShowMetadata())
+    {
+        artistColSize = remainingSpace * .5;
+        titleColSize = remainingSpace * .5;
+    }
+    else if (settings->bmShowFilenames())
+    {
+        fnameColSize = remainingSpace;
+    }
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(1, artistColSize);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(2, titleColSize);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(4, fnameColSize);
+    ui->tableViewBmDb->horizontalHeader()->setSectionResizeMode(5, QHeaderView::Fixed);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(5, durationColSize);
+
+    remainingSpace = ui->tableViewBmPlaylist->width() - durationColSize - (iconWidth * 2) - 5;
+    //5=filename  6=Duration 3=artist 4=title
+    if (settings->bmShowMetadata() && settings->bmShowFilenames())
+    {
+        artistColSize = (float)remainingSpace * .25;
+        titleColSize = (float)remainingSpace * .25;
+        fnameColSize = (float)remainingSpace * .5;
+    }
+    else if (settings->bmShowMetadata())
+    {
+        artistColSize = remainingSpace * .5;
+        titleColSize = remainingSpace * .5;
+    }
+    else if (settings->bmShowFilenames())
+    {
+        fnameColSize = remainingSpace;
+    }
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(3, artistColSize);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(4, titleColSize);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(5, fnameColSize);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(6, durationColSize);
+    ui->tableViewBmPlaylist->horizontalHeader()->setSectionResizeMode(2,QHeaderView::Fixed);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(2, iconWidth);
+    ui->tableViewBmPlaylist->horizontalHeader()->setSectionResizeMode(7, QHeaderView::Fixed);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(7, iconWidth);
+}
+
+
+void MainWindow::resizeEvent(QResizeEvent *event)
+{
+
+    QMainWindow::resizeEvent(event);
+    autosizeViews();
+    autosizeBmViews();
+    if (ui->tabWidget->currentIndex() == 0)
+    {
+        autosizeViews();
+        bNeedAutoSize = true;
+        kNeedAutoSize = false;
+    }
+    if (ui->tabWidget->currentIndex() == 1)
+    {
+        autosizeBmViews();
+        bNeedAutoSize = false;
+        kNeedAutoSize = true;
+    }
+}
+
+void MainWindow::on_tabWidget_currentChanged(int index)
+{
+    if (bNeedAutoSize && index == 1)
+    {
+        autosizeBmViews();
+        bNeedAutoSize = false;
+    }
+    if (kNeedAutoSize && index == 0)
+    {
+        autosizeViews();
+        kNeedAutoSize = false;
+    }
 }

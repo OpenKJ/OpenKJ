@@ -150,3 +150,19 @@ void DbTableModel::refreshCache()
     select();
     search(lastSearch);
 }
+
+
+//QVariant DbTableModel::headerData(int section, Qt::Orientation orientation, int role) const
+//{
+//    QSize sbSize(QFontMetrics(settings->applicationFont()).height(), QFontMetrics(settings->applicationFont()).height());
+//    if (section == 1 && role == Qt:: SizeHintRole)
+//        return 500;
+//    if (section == 2 && role == Qt::SizeHintRole)
+//        return 500;
+//    if (section == 4 && role == Qt::SizeHintRole)
+//        return QFontMetrics(settings->applicationFont()).width(" Duration ");
+//    if (section == 3 && role == Qt::SizeHintRole)
+//        return QFontMetrics(settings->applicationFont()).width(" AA0000000-00 ");
+
+//    return QSqlTableModel::headerData(section, orientation, role);
+//}

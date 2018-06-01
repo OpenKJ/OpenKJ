@@ -137,11 +137,14 @@ private:
     AbstractAudioBackend::State m_lastAudioState;
     void refreshSongDbCache();
     QTimer *karaokeAATimer;
+    QTimer *startupOneShot;
     UpdateChecker *checker;
     QTimer *timerButtonFlash;
     bool blinkRequestsBtn;
     QString GetRandomString() const;
     QSharedMemory *_singular;
+    bool kNeedAutoSize;
+    bool bNeedAutoSize;
 
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -201,7 +204,8 @@ private slots:
     void onBgImageChange();
     void karaokeAATimerTimeout();
     void timerButtonFlashTimeout();
-
+    void autosizeViews();
+    void autosizeBmViews();
     void bmDbUpdated();
     void bmDbCleared();
     void bmShowMetadata(bool checked);
@@ -253,8 +257,14 @@ private slots:
     void filesDroppedOnQueue(QList<QUrl> urls, int singerId, int position);
     void appFontChanged(QFont font);
 
+    void on_tabWidget_currentChanged(int index);
+
 protected:
     void closeEvent(QCloseEvent *event);
+
+    // QWidget interface
+protected:
+    void resizeEvent(QResizeEvent *event);
 };
 
 

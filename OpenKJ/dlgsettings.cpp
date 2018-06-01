@@ -239,37 +239,38 @@ void DlgSettings::onSslErrors(QNetworkReply *reply)
 
 void DlgSettings::createIcons()
 {
-    int scaleSize = QFontMetrics(settings->applicationFont()).width(" Network ");
+    int scaleSize = qMax(72, QFontMetrics(settings->applicationFont()).width(" Network "));
+    int imgHeight = 72;
     int fH = QFontMetrics(settings->applicationFont()).height();
     QListWidgetItem *audioButton = new QListWidgetItem(ui->listWidget);
     audioButton->setIcon(QIcon(":/icons/Icons/audio-card.png"));
     audioButton->setText(tr("Audio"));
     audioButton->setTextAlignment(Qt::AlignHCenter);
-    audioButton->setSizeHint(QSize(scaleSize, scaleSize + fH));
+    audioButton->setSizeHint(QSize(scaleSize, imgHeight + fH));
     audioButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     QListWidgetItem *videoButton = new QListWidgetItem(ui->listWidget);
     videoButton->setIcon(QIcon(":/icons/Icons/video-display.png"));
     videoButton->setText(tr("Video"));
     videoButton->setTextAlignment(Qt::AlignHCenter);
-    videoButton->setSizeHint(QSize(scaleSize, scaleSize + fH));
+    videoButton->setSizeHint(QSize(scaleSize, imgHeight + fH));
     videoButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     QListWidgetItem *networkButton = new QListWidgetItem(ui->listWidget);
     networkButton->setIcon(QIcon(":/icons/Icons/network-wired.png"));
     networkButton->setText(tr("Network"));
     networkButton->setTextAlignment(Qt::AlignHCenter);
-    networkButton->setSizeHint(QSize(scaleSize, scaleSize + fH));
+    networkButton->setSizeHint(QSize(scaleSize, imgHeight + fH));
     networkButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     QListWidgetItem *otherButton = new QListWidgetItem(ui->listWidget);
     otherButton->setIcon(QIcon(":/Icons/other-settings.png"));
     otherButton->setText(tr("Other"));
     otherButton->setTextAlignment(Qt::AlignHCenter);
-    otherButton->setSizeHint(QSize(scaleSize, scaleSize + fH));
+    otherButton->setSizeHint(QSize(scaleSize, imgHeight + fH));
     otherButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     QListWidgetItem *appearanceButton = new QListWidgetItem(ui->listWidget);
     appearanceButton->setIcon(QIcon(":/icons/Icons/theme.png"));
     appearanceButton->setText("Theme");
     appearanceButton->setTextAlignment(Qt::AlignHCenter);
-    appearanceButton->setSizeHint(QSize(scaleSize, scaleSize + fH));
+    appearanceButton->setSizeHint(QSize(scaleSize, imgHeight + fH));
     appearanceButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 }
 
