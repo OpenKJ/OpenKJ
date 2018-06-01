@@ -20,7 +20,7 @@ CdgVideoWidget::CdgVideoWidget(QWidget *parent) : QWidget(parent) , surface(0)
     QPalette palette = this->palette();
     palette.setColor(QPalette::Background, Qt::black);
     setPalette(palette);
-    setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+   // setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     surface = new CdgVideoSurface(this);
 }
 
@@ -31,7 +31,7 @@ CdgVideoWidget::~CdgVideoWidget()
 
 QSize CdgVideoWidget::sizeHint() const
 {
-    return surface->surfaceFormat().sizeHint();
+    return QSize(300,216);
 }
 
 void CdgVideoWidget::clear()
@@ -42,6 +42,13 @@ void CdgVideoWidget::clear()
 void CdgVideoWidget::setKeepAspect(bool keep)
 {
     keepAspect = keep;
+}
+
+void CdgVideoWidget::arResize(int w)
+{
+    int h = w * .5625;
+    this->setMinimumSize(QSize(w, h));
+    this->adjustSize();
 }
 
 
@@ -95,4 +102,15 @@ void CdgVideoWidget::paintEvent(QPaintEvent *event)
     } else {
         painter.fillRect(event->rect(), palette().background());
     }
+}
+
+
+QSize CdgVideoWidget::minimumSizeHint() const
+{
+    return QSize(300,216);
+}
+
+int CdgVideoWidget::heightForWidth(int width) const
+{
+    return width * .72;
 }

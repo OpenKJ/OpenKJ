@@ -76,6 +76,17 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     connect(ui->checkBoxDelOnAdd, SIGNAL(clicked(bool)), settings, SLOT(setRequestRemoveOnRotAdd(bool)));
     ui->cbxAutoShowRequestsDlg->setChecked(settings->requestDialogAutoShow());
     connect(ui->cbxAutoShowRequestsDlg, SIGNAL(clicked(bool)), settings, SLOT(setRequestDialogAutoShow(bool)));
+
+    QFontMetrics fm(settings->applicationFont());
+    QSize mcbSize(fm.height(), fm.height());
+
+    ui->buttonRefresh->resize(mcbSize);
+    ui->buttonRefresh->setIcon(style()->standardIcon(QStyle::SP_BrowserReload));
+    ui->buttonRefresh->setIconSize(mcbSize);
+
+    ui->pushButtonClearReqs->resize(mcbSize);
+    ui->pushButtonClearReqs->setIcon(QIcon(QPixmap(":/icons/Icons/edit-clear.png").scaled(mcbSize)));
+    ui->pushButtonClearReqs->setIconSize(mcbSize);
 }
 
 int DlgRequests::numRequests()

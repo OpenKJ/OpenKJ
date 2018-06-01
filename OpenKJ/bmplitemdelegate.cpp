@@ -23,6 +23,9 @@
 #include <QTime>
 #include <QDebug>
 #include <QFileInfo>
+#include "settings.h"
+
+extern Settings *settings;
 
 int BmPlItemDelegate::currentSong() const
 {
@@ -41,8 +44,9 @@ BmPlItemDelegate::BmPlItemDelegate(QObject *parent) :
 
 void BmPlItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    int topPad = (option.rect.height() - 16) / 2;
-    int leftPad = (option.rect.width() - 16) / 2;
+    QSize sbSize(QFontMetrics(settings->applicationFont()).height(), QFontMetrics(settings->applicationFont()).height());
+    int topPad = (option.rect.height() - sbSize.height()) / 2;
+    int leftPad = (option.rect.width() - sbSize.width()) / 2;
 
     if (option.state & QStyle::State_Selected)
         painter->fillRect(option.rect, option.palette.highlight());
@@ -61,7 +65,7 @@ void BmPlItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
             //painter->drawText(option.rect, Qt::AlignCenter, index.data().toString());
             return;
         }
-        painter->drawImage(QRect(option.rect.x(),option.rect.y(), 16, 16), QImage(":/icons/Icons/play-small.png"));
+        painter->drawImage(QRect(option.rect.x(),option.rect.y(), sbSize.width(), sbSize.height()), QImage(":/icons/Icons/play-small.png").scaled(sbSize));
         return;
     }
     if (index.column() == 5)
@@ -94,7 +98,7 @@ void BmPlItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     }
     if (index.column() == 7)
     {
-        painter->drawImage(QRect(option.rect.x() + leftPad, option.rect.y() + topPad, 16, 16), QImage(":/icons/Icons/edit-delete.png"));
+        painter->drawImage(QRect(option.rect.x() + leftPad, option.rect.y() + topPad, sbSize.width(), sbSize.height()), QImage(":/icons/Icons/edit-delete.png").scaled(sbSize));
         return;
     }
     if (index.column() == 6)

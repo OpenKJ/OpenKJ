@@ -172,6 +172,8 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     connect(ui->cbxStopPauseWarning, SIGNAL(toggled(bool)), settings, SLOT(setShowSongPauseStopWarning(bool)));
     connect(ui->cbxTickerShowRotationInfo, SIGNAL(clicked(bool)), settings, SLOT(setTickerShowRotationInfo(bool)));
     connect(settings, SIGNAL(tickerShowRotationInfoChanged(bool)), this, SLOT(tickerShowRotationInfoChanged(bool)));
+    ui->fontComboBox->setFont(settings->applicationFont());
+    ui->spinBoxAppFontSize->setValue(settings->applicationFont().pointSize());
     pageSetupDone = true;
     ui->spinBoxAADelay->setValue(settings->karaokeAATimeout());
     ui->checkBoxKAA->setChecked(settings->karaokeAutoAdvance());
@@ -197,6 +199,9 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     connect(ui->cbxCheckUpdates, SIGNAL(clicked(bool)), settings, SLOT(setCheckUpdates(bool)));
     connect(ui->comboBoxUpdateBranch, SIGNAL(currentIndexChanged(int)), settings, SLOT(setUpdatesBranch(int)));
     ui->lineEditDownloadsDir->setText(settings->storeDownloadDir());
+    ui->listWidget->setMinimumWidth(QFontMetrics(settings->applicationFont()).width("  Network  "));
+    ui->frame->setMinimumWidth(QFontMetrics(settings->applicationFont()).width("  Network  "));
+    adjustSize();
 
 }
 
@@ -234,30 +239,37 @@ void DlgSettings::onSslErrors(QNetworkReply *reply)
 
 void DlgSettings::createIcons()
 {
+    int scaleSize = QFontMetrics(settings->applicationFont()).width(" Network ");
+    int fH = QFontMetrics(settings->applicationFont()).height();
     QListWidgetItem *audioButton = new QListWidgetItem(ui->listWidget);
     audioButton->setIcon(QIcon(":/icons/Icons/audio-card.png"));
     audioButton->setText(tr("Audio"));
     audioButton->setTextAlignment(Qt::AlignHCenter);
+    audioButton->setSizeHint(QSize(scaleSize, scaleSize + fH));
     audioButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     QListWidgetItem *videoButton = new QListWidgetItem(ui->listWidget);
     videoButton->setIcon(QIcon(":/icons/Icons/video-display.png"));
     videoButton->setText(tr("Video"));
     videoButton->setTextAlignment(Qt::AlignHCenter);
+    videoButton->setSizeHint(QSize(scaleSize, scaleSize + fH));
     videoButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     QListWidgetItem *networkButton = new QListWidgetItem(ui->listWidget);
     networkButton->setIcon(QIcon(":/icons/Icons/network-wired.png"));
     networkButton->setText(tr("Network"));
     networkButton->setTextAlignment(Qt::AlignHCenter);
+    networkButton->setSizeHint(QSize(scaleSize, scaleSize + fH));
     networkButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     QListWidgetItem *otherButton = new QListWidgetItem(ui->listWidget);
     otherButton->setIcon(QIcon(":/Icons/other-settings.png"));
     otherButton->setText(tr("Other"));
     otherButton->setTextAlignment(Qt::AlignHCenter);
+    otherButton->setSizeHint(QSize(scaleSize, scaleSize + fH));
     otherButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     QListWidgetItem *appearanceButton = new QListWidgetItem(ui->listWidget);
     appearanceButton->setIcon(QIcon(":/icons/Icons/theme.png"));
     appearanceButton->setText("Theme");
     appearanceButton->setTextAlignment(Qt::AlignHCenter);
+    appearanceButton->setSizeHint(QSize(scaleSize, scaleSize + fH));
     appearanceButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 }
 
@@ -662,4 +674,24 @@ void DlgSettings::on_btnBrowse_clicked()
         settings->setStoreDownloadDir(fileName + QDir::separator());
         ui->lineEditDownloadsDir->setText(fileName + QDir::separator());
     }
+}
+
+void DlgSettings::on_fontComboBox_currentFontChanged(const QFont &f)
+{
+    if (!pageSetupDone)
+        return;
+    QFont font = f;
+    font.setPointSize(ui->spinBoxAppFontSize->value());
+    settings->setApplicationFont(font);
+    setFont(font);
+}
+
+void DlgSettings::on_spinBoxAppFontSize_valueChanged(int arg1)
+{
+    if (!pageSetupDone)
+        return;
+    QFont font = settings->applicationFont();
+    font.setPointSize(arg1);
+    settings->setApplicationFont(font);
+    setFont(font);
 }

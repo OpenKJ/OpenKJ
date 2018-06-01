@@ -43,8 +43,9 @@ void RotationItemDelegate::setCurrentSinger(int currentSingerId)
 
 void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    int topPad = (option.rect.height() - 16) / 2;
-    int leftPad = (option.rect.width() - 16) / 2;
+    QSize sbSize(QFontMetrics(settings->applicationFont()).height(), QFontMetrics(settings->applicationFont()).height());
+    int topPad = (option.rect.height() - sbSize.height()) / 2;
+    int leftPad = (option.rect.width() - sbSize.width()) / 2;
 
     if (option.state & QStyle::State_Selected)
         painter->fillRect(option.rect, option.palette.highlight());
@@ -59,9 +60,9 @@ void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
     if (index.column() == 3)
     {
         if (index.data().toBool())
-            painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, 16, 16), QImage(":/icons/Icons/emblem-favorite-16x16.png"));
+            painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QImage(":/icons/Icons/emblem-favorite-16x16.png").scaled(sbSize));
         else
-            painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, 16, 16), QImage(":/icons/Icons/emblem-favorite-disabled-16x16"));
+            painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QImage(":/icons/Icons/emblem-favorite-disabled-16x16").scaled(sbSize));
         return;
     }
     if (index.column() == 2)
@@ -87,12 +88,12 @@ void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
     if (index.column() == 0)
     {
         if (index.sibling(index.row(), 0).data().toInt() == m_currentSingerId)
-            painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, 16, 16), QImage(":/icons/microphone"));
+            painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QImage(":/icons/microphone").scaled(sbSize));
         return;
     }
     if (index.column() == 4)
     {
-        painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, 16, 16), QImage(":/icons/Icons/edit-delete.png"));
+        painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QImage(":/icons/Icons/edit-delete.png").scaled(sbSize));
         return;
     }
     painter->save();

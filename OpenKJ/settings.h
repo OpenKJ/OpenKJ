@@ -85,7 +85,9 @@ public:
     void saveSplitterState(QSplitter *splitter);
     void restoreSplitterState(QSplitter *splitter);
     void setTickerFont(QFont font);
+    void setApplicationFont(QFont font);
     QFont tickerFont();
+    QFont applicationFont();
     int tickerHeight();
     void setTickerHeight(int height);
     int tickerSpeed();
@@ -228,6 +230,7 @@ public:
     int theme();
 
 signals:
+    void applicationFontChanged(QFont font);
     void tickerFontChanged();
     void tickerHeightChanged(int height);
     void tickerSpeedChanged();

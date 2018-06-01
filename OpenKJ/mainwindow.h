@@ -251,6 +251,7 @@ private slots:
 
     void on_pushButtonShop_clicked();
     void filesDroppedOnQueue(QList<QUrl> urls, int singerId, int position);
+    void appFontChanged(QFont font);
 
 protected:
     void closeEvent(QCloseEvent *event);

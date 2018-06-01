@@ -24,6 +24,7 @@ public:
     QSize sizeHint() const;
     void clear();
     void setKeepAspect(bool keep);
+    void arResize(int w);
 private:
     CdgVideoSurface *surface;
     bool keepAspect;
@@ -35,6 +36,11 @@ signals:
     void resized(QSize size);
     void mouseMoveEvent(QMouseEvent *event);
 
+
+    // QWidget interface
+public:
+    QSize minimumSizeHint() const;
+    int heightForWidth(int width) const;
 };
 
 #endif // CDGVIDEOWIDGET_H

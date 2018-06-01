@@ -63,6 +63,8 @@ int RequestsTableModel::columnCount(const QModelIndex &parent) const
 
 QVariant RequestsTableModel::data(const QModelIndex &index, int role) const
 {
+    QSize sbSize(QFontMetrics(settings->applicationFont()).height(), QFontMetrics(settings->applicationFont()).height());
+
     if(!index.isValid())
         return QVariant();
 
@@ -71,7 +73,7 @@ QVariant RequestsTableModel::data(const QModelIndex &index, int role) const
     if ((index.column() == 5) && (role == Qt::DecorationRole))
     {
         QPixmap icon(":/icons/Icons/edit-delete.png");
-        return icon;
+        return icon.scaled(sbSize);
     }
     if(role == Qt::DisplayRole)
     {

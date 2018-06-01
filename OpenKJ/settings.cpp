@@ -335,10 +335,24 @@ void Settings::setTickerFont(QFont font)
     emit tickerFontChanged();
 }
 
+void Settings::setApplicationFont(QFont font)
+{
+    settings->setValue("applicationFont", font.toString());
+    QApplication::setFont(font, "QWidget");
+    emit applicationFontChanged(font);
+}
+
 QFont Settings::tickerFont()
 {
     QFont font;
     font.fromString(settings->value("tickerFont", QApplication::font().toString()).toString());
+    return font;
+}
+
+QFont Settings::applicationFont()
+{
+    QFont font;
+    font.fromString(settings->value("applicationFont", QApplication::font().toString()).toString());
     return font;
 }
 

@@ -21,6 +21,9 @@
 #include "regitemdelegate.h"
 
 #include <QSqlQuery>
+#include "settings.h"
+
+extern Settings *settings;
 
 RegItemDelegate::RegItemDelegate(QObject *parent) :
     QItemDelegate(parent)
@@ -30,8 +33,10 @@ RegItemDelegate::RegItemDelegate(QObject *parent) :
 
 void RegItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    int topPad = (option.rect.height() - 16) / 2;
-    int leftPad = (option.rect.width() - 16) / 2;
+    QSize sbSize(QFontMetrics(settings->applicationFont()).height(), QFontMetrics(settings->applicationFont()).height());
+
+    int topPad = (option.rect.height() - sbSize.height()) / 2;
+    int leftPad = (option.rect.width() - sbSize.width()) / 2;
     if (option.state & QStyle::State_Selected)
         painter->fillRect(option.rect, option.palette.highlight());
     if (index.column() == 2)
@@ -54,12 +59,12 @@ void RegItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
     }
     if (index.column() == 3)
     {
-        painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, 16, 16), QImage(":/icons/Icons/list-add-user-small.png"));
+        painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QImage(":/icons/Icons/list-add-user-small.png").scaled(sbSize));
         return;
     }
     if (index.column() == 4)
     {
-        painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, 16, 16), QImage(":/icons/Icons/edit-delete.png"));
+        painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QImage(":/icons/Icons/edit-delete.png").scaled(sbSize));
         return;
     }
     painter->save();

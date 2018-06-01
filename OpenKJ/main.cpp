@@ -59,10 +59,13 @@ int main(int argc, char *argv[])
         palette.setColor(QPalette::HighlightedText,Qt::white);
         palette.setColor(QPalette::Disabled,QPalette::HighlightedText,QColor(127,127,127));
         a.setPalette(palette);
+        a.setFont(okjSettings.applicationFont(), "QWidget");
+
     }
     else if (okjSettings.theme() == 2)
     {
         QApplication::setStyle(QStyleFactory::create("Fusion"));
+        a.setFont(okjSettings.applicationFont(), "QWidget");
     }
 //    QFile file(":/QTDark.css");
 //    QString stylesheet;

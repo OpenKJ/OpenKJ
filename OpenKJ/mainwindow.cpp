@@ -477,6 +477,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionSong_Shop, SIGNAL(triggered(bool)), dlgSongShop, SLOT(show()));
     qWarning() << "Initial UI stup complete";
     connect(qModel, SIGNAL(filesDroppedOnSinger(QList<QUrl>,int,int)), this, SLOT(filesDroppedOnQueue(QList<QUrl>,int,int)));
+    connect(settings, SIGNAL(applicationFontChanged(QFont)), this, SLOT(appFontChanged(QFont)));
+    appFontChanged(settings->applicationFont());
 
 }
 
@@ -2236,4 +2238,57 @@ void MainWindow::filesDroppedOnQueue(QList<QUrl> urls, int singerId, int positio
             qModel->songInsert(songId, position);
         }
     }
+}
+
+void MainWindow::appFontChanged(QFont font)
+{
+    QApplication::setFont(font, "QWidget");
+    setFont(font);
+    QFontMetrics fm(settings->applicationFont());
+    int cvwWidth = fm.width("Total: 00:00  Current:00:00  Remain: 00:00");
+    qWarning() << "Resizing cdgVideoWidget to width: " << cvwWidth;
+    ui->cdgVideoWidget->arResize(cvwWidth);
+    ui->cdgFrame->setMinimumWidth(ui->cdgVideoWidget->minimumWidth());
+    ui->cdgFrame->setMaximumWidth(ui->cdgVideoWidget->minimumWidth());
+    ui->mediaFrame->setMinimumWidth(cvwWidth);
+    ui->mediaFrame->setMaximumWidth(cvwWidth);
+    QSize mcbSize(fm.height(), fm.height());
+    ui->buttonStop->resize(mcbSize);
+    ui->buttonPause->resize(mcbSize);
+    ui->buttonStop->setIconSize(mcbSize);
+    ui->buttonPause->setIconSize(mcbSize);
+    ui->buttonStop->setIcon(style()->standardIcon(QStyle::SP_MediaStop));
+    ui->buttonPause->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
+
+    ui->buttonBmStop->resize(mcbSize);
+    ui->buttonBmPause->resize(mcbSize);
+    ui->buttonBmStop->setIconSize(mcbSize);
+    ui->buttonBmPause->setIconSize(mcbSize);
+    ui->buttonBmStop->setIcon(style()->standardIcon(QStyle::SP_MediaStop));
+    ui->buttonBmPause->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
+
+    ui->pushButton->resize(mcbSize);
+    ui->pushButton->setIcon(QIcon(QPixmap(":/Icons/system-search2.png").scaled(mcbSize)));
+    ui->pushButton->setIconSize(mcbSize);
+
+    ui->buttonBmSearch->resize(mcbSize);
+    ui->buttonBmSearch->setIcon(QIcon(QPixmap(":/Icons/system-search2.png").scaled(mcbSize)));
+    ui->buttonBmSearch->setIconSize(mcbSize);
+
+    ui->buttonAddSinger->resize(mcbSize);
+    ui->buttonAddSinger->setIcon(QIcon(QPixmap(":/icons/Icons/list-add-user.png").scaled(mcbSize)));
+    ui->buttonAddSinger->setIconSize(mcbSize);
+
+    ui->buttonClearRotation->resize(mcbSize);
+    ui->buttonClearRotation->setIcon(QIcon(QPixmap(":/icons/Icons/edit-clear.png").scaled(mcbSize)));
+    ui->buttonClearRotation->setIconSize(mcbSize);
+
+    ui->buttonClearQueue->resize(mcbSize);
+    ui->buttonClearQueue->setIcon(QIcon(QPixmap(":/icons/Icons/edit-clear.png").scaled(mcbSize)));
+    ui->buttonClearQueue->setIconSize(mcbSize);
+
+    ui->buttonRegulars->resize(mcbSize);
+    ui->buttonRegulars->setIcon(QIcon(QPixmap(":/icons/Icons/emblem-favorite.png").scaled(mcbSize)));
+    ui->buttonRegulars->setIconSize(mcbSize);
+
 }

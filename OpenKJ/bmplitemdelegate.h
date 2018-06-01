@@ -28,7 +28,6 @@ class BmPlItemDelegate : public QItemDelegate
     Q_OBJECT
 private:
     int m_currentSong;
-
 public:
     explicit BmPlItemDelegate(QObject *parent = 0);
 
