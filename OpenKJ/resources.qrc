@@ -322,8 +322,6 @@
         <file>main.cpp</file>
         <file>mainwindow.cpp</file>
         <file>mainwindow.h</file>
-        <file>miniz.c</file>
-        <file>miniz.h</file>
         <file>okarchive.cpp</file>
         <file>okarchive.h</file>
         <file>okjsongbookapi.cpp</file>

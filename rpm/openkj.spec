@@ -1,14 +1,14 @@
 Name:           openkj
-Version:	1.3.65
+Version:	1.3.66
 Release:        1%{?dist}
 Summary:        Karaoke show hosting software
 
 License:        GPL
 URL:            https://openkj.org
-Source0:	openkj-1.3.65.tar.bz2
+Source0:	openkj-1.3.66.tar.bz2
 
-BuildRequires:  qt5-qtbase-devel qt5-qtsvg-devel qt5-qtmultimedia-devel gstreamer1-devel gstreamer1-plugins-base-devel
-Requires:       qt5-qtbase qt5-qtsvg qt5-qtmultimedia gstreamer1 gstreamer1-plugins-good gstreamer1-plugins-bad-free unzip
+BuildRequires:  qt5-qtbase-devel qt5-qtsvg-devel qt5-qtmultimedia-devel gstreamer1-devel gstreamer1-plugins-base-devel taglib-devel taglib-extras-devel
+Requires:       qt5-qtbase qt5-qtsvg qt5-qtmultimedia gstreamer1 gstreamer1-plugins-good gstreamer1-plugins-bad-free unzip taglib taglib-extras
 
 %description
 Karaoke hosting software targeted at professional KJ's.  Includes rotation management, break music player,

@@ -8,6 +8,9 @@ QT += core gui sql network widgets multimedia concurrent svg printsupport
 
 unix: DEFINES += USE_GL
 
+macx: DEFINES += STATIC_TAGLIB
+win32: DEFINES += STATIC_TAGLIB
+
 win32: RC_ICONS = Icons/okjicon.ico
 
 contains(DEFINES, USE_GL) {
@@ -17,40 +20,41 @@ contains(DEFINES, USE_GL) {
 TARGET = OpenKJ 
 TEMPLATE = app
 
-DEFINES += TAGLIB_STATIC
-INCLUDEPATH += taglib
-INCLUDEPATH += taglib/toolkit
-INCLUDEPATH += taglib/mpeg/id3v2
-INCLUDEPATH += taglib/mpeg/id3v2/frames
-INCLUDEPATH += taglib/mpeg/id3v1
-INCLUDEPATH += taglib/mod
-INCLUDEPATH += taglib/ogg
-INCLUDEPATH += taglib/ogg/flac
-INCLUDEPATH += taglib/ogg/opus
-INCLUDEPATH += taglib/ogg/speex
-INCLUDEPATH += taglib/ogg/vorbis
-INCLUDEPATH += taglib/flac
-INCLUDEPATH += taglib/ape
-INCLUDEPATH += taglib/riff
-INCLUDEPATH += taglib/asf
-INCLUDEPATH += taglib/mpeg
-INCLUDEPATH += taglib/riff
-INCLUDEPATH += taglib/riff/aiff
-INCLUDEPATH += taglib/riff/wav
-INCLUDEPATH += taglib/it
-INCLUDEPATH += taglib/mp4
-INCLUDEPATH += taglib/mpc
-INCLUDEPATH += taglib/s3m
-INCLUDEPATH += taglib/trueaudio
-INCLUDEPATH += taglib/wavpack
-INCLUDEPATH += taglib/xm
-
+contains(DEFINES, STATIC_TAGLIB) {
+    DEFINES += TAGLIB_STATIC
+    INCLUDEPATH += taglib
+    INCLUDEPATH += taglib/toolkit
+    INCLUDEPATH += taglib/mpeg/id3v2
+    INCLUDEPATH += taglib/mpeg/id3v2/frames
+    INCLUDEPATH += taglib/mpeg/id3v1
+    INCLUDEPATH += taglib/mod
+    INCLUDEPATH += taglib/ogg
+    INCLUDEPATH += taglib/ogg/flac
+    INCLUDEPATH += taglib/ogg/opus
+    INCLUDEPATH += taglib/ogg/speex
+    INCLUDEPATH += taglib/ogg/vorbis
+    INCLUDEPATH += taglib/flac
+    INCLUDEPATH += taglib/ape
+    INCLUDEPATH += taglib/riff
+    INCLUDEPATH += taglib/asf
+    INCLUDEPATH += taglib/mpeg
+    INCLUDEPATH += taglib/riff
+    INCLUDEPATH += taglib/riff/aiff
+    INCLUDEPATH += taglib/riff/wav
+    INCLUDEPATH += taglib/it
+    INCLUDEPATH += taglib/mp4
+    INCLUDEPATH += taglib/mpc
+    INCLUDEPATH += taglib/s3m
+    INCLUDEPATH += taglib/trueaudio
+    INCLUDEPATH += taglib/wavpack
+    INCLUDEPATH += taglib/xm
+}
 # fix macOS build after upgrading xcode
 QMAKE_MAC_SDK = MacOSX10.13
 QMAKE_MAC_SDK.macosx.version = 10.13
 
 # Populate version with version from git describe
-VERSION = 1.3.65
+VERSION = 1.3.66
 message($$VERSION)
 DEFINES += GIT_VERSION=\\"\"$$VERSION\\"\"
 QMAKE_TARGET_COMPANY = OpenKJ.org
@@ -108,7 +112,27 @@ SOURCES += main.cpp\
     audiorecorder.cpp \
     okjsongbookapi.cpp \
     dlgdbupdate.cpp \
-    taglib/ape/apefile.cpp \
+    dlgbookcreator.cpp \
+    dlgeq.cpp \
+    audiofader.cpp \
+    customlineedit.cpp \
+    updatechecker.cpp \
+    volslider.cpp \
+    dlgaddsinger.cpp \
+    ticker.cpp \
+    songshop.cpp \
+    dlgsongshop.cpp \
+    songshopmodel.cpp \
+    shopsortfilterproxymodel.cpp \
+    simplecrypt.cpp \
+    dlgsongshoppurchase.cpp \
+    dlgsetpassword.cpp \
+    dlgpassword.cpp \
+    dlgpurchaseprogress.cpp \
+    karaokefileinfo.cpp
+
+contains(DEFINES, STATIC_TAGLIB) {
+    SOURCES += taglib/ape/apefile.cpp \
     taglib/ape/apefooter.cpp \
     taglib/ape/apeitem.cpp \
     taglib/ape/apeproperties.cpp \
@@ -210,25 +234,8 @@ SOURCES += main.cpp\
     taglib/fileref.cpp \
     taglib/tag.cpp \
     taglib/tagunion.cpp \
-    taglib/tagutils.cpp \
-    dlgbookcreator.cpp \
-    dlgeq.cpp \
-    audiofader.cpp \
-    customlineedit.cpp \
-    updatechecker.cpp \
-    volslider.cpp \
-    dlgaddsinger.cpp \
-    ticker.cpp \
-    songshop.cpp \
-    dlgsongshop.cpp \
-    songshopmodel.cpp \
-    shopsortfilterproxymodel.cpp \
-    simplecrypt.cpp \
-    dlgsongshoppurchase.cpp \
-    dlgsetpassword.cpp \
-    dlgpassword.cpp \
-    dlgpurchaseprogress.cpp \
-    karaokefileinfo.cpp
+    taglib/tagutils.cpp
+}
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -274,7 +281,28 @@ HEADERS  += mainwindow.h \
     audiorecorder.h \
     okjsongbookapi.h \
     dlgdbupdate.h \
-    taglib/ape/apefile.h \
+    dlgbookcreator.h \
+    dlgeq.h \
+    audiofader.h \
+    customlineedit.h \
+    updatechecker.h \
+    volslider.h \
+    okjversion.h \
+    dlgaddsinger.h \
+    ticker.h \
+    songshop.h \
+    dlgsongshop.h \
+    songshopmodel.h \
+    shopsortfilterproxymodel.h \
+    simplecrypt.h \
+    dlgsongshoppurchase.h \
+    dlgsetpassword.h \
+    dlgpassword.h \
+    dlgpurchaseprogress.h \
+    karaokefileinfo.h
+
+contains(DEFINES, STATIC_TAGLIB) {
+    HEADERS += taglib/ape/apefile.h \
     taglib/ape/apefooter.h \
     taglib/ape/apeitem.h \
     taglib/ape/apeproperties.h \
@@ -385,26 +413,8 @@ HEADERS  += mainwindow.h \
     taglib/tag.h \
     taglib/taglib_export.h \
     taglib/tagunion.h \
-    taglib/tagutils.h \
-    dlgbookcreator.h \
-    dlgeq.h \
-    audiofader.h \
-    customlineedit.h \
-    updatechecker.h \
-    volslider.h \
-    okjversion.h \
-    dlgaddsinger.h \
-    ticker.h \
-    songshop.h \
-    dlgsongshop.h \
-    songshopmodel.h \
-    shopsortfilterproxymodel.h \
-    simplecrypt.h \
-    dlgsongshoppurchase.h \
-    dlgsetpassword.h \
-    dlgpassword.h \
-    dlgpurchaseprogress.h \
-    karaokefileinfo.h \
+    taglib/tagutils.h
+}
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \
@@ -435,7 +445,7 @@ unix:!macx {
       PREFIX=/usr
     }
     CONFIG += link_pkgconfig
-    PKGCONFIG += gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0 gstreamer-pbutils-1.0 gstreamer-controller-1.0
+    PKGCONFIG += gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0 gstreamer-pbutils-1.0 gstreamer-controller-1.0 taglib taglib-extras
     iconfiles.files += Icons/okjicon.svg
     iconfiles.path = $$PREFIX/share/pixmaps
     desktopfiles.files += openkj.desktop
