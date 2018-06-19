@@ -50,7 +50,7 @@ QMAKE_MAC_SDK = MacOSX10.13
 QMAKE_MAC_SDK.macosx.version = 10.13
 
 # Populate version with version from git describe
-VERSION = 1.3.64
+VERSION = 1.3.65
 message($$VERSION)
 DEFINES += GIT_VERSION=\\"\"$$VERSION\\"\"
 QMAKE_TARGET_COMPANY = OpenKJ.org
@@ -68,7 +68,6 @@ SOURCES += main.cpp\
     libCDG/src/libCDG_Frame_Image.cpp \
     libCDG/src/libCDG_Color.cpp \
     libCDG/src/libCDG.cpp \
-    miniz.c \
     sourcedirtablemodel.cpp \
     dbupdatethread.cpp \
     scrolltext.cpp \
@@ -274,7 +273,6 @@ HEADERS  += mainwindow.h \
     custompatternsmodel.h \
     audiorecorder.h \
     okjsongbookapi.h \
-    miniz.h \
     dlgdbupdate.h \
     taglib/ape/apefile.h \
     taglib/ape/apefooter.h \

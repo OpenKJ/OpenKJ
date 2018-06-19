@@ -24,7 +24,6 @@
 
 #include <QObject>
 #include <QStringList>
-//#include <quazip.h>
 #include <QProcess>
 
 struct zipEntry

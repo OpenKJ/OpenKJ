@@ -24,7 +24,6 @@
 #include <QFile>
 #include <QBuffer>
 #include <QTemporaryDir>
-#include "miniz.h"
 #ifdef Q_OS_WIN
 #include <io.h>
 #else
