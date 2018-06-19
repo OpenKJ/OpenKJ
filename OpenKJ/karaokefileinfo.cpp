@@ -60,6 +60,7 @@ void KaraokeFileInfo::readTags()
 
 KaraokeFileInfo::KaraokeFileInfo(QObject *parent) : QObject(parent)
 {
+    duration = false;
     artistCaptureGroup = 0;
     titleCaptureGroup  = 0;
     discIdCaptureGroup = 0;

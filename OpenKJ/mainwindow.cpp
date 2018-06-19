@@ -1093,16 +1093,12 @@ void MainWindow::audioBackend_positionChanged(qint64 position)
     {
         if (cdg->IsOpen() && cdg->GetLastCDGUpdate() >= position)
         {
-            if (!cdg->SkipFrame(position))
-            {
                 unsigned char* rgbdata;
                 rgbdata = cdg->GetImageByTime(position + cdgOffset);
                 QImage img(rgbdata, 300, 216, QImage::Format_RGB888);
-//                ui->cdgOutput->setPixmap(QPixmap::fromImage(img));
                 ui->cdgVideoWidget->videoSurface()->present(QVideoFrame(img));
                 cdgWindow->updateCDG(img);
                 free(rgbdata);
-            }
         }
         if (!sliderPositionPressed)
         {

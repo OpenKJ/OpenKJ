@@ -24,6 +24,9 @@ double AudioFader::volume()
 
 AudioFader::AudioFader(GstElement *volElement, QObject *parent) : QObject(parent)
 {
+    fading = false;
+    preFadeVol = 0;
+    targetVol = 0;
     volumeElement = volElement;
     timer = new QTimer(this);
     timer->setInterval(200);

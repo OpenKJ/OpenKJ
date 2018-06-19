@@ -13,6 +13,7 @@ extern Settings *settings;
 
 SongShop::SongShop(QObject *parent) : QObject(parent)
 {
+    connectionReset = false;
     manager = new QNetworkAccessManager(this);
     connect(manager, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(onSslErrors(QNetworkReply*,QList<QSslError>)));
     connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
