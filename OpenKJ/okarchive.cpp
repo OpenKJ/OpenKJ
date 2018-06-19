@@ -69,6 +69,7 @@ OkArchive::OkArchive(QObject *parent) : QObject(parent)
     m_audioFound = false;
     m_cdgSize = 0;
     m_audioSize = 0;
+    goodArchive = false;
     audioFileName = "";
     cdgFileName = "";
     audioExt = "";
