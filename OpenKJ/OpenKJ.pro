@@ -6,12 +6,59 @@
 
 QT += core gui sql network widgets multimedia concurrent svg printsupport
 
-unix: DEFINES += USE_GL
+unix:DISTVER = $$system(cat /etc/os-release |grep VERSION_ID |cut -d'=' -f2 | sed -e \'s/^"//\' -e \'s/"$//\')
+message($$DISTVER)
 
-macx: DEFINES += STATIC_TAGLIB
-win32: DEFINES += STATIC_TAGLIB
+unix:!macx {
+    isEmpty(PREFIX) {
+      PREFIX=/usr
+    }
+    equals(DISTVER, "16.04") {
+        DEFINES += STATIC_TAGLIB
+        message("Ubuntu 16.04 detected, using built in taglib instead of OS package")
+    } else {
+        message("Using OS packages for taglib")
+        PKGCONFIG += taglib taglib-extras
+    }
+    CONFIG += link_pkgconfig
+    PKGCONFIG += gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0 gstreamer-pbutils-1.0 gstreamer-controller-1.0
+    iconfiles.files += Icons/okjicon.svg
+    iconfiles.path = $$PREFIX/share/pixmaps
+    desktopfiles.files += openkj.desktop
+    desktopfiles.path = $$PREFIX/share/applications
+    binaryfiles.files += OpenKJ
+    binaryfiles.path = $$PREFIX/bin
+    INSTALLS += binaryfiles iconfiles desktopfiles
+    DEFINES += USE_GL
+}
 
-win32: RC_ICONS = Icons/okjicon.ico
+macx: {
+    LIBS += -F/Library/Frameworks -framework GStreamer
+    INCLUDEPATH += /Library/Frameworks/GStreamer.framework/Headers
+    ICON = Icons/OpenKJ.icns
+    DEFINES += STATIC_TAGLIB
+}
+
+win32 {
+    ## Windows common build here
+    DEFINES += STATIC_TAGLIB
+    RC_ICONS = Icons/okjicon.ico
+    !contains(QMAKE_TARGET.arch, x86_64) {
+        ## Windows x86 (32bit) specific build here
+        INCLUDEPATH += C:\gstreamer\1.0\x86\include\gstreamer-1.0
+        INCLUDEPATH += C:\gstreamer\1.0\x86\include\glib-2.0
+        INCLUDEPATH += C:\gstreamer\1.0\x86\lib\glib-2.0\include
+        INCLUDEPATH += C:\gstreamer\1.0\x86\include\glib-2.0\gobject
+        LIBS += -LC:\gstreamer\1.0\x86\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0 -lgstapp-1.0 -lgstaudio-1.0 -lgstpbutils-1.0 -lgstcontroller-1.0
+    } else {
+        ## Windows x64 (64bit) specific build here
+        INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\gstreamer-1.0
+        INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0
+        INCLUDEPATH += C:\gstreamer\1.0\x86_64\lib\glib-2.0\include
+        INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0\gobject
+        LIBS += -LC:\gstreamer\1.0\x86_64\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0 -lgstapp-1.0 -lgstaudio-1.0 -lgstpbutils-1.0 -lgstcontroller-1.0
+    }
+}
 
 contains(DEFINES, USE_GL) {
     QT += opengl
@@ -54,7 +101,7 @@ QMAKE_MAC_SDK = MacOSX10.13
 QMAKE_MAC_SDK.macosx.version = 10.13
 
 # Populate version with version from git describe
-VERSION = 1.3.66
+VERSION = 1.3.67
 message($$VERSION)
 DEFINES += GIT_VERSION=\\"\"$$VERSION\\"\"
 QMAKE_TARGET_COMPANY = OpenKJ.org
@@ -440,45 +487,6 @@ FORMS    += mainwindow.ui \
 
 RESOURCES += resources.qrc
 
-unix:!macx {
-    isEmpty(PREFIX) {
-      PREFIX=/usr
-    }
-    CONFIG += link_pkgconfig
-    PKGCONFIG += gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0 gstreamer-pbutils-1.0 gstreamer-controller-1.0 taglib taglib-extras
-    iconfiles.files += Icons/okjicon.svg
-    iconfiles.path = $$PREFIX/share/pixmaps
-    desktopfiles.files += openkj.desktop
-    desktopfiles.path = $$PREFIX/share/applications
-    binaryfiles.files += OpenKJ
-    binaryfiles.path = $$PREFIX/bin
-    INSTALLS += binaryfiles iconfiles desktopfiles
-}
 
-macx: {
-    LIBS += -F/Library/Frameworks -framework GStreamer
-    INCLUDEPATH += /Library/Frameworks/GStreamer.framework/Headers
-    ICON = Icons/OpenKJ.icns
-}
-
-win32 {
-    ## Windows common build here
-
-    !contains(QMAKE_TARGET.arch, x86_64) {
-        ## Windows x86 (32bit) specific build here
-        INCLUDEPATH += C:\gstreamer\1.0\x86\include\gstreamer-1.0
-        INCLUDEPATH += C:\gstreamer\1.0\x86\include\glib-2.0
-        INCLUDEPATH += C:\gstreamer\1.0\x86\lib\glib-2.0\include
-        INCLUDEPATH += C:\gstreamer\1.0\x86\include\glib-2.0\gobject
-        LIBS += -LC:\gstreamer\1.0\x86\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0 -lgstapp-1.0 -lgstaudio-1.0 -lgstpbutils-1.0 -lgstcontroller-1.0
-    } else {
-        ## Windows x64 (64bit) specific build here
-        INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\gstreamer-1.0
-        INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0
-        INCLUDEPATH += C:\gstreamer\1.0\x86_64\lib\glib-2.0\include
-        INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0\gobject
-        LIBS += -LC:\gstreamer\1.0\x86_64\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0 -lgstapp-1.0 -lgstaudio-1.0 -lgstpbutils-1.0 -lgstcontroller-1.0
-    }
-}
 
 DISTFILES +=
