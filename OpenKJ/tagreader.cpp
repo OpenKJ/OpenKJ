@@ -92,7 +92,7 @@ void TagReader::taglibTags(QString path)
     {
         m_artist = f.tag()->artist().toCString(true);
         m_title = f.tag()->title().toCString(true);
-        m_duration = f.audioProperties()->lengthInMilliseconds();
+        m_duration = f.audioProperties()->length() * 1000;
         m_album = f.tag()->album().toCString(true);
         int track = f.tag()->track();
         if (track == 0)
