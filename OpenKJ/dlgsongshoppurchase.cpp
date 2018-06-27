@@ -150,13 +150,13 @@ void DlgSongShopPurchase::on_btnPurchase_clicked()
 {
     msgBoxInfo->setWindowTitle("Purchasing Song");
     msgBoxInfo->show();
-    if (!shop->loggedIn())
-    {
+//    if (!shop->loggedIn())
+//    {
         msgBoxInfo->setText("Logging you in to Karoake.NET...");
         shop->knLogin(ui->lineEditKNUser->text(), ui->lineEditKNPass->text());
         while (!shop->loggedIn() && !shop->loginError())
             QApplication::processEvents();
-    }
+//    }
     if (shop->loginError())
     {
         msgBoxInfo->hide();

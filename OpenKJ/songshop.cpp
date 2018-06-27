@@ -100,6 +100,8 @@ void SongShop::downloadFile(const QString &url, const QString &destFn)
     file.write(reply->readAll());
     delete reply;
     emit karaokeSongDownloaded(destPath);
+    // clear session ID to force login again before next download.  Workaround for expiring karaoke.net logins.
+    knSessionId = "";
 }
 
 void SongShop::onSslErrors(QNetworkReply *reply, QList<QSslError> errors)
@@ -162,6 +164,11 @@ void SongShop::onNetworkReply(QNetworkReply *reply)
         knLoginError = true;
         knSessionId = "";
         emit knLoginFailure();
+    }
+    else if ((json.object().value("result").toString() == "ERROR") && (json.object().value("error").toString() == "User not logged in"))
+    {
+        qWarning() << "Karaoke.NET reported user not logged in";
+        knSessionId = "";
     }
     else if ((json.object().value("result").toString() == "SUCCESS") && (json.object().value("download_links").isArray()))
     {
