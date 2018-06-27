@@ -13,9 +13,9 @@ unix:!macx {
     isEmpty(PREFIX) {
       PREFIX=/usr
     }
-    equals(DISTVER, "16.04") {
+    equals(DISTVER, "16.04")|equals(DISTVER, "7") {
         DEFINES += STATIC_TAGLIB
-        message("Ubuntu 16.04 detected, using built in taglib instead of OS package")
+        message("Out of date Linux distro detected, using built in taglib instead of OS package")
     } else {
         message("Using OS packages for taglib")
         PKGCONFIG += taglib taglib-extras
@@ -101,7 +101,7 @@ QMAKE_MAC_SDK = MacOSX10.13
 QMAKE_MAC_SDK.macosx.version = 10.13
 
 # Populate version with version from git describe
-VERSION = 1.3.68
+VERSION = 1.3.69
 message($$VERSION)
 DEFINES += GIT_VERSION=\\"\"$$VERSION\\"\"
 QMAKE_TARGET_COMPANY = OpenKJ.org
