@@ -58,7 +58,7 @@ int RequestsTableModel::rowCount(const QModelIndex &parent) const
 int RequestsTableModel::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    return 6;
+    return 5;
 }
 
 QVariant RequestsTableModel::data(const QModelIndex &index, int role) const
@@ -70,7 +70,7 @@ QVariant RequestsTableModel::data(const QModelIndex &index, int role) const
 
     if(index.row() >= m_requests.size() || index.row() < 0)
         return QVariant();
-    if ((index.column() == 5) && (role == Qt::DecorationRole))
+    if ((index.column() == 4) && (role == Qt::DecorationRole))
     {
         QPixmap icon(":/icons/Icons/edit-delete.png");
         return icon.scaled(sbSize);
@@ -79,8 +79,6 @@ QVariant RequestsTableModel::data(const QModelIndex &index, int role) const
     {
         switch(index.column())
         {
-        case REQUESTID:
-            return QString::number(m_requests.at(index.row()).requestId());
         case SINGER:
             return m_requests.at(index.row()).singer();
         case ARTIST:
@@ -93,17 +91,17 @@ QVariant RequestsTableModel::data(const QModelIndex &index, int role) const
             return ts.toString("M-d-yy h:mm ap");
         }
     }
+    if (role == Qt::UserRole)
+        return m_requests.at(index.row()).requestId();
     return QVariant();
 }
 
 QVariant RequestsTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     Q_UNUSED(orientation);
-    if (role == Qt::DisplayRole)
+    if (role == Qt::DisplayRole && orientation == Qt::Horizontal)
     {
         switch(section) {
-        case REQUESTID:
-            return "RequestID";
         case SINGER:
             return "Singer";
         case ARTIST:

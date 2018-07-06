@@ -38,16 +38,14 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     requestsModel = new RequestsTableModel(this);
     dbModel = new DbTableModel(this);
     dbDelegate = new DbItemDelegate(this);
-    ui->treeViewRequests->setModel(requestsModel);
-    ui->treeViewRequests->header()->setSectionResizeMode(5,QHeaderView::Fixed);
-    ui->treeViewRequests->header()->resizeSection(5,22);
-    ui->treeViewRequests->hideColumn(0);
+    ui->tableViewRequests->setModel(requestsModel);
+    ui->tableViewRequests->hideColumn(0);
     connect(requestsModel, SIGNAL(layoutChanged()), this, SLOT(requestsModified()));
     ui->tableViewSearch->setModel(dbModel);
     ui->tableViewSearch->setItemDelegate(dbDelegate);
     ui->groupBoxAddSong->setDisabled(true);
     ui->groupBoxSongDb->setDisabled(true);
-    connect(ui->treeViewRequests->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(requestSelectionChanged(QItemSelection,QItemSelection)));
+    connect(ui->tableViewRequests->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(requestSelectionChanged(QItemSelection,QItemSelection)));
     connect(ui->tableViewSearch->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(songSelectionChanged(QItemSelection,QItemSelection)));
     connect(songbookApi, SIGNAL(synchronized(QTime)), this, SLOT(updateReceived(QTime)));
     connect(songbookApi, SIGNAL(sslError()), this, SLOT(sslError()));
@@ -63,8 +61,6 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     posOptions << "Bottom of rotation";
     ui->comboBoxAddPosition->addItems(posOptions);
     ui->comboBoxAddPosition->setCurrentIndex(1);
-    settings->restoreColumnWidths(ui->treeViewRequests);
-    settings->restoreColumnWidths(ui->tableViewSearch);
     ui->tableViewSearch->hideColumn(0);
     ui->tableViewSearch->hideColumn(5);
     ui->tableViewSearch->hideColumn(6);
@@ -87,6 +83,8 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     ui->pushButtonClearReqs->resize(mcbSize);
     ui->pushButtonClearReqs->setIcon(QIcon(QPixmap(":/icons/Icons/edit-clear.png").scaled(mcbSize)));
     ui->pushButtonClearReqs->setIconSize(mcbSize);
+    autoSizeViews();
+
 }
 
 int DlgRequests::numRequests()
@@ -102,8 +100,6 @@ DlgRequests::~DlgRequests()
 
 void DlgRequests::on_pushButtonClose_clicked()
 {
-    settings->saveColumnWidths(ui->treeViewRequests);
-    settings->saveColumnWidths(ui->tableViewSearch);
     close();
 }
 
@@ -113,6 +109,7 @@ void DlgRequests::requestsModified()
     {
         this->show();
     }
+    autoSizeViews();
 }
 
 void DlgRequests::on_pushButtonSearch_clicked()
@@ -136,15 +133,15 @@ void DlgRequests::requestSelectionChanged(const QItemSelection &current, const Q
     }
     QModelIndex index = current.indexes().at(0);
     Q_UNUSED(previous);
-    if ((index.isValid()) && (ui->treeViewRequests->selectionModel()->selectedIndexes().size() > 0))
+    if ((index.isValid()) && (ui->tableViewRequests->selectionModel()->selectedIndexes().size() > 0))
     {
         ui->groupBoxSongDb->setEnabled(true);
         ui->comboBoxSingers->clear();
-        QString singerName = index.sibling(index.row(),1).data().toString();
+        QString singerName = index.sibling(index.row(),0).data().toString();
         QStringList singers = rotModel->singers();
         ui->comboBoxSingers->addItems(singers);
 
-        QString filterStr = index.sibling(index.row(),2).data().toString() + " " + index.sibling(index.row(),3).data().toString();
+        QString filterStr = index.sibling(index.row(),1).data().toString() + " " + index.sibling(index.row(),2).data().toString();
         dbModel->search(filterStr);
         ui->lineEditSearch->setText(filterStr);
         ui->lineEditSingerName->setText(singerName);
@@ -199,7 +196,7 @@ void DlgRequests::on_pushButtonClearReqs_clicked()
     msgBox.exec();
     if (msgBox.clickedButton() == yesButton)
     {
-        ui->treeViewRequests->selectionModel()->clearSelection();
+        ui->tableViewRequests->selectionModel()->clearSelection();
         ui->lineEditSearch->clear();
         ui->lineEditSingerName->clear();
         ui->comboBoxSingers->clear();
@@ -208,12 +205,12 @@ void DlgRequests::on_pushButtonClearReqs_clicked()
     }
 }
 
-void DlgRequests::on_treeViewRequests_clicked(const QModelIndex &index)
+void DlgRequests::on_tableViewRequests_clicked(const QModelIndex &index)
 {
-    if (index.column() == 5)
+    if (index.column() == 4)
     {
-        songbookApi->removeRequest(index.sibling(index.row(),0).data().toInt());
-        ui->treeViewRequests->selectionModel()->clearSelection();
+        songbookApi->removeRequest(index.data(Qt::UserRole).toInt());
+        ui->tableViewRequests->selectionModel()->clearSelection();
         ui->lineEditSearch->clear();
         ui->lineEditSingerName->clear();
         ui->comboBoxSingers->clear();
@@ -221,13 +218,13 @@ void DlgRequests::on_treeViewRequests_clicked(const QModelIndex &index)
     }
     else
     {
-        curRequestId = index.sibling(index.row(),0).data().toInt();
+        curRequestId = index.data(Qt::UserRole).toInt();
     }
 }
 
 void DlgRequests::on_pushButtonAddSong_clicked()
 {
-    if (ui->treeViewRequests->selectionModel()->selectedIndexes().size() < 1)
+    if (ui->tableViewRequests->selectionModel()->selectedIndexes().size() < 1)
         return;
     if (ui->tableViewSearch->selectionModel()->selectedIndexes().size() < 1)
         return;
@@ -262,7 +259,7 @@ void DlgRequests::on_pushButtonAddSong_clicked()
     {
 
         songbookApi->removeRequest(curRequestId);
-        ui->treeViewRequests->selectionModel()->clearSelection();
+        ui->tableViewRequests->selectionModel()->clearSelection();
         ui->lineEditSearch->clear();
         ui->lineEditSingerName->clear();
         ui->comboBoxSingers->clear();
@@ -383,8 +380,50 @@ void DlgRequests::on_lineEditSearch_textChanged(const QString &arg1)
 void DlgRequests::lineEditSearchEscapePressed()
 {
     QModelIndex index;
-    index = ui->treeViewRequests->selectionModel()->selectedIndexes().at(0);
+    index = ui->tableViewRequests->selectionModel()->selectedIndexes().at(0);
     QString filterStr = index.sibling(index.row(),2).data().toString() + " " + index.sibling(index.row(),3).data().toString();
     dbModel->search(filterStr);
     ui->lineEditSearch->setText(filterStr);
+}
+
+void DlgRequests::autoSizeViews()
+{
+    int fH = QFontMetrics(settings->applicationFont()).height();
+    int durationColSize = QFontMetrics(settings->applicationFont()).width(" Duration ");
+    int songidColSize = QFontMetrics(settings->applicationFont()).width(" AA0000000-0000 ");
+    int remainingSpace = ui->tableViewSearch->width() - durationColSize - songidColSize - 12;
+    int artistColSize = (remainingSpace / 2) - 12;
+    int titleColSize = (remainingSpace / 2);
+    ui->tableViewSearch->horizontalHeader()->resizeSection(1, artistColSize);
+    ui->tableViewSearch->horizontalHeader()->resizeSection(2, titleColSize);
+    ui->tableViewSearch->horizontalHeader()->resizeSection(4, durationColSize);
+    ui->tableViewSearch->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Fixed);
+    ui->tableViewSearch->horizontalHeader()->resizeSection(3, songidColSize);
+
+    int tsWidth = QFontMetrics(settings->applicationFont()).width(" 00/00/00 00:00 xx ");
+    int delwidth = fH * 2;
+    int singerColSize = QFontMetrics(settings->applicationFont()).width(" Some Singer ");
+    remainingSpace = ui->tableViewRequests->width() - tsWidth - delwidth - singerColSize - 6;
+    artistColSize = remainingSpace / 2;
+    titleColSize = remainingSpace / 2;
+    ui->tableViewRequests->horizontalHeader()->resizeSection(0, singerColSize);
+    ui->tableViewRequests->horizontalHeader()->resizeSection(1, artistColSize);
+    ui->tableViewRequests->horizontalHeader()->resizeSection(2, titleColSize);
+    ui->tableViewRequests->horizontalHeader()->resizeSection(3, tsWidth);
+    ui->tableViewRequests->horizontalHeader()->resizeSection(4, delwidth);
+    ui->tableViewRequests->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Fixed);
+}
+
+
+void DlgRequests::resizeEvent(QResizeEvent *event)
+{
+    QDialog::resizeEvent(event);
+    autoSizeViews();
+}
+
+
+void DlgRequests::showEvent(QShowEvent *event)
+{
+    QDialog::showEvent(event);
+    autoSizeViews();
 }

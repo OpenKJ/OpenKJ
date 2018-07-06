@@ -65,7 +65,7 @@ private slots:
     void songSelectionChanged(const QItemSelection & current, const QItemSelection & previous);
     void on_radioButtonExistingSinger_toggled(bool checked);
     void on_pushButtonClearReqs_clicked();
-    void on_treeViewRequests_clicked(const QModelIndex &index);
+    void on_tableViewRequests_clicked(const QModelIndex &index);
     void on_pushButtonAddSong_clicked();
     void on_tableViewSearch_customContextMenuRequested(const QPoint &pos);
     void updateReceived(QTime updateTime);
@@ -79,6 +79,15 @@ private slots:
     void previewCdg();
     void on_lineEditSearch_textChanged(const QString &arg1);
     void lineEditSearchEscapePressed();
+    void autoSizeViews();
+
+    // QWidget interface
+protected:
+    void resizeEvent(QResizeEvent *event);
+
+    // QWidget interface
+protected:
+    void showEvent(QShowEvent *event);
 };
 
 #endif // KHREQUESTSDIALOG_H
