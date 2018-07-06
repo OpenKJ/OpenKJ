@@ -140,11 +140,11 @@ void DlgRegularImport::importSinger(QString name)
                 {
                     QApplication::processEvents();
                     QSqlQuery query;
-                    QString discId = xml.attributes().value("discid").toString();
+                    QString songId = xml.attributes().value("discid").toString();
                     QString artist = xml.attributes().value("artist").toString();
                     QString title = xml.attributes().value("title").toString();
                     QString keyChg = xml.attributes().value("key").toString();
-                    QString sql = "SELECT songid FROM dbsongs WHERE artist == \"" + artist + "\" AND title == \"" + title + "\" AND discid == \"" + discId + "\" LIMIT 1";
+                    QString sql = "SELECT songid FROM dbsongs WHERE artist == \"" + artist + "\" AND title == \"" + title + "\" AND discid == \"" + songId + "\" LIMIT 1";
                     query.exec(sql);
                     if (query.first())
                     {
@@ -156,9 +156,9 @@ void DlgRegularImport::importSinger(QString name)
                     else
                     {
                         QString vendorPart;
-                        for (int i=0; i < discId.size(); i++)
+                        for (int i=0; i < songId.size(); i++)
                         {
-                            QChar character = discId.at(i);
+                            QChar character = songId.at(i);
                             if (character.isLetter())
                                 vendorPart.append(character);
                             else
@@ -174,7 +174,7 @@ void DlgRegularImport::importSinger(QString name)
                            position++;
                        }
                        else
-                       QMessageBox::warning(this, tr("No song match found"),QString("An exact song DB match for the song \"" + discId + " - " + artist + " - " + title + "\" could not be found while importing singer \"" + name + "\", skipping import for this song."));
+                       QMessageBox::warning(this, tr("No song match found"),QString("An exact song DB match for the song \"" + songId + " - " + artist + " - " + title + "\" could not be found while importing singer \"" + name + "\", skipping import for this song."));
                     }
                 }
                 xml.readNext();

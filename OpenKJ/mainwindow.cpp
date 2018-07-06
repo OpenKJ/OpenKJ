@@ -2341,7 +2341,7 @@ void MainWindow::autosizeViews()
     ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Fixed);
 
     int keyColSize = QFontMetrics(settings->applicationFont()).width("Key") + iconWidth;
-    remainingSpace = ui->tableViewQueue->width() - iconWidth - keyColSize - songidColSize - 4;
+    remainingSpace = ui->tableViewQueue->width() - iconWidth - keyColSize - songidColSize - 16;
     artistColSize = (remainingSpace / 2);
     titleColSize = (remainingSpace / 2);
     ui->tableViewQueue->horizontalHeader()->resizeSection(3, artistColSize);

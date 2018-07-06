@@ -13,11 +13,11 @@ void DlgCustomPatterns::evaluateRegEx()
     KaraokeFileInfo parser;
     parser.setArtistRegEx(ui->lineEditArtistRegEx->text(), ui->spinBoxArtistCaptureGrp->value());
     parser.setTitleRegEx(ui->lineEditTitleRegEx->text(), ui->spinBoxTitleCaptureGrp->value());
-    parser.setDiscIdRegEx(ui->lineEditDiscIdRegEx->text(), ui->spinBoxDiscIdCaptureGrp->value());
+    parser.setSongIdRegEx(ui->lineEditDiscIdRegEx->text(), ui->spinBoxDiscIdCaptureGrp->value());
     parser.setFileName(ui->lineEditFilenameExample->text());
     ui->labelArtistExample->setText(parser.getArtist());
     ui->labelTitleExample->setText(parser.getTitle());
-    ui->labelDiscIdExample->setText(parser.getDiscId());
+    ui->labelDiscIdExample->setText(parser.getSongId());
 }
 
 DlgCustomPatterns::DlgCustomPatterns(QWidget *parent) :
@@ -49,8 +49,8 @@ void DlgCustomPatterns::on_tableViewPatterns_clicked(const QModelIndex &index)
     selectedRow = index.row();
     Pattern pattern = patternsModel->getPattern(selectedRow);
     selectedPattern = pattern;
-    ui->lineEditDiscIdRegEx->setText(pattern.getDiscIdRegex());
-    ui->spinBoxDiscIdCaptureGrp->setValue(pattern.getDiscIdCaptureGrp());
+    ui->lineEditDiscIdRegEx->setText(pattern.getSongIdRegex());
+    ui->spinBoxDiscIdCaptureGrp->setValue(pattern.getSongIdCaptureGrp());
     ui->lineEditArtistRegEx->setText(pattern.getArtistRegex());
     ui->spinBoxArtistCaptureGrp->setValue(pattern.getArtistCaptureGrp());
     ui->lineEditTitleRegEx->setText(pattern.getTitleRegex());

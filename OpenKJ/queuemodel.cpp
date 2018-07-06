@@ -284,7 +284,7 @@ void QueueModel::sort(int column, Qt::SortOrder order)
     QString orderByClause;
     QString artistOrder = "ASC";
     QString titleOrder = "ASC";
-    QString discIdOrder = "ASC";
+    QString songIdOrder = "ASC";
     QString sortField = "artist";
     switch (column) {
     case 3:
@@ -292,7 +292,7 @@ void QueueModel::sort(int column, Qt::SortOrder order)
             artistOrder = "ASC";
         else
             artistOrder = "DESC";
-        orderByClause = " ORDER BY dbsongs.artist " + artistOrder + ", dbsongs.title " + titleOrder + ", dbsongs.discid " + discIdOrder;
+        orderByClause = " ORDER BY dbsongs.artist " + artistOrder + ", dbsongs.title " + titleOrder + ", dbsongs.discid " + songIdOrder;
         break;
     case 4:
         sortField = "title";
@@ -300,15 +300,15 @@ void QueueModel::sort(int column, Qt::SortOrder order)
             titleOrder = "ASC";
         else
             titleOrder = "DESC";
-        orderByClause = " ORDER BY dbsongs.title " + titleOrder + ", dbsongs.artist " + artistOrder + ", dbsongs.discid " + discIdOrder;
+        orderByClause = " ORDER BY dbsongs.title " + titleOrder + ", dbsongs.artist " + artistOrder + ", dbsongs.discid " + songIdOrder;
         break;
     case 5:
         sortField = "discid";
         if (order == Qt::AscendingOrder)
-            discIdOrder = "ASC";
+            songIdOrder = "ASC";
         else
-            discIdOrder = "DESC";
-        orderByClause = " ORDER BY dbsongs.discid " + discIdOrder + ", dbsongs.artist " + artistOrder + ", dbsongs.title " + titleOrder;
+            songIdOrder = "DESC";
+        orderByClause = " ORDER BY dbsongs.discid " + songIdOrder + ", dbsongs.artist " + artistOrder + ", dbsongs.title " + titleOrder;
         break;
     default:
         return;
@@ -333,4 +333,12 @@ void QueueModel::sort(int column, Qt::SortOrder order)
 QString QueueModel::orderByClause() const
 {
     return "ORDER BY position";
+}
+
+
+QVariant QueueModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (section == 5 && role == Qt::DisplayRole)
+        return "SongID";
+    return QSqlRelationalTableModel::headerData(section, orientation, role);
 }

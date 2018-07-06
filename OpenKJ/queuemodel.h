@@ -66,6 +66,10 @@ signals:
 public slots:
     void songAdd(int songId, int singerId);
 
+
+    // QAbstractItemModel interface
+public:
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 };
 
 #endif // QUEUEMODEL_H

@@ -44,10 +44,9 @@ DbTableModel::DbTableModel(QObject *parent, QSqlDatabase db) :
     sortColumn = SORT_ARTIST;
     artistOrder = "ASC";
     titleOrder = "ASC";
-    discIdOrder = "ASC";
+    songIdOrder = "ASC";
     durationOrder = "ASC";
     select();
-//    search("yeahjustsomethingitllneverfind.imlazylikethat");
     search("");
 }
 
@@ -98,22 +97,29 @@ QString DbTableModel::orderByClause() const
     QString sql = " ORDER BY ";
     switch (sortColumn) {
     case SORT_ARTIST:
-        sql.append("artist " + artistOrder + ", title " + titleOrder + ", discid " + discIdOrder + ", duration " + durationOrder);
+        sql.append("artist " + artistOrder + ", title " + titleOrder + ", discid " + songIdOrder + ", duration " + durationOrder);
         break;
     case SORT_TITLE:
-        sql.append("title " + titleOrder + ", artist " + artistOrder + ", discid " + discIdOrder + ", duration " + durationOrder);
+        sql.append("title " + titleOrder + ", artist " + artistOrder + ", discid " + songIdOrder + ", duration " + durationOrder);
         break;
-    case SORT_DISCID:
-        sql.append("discid " + discIdOrder + ", artist " + artistOrder + ", title " + titleOrder + ", duration " + durationOrder);
+    case SORT_SONGID:
+        sql.append("discid " + songIdOrder + ", artist " + artistOrder + ", title " + titleOrder + ", duration " + durationOrder);
         break;
     case SORT_DURATION:
-        sql.append("duration " + durationOrder + ", title " + titleOrder + ", artist " + artistOrder + ", discid " + discIdOrder);
+        sql.append("duration " + durationOrder + ", title " + titleOrder + ", artist " + artistOrder + ", discid " + songIdOrder);
         break;
     default:
-        sql.append("artist " + artistOrder + ", title " + titleOrder + ", discid " + discIdOrder + ", duration " + durationOrder);
+        sql.append("artist " + artistOrder + ", title " + titleOrder + ", discid " + songIdOrder + ", duration " + durationOrder);
         break;
     }
     return sql;
+}
+
+QVariant DbTableModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (section == 3 && role == Qt::DisplayRole)
+        return "SongID";
+    return QSqlTableModel::headerData(section, orientation, role);
 }
 
 void DbTableModel::sort(int column, Qt::SortOrder order)
@@ -129,8 +135,8 @@ void DbTableModel::sort(int column, Qt::SortOrder order)
     case SORT_TITLE:
         titleOrder = orderString;
         break;
-    case SORT_DISCID:
-        discIdOrder = orderString;
+    case SORT_SONGID:
+        songIdOrder = orderString;
         break;
     case SORT_DURATION:
         durationOrder = orderString;

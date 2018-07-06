@@ -32,8 +32,8 @@
 #include "karaokefileinfo.h"
 
 SourceDir::NamingPattern g_pattern;
-int g_customPatternId, g_artistCaptureGrp, g_titleCaptureGrp, g_discIdCaptureGrp;
-QString g_artistRegex, g_titleRegex, g_discIdRegex;
+int g_customPatternId, g_artistCaptureGrp, g_titleCaptureGrp, g_songIdCaptureGrp;
+QString g_artistRegex, g_titleRegex, g_songIdRegex;
 QStringList errors;
 
 bool DbUpdateThread::dbEntryExists(QString filepath)
@@ -49,7 +49,7 @@ bool DbUpdateThread::dbEntryExists(QString filepath)
 DbUpdateThread::DbUpdateThread(QObject *parent) :
     QThread(parent)
 {
-    pattern = SourceDir::DAT;
+    pattern = SourceDir::SAT;
     g_pattern = pattern;
 }
 
@@ -176,12 +176,12 @@ void DbUpdateThread::addSingleTrack(QString path)
     QString discid;
     KaraokeFileInfo parser;
     parser.setFileName(file.completeBaseName());
-    parser.setDiscIdRegEx("^\\S+?(?=(\\s|_)-(\\s|_))");
+    parser.setSongIdRegEx("^\\S+?(?=(\\s|_)-(\\s|_))");
     parser.setTitleRegEx("(?:^\\S+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|_))(.+)",1);
     parser.setArtistRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))", 0);
     artist = parser.getArtist();
     title = parser.getTitle();
-    discid = parser.getDiscId();
+    discid = parser.getSongId();
     query.bindValue(":discid", discid);
     query.bindValue(":artist", artist);
     query.bindValue(":title", title);
@@ -298,7 +298,7 @@ void DbUpdateThread::run()
                 parser.setPattern(g_pattern, path);
                 artist = parser.getArtist();
                 title = parser.getTitle();
-                discid = parser.getDiscId();
+                discid = parser.getSongId();
                 duration = parser.getDuration();
 
                 if (artist == "" && title == "" && discid == "")
@@ -309,7 +309,7 @@ void DbUpdateThread::run()
                         parser.setPattern(SourceDir::METADATA, path);
                         artist = parser.getArtist();
                         title = parser.getTitle();
-                        discid = parser.getDiscId();
+                        discid = parser.getSongId();
                     }
                     // If we still don't have any metadata, just throw filename into the title field
                     if (artist == "" && title == "" && discid == "")
@@ -385,7 +385,7 @@ void DbUpdateThread::run()
         parser.setPattern(g_pattern, path);
         artist = parser.getArtist();
         title = parser.getTitle();
-        discid = parser.getDiscId();
+        discid = parser.getSongId();
         if (!fileName.endsWith(".zip", Qt::CaseInsensitive))
             duration = parser.getDuration();
 
@@ -397,7 +397,7 @@ void DbUpdateThread::run()
                 parser.setPattern(SourceDir::METADATA, path);
                 artist = parser.getArtist();
                 title = parser.getTitle();
-                discid = parser.getDiscId();
+                discid = parser.getSongId();
             }
             // If we still don't have any metadata, just throw filename into the title field
             if (artist == "" && title == "" && discid == "")

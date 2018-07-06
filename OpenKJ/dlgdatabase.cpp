@@ -82,29 +82,24 @@ void DlgDatabase::on_buttonNew_clicked()
         while (query.next())
         {
             QString name = query.value("name").toString();
-//            g_artistRegex = query.value("artistregex").toString();
-//            g_titleRegex  = query.value("titleregex").toString();
-//            g_discIdRegex = query.value("discidregex").toString();
-//            g_artistCaptureGrp = query.value("artistcapturegrp").toInt();
-//            g_titleCaptureGrp  = query.value("titlecapturegrp").toInt();
-//            g_discIdCaptureGrp = query.value("discidcapturegrp").toInt();
             items << QString("Custom: " + name);
         }
 
 
-        items << "DiscID - Artist - Title" << "DiscID - Title - Artist" << "Artist - Title - DiscID" << "Title - Artist - DiscID" << "Artist - Title" << "Title - Artist" << "Media Tags";
+        items << "SongID - Artist - Title" << "SongID - Title - Artist" << "Artist - Title - SongID" << "Title - Artist - SongID" << "Artist - Title" << "Title - Artist" << "SongID_Title_Artist" << "Media Tags";
         QString selected = QInputDialog::getItem(this,"Select a file naming pattern","Pattern",items,0,false,&okPressed);
         if (okPressed)
         {
             int pattern = 0;
             int customPattern = -1;
-            if (selected == "DiscID - Artist - Title") pattern = SourceDir::DAT;
-            if (selected == "DiscID - Title - Artist") pattern = SourceDir::DTA;
-            if (selected == "Artist - Title - DiscID") pattern = SourceDir::ATD;
-            if (selected == "Title - Artist - DiscID") pattern = SourceDir::TAD;
+            if (selected == "DiscID - Artist - Title") pattern = SourceDir::SAT;
+            if (selected == "DiscID - Title - Artist") pattern = SourceDir::STA;
+            if (selected == "Artist - Title - DiscID") pattern = SourceDir::ATS;
+            if (selected == "Title - Artist - DiscID") pattern = SourceDir::TAS;
             if (selected == "Artist - Title") pattern = SourceDir::AT;
             if (selected == "Title - Artist") pattern = SourceDir::TA;
             if (selected == "Media Tags") pattern = SourceDir::METADATA;
+            if (selected == "SongID_Title_Artist") pattern = SourceDir::S_T_A;
             if (selected.contains("Custom"))
             {
                 pattern = SourceDir::CUSTOM;
@@ -276,9 +271,9 @@ void DlgDatabase::on_btnExport_clicked()
         {
             QString artist = query.value("artist").toString();
             QString title = query.value("title").toString();
-            QString discid = query.value("discid").toString();
+            QString songId = query.value("discid").toString();
             QString filepath = query.value("path").toString();
-            QString data = "\"" + artist + "\",\"" + title + "\",\"" + discid + "\",\"" + filepath + "\"" + "\n";
+            QString data = "\"" + artist + "\",\"" + title + "\",\"" + songId + "\",\"" + filepath + "\"" + "\n";
             csvFile.write(data.toLocal8Bit().data());
         }
         csvFile.close();

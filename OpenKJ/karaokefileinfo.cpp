@@ -54,6 +54,14 @@ void KaraokeFileInfo::readTags()
             tagSongid.append("-" + track);
         }
     }
+    else
+    {
+        tagArtist = "Error";
+        tagTitle = "Error";
+        tagSongid = "Error";
+        duration = 0;
+        qWarning() << "KaraokeFileInfo::readTags() called on non zip or cdg file (" << fileName << ").  Something is terribly wrong...";
+    }
     tagsRead = true;
     delete tagReader;
 }
@@ -63,7 +71,7 @@ KaraokeFileInfo::KaraokeFileInfo(QObject *parent) : QObject(parent)
     duration = false;
     artistCaptureGroup = 0;
     titleCaptureGroup  = 0;
-    discIdCaptureGroup = 0;
+    songIdCaptureGroup = 0;
     useMetadata = false;
     tagsRead = false;
 }
@@ -84,25 +92,25 @@ void KaraokeFileInfo::setPattern(SourceDir::NamingPattern pattern, QString path)
     int customPatternId = 0;
     switch (pattern)
     {
-    case SourceDir::DTA:
-        setDiscIdRegEx("^\\S+?(?=(\\s|_)-(\\s|_))");
+    case SourceDir::STA:
+        setSongIdRegEx("^\\S+?(?=(\\s|_)-(\\s|_))");
         setTitleRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))", 0);
         setArtistRegEx("(?:^\\S+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|_))(.+)",1);
         break;
-    case SourceDir::DAT:
-        setDiscIdRegEx("^\\S+?(?=(\\s|_)-(\\s|_))");
+    case SourceDir::SAT:
+        setSongIdRegEx("^\\S+?(?=(\\s|_)-(\\s|_))");
         setTitleRegEx("(?:^\\S+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|_))(.+)",1);
         setArtistRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))", 0);
         break;
-    case SourceDir::ATD:
+    case SourceDir::ATS:
         setArtistRegEx(".+?(?=(\\s|_)-(\\s|_))",0);
         setTitleRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))");
-        setDiscIdRegEx("(?:^.+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|))(.+)", 1);
+        setSongIdRegEx("(?:^.+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|))(.+)", 1);
         break;
-    case SourceDir::TAD:
+    case SourceDir::TAS:
         setTitleRegEx(".+?(?=(\\s|_)-(\\s|_))",0);
         setArtistRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))");
-        setDiscIdRegEx("(?:^.+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|))(.+)", 1);
+        setSongIdRegEx("(?:^.+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|))(.+)", 1);
         break;
     case SourceDir::AT:
         setArtistRegEx(".+?(?=(\\s|_)-(\\s|_))");
@@ -111,6 +119,11 @@ void KaraokeFileInfo::setPattern(SourceDir::NamingPattern pattern, QString path)
     case SourceDir::TA:
         setTitleRegEx(".+?(?=(\\s|_)-(\\s|_))");
         setArtistRegEx("(?<=(\\s|_)-(\\s|_))(.*)");
+        break;
+    case SourceDir::S_T_A:
+        setSongIdRegEx("^[^_]*_");
+        setTitleRegEx("((?<=_)[^_]*_)");
+        setArtistRegEx("([^_]+(?=_[^_]*(\\r?\\n|$)))");
         break;
     case SourceDir::METADATA:
         useMetadata = true;
@@ -132,7 +145,7 @@ void KaraokeFileInfo::setPattern(SourceDir::NamingPattern pattern, QString path)
         {
             setArtistRegEx(query.value("artistregex").toString(), query.value("artistcapturegrp").toInt());
             setTitleRegEx(query.value("titleregex").toString(), query.value("titlecapturegrp").toInt());
-            setDiscIdRegEx(query.value("discidregex").toString(), query.value("discidcapturegrp").toInt());
+            setSongIdRegEx(query.value("discidregex").toString(), query.value("discidcapturegrp").toInt());
         }
         break;
     }
@@ -166,16 +179,16 @@ QString KaraokeFileInfo::getTitle()
     return result;
 }
 
-QString KaraokeFileInfo::getDiscId()
+QString KaraokeFileInfo::getSongId()
 {
     if (useMetadata)
     {
         readTags();
         return tagSongid;
     }
-    QRegularExpression r(discIdPattern);
+    QRegularExpression r(songIdPattern);
     QRegularExpressionMatch match = r.match(fileBaseName);
-    QString result = match.captured(discIdCaptureGroup);
+    QString result = match.captured(songIdCaptureGroup);
     result.replace("_", " ");
     return result;
 }

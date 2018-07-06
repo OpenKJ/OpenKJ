@@ -66,18 +66,20 @@ QVariant SourceDirTableModel::data(const QModelIndex &index, int role) const
         case PATTERN:
             switch (mydata->at(index.row())->getPattern())
             {
-            case SourceDir::DAT:
-                return QString("DiscID - Artist - Title");
-            case SourceDir::DTA:
-                return QString("DiscID - Title - Artist");
-            case SourceDir::ATD:
-                return QString("Artist - Title - DiscID");
-            case SourceDir::TAD:
-                return QString("Title - Artist - DiscID");
+            case SourceDir::SAT:
+                return QString("SongID - Artist - Title");
+            case SourceDir::STA:
+                return QString("SongID - Title - Artist");
+            case SourceDir::ATS:
+                return QString("Artist - Title - SongID");
+            case SourceDir::TAS:
+                return QString("Title - Artist - SongID");
             case SourceDir::AT:
                 return QString("Artist - Title");
             case SourceDir::TA:
                 return QString("Title - Artist");
+            case SourceDir::S_T_A:
+                return QString("SongID_Title_Artist");
             case SourceDir::METADATA:
                 return QString("Media Tags");
             case SourceDir::CUSTOM:

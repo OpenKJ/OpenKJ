@@ -29,10 +29,10 @@ class SourceDir
 
 
 public:
-    enum NamingPattern {DAT=0,DTA,ATD,TAD,AT,TA,CUSTOM,METADATA};
+    enum NamingPattern {SAT=0,STA,ATS,TAS,AT,TA,CUSTOM,METADATA,S_T_A};
     SourceDir() {
         index = -1;
-        pattern = DAT;
+        pattern = SAT;
         customPattern = 0;
     }
     NamingPattern getPattern() const;
