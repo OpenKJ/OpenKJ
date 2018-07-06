@@ -38,9 +38,14 @@ private:
     // QWidget interface
 public slots:
     void setVisible(bool visible);
+    void autoSizeView();
 
 signals:
     void karaokeSongDownloaded(QString path);
+
+    // QWidget interface
+protected:
+    void resizeEvent(QResizeEvent *event);
 };
 
 #endif // DLGSONGSHOP_H

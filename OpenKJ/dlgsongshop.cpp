@@ -56,3 +56,25 @@ void DlgSongShop::setVisible(bool visible)
     settings->restoreColumnWidths(ui->tableViewSongs);
     QDialog::setVisible(visible);
 }
+
+void DlgSongShop::autoSizeView()
+{
+//    int fH = QFontMetrics(settings->applicationFont()).height();
+    int priceColSize = QFontMetrics(settings->applicationFont()).width(" $0.00 ");
+    int songidColSize = QFontMetrics(settings->applicationFont()).width(" PY000000 ");
+    int vendorColSize = QFontMetrics(settings->applicationFont()).width(" Party Tyme Karaoke ");
+    int remainingSpace = ui->tableViewSongs->width() - priceColSize - songidColSize - vendorColSize;
+    int artistColSize = (remainingSpace / 2) - 100;
+    int titleColSize = (remainingSpace / 2) + 80;
+    ui->tableViewSongs->horizontalHeader()->resizeSection(0, artistColSize);
+    ui->tableViewSongs->horizontalHeader()->resizeSection(1, titleColSize);
+    ui->tableViewSongs->horizontalHeader()->resizeSection(2, songidColSize);
+    ui->tableViewSongs->horizontalHeader()->resizeSection(3, vendorColSize);
+    ui->tableViewSongs->horizontalHeader()->resizeSection(4, priceColSize);
+}
+
+
+void DlgSongShop::resizeEvent(QResizeEvent *event)
+{
+    autoSizeView();
+}

@@ -21,7 +21,7 @@ QVariant SongShopModel::headerData(int section, Qt::Orientation orientation, int
         if (section == 1)
             txt = QString("Title");
         if (section == 2)
-            txt = QString("SongId");
+            txt = QString("SongID");
         if (section == 3)
             txt = QString("Vendor");
         if (section == 4)
