@@ -910,22 +910,25 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
 void MainWindow::on_tableViewQueue_activated(const QModelIndex &index)
 {
     k2kTransition = false;
-    if ((kAudioBackend->state() == AbstractAudioBackend::PlayingState) && (settings->showSongInterruptionWarning()))
+    if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
     {
-        QMessageBox msgBox(this);
-        QCheckBox *cb = new QCheckBox("Show this warning in the future");
-        cb->setChecked(settings->showSongInterruptionWarning());
-        msgBox.setIcon(QMessageBox::Warning);
-        msgBox.setText("Interrupt currenly playing karaoke song?");
-        msgBox.setInformativeText("There is currently a karaoke song playing.  If you continue, the current song will be stopped.  Are you sure?");
-        QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
-        msgBox.addButton(QMessageBox::Cancel);
-        msgBox.setCheckBox(cb);
-        connect(cb, SIGNAL(toggled(bool)), settings, SLOT(setShowSongInterruptionWarning(bool)));
-        msgBox.exec();
-        if (msgBox.clickedButton() != yesButton)
+        if (settings->showSongInterruptionWarning())
         {
-            return;
+            QMessageBox msgBox(this);
+            QCheckBox *cb = new QCheckBox("Show this warning in the future");
+            cb->setChecked(settings->showSongInterruptionWarning());
+            msgBox.setIcon(QMessageBox::Warning);
+            msgBox.setText("Interrupt currenly playing karaoke song?");
+            msgBox.setInformativeText("There is currently a karaoke song playing.  If you continue, the current song will be stopped.  Are you sure?");
+            QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
+            msgBox.addButton(QMessageBox::Cancel);
+            msgBox.setCheckBox(cb);
+            connect(cb, SIGNAL(toggled(bool)), settings, SLOT(setShowSongInterruptionWarning(bool)));
+            msgBox.exec();
+            if (msgBox.clickedButton() != yesButton)
+            {
+                return;
+            }
         }
         k2kTransition = true;
     }
@@ -1125,6 +1128,8 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
         qWarning() << "Audio entered StoppedState";
         audioRecorder->stop();
         cdg->VideoClose();
+        if (k2kTransition)
+            return;
         ui->labelArtist->setText("None");
         ui->labelTitle->setText("None");
         ui->labelSinger->setText("None");
@@ -1137,8 +1142,7 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
         setShowBgImage(true);
         cdgWindow->setShowBgImage(true);
         cdgWindow->triggerBg();
-        if (k2kTransition)
-            return;
+
         bmAudioBackend->fadeIn(false);
         if (settings->karaokeAutoAdvance())
         {
