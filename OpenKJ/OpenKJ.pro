@@ -491,3 +491,6 @@ RESOURCES += resources.qrc
 
 
 DISTFILES +=
+greaterThan(QT_MAJOR_VERSION, 4) {
+    QMAKE_CXXFLAGS += -std=c++11
+}
