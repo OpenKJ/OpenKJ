@@ -118,6 +118,7 @@ private:
     int sortColDB;
     int sortDirDB;
     QString dbRtClickFile;
+    QModelIndex m_rtClickIndex;
     QString curSinger;
     QString curArtist;
     QString curTitle;
@@ -171,6 +172,7 @@ private slots:
     void on_lineEdit_returnPressed();
     void on_tableViewDB_doubleClicked(const QModelIndex &index);
     void on_buttonAddSinger_clicked();
+    void on_tableViewRotation_activated(const QModelIndex &index);
     void on_tableViewRotation_doubleClicked(const QModelIndex &index);
     void on_tableViewRotation_clicked(const QModelIndex &index);
     void on_tableViewQueue_doubleClicked(const QModelIndex &index);
@@ -205,11 +207,13 @@ private slots:
     void on_sliderProgress_sliderReleased();
     void setKeyChange();
     void toggleQueuePlayed();
+    void playFileNow();
     void regularNameConflict(QString name);
     void regularAddError(QString errorText);
     void previewCdg();
     void editSong();
     void markSongBad();
+    void addSongToQueue();
     void setShowBgImage(bool show);
     void onBgImageChange();
     void karaokeAATimerTimeout();
@@ -269,6 +273,8 @@ private slots:
     void on_tabWidget_currentChanged(int index);
     void databaseAboutToUpdate();
     void bmDatabaseAboutToUpdate();
+    void on_pushButtonActivateSinger_clicked();
+    void on_pushButtonPlayNow_clicked();
     void scutSearchActivated();
     void bmSongMoved(int oldPos, int newPos);
 
@@ -277,7 +283,10 @@ private slots:
     void on_sliderBmPosition_sliderReleased();
 
 protected:
+    bool checkChangeSong();
     void closeEvent(QCloseEvent *event);
+    void activateSinger(int singerId);
+    void playSongAtIndex(const QModelIndex &index);
 
     // QWidget interface
 protected:

@@ -554,6 +554,20 @@ QPushButton:default {
                       </property>
                      </spacer>
                     </item>
+                    <item>
+                     <widget class="QPushButton" name="pushButtonPlayNow">
+                      <property name="text">
+                       <string>Play Now</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="pushButtonActivateSinger">
+                      <property name="text">
+                       <string>Make Active</string>
+                      </property>
+                     </widget>
+                    </item>
                    </layout>
                   </widget>
                  </item>
@@ -2658,7 +2672,7 @@ QPushButton:default {
      <x>0</x>
      <y>0</y>
      <width>1309</width>
-     <height>25</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

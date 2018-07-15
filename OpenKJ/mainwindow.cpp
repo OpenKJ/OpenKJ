@@ -809,18 +809,11 @@ void MainWindow::on_buttonAddSinger_clicked()
 {
     dlgAddSinger->show();
 }
-
-
-void MainWindow::on_tableViewRotation_doubleClicked(const QModelIndex &index)
+bool MainWindow::checkChangeSong()
 {
-    if (index.column() < 3)
-    {
-        k2kTransition = false;
-        int singerId = index.sibling(index.row(),0).data().toInt();
-        QString nextSongPath = rotModel->nextSongPath(singerId);
-        if (nextSongPath != "")
-        {
-            if ((kAudioBackend->state() == AbstractAudioBackend::PlayingState) && (settings->showSongInterruptionWarning()))
+    switch (kAudioBackend->state()) {
+        case AbstractAudioBackend::PlayingState:
+            if (settings->showSongInterruptionWarning())
             {
                 QMessageBox msgBox(this);
                 QCheckBox *cb = new QCheckBox("Show this warning in the future");
@@ -835,11 +828,12 @@ void MainWindow::on_tableViewRotation_doubleClicked(const QModelIndex &index)
                 msgBox.exec();
                 if (msgBox.clickedButton() != yesButton)
                 {
-                    return;
+                    return false;
                 }
                 k2kTransition = true;
             }
-            if (kAudioBackend->state() == AbstractAudioBackend::PausedState)
+            break;
+        case AbstractAudioBackend::PausedState:
             {
                 if (settings->karaokeAutoAdvance())
                 {
@@ -849,21 +843,52 @@ void MainWindow::on_tableViewRotation_doubleClicked(const QModelIndex &index)
                 audioRecorder->stop();
                 kAudioBackend->stop(true);
             }
- //           play(nextSongPath);
- //           kAudioBackend->setPitchShift(rotModel->nextSongKeyChg(singerId));
-            rotDelegate->setCurrentSinger(singerId);
-            rotModel->setCurrentSinger(singerId);
-            curSinger = rotModel->getSingerName(singerId);
-            curArtist = rotModel->nextSongArtist(singerId);
-            curTitle = rotModel->nextSongTitle(singerId);
-            ui->labelArtist->setText(curArtist);
-            ui->labelTitle->setText(curTitle);
-            ui->labelSinger->setText(curSinger);
-            play(nextSongPath, k2kTransition);
-            kAudioBackend->setPitchShift(rotModel->nextSongKeyChg(singerId));
-            qModel->songSetPlayed(rotModel->nextSongQueueId(singerId));
-        }
+            break;
+
+    default: ;
     }
+    return true;
+}
+
+void MainWindow::activateSinger(int singerId )
+{
+    if (singerId < 0)
+        return;
+    k2kTransition = false;
+
+    QString nextSongPath = rotModel->nextSongPath(singerId);
+    if (nextSongPath != "")
+    {
+        if (!checkChangeSong())
+            return;
+
+        rotDelegate->setCurrentSinger(singerId);
+        rotModel->setCurrentSinger(singerId);
+        curSinger = rotModel->getSingerName(singerId);
+        curArtist = rotModel->nextSongArtist(singerId);
+        curTitle = rotModel->nextSongTitle(singerId);
+        ui->labelArtist->setText(curArtist);
+        ui->labelTitle->setText(curTitle);
+        ui->labelSinger->setText(curSinger);
+        play(nextSongPath, k2kTransition);
+        kAudioBackend->setPitchShift(rotModel->nextSongKeyChg(singerId));
+        qModel->songSetPlayed(rotModel->nextSongQueueId(singerId));
+    }
+}
+
+void MainWindow::on_tableViewRotation_activated(const QModelIndex &index)
+{
+    if (index.column() < 1)
+    {
+        int singerId = index.sibling(index.row(),0).data().toInt();
+        activateSinger(singerId);
+    }
+
+}
+void MainWindow::on_tableViewRotation_doubleClicked(const QModelIndex &index)
+{
+    int singerId = index.sibling(index.row(),0).data().toInt();
+    activateSinger(singerId);
 }
 
 void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
@@ -900,7 +925,7 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
         ui->tableViewQueue->clearSelection();
         return;
 
-        }
+    }
     if (index.column() == 3)
     {
         if (!rotModel->singerIsRegular(index.sibling(index.row(),0).data().toInt()))
@@ -931,42 +956,22 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
 
 void MainWindow::on_tableViewQueue_doubleClicked(const QModelIndex &index)
 {
-    k2kTransition = false;
-    if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
-    {
-        if (settings->showSongInterruptionWarning())
-        {
-            QMessageBox msgBox(this);
-            QCheckBox *cb = new QCheckBox("Show this warning in the future");
-            cb->setChecked(settings->showSongInterruptionWarning());
-            msgBox.setIcon(QMessageBox::Warning);
-            msgBox.setText("Interrupt currenly playing karaoke song?");
-            msgBox.setInformativeText("There is currently a karaoke song playing.  If you continue, the current song will be stopped.  Are you sure?");
-            QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
-            msgBox.addButton(QMessageBox::Cancel);
-            msgBox.setCheckBox(cb);
-            connect(cb, SIGNAL(toggled(bool)), settings, SLOT(setShowSongInterruptionWarning(bool)));
-            msgBox.exec();
-            if (msgBox.clickedButton() != yesButton)
-            {
-                return;
-            }
-        }
-        k2kTransition = true;
-    }
-    if (kAudioBackend->state() == AbstractAudioBackend::PausedState)
-    {
-        if (settings->karaokeAutoAdvance())
-        {
-            kAASkip = true;
-            cdgWindow->showAlert(false);
-        }
-        audioRecorder->stop();
-        kAudioBackend->stop(true);
-    }
+    playSongAtIndex(index);
+}
+
+void MainWindow::playSongAtIndex(const QModelIndex &index)
+{
     curSinger = rotModel->getSingerName(index.sibling(index.row(),1).data().toInt());
     curArtist = index.sibling(index.row(),3).data().toString();
     curTitle = index.sibling(index.row(),4).data().toString();
+
+    if (curTitle == "")
+        return;
+
+    k2kTransition = false;
+    if (!checkChangeSong())
+        return;
+
     ui->labelSinger->setText(curSinger);
     ui->labelArtist->setText(curArtist);
     ui->labelTitle->setText(curTitle);
@@ -1379,9 +1384,11 @@ void MainWindow::on_tableViewDB_customContextMenuRequested(const QPoint &pos)
     QModelIndex index = ui->tableViewDB->indexAt(pos);
     if (index.isValid())
     {
+        m_rtClickIndex = index;
         dbRtClickFile = index.sibling(index.row(), 5).data().toString();
         QMenu contextMenu(this);
         contextMenu.addAction("Preview", this, SLOT(previewCdg()));
+        contextMenu.addAction("Add to queue", this, SLOT(addSongToQueue()));
         contextMenu.addSeparator();
         contextMenu.addAction("Edit", this, SLOT(editSong()));
         contextMenu.addAction("Mark bad", this, SLOT(markSongBad()));
@@ -1433,6 +1440,7 @@ void MainWindow::on_tableViewQueue_customContextMenuRequested(const QPoint &pos)
         QModelIndex index = ui->tableViewQueue->indexAt(pos);
         if (index.isValid())
         {
+            m_rtClickIndex = index;
             dbRtClickFile = index.sibling(index.row(), 6).data().toString();
             m_rtClickQueueSongId = index.sibling(index.row(), 0).data().toInt();
             dlgKeyChange->setActiveSong(m_rtClickQueueSongId);
@@ -1440,6 +1448,7 @@ void MainWindow::on_tableViewQueue_customContextMenuRequested(const QPoint &pos)
             contextMenu.addAction("Preview", this, SLOT(previewCdg()));
             contextMenu.addAction("Set Key Change", this, SLOT(setKeyChange()));
             contextMenu.addAction("Toggle played", this, SLOT(toggleQueuePlayed()));
+            contextMenu.addAction("Play now", this, SLOT(playFileNow()));
             contextMenu.exec(QCursor::pos());
         }
     }
@@ -1471,6 +1480,11 @@ void MainWindow::setKeyChange()
 void MainWindow::toggleQueuePlayed()
 {
     qModel->songSetPlayed(m_rtClickQueueSongId, !qModel->getSongPlayed(m_rtClickQueueSongId));
+}
+
+void MainWindow::playFileNow()
+{
+    playSongAtIndex(m_rtClickIndex);
 }
 
 void MainWindow::regularNameConflict(QString name)
@@ -1696,6 +1710,20 @@ void MainWindow::editSong()
         }
     }
 
+}
+
+void MainWindow::addSongToQueue()
+{
+    if (qModel->singer() >= 0)
+    {
+        qModel->songAdd(m_rtClickIndex.sibling(m_rtClickIndex.row(),0).data().toInt());
+    }
+    else
+    {
+        QMessageBox msgBox;
+        msgBox.setText("No singer selected.  You must select a singer before you can double-click to add to a queue.");
+        msgBox.exec();
+    }
 }
 
 void MainWindow::markSongBad()
@@ -2775,4 +2803,16 @@ void MainWindow::on_sliderBmPosition_sliderReleased()
     bmAudioBackend->setPosition(ui->sliderBmPosition->value());
     sliderBmPositionPressed = false;
     qWarning() << "BM slider up.  Position:" << ui->sliderBmPosition->value();
+}
+
+void MainWindow::on_pushButtonActivateSinger_clicked()
+{
+    int singerId = qModel->singer();
+
+    activateSinger(singerId);
+}
+
+void MainWindow::on_pushButtonPlayNow_clicked()
+{
+    playSongAtIndex(ui->tableViewQueue->currentIndex());
 }
