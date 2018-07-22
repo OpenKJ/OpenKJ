@@ -199,8 +199,9 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     connect(ui->cbxCheckUpdates, SIGNAL(clicked(bool)), settings, SLOT(setCheckUpdates(bool)));
     connect(ui->comboBoxUpdateBranch, SIGNAL(currentIndexChanged(int)), settings, SLOT(setUpdatesBranch(int)));
     ui->lineEditDownloadsDir->setText(settings->storeDownloadDir());
-    ui->listWidget->setMinimumWidth(QFontMetrics(settings->applicationFont()).width("  Network  "));
-    ui->frame->setMinimumWidth(QFontMetrics(settings->applicationFont()).width("  Network  "));
+    int minWidth = 5+ qMax(72,QFontMetrics(settings->applicationFont()).width("  Network  "));
+    ui->listWidget->setMinimumWidth(minWidth);
+    ui->frame->setMinimumWidth(minWidth);
     adjustSize();
 
 }
