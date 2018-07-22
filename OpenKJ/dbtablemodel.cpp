@@ -154,9 +154,57 @@ void DbTableModel::refreshCache()
     query.exec("INSERT INTO mem.dbsongs SELECT * FROM main.dbsongs");
     setTable("mem.dbsongs");
     select();
-    search(lastSearch);
+
 }
 
+void DbTableModel::updateSong(int song_id,QString artist, QString title, QString discID)
+{
+    QSqlQuery query;
+
+    query.prepare("SELECT filename FROM main.dbsongs WHERE songid = :song_id");
+    query.bindValue(":song_id", QVariant(song_id));
+    query.exec();
+    if (query.first())
+    {
+        static const QString queries[2] = {
+            "UPDATE main.dbsongs "
+            "SET artist =:artistName, title = :title, searchstring = :searchstring, DiscId = :discId "
+            "WHERE songid = :song_id",
+            "UPDATE mem.dbsongs "
+            "SET artist =:artistName, title = :title, searchstring = :searchstring, DiscId = :discId "
+            "WHERE songid = :song_id"
+        };
+
+        QString filename = query.value(0).toString();
+        for (int idx = 0; idx < 2; ++idx )
+        {
+            query.prepare( queries[idx]);
+            query.bindValue(":song_id", QVariant(song_id));
+            query.bindValue(":artistName", artist);
+            query.bindValue(":title", title);
+            query.bindValue(":discId", discID);
+            query.bindValue(":searchstring", QString(filename + " " + artist + " " + title + " " + discID));
+            query.exec();
+          }
+        select();
+        search(lastSearch);
+    }
+}
+
+bool DbTableModel::fetchSongDetail(int song_id, QString &artist, QString &title, QString &discID, QString &filename)
+{
+    QSqlQuery query;
+    query.prepare("SELECT artist, title, discId, filename FROM main.dbsongs WHERE songid = :song_id");
+    query.bindValue(":song_id", QVariant(song_id));
+    query.exec();
+    if (!query.first())
+      return false;
+    artist = query.value(0).toString();
+    title = query.value(1).toString();
+    discID = query.value(2).toString();
+    filename = query.value(3).toString();
+    return true;
+}
 
 //QVariant DbTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 //{

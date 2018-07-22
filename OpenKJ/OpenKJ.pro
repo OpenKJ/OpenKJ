@@ -174,7 +174,8 @@ SOURCES += main.cpp\
     dlgsetpassword.cpp \
     dlgpassword.cpp \
     dlgpurchaseprogress.cpp \
-    karaokefileinfo.cpp
+    karaokefileinfo.cpp \
+    dlgsongdetail.cpp
 
 contains(DEFINES, STATIC_TAGLIB) {
     SOURCES += taglib/ape/apefile.cpp \
@@ -344,7 +345,8 @@ HEADERS  += mainwindow.h \
     dlgsetpassword.h \
     dlgpassword.h \
     dlgpurchaseprogress.h \
-    karaokefileinfo.h
+    karaokefileinfo.h \
+    dlgsongdetail.h
 
 contains(DEFINES, STATIC_TAGLIB) {
     HEADERS += taglib/ape/apefile.h \
@@ -481,7 +483,8 @@ FORMS    += mainwindow.ui \
     dlgsongshoppurchase.ui \
     dlgsetpassword.ui \
     dlgpassword.ui \
-    dlgpurchaseprogress.ui
+    dlgpurchaseprogress.ui \
+    dlgsongdetail.ui
 
 RESOURCES += resources.qrc
 
