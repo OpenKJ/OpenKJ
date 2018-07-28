@@ -63,6 +63,7 @@
 #include "dlgaddsinger.h"
 #include "dlgsongshop.h"
 #include "songshop.h"
+#include "dlgsongdetail.h"
 
 using namespace std;
 

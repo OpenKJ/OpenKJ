@@ -1346,11 +1346,11 @@ void MainWindow::on_tableViewDB_customContextMenuRequested(const QPoint &pos)
     QModelIndex index = ui->tableViewDB->indexAt(pos);
     if (index.isValid())
     {
-        dbRtClickFile = index.sibling(index.row(), 5).data().toString();
+        dbRtClickFile = index.sibling(index.row(), DbTableModel::dbSong_Path).data().toString();
         QMenu contextMenu(this);
         contextMenu.addAction("Preview", this, SLOT(previewCdg()));
         contextMenu.addSeparator();
-//        contextMenu.addAction("Edit", this, SLOT(editSong()));
+        contextMenu.addAction("Edit", this, SLOT(editSong()));
         contextMenu.addAction("Mark bad", this, SLOT(markSongBad()));
         contextMenu.exec(QCursor::pos());
     }
@@ -1460,6 +1460,13 @@ void MainWindow::previewCdg()
 
 void MainWindow::editSong()
 {
+  int clickRow = m_rtClickIndex.row();
+  int songID = m_rtClickIndex.sibling(clickRow, DbTableModel::dbSong_SongId).data().toInt();
+  QString artist, title, discID, filename;
+
+  DlgSongDetail *songDetailDialog = new DlgSongDetail(this);
+  songDetailDialog->setAttribute(Qt::WA_DeleteOnClose);
+  songDetailDialog->editSong(songID, dbModel);
 
 }
 
