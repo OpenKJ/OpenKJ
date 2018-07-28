@@ -41,6 +41,9 @@ private:
 public:
     explicit DbTableModel(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
     enum {SORT_ARTIST=1,SORT_TITLE=2,SORT_SONGID=3,SORT_DURATION=4};
+
+    enum { dbSong_SongId = 0, dbSong_Artist = 1, dbSong_Title = 2, dbSong_DiscId = 3, dbSong_Duration = 4, dbSong_Path = 5, dbSong_Filename = 6, dbSong_SearchString = 7 };
+
     void search(QString searchString);
     QMimeData *mimeData(const QModelIndexList &indexes) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;

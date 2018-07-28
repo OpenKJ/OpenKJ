@@ -36,6 +36,15 @@ private:
 public:
     explicit BmDbTableModel(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
     enum {SORT_ARTIST=1,SORT_TITLE=2,SORT_FILENAME=4,SORT_DURATION=5};
+    enum {
+        dbBmDb_Songid = 0,
+        dbBmDb_Artist = 1,
+        dbBmDb_Title = 2,
+        dbBmDb_Path = 3,
+        dbBmDb_Filename = 4,
+        dbBmDb_Duration = 5,
+        dbBmDb_Searchstring = 6
+    };
 
     // QAbstractItemModel interface
 public:

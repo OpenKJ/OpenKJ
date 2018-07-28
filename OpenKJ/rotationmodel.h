@@ -35,6 +35,14 @@ private:
 public:
     explicit RotationModel(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
     enum {ADD_FAIR=0,ADD_BOTTOM,ADD_NEXT};
+    enum {
+	 dbRotation_Singerid =0,
+	 dbRotation_Name=1,
+	 dbRotation_Position=2,
+	 dbRotation_Regular=3,
+	 dbRotation_Regularid=4
+	};
+
     int singerAdd(QString name);
     int singerCount;
     void singerMove(int oldPosition, int newPosition);

@@ -179,9 +179,11 @@ MainWindow::MainWindow(QWidget *parent) :
     qDelegate = new QueueItemDelegate(this);
     rotModel = new RotationModel(this, database);
     rotModel->select();
-    ui->tableViewDB->hideColumn(0);
-    ui->tableViewDB->hideColumn(5);
-    ui->tableViewDB->hideColumn(6);
+    ui->tableViewDB->hideColumn(DbTableModel::dbSong_SongId);
+    ui->tableViewDB->hideColumn(DbTableModel::dbSong_Path);
+    ui->tableViewDB->hideColumn(DbTableModel::dbSong_Filename);
+    ui->tableViewDB->hideColumn(DbTableModel::dbSong_SearchString);
+
     ui->tableViewRotation->setModel(rotModel);
     rotDelegate = new RotationItemDelegate(this);
     ui->tableViewRotation->setItemDelegate(rotDelegate);
@@ -285,30 +287,30 @@ MainWindow::MainWindow(QWidget *parent) :
     qWarning() << "Refreshing rotation data";
     rotationDataChanged();
     qWarning() << "Adjusting karaoke listviews column visibility and state";
-    ui->tableViewDB->hideColumn(0);
-    ui->tableViewDB->hideColumn(5);
-    ui->tableViewDB->hideColumn(6);
-    ui->tableViewDB->hideColumn(7);
+    ui->tableViewDB->hideColumn(DbTableModel::dbSong_SongId);
+    ui->tableViewDB->hideColumn(DbTableModel::dbSong_Path);
+    ui->tableViewDB->hideColumn(DbTableModel::dbSong_Filename);
+    ui->tableViewDB->hideColumn(DbTableModel::dbSong_SearchString);
 //    ui->tableViewDB->horizontalHeader()->resizeSection(4,75);
-    ui->tableViewQueue->hideColumn(0);
-    ui->tableViewQueue->hideColumn(1);
-    ui->tableViewQueue->hideColumn(2);
-    ui->tableViewQueue->hideColumn(6);
-    ui->tableViewQueue->hideColumn(9);
+    ui->tableViewQueue->hideColumn(QueueModel::dbQueue_Qsongid);
+    ui->tableViewQueue->hideColumn(QueueModel::dbQueue_Singer);
+    ui->tableViewQueue->hideColumn(QueueModel::dbQueue_Song);
+    ui->tableViewQueue->hideColumn(QueueModel::dbQueue_Path);
+    ui->tableViewQueue->hideColumn(QueueModel::dbQueue_Position);
     ui->tableViewQueue->hideColumn(10);
     ui->tableViewQueue->hideColumn(11);
     ui->tableViewQueue->hideColumn(12);
     if (!kAudioBackend->canPitchShift())
     {
-        ui->tableViewQueue->hideColumn(7);
+        ui->tableViewQueue->hideColumn(QueueModel::dbQueue_Keychg);
     }
     qModel->setHeaderData(8, Qt::Horizontal,"");
     qModel->setHeaderData(7, Qt::Horizontal, "Key");
-    rotModel->setHeaderData(0,Qt::Horizontal,"");
-    rotModel->setHeaderData(1,Qt::Horizontal,"Singer");
-    rotModel->setHeaderData(3,Qt::Horizontal,"");
-    rotModel->setHeaderData(4,Qt::Horizontal,"");
-    ui->tableViewRotation->hideColumn(2);
+    rotModel->setHeaderData(RotationModel::dbRotation_Singerid,Qt::Horizontal,"");
+    rotModel->setHeaderData(RotationModel::dbRotation_Name,Qt::Horizontal,"Singer");
+    rotModel->setHeaderData(RotationModel::dbRotation_Regular,Qt::Horizontal,"");
+    rotModel->setHeaderData(RotationModel::dbRotation_Regularid,Qt::Horizontal,"");
+    ui->tableViewRotation->hideColumn(RotationModel::dbRotation_Position);
     qWarning() << "Adding singer count to status bar";
     ui->statusBar->addWidget(labelSingerCount);
 
@@ -320,7 +322,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     bmPlaylistsModel = new QSqlTableModel(this, database);
     bmPlaylistsModel->setTable("bmplaylists");
-    bmPlaylistsModel->sort(2, Qt::AscendingOrder);
+    bmPlaylistsModel->sort(BmPlTableModel::dbBmPl_Position, Qt::AscendingOrder);
     bmDbDialog = new BmDbDialog(database,this);
     bmDbModel = new BmDbTableModel(this, database);
     bmDbModel->setTable("mem.bmsongs");
@@ -349,12 +351,12 @@ MainWindow::MainWindow(QWidget *parent) :
     settings->restoreSplitterState(ui->splitterBm);
 //    settings->restoreColumnWidths(ui->tableViewBmDb);
 //    settings->restoreColumnWidths(ui->tableViewBmPlaylist);
-    ui->tableViewBmDb->setColumnHidden(0, true);
-    ui->tableViewBmDb->setColumnHidden(3, true);
-    ui->tableViewBmDb->setColumnHidden(6, true);
+    ui->tableViewBmDb->setColumnHidden(BmDbTableModel::dbBmDb_Songid, true);
+    ui->tableViewBmDb->setColumnHidden(BmDbTableModel::dbBmDb_Path, true);
+    ui->tableViewBmDb->setColumnHidden(BmDbTableModel::dbBmDb_Searchstring, true);
 
-    ui->tableViewBmPlaylist->setColumnHidden(0, true);
-    ui->tableViewBmPlaylist->setColumnHidden(1, true);
+    ui->tableViewBmPlaylist->setColumnHidden(BmPlTableModel::dbBmPl_Plsongid, true);
+    ui->tableViewBmPlaylist->setColumnHidden(BmPlTableModel::dbBmPl_Playlist, true);
 
     settings->restoreSplitterState(ui->splitter_3);
 
@@ -695,10 +697,11 @@ void MainWindow::databaseUpdated()
 {
     dbModel->refreshCache();
     search();
-    ui->tableViewDB->hideColumn(0);
-    ui->tableViewDB->hideColumn(5);
-    ui->tableViewDB->hideColumn(6);
-    ui->tableViewDB->horizontalHeader()->resizeSection(4,75);
+    ui->tableViewDB->hideColumn(DbTableModel::dbSong_SongId);
+    ui->tableViewDB->hideColumn(DbTableModel::dbSong_Path);
+    ui->tableViewDB->hideColumn(DbTableModel::dbSong_Filename);
+    ui->tableViewDB->hideColumn(DbTableModel::dbSong_SearchString);
+    ui->tableViewDB->horizontalHeader()->resizeSection(DbTableModel::dbSong_Duration,75);
     settings->restoreColumnWidths(ui->tableViewDB);
     requestsDialog->databaseUpdateComplete();
     autosizeViews();
@@ -710,10 +713,11 @@ void MainWindow::databaseCleared()
     dbModel->select();
     rotModel->select();
     qModel->setSinger(-1);
-    ui->tableViewDB->hideColumn(0);
-    ui->tableViewDB->hideColumn(5);
-    ui->tableViewDB->hideColumn(6);
-    ui->tableViewDB->horizontalHeader()->resizeSection(4,75);
+    ui->tableViewDB->hideColumn(DbTableModel::dbSong_SongId);
+    ui->tableViewDB->hideColumn(DbTableModel::dbSong_Path);
+    ui->tableViewDB->hideColumn(DbTableModel::dbSong_Filename);
+    ui->tableViewDB->hideColumn(DbTableModel::dbSong_SearchString);
+    ui->tableViewDB->horizontalHeader()->resizeSection(DbTableModel::dbSong_Duration,75);
     settings->restoreColumnWidths(ui->tableViewDB);
 }
 
@@ -795,7 +799,7 @@ void MainWindow::on_tableViewDB_doubleClicked(const QModelIndex &index)
 {
     if (qModel->singer() >= 0)
     {
-        qModel->songAdd(index.sibling(index.row(),0).data().toInt());
+        qModel->songAdd(index.sibling(index.row(),DbTableModel::dbSong_SongId).data().toInt());
     }
     else
     {
@@ -880,14 +884,14 @@ void MainWindow::on_tableViewRotation_activated(const QModelIndex &index)
 {
     if (index.column() < 1)
     {
-        int singerId = index.sibling(index.row(),0).data().toInt();
+        int singerId = index.sibling(index.row(),RotationModel::dbRotation_Singerid).data().toInt();
         activateSinger(singerId);
     }
 
 }
 void MainWindow::on_tableViewRotation_doubleClicked(const QModelIndex &index)
 {
-    int singerId = index.sibling(index.row(),0).data().toInt();
+    int singerId = index.sibling(index.row(),RotationModel::dbRotation_Singerid).data().toInt();
     activateSinger(singerId);
 }
 
@@ -913,7 +917,7 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
                 return;
             }
         }
-        int singerId = index.sibling(index.row(),0).data().toInt();
+        int singerId = index.sibling(index.row(),RotationModel::dbRotation_Singerid).data().toInt();
         qModel->setSinger(-1);
         if (rotModel->currentSinger() == singerId)
         {
@@ -928,13 +932,13 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
     }
     if (index.column() == 3)
     {
-        if (!rotModel->singerIsRegular(index.sibling(index.row(),0).data().toInt()))
+        if (!rotModel->singerIsRegular(index.sibling(index.row(),RotationModel::dbRotation_Singerid).data().toInt()))
         {
-            QString name = index.sibling(index.row(),1).data().toString();
+            QString name = index.sibling(index.row(),RotationModel::dbRotation_Name).data().toString();
             if (rotModel->regularExists(name))
                 QMessageBox::warning(this, "Naming conflict!","A regular singer named " + name + " already exists. You must either rename or delete the existing regular singer, or rename the singer being saved as a regular. The operation has been cancelled.",QMessageBox::Ok);
             else
-                rotModel->singerMakeRegular(index.sibling(index.row(),0).data().toInt());
+                rotModel->singerMakeRegular(index.sibling(index.row(),RotationModel::dbRotation_Singerid).data().toInt());
         }
         else
         {
@@ -946,12 +950,12 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
             msgBox.exec();
             if (msgBox.clickedButton() == yesButton)
             {
-                rotModel->singerDisableRegularTracking(index.sibling(index.row(),0).data().toInt());
+                rotModel->singerDisableRegularTracking(index.sibling(index.row(),RotationModel::dbRotation_Singerid).data().toInt());
             }
         }
     }
-    qModel->setSinger(index.sibling(index.row(),0).data().toInt());
-    ui->gbxQueue->setTitle(QString("Song Queue - " + rotModel->getSingerName(index.sibling(index.row(),0).data().toInt())));
+    qModel->setSinger(index.sibling(index.row(),RotationModel::dbRotation_Singerid).data().toInt());
+    ui->gbxQueue->setTitle(QString("Song Queue - " + rotModel->getSingerName(index.sibling(index.row(),RotationModel::dbRotation_Singerid).data().toInt())));
 }
 
 void MainWindow::on_tableViewQueue_doubleClicked(const QModelIndex &index)
@@ -961,9 +965,9 @@ void MainWindow::on_tableViewQueue_doubleClicked(const QModelIndex &index)
 
 void MainWindow::playSongAtIndex(const QModelIndex &index)
 {
-    curSinger = rotModel->getSingerName(index.sibling(index.row(),1).data().toInt());
-    curArtist = index.sibling(index.row(),3).data().toString();
-    curTitle = index.sibling(index.row(),4).data().toString();
+    curSinger = rotModel->getSingerName(index.sibling(index.row(),QueueModel::dbQueue_Singer).data().toInt());
+    curArtist = index.sibling(index.row(),QueueModel::dbQueue_Artist).data().toString();
+    curTitle = index.sibling(index.row(),QueueModel::dbQueue_Title).data().toString();
 
     if (curTitle == "")
         return;
@@ -975,11 +979,12 @@ void MainWindow::playSongAtIndex(const QModelIndex &index)
     ui->labelSinger->setText(curSinger);
     ui->labelArtist->setText(curArtist);
     ui->labelTitle->setText(curTitle);
-    rotModel->setCurrentSinger(index.sibling(index.row(),1).data().toInt());
-    rotDelegate->setCurrentSinger(index.sibling(index.row(),1).data().toInt());
-    play(index.sibling(index.row(), 6).data().toString(), k2kTransition);
-    kAudioBackend->setPitchShift(index.sibling(index.row(),7).data().toInt());
-    qModel->songSetPlayed(index.sibling(index.row(),0).data().toInt());
+    int singer = index.sibling(index.row(),QueueModel::dbQueue_Singer).data().toInt();
+    rotModel->setCurrentSinger(singer);
+    rotDelegate->setCurrentSinger(singer);
+    play(index.sibling(index.row(), QueueModel::dbQueue_Path).data().toString(), k2kTransition);
+    kAudioBackend->setPitchShift(index.sibling(index.row(),QueueModel::dbQueue_Keychg).data().toInt());
+    qModel->songSetPlayed(index.sibling(index.row(),QueueModel::dbQueue_Qsongid).data().toInt());
 }
 
 void MainWindow::on_actionManage_DB_triggered()
@@ -1385,7 +1390,7 @@ void MainWindow::on_tableViewDB_customContextMenuRequested(const QPoint &pos)
     if (index.isValid())
     {
         m_rtClickIndex = index;
-        dbRtClickFile = index.sibling(index.row(), 5).data().toString();
+        dbRtClickFile = index.sibling(index.row(), DbTableModel::dbSong_Path).data().toString();
         QMenu contextMenu(this);
         contextMenu.addAction("Preview", this, SLOT(previewCdg()));
         contextMenu.addAction("Add to queue", this, SLOT(addSongToQueue()));
@@ -1401,7 +1406,7 @@ void MainWindow::on_tableViewRotation_customContextMenuRequested(const QPoint &p
     QModelIndex index = ui->tableViewRotation->indexAt(pos);
     if (index.isValid())
     {
-           m_rtClickRotationSingerId = index.sibling(index.row(),0).data().toInt();
+           m_rtClickRotationSingerId = index.sibling(index.row(),RotationModel::dbRotation_Singerid).data().toInt();
            QMenu contextMenu(this);
            contextMenu.addAction("Rename", this, SLOT(renameSinger()));
            contextMenu.exec(QCursor::pos());
@@ -1441,8 +1446,8 @@ void MainWindow::on_tableViewQueue_customContextMenuRequested(const QPoint &pos)
         if (index.isValid())
         {
             m_rtClickIndex = index;
-            dbRtClickFile = index.sibling(index.row(), 6).data().toString();
-            m_rtClickQueueSongId = index.sibling(index.row(), 0).data().toInt();
+            dbRtClickFile = index.sibling(index.row(), QueueModel::dbQueue_Path).data().toString();
+            m_rtClickQueueSongId = index.sibling(index.row(), QueueModel::dbQueue_Qsongid).data().toInt();
             dlgKeyChange->setActiveSong(m_rtClickQueueSongId);
             QMenu contextMenu(this);
             contextMenu.addAction("Preview", this, SLOT(previewCdg()));
@@ -1716,7 +1721,7 @@ void MainWindow::addSongToQueue()
 {
     if (qModel->singer() >= 0)
     {
-        qModel->songAdd(m_rtClickIndex.sibling(m_rtClickIndex.row(),0).data().toInt());
+        qModel->songAdd(m_rtClickIndex.sibling(m_rtClickIndex.row(),QueueModel::dbQueue_Qsongid).data().toInt());
     }
     else
     {
@@ -1905,17 +1910,17 @@ void MainWindow::bmDbUpdated()
     bmDbModel->refreshCache();
     bmDbModel->select();
     ui->comboBoxBmPlaylists->setCurrentIndex(0);
-    ui->tableViewBmDb->setColumnHidden(0, true);
-    ui->tableViewBmDb->setColumnHidden(3, true);
-    ui->tableViewBmDb->setColumnHidden(6, true);
-    ui->tableViewBmDb->setColumnHidden(4, !settings->bmShowFilenames());
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(4, 100);
-    ui->tableViewBmDb->setColumnHidden(1, !settings->bmShowMetadata());
-    ui->tableViewBmDb->setColumnHidden(2, !settings->bmShowMetadata());
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(1, 100);
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(2, 100);
-    ui->tableViewBmDb->horizontalHeader()->setSectionResizeMode(5, QHeaderView::Fixed);
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(5,75);
+    ui->tableViewBmDb->setColumnHidden(BmDbTableModel::dbBmDb_Songid, true);
+    ui->tableViewBmDb->setColumnHidden(BmDbTableModel::dbBmDb_Path, true);
+    ui->tableViewBmDb->setColumnHidden(BmDbTableModel::dbBmDb_Searchstring, true);
+    ui->tableViewBmDb->setColumnHidden(BmDbTableModel::dbBmDb_Filename, !settings->bmShowFilenames());
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(BmDbTableModel::dbBmDb_Filename, 100);
+    ui->tableViewBmDb->setColumnHidden(BmDbTableModel::dbBmDb_Artist, !settings->bmShowMetadata());
+    ui->tableViewBmDb->setColumnHidden(BmDbTableModel::dbBmDb_Title, !settings->bmShowMetadata());
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(BmDbTableModel::dbBmDb_Artist, 100);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(BmDbTableModel::dbBmDb_Title, 100);
+    ui->tableViewBmDb->horizontalHeader()->setSectionResizeMode(BmDbTableModel::dbBmDb_Duration, QHeaderView::Fixed);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(BmDbTableModel::dbBmDb_Duration,75);
 }
 
 void MainWindow::bmDbCleared()
@@ -1924,29 +1929,29 @@ void MainWindow::bmDbCleared()
     bmDbModel->select();
     bmAddPlaylist("Default");
     ui->comboBoxBmPlaylists->setCurrentIndex(0);
-    ui->tableViewBmDb->setColumnHidden(0, true);
-    ui->tableViewBmDb->setColumnHidden(3, true);
-    ui->tableViewBmDb->setColumnHidden(6, true);
-    ui->tableViewBmDb->horizontalHeader()->setSectionResizeMode(5, QHeaderView::Fixed);
-    ui->tableViewBmDb->setColumnHidden(4, !settings->bmShowFilenames());
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(4, 100);
-    ui->tableViewBmDb->setColumnHidden(1, !settings->bmShowMetadata());
-    ui->tableViewBmDb->setColumnHidden(2, !settings->bmShowMetadata());
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(1, 100);
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(2, 100);
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(5,75);
+    ui->tableViewBmDb->setColumnHidden(BmDbTableModel::dbBmDb_Songid, true);
+    ui->tableViewBmDb->setColumnHidden(BmDbTableModel::dbBmDb_Path, true);
+    ui->tableViewBmDb->setColumnHidden(BmDbTableModel::dbBmDb_Searchstring, true);
+    ui->tableViewBmDb->horizontalHeader()->setSectionResizeMode(BmDbTableModel::dbBmDb_Duration, QHeaderView::Fixed);
+    ui->tableViewBmDb->setColumnHidden(BmDbTableModel::dbBmDb_Filename, !settings->bmShowFilenames());
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(BmDbTableModel::dbBmDb_Filename, 100);
+    ui->tableViewBmDb->setColumnHidden(BmDbTableModel::dbBmDb_Artist, !settings->bmShowMetadata());
+    ui->tableViewBmDb->setColumnHidden(BmDbTableModel::dbBmDb_Title, !settings->bmShowMetadata());
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(BmDbTableModel::dbBmDb_Artist, 100);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(BmDbTableModel::dbBmDb_Title, 100);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(BmDbTableModel::dbBmDb_Duration,75);
 }
 
 void MainWindow::bmShowMetadata(bool checked)
 {
-    ui->tableViewBmDb->setColumnHidden(1, !checked);
-    ui->tableViewBmDb->setColumnHidden(2, !checked);
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(1, 100);
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(2, 100);
-    ui->tableViewBmPlaylist->setColumnHidden(3, !checked);
-    ui->tableViewBmPlaylist->setColumnHidden(4, !checked);
-    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(3, 100);
-    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(4, 100);
+    ui->tableViewBmDb->setColumnHidden(BmDbTableModel::dbBmDb_Artist, !checked);
+    ui->tableViewBmDb->setColumnHidden(BmDbTableModel::dbBmDb_Title, !checked);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(BmDbTableModel::dbBmDb_Artist, 100);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(BmDbTableModel::dbBmDb_Title, 100);
+    ui->tableViewBmPlaylist->setColumnHidden(BmPlTableModel::dbBmPl_Artist, !checked);
+    ui->tableViewBmPlaylist->setColumnHidden(BmPlTableModel::dbBmPl_Title, !checked);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(BmPlTableModel::dbBmPl_Artist, 100);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(BmPlTableModel::dbBmPl_Title, 100);
     settings->bmSetShowMetadata(checked);
 }
 
@@ -1955,8 +1960,8 @@ void MainWindow::bmShowFilenames(bool checked)
 {
     ui->tableViewBmDb->setColumnHidden(4, !checked);
     ui->tableViewBmDb->horizontalHeader()->resizeSection(4, 100);
-    ui->tableViewBmPlaylist->setColumnHidden(5, !checked);
-    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(5, 100);
+    ui->tableViewBmPlaylist->setColumnHidden(BmPlTableModel::dbBmPl_Filename, !checked);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(BmPlTableModel::dbBmPl_Filename, 100);
     settings->bmSetShowFilenames(checked);
 }
 
@@ -1984,15 +1989,22 @@ void MainWindow::bmMediaStateChanged(AbstractAudioBackend::State newState)
             else
                 bmCurrentPosition = 0;
             bmAudioBackend->stop(true);
-            QString path = bmPlModel->index(bmCurrentPosition, 7).data().toString();
-            QString song = bmPlModel->index(bmCurrentPosition, 3).data().toString() + " - " + bmPlModel->index(bmCurrentPosition, 4).data().toString();
+            QString path = bmPlModel->index(bmCurrentPosition, BmPlTableModel::dbBmPl_Path).data().toString();
+            QString song = bmPlModel->index(bmCurrentPosition, BmPlTableModel::dbBmPl_Artist).data().toString() + " - "
+                + bmPlModel->index(bmCurrentPosition, BmPlTableModel::dbBmPl_Title).data().toString();
             QString nextSong;
             if (!ui->checkBoxBmBreak->isChecked())
             {
-            if (bmCurrentPosition == bmPlModel->rowCount() - 1)
-                nextSong = bmPlModel->index(0, 3).data().toString() + " - " + bmPlModel->index(0, 4).data().toString();
-            else
-                nextSong = bmPlModel->index(bmCurrentPosition + 1, 3).data().toString() + " - " + bmPlModel->index(bmCurrentPosition + 1, 4).data().toString();
+                if (bmCurrentPosition == bmPlModel->rowCount() - 1)
+                {
+                    nextSong = bmPlModel->index(0, BmPlTableModel::dbBmPl_Artist).data().toString() + " - "
+                        + bmPlModel->index(0, BmPlTableModel::dbBmPl_Title).data().toString();
+                }
+                else
+                {
+                    nextSong = bmPlModel->index(bmCurrentPosition + 1, BmPlTableModel::dbBmPl_Artist).data().toString() +
+                        " - " + bmPlModel->index(bmCurrentPosition + 1, BmPlTableModel::dbBmPl_Title).data().toString();
+                }
             }
             else
                 nextSong = "None - Breaking after current song";
@@ -2086,9 +2098,16 @@ void MainWindow::on_checkBoxBmBreak_toggled(bool checked)
     if (!checked)
     {
         if (bmCurrentPosition == bmPlModel->rowCount() - 1)
-            nextSong = bmPlModel->index(0, 3).data().toString() + " - " + bmPlModel->index(0, 4).data().toString();
+        {
+            nextSong = bmPlModel->index(0, BmPlTableModel::dbBmPl_Artist).data().toString() + " - " +
+                bmPlModel->index(0, BmPlTableModel::dbBmPl_Title).data().toString();
+        }
         else
-            nextSong = bmPlModel->index(bmCurrentPosition + 1, 3).data().toString() + " - " + bmPlModel->index(bmCurrentPosition + 1, 4).data().toString();
+        {
+            nextSong = bmPlModel->index(bmCurrentPosition + 1,
+                    BmPlTableModel::dbBmPl_Artist).data().toString() + " - " +
+                    bmPlModel->index(bmCurrentPosition + 1, BmPlTableModel::dbBmPl_Title).data().toString();
+        }
     }
     else
         nextSong = "None - Stopping after current song";
@@ -2097,7 +2116,7 @@ void MainWindow::on_checkBoxBmBreak_toggled(bool checked)
 
 void MainWindow::on_tableViewBmDb_doubleClicked(const QModelIndex &index)
 {
-    int songId = index.sibling(index.row(), 0).data().toInt();
+    int songId = index.sibling(index.row(), BmDbTableModel::dbBmDb_Songid).data().toInt();
     bmPlModel->addSong(songId);
 }
 
@@ -2116,15 +2135,22 @@ void MainWindow::on_tableViewBmPlaylist_doubleClicked(const QModelIndex &index)
     if (bmAudioBackend->state() == AbstractAudioBackend::PlayingState)
         bmAudioBackend->stop(false);
     bmCurrentPosition = index.row();
-    QString path = index.sibling(index.row(), 7).data().toString();
-    QString song = index.sibling(index.row(), 3).data().toString() + " - " + index.sibling(index.row(), 4).data().toString();
+    QString path = index.sibling(index.row(), BmPlTableModel::dbBmPl_Path).data().toString();
+    QString song = index.sibling(index.row(), BmPlTableModel::dbBmPl_Artist).data().toString() + " - " +
+        index.sibling(index.row(), BmPlTableModel::dbBmPl_Title).data().toString();
     QString nextSong;
     if (!ui->checkBoxBmBreak->isChecked())
     {
         if (bmCurrentPosition == bmPlModel->rowCount() - 1)
-            nextSong = bmPlModel->index(0, 3).data().toString() + " - " + bmPlModel->index(0, 4).data().toString();
+        {
+            nextSong = bmPlModel->index(0, BmPlTableModel::dbBmPl_Artist).data().toString() + " - " +
+                bmPlModel->index(0, BmPlTableModel::dbBmPl_Title).data().toString();
+        }
         else
-            nextSong = bmPlModel->index(bmCurrentPosition + 1, 3).data().toString() + " - " + bmPlModel->index(bmCurrentPosition + 1, 4).data().toString();
+        {
+            nextSong = bmPlModel->index(bmCurrentPosition + 1, BmPlTableModel::dbBmPl_Artist).data().toString() + " - " +
+                bmPlModel->index(bmCurrentPosition + 1, BmPlTableModel::dbBmPl_Title).data().toString();
+        }
     }
     else
         nextSong = "None - Breaking after current song";
@@ -2148,7 +2174,7 @@ bool MainWindow::bmPlaylistExists(QString name)
 {
     for (int i=0; i < bmPlaylistsModel->rowCount(); i++)
     {
-        if (bmPlaylistsModel->index(i,1).data().toString().toLower() == name.toLower())
+        if (bmPlaylistsModel->index(i,BmPlTableModel::dbBmPl_Playlist).data().toString().toLower() == name.toLower())
             return true;
     }
     return false;
@@ -2164,18 +2190,18 @@ void MainWindow::refreshSongDbCache()
 
 void MainWindow::on_actionDisplay_Metadata_toggled(bool arg1)
 {
-    ui->tableViewBmDb->setColumnHidden(1, !arg1);
-    ui->tableViewBmDb->setColumnHidden(2, !arg1);
-    ui->tableViewBmPlaylist->setColumnHidden(3, !arg1);
-    ui->tableViewBmPlaylist->setColumnHidden(4, !arg1);
+    ui->tableViewBmDb->setColumnHidden(BmDbTableModel::dbBmDb_Artist, !arg1);
+    ui->tableViewBmDb->setColumnHidden(BmDbTableModel::dbBmDb_Title, !arg1);
+    ui->tableViewBmPlaylist->setColumnHidden(BmPlTableModel::dbBmPl_Artist, !arg1);
+    ui->tableViewBmPlaylist->setColumnHidden(BmPlTableModel::dbBmPl_Title, !arg1);
     settings->bmSetShowMetadata(arg1);
     autosizeBmViews();
 }
 
 void MainWindow::on_actionDisplay_Filenames_toggled(bool arg1)
 {
-    ui->tableViewBmDb->setColumnHidden(4, !arg1);
-    ui->tableViewBmPlaylist->setColumnHidden(5, !arg1);
+    ui->tableViewBmDb->setColumnHidden(BmDbTableModel::dbBmDb_Filename, !arg1);
+    ui->tableViewBmPlaylist->setColumnHidden(BmPlTableModel::dbBmPl_Filename, !arg1);
     settings->bmSetShowFilenames(arg1);
     autosizeBmViews();
 }
@@ -2230,7 +2256,7 @@ void MainWindow::on_actionPlaylistImport_triggered()
                     bmPlaylistsModel->submitAll();
                     bmPlaylistsModel->select();
                     ui->comboBoxBmPlaylists->setCurrentIndex(index.row());
-                    bmPlModel->setCurrentPlaylist(bmPlaylistsModel->index(index.row(),0).data().toInt());
+                    bmPlModel->setCurrentPlaylist(bmPlaylistsModel->index(index.row(),BmPlTableModel::dbBmPl_Plsongid).data().toInt());
 
                 }
             }
@@ -2289,7 +2315,7 @@ void MainWindow::on_actionPlaylistExport_triggered()
         QTextStream out(&file);
         for (int i=0; i < bmPlModel->rowCount(); i++)
         {
-            out << bmPlModel->index(i, 7).data().toString() << "\n";
+            out << bmPlModel->index(i, BmPlTableModel::dbBmPl_Path).data().toString() << "\n";
         }
     }
 }
@@ -2313,7 +2339,7 @@ void MainWindow::on_actionPlaylistDelete_triggered()
             bmAddPlaylist("Default");
         }
         ui->comboBoxBmPlaylists->setCurrentIndex(0);
-        bmPlModel->setCurrentPlaylist(bmPlaylistsModel->index(0,0).data().toInt());
+        bmPlModel->setCurrentPlaylist(bmPlaylistsModel->index(0,BmPlTableModel::dbBmPl_Plsongid).data().toInt());
     }
 }
 
@@ -2383,9 +2409,9 @@ void MainWindow::setMultiPlayed()
     QModelIndex index;
 
     foreach(index, indexes) {
-        if (index.column() == 0)
+        if (index.column() == QueueModel::dbQueue_Qsongid)
         {
-            int queueId = index.sibling(index.row(), 0).data().toInt();
+            int queueId = index.sibling(index.row(), QueueModel::dbQueue_Qsongid).data().toInt();
             qWarning() << "Selected row: " << index.row() << " queueId: " << queueId;
             qModel->songSetPlayed(queueId);
         }
@@ -2398,9 +2424,9 @@ void MainWindow::setMultiUnplayed()
     QModelIndex index;
 
     foreach(index, indexes) {
-        if (index.column() == 0)
+        if (index.column() == QueueModel::dbQueue_Qsongid)
         {
-            int queueId = index.sibling(index.row(), 0).data().toInt();
+            int queueId = index.sibling(index.row(), QueueModel::dbQueue_Qsongid).data().toInt();
             qWarning() << "Selected row: " << index.row() << " queueId: " << queueId;
             qModel->songSetPlayed(queueId,false);
         }
@@ -2619,33 +2645,33 @@ void MainWindow::autosizeViews()
     int remainingSpace = ui->tableViewDB->width() - durationColSize - songidColSize;
     int artistColSize = (remainingSpace / 2) - 120;
     int titleColSize = (remainingSpace / 2) + 100;
-    ui->tableViewDB->horizontalHeader()->resizeSection(1, artistColSize);
-    ui->tableViewDB->horizontalHeader()->resizeSection(2, titleColSize);
-    ui->tableViewDB->horizontalHeader()->resizeSection(4, durationColSize);
-    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Fixed);
-    ui->tableViewDB->horizontalHeader()->resizeSection(3, songidColSize);
+    ui->tableViewDB->horizontalHeader()->resizeSection(DbTableModel::dbSong_Artist, artistColSize);
+    ui->tableViewDB->horizontalHeader()->resizeSection(DbTableModel::dbSong_Title, titleColSize);
+    ui->tableViewDB->horizontalHeader()->resizeSection(DbTableModel::dbSong_Duration, durationColSize);
+    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(DbTableModel::dbSong_Duration, QHeaderView::Fixed);
+    ui->tableViewDB->horizontalHeader()->resizeSection(DbTableModel::dbSong_DiscId, songidColSize);
 
     int iconWidth = fH + fH;
     int singerColSize = ui->tableViewRotation->width() - (iconWidth * 3) - 5;
-    ui->tableViewRotation->horizontalHeader()->resizeSection(0, iconWidth);
-    ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
-    ui->tableViewRotation->horizontalHeader()->resizeSection(1, singerColSize);
-    ui->tableViewRotation->horizontalHeader()->resizeSection(3, iconWidth);
-    ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Fixed);
-    ui->tableViewRotation->horizontalHeader()->resizeSection(4, iconWidth);
-    ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Fixed);
+    ui->tableViewRotation->horizontalHeader()->resizeSection(RotationModel::dbRotation_Singerid, iconWidth);
+    ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(RotationModel::dbRotation_Singerid, QHeaderView::Fixed);
+    ui->tableViewRotation->horizontalHeader()->resizeSection(RotationModel::dbRotation_Name, singerColSize);
+    ui->tableViewRotation->horizontalHeader()->resizeSection(RotationModel::dbRotation_Regular, iconWidth);
+    ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(RotationModel::dbRotation_Regular, QHeaderView::Fixed);
+    ui->tableViewRotation->horizontalHeader()->resizeSection(RotationModel::dbRotation_Regularid, iconWidth);
+    ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(RotationModel::dbRotation_Regularid, QHeaderView::Fixed);
 
     int keyColSize = QFontMetrics(settings->applicationFont()).width("Key") + iconWidth;
     remainingSpace = ui->tableViewQueue->width() - iconWidth - keyColSize - songidColSize - 16;
     artistColSize = (remainingSpace / 2);
     titleColSize = (remainingSpace / 2);
-    ui->tableViewQueue->horizontalHeader()->resizeSection(3, artistColSize);
-    ui->tableViewQueue->horizontalHeader()->resizeSection(4, titleColSize);
-    ui->tableViewQueue->horizontalHeader()->resizeSection(5, songidColSize);
-    ui->tableViewQueue->horizontalHeader()->resizeSection(8, iconWidth);
-    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(8, QHeaderView::Fixed);
-    ui->tableViewQueue->horizontalHeader()->resizeSection(7, keyColSize);
-    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(7, QHeaderView::Fixed);
+    ui->tableViewQueue->horizontalHeader()->resizeSection(QueueModel::dbQueue_Artist, artistColSize);
+    ui->tableViewQueue->horizontalHeader()->resizeSection(QueueModel::dbQueue_Title, titleColSize);
+    ui->tableViewQueue->horizontalHeader()->resizeSection(QueueModel::dbQueue_Discid, songidColSize);
+    ui->tableViewQueue->horizontalHeader()->resizeSection(QueueModel::dbQueue_Played, iconWidth);
+    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(QueueModel::dbQueue_Played, QHeaderView::Fixed);
+    ui->tableViewQueue->horizontalHeader()->resizeSection(QueueModel::dbQueue_Keychg, keyColSize);
+    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(QueueModel::dbQueue_Keychg, QHeaderView::Fixed);
 
 
 }
@@ -2678,11 +2704,11 @@ void MainWindow::autosizeBmViews()
     {
         fnameColSize = remainingSpace;
     }
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(1, artistColSize);
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(2, titleColSize);
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(4, fnameColSize);
-    ui->tableViewBmDb->horizontalHeader()->setSectionResizeMode(5, QHeaderView::Fixed);
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(5, durationColSize);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(BmDbTableModel::dbBmDb_Artist, artistColSize);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(BmDbTableModel::dbBmDb_Title, titleColSize);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(BmDbTableModel::dbBmDb_Filename, fnameColSize);
+    ui->tableViewBmDb->horizontalHeader()->setSectionResizeMode(BmDbTableModel::dbBmDb_Duration, QHeaderView::Fixed);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(BmDbTableModel::dbBmDb_Duration, durationColSize);
 
     remainingSpace = ui->tableViewBmPlaylist->width() - durationColSize - (iconWidth * 2) - 5;
     //5=filename  6=Duration 3=artist 4=title
@@ -2701,14 +2727,14 @@ void MainWindow::autosizeBmViews()
     {
         fnameColSize = remainingSpace;
     }
-    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(3, artistColSize);
-    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(4, titleColSize);
-    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(5, fnameColSize);
-    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(6, durationColSize);
-    ui->tableViewBmPlaylist->horizontalHeader()->setSectionResizeMode(2,QHeaderView::Fixed);
-    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(2, iconWidth);
-    ui->tableViewBmPlaylist->horizontalHeader()->setSectionResizeMode(7, QHeaderView::Fixed);
-    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(7, iconWidth);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(BmPlTableModel::dbBmPl_Artist, artistColSize);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(BmPlTableModel::dbBmPl_Title, titleColSize);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(BmPlTableModel::dbBmPl_Filename, fnameColSize);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(BmPlTableModel::dbBmPl_Duration, durationColSize);
+    ui->tableViewBmPlaylist->horizontalHeader()->setSectionResizeMode(BmPlTableModel::dbBmPl_Position,QHeaderView::Fixed);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(BmPlTableModel::dbBmPl_Position, iconWidth);
+    ui->tableViewBmPlaylist->horizontalHeader()->setSectionResizeMode(BmPlTableModel::dbBmPl_Path, QHeaderView::Fixed);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(BmPlTableModel::dbBmPl_Path, iconWidth);
 }
 
 

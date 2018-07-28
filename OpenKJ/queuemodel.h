@@ -35,6 +35,18 @@ private:
 
 public:
     explicit QueueModel(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
+    enum {
+	 dbQueue_Qsongid = 0,
+	 dbQueue_Singer = 1,
+	 dbQueue_Song = 2,
+	 dbQueue_Artist = 3,
+	 dbQueue_Title = 4,
+	 dbQueue_Discid = 5,
+	 dbQueue_Path = 6,
+	 dbQueue_Keychg = 7,
+	 dbQueue_Played = 8,
+	 dbQueue_Position = 9
+	};
     void setSinger(int singerId);
     int singer();
     int getSongPosition(int songId);

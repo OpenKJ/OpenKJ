@@ -33,6 +33,16 @@ private:
 
 public:
     explicit BmPlTableModel(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
+    enum {
+	dbBmPl_Plsongid = 0,
+	dbBmPl_Playlist = 1,
+	dbBmPl_Position = 2,
+	dbBmPl_Artist = 3,
+	dbBmPl_Title = 4,
+	dbBmPl_Filename = 5,
+	dbBmPl_Duration = 6,
+	dbBmPl_Path = 7
+    };
     void moveSong(int oldPosition, int newPosition);
     void addSong(int songId);
     void insertSong(int songId, int position);
