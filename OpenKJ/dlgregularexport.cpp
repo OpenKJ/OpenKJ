@@ -70,17 +70,17 @@ void DlgRegularExport::on_pushButtonExport_clicked()
     {
         QString defaultFilePath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QDir::separator() + "KhRegularSingersExport.xml";
         qDebug() << "Default save location: " << defaultFilePath;
-        QString saveFilePath = QFileDialog::getSaveFileName(this,tr("Select file to save regulars to"), defaultFilePath, tr("(*.xml)"));
+        QString saveFilePath = QFileDialog::getSaveFileName(this,tr("Select file to save regulars to"), defaultFilePath, "(*.xml)");
         if (saveFilePath != "")
         {
             QMessageBox *msgBox = new QMessageBox(this);
             msgBox->setStandardButtons(0);
-            msgBox->setText("Exporting regular singers, please wait...");
+            msgBox->setText(tr("Exporting regular singers, please wait..."));
             msgBox->show();
             exportSingers(selRegs, saveFilePath);
             msgBox->close();
             delete msgBox;
-            QMessageBox::information(this, "Export complete", "Regular singer export complete.");
+            QMessageBox::information(this, tr("Export complete"), tr("Regular singer export complete."));
             ui->tableViewRegulars->clearSelection();
         }
     }
@@ -99,17 +99,17 @@ void DlgRegularExport::on_pushButtonExportAll_clicked()
     {
         QString defaultFilePath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QDir::separator() + "KhRegularSingersExport.xml";
         qDebug() << "Default save location: " << defaultFilePath;
-        QString saveFilePath = QFileDialog::getSaveFileName(this,tr("Select file to save regulars to"), defaultFilePath, tr("(*.xml)"));
+        QString saveFilePath = QFileDialog::getSaveFileName(this,tr("Select file to save regulars to"), defaultFilePath, "(*.xml)");
         if (saveFilePath != "")
         {
             QMessageBox *msgBox = new QMessageBox(this);
             msgBox->setStandardButtons(0);
-            msgBox->setText("Exporting regular singers, please wait...");
+            msgBox->setText(tr("Exporting regular singers, please wait..."));
             msgBox->show();
             exportSingers(selRegs, saveFilePath);
             msgBox->close();
             delete msgBox;
-            QMessageBox::information(this, "Export complete", "Regular singer export complete.");
+            QMessageBox::information(this, tr("Export complete"), tr("Regular singer export complete."));
             ui->tableViewRegulars->clearSelection();
         }
     }

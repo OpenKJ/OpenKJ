@@ -56,9 +56,9 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     ui->lineEditSingerName->setEnabled(false);
     ui->labelAddPos->setEnabled(false);
     QStringList posOptions;
-    posOptions << "After current singer";
-    posOptions << "Fair (full rotation)";
-    posOptions << "Bottom of rotation";
+    posOptions << tr("After current singer");
+    posOptions << tr("Fair (full rotation)");
+    posOptions << tr("Bottom of rotation");
     ui->comboBoxAddPosition->addItems(posOptions);
     ui->comboBoxAddPosition->setCurrentIndex(1);
     ui->tableViewSearch->hideColumn(0);
@@ -243,9 +243,9 @@ void DlgRequests::on_pushButtonAddSong_clicked()
             if (rotModel->currentSinger() != -1)
             {
                 int curSingerPos = rotModel->getSingerPosition(rotModel->currentSinger());
-                if (ui->comboBoxAddPosition->currentText() == "After current singer")
+                if (ui->comboBoxAddPosition->currentIndex() == 0)
                     rotModel->singerMove(rotModel->rowCount() -1, curSingerPos + 1);
-                else if ((ui->comboBoxAddPosition->currentText() == "Fair (full rotation)") && (curSingerPos != 0))
+                else if ((ui->comboBoxAddPosition->currentIndex() == 1) && (curSingerPos != 0))
                     rotModel->singerMove(rotModel->rowCount() -1, curSingerPos);
             }
             emit addRequestSong(songid, rotModel->getSingerId(ui->lineEditSingerName->text()));
@@ -274,7 +274,7 @@ void DlgRequests::on_tableViewSearch_customContextMenuRequested(const QPoint &po
     {
         rtClickFile = index.sibling(index.row(),5).data().toString();
         QMenu contextMenu(this);
-        contextMenu.addAction("Preview", this, SLOT(previewCdg()));
+        contextMenu.addAction(tr("Preview"), this, SLOT(previewCdg()));
         contextMenu.exec(QCursor::pos());
     }
 }
@@ -292,12 +292,12 @@ void DlgRequests::on_buttonRefresh_clicked()
 
 void DlgRequests::sslError()
 {
-    QMessageBox::warning(this, "SSL Handshake Error", "An error was encountered while establishing a secure connection to the requests server.  This is usually caused by an invalid or self-signed cert on the server.  You can set the requests client to ignore SSL errors in the network settings dialog.");
+    QMessageBox::warning(this, tr("SSL Handshake Error"), tr("An error was encountered while establishing a secure connection to the requests server.  This is usually caused by an invalid or self-signed cert on the server.  You can set the requests client to ignore SSL errors in the network settings dialog."));
 }
 
 void DlgRequests::delayError(int seconds)
 {
-    QMessageBox::warning(this, "Possible Connectivity Issue", "It has been " + QString::number(seconds) + " seconds since we last received a response from the requests server.  You may be missing new submitted requests.  Please ensure that your network connection is up and working.");
+    QMessageBox::warning(this, tr("Possible Connectivity Issue"), tr("It has been ") + QString::number(seconds) + tr(" seconds since we last received a response from the requests server.  You may be missing new submitted requests.  Please ensure that your network connection is up and working."));
 }
 
 void DlgRequests::on_checkBoxAccepting_clicked(bool checked)
@@ -326,8 +326,8 @@ void DlgRequests::venuesChanged(OkjsVenues venues)
 void DlgRequests::on_pushButtonUpdateDb_clicked()
 {
     QMessageBox msgBox;
-    msgBox.setText("Are you sure?");
-    msgBox.setInformativeText("This operation can take serveral minutes depending on the size of your song database and the speed of your internet connection.");
+    msgBox.setText(tr("Are you sure?"));
+    msgBox.setInformativeText(tr("This operation can take serveral minutes depending on the size of your song database and the speed of your internet connection."));
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Cancel);
     int ret = msgBox.exec();
@@ -338,7 +338,7 @@ void DlgRequests::on_pushButtonUpdateDb_clicked()
         progressDialog->setMinimum(0);
         progressDialog->setMaximum(20);
         progressDialog->setValue(0);
-        progressDialog->setLabelText("Updating request server song database");
+        progressDialog->setLabelText(tr("Updating request server song database"));
         progressDialog->show();
         QApplication::processEvents();
         connect(songbookApi, SIGNAL(remoteSongDbUpdateNumDocs(int)), progressDialog, SLOT(setMaximum(int)));
@@ -389,7 +389,7 @@ void DlgRequests::lineEditSearchEscapePressed()
 void DlgRequests::autoSizeViews()
 {
     int fH = QFontMetrics(settings->applicationFont()).height();
-    int durationColSize = QFontMetrics(settings->applicationFont()).width(" Duration ");
+    int durationColSize = QFontMetrics(settings->applicationFont()).width(tr(" Duration "));
     int songidColSize = QFontMetrics(settings->applicationFont()).width(" AA0000000-0000 ");
     int remainingSpace = ui->tableViewSearch->width() - durationColSize - songidColSize - 12;
     int artistColSize = (remainingSpace / 2) - 12;

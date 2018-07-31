@@ -82,7 +82,7 @@ void BmDbDialog::on_pushButtonUpdate_clicked()
         while (thread->isRunning())
             QApplication::processEvents();
         //msgBox->close();
-        QMessageBox::information(this, "Update Complete", "Database update complete.");
+        QMessageBox::information(this, tr("Update Complete"), tr("Database update complete."));
         dbUpdateDlg->hide();
         emit bmDbUpdated();
         delete(thread);
@@ -114,7 +114,7 @@ void BmDbDialog::on_pushButtonUpdateAll_clicked()
         delete(thread);
     }
     //msgBox->close();
-    QMessageBox::information(this, "Update Complete", "Database update complete.");
+    QMessageBox::information(this, tr("Update Complete"), tr("Database update complete."));
     dbUpdateDlg->hide();
     emit bmDbUpdated();
 }
@@ -127,8 +127,8 @@ void BmDbDialog::on_pushButtonClose_clicked()
 void BmDbDialog::on_pushButtonClearDb_clicked()
 {
     QMessageBox msgBox;
-    msgBox.setText("Are you sure?");
-    msgBox.setInformativeText("Clearing the database will also clear all playlists.  If you have not already done so, you may want to export your playlists before performing this operation.  This operation can not be undone.");
+    msgBox.setText(tr("Are you sure?"));
+    msgBox.setInformativeText(tr("Clearing the database will also clear all playlists.  If you have not already done so, you may want to export your playlists before performing this operation.  This operation can not be undone."));
     msgBox.setIcon(QMessageBox::Warning);
     msgBox.addButton(QMessageBox::Cancel);
     QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);

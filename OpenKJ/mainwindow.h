@@ -63,6 +63,8 @@
 #include "dlgaddsinger.h"
 #include "dlgsongshop.h"
 #include "songshop.h"
+#include "khdb.h"
+
 
 using namespace std;
 
@@ -145,6 +147,8 @@ private:
     QSharedMemory *_singular;
     bool kNeedAutoSize;
     bool bNeedAutoSize;
+    KhDb *db;
+
 
 public:
     explicit MainWindow(QWidget *parent = 0);

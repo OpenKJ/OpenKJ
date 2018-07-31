@@ -80,9 +80,9 @@ void DlgRegularSingers::on_tableViewRegulars_clicked(const QModelIndex &index)
             QMessageBox::warning(this, tr("Naming conflict"), tr("A rotation singer already exists with the same name as the regular you're attempting to add. Action aborted."), QMessageBox::Close);
             return;
         }
-        if ((ui->comboBoxAddPos->currentText() == "Next") && (rotModel->currentSinger() != -1))
+        if ((ui->comboBoxAddPos->currentIndex() == 2) && (rotModel->currentSinger() != -1))
             rotModel->regularLoad(index.sibling(index.row(), 0).data().toInt(), rotModel->ADD_NEXT);
-        else if ((ui->comboBoxAddPos->currentText() == "Fair") && (rotModel->currentSinger() != -1))
+        else if ((ui->comboBoxAddPos->currentIndex() == 0) && (rotModel->currentSinger() != -1))
             rotModel->regularLoad(index.sibling(index.row(), 0).data().toInt(), rotModel->ADD_FAIR);
         else
             rotModel->regularLoad(index.sibling(index.row(), 0).data().toInt(), rotModel->ADD_BOTTOM);
@@ -91,8 +91,8 @@ void DlgRegularSingers::on_tableViewRegulars_clicked(const QModelIndex &index)
     if (index.column() == 4)
     {
         QMessageBox msgBox(this);
-        msgBox.setText("Are you sure you want to delete this regular singer?");
-        msgBox.setInformativeText("This will completely remove the regular singer from the database and can not be undone.  Note that if the singer is already loaded they won't be deleted from the rotation but regular tracking will be disabled.");
+        msgBox.setText(tr("Are you sure you want to delete this regular singer?"));
+        msgBox.setInformativeText(tr("This will completely remove the regular singer from the database and can not be undone.  Note that if the singer is already loaded they won't be deleted from the rotation but regular tracking will be disabled."));
         QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
         msgBox.addButton(QMessageBox::Cancel);
         msgBox.exec();
@@ -111,7 +111,7 @@ void DlgRegularSingers::on_tableViewRegulars_customContextMenuRequested(const QP
     {
         m_rtClickRegSingerId = index.sibling(index.row(),0).data().toInt();
         QMenu contextMenu(this);
-        contextMenu.addAction("Rename", this, SLOT(renameRegSinger()));
+        contextMenu.addAction(tr("Rename"), this, SLOT(renameRegSinger()));
         contextMenu.exec(QCursor::pos());
     }
 }
@@ -125,7 +125,7 @@ void DlgRegularSingers::renameRegSinger()
 {
     bool ok;
     QString currentName = rotModel->getRegularName(m_rtClickRegSingerId);
-    QString name = QInputDialog::getText(this, "Rename regular singer", "New name:", QLineEdit::Normal, currentName, &ok);
+    QString name = QInputDialog::getText(this, tr("Rename regular singer"), tr("New name:"), QLineEdit::Normal, currentName, &ok);
     if (ok && !name.isEmpty())
     {
         if ((name.toLower() == currentName.toLower()) && (name != currentName))
@@ -135,7 +135,7 @@ void DlgRegularSingers::renameRegSinger()
         }
         else if (rotModel->regularExists(name))
         {
-            QMessageBox::warning(this, "Regular singer exists!","A regular singer named " + name + " already exists. Please choose a unique name and try again. The operation has been cancelled.",QMessageBox::Ok);
+            QMessageBox::warning(this, tr("Regular singer exists!"),tr("A regular singer named ") + name + tr(" already exists. Please choose a unique name and try again. The operation has been cancelled."),QMessageBox::Ok);
         }
         else
         {

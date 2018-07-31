@@ -117,8 +117,14 @@ QString DbTableModel::orderByClause() const
 
 QVariant DbTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
+    if (section == 1 && role == Qt::DisplayRole)
+        return tr("Artist");
+    if (section == 2 && role == Qt::DisplayRole)
+        return tr("Title");
     if (section == 3 && role == Qt::DisplayRole)
-        return "SongID";
+        return tr("SongID");
+    if (section == 4 && role == Qt::DisplayRole)
+        return tr("Duration");
     return QSqlTableModel::headerData(section, orientation, role);
 }
 

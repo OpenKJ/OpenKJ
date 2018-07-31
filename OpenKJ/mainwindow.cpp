@@ -32,7 +32,6 @@
 #include <QInputDialog>
 #include <QFileDialog>
 #include <QImageReader>
-#include "khdb.h"
 #include "okarchive.h"
 #include "tagreader.h"
 #include <QSvgRenderer>
@@ -43,7 +42,6 @@
 
 Settings *settings;
 OKJSongbookAPI *songbookApi;
-KhDb *db;
 
 QString MainWindow::GetRandomString() const
 {

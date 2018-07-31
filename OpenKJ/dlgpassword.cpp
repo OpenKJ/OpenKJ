@@ -40,8 +40,8 @@ void DlgPassword::on_pushButtonCancel_clicked()
 void DlgPassword::on_pushButtonReset_clicked()
 {
     QMessageBox msgBox;
-    msgBox.setWindowTitle("Clear password?");
-    msgBox.setText("Warning, this will erase all secured account and credit card data.");
+    msgBox.setWindowTitle(tr("Clear password?"));
+    msgBox.setText(tr("Warning, this will erase all secured account and credit card data."));
     if (msgBox.exec() == QDialog::Accepted)
     {
         Settings settings;

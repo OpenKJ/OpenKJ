@@ -52,6 +52,10 @@ public slots:
 protected:
     QString orderByClause() const;
 
+
+    // QAbstractItemModel interface
+public:
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 };
 
 #endif // SONGSTABLEMODEL_H

@@ -35,6 +35,10 @@ BmPlTableModel::BmPlTableModel(QObject *parent, QSqlDatabase db) :
     setRelation(6, QSqlRelation("bmsongs", "songid", "duration"));
     setRelation(7, QSqlRelation("bmsongs", "songid", "path"));
 
+    setHeaderData(3, Qt::Horizontal, tr("Artist"));
+    setHeaderData(4, Qt::Horizontal, tr("Title"));
+    setHeaderData(5, Qt::Horizontal, tr("Filename"));
+    setHeaderData(6, Qt::Horizontal, tr("Duration"));
     setHeaderData(2, Qt::Horizontal, "");
     setHeaderData(7, Qt::Horizontal, "");
     setSort(2, Qt::AscendingOrder);

@@ -16,9 +16,9 @@ DlgBookCreator::DlgBookCreator(QWidget *parent) :
     ui->setupUi(this);
     ui->cbxColumns->addItem("2", 2);
     ui->cbxColumns->addItem("3", 3);
-    ui->cbxPageSize->addItem("Letter", QPagedPaintDevice::Letter);
-    ui->cbxPageSize->addItem("Legal", QPagedPaintDevice::Legal);
-    ui->cbxPageSize->addItem("A4", QPagedPaintDevice::A4);
+    ui->cbxPageSize->addItem(tr("Letter"), QPagedPaintDevice::Letter);
+    ui->cbxPageSize->addItem(tr("Legal"), QPagedPaintDevice::Legal);
+    ui->cbxPageSize->addItem(tr("A4"), QPagedPaintDevice::A4);
     settings = new Settings(this);
     qWarning() << "Header font: " << settings->bookCreatorArtistFont().toString();
     qWarning() << "Item font:   " << settings->bookCreatorTitleFont().toString();
@@ -207,7 +207,7 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
                 painter.drawText(0, painter.viewport().height() - fFontHeight, painter.viewport().width(), painter.fontMetrics().height(), Qt::AlignCenter, settings->bookCreatorFooterText());
             if (settings->bookCreatorPageNumbering())
             {
-                QString pageStr = "Page " + QString::number(pages);
+                QString pageStr = tr("Page ") + QString::number(pages);
                 QRect txtRect = painter.fontMetrics().boundingRect(pageStr);
                 painter.drawText(painter.viewport().width() - txtRect.width() - 20, painter.viewport().height() - txtRect.height(), txtRect.width(), txtRect.height(), Qt::AlignRight, pageStr);
             }
@@ -232,7 +232,7 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
             if ((curDrawPos == (topOffset + headerOffset)) && (entries.at(0).at(0) == QString("+")))
             {
                 // We're at the top and it's not an artist entry, re-display artist
-                entry = "-" + lastArtist + " (cont'd)";
+                entry = "-" + lastArtist + tr(" (cont'd)");
             }
             else if ((curDrawPos + (2 * fontHeight) >= (painter.viewport().height() - bottomOffset)) && (entries.at(0).at(0) == QString("-")))
             {
@@ -268,7 +268,7 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
             if ((curDrawPos == (topOffset + headerOffset)) && (entries.at(0).at(0) == QString("+")))
             {
                 // We're at the top and it's not an artist entry, re-display artist
-                entry = "-" + lastArtist + " (cont'd)";
+                entry = "-" + lastArtist + tr(" (cont'd)");
             }
             else if ((curDrawPos + (2 * fontHeight) >= (painter.viewport().height() - bottomOffset)) && (entries.at(0).at(0) == QString("-")))
             {
@@ -305,7 +305,7 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
                 if ((curDrawPos == (topOffset + headerOffset)) && (entries.at(0).at(0) == QString("+")))
                 {
                     // We're at the top and it's not an artist entry, re-display artist
-                    entry = "-" + lastArtist + " (cont'd)";
+                    entry = "-" + lastArtist + tr(" (cont'd)");
                 }
                 else if ((curDrawPos + (2 * fontHeight) >= (painter.viewport().height() - bottomOffset)) && (entries.at(0).at(0) == QString("-")))
                 {
@@ -350,10 +350,10 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
 
 void DlgBookCreator::on_btnGenerate_clicked()
 {
-    QString defFn = "Songbook.pdf";
+    QString defFn = tr("Songbook.pdf");
     QString defaultFilePath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QDir::separator() + defFn;
     qDebug() << "Default save location: " << defaultFilePath;
-    QString saveFilePath = QFileDialog::getSaveFileName(this,tr("Select songbook filename"), defaultFilePath, tr("(*.pdf)"));
+    QString saveFilePath = QFileDialog::getSaveFileName(this,tr("Select songbook filename"), defaultFilePath, "(*.pdf)");
     if (saveFilePath != "")
     {
         writePdf(saveFilePath, ui->cbxColumns->currentData().toInt());

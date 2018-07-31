@@ -41,7 +41,7 @@ void DlgDbUpdate::changeDirectory(QString dir)
 
 void DlgDbUpdate::reset()
 {
-    ui->lblDirectory->setText("[none]");
+    ui->lblDirectory->setText(tr("[none]"));
     ui->progressBar->setValue(0);
     ui->textEdit->clear();
     ui->lblCurrentActivity->setText("");

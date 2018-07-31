@@ -375,7 +375,7 @@ void DlgCdg::setNextSong(QString song)
 void DlgCdg::setCountdownSecs(int seconds)
 {
     countdownPos = seconds;
-    ui->lblSeconds->setText(QString::number(seconds) + " seconds");
+    ui->lblSeconds->setText(QString::number(seconds) + tr(" seconds"));
     alertCountdownTimer->stop();
     alertCountdownTimer->start();
 }
@@ -384,7 +384,7 @@ void DlgCdg::countdownTimerTimeout()
 {
     if (countdownPos > 0)
         countdownPos--;
-    ui->lblSeconds->setText(QString::number(countdownPos) + " seconds");
+    ui->lblSeconds->setText(QString::number(countdownPos) + tr(" seconds"));
     ui->lblSeconds->repaint();
     ui->widgetAlert->repaint();
 }
@@ -461,9 +461,9 @@ void DlgCdg::mouseMove(QMouseEvent *event)
 {
     qWarning() << "Mouse moved pos:" << event->pos();
     if (m_fullScreen)
-        ui->btnToggleFullscreen->setText("Make Windowed");
+        ui->btnToggleFullscreen->setText(tr("Make Windowed"));
     else
-        ui->btnToggleFullscreen->setText("Make Fullscreen");
+        ui->btnToggleFullscreen->setText(tr("Make Fullscreen"));
     ui->fsToggleWidget->show();
     buttonShowTimer->start();
 }

@@ -23,6 +23,7 @@
 
 #include <QThread>
 #include <QStringList>
+#include <QtSql>
 #include "sourcedirtablemodel.h"
 
 class DbUpdateThread : public QThread
@@ -33,6 +34,9 @@ private:
     QString path;
     SourceDir::NamingPattern pattern;
     bool dbEntryExists(QString filepath);
+    //QSqlDatabase database;
+    QSqlDatabase genUniqueDbConn();
+
 
 public:
     explicit DbUpdateThread(QObject *parent = 0);

@@ -12,9 +12,9 @@ DlgAddSinger::DlgAddSinger(RotationModel *rotModel, QWidget *parent) :
 {
     ui->setupUi(this);
     this->rotModel = rotModel;
-    ui->cbxPosition->addItem("Fair");
-    ui->cbxPosition->addItem("Bottom");
-    ui->cbxPosition->addItem("Next");
+    ui->cbxPosition->addItem(tr("Fair"));
+    ui->cbxPosition->addItem(tr("Bottom"));
+    ui->cbxPosition->addItem(tr("Next"));
     ui->cbxPosition->setCurrentIndex(0);
 }
 
@@ -28,7 +28,7 @@ void DlgAddSinger::on_buttonBox_accepted()
     if (rotModel->singerExists(ui->lineEditName->text()))
     {
         QMessageBox msgBox;
-        msgBox.setText("A singer by that name already exists.");
+        msgBox.setText(tr("A singer by that name already exists."));
         msgBox.exec();
     }
     else

@@ -35,7 +35,7 @@ QString infoZipPath;
 
 OkArchive::OkArchive(QString ArchiveFile, QObject *parent) : QObject(parent)
 {
-    process = new QProcess(this);
+    process = new QProcess();
     archiveFile = ArchiveFile;
     qWarning() << "OkArchive opening file: " << archiveFile;
     m_cdgFound = false;
@@ -63,7 +63,7 @@ OkArchive::OkArchive(QString ArchiveFile, QObject *parent) : QObject(parent)
 
 OkArchive::OkArchive(QObject *parent) : QObject(parent)
 {
-    process = new QProcess(this);
+    process = new QProcess();
     m_cdgFound = false;
     m_audioFound = false;
     m_cdgSize = 0;
@@ -88,7 +88,7 @@ OkArchive::OkArchive(QObject *parent) : QObject(parent)
 
 OkArchive::~OkArchive()
 {
-
+    delete process;
 }
 
 unsigned int OkArchive::getSongDuration()
