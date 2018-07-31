@@ -92,10 +92,10 @@ void DlgDatabase::on_buttonNew_clicked()
         {
             int pattern = 0;
             int customPattern = -1;
-            if (selected == tr("DiscID - Artist - Title")) pattern = SourceDir::SAT;
-            if (selected == tr("DiscID - Title - Artist")) pattern = SourceDir::STA;
-            if (selected == tr("Artist - Title - DiscID")) pattern = SourceDir::ATS;
-            if (selected == tr("Title - Artist - DiscID")) pattern = SourceDir::TAS;
+            if (selected == tr("SongID - Artist - Title")) pattern = SourceDir::SAT;
+            if (selected == tr("SongID - Title - Artist")) pattern = SourceDir::STA;
+            if (selected == tr("Artist - Title - SongID")) pattern = SourceDir::ATS;
+            if (selected == tr("Title - Artist - SongID")) pattern = SourceDir::TAS;
             if (selected == tr("Artist - Title")) pattern = SourceDir::AT;
             if (selected == tr("Title - Artist")) pattern = SourceDir::TA;
             if (selected == tr("Media Tags")) pattern = SourceDir::METADATA;
