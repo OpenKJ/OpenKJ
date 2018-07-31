@@ -170,7 +170,7 @@
         <item>
          <widget class="QStackedWidget" name="stackedWidget">
           <property name="currentIndex">
-           <number>4</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="audioPage">
            <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -875,7 +875,11 @@ QPushButton:default {
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLineEdit" name="lineEditTickerMessage"/>
+                  <widget class="QLineEdit" name="lineEditTickerMessage">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:9pt; font-weight:600;&quot;&gt;Custom text to display on the ticker&lt;/span&gt;&lt;span style=&quot; font-size:9pt;&quot;&gt;&lt;br/&gt;Supports the following varaible substitutions:&lt;br/&gt;&lt;br/&gt;%curSinger = Current singer name&lt;br/&gt;%curSong = Current song (aritst - title)&lt;br/&gt;%curArtist = Current artist&lt;br/&gt;%curTitle = Current title&lt;br/&gt;%nextSinger = Next singer name&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                  </widget>
                  </item>
                 </layout>
                </item>

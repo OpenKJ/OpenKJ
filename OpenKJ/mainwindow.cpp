@@ -1218,6 +1218,7 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
     {
         qWarning() << "Audio entered UnknownState";
     }
+    rotationDataChanged();
 }
 
 void MainWindow::on_sliderProgress_sliderMoved(int position)
@@ -1260,6 +1261,14 @@ void MainWindow::rotationDataChanged()
         tickerText.replace("%cs", cs);
         tickerText.replace("%ns", ns);
         tickerText.replace("%rc", QString::number(rotModel->rowCount()));
+        if (ui->labelArtist->text() == "None" && ui->labelTitle->text() == "None")
+            tickerText.replace("%curSong", "None");
+        else
+            tickerText.replace("%curSong", ui->labelArtist->text() + " - " + ui->labelTitle->text());
+        tickerText.replace("%curArtist", ui->labelArtist->text());
+        tickerText.replace("%curTitle", ui->labelTitle->text());
+        tickerText.replace("%curSinger", ui->labelSinger->text());
+        tickerText.replace("%nextSinger", ns);
 
     }
     if (settings->tickerShowRotationInfo())
