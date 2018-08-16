@@ -35,7 +35,6 @@ private:
     SourceDir::NamingPattern pattern;
     bool dbEntryExists(QString filepath);
     //QSqlDatabase database;
-    QSqlDatabase genUniqueDbConn();
     QSqlDatabase database;
 
 

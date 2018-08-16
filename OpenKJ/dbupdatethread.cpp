@@ -67,19 +67,6 @@ bool DbUpdateThread::dbEntryExists(QString filepath)
     }
 }
 
-QSqlDatabase DbUpdateThread::genUniqueDbConn()
-{
-    QString name = "db_conn_" + QString::number((quint64)QThread::currentThread(), 16) + "_" + QString::number(QRandomGenerator::global()->generate());
-    qWarning() << "Generated db connection: " << name;
-    if(QSqlDatabase::contains(name))
-        return QSqlDatabase::database(name);
-    else {
-        qWarning() << "DB connection doesn't exist, creating";
-        return QSqlDatabase::cloneDatabase(QSqlDatabase::database(), name);
-        // open the database, setup tables, etc.
-    }
-}
-
 DbUpdateThread::DbUpdateThread(QSqlDatabase tdb, QObject *parent) :
     QThread(parent)
 {
