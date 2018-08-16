@@ -132,7 +132,7 @@ MainWindow::MainWindow(QWidget *parent) :
     query.exec("CREATE TABLE IF NOT EXISTS bmplsongs ( plsongid INTEGER PRIMARY KEY AUTOINCREMENT, playlist INT, position INT, Artist INT, Title INT, Filename INT, Duration INT, path INT)");
     query.exec("CREATE TABLE IF NOT EXISTS bmsrcdirs ( path NOT NULL)");
     query.exec("PRAGMA synchronous=OFF");
-    query.exec("PRAGMA cache_size=200000");
+    query.exec("PRAGMA cache_size=300000");
     query.exec("PRAGMA temp_store=2");
 
     int schemaVersion = 0;
@@ -223,7 +223,8 @@ MainWindow::MainWindow(QWidget *parent) :
     cdgWindow = new DlgCdg(kAudioBackend, bmAudioBackend, this, Qt::Window);
     connect(rotModel, SIGNAL(songDroppedOnSinger(int,int,int)), this, SLOT(songDroppedOnSinger(int,int,int)));
     connect(kAudioBackend, SIGNAL(volumeChanged(int)), ui->sliderVolume, SLOT(setValue(int)));
-    connect(dbDialog, SIGNAL(databaseUpdated()), this, SLOT(songdbUpdated()));
+    connect(dbDialog, SIGNAL(databaseUpdateComplete()), this, SLOT(songdbUpdated()));
+    connect(dbDialog, SIGNAL(databaseAboutToUpdate()), this, SLOT(databaseAboutToUpdate()));
     connect(dbDialog, SIGNAL(databaseCleared()), this, SLOT(databaseCleared()));
     connect(dbDialog, SIGNAL(databaseCleared()), regularSingersDialog, SLOT(regularsChanged()));
     connect(kAudioBackend, SIGNAL(positionChanged(qint64)), this, SLOT(audioBackend_positionChanged(qint64)));
@@ -678,6 +679,7 @@ void MainWindow::songdbUpdated()
     ui->tableViewDB->hideColumn(6);
     ui->tableViewDB->horizontalHeader()->resizeSection(4,75);
     settings->restoreColumnWidths(ui->tableViewDB);
+    requestsDialog->databaseUpdateComplete();
 }
 
 void MainWindow::databaseCleared()
@@ -2460,4 +2462,11 @@ void MainWindow::on_tabWidget_currentChanged(int index)
         autosizeViews();
         kNeedAutoSize = false;
     }
+}
+
+void MainWindow::databaseAboutToUpdate()
+{
+    this->requestsDialog->databaseAboutToUpdate();
+    dbModel->revertAll();
+    dbModel->setTable("");
 }

@@ -85,6 +85,7 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     ui->pushButtonClearReqs->setIconSize(mcbSize);
     autoSizeViews();
 
+
 }
 
 int DlgRequests::numRequests()
@@ -96,6 +97,18 @@ DlgRequests::~DlgRequests()
 {
 
     delete ui;
+}
+
+void DlgRequests::databaseAboutToUpdate()
+{
+    dbModel->revertAll();
+    dbModel->setTable("");
+}
+
+void DlgRequests::databaseUpdateComplete()
+{
+    dbModel->refreshCache();
+    dbModel->select();
 }
 
 void DlgRequests::on_pushButtonClose_clicked()

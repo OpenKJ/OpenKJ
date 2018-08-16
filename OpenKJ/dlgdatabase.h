@@ -50,7 +50,8 @@ public:
     ~DlgDatabase();
 
 signals:
-    void databaseUpdated();
+    void databaseAboutToUpdate();
+    void databaseUpdateComplete();
     void databaseCleared();
 
 public slots:

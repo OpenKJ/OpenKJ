@@ -56,6 +56,10 @@ public:
 signals:
     void addRequestSong(int songId, int singerId);
 
+public slots:
+    void databaseAboutToUpdate();
+    void databaseUpdateComplete();
+
 private slots:
     void on_pushButtonClose_clicked();
     void requestsModified();

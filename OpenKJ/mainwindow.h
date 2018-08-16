@@ -262,6 +262,7 @@ private slots:
     void appFontChanged(QFont font);
 
     void on_tabWidget_currentChanged(int index);
+    void databaseAboutToUpdate();
 
 protected:
     void closeEvent(QCloseEvent *event);

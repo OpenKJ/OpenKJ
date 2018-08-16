@@ -55,18 +55,18 @@ DlgDatabase::~DlgDatabase()
 
 void DlgDatabase::singleSongAdd(QString path)
 {
-    DbUpdateThread *updateThread = new DbUpdateThread(this);
+    DbUpdateThread *updateThread = new DbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "threaddb"),this);
     updateThread->addSingleTrack(path);
     delete updateThread;
-    emit databaseUpdated();
+    emit databaseUpdateComplete();
 }
 
 int DlgDatabase::dropFileAdd(QString path)
 {
-    DbUpdateThread *updateThread = new DbUpdateThread(this);
+    DbUpdateThread *updateThread = new DbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "threaddb"),this);
     int songId = updateThread->addDroppedFile(path);
     delete updateThread;
-    emit databaseUpdated();
+    emit databaseUpdateComplete();
     return songId;
 }
 
@@ -140,7 +140,8 @@ void DlgDatabase::on_buttonUpdate_clicked()
 {
     if (selectedRow >= 0)
     {
-        DbUpdateThread *updateThread = new DbUpdateThread(this);
+        DbUpdateThread *updateThread = new DbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "threaddb"),this);
+        emit databaseAboutToUpdate();
         dbUpdateDlg->reset();
         connect(updateThread, SIGNAL(progressMessage(QString)), dbUpdateDlg, SLOT(addProgressMsg(QString)));
         connect(updateThread, SIGNAL(stateChanged(QString)), dbUpdateDlg, SLOT(changeStatusTxt(QString)));
@@ -161,7 +162,7 @@ void DlgDatabase::on_buttonUpdate_clicked()
         {
             QApplication::processEvents();
         }
-        emit databaseUpdated();
+        emit databaseUpdateComplete();
         QApplication::processEvents();
         dbUpdateDlg->changeStatusTxt(tr("Database update complete!"));
         dbUpdateDlg->setProgressMax(100);
@@ -175,7 +176,7 @@ void DlgDatabase::on_buttonUpdate_clicked()
 
 void DlgDatabase::on_buttonUpdateAll_clicked()
 {
-    DbUpdateThread *updateThread = new DbUpdateThread(this);
+    DbUpdateThread *updateThread = new DbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "threaddb"),this);
     dbUpdateDlg->reset();
     connect(updateThread, SIGNAL(progressMessage(QString)), dbUpdateDlg, SLOT(addProgressMsg(QString)));
     connect(updateThread, SIGNAL(stateChanged(QString)), dbUpdateDlg, SLOT(changeStatusTxt(QString)));
@@ -200,7 +201,7 @@ void DlgDatabase::on_buttonUpdateAll_clicked()
         }
     }
 //    msgBox.setInformativeText("Reloading song database into cache");
-    emit databaseUpdated();
+    emit databaseUpdateComplete();
 //    msgBox.hide();
     showDbUpdateErrors(updateThread->getErrors());
     dbUpdateDlg->hide();

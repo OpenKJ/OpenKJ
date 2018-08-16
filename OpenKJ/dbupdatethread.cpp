@@ -38,46 +38,52 @@ QStringList errors;
 
 bool DbUpdateThread::dbEntryExists(QString filepath)
 {
-    qWarning() << "Creating thread db connection";
-    QSqlDatabase database = genUniqueDbConn();
-    database.setDatabaseName(QStandardPaths::writableLocation(QStandardPaths::DataLocation) + QDir::separator() + "openkj.sqlite");
-    database.open();
-    qWarning() << "Created";
+    qWarning() << "DbUpdateThread::dbEntryExists(" << filepath << ") called";
+//    qWarning() << "Creating thread db connection";
+//    QSqlDatabase database = genUniqueDbConn();
+//    database.setDatabaseName(QStandardPaths::writableLocation(QStandardPaths::DataLocation) + QDir::separator() + "openkj.sqlite");
+//    database.open();
+//    qWarning() << "Created";
     QSqlQuery query(database);
-    query.exec("select exists(select 1 from mem.dbsongs where path = '" + filepath + "')");
+    query.exec("select exists(select 1 from dbsongs where path = '" + filepath + "')");
     if (query.first())
     {
-        qWarning() << "Removing thread db connection";
-        QSqlDatabase::removeDatabase(database.connectionName());
-        qWarning() << "Removed";
-        return query.value(0).toBool();
+//        qWarning() << "Removing thread db connection";
+//        QSqlDatabase::removeDatabase(database.connectionName());
+//        qWarning() << "Removed";
+        bool result = query.value(0).toBool();
+        query.clear();
+        qWarning() << "DbUpdateThread::dbEntryExists(" << filepath << ") ended";
+        return result;
     }
     else
     {
-        qWarning() << "Removing thread db connection";
-        QSqlDatabase::removeDatabase(database.connectionName());
-        qWarning() << "Removed";
+        query.clear();
+//        qWarning() << "Removing thread db connection";
+//        QSqlDatabase::removeDatabase(database.connectionName());
+//        qWarning() << "Removed";
+        qWarning() << "DbUpdateThread::dbEntryExists(" << filepath << ") ended";
         return false;
     }
 }
 
 QSqlDatabase DbUpdateThread::genUniqueDbConn()
 {
-    QString name = "db_conn_" + QString::number((quint64)QThread::currentThread(), 16);
+    QString name = "db_conn_" + QString::number((quint64)QThread::currentThread(), 16) + "_" + QString::number(QRandomGenerator::global()->generate());
     qWarning() << "Generated db connection: " << name;
     if(QSqlDatabase::contains(name))
         return QSqlDatabase::database(name);
     else {
         qWarning() << "DB connection doesn't exist, creating";
-        return QSqlDatabase::addDatabase( "QSQLITE", name);
+        return QSqlDatabase::cloneDatabase(QSqlDatabase::database(), name);
         // open the database, setup tables, etc.
     }
 }
 
-DbUpdateThread::DbUpdateThread(QObject *parent) :
+DbUpdateThread::DbUpdateThread(QSqlDatabase tdb, QObject *parent) :
     QThread(parent)
 {
-
+    database = tdb;
     pattern = SourceDir::SAT;
     g_pattern = pattern;
 }
@@ -100,11 +106,12 @@ QString DbUpdateThread::getPath() const
 
 QStringList DbUpdateThread::findKaraokeFiles(QString directory)
 {
-    qWarning() << "Creating thread db connection";
-    QSqlDatabase database = genUniqueDbConn();
-    database.setDatabaseName(QStandardPaths::writableLocation(QStandardPaths::DataLocation) + QDir::separator() + "openkj.sqlite");
-    database.open();
-    qWarning() << "Created";
+    qWarning() << "DbUpdateThread::findKaraokeFiles(" << directory << ") called";
+//    qWarning() << "Creating thread db connection";
+//    QSqlDatabase database = genUniqueDbConn();
+////    database.setDatabaseName(QStandardPaths::writableLocation(QStandardPaths::DataLocation) + QDir::separator() + "openkj.sqlite");
+//    database.open();
+//    qWarning() << "Created";
     QStringList files;
     emit progressMessage("Finding karaoke files in " + directory);
     files.clear();
@@ -117,13 +124,14 @@ QStringList DbUpdateThread::findKaraokeFiles(QString directory)
     QSqlQuery query(database);
     qWarning() << "Created";
     bool alreadyInDb = false;
-    query.prepare("SELECT songid FROM mem.dbsongs WHERE path = :filepath AND discid != '!!DROPPED!!' LIMIT 1");
+    query.prepare("SELECT songid FROM dbsongs WHERE path = :filepath AND discid != '!!DROPPED!!' LIMIT 1");
     while (iterator.hasNext()) {
         iterator.next();
         if (!iterator.fileInfo().isDir()) {
             total++;
             query.bindValue(":filepath", iterator.filePath());
             query.exec();
+            qWarning() << query.lastError();
             if (query.first())
             {
                 alreadyInDb = true;
@@ -156,23 +164,27 @@ QStringList DbUpdateThread::findKaraokeFiles(QString directory)
 
         //emit stateChanged("Finding potential karaoke files... " + QString::number(files.size()) + " found.");
     }
+    qWarning() << "File search results - Potential files: " << files.size() << " - Already in DB: " << existing << " - New: " << notInDb;
     emit progressMessage("Done searching for files.");
-    qWarning() << "Removing thread db connection";
-    QSqlDatabase::removeDatabase(database.connectionName());
-    qWarning() << "Removed";
+//    qWarning() << "Removing thread db connection";
+//    query.clear();
+//    QSqlDatabase::removeDatabase(database.connectionName());
+//    qWarning() << "Removed";
+    qWarning() << "DbUpdateThread::findKaraokeFiles(" << directory << ") ended";
     return files;
 }
 
 QStringList DbUpdateThread::getMissingDbFiles()
 {
-    qWarning() << "Creating thread db connection";
-    QSqlDatabase database = genUniqueDbConn();
-    database.setDatabaseName(QStandardPaths::writableLocation(QStandardPaths::DataLocation) + QDir::separator() + "openkj.sqlite");
-    database.open();
-    qWarning() << "Created";
+    qWarning() << "DbUpdateThread::getMissingDbFiles() called";
+//    qWarning() << "Creating thread db connection";
+//    QSqlDatabase database = genUniqueDbConn();
+////    database.setDatabaseName(QStandardPaths::writableLocation(QStandardPaths::DataLocation) + QDir::separator() + "openkj.sqlite");
+//    database.open();
+//    qWarning() << "Created";
     QStringList files;
     QSqlQuery query(database);
-    query.exec("SELECT path from mem.dbsongs");
+    query.exec("SELECT path from dbsongs");
     while (query.next())
     {
         QString path = query.value("path").toString();
@@ -181,29 +193,35 @@ QStringList DbUpdateThread::getMissingDbFiles()
             files.append(path);
         }
     }
-    qWarning() << "Removing thread db connection";
-    QSqlDatabase::removeDatabase(database.connectionName());
-    qWarning() << "Removed";
+    query.clear();
+//    database.close();
+//    qWarning() << "Removing thread db connection";
+//    QSqlDatabase::removeDatabase(database.connectionName());
+//    qWarning() << "Removed";
+//    qWarning() << "DbUpdateThread::getMissingDbFiles() ended";
     return files;
 }
 
 QStringList DbUpdateThread::getDragDropFiles()
 {
-    qWarning() << "Creating thread db connection";
-    QSqlDatabase database = genUniqueDbConn();
-    database.setDatabaseName(QStandardPaths::writableLocation(QStandardPaths::DataLocation) + QDir::separator() + "openkj.sqlite");
-    database.open();
-    qWarning() << "Created";
+    qWarning() << "DbUpdateThread::getDragDropFiles() called";
+//    qWarning() << "Creating thread db connection";
+//    QSqlDatabase database = genUniqueDbConn();
+////    database.setDatabaseName(QStandardPaths::writableLocation(QStandardPaths::DataLocation) + QDir::separator() + "openkj.sqlite");
+//    database.open();
+//    qWarning() << "Created";
     QStringList files;
-    QSqlQuery query(database.connectionName());
-    query.exec("SELECT path from mem.dbsongs WHERE discid = '!!DROPPED!!'");
+    QSqlQuery query(database);
+    query.exec("SELECT path from dbsongs WHERE discid = '!!DROPPED!!'");
     while (query.next())
     {
         files.append(query.value("path").toString());
     }
-    qWarning() << "Removing thread db connection";
-    QSqlDatabase::removeDatabase(database.connectionName());
-    qWarning() << "Removed";
+    query.clear();
+//    qWarning() << "Removing thread db connection";
+//    QSqlDatabase::removeDatabase(database.connectionName());
+//    qWarning() << "Removed";
+    qWarning() << "DbUpdateThread::getDragDropFiles() ended";
     return files;
 }
 
@@ -250,6 +268,7 @@ void DbUpdateThread::addSingleTrack(QString path)
     query.bindValue(":duration", duration);
     query.bindValue(":searchstring", QString(file.completeBaseName() + " " + artist + " " + title + " " + discid));
     query.exec();
+    query.clear();
 //    qWarning() << "Removing thread db connection";
 //    QSqlDatabase::removeDatabase(database.connectionName());
 //    qWarning() << "Removed";
@@ -286,13 +305,16 @@ int DbUpdateThread::addDroppedFile(QString path)
 //        qWarning() << "Removing thread db connection";
 //        QSqlDatabase::removeDatabase(database.connectionName());
 //        qWarning() << "Removed";
-        return query.lastInsertId().toInt();
+        int lastInsertId = query.lastInsertId().toInt();
+        query.clear();
+        return lastInsertId;
     }
     else
     {
 //        qWarning() << "Removing thread db connection";
 //        QSqlDatabase::removeDatabase(database.connectionName());
 //        qWarning() << "Removed";
+        query.clear();
         return -1;
     }
 }
@@ -310,7 +332,9 @@ void DbUpdateThread::setPath(const QString &value)
 
 void DbUpdateThread::run()
 {
+    emit databaseAboutToUpdate();
 
+    database.open();
     emit progressChanged(0);
     emit progressMaxChanged(0);
     emit stateChanged("Verifing that files in DB are present on disk");
@@ -319,11 +343,11 @@ void DbUpdateThread::run()
     QStringList newSongs = findKaraokeFiles(path);
     QStringList dragDropFiles = getDragDropFiles();
 
-    qWarning() << "Creating thread db connection";
-    QSqlDatabase database = genUniqueDbConn();
-    database.setDatabaseName(QStandardPaths::writableLocation(QStandardPaths::DataLocation) + QDir::separator() + "openkj.sqlite");
-    database.open();
-    qWarning() << "Created";
+//    qWarning() << "Creating thread db connection";
+//    QSqlDatabase database = genUniqueDbConn();
+////    database.setDatabaseName(QStandardPaths::writableLocation(QStandardPaths::DataLocation) + QDir::separator() + "openkj.sqlite");
+//    database.open();
+//    qWarning() << "Created";
     qWarning() << "Creating QSqlQuery";
     QSqlQuery query(database);
     qWarning() << "Created";
@@ -443,14 +467,22 @@ void DbUpdateThread::run()
     QString title;
     QString searchString;
     int duration = 0;
+    qWarning() << "Setting sqlite synchronous mode to OFF";
+    query.exec("PRAGMA synchronous=OFF");
+    qWarning() << query.lastError();
+    qWarning() << "Increasing sqlite cache size";
+    query.exec("PRAGMA cache_size=500000");
+    qWarning() << query.lastError();
+    query.exec("PRAGMA temp_store=2");
     qWarning() << "Beginning transaction";
     query.exec("BEGIN TRANSACTION");
+    //database.transaction();
     emit progressMessage("Checking if files are valid and getting durations...");
     emit stateChanged("Validating karaoke files and getting song durations...");
     qWarning() << "Preparing statement";
     query.prepare("INSERT OR IGNORE INTO dbSongs (discid,artist,title,path,filename,duration,searchstring) VALUES(:discid, :artist, :title, :path, :filename, :duration, :searchstring)");
     qWarning() << "Statement prepared";
-    qWarning() << "Creating QProcess";
+//    qWarning() << "Creating QProcess";
 //    QProcess *process = new QProcess(this);
     qWarning() << "Creating OkArchive instance";
     OkArchive archive;
@@ -526,7 +558,7 @@ void DbUpdateThread::run()
         query.bindValue(":duration", duration);
         query.bindValue(":searchstring", searchString);
         query.exec();
-        //qWarning() << query.lastQuery();
+        //qWarning() << query.lastError();
         emit progressChanged(i + 1);
         emit stateChanged("Validating karaoke files and getting song durations... " + QString::number(i + 1) + " of " + QString::number(newSongs.size()));
        // msleep(60);
@@ -536,14 +568,19 @@ void DbUpdateThread::run()
 //    delete process;
 //    delete archive;
     qWarning() << "Committing transaction";
+    //database.commit();
     query.exec("COMMIT TRANSACTION");
+    qWarning() << "QSqlDatabase last error: " << database.lastError();
+    qWarning() << "QSqlQuery last error: " << query.lastError();
     emit progressMessage("Done processing new files.");
     if (errors.size() > 0)
     {
         emit errorsGenerated(errors);
     }
-    qWarning() << "Removing thread db connection";
-    query.clear();
-    QSqlDatabase::removeDatabase(database.connectionName());
-    qWarning() << "Removed";
+    database.close();
+    emit databaseUpdateComplete();
+//    qWarning() << "Removing thread db connection";
+//    query.clear();
+//    QSqlDatabase::removeDatabase(database.connectionName());
+//    qWarning() << "Removed";
 }

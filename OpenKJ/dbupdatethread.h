@@ -36,10 +36,11 @@ private:
     bool dbEntryExists(QString filepath);
     //QSqlDatabase database;
     QSqlDatabase genUniqueDbConn();
+    QSqlDatabase database;
 
 
 public:
-    explicit DbUpdateThread(QObject *parent = 0);
+    explicit DbUpdateThread(QSqlDatabase tdb, QObject *parent = 0);
     void run();
     QString getPath() const;
     void setPath(const QString &value);
@@ -60,6 +61,8 @@ signals:
     void stateChanged(QString state);
     void progressChanged(int progress);
     void progressMaxChanged(int max);
+    void databaseAboutToUpdate();
+    void databaseUpdateComplete();
 
 };
 
