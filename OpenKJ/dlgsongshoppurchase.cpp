@@ -25,6 +25,8 @@ DlgSongShopPurchase::DlgSongShopPurchase(SongShop *songShop, QWidget *parent) :
     msgBoxInfo = new DlgPurchaseProgress;
     msgBoxInfo->setModal(false);
     connect(shop, SIGNAL(downloadProgress(qint64,qint64)), this, SLOT(downloadProgress(qint64,qint64)));
+    connect(shop, SIGNAL(knLoginSuccess()), this, SLOT(knLoginSuccess()));
+    connect(shop, SIGNAL(knLoginFailure()), this, SLOT(knLoginFailure()));
 }
 
 DlgSongShopPurchase::~DlgSongShopPurchase()
@@ -116,7 +118,7 @@ void DlgSongShopPurchase::knLoginFailure()
     msgBoxInfo->hide();
     QMessageBox msgBox;
     msgBox.setWindowTitle("Login failed!");
-    msgBox.setText("Login failed, incorrect username or password.");
+    msgBox.setText("Karaoke.NET login failed, incorrect username or password.");
     msgBox.exec();
     knLoginTest = false;
     authenticated = false;
