@@ -25,6 +25,8 @@ QVariant SongShopModel::headerData(int section, Qt::Orientation orientation, int
         if (section == 3)
             txt = QString("Vendor");
         if (section == 4)
+            txt = QString("Format");
+        if (section == 5)
             txt = QString("Price");
         return QVariant(txt);
     }
@@ -41,15 +43,17 @@ int SongShopModel::rowCount(const QModelIndex &parent) const
 int SongShopModel::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent)
-    return 5;
+    return 6;
 }
 
 QVariant SongShopModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid())
         return QVariant();
-    if (index.column() == 4 && role == Qt::TextAlignmentRole)
+    if (index.column() == 5 && role == Qt::TextAlignmentRole)
         return Qt::AlignRight;
+    if (index.column() == 4 && role == Qt::TextAlignmentRole)
+        return Qt::AlignHCenter;
     // FIXME: Implement me!
     if (role == Qt::DisplayRole)
     {
@@ -62,6 +66,13 @@ QVariant SongShopModel::data(const QModelIndex &index, int role) const
         if (index.column() == 3)
             return songs.at(index.row()).vendor;
         if (index.column() == 4)
+        {
+            if (songs.at(index.row()).vendor == "Party Tyme Karaoke")
+                return "mp3+g";
+            else
+                return "mp4";
+        }
+        if (index.column() == 5)
             return "$" + QString::number(songs.at(index.row()).price);
     }
     if (role == Qt::UserRole)

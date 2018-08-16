@@ -28,7 +28,7 @@ void SongShop::updateCache()
     mainObject.insert("command","getsongs");
     QJsonDocument jsonDocument;
     jsonDocument.setObject(mainObject);
-    QNetworkRequest request(QUrl("https://db.openkj.org/apigetsongs"));
+    QNetworkRequest request(QUrl("https://db.openkj.org/apigetsongs_v2"));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     manager->post(request, jsonDocument.toJson());
 }
@@ -54,7 +54,10 @@ void SongShop::knLogin(QString userName, QString password)
 void SongShop::knPurchase(QString songId, QString ccNumber, QString ccM, QString ccY, QString ccCVV)
 {
     QString urlstr = "https://www.karaoke.net/songshop/cat/api_make_order.php?";
-    urlstr += "media_format=mp3g&";
+    if (songId.contains("PY"))
+        urlstr += "media_format=mp3g&";
+    else
+        urlstr += "media_format=mp4&";
     urlstr += "tracks=" + songId + "&";
     urlstr += "cc_number=" + ccNumber + "&";
     urlstr += "cc_cvv=" + ccCVV + "&";
@@ -176,7 +179,10 @@ void SongShop::onNetworkReply(QNetworkReply *reply)
         QString url = json.object().value("download_links").toArray().at(0).toString();
         qWarning()  <<  json.object().value("download_links").toArray();
         qWarning() << "Downloading";
-        downloadFile(url, QString(dlSongId + " - " + dlArtist + " - " + dlTitle + ".zip"));
+        QString fileExt = ".mp4";
+        if (url.contains(".zip"))
+            fileExt = ".zip";
+        downloadFile(url, QString(dlSongId + " - " + dlArtist + " - " + dlTitle + fileExt));
         qWarning() << "Done";
 
     }
