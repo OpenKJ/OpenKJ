@@ -176,6 +176,7 @@ void DlgDatabase::on_buttonUpdate_clicked()
 
 void DlgDatabase::on_buttonUpdateAll_clicked()
 {
+    emit databaseAboutToUpdate();
     DbUpdateThread *updateThread = new DbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "threaddb"),this);
     dbUpdateDlg->reset();
     connect(updateThread, SIGNAL(progressMessage(QString)), dbUpdateDlg, SLOT(addProgressMsg(QString)));
@@ -207,6 +208,7 @@ void DlgDatabase::on_buttonUpdateAll_clicked()
     dbUpdateDlg->hide();
     QMessageBox::information(this, tr("Update Complete"), tr("Database update complete."));
     delete(updateThread);
+    emit databaseUpdateComplete();
 }
 
 void DlgDatabase::on_btnClearDatabase_clicked()
