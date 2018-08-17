@@ -223,8 +223,10 @@ MainWindow::MainWindow(QWidget *parent) :
     cdgWindow = new DlgCdg(kAudioBackend, bmAudioBackend, this, Qt::Window);
     connect(rotModel, SIGNAL(songDroppedOnSinger(int,int,int)), this, SLOT(songDroppedOnSinger(int,int,int)));
     connect(kAudioBackend, SIGNAL(volumeChanged(int)), ui->sliderVolume, SLOT(setValue(int)));
-    connect(dbDialog, SIGNAL(databaseUpdateComplete()), this, SLOT(songdbUpdated()));
+    connect(dbDialog, SIGNAL(databaseUpdateComplete()), this, SLOT(databaseUpdated()));
     connect(dbDialog, SIGNAL(databaseAboutToUpdate()), this, SLOT(databaseAboutToUpdate()));
+    connect(dbDialog, SIGNAL(databaseSongAdded()), dbModel, SLOT(select()));
+    connect(dbDialog, SIGNAL(databaseSongAdded()), requestsDialog, SLOT(databaseSongAdded()));
     connect(dbDialog, SIGNAL(databaseCleared()), this, SLOT(databaseCleared()));
     connect(dbDialog, SIGNAL(databaseCleared()), regularSingersDialog, SLOT(regularsChanged()));
     connect(kAudioBackend, SIGNAL(positionChanged(qint64)), this, SLOT(audioBackend_positionChanged(qint64)));
@@ -672,7 +674,7 @@ void MainWindow::search()
     dbModel->search(ui->lineEdit->text());
 }
 
-void MainWindow::songdbUpdated()
+void MainWindow::databaseUpdated()
 {
     dbModel->refreshCache();
     dbModel->select();
@@ -1487,14 +1489,14 @@ void MainWindow::markSongBad()
 
     if (msgBox.clickedButton() == markBadButton) {
         db->songMarkBad(dbRtClickFile);
-        songdbUpdated();
+        databaseUpdated();
         // connect
     } else if (msgBox.clickedButton() == removeFileButton) {
         QFile file(dbRtClickFile);
         if (file.remove())
         {
             db->songMarkBad(dbRtClickFile);
-            songdbUpdated();
+            databaseUpdated();
         }
         else
         {

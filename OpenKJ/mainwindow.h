@@ -158,7 +158,7 @@ public:
     
 private slots:
     void search();
-    void songdbUpdated();
+    void databaseUpdated();
     void databaseCleared();
     void on_buttonStop_clicked();
     void on_buttonPause_clicked();

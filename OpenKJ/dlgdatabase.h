@@ -53,6 +53,7 @@ signals:
     void databaseAboutToUpdate();
     void databaseUpdateComplete();
     void databaseCleared();
+    void databaseSongAdded();
 
 public slots:
     void singleSongAdd(QString path);

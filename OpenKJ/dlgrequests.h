@@ -59,6 +59,7 @@ signals:
 public slots:
     void databaseAboutToUpdate();
     void databaseUpdateComplete();
+    void databaseSongAdded();
 
 private slots:
     void on_pushButtonClose_clicked();

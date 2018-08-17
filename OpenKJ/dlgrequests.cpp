@@ -111,6 +111,11 @@ void DlgRequests::databaseUpdateComplete()
     dbModel->select();
 }
 
+void DlgRequests::databaseSongAdded()
+{
+    dbModel->select();
+}
+
 void DlgRequests::on_pushButtonClose_clicked()
 {
     close();

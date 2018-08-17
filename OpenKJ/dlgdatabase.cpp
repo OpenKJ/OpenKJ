@@ -58,7 +58,8 @@ void DlgDatabase::singleSongAdd(QString path)
     DbUpdateThread *updateThread = new DbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "threaddb"),this);
     updateThread->addSingleTrack(path);
     delete updateThread;
-    emit databaseUpdateComplete();
+    //emit databaseUpdateComplete();
+    emit databaseSongAdded();
 }
 
 int DlgDatabase::dropFileAdd(QString path)
@@ -66,7 +67,6 @@ int DlgDatabase::dropFileAdd(QString path)
     DbUpdateThread *updateThread = new DbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "threaddb"),this);
     int songId = updateThread->addDroppedFile(path);
     delete updateThread;
-    emit databaseUpdateComplete();
     return songId;
 }
 
