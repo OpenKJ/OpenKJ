@@ -263,6 +263,8 @@ MainWindow::MainWindow(QWidget *parent) :
     settings->restoreWindowState(cdgWindow);
     settings->restoreWindowState(requestsDialog);
     settings->restoreWindowState(regularSingersDialog);
+    settings->restoreWindowState(dlgSongShop);
+    settings->restoreWindowState(dbDialog);
     settings->restoreSplitterState(ui->splitter);
     settings->restoreSplitterState(ui->splitter_2);
     settings->restoreSplitterState(ui->splitterBm);
@@ -648,14 +650,14 @@ MainWindow::~MainWindow()
     settings->saveWindowState(requestsDialog);
     settings->saveWindowState(regularSingersDialog);
     settings->saveWindowState(dlgSongShop);
+    settings->saveWindowState(dlgSongShop);
+    settings->saveWindowState(dbDialog);
     settings->saveWindowState(this);
     settings->setShowCdgWindow(cdgWindow->isVisible());
-
     settings->saveSplitterState(ui->splitterBm);
     settings->saveColumnWidths(ui->tableViewBmDb);
     settings->saveColumnWidths(ui->tableViewBmPlaylist);
     settings->bmSetPlaylistIndex(ui->comboBoxBmPlaylists->currentIndex());
-
     delete cdg;
     delete khDir;
     delete ui;

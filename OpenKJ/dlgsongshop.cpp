@@ -20,6 +20,7 @@ DlgSongShop::DlgSongShop(SongShop *songShop, QWidget *parent) :
     dlgPurchase->setModal(false);
     settings->restoreColumnWidths(ui->tableViewSongs);
     connect(modelSongs->getShop(), SIGNAL(karaokeSongDownloaded(QString)), this, SIGNAL(karaokeSongDownloaded(QString)));
+    connect(modelSongs->getShop(), SIGNAL(songsUpdated()), this, SLOT(autoSizeView()));
 }
 
 DlgSongShop::~DlgSongShop()
