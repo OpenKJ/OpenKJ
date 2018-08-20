@@ -114,6 +114,7 @@ QStringList DbUpdateThread::findKaraokeFiles(QString directory)
     bool alreadyInDb = false;
     query.prepare("SELECT songid FROM dbsongs WHERE path = :filepath AND discid != '!!DROPPED!!' LIMIT 1");
     while (iterator.hasNext()) {
+        QApplication::processEvents();
         iterator.next();
         if (!iterator.fileInfo().isDir()) {
             total++;
