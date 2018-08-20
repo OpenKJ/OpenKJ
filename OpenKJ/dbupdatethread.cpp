@@ -45,7 +45,7 @@ bool DbUpdateThread::dbEntryExists(QString filepath)
 //    database.setDatabaseName(QStandardPaths::writableLocation(QStandardPaths::DataLocation) + QDir::separator() + "openkj.sqlite");
 //    database.open();
 //    qWarning() << "Created";
-    QSqlQuery query(database);
+    QSqlQuery query;
     query.exec("select exists(select 1 from dbsongs where path = '" + filepath + "')");
     if (query.first())
     {
@@ -109,7 +109,7 @@ QStringList DbUpdateThread::findKaraokeFiles(QString directory)
     int notInDb = 0;
     int total = 0;
     qWarning() << "Creating query";
-    QSqlQuery query(database);
+    QSqlQuery query;
     qWarning() << "Created";
     bool alreadyInDb = false;
     query.prepare("SELECT songid FROM dbsongs WHERE path = :filepath AND discid != '!!DROPPED!!' LIMIT 1");
@@ -171,7 +171,7 @@ QStringList DbUpdateThread::getMissingDbFiles()
 //    database.open();
 //    qWarning() << "Created";
     QStringList files;
-    QSqlQuery query(database);
+    QSqlQuery query;
     query.exec("SELECT path from dbsongs");
     while (query.next())
     {
@@ -199,7 +199,7 @@ QStringList DbUpdateThread::getDragDropFiles()
 //    database.open();
 //    qWarning() << "Created";
     QStringList files;
-    QSqlQuery query(database);
+    QSqlQuery query;
     query.exec("SELECT path from dbsongs WHERE discid = '!!DROPPED!!'");
     while (query.next())
     {
