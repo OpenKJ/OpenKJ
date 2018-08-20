@@ -263,6 +263,7 @@ private slots:
 
     void on_tabWidget_currentChanged(int index);
     void databaseAboutToUpdate();
+    void bmDatabaseAboutToUpdate();
 
 protected:
     void closeEvent(QCloseEvent *event);

@@ -141,7 +141,7 @@ void DlgDatabase::on_buttonUpdate_clicked()
     if (selectedRow >= 0)
     {
         DbUpdateThread *updateThread = new DbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "threaddb"),this);
-        emit databaseAboutToUpdate();
+        //emit databaseAboutToUpdate();
         dbUpdateDlg->reset();
         connect(updateThread, SIGNAL(progressMessage(QString)), dbUpdateDlg, SLOT(addProgressMsg(QString)));
         connect(updateThread, SIGNAL(stateChanged(QString)), dbUpdateDlg, SLOT(changeStatusTxt(QString)));
@@ -157,11 +157,11 @@ void DlgDatabase::on_buttonUpdate_clicked()
         updateThread->setPath(sourcedirmodel->getDirByIndex(selectedRow)->getPath());
         updateThread->setPattern(sourcedirmodel->getDirByIndex(selectedRow)->getPattern());
         QApplication::processEvents();
-        updateThread->start();
-        while (updateThread->isRunning())
-        {
-            QApplication::processEvents();
-        }
+        updateThread->startUnthreaded();
+//        while (updateThread->isRunning())
+//        {
+//            QApplication::processEvents();
+//        }
         emit databaseUpdateComplete();
         QApplication::processEvents();
         dbUpdateDlg->changeStatusTxt(tr("Database update complete!"));
@@ -176,7 +176,7 @@ void DlgDatabase::on_buttonUpdate_clicked()
 
 void DlgDatabase::on_buttonUpdateAll_clicked()
 {
-    emit databaseAboutToUpdate();
+    //emit databaseAboutToUpdate();
     DbUpdateThread *updateThread = new DbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "threaddb"),this);
     dbUpdateDlg->reset();
     connect(updateThread, SIGNAL(progressMessage(QString)), dbUpdateDlg, SLOT(addProgressMsg(QString)));
@@ -195,11 +195,11 @@ void DlgDatabase::on_buttonUpdateAll_clicked()
         dbUpdateDlg->changeDirectory(sourcedirmodel->getDirByIndex(i)->getPath());
         updateThread->setPath(sourcedirmodel->getDirByIndex(i)->getPath());
         updateThread->setPattern(sourcedirmodel->getDirByIndex(i)->getPattern());
-        updateThread->start();
-        while (updateThread->isRunning())
-        {
-            QApplication::processEvents();
-        }
+        updateThread->startUnthreaded();
+//        while (updateThread->isRunning())
+//        {
+//            QApplication::processEvents();
+//        }
     }
 //    msgBox.setInformativeText("Reloading song database into cache");
     emit databaseUpdateComplete();

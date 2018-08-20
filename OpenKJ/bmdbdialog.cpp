@@ -65,22 +65,23 @@ void BmDbDialog::on_pushButtonUpdate_clicked()
 {
     if (selectedDirectoryIdx >= 0)
     {
+        //emit bmDbAboutToUpdate();
         dbUpdateDlg->reset();
         dbUpdateDlg->show();
         //QMessageBox *msgBox = new QMessageBox(this);
         //msgBox->setStandardButtons(0);
         //msgBox->setText("Updating Database, please wait...");
         //msgBox->show();
-        BmDbUpdateThread *thread = new BmDbUpdateThread(this);
+        BmDbUpdateThread *thread = new BmDbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "bmThreadDb"),this);
         thread->setPath(pathsModel->data(pathsModel->index(selectedDirectoryIdx, 0)).toString());
         dbUpdateDlg->changeDirectory(pathsModel->data(pathsModel->index(selectedDirectoryIdx, 0)).toString());
         connect(thread, SIGNAL(progressMessage(QString)), dbUpdateDlg, SLOT(addProgressMsg(QString)));
         connect(thread, SIGNAL(stateChanged(QString)), dbUpdateDlg, SLOT(changeStatusTxt(QString)));
         connect(thread, SIGNAL(progressMaxChanged(int)), dbUpdateDlg, SLOT(setProgressMax(int)));
         connect(thread, SIGNAL(progressChanged(int)), dbUpdateDlg, SLOT(changeProgress(int)));
-        thread->start();
-        while (thread->isRunning())
-            QApplication::processEvents();
+        thread->startUnthreaded();
+//        while (thread->isRunning())
+//            QApplication::processEvents();
         //msgBox->close();
         QMessageBox::information(this, tr("Update Complete"), tr("Database update complete."));
         dbUpdateDlg->hide();
@@ -94,6 +95,7 @@ void BmDbDialog::on_pushButtonUpdateAll_clicked()
 {
     dbUpdateDlg->reset();
     dbUpdateDlg->show();
+    //emit bmDbAboutToUpdate();
     //QMessageBox *msgBox = new QMessageBox(this);
     //msgBox->setStandardButtons(0);
     //msgBox->setText("Updating Database, please wait...");
@@ -101,16 +103,16 @@ void BmDbDialog::on_pushButtonUpdateAll_clicked()
     for (int i=0; i < pathsModel->rowCount(); i++)
     {
         QApplication::processEvents();
-        BmDbUpdateThread *thread = new BmDbUpdateThread(this);
+        BmDbUpdateThread *thread = new BmDbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "bmThreadDb"),this);
         thread->setPath(pathsModel->data(pathsModel->index(i, 0)).toString());
         dbUpdateDlg->changeDirectory(pathsModel->data(pathsModel->index(i, 0)).toString());
         connect(thread, SIGNAL(progressMessage(QString)), dbUpdateDlg, SLOT(addProgressMsg(QString)));
         connect(thread, SIGNAL(stateChanged(QString)), dbUpdateDlg, SLOT(changeStatusTxt(QString)));
         connect(thread, SIGNAL(progressMaxChanged(int)), dbUpdateDlg, SLOT(setProgressMax(int)));
         connect(thread, SIGNAL(progressChanged(int)), dbUpdateDlg, SLOT(changeProgress(int)));
-        thread->start();
-        while (thread->isRunning())
-            QApplication::processEvents();
+        thread->startUnthreaded();
+//        while (thread->isRunning())
+//            QApplication::processEvents();
         delete(thread);
     }
     //msgBox->close();

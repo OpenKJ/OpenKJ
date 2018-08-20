@@ -51,7 +51,7 @@ public:
     QStringList getErrors();
     void addSingleTrack(QString path);
     int addDroppedFile(QString path);
-    void unthreadedRun();
+    void startUnthreaded();
 
 signals:
     void threadFinished();

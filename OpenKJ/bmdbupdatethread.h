@@ -23,13 +23,15 @@
 
 #include <QThread>
 #include <QStringList>
+#include <QtSql>
 
 class BmDbUpdateThread : public QThread
 {
     Q_OBJECT
 public:
-    explicit BmDbUpdateThread(QObject *parent = 0);
+    explicit BmDbUpdateThread(QSqlDatabase db, QObject *parent = 0);
     void run();
+    void startUnthreaded();
     QString path() const;
     void setPath(const QString &path);
 
@@ -45,6 +47,8 @@ private:
     QString m_path;
     QStringList findMediaFiles(QString directory);
     QStringList supportedExtensions;
+    QSqlDatabase database;
+
     
 };
 

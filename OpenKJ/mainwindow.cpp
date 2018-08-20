@@ -390,6 +390,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(bmAudioBackend, SIGNAL(volumeChanged(int)), ui->sliderBmVolume, SLOT(setValue(int)));
     connect(bmDbDialog, SIGNAL(bmDbUpdated()), this, SLOT(bmDbUpdated()));
     connect(bmDbDialog, SIGNAL(bmDbCleared()), this, SLOT(bmDbCleared()));
+    connect(bmDbDialog, SIGNAL(bmDbAboutToUpdate()), this, SLOT(bmDatabaseAboutToUpdate()));
     connect(bmAudioBackend, SIGNAL(newVideoFrame(QImage, QString)), this, SLOT(videoFrameReceived(QImage, QString)));
     connect(kAudioBackend, SIGNAL(newVideoFrame(QImage,QString)), this, SLOT(videoFrameReceived(QImage,QString)));
     qWarning() << "Setting up volume sliders";
@@ -677,7 +678,7 @@ void MainWindow::search()
 void MainWindow::databaseUpdated()
 {
     dbModel->refreshCache();
-    dbModel->select();
+    search();
     ui->tableViewDB->hideColumn(0);
     ui->tableViewDB->hideColumn(5);
     ui->tableViewDB->hideColumn(6);
@@ -2470,7 +2471,19 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 
 void MainWindow::databaseAboutToUpdate()
 {
-    this->requestsDialog->databaseAboutToUpdate();
+//    this->requestsDialog->databaseAboutToUpdate();
+//    dbModel->revertAll();
+//    dbModel->setTable("");
+//    ui->tableViewRotation->clearSelection();
+//    qModel->setSinger(-1);
+}
+
+void MainWindow::bmDatabaseAboutToUpdate()
+{
+    bmDbModel->revertAll();
+    bmDbModel->setTable("");
+    bmPlaylistsModel->revertAll();
+    bmPlaylistsModel->setTable("");
     dbModel->revertAll();
     dbModel->setTable("");
 }
