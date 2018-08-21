@@ -1477,6 +1477,10 @@ void MainWindow::editSong()
 {
     SourceDirTableModel model;
     SourceDir *srcDir = model.getDirByPath(dbRtClickFile);
+    if (srcDir->getIndex() == -1)
+    {
+
+    }
     int rowId;
     QString artist;
     QString title;
@@ -1498,6 +1502,15 @@ void MainWindow::editSong()
         showSongId = false;
     if (srcDir->getPattern() == SourceDir::CUSTOM || srcDir->getPattern() == SourceDir::METADATA)
         allowRename = false;
+    if (srcDir->getIndex() == -1)
+    {
+        allowRename = false;
+        QMessageBox msgBoxErr;
+        msgBoxErr.setText("Unable to find a configured source path containing the file.");
+        msgBoxErr.setInformativeText("You won't be able to rename the file.  To fix this, ensure that a source directory is configured in the database settings which contains this file.");
+        msgBoxErr.setStandardButtons(QMessageBox::Ok);
+        msgBoxErr.exec();
+    }
     DlgEditSong dlg(artist, title, songId, showSongId, allowRename, this);
     int result = dlg.exec();
     if (result != QDialog::Accepted)
