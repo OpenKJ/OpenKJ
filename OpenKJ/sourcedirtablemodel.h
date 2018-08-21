@@ -77,6 +77,7 @@ public:
     void setDBObject(QSqlDatabase *value);
     void clear();
     SourceDir *getDirByIndex(int index);
+    SourceDir *getDirByPath(QString path);
     
 };
 

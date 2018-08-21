@@ -19,8 +19,11 @@
 */
 
 #include "sourcedirtablemodel.h"
+#include <QDir>
+#include <QFileInfo>
 #include <QSqlQuery>
 #include <QSqlRecord>
+#include <QDebug>
 
 #define UNUSED(x) (void)x
 
@@ -202,4 +205,25 @@ int SourceDirTableModel::size()
 SourceDir *SourceDirTableModel::getDirByIndex(int index)
 {
     return mydata->at(index);
+}
+
+SourceDir *SourceDirTableModel::getDirByPath(QString path)
+{
+    loadFromDB();
+    QFileInfo fileInfo(path);
+    QDir dir = fileInfo.absoluteDir();
+    while (dir.absolutePath() != dir.rootPath())
+    {
+        for (int i=0; i<mydata->size(); i++)
+        {
+            if (mydata->at(i)->getPath() == dir.absolutePath())
+            {
+                qWarning() << "Match found - " << mydata->at(i)->getPath() << " - " << mydata->at(i)->getPattern();
+                return mydata->at(i);
+            }
+        }
+        dir.cdUp();
+    }
+    qWarning() << "No Match Found";
+    return new SourceDir();
 }

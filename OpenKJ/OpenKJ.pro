@@ -100,7 +100,7 @@ contains(DEFINES, STATIC_TAGLIB) {
 QMAKE_MAC_SDK = MacOSX10.13
 QMAKE_MAC_SDK.macosx.version = 10.13
 
-VERSION = 1.3.91
+VERSION = 1.3.92
 message($$VERSION)
 QMAKE_TARGET_COMPANY = OpenKJ.org
 QMAKE_TARGET_PRODUCT = OpenKJ
@@ -174,7 +174,8 @@ SOURCES += main.cpp\
     dlgsetpassword.cpp \
     dlgpassword.cpp \
     dlgpurchaseprogress.cpp \
-    karaokefileinfo.cpp
+    karaokefileinfo.cpp \
+    dlgeditsong.cpp
 
 contains(DEFINES, STATIC_TAGLIB) {
     SOURCES += taglib/ape/apefile.cpp \
@@ -344,7 +345,8 @@ HEADERS  += mainwindow.h \
     dlgsetpassword.h \
     dlgpassword.h \
     dlgpurchaseprogress.h \
-    karaokefileinfo.h
+    karaokefileinfo.h \
+    dlgeditsong.h
 
 contains(DEFINES, STATIC_TAGLIB) {
     HEADERS += taglib/ape/apefile.h \
@@ -481,7 +483,8 @@ FORMS    += mainwindow.ui \
     dlgsongshoppurchase.ui \
     dlgsetpassword.ui \
     dlgpassword.ui \
-    dlgpurchaseprogress.ui
+    dlgpurchaseprogress.ui \
+    dlgeditsong.ui
 
 RESOURCES += resources.qrc
 

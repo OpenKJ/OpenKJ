@@ -39,6 +39,7 @@
 #include "okjsongbookapi.h"
 #include "updatechecker.h"
 #include "okjversion.h"
+#include "dlgeditsong.h"
 
 Settings *settings;
 OKJSongbookAPI *songbookApi;
@@ -1364,7 +1365,7 @@ void MainWindow::on_tableViewDB_customContextMenuRequested(const QPoint &pos)
         QMenu contextMenu(this);
         contextMenu.addAction("Preview", this, SLOT(previewCdg()));
         contextMenu.addSeparator();
-//        contextMenu.addAction("Edit", this, SLOT(editSong()));
+        contextMenu.addAction("Edit", this, SLOT(editSong()));
         contextMenu.addAction("Mark bad", this, SLOT(markSongBad()));
         contextMenu.exec(QCursor::pos());
     }
@@ -1474,6 +1475,191 @@ void MainWindow::previewCdg()
 
 void MainWindow::editSong()
 {
+    SourceDirTableModel model;
+    SourceDir *srcDir = model.getDirByPath(dbRtClickFile);
+    int rowId;
+    QString artist;
+    QString title;
+    QString songId;
+    QSqlQuery query;
+    query.prepare("SELECT songid,artist,title,discid FROM dbsongs WHERE path = :path LIMIT 1");
+    query.bindValue(":path", dbRtClickFile);
+    query.exec();
+    if (!query.next())
+        qWarning() << "Unable to find song in db!";
+    artist = query.value("artist").toString();
+    title = query.value("title").toString();
+    songId = query.value("discid").toString();
+    rowId = query.value("songid").toInt();
+    qWarning() << "db song match: " << rowId << ": " << artist << " - " << title << " - " << songId;
+    bool allowRename = true;
+    bool showSongId = true;
+    if (srcDir->getPattern() == SourceDir::AT || srcDir->getPattern() == SourceDir::TA)
+        showSongId = false;
+    if (srcDir->getPattern() == SourceDir::CUSTOM || srcDir->getPattern() == SourceDir::METADATA)
+        allowRename = false;
+    DlgEditSong dlg(artist, title, songId, showSongId, allowRename, this);
+    int result = dlg.exec();
+    if (result != QDialog::Accepted)
+        return;
+    if (artist == dlg.artist() && title == dlg.title() && songId == dlg.songId())
+        return;
+    if (dlg.renameFile())
+    {
+        if (!QFileInfo(dbRtClickFile).isWritable())
+        {
+            QMessageBox msgBoxErr;
+            msgBoxErr.setText("Unable to rename file");
+            msgBoxErr.setInformativeText("Unable to rename file, your user does not have write permissions. Operation cancelled.");
+            msgBoxErr.setStandardButtons(QMessageBox::Ok);
+            msgBoxErr.exec();
+            return;
+        }
+        QString newFn;
+        bool unsupported = false;
+        switch (srcDir->getPattern()) {
+        case SourceDir::SAT:
+            newFn = dlg.songId() + " - " + dlg.artist() + " - " + dlg.title() + "." + QFileInfo(dbRtClickFile).completeSuffix();
+            break;
+        case SourceDir::STA:
+            newFn = dlg.songId() + " - " + dlg.title() + " - " + dlg.artist() + "." + QFileInfo(dbRtClickFile).completeSuffix();
+            break;
+        case SourceDir::ATS:
+            newFn = dlg.artist() + " - " + dlg.title() + " - " + dlg.songId() + "." + QFileInfo(dbRtClickFile).completeSuffix();
+            break;
+        case SourceDir::TAS:
+            newFn = dlg.title() + " - " + dlg.artist() + " - " + dlg.songId() + "." + QFileInfo(dbRtClickFile).completeSuffix();
+            break;
+        case SourceDir::S_T_A:
+            newFn = dlg.songId() + "_" + dlg.title() + "_" + dlg.artist() + "." + QFileInfo(dbRtClickFile).completeSuffix();
+            break;
+        case SourceDir::AT:
+            newFn = dlg.artist() + " - " + dlg.title() + "." + QFileInfo(dbRtClickFile).completeSuffix();
+            break;
+        case SourceDir::TA:
+            newFn = dlg.title() + " - " + dlg.artist() + "." + QFileInfo(dbRtClickFile).completeSuffix();
+            break;
+        case SourceDir::CUSTOM:
+            unsupported = true;
+            break;
+        case SourceDir::METADATA:
+            unsupported = true;
+            break;
+        }
+        if (unsupported)
+        {
+            QMessageBox msgBoxErr;
+            msgBoxErr.setText("Unable to rename file");
+            msgBoxErr.setInformativeText("Unable to rename file, renaming custom and metadata based source files is not supported. Operation cancelled.");
+            msgBoxErr.setStandardButtons(QMessageBox::Ok);
+            msgBoxErr.exec();
+            return;
+        }
+        if (QFile::exists(newFn))
+        {
+            QMessageBox msgBoxErr;
+            msgBoxErr.setText("Unable to rename file");
+            msgBoxErr.setInformativeText("Unable to rename file, a file by that name already exists in the same directory. Operation cancelled.");
+            msgBoxErr.setStandardButtons(QMessageBox::Ok);
+            msgBoxErr.exec();
+            return;
+        }
+        if (!QFile::rename(dbRtClickFile, QFileInfo(dbRtClickFile).absoluteDir().absolutePath() + "/" + newFn))
+        {
+            QMessageBox msgBoxErr;
+            msgBoxErr.setText("Error while renaming file!");
+            msgBoxErr.setInformativeText("An unknown error occurred while renaming the file. Operation cancelled.");
+            msgBoxErr.setStandardButtons(QMessageBox::Ok);
+            msgBoxErr.exec();
+            return;
+        }
+        qWarning() << "New filename: " << newFn;
+        query.prepare("UPDATE dbsongs SET artist = :artist, title = :title, discid = :songid, path = :path, filename = :filename, searchstring = :searchstring WHERE songid = :rowid");
+        QString newArtist = dlg.artist();
+        QString newTitle = dlg.title();
+        QString newSongId = dlg.songId();
+        QString newPath = QFileInfo(dbRtClickFile).absoluteDir().absolutePath() + "/" + newFn;
+        QString newSearchString = QFileInfo(newPath).completeBaseName() + " " + newArtist + " " + newTitle + " " + newSongId;
+        query.bindValue(":artist", newArtist);
+        query.bindValue(":title", newTitle);
+        query.bindValue(":songid", newSongId);
+        query.bindValue(":path", newPath);
+        query.bindValue(":filename", newFn);
+        query.bindValue(":searchstring", newSearchString);
+        query.bindValue(":rowid", rowId);
+        query.exec();
+        qWarning() << query.lastError();
+        if (!query.lastError().isValid())
+        {
+            query.prepare("UPDATE mem.dbsongs SET artist = :artist, title = :title, discid = :songid, path = :path, filename = :filename, searchstring = :searchstring WHERE songid = :rowid");
+            query.bindValue(":artist", newArtist);
+            query.bindValue(":title", newTitle);
+            query.bindValue(":songid", newSongId);
+            query.bindValue(":path", newPath);
+            query.bindValue(":filename", newFn);
+            query.bindValue(":searchstring", newSearchString);
+            query.bindValue(":rowid", rowId);
+            query.exec();
+            QMessageBox msgBoxInfo;
+            msgBoxInfo.setText("Edit successful");
+            msgBoxInfo.setInformativeText("The file has been renamed and the database has been updated successfully.");
+            msgBoxInfo.setStandardButtons(QMessageBox::Ok);
+            msgBoxInfo.exec();
+            dbModel->select();
+            return;
+        }
+        else
+        {
+            QMessageBox msgBoxErr;
+            msgBoxErr.setText("Error while updating the database!");
+            msgBoxErr.setInformativeText(query.lastError().text());
+            msgBoxErr.setStandardButtons(QMessageBox::Ok);
+            msgBoxErr.exec();
+            return;
+            //QFile::rename(QFileInfo(dbRtClickFile).absoluteDir().absolutePath() + "/" + newFn, dbRtClickFile);
+        }
+    }
+    else
+    {
+        query.prepare("UPDATE dbsongs SET artist = :artist, title = :title, discid = :songid, searchstring = :searchstring WHERE songid = :rowid");
+        QString newArtist = dlg.artist();
+        QString newTitle = dlg.title();
+        QString newSongId = dlg.songId();
+        QString newSearchString = QFileInfo(dbRtClickFile).completeBaseName() + " " + newArtist + " " + newTitle + " " + newSongId;
+        query.bindValue(":artist", newArtist);
+        query.bindValue(":title", newTitle);
+        query.bindValue(":songid", newSongId);
+        query.bindValue(":searchstring", newSearchString);
+        query.bindValue(":rowid", rowId);
+        query.exec();
+        qWarning() << query.lastError();
+        if (!query.lastError().isValid())
+        {
+            query.prepare("UPDATE mem.dbsongs SET artist = :artist, title = :title, discid = :songid, searchstring = :searchstring WHERE songid = :rowid");
+            query.bindValue(":artist", newArtist);
+            query.bindValue(":title", newTitle);
+            query.bindValue(":songid", newSongId);
+            query.bindValue(":searchstring", newSearchString);
+            query.bindValue(":rowid", rowId);
+            query.exec();
+            QMessageBox msgBoxInfo;
+            msgBoxInfo.setText("Edit successful");
+            msgBoxInfo.setInformativeText("The database has been updated successfully.");
+            msgBoxInfo.setStandardButtons(QMessageBox::Ok);
+            msgBoxInfo.exec();
+            dbModel->select();
+            return;
+        }
+        else
+        {
+            QMessageBox msgBoxErr;
+            msgBoxErr.setText("Error while updating the database!");
+            msgBoxErr.setInformativeText(query.lastError().text());
+            msgBoxErr.setStandardButtons(QMessageBox::Ok);
+            msgBoxErr.exec();
+            return;
+        }
+    }
 
 }
 
