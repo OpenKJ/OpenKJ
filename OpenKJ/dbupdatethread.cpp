@@ -460,6 +460,7 @@ void DbUpdateThread::startUnthreaded()
     {
         QApplication::processEvents();
         QString fileName = newSongs.at(i);
+        qWarning() << "Beginning processing file: " << fileName;
         QFileInfo file(fileName);
         emit progressMessage("Processing file: " + file.completeBaseName());
 #ifdef Q_OS_WIN
@@ -523,6 +524,7 @@ void DbUpdateThread::startUnthreaded()
         query.exec();
         emit progressChanged(i + 1);
         emit stateChanged("Validating karaoke files and getting song durations... " + QString::number(i + 1) + " of " + QString::number(newSongs.size()));
+        qWarning() << "Done processing file: " << fileName;
     }
     qWarning() << "Done looping";
     qWarning() << "Committing transaction";
