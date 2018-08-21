@@ -68,6 +68,7 @@ Qt::ItemFlags DbTableModel::flags(const QModelIndex &index) const
 void DbTableModel::search(QString searchString)
 {
     lastSearch = searchString;
+    searchString.replace(",", " ");
     if (settings->ignoreAposInSearch())
         searchString.remove("'");
     QStringList terms;
