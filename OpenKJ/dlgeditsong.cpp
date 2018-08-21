@@ -1,5 +1,7 @@
 #include "dlgeditsong.h"
 #include "ui_dlgeditsong.h"
+#include <QRegExpValidator>
+#include <QRegExp>
 
 DlgEditSong::DlgEditSong(QString artist, QString title, QString songId, bool showSongId, bool allowRename, QWidget *parent) :
     QDialog(parent),
