@@ -1577,14 +1577,18 @@ void MainWindow::editSong()
             msgBoxErr.exec();
             return;
         }
-        if (!QFile::rename(dbRtClickFile, QFileInfo(dbRtClickFile).absoluteDir().absolutePath() + "/" + newFn))
+        QString newFilePath = QFileInfo(dbRtClickFile).absoluteDir().absolutePath() + "/" + newFn;
+        if (newFilePath != dbRtClickFile)
         {
-            QMessageBox msgBoxErr;
-            msgBoxErr.setText("Error while renaming file!");
-            msgBoxErr.setInformativeText("An unknown error occurred while renaming the file. Operation cancelled.");
-            msgBoxErr.setStandardButtons(QMessageBox::Ok);
-            msgBoxErr.exec();
-            return;
+            if (!QFile::rename(dbRtClickFile, QFileInfo(dbRtClickFile).absoluteDir().absolutePath() + "/" + newFn))
+            {
+                QMessageBox msgBoxErr;
+                msgBoxErr.setText("Error while renaming file!");
+                msgBoxErr.setInformativeText("An unknown error occurred while renaming the file. Operation cancelled.");
+                msgBoxErr.setStandardButtons(QMessageBox::Ok);
+                msgBoxErr.exec();
+                return;
+            }
         }
         qWarning() << "New filename: " << newFn;
         query.prepare("UPDATE dbsongs SET artist = :artist, title = :title, discid = :songid, path = :path, filename = :filename, searchstring = :searchstring WHERE songid = :rowid");
