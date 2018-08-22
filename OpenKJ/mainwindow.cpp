@@ -2411,15 +2411,15 @@ void MainWindow::newVersionAvailable(QString version)
     msgBox.setIcon(QMessageBox::Information);
     if (checker->getOS() == "Linux")
     {
-        msgBox.setInformativeText("To install the update, please use your distribution's package manager.");
+        msgBox.setInformativeText("To install the update, please use your distribution's package manager or download and build the current source.");
     }
     if (checker->getOS() == "Win32" || checker->getOS() == "Win64")
     {
-        msgBox.setInformativeText("You can download the new version at <a href=https://openkj.org/windows_downloads>https://openkj.org/windows_downloads</a>");
+        msgBox.setInformativeText("You can download the new version at <a href=https://openkj.org/download>https://openkj.org/download</a>");
     }
     if (checker->getOS() == "MacOS")
     {
-        msgBox.setInformativeText("You can download the new version at <a href=https://openkj.org/macos_downloads>https://openkj.org/macos_downloads</a>");
+        msgBox.setInformativeText("You can download the new version at <a href=https://openkj.org/download>https://openkj.org/download</a>");
     }
     msgBox.exec();
 }

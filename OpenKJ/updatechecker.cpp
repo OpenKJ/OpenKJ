@@ -104,10 +104,10 @@ void UpdateChecker::downloadInstaller()
     if (channel == "unstable")
     {
         if (OS == "Win64")
-            url = "http://openkj.org/downloads/unstable/Windows/OpenKJ-" + availVersion + "-64bit-setup.exe";
+            url = "https://storage.googleapis.com/openkj-windows-builds-master/OpenKJ-" + availVersion + "-64bit-setup.exe";
         if (OS == "Win32")
-            url = "http://openkj.org/downloads/unstable/Windows/OpenKJ-" + availVersion + "-32bit-setup.exe";
+            url = "https://storage.googleapis.com/openkj-windows-builds-master/OpenKJ-" + availVersion + "-32bit-setup.exe";
         if (OS == "MacOS")
-            url = "https://openkj.org/downloads/unstable/MacOS/OpenKJ-" + availVersion + "-unstable-osx-installer.dmg";
+            url = "https://storage.googleapis.com/openkj-openkj-master/OpenKJ-" + availVersion + "-unstable-osx-installer.dmg";
     }
 }
