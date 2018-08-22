@@ -170,7 +170,7 @@
         <item>
          <widget class="QStackedWidget" name="stackedWidget">
           <property name="currentIndex">
-           <number>1</number>
+           <number>2</number>
           </property>
           <widget class="QWidget" name="audioPage">
            <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -1001,6 +1001,49 @@ QPushButton:default {
                       </size>
                      </property>
                     </spacer>
+                   </item>
+                  </layout>
+                 </item>
+                 <item row="4" column="1">
+                  <spacer name="verticalSpacer_6">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>40</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item row="5" column="1">
+                  <layout class="QHBoxLayout" name="horizontalLayout_20">
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <spacer name="horizontalSpacer_13">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>40</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="btnTestReqServer">
+                     <property name="text">
+                      <string>Test</string>
+                     </property>
+                    </widget>
                    </item>
                   </layout>
                  </item>

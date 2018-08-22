@@ -203,6 +203,56 @@ void OKJSongbookAPI::updateSongDb()
     emit remoteSongDbUpdateDone();
 }
 
+bool OKJSongbookAPI::test()
+{
+    QJsonObject mainObject;
+    mainObject.insert("api_key", settings->requestServerApiKey());
+    mainObject.insert("command","getSerial");
+    QJsonDocument jsonDocument;
+    jsonDocument.setObject(mainObject);
+    QNetworkAccessManager m_NetworkMngr;
+
+    QNetworkRequest request(QUrl(settings->requestServerUrl()));
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    QNetworkReply *reply = m_NetworkMngr.post(request, jsonDocument.toJson());
+    QEventLoop loop;
+    QObject::connect(reply, SIGNAL(finished()),&loop, SLOT(quit()));
+    loop.exec();
+    if (reply->error() != QNetworkReply::NoError)
+    {
+        qWarning() << "Network error: " << reply->errorString();
+        emit testFailed(reply->errorString());
+        return false;
+    }
+    QByteArray data = reply->readAll();
+    delete reply;
+    QJsonDocument json = QJsonDocument::fromJson(data);
+    qWarning() << json;
+    QString command = json.object().value("command").toString();
+    bool error = json.object().value("error").toBool();
+    qWarning() << "error = " << error;
+    if (json.object().value("errorString").toString() != "")
+    {
+        qWarning() << "Got error json reply";
+        qWarning() << "Error string: " << json.object().value("errorString");
+        emit testFailed(json.object().value("errorString").toString());
+        return false;
+    }
+    if (command == "getSerial")
+    {
+        int newSerial = json.object().value("serial").toInt();
+        if (newSerial != 0)
+        {
+            qWarning() << "SongbookAPI - Server returned good serial";
+            emit testPassed();
+            return true;
+        }
+    }
+    qWarning() << data;
+    emit testFailed("Unknown error");
+    return false;
+}
+
 void OKJSongbookAPI::onSslErrors(QNetworkReply *reply, QList<QSslError> errors)
 {
     Q_UNUSED(errors)
@@ -219,6 +269,20 @@ void OKJSongbookAPI::onSslErrors(QNetworkReply *reply, QList<QSslError> errors)
 
     }
     lastUrl = settings->requestServerUrl();
+}
+
+void OKJSongbookAPI::onTestSslErrors(QNetworkReply *reply, QList<QSslError> errors)
+{
+    if (settings->requestServerIgnoreCertErrors())
+    {
+        reply->ignoreSslErrors();
+        return;
+    }
+    QString errorText;
+    foreach (QSslError error, errors) {
+        errorText += error.errorString() + "\n";
+    }
+    emit testSslError(errorText);
 }
 
 void OKJSongbookAPI::onNetworkReply(QNetworkReply *reply)

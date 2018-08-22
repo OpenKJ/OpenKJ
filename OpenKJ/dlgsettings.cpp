@@ -696,3 +696,40 @@ void DlgSettings::on_spinBoxAppFontSize_valueChanged(int arg1)
     settings->setApplicationFont(font);
     setFont(font);
 }
+
+void DlgSettings::on_btnTestReqServer_clicked()
+{
+    OKJSongbookAPI *api = new OKJSongbookAPI(this);
+    connect(api, SIGNAL(testFailed(QString)), this, SLOT(reqSvrTestError(QString)));
+    connect(api, SIGNAL(testSslError(QString)), this, SLOT(reqSvrTestSslError(QString)));
+    connect(api, SIGNAL(testPassed()), this, SLOT(reqSvrTestPassed()));
+    api->test();
+
+    delete api;
+}
+
+void DlgSettings::reqSvrTestError(QString error)
+{
+    QMessageBox msgBox;
+    msgBox.setWindowTitle("Request server test failed!");
+    msgBox.setText("Request server connection test was unsuccessful!");
+    msgBox.setInformativeText("Error msg:\n" + error);
+    msgBox.exec();
+}
+
+void DlgSettings::reqSvrTestSslError(QString error)
+{
+    QMessageBox msgBox;
+    msgBox.setWindowTitle("Request server test failed!");
+    msgBox.setText("Request server connection test was unsuccessful due to SSL errors!");
+    msgBox.setInformativeText("Error msg:\n" + error);
+    msgBox.exec();
+}
+
+void DlgSettings::reqSvrTestPassed()
+{
+    QMessageBox msgBox;
+    msgBox.setWindowTitle("Request server test passed");
+    msgBox.setText("Request server connection test was successful.  Server info and API key appear to be valid");
+    msgBox.exec();
+}

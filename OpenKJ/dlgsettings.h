@@ -109,6 +109,10 @@ private slots:
     void on_btnBrowse_clicked();
     void on_fontComboBox_currentFontChanged(const QFont &f);
     void on_spinBoxAppFontSize_valueChanged(int arg1);
+    void on_btnTestReqServer_clicked();
+    void reqSvrTestError(QString error);
+    void reqSvrTestSslError(QString error);
+    void reqSvrTestPassed();
 };
 
 #endif // SETTINGSDIALOG_H
