@@ -270,6 +270,7 @@ private slots:
     void databaseAboutToUpdate();
     void bmDatabaseAboutToUpdate();
     void scutSearchActivated();
+    void bmSongMoved(int oldPos, int newPos);
 
 protected:
     void closeEvent(QCloseEvent *event);

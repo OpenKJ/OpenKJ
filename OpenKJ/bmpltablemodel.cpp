@@ -67,6 +67,7 @@ void BmPlTableModel::moveSong(int oldPosition, int newPosition)
     }
     query.exec("COMMIT TRANSACTION");
     select();
+    emit bmSongMoved(oldPosition, newPosition);
 }
 
 void BmPlTableModel::addSong(int songId)

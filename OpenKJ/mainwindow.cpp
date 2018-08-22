@@ -523,7 +523,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(scutSearch, SIGNAL(activated()), this, SLOT(scutSearchActivated()));
     connect(scutRegulars, SIGNAL(activated()), this, SLOT(on_buttonRegulars_clicked()));
     connect(scutRequests, SIGNAL(activated()), this, SLOT(on_pushButtonIncomingRequests_clicked()));
-
+    connect(bmPlModel, SIGNAL(bmSongMoved(int,int)), this, SLOT(bmSongMoved(int,int)));
 }
 
 void MainWindow::play(QString karaokeFilePath, bool k2k)
@@ -2001,7 +2001,34 @@ void MainWindow::on_tableViewBmPlaylist_clicked(const QModelIndex &index)
 {
     if (index.column() == 7)
     {
-        bmPlModel->deleteSong(index.row());
+        if (bmCurrentPosition == index.row())
+        {
+            QMessageBox msgBox;
+            msgBox.setWindowTitle("Unable to remove");
+            msgBox.setText("The playlist song you are trying to remove is currently playing and can not be removed.");
+            msgBox.exec();
+            return;
+        }
+        int pos = index.row();
+        bmPlModel->deleteSong(pos);
+        if (bmCurrentPosition > pos)
+        {
+            qWarning() << "deleted item, moving curpos - delPos:" << pos << " curPos:" << bmCurrentPosition;
+            bmCurrentPosition--;
+            bmPlDelegate->setCurrentSong(bmCurrentPosition);
+        }
+        QString nextSong;
+        if (!ui->checkBoxBmBreak->isChecked())
+        {
+        if (bmCurrentPosition == bmPlModel->rowCount() - 1)
+            nextSong = bmPlModel->index(0, 3).data().toString() + " - " + bmPlModel->index(0, 4).data().toString();
+        else
+            nextSong = bmPlModel->index(bmCurrentPosition + 1, 3).data().toString() + " - " + bmPlModel->index(bmCurrentPosition + 1, 4).data().toString();
+        }
+        else
+            nextSong = "None - Breaking after current song";
+        ui->labelBmNext->setText(nextSong);
+
     }
 }
 
@@ -2704,4 +2731,26 @@ void MainWindow::bmDatabaseAboutToUpdate()
 void MainWindow::scutSearchActivated()
 {
     ui->lineEdit->setFocus();
+}
+
+void MainWindow::bmSongMoved(int oldPos, int newPos)
+{
+    QString nextSong;
+    if (oldPos < bmCurrentPosition && newPos >= bmCurrentPosition)
+        bmCurrentPosition--;
+    else if (oldPos > bmCurrentPosition && newPos <= bmCurrentPosition)
+        bmCurrentPosition++;
+    else if (oldPos == bmCurrentPosition)
+        bmCurrentPosition = newPos;
+    bmPlDelegate->setCurrentSong(bmCurrentPosition);
+    if (!ui->checkBoxBmBreak->isChecked())
+    {
+    if (bmCurrentPosition == bmPlModel->rowCount() - 1)
+        nextSong = bmPlModel->index(0, 3).data().toString() + " - " + bmPlModel->index(0, 4).data().toString();
+    else
+        nextSong = bmPlModel->index(bmCurrentPosition + 1, 3).data().toString() + " - " + bmPlModel->index(bmCurrentPosition + 1, 4).data().toString();
+    }
+    else
+        nextSong = "None - Breaking after current song";
+    ui->labelBmNext->setText(nextSong);
 }
