@@ -222,7 +222,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     audioRecorder = new AudioRecorder(this);
     settingsDialog = new DlgSettings(kAudioBackend, bmAudioBackend, this);
-    cdgWindow = new DlgCdg(kAudioBackend, bmAudioBackend, this, Qt::Window);
+    cdgWindow = new DlgCdg(kAudioBackend, bmAudioBackend, 0, Qt::Window);
     connect(rotModel, SIGNAL(songDroppedOnSinger(int,int,int)), this, SLOT(songDroppedOnSinger(int,int,int)));
     connect(kAudioBackend, SIGNAL(volumeChanged(int)), ui->sliderVolume, SLOT(setValue(int)));
     connect(dbDialog, SIGNAL(databaseUpdateComplete()), this, SLOT(databaseUpdated()));
@@ -650,7 +650,6 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
 
 MainWindow::~MainWindow()
 {
-    dlgSongShop->close();
     settings->bmSetVolume(ui->sliderBmVolume->value());
     settings->setAudioVolume(ui->sliderVolume->value());
     qWarning() << "Saving volumes - K: " << settings->audioVolume() << " BM: " << settings->bmVolume();
@@ -659,16 +658,13 @@ MainWindow::~MainWindow()
     settings->saveSplitterState(ui->splitter_3);
     settings->saveColumnWidths(ui->tableViewDB);
     settings->saveColumnWidths(ui->tableViewRotation);
-    settings->saveColumnWidths(ui->tableViewQueue);
-    if (!settings->cdgWindowFullscreen())
-        settings->saveWindowState(cdgWindow);
+    settings->saveColumnWidths(ui->tableViewQueue);   
     settings->saveWindowState(requestsDialog);
     settings->saveWindowState(regularSingersDialog);
     settings->saveWindowState(dlgSongShop);
     settings->saveWindowState(dlgSongShop);
     settings->saveWindowState(dbDialog);
     settings->saveWindowState(this);
-    settings->setShowCdgWindow(cdgWindow->isVisible());
     settings->saveSplitterState(ui->splitterBm);
     settings->saveColumnWidths(ui->tableViewBmDb);
     settings->saveColumnWidths(ui->tableViewBmPlaylist);
@@ -2379,12 +2375,15 @@ void MainWindow::closeEvent(QCloseEvent *event)
         if (msgBox.clickedButton() != yesButton)
         {
             event->ignore();
+            return;
         }
-        else
-            event->accept();
     }
-    else
-        event->accept();
+    if (!settings->cdgWindowFullscreen())
+        settings->saveWindowState(cdgWindow);
+    settings->setShowCdgWindow(cdgWindow->isVisible());
+    cdgWindow->setVisible(false);
+    dlgSongShop->setVisible(false);
+    event->accept();
 }
 
 void MainWindow::on_sliderVolume_sliderMoved(int position)
