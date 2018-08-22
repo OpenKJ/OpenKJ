@@ -337,11 +337,7 @@
                    <number>4</number>
                   </property>
                   <item>
-                   <widget class="CustomLineEdit" name="lineEdit">
-                    <property name="clearButtonEnabled">
-                     <bool>false</bool>
-                    </property>
-                   </widget>
+                   <widget class="CustomLineEdit" name="lineEdit"/>
                   </item>
                   <item>
                    <widget class="QPushButton" name="pushButton">

@@ -40,6 +40,7 @@
 #include "updatechecker.h"
 #include "okjversion.h"
 #include "dlgeditsong.h"
+#include <QKeySequence>
 
 Settings *settings;
 OKJSongbookAPI *songbookApi;
@@ -510,8 +511,18 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(startupOneShot, SIGNAL(timeout()), this, SLOT(autosizeBmViews()));
     startupOneShot->setSingleShot(true);
     startupOneShot->start(500);
-
-
+    scutAddSinger = new QShortcut(this);
+    scutSearch = new QShortcut(this);
+    scutRegulars = new QShortcut(this);
+    scutRequests = new QShortcut(this);
+    scutAddSinger->setKey(QKeySequence(Qt::Key_Insert));
+    scutSearch->setKey((QKeySequence(Qt::Key_Slash)));
+    scutRegulars->setKey(QKeySequence(Qt::CTRL + Qt::Key_R));
+    scutRequests->setKey(QKeySequence(Qt::CTRL + Qt::Key_Q));
+    connect(scutAddSinger, SIGNAL(activated()), this, SLOT(on_buttonAddSinger_clicked()));
+    connect(scutSearch, SIGNAL(activated()), this, SLOT(scutSearchActivated()));
+    connect(scutRegulars, SIGNAL(activated()), this, SLOT(on_buttonRegulars_clicked()));
+    connect(scutRequests, SIGNAL(activated()), this, SLOT(on_pushButtonIncomingRequests_clicked()));
 
 }
 
@@ -2689,4 +2700,9 @@ void MainWindow::bmDatabaseAboutToUpdate()
     bmPlaylistsModel->setTable("");
     dbModel->revertAll();
     dbModel->setTable("");
+}
+
+void MainWindow::scutSearchActivated()
+{
+    ui->lineEdit->setFocus();
 }

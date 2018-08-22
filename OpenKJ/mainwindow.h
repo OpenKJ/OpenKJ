@@ -55,6 +55,7 @@
 #include "bmpltablemodel.h"
 #include "bmplitemdelegate.h"
 #include "bmdbdialog.h"
+#include <QShortcut>
 #include <QThread>
 #include "audiorecorder.h"
 #include "dlgbookcreator.h"
@@ -148,6 +149,10 @@ private:
     bool kNeedAutoSize;
     bool bNeedAutoSize;
     KhDb *db;
+    QShortcut *scutAddSinger;
+    QShortcut *scutSearch;
+    QShortcut *scutRegulars;
+    QShortcut *scutRequests;
 
 
 public:
@@ -264,6 +269,7 @@ private slots:
     void on_tabWidget_currentChanged(int index);
     void databaseAboutToUpdate();
     void bmDatabaseAboutToUpdate();
+    void scutSearchActivated();
 
 protected:
     void closeEvent(QCloseEvent *event);
