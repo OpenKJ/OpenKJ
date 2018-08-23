@@ -39,7 +39,6 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     dbModel = new DbTableModel(this);
     dbDelegate = new DbItemDelegate(this);
     ui->tableViewRequests->setModel(requestsModel);
-    ui->tableViewRequests->hideColumn(0);
     connect(requestsModel, SIGNAL(layoutChanged()), this, SLOT(requestsModified()));
     ui->tableViewSearch->setModel(dbModel);
     ui->tableViewSearch->setItemDelegate(dbDelegate);
@@ -419,8 +418,10 @@ void DlgRequests::autoSizeViews()
     ui->tableViewSearch->horizontalHeader()->resizeSection(3, songidColSize);
 
     int tsWidth = QFontMetrics(settings->applicationFont()).width(" 00/00/00 00:00 xx ");
+    qWarning() << "tsWidth = " << tsWidth;
     int delwidth = fH * 2;
-    int singerColSize = QFontMetrics(settings->applicationFont()).width(" Some Singer ");
+    int singerColSize = QFontMetrics(settings->applicationFont()).width("_Isaac_Lightburn_");
+    qWarning() << "singerColSize = " << singerColSize;
     remainingSpace = ui->tableViewRequests->width() - tsWidth - delwidth - singerColSize - 6;
     artistColSize = remainingSpace / 2;
     titleColSize = remainingSpace / 2;
