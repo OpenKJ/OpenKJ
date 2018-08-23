@@ -276,16 +276,20 @@ void AudioBackendGstreamer::processGstMessages()
                 GError *err;
                 gchar *debug;
                 gst_message_parse_error(message, &err, &debug);
-                g_print("GStreamer error: %s\n", err->message);
-                g_print("GStreamer debug output: %s\n", debug);
+                //g_print("GStreamer error: %s\n", err->message);
+                //g_print("GStreamer debug output: %s\n", debug);
+                qWarning() << getName() << " Gst warning: " << err->message;
+                qWarning() << getName() << " Gst debug: " << debug;
             }
             else if (message->type == GST_MESSAGE_WARNING)
             {
                 GError *err;
                 gchar *debug;
                 gst_message_parse_warning(message, &err, &debug);
-                g_print("GStreamer warning: %s\n", err->message);
-                g_print("GStreamer debug output: %s\n", debug);
+                //g_print("GStreamer warning: %s\n", err->message);
+                //g_print("GStreamer debug output: %s\n", debug);
+                qWarning() << getName() << " Gst warning: " << err->message;
+                qWarning() << getName() << " Gst debug: " << debug;
             }
             else if (message->type == GST_MESSAGE_STATE_CHANGED)
             {
@@ -337,7 +341,8 @@ void AudioBackendGstreamer::processGstMessages()
             }
             else
             {
-                g_print("Msg type[%d], Msg type name[%s]\n", GST_MESSAGE_TYPE(message), GST_MESSAGE_TYPE_NAME(message));
+                //g_print("Msg type[%d], Msg type name[%s]\n", GST_MESSAGE_TYPE(message), GST_MESSAGE_TYPE_NAME(message));
+                qWarning() << this->getName() << " - Gst msg type: " << GST_MESSAGE_TYPE(message) << " Gst msg name: " << GST_MESSAGE_TYPE_NAME(message);
             }
             gst_message_unref(message);
         }

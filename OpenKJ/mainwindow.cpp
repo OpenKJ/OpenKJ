@@ -555,14 +555,21 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
                         QMessageBox::warning(this, tr("Bad karaoke file"), tr("Failed to extract audio file."),QMessageBox::Ok);
                         return;
                     }
+                    QString audioFile = khTmpDir->path() + QDir::separator() + "tmp" + archive.audioExtension();
+                    qWarning() << "Extracted audio file size: " << QFileInfo(audioFile).size();
+                    qWarning() << "Loading CDG data";
                     cdg->FileOpen(archive.getCDGData());
+                    qWarning() << "Processing CDG data";
                     cdg->Process();
+                    qWarning() << "CDG Processed. - Duration: " << cdg->GetDuration() << " Last CDG draw command time: " << cdg->GetLastCDGUpdate();
                     cdgWindow->setShowBgImage(false);
                     setShowBgImage(false);
-                    kAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + "tmp" + archive.audioExtension());
+                    qWarning() << "Setting karaoke backend source file to: " << audioFile;
+                    kAudioBackend->setMedia(audioFile);
                     //                ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
                     if (!k2k)
                         bmAudioBackend->fadeOut(!settings->bmKCrossFade());
+                    qWarning() << "Beginning playback of file: " << audioFile;
                     kAudioBackend->play();
                 }
             }
@@ -576,8 +583,8 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
         {
             static QString prevCdgTmpFile;
             static QString prevAudioTmpFile;
-            QFile::remove(khTmpDir->path() + QDir::separator() + prevCdgTmpFile);
-            QFile::remove(khTmpDir->path() + QDir::separator() + prevAudioTmpFile);
+            //QFile::remove(khTmpDir->path() + QDir::separator() + prevCdgTmpFile);
+            //QFile::remove(khTmpDir->path() + QDir::separator() + prevAudioTmpFile);
             QString tmpString = GetRandomString();
             QString cdgTmpFile = tmpString + ".cdg";
             QString audTmpFile = tmpString + ".mp3";
@@ -1139,7 +1146,7 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
     m_lastAudioState = state;
     if (state == AbstractAudioBackend::StoppedState)
     {
-        qWarning() << "Audio entered StoppedState";
+        qWarning() << "KAudio entered StoppedState";
         audioRecorder->stop();
         cdg->VideoClose();
         if (k2kTransition)
@@ -1215,7 +1222,7 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
     }
     if (state == AbstractAudioBackend::EndOfMediaState)
     {
-        qWarning() << "Audio entered EndOfMediaState";
+        qWarning() << "KAudio entered EndOfMediaState";
         audioRecorder->stop();
 //        ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
         kAudioBackend->stop(true);
@@ -1223,16 +1230,17 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
     }
     if (state == AbstractAudioBackend::PausedState)
     {
-        qWarning() << "Audio entered PausedState";
+        qWarning() << "KAudio entered PausedState";
             audioRecorder->pause();
     }
     if (state == AbstractAudioBackend::PlayingState)
     {
+        qWarning() << "KAudio entered PlayingState";
         cdgWindow->setShowBgImage(false);
     }
     if (state == AbstractAudioBackend::UnknownState)
     {
-        qWarning() << "Audio entered UnknownState";
+        qWarning() << "KAudio entered UnknownState";
     }
     rotationDataChanged();
 }
