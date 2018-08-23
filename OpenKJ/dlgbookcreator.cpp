@@ -122,7 +122,7 @@ QStringList DlgBookCreator::getArtists()
 {
     QSqlQuery query;
     QStringList artists;
-    QString sql = "SELECT DISTINCT artist FROM dbsongs ORDER BY artist";
+    QString sql = "SELECT DISTINCT artist FROM dbsongs WHERE discid != '!!BAD!!' AND discid != '!!DROPPED!!' ORDER BY artist";
     query.exec(sql);
     while (query.next())
     {
@@ -135,7 +135,7 @@ QStringList DlgBookCreator::getTitles(QString artist)
 {
     QSqlQuery query;
     QStringList titles;
-    QString sql = "SELECT DISTINCT title FROM dbsongs WHERE artist = :artist AND discid != '!!BAD!!' ORDER BY title";
+    QString sql = "SELECT DISTINCT title FROM dbsongs WHERE artist = :artist AND discid != '!!BAD!!' AND discid != '!!DROPPED!!' ORDER BY title";
     query.prepare(sql);
     query.bindValue(":artist", artist);
     query.exec();
