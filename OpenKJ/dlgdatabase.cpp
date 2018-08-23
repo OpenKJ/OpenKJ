@@ -55,11 +55,12 @@ DlgDatabase::~DlgDatabase()
 
 void DlgDatabase::singleSongAdd(QString path)
 {
+    qWarning() << "singleSongAdd(" << path << ") called";
     DbUpdateThread *updateThread = new DbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "threaddb"),this);
     updateThread->addSingleTrack(path);
     delete updateThread;
-    //emit databaseUpdateComplete();
-    emit databaseSongAdded();
+    emit databaseUpdateComplete();
+    //emit databaseSongAdded();
 }
 
 int DlgDatabase::dropFileAdd(QString path)

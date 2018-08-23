@@ -257,7 +257,7 @@ void DbUpdateThread::addSingleTrack(QString path)
     if (query.lastInsertId().isValid())
     {
         int lastInsertId = query.lastInsertId().toInt();
-        query.prepare("INSERT OR IGNORE INTO mem.dbSongs (rowid,discid,artist,title,path,filename,duration,searchstring) VALUES(:rowid,:discid, :artist, :title, :path, :filename, :duration, :searchstring)");
+        query.prepare("INSERT OR IGNORE INTO mem.dbsongs (rowid,discid,artist,title,path,filename,duration,searchstring) VALUES(:rowid,:discid, :artist, :title, :path, :filename, :duration, :searchstring)");
         query.bindValue(":rowid", lastInsertId);
         query.bindValue(":discid", discid);
         query.bindValue(":artist", artist);
