@@ -108,6 +108,7 @@ private:
 //    KhIPCClient *ipcClient;
     QLabel *labelSingerCount;
     bool sliderPositionPressed;
+    bool sliderBmPositionPressed;
     void play(QString karaokeFilePath, bool k2k = false);
     int m_rtClickQueueSongId;
     int m_rtClickRotationSingerId;
@@ -230,7 +231,6 @@ private slots:
     void on_buttonBmStop_clicked();
     void on_lineEditBmSearch_returnPressed();
     void on_tableViewBmPlaylist_activated(const QModelIndex &index);
-    void on_sliderBmPosition_sliderMoved(int position);
     void on_buttonBmPause_clicked(bool checked);
     void on_actionDisplay_Metadata_toggled(bool arg1);
     void on_actionDisplay_Filenames_toggled(bool arg1);
@@ -271,6 +271,10 @@ private slots:
     void bmDatabaseAboutToUpdate();
     void scutSearchActivated();
     void bmSongMoved(int oldPos, int newPos);
+
+    void on_sliderBmPosition_sliderPressed();
+
+    void on_sliderBmPosition_sliderReleased();
 
 protected:
     void closeEvent(QCloseEvent *event);

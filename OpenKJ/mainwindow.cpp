@@ -89,6 +89,7 @@ MainWindow::MainWindow(QWidget *parent) :
     kAANextSongPath = "";
     m_lastAudioState = AbstractAudioBackend::StoppedState;
     sliderPositionPressed = false;
+    sliderBmPositionPressed = false;
     m_rtClickQueueSongId = -1;
     m_rtClickRotationSingerId = -1;
     k2kTransition = false;
@@ -1986,7 +1987,10 @@ void MainWindow::bmMediaStateChanged(AbstractAudioBackend::State newState)
 
 void MainWindow::bmMediaPositionChanged(qint64 position)
 {
-    ui->sliderBmPosition->setValue(position);
+    if (!sliderBmPositionPressed)
+    {
+        ui->sliderBmPosition->setValue(position);
+    }
     ui->labelBmPosition->setText(QTime(0,0,0,0).addMSecs(position).toString("m:ss"));
     ui->labelBmRemaining->setText(QTime(0,0,0,0).addMSecs(bmAudioBackend->duration() - position).toString("m:ss"));
 }
@@ -2092,11 +2096,6 @@ void MainWindow::on_tableViewBmPlaylist_activated(const QModelIndex &index)
     ui->labelBmNext->setText(nextSong);
     bmPlDelegate->setCurrentSong(index.row());
     bmPlModel->select();
-}
-
-void MainWindow::on_sliderBmPosition_sliderMoved(int position)
-{
-    bmAudioBackend->setPosition(position);
 }
 
 void MainWindow::on_buttonBmPause_clicked(bool checked)
@@ -2753,4 +2752,17 @@ void MainWindow::bmSongMoved(int oldPos, int newPos)
     else
         nextSong = "None - Breaking after current song";
     ui->labelBmNext->setText(nextSong);
+}
+
+void MainWindow::on_sliderBmPosition_sliderPressed()
+{
+    qWarning() << "BM slider down";
+    sliderBmPositionPressed = true;
+}
+
+void MainWindow::on_sliderBmPosition_sliderReleased()
+{
+    bmAudioBackend->setPosition(ui->sliderBmPosition->value());
+    sliderBmPositionPressed = false;
+    qWarning() << "BM slider up.  Position:" << ui->sliderBmPosition->value();
 }

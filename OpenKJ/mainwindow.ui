@@ -2065,6 +2065,9 @@ QPushButton:default {
                           <property name="focusPolicy">
                            <enum>Qt::NoFocus</enum>
                           </property>
+                          <property name="tracking">
+                           <bool>true</bool>
+                          </property>
                           <property name="orientation">
                            <enum>Qt::Horizontal</enum>
                           </property>
