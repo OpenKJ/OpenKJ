@@ -10,6 +10,6 @@ Homepage: https://www.openkj.org
 
 Package: openkj
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, gstreamer1.0-plugins-good, gstreamer1.0-plugins-bad, unzip, libtag1v5, libtag-extras1, libqt5sql5-sqlite libqt5svg5
+Depends: ${shlibs:Depends}, ${misc:Depends}, gstreamer1.0-plugins-good, gstreamer1.0-plugins-bad, unzip, libtag1v5, libtag-extras1, libqt5sql5-sqlite, libqt5svg5
 Description: OpenKJ karaoke hosting software
  Open source karaoke hosting software targeted at professional KJs. 
