@@ -23,6 +23,11 @@ class KaraokeFileInfo : public QObject
     QString tagTitle;
     QString tagSongid;
     int duration;
+    SourceDir::NamingPattern pattern;
+    QString path;
+    QString artist;
+    QString title;
+    QString songId;
 
 public:
     explicit KaraokeFileInfo(QObject *parent = 0);
@@ -35,6 +40,7 @@ public:
     QString getTitle();
     QString getSongId();
     int getDuration();
+    void getMetadata();
 
 signals:
 
