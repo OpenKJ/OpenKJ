@@ -47,6 +47,7 @@ private:
     RotationModel *rotModel;
     QString rtClickFile;
     int curRequestId;
+    QString curSelReqSinger;
 
 public:
     explicit DlgRequests(RotationModel *rotationModel, QWidget *parent = 0);
@@ -60,6 +61,7 @@ public slots:
     void databaseAboutToUpdate();
     void databaseUpdateComplete();
     void databaseSongAdded();
+    void rotationChanged();
 
 private slots:
     void on_pushButtonClose_clicked();

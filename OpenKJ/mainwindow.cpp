@@ -1257,6 +1257,7 @@ void MainWindow::on_buttonRegulars_clicked()
 
 void MainWindow::rotationDataChanged()
 {
+    requestsDialog->rotationChanged();
     QString statusBarText = "Singers: ";
     statusBarText += QString::number(rotModel->rowCount());
     labelSingerCount->setText(statusBarText);

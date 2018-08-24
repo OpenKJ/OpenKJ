@@ -115,6 +115,32 @@ void DlgRequests::databaseSongAdded()
     dbModel->select();
 }
 
+void DlgRequests::rotationChanged()
+{
+    QString curSelSinger = ui->comboBoxSingers->currentText();
+    ui->comboBoxSingers->clear();
+    QStringList singers = rotModel->singers();
+    singers.sort(Qt::CaseInsensitive);
+    ui->comboBoxSingers->addItems(singers);
+    if (singers.contains(curSelSinger))
+        ui->comboBoxSingers->setCurrentText(curSelSinger);
+    int s = -1;
+    for (int i=0; i < singers.size(); i++)
+    {
+        if (singers.at(i).toLower().trimmed() == curSelReqSinger.toLower().trimmed())
+        {
+            s = i;
+            break;
+        }
+    }
+    if (s != -1)
+    {
+        ui->comboBoxSingers->setCurrentIndex(s);
+        ui->radioButtonExistingSinger->setChecked(true);
+    }
+
+}
+
 void DlgRequests::on_pushButtonClose_clicked()
 {
     close();
@@ -146,6 +172,8 @@ void DlgRequests::requestSelectionChanged(const QItemSelection &current, const Q
     {
         dbModel->search("yeahjustsomethingitllneverfind.imlazylikethat");
         ui->groupBoxSongDb->setDisabled(true);
+        ui->comboBoxSingers->setCurrentIndex(0);
+        curSelReqSinger = "";
         return;
     }
     QModelIndex index = current.indexes().at(0);
@@ -155,7 +183,9 @@ void DlgRequests::requestSelectionChanged(const QItemSelection &current, const Q
         ui->groupBoxSongDb->setEnabled(true);
         ui->comboBoxSingers->clear();
         QString singerName = index.sibling(index.row(),0).data().toString();
+        curSelReqSinger = singerName;
         QStringList singers = rotModel->singers();
+        singers.sort(Qt::CaseInsensitive);
         ui->comboBoxSingers->addItems(singers);
 
         QString filterStr = index.sibling(index.row(),1).data().toString() + " " + index.sibling(index.row(),2).data().toString();
@@ -166,7 +196,7 @@ void DlgRequests::requestSelectionChanged(const QItemSelection &current, const Q
         int s = -1;
         for (int i=0; i < singers.size(); i++)
         {
-            if (singers.at(i).toLower() == singerName.toLower())
+            if (singers.at(i).toLower().trimmed() == singerName.toLower().trimmed())
             {
                 s = i;
                 break;
@@ -175,6 +205,11 @@ void DlgRequests::requestSelectionChanged(const QItemSelection &current, const Q
         if (s != -1)
         {
             ui->comboBoxSingers->setCurrentIndex(s);
+            ui->radioButtonExistingSinger->setChecked(true);
+        }
+        else
+        {
+            ui->radioButtonNewSinger->setChecked(true);
         }
     }
     else
