@@ -169,11 +169,11 @@ private slots:
     void on_buttonStop_clicked();
     void on_buttonPause_clicked();
     void on_lineEdit_returnPressed();
-    void on_tableViewDB_activated(const QModelIndex &index);
+    void on_tableViewDB_doubleClicked(const QModelIndex &index);
     void on_buttonAddSinger_clicked();
-    void on_tableViewRotation_activated(const QModelIndex &index);
+    void on_tableViewRotation_doubleClicked(const QModelIndex &index);
     void on_tableViewRotation_clicked(const QModelIndex &index);
-    void on_tableViewQueue_activated(const QModelIndex &index);
+    void on_tableViewQueue_doubleClicked(const QModelIndex &index);
     void on_actionManage_DB_triggered();
     void on_actionExport_Regulars_triggered();
     void on_actionImport_Regulars_triggered();
@@ -227,10 +227,10 @@ private slots:
     void on_tableViewBmPlaylist_clicked(const QModelIndex &index);
     void on_comboBoxBmPlaylists_currentIndexChanged(int index);
     void on_checkBoxBmBreak_toggled(bool checked);
-    void on_tableViewBmDb_activated(const QModelIndex &index);
+    void on_tableViewBmDb_doubleClicked(const QModelIndex &index);
     void on_buttonBmStop_clicked();
     void on_lineEditBmSearch_returnPressed();
-    void on_tableViewBmPlaylist_activated(const QModelIndex &index);
+    void on_tableViewBmPlaylist_doubleClicked(const QModelIndex &index);
     void on_buttonBmPause_clicked(bool checked);
     void on_actionDisplay_Metadata_toggled(bool arg1);
     void on_actionDisplay_Filenames_toggled(bool arg1);

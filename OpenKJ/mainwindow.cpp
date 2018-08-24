@@ -790,7 +790,7 @@ void MainWindow::on_lineEdit_returnPressed()
     search();
 }
 
-void MainWindow::on_tableViewDB_activated(const QModelIndex &index)
+void MainWindow::on_tableViewDB_doubleClicked(const QModelIndex &index)
 {
     if (qModel->singer() >= 0)
     {
@@ -810,7 +810,7 @@ void MainWindow::on_buttonAddSinger_clicked()
 }
 
 
-void MainWindow::on_tableViewRotation_activated(const QModelIndex &index)
+void MainWindow::on_tableViewRotation_doubleClicked(const QModelIndex &index)
 {
     if (index.column() < 3)
     {
@@ -928,7 +928,7 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
     ui->gbxQueue->setTitle(QString("Song Queue - " + rotModel->getSingerName(index.sibling(index.row(),0).data().toInt())));
 }
 
-void MainWindow::on_tableViewQueue_activated(const QModelIndex &index)
+void MainWindow::on_tableViewQueue_doubleClicked(const QModelIndex &index)
 {
     k2kTransition = false;
     if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
@@ -2065,7 +2065,7 @@ void MainWindow::on_checkBoxBmBreak_toggled(bool checked)
     ui->labelBmNext->setText(nextSong);
 }
 
-void MainWindow::on_tableViewBmDb_activated(const QModelIndex &index)
+void MainWindow::on_tableViewBmDb_doubleClicked(const QModelIndex &index)
 {
     int songId = index.sibling(index.row(), 0).data().toInt();
     bmPlModel->addSong(songId);
@@ -2081,7 +2081,7 @@ void MainWindow::on_lineEditBmSearch_returnPressed()
     bmDbModel->search(ui->lineEditBmSearch->text());
 }
 
-void MainWindow::on_tableViewBmPlaylist_activated(const QModelIndex &index)
+void MainWindow::on_tableViewBmPlaylist_doubleClicked(const QModelIndex &index)
 {
     if (bmAudioBackend->state() == AbstractAudioBackend::PlayingState)
         bmAudioBackend->stop(false);
