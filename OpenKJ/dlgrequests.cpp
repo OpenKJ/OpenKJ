@@ -29,6 +29,16 @@
 extern Settings *settings;
 extern OKJSongbookAPI *songbookApi;
 
+QString toMixedCase(const QString& s)
+{
+    QStringList parts = s.split(" ", QString::SkipEmptyParts);
+    for (int i=1; i<parts.size(); ++i)
+        parts[i].replace(0, 1, parts[i][0].toUpper());
+    QString newStr = parts.join(" ");
+    newStr.replace(0, 1, newStr.at(0).toUpper());
+    return newStr;
+}
+
 DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DlgRequests)
@@ -191,7 +201,8 @@ void DlgRequests::requestSelectionChanged(const QItemSelection &current, const Q
         QString filterStr = index.sibling(index.row(),1).data().toString() + " " + index.sibling(index.row(),2).data().toString();
         dbModel->search(filterStr);
         ui->lineEditSearch->setText(filterStr);
-        ui->lineEditSingerName->setText(singerName);
+        //ui->lineEditSingerName->setText(singerName);
+        ui->lineEditSingerName->setText(toMixedCase(singerName));
 
         int s = -1;
         for (int i=0; i < singers.size(); i++)
