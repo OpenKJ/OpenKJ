@@ -118,6 +118,7 @@ void DlgRequests::databaseUpdateComplete()
 {
     dbModel->refreshCache();
     dbModel->select();
+    autoSizeViews();
 }
 
 void DlgRequests::databaseSongAdded()
@@ -457,6 +458,10 @@ void DlgRequests::autoSizeViews()
     int remainingSpace = ui->tableViewSearch->width() - durationColSize - songidColSize - 12;
     int artistColSize = (remainingSpace / 2) - 12;
     int titleColSize = (remainingSpace / 2);
+    ui->tableViewSearch->hideColumn(0);
+    ui->tableViewSearch->hideColumn(5);
+    ui->tableViewSearch->hideColumn(6);
+    ui->tableViewSearch->hideColumn(7);
     ui->tableViewSearch->horizontalHeader()->resizeSection(1, artistColSize);
     ui->tableViewSearch->horizontalHeader()->resizeSection(2, titleColSize);
     ui->tableViewSearch->horizontalHeader()->resizeSection(4, durationColSize);

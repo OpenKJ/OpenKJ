@@ -238,9 +238,10 @@ void DbUpdateThread::addSingleTrack(QString path)
     QString discid;
     KaraokeFileInfo parser;
     parser.setFileName(path);
-    parser.setSongIdRegEx("^\\S+?(?=(\\s|_)-(\\s|_))");
-    parser.setTitleRegEx("(?:^\\S+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|_))(.+)",1);
-    parser.setArtistRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))", 0);
+    parser.setPattern(SourceDir::SAT);
+//    parser.setSongIdRegEx("^\\S+?(?=(\\s|_)-(\\s|_))");
+//    parser.setTitleRegEx("(?:^\\S+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|_))(.+)",1);
+//    parser.setArtistRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))", 0);
     if (duration == 0)
         duration = parser.getDuration();
     artist = parser.getArtist();

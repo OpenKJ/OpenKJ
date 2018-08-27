@@ -701,6 +701,7 @@ void MainWindow::databaseUpdated()
     ui->tableViewDB->horizontalHeader()->resizeSection(4,75);
     settings->restoreColumnWidths(ui->tableViewDB);
     requestsDialog->databaseUpdateComplete();
+    autosizeViews();
 }
 
 void MainWindow::databaseCleared()
