@@ -10,6 +10,11 @@ TagReader::TagReader(QObject *parent) : QObject(parent)
 
 }
 
+TagReader::~TagReader()
+{
+    gst_object_unref(discoverer);
+}
+
 QString TagReader::getArtist()
 {
     return m_artist;
@@ -40,9 +45,11 @@ void TagReader::setMedia(QString path)
     qWarning() << "Getting tags for: " << path;
     if ((path.endsWith(".mp3", Qt::CaseInsensitive)) || (path.endsWith(".ogg", Qt::CaseInsensitive)))
     {
+        qWarning() << "Using taglib to get tags";
         taglibTags(path);
         return;
     }
+    qWarning() << "Using gstreamer to get tags";
     QString uri;
 #ifdef Q_OS_WIN
     uri = "file:///" + path;

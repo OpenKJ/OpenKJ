@@ -20,6 +20,7 @@ private:
 
 public:
     explicit TagReader(QObject *parent = 0);
+    ~TagReader();
     QString getArtist();
     QString getTitle();
     QString getAlbum();
