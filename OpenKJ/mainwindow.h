@@ -65,6 +65,7 @@
 #include "dlgsongshop.h"
 #include "songshop.h"
 #include "khdb.h"
+#include <QPointer>
 
 
 using namespace std;
@@ -100,11 +101,11 @@ private:
     DlgAddSinger *dlgAddSinger;
     DlgSongShop *dlgSongShop;
     //DlgCdgPreview *cdgPreviewDialog;
-    AbstractAudioBackend *kAudioBackend;
+    QPointer<AudioBackendGstreamer> kAudioBackend;
 //    KhAudioBackends *audioBackends;
 //    KhAudioRecorder *audioRecorder;
-    AudioRecorder *audioRecorder;
-    AudioBackendGstreamer *bmAudioBackend;
+    QPointer<AudioRecorder> audioRecorder;
+    QPointer<AudioBackendGstreamer> bmAudioBackend;
 //    KhIPCClient *ipcClient;
     QLabel *labelSingerCount;
     bool sliderPositionPressed;
@@ -154,7 +155,6 @@ private:
     QShortcut *scutSearch;
     QShortcut *scutRegulars;
     QShortcut *scutRequests;
-
 
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -275,6 +275,8 @@ private slots:
     void on_sliderBmPosition_sliderPressed();
 
     void on_sliderBmPosition_sliderReleased();
+    void bmPlay(QString path);
+    void kPlay(QString path);
 
 protected:
     void closeEvent(QCloseEvent *event);

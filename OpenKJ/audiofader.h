@@ -12,13 +12,23 @@ private:
     GstElement *volumeElement;
     QTimer *timer;
     bool fading;
+    bool fadingIn;
+    bool fadingOut;
     double preFadeVol;
     double targetVol;
     void setVolume(double volume);
     double volume();
+    bool stoppingEvents;
 
 public:
     explicit AudioFader(GstElement *volElement, QObject *parent = 0);
+    void setPreFadeVol(double preFadeVol);
+    double getPreFadeVol();
+    void stopEvents();
+    bool isFadingIn() { return fadingIn; }
+    bool isFadingOut() { return fadingOut; }
+    bool isFading() { return fading; }
+
 
 signals:
     void volumeChanged(double volume);
@@ -28,6 +38,7 @@ signals:
 public slots:
     void fadeOut(bool block = false);
     void fadeIn(bool block = false);
+    void fadeInToTargetVolume(double volume, bool block = false);
 
 
 private slots:

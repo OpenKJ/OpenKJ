@@ -279,10 +279,16 @@ void DlgCdg::setShowBgImage(bool show)
     showBgImage = show;
     if ((show) && (settings->bgMode() == settings->BG_MODE_IMAGE))
     {
-        if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
-            return;
-        if (bAudioBackend->state() == AbstractAudioBackend::PlayingState && bAudioBackend->hasVideo())
-            return;
+        if (kAudioBackend)
+        {
+            if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
+                return;
+        }
+        if (bAudioBackend)
+        {
+            if (bAudioBackend->state() == AbstractAudioBackend::PlayingState && bAudioBackend->hasVideo())
+                return;
+        }
         if (settings->cdgDisplayBackgroundImage() != QString::null)
             ui->cdgVideo->videoSurface()->present(QVideoFrame(QImage(settings->cdgDisplayBackgroundImage())));
         else
@@ -293,7 +299,6 @@ void DlgCdg::setShowBgImage(bool show)
             renderer.render(&painter);
             ui->cdgVideo->videoSurface()->present(QVideoFrame(bgImage));
         }
-
     }
 }
 

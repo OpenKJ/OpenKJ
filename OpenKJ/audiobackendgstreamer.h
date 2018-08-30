@@ -36,6 +36,7 @@
 #include <QImage>
 #include <QAudioOutput>
 #include "audiofader.h"
+#include <QPointer>
 
 class AudioBackendGstreamer : public AbstractAudioBackend
 {
@@ -50,6 +51,7 @@ private:
     GstElement *queueR;
     GstElement *aConvR;
     GstElement *aConvL;
+    GstElement *aOutQueue;
     GstElement *audioMixer;
     GstElement *fltrPostMixer;
     GstPad *teeSrcPadN;
@@ -86,7 +88,7 @@ private:
     GstElement *level;
     GstElement *fltrMplxInput;
     GstElement *fltrEnd;
-    GstElement *audioPanorama;
+//    GstElement *audioPanorama;
     GstElement *audioResample;
     GstElement *volumeElement;
     GstElement *equalizer;
@@ -111,7 +113,7 @@ private:
     bool m_keyChangerRubberBand;
     bool m_keyChangerSoundtouch;
     bool m_muted;
-    bool isFading;
+    bool m_isFading;
     int m_silenceDuration;
     void processGstMessages();
     int m_outputChannels;
@@ -132,8 +134,8 @@ private:
     QStringList outputDeviceNames;
     QList<GstDevice*> outputDevices;
     AudioFader *fader;
-
     static void DestroyCallback(gpointer user_data);
+    bool stoppingEvents;
 public:
     explicit AudioBackendGstreamer(bool loadPitchShift = true, QObject *parent = 0, QString objectName = "unknown");
     ~AudioBackendGstreamer();
@@ -159,6 +161,13 @@ public:
     int m_tempo;
     int tempo();
     bool m_hasVideo;
+    void setPreFadeVol(double preFadeVol);
+    double getPreFadeVol();
+    void stopEvents();
+    bool isFading() { return fader->isFading(); }
+    bool isFadingIn() { return fader->isFadingIn(); }
+    bool isFadingOut() { return fader->isFadingOut(); }
+
 
 private slots:
     void fastTimer_timeout();
@@ -176,6 +185,7 @@ public slots:
     void setPitchShift(int pitchShift);
     void fadeOut(bool waitForFade = true);
     void fadeIn(bool waitForFade = true);
+    void fadeInToTargetVol(int vol, bool waitForFade = true);
     void setUseFader(bool fade);
     void setUseSilenceDetection(bool enabled);
     void setDownmix(bool enabled);

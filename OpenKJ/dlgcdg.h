@@ -29,6 +29,7 @@
 #include "cdgvideowidget.h"
 #include <QTimer>
 #include "abstractaudiobackend.h"
+#include <QPointer>
 
 namespace Ui {
 class DlgCdg;
@@ -52,8 +53,8 @@ private:
     QTimer *alertCountdownTimer;
     int countdownPos;
     QTimer *buttonShowTimer;
-    AbstractAudioBackend *kAudioBackend;
-    AbstractAudioBackend *bAudioBackend;
+    QPointer<AbstractAudioBackend> kAudioBackend;
+    QPointer<AbstractAudioBackend> bAudioBackend;
 
 
 public:
