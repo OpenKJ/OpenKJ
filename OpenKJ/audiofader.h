@@ -16,10 +16,12 @@ private:
     double targetVol;
     void setVolume(double volume);
     double volume();
+    bool paused;
 
 public:
-    explicit AudioFader(GstElement *volElement, QObject *parent = 0);
-
+    explicit AudioFader(QObject *parent = 0);
+    void setVolumeElement(GstElement *volumeElement);
+    void setPaused(bool paused);
 signals:
     void volumeChanged(double volume);
     void volumeChanged(int volume);

@@ -36,6 +36,7 @@
 #include <QImage>
 #include <QAudioOutput>
 #include "audiofader.h"
+#include <QPointer>
 
 class AudioBackendGstreamer : public AbstractAudioBackend
 {
@@ -76,17 +77,14 @@ private:
     GstElement *aConvPrePitchShift;
     GstElement *aConvPostPitchShift;
     GstElement *aConvEnd;
-    GstElement *defaultSink;
     GstElement *audioSink;
     GstElement *rgVolume;
     GstElement *pitchShifterRubberBand;
     GstElement *pitchShifterSoundtouch;
-    GstElement *scaleTempo;
     GstElement *deInterleave;
     GstElement *level;
     GstElement *fltrMplxInput;
     GstElement *fltrEnd;
-    GstElement *audioPanorama;
     GstElement *audioResample;
     GstElement *volumeElement;
     GstElement *equalizer;
@@ -120,6 +118,9 @@ private:
     int m_preFadeVolumeInt;
     int eq1, eq2, eq3, eq4, eq5, eq6, eq7, eq8, eq9, eq10;
     bool bypass;
+    bool loadPitchShift;
+    int outputDeviceIdx;
+    bool downmix;
 
     static void EndOfStreamCallback(GstAppSink *appsink, gpointer user_data);
     static GstFlowReturn NewPrerollCallback(GstAppSink *appsink, gpointer user_data);
@@ -131,7 +132,10 @@ private:
     QStringList GstGetElements(QString plugin);
     QStringList outputDeviceNames;
     QList<GstDevice*> outputDevices;
-    AudioFader *fader;
+    QPointer<AudioFader> fader;
+    void buildPipeline();
+    void destroyPipeline();
+    void resetPipeline();
 
     static void DestroyCallback(gpointer user_data);
 public:
