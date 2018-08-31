@@ -25,9 +25,7 @@ void AudioRecorder::generateDeviceList()
     devices = gst_device_monitor_get_devices(monitor);
     for(elem = devices; elem; elem = elem->next) {
         GstDevice *device = (GstDevice*)elem->data;
-        gchar *deviceName = gst_device_get_display_name(device);
-        inputDeviceNames.append(deviceName);
-        g_free(deviceName);
+        inputDeviceNames.append(gst_device_get_display_name(device));
         inputDevices.append(device);
     }
 }

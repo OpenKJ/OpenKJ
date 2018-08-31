@@ -40,7 +40,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     qWarning() << "MacOS detected, changed GST env vars to point to the bundled framework";
     qWarning() << qgetenv("GST_PLUGIN_SYSTEM_PATH") << endl << qgetenv("GST_PLUGIN_SCANNER") << endl << qgetenv("GTK_PATH") << endl << qgetenv("GIO_EXTRA_MODULES") << endl;
 #endif
-    stoppingEvents = false;
+
     objName = objectName;
     m_hasVideo = false;
     m_volume = 0;
@@ -56,7 +56,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     m_keyChange = 0;
     m_silenceDuration = 0;
     m_muted = false;
-    m_isFading = false;
+    isFading = false;
     eq1 = 0;
     eq2 = 0;
     eq3 = 0;
@@ -73,9 +73,8 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     appsinkCallbacks.new_sample		= &AudioBackendGstreamer::NewSampleCallback;
     appsinkCallbacks.eos			= &AudioBackendGstreamer::EndOfStreamCallback;
 
-//    qWarning() << "Initializing gst\n";
-    if (!gst_is_initialized())
-        gst_init(NULL,NULL);
+    qCritical() << "Initializing gst\n";
+    gst_init(NULL,NULL);
     aConvInput = gst_element_factory_make("audioconvert", NULL);
     aConvPreSplit = gst_element_factory_make("audioconvert", NULL);
     aConvPrePitchShift = gst_element_factory_make("audioconvert", NULL);
@@ -84,7 +83,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     videoAppSink = gst_element_factory_make("appsink", "videoAppSink");
     rgVolume = gst_element_factory_make("rgvolume", NULL);
     level = gst_element_factory_make("level", "level");
-//    audioPanorama = gst_element_factory_make("audiopanorama", "audioPanorama");
+    audioPanorama = gst_element_factory_make("audiopanorama", "audioPanorama");
     pitchShifterSoundtouch = gst_element_factory_make("pitch", "pitch");
     pitchShifterRubberBand = gst_element_factory_make("ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo", "ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo");
     equalizer = gst_element_factory_make("equalizer-10bands", NULL);
@@ -110,10 +109,10 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     tee = gst_element_factory_make("tee", NULL);
     teeSrcPadN = gst_element_get_request_pad(tee, "src_1");
     teeSrcPadM = gst_element_get_request_pad(tee, "src_0");
-    queueS = gst_element_factory_make("queue", "queueS");
+    queueS = gst_element_factory_make("queue", NULL);
     queueSinkPadN = gst_element_get_static_pad(queueS, "sink");
     queueSrcPadN = gst_element_get_static_pad(queueS, "src");
-    queueM = gst_element_factory_make("queue", "queueM");
+    queueM = gst_element_factory_make("queue", NULL);
     queueSinkPadM = gst_element_get_static_pad(queueM, "sink");
     queueSrcPadM = gst_element_get_static_pad(queueM, "src");
     scaleTempo = gst_element_factory_make("scaletempo", NULL);
@@ -128,16 +127,20 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     mixerSinkPadL = gst_element_get_request_pad(audioMixer, "sink_0");
     mixerSinkPadR = gst_element_get_request_pad(audioMixer, "sink_1");
     mixerSinkPadN = gst_element_get_request_pad(audioMixer, "sink_2");
-    queueL = gst_element_factory_make("queue", "queueL");
+    queueL = gst_element_factory_make("queue", NULL);
     queueSinkPadL = gst_element_get_static_pad(queueL, "sink");
     queueSrcPadL = gst_element_get_static_pad(queueL, "src");
-    queueR = gst_element_factory_make("queue", "queueR");
+    queueR = gst_element_factory_make("queue", NULL);
     queueSinkPadR = gst_element_get_static_pad(queueR, "sink");
     queueSrcPadR = gst_element_get_static_pad(queueR, "src");
-    aOutQueue = gst_element_factory_make("queue", "aOutQueue");
     fltrPostMixer = gst_element_factory_make("capsfilter", NULL);
     g_object_set(fltrPostMixer, "caps", audioCapsStereo, NULL);
     volumeElement = gst_element_factory_make("volume", NULL);
+
+//    if (settings->audioDownmix())
+//        g_object_set(fltrEnd, "caps", audioCapsMono, NULL);
+//    else
+//        g_object_set(fltrEnd, "caps", audioCapsStereo, NULL);
 
     gst_bin_add_many(GST_BIN(customBin), level, aConvInput, aConvPreSplit, rgVolume, volumeElement, equalizer, aConvL, aConvR, fltrMplxInput, tee, queueS, queueM, queueR, queueL, audioMixer, deInterleave, aConvPostMixer, fltrPostMixer, NULL);
     gst_element_link(aConvInput, rgVolume);
@@ -162,7 +165,6 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     // Right Channel to mixer
     gst_element_link(queueR, aConvR);
     gst_pad_link(aConvSrcPadR, mixerSinkPadR);
-
     gst_element_link(audioMixer, aConvPostMixer);
     gst_element_link(aConvPostMixer, fltrPostMixer);
 
@@ -210,7 +212,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
 
     g_object_set(G_OBJECT(rgVolume), "album-mode", false, NULL);
     g_object_set(G_OBJECT (level), "message", TRUE, NULL);
-    bus = gst_element_get_bus(playBin);
+    bus = gst_element_get_bus (playBin);
     slowTimer = new QTimer(this);
     connect(slowTimer, SIGNAL(timeout()), this, SLOT(slowTimer_timeout()));
     slowTimer->start(1000);
@@ -231,14 +233,9 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     devices = gst_device_monitor_get_devices(monitor);
     for(elem = devices; elem; elem = elem->next) {
         GstDevice *device = (GstDevice*)elem->data;
-        gchar *deviceName = gst_device_get_display_name(device);
-        outputDeviceNames.append(deviceName);
-        g_free(deviceName);
+        outputDeviceNames.append(gst_device_get_display_name(device));
         outputDevices.append(device);
     }
-    g_list_free(elem);
-    g_list_free(devices);
-    gst_device_monitor_stop(monitor);
     connect(settings, SIGNAL(mplxModeChanged(int)), this, SLOT(setMplxMode(int)));
 
     g_object_set(G_OBJECT(playBin), "volume", 1.0, NULL);
@@ -261,16 +258,6 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
 
 AudioBackendGstreamer::~AudioBackendGstreamer()
 {
-    slowTimer->stop();
-    if (state() == PlayingState)
-        stop(true);
-    gst_object_unref(playBin);
-    gst_caps_unref(audioCapsMono);
-    gst_caps_unref(audioCapsStereo);
-    gst_caps_unref(videoCaps);
-    gst_object_unref(bus);
-    gst_object_unref(monitor);
-    gst_object_unref(tv_csource);
 }
 
 
@@ -281,8 +268,6 @@ void AudioBackendGstreamer::processGstMessages()
     bool done = false;
     while (!done)
     {
-        if (!gst_bus_have_pending(bus))
-            break;
         message = gst_bus_pop(bus);
         if (message != NULL)
         {
@@ -291,6 +276,8 @@ void AudioBackendGstreamer::processGstMessages()
                 GError *err;
                 gchar *debug;
                 gst_message_parse_error(message, &err, &debug);
+                //g_print("GStreamer error: %s\n", err->message);
+                //g_print("GStreamer debug output: %s\n", debug);
                 qWarning() << getName() << " Gst warning: " << err->message;
                 qWarning() << getName() << " Gst debug: " << debug;
             }
@@ -299,12 +286,23 @@ void AudioBackendGstreamer::processGstMessages()
                 GError *err;
                 gchar *debug;
                 gst_message_parse_warning(message, &err, &debug);
+                //g_print("GStreamer warning: %s\n", err->message);
+                //g_print("GStreamer debug output: %s\n", debug);
                 qWarning() << getName() << " Gst warning: " << err->message;
                 qWarning() << getName() << " Gst debug: " << debug;
             }
             else if (message->type == GST_MESSAGE_STATE_CHANGED)
             {
-                emit stateChanged(state());
+                GstState state;
+                gst_element_get_state(playBin, &state, NULL, GST_CLOCK_TIME_NONE);
+                if (state == GST_STATE_PLAYING)
+                    emit stateChanged(AbstractAudioBackend::PlayingState);
+                else if (state == GST_STATE_PAUSED)
+                    emit stateChanged(AbstractAudioBackend::PausedState);
+                else if (state == GST_STATE_NULL)
+                    emit stateChanged(AbstractAudioBackend::StoppedState);
+                else
+                    emit stateChanged(AbstractAudioBackend::UnknownState);
             }
             else if (message->type == GST_MESSAGE_ELEMENT) {
                 const GstStructure *s = gst_message_get_structure (message);
@@ -341,42 +339,10 @@ void AudioBackendGstreamer::processGstMessages()
             {
                 // do nothing
             }
-            else if (message->type == GST_MESSAGE_STREAM_STATUS)
-            {
-                GstStreamStatusType streamStatus;
-                GstElement *owner;
-                gst_message_parse_stream_status(message, &streamStatus, &owner);
-                QString statusType;
-                switch(streamStatus) {
-                case GST_STREAM_STATUS_TYPE_CREATE:
-                    statusType = "CREATE";
-                    break;
-                case GST_STREAM_STATUS_TYPE_ENTER:
-                    statusType = "ENTER";
-                    break;
-                case GST_STREAM_STATUS_TYPE_LEAVE:
-                    statusType = "LEAVE";
-                    break;
-                case GST_STREAM_STATUS_TYPE_DESTROY:
-                    statusType = "DESTROY";
-                    break;
-                case GST_STREAM_STATUS_TYPE_START:
-                    statusType = "START";
-                    break;
-                case GST_STREAM_STATUS_TYPE_PAUSE:
-                    statusType = "PAUSE";
-                    break;
-                case GST_STREAM_STATUS_TYPE_STOP:
-                    statusType = "STOP";
-                    break;
-                default:
-                    statusType = "UNKNOWN";
-                }
-                //qWarning() << getName() << " - Gst stream-msg: " << statusType << " " << gst_element_get_name(owner);
-            }
             else
             {
-//                qWarning() << this->getName() << " - Gst msg type: " << GST_MESSAGE_TYPE(message) << " Gst msg name: " << GST_MESSAGE_TYPE_NAME(message);
+                //g_print("Msg type[%d], Msg type name[%s]\n", GST_MESSAGE_TYPE(message), GST_MESSAGE_TYPE_NAME(message));
+                qWarning() << this->getName() << " - Gst msg type: " << GST_MESSAGE_TYPE(message) << " Gst msg name: " << GST_MESSAGE_TYPE_NAME(message);
             }
             gst_message_unref(message);
         }
@@ -421,30 +387,14 @@ qint64 AudioBackendGstreamer::duration()
 
 AbstractAudioBackend::State AudioBackendGstreamer::state()
 {
-    //qWarning() << this->getName() << " - AudioBackendGstreamer() called";
     GstState state;
-//    gst_element_get_state(playBin, &state, NULL, GST_CLOCK_TIME_NONE);
-    gst_element_get_state(playBin, &state, NULL, 1000000);
-    switch (state) {
-    case GST_STATE_PLAYING:
-        //qWarning() << this->getName() << " - returning PlayingState";
-        return PlayingState;
-    case GST_STATE_PAUSED:
-        //qWarning() << this->getName() << " - returning PausedState";
-        return PausedState;
-    case GST_STATE_NULL:
-        //qWarning() << this->getName() << " - returning StoppedState";
-        return StoppedState;
-    case GST_STATE_READY:
-        //qWarning() << this->getName() << " Got Ready - returning PlayingState";
-        return PlayingState;
-    case GST_STATE_VOID_PENDING:
-        //qWarning() << this->getName() << " Got Void Pending - returning PlayingState";
-        return PlayingState;
-    default:
-        //qWarning() << this->getName() << "unhandled state - returning StoppedState";
-        return StoppedState;
-    }
+    gst_element_get_state(playBin, &state, NULL, GST_CLOCK_TIME_NONE);
+    if (state == GST_STATE_PLAYING)
+        return AbstractAudioBackend::PlayingState;
+    if (state == GST_STATE_PAUSED)
+        return AbstractAudioBackend::PausedState;
+    if (state == GST_STATE_NULL)
+        return AbstractAudioBackend::StoppedState;
     return AbstractAudioBackend::StoppedState;
 }
 
@@ -487,15 +437,13 @@ void AudioBackendGstreamer::setMedia(QString filename)
 {
     m_hasVideo = false;
     m_filename = filename;
-    gchar *uri = gst_filename_to_uri(filename.toLocal8Bit(), NULL);
 #ifdef Q_OS_WIN
-    //std::string uri = "file:///" + filename.toStdString();
+    std::string uri = "file:///" + filename.toStdString();
 #else
-    //std::string uri = "file://" + filename.toStdString();
+    std::string uri = "file://" + filename.toStdString();
 #endif
-    qDebug() << "AudioBackendHybrid - Playing: " << uri;
-    g_object_set(GST_OBJECT(playBin), "uri", uri, NULL);
-    g_free(uri);
+    qDebug() << "AudioBackendHybrid - Playing: " << uri.c_str();
+    g_object_set(GST_OBJECT(playBin), "uri", uri.c_str(), NULL);
 }
 
 void AudioBackendGstreamer::setMuted(bool muted)
@@ -596,8 +544,7 @@ void AudioBackendGstreamer::fastTimer_timeout()
 void AudioBackendGstreamer::slowTimer_timeout()
 {
 
-    if (stoppingEvents)
-        return;
+
     static AbstractAudioBackend::State currentState;
     if (state() != currentState)
     {
@@ -716,7 +663,6 @@ QStringList AudioBackendGstreamer::GstGetElements(QString plugin)
     return list;
 }
 
-
 bool AudioBackendGstreamer::canFade()
 {
     return true;
@@ -734,7 +680,69 @@ void AudioBackendGstreamer::fadeOut(bool waitForFade)
         setVolume(0);
         return;
     }
+//    if (isSilent())
+//    {
+//        qWarning() << objName << "- fadeOut - Audio is currently slient, skipping fade and setting volume to zero immediately";
+//        setVolume(0);
+//        return;
+//    }
     fader->fadeOut(waitForFade);
+    /*
+    qWarning() << objName << " - fadeOut called";
+    if (isFading)
+    {
+        qWarning() << objName << "- fadeOut - Fade already in progress, waiting...";
+        while (isFading)
+            QApplication::processEvents();
+        qWarning() << objName << "- fadeOut - In progress fade finished, continuing...";
+    }
+    gst_timed_value_control_source_unset_all(tv_csource);
+    gdouble curVolume;
+    g_object_get(G_OBJECT(volumeElement), "volume", &curVolume, NULL);
+    qWarning() << objName << " - fadeOut - Current volume: " << curVolume;
+    m_preFadeVolume = curVolume;
+    m_preFadeVolumeInt = m_volume;
+    if (state() != PlayingState)
+    {
+        qWarning() << objName << " - fadeOut - State not playing, skipping fade and setting volume directly";
+        setVolume(0);
+        return;
+    }
+    if (isSilent())
+    {
+        qWarning() << objName << "- fadeOut - Audio is currently slient, skipping fade and setting volume to zero immediately";
+        setVolume(0);
+        return;
+    }
+    isFading = true;
+    gint64 pos;
+    GstFormat fmt = GST_FORMAT_TIME;
+    gst_element_query_position(playBin, fmt, &pos);
+    qWarning() << objName << " - faceOut - Current pos: " << pos;
+    //if (!gst_timed_value_control_source_set (tv_csource, pos + (10 * GST_MSECOND), curVolume * .12))
+    if (!gst_timed_value_control_source_set (tv_csource, pos + (10 * GST_MSECOND), curVolume * .12))
+    {
+        qWarning() << objName << " - fadeOut - Error adding start fade timed value";
+        isFading = false;
+        gst_timed_value_control_source_unset_all(tv_csource);
+        return;
+    }
+    if (!gst_timed_value_control_source_set (tv_csource, pos + (10 * GST_MSECOND) + (5 * GST_SECOND), 0.0))
+    {
+        qWarning() << objName << " - fadeOut - Error adding end fade timed value";
+        isFading = false;
+        gst_timed_value_control_source_unset_all(tv_csource);
+        return;
+    }
+    while ((m_volume > 0) && state() == PlayingState)
+    {
+        QApplication::processEvents();
+    }
+    gst_timed_value_control_source_unset_all(tv_csource);
+    setVolume(0);
+    qWarning() << objName << " - fadeOut done";
+    isFading = false;
+    */
 }
 
 void AudioBackendGstreamer::fadeIn(bool waitForFade)
@@ -745,26 +753,64 @@ void AudioBackendGstreamer::fadeIn(bool waitForFade)
         setVolume(m_preFadeVolume * 100);
         return;
     }
+    if (isSilent())
+    {
+        qWarning() << objName << "- fadeOut - Audio is currently slient, skipping fade and setting volume immediately";
+        setVolume(m_preFadeVolume * 100);
+        return;
+    }
     fader->fadeIn(waitForFade);
-}
-
-void AudioBackendGstreamer::fadeInToTargetVol(int vol, bool waitForFade)
-{
-    double cubicVolume = vol * .01;
-    double linearVolume = gst_stream_volume_convert_volume(GST_STREAM_VOLUME_FORMAT_CUBIC, GST_STREAM_VOLUME_FORMAT_LINEAR, cubicVolume);
+    /*
+    qWarning() << objName << " - fadeIn called";
+    if (isFading)
+    {
+        qWarning() << objName << "- fadeOut - Fade already in progress, waiting...";
+        while (isFading)
+            QApplication::processEvents();
+        qWarning() << objName << "- fadeOut - In progress fade finished, continuing...";
+    }
+    gst_timed_value_control_source_unset_all(tv_csource);
     if (state() != PlayingState)
     {
         qWarning() << objName << " - fadeIn - State not playing, skipping fade and setting volume";
-        setVolume(linearVolume);
+        setVolume(m_preFadeVolume * 100);
         return;
     }
     if (isSilent())
     {
         qWarning() << objName << "- fadeOut - Audio is currently slient, skipping fade and setting volume immediately";
-        setVolume(linearVolume * 100);
+        setVolume(m_preFadeVolume * 100);
         return;
     }
-    fader->fadeInToTargetVolume(cubicVolume, waitForFade);
+    isFading = true;
+    gint64 pos;
+    GstFormat fmt = GST_FORMAT_TIME;
+    gst_element_query_position(playBin, fmt, &pos);
+    qWarning() << objName << " - fadeIn - Current pos: " << pos;
+    qWarning() << objName << " - fadeIn - Target volume: " << m_preFadeVolume;
+    if (!gst_timed_value_control_source_set (tv_csource, pos + (10 * GST_MSECOND), 0.0))
+    {
+        qWarning() << objName << " - fadeIn - Error adding start fade timed value";
+        isFading = false;
+        gst_timed_value_control_source_unset_all(tv_csource);
+        return;
+    }
+    if (!gst_timed_value_control_source_set (tv_csource, pos + (10 * GST_MSECOND) + (5 * GST_SECOND), m_preFadeVolume * .12))
+    {
+        qWarning() << objName << " - fadeIn - Error adding end fade timed value";
+        isFading = false;
+        gst_timed_value_control_source_unset_all(tv_csource);
+        return;
+    }
+    while ((m_volume < m_preFadeVolumeInt) && (state() == PlayingState))
+        QApplication::processEvents();
+    qWarning() << objName << " - fadeIn done";
+    isFading = false;
+    gst_timed_value_control_source_unset_all(tv_csource);
+    qWarning() << objName << " - forcing volume back to prefade value to work around weirdness in gstreamer control elements";
+    qWarning() << objName << " - preFade volume was: " << m_preFadeVolumeInt;
+    setVolume(m_preFadeVolumeInt);
+    */
 }
 
 void AudioBackendGstreamer::setUseFader(bool fade)
@@ -780,7 +826,7 @@ bool AudioBackendGstreamer::canDetectSilence()
 
 bool AudioBackendGstreamer::isSilent()
 {
-    if ((m_currentRmsLevel <= 0.01) && (m_volume > 0) && (!m_isFading))
+    if ((m_currentRmsLevel <= 0.01) && (m_volume > 0) && (!isFading))
         return true;
     return false;
 }
@@ -824,25 +870,6 @@ void AudioBackendGstreamer::newFrame()
 int AudioBackendGstreamer::tempo()
 {
     return m_tempo;
-}
-
-void AudioBackendGstreamer::setPreFadeVol(double preFadeVol)
-{
-    fader->setPreFadeVol(preFadeVol);
-}
-
-double AudioBackendGstreamer::getPreFadeVol()
-{
-    return fader->getPreFadeVol();
-}
-
-void AudioBackendGstreamer::stopEvents()
-{
-    fader->stopEvents();
-    stoppingEvents = true;
-    m_silenceDetect = false;
-    slowTimer->stop();
-    fastTimer->stop();
 }
 
 void AudioBackendGstreamer::setDownmix(bool enabled)
@@ -912,24 +939,20 @@ GstFlowReturn AudioBackendGstreamer::NewSampleCallback(GstAppSink* appsink, gpoi
 
 void AudioBackendGstreamer::cb_new_pad(GstElement *element, GstPad *pad, gpointer data)
 {
-    gchar *elementName = gst_element_get_name(element);
-    gchar *padName = gst_pad_get_name(pad);
+    Q_UNUSED(element);
     AudioBackendGstreamer *parent = reinterpret_cast<AudioBackendGstreamer*>(data);
-    QString name = padName;
-//    qWarning() << parent->getName() << " - Gst - cb_new_pad() called for element: " << elementName << " pad: " << name;
-    g_free(elementName);
-    g_free(padName);
+    QString name = QString(gst_pad_get_name(pad));
     if (name == "src_0")
     {
-//        qWarning() << parent->getName() << " - Gst - Linking deinterleave pad src_0 to queueSinkPadL";
+        qWarning() << "Linking deinterleave pad src_0 to queueSinkPadL";
         gst_pad_link(pad, parent->queueSinkPadL);
     }
     if (name == "src_1")
     {
-//        qWarning() << parent->getName() << " - Gst - Linking deinterleave pad src_1 to queueSinkPadR";
+        qWarning() << "Linking deinterleave pad src_1 to queueSinkPadR";
         gst_pad_link(pad, parent->queueSinkPadR);
     }
-//    qWarning() << parent->getName() << " - Gst - Linking complete";
+    qWarning() << "Linking complete";
     parent->setMplxMode(settings->mplxMode());
 }
 

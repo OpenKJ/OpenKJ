@@ -225,22 +225,22 @@ MainWindow::MainWindow(QWidget *parent) :
     settingsDialog = new DlgSettings(kAudioBackend, bmAudioBackend, this);
     cdgWindow = new DlgCdg(kAudioBackend, bmAudioBackend, 0, Qt::Window);
     connect(rotModel, SIGNAL(songDroppedOnSinger(int,int,int)), this, SLOT(songDroppedOnSinger(int,int,int)));
+    connect(kAudioBackend, SIGNAL(volumeChanged(int)), ui->sliderVolume, SLOT(setValue(int)));
     connect(dbDialog, SIGNAL(databaseUpdateComplete()), this, SLOT(databaseUpdated()));
     connect(dbDialog, SIGNAL(databaseAboutToUpdate()), this, SLOT(databaseAboutToUpdate()));
     connect(dbDialog, SIGNAL(databaseSongAdded()), dbModel, SLOT(select()));
     connect(dbDialog, SIGNAL(databaseSongAdded()), requestsDialog, SLOT(databaseSongAdded()));
     connect(dbDialog, SIGNAL(databaseCleared()), this, SLOT(databaseCleared()));
     connect(dbDialog, SIGNAL(databaseCleared()), regularSingersDialog, SLOT(regularsChanged()));
-    connect(kAudioBackend, SIGNAL(volumeChanged(int)), ui->sliderVolume, SLOT(setValue(int)));
     connect(kAudioBackend, SIGNAL(positionChanged(qint64)), this, SLOT(audioBackend_positionChanged(qint64)));
     connect(kAudioBackend, SIGNAL(durationChanged(qint64)), this, SLOT(audioBackend_durationChanged(qint64)));
     connect(kAudioBackend, SIGNAL(stateChanged(AbstractAudioBackend::State)), this, SLOT(audioBackend_stateChanged(AbstractAudioBackend::State)));
     connect(kAudioBackend, SIGNAL(pitchChanged(int)), ui->spinBoxKey, SLOT(setValue(int)));
-    connect(kAudioBackend, SIGNAL(silenceDetected()), this, SLOT(silenceDetected()));
     connect(rotModel, SIGNAL(rotationModified()), this, SLOT(rotationDataChanged()));
     connect(settings, SIGNAL(tickerOutputModeChanged()), this, SLOT(rotationDataChanged()));
     connect(settings, SIGNAL(audioBackendChanged(int)), this, SLOT(audioBackendChanged(int)));
     connect(settings, SIGNAL(cdgBgImageChanged()), this, SLOT(onBgImageChange()));
+    connect(kAudioBackend, SIGNAL(silenceDetected()), this, SLOT(silenceDetected()));
     connect(bmAudioBackend, SIGNAL(silenceDetected()), this, SLOT(silenceDetectedBm()));
     connect(settingsDialog, SIGNAL(audioUseFaderChanged(bool)), kAudioBackend, SLOT(setUseFader(bool)));
     connect(shop, SIGNAL(karaokeSongDownloaded(QString)), dbDialog, SLOT(singleSongAdd(QString)));
@@ -391,10 +391,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(bmAudioBackend, SIGNAL(positionChanged(qint64)), this, SLOT(bmMediaPositionChanged(qint64)));
     connect(bmAudioBackend, SIGNAL(durationChanged(qint64)), this, SLOT(bmMediaDurationChanged(qint64)));
     connect(bmAudioBackend, SIGNAL(volumeChanged(int)), ui->sliderBmVolume, SLOT(setValue(int)));
-    connect(bmAudioBackend, SIGNAL(newVideoFrame(QImage, QString)), this, SLOT(videoFrameReceived(QImage, QString)));
     connect(bmDbDialog, SIGNAL(bmDbUpdated()), this, SLOT(bmDbUpdated()));
     connect(bmDbDialog, SIGNAL(bmDbCleared()), this, SLOT(bmDbCleared()));
     connect(bmDbDialog, SIGNAL(bmDbAboutToUpdate()), this, SLOT(bmDatabaseAboutToUpdate()));
+    connect(bmAudioBackend, SIGNAL(newVideoFrame(QImage, QString)), this, SLOT(videoFrameReceived(QImage, QString)));
     connect(kAudioBackend, SIGNAL(newVideoFrame(QImage,QString)), this, SLOT(videoFrameReceived(QImage,QString)));
     qWarning() << "Setting up volume sliders";
     ui->sliderBmVolume->setValue(initialBMVol);
@@ -431,10 +431,9 @@ MainWindow::MainWindow(QWidget *parent) :
         }
         else
             nextSong = "None - Breaking after current song";
-        bmPlay(path);
-//        bmAudioBackend->setMedia(path);
-//        bmAudioBackend->play();
-//        bmAudioBackend->setVolume(ui->sliderBmVolume->value());
+        bmAudioBackend->setMedia(path);
+        bmAudioBackend->play();
+        bmAudioBackend->setVolume(ui->sliderBmVolume->value());
         ui->labelBmPlaying->setText(song);
         ui->labelBmNext->setText(nextSong);
         bmPlDelegate->setCurrentSong(bmCurrentPosition);
@@ -566,13 +565,12 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
                     cdgWindow->setShowBgImage(false);
                     setShowBgImage(false);
                     qWarning() << "Setting karaoke backend source file to: " << audioFile;
-                   // kAudioBackend->setMedia(audioFile);
+                    kAudioBackend->setMedia(audioFile);
                     //                ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
                     if (!k2k)
                         bmAudioBackend->fadeOut(!settings->bmKCrossFade());
                     qWarning() << "Beginning playback of file: " << audioFile;
-                    //kAudioBackend->play();
-                    kPlay(audioFile);
+                    kAudioBackend->play();
                 }
             }
             else
@@ -629,20 +627,18 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
             QFile::copy(mp3fn, khTmpDir->path() + QDir::separator() + audTmpFile);
             cdg->FileOpen(QString(khTmpDir->path() + QDir::separator() + cdgTmpFile).toStdString());
             cdg->Process();
-            //kAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + audTmpFile);
+            kAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + audTmpFile);
 //            ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
             if (!k2k)
                 bmAudioBackend->fadeOut(!settings->bmKCrossFade());
-            kPlay(khTmpDir->path() + QDir::separator() + audTmpFile);
-            //kAudioBackend->play();
+            kAudioBackend->play();
         }
         else
         {
             kAudioBackend->setMedia(karaokeFilePath);
             if (!k2k)
                 bmAudioBackend->fadeOut();
-            //kAudioBackend->play();
-            kPlay(karaokeFilePath);
+            kAudioBackend->play();
         }
         if (settings->recordingEnabled())
         {
@@ -1972,10 +1968,9 @@ void MainWindow::bmMediaStateChanged(AbstractAudioBackend::State newState)
             }
             else
                 nextSong = "None - Breaking after current song";
-            bmPlay(path);
-//            bmAudioBackend->setMedia(path);
-//            bmAudioBackend->play();
-//            bmAudioBackend->setVolume(ui->sliderBmVolume->value());
+            bmAudioBackend->setMedia(path);
+            bmAudioBackend->play();
+            bmAudioBackend->setVolume(ui->sliderBmVolume->value());
             ui->labelBmPlaying->setText(song);
             ui->labelBmNext->setText(nextSong);
             bmPlDelegate->setCurrentSong(bmCurrentPosition);
@@ -2105,9 +2100,8 @@ void MainWindow::on_tableViewBmPlaylist_doubleClicked(const QModelIndex &index)
     }
     else
         nextSong = "None - Breaking after current song";
-    //bmAudioBackend->setMedia(path);
-    bmPlay(path);
-    //bmAudioBackend->play();
+    bmAudioBackend->setMedia(path);
+    bmAudioBackend->play();
     ui->labelBmPlaying->setText(song);
     ui->labelBmNext->setText(nextSong);
     bmPlDelegate->setCurrentSong(index.row());
@@ -2781,120 +2775,4 @@ void MainWindow::on_sliderBmPosition_sliderReleased()
     bmAudioBackend->setPosition(ui->sliderBmPosition->value());
     sliderBmPositionPressed = false;
     qWarning() << "BM slider up.  Position:" << ui->sliderBmPosition->value();
-}
-
-void MainWindow::bmPlay(QString path)
-{
-    static int plays = 0;
-    bool fadingIn = false;
-    int vol = ui->sliderBmVolume->value();
-    if (kAudioBackend->state() == AbstractAudioBackend::PlayingState || bmAudioBackend->isFadingOut())
-    {
-        qWarning() << "bmPlay() - Karaoke is playing or bm is fading out, setting intial volume to 0";
-        vol = 0;
-    }
-    else if (bmAudioBackend->isFadingIn())
-    {
-        qWarning() << "bmPlay() - Previous instance was fading in, will continue fade in";
-        fadingIn = true;
-    }
-
-    double preFadeBmVol = bmAudioBackend->getPreFadeVol();
-    qWarning() << "bmPlay() - Got preFadeVol: " << preFadeBmVol;
-    bmAudioBackend->stopEvents();
-    bmAudioBackend->deleteLater();
-    bmAudioBackend = new AudioBackendGstreamer(false, this, "BM");
-    bmAudioBackend->setName("break");
-    connect(bmAudioBackend, SIGNAL(stateChanged(AbstractAudioBackend::State)), this, SLOT(bmMediaStateChanged(AbstractAudioBackend::State)));
-    connect(bmAudioBackend, SIGNAL(positionChanged(qint64)), this, SLOT(bmMediaPositionChanged(qint64)));
-    connect(bmAudioBackend, SIGNAL(durationChanged(qint64)), this, SLOT(bmMediaDurationChanged(qint64)));
-    connect(bmAudioBackend, SIGNAL(volumeChanged(int)), ui->sliderBmVolume, SLOT(setValue(int)));
-    connect(bmAudioBackend, SIGNAL(newVideoFrame(QImage, QString)), this, SLOT(videoFrameReceived(QImage, QString)));
-    connect(settingsDialog, SIGNAL(audioUseFaderChangedBm(bool)), bmAudioBackend, SLOT(setUseFader(bool)));
-    connect(bmAudioBackend, SIGNAL(silenceDetected()), this, SLOT(silenceDetectedBm()));
-    bmAudioBackend->setDownmix(settings->audioDownmixBm());
-    bmAudioBackend->setUseFader(settings->audioUseFaderBm());
-    connect(settingsDialog, SIGNAL(audioSilenceDetectChangedBm(bool)), bmAudioBackend, SLOT(setUseSilenceDetection(bool)));
-    connect(settings, SIGNAL(eqBBypassChanged(bool)), bmAudioBackend, SLOT(setEqBypass(bool)));
-    connect(settings, SIGNAL(eqBLevel1Changed(int)), bmAudioBackend, SLOT(setEqLevel1(int)));
-    connect(settings, SIGNAL(eqBLevel2Changed(int)), bmAudioBackend, SLOT(setEqLevel2(int)));
-    connect(settings, SIGNAL(eqBLevel3Changed(int)), bmAudioBackend, SLOT(setEqLevel3(int)));
-    connect(settings, SIGNAL(eqBLevel4Changed(int)), bmAudioBackend, SLOT(setEqLevel4(int)));
-    connect(settings, SIGNAL(eqBLevel5Changed(int)), bmAudioBackend, SLOT(setEqLevel5(int)));
-    connect(settings, SIGNAL(eqBLevel6Changed(int)), bmAudioBackend, SLOT(setEqLevel6(int)));
-    connect(settings, SIGNAL(eqBLevel7Changed(int)), bmAudioBackend, SLOT(setEqLevel7(int)));
-    connect(settings, SIGNAL(eqBLevel8Changed(int)), bmAudioBackend, SLOT(setEqLevel8(int)));
-    connect(settings, SIGNAL(eqBLevel9Changed(int)), bmAudioBackend, SLOT(setEqLevel9(int)));
-    connect(settings, SIGNAL(eqBLevel10Changed(int)), bmAudioBackend, SLOT(setEqLevel10(int)));
-    bmAudioBackend->setEqBypass(settings->eqBBypass());
-    bmAudioBackend->setEqLevel1(settings->eqBLevel1());
-    bmAudioBackend->setEqLevel2(settings->eqBLevel2());
-    bmAudioBackend->setEqLevel3(settings->eqBLevel3());
-    bmAudioBackend->setEqLevel4(settings->eqBLevel4());
-    bmAudioBackend->setEqLevel5(settings->eqBLevel5());
-    bmAudioBackend->setEqLevel6(settings->eqBLevel6());
-    bmAudioBackend->setEqLevel7(settings->eqBLevel7());
-    bmAudioBackend->setEqLevel8(settings->eqBLevel8());
-    bmAudioBackend->setEqLevel9(settings->eqBLevel9());
-    bmAudioBackend->setEqLevel10(settings->eqBLevel10());
-    bmAudioBackend->setUseSilenceDetection(settings->audioDetectSilenceBm());
-    bmAudioBackend->setMedia(path);
-    qWarning() << "bmPlay() - Setting volume on new instance to: " << vol;
-    bmAudioBackend->setVolume(vol);
-    bmAudioBackend->setPreFadeVol(preFadeBmVol);
-    bmAudioBackend->play();
-    bmAudioBackend->setVolume(vol);
-    if (fadingIn && kAudioBackend->state() != AbstractAudioBackend::PlayingState)
-        bmAudioBackend->fadeIn();
-    plays++;
-    qWarning() << "Have played " << plays << " break music songs this session";
-}
-
-void MainWindow::kPlay(QString path)
-{
-    static int plays = 0;
-    int curVol = ui->sliderVolume->value();
-    kAudioBackend->stopEvents();
-    kAudioBackend->deleteLater();
-    kAudioBackend = new AudioBackendGstreamer(true, this, "KA");
-    kAudioBackend->setName("karaoke");
-    kAudioBackend->setUseFader(settings->audioUseFader());
-    kAudioBackend->setUseSilenceDetection(settings->audioDetectSilence());
-    kAudioBackend->setDownmix(settings->audioDownmix());
-    connect(kAudioBackend, SIGNAL(volumeChanged(int)), ui->sliderVolume, SLOT(setValue(int)));
-    connect(kAudioBackend, SIGNAL(positionChanged(qint64)), this, SLOT(audioBackend_positionChanged(qint64)));
-    connect(kAudioBackend, SIGNAL(durationChanged(qint64)), this, SLOT(audioBackend_durationChanged(qint64)));
-    connect(kAudioBackend, SIGNAL(stateChanged(AbstractAudioBackend::State)), this, SLOT(audioBackend_stateChanged(AbstractAudioBackend::State)));
-    connect(kAudioBackend, SIGNAL(pitchChanged(int)), ui->spinBoxKey, SLOT(setValue(int)));
-    connect(kAudioBackend, SIGNAL(silenceDetected()), this, SLOT(silenceDetected()));
-    connect(settingsDialog, SIGNAL(audioSilenceDetectChanged(bool)), kAudioBackend, SLOT(setUseSilenceDetection(bool)));
-    connect(settingsDialog, SIGNAL(audioDownmixChanged(bool)), kAudioBackend, SLOT(setDownmix(bool)));
-    connect(kAudioBackend, SIGNAL(newVideoFrame(QImage,QString)), this, SLOT(videoFrameReceived(QImage,QString)));
-    connect(settings, SIGNAL(eqKBypassChanged(bool)), kAudioBackend, SLOT(setEqBypass(bool)));
-    connect(settings, SIGNAL(eqKLevel1Changed(int)), kAudioBackend, SLOT(setEqLevel1(int)));
-    connect(settings, SIGNAL(eqKLevel2Changed(int)), kAudioBackend, SLOT(setEqLevel2(int)));
-    connect(settings, SIGNAL(eqKLevel3Changed(int)), kAudioBackend, SLOT(setEqLevel3(int)));
-    connect(settings, SIGNAL(eqKLevel4Changed(int)), kAudioBackend, SLOT(setEqLevel4(int)));
-    connect(settings, SIGNAL(eqKLevel5Changed(int)), kAudioBackend, SLOT(setEqLevel5(int)));
-    connect(settings, SIGNAL(eqKLevel6Changed(int)), kAudioBackend, SLOT(setEqLevel6(int)));
-    connect(settings, SIGNAL(eqKLevel7Changed(int)), kAudioBackend, SLOT(setEqLevel7(int)));
-    connect(settings, SIGNAL(eqKLevel8Changed(int)), kAudioBackend, SLOT(setEqLevel8(int)));
-    connect(settings, SIGNAL(eqKLevel9Changed(int)), kAudioBackend, SLOT(setEqLevel9(int)));
-    connect(settings, SIGNAL(eqKLevel10Changed(int)), kAudioBackend, SLOT(setEqLevel10(int)));
-    kAudioBackend->setEqBypass(settings->eqKBypass());
-    kAudioBackend->setEqLevel1(settings->eqKLevel1());
-    kAudioBackend->setEqLevel2(settings->eqKLevel2());
-    kAudioBackend->setEqLevel3(settings->eqKLevel3());
-    kAudioBackend->setEqLevel4(settings->eqKLevel4());
-    kAudioBackend->setEqLevel5(settings->eqKLevel5());
-    kAudioBackend->setEqLevel6(settings->eqKLevel6());
-    kAudioBackend->setEqLevel7(settings->eqKLevel7());
-    kAudioBackend->setEqLevel8(settings->eqKLevel8());
-    kAudioBackend->setEqLevel9(settings->eqKLevel9());
-    kAudioBackend->setEqLevel10(settings->eqKLevel10());
-    kAudioBackend->setVolume(curVol);
-    kAudioBackend->setMedia(path);
-    kAudioBackend->play();
-    plays++;
-    qWarning() << "Have played " << plays << " karaoke songs this session";
 }
