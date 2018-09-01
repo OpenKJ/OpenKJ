@@ -69,6 +69,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     eq10 = 0;
     outputDeviceIdx = 0;
     downmix = false;
+    bypass = false;
 
     slowTimer = new QTimer(this);
     connect(slowTimer, SIGNAL(timeout()), this, SLOT(slowTimer_timeout()));
@@ -90,7 +91,9 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     devices = gst_device_monitor_get_devices(monitor);
     for(elem = devices; elem; elem = elem->next) {
         GstDevice *device = (GstDevice*)elem->data;
-        outputDeviceNames.append(gst_device_get_display_name(device));
+        gchar *deviceName = gst_device_get_display_name(device);
+        outputDeviceNames.append(deviceName);
+        g_free(deviceName);
         outputDevices.append(device);
     }
     g_object_set(G_OBJECT(playBin), "volume", 1.0, NULL);
@@ -134,6 +137,8 @@ void AudioBackendGstreamer::processGstMessages()
                 //g_print("GStreamer debug output: %s\n", debug);
                 qWarning() << getName() << " Gst warning: " << err->message;
                 qWarning() << getName() << " Gst debug: " << debug;
+                g_free(err);
+                g_free(debug);
             }
             else if (message->type == GST_MESSAGE_WARNING)
             {
@@ -144,6 +149,8 @@ void AudioBackendGstreamer::processGstMessages()
                 //g_print("GStreamer debug output: %s\n", debug);
                 qWarning() << getName() << " Gst warning: " << err->message;
                 qWarning() << getName() << " Gst debug: " << debug;
+                g_free(err);
+                g_free(debug);
             }
             else if (message->type == GST_MESSAGE_STATE_CHANGED)
             {
@@ -876,7 +883,9 @@ void AudioBackendGstreamer::cb_new_pad(GstElement *element, GstPad *pad, gpointe
 {
     Q_UNUSED(element);
     AudioBackendGstreamer *parent = reinterpret_cast<AudioBackendGstreamer*>(data);
-    QString name = QString(gst_pad_get_name(pad));
+    gchar *padName = gst_pad_get_name(pad);
+    QString name = QString(padName);
+    g_free(padName);
     if (name == "src_0")
     {
         qWarning() << "Linking deinterleave pad src_0 to queueSinkPadL";
