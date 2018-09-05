@@ -33,7 +33,7 @@ double AudioFader::volume()
     g_object_get(G_OBJECT(volumeElement), "volume", &volume, NULL);
 //    qWarning() << "Linear volume: " << volume;
     double cubicVolume = gst_stream_volume_convert_volume(GST_STREAM_VOLUME_FORMAT_LINEAR, GST_STREAM_VOLUME_FORMAT_CUBIC, volume);
-    qWarning() << "Cubic volume: " << QString::number(cubicVolume);
+//    qWarning() << "Cubic volume: " << QString::number(cubicVolume);
     lastCubic = cubicVolume;
     return cubicVolume;
 }

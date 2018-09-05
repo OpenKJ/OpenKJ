@@ -87,13 +87,13 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     gst_caps_unref (moncaps);
     gst_device_monitor_start (monitor);
     outputDeviceNames.clear();
-    outputDeviceNames.append("Default");
+    outputDeviceNames.append("0 - Default");
     GList *devices, *elem;
     devices = gst_device_monitor_get_devices(monitor);
     for(elem = devices; elem; elem = elem->next) {
         GstDevice *device = (GstDevice*)elem->data;
         gchar *deviceName = gst_device_get_display_name(device);
-        outputDeviceNames.append(deviceName);
+        outputDeviceNames.append(QString::number(outputDeviceNames.size()) + " - " + deviceName);
         g_free(deviceName);
         outputDevices.append(device);
     }
@@ -136,8 +136,8 @@ void AudioBackendGstreamer::processGstMessages()
                 gst_message_parse_error(message, &err, &debug);
                 //g_print("GStreamer error: %s\n", err->message);
                 //g_print("GStreamer debug output: %s\n", debug);
-                qWarning() << getName() << " Gst warning: " << err->message;
-                qWarning() << getName() << " Gst debug: " << debug;
+                qWarning() << objName << " - Gst warning: " << err->message;
+                qWarning() << objName << " - Gst debug: " << debug;
                 g_free(err);
                 g_free(debug);
             }
@@ -148,8 +148,8 @@ void AudioBackendGstreamer::processGstMessages()
                 gst_message_parse_warning(message, &err, &debug);
                 //g_print("GStreamer warning: %s\n", err->message);
                 //g_print("GStreamer debug output: %s\n", debug);
-                qWarning() << getName() << " Gst warning: " << err->message;
-                qWarning() << getName() << " Gst debug: " << debug;
+                qWarning() << objName << " - Gst warning: " << err->message;
+                qWarning() << objName << " - Gst debug: " << debug;
                 g_free(err);
                 g_free(debug);
             }
@@ -204,7 +204,7 @@ void AudioBackendGstreamer::processGstMessages()
             else
             {
                 //g_print("Msg type[%d], Msg type name[%s]\n", GST_MESSAGE_TYPE(message), GST_MESSAGE_TYPE_NAME(message));
-                qWarning() << this->getName() << " - Gst msg type: " << GST_MESSAGE_TYPE(message) << " Gst msg name: " << GST_MESSAGE_TYPE_NAME(message);
+                qWarning() << objName << " - Gst msg type: " << GST_MESSAGE_TYPE(message) << " Gst msg name: " << GST_MESSAGE_TYPE_NAME(message);
             }
             gst_message_unref(message);
         }
@@ -287,6 +287,7 @@ void AudioBackendGstreamer::play()
         {
             qWarning() << "File doesn't exist, bailing out";
             emit stateChanged(PlayingState);
+            QApplication::processEvents();
             emit stateChanged(EndOfMediaState);
             return;
         }
@@ -328,11 +329,11 @@ void AudioBackendGstreamer::setMuted(bool muted)
 
 void AudioBackendGstreamer::setPosition(qint64 position)
 {
-    qDebug() << "Seeking to: " << position << "ms";
+    qDebug() << objName << " - Seeking to: " << position << "ms";
     GstSeekFlags flags = GST_SEEK_FLAG_FLUSH;
     if (!gst_element_seek_simple(playBin, GST_FORMAT_TIME, flags, GST_MSECOND * position))
     {
-      qDebug() << "Seek failed!";
+      qDebug() << objName << " - Seek failed!";
     }
     emit positionChanged(position);
 }
@@ -536,7 +537,7 @@ void AudioBackendGstreamer::buildPipeline()
     appsinkCallbacks.new_sample		= &AudioBackendGstreamer::NewSampleCallback;
     appsinkCallbacks.eos			= &AudioBackendGstreamer::EndOfStreamCallback;
 
-    qCritical() << "Initializing gst\n";
+    qCritical() << objName << " - Initializing gst\n";
     if (!gst_is_initialized())
         gst_init(NULL,NULL);
     aConvInput = gst_element_factory_make("audioconvert", NULL);
@@ -631,8 +632,8 @@ void AudioBackendGstreamer::buildPipeline()
 
     if ((pitchShifterRubberBand) && (pitchShifterSoundtouch) && (loadPitchShift))
     {
-        qWarning() << "Pitch shift RubberBand enabled";
-        qWarning() << "Also loaded SoundTouch for tempo control";
+        qWarning() << objName << " - Pitch shift RubberBand enabled";
+        qWarning() << objName << " - Also loaded SoundTouch for tempo control";
         m_canChangeTempo = true;
         gst_bin_add_many(GST_BIN(customBin), aConvPrePitchShift, pitchShifterRubberBand, aConvPostPitchShift, pitchShifterSoundtouch, aConvEnd, audioSink, NULL);
         gst_element_link_many(fltrPostMixer, aConvPrePitchShift, pitchShifterRubberBand, aConvPostPitchShift, pitchShifterSoundtouch, aConvEnd, audioSink, NULL);
@@ -645,7 +646,7 @@ void AudioBackendGstreamer::buildPipeline()
     else if ((pitchShifterSoundtouch) && (loadPitchShift))
     {
         m_canChangeTempo = true;
-        qWarning() << "Pitch shifter SoundTouch enabled";
+        qWarning() << objName << " - Pitch shifter SoundTouch enabled";
         gst_bin_add_many(GST_BIN(customBin), aConvPrePitchShift, pitchShifterSoundtouch, aConvPostPitchShift, aConvEnd, audioSink, NULL);
         gst_element_link_many(fltrPostMixer, aConvPrePitchShift, pitchShifterSoundtouch, aConvPostPitchShift, aConvEnd, audioSink, NULL);
         m_canKeyChange = true;
@@ -699,8 +700,6 @@ void AudioBackendGstreamer::buildPipeline()
     setEqLevel10(eq10);
     setDownmix(downmix);
     setMuted(m_muted);
-
-
 }
 
 void AudioBackendGstreamer::destroyPipeline()
@@ -823,7 +822,7 @@ int AudioBackendGstreamer::tempo()
 void AudioBackendGstreamer::setDownmix(bool enabled)
 {
     downmix = enabled;
-    qDebug() << "AudioBackendHybrid::setDownmix(" << enabled << ") called";
+    qDebug() << objName << " - AudioBackendGstreamer::setDownmix(" << enabled << ") called";
     if (enabled)
         g_object_set(fltrPostMixer, "caps", audioCapsMono, NULL);
     else
@@ -836,7 +835,7 @@ void AudioBackendGstreamer::setTempo(int percent)
     m_tempo = percent;
     g_object_set(pitchShifterSoundtouch, "tempo", tempo, NULL);
     setPosition(position());
-    qWarning() << "Tempo changed to " << tempo;
+    qWarning() << objName << " - Tempo changed to " << tempo;
 }
 
 QStringList AudioBackendGstreamer::getOutputDevices()
@@ -847,18 +846,20 @@ QStringList AudioBackendGstreamer::getOutputDevices()
 void AudioBackendGstreamer::setOutputDevice(int deviceIndex)
 {
     outputDeviceIdx = deviceIndex;
+    bool isPlaying = false;
+    qWarning() << objName << " - Setting output device to device idx: " << outputDeviceIdx;
     gst_element_unlink(aConvEnd, audioSink);
     gst_bin_remove(GST_BIN(customBin), audioSink);
     if (deviceIndex == 0)
     {
-        qWarning() << "Default device selected";
+        qWarning() << objName << " - Default device selected";
         //default device selected
         audioSink = gst_element_factory_make("autoaudiosink", "audioSink");;
     }
     else
     {
         audioSink = gst_device_create_element(outputDevices.at(deviceIndex - 1), NULL);
-        qWarning() << "Non default device selected: " << outputDeviceNames.at(deviceIndex);
+        qWarning() << objName << " - Non default device selected: " << outputDeviceNames.at(deviceIndex);
     }
     gst_bin_add(GST_BIN(customBin), audioSink);
     gst_element_link(aConvEnd, audioSink);
@@ -896,67 +897,67 @@ void AudioBackendGstreamer::cb_new_pad(GstElement *element, GstPad *pad, gpointe
     g_free(padName);
     if (name == "src_0")
     {
-        qWarning() << "Linking deinterleave pad src_0 to queueSinkPadL";
+        qWarning() << parent->objName << " - Linking deinterleave pad src_0 to queueSinkPadL";
         GstPadLinkReturn result = gst_pad_link(pad, parent->queueSinkPadL);
         switch (result) {
         case GST_PAD_LINK_OK:
-            qWarning() << "link succeeded";
+            qWarning() << parent->objName << " - link succeeded";
             break;
         case GST_PAD_LINK_WRONG_HIERARCHY:
-            qWarning() << "pads have no common grandparent";
+            qWarning() << parent->objName << " - pads have no common grandparent";
             break;
         case GST_PAD_LINK_WAS_LINKED:
-            qWarning() << "pad was already linked";
+            qWarning() << parent->objName << " - pad was already linked";
             break;
         case GST_PAD_LINK_WRONG_DIRECTION:
-            qWarning() << "pads have wrong direction";
+            qWarning() << parent->objName << " - pads have wrong direction";
             break;
         case GST_PAD_LINK_NOFORMAT:
-            qWarning() << "pads do not have common format";
+            qWarning() << parent->objName << " - pads do not have common format";
             break;
         case GST_PAD_LINK_NOSCHED:
-            qWarning() << "pads cannot cooperate in scheduling";
+            qWarning() << parent->objName << " - pads cannot cooperate in scheduling";
             break;
         case GST_PAD_LINK_REFUSED:
-            qWarning() << "refused for some reason";
+            qWarning() << parent->objName << " - refused for some reason";
             break;
         default:
-            qWarning() << "Unknown return type";
+            qWarning() << parent->objName << " - Unknown return type";
             break;
         }
     }
     if (name == "src_1")
     {
-        qWarning() << "Linking deinterleave pad src_1 to queueSinkPadR";
+        qWarning() << parent->objName << " - Linking deinterleave pad src_1 to queueSinkPadR";
         GstPadLinkReturn result = gst_pad_link(pad, parent->queueSinkPadR);
         switch (result) {
         case GST_PAD_LINK_OK:
-            qWarning() << "link succeeded";
+            qWarning() << parent->objName << " - link succeeded";
             break;
         case GST_PAD_LINK_WRONG_HIERARCHY:
-            qWarning() << "pads have no common grandparent";
+            qWarning() << parent->objName << " - pads have no common grandparent";
             break;
         case GST_PAD_LINK_WAS_LINKED:
-            qWarning() << "pad was already linked";
+            qWarning() << parent->objName << " - pad was already linked";
             break;
         case GST_PAD_LINK_WRONG_DIRECTION:
-            qWarning() << "pads have wrong direction";
+            qWarning() << parent->objName << " - pads have wrong direction";
             break;
         case GST_PAD_LINK_NOFORMAT:
-            qWarning() << "pads do not have common format";
+            qWarning() << parent->objName << " - pads do not have common format";
             break;
         case GST_PAD_LINK_NOSCHED:
-            qWarning() << "pads cannot cooperate in scheduling";
+            qWarning() << parent->objName << " - pads cannot cooperate in scheduling";
             break;
         case GST_PAD_LINK_REFUSED:
-            qWarning() << "refused for some reason";
+            qWarning() << parent->objName << " - refused for some reason";
             break;
         default:
-            qWarning() << "Unknown return type";
+            qWarning() << parent->objName << " - Unknown return type";
             break;
         }
     }
-    qWarning() << "Linking complete";
+    qWarning() << parent->objName << " - Linking complete";
     parent->setMplxMode(settings->mplxMode());
 }
 

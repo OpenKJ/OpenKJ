@@ -312,7 +312,7 @@ zipEntries OkArchive::getZipContents()
         goodArchive = false;
         return zipEntries();
     }
-    qWarning() << "getZipContents() - infozip output: " << output;
+    //qWarning() << "getZipContents() - infozip output: " << output;
     QStringList data = output.split(QRegExp("[\r\n]"),QString::SkipEmptyParts);
     int fnStart = 0;
     int listStart = 0;
