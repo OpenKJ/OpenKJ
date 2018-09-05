@@ -23,6 +23,7 @@
 #include <QDebug>
 #include <string.h>
 #include <math.h>
+#include <QFile>
 #include <gst/audio/streamvolume.h>
 #include "settings.h"
 
@@ -282,6 +283,13 @@ void AudioBackendGstreamer::play()
     else
     {
         resetPipeline();
+        if (!QFile::exists(m_filename))
+        {
+            qWarning() << "File doesn't exist, bailing out";
+            emit stateChanged(PlayingState);
+            emit stateChanged(EndOfMediaState);
+            return;
+        }
         gchar *uri = gst_filename_to_uri(m_filename.toLocal8Bit(), NULL);
         g_object_set(GST_OBJECT(playBin), "uri", uri, NULL);
         g_free(uri);
