@@ -2691,7 +2691,7 @@ QPushButton:default {
    </widget>
    <widget class="QMenu" name="menuKaraoke">
     <property name="title">
-     <string>Karaoke</string>
+     <string>&amp;Karaoke</string>
     </property>
     <addaction name="actionManage_Karaoke_DB"/>
     <addaction name="actionRegulars"/>
@@ -2704,11 +2704,11 @@ QPushButton:default {
    </widget>
    <widget class="QMenu" name="menuBreak_Music">
     <property name="title">
-     <string>Break Music</string>
+     <string>Break &amp;Music</string>
     </property>
     <widget class="QMenu" name="menuPlaylists">
      <property name="title">
-      <string>Playlist</string>
+      <string>&amp;Playlist</string>
      </property>
      <addaction name="actionPlaylistNew"/>
      <addaction name="actionPlaylistImport"/>
@@ -2722,7 +2722,7 @@ QPushButton:default {
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
-     <string>Help</string>
+     <string>He&amp;lp</string>
     </property>
     <addaction name="actionAbout"/>
    </widget>
@@ -2745,17 +2745,17 @@ QPushButton:default {
   </action>
   <action name="actionRegulars">
    <property name="text">
-    <string>Regulars</string>
+    <string>&amp;Regulars</string>
    </property>
   </action>
   <action name="actionIncoming_Requests">
    <property name="text">
-    <string>Incoming Requests</string>
+    <string>I&amp;ncoming Requests</string>
    </property>
   </action>
   <action name="actionSettings">
    <property name="text">
-    <string>Settings</string>
+    <string>&amp;Settings</string>
    </property>
   </action>
   <action name="actionExport_Regular_Singers">
@@ -2765,22 +2765,22 @@ QPushButton:default {
   </action>
   <action name="actionExport_Regulars">
    <property name="text">
-    <string>Export Regulars</string>
+    <string>&amp;Export Regulars</string>
    </property>
   </action>
   <action name="actionImport_Regulars">
    <property name="text">
-    <string>Import Regulars</string>
+    <string>&amp;Import Regulars</string>
    </property>
   </action>
   <action name="actionManage_Break_DB">
    <property name="text">
-    <string>Manage Break DB</string>
+    <string>&amp;Manage Break DB</string>
    </property>
   </action>
   <action name="actionManage_Karaoke_DB">
    <property name="text">
-    <string>Manage Karaoke DB</string>
+    <string>&amp;Manage Karaoke DB</string>
    </property>
   </action>
   <action name="actionRegulars_2">
@@ -2798,7 +2798,7 @@ QPushButton:default {
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Display Metadata</string>
+    <string>&amp;Display Metadata</string>
    </property>
   </action>
   <action name="actionDisplay_Filenames">
@@ -2806,32 +2806,32 @@ QPushButton:default {
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Display Filenames</string>
+    <string>Display &amp;Filenames</string>
    </property>
   </action>
   <action name="actionPlaylistNew">
    <property name="text">
-    <string>New</string>
+    <string>&amp;New</string>
    </property>
   </action>
   <action name="actionPlaylistImport">
    <property name="text">
-    <string>Import</string>
+    <string>&amp;Import</string>
    </property>
   </action>
   <action name="actionPlaylistExport">
    <property name="text">
-    <string>Export Current</string>
+    <string>&amp;Export Current</string>
    </property>
   </action>
   <action name="actionPlaylistDelete">
    <property name="text">
-    <string>Delete Current</string>
+    <string>&amp;Delete Current</string>
    </property>
   </action>
   <action name="actionAbout">
    <property name="text">
-    <string>About</string>
+    <string>&amp;About</string>
    </property>
   </action>
   <action name="actionAutoplay_mode">
@@ -2839,22 +2839,22 @@ QPushButton:default {
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Autoplay mode</string>
+    <string>&amp;Autoplay mode</string>
    </property>
   </action>
   <action name="actionSongbook_Generator">
    <property name="text">
-    <string>Songbook Generator</string>
+    <string>Songbook &amp;Generator</string>
    </property>
   </action>
   <action name="actionEqualizer">
    <property name="text">
-    <string>Equalizer</string>
+    <string>&amp;Equalizer</string>
    </property>
   </action>
   <action name="actionSong_Shop">
    <property name="text">
-    <string>Song Shop</string>
+    <string>&amp;Song Shop</string>
    </property>
   </action>
  </widget>
