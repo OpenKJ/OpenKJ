@@ -78,5 +78,6 @@ void DlgSongShop::autoSizeView()
 
 void DlgSongShop::resizeEvent(QResizeEvent *event)
 {
+    Q_UNUSED(event);
     autoSizeView();
 }
