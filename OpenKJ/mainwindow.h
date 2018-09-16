@@ -138,7 +138,6 @@ private:
     QTimer m_timerSlowUiUpdate;
     QTimer m_timerButtonFlash;
     bool blinkRequestsBtn{false};
-    QSharedMemory *_singular;
     bool kNeedAutoSize{false};
     bool bNeedAutoSize{true};
     QShortcut scutAddSinger{this};

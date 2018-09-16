@@ -146,18 +146,6 @@ void MainWindow::updateIcons()
 }
 
 
-
-bool MainWindow::isSingleInstance()
-{
-    if(_singular->attach(QSharedMemory::ReadOnly)){
-        _singular->detach();
-        return false;
-    }
-    if(_singular->create(1))
-        return true;
-    return false;
-}
-
 QFile *logFile;
 QTextStream logStream;
 QStringList *logContents;
@@ -237,7 +225,6 @@ MainWindow::MainWindow(QWidget *parent) :
     _singular->attach();
     delete _singular;
 #endif
-    _singular = new QSharedMemory("SharedMemorySingleInstanceProtectorOpenKJ", this);
     shop = new SongShop(this);
     QCoreApplication::setOrganizationName("OpenKJ");
     QCoreApplication::setOrganizationDomain("OpenKJ.org");
@@ -908,8 +895,6 @@ MainWindow::~MainWindow()
     delete khTmpDir;
     delete dlgSongShop;
     delete requestsDialog;
-    if(_singular->isAttached())
-        _singular->detach();
 
     qInfo() << "OpenKJ mainwindow destructor complete";
 }
