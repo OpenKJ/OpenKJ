@@ -32,6 +32,7 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    qputenv("GST_DEBUG", "*:3");
     Settings okjSettings;
     if (okjSettings.theme() == 1)
     {

@@ -204,8 +204,10 @@ MainWindow::MainWindow(QWidget *parent) :
     dbDelegate = new DbItemDelegate(this);
     ui->tableViewDB->setItemDelegate(dbDelegate);
 //    ipcClient = new KhIPCClient("bmControl",this);
+    qWarning() << "Creating break music audio backend object";
     bmAudioBackend = new AudioBackendGstreamer(false, this, "BM");
     bmAudioBackend->setName("break");
+    qWarning() << "Creating karaoke audio backend object";
     kAudioBackend = new AudioBackendGstreamer(true, this, "KA");
     kAudioBackend->setName("karaoke");
     if (kAudioBackend->canFade())
@@ -221,8 +223,11 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->spinBoxTempo->hide();
         ui->lblTempo->hide();
     }
+    qWarning() << "Creating audio recorder object";
     audioRecorder = new AudioRecorder(this);
+    qWarning() << "Creating settings dialog";
     settingsDialog = new DlgSettings(kAudioBackend, bmAudioBackend, this);
+    qWarning() << "Creating CDG output dialog";
     cdgWindow = new DlgCdg(kAudioBackend, bmAudioBackend, 0, Qt::Window);
     connect(rotModel, SIGNAL(songDroppedOnSinger(int,int,int)), this, SLOT(songDroppedOnSinger(int,int,int)));
     connect(kAudioBackend, SIGNAL(volumeChanged(int)), ui->sliderVolume, SLOT(setValue(int)));

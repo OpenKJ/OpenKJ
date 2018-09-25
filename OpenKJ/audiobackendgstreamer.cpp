@@ -41,6 +41,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     qWarning() << "MacOS detected, changed GST env vars to point to the bundled framework";
     qWarning() << qgetenv("GST_PLUGIN_SYSTEM_PATH") << endl << qgetenv("GST_PLUGIN_SCANNER") << endl << qgetenv("GTK_PATH") << endl << qgetenv("GIO_EXTRA_MODULES") << endl;
 #endif
+    qWarning() << "Start constructing GStreamer backend";
     this->loadPitchShift = loadPitchShift;
     objName = objectName;
     m_hasVideo = false;
@@ -101,6 +102,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     gst_device_monitor_stop(monitor);
 
     connect(settings, SIGNAL(mplxModeChanged(int)), this, SLOT(setMplxMode(int)));
+    qWarning() << "Done constructing GStreamer backend";
 }
 
 AudioBackendGstreamer::~AudioBackendGstreamer()
@@ -827,6 +829,7 @@ void AudioBackendGstreamer::setDownmix(bool enabled)
         g_object_set(fltrPostMixer, "caps", audioCapsMono, NULL);
     else
         g_object_set(fltrPostMixer, "caps", audioCapsStereo, NULL);
+    qDebug() << objName << " - AudioBackendGstreamer::setDownmix() completed";
 }
 
 void AudioBackendGstreamer::setTempo(int percent)
