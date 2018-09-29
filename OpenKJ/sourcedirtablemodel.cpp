@@ -227,3 +227,13 @@ SourceDir *SourceDirTableModel::getDirByPath(QString path)
     qWarning() << "No Match Found";
     return new SourceDir();
 }
+
+QStringList SourceDirTableModel::getSourceDirs()
+{
+    QStringList dirs;
+    for (int i=0; i < mydata->size(); i++)
+    {
+        dirs.append(mydata->at(i)->getPath());
+    }
+    return dirs;
+}

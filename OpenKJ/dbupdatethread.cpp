@@ -39,7 +39,7 @@ QStringList errors;
 
 bool DbUpdateThread::dbEntryExists(QString filepath)
 {
-    qWarning() << "DbUpdateThread::dbEntryExists(" << filepath << ") called";
+//    qWarning() << "DbUpdateThread::dbEntryExists(" << filepath << ") called";
 //    qWarning() << "Creating thread db connection";
 //    QSqlDatabase database = genUniqueDbConn();
 //    database.setDatabaseName(QStandardPaths::writableLocation(QStandardPaths::DataLocation) + QDir::separator() + "openkj.sqlite");
@@ -54,7 +54,7 @@ bool DbUpdateThread::dbEntryExists(QString filepath)
 //        qWarning() << "Removed";
         bool result = query.value(0).toBool();
         query.clear();
-        qWarning() << "DbUpdateThread::dbEntryExists(" << filepath << ") ended";
+//        qWarning() << "DbUpdateThread::dbEntryExists(" << filepath << ") ended";
         return result;
     }
     else
@@ -63,7 +63,7 @@ bool DbUpdateThread::dbEntryExists(QString filepath)
 //        qWarning() << "Removing thread db connection";
 //        QSqlDatabase::removeDatabase(database.connectionName());
 //        qWarning() << "Removed";
-        qWarning() << "DbUpdateThread::dbEntryExists(" << filepath << ") ended";
+//        qWarning() << "DbUpdateThread::dbEntryExists(" << filepath << ") ended";
         return false;
     }
 }

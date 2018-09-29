@@ -28,6 +28,7 @@
 #include "dbupdatethread.h"
 #include "settings.h"
 #include <QStandardPaths>
+#include <QFileSystemWatcher>
 
 extern Settings *settings;
 
@@ -45,6 +46,8 @@ DlgDatabase::DlgDatabase(QSqlDatabase db, QWidget *parent) :
     selectedRow = -1;
     customPatternsDlg = new DlgCustomPatterns(this);
     dbUpdateDlg = new DlgDbUpdate(this);
+    fsWatcher.addPaths(sourcedirmodel->getSourceDirs());
+    connect(&fsWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(directoryChanged(QString)));
 }
 
 DlgDatabase::~DlgDatabase()
@@ -282,4 +285,35 @@ void DlgDatabase::on_btnExport_clicked()
         }
         csvFile.close();
     }
+}
+
+void DlgDatabase::directoryChanged(QString dirPath)
+{
+    if (!settings->directoryWatchEnabled())
+        return;
+    DbUpdateThread *dbthread = new DbUpdateThread(db, this);
+    qWarning() << "Directory changed fired for dir: " << dirPath;
+    QDirIterator it(dirPath);
+    while (it.hasNext()) {
+        QString file = it.next();
+        QFileInfo fi(file);
+        if (fi.isDir())
+            continue;
+        if (file == dirPath + "/." || file == dirPath + "/..")
+            continue;
+        if (fi.suffix().toLower() != "zip" && fi.suffix().toLower() != "cdg")
+        {
+            continue;
+        }
+        if (dbthread->dbEntryExists(file))
+        {
+            continue;
+        }
+        qWarning() << "Detected new file: " << file;
+        qWarning() << "Adding file to the database";
+        dbthread->addSingleTrack(file);
+        emit databaseUpdateComplete();
+    }
+    delete(dbthread);
+
 }

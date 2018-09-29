@@ -33,7 +33,6 @@ class DbUpdateThread : public QThread
 private:
     QString path;
     SourceDir::NamingPattern pattern;
-    bool dbEntryExists(QString filepath);
     //QSqlDatabase database;
     QSqlDatabase database;
 
@@ -52,6 +51,7 @@ public:
     void addSingleTrack(QString path);
     int addDroppedFile(QString path);
     void startUnthreaded();
+    bool dbEntryExists(QString filepath);
 
 signals:
     void threadFinished();

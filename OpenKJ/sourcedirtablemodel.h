@@ -78,6 +78,7 @@ public:
     void clear();
     SourceDir *getDirByIndex(int index);
     SourceDir *getDirByPath(QString path);
+    QStringList getSourceDirs();
     
 };
 

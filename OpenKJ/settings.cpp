@@ -1408,6 +1408,11 @@ int Settings::theme()
     return settings->value("theme", 1).toInt();
 }
 
+bool Settings::directoryWatchEnabled()
+{
+    return settings->value("directoryWatchEnabled", false).toBool();
+}
+
 void Settings::setBmKCrossfade(bool enabled)
 {
     settings->setValue("bmKCrossFade", enabled);

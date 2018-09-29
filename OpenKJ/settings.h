@@ -228,6 +228,7 @@ public:
     bool checkUpdates();
     int updatesBranch();
     int theme();
+    bool directoryWatchEnabled();
 
 signals:
     void applicationFontChanged(QFont font);
