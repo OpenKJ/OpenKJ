@@ -46,7 +46,9 @@ bool DbUpdateThread::dbEntryExists(QString filepath)
 //    database.open();
 //    qWarning() << "Created";
     QSqlQuery query;
-    query.exec("select exists(select 1 from dbsongs where path = '" + filepath + "')");
+    query.prepare("select exists(select 1 from dbsongs where path = :filepath)");
+    query.bindValue(":filepath", filepath);
+    query.exec();
     if (query.first())
     {
 //        qWarning() << "Removing thread db connection";
@@ -54,6 +56,7 @@ bool DbUpdateThread::dbEntryExists(QString filepath)
 //        qWarning() << "Removed";
         bool result = query.value(0).toBool();
         query.clear();
+        //qWarning() << "dbentryexists returning" << result << " for " << filepath;
 //        qWarning() << "DbUpdateThread::dbEntryExists(" << filepath << ") ended";
         return result;
     }
