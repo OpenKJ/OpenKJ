@@ -117,6 +117,7 @@ DlgCdg::DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *Break
     connect(ui->cdgVideo, SIGNAL(mouseMoveEvent(QMouseEvent*)), this, SLOT(mouseMove(QMouseEvent*)));
     buttonShowTimer = new QTimer(this);
     buttonShowTimer->setInterval(1000);
+    ui->scroll->setVisible(settings->tickerEnabled());
     connect(buttonShowTimer, SIGNAL(timeout()), this, SLOT(buttonShowTimerTimeout()));
     alertBgColorChanged(settings->alertBgColor());
     alertTxtColorChanged(settings->alertTxtColor());
@@ -196,7 +197,7 @@ void DlgCdg::setFullScreenMonitor(int monitor)
 void DlgCdg::tickerFontChanged()
 {
     ui->scroll->setFont(settings->tickerFont());
-    ui->scroll->refresh();
+    //ui->scroll->refresh();
     int newHeight = QFontMetrics(ui->scroll->font()).height() * 1.2;
     settings->setTickerHeight(newHeight);
 }
@@ -205,7 +206,7 @@ void DlgCdg::tickerHeightChanged()
 {
     ui->scroll->setMinimumHeight(settings->tickerHeight());
     ui->scroll->setMaximumHeight(settings->tickerHeight());
-    ui->scroll->refresh();
+   // ui->scroll->refresh();
 }
 
 void DlgCdg::tickerSpeedChanged()
@@ -229,7 +230,7 @@ void DlgCdg::tickerBgColorChanged()
 
 void DlgCdg::tickerEnableChanged()
 {
-    ui->scroll->enable(settings->tickerEnabled());
+    ui->scroll->setVisible(settings->tickerEnabled());
 }
 
 void DlgCdg::setVOffset(int pixels)
@@ -374,7 +375,7 @@ void DlgCdg::setNextSong(QString song)
 void DlgCdg::setCountdownSecs(int seconds)
 {
     countdownPos = seconds;
-    ui->lblSeconds->setText(QString::number(seconds) + " seconds");
+    ui->lblSeconds->setText(QString::number(seconds) + tr(" seconds"));
     alertCountdownTimer->stop();
     alertCountdownTimer->start();
 }
@@ -383,7 +384,7 @@ void DlgCdg::countdownTimerTimeout()
 {
     if (countdownPos > 0)
         countdownPos--;
-    ui->lblSeconds->setText(QString::number(countdownPos) + " seconds");
+    ui->lblSeconds->setText(QString::number(countdownPos) + tr(" seconds"));
     ui->lblSeconds->repaint();
     ui->widgetAlert->repaint();
 }
@@ -460,9 +461,9 @@ void DlgCdg::mouseMove(QMouseEvent *event)
 {
     qWarning() << "Mouse moved pos:" << event->pos();
     if (m_fullScreen)
-        ui->btnToggleFullscreen->setText("Make Windowed");
+        ui->btnToggleFullscreen->setText(tr("Make Windowed"));
     else
-        ui->btnToggleFullscreen->setText("Make Fullscreen");
+        ui->btnToggleFullscreen->setText(tr("Make Fullscreen"));
     ui->fsToggleWidget->show();
     buttonShowTimer->start();
 }

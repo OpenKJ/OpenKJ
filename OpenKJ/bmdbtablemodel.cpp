@@ -134,3 +134,17 @@ void BmDbTableModel::sort(int column, Qt::SortOrder order)
     }
     select();
 }
+
+
+QVariant BmDbTableModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (section == 1 && role == Qt::DisplayRole)
+        return tr("Artist");
+    if (section == 2 && role == Qt::DisplayRole)
+        return tr("Title");
+    if (section == 4 && role == Qt::DisplayRole)
+        return tr("Filename");
+    if (section == 5 && role == Qt::DisplayRole)
+        return tr("Duration");
+    return QSqlTableModel::headerData(section, orientation, role);
+}

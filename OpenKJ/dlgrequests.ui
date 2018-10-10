@@ -21,26 +21,23 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <widget class="QTreeView" name="treeViewRequests">
+       <widget class="QTableView" name="tableViewRequests">
+        <property name="sizeAdjustPolicy">
+         <enum>QAbstractScrollArea::AdjustIgnored</enum>
+        </property>
         <property name="alternatingRowColors">
          <bool>true</bool>
         </property>
-        <property name="rootIsDecorated">
+        <property name="selectionMode">
+         <enum>QAbstractItemView::SingleSelection</enum>
+        </property>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectRows</enum>
+        </property>
+        <attribute name="verticalHeaderVisible">
          <bool>false</bool>
-        </property>
-        <property name="itemsExpandable">
-         <bool>false</bool>
-        </property>
-        <property name="allColumnsShowFocus">
-         <bool>true</bool>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
-        <property name="expandsOnDoubleClick">
-         <bool>false</bool>
-        </property>
-        <attribute name="headerCascadingSectionResizes">
+        </attribute>
+        <attribute name="verticalHeaderCascadingSectionResizes">
          <bool>true</bool>
         </attribute>
        </widget>

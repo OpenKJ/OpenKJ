@@ -44,7 +44,7 @@ DlgRegularImport::~DlgRegularImport()
 
 void DlgRegularImport::on_pushButtonSelectFile_clicked()
 {
-    QString importFile = QFileDialog::getOpenFileName(this,tr("Select file to load regulars from"), QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), tr("(*.xml)"));
+    QString importFile = QFileDialog::getOpenFileName(this,tr("Select file to load regulars from"), QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), "(*.xml)");
     if (importFile != "")
     {
         curImportFile = importFile;
@@ -65,16 +65,16 @@ void DlgRegularImport::on_pushButtonImport_clicked()
     {
         QMessageBox *msgBox = new QMessageBox(this);
         msgBox->setStandardButtons(0);
-        msgBox->setText("Importing regular singers, please wait...");
+        msgBox->setText(tr("Importing regular singers, please wait..."));
         msgBox->show();
         for (int i=0; i < ui->listWidgetRegulars->selectedItems().size(); i++)
         {
-            msgBox->setInformativeText("Importing singer: " + ui->listWidgetRegulars->selectedItems().at(i)->text());
+            msgBox->setInformativeText(tr("Importing singer: ") + ui->listWidgetRegulars->selectedItems().at(i)->text());
             importSinger(ui->listWidgetRegulars->selectedItems().at(i)->text());
         }
         msgBox->close();
         delete msgBox;
-        QMessageBox::information(this, "Import complete", "Regular singer import complete.");
+        QMessageBox::information(this, tr("Import complete"), tr("Regular singer import complete."));
         ui->listWidgetRegulars->clearSelection();
     }
 }
@@ -83,17 +83,17 @@ void DlgRegularImport::on_pushButtonImportAll_clicked()
 {
     QMessageBox *msgBox = new QMessageBox(this);
     msgBox->setStandardButtons(0);
-    msgBox->setText("Importing regular singers, please wait...");
+    msgBox->setText(tr("Importing regular singers, please wait..."));
     msgBox->show();
     ui->listWidgetRegulars->selectAll();
     for (int i=0; i < ui->listWidgetRegulars->selectedItems().size(); i++)
     {
-        msgBox->setInformativeText("Importing singer: " + ui->listWidgetRegulars->selectedItems().at(i)->text());
+        msgBox->setInformativeText(tr("Importing singer: ") + ui->listWidgetRegulars->selectedItems().at(i)->text());
         importSinger(ui->listWidgetRegulars->selectedItems().at(i)->text());
     }
     msgBox->close();
     delete msgBox;
-    QMessageBox::information(this, "Import complete", "Regular singer import complete.");
+    QMessageBox::information(this, tr("Import complete"), tr("Regular singer import complete."));
         ui->listWidgetRegulars->clearSelection();
 }
 
@@ -140,11 +140,11 @@ void DlgRegularImport::importSinger(QString name)
                 {
                     QApplication::processEvents();
                     QSqlQuery query;
-                    QString discId = xml.attributes().value("discid").toString();
+                    QString songId = xml.attributes().value("discid").toString();
                     QString artist = xml.attributes().value("artist").toString();
                     QString title = xml.attributes().value("title").toString();
                     QString keyChg = xml.attributes().value("key").toString();
-                    QString sql = "SELECT songid FROM dbsongs WHERE artist == \"" + artist + "\" AND title == \"" + title + "\" AND discid == \"" + discId + "\" LIMIT 1";
+                    QString sql = "SELECT songid FROM dbsongs WHERE artist == \"" + artist + "\" AND title == \"" + title + "\" AND discid == \"" + songId + "\" LIMIT 1";
                     query.exec(sql);
                     if (query.first())
                     {
@@ -154,7 +154,28 @@ void DlgRegularImport::importSinger(QString name)
                         position++;
                     }
                     else
-                       QMessageBox::warning(this, tr("No song match found"),QString("An exact song DB match for the song \"" + discId + " - " + artist + " - " + title + "\" could not be found while importing singer \"" + name + "\", skipping import for this song."));
+                    {
+                        QString vendorPart;
+                        for (int i=0; i < songId.size(); i++)
+                        {
+                            QChar character = songId.at(i);
+                            if (character.isLetter())
+                                vendorPart.append(character);
+                            else
+                                break;
+                        }
+                       sql = "SELECT songid FROM dbsongs WHERE artist == \"" + artist + "\" AND title == \"" + title + "\" AND discid LIKE \"%" + vendorPart + "%\" LIMIT 1";
+                       query.exec(sql);
+                       if (query.first())
+                       {
+                           QString songId = query.value(0).toString();
+                           sql = "INSERT INTO regularsongs (regsingerid, songid, keychg, position) VALUES(" + QString::number(regSingerId) + "," + songId + "," + keyChg + "," + QString::number(position) + ")";
+                           query.exec(sql);
+                           position++;
+                       }
+                       else
+                       QMessageBox::warning(this, tr("No song match found"),QString(tr("An exact song DB match for the song \"") + songId + " - " + artist + " - " + title + tr("\" could not be found while importing singer \"") + name + tr("\", skipping import for this song.")));
+                    }
                 }
                 xml.readNext();
             }

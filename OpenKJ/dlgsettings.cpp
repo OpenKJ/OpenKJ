@@ -151,6 +151,10 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
         ui->comboBoxCodec->setCurrentIndex(ui->comboBoxCodec->findText(settings->recordingCodec()));
     ui->comboBoxUpdateBranch->addItem("Stable");
     ui->comboBoxUpdateBranch->addItem("Development");
+    ui->cbxTheme->addItem("OS Native");
+    ui->cbxTheme->addItem("Fusion Dark");
+    ui->cbxTheme->addItem("Fusion Light");
+    ui->cbxTheme->setCurrentIndex(settings->theme());
     ui->lineEditOutputDir->setText(settings->recordingOutputDir());
     tickerShowRotationInfoChanged(settings->tickerShowRotationInfo());
     ui->groupBoxTicker->setChecked(settings->tickerEnabled());
@@ -168,6 +172,8 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     connect(ui->cbxStopPauseWarning, SIGNAL(toggled(bool)), settings, SLOT(setShowSongPauseStopWarning(bool)));
     connect(ui->cbxTickerShowRotationInfo, SIGNAL(clicked(bool)), settings, SLOT(setTickerShowRotationInfo(bool)));
     connect(settings, SIGNAL(tickerShowRotationInfoChanged(bool)), this, SLOT(tickerShowRotationInfoChanged(bool)));
+    ui->fontComboBox->setFont(settings->applicationFont());
+    ui->spinBoxAppFontSize->setValue(settings->applicationFont().pointSize());
     pageSetupDone = true;
     ui->spinBoxAADelay->setValue(settings->karaokeAATimeout());
     ui->checkBoxKAA->setChecked(settings->karaokeAutoAdvance());
@@ -192,6 +198,11 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     connect(ui->cbxCrossFade, SIGNAL(clicked(bool)), settings, SLOT(setBmKCrossfade(bool)));
     connect(ui->cbxCheckUpdates, SIGNAL(clicked(bool)), settings, SLOT(setCheckUpdates(bool)));
     connect(ui->comboBoxUpdateBranch, SIGNAL(currentIndexChanged(int)), settings, SLOT(setUpdatesBranch(int)));
+    ui->lineEditDownloadsDir->setText(settings->storeDownloadDir());
+    ui->listWidget->setMinimumWidth(QFontMetrics(settings->applicationFont()).width("  Network  "));
+    ui->frame->setMinimumWidth(QFontMetrics(settings->applicationFont()).width("  Network  "));
+    adjustSize();
+
 }
 
 DlgSettings::~DlgSettings()
@@ -228,26 +239,39 @@ void DlgSettings::onSslErrors(QNetworkReply *reply)
 
 void DlgSettings::createIcons()
 {
+    int scaleSize = qMax(72, QFontMetrics(settings->applicationFont()).width(" Network "));
+    int imgHeight = 72;
+    int fH = QFontMetrics(settings->applicationFont()).height();
     QListWidgetItem *audioButton = new QListWidgetItem(ui->listWidget);
     audioButton->setIcon(QIcon(":/icons/Icons/audio-card.png"));
     audioButton->setText(tr("Audio"));
     audioButton->setTextAlignment(Qt::AlignHCenter);
+    audioButton->setSizeHint(QSize(scaleSize, imgHeight + fH));
     audioButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     QListWidgetItem *videoButton = new QListWidgetItem(ui->listWidget);
     videoButton->setIcon(QIcon(":/icons/Icons/video-display.png"));
     videoButton->setText(tr("Video"));
     videoButton->setTextAlignment(Qt::AlignHCenter);
+    videoButton->setSizeHint(QSize(scaleSize, imgHeight + fH));
     videoButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     QListWidgetItem *networkButton = new QListWidgetItem(ui->listWidget);
     networkButton->setIcon(QIcon(":/icons/Icons/network-wired.png"));
     networkButton->setText(tr("Network"));
     networkButton->setTextAlignment(Qt::AlignHCenter);
+    networkButton->setSizeHint(QSize(scaleSize, imgHeight + fH));
     networkButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     QListWidgetItem *otherButton = new QListWidgetItem(ui->listWidget);
     otherButton->setIcon(QIcon(":/Icons/other-settings.png"));
     otherButton->setText(tr("Other"));
     otherButton->setTextAlignment(Qt::AlignHCenter);
+    otherButton->setSizeHint(QSize(scaleSize, imgHeight + fH));
     otherButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+    QListWidgetItem *appearanceButton = new QListWidgetItem(ui->listWidget);
+    appearanceButton->setIcon(QIcon(":/icons/Icons/theme.png"));
+    appearanceButton->setText("Theme");
+    appearanceButton->setTextAlignment(Qt::AlignHCenter);
+    appearanceButton->setSizeHint(QSize(scaleSize, imgHeight + fH));
+    appearanceButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 }
 
 void DlgSettings::on_btnClose_clicked()
@@ -627,4 +651,85 @@ void DlgSettings::tickerShowRotationInfoChanged(bool show)
     ui->spinBoxTickerSingers->setEnabled(show);
     ui->label_5->setEnabled(show);
     ui->cbxTickerShowRotationInfo->setChecked(show);
+}
+
+void DlgSettings::on_cbxTheme_currentIndexChanged(int index)
+{
+    if (pageSetupDone)
+        settings->setTheme(index);
+}
+
+void DlgSettings::on_btnBrowse_clicked()
+{
+    QString fileName = QFileDialog::getExistingDirectory(this, "Select directory to put store downloads in",settings->storeDownloadDir());
+    if (fileName != "")
+    {
+        QFileInfo fi(fileName);
+        if (!fi.isWritable() || !fi.isReadable())
+        {
+            QMessageBox msgBox;
+            msgBox.setWindowTitle("Directory not writable!");
+            msgBox.setText("You do not have permission to write to the selected directory, aborting.");
+            msgBox.exec();
+        }
+        settings->setStoreDownloadDir(fileName + QDir::separator());
+        ui->lineEditDownloadsDir->setText(fileName + QDir::separator());
+    }
+}
+
+void DlgSettings::on_fontComboBox_currentFontChanged(const QFont &f)
+{
+    if (!pageSetupDone)
+        return;
+    QFont font = f;
+    font.setPointSize(ui->spinBoxAppFontSize->value());
+    settings->setApplicationFont(font);
+    setFont(font);
+}
+
+void DlgSettings::on_spinBoxAppFontSize_valueChanged(int arg1)
+{
+    if (!pageSetupDone)
+        return;
+    QFont font = settings->applicationFont();
+    font.setPointSize(arg1);
+    settings->setApplicationFont(font);
+    setFont(font);
+}
+
+void DlgSettings::on_btnTestReqServer_clicked()
+{
+    OKJSongbookAPI *api = new OKJSongbookAPI(this);
+    connect(api, SIGNAL(testFailed(QString)), this, SLOT(reqSvrTestError(QString)));
+    connect(api, SIGNAL(testSslError(QString)), this, SLOT(reqSvrTestSslError(QString)));
+    connect(api, SIGNAL(testPassed()), this, SLOT(reqSvrTestPassed()));
+    api->test();
+
+    delete api;
+}
+
+void DlgSettings::reqSvrTestError(QString error)
+{
+    QMessageBox msgBox;
+    msgBox.setWindowTitle("Request server test failed!");
+    msgBox.setText("Request server connection test was unsuccessful!");
+    msgBox.setInformativeText("Error msg:\n" + error);
+    msgBox.exec();
+}
+
+void DlgSettings::reqSvrTestSslError(QString error)
+{
+    QMessageBox msgBox;
+    msgBox.setWindowTitle("Request server test failed!");
+    msgBox.setText("Request server connection test was unsuccessful due to SSL errors!");
+    msgBox.setInformativeText("Error msg:\n" + error);
+    msgBox.exec();
+}
+
+void DlgSettings::reqSvrTestPassed()
+{
+    QMessageBox msgBox;
+    msgBox.setWindowTitle("Request server test passed");
+    msgBox.setText("Request server connection test was successful.  Server info and API key appear to be valid");
+    msgBox.exec();
 }

@@ -13,13 +13,14 @@ CdgVideoWidget::CdgVideoWidget(QWidget *parent) : QGLWidget(parent) , surface(0)
 CdgVideoWidget::CdgVideoWidget(QWidget *parent) : QWidget(parent) , surface(0)
 #endif
 {
+    keepAspect = false;
     setUpdatesEnabled(true);
     setAutoFillBackground(false);
     setAttribute(Qt::WA_NoSystemBackground, true);
     QPalette palette = this->palette();
     palette.setColor(QPalette::Background, Qt::black);
     setPalette(palette);
-    setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+   // setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     surface = new CdgVideoSurface(this);
 }
 
@@ -30,7 +31,7 @@ CdgVideoWidget::~CdgVideoWidget()
 
 QSize CdgVideoWidget::sizeHint() const
 {
-    return surface->surfaceFormat().sizeHint();
+    return QSize(300,216);
 }
 
 void CdgVideoWidget::clear()
@@ -38,12 +39,50 @@ void CdgVideoWidget::clear()
     surface->blankImage();
 }
 
+void CdgVideoWidget::setKeepAspect(bool keep)
+{
+    keepAspect = keep;
+}
+
+void CdgVideoWidget::arResize(int w)
+{
+    int h = w * .5625;
+    this->setMinimumSize(QSize(w, h));
+    this->adjustSize();
+}
+
 
 void CdgVideoWidget::resizeEvent(QResizeEvent *event)
 {
-    QWidget::resizeEvent(event);
-    surface->updateVideoRect();
-    emit resized(event->size());
+
+//    if (keepAspect)
+//    {
+//        event->accept();
+//        int width = event->size().width();
+//        int newHeight = width * 0.5625;
+//        if (event->size() == QSize(width, newHeight))
+//            return;
+//        QWidget::resize(width, newHeight);
+//        //    if(event->size().width() > event->size().height()){
+//        //        QWidget::resize(event->size().height(),event->size().height());
+//        //    }else{
+//        //        QWidget::resize(event->size().width(),event->size().width());
+//        //    }
+//        //    QWidget::resizeEvent(event);
+//        qWarning() << "Width: " << width << " target height: " << newHeight;
+//        emit resized(QSize(event->size().width(), event->size().height() * 0.5625));
+//        surface->updateVideoRect();
+//        emit resizeEvent(new QResizeEvent(QSize(width, newHeight), event->size()));
+//    }
+//    else
+//    {
+        QWidget::resizeEvent(event);
+        surface->updateVideoRect();
+        emit resized(event->size());
+//    }
+//    //    if (keepAspect)
+// //        resize(width, newHeight);
+
 }
 
 void CdgVideoWidget::paintEvent(QPaintEvent *event)
@@ -63,4 +102,15 @@ void CdgVideoWidget::paintEvent(QPaintEvent *event)
     } else {
         painter.fillRect(event->rect(), palette().background());
     }
+}
+
+
+QSize CdgVideoWidget::minimumSizeHint() const
+{
+    return QSize(300,216);
+}
+
+int CdgVideoWidget::heightForWidth(int width) const
+{
+    return width * .72;
 }

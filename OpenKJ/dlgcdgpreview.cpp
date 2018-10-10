@@ -88,14 +88,11 @@ void DlgCdgPreview::timerTimeout()
     {
         if (cdg->GetLastCDGUpdate() >= cdgPosition)
         {
-            if (!cdg->SkipFrame(cdgPosition))
-            {
-                unsigned char* rgbdata;
-                rgbdata = cdg->GetImageByTime(cdgPosition);
-                QImage img(rgbdata, 300, 216, QImage::Format_RGB888);
-                ui->cdgVideoWidget->videoSurface()->present(QVideoFrame(img));
-                free(rgbdata);
-            }
+            unsigned char* rgbdata;
+            rgbdata = cdg->GetImageByTime(cdgPosition);
+            QImage img(rgbdata, 300, 216, QImage::Format_RGB888);
+            ui->cdgVideoWidget->videoSurface()->present(QVideoFrame(img));
+            free(rgbdata);
             cdgPosition = cdgPosition + timer->interval();
         }
         else

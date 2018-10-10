@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>964</width>
-    <height>776</height>
+    <width>1309</width>
+    <height>807</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -29,7 +29,7 @@
     <normaloff>:/icons/Icons/okicon.svg</normaloff>:/icons/Icons/okicon.svg</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QVBoxLayout" name="verticalLayout_2">
+   <layout class="QHBoxLayout" name="horizontalLayout_23">
     <property name="leftMargin">
      <number>3</number>
     </property>
@@ -47,9 +47,6 @@
       <property name="tabPosition">
        <enum>QTabWidget::West</enum>
       </property>
-      <property name="tabShape">
-       <enum>QTabWidget::Rounded</enum>
-      </property>
       <property name="currentIndex">
        <number>0</number>
       </property>
@@ -60,153 +57,325 @@
        <attribute name="title">
         <string>Karaoke</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_21">
+       <layout class="QHBoxLayout" name="horizontalLayout_24" stretch="0,0">
         <item>
-         <widget class="QSplitter" name="splitter">
+         <widget class="QSplitter" name="splitter_3">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
           <property name="orientation">
-           <enum>Qt::Vertical</enum>
+           <enum>Qt::Horizontal</enum>
           </property>
-          <property name="childrenCollapsible">
-           <bool>false</bool>
-          </property>
-          <widget class="QFrame" name="frame_3">
+          <widget class="QGroupBox" name="rotgroupBox_2">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
-           <property name="frameShape">
-            <enum>QFrame::NoFrame</enum>
+           <property name="title">
+            <string>Rotation</string>
            </property>
-           <property name="frameShadow">
-            <enum>QFrame::Raised</enum>
-           </property>
-           <layout class="QHBoxLayout" name="horizontalLayout_8">
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
+           <layout class="QVBoxLayout" name="verticalLayout_19">
+            <property name="spacing">
+             <number>2</number>
             </property>
             <property name="bottomMargin">
-             <number>0</number>
+             <number>2</number>
             </property>
             <item>
-             <widget class="QFrame" name="dbframe_2">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
+             <layout class="QHBoxLayout" name="horizontalLayout_19"/>
+            </item>
+            <item>
+             <widget class="QTableView" name="tableViewRotation">
+              <property name="contextMenuPolicy">
+               <enum>Qt::CustomContextMenu</enum>
               </property>
+              <property name="editTriggers">
+               <set>QAbstractItemView::NoEditTriggers</set>
+              </property>
+              <property name="dragEnabled">
+               <bool>true</bool>
+              </property>
+              <property name="dragDropOverwriteMode">
+               <bool>false</bool>
+              </property>
+              <property name="dragDropMode">
+               <enum>QAbstractItemView::DragDrop</enum>
+              </property>
+              <property name="defaultDropAction">
+               <enum>Qt::MoveAction</enum>
+              </property>
+              <property name="alternatingRowColors">
+               <bool>true</bool>
+              </property>
+              <property name="selectionMode">
+               <enum>QAbstractItemView::SingleSelection</enum>
+              </property>
+              <property name="selectionBehavior">
+               <enum>QAbstractItemView::SelectRows</enum>
+              </property>
+              <attribute name="horizontalHeaderCascadingSectionResizes">
+               <bool>true</bool>
+              </attribute>
+              <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+               <bool>false</bool>
+              </attribute>
+              <attribute name="horizontalHeaderStretchLastSection">
+               <bool>false</bool>
+              </attribute>
+              <attribute name="verticalHeaderVisible">
+               <bool>false</bool>
+              </attribute>
+             </widget>
+            </item>
+            <item>
+             <widget class="QFrame" name="frame_9">
               <property name="frameShape">
-               <enum>QFrame::Box</enum>
+               <enum>QFrame::NoFrame</enum>
               </property>
-              <layout class="QVBoxLayout" name="verticalLayout_12">
+              <property name="frameShadow">
+               <enum>QFrame::Raised</enum>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_21">
                <property name="spacing">
                 <number>4</number>
                </property>
+               <property name="leftMargin">
+                <number>0</number>
+               </property>
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="rightMargin">
+                <number>0</number>
+               </property>
                <property name="bottomMargin">
-                <number>4</number>
+                <number>0</number>
                </property>
                <item>
-                <widget class="QTableView" name="tableViewDB">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
+                <widget class="QPushButton" name="buttonClearRotation">
+                 <property name="focusPolicy">
+                  <enum>Qt::NoFocus</enum>
                  </property>
-                 <property name="contextMenuPolicy">
-                  <enum>Qt::CustomContextMenu</enum>
+                 <property name="text">
+                  <string/>
                  </property>
-                 <property name="editTriggers">
-                  <set>QAbstractItemView::NoEditTriggers</set>
+                 <property name="icon">
+                  <iconset resource="resources.qrc">
+                   <normaloff>:/icons/Icons/edit-clear.png</normaloff>:/icons/Icons/edit-clear.png</iconset>
                  </property>
-                 <property name="dragDropMode">
-                  <enum>QAbstractItemView::DragOnly</enum>
+                 <property name="iconSize">
+                  <size>
+                   <width>22</width>
+                   <height>22</height>
+                  </size>
                  </property>
-                 <property name="alternatingRowColors">
+                 <property name="flat">
                   <bool>true</bool>
                  </property>
-                 <property name="selectionMode">
-                  <enum>QAbstractItemView::SingleSelection</enum>
-                 </property>
-                 <property name="selectionBehavior">
-                  <enum>QAbstractItemView::SelectRows</enum>
-                 </property>
-                 <property name="sortingEnabled">
-                  <bool>true</bool>
-                 </property>
-                 <attribute name="horizontalHeaderCascadingSectionResizes">
-                  <bool>true</bool>
-                 </attribute>
-                 <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
-                  <bool>true</bool>
-                 </attribute>
-                 <attribute name="horizontalHeaderStretchLastSection">
-                  <bool>true</bool>
-                 </attribute>
-                 <attribute name="verticalHeaderVisible">
-                  <bool>false</bool>
-                 </attribute>
                 </widget>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_9">
-                 <property name="spacing">
-                  <number>4</number>
+                <spacer name="horizontalSpacer_9">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
                  </property>
-                 <item>
-                  <widget class="CustomLineEdit" name="lineEdit"/>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="pushButton">
-                   <property name="focusPolicy">
-                    <enum>Qt::NoFocus</enum>
-                   </property>
-                   <property name="text">
-                    <string/>
-                   </property>
-                   <property name="icon">
-                    <iconset resource="resources.qrc">
-                     <normaloff>:/icons/Icons/system-search.png</normaloff>:/icons/Icons/system-search.png</iconset>
-                   </property>
-                   <property name="iconSize">
-                    <size>
-                     <width>22</width>
-                     <height>22</height>
-                    </size>
-                   </property>
-                   <property name="flat">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="horizontalSpacerRequests">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeType">
-                    <enum>QSizePolicy::Minimum</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>80</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="pushButtonIncomingRequests">
-                   <property name="styleSheet">
-                    <string notr="true">QPushButton {
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QPushButton" name="buttonAddSinger">
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="resources.qrc">
+                   <normaloff>:/icons/Icons/list-add-user.png</normaloff>:/icons/Icons/list-add-user.png</iconset>
+                 </property>
+                 <property name="iconSize">
+                  <size>
+                   <width>22</width>
+                   <height>22</height>
+                  </size>
+                 </property>
+                 <property name="flat">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="buttonRegulars">
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="resources.qrc">
+                   <normaloff>:/icons/Icons/emblem-favorite.png</normaloff>:/icons/Icons/emblem-favorite.png</iconset>
+                 </property>
+                 <property name="iconSize">
+                  <size>
+                   <width>22</width>
+                   <height>22</height>
+                  </size>
+                 </property>
+                 <property name="flat">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QSplitter" name="splitter">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="childrenCollapsible">
+            <bool>false</bool>
+           </property>
+           <widget class="QFrame" name="frameDb">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::NoFrame</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Plain</enum>
+            </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_8">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QGroupBox" name="dbgroupBox_2">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="title">
+                <string>Song Database</string>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_12">
+                <property name="spacing">
+                 <number>4</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>4</number>
+                </property>
+                <item>
+                 <widget class="QTableView" name="tableViewDB">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="contextMenuPolicy">
+                   <enum>Qt::CustomContextMenu</enum>
+                  </property>
+                  <property name="editTriggers">
+                   <set>QAbstractItemView::NoEditTriggers</set>
+                  </property>
+                  <property name="dragDropMode">
+                   <enum>QAbstractItemView::DragOnly</enum>
+                  </property>
+                  <property name="alternatingRowColors">
+                   <bool>true</bool>
+                  </property>
+                  <property name="selectionMode">
+                   <enum>QAbstractItemView::SingleSelection</enum>
+                  </property>
+                  <property name="selectionBehavior">
+                   <enum>QAbstractItemView::SelectRows</enum>
+                  </property>
+                  <property name="sortingEnabled">
+                   <bool>true</bool>
+                  </property>
+                  <attribute name="horizontalHeaderCascadingSectionResizes">
+                   <bool>true</bool>
+                  </attribute>
+                  <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+                   <bool>true</bool>
+                  </attribute>
+                  <attribute name="verticalHeaderVisible">
+                   <bool>false</bool>
+                  </attribute>
+                 </widget>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_9">
+                  <property name="spacing">
+                   <number>4</number>
+                  </property>
+                  <item>
+                   <widget class="CustomLineEdit" name="lineEdit"/>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="pushButton">
+                    <property name="focusPolicy">
+                     <enum>Qt::NoFocus</enum>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                    <property name="icon">
+                     <iconset resource="resources.qrc">
+                      <normaloff>:/Icons/system-search2.png</normaloff>:/Icons/system-search2.png</iconset>
+                    </property>
+                    <property name="flat">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <spacer name="horizontalSpacerRequests">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                     <enum>QSizePolicy::Minimum</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>80</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="pushButtonIncomingRequests">
+                    <property name="styleSheet">
+                     <string notr="true">QPushButton {
     border: 2px solid #8f8f91;
     border-radius: 6px;
     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
@@ -230,1313 +399,150 @@ QPushButton:flat {
 QPushButton:default {
     border-color: navy; /* make the default button prominent */
 }</string>
-                   </property>
-                   <property name="text">
-                    <string>Requests</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item>
-             <widget class="QFrame" name="frame_7">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>310</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>305</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="baseSize">
-               <size>
-                <width>305</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="frameShape">
-               <enum>QFrame::NoFrame</enum>
-              </property>
-              <property name="frameShadow">
-               <enum>QFrame::Raised</enum>
-              </property>
-              <layout class="QVBoxLayout" name="verticalLayout_13">
-               <property name="spacing">
-                <number>0</number>
-               </property>
-               <property name="leftMargin">
-                <number>0</number>
-               </property>
-               <property name="topMargin">
-                <number>0</number>
-               </property>
-               <property name="rightMargin">
-                <number>0</number>
-               </property>
-               <property name="bottomMargin">
-                <number>0</number>
-               </property>
-               <item>
-                <widget class="QFrame" name="mediaFrame_2">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="frameShape">
-                  <enum>QFrame::Box</enum>
-                 </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_14">
-                  <property name="spacing">
-                   <number>6</number>
-                  </property>
-                  <property name="leftMargin">
-                   <number>4</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>4</number>
-                  </property>
-                  <property name="rightMargin">
-                   <number>4</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>2</number>
-                  </property>
-                  <item>
-                   <widget class="QFrame" name="cdgFrame">
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
                     </property>
-                    <property name="baseSize">
-                     <size>
-                      <width>300</width>
-                      <height>216</height>
-                     </size>
+                    <property name="text">
+                     <string>Requests</string>
                     </property>
-                    <property name="frameShape">
-                     <enum>QFrame::NoFrame</enum>
-                    </property>
-                    <property name="frameShadow">
-                     <enum>QFrame::Raised</enum>
-                    </property>
-                    <layout class="QVBoxLayout" name="verticalLayout_15">
-                     <property name="spacing">
-                      <number>0</number>
-                     </property>
-                     <property name="leftMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="topMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="rightMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="bottomMargin">
-                      <number>0</number>
-                     </property>
-                     <item>
-                      <widget class="CdgVideoWidget" name="cdgVideoWidget" native="true">
-                       <property name="sizePolicy">
-                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                         <horstretch>0</horstretch>
-                         <verstretch>0</verstretch>
-                        </sizepolicy>
-                       </property>
-                       <property name="minimumSize">
-                        <size>
-                         <width>300</width>
-                         <height>216</height>
-                        </size>
-                       </property>
-                       <property name="maximumSize">
-                        <size>
-                         <width>300</width>
-                         <height>216</height>
-                        </size>
-                       </property>
-                       <property name="palette">
-                        <palette>
-                         <active>
-                          <colorrole role="WindowText">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Button">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Light">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Midlight">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Dark">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Mid">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Text">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="BrightText">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="ButtonText">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Base">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Window">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Shadow">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Highlight">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="HighlightedText">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Link">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="LinkVisited">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="AlternateBase">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="ToolTipBase">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="ToolTipText">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                         </active>
-                         <inactive>
-                          <colorrole role="WindowText">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Button">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Light">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Midlight">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Dark">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Mid">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Text">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="BrightText">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="ButtonText">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Base">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Window">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Shadow">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Highlight">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="HighlightedText">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Link">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="LinkVisited">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="AlternateBase">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="ToolTipBase">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="ToolTipText">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                         </inactive>
-                         <disabled>
-                          <colorrole role="WindowText">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Button">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Light">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Midlight">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Dark">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Mid">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Text">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="BrightText">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="ButtonText">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Base">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Window">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Shadow">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Highlight">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>217</red>
-                             <green>217</green>
-                             <blue>217</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="HighlightedText">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="Link">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="LinkVisited">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="AlternateBase">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="ToolTipBase">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                          <colorrole role="ToolTipText">
-                           <brush brushstyle="SolidPattern">
-                            <color alpha="255">
-                             <red>0</red>
-                             <green>0</green>
-                             <blue>0</blue>
-                            </color>
-                           </brush>
-                          </colorrole>
-                         </disabled>
-                        </palette>
-                       </property>
-                       <property name="autoFillBackground">
-                        <bool>true</bool>
-                       </property>
-                       <layout class="QVBoxLayout" name="verticalLayout_16">
-                        <property name="spacing">
-                         <number>0</number>
-                        </property>
-                        <property name="leftMargin">
-                         <number>0</number>
-                        </property>
-                        <property name="topMargin">
-                         <number>0</number>
-                        </property>
-                        <property name="rightMargin">
-                         <number>0</number>
-                        </property>
-                        <property name="bottomMargin">
-                         <number>0</number>
-                        </property>
-                       </layout>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QFrame" name="progressFrame_2">
-                       <property name="sizePolicy">
-                        <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
-                         <horstretch>0</horstretch>
-                         <verstretch>0</verstretch>
-                        </sizepolicy>
-                       </property>
-                       <property name="frameShape">
-                        <enum>QFrame::NoFrame</enum>
-                       </property>
-                       <property name="frameShadow">
-                        <enum>QFrame::Plain</enum>
-                       </property>
-                       <property name="lineWidth">
-                        <number>0</number>
-                       </property>
-                       <layout class="QHBoxLayout" name="horizontalLayout_14">
-                        <property name="spacing">
-                         <number>4</number>
-                        </property>
-                        <property name="leftMargin">
-                         <number>3</number>
-                        </property>
-                        <property name="topMargin">
-                         <number>0</number>
-                        </property>
-                        <property name="rightMargin">
-                         <number>0</number>
-                        </property>
-                        <property name="bottomMargin">
-                         <number>0</number>
-                        </property>
-                        <item>
-                         <widget class="QPushButton" name="buttonPause">
-                          <property name="sizePolicy">
-                           <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                           </sizepolicy>
-                          </property>
-                          <property name="maximumSize">
-                           <size>
-                            <width>24</width>
-                            <height>16777215</height>
-                           </size>
-                          </property>
-                          <property name="focusPolicy">
-                           <enum>Qt::NoFocus</enum>
-                          </property>
-                          <property name="icon">
-                           <iconset resource="resources.qrc">
-                            <normaloff>:/icons/pause</normaloff>:/icons/pause</iconset>
-                          </property>
-                          <property name="iconSize">
-                           <size>
-                            <width>22</width>
-                            <height>22</height>
-                           </size>
-                          </property>
-                          <property name="flat">
-                           <bool>true</bool>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QPushButton" name="buttonStop">
-                          <property name="sizePolicy">
-                           <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                           </sizepolicy>
-                          </property>
-                          <property name="maximumSize">
-                           <size>
-                            <width>24</width>
-                            <height>16777215</height>
-                           </size>
-                          </property>
-                          <property name="focusPolicy">
-                           <enum>Qt::NoFocus</enum>
-                          </property>
-                          <property name="icon">
-                           <iconset resource="resources.qrc">
-                            <normaloff>:/icons/stop</normaloff>:/icons/stop</iconset>
-                          </property>
-                          <property name="iconSize">
-                           <size>
-                            <width>22</width>
-                            <height>22</height>
-                           </size>
-                          </property>
-                          <property name="flat">
-                           <bool>true</bool>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QSlider" name="sliderProgress">
-                          <property name="sizePolicy">
-                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                           </sizepolicy>
-                          </property>
-                          <property name="maximumSize">
-                           <size>
-                            <width>16777215</width>
-                            <height>16777215</height>
-                           </size>
-                          </property>
-                          <property name="orientation">
-                           <enum>Qt::Horizontal</enum>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </widget>
-                     </item>
-                     <item>
-                      <layout class="QHBoxLayout" name="horizontalLayout_15">
-                       <property name="topMargin">
-                        <number>0</number>
-                       </property>
-                       <property name="rightMargin">
-                        <number>0</number>
-                       </property>
-                       <item>
-                        <layout class="QHBoxLayout" name="horizontalLayout_16">
-                         <property name="spacing">
-                          <number>2</number>
-                         </property>
-                         <property name="topMargin">
-                          <number>0</number>
-                         </property>
-                         <property name="rightMargin">
-                          <number>0</number>
-                         </property>
-                         <item>
-                          <widget class="QLabel" name="label_5">
-                           <property name="sizePolicy">
-                            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                             <horstretch>0</horstretch>
-                             <verstretch>0</verstretch>
-                            </sizepolicy>
-                           </property>
-                           <property name="text">
-                            <string>Total:</string>
-                           </property>
-                           <property name="scaledContents">
-                            <bool>true</bool>
-                           </property>
-                           <property name="alignment">
-                            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                           </property>
-                          </widget>
-                         </item>
-                         <item>
-                          <widget class="QLabel" name="labelTotalTime">
-                           <property name="text">
-                            <string>0:00</string>
-                           </property>
-                           <property name="scaledContents">
-                            <bool>true</bool>
-                           </property>
-                          </widget>
-                         </item>
-                        </layout>
-                       </item>
-                       <item>
-                        <spacer name="horizontalSpacer_6">
-                         <property name="orientation">
-                          <enum>Qt::Horizontal</enum>
-                         </property>
-                         <property name="sizeHint" stdset="0">
-                          <size>
-                           <width>40</width>
-                           <height>20</height>
-                          </size>
-                         </property>
-                        </spacer>
-                       </item>
-                       <item>
-                        <layout class="QHBoxLayout" name="horizontalLayout_17">
-                         <property name="spacing">
-                          <number>2</number>
-                         </property>
-                         <property name="topMargin">
-                          <number>0</number>
-                         </property>
-                         <property name="rightMargin">
-                          <number>0</number>
-                         </property>
-                         <item>
-                          <widget class="QLabel" name="label_8">
-                           <property name="frameShape">
-                            <enum>QFrame::NoFrame</enum>
-                           </property>
-                           <property name="frameShadow">
-                            <enum>QFrame::Plain</enum>
-                           </property>
-                           <property name="text">
-                            <string>Position:</string>
-                           </property>
-                           <property name="scaledContents">
-                            <bool>true</bool>
-                           </property>
-                           <property name="alignment">
-                            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                           </property>
-                          </widget>
-                         </item>
-                         <item>
-                          <widget class="QLabel" name="labelElapsedTime">
-                           <property name="text">
-                            <string>0:00</string>
-                           </property>
-                           <property name="scaledContents">
-                            <bool>true</bool>
-                           </property>
-                          </widget>
-                         </item>
-                        </layout>
-                       </item>
-                       <item>
-                        <spacer name="horizontalSpacer_7">
-                         <property name="orientation">
-                          <enum>Qt::Horizontal</enum>
-                         </property>
-                         <property name="sizeHint" stdset="0">
-                          <size>
-                           <width>40</width>
-                           <height>20</height>
-                          </size>
-                         </property>
-                        </spacer>
-                       </item>
-                       <item>
-                        <layout class="QHBoxLayout" name="horizontalLayout_18">
-                         <property name="spacing">
-                          <number>2</number>
-                         </property>
-                         <property name="topMargin">
-                          <number>0</number>
-                         </property>
-                         <property name="rightMargin">
-                          <number>0</number>
-                         </property>
-                         <item>
-                          <widget class="QLabel" name="label_9">
-                           <property name="frameShape">
-                            <enum>QFrame::NoFrame</enum>
-                           </property>
-                           <property name="text">
-                            <string>Remain:</string>
-                           </property>
-                           <property name="scaledContents">
-                            <bool>true</bool>
-                           </property>
-                           <property name="alignment">
-                            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                           </property>
-                          </widget>
-                         </item>
-                         <item>
-                          <widget class="QLabel" name="labelRemainTime">
-                           <property name="text">
-                            <string>0:00</string>
-                           </property>
-                           <property name="scaledContents">
-                            <bool>true</bool>
-                           </property>
-                          </widget>
-                         </item>
-                        </layout>
-                       </item>
-                      </layout>
-                     </item>
-                    </layout>
                    </widget>
                   </item>
-                  <item>
-                   <layout class="QVBoxLayout" name="verticalLayout_10">
-                    <property name="spacing">
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+           <widget class="QFrame" name="frameQueue">
+            <property name="frameShape">
+             <enum>QFrame::NoFrame</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Plain</enum>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_3">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item row="0" column="0">
+              <widget class="QSplitter" name="splitter_2">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <widget class="QGroupBox" name="gbxQueue">
+                <property name="title">
+                 <string>Song Queue - (No Singer Selected)</string>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_20">
+                 <property name="spacing">
+                  <number>2</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>4</number>
+                 </property>
+                 <item>
+                  <widget class="QTableView" name="tableViewQueue">
+                   <property name="contextMenuPolicy">
+                    <enum>Qt::CustomContextMenu</enum>
+                   </property>
+                   <property name="midLineWidth">
+                    <number>0</number>
+                   </property>
+                   <property name="editTriggers">
+                    <set>QAbstractItemView::NoEditTriggers</set>
+                   </property>
+                   <property name="dragEnabled">
+                    <bool>true</bool>
+                   </property>
+                   <property name="dragDropMode">
+                    <enum>QAbstractItemView::DragDrop</enum>
+                   </property>
+                   <property name="defaultDropAction">
+                    <enum>Qt::MoveAction</enum>
+                   </property>
+                   <property name="alternatingRowColors">
+                    <bool>true</bool>
+                   </property>
+                   <property name="selectionMode">
+                    <enum>QAbstractItemView::ExtendedSelection</enum>
+                   </property>
+                   <property name="selectionBehavior">
+                    <enum>QAbstractItemView::SelectRows</enum>
+                   </property>
+                   <property name="sortingEnabled">
+                    <bool>true</bool>
+                   </property>
+                   <attribute name="horizontalHeaderCascadingSectionResizes">
+                    <bool>true</bool>
+                   </attribute>
+                   <attribute name="horizontalHeaderHighlightSections">
+                    <bool>true</bool>
+                   </attribute>
+                   <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+                    <bool>false</bool>
+                   </attribute>
+                   <attribute name="horizontalHeaderStretchLastSection">
+                    <bool>false</bool>
+                   </attribute>
+                   <attribute name="verticalHeaderVisible">
+                    <bool>false</bool>
+                   </attribute>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QFrame" name="frame_10">
+                   <property name="frameShape">
+                    <enum>QFrame::NoFrame</enum>
+                   </property>
+                   <property name="frameShadow">
+                    <enum>QFrame::Raised</enum>
+                   </property>
+                   <layout class="QHBoxLayout" name="horizontalLayout_22">
+                    <property name="leftMargin">
                      <number>0</number>
                     </property>
-                    <property name="topMargin">
-                     <number>0</number>
-                    </property>
-                    <item>
-                     <layout class="QHBoxLayout" name="horizontalLayout_20">
-                      <property name="spacing">
-                       <number>0</number>
-                      </property>
-                      <property name="topMargin">
-                       <number>0</number>
-                      </property>
-                      <item>
-                       <layout class="QVBoxLayout" name="verticalLayout_22">
-                        <property name="spacing">
-                         <number>4</number>
-                        </property>
-                        <property name="bottomMargin">
-                         <number>0</number>
-                        </property>
-                        <item>
-                         <layout class="QHBoxLayout" name="horizontalLayout_13">
-                          <property name="topMargin">
-                           <number>0</number>
-                          </property>
-                          <property name="rightMargin">
-                           <number>0</number>
-                          </property>
-                          <item>
-                           <layout class="QVBoxLayout" name="verticalLayout_17">
-                            <property name="spacing">
-                             <number>0</number>
-                            </property>
-                            <property name="leftMargin">
-                             <number>0</number>
-                            </property>
-                            <property name="bottomMargin">
-                             <number>0</number>
-                            </property>
-                            <item>
-                             <widget class="QLabel" name="label_10">
-                              <property name="sizePolicy">
-                               <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-                                <horstretch>0</horstretch>
-                                <verstretch>0</verstretch>
-                               </sizepolicy>
-                              </property>
-                              <property name="text">
-                               <string>Title:</string>
-                              </property>
-                              <property name="alignment">
-                               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                              </property>
-                             </widget>
-                            </item>
-                            <item>
-                             <widget class="QLabel" name="label_11">
-                              <property name="sizePolicy">
-                               <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-                                <horstretch>0</horstretch>
-                                <verstretch>0</verstretch>
-                               </sizepolicy>
-                              </property>
-                              <property name="text">
-                               <string>Artist:</string>
-                              </property>
-                              <property name="alignment">
-                               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                              </property>
-                             </widget>
-                            </item>
-                            <item>
-                             <widget class="QLabel" name="label_12">
-                              <property name="sizePolicy">
-                               <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-                                <horstretch>0</horstretch>
-                                <verstretch>0</verstretch>
-                               </sizepolicy>
-                              </property>
-                              <property name="text">
-                               <string>Singer:</string>
-                              </property>
-                             </widget>
-                            </item>
-                           </layout>
-                          </item>
-                          <item>
-                           <layout class="QVBoxLayout" name="verticalLayout_18">
-                            <property name="spacing">
-                             <number>0</number>
-                            </property>
-                            <property name="rightMargin">
-                             <number>0</number>
-                            </property>
-                            <item>
-                             <widget class="QLabel" name="labelTitle">
-                              <property name="sizePolicy">
-                               <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
-                                <horstretch>0</horstretch>
-                                <verstretch>0</verstretch>
-                               </sizepolicy>
-                              </property>
-                              <property name="text">
-                               <string>None</string>
-                              </property>
-                             </widget>
-                            </item>
-                            <item>
-                             <widget class="QLabel" name="labelArtist">
-                              <property name="sizePolicy">
-                               <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
-                                <horstretch>0</horstretch>
-                                <verstretch>0</verstretch>
-                               </sizepolicy>
-                              </property>
-                              <property name="text">
-                               <string>None</string>
-                              </property>
-                             </widget>
-                            </item>
-                            <item>
-                             <widget class="QLabel" name="labelSinger">
-                              <property name="sizePolicy">
-                               <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
-                                <horstretch>0</horstretch>
-                                <verstretch>0</verstretch>
-                               </sizepolicy>
-                              </property>
-                              <property name="text">
-                               <string>None</string>
-                              </property>
-                             </widget>
-                            </item>
-                           </layout>
-                          </item>
-                         </layout>
-                        </item>
-                        <item>
-                         <layout class="QGridLayout" name="gridLayout_2">
-                          <property name="rightMargin">
-                           <number>0</number>
-                          </property>
-                          <property name="verticalSpacing">
-                           <number>0</number>
-                          </property>
-                          <item row="1" column="0">
-                           <widget class="QSpinBox" name="spinBoxTempo">
-                            <property name="suffix">
-                             <string>%</string>
-                            </property>
-                            <property name="prefix">
-                             <string/>
-                            </property>
-                            <property name="maximum">
-                             <number>200</number>
-                            </property>
-                            <property name="value">
-                             <number>100</number>
-                            </property>
-                           </widget>
-                          </item>
-                          <item row="0" column="0">
-                           <widget class="QLabel" name="lblTempo">
-                            <property name="text">
-                             <string>Tempo</string>
-                            </property>
-                           </widget>
-                          </item>
-                          <item row="0" column="1">
-                           <widget class="QLabel" name="lblKey">
-                            <property name="text">
-                             <string>Key</string>
-                            </property>
-                           </widget>
-                          </item>
-                          <item row="1" column="1">
-                           <widget class="QSpinBox" name="spinBoxKey">
-                            <property name="minimumSize">
-                             <size>
-                              <width>0</width>
-                              <height>10</height>
-                             </size>
-                            </property>
-                            <property name="focusPolicy">
-                             <enum>Qt::NoFocus</enum>
-                            </property>
-                            <property name="frame">
-                             <bool>true</bool>
-                            </property>
-                            <property name="alignment">
-                             <set>Qt::AlignCenter</set>
-                            </property>
-                            <property name="readOnly">
-                             <bool>false</bool>
-                            </property>
-                            <property name="buttonSymbols">
-                             <enum>QAbstractSpinBox::UpDownArrows</enum>
-                            </property>
-                            <property name="keyboardTracking">
-                             <bool>false</bool>
-                            </property>
-                            <property name="prefix">
-                             <string/>
-                            </property>
-                            <property name="minimum">
-                             <number>-12</number>
-                            </property>
-                            <property name="maximum">
-                             <number>12</number>
-                            </property>
-                           </widget>
-                          </item>
-                         </layout>
-                        </item>
-                       </layout>
-                      </item>
-                      <item>
-                       <widget class="VolSlider" name="sliderVolume">
-                        <property name="sizePolicy">
-                         <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
-                          <horstretch>0</horstretch>
-                          <verstretch>0</verstretch>
-                         </sizepolicy>
-                        </property>
-                        <property name="maximumSize">
-                         <size>
-                          <width>16777215</width>
-                          <height>16777215</height>
-                         </size>
-                        </property>
-                        <property name="focusPolicy">
-                         <enum>Qt::NoFocus</enum>
-                        </property>
-                        <property name="toolTip">
-                         <string>Volume Control</string>
-                        </property>
-                        <property name="tracking">
-                         <bool>true</bool>
-                        </property>
-                        <property name="orientation">
-                         <enum>Qt::Vertical</enum>
-                        </property>
-                       </widget>
-                      </item>
-                     </layout>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout">
                     <property name="topMargin">
                      <number>0</number>
                     </property>
                     <property name="rightMargin">
-                     <number>10</number>
+                     <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>0</number>
                     </property>
                     <item>
-                     <widget class="QLabel" name="label_4">
+                     <widget class="QPushButton" name="buttonClearQueue">
+                      <property name="focusPolicy">
+                       <enum>Qt::NoFocus</enum>
+                      </property>
                       <property name="text">
-                       <string>Multiplex:</string>
+                       <string/>
+                      </property>
+                      <property name="icon">
+                       <iconset resource="resources.qrc">
+                        <normaloff>:/icons/Icons/edit-clear.png</normaloff>:/icons/Icons/edit-clear.png</iconset>
+                      </property>
+                      <property name="iconSize">
+                       <size>
+                        <width>22</width>
+                        <height>22</height>
+                       </size>
+                      </property>
+                      <property name="flat">
+                       <bool>true</bool>
                       </property>
                      </widget>
                     </item>
                     <item>
-                     <layout class="QGridLayout" name="gridLayout">
-                      <property name="horizontalSpacing">
-                       <number>2</number>
-                      </property>
-                      <item row="0" column="0">
-                       <widget class="QPushButton" name="pushButtonMplxLeft">
-                        <property name="maximumSize">
-                         <size>
-                          <width>75</width>
-                          <height>22</height>
-                         </size>
-                        </property>
-                        <property name="text">
-                         <string>Left</string>
-                        </property>
-                        <property name="checkable">
-                         <bool>true</bool>
-                        </property>
-                        <property name="checked">
-                         <bool>false</bool>
-                        </property>
-                        <property name="autoExclusive">
-                         <bool>true</bool>
-                        </property>
-                       </widget>
-                      </item>
-                      <item row="0" column="1">
-                       <widget class="QPushButton" name="pushButtonMplxBoth">
-                        <property name="maximumSize">
-                         <size>
-                          <width>75</width>
-                          <height>22</height>
-                         </size>
-                        </property>
-                        <property name="text">
-                         <string>Both</string>
-                        </property>
-                        <property name="checkable">
-                         <bool>true</bool>
-                        </property>
-                        <property name="checked">
-                         <bool>true</bool>
-                        </property>
-                        <property name="autoExclusive">
-                         <bool>true</bool>
-                        </property>
-                       </widget>
-                      </item>
-                      <item row="0" column="2">
-                       <widget class="QPushButton" name="pushButtonMplxRight">
-                        <property name="maximumSize">
-                         <size>
-                          <width>75</width>
-                          <height>22</height>
-                         </size>
-                        </property>
-                        <property name="text">
-                         <string>Right</string>
-                        </property>
-                        <property name="checkable">
-                         <bool>true</bool>
-                        </property>
-                        <property name="autoExclusive">
-                         <bool>true</bool>
-                        </property>
-                       </widget>
-                      </item>
-                     </layout>
-                    </item>
-                    <item>
-                     <spacer name="horizontalSpacer_4">
+                     <spacer name="horizontalSpacer_10">
                       <property name="orientation">
                        <enum>Qt::Horizontal</enum>
                       </property>
@@ -1549,360 +555,1274 @@ QPushButton:default {
                      </spacer>
                     </item>
                    </layout>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+         </widget>
+        </item>
+        <item>
+         <widget class="QFrame" name="mediaFrame">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>256</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>512</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="baseSize">
+           <size>
+            <width>256</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::Box</enum>
+          </property>
+          <property name="lineWidth">
+           <number>0</number>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_14">
+           <property name="spacing">
+            <number>6</number>
+           </property>
+           <property name="leftMargin">
+            <number>4</number>
+           </property>
+           <property name="topMargin">
+            <number>4</number>
+           </property>
+           <property name="rightMargin">
+            <number>4</number>
+           </property>
+           <property name="bottomMargin">
+            <number>2</number>
+           </property>
+           <item>
+            <widget class="QFrame" name="cdgFrame">
+             <property name="baseSize">
+              <size>
+               <width>300</width>
+               <height>216</height>
+              </size>
+             </property>
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_15">
+              <property name="spacing">
+               <number>0</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>2</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="CdgVideoWidget" name="cdgVideoWidget" native="true">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>300</width>
+                  <height>216</height>
+                 </size>
+                </property>
+                <property name="palette">
+                 <palette>
+                  <active>
+                   <colorrole role="WindowText">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Button">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Light">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Midlight">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Dark">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Mid">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Text">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="BrightText">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="ButtonText">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Base">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Window">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Shadow">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Highlight">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="HighlightedText">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Link">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="LinkVisited">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="AlternateBase">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="ToolTipBase">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="ToolTipText">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                  </active>
+                  <inactive>
+                   <colorrole role="WindowText">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Button">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Light">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Midlight">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Dark">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Mid">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Text">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="BrightText">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="ButtonText">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Base">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Window">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Shadow">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Highlight">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="HighlightedText">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Link">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="LinkVisited">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="AlternateBase">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="ToolTipBase">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="ToolTipText">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                  </inactive>
+                  <disabled>
+                   <colorrole role="WindowText">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Button">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Light">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Midlight">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Dark">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Mid">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Text">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="BrightText">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="ButtonText">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Base">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Window">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Shadow">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Highlight">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>217</red>
+                      <green>217</green>
+                      <blue>217</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="HighlightedText">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="Link">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="LinkVisited">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="AlternateBase">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="ToolTipBase">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="ToolTipText">
+                    <brush brushstyle="SolidPattern">
+                     <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                  </disabled>
+                 </palette>
+                </property>
+                <property name="autoFillBackground">
+                 <bool>true</bool>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_16">
+                 <property name="spacing">
+                  <number>0</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <widget class="QFrame" name="progressFrame_2">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="frameShape">
+                 <enum>QFrame::NoFrame</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Plain</enum>
+                </property>
+                <property name="lineWidth">
+                 <number>0</number>
+                </property>
+                <layout class="QHBoxLayout" name="horizontalLayout_14">
+                 <property name="spacing">
+                  <number>4</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>3</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <widget class="QPushButton" name="buttonPause">
+                   <property name="focusPolicy">
+                    <enum>Qt::NoFocus</enum>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="resources.qrc">
+                     <normaloff>:/icons/pause</normaloff>:/icons/pause</iconset>
+                   </property>
+                   <property name="flat">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="buttonStop">
+                   <property name="focusPolicy">
+                    <enum>Qt::NoFocus</enum>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="resources.qrc">
+                     <normaloff>:/icons/stop</normaloff>:/icons/stop</iconset>
+                   </property>
+                   <property name="flat">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSlider" name="sliderProgress">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="hlProgress">
+                <property name="leftMargin">
+                 <number>4</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>4</number>
+                </property>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_16">
+                  <property name="spacing">
+                   <number>2</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="label_5">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string>Total: </string>
+                    </property>
+                    <property name="scaledContents">
+                     <bool>true</bool>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="labelTotalTime">
+                    <property name="text">
+                     <string>0:00</string>
+                    </property>
+                    <property name="scaledContents">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
                   </item>
                  </layout>
-                </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_6">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>20</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_17">
+                  <property name="spacing">
+                   <number>2</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="label_8">
+                    <property name="frameShape">
+                     <enum>QFrame::NoFrame</enum>
+                    </property>
+                    <property name="frameShadow">
+                     <enum>QFrame::Plain</enum>
+                    </property>
+                    <property name="text">
+                     <string>Current: </string>
+                    </property>
+                    <property name="scaledContents">
+                     <bool>true</bool>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="labelElapsedTime">
+                    <property name="text">
+                     <string>0:00</string>
+                    </property>
+                    <property name="scaledContents">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_7">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>20</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_18">
+                  <property name="spacing">
+                   <number>2</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="label_9">
+                    <property name="frameShape">
+                     <enum>QFrame::NoFrame</enum>
+                    </property>
+                    <property name="text">
+                     <string>Remain: </string>
+                    </property>
+                    <property name="scaledContents">
+                     <bool>true</bool>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="labelRemainTime">
+                    <property name="text">
+                     <string>0:00</string>
+                    </property>
+                    <property name="scaledContents">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_10">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <property name="leftMargin">
+              <number>4</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_20">
+               <property name="spacing">
+                <number>0</number>
+               </property>
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_22">
+                 <property name="spacing">
+                  <number>4</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <layout class="QFormLayout" name="formLayout">
+                   <property name="rowWrapPolicy">
+                    <enum>QFormLayout::WrapLongRows</enum>
+                   </property>
+                   <property name="labelAlignment">
+                    <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
+                   </property>
+                   <item row="0" column="0">
+                    <widget class="QLabel" name="label_10">
+                     <property name="text">
+                      <string>Title:</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="1">
+                    <widget class="QLabel" name="labelTitle">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="text">
+                      <string>None</string>
+                     </property>
+                     <property name="wordWrap">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="0">
+                    <widget class="QLabel" name="label_11">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="text">
+                      <string>Artist:</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="1">
+                    <widget class="QLabel" name="labelArtist">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="text">
+                      <string>None</string>
+                     </property>
+                     <property name="wordWrap">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="0">
+                    <widget class="QLabel" name="label_12">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="text">
+                      <string>Singer:</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="1">
+                    <widget class="QLabel" name="labelSinger">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="text">
+                      <string>None</string>
+                     </property>
+                     <property name="wordWrap">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QGridLayout" name="gridLayout_2">
+                   <property name="topMargin">
+                    <number>6</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="verticalSpacing">
+                    <number>0</number>
+                   </property>
+                   <item row="1" column="0">
+                    <widget class="QSpinBox" name="spinBoxTempo">
+                     <property name="buttonSymbols">
+                      <enum>QAbstractSpinBox::UpDownArrows</enum>
+                     </property>
+                     <property name="suffix">
+                      <string>%</string>
+                     </property>
+                     <property name="prefix">
+                      <string/>
+                     </property>
+                     <property name="maximum">
+                      <number>200</number>
+                     </property>
+                     <property name="value">
+                      <number>100</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="0">
+                    <widget class="QLabel" name="lblTempo">
+                     <property name="text">
+                      <string>Tempo</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="1">
+                    <widget class="QLabel" name="lblKey">
+                     <property name="text">
+                      <string>Key</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="1">
+                    <widget class="QSpinBox" name="spinBoxKey">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>10</height>
+                      </size>
+                     </property>
+                     <property name="focusPolicy">
+                      <enum>Qt::NoFocus</enum>
+                     </property>
+                     <property name="frame">
+                      <bool>true</bool>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                     <property name="readOnly">
+                      <bool>false</bool>
+                     </property>
+                     <property name="buttonSymbols">
+                      <enum>QAbstractSpinBox::UpDownArrows</enum>
+                     </property>
+                     <property name="keyboardTracking">
+                      <bool>false</bool>
+                     </property>
+                     <property name="prefix">
+                      <string/>
+                     </property>
+                     <property name="minimum">
+                      <number>-12</number>
+                     </property>
+                     <property name="maximum">
+                      <number>12</number>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
                </item>
                <item>
-                <spacer name="verticalSpacer_6">
+                <widget class="VolSlider" name="sliderVolume">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="focusPolicy">
+                  <enum>Qt::NoFocus</enum>
+                 </property>
+                 <property name="toolTip">
+                  <string>Volume Control</string>
+                 </property>
+                 <property name="tracking">
+                  <bool>true</bool>
+                 </property>
                  <property name="orientation">
                   <enum>Qt::Vertical</enum>
                  </property>
-                 <property name="sizeType">
-                  <enum>QSizePolicy::Expanding</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>20</width>
-                   <height>5</height>
-                  </size>
-                 </property>
-                </spacer>
+                </widget>
                </item>
               </layout>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QFrame" name="frame_8">
-           <property name="frameShape">
-            <enum>QFrame::NoFrame</enum>
-           </property>
-           <property name="frameShadow">
-            <enum>QFrame::Plain</enum>
-           </property>
-           <layout class="QGridLayout" name="gridLayout_3">
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <item row="0" column="0">
-             <widget class="QSplitter" name="splitter_2">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <widget class="QFrame" name="rotframe_2">
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout">
+             <property name="leftMargin">
+              <number>4</number>
+             </property>
+             <property name="topMargin">
+              <number>6</number>
+             </property>
+             <property name="rightMargin">
+              <number>4</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label_4">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+                <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
-               <property name="frameShape">
-                <enum>QFrame::Box</enum>
+               <property name="text">
+                <string>Multiplex:</string>
                </property>
-               <layout class="QVBoxLayout" name="verticalLayout_19">
-                <property name="spacing">
-                 <number>2</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>2</number>
-                </property>
-                <item>
-                 <widget class="QTableView" name="tableViewRotation">
-                  <property name="contextMenuPolicy">
-                   <enum>Qt::CustomContextMenu</enum>
-                  </property>
-                  <property name="editTriggers">
-                   <set>QAbstractItemView::NoEditTriggers</set>
-                  </property>
-                  <property name="dragEnabled">
-                   <bool>true</bool>
-                  </property>
-                  <property name="dragDropOverwriteMode">
-                   <bool>false</bool>
-                  </property>
-                  <property name="dragDropMode">
-                   <enum>QAbstractItemView::DragDrop</enum>
-                  </property>
-                  <property name="defaultDropAction">
-                   <enum>Qt::MoveAction</enum>
-                  </property>
-                  <property name="alternatingRowColors">
-                   <bool>true</bool>
-                  </property>
-                  <property name="selectionMode">
-                   <enum>QAbstractItemView::SingleSelection</enum>
-                  </property>
-                  <property name="selectionBehavior">
-                   <enum>QAbstractItemView::SelectRows</enum>
-                  </property>
-                  <attribute name="horizontalHeaderCascadingSectionResizes">
-                   <bool>true</bool>
-                  </attribute>
-                  <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
-                   <bool>false</bool>
-                  </attribute>
-                  <attribute name="horizontalHeaderStretchLastSection">
-                   <bool>true</bool>
-                  </attribute>
-                  <attribute name="verticalHeaderVisible">
-                   <bool>false</bool>
-                  </attribute>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QFrame" name="frame_9">
-                  <property name="frameShape">
-                   <enum>QFrame::NoFrame</enum>
-                  </property>
-                  <property name="frameShadow">
-                   <enum>QFrame::Raised</enum>
-                  </property>
-                  <layout class="QHBoxLayout" name="horizontalLayout_21">
-                   <property name="spacing">
-                    <number>4</number>
-                   </property>
-                   <property name="leftMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="topMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="rightMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="bottomMargin">
-                    <number>0</number>
-                   </property>
-                   <item>
-                    <widget class="QPushButton" name="buttonClearRotation">
-                     <property name="focusPolicy">
-                      <enum>Qt::NoFocus</enum>
-                     </property>
-                     <property name="text">
-                      <string/>
-                     </property>
-                     <property name="icon">
-                      <iconset resource="resources.qrc">
-                       <normaloff>:/icons/Icons/edit-clear.png</normaloff>:/icons/Icons/edit-clear.png</iconset>
-                     </property>
-                     <property name="iconSize">
-                      <size>
-                       <width>22</width>
-                       <height>22</height>
-                      </size>
-                     </property>
-                     <property name="flat">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <spacer name="horizontalSpacer_9">
-                     <property name="orientation">
-                      <enum>Qt::Horizontal</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>40</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="label_2">
-                     <property name="text">
-                      <string>New Singer:</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLineEdit" name="editAddSinger"/>
-                   </item>
-                   <item>
-                    <widget class="QComboBox" name="cbxSingerAddPos"/>
-                   </item>
-                   <item>
-                    <widget class="QPushButton" name="buttonAddSinger">
-                     <property name="text">
-                      <string/>
-                     </property>
-                     <property name="icon">
-                      <iconset resource="resources.qrc">
-                       <normaloff>:/icons/Icons/list-add-user.png</normaloff>:/icons/Icons/list-add-user.png</iconset>
-                     </property>
-                     <property name="iconSize">
-                      <size>
-                       <width>22</width>
-                       <height>22</height>
-                      </size>
-                     </property>
-                     <property name="flat">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QPushButton" name="buttonRegulars">
-                     <property name="text">
-                      <string/>
-                     </property>
-                     <property name="icon">
-                      <iconset resource="resources.qrc">
-                       <normaloff>:/icons/Icons/emblem-favorite.png</normaloff>:/icons/Icons/emblem-favorite.png</iconset>
-                     </property>
-                     <property name="iconSize">
-                      <size>
-                       <width>22</width>
-                       <height>22</height>
-                      </size>
-                     </property>
-                     <property name="flat">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </item>
-               </layout>
-              </widget>
-              <widget class="QFrame" name="qframe_2">
-               <property name="frameShape">
-                <enum>QFrame::Box</enum>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                </property>
-               <layout class="QVBoxLayout" name="verticalLayout_20">
-                <property name="spacing">
-                 <number>2</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>4</number>
-                </property>
-                <item>
-                 <widget class="QTableView" name="tableViewQueue">
-                  <property name="contextMenuPolicy">
-                   <enum>Qt::CustomContextMenu</enum>
-                  </property>
-                  <property name="midLineWidth">
-                   <number>0</number>
-                  </property>
-                  <property name="editTriggers">
-                   <set>QAbstractItemView::NoEditTriggers</set>
-                  </property>
-                  <property name="dragEnabled">
-                   <bool>true</bool>
-                  </property>
-                  <property name="dragDropMode">
-                   <enum>QAbstractItemView::DragDrop</enum>
-                  </property>
-                  <property name="defaultDropAction">
-                   <enum>Qt::MoveAction</enum>
-                  </property>
-                  <property name="alternatingRowColors">
-                   <bool>true</bool>
-                  </property>
-                  <property name="selectionMode">
-                   <enum>QAbstractItemView::ExtendedSelection</enum>
-                  </property>
-                  <property name="selectionBehavior">
-                   <enum>QAbstractItemView::SelectRows</enum>
-                  </property>
-                  <property name="sortingEnabled">
-                   <bool>true</bool>
-                  </property>
-                  <attribute name="horizontalHeaderCascadingSectionResizes">
-                   <bool>true</bool>
-                  </attribute>
-                  <attribute name="horizontalHeaderHighlightSections">
-                   <bool>true</bool>
-                  </attribute>
-                  <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
-                   <bool>false</bool>
-                  </attribute>
-                  <attribute name="horizontalHeaderStretchLastSection">
-                   <bool>true</bool>
-                  </attribute>
-                  <attribute name="verticalHeaderVisible">
-                   <bool>false</bool>
-                  </attribute>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QFrame" name="frame_10">
-                  <property name="frameShape">
-                   <enum>QFrame::NoFrame</enum>
-                  </property>
-                  <property name="frameShadow">
-                   <enum>QFrame::Raised</enum>
-                  </property>
-                  <layout class="QHBoxLayout" name="horizontalLayout_22">
-                   <property name="leftMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="topMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="rightMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="bottomMargin">
-                    <number>0</number>
-                   </property>
-                   <item>
-                    <widget class="QPushButton" name="buttonClearQueue">
-                     <property name="focusPolicy">
-                      <enum>Qt::NoFocus</enum>
-                     </property>
-                     <property name="text">
-                      <string/>
-                     </property>
-                     <property name="icon">
-                      <iconset resource="resources.qrc">
-                       <normaloff>:/icons/Icons/edit-clear.png</normaloff>:/icons/Icons/edit-clear.png</iconset>
-                     </property>
-                     <property name="iconSize">
-                      <size>
-                       <width>22</width>
-                       <height>22</height>
-                      </size>
-                     </property>
-                     <property name="flat">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <spacer name="horizontalSpacer_10">
-                     <property name="orientation">
-                      <enum>Qt::Horizontal</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>40</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
-                  </layout>
-                 </widget>
-                </item>
-               </layout>
               </widget>
-             </widget>
-            </item>
-           </layout>
-          </widget>
+             </item>
+             <item>
+              <layout class="QGridLayout" name="gridLayout">
+               <property name="horizontalSpacing">
+                <number>2</number>
+               </property>
+               <item row="0" column="0">
+                <widget class="QPushButton" name="pushButtonMplxLeft">
+                 <property name="text">
+                  <string>Left</string>
+                 </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
+                 <property name="checked">
+                  <bool>false</bool>
+                 </property>
+                 <property name="autoExclusive">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QPushButton" name="pushButtonMplxBoth">
+                 <property name="text">
+                  <string>Both</string>
+                 </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                 <property name="autoExclusive">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="2">
+                <widget class="QPushButton" name="pushButtonMplxRight">
+                 <property name="text">
+                  <string>Right</string>
+                 </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
+                 <property name="autoExclusive">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_25">
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <spacer name="horizontalSpacer_4">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QPushButton" name="pushButtonShop">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Song Shop</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
          </widget>
         </item>
        </layout>
@@ -1925,10 +1845,10 @@ QPushButton:default {
             </sizepolicy>
            </property>
            <property name="frameShape">
-            <enum>QFrame::Box</enum>
+            <enum>QFrame::NoFrame</enum>
            </property>
            <property name="frameShadow">
-            <enum>QFrame::Plain</enum>
+            <enum>QFrame::Sunken</enum>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_3">
             <property name="leftMargin">
@@ -1946,7 +1866,7 @@ QPushButton:default {
             <item>
              <widget class="QGroupBox" name="groupBox">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
@@ -1962,74 +1882,33 @@ QPushButton:default {
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_4">
                <property name="spacing">
-                <number>4</number>
+                <number>2</number>
                </property>
                <property name="leftMargin">
-                <number>0</number>
+                <number>6</number>
                </property>
                <property name="topMargin">
-                <number>4</number>
+                <number>6</number>
                </property>
                <property name="rightMargin">
-                <number>0</number>
+                <number>6</number>
                </property>
                <property name="bottomMargin">
-                <number>0</number>
+                <number>2</number>
                </property>
-               <item>
-                <widget class="QFrame" name="frame_4">
-                 <property name="frameShape">
-                  <enum>QFrame::Box</enum>
-                 </property>
-                 <property name="frameShadow">
-                  <enum>QFrame::Plain</enum>
-                 </property>
-                 <layout class="QHBoxLayout" name="horizontalLayout_2">
-                  <property name="topMargin">
-                   <number>3</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>3</number>
-                  </property>
-                  <item>
-                   <widget class="QLabel" name="label">
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
-                    <property name="text">
-                     <string>Now Playing:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="labelBmPlaying">
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
-                    <property name="frameShape">
-                     <enum>QFrame::NoFrame</enum>
-                    </property>
-                    <property name="text">
-                     <string/>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
                <item>
                 <widget class="QFrame" name="frame_12">
                  <property name="sizePolicy">
-                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                    <horstretch>0</horstretch>
                    <verstretch>0</verstretch>
                   </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>420</width>
+                   <height>0</height>
+                  </size>
                  </property>
                  <property name="frameShape">
                   <enum>QFrame::NoFrame</enum>
@@ -2062,7 +1941,7 @@ QPushButton:default {
                      </size>
                     </property>
                     <property name="frameShape">
-                     <enum>QFrame::Box</enum>
+                     <enum>QFrame::NoFrame</enum>
                     </property>
                     <property name="frameShadow">
                      <enum>QFrame::Plain</enum>
@@ -2092,42 +1971,68 @@ QPushButton:default {
                         <item>
                          <widget class="QLabel" name="label_3">
                           <property name="text">
-                           <string>Duration</string>
+                           <string>Total: </string>
                           </property>
                          </widget>
                         </item>
                         <item>
                          <widget class="QLabel" name="labelBmDuration">
                           <property name="text">
-                           <string>00:00</string>
+                           <string>0:00</string>
                           </property>
                          </widget>
                         </item>
                         <item>
+                         <spacer name="horizontalSpacer_5">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>20</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                        <item>
                          <widget class="QLabel" name="label_6">
                           <property name="text">
-                           <string>Position</string>
+                           <string>Current: </string>
                           </property>
                          </widget>
                         </item>
                         <item>
                          <widget class="QLabel" name="labelBmPosition">
                           <property name="text">
-                           <string>00:00</string>
+                           <string>0:00</string>
                           </property>
                          </widget>
                         </item>
                         <item>
+                         <spacer name="horizontalSpacer_8">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>20</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                        <item>
                          <widget class="QLabel" name="label_7">
                           <property name="text">
-                           <string>Remaining</string>
+                           <string>Remain: </string>
                           </property>
                          </widget>
                         </item>
                         <item>
                          <widget class="QLabel" name="labelBmRemaining">
                           <property name="text">
-                           <string>00:00</string>
+                           <string>0:00</string>
                           </property>
                          </widget>
                         </item>
@@ -2159,6 +2064,9 @@ QPushButton:default {
                          <widget class="QSlider" name="sliderBmPosition">
                           <property name="focusPolicy">
                            <enum>Qt::NoFocus</enum>
+                          </property>
+                          <property name="tracking">
+                           <bool>true</bool>
                           </property>
                           <property name="orientation">
                            <enum>Qt::Horizontal</enum>
@@ -2254,7 +2162,7 @@ QPushButton:default {
                               <enum>Qt::NoFocus</enum>
                              </property>
                              <property name="text">
-                              <string>Break after song end</string>
+                              <string>Stop after current song</string>
                              </property>
                             </widget>
                            </item>
@@ -2294,7 +2202,7 @@ QPushButton:default {
                      <item>
                       <widget class="QFrame" name="frame_15">
                        <property name="frameShape">
-                        <enum>QFrame::Box</enum>
+                        <enum>QFrame::NoFrame</enum>
                        </property>
                        <property name="frameShadow">
                         <enum>QFrame::Plain</enum>
@@ -2329,9 +2237,56 @@ QPushButton:default {
                 </widget>
                </item>
                <item>
+                <widget class="QFrame" name="frame_4">
+                 <property name="frameShape">
+                  <enum>QFrame::NoFrame</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <layout class="QHBoxLayout" name="horizontalLayout_2">
+                  <property name="topMargin">
+                   <number>3</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>3</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="label">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string>Now Playing:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="labelBmPlaying">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="frameShape">
+                     <enum>QFrame::NoFrame</enum>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
                 <widget class="QFrame" name="frame_16">
                  <property name="frameShape">
-                  <enum>QFrame::Box</enum>
+                  <enum>QFrame::NoFrame</enum>
                  </property>
                  <property name="frameShadow">
                   <enum>QFrame::Plain</enum>
@@ -2384,28 +2339,28 @@ QPushButton:default {
                </sizepolicy>
               </property>
               <property name="title">
-               <string>Song Database</string>
+               <string>Database</string>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_6">
                <property name="spacing">
-                <number>4</number>
+                <number>2</number>
                </property>
                <property name="leftMargin">
-                <number>0</number>
+                <number>6</number>
                </property>
                <property name="topMargin">
-                <number>4</number>
+                <number>6</number>
                </property>
                <property name="rightMargin">
-                <number>0</number>
+                <number>6</number>
                </property>
                <property name="bottomMargin">
-                <number>0</number>
+                <number>2</number>
                </property>
                <item>
                 <widget class="QTableView" name="tableViewBmDb">
                  <property name="frameShape">
-                  <enum>QFrame::Box</enum>
+                  <enum>QFrame::StyledPanel</enum>
                  </property>
                  <property name="frameShadow">
                   <enum>QFrame::Sunken</enum>
@@ -2450,16 +2405,10 @@ QPushButton:default {
                   <bool>true</bool>
                  </attribute>
                  <attribute name="horizontalHeaderStretchLastSection">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </attribute>
                  <attribute name="verticalHeaderVisible">
                   <bool>false</bool>
-                 </attribute>
-                 <attribute name="verticalHeaderDefaultSectionSize">
-                  <number>20</number>
-                 </attribute>
-                 <attribute name="verticalHeaderMinimumSectionSize">
-                  <number>20</number>
                  </attribute>
                 </widget>
                </item>
@@ -2472,6 +2421,9 @@ QPushButton:default {
                   <enum>QFrame::Plain</enum>
                  </property>
                  <layout class="QHBoxLayout" name="horizontalLayout_7">
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
                   <property name="topMargin">
                    <number>2</number>
                   </property>
@@ -2484,12 +2436,6 @@ QPushButton:default {
                   <item>
                    <widget class="QPushButton" name="buttonBmSearch">
                     <property name="minimumSize">
-                     <size>
-                      <width>24</width>
-                      <height>24</height>
-                     </size>
-                    </property>
-                    <property name="maximumSize">
                      <size>
                       <width>24</width>
                       <height>24</height>
@@ -2522,6 +2468,19 @@ QPushButton:default {
                     </property>
                    </widget>
                   </item>
+                  <item>
+                   <spacer name="horizontalSpacer_3">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
                  </layout>
                 </widget>
                </item>
@@ -2538,17 +2497,23 @@ QPushButton:default {
             </sizepolicy>
            </property>
            <property name="frameShape">
-            <enum>QFrame::Box</enum>
+            <enum>QFrame::NoFrame</enum>
            </property>
            <property name="frameShadow">
-            <enum>QFrame::Plain</enum>
+            <enum>QFrame::Sunken</enum>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout">
+            <property name="spacing">
+             <number>0</number>
+            </property>
             <property name="leftMargin">
-             <number>3</number>
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
             </property>
             <property name="rightMargin">
-             <number>3</number>
+             <number>0</number>
             </property>
             <property name="bottomMargin">
              <number>0</number>
@@ -2559,22 +2524,25 @@ QPushButton:default {
                <string>Playlist</string>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_7">
-               <property name="leftMargin">
-                <number>0</number>
-               </property>
-               <property name="topMargin">
-                <number>4</number>
-               </property>
-               <property name="rightMargin">
+               <property name="spacing">
                 <number>2</number>
                </property>
+               <property name="leftMargin">
+                <number>6</number>
+               </property>
+               <property name="topMargin">
+                <number>6</number>
+               </property>
+               <property name="rightMargin">
+                <number>6</number>
+               </property>
                <property name="bottomMargin">
-                <number>4</number>
+                <number>2</number>
                </property>
                <item>
                 <widget class="QFrame" name="frame_18">
                  <property name="frameShape">
-                  <enum>QFrame::Box</enum>
+                  <enum>QFrame::NoFrame</enum>
                  </property>
                  <property name="frameShadow">
                   <enum>QFrame::Plain</enum>
@@ -2625,7 +2593,7 @@ QPushButton:default {
                   <enum>Qt::WheelFocus</enum>
                  </property>
                  <property name="frameShape">
-                  <enum>QFrame::Box</enum>
+                  <enum>QFrame::StyledPanel</enum>
                  </property>
                  <property name="editTriggers">
                   <set>QAbstractItemView::NoEditTriggers</set>
@@ -2664,16 +2632,10 @@ QPushButton:default {
                   <bool>true</bool>
                  </attribute>
                  <attribute name="horizontalHeaderStretchLastSection">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </attribute>
                  <attribute name="verticalHeaderVisible">
                   <bool>false</bool>
-                 </attribute>
-                 <attribute name="verticalHeaderDefaultSectionSize">
-                  <number>20</number>
-                 </attribute>
-                 <attribute name="verticalHeaderMinimumSectionSize">
-                  <number>20</number>
                  </attribute>
                 </widget>
                </item>
@@ -2695,8 +2657,8 @@ QPushButton:default {
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>964</width>
-     <height>22</height>
+     <width>1309</width>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -2723,6 +2685,8 @@ QPushButton:default {
     <addaction name="actionExport_Regulars"/>
     <addaction name="actionIncoming_Requests"/>
     <addaction name="actionAutoplay_mode"/>
+    <addaction name="separator"/>
+    <addaction name="actionSong_Shop"/>
    </widget>
    <widget class="QMenu" name="menuBreak_Music">
     <property name="title">
@@ -2872,6 +2836,11 @@ QPushButton:default {
   <action name="actionEqualizer">
    <property name="text">
     <string>Equalizer</string>
+   </property>
+  </action>
+  <action name="actionSong_Shop">
+   <property name="text">
+    <string>Song Shop</string>
    </property>
   </action>
  </widget>

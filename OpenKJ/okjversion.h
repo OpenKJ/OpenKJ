@@ -2,9 +2,9 @@
 #define OKJVERSION_H
 
 #define OKJ_VERSION_MAJOR 1
-#define OKJ_VERSION_MINOR 2
-#define OKJ_VERSION_BUILD 18
-#define OKJ_VERSION_STRING "1.2.18"
-#define OKJ_VERSION_BRANCH "release"
+#define OKJ_VERSION_MINOR 4
+#define OKJ_VERSION_BUILD 0
+#define OKJ_VERSION_STRING "1.4.0"
+#define OKJ_VERSION_BRANCH "stable"
 
 #endif //OKJVERSION_H

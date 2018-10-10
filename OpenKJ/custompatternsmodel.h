@@ -9,10 +9,10 @@ private:
     QString name;
     QString artistRegex;
     QString titleRegex;
-    QString discIdRegex;
+    QString songIdRegex;
     int artistCaptureGrp;
     int titleCaptureGrp;
-    int discIdCaptureGrp;
+    int songIdCaptureGrp;
 
 public:
     QString getArtistRegex() const
@@ -28,13 +28,13 @@ public:
     {
         titleRegex = value;
     }
-    QString getDiscIdRegex() const
+    QString getSongIdRegex() const
     {
-        return discIdRegex;
+        return songIdRegex;
     }
-    void setDiscIdRegex(const QString &value)
+    void setSongIdRegex(const QString &value)
     {
-        discIdRegex = value;
+        songIdRegex = value;
     }
     int getArtistCaptureGrp() const
     {
@@ -52,13 +52,13 @@ public:
     {
         titleCaptureGrp = value;
     }
-    int getDiscIdCaptureGrp() const
+    int getSongIdCaptureGrp() const
     {
-        return discIdCaptureGrp;
+        return songIdCaptureGrp;
     }
-    void setDiscIdCaptureGrp(int value)
+    void setSongIdCaptureGrp(int value)
     {
-        discIdCaptureGrp = value;
+        songIdCaptureGrp = value;
     }
 
     QString getName() const

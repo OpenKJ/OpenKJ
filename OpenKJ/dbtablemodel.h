@@ -32,7 +32,7 @@ private:
     int sortColumn;
     QString artistOrder;
     QString titleOrder;
-    QString discIdOrder;
+    QString songIdOrder;
     QString durationOrder;
     QString lastSearch;
     QSqlDatabase db;
@@ -40,7 +40,7 @@ private:
 
 public:
     explicit DbTableModel(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
-    enum {SORT_ARTIST=1,SORT_TITLE=2,SORT_DISCID=3,SORT_DURATION=4};
+    enum {SORT_ARTIST=1,SORT_TITLE=2,SORT_SONGID=3,SORT_DURATION=4};
     void search(QString searchString);
     QMimeData *mimeData(const QModelIndexList &indexes) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
@@ -50,6 +50,10 @@ public:
 protected:
     QString orderByClause() const;
 
+
+    // QAbstractItemModel interface
+public:
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 };
 
 #endif // DBTABLEMODEL_H

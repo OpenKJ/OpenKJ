@@ -19,8 +19,11 @@
 */
 
 #include "sourcedirtablemodel.h"
+#include <QDir>
+#include <QFileInfo>
 #include <QSqlQuery>
 #include <QSqlRecord>
+#include <QDebug>
 
 #define UNUSED(x) (void)x
 
@@ -66,18 +69,20 @@ QVariant SourceDirTableModel::data(const QModelIndex &index, int role) const
         case PATTERN:
             switch (mydata->at(index.row())->getPattern())
             {
-            case SourceDir::DAT:
-                return QString("DiscID - Artist - Title");
-            case SourceDir::DTA:
-                return QString("DiscID - Title - Artist");
-            case SourceDir::ATD:
-                return QString("Artist - Title - DiscID");
-            case SourceDir::TAD:
-                return QString("Title - Artist - DiscID");
+            case SourceDir::SAT:
+                return QString("SongID - Artist - Title");
+            case SourceDir::STA:
+                return QString("SongID - Title - Artist");
+            case SourceDir::ATS:
+                return QString("Artist - Title - SongID");
+            case SourceDir::TAS:
+                return QString("Title - Artist - SongID");
             case SourceDir::AT:
                 return QString("Artist - Title");
             case SourceDir::TA:
                 return QString("Title - Artist");
+            case SourceDir::S_T_A:
+                return QString("SongID_Title_Artist");
             case SourceDir::METADATA:
                 return QString("Media Tags");
             case SourceDir::CUSTOM:
@@ -126,7 +131,7 @@ void SourceDirTableModel::loadFromDB()
         SourceDir *dir = new SourceDir();
         dir->setIndex(query.value("ROWID").toInt());
         dir->setPath(query.value("path").toString());
-        dir->setPattern(query.value("pattern").toInt());
+        dir->setPattern(static_cast<SourceDir::NamingPattern>(query.value("pattern").toInt()));
         dir->setCustomPattern(query.value("custompattern").toInt());
         addSourceDir(dir);
     }
@@ -152,12 +157,12 @@ void SourceDir::setPath(const QString &value)
     path = value;
 }
 
-int SourceDir::getPattern() const
+SourceDir::NamingPattern SourceDir::getPattern() const
 {
     return pattern;
 }
 
-void SourceDir::setPattern(int value)
+void SourceDir::setPattern(SourceDir::NamingPattern value)
 {
     pattern = value;
 }
@@ -200,4 +205,35 @@ int SourceDirTableModel::size()
 SourceDir *SourceDirTableModel::getDirByIndex(int index)
 {
     return mydata->at(index);
+}
+
+SourceDir *SourceDirTableModel::getDirByPath(QString path)
+{
+    loadFromDB();
+    QFileInfo fileInfo(path);
+    QDir dir = fileInfo.absoluteDir();
+    while (dir.absolutePath() != dir.rootPath())
+    {
+        for (int i=0; i<mydata->size(); i++)
+        {
+            if (mydata->at(i)->getPath() == dir.absolutePath())
+            {
+                qWarning() << "Match found - " << mydata->at(i)->getPath() << " - " << mydata->at(i)->getPattern();
+                return mydata->at(i);
+            }
+        }
+        dir.cdUp();
+    }
+    qWarning() << "No Match Found";
+    return new SourceDir();
+}
+
+QStringList SourceDirTableModel::getSourceDirs()
+{
+    QStringList dirs;
+    for (int i=0; i < mydata->size(); i++)
+    {
+        dirs.append(mydata->at(i)->getPath());
+    }
+    return dirs;
 }

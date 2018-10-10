@@ -1,6 +1,6 @@
 image: Visual Studio 2015
 
-version: 1.2.18
+version: 1.4.0
 
 branches:
   only:
@@ -10,7 +10,9 @@ branches:
 max_jobs: 4
 
 environment:
-  OKJVERSION: 1.2.18
+  boto:
+    secure: E6k49x/FqxNauxAKPasdtiWLRC+wsr+BDXhm7qf+FMNjhUYa7sSkbdsml+UDesn24d+02ZFr2QvLiaC0ISH1vsokTaZbnD9I0dcF7vijA2AJrqQ2NZ/JvJdWY43ABZINrZt7eaQHAuVJmZ1zwqCldJaUALCPu1FCcfKlPQWNJqlI4aTJ9CqQEZ6Iava52ArolQEUIbY97WPZX/yqp5Np1ok5hDC8Vhfbj34VusBzGeDvgDvYmqjg+hklEEUa8zrSICoQDJHpLA59P1MiIpaCkGEW8d8MtbRYytwjE3cFbKSHnCB1V6YacztbsDzFedE3hFRBJeAMeOkD8a3MwcwrgQ==
+  OKJVERSION: 1.4.0
   matrix:
   - TARGET_ARCH: x64
     QT: C:\Qt\5.10.1\msvc2015_64
@@ -36,11 +38,18 @@ clone_folder: c:\projects\openkj
 
 install:
   - ps: |
+      Write-Host "Installing gsutil for gcloud storage deployment"
+      $zipPath = "$($env:APPVEYOR_BUILD_FOLDER)\gsutil.zip"
+      (New-Object Net.WebClient).DownloadFile('https://pub.storage.googleapis.com/gsutil.zip', $zipPath)
+      7z x $zipPath -y
+      $bytes = [System.Convert]::FromBase64String($env:boto)
+      [System.IO.File]::WriteAllBytes("$env:USERPROFILE\.boto", $bytes) 
+  - ps: |
       Write-Host "Installing GStreamer..." -ForegroundColor Cyan
       Write-Host "Platform - $($env:LONGARCH)"
       $msiPath = "$($env:USERPROFILE)\gstreamer.msi"
-      $gstInstallUrl = "https://gstreamer.freedesktop.org/data/pkg/windows/1.12.4/gstreamer-1.0-$($env:LONGARCH)-1.12.4.msi"
-      $gstDevelInstallUrl = "https://gstreamer.freedesktop.org/data/pkg/windows/1.12.4/gstreamer-1.0-devel-$($env:LONGARCH)-1.12.4.msi"
+      $gstInstallUrl = "https://storage.googleapis.com/okj-installer-deps/gstreamer-1.0-$($env:LONGARCH)-1.12.4.msi"
+      $gstDevelInstallUrl = "https://storage.googleapis.com/okj-installer-deps/gstreamer-1.0-devel-$($env:LONGARCH)-1.12.4.msi"
       Write-Host "Downloading..."
       (New-Object Net.WebClient).DownloadFile($gstInstallUrl, $msiPath)
       Write-Host "Installing..."
@@ -58,6 +67,12 @@ install:
       Write-Host "Downloading OpenSSL dll's"
       (New-Object Net.WebClient).DownloadFile("https://openkj.org/downloads/ssl-$($env:LONGARCH).zip", "c:\projects\openkj\ssl.zip")
       Write-Host "Done."
+  - ps: |
+      Write-Host "Downloading info-zip binary"
+      (New-Object Net.WebClient).DownloadFile("https://storage.googleapis.com/okj-installer-deps/unzip.exe", "c:\projects\openkj\unzip.exe")
+      Write-Host "Done."
+
+
 build_script:
   - call "appveyor/build_windows.cmd"
 
@@ -65,11 +80,8 @@ artifacts:
   - path: OpenKJ-$(OKJVERSION)-$(BITS)-setup.exe
     name: installer
 
-deploy:
-  provider: FTP
-  protocol: sftp
-  host: openkj.org
-  username: $(deploy_user)
-  password: $(deploy_pass)
-  folder: $(APPVEYOR_REPO_BRANCH) 
-  artifact: installer
+deploy_script:
+# Upload all zip files from artifacts. 
+# You upload by simple using local paths, but it is better to do this with $artifacts as you are in 100% sync with artifacts
+# Or is simple do `- gsutil\gsutil cp <local_file_path> gs://my-test-bucket (thus avoiding NativeCommandError in build log)
+  - ps: $artifacts.values | ForEach-Object {.\gsutil\gsutil cp $_.path gs://openkj-windows-builds-$($env:APPVEYOR_REPO_BRANCH)}

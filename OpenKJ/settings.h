@@ -37,6 +37,27 @@ private:
     QSettings *settings;
 
 public:
+    qint64 hash(const QString & str);
+    QString storeDownloadDir();
+    void setPassword(QString password);
+    void clearPassword();
+    bool chkPassword(QString password);
+    bool passIsSet();
+    void setCC(QString ccn, QString month, QString year, QString ccv, QString passwd);
+    void setSaveCC(bool save);
+    bool saveCC();
+    void clearCC();
+    void clearKNAccount();
+    void setSaveKNAccount(bool save);
+    bool saveKNAccount();
+    QString getCCN(QString password);
+    QString getCCM(QString password);
+    QString getCCY(QString password);
+    QString getCCV(QString password);
+    void setKaroakeDotNetUser(QString username, QString password);
+    void setKaraokeDotNetPass(QString KDNPassword, QString password);
+    QString karoakeDotNetUser(QString password);
+    QString karoakeDotNetPass(QString password);
     enum BgMode { BG_MODE_IMAGE = 0, BG_MODE_SLIDESHOW };
     explicit Settings(QObject *parent = 0);
     bool cdgWindowFullscreen();
@@ -64,7 +85,9 @@ public:
     void saveSplitterState(QSplitter *splitter);
     void restoreSplitterState(QSplitter *splitter);
     void setTickerFont(QFont font);
+    void setApplicationFont(QFont font);
     QFont tickerFont();
+    QFont applicationFont();
     int tickerHeight();
     void setTickerHeight(int height);
     int tickerSpeed();
@@ -162,13 +185,20 @@ public:
     bool bmAutoStart();
     void setBmAutoStart(bool enabled);
     int cdgDisplayOffset();
-    QFont bookCreatorItemFont();
+    QFont bookCreatorTitleFont();
+    QFont bookCreatorArtistFont();
     QFont bookCreatorHeaderFont();
+    QFont bookCreatorFooterFont();
+    QString bookCreatorHeaderText();
+    QString bookCreatorFooterText();
+    bool bookCreatorPageNumbering();
     int bookCreatorSortCol();
     double bookCreatorMarginRt();
     double bookCreatorMarginLft();
     double bookCreatorMarginTop();
     double bookCreatorMarginBtm();
+    int bookCreatorCols();
+    int bookCreatorPageSize();
     bool eqKBypass();
     bool eqBBypass();
     int eqKLevel1();
@@ -197,8 +227,11 @@ public:
     bool requestDialogAutoShow();
     bool checkUpdates();
     int updatesBranch();
+    int theme();
+    bool directoryWatchEnabled();
 
 signals:
+    void applicationFontChanged(QFont font);
     void tickerFontChanged();
     void tickerHeightChanged(int height);
     void tickerSpeedChanged();
@@ -273,8 +306,13 @@ public slots:
     void setIgnoreAposInSearch(bool ignore);
     void setCdgDisplayOffset(int offset);
     void setShowSongPauseStopWarning(bool enabled);
+    void setBookCreatorArtistFont(QFont font);
+    void setBookCreatorTitleFont(QFont font);
     void setBookCreatorHeaderFont(QFont font);
-    void setBookCreatorItemFont(QFont font);
+    void setBookCreatorFooterFont(QFont font);
+    void setBookCreatorHeaderText(QString text);
+    void setBookCreatorFooterText(QString text);
+    void setBookCreatorPageNumbering(bool show);
     void setBookCreatorSortCol(int col);
     void setBookCreatorMarginRt(double margin);
     void setBookCreatorMarginLft(double margin);
@@ -308,6 +346,11 @@ public slots:
     void setRequestDialogAutoShow(bool enabled);
     void setCheckUpdates(bool enabled);
     void setUpdatesBranch(int index);
+    void setTheme(int theme);
+    void setBookCreatorCols(int cols);
+    void setBookCreatorPageSize(int size);
+    void setStoreDownloadDir(QString path);
+
 };
 
 #endif // KHSETTINGS_H

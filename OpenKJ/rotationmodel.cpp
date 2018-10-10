@@ -49,6 +49,30 @@ bool RotationModel::rotationIsValid()
     return true;
 }
 
+int RotationModel::numSongs(int singerId)
+{
+    QSqlQuery query("SELECT COUNT(qsongid) FROM queuesongs WHERE singer = " + QString::number(singerId));
+    if (query.first())
+        return query.value(0).toInt();
+    return -1;
+}
+
+int RotationModel::numSongsSung(int singerId) const
+{
+    QSqlQuery query("SELECT COUNT(qsongid) FROM queuesongs WHERE singer = " + QString::number(singerId) + " AND played = 1");
+    if (query.first())
+        return query.value(0).toInt();
+    return -1;
+}
+
+int RotationModel::numSongsUnsung(int singerId) const
+{
+    QSqlQuery query("SELECT COUNT(qsongid) FROM queuesongs WHERE singer = " + QString::number(singerId) + " AND played = 0");
+    if (query.first())
+        return query.value(0).toInt();
+    return -1;
+}
+
 RotationModel::RotationModel(QObject *parent, QSqlDatabase db) :
     QSqlTableModel(parent, db)
 {
@@ -461,14 +485,17 @@ QVariant RotationModel::data(const QModelIndex &index, int role) const
         {
             curSingerPos = query.value("position").toInt();
         }
-        QString wait;
+        QString toolTipText;
+        int singerId = index.sibling(index.row(), 0).data().toInt();
+        int qSongsSung = numSongsSung(singerId);
+        int qSongsUnsung = numSongsUnsung(singerId);
         if (curSingerPos == hoverSingerPos)
-            wait = "Current singer";
+            toolTipText = "Current singer - Sung: " + QString::number(qSongsSung) + " - Unsung: " + QString::number(qSongsUnsung);
         else if (curSingerPos < hoverSingerPos)
-            wait = "Wait: " + QString::number(hoverSingerPos - curSingerPos) + " songs";
+            toolTipText = "Wait: " + QString::number(hoverSingerPos - curSingerPos) + " - Sung: " + QString::number(qSongsSung) + " - Unsung: " + QString::number(qSongsUnsung);
         else if (curSingerPos > hoverSingerPos)
-            wait = "Wait: " + QString::number(hoverSingerPos + (singerCount - curSingerPos)) + " songs";
-        return QString(wait);
+            toolTipText = "Wait: " + QString::number(hoverSingerPos + (singerCount - curSingerPos)) + " - Sung: " + QString::number(qSongsSung) + " - Unsung: " + QString::number(qSongsUnsung);
+        return QString(toolTipText);
     }
     else
         return QSqlTableModel::data(index, role);

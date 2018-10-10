@@ -27,11 +27,57 @@
 #include <QStringList>
 #include <QDebug>
 #include <QMessageBox>
+#include "settings.h"
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-//    QApplication::setStyle(QStyleFactory::create("Fusion"));
+    qputenv("GST_DEBUG", "*:3");
+    Settings okjSettings;
+    if (okjSettings.theme() == 1)
+    {
+        //a.setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }");
+        QPalette palette;
+        a.setStyle(QStyleFactory::create("Fusion"));
+        palette.setColor(QPalette::Window,QColor(53,53,53));
+        palette.setColor(QPalette::WindowText,Qt::white);
+        palette.setColor(QPalette::Disabled,QPalette::WindowText,QColor(127,127,127));
+        palette.setColor(QPalette::Base,QColor(42,42,42));
+        palette.setColor(QPalette::AlternateBase,QColor(66,66,66));
+        palette.setColor(QPalette::ToolTipBase,Qt::white);
+        palette.setColor(QPalette::ToolTipText,QColor(53,53,53));
+        palette.setColor(QPalette::Text,Qt::white);
+        palette.setColor(QPalette::Disabled,QPalette::Text,QColor(127,127,127));
+        palette.setColor(QPalette::Dark,QColor(35,35,35));
+        palette.setColor(QPalette::Shadow,QColor(20,20,20));
+        palette.setColor(QPalette::Button,QColor(53,53,53));
+        palette.setColor(QPalette::ButtonText,Qt::white);
+        palette.setColor(QPalette::Disabled,QPalette::ButtonText,QColor(127,127,127));
+        palette.setColor(QPalette::BrightText,Qt::red);
+        palette.setColor(QPalette::Link,QColor(42,130,218));
+        palette.setColor(QPalette::Highlight,QColor(42,130,218));
+        palette.setColor(QPalette::Disabled,QPalette::Highlight,QColor(80,80,80));
+        palette.setColor(QPalette::HighlightedText,Qt::white);
+        palette.setColor(QPalette::Disabled,QPalette::HighlightedText,QColor(127,127,127));
+        a.setPalette(palette);
+        a.setFont(okjSettings.applicationFont(), "QWidget");
+
+    }
+    else if (okjSettings.theme() == 2)
+    {
+        QApplication::setStyle(QStyleFactory::create("Fusion"));
+        a.setFont(okjSettings.applicationFont(), "QWidget");
+    }
+//    QFile file(":/QTDark.css");
+//    QString stylesheet;
+//    QString line;
+//    if (file.open(QIODevice::ReadOnly | QIODevice::Text)){
+//        QTextStream stream(&file);
+//        stylesheet = stream.readAll();
+//    }
+//    file.close();
+//    stylesheet = "* { background: #191919; color: #DDDDDD; border: 1px solid #5A5A5A;}";
+//    a.setStyleSheet(stylesheet);
     MainWindow w;
     if (!w.isSingleInstance())
     {

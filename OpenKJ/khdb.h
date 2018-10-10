@@ -43,6 +43,7 @@ public:
     bool songSetDuration(int sondId, int duration);
     void songMarkBad(QString filename);
 
+
 };
 
 #endif // KHDB_H

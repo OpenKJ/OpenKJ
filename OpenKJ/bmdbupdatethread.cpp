@@ -23,12 +23,14 @@
 #include <QDirIterator>
 #include <QSqlQuery>
 #include <QFileInfo>
+#include <QApplication>
 #include "tagreader.h"
 #include <QtConcurrent>
 
-BmDbUpdateThread::BmDbUpdateThread(QObject *parent) :
+BmDbUpdateThread::BmDbUpdateThread(QSqlDatabase db, QObject *parent) :
     QThread(parent)
 {
+    database = db;
     supportedExtensions.append(".mp3");
     supportedExtensions.append(".wav");
     supportedExtensions.append(".ogg");
@@ -75,6 +77,8 @@ QStringList BmDbUpdateThread::findMediaFiles(QString directory)
 
 void BmDbUpdateThread::run()
 {
+    database.open();
+    qWarning() << database.lastError();
     TagReader reader;
     emit progressMaxChanged(0);
     emit progressChanged(0);
@@ -82,11 +86,20 @@ void BmDbUpdateThread::run()
     emit stateChanged("Finding media files...");
     QStringList files = findMediaFiles(m_path);
     emit progressMessage("Found " + QString::number(files.size()) + " files.");
-    QSqlQuery query;
+    QSqlQuery query(database);
     emit stateChanged("Getting metadata and adding songs to the database");
     emit progressMessage("Getting metadata and adding songs to the database");
     emit progressMaxChanged(files.size());
+    qWarning() << "Setting sqlite synchronous mode to OFF";
+    query.exec("PRAGMA synchronous=OFF");
+    qWarning() << query.lastError();
+    qWarning() << "Increasing sqlite cache size";
+    query.exec("PRAGMA cache_size=500000");
+    qWarning() << query.lastError();
+    query.exec("PRAGMA temp_store=2");
+    qWarning() << "Beginning transaction";
     query.exec("BEGIN TRANSACTION");
+    qWarning() << query.lastError();
     query.prepare("INSERT OR IGNORE INTO bmsongs (artist,title,path,filename,duration,searchstring) VALUES(:artist, :title, :path, :filename, :duration, :searchstring)");
     for (int i=0; i < files.size(); i++)
     {
@@ -106,5 +119,54 @@ void BmDbUpdateThread::run()
         emit progressChanged(i + 1);
     }
     query.exec("COMMIT TRANSACTION");
+    qWarning() << query.lastError();
+    emit progressMessage("Finished processing files for directory: " + m_path);
+    database.close();
+}
+
+void BmDbUpdateThread::startUnthreaded()
+{
+    TagReader reader;
+    emit progressMaxChanged(0);
+    emit progressChanged(0);
+    emit progressMessage("Getting list of files in " + m_path);
+    emit stateChanged("Finding media files...");
+    QStringList files = findMediaFiles(m_path);
+    emit progressMessage("Found " + QString::number(files.size()) + " files.");
+    QSqlQuery query;
+    emit stateChanged("Getting metadata and adding songs to the database");
+    emit progressMessage("Getting metadata and adding songs to the database");
+    emit progressMaxChanged(files.size());
+    qWarning() << "Setting sqlite synchronous mode to OFF";
+    query.exec("PRAGMA synchronous=OFF");
+    qWarning() << query.lastError();
+    qWarning() << "Increasing sqlite cache size";
+    query.exec("PRAGMA cache_size=500000");
+    qWarning() << query.lastError();
+    query.exec("PRAGMA temp_store=2");
+    qWarning() << "Beginning transaction";
+    database.transaction();
+    qWarning() << query.lastError();
+    query.prepare("INSERT OR IGNORE INTO bmsongs (artist,title,path,filename,duration,searchstring) VALUES(:artist, :title, :path, :filename, :duration, :searchstring)");
+    for (int i=0; i < files.size(); i++)
+    {
+        QApplication::processEvents();
+        QFileInfo fi(files.at(i));
+        emit progressMessage("Processing file: " + fi.fileName());
+        reader.setMedia(files.at(i));
+        QString duration = QString::number(reader.getDuration() / 1000);
+        QString artist = reader.getArtist();
+        QString title = reader.getTitle();
+        query.bindValue(":artist", artist);
+        query.bindValue(":title", title);
+        query.bindValue(":path", files.at(i));
+        query.bindValue(":filename", files.at(i));
+        query.bindValue(":duration", duration);
+        query.bindValue(":searchstring", artist + title + files.at(i));
+        query.exec();
+        emit progressChanged(i + 1);
+    }
+    database.commit();
+    qWarning() << query.lastError();
     emit progressMessage("Finished processing files for directory: " + m_path);
 }

@@ -55,6 +55,7 @@ private slots:
     void on_pushButtonUpdate_clicked();
 
 signals:
+    void bmDbAboutToUpdate();
     void bmDbUpdated();
     void bmDbCleared();
 

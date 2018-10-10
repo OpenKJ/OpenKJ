@@ -6,10 +6,59 @@
 
 QT += core gui sql network widgets multimedia concurrent svg printsupport
 
-unix: DEFINES += USE_GL
+unix:DISTVER = $$system(cat /etc/os-release |grep VERSION_ID |cut -d'=' -f2 | sed -e \'s/^\"//\' -e \'s/\"$//\')
+message($$DISTVER)
 
+unix:!macx {
+    isEmpty(PREFIX) {
+      PREFIX=/usr
+    }
+#    equals(DISTVER, "16.04")|equals(DISTVER, "7") {
+#        DEFINES += STATIC_TAGLIB
+#        message("Out of date Linux distro detected, using built in taglib instead of OS package")
+#    } else {
+        message("Using OS packages for taglib")
+        PKGCONFIG += taglib taglib-extras
+#    }
+    CONFIG += link_pkgconfig
+    PKGCONFIG += gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0 gstreamer-pbutils-1.0 gstreamer-controller-1.0
+    iconfiles.files += Icons/okjicon.svg
+    iconfiles.path = $$PREFIX/share/pixmaps
+    desktopfiles.files += openkj.desktop
+    desktopfiles.path = $$PREFIX/share/applications
+    binaryfiles.files += OpenKJ
+    binaryfiles.path = $$PREFIX/bin
+    INSTALLS += binaryfiles iconfiles desktopfiles
+    DEFINES += USE_GL
+}
 
-win32: RC_ICONS = Icons/okjicon.ico
+macx: {
+    LIBS += -F/Library/Frameworks -framework GStreamer
+    INCLUDEPATH += /Library/Frameworks/GStreamer.framework/Headers
+    ICON = Icons/OpenKJ.icns
+    DEFINES += STATIC_TAGLIB
+}
+
+win32 {
+    ## Windows common build here
+    DEFINES += STATIC_TAGLIB
+    RC_ICONS = Icons/okjicon.ico
+    !contains(QMAKE_TARGET.arch, x86_64) {
+        ## Windows x86 (32bit) specific build here
+        INCLUDEPATH += C:\gstreamer\1.0\x86\include\gstreamer-1.0
+        INCLUDEPATH += C:\gstreamer\1.0\x86\include\glib-2.0
+        INCLUDEPATH += C:\gstreamer\1.0\x86\lib\glib-2.0\include
+        INCLUDEPATH += C:\gstreamer\1.0\x86\include\glib-2.0\gobject
+        LIBS += -LC:\gstreamer\1.0\x86\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0 -lgstapp-1.0 -lgstaudio-1.0 -lgstpbutils-1.0 -lgstcontroller-1.0
+    } else {
+        ## Windows x64 (64bit) specific build here
+        INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\gstreamer-1.0
+        INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0
+        INCLUDEPATH += C:\gstreamer\1.0\x86_64\lib\glib-2.0\include
+        INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0\gobject
+        LIBS += -LC:\gstreamer\1.0\x86_64\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0 -lgstapp-1.0 -lgstaudio-1.0 -lgstpbutils-1.0 -lgstcontroller-1.0
+    }
+}
 
 contains(DEFINES, USE_GL) {
     QT += opengl
@@ -18,42 +67,41 @@ contains(DEFINES, USE_GL) {
 TARGET = OpenKJ 
 TEMPLATE = app
 
-DEFINES += TAGLIB_STATIC
-INCLUDEPATH += taglib
-INCLUDEPATH += taglib/toolkit
-INCLUDEPATH += taglib/mpeg/id3v2
-INCLUDEPATH += taglib/mpeg/id3v2/frames
-INCLUDEPATH += taglib/mpeg/id3v1
-INCLUDEPATH += taglib/mod
-INCLUDEPATH += taglib/ogg
-INCLUDEPATH += taglib/ogg/flac
-INCLUDEPATH += taglib/ogg/opus
-INCLUDEPATH += taglib/ogg/speex
-INCLUDEPATH += taglib/ogg/vorbis
-INCLUDEPATH += taglib/flac
-INCLUDEPATH += taglib/ape
-INCLUDEPATH += taglib/riff
-INCLUDEPATH += taglib/asf
-INCLUDEPATH += taglib/mpeg
-INCLUDEPATH += taglib/riff
-INCLUDEPATH += taglib/riff/aiff
-INCLUDEPATH += taglib/riff/wav
-INCLUDEPATH += taglib/it
-INCLUDEPATH += taglib/mp4
-INCLUDEPATH += taglib/mpc
-INCLUDEPATH += taglib/s3m
-INCLUDEPATH += taglib/trueaudio
-INCLUDEPATH += taglib/wavpack
-INCLUDEPATH += taglib/xm
-
+contains(DEFINES, STATIC_TAGLIB) {
+    DEFINES += TAGLIB_STATIC
+    INCLUDEPATH += taglib
+    INCLUDEPATH += taglib/toolkit
+    INCLUDEPATH += taglib/mpeg/id3v2
+    INCLUDEPATH += taglib/mpeg/id3v2/frames
+    INCLUDEPATH += taglib/mpeg/id3v1
+    INCLUDEPATH += taglib/mod
+    INCLUDEPATH += taglib/ogg
+    INCLUDEPATH += taglib/ogg/flac
+    INCLUDEPATH += taglib/ogg/opus
+    INCLUDEPATH += taglib/ogg/speex
+    INCLUDEPATH += taglib/ogg/vorbis
+    INCLUDEPATH += taglib/flac
+    INCLUDEPATH += taglib/ape
+    INCLUDEPATH += taglib/riff
+    INCLUDEPATH += taglib/asf
+    INCLUDEPATH += taglib/mpeg
+    INCLUDEPATH += taglib/riff
+    INCLUDEPATH += taglib/riff/aiff
+    INCLUDEPATH += taglib/riff/wav
+    INCLUDEPATH += taglib/it
+    INCLUDEPATH += taglib/mp4
+    INCLUDEPATH += taglib/mpc
+    INCLUDEPATH += taglib/s3m
+    INCLUDEPATH += taglib/trueaudio
+    INCLUDEPATH += taglib/wavpack
+    INCLUDEPATH += taglib/xm
+}
 # fix macOS build after upgrading xcode
 QMAKE_MAC_SDK = MacOSX10.13
 QMAKE_MAC_SDK.macosx.version = 10.13
 
-# Populate version with version from git describe
-VERSION = 1.2.18
+VERSION = 1.4.0
 message($$VERSION)
-DEFINES += GIT_VERSION=\\"\"$$VERSION\\"\"
 QMAKE_TARGET_COMPANY = OpenKJ.org
 QMAKE_TARGET_PRODUCT = OpenKJ
 QMAKE_TARGET_DESCRIPTION = OpenKJ karaoke hosting software
@@ -69,7 +117,6 @@ SOURCES += main.cpp\
     libCDG/src/libCDG_Frame_Image.cpp \
     libCDG/src/libCDG_Color.cpp \
     libCDG/src/libCDG.cpp \
-    miniz.c \
     sourcedirtablemodel.cpp \
     dbupdatethread.cpp \
     scrolltext.cpp \
@@ -105,13 +152,33 @@ SOURCES += main.cpp\
     bmplitemdelegate.cpp \
     settings.cpp \
     bmdbdialog.cpp \
-    filenameparser.cpp \
     dlgcustompatterns.cpp \
     custompatternsmodel.cpp \
     audiorecorder.cpp \
     okjsongbookapi.cpp \
     dlgdbupdate.cpp \
-    taglib/ape/apefile.cpp \
+    dlgbookcreator.cpp \
+    dlgeq.cpp \
+    audiofader.cpp \
+    customlineedit.cpp \
+    updatechecker.cpp \
+    volslider.cpp \
+    dlgaddsinger.cpp \
+    ticker.cpp \
+    songshop.cpp \
+    dlgsongshop.cpp \
+    songshopmodel.cpp \
+    shopsortfilterproxymodel.cpp \
+    simplecrypt.cpp \
+    dlgsongshoppurchase.cpp \
+    dlgsetpassword.cpp \
+    dlgpassword.cpp \
+    dlgpurchaseprogress.cpp \
+    karaokefileinfo.cpp \
+    dlgeditsong.cpp
+
+contains(DEFINES, STATIC_TAGLIB) {
+    SOURCES += taglib/ape/apefile.cpp \
     taglib/ape/apefooter.cpp \
     taglib/ape/apeitem.cpp \
     taglib/ape/apeproperties.cpp \
@@ -213,13 +280,8 @@ SOURCES += main.cpp\
     taglib/fileref.cpp \
     taglib/tag.cpp \
     taglib/tagunion.cpp \
-    taglib/tagutils.cpp \
-    dlgbookcreator.cpp \
-    dlgeq.cpp \
-    audiofader.cpp \
-    customlineedit.cpp \
-    updatechecker.cpp \
-    volslider.cpp
+    taglib/tagutils.cpp
+}
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
@@ -260,14 +322,34 @@ HEADERS  += mainwindow.h \
     bmpltablemodel.h \
     settings.h \
     bmdbdialog.h \
-    filenameparser.h \
     dlgcustompatterns.h \
     custompatternsmodel.h \
     audiorecorder.h \
     okjsongbookapi.h \
-    miniz.h \
     dlgdbupdate.h \
-    taglib/ape/apefile.h \
+    dlgbookcreator.h \
+    dlgeq.h \
+    audiofader.h \
+    customlineedit.h \
+    updatechecker.h \
+    volslider.h \
+    okjversion.h \
+    dlgaddsinger.h \
+    ticker.h \
+    songshop.h \
+    dlgsongshop.h \
+    songshopmodel.h \
+    shopsortfilterproxymodel.h \
+    simplecrypt.h \
+    dlgsongshoppurchase.h \
+    dlgsetpassword.h \
+    dlgpassword.h \
+    dlgpurchaseprogress.h \
+    karaokefileinfo.h \
+    dlgeditsong.h
+
+contains(DEFINES, STATIC_TAGLIB) {
+    HEADERS += taglib/ape/apefile.h \
     taglib/ape/apefooter.h \
     taglib/ape/apeitem.h \
     taglib/ape/apeproperties.h \
@@ -378,14 +460,8 @@ HEADERS  += mainwindow.h \
     taglib/tag.h \
     taglib/taglib_export.h \
     taglib/tagunion.h \
-    taglib/tagutils.h \
-    dlgbookcreator.h \
-    dlgeq.h \
-    audiofader.h \
-    customlineedit.h \
-    updatechecker.h \
-    volslider.h \
-    okjversion.h
+    taglib/tagutils.h
+}
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \
@@ -401,49 +477,17 @@ FORMS    += mainwindow.ui \
     dlgcustompatterns.ui \
     dlgdbupdate.ui \
     dlgbookcreator.ui \
-    dlgeq.ui
+    dlgeq.ui \
+    dlgaddsinger.ui \
+    dlgsongshop.ui \
+    dlgsongshoppurchase.ui \
+    dlgsetpassword.ui \
+    dlgpassword.ui \
+    dlgpurchaseprogress.ui \
+    dlgeditsong.ui
 
 RESOURCES += resources.qrc
 
-unix:!macx {
-    isEmpty(PREFIX) {
-      PREFIX=/usr
-    }
-    CONFIG += link_pkgconfig
-    PKGCONFIG += gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0 gstreamer-pbutils-1.0 gstreamer-controller-1.0
-    iconfiles.files += Icons/okjicon.svg
-    iconfiles.path = $$PREFIX/share/pixmaps
-    desktopfiles.files += openkj.desktop
-    desktopfiles.path = $$PREFIX/share/applications
-    binaryfiles.files += OpenKJ
-    binaryfiles.path = $$PREFIX/bin
-    INSTALLS += binaryfiles iconfiles desktopfiles
-}
 
-macx: {
-    LIBS += -F/Library/Frameworks -framework GStreamer
-    INCLUDEPATH += /Library/Frameworks/GStreamer.framework/Headers
-    ICON = Icons/OpenKJ.icns
-}
-
-win32 {
-    ## Windows common build here
-
-    !contains(QMAKE_TARGET.arch, x86_64) {
-        ## Windows x86 (32bit) specific build here
-        INCLUDEPATH += C:\gstreamer\1.0\x86\include\gstreamer-1.0
-        INCLUDEPATH += C:\gstreamer\1.0\x86\include\glib-2.0
-        INCLUDEPATH += C:\gstreamer\1.0\x86\lib\glib-2.0\include
-        INCLUDEPATH += C:\gstreamer\1.0\x86\include\glib-2.0\gobject
-        LIBS += -LC:\gstreamer\1.0\x86\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0 -lgstapp-1.0 -lgstaudio-1.0 -lgstpbutils-1.0 -lgstcontroller-1.0
-    } else {
-        ## Windows x64 (64bit) specific build here
-        INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\gstreamer-1.0
-        INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0
-        INCLUDEPATH += C:\gstreamer\1.0\x86_64\lib\glib-2.0\include
-        INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0\gobject
-        LIBS += -LC:\gstreamer\1.0\x86_64\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0 -lgstapp-1.0 -lgstaudio-1.0 -lgstpbutils-1.0 -lgstcontroller-1.0
-    }
-}
 
 DISTFILES +=

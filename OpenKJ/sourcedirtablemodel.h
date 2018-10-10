@@ -26,27 +26,29 @@
 
 class SourceDir
 {
-private:
-    int index;
-    QString path;
-    int pattern;
-    int customPattern;
+
 
 public:
-    enum {DAT=0,DTA,ATD,TAD,AT,TA,CUSTOM,METADATA};
+    enum NamingPattern {SAT=0,STA,ATS,TAS,AT,TA,CUSTOM,METADATA,S_T_A};
     SourceDir() {
         index = -1;
-        pattern = DAT;
+        pattern = SAT;
         customPattern = 0;
     }
-    int getPattern() const;
+    NamingPattern getPattern() const;
     int getCustomPattern() {return customPattern;}
-    void setPattern(int value);
+    void setPattern(NamingPattern value);
     void setCustomPattern(int value) {customPattern = value;}
     QString getPath() const;
     void setPath(const QString &value);
     int getIndex() const;
     void setIndex(int value);
+
+private:
+    int index;
+    QString path;
+    SourceDir::NamingPattern pattern;
+    int customPattern;
 
 };
 
@@ -75,6 +77,8 @@ public:
     void setDBObject(QSqlDatabase *value);
     void clear();
     SourceDir *getDirByIndex(int index);
+    SourceDir *getDirByPath(QString path);
+    QStringList getSourceDirs();
     
 };
 

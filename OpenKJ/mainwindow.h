@@ -55,11 +55,17 @@
 #include "bmpltablemodel.h"
 #include "bmplitemdelegate.h"
 #include "bmdbdialog.h"
+#include <QShortcut>
 #include <QThread>
 #include "audiorecorder.h"
 #include "dlgbookcreator.h"
 #include "dlgeq.h"
 #include "updatechecker.h"
+#include "dlgaddsinger.h"
+#include "dlgsongshop.h"
+#include "songshop.h"
+#include "khdb.h"
+
 
 using namespace std;
 
@@ -91,6 +97,8 @@ private:
     DlgRequests *requestsDialog;
     DlgBookCreator *dlgBookCreator;
     DlgEq *dlgEq;
+    DlgAddSinger *dlgAddSinger;
+    DlgSongShop *dlgSongShop;
     //DlgCdgPreview *cdgPreviewDialog;
     AbstractAudioBackend *kAudioBackend;
 //    KhAudioBackends *audioBackends;
@@ -100,7 +108,8 @@ private:
 //    KhIPCClient *ipcClient;
     QLabel *labelSingerCount;
     bool sliderPositionPressed;
-    void play(QString karaokeFilePath);
+    bool sliderBmPositionPressed;
+    void play(QString karaokeFilePath, bool k2k = false);
     int m_rtClickQueueSongId;
     int m_rtClickRotationSingerId;
     QTemporaryDir *khTmpDir;
@@ -116,7 +125,8 @@ private:
     QString kAANextSongPath;
     bool kAASkip;
     int cdgOffset;
-
+    SongShop *shop;
+    bool k2kTransition;
 
     BmDbDialog *bmDbDialog;
     BmDbTableModel *bmDbModel;
@@ -131,11 +141,20 @@ private:
     AbstractAudioBackend::State m_lastAudioState;
     void refreshSongDbCache();
     QTimer *karaokeAATimer;
+    QTimer *startupOneShot;
     UpdateChecker *checker;
     QTimer *timerButtonFlash;
     bool blinkRequestsBtn;
     QString GetRandomString() const;
     QSharedMemory *_singular;
+    bool kNeedAutoSize;
+    bool bNeedAutoSize;
+    KhDb *db;
+    QShortcut *scutAddSinger;
+    QShortcut *scutSearch;
+    QShortcut *scutRegulars;
+    QShortcut *scutRequests;
+
 
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -145,17 +164,16 @@ public:
     
 private slots:
     void search();
-    void songdbUpdated();
+    void databaseUpdated();
     void databaseCleared();
     void on_buttonStop_clicked();
     void on_buttonPause_clicked();
     void on_lineEdit_returnPressed();
-    void on_tableViewDB_activated(const QModelIndex &index);
+    void on_tableViewDB_doubleClicked(const QModelIndex &index);
     void on_buttonAddSinger_clicked();
-    void on_editAddSinger_returnPressed();
-    void on_tableViewRotation_activated(const QModelIndex &index);
+    void on_tableViewRotation_doubleClicked(const QModelIndex &index);
     void on_tableViewRotation_clicked(const QModelIndex &index);
-    void on_tableViewQueue_activated(const QModelIndex &index);
+    void on_tableViewQueue_doubleClicked(const QModelIndex &index);
     void on_actionManage_DB_triggered();
     void on_actionExport_Regulars_triggered();
     void on_actionImport_Regulars_triggered();
@@ -196,7 +214,8 @@ private slots:
     void onBgImageChange();
     void karaokeAATimerTimeout();
     void timerButtonFlashTimeout();
-
+    void autosizeViews();
+    void autosizeBmViews();
     void bmDbUpdated();
     void bmDbCleared();
     void bmShowMetadata(bool checked);
@@ -208,11 +227,10 @@ private slots:
     void on_tableViewBmPlaylist_clicked(const QModelIndex &index);
     void on_comboBoxBmPlaylists_currentIndexChanged(int index);
     void on_checkBoxBmBreak_toggled(bool checked);
-    void on_tableViewBmDb_activated(const QModelIndex &index);
+    void on_tableViewBmDb_doubleClicked(const QModelIndex &index);
     void on_buttonBmStop_clicked();
     void on_lineEditBmSearch_returnPressed();
-    void on_tableViewBmPlaylist_activated(const QModelIndex &index);
-    void on_sliderBmPosition_sliderMoved(int position);
+    void on_tableViewBmPlaylist_doubleClicked(const QModelIndex &index);
     void on_buttonBmPause_clicked(bool checked);
     void on_actionDisplay_Metadata_toggled(bool arg1);
     void on_actionDisplay_Filenames_toggled(bool arg1);
@@ -244,8 +262,26 @@ private slots:
 
     void on_pushButtonIncomingRequests_clicked();
 
+    void on_pushButtonShop_clicked();
+    void filesDroppedOnQueue(QList<QUrl> urls, int singerId, int position);
+    void appFontChanged(QFont font);
+
+    void on_tabWidget_currentChanged(int index);
+    void databaseAboutToUpdate();
+    void bmDatabaseAboutToUpdate();
+    void scutSearchActivated();
+    void bmSongMoved(int oldPos, int newPos);
+
+    void on_sliderBmPosition_sliderPressed();
+
+    void on_sliderBmPosition_sliderReleased();
+
 protected:
     void closeEvent(QCloseEvent *event);
+
+    // QWidget interface
+protected:
+    void resizeEvent(QResizeEvent *event);
 };
 
 

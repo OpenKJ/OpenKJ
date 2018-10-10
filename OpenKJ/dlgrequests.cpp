@@ -29,6 +29,16 @@
 extern Settings *settings;
 extern OKJSongbookAPI *songbookApi;
 
+QString toMixedCase(const QString& s)
+{
+    QStringList parts = s.split(" ", QString::SkipEmptyParts);
+    for (int i=1; i<parts.size(); ++i)
+        parts[i].replace(0, 1, parts[i][0].toUpper());
+    QString newStr = parts.join(" ");
+    newStr.replace(0, 1, newStr.at(0).toUpper());
+    return newStr;
+}
+
 DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DlgRequests)
@@ -38,16 +48,13 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     requestsModel = new RequestsTableModel(this);
     dbModel = new DbTableModel(this);
     dbDelegate = new DbItemDelegate(this);
-    ui->treeViewRequests->setModel(requestsModel);
-    ui->treeViewRequests->header()->setSectionResizeMode(5,QHeaderView::Fixed);
-    ui->treeViewRequests->header()->resizeSection(5,22);
-    ui->treeViewRequests->hideColumn(0);
+    ui->tableViewRequests->setModel(requestsModel);
     connect(requestsModel, SIGNAL(layoutChanged()), this, SLOT(requestsModified()));
     ui->tableViewSearch->setModel(dbModel);
     ui->tableViewSearch->setItemDelegate(dbDelegate);
     ui->groupBoxAddSong->setDisabled(true);
     ui->groupBoxSongDb->setDisabled(true);
-    connect(ui->treeViewRequests->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(requestSelectionChanged(QItemSelection,QItemSelection)));
+    connect(ui->tableViewRequests->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(requestSelectionChanged(QItemSelection,QItemSelection)));
     connect(ui->tableViewSearch->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(songSelectionChanged(QItemSelection,QItemSelection)));
     connect(songbookApi, SIGNAL(synchronized(QTime)), this, SLOT(updateReceived(QTime)));
     connect(songbookApi, SIGNAL(sslError()), this, SLOT(sslError()));
@@ -58,13 +65,11 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     ui->lineEditSingerName->setEnabled(false);
     ui->labelAddPos->setEnabled(false);
     QStringList posOptions;
-    posOptions << "After current singer";
-    posOptions << "Fair (full rotation)";
-    posOptions << "Bottom of rotation";
+    posOptions << tr("After current singer");
+    posOptions << tr("Fair (full rotation)");
+    posOptions << tr("Bottom of rotation");
     ui->comboBoxAddPosition->addItems(posOptions);
     ui->comboBoxAddPosition->setCurrentIndex(1);
-    settings->restoreColumnWidths(ui->treeViewRequests);
-    settings->restoreColumnWidths(ui->tableViewSearch);
     ui->tableViewSearch->hideColumn(0);
     ui->tableViewSearch->hideColumn(5);
     ui->tableViewSearch->hideColumn(6);
@@ -76,6 +81,20 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     connect(ui->checkBoxDelOnAdd, SIGNAL(clicked(bool)), settings, SLOT(setRequestRemoveOnRotAdd(bool)));
     ui->cbxAutoShowRequestsDlg->setChecked(settings->requestDialogAutoShow());
     connect(ui->cbxAutoShowRequestsDlg, SIGNAL(clicked(bool)), settings, SLOT(setRequestDialogAutoShow(bool)));
+
+    QFontMetrics fm(settings->applicationFont());
+    QSize mcbSize(fm.height(), fm.height());
+
+    ui->buttonRefresh->resize(mcbSize);
+    ui->buttonRefresh->setIcon(style()->standardIcon(QStyle::SP_BrowserReload));
+    ui->buttonRefresh->setIconSize(mcbSize);
+
+    ui->pushButtonClearReqs->resize(mcbSize);
+    ui->pushButtonClearReqs->setIcon(QIcon(QPixmap(":/icons/Icons/edit-clear.png").scaled(mcbSize)));
+    ui->pushButtonClearReqs->setIconSize(mcbSize);
+    autoSizeViews();
+
+
 }
 
 int DlgRequests::numRequests()
@@ -89,10 +108,52 @@ DlgRequests::~DlgRequests()
     delete ui;
 }
 
+void DlgRequests::databaseAboutToUpdate()
+{
+    dbModel->revertAll();
+    dbModel->setTable("");
+}
+
+void DlgRequests::databaseUpdateComplete()
+{
+    dbModel->refreshCache();
+    dbModel->select();
+    autoSizeViews();
+}
+
+void DlgRequests::databaseSongAdded()
+{
+    dbModel->select();
+}
+
+void DlgRequests::rotationChanged()
+{
+    QString curSelSinger = ui->comboBoxSingers->currentText();
+    ui->comboBoxSingers->clear();
+    QStringList singers = rotModel->singers();
+    singers.sort(Qt::CaseInsensitive);
+    ui->comboBoxSingers->addItems(singers);
+    if (singers.contains(curSelSinger))
+        ui->comboBoxSingers->setCurrentText(curSelSinger);
+    int s = -1;
+    for (int i=0; i < singers.size(); i++)
+    {
+        if (singers.at(i).toLower().trimmed() == curSelReqSinger.toLower().trimmed())
+        {
+            s = i;
+            break;
+        }
+    }
+    if (s != -1)
+    {
+        ui->comboBoxSingers->setCurrentIndex(s);
+        ui->radioButtonExistingSinger->setChecked(true);
+    }
+
+}
+
 void DlgRequests::on_pushButtonClose_clicked()
 {
-    settings->saveColumnWidths(ui->treeViewRequests);
-    settings->saveColumnWidths(ui->tableViewSearch);
     close();
 }
 
@@ -102,6 +163,7 @@ void DlgRequests::requestsModified()
     {
         this->show();
     }
+    autoSizeViews();
 }
 
 void DlgRequests::on_pushButtonSearch_clicked()
@@ -121,27 +183,32 @@ void DlgRequests::requestSelectionChanged(const QItemSelection &current, const Q
     {
         dbModel->search("yeahjustsomethingitllneverfind.imlazylikethat");
         ui->groupBoxSongDb->setDisabled(true);
+        ui->comboBoxSingers->setCurrentIndex(0);
+        curSelReqSinger = "";
         return;
     }
     QModelIndex index = current.indexes().at(0);
     Q_UNUSED(previous);
-    if ((index.isValid()) && (ui->treeViewRequests->selectionModel()->selectedIndexes().size() > 0))
+    if ((index.isValid()) && (ui->tableViewRequests->selectionModel()->selectedIndexes().size() > 0))
     {
         ui->groupBoxSongDb->setEnabled(true);
         ui->comboBoxSingers->clear();
-        QString singerName = index.sibling(index.row(),1).data().toString();
+        QString singerName = index.sibling(index.row(),0).data().toString();
+        curSelReqSinger = singerName;
         QStringList singers = rotModel->singers();
+        singers.sort(Qt::CaseInsensitive);
         ui->comboBoxSingers->addItems(singers);
 
-        QString filterStr = index.sibling(index.row(),2).data().toString() + " " + index.sibling(index.row(),3).data().toString();
+        QString filterStr = index.sibling(index.row(),1).data().toString() + " " + index.sibling(index.row(),2).data().toString();
         dbModel->search(filterStr);
         ui->lineEditSearch->setText(filterStr);
-        ui->lineEditSingerName->setText(singerName);
+        //ui->lineEditSingerName->setText(singerName);
+        ui->lineEditSingerName->setText(toMixedCase(singerName));
 
         int s = -1;
         for (int i=0; i < singers.size(); i++)
         {
-            if (singers.at(i).toLower() == singerName.toLower())
+            if (singers.at(i).toLower().trimmed() == singerName.toLower().trimmed())
             {
                 s = i;
                 break;
@@ -150,6 +217,11 @@ void DlgRequests::requestSelectionChanged(const QItemSelection &current, const Q
         if (s != -1)
         {
             ui->comboBoxSingers->setCurrentIndex(s);
+            ui->radioButtonExistingSinger->setChecked(true);
+        }
+        else
+        {
+            ui->radioButtonNewSinger->setChecked(true);
         }
     }
     else
@@ -188,7 +260,7 @@ void DlgRequests::on_pushButtonClearReqs_clicked()
     msgBox.exec();
     if (msgBox.clickedButton() == yesButton)
     {
-        ui->treeViewRequests->selectionModel()->clearSelection();
+        ui->tableViewRequests->selectionModel()->clearSelection();
         ui->lineEditSearch->clear();
         ui->lineEditSingerName->clear();
         ui->comboBoxSingers->clear();
@@ -197,12 +269,12 @@ void DlgRequests::on_pushButtonClearReqs_clicked()
     }
 }
 
-void DlgRequests::on_treeViewRequests_clicked(const QModelIndex &index)
+void DlgRequests::on_tableViewRequests_clicked(const QModelIndex &index)
 {
-    if (index.column() == 5)
+    if (index.column() == 4)
     {
-        songbookApi->removeRequest(index.sibling(index.row(),0).data().toInt());
-        ui->treeViewRequests->selectionModel()->clearSelection();
+        songbookApi->removeRequest(index.data(Qt::UserRole).toInt());
+        ui->tableViewRequests->selectionModel()->clearSelection();
         ui->lineEditSearch->clear();
         ui->lineEditSingerName->clear();
         ui->comboBoxSingers->clear();
@@ -210,13 +282,13 @@ void DlgRequests::on_treeViewRequests_clicked(const QModelIndex &index)
     }
     else
     {
-        curRequestId = index.sibling(index.row(),0).data().toInt();
+        curRequestId = index.data(Qt::UserRole).toInt();
     }
 }
 
 void DlgRequests::on_pushButtonAddSong_clicked()
 {
-    if (ui->treeViewRequests->selectionModel()->selectedIndexes().size() < 1)
+    if (ui->tableViewRequests->selectionModel()->selectedIndexes().size() < 1)
         return;
     if (ui->tableViewSearch->selectionModel()->selectedIndexes().size() < 1)
         return;
@@ -235,9 +307,9 @@ void DlgRequests::on_pushButtonAddSong_clicked()
             if (rotModel->currentSinger() != -1)
             {
                 int curSingerPos = rotModel->getSingerPosition(rotModel->currentSinger());
-                if (ui->comboBoxAddPosition->currentText() == "After current singer")
+                if (ui->comboBoxAddPosition->currentIndex() == 0)
                     rotModel->singerMove(rotModel->rowCount() -1, curSingerPos + 1);
-                else if ((ui->comboBoxAddPosition->currentText() == "Fair (full rotation)") && (curSingerPos != 0))
+                else if ((ui->comboBoxAddPosition->currentIndex() == 1) && (curSingerPos != 0))
                     rotModel->singerMove(rotModel->rowCount() -1, curSingerPos);
             }
             emit addRequestSong(songid, rotModel->getSingerId(ui->lineEditSingerName->text()));
@@ -251,7 +323,7 @@ void DlgRequests::on_pushButtonAddSong_clicked()
     {
 
         songbookApi->removeRequest(curRequestId);
-        ui->treeViewRequests->selectionModel()->clearSelection();
+        ui->tableViewRequests->selectionModel()->clearSelection();
         ui->lineEditSearch->clear();
         ui->lineEditSingerName->clear();
         ui->comboBoxSingers->clear();
@@ -266,7 +338,7 @@ void DlgRequests::on_tableViewSearch_customContextMenuRequested(const QPoint &po
     {
         rtClickFile = index.sibling(index.row(),5).data().toString();
         QMenu contextMenu(this);
-        contextMenu.addAction("Preview", this, SLOT(previewCdg()));
+        contextMenu.addAction(tr("Preview"), this, SLOT(previewCdg()));
         contextMenu.exec(QCursor::pos());
     }
 }
@@ -284,12 +356,12 @@ void DlgRequests::on_buttonRefresh_clicked()
 
 void DlgRequests::sslError()
 {
-    QMessageBox::warning(this, "SSL Handshake Error", "An error was encountered while establishing a secure connection to the requests server.  This is usually caused by an invalid or self-signed cert on the server.  You can set the requests client to ignore SSL errors in the network settings dialog.");
+    QMessageBox::warning(this, tr("SSL Handshake Error"), tr("An error was encountered while establishing a secure connection to the requests server.  This is usually caused by an invalid or self-signed cert on the server.  You can set the requests client to ignore SSL errors in the network settings dialog."));
 }
 
 void DlgRequests::delayError(int seconds)
 {
-    QMessageBox::warning(this, "Possible Connectivity Issue", "It has been " + QString::number(seconds) + " seconds since we last received a response from the requests server.  You may be missing new submitted requests.  Please ensure that your network connection is up and working.");
+    QMessageBox::warning(this, tr("Possible Connectivity Issue"), tr("It has been ") + QString::number(seconds) + tr(" seconds since we last received a response from the requests server.  You may be missing new submitted requests.  Please ensure that your network connection is up and working."));
 }
 
 void DlgRequests::on_checkBoxAccepting_clicked(bool checked)
@@ -318,8 +390,8 @@ void DlgRequests::venuesChanged(OkjsVenues venues)
 void DlgRequests::on_pushButtonUpdateDb_clicked()
 {
     QMessageBox msgBox;
-    msgBox.setText("Are you sure?");
-    msgBox.setInformativeText("This operation can take serveral minutes depending on the size of your song database and the speed of your internet connection.");
+    msgBox.setText(tr("Are you sure?"));
+    msgBox.setInformativeText(tr("This operation can take serveral minutes depending on the size of your song database and the speed of your internet connection."));
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Cancel);
     int ret = msgBox.exec();
@@ -330,7 +402,7 @@ void DlgRequests::on_pushButtonUpdateDb_clicked()
         progressDialog->setMinimum(0);
         progressDialog->setMaximum(20);
         progressDialog->setValue(0);
-        progressDialog->setLabelText("Updating request server song database");
+        progressDialog->setLabelText(tr("Updating request server song database"));
         progressDialog->show();
         QApplication::processEvents();
         connect(songbookApi, SIGNAL(remoteSongDbUpdateNumDocs(int)), progressDialog, SLOT(setMaximum(int)));
@@ -372,8 +444,56 @@ void DlgRequests::on_lineEditSearch_textChanged(const QString &arg1)
 void DlgRequests::lineEditSearchEscapePressed()
 {
     QModelIndex index;
-    index = ui->treeViewRequests->selectionModel()->selectedIndexes().at(0);
+    index = ui->tableViewRequests->selectionModel()->selectedIndexes().at(0);
     QString filterStr = index.sibling(index.row(),2).data().toString() + " " + index.sibling(index.row(),3).data().toString();
     dbModel->search(filterStr);
     ui->lineEditSearch->setText(filterStr);
+}
+
+void DlgRequests::autoSizeViews()
+{
+    int fH = QFontMetrics(settings->applicationFont()).height();
+    int durationColSize = QFontMetrics(settings->applicationFont()).width(tr(" Duration "));
+    int songidColSize = QFontMetrics(settings->applicationFont()).width(" AA0000000-0000 ");
+    int remainingSpace = ui->tableViewSearch->width() - durationColSize - songidColSize - 12;
+    int artistColSize = (remainingSpace / 2) - 12;
+    int titleColSize = (remainingSpace / 2);
+    ui->tableViewSearch->hideColumn(0);
+    ui->tableViewSearch->hideColumn(5);
+    ui->tableViewSearch->hideColumn(6);
+    ui->tableViewSearch->hideColumn(7);
+    ui->tableViewSearch->horizontalHeader()->resizeSection(1, artistColSize);
+    ui->tableViewSearch->horizontalHeader()->resizeSection(2, titleColSize);
+    ui->tableViewSearch->horizontalHeader()->resizeSection(4, durationColSize);
+    ui->tableViewSearch->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Fixed);
+    ui->tableViewSearch->horizontalHeader()->resizeSection(3, songidColSize);
+
+    int tsWidth = QFontMetrics(settings->applicationFont()).width(" 00/00/00 00:00 xx ");
+    qWarning() << "tsWidth = " << tsWidth;
+    int delwidth = fH * 2;
+    int singerColSize = QFontMetrics(settings->applicationFont()).width("_Isaac_Lightburn_");
+    qWarning() << "singerColSize = " << singerColSize;
+    remainingSpace = ui->tableViewRequests->width() - tsWidth - delwidth - singerColSize - 6;
+    artistColSize = remainingSpace / 2;
+    titleColSize = remainingSpace / 2;
+    ui->tableViewRequests->horizontalHeader()->resizeSection(0, singerColSize);
+    ui->tableViewRequests->horizontalHeader()->resizeSection(1, artistColSize);
+    ui->tableViewRequests->horizontalHeader()->resizeSection(2, titleColSize);
+    ui->tableViewRequests->horizontalHeader()->resizeSection(3, tsWidth);
+    ui->tableViewRequests->horizontalHeader()->resizeSection(4, delwidth);
+    ui->tableViewRequests->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Fixed);
+}
+
+
+void DlgRequests::resizeEvent(QResizeEvent *event)
+{
+    QDialog::resizeEvent(event);
+    autoSizeViews();
+}
+
+
+void DlgRequests::showEvent(QShowEvent *event)
+{
+    QDialog::showEvent(event);
+    autoSizeViews();
 }

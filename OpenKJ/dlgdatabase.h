@@ -28,6 +28,7 @@
 #include "dlgcustompatterns.h"
 #include <QSqlDatabase>
 #include "dlgdbupdate.h"
+#include <QFileSystemWatcher>
 
 namespace Ui {
 class DlgDatabase;
@@ -44,14 +45,21 @@ private:
     DlgDbUpdate *dbUpdateDlg;
     int selectedRow;
     QSqlDatabase db;
+    QFileSystemWatcher fsWatcher;
 
 public:
     explicit DlgDatabase(QSqlDatabase db, QWidget *parent = 0);
     ~DlgDatabase();
 
 signals:
-    void databaseUpdated();
+    void databaseAboutToUpdate();
+    void databaseUpdateComplete();
     void databaseCleared();
+    void databaseSongAdded();
+
+public slots:
+    void singleSongAdd(QString path);
+    int dropFileAdd(QString path);
 
 private slots:
     void on_buttonUpdateAll_clicked();
@@ -65,6 +73,7 @@ private slots:
     void showDbUpdateErrors(QStringList errors);
     void on_btnCustomPatterns_clicked();
     void on_btnExport_clicked();
+    void directoryChanged(QString dirPath);
 };
 
 #endif // DATABASEDIALOG_H

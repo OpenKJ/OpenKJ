@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>626</width>
-    <height>822</height>
+    <width>1052</width>
+    <height>1130</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -130,7 +130,7 @@
            </size>
           </property>
           <property name="sizeAdjustPolicy">
-           <enum>QAbstractScrollArea::AdjustToContents</enum>
+           <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
           </property>
           <property name="editTriggers">
            <set>QAbstractItemView::NoEditTriggers</set>
@@ -146,6 +146,9 @@
           </property>
           <property name="viewMode">
            <enum>QListView::IconMode</enum>
+          </property>
+          <property name="uniformItemSizes">
+           <bool>false</bool>
           </property>
           <property name="currentRow">
            <number>-1</number>
@@ -167,7 +170,7 @@
         <item>
          <widget class="QStackedWidget" name="stackedWidget">
           <property name="currentIndex">
-           <number>3</number>
+           <number>2</number>
           </property>
           <widget class="QWidget" name="audioPage">
            <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -666,10 +669,10 @@
                  <item>
                   <widget class="QSlider" name="horizontalSliderTickerSpeed">
                    <property name="minimum">
-                    <number>1</number>
+                    <number>0</number>
                    </property>
                    <property name="maximum">
-                    <number>150</number>
+                    <number>50</number>
                    </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
@@ -872,7 +875,11 @@ QPushButton:default {
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLineEdit" name="lineEditTickerMessage"/>
+                  <widget class="QLineEdit" name="lineEditTickerMessage">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:9pt; font-weight:600;&quot;&gt;Custom text to display on the ticker&lt;/span&gt;&lt;span style=&quot; font-size:9pt;&quot;&gt;&lt;br/&gt;Supports the following varaible substitutions:&lt;br/&gt;&lt;br/&gt;%curSinger = Current singer name&lt;br/&gt;%curSong = Current song (aritst - title)&lt;br/&gt;%curArtist = Current artist&lt;br/&gt;%curTitle = Current title&lt;br/&gt;%nextSinger = Next singer name&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                  </widget>
                  </item>
                 </layout>
                </item>
@@ -994,6 +1001,49 @@ QPushButton:default {
                       </size>
                      </property>
                     </spacer>
+                   </item>
+                  </layout>
+                 </item>
+                 <item row="4" column="1">
+                  <spacer name="verticalSpacer_6">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>40</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item row="5" column="1">
+                  <layout class="QHBoxLayout" name="horizontalLayout_20">
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <spacer name="horizontalSpacer_13">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>40</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="btnTestReqServer">
+                     <property name="text">
+                      <string>Test</string>
+                     </property>
+                    </widget>
                    </item>
                   </layout>
                  </item>
@@ -1226,6 +1276,46 @@ QPushButton:default {
              </widget>
             </item>
             <item>
+             <widget class="QGroupBox" name="groupBox_4">
+              <property name="title">
+               <string>Song Shop</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_20">
+               <item>
+                <widget class="QLabel" name="label_25">
+                 <property name="text">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Downloads directory&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_18">
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <widget class="QLineEdit" name="lineEditDownloadsDir">
+                   <property name="enabled">
+                    <bool>true</bool>
+                   </property>
+                   <property name="readOnly">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btnBrowse">
+                   <property name="text">
+                    <string>Browse</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
              <widget class="QGroupBox" name="groupBox_3">
               <property name="title">
                <string>Other</string>
@@ -1323,6 +1413,114 @@ by the number of ms specified.</string>
                <size>
                 <width>20</width>
                 <height>524</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="page">
+           <layout class="QVBoxLayout" name="verticalLayout_19">
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_17">
+              <item>
+               <widget class="QLabel" name="label_23">
+                <property name="text">
+                 <string>Theme</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="cbxTheme">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_24">
+                <property name="text">
+                 <string>Requires program restart</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_12">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_19">
+              <property name="topMargin">
+               <number>20</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="label_26">
+                <property name="text">
+                 <string>Application Font</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QFontComboBox" name="fontComboBox">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_27">
+                <property name="text">
+                 <string>Size</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSpinBox" name="spinBoxAppFontSize">
+                <property name="suffix">
+                 <string>pt</string>
+                </property>
+                <property name="prefix">
+                 <string/>
+                </property>
+                <property name="minimum">
+                 <number>8</number>
+                </property>
+                <property name="maximum">
+                 <number>40</number>
+                </property>
+                <property name="value">
+                 <number>12</number>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_5">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
                </size>
               </property>
              </spacer>

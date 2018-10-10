@@ -45,6 +45,7 @@ public:
     int numSongs();
 
 signals:
+    void bmSongMoved(int oldPos, int newPos);
 
 public slots:
 

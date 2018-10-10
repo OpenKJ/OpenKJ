@@ -60,6 +60,7 @@ public:
     void refreshVenues(bool blocking = false);
     void clearRequests();
     void updateSongDb();
+    bool test();
 
 signals:
     void venuesChanged(OkjsVenues);
@@ -71,11 +72,16 @@ signals:
     void requestsChanged(OkjsRequests);
     void synchronized(QTime);
     void delayError(int);
+    void testPassed();
+    void testFailed(QString error);
+    void testSslError(QString error);
+
 
 public slots:
 
 private slots:
         void onSslErrors(QNetworkReply * reply, QList<QSslError> errors);
+        void onTestSslErrors(QNetworkReply * reply, QList<QSslError> errors);
         void onNetworkReply(QNetworkReply* reply);
         void timerTimeout();
         void setInterval(int interval);

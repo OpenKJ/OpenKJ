@@ -19,33 +19,23 @@ public:
     ~DlgBookCreator();
 
 private slots:
-    void on_buttonBox_clicked(QAbstractButton *button);
-
-    void on_fontCbxHeader_currentFontChanged(const QFont &f);
-    
-    void on_fontCbxItem_currentFontChanged(const QFont &f);
-    
-    void on_spinBoxSizeHeader_valueChanged(int arg1);
-    
-    void on_spinBoxSizeItem_valueChanged(int arg1);
-    
-    void on_checkBoxBoldHeader_stateChanged(int arg1);
-    
-    void on_checkBoxBoldItem_stateChanged(int arg1);    
-        
+    void on_buttonBox_clicked(QAbstractButton *button);        
     void on_comboBoxSort_currentIndexChanged(int index);
-    
     void on_btnGenerate_clicked();
+    void on_cbxColumns_currentIndexChanged(int index);
+    void on_cbxPageSize_currentIndexChanged(int index);
+    void saveFontSettings();
+
 
 private:
     Ui::DlgBookCreator *ui;
     Settings *settings;
-    void saveFontSettings();
     bool setupdone;
     QString htmlOut;
     QTextDocument doc;
-    QString getTable();
-    void writePdf(QString fileName);
+    void writePdf(QString filename, int nCols = 2);
+    QStringList getArtists();
+    QStringList getTitles(QString artist);
 };
 
 #endif // DLGBOOKCREATOR_H

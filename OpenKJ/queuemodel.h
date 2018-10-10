@@ -24,6 +24,7 @@
 #include <QSqlRelationalTableModel>
 #include <QMimeData>
 #include <QStringList>
+#include <QUrl>
 
 class QueueModel : public QSqlRelationalTableModel
 {
@@ -60,10 +61,15 @@ protected:
 signals:
     void queueModified(int singerId);
     void songDroppedWithoutSinger();
+    void filesDroppedOnSinger(QList<QUrl> urls, int singerId, int position);
 
 public slots:
     void songAdd(int songId, int singerId);
 
+
+    // QAbstractItemModel interface
+public:
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 };
 
 #endif // QUEUEMODEL_H

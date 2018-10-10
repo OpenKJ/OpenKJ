@@ -24,6 +24,8 @@
 #include <QStringList>
 #include <QSqlQuery>
 #include <QDebug>
+#include <QStandardPaths>
+#include <QDir>
 
 
 
@@ -42,10 +44,10 @@ DbTableModel::DbTableModel(QObject *parent, QSqlDatabase db) :
     sortColumn = SORT_ARTIST;
     artistOrder = "ASC";
     titleOrder = "ASC";
-    discIdOrder = "ASC";
+    songIdOrder = "ASC";
     durationOrder = "ASC";
     select();
-//    search("yeahjustsomethingitllneverfind.imlazylikethat");
+    search("");
 }
 
 
@@ -66,20 +68,21 @@ Qt::ItemFlags DbTableModel::flags(const QModelIndex &index) const
 void DbTableModel::search(QString searchString)
 {
     lastSearch = searchString;
+    searchString.replace(",", " ");
     if (settings->ignoreAposInSearch())
         searchString.remove("'");
     QStringList terms;
     terms = searchString.split(" ",QString::SkipEmptyParts);
     if (terms.size() < 1)
     {
-        setFilter("discid != \"!!BAD!!\"");
+        setFilter("discid != \"!!BAD!!\" AND discid != \"!!DROPPED!!\"");
         return;
     }
     QString whereClause;
     if (settings->ignoreAposInSearch())
-        whereClause = "discid != \"!!BAD!!\" AND replace(searchstring, \"'\", \"\") LIKE \"%" + terms.at(0) + "%\"";
+        whereClause = "discid != \"!!BAD!!\" AND discid != \"!!DROPPED!!\" AND replace(searchstring, \"'\", \"\") LIKE \"%" + terms.at(0) + "%\"";
     else
-        whereClause = "discid != \"!!BAD!!\" AND searchstring LIKE \"%" + terms.at(0) + "%\"";
+        whereClause = "discid != \"!!BAD!!\" AND discid != \"!!DROPPED!!\" AND searchstring LIKE \"%" + terms.at(0) + "%\"";
     for (int i=1; i < terms.size(); i++)
     {
         if (settings->ignoreAposInSearch())
@@ -95,22 +98,35 @@ QString DbTableModel::orderByClause() const
     QString sql = " ORDER BY ";
     switch (sortColumn) {
     case SORT_ARTIST:
-        sql.append("artist " + artistOrder + ", title " + titleOrder + ", discid " + discIdOrder + ", duration " + durationOrder);
+        sql.append("artist " + artistOrder + ", title " + titleOrder + ", discid " + songIdOrder + ", duration " + durationOrder);
         break;
     case SORT_TITLE:
-        sql.append("title " + titleOrder + ", artist " + artistOrder + ", discid " + discIdOrder + ", duration " + durationOrder);
+        sql.append("title " + titleOrder + ", artist " + artistOrder + ", discid " + songIdOrder + ", duration " + durationOrder);
         break;
-    case SORT_DISCID:
-        sql.append("discid " + discIdOrder + ", artist " + artistOrder + ", title " + titleOrder + ", duration " + durationOrder);
+    case SORT_SONGID:
+        sql.append("discid " + songIdOrder + ", artist " + artistOrder + ", title " + titleOrder + ", duration " + durationOrder);
         break;
     case SORT_DURATION:
-        sql.append("duration " + durationOrder + ", title " + titleOrder + ", artist " + artistOrder + ", discid " + discIdOrder);
+        sql.append("duration " + durationOrder + ", title " + titleOrder + ", artist " + artistOrder + ", discid " + songIdOrder);
         break;
     default:
-        sql.append("artist " + artistOrder + ", title " + titleOrder + ", discid " + discIdOrder + ", duration " + durationOrder);
+        sql.append("artist " + artistOrder + ", title " + titleOrder + ", discid " + songIdOrder + ", duration " + durationOrder);
         break;
     }
     return sql;
+}
+
+QVariant DbTableModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (section == 1 && role == Qt::DisplayRole)
+        return tr("Artist");
+    if (section == 2 && role == Qt::DisplayRole)
+        return tr("Title");
+    if (section == 3 && role == Qt::DisplayRole)
+        return tr("SongID");
+    if (section == 4 && role == Qt::DisplayRole)
+        return tr("Duration");
+    return QSqlTableModel::headerData(section, orientation, role);
 }
 
 void DbTableModel::sort(int column, Qt::SortOrder order)
@@ -126,8 +142,8 @@ void DbTableModel::sort(int column, Qt::SortOrder order)
     case SORT_TITLE:
         titleOrder = orderString;
         break;
-    case SORT_DISCID:
-        discIdOrder = orderString;
+    case SORT_SONGID:
+        songIdOrder = orderString;
         break;
     case SORT_DURATION:
         durationOrder = orderString;
@@ -147,3 +163,19 @@ void DbTableModel::refreshCache()
     select();
     search(lastSearch);
 }
+
+
+//QVariant DbTableModel::headerData(int section, Qt::Orientation orientation, int role) const
+//{
+//    QSize sbSize(QFontMetrics(settings->applicationFont()).height(), QFontMetrics(settings->applicationFont()).height());
+//    if (section == 1 && role == Qt:: SizeHintRole)
+//        return 500;
+//    if (section == 2 && role == Qt::SizeHintRole)
+//        return 500;
+//    if (section == 4 && role == Qt::SizeHintRole)
+//        return QFontMetrics(settings->applicationFont()).width(" Duration ");
+//    if (section == 3 && role == Qt::SizeHintRole)
+//        return QFontMetrics(settings->applicationFont()).width(" AA0000000-00 ");
+
+//    return QSqlTableModel::headerData(section, orientation, role);
+//}

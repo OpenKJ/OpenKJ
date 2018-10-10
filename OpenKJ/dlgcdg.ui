@@ -1072,7 +1072,7 @@
     </widget>
    </item>
    <item>
-    <widget class="ScrollText" name="scroll" native="true">
+    <widget class="Ticker" name="scroll" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
        <horstretch>0</horstretch>
@@ -1091,9 +1091,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>ScrollText</class>
+   <class>Ticker</class>
    <extends>QWidget</extends>
-   <header>scrolltext.h</header>
+   <header location="global">ticker.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

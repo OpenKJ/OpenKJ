@@ -28,6 +28,7 @@
 #include "dbupdatethread.h"
 #include "settings.h"
 #include <QStandardPaths>
+#include <QFileSystemWatcher>
 
 extern Settings *settings;
 
@@ -45,12 +46,32 @@ DlgDatabase::DlgDatabase(QSqlDatabase db, QWidget *parent) :
     selectedRow = -1;
     customPatternsDlg = new DlgCustomPatterns(this);
     dbUpdateDlg = new DlgDbUpdate(this);
+    fsWatcher.addPaths(sourcedirmodel->getSourceDirs());
+    connect(&fsWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(directoryChanged(QString)));
 }
 
 DlgDatabase::~DlgDatabase()
 {
     delete sourcedirmodel;
     delete ui;
+}
+
+void DlgDatabase::singleSongAdd(QString path)
+{
+    qWarning() << "singleSongAdd(" << path << ") called";
+    DbUpdateThread *updateThread = new DbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "threaddb"),this);
+    updateThread->addSingleTrack(path);
+    delete updateThread;
+    emit databaseUpdateComplete();
+    //emit databaseSongAdded();
+}
+
+int DlgDatabase::dropFileAdd(QString path)
+{
+    DbUpdateThread *updateThread = new DbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "threaddb"),this);
+    int songId = updateThread->addDroppedFile(path);
+    delete updateThread;
+    return songId;
 }
 
 void DlgDatabase::on_buttonNew_clicked()
@@ -65,30 +86,25 @@ void DlgDatabase::on_buttonNew_clicked()
         while (query.next())
         {
             QString name = query.value("name").toString();
-//            g_artistRegex = query.value("artistregex").toString();
-//            g_titleRegex  = query.value("titleregex").toString();
-//            g_discIdRegex = query.value("discidregex").toString();
-//            g_artistCaptureGrp = query.value("artistcapturegrp").toInt();
-//            g_titleCaptureGrp  = query.value("titlecapturegrp").toInt();
-//            g_discIdCaptureGrp = query.value("discidcapturegrp").toInt();
-            items << QString("Custom: " + name);
+            items << QString(tr("Custom: ") + name);
         }
 
 
-        items << "DiscID - Artist - Title" << "DiscID - Title - Artist" << "Artist - Title - DiscID" << "Title - Artist - DiscID" << "Artist - Title" << "Title - Artist" << "Media Tags";
+        items << tr("SongID - Artist - Title") << tr("SongID - Title - Artist") << tr("Artist - Title - SongID") << tr("Title - Artist - SongID") << tr("Artist - Title") << tr("Title - Artist") << tr("SongID_Title_Artist") << tr("Media Tags");
         QString selected = QInputDialog::getItem(this,"Select a file naming pattern","Pattern",items,0,false,&okPressed);
         if (okPressed)
         {
             int pattern = 0;
             int customPattern = -1;
-            if (selected == "DiscID - Artist - Title") pattern = SourceDir::DAT;
-            if (selected == "DiscID - Title - Artist") pattern = SourceDir::DTA;
-            if (selected == "Artist - Title - DiscID") pattern = SourceDir::ATD;
-            if (selected == "Title - Artist - DiscID") pattern = SourceDir::TAD;
-            if (selected == "Artist - Title") pattern = SourceDir::AT;
-            if (selected == "Title - Artist") pattern = SourceDir::TA;
-            if (selected == "Media Tags") pattern = SourceDir::METADATA;
-            if (selected.contains("Custom"))
+            if (selected == tr("SongID - Artist - Title")) pattern = SourceDir::SAT;
+            if (selected == tr("SongID - Title - Artist")) pattern = SourceDir::STA;
+            if (selected == tr("Artist - Title - SongID")) pattern = SourceDir::ATS;
+            if (selected == tr("Title - Artist - SongID")) pattern = SourceDir::TAS;
+            if (selected == tr("Artist - Title")) pattern = SourceDir::AT;
+            if (selected == tr("Title - Artist")) pattern = SourceDir::TA;
+            if (selected == tr("Media Tags")) pattern = SourceDir::METADATA;
+            if (selected == tr("SongID_Title_Artist")) pattern = SourceDir::S_T_A;
+            if (selected.contains(tr("Custom")))
             {
                 pattern = SourceDir::CUSTOM;
                 QString name = selected.split(": ").at(1);
@@ -128,7 +144,8 @@ void DlgDatabase::on_buttonUpdate_clicked()
 {
     if (selectedRow >= 0)
     {
-        DbUpdateThread *updateThread = new DbUpdateThread(this);
+        DbUpdateThread *updateThread = new DbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "threaddb"),this);
+        //emit databaseAboutToUpdate();
         dbUpdateDlg->reset();
         connect(updateThread, SIGNAL(progressMessage(QString)), dbUpdateDlg, SLOT(addProgressMsg(QString)));
         connect(updateThread, SIGNAL(stateChanged(QString)), dbUpdateDlg, SLOT(changeStatusTxt(QString)));
@@ -143,23 +160,28 @@ void DlgDatabase::on_buttonUpdate_clicked()
         QApplication::processEvents();
         updateThread->setPath(sourcedirmodel->getDirByIndex(selectedRow)->getPath());
         updateThread->setPattern(sourcedirmodel->getDirByIndex(selectedRow)->getPattern());
-        updateThread->start();
-        while (updateThread->isRunning())
-        {
-            QApplication::processEvents();
-        }
-        emit databaseUpdated();
-//        msgBox.hide();
-
+        QApplication::processEvents();
+        updateThread->startUnthreaded();
+//        while (updateThread->isRunning())
+//        {
+//            QApplication::processEvents();
+//        }
+        emit databaseUpdateComplete();
+        QApplication::processEvents();
+        dbUpdateDlg->changeStatusTxt(tr("Database update complete!"));
+        dbUpdateDlg->setProgressMax(100);
+        dbUpdateDlg->changeProgress(100);
+        QApplication::processEvents();
         showDbUpdateErrors(updateThread->getErrors());
+        QMessageBox::information(this, tr("Update Complete"), tr("Database update complete."));
         dbUpdateDlg->hide();
-        QMessageBox::information(this, "Update Complete", "Database update complete.");
     }
 }
 
 void DlgDatabase::on_buttonUpdateAll_clicked()
 {
-    DbUpdateThread *updateThread = new DbUpdateThread(this);
+    //emit databaseAboutToUpdate();
+    DbUpdateThread *updateThread = new DbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "threaddb"),this);
     dbUpdateDlg->reset();
     connect(updateThread, SIGNAL(progressMessage(QString)), dbUpdateDlg, SLOT(addProgressMsg(QString)));
     connect(updateThread, SIGNAL(stateChanged(QString)), dbUpdateDlg, SLOT(changeStatusTxt(QString)));
@@ -177,26 +199,27 @@ void DlgDatabase::on_buttonUpdateAll_clicked()
         dbUpdateDlg->changeDirectory(sourcedirmodel->getDirByIndex(i)->getPath());
         updateThread->setPath(sourcedirmodel->getDirByIndex(i)->getPath());
         updateThread->setPattern(sourcedirmodel->getDirByIndex(i)->getPattern());
-        updateThread->start();
-        while (updateThread->isRunning())
-        {
-            QApplication::processEvents();
-        }
+        updateThread->startUnthreaded();
+//        while (updateThread->isRunning())
+//        {
+//            QApplication::processEvents();
+//        }
     }
 //    msgBox.setInformativeText("Reloading song database into cache");
-    emit databaseUpdated();
+    emit databaseUpdateComplete();
 //    msgBox.hide();
     showDbUpdateErrors(updateThread->getErrors());
     dbUpdateDlg->hide();
-    QMessageBox::information(this, "Update Complete", "Database update complete.");
+    QMessageBox::information(this, tr("Update Complete"), tr("Database update complete."));
     delete(updateThread);
+    emit databaseUpdateComplete();
 }
 
 void DlgDatabase::on_btnClearDatabase_clicked()
 {
     QMessageBox msgBox;
-    msgBox.setText("Are you sure?");
-    msgBox.setInformativeText("Clearing the song database will also clear the rotation and all saved regular singer data.  If you have not already done so, you may want to export your regular singers before performing this operation.  This operation can not be undone.");
+    msgBox.setText(tr("Are you sure?"));
+    msgBox.setInformativeText(tr("Clearing the song database will also clear the rotation and all saved regular singer data.  If you have not already done so, you may want to export your regular singers before performing this operation.  This operation can not be undone."));
     msgBox.setIcon(QMessageBox::Warning);
     msgBox.addButton(QMessageBox::Cancel);
     QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
@@ -209,7 +232,7 @@ void DlgDatabase::on_btnClearDatabase_clicked()
         query.exec("DELETE FROM queuesongs");
         query.exec("DELETE FROM rotationsingers");
         emit databaseCleared();
-        QMessageBox::information(this, "Database cleared", "Song database, regular singers, and all rotation data has been cleared.");
+        QMessageBox::information(this, tr("Database cleared"), tr("Song database, regular singers, and all rotation data has been cleared."));
     }
 }
 
@@ -222,7 +245,7 @@ void DlgDatabase::showDbUpdateErrors(QStringList errors)
     if (errors.count() > 0)
     {
         QMessageBox msgBox;
-        msgBox.setText("Some files were skipped due to problems");
+        msgBox.setText(tr("Some files were skipped due to problems"));
         msgBox.setDetailedText(errors.join("\n"));
         QSpacerItem* horizontalSpacer = new QSpacerItem(600, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
         QGridLayout* layout = (QGridLayout*)msgBox.layout();
@@ -240,7 +263,7 @@ void DlgDatabase::on_btnExport_clicked()
 {
     QString defaultFilePath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QDir::separator() + "dbexport.csv";
     qDebug() << "Default save location: " << defaultFilePath;
-    QString saveFilePath = QFileDialog::getSaveFileName(this,tr("Select DB export filename"), defaultFilePath, tr("(*.csv)"));
+    QString saveFilePath = QFileDialog::getSaveFileName(this,tr("Select DB export filename"), defaultFilePath, "(*.csv)");
     if (saveFilePath != "")
     {
         QFile csvFile(saveFilePath);
@@ -255,11 +278,42 @@ void DlgDatabase::on_btnExport_clicked()
         {
             QString artist = query.value("artist").toString();
             QString title = query.value("title").toString();
-            QString discid = query.value("discid").toString();
+            QString songId = query.value("discid").toString();
             QString filepath = query.value("path").toString();
-            QString data = "\"" + artist + "\",\"" + title + "\",\"" + discid + "\",\"" + filepath + "\"" + "\n";
+            QString data = "\"" + artist + "\",\"" + title + "\",\"" + songId + "\",\"" + filepath + "\"" + "\n";
             csvFile.write(data.toLocal8Bit().data());
         }
         csvFile.close();
     }
+}
+
+void DlgDatabase::directoryChanged(QString dirPath)
+{
+    if (!settings->directoryWatchEnabled())
+        return;
+    DbUpdateThread *dbthread = new DbUpdateThread(db, this);
+    qWarning() << "Directory changed fired for dir: " << dirPath;
+    QDirIterator it(dirPath);
+    while (it.hasNext()) {
+        QString file = it.next();
+        QFileInfo fi(file);
+        if (fi.isDir())
+            continue;
+        if (file == dirPath + "/." || file == dirPath + "/..")
+            continue;
+        if (fi.suffix().toLower() != "zip" && fi.suffix().toLower() != "cdg")
+        {
+            continue;
+        }
+        if (dbthread->dbEntryExists(file))
+        {
+            continue;
+        }
+        qWarning() << "Detected new file: " << file;
+        qWarning() << "Adding file to the database";
+        dbthread->addSingleTrack(file);
+        emit databaseUpdateComplete();
+    }
+    delete(dbthread);
+
 }

@@ -59,7 +59,7 @@ private:
 
 public:
     explicit RequestsTableModel(QObject *parent = 0);
-    enum {REQUESTID=0,SINGER,ARTIST,TITLE,TIMESTAMP};
+    enum {SINGER=0,ARTIST,TITLE,TIMESTAMP};
     int count();
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;

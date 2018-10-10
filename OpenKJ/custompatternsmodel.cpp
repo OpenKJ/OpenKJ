@@ -16,8 +16,8 @@ void CustomPatternsModel::loadFromDB()
         pattern.setArtistCaptureGrp(query.value("artistcapturegrp").toInt());
         pattern.setTitleRegex(query.value("titleregex").toString());
         pattern.setTitleCaptureGrp(query.value("titlecapturegrp").toInt());
-        pattern.setDiscIdRegex(query.value("discidregex").toString());
-        pattern.setDiscIdCaptureGrp(query.value("discidcapturegrp").toInt());
+        pattern.setSongIdRegex(query.value("discidregex").toString());
+        pattern.setSongIdCaptureGrp(query.value("discidcapturegrp").toInt());
         myData.append(pattern);
     }
     layoutChanged();
@@ -49,7 +49,7 @@ QVariant CustomPatternsModel::headerData(int section, Qt::Orientation orientatio
         case 4:
             return tr("Group");
         case 5:
-            return tr("DiscID RegEx");
+            return tr("SongID RegEx");
         case 6:
             return tr("Group");
 
@@ -92,9 +92,9 @@ QVariant CustomPatternsModel::data(const QModelIndex &index, int role) const
         case 4:
             return myData.at(index.row()).getTitleCaptureGrp();
         case 5:
-            return myData.at(index.row()).getDiscIdRegex();
+            return myData.at(index.row()).getSongIdRegex();
         case 6:
-            return myData.at(index.row()).getDiscIdCaptureGrp();
+            return myData.at(index.row()).getSongIdCaptureGrp();
         }
     }
     return QVariant();

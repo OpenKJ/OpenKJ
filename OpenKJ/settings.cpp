@@ -24,6 +24,183 @@
 #include <QDesktopWidget>
 #include <QStandardPaths>
 #include <QDebug>
+#include <QCryptographicHash>
+#include <QDataStream>
+#include "simplecrypt.h"
+#include <QStandardPaths>
+#include <QDir>
+
+qint64 Settings::hash(const QString &str)
+{
+    QByteArray hash = QCryptographicHash::hash(
+      QByteArray::fromRawData((const char*)str.utf16(), str.length()*2),
+      QCryptographicHash::Md5
+    );
+    Q_ASSERT(hash.size() == 16);
+    QDataStream stream(hash);
+    qint64 a, b;
+    stream >> a >> b;
+    return a ^ b;
+}
+
+QString Settings::storeDownloadDir()
+{
+    return settings->value("storeDownloadDir", QStandardPaths::writableLocation(QStandardPaths::MusicLocation) + QDir::separator() + "OpenKJ_Downloads" + QDir::separator()).toString();
+}
+
+void Settings::setStoreDownloadDir(QString path)
+{
+    settings->setValue("storeDownloadDir", path);
+}
+
+void Settings::setPassword(QString password)
+{
+    qint64 passHash = this->hash(password);
+    SimpleCrypt simpleCrypt(passHash);
+    QString pchk = simpleCrypt.encryptToString(QString("testpass"));
+    settings->setValue("pchk", pchk);
+}
+
+void Settings::clearPassword()
+{
+    settings->remove("pchk");
+    clearCC();
+    clearKNAccount();
+}
+
+bool Settings::chkPassword(QString password)
+{
+    qint64 passHash = this->hash(password);
+    SimpleCrypt simpleCrypt(passHash);
+    QString pchk = simpleCrypt.decryptToString(settings->value("pchk", QString()).toString());
+    if (pchk == "testpass")
+        return true;
+    else
+        return false;
+}
+
+bool Settings::passIsSet()
+{
+    if (settings->contains("pchk"))
+        return true;
+    return false;
+}
+
+void Settings::setCC(QString ccn, QString month, QString year, QString ccv, QString passwd)
+{
+    QString cc = ccn + "," + month + "," + year + "," + ccv;
+    SimpleCrypt simpleCrypt(this->hash(passwd));
+    settings->setValue("cc", simpleCrypt.encryptToString(cc));
+}
+
+void Settings::setSaveCC(bool save)
+{
+    settings->setValue("saveCC", save);
+}
+
+bool Settings::saveCC()
+{
+    return settings->value("saveCC", false).toBool();
+}
+
+void Settings::clearCC()
+{
+    settings->remove("cc");
+}
+
+void Settings::clearKNAccount()
+{
+    settings->remove("karaokeDotNetUser");
+    settings->remove("karaokeDotNetPass");
+}
+
+
+
+void Settings::setSaveKNAccount(bool save)
+{
+    settings->setValue("saveKNAccount", save);
+}
+
+bool Settings::saveKNAccount()
+{
+    return settings->value("saveKNAccount", false).toBool();
+}
+
+QString Settings::getCCN(QString password)
+{
+    SimpleCrypt simpleCrypt(this->hash(password));
+    QString encrypted = settings->value("cc", QString()).toString();
+    if (encrypted == QString())
+        return QString();
+    QString cc = simpleCrypt.decryptToString(encrypted);
+    QStringList parts = cc.split(",");
+    return parts.at(0);
+}
+
+QString Settings::getCCM(QString password)
+{
+    SimpleCrypt simpleCrypt(this->hash(password));
+    QString encrypted = settings->value("cc", QString()).toString();
+    if (encrypted == QString())
+        return QString();
+    QString cc = simpleCrypt.decryptToString(encrypted);
+    QStringList parts = cc.split(",");
+    return parts.at(1);
+}
+
+QString Settings::getCCY(QString password)
+{
+    SimpleCrypt simpleCrypt(this->hash(password));
+    QString encrypted = settings->value("cc", QString()).toString();
+    if (encrypted == QString())
+        return QString();
+    QString cc = simpleCrypt.decryptToString(encrypted);
+    QStringList parts = cc.split(",");
+    return parts.at(2);
+}
+
+QString Settings::getCCV(QString password)
+{
+    SimpleCrypt simpleCrypt(this->hash(password));
+    QString encrypted = settings->value("cc", QString()).toString();
+    if (encrypted == QString())
+        return QString();
+    QString cc = simpleCrypt.decryptToString(encrypted);
+    QStringList parts = cc.split(",");
+    return parts.at(3);
+}
+
+void Settings::setKaroakeDotNetUser(QString username, QString password)
+{
+    SimpleCrypt simpleCrypt(this->hash(password));
+    settings->setValue("karaokeDotNetUser", simpleCrypt.encryptToString(username));
+}
+
+void Settings::setKaraokeDotNetPass(QString KDNPassword, QString password)
+{
+    SimpleCrypt simpleCrypt(this->hash(password));
+    settings->setValue("karaokeDotNetPass", simpleCrypt.encryptToString(KDNPassword));
+}
+
+QString Settings::karoakeDotNetUser(QString password)
+{
+    SimpleCrypt simpleCrypt(this->hash(password));
+    QString encrypted = settings->value("karaokeDotNetUser", QString()).toString();
+    if (encrypted == QString())
+        return QString();
+    QString username = simpleCrypt.decryptToString(encrypted);
+    return username;
+}
+
+QString Settings::karoakeDotNetPass(QString password)
+{
+    SimpleCrypt simpleCrypt(this->hash(password));
+    QString encrypted = settings->value("karaokeDotNetPass", QString()).toString();
+    if (encrypted == QString())
+        return QString();
+    QString KDNpassword = simpleCrypt.decryptToString(encrypted);
+    return KDNpassword;
+}
 
 Settings::Settings(QObject *parent) :
     QObject(parent)
@@ -158,10 +335,24 @@ void Settings::setTickerFont(QFont font)
     emit tickerFontChanged();
 }
 
+void Settings::setApplicationFont(QFont font)
+{
+    settings->setValue("applicationFont", font.toString());
+    QApplication::setFont(font, "QWidget");
+    emit applicationFontChanged(font);
+}
+
 QFont Settings::tickerFont()
 {
     QFont font;
     font.fromString(settings->value("tickerFont", QApplication::font().toString()).toString());
+    return font;
+}
+
+QFont Settings::applicationFont()
+{
+    QFont font;
+    font.fromString(settings->value("applicationFont", QApplication::font().toString()).toString());
     return font;
 }
 
@@ -178,7 +369,9 @@ void Settings::setTickerHeight(int height)
 
 int Settings::tickerSpeed()
 {
-    return settings->value("tickerSpeed", 50).toInt();
+    if (settings->value("tickerSpeed") > 50)
+        return 25;
+    return settings->value("tickerSpeed", 25).toInt();
 }
 
 void Settings::setTickerSpeed(int speed)
@@ -586,14 +779,39 @@ void Settings::setShowSongPauseStopWarning(bool enabled)
     
 }
 
+void Settings::setBookCreatorArtistFont(QFont font)
+{
+    settings->setValue("bookCreatorArtistFont", font.toString());
+}
+
+void Settings::setBookCreatorTitleFont(QFont font)
+{
+    settings->setValue("bookCreatorTitleFont", font.toString());
+}
+
 void Settings::setBookCreatorHeaderFont(QFont font)
 {
     settings->setValue("bookCreatorHeaderFont", font.toString());
 }
 
-void Settings::setBookCreatorItemFont(QFont font)
+void Settings::setBookCreatorFooterFont(QFont font)
 {
-    settings->setValue("bookCreatorItemFont", font.toString());
+    settings->setValue("bookCreatorFooterFont", font.toString());
+}
+
+void Settings::setBookCreatorHeaderText(QString text)
+{
+    settings->setValue("bookCreatorHeaderText", text);
+}
+
+void Settings::setBookCreatorFooterText(QString text)
+{
+    settings->setValue("bookCreatorFooterText", text);
+}
+
+void Settings::setBookCreatorPageNumbering(bool show)
+{
+    settings->setValue("bookCreatorPageNumbering", show);
 }
 
 void Settings::setBookCreatorSortCol(int col)
@@ -786,6 +1004,21 @@ void Settings::setUpdatesBranch(int index)
     settings->setValue("updatesBranch", index);
 }
 
+void Settings::setTheme(int theme)
+{
+    settings->setValue("theme", theme);
+}
+
+void Settings::setBookCreatorCols(int cols)
+{
+    settings->setValue("bookCreatorCols", cols);
+}
+
+void Settings::setBookCreatorPageSize(int size)
+{
+    settings->setValue("bookCreatorPageSize", size);
+}
+
 void Settings::setCdgHSizeAdjustment(int pixels)
 {
     settings->setValue("cdgHSizeAdjustment", pixels);
@@ -952,10 +1185,17 @@ int Settings::cdgDisplayOffset()
     return settings->value("CDGDisplayOffset", 0).toInt();
 }
 
-QFont Settings::bookCreatorItemFont()
+QFont Settings::bookCreatorTitleFont()
 {
     QFont font;
-    font.fromString(settings->value("bookCreatorItemFont", QApplication::font().toString()).toString());
+    font.fromString(settings->value("bookCreatorTitleFont", QApplication::font().toString()).toString());
+    return font;
+}
+
+QFont Settings::bookCreatorArtistFont()
+{
+    QFont font;
+    font.fromString(settings->value("bookCreatorArtistFont", QApplication::font().toString()).toString());
     return font;
 }
 
@@ -964,6 +1204,28 @@ QFont Settings::bookCreatorHeaderFont()
     QFont font;
     font.fromString(settings->value("bookCreatorHeaderFont", QApplication::font().toString()).toString());
     return font;
+}
+
+QFont Settings::bookCreatorFooterFont()
+{
+    QFont font;
+    font.fromString(settings->value("bookCreatorFooterFont", QApplication::font().toString()).toString());
+    return font;
+}
+
+QString Settings::bookCreatorHeaderText()
+{
+    return settings->value("bookCreatorHeaderText", QString()).toString();
+}
+
+QString Settings::bookCreatorFooterText()
+{
+    return settings->value("bookCreatorFooterText", QString()).toString();
+}
+
+bool Settings::bookCreatorPageNumbering()
+{
+    return settings->value("bookCreatorPageNumbering", false).toBool();
 }
 
 int Settings::bookCreatorSortCol()
@@ -989,6 +1251,16 @@ double Settings::bookCreatorMarginTop()
 double Settings::bookCreatorMarginBtm()
 {
     return settings->value("bookCreatorMarginBtm", 0.25).toDouble();
+}
+
+int Settings::bookCreatorCols()
+{
+    return settings->value("bookCreatorCols", 2).toInt();
+}
+
+int Settings::bookCreatorPageSize()
+{
+    return settings->value("bookCreatorPageSize", 0).toInt();
 }
 
 bool Settings::eqKBypass()
@@ -1129,6 +1401,16 @@ bool Settings::checkUpdates()
 int Settings::updatesBranch()
 {
     return settings->value("updatesBranch", 0).toInt();
+}
+
+int Settings::theme()
+{
+    return settings->value("theme", 1).toInt();
+}
+
+bool Settings::directoryWatchEnabled()
+{
+    return settings->value("directoryWatchEnabled", false).toBool();
 }
 
 void Settings::setBmKCrossfade(bool enabled)

@@ -19,6 +19,9 @@
 */
 
 #include "queueitemdelegate.h"
+#include "settings.h"
+
+extern Settings *settings;
 
 QueueItemDelegate::QueueItemDelegate(QObject *parent) :
     QItemDelegate(parent)
@@ -28,19 +31,21 @@ QueueItemDelegate::QueueItemDelegate(QObject *parent) :
 
 void QueueItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    int topPad = (option.rect.height() - 16) / 2;
-    int leftPad = (option.rect.width() - 16) / 2;
-
-    if (option.state & QStyle::State_Selected)
-        painter->fillRect(option.rect, option.palette.highlight());
-
-    if (index.sibling(index.row(), 8).data().toBool())
+    QSize sbSize(QFontMetrics(settings->applicationFont()).height(), QFontMetrics(settings->applicationFont()).height());
+    int topPad = (option.rect.height() - sbSize.height()) / 2;
+    int leftPad = (option.rect.width() - sbSize.width()) / 2;
+    if ((index.sibling(index.row(), 8).data().toBool()) && (index.column() != 7) && (index.column() != 8))
     {
         if (option.state & QStyle::State_Selected)
             painter->fillRect(option.rect, option.palette.highlight());
         else
-            painter->fillRect(option.rect, QColor("darkGrey"));
+        {
+            if (settings->theme() != 1)
+                painter->fillRect(option.rect, QColor("darkGrey"));
+        }
     }
+    if (option.state & QStyle::State_Selected)
+        painter->fillRect(option.rect, option.palette.highlight());
     if (index.column() == 7)
     {
         QString displayText = index.data().toString();
@@ -57,12 +62,23 @@ void QueueItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
     }
     if (index.column() == 8)
     {
-        painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, 16, 16), QImage(":/icons/Icons/edit-delete.png"));
+        painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QImage(":/icons/Icons/edit-delete.png").scaled(sbSize));
+        return;
+    }
+    if ((index.column() == 5) && (index.data().toString() == "!!DROPPED!!"))
+    {
         return;
     }
     painter->save();
     if (option.state & QStyle::State_Selected)
         painter->setPen(option.palette.highlightedText().color());
+    if (index.sibling(index.row(), 8).data().toBool() && settings->theme() == 1)
+    {
+        painter->setPen("darkGrey");
+        QFont font = painter->font();
+        font.setStrikeOut(true);
+        painter->setFont(font);
+    }
     painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + index.data().toString());
     painter->restore();
 }

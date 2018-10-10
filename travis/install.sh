@@ -48,9 +48,9 @@ if [ -d "/Library/Frameworks/GStreamer.framework" ]; then
 else
   echo "gstreamer install"
   echo "Downloading gstreamer runtime package"
-  wget -c --no-check-certificate -nv -Ogstreamer.pkg https://cloud.hm.hozed.net/index.php/s/MmEJPabg9FPnuCL/download
+  wget -c --no-check-certificate -nv -Ogstreamer.pkg https://storage.googleapis.com/okj-installer-deps/gstreamer-1.0-1.11.2-x86_64.pkg 
   echo "Downloading gstreamer devel package"
-  wget -c --no-check-certificate -nv -Ogstreamer-dev.pkg https://cloud.hm.hozed.net/index.php/s/r41LnQOTjf1WG17/download
+  wget -c --no-check-certificate -nv -Ogstreamer-dev.pkg https://storage.googleapis.com/okj-installer-deps/gstreamer-1.0-devel-1.11.2-x86_64.pkg
   echo "Installing gstreamer runtime package"
   sudo installer -package gstreamer.pkg -target /;
   echo "Making a deployment copy of the runtime"

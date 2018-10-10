@@ -21,6 +21,7 @@
 #include "queuemodel.h"
 #include <QSqlQuery>
 #include <QDebug>
+#include <QUrl>
 
 QueueModel::QueueModel(QObject *parent, QSqlDatabase db) :
     QSqlRelationalTableModel(parent, db)
@@ -206,6 +207,27 @@ bool QueueModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int 
         songid = QString(bytedata.data()).toInt();
         songInsert(songid, droprow);
     }
+    else if (data->hasFormat("text/uri-list"))
+    {
+        QString dataIn = data->data("text/urilist");
+        QList<QUrl> items = data->urls();
+        if (items.size() > 0)
+        {
+            unsigned int droprow;
+            if (parent.row() >= 0)
+                droprow = parent.row();
+            else if (row >= 0)
+                droprow = row;
+            else
+                droprow = rowCount();
+            emit filesDroppedOnSinger(items, m_singerId, droprow);
+        }
+    }
+    else
+    {
+
+        qWarning() << data->data("text/plain");
+    }
     return false;
 }
 
@@ -215,9 +237,9 @@ bool QueueModel::canDropMimeData(const QMimeData *data, Qt::DropAction action, i
     Q_UNUSED(row);
     Q_UNUSED(column);
     Q_UNUSED(parent);
-    if ((data->hasFormat("integer/songid")) || (data->hasFormat("integer/queuepos")))
+    if ((data->hasFormat("integer/songid")) || (data->hasFormat("integer/queuepos")) || data->hasFormat("text/plain") || data->hasFormat("text/uri-list"))
         return true;
-
+    qWarning() << "Unknown data type dropped on queue: " << data->formats();
     return false;
 }
 
@@ -262,7 +284,7 @@ void QueueModel::sort(int column, Qt::SortOrder order)
     QString orderByClause;
     QString artistOrder = "ASC";
     QString titleOrder = "ASC";
-    QString discIdOrder = "ASC";
+    QString songIdOrder = "ASC";
     QString sortField = "artist";
     switch (column) {
     case 3:
@@ -270,7 +292,7 @@ void QueueModel::sort(int column, Qt::SortOrder order)
             artistOrder = "ASC";
         else
             artistOrder = "DESC";
-        orderByClause = " ORDER BY dbsongs.artist " + artistOrder + ", dbsongs.title " + titleOrder + ", dbsongs.discid " + discIdOrder;
+        orderByClause = " ORDER BY dbsongs.artist " + artistOrder + ", dbsongs.title " + titleOrder + ", dbsongs.discid " + songIdOrder;
         break;
     case 4:
         sortField = "title";
@@ -278,15 +300,15 @@ void QueueModel::sort(int column, Qt::SortOrder order)
             titleOrder = "ASC";
         else
             titleOrder = "DESC";
-        orderByClause = " ORDER BY dbsongs.title " + titleOrder + ", dbsongs.artist " + artistOrder + ", dbsongs.discid " + discIdOrder;
+        orderByClause = " ORDER BY dbsongs.title " + titleOrder + ", dbsongs.artist " + artistOrder + ", dbsongs.discid " + songIdOrder;
         break;
     case 5:
         sortField = "discid";
         if (order == Qt::AscendingOrder)
-            discIdOrder = "ASC";
+            songIdOrder = "ASC";
         else
-            discIdOrder = "DESC";
-        orderByClause = " ORDER BY dbsongs.discid " + discIdOrder + ", dbsongs.artist " + artistOrder + ", dbsongs.title " + titleOrder;
+            songIdOrder = "DESC";
+        orderByClause = " ORDER BY dbsongs.discid " + songIdOrder + ", dbsongs.artist " + artistOrder + ", dbsongs.title " + titleOrder;
         break;
     default:
         return;
@@ -311,4 +333,12 @@ void QueueModel::sort(int column, Qt::SortOrder order)
 QString QueueModel::orderByClause() const
 {
     return "ORDER BY position";
+}
+
+
+QVariant QueueModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (section == 5 && role == Qt::DisplayRole)
+        return "SongID";
+    return QSqlRelationalTableModel::headerData(section, orientation, role);
 }
