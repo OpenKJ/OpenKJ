@@ -29,6 +29,8 @@
 #include "simplecrypt.h"
 #include <QStandardPaths>
 #include <QDir>
+#include <QDataStream>
+
 
 qint64 Settings::hash(const QString &str)
 {
@@ -205,6 +207,7 @@ QString Settings::karoakeDotNetPass(QString password)
 Settings::Settings(QObject *parent) :
     QObject(parent)
 {
+
     QCoreApplication::setOrganizationName("OpenKJ");
     QCoreApplication::setOrganizationDomain("OpenKJ.org");
     QCoreApplication::setApplicationName("OpenKJ");
@@ -1413,7 +1416,30 @@ bool Settings::directoryWatchEnabled()
     return settings->value("directoryWatchEnabled", false).toBool();
 }
 
+SfxEntryList Settings::getSfxEntries()
+{
+    SfxEntryList list = settings->value("sfxEntries", QVariant::fromValue(SfxEntryList())).value<SfxEntryList>();
+    return list;
+}
+
+void Settings::addSfxEntry(SfxEntry entry)
+{
+    SfxEntryList list = getSfxEntries();
+    list.append(entry);
+    setSfxEntries(list);
+}
+
+void Settings::setSfxEntries(SfxEntryList entries)
+{
+    settings->setValue("sfxEntries", QVariant::fromValue(entries));
+}
+
 void Settings::setBmKCrossfade(bool enabled)
 {
     settings->setValue("bmKCrossFade", enabled);
+}
+
+SfxEntry::SfxEntry()
+{
+
 }

@@ -101,6 +101,7 @@ private:
     DlgSongShop *dlgSongShop;
     //DlgCdgPreview *cdgPreviewDialog;
     AbstractAudioBackend *kAudioBackend;
+    AbstractAudioBackend *sfxAudioBackend;
 //    KhAudioBackends *audioBackends;
 //    KhAudioRecorder *audioRecorder;
     AudioRecorder *audioRecorder;
@@ -154,6 +155,9 @@ private:
     QShortcut *scutSearch;
     QShortcut *scutRegulars;
     QShortcut *scutRequests;
+    void addSfxButton(QString filename, QString label, bool reset = false);
+    void refreshSfxButtons();
+    SfxEntry lastRtClickedSfxBtn;
 
 
 public:
@@ -191,6 +195,9 @@ private slots:
     void audioBackend_positionChanged(qint64 position);
     void audioBackend_durationChanged(qint64 duration);
     void audioBackend_stateChanged(AbstractAudioBackend::State state);
+    void sfxAudioBackend_positionChanged(qint64 position);
+    void sfxAudioBackend_durationChanged(qint64 duration);
+    void sfxAudioBackend_stateChanged(AbstractAudioBackend::State state);
     void on_sliderProgress_sliderMoved(int position);
     void on_buttonRegulars_clicked();
     void rotationDataChanged();
@@ -199,6 +206,7 @@ private slots:
     void audioBackendChanged(int index);
     void on_tableViewDB_customContextMenuRequested(const QPoint &pos);
     void on_tableViewRotation_customContextMenuRequested(const QPoint &pos);
+    void sfxButton_customContextMenuRequested(const QPoint &pos);
     void renameSinger();
     void on_tableViewQueue_customContextMenuRequested(const QPoint &pos);
     void on_sliderProgress_sliderPressed();
@@ -275,6 +283,12 @@ private slots:
     void on_sliderBmPosition_sliderPressed();
 
     void on_sliderBmPosition_sliderReleased();
+    void sfxButtonPressed();
+
+    void on_btnAddSfx_clicked();
+
+    void on_btnSfxStop_clicked();
+    void removeSfxButton();
 
 protected:
     void closeEvent(QCloseEvent *event);
