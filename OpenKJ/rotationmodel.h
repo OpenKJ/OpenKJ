@@ -56,12 +56,13 @@ public:
     int getSingerId(QString name);
     QString getRegSingerId(QString name);
     int getSingerPosition(int singerId);
-    int singerIdAtPosition(int position);
+    int singerIdAtPosition(int position) const;
     QStringList singers();
     QStringList regulars();
     QString nextSongPath(int singerId);
     QString nextSongArtist(int singerId);
     QString nextSongTitle(int singerId);
+    int nextSongDurationSecs(int singerId) const;
     int nextSongKeyChg(int singerId);
     int nextSongId(int singerId);
     int nextSongQueueId(int singerId);
@@ -78,6 +79,7 @@ public:
     int numSongs(int singerId);
     int numSongsSung(int singerId) const;
     int numSongsUnsung(int singerId) const;
+    int timeAdded(int singerId) const;
 
 signals:
     void songDroppedOnSinger(int singerId, int songId, int dropRow);

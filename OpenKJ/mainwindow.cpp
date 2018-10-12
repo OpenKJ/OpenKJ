@@ -214,6 +214,12 @@ MainWindow::MainWindow(QWidget *parent) :
         query.exec("UPDATE dbsongs SET searchstring = filename || ' ' || artist || ' ' || title || ' ' || discid");
         query.exec("PRAGMA user_version = 103");
     }
+    if (schemaVersion < 105)
+    {
+        qWarning() << "Updating database schema to version 104";
+        query.exec("ALTER TABLE rotationSingers ADD COLUMN addts TIMESTAMP");
+        query.exec("PRAGMA user_version = 105");
+    }
 
 //    query.exec("ATTACH DATABASE ':memory:' AS mem");
 //    query.exec("CREATE TABLE mem.dbsongs AS SELECT * FROM main.dbsongs");
