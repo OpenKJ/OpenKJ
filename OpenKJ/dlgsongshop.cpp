@@ -47,7 +47,7 @@ void DlgSongShop::on_btnPurchase_clicked()
     dlgPurchase->setSongId(idx.data(Qt::UserRole).toString());
     dlgPurchase->setArtist(idx.sibling(idx.row(), 0).data().toString());
     dlgPurchase->setTitle(idx.sibling(idx.row(), 1).data().toString());
-    dlgPurchase->setPrice(idx.sibling(idx.row(), 4).data().toString());
+    dlgPurchase->setPrice(idx.sibling(idx.row(), 5).data().toString());
     dlgPurchase->doAuth();
     dlgPurchase->show();
 }

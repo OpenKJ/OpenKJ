@@ -180,7 +180,7 @@ void SongShop::onNetworkReply(QNetworkReply *reply)
         qWarning()  <<  json.object().value("download_links").toArray();
         qWarning() << "Downloading";
         QString fileExt = ".mp4";
-        if (url.contains(".zip"))
+        if (url.contains("mp3g"))
             fileExt = ".zip";
         downloadFile(url, QString(dlSongId + " - " + dlArtist + " - " + dlTitle + fileExt));
         qWarning() << "Done";
