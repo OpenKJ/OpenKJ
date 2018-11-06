@@ -16,6 +16,7 @@ public:
     QString singer;
     QString artist;
     QString title;
+    int key;
     int time;
     bool operator == (const OkjsRequest r) const;
 };

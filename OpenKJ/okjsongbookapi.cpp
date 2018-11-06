@@ -367,6 +367,7 @@ void OKJSongbookAPI::onNetworkReply(QNetworkReply *reply)
             request.title = jsonObject.value("title").toString();
             request.singer = jsonObject.value("singer").toString();
             request.time = jsonObject.value("request_time").toInt();
+            request.key = jsonObject.value("key_change").toInt();
             l_requests.append(request);
         }
         if (requests != l_requests)

@@ -44,7 +44,8 @@ void RequestsTableModel::requestsChanged(OkjsRequests requests)
         QString artist = requests.at(i).artist;
         QString title = requests.at(i).title;
         int reqtime = requests.at(i).time;
-        m_requests << Request(index,singer,artist,title,reqtime);
+        int key = requests.at(i).key;
+        m_requests << Request(index,singer,artist,title,reqtime,key);
     }
     emit layoutChanged();
 }
@@ -58,7 +59,7 @@ int RequestsTableModel::rowCount(const QModelIndex &parent) const
 int RequestsTableModel::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    return 5;
+    return 6;
 }
 
 QVariant RequestsTableModel::data(const QModelIndex &index, int role) const
@@ -70,7 +71,7 @@ QVariant RequestsTableModel::data(const QModelIndex &index, int role) const
 
     if(index.row() >= m_requests.size() || index.row() < 0)
         return QVariant();
-    if ((index.column() == 4) && (role == Qt::DecorationRole))
+    if ((index.column() == 5) && (role == Qt::DecorationRole))
     {
         QPixmap icon(":/icons/Icons/edit-delete.png");
         return icon.scaled(sbSize);
@@ -85,6 +86,13 @@ QVariant RequestsTableModel::data(const QModelIndex &index, int role) const
             return m_requests.at(index.row()).artist();
         case TITLE:
             return m_requests.at(index.row()).title();
+        case KEYCHG:
+            if (m_requests.at(index.row()).key() == 0)
+                return "";
+            else if (m_requests.at(index.row()).key() > 0)
+                return "+" + QString::number(m_requests.at(index.row()).key());
+            else
+                return QString::number(m_requests.at(index.row()).key());
         case TIMESTAMP:
             QDateTime ts;
             ts.setTime_t(m_requests.at(index.row()).timeStamp());
@@ -108,6 +116,8 @@ QVariant RequestsTableModel::headerData(int section, Qt::Orientation orientation
             return "Artist";
         case TITLE:
             return "Title";
+        case KEYCHG:
+            return "Key";
         case TIMESTAMP:
             return "Received";
         }
@@ -126,13 +136,24 @@ int RequestsTableModel::count()
     return m_requests.count();
 }
 
-Request::Request(int RequestId, QString Singer, QString Artist, QString Title, int ts)
+int Request::key() const
+{
+    return m_key;
+}
+
+void Request::setKey(int key)
+{
+    m_key = key;
+}
+
+Request::Request(int RequestId, QString Singer, QString Artist, QString Title, int ts, int key)
 {
     m_requestId = RequestId;
     m_singer = Singer;
     m_artist = Artist;
     m_title = Title;
     m_timeStamp = ts;
+    m_key = key;
 }
 
 int Request::requestId() const

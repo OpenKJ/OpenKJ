@@ -263,7 +263,7 @@ Qt::ItemFlags QueueModel::flags(const QModelIndex &index) const
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | Qt::ItemIsEditable;
 }
 
-void QueueModel::songAdd(int songId, int singerId)
+void QueueModel::songAdd(int songId, int singerId, int keyChg)
 {
     QSqlQuery query;
     QString songIdStr = QString::number(songId);
@@ -272,7 +272,7 @@ void QueueModel::songAdd(int songId, int singerId)
     if (query.first())
         newPos = query.value(0).toInt();
     QString positionStr = QString::number(newPos);
-    query.exec("INSERT INTO queueSongs (singer,song,artist,title,discid,path,keychg,played,position) VALUES(" + QString::number(singerId) + "," + songIdStr + "," + songIdStr + "," + songIdStr + "," + songIdStr + "," + songIdStr + ",0,0," + positionStr + ")");
+    query.exec("INSERT INTO queueSongs (singer,song,artist,title,discid,path,keychg,played,position) VALUES(" + QString::number(singerId) + "," + songIdStr + "," + songIdStr + "," + songIdStr + "," + songIdStr + "," + songIdStr + "," + QString::number(keyChg) + ",0," + positionStr + ")");
     select();
     emit queueModified(singer());
 }

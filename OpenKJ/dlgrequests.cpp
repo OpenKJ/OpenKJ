@@ -92,6 +92,8 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     ui->pushButtonClearReqs->resize(mcbSize);
     ui->pushButtonClearReqs->setIcon(QIcon(QPixmap(":/icons/Icons/edit-clear.png").scaled(mcbSize)));
     ui->pushButtonClearReqs->setIconSize(mcbSize);
+    ui->spinBoxKey->setMaximum(12);
+    ui->spinBoxKey->setMinimum(-12);
     autoSizeViews();
 
 
@@ -184,6 +186,7 @@ void DlgRequests::requestSelectionChanged(const QItemSelection &current, const Q
         dbModel->search("yeahjustsomethingitllneverfind.imlazylikethat");
         ui->groupBoxSongDb->setDisabled(true);
         ui->comboBoxSingers->setCurrentIndex(0);
+        ui->spinBoxKey->setValue(0);
         curSelReqSinger = "";
         return;
     }
@@ -204,6 +207,7 @@ void DlgRequests::requestSelectionChanged(const QItemSelection &current, const Q
         ui->lineEditSearch->setText(filterStr);
         //ui->lineEditSingerName->setText(singerName);
         ui->lineEditSingerName->setText(toMixedCase(singerName));
+        ui->spinBoxKey->setValue(requestsModel->requests().at(index.row()).key());
 
         int s = -1;
         for (int i=0; i < singers.size(); i++)
@@ -278,6 +282,7 @@ void DlgRequests::on_tableViewRequests_clicked(const QModelIndex &index)
         ui->lineEditSearch->clear();
         ui->lineEditSingerName->clear();
         ui->comboBoxSingers->clear();
+        ui->spinBoxKey->setValue(0);
         ui->radioButtonExistingSinger->setChecked(true);
     }
     else
@@ -294,7 +299,9 @@ void DlgRequests::on_pushButtonAddSong_clicked()
         return;
 
     QModelIndex index = ui->tableViewSearch->selectionModel()->selectedIndexes().at(0);
+    QModelIndex rIndex = ui->tableViewRequests->selectionModel()->selectedIndexes().at(0);
     int songid = index.sibling(index.row(),0).data().toInt();
+    int keyChg = requestsModel->requests().at(rIndex.row()).key();
     if (ui->radioButtonNewSinger->isChecked())
     {
         if (ui->lineEditSingerName->text() == "")
@@ -312,12 +319,12 @@ void DlgRequests::on_pushButtonAddSong_clicked()
                 else if ((ui->comboBoxAddPosition->currentIndex() == 1) && (curSingerPos != 0))
                     rotModel->singerMove(rotModel->rowCount() -1, curSingerPos);
             }
-            emit addRequestSong(songid, rotModel->getSingerId(ui->lineEditSingerName->text()));
+            emit addRequestSong(songid, rotModel->getSingerId(ui->lineEditSingerName->text()), keyChg);
         }
     }
     else if (ui->radioButtonExistingSinger->isChecked())
     {
-        emit addRequestSong(songid, rotModel->getSingerId(ui->comboBoxSingers->currentText()));
+        emit addRequestSong(songid, rotModel->getSingerId(ui->comboBoxSingers->currentText()), keyChg);
     }
     if (settings->requestRemoveOnRotAdd())
     {
@@ -398,7 +405,7 @@ void DlgRequests::on_pushButtonUpdateDb_clicked()
     if (ret == QMessageBox::Yes)
     {
         QProgressDialog *progressDialog = new QProgressDialog(this);
-        progressDialog->setCancelButton(0);
+        progressDialog->setCancelButton(nullptr);
         progressDialog->setMinimum(0);
         progressDialog->setMaximum(20);
         progressDialog->setValue(0);
@@ -469,19 +476,21 @@ void DlgRequests::autoSizeViews()
     ui->tableViewSearch->horizontalHeader()->resizeSection(3, songidColSize);
 
     int tsWidth = QFontMetrics(settings->applicationFont()).width(" 00/00/00 00:00 xx ");
+    int keyWidth = QFontMetrics(settings->applicationFont()).width("_Key_");
     qWarning() << "tsWidth = " << tsWidth;
     int delwidth = fH * 2;
     int singerColSize = QFontMetrics(settings->applicationFont()).width("_Isaac_Lightburn_");
     qWarning() << "singerColSize = " << singerColSize;
-    remainingSpace = ui->tableViewRequests->width() - tsWidth - delwidth - singerColSize - 6;
+    remainingSpace = ui->tableViewRequests->width() - tsWidth - delwidth - singerColSize - keyWidth - 6;
     artistColSize = remainingSpace / 2;
     titleColSize = remainingSpace / 2;
     ui->tableViewRequests->horizontalHeader()->resizeSection(0, singerColSize);
     ui->tableViewRequests->horizontalHeader()->resizeSection(1, artistColSize);
     ui->tableViewRequests->horizontalHeader()->resizeSection(2, titleColSize);
     ui->tableViewRequests->horizontalHeader()->resizeSection(3, tsWidth);
-    ui->tableViewRequests->horizontalHeader()->resizeSection(4, delwidth);
-    ui->tableViewRequests->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Fixed);
+    ui->tableViewRequests->horizontalHeader()->resizeSection(4, keyWidth);
+    ui->tableViewRequests->horizontalHeader()->resizeSection(5, delwidth);
+    ui->tableViewRequests->horizontalHeader()->setSectionResizeMode(5, QHeaderView::Fixed);
 }
 
 
@@ -496,4 +505,12 @@ void DlgRequests::showEvent(QShowEvent *event)
 {
     QDialog::showEvent(event);
     autoSizeViews();
+}
+
+void DlgRequests::on_spinBoxKey_valueChanged(int arg1)
+{
+    if (arg1 > 0)
+        ui->spinBoxKey->setPrefix("+");
+    else
+        ui->spinBoxKey->setPrefix("");
 }

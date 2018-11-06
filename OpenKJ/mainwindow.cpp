@@ -322,7 +322,7 @@ MainWindow::MainWindow(QWidget *parent) :
     kAudioBackend->setDownmix(settings->audioDownmix());
     bmAudioBackend->setDownmix(settings->audioDownmixBm());
     connect(qModel, SIGNAL(queueModified(int)), rotModel, SLOT(queueModified(int)));
-    connect(requestsDialog, SIGNAL(addRequestSong(int,int)), qModel, SLOT(songAdd(int,int)));
+    connect(requestsDialog, SIGNAL(addRequestSong(int,int,int)), qModel, SLOT(songAdd(int,int,int)));
     connect(settings, SIGNAL(tickerCustomStringChanged()), this, SLOT(rotationDataChanged()));
     qWarning() << "Setting backgrounds on CDG displays";
     ui->cdgVideoWidget->setKeepAspect(true);
@@ -1499,6 +1499,7 @@ void MainWindow::on_tableViewRotation_customContextMenuRequested(const QPoint &p
 
 void MainWindow::sfxButton_customContextMenuRequested(const QPoint &pos)
 {
+    Q_UNUSED(pos);
     SoundFxButton *btn = (SoundFxButton*)sender();
     lastRtClickedSfxBtn.path = btn->buttonData().toString();
     lastRtClickedSfxBtn.name = btn->text();
