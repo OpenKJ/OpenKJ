@@ -405,7 +405,7 @@ void DlgRequests::on_pushButtonUpdateDb_clicked()
     if (ret == QMessageBox::Yes)
     {
         QProgressDialog *progressDialog = new QProgressDialog(this);
-        progressDialog->setCancelButton(nullptr);
+        progressDialog->setCancelButton(0);
         progressDialog->setMinimum(0);
         progressDialog->setMaximum(20);
         progressDialog->setValue(0);

@@ -60,7 +60,7 @@ private:
     QList<Request> m_requests;
 
 public:
-    explicit RequestsTableModel(QObject *parent = nullptr);
+    explicit RequestsTableModel(QObject *parent = 0);
     enum {SINGER=0,ARTIST,TITLE,TIMESTAMP,KEYCHG};
     int count();
     int rowCount(const QModelIndex &parent) const;
