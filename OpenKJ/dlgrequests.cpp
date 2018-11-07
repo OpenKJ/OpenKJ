@@ -275,7 +275,7 @@ void DlgRequests::on_pushButtonClearReqs_clicked()
 
 void DlgRequests::on_tableViewRequests_clicked(const QModelIndex &index)
 {
-    if (index.column() == 4)
+    if (index.column() == 5)
     {
         songbookApi->removeRequest(index.data(Qt::UserRole).toInt());
         ui->tableViewRequests->selectionModel()->clearSelection();
@@ -481,7 +481,7 @@ void DlgRequests::autoSizeViews()
     int delwidth = fH * 2;
     int singerColSize = QFontMetrics(settings->applicationFont()).width("_Isaac_Lightburn_");
     qWarning() << "singerColSize = " << singerColSize;
-    remainingSpace = ui->tableViewRequests->width() - tsWidth - delwidth - singerColSize - keyWidth - 6;
+    remainingSpace = ui->tableViewRequests->width() - tsWidth - delwidth - singerColSize - keyWidth - 10;
     artistColSize = remainingSpace / 2;
     titleColSize = remainingSpace / 2;
     ui->tableViewRequests->horizontalHeader()->resizeSection(0, singerColSize);

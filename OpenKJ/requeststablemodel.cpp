@@ -76,6 +76,14 @@ QVariant RequestsTableModel::data(const QModelIndex &index, int role) const
         QPixmap icon(":/icons/Icons/edit-delete.png");
         return icon.scaled(sbSize);
     }
+    if (role == Qt::TextAlignmentRole)
+        switch(index.column())
+        {
+        case KEYCHG:
+            return Qt::AlignCenter;
+        default:
+            return Qt::AlignLeft;
+        }
     if(role == Qt::DisplayRole)
     {
         switch(index.column())
