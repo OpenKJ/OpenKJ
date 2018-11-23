@@ -34,6 +34,7 @@ OKJSongbookAPI::OKJSongbookAPI(QObject *parent) : QObject(parent)
     if (settings->requestServerEnabled())
         refreshVenues();
     timer->start();
+    alertCheck();
 }
 
 void OKJSongbookAPI::getSerial()
@@ -87,6 +88,7 @@ bool OKJSongbookAPI::getAccepting()
 
 void OKJSongbookAPI::setAccepting(bool enabled)
 {
+    alertCheck();
     QJsonObject mainObject;
     mainObject.insert("api_key", settings->requestServerApiKey());
     mainObject.insert("command","setAccepting");
@@ -136,12 +138,12 @@ void OKJSongbookAPI::updateSongDb()
     QList<QJsonDocument> jsonDocs;
     QSqlQuery query;
     int numEntries = 0;
-    if (query.exec("SELECT COUNT(DISTINCT artist||title) FROM dbsongs"))
+    if (query.exec("SELECT COUNT(DISTINCT artist||title) FROM dbsongs WHERE discid != '!!DROPPED!! AND discid != '!!BAD!!'"))
     {
         if (query.next())
             numEntries = query.value(0).toInt();
     }
-    if (query.exec("SELECT DISTINCT artist,title FROM dbsongs ORDER BY artist ASC, title ASC"))
+    if (query.exec("SELECT DISTINCT artist,title FROM dbsongs WHERE discid != '!!DROPPED!! AND discid != '!!BAD!!' ORDER BY artist ASC, title ASC"))
     {
         bool done = false;
         qWarning() << "Number of results: " << numEntries;
@@ -253,6 +255,18 @@ bool OKJSongbookAPI::test()
     return false;
 }
 
+void OKJSongbookAPI::alertCheck()
+{
+    QJsonObject mainObject;
+    mainObject.insert("api_key", settings->requestServerApiKey());
+    mainObject.insert("command","getAlert");
+    QJsonDocument jsonDocument;
+    jsonDocument.setObject(mainObject);
+    QNetworkRequest request(QUrl(settings->requestServerUrl()));
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    manager->post(request, jsonDocument.toJson());
+}
+
 void OKJSongbookAPI::onSslErrors(QNetworkReply *reply, QList<QSslError> errors)
 {
     Q_UNUSED(errors)
@@ -304,6 +318,15 @@ void OKJSongbookAPI::onNetworkReply(QNetworkReply *reply)
         qWarning() << "Got error json reply";
         qWarning() << "Error string: " << json.object().value("errorString");
         return;
+    }
+    if (command == "getAlert")
+    {
+        if(json.object().value("alert").toBool())
+        {
+            emit alertRecieved(json.object().value("title").toString(), json.object().value("message").toString());
+            venues.clear();
+            refreshVenues();
+        }
     }
     if (command == "getSerial")
     {

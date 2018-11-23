@@ -62,6 +62,7 @@ public:
     void clearRequests();
     void updateSongDb();
     bool test();
+    void alertCheck();
 
 signals:
     void venuesChanged(OkjsVenues);
@@ -76,6 +77,7 @@ signals:
     void testPassed();
     void testFailed(QString error);
     void testSslError(QString error);
+    void alertRecieved(QString title, QString message);
 
 
 public slots:
