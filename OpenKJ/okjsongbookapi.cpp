@@ -138,12 +138,12 @@ void OKJSongbookAPI::updateSongDb()
     QList<QJsonDocument> jsonDocs;
     QSqlQuery query;
     int numEntries = 0;
-    if (query.exec("SELECT COUNT(DISTINCT artist||title) FROM dbsongs WHERE discid != '!!DROPPED!! AND discid != '!!BAD!!'"))
+    if (query.exec("SELECT COUNT(DISTINCT artist||title) FROM dbsongs WHERE discid != '!!DROPPED!!' AND discid != '!!BAD!!'"))
     {
         if (query.next())
             numEntries = query.value(0).toInt();
     }
-    if (query.exec("SELECT DISTINCT artist,title FROM dbsongs WHERE discid != '!!DROPPED!! AND discid != '!!BAD!!' ORDER BY artist ASC, title ASC"))
+    if (query.exec("SELECT DISTINCT artist,title FROM dbsongs WHERE discid != '!!DROPPED!!' AND discid != '!!BAD!!' ORDER BY artist ASC, title ASC"))
     {
         bool done = false;
         qWarning() << "Number of results: " << numEntries;
@@ -190,6 +190,7 @@ void OKJSongbookAPI::updateSongDb()
         QNetworkReply *reply = manager->post(request, jsonDocument.toJson());
         while (!reply->isFinished())
             QApplication::processEvents();
+        qWarning() << reply->readAll();
         for (int i=0; i < jsonDocs.size(); i++)
         {
             QApplication::processEvents();
