@@ -28,6 +28,22 @@
 #include <QTableView>
 #include <QTreeView>
 #include <QWidget>
+#include <QMetaType>
+
+struct SfxEntry
+{
+    SfxEntry();
+    QString name;
+    QString path;
+
+
+}; Q_DECLARE_METATYPE(SfxEntry)
+
+
+
+typedef QList<SfxEntry> SfxEntryList;
+
+Q_DECLARE_METATYPE(QList<SfxEntry>)
 
 class Settings : public QObject
 {
@@ -229,6 +245,9 @@ public:
     int updatesBranch();
     int theme();
     bool directoryWatchEnabled();
+    SfxEntryList getSfxEntries();
+    void addSfxEntry(SfxEntry entry);
+    void setSfxEntries(SfxEntryList entries);
 
 signals:
     void applicationFontChanged(QFont font);

@@ -41,9 +41,13 @@
 #include "okjversion.h"
 #include "dlgeditsong.h"
 #include <QKeySequence>
+#include "soundfxbutton.h"
 
 Settings *settings;
 OKJSongbookAPI *songbookApi;
+
+
+
 
 QString MainWindow::GetRandomString() const
 {
@@ -58,6 +62,51 @@ QString MainWindow::GetRandomString() const
        randomString.append(nextChar);
    }
    return randomString;
+}
+
+void MainWindow::addSfxButton(QString filename, QString label, bool reset)
+{
+    static int numButtons = 0;
+    if (reset)
+        numButtons = 0;
+    //numButtons = ui->sfxButtonGrid->children().count();
+    qWarning() << "sfxButtonGrid contains " << numButtons << " children";
+    int col = 0;
+    if (numButtons % 2)
+    {
+        col = 1;
+    }
+    int row = numButtons / 2;
+    qWarning() << "Adding button " << label << "at row: " << row << " col: " << col;
+    SoundFxButton* button = new SoundFxButton();
+    button->setButtonData(filename);
+    button->setText(label);
+    ui->sfxButtonGrid->addWidget(button,row,col);
+    connect(button, SIGNAL(clicked(bool)), this, SLOT(sfxButtonPressed()));
+    connect(button, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(sfxButton_customContextMenuRequested(QPoint)));
+    numButtons++;
+}
+
+void MainWindow::refreshSfxButtons()
+{
+    QLayoutItem* item;
+    while ( ( item = ui->sfxButtonGrid->takeAt( 0 ) ) != NULL )
+    {
+        delete item->widget();
+        delete item;
+    }
+    SfxEntryList list = settings->getSfxEntries();
+    bool first = true;
+    qWarning() << "SfxEntryList size: " << list.size();
+    foreach (SfxEntry entry, list) {
+        if (first)
+        {
+            first = false;
+            addSfxButton(entry.path, entry.name, true);
+            continue;
+        }
+        addSfxButton(entry.path, entry.name);
+    }
 }
 
 
@@ -165,6 +214,12 @@ MainWindow::MainWindow(QWidget *parent) :
         query.exec("UPDATE dbsongs SET searchstring = filename || ' ' || artist || ' ' || title || ' ' || discid");
         query.exec("PRAGMA user_version = 103");
     }
+    if (schemaVersion < 105)
+    {
+        qWarning() << "Updating database schema to version 104";
+        query.exec("ALTER TABLE rotationSingers ADD COLUMN addts TIMESTAMP");
+        query.exec("PRAGMA user_version = 105");
+    }
 
 //    query.exec("ATTACH DATABASE ':memory:' AS mem");
 //    query.exec("CREATE TABLE mem.dbsongs AS SELECT * FROM main.dbsongs");
@@ -223,6 +278,7 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->spinBoxTempo->hide();
         ui->lblTempo->hide();
     }
+    sfxAudioBackend = new AudioBackendGstreamer(false, this, "SFX");
     qWarning() << "Creating audio recorder object";
     audioRecorder = new AudioRecorder(this);
     qWarning() << "Creating settings dialog";
@@ -241,6 +297,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(kAudioBackend, SIGNAL(durationChanged(qint64)), this, SLOT(audioBackend_durationChanged(qint64)));
     connect(kAudioBackend, SIGNAL(stateChanged(AbstractAudioBackend::State)), this, SLOT(audioBackend_stateChanged(AbstractAudioBackend::State)));
     connect(kAudioBackend, SIGNAL(pitchChanged(int)), ui->spinBoxKey, SLOT(setValue(int)));
+    connect(sfxAudioBackend, SIGNAL(positionChanged(qint64)), this, SLOT(sfxAudioBackend_positionChanged(qint64)));
+    connect(sfxAudioBackend, SIGNAL(durationChanged(qint64)), this, SLOT(sfxAudioBackend_durationChanged(qint64)));
+    connect(sfxAudioBackend, SIGNAL(stateChanged(AbstractAudioBackend::State)), this, SLOT(sfxAudioBackend_stateChanged(AbstractAudioBackend::State)));
     connect(rotModel, SIGNAL(rotationModified()), this, SLOT(rotationDataChanged()));
     connect(settings, SIGNAL(tickerOutputModeChanged()), this, SLOT(rotationDataChanged()));
     connect(settings, SIGNAL(audioBackendChanged(int)), this, SLOT(audioBackendChanged(int)));
@@ -263,7 +322,7 @@ MainWindow::MainWindow(QWidget *parent) :
     kAudioBackend->setDownmix(settings->audioDownmix());
     bmAudioBackend->setDownmix(settings->audioDownmixBm());
     connect(qModel, SIGNAL(queueModified(int)), rotModel, SLOT(queueModified(int)));
-    connect(requestsDialog, SIGNAL(addRequestSong(int,int)), qModel, SLOT(songAdd(int,int)));
+    connect(requestsDialog, SIGNAL(addRequestSong(int,int,int)), qModel, SLOT(songAdd(int,int,int)));
     connect(settings, SIGNAL(tickerCustomStringChanged()), this, SLOT(rotationDataChanged()));
     qWarning() << "Setting backgrounds on CDG displays";
     ui->cdgVideoWidget->setKeepAspect(true);
@@ -530,6 +589,17 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(scutRegulars, SIGNAL(activated()), this, SLOT(on_buttonRegulars_clicked()));
     connect(scutRequests, SIGNAL(activated()), this, SLOT(on_pushButtonIncomingRequests_clicked()));
     connect(bmPlModel, SIGNAL(bmSongMoved(int,int)), this, SLOT(bmSongMoved(int,int)));
+    connect(songbookApi, SIGNAL(alertRecieved(QString, QString)), this, SLOT(showAlert(QString, QString)));
+//    addSfxButton("some looooong string", "Some Name");
+//    addSfxButton("second string", "Second Button");
+//    addSfxButton("third string", "Third Button");
+//    for (int i=0; i<9; i++)
+//        addSfxButton("Button " + QString::number(i), "Button " + QString::number(i));
+    SfxEntryList list = settings->getSfxEntries();
+    qWarning() << "SfxEntryList size: " << list.size();
+    foreach (SfxEntry entry, list) {
+       addSfxButton(entry.path, entry.name);
+    }
 }
 
 void MainWindow::play(QString karaokeFilePath, bool k2k)
@@ -1251,6 +1321,27 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
     rotationDataChanged();
 }
 
+void MainWindow::sfxAudioBackend_positionChanged(qint64 position)
+{
+    ui->sliderSfxPos->setValue(position);
+}
+
+void MainWindow::sfxAudioBackend_durationChanged(qint64 duration)
+{
+    ui->sliderSfxPos->setMaximum(duration);
+}
+
+void MainWindow::sfxAudioBackend_stateChanged(AbstractAudioBackend::State state)
+{
+    if (state == AbstractAudioBackend::EndOfMediaState)
+    {
+        ui->sliderSfxPos->setValue(0);
+        sfxAudioBackend->stop();
+    }
+    if (state == AbstractAudioBackend::StoppedState || state == AbstractAudioBackend::UnknownState)
+        ui->sliderSfxPos->setValue(0);
+}
+
 void MainWindow::on_sliderProgress_sliderMoved(int position)
 {
     Q_UNUSED(position);
@@ -1404,6 +1495,17 @@ void MainWindow::on_tableViewRotation_customContextMenuRequested(const QPoint &p
            contextMenu.addAction("Rename", this, SLOT(renameSinger()));
            contextMenu.exec(QCursor::pos());
     }
+}
+
+void MainWindow::sfxButton_customContextMenuRequested(const QPoint &pos)
+{
+    Q_UNUSED(pos);
+    SoundFxButton *btn = (SoundFxButton*)sender();
+    lastRtClickedSfxBtn.path = btn->buttonData().toString();
+    lastRtClickedSfxBtn.name = btn->text();
+    QMenu contextMenu(this);
+    contextMenu.addAction("Remove", this, SLOT(removeSfxButton()));
+    contextMenu.exec(QCursor::pos());
 }
 
 void MainWindow::renameSinger()
@@ -2780,4 +2882,60 @@ void MainWindow::on_sliderBmPosition_sliderReleased()
     bmAudioBackend->setPosition(ui->sliderBmPosition->value());
     sliderBmPositionPressed = false;
     qWarning() << "BM slider up.  Position:" << ui->sliderBmPosition->value();
+}
+
+void MainWindow::sfxButtonPressed()
+{
+    SoundFxButton *btn = (SoundFxButton*)sender();
+    qWarning() << "SfxButton pressed: " << btn->buttonData();
+    sfxAudioBackend->setMedia(btn->buttonData().toString());
+    sfxAudioBackend->setVolume(ui->sliderVolume->value());
+    sfxAudioBackend->play();
+}
+
+void MainWindow::on_btnAddSfx_clicked()
+{
+//    QString name = "a button";
+//    QString path = "a path";
+    QString path = QFileDialog::getOpenFileName(this,QString("Select audio file"), QStandardPaths::writableLocation(QStandardPaths::MusicLocation), QString("Audio (*.mp3 *.ogg *.wav *.wma)"));
+    if (path != "")
+    {
+        bool ok;
+        QString name = QInputDialog::getText(this, tr("Button Text"), tr("Enter button text:"), QLineEdit::Normal, QString(), &ok);
+        if (!ok || name.isEmpty())
+            return;
+        SfxEntry entry;
+        entry.name = name;
+        entry.path = path;
+        settings->addSfxEntry(entry);
+        addSfxButton(path, name);
+    }
+
+}
+
+void MainWindow::on_btnSfxStop_clicked()
+{
+    sfxAudioBackend->stop(true);
+}
+
+void MainWindow::removeSfxButton()
+{
+    SfxEntryList entries = settings->getSfxEntries();
+    SfxEntryList newEntries;
+    foreach (SfxEntry entry, entries) {
+       if (entry.name == lastRtClickedSfxBtn.name && entry.path == lastRtClickedSfxBtn.path)
+           continue;
+       newEntries.push_back(entry);
+    }
+    settings->setSfxEntries(newEntries);
+    refreshSfxButtons();
+}
+
+void MainWindow::showAlert(QString title, QString message)
+{
+    QMessageBox msgBox;
+    msgBox.setWindowTitle(title);
+    msgBox.setText(message);
+   // msgBox.setInformativeText(file);
+    msgBox.exec();
 }

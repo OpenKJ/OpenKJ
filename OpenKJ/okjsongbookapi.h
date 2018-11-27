@@ -16,6 +16,7 @@ public:
     QString singer;
     QString artist;
     QString title;
+    int key;
     int time;
     bool operator == (const OkjsRequest r) const;
 };
@@ -46,6 +47,7 @@ private:
     OkjsRequests requests;
     QNetworkAccessManager *manager;
     QTimer *timer;
+    QTimer *alertTimer;
     QTime lastSync;
     bool delayErrorEmitted;
     bool connectionReset;
@@ -61,6 +63,7 @@ public:
     void clearRequests();
     void updateSongDb();
     bool test();
+    void alertCheck();
 
 signals:
     void venuesChanged(OkjsVenues);
@@ -75,6 +78,7 @@ signals:
     void testPassed();
     void testFailed(QString error);
     void testSslError(QString error);
+    void alertRecieved(QString title, QString message);
 
 
 public slots:
@@ -84,6 +88,7 @@ private slots:
         void onTestSslErrors(QNetworkReply * reply, QList<QSslError> errors);
         void onNetworkReply(QNetworkReply* reply);
         void timerTimeout();
+        void alertTimerTimeout();
         void setInterval(int interval);
 };
 

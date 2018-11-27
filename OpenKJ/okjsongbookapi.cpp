@@ -26,13 +26,19 @@ OKJSongbookAPI::OKJSongbookAPI(QObject *parent) : QObject(parent)
     serial = 0;
     timer = new QTimer(this);
     timer->setInterval(settings->requestServerInterval() * 1000);
+    alertTimer = new QTimer(this);
+    alertTimer->start(600000);
     manager = new QNetworkAccessManager(this);
     connect(manager, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(onSslErrors(QNetworkReply*,QList<QSslError>)));
     connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
     connect(timer, SIGNAL(timeout()), this, SLOT(timerTimeout()));
+    connect(alertTimer, SIGNAL(timeout()), this, SLOT(alertTimerTimeout()));
     connect(settings, SIGNAL(requestServerIntervalChanged(int)), this, SLOT(setInterval(int)));
     if (settings->requestServerEnabled())
+    {
         refreshVenues();
+        alertCheck();
+    }
     timer->start();
 }
 
@@ -87,6 +93,7 @@ bool OKJSongbookAPI::getAccepting()
 
 void OKJSongbookAPI::setAccepting(bool enabled)
 {
+    alertCheck();
     QJsonObject mainObject;
     mainObject.insert("api_key", settings->requestServerApiKey());
     mainObject.insert("command","setAccepting");
@@ -136,12 +143,12 @@ void OKJSongbookAPI::updateSongDb()
     QList<QJsonDocument> jsonDocs;
     QSqlQuery query;
     int numEntries = 0;
-    if (query.exec("SELECT COUNT(DISTINCT artist||title) FROM dbsongs"))
+    if (query.exec("SELECT COUNT(DISTINCT artist||title) FROM dbsongs WHERE discid != '!!DROPPED!!' AND discid != '!!BAD!!'"))
     {
         if (query.next())
             numEntries = query.value(0).toInt();
     }
-    if (query.exec("SELECT DISTINCT artist,title FROM dbsongs ORDER BY artist ASC, title ASC"))
+    if (query.exec("SELECT DISTINCT artist,title FROM dbsongs WHERE discid != '!!DROPPED!!' AND discid != '!!BAD!!' ORDER BY artist ASC, title ASC"))
     {
         bool done = false;
         qWarning() << "Number of results: " << numEntries;
@@ -188,6 +195,7 @@ void OKJSongbookAPI::updateSongDb()
         QNetworkReply *reply = manager->post(request, jsonDocument.toJson());
         while (!reply->isFinished())
             QApplication::processEvents();
+        qWarning() << reply->readAll();
         for (int i=0; i < jsonDocs.size(); i++)
         {
             QApplication::processEvents();
@@ -253,6 +261,18 @@ bool OKJSongbookAPI::test()
     return false;
 }
 
+void OKJSongbookAPI::alertCheck()
+{
+    QJsonObject mainObject;
+    mainObject.insert("api_key", settings->requestServerApiKey());
+    mainObject.insert("command","getAlert");
+    QJsonDocument jsonDocument;
+    jsonDocument.setObject(mainObject);
+    QNetworkRequest request(QUrl(settings->requestServerUrl()));
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    manager->post(request, jsonDocument.toJson());
+}
+
 void OKJSongbookAPI::onSslErrors(QNetworkReply *reply, QList<QSslError> errors)
 {
     Q_UNUSED(errors)
@@ -304,6 +324,15 @@ void OKJSongbookAPI::onNetworkReply(QNetworkReply *reply)
         qWarning() << "Got error json reply";
         qWarning() << "Error string: " << json.object().value("errorString");
         return;
+    }
+    if (command == "getAlert")
+    {
+        if(json.object().value("alert").toBool())
+        {
+            emit alertRecieved(json.object().value("title").toString(), json.object().value("message").toString());
+            venues.clear();
+            refreshVenues();
+        }
     }
     if (command == "getSerial")
     {
@@ -367,6 +396,7 @@ void OKJSongbookAPI::onNetworkReply(QNetworkReply *reply)
             request.title = jsonObject.value("title").toString();
             request.singer = jsonObject.value("singer").toString();
             request.time = jsonObject.value("request_time").toInt();
+            request.key = jsonObject.value("key_change").toInt();
             l_requests.append(request);
         }
         if (requests != l_requests)
@@ -411,6 +441,12 @@ void OKJSongbookAPI::timerTimeout()
         }
         getSerial();
     }
+}
+
+void OKJSongbookAPI::alertTimerTimeout()
+{
+    if (settings->requestServerEnabled())
+        alertCheck();
 }
 
 void OKJSongbookAPI::setInterval(int interval)

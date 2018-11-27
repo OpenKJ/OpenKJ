@@ -21,6 +21,7 @@
 #include "rotationmodel.h"
 #include <QSqlQuery>
 #include <QDebug>
+#include <QDateTime>
 
 int RotationModel::currentSinger() const
 {
@@ -73,6 +74,14 @@ int RotationModel::numSongsUnsung(int singerId) const
     return -1;
 }
 
+int RotationModel::timeAdded(int singerId) const
+{
+    QSqlQuery query("SELECT strftime('%s',addts) FROM rotationSingers WHERE singerid == " + QString::number(singerId));
+    if (query.first())
+        return query.value(0).toInt();
+    return 0;
+}
+
 RotationModel::RotationModel(QObject *parent, QSqlDatabase db) :
     QSqlTableModel(parent, db)
 {
@@ -85,7 +94,7 @@ RotationModel::RotationModel(QObject *parent, QSqlDatabase db) :
 int RotationModel::singerAdd(QString name)
 {
     QSqlQuery query;
-    query.exec("INSERT INTO rotationsingers (name,position,regular,regularid) VALUES(\"" + name + "\"," + QString::number(rowCount()) + ",0,-1)");
+    query.exec("INSERT INTO rotationsingers (name,position,regular,regularid, addts) VALUES(\"" + name + "\"," + QString::number(rowCount()) + ",0,-1, CURRENT_TIMESTAMP)");
     select();
     singerCount = singers().size();
     emit rotationModified();
@@ -267,7 +276,7 @@ int RotationModel::getSingerPosition(int singerId)
     return -1;
 }
 
-int RotationModel::singerIdAtPosition(int position)
+int RotationModel::singerIdAtPosition(int position) const
 {
     QSqlQuery query("SELECT singerId FROM rotationsingers WHERE position == " + QString::number(position) + " LIMIT 1");
     if (query.first())
@@ -315,6 +324,14 @@ QString RotationModel::nextSongTitle(int singerId)
     if (query.first())
         return query.value(0).toString();
     return QString();
+}
+
+int RotationModel::nextSongDurationSecs(int singerId) const
+{
+    QSqlQuery query("SELECT dbsongs.duration FROM dbsongs,queuesongs WHERE queuesongs.singer = " + QString::number(singerId) + " AND queuesongs.played = 0 AND dbsongs.songid = queuesongs.song ORDER BY position LIMIT 1");
+    if (query.first())
+        return query.value(0).toInt() / 1000;
+    return 0;
 }
 
 int RotationModel::nextSongKeyChg(int singerId)
@@ -485,16 +502,79 @@ QVariant RotationModel::data(const QModelIndex &index, int role) const
         {
             curSingerPos = query.value("position").toInt();
         }
+        qWarning() << "Cur singer pos: " << curSingerPos;
+        qWarning() << "Hover singer pos: " << hoverSingerPos;
         QString toolTipText;
+        int totalWaitDuration = 0;
         int singerId = index.sibling(index.row(), 0).data().toInt();
         int qSongsSung = numSongsSung(singerId);
         int qSongsUnsung = numSongsUnsung(singerId);
         if (curSingerPos == hoverSingerPos)
+        {
             toolTipText = "Current singer - Sung: " + QString::number(qSongsSung) + " - Unsung: " + QString::number(qSongsUnsung);
+        }
         else if (curSingerPos < hoverSingerPos)
-            toolTipText = "Wait: " + QString::number(hoverSingerPos - curSingerPos) + " - Sung: " + QString::number(qSongsSung) + " - Unsung: " + QString::number(qSongsUnsung);
+        {
+            toolTipText = "Wait: " + QString::number(hoverSingerPos - curSingerPos) + " - Sung: " + QString::number(qSongsSung) + " - Unsung: " + QString::number(qSongsUnsung);           
+            for (int i=curSingerPos; i < hoverSingerPos; i++)
+            {
+                int sId = singerIdAtPosition(i);
+                if (i == curSingerPos)
+                    totalWaitDuration = totalWaitDuration + 240;
+                else if (sId != singerId)
+                {
+                    int nextDuration = nextSongDurationSecs(sId);
+                    totalWaitDuration = totalWaitDuration + nextDuration + 60;
+                }
+            }
+        }
         else if (curSingerPos > hoverSingerPos)
+        {
             toolTipText = "Wait: " + QString::number(hoverSingerPos + (singerCount - curSingerPos)) + " - Sung: " + QString::number(qSongsSung) + " - Unsung: " + QString::number(qSongsUnsung);
+            for (int i=0; i < hoverSingerPos; i++)
+            {
+                int sId = singerIdAtPosition(i);
+                if (sId != singerId)
+                {
+                    int nextDuration = nextSongDurationSecs(sId);
+                    totalWaitDuration = totalWaitDuration + nextDuration + 60;
+                }
+            }
+            for (int i=curSingerPos; i < singerCount; i++)
+            {
+                int sId = singerIdAtPosition(i);
+                if (i == curSingerPos)
+                    totalWaitDuration = totalWaitDuration + 240;
+                else if (sId != singerId)
+                {
+                    int nextDuration = nextSongDurationSecs(sId);
+                    totalWaitDuration = totalWaitDuration + nextDuration + 60;
+                }
+            }
+        }
+        QDateTime time;
+        time.setTime_t(timeAdded(singerId));
+        toolTipText += "\nTime Added: " + time.toString("h:mm a");
+
+        if (totalWaitDuration > 0)
+        {
+            int hours = 0;
+            int minutes = totalWaitDuration / 60;
+            int seconds = totalWaitDuration % 60;
+            if (seconds > 0)
+                minutes++;
+            if (minutes > 60)
+            {
+                hours = minutes / 60;
+                minutes = minutes % 60;
+                if (hours > 1)
+                    toolTipText += "\nEst wait time: " + QString::number(hours) + " hours " + QString::number(minutes) + " min";
+                else
+                    toolTipText += "\nEst wait time: " + QString::number(hours) + " hour " + QString::number(minutes) + " min";
+            }
+            else
+                toolTipText += "\nEst wait time: " + QString::number(minutes) + " min";
+        }
         return QString(toolTipText);
     }
     else

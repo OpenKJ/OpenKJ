@@ -55,7 +55,7 @@ public:
     ~DlgRequests();
 
 signals:
-    void addRequestSong(int songId, int singerId);
+    void addRequestSong(int songId, int singerId, int keyChg);
 
 public slots:
     void databaseAboutToUpdate();
@@ -89,6 +89,8 @@ private slots:
     void autoSizeViews();
 
     // QWidget interface
+    void on_spinBoxKey_valueChanged(int arg1);
+
 protected:
     void resizeEvent(QResizeEvent *event);
 

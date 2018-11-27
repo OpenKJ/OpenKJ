@@ -29,8 +29,26 @@
 #include <QMessageBox>
 #include "settings.h"
 
+QDataStream &operator<<(QDataStream &out, const SfxEntry &obj)
+{
+    out << obj.name << obj.path;
+    qWarning() << "returning " << obj.name << " " << obj.path;
+    return out;
+}
+
+QDataStream &operator>>(QDataStream &in, SfxEntry &obj)
+{
+   qWarning() << "setting " << obj.name << " " << obj.path;
+   in >> obj.name >> obj.path;
+   return in;
+}
+
 int main(int argc, char *argv[])
 {
+    qRegisterMetaType<SfxEntry>("SfxEntry");
+    qRegisterMetaTypeStreamOperators<SfxEntry>("SfxEntry");
+    qRegisterMetaType<QList<SfxEntry> >("QList<SfxEntry>");
+    qRegisterMetaTypeStreamOperators<QList<SfxEntry> >("QList<SfxEntry>");
     QApplication a(argc, argv);
     qputenv("GST_DEBUG", "*:3");
     Settings okjSettings;

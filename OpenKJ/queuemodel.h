@@ -64,7 +64,7 @@ signals:
     void filesDroppedOnSinger(QList<QUrl> urls, int singerId, int position);
 
 public slots:
-    void songAdd(int songId, int singerId);
+    void songAdd(int songId, int singerId, int keyChg = 0);
 
 
     // QAbstractItemModel interface
