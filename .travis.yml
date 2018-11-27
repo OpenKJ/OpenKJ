@@ -2,7 +2,7 @@ language: c++
 os:
 - osx
 env:
-  - OKJVER=1.4.4
+  - OKJVER=1.4.5
 cache:
   directories:
   - "/Library/Frameworks/GStreamer.framework"
