@@ -289,6 +289,7 @@ private slots:
 
     void on_btnSfxStop_clicked();
     void removeSfxButton();
+    void showAlert(QString title, QString message);
 
 protected:
     void closeEvent(QCloseEvent *event);

@@ -589,7 +589,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(scutRegulars, SIGNAL(activated()), this, SLOT(on_buttonRegulars_clicked()));
     connect(scutRequests, SIGNAL(activated()), this, SLOT(on_pushButtonIncomingRequests_clicked()));
     connect(bmPlModel, SIGNAL(bmSongMoved(int,int)), this, SLOT(bmSongMoved(int,int)));
-
+    connect(songbookApi, SIGNAL(alertRecieved(QString, QString)), this, SLOT(showAlert(QString, QString)));
 //    addSfxButton("some looooong string", "Some Name");
 //    addSfxButton("second string", "Second Button");
 //    addSfxButton("third string", "Third Button");
@@ -2929,4 +2929,13 @@ void MainWindow::removeSfxButton()
     }
     settings->setSfxEntries(newEntries);
     refreshSfxButtons();
+}
+
+void MainWindow::showAlert(QString title, QString message)
+{
+    QMessageBox msgBox;
+    msgBox.setWindowTitle(title);
+    msgBox.setText(message);
+   // msgBox.setInformativeText(file);
+    msgBox.exec();
 }
