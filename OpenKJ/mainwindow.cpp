@@ -600,6 +600,8 @@ MainWindow::MainWindow(QWidget *parent) :
     foreach (SfxEntry entry, list) {
        addSfxButton(entry.path, entry.name);
     }
+    connect(ui->tableViewRotation->selectionModel(), SIGNAL(currentChanged(QModelIndex, QModelIndex)), this, SLOT(tableViewRotationCurrentChanged(QModelIndex, QModelIndex)));
+
 }
 
 void MainWindow::play(QString karaokeFilePath, bool k2k)
@@ -1004,8 +1006,6 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
             }
         }
     }
-    qModel->setSinger(index.sibling(index.row(),0).data().toInt());
-    ui->gbxQueue->setTitle(QString("Song Queue - " + rotModel->getSingerName(index.sibling(index.row(),0).data().toInt())));
 }
 
 void MainWindow::on_tableViewQueue_doubleClicked(const QModelIndex &index)
@@ -2944,4 +2944,11 @@ void MainWindow::showAlert(QString title, QString message)
     msgBox.setText(message);
    // msgBox.setInformativeText(file);
     msgBox.exec();
+}
+
+void MainWindow::tableViewRotationCurrentChanged(QModelIndex cur, QModelIndex prev)
+{
+    Q_UNUSED(prev)
+    qModel->setSinger(cur.sibling(cur.row(),0).data().toInt());
+    ui->gbxQueue->setTitle(QString("Song Queue - " + rotModel->getSingerName(cur.sibling(cur.row(),0).data().toInt())));
 }

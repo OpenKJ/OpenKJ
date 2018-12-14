@@ -290,6 +290,7 @@ private slots:
     void on_btnSfxStop_clicked();
     void removeSfxButton();
     void showAlert(QString title, QString message);
+    void tableViewRotationCurrentChanged(QModelIndex cur, QModelIndex prev);
 
 protected:
     void closeEvent(QCloseEvent *event);
