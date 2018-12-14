@@ -710,7 +710,11 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
         }
         else
         {
-            kAudioBackend->setMedia(karaokeFilePath);
+            qWarning() << "Playing non-CDG video file: " << karaokeFilePath;
+            QString tmpFileName = khTmpDir->path() + QDir::separator() + "tmpvid." + karaokeFilePath.right(4);
+            QFile::copy(karaokeFilePath, tmpFileName);
+            qWarning() << "Playing temporary copy to avoid bad filename stuff w/ gstreamer: " << tmpFileName;
+            kAudioBackend->setMedia(tmpFileName);
             if (!k2k)
                 bmAudioBackend->fadeOut();
             kAudioBackend->play();

@@ -353,10 +353,12 @@ bool OkArchive::extractFile(QString fileName, QString destDir, QString destFile)
         qWarning() << "error copying zip";
         return false;
     }
+    QString ext = "*" + fileName.right(4);
+    qWarning() << "Finding first file with extension: " << ext;
     QStringList arguments;
     arguments << "-j";
     arguments << tmpZipPath;
-    arguments << fileName;
+    arguments << ext;
     arguments << "-d";
     arguments << destDir;
     process->start(infoZipPath, arguments, QProcess::ReadOnly);
