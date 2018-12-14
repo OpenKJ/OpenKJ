@@ -455,26 +455,63 @@ void DlgSettings::on_checkBoxDownmixBm_toggled(bool checked)
 
 void DlgSettings::on_listWidgetAudioDevices_itemSelectionChanged()
 {
+    static QString lastSelItem = ui->listWidgetAudioDevices->selectedItems().at(0)->text();
+    QString device = ui->listWidgetAudioDevices->selectedItems().at(0)->text();
+    if (lastSelItem == device)
+        return;
+    if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Can not change audio device while audio is playing, please stop playback and try again");
+        msgBox.exec();
+        int selDevice = audioOutputDevices.indexOf(settings->audioOutputDevice());
+        if (selDevice == -1)
+            ui->listWidgetAudioDevices->item(0)->setSelected(true);
+        else
+        {
+            ui->listWidgetAudioDevices->item(selDevice)->setSelected(true);
+        }
+        return;
+    }
     if (pageSetupDone)
     {
-        QString device = ui->listWidgetAudioDevices->selectedItems().at(0)->text();
         settings->setAudioOutputDevice(device);
         int deviceIndex = audioOutputDevices.indexOf(QRegExp(device,Qt::CaseSensitive,QRegExp::FixedString));
         if (deviceIndex != -1)
             kAudioBackend->setOutputDevice(deviceIndex);
     }
+    lastSelItem = device;
 }
 
 void DlgSettings::on_listWidgetAudioDevicesBm_itemSelectionChanged()
 {
+    static QString lastSelItem = ui->listWidgetAudioDevicesBm->selectedItems().at(0)->text();
+    QString device = ui->listWidgetAudioDevicesBm->selectedItems().at(0)->text();
+    if (lastSelItem == device)
+        return;
+    if (bmAudioBackend->state() == AbstractAudioBackend::PlayingState)
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Can not change audio device while audio is playing, please stop playback and try again");
+        msgBox.exec();
+        int selDevice = audioOutputDevices.indexOf(settings->audioOutputDeviceBm());
+        if (selDevice == -1)
+            ui->listWidgetAudioDevicesBm->item(0)->setSelected(true);
+        else
+        {
+            ui->listWidgetAudioDevicesBm->item(selDevice)->setSelected(true);
+        }
+        return;
+    }
     if (pageSetupDone)
     {
-        QString device = ui->listWidgetAudioDevicesBm->selectedItems().at(0)->text();
         settings->setAudioOutputDeviceBm(device);
         int deviceIndex = audioOutputDevices.indexOf(QRegExp(device,Qt::CaseSensitive,QRegExp::FixedString));
         if (deviceIndex != -1)
             bmAudioBackend->setOutputDevice(deviceIndex);
     }
+    lastSelItem = device;
+
 }
 
 void DlgSettings::on_comboBoxDevice_currentIndexChanged(const QString &arg1)
