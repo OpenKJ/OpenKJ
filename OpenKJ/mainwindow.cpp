@@ -1362,6 +1362,7 @@ void MainWindow::rotationDataChanged()
     requestsDialog->rotationChanged();
     QString statusBarText = "Singers: ";
     statusBarText += QString::number(rotModel->rowCount());
+    rotDelegate->setSingerCount(rotModel->rowCount());
     labelSingerCount->setText(statusBarText);
     QString tickerText;
     if (settings->tickerCustomString() != "")
