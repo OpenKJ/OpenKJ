@@ -422,6 +422,7 @@ void DlgRequests::on_pushButtonUpdateDb_clicked()
         msgBox.exec();
         qWarning() << "Closing progress dialog for remote db update";
         progressDialog->close();
+        progressDialog->deleteLater();
     }
 }
 
