@@ -404,6 +404,7 @@ void DlgRequests::on_pushButtonUpdateDb_clicked()
     int ret = msgBox.exec();
     if (ret == QMessageBox::Yes)
     {
+        qWarning() << "Opening progress dialog for remote db update";
         QProgressDialog *progressDialog = new QProgressDialog(this);
         progressDialog->setCancelButton(0);
         progressDialog->setMinimum(0);
@@ -416,6 +417,10 @@ void DlgRequests::on_pushButtonUpdateDb_clicked()
         connect(songbookApi, SIGNAL(remoteSongDbUpdateProgress(int)), progressDialog, SLOT(setValue(int)));
         //    progressDialog->show();
         songbookApi->updateSongDb();
+        QMessageBox msgBox;
+        msgBox.setText(tr("Remote database update completed!"));
+        msgBox.exec();
+        qWarning() << "Closing progress dialog for remote db update";
         progressDialog->close();
     }
 }

@@ -205,7 +205,7 @@ void OKJSongbookAPI::updateSongDb()
             QNetworkReply *reply = manager->post(request, jsonDocs.at(i).toJson());
             while (!reply->isFinished())
                 QApplication::processEvents();
-            emit remoteSongDbUpdateProgress(i);
+            emit remoteSongDbUpdateProgress(i + 1);
         }
     }
     emit remoteSongDbUpdateDone();

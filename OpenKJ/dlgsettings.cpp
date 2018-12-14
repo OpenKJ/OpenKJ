@@ -806,4 +806,5 @@ void DlgSettings::on_spinBoxDefaultSongDuration_valueChanged(int arg1)
 void DlgSettings::on_checkBoxDisplayCurrentRotationPosition_clicked(bool checked)
 {
     settings->setRotationDisplayPosition(checked);
+
 }
