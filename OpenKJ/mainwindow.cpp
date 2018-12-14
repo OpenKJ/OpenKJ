@@ -45,7 +45,7 @@
 
 Settings *settings;
 OKJSongbookAPI *songbookApi;
-
+int remainSecs = 240;
 
 
 
@@ -1211,6 +1211,7 @@ void MainWindow::audioBackend_positionChanged(qint64 position)
         }
         ui->labelElapsedTime->setText(kAudioBackend->msToMMSS(position));
         ui->labelRemainTime->setText(kAudioBackend->msToMMSS(kAudioBackend->duration() - position));
+        remainSecs = (kAudioBackend->duration() - position) / 1000;
     }
 }
 

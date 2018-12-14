@@ -248,6 +248,14 @@ public:
     SfxEntryList getSfxEntries();
     void addSfxEntry(SfxEntry entry);
     void setSfxEntries(SfxEntryList entries);
+    int estimationSingerPad();
+    void setEstimationSingerPad(int secs);
+    int estimationEmptySongLength();
+    void setEstimationEmptySongLength(int secs);
+    bool estimationSkipEmptySingers();
+    void setEstimationSkipEmptySingers(bool skip);
+    bool rotationDisplayPosition();
+    void setRotationDisplayPosition(bool show);
 
 signals:
     void applicationFontChanged(QFont font);
@@ -307,6 +315,7 @@ signals:
     void eqBLevel10Changed(int level);
     void requestServerIntervalChanged(int interval);
     void requestServerEnabledChanged(bool enabled);
+    void rotationDisplayPositionChanged(bool show);
 
 public slots:
     void setBmKCrossfade(bool enabled);

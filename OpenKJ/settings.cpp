@@ -467,7 +467,13 @@ void Settings::setRequestServerEnabled(bool enable)
 
 QString Settings::requestServerUrl()
 {
-    return settings->value("requestServerUrl", "https://songbook.openkj.org/api").toString();
+    QString url = settings->value("requestServerUrl", "https://api.okjsongbook.com").toString();
+    if (url == "https://songbook.openkj.org/api")
+    {
+        url = "https://api.okjsongbook.com";
+        setRequestServerUrl(url);
+    }
+    return url;
 }
 
 void Settings::setRequestServerUrl(QString url)
@@ -1432,6 +1438,47 @@ void Settings::addSfxEntry(SfxEntry entry)
 void Settings::setSfxEntries(SfxEntryList entries)
 {
     settings->setValue("sfxEntries", QVariant::fromValue(entries));
+}
+
+int Settings::estimationSingerPad()
+{
+    return settings->value("estimationSingerPad", 60).toInt();
+}
+
+void Settings::setEstimationSingerPad(int secs)
+{
+    settings->setValue("estimationSingerPad", secs);
+}
+
+int Settings::estimationEmptySongLength()
+{
+    return settings->value("estimationEmptySongLength", 240).toInt();
+}
+
+void Settings::setEstimationEmptySongLength(int secs)
+{
+    settings->setValue("estimationEmptySongLength", secs);
+}
+
+bool Settings::estimationSkipEmptySingers()
+{
+    return settings->value("estimationSkipEmptySingers", false).toBool();
+}
+
+void Settings::setEstimationSkipEmptySingers(bool skip)
+{
+    settings->setValue("estimationSkipEmptySingers", skip);
+}
+
+bool Settings::rotationDisplayPosition()
+{
+    return settings->value("rotationDisplayPosition", false).toBool();
+}
+
+void Settings::setRotationDisplayPosition(bool show)
+{
+    settings->setValue("rotationDisplayPosition", show);
+    emit rotationDisplayPositionChanged(show);
 }
 
 void Settings::setBmKCrossfade(bool enabled)

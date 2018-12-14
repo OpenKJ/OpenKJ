@@ -174,6 +174,11 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     connect(settings, SIGNAL(tickerShowRotationInfoChanged(bool)), this, SLOT(tickerShowRotationInfoChanged(bool)));
     ui->fontComboBox->setFont(settings->applicationFont());
     ui->spinBoxAppFontSize->setValue(settings->applicationFont().pointSize());
+
+    ui->checkBoxIncludeEmptySingers->setChecked(!settings->estimationSkipEmptySingers());
+    ui->spinBoxDefaultPadTime->setValue(settings->estimationSingerPad());
+    ui->spinBoxDefaultSongDuration->setValue(settings->estimationEmptySongLength());
+    ui->checkBoxDisplayCurrentRotationPosition->setChecked(settings->rotationDisplayPosition());
     pageSetupDone = true;
     ui->spinBoxAADelay->setValue(settings->karaokeAATimeout());
     ui->checkBoxKAA->setChecked(settings->karaokeAutoAdvance());
@@ -239,7 +244,7 @@ void DlgSettings::onSslErrors(QNetworkReply *reply)
 
 void DlgSettings::createIcons()
 {
-    int scaleSize = qMax(72, QFontMetrics(settings->applicationFont()).width(" Network "));
+    int scaleSize = qMax(72, QFontMetrics(settings->applicationFont()).width(" network "));
     int imgHeight = 72;
     int fH = QFontMetrics(settings->applicationFont()).height();
     QListWidgetItem *audioButton = new QListWidgetItem(ui->listWidget);
@@ -272,6 +277,12 @@ void DlgSettings::createIcons()
     appearanceButton->setTextAlignment(Qt::AlignHCenter);
     appearanceButton->setSizeHint(QSize(scaleSize, imgHeight + fH));
     appearanceButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+    QListWidgetItem *rotationButton = new QListWidgetItem(ui->listWidget);
+    rotationButton->setIcon(QIcon(":/icons/Icons/rotation.png"));
+    rotationButton->setText("Rotation");
+    rotationButton->setTextAlignment(Qt::AlignHCenter);
+    rotationButton->setSizeHint(QSize(scaleSize, imgHeight + fH));
+    rotationButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 }
 
 void DlgSettings::on_btnClose_clicked()
@@ -769,4 +780,30 @@ void DlgSettings::reqSvrTestPassed()
     msgBox.setWindowTitle("Request server test passed");
     msgBox.setText("Request server connection test was successful.  Server info and API key appear to be valid");
     msgBox.exec();
+}
+
+void DlgSettings::on_checkBoxIncludeEmptySingers_clicked(bool checked)
+{
+    settings->setEstimationSkipEmptySingers(!checked);
+}
+
+void DlgSettings::on_spinBoxDefaultPadTime_valueChanged(int arg1)
+{
+    if (pageSetupDone)
+    {
+        settings->setEstimationSingerPad(arg1);
+    }
+}
+
+void DlgSettings::on_spinBoxDefaultSongDuration_valueChanged(int arg1)
+{
+    if (pageSetupDone)
+    {
+        settings->setEstimationEmptySongLength(arg1);
+    }
+}
+
+void DlgSettings::on_checkBoxDisplayCurrentRotationPosition_clicked(bool checked)
+{
+    settings->setRotationDisplayPosition(checked);
 }

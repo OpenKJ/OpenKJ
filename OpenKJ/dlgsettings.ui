@@ -16,22 +16,7 @@
   <property name="windowTitle">
    <string>OpenKJ Settings</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout_2">
-   <property name="spacing">
-    <number>0</number>
-   </property>
-   <property name="leftMargin">
-    <number>0</number>
-   </property>
-   <property name="topMargin">
-    <number>0</number>
-   </property>
-   <property name="rightMargin">
-    <number>0</number>
-   </property>
-   <property name="bottomMargin">
-    <number>0</number>
-   </property>
+  <layout class="QVBoxLayout" name="verticalLayout_24">
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <property name="spacing">
@@ -170,7 +155,7 @@
         <item>
          <widget class="QStackedWidget" name="stackedWidget">
           <property name="currentIndex">
-           <number>2</number>
+           <number>5</number>
           </property>
           <widget class="QWidget" name="audioPage">
            <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -1521,6 +1506,94 @@ by the number of ms specified.</string>
                <size>
                 <width>20</width>
                 <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="rotationPage">
+           <layout class="QVBoxLayout" name="verticalLayout_25">
+            <item>
+             <widget class="QGroupBox" name="groupBox_5">
+              <property name="title">
+               <string>Time Estimation</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_23">
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_21">
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxIncludeEmptySingers">
+                   <property name="text">
+                    <string>Include empty singers in estimation using default song duration</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <layout class="QFormLayout" name="formLayout_3">
+                   <item row="0" column="0">
+                    <widget class="QLabel" name="label_28">
+                     <property name="text">
+                      <string>Default pad between songs (seconds)</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="1">
+                    <widget class="QSpinBox" name="spinBoxDefaultPadTime">
+                     <property name="maximum">
+                      <number>1000</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="0">
+                    <widget class="QLabel" name="label_29">
+                     <property name="text">
+                      <string>Default song duration for empty singers (seconds)</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="1">
+                    <widget class="QSpinBox" name="spinBoxDefaultSongDuration">
+                     <property name="suffix">
+                      <string/>
+                     </property>
+                     <property name="maximum">
+                      <number>1000</number>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupBox_6">
+              <property name="title">
+               <string>Display</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_22">
+               <item>
+                <widget class="QCheckBox" name="checkBoxDisplayCurrentRotationPosition">
+                 <property name="text">
+                  <string>Show current position in rotation list</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_7">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>792</height>
                </size>
               </property>
              </spacer>

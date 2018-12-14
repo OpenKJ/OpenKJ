@@ -30,6 +30,7 @@
         <file>Icons/okjicon64x64.png</file>
         <file>Icons/okicon.svg</file>
         <file>Icons/theme.png</file>
+        <file>Icons/rotation.png</file>
     </qresource>
     <qresource prefix="/">
         <file>Icons/other-settings.png</file>

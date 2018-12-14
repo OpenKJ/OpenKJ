@@ -113,6 +113,10 @@ private slots:
     void reqSvrTestError(QString error);
     void reqSvrTestSslError(QString error);
     void reqSvrTestPassed();
+    void on_checkBoxIncludeEmptySingers_clicked(bool checked);
+    void on_spinBoxDefaultPadTime_valueChanged(int arg1);
+    void on_spinBoxDefaultSongDuration_valueChanged(int arg1);
+    void on_checkBoxDisplayCurrentRotationPosition_clicked(bool checked);
 };
 
 #endif // SETTINGSDIALOG_H
