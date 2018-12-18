@@ -342,6 +342,16 @@ int RotationModel::nextSongDurationSecs(int singerId) const
         return 0;
 }
 
+int RotationModel::rotationDuration()
+{
+    int secs = 0;
+    for (int i=0; i < rowCount(); i++)
+    {
+        secs = secs + nextSongDurationSecs(index(i,0).data().toInt());
+    }
+    return secs;
+}
+
 int RotationModel::nextSongKeyChg(int singerId)
 {
     QSqlQuery query("SELECT keychg FROM queuesongs WHERE singer = " + QString::number(singerId) + " AND queuesongs.played = 0 ORDER BY position LIMIT 1");

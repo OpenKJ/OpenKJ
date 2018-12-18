@@ -154,6 +154,7 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif
     db = new KhDb(this);
     labelSingerCount = new QLabel(ui->statusBar);
+    labelRotationDuration = new QLabel(ui->statusBar);
     khDir = new QDir(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
     if (!khDir->exists())
     {
@@ -375,6 +376,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewRotation->hideColumn(2);
     qWarning() << "Adding singer count to status bar";
     ui->statusBar->addWidget(labelSingerCount);
+    ui->statusBar->addWidget(labelRotationDuration);
 
 
 
@@ -603,6 +605,12 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->tableViewRotation->selectionModel(), SIGNAL(currentChanged(QModelIndex, QModelIndex)), this, SLOT(tableViewRotationCurrentChanged(QModelIndex, QModelIndex)));
     rotModel->setCurrentSinger(settings->currentRotationPosition());
     rotDelegate->setCurrentSinger(settings->currentRotationPosition());
+    updateRotationDuration();
+    slowUiUpdateTimer = new QTimer(this);
+    connect(slowUiUpdateTimer, SIGNAL(timeout()), this, SLOT(updateRotationDuration()));
+    slowUiUpdateTimer->start(10000);
+    connect(qModel, SIGNAL(queueModified(int)), this, SLOT(updateRotationDuration()));
+    connect(settings, SIGNAL(rotationDurationSettingsModified()), this, SLOT(updateRotationDuration()));
 }
 
 void MainWindow::play(QString karaokeFilePath, bool k2k)
@@ -878,6 +886,7 @@ void MainWindow::on_tableViewDB_doubleClicked(const QModelIndex &index)
     if (qModel->singer() >= 0)
     {
         qModel->songAdd(index.sibling(index.row(),0).data().toInt());
+        updateRotationDuration();
     }
     else
     {
@@ -1362,6 +1371,7 @@ void MainWindow::on_buttonRegulars_clicked()
 
 void MainWindow::rotationDataChanged()
 {
+    updateRotationDuration();
     requestsDialog->rotationChanged();
     QString statusBarText = "Singers: ";
     statusBarText += QString::number(rotModel->rowCount());
@@ -1587,6 +1597,7 @@ void MainWindow::setKeyChange()
 void MainWindow::toggleQueuePlayed()
 {
     qModel->songSetPlayed(m_rtClickQueueSongId, !qModel->getSongPlayed(m_rtClickQueueSongId));
+    updateRotationDuration();
 }
 
 void MainWindow::regularNameConflict(QString name)
@@ -2954,4 +2965,32 @@ void MainWindow::tableViewRotationCurrentChanged(QModelIndex cur, QModelIndex pr
     Q_UNUSED(prev)
     qModel->setSinger(cur.sibling(cur.row(),0).data().toInt());
     ui->gbxQueue->setTitle(QString("Song Queue - " + rotModel->getSingerName(cur.sibling(cur.row(),0).data().toInt())));
+}
+
+void MainWindow::updateRotationDuration()
+{
+    QString text;
+    int secs = rotModel->rotationDuration();
+    if (secs > 0)
+    {
+        int hours = 0;
+        int minutes = secs / 60;
+        int seconds = secs % 60;
+        if (seconds > 0)
+            minutes++;
+        if (minutes > 60)
+        {
+            hours = minutes / 60;
+            minutes = minutes % 60;
+            if (hours > 1)
+                text = " Rotation Duration: " + QString::number(hours) + " hours " + QString::number(minutes) + " min";
+            else
+                text = " Rotation Duration: " + QString::number(hours) + " hour " + QString::number(minutes) + " min";
+        }
+        else
+            text = " Rotation Duration: " + QString::number(minutes) + " min";
+    }
+    else
+        text = " Rotation Duration: 0 min";
+    labelRotationDuration->setText(text);
 }

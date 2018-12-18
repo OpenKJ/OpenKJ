@@ -1453,6 +1453,7 @@ int Settings::estimationSingerPad()
 void Settings::setEstimationSingerPad(int secs)
 {
     settings->setValue("estimationSingerPad", secs);
+    emit rotationDurationSettingsModified();
 }
 
 int Settings::estimationEmptySongLength()
@@ -1463,6 +1464,7 @@ int Settings::estimationEmptySongLength()
 void Settings::setEstimationEmptySongLength(int secs)
 {
     settings->setValue("estimationEmptySongLength", secs);
+    emit rotationDurationSettingsModified();
 }
 
 bool Settings::estimationSkipEmptySingers()
@@ -1473,6 +1475,7 @@ bool Settings::estimationSkipEmptySingers()
 void Settings::setEstimationSkipEmptySingers(bool skip)
 {
     settings->setValue("estimationSkipEmptySingers", skip);
+    emit rotationDurationSettingsModified();
 }
 
 bool Settings::rotationDisplayPosition()

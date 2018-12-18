@@ -108,6 +108,7 @@ private:
     AudioBackendGstreamer *bmAudioBackend;
 //    KhIPCClient *ipcClient;
     QLabel *labelSingerCount;
+    QLabel *labelRotationDuration;
     bool sliderPositionPressed;
     bool sliderBmPositionPressed;
     void play(QString karaokeFilePath, bool k2k = false);
@@ -144,6 +145,7 @@ private:
     QTimer *karaokeAATimer;
     QTimer *startupOneShot;
     UpdateChecker *checker;
+    QTimer *slowUiUpdateTimer;
     QTimer *timerButtonFlash;
     bool blinkRequestsBtn;
     QString GetRandomString() const;
@@ -291,6 +293,7 @@ private slots:
     void removeSfxButton();
     void showAlert(QString title, QString message);
     void tableViewRotationCurrentChanged(QModelIndex cur, QModelIndex prev);
+    void updateRotationDuration();
 
 protected:
     void closeEvent(QCloseEvent *event);

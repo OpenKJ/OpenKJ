@@ -317,6 +317,7 @@ signals:
     void requestServerIntervalChanged(int interval);
     void requestServerEnabledChanged(bool enabled);
     void rotationDisplayPositionChanged(bool show);
+    void rotationDurationSettingsModified();
 
 public slots:
     void setBmKCrossfade(bool enabled);
