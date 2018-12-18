@@ -601,7 +601,8 @@ MainWindow::MainWindow(QWidget *parent) :
        addSfxButton(entry.path, entry.name);
     }
     connect(ui->tableViewRotation->selectionModel(), SIGNAL(currentChanged(QModelIndex, QModelIndex)), this, SLOT(tableViewRotationCurrentChanged(QModelIndex, QModelIndex)));
-
+    rotModel->setCurrentSinger(settings->currentRotationPosition());
+    rotDelegate->setCurrentSinger(settings->currentRotationPosition());
 }
 
 void MainWindow::play(QString karaokeFilePath, bool k2k)
@@ -1152,7 +1153,9 @@ void MainWindow::on_buttonClearRotation_clicked()
     msgBox.exec();
     if (msgBox.clickedButton() == yesButton)
     {
+        settings->setCurrentRotationPosition(-1);
         rotModel->clearRotation();
+        rotDelegate->setCurrentSinger(-1);
         qModel->setSinger(-1);
     }    
 }

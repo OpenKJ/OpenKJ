@@ -55,6 +55,11 @@ void Settings::setStoreDownloadDir(QString path)
     settings->setValue("storeDownloadDir", path);
 }
 
+void Settings::setCurrentRotationPosition(int position)
+{
+    settings->setValue("currentRotationPosition", position);
+}
+
 void Settings::setPassword(QString password)
 {
     qint64 passHash = this->hash(password);
@@ -1479,6 +1484,11 @@ void Settings::setRotationDisplayPosition(bool show)
 {
     settings->setValue("rotationDisplayPosition", show);
     emit rotationDisplayPositionChanged(show);
+}
+
+int Settings::currentRotationPosition()
+{
+    return settings->value("currentRotationPosition", -1).toInt();
 }
 
 void Settings::setBmKCrossfade(bool enabled)

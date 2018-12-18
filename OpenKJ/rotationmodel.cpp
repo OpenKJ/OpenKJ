@@ -38,6 +38,7 @@ void RotationModel::setCurrentSinger(int currentSingerId)
     m_currentSingerId = currentSingerId;
     emit rotationModified();
     emit layoutChanged();
+    settings->setCurrentRotationPosition(currentSingerId);
 }
 
 bool RotationModel::rotationIsValid()
@@ -372,6 +373,8 @@ void RotationModel::clearRotation()
     query.exec("DELETE FROM rotationsingers");
     select();
     singerCount = singers().size();
+    settings->setCurrentRotationPosition(-1);
+    m_currentSingerId = -1;
     emit rotationModified();
 }
 

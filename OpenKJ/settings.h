@@ -256,6 +256,7 @@ public:
     void setEstimationSkipEmptySingers(bool skip);
     bool rotationDisplayPosition();
     void setRotationDisplayPosition(bool show);
+    int currentRotationPosition();
 
 signals:
     void applicationFontChanged(QFont font);
@@ -378,6 +379,7 @@ public slots:
     void setBookCreatorCols(int cols);
     void setBookCreatorPageSize(int size);
     void setStoreDownloadDir(QString path);
+    void setCurrentRotationPosition(int position);
 
 };
 
