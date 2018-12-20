@@ -148,3 +148,12 @@ QVariant BmDbTableModel::headerData(int section, Qt::Orientation orientation, in
         return tr("Duration");
     return QSqlTableModel::headerData(section, orientation, role);
 }
+
+
+QVariant BmDbTableModel::data(const QModelIndex &index, int role) const
+{
+    if (role == Qt::ToolTipRole)
+        return data(index);
+    else
+        return QSqlTableModel::data(index, role);
+}

@@ -84,7 +84,7 @@ QVariant RequestsTableModel::data(const QModelIndex &index, int role) const
         default:
             return Qt::AlignLeft;
         }
-    if(role == Qt::DisplayRole)
+    if(role == Qt::DisplayRole || role == Qt::ToolTipRole)
     {
         switch(index.column())
         {

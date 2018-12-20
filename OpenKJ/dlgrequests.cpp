@@ -25,6 +25,7 @@
 #include "settings.h"
 #include "okjsongbookapi.h"
 #include <QProgressDialog>
+#include "tableviewtooltipfilter.h"
 
 extern Settings *settings;
 extern OKJSongbookAPI *songbookApi;
@@ -49,8 +50,10 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     dbModel = new DbTableModel(this);
     dbDelegate = new DbItemDelegate(this);
     ui->tableViewRequests->setModel(requestsModel);
+    ui->tableViewRequests->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewRequests));
     connect(requestsModel, SIGNAL(layoutChanged()), this, SLOT(requestsModified()));
     ui->tableViewSearch->setModel(dbModel);
+    ui->tableViewSearch->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewSearch));
     ui->tableViewSearch->setItemDelegate(dbDelegate);
     ui->groupBoxAddSong->setDisabled(true);
     ui->groupBoxSongDb->setDisabled(true);

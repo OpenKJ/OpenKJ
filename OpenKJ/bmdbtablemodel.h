@@ -56,6 +56,10 @@ protected:
     // QAbstractItemModel interface
 public:
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+
+    // QAbstractItemModel interface
+public:
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
 };
 
 #endif // SONGSTABLEMODEL_H

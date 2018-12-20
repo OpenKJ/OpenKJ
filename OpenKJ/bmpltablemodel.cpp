@@ -202,3 +202,12 @@ Qt::ItemFlags BmPlTableModel::flags(const QModelIndex &index) const
 
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | Qt::ItemIsEditable;
 }
+
+
+QVariant BmPlTableModel::data(const QModelIndex &index, int role) const
+{
+    if (role == Qt::ToolTipRole && index.column() != 7)
+        return QSqlRelationalTableModel::data(index, Qt::DisplayRole);
+    else
+        return QSqlRelationalTableModel::data(index, role);
+}

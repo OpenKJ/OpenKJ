@@ -180,3 +180,11 @@ void DbTableModel::refreshCache()
 
 //    return QSqlTableModel::headerData(section, orientation, role);
 //}
+
+
+QVariant DbTableModel::data(const QModelIndex &index, int role) const
+{
+    if (role == Qt::ToolTipRole)
+        return data(index);
+    return QSqlTableModel::data(index, role);
+}

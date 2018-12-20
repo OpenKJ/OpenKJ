@@ -100,7 +100,7 @@ contains(DEFINES, STATIC_TAGLIB) {
 QMAKE_MAC_SDK = MacOSX10.13
 QMAKE_MAC_SDK.macosx.version = 10.13
 
-VERSION = 1.5.20
+VERSION = 1.5.21
 message($$VERSION)
 QMAKE_TARGET_COMPANY = OpenKJ.org
 QMAKE_TARGET_PRODUCT = OpenKJ
@@ -348,7 +348,8 @@ HEADERS  += mainwindow.h \
     dlgpurchaseprogress.h \
     karaokefileinfo.h \
     dlgeditsong.h \
-    soundfxbutton.h
+    soundfxbutton.h \
+    tableviewtooltipfilter.h
 
 contains(DEFINES, STATIC_TAGLIB) {
     HEADERS += taglib/ape/apefile.h \

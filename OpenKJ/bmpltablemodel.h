@@ -68,6 +68,10 @@ public:
     // QAbstractItemModel interface
 public:
     Qt::ItemFlags flags(const QModelIndex &index) const;
+
+    // QAbstractItemModel interface
+public:
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
 };
 
 #endif // PLAYLISTMODEL_H

@@ -42,6 +42,7 @@
 #include "dlgeditsong.h"
 #include <QKeySequence>
 #include "soundfxbutton.h"
+#include "tableviewtooltipfilter.h"
 
 Settings *settings;
 OKJSongbookAPI *songbookApi;
@@ -243,6 +244,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewRotation->setItemDelegate(rotDelegate);
     ui->tableViewQueue->setModel(qModel);
     ui->tableViewQueue->setItemDelegate(qDelegate);
+    ui->tableViewQueue->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewQueue));
     khTmpDir = new QTemporaryDir();
     dbDialog = new DlgDatabase(database, this);
     dlgKeyChange = new DlgKeyChange(qModel, this);
@@ -257,6 +259,7 @@ MainWindow::MainWindow(QWidget *parent) :
     dlgSongShop->setModal(false);
     cdg = new CDG;
     ui->tableViewDB->setModel(dbModel);
+    ui->tableViewDB->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewDB));
     dbDelegate = new DbItemDelegate(this);
     ui->tableViewDB->setItemDelegate(dbDelegate);
 //    ipcClient = new KhIPCClient("bmControl",this);
@@ -407,7 +410,9 @@ MainWindow::MainWindow(QWidget *parent) :
     bmDbDelegate = new BmDbItemDelegate(this);
     ui->tableViewBmDb->setModel(bmDbModel);
     ui->tableViewBmDb->setItemDelegate(bmDbDelegate);
+    ui->tableViewBmDb->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewBmDb));
     ui->tableViewBmPlaylist->setModel(bmPlModel);
+    ui->tableViewBmPlaylist->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewBmPlaylist));
     bmPlDelegate = new BmPlItemDelegate(this);
     ui->tableViewBmPlaylist->setItemDelegate(bmPlDelegate);
     ui->actionDisplay_Filenames->setChecked(settings->bmShowFilenames());
@@ -611,6 +616,7 @@ MainWindow::MainWindow(QWidget *parent) :
     slowUiUpdateTimer->start(10000);
     connect(qModel, SIGNAL(queueModified(int)), this, SLOT(updateRotationDuration()));
     connect(settings, SIGNAL(rotationDurationSettingsModified()), this, SLOT(updateRotationDuration()));
+    cdgWindow->setShowBgImage(true);
 }
 
 void MainWindow::play(QString karaokeFilePath, bool k2k)
