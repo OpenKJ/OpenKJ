@@ -160,7 +160,7 @@ private:
     void addSfxButton(QString filename, QString label, bool reset = false);
     void refreshSfxButtons();
     SfxEntry lastRtClickedSfxBtn;
-
+    QString findMatchingAudioFile(QString cdgFilePath);
 
 public:
     explicit MainWindow(QWidget *parent = 0);

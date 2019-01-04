@@ -619,6 +619,40 @@ MainWindow::MainWindow(QWidget *parent) :
     cdgWindow->setShowBgImage(true);
 }
 
+QString MainWindow::findMatchingAudioFile(QString cdgFilePath)
+{
+    qWarning() << "findMatchingAudioFile(" << cdgFilePath << ") called";
+    QStringList audioExtensions;
+    audioExtensions.append("mp3");
+    audioExtensions.append("wav");
+    audioExtensions.append("ogg");
+    audioExtensions.append("mov");
+    audioExtensions.append("flac");
+    QFileInfo cdgInfo(cdgFilePath);
+    QDir srcDir = cdgInfo.absoluteDir();
+    QDirIterator it(srcDir);
+    while (it.hasNext())
+    {
+        it.next();
+        if (it.fileInfo().completeBaseName() != cdgInfo.completeBaseName())
+            continue;
+        if (it.fileInfo().suffix().toLower() == "cdg")
+            continue;
+        QString ext;
+        foreach (ext, audioExtensions)
+        {
+            if (it.fileInfo().suffix().toLower() == ext)
+            {
+                qWarning() << "findMatchingAudioFile found match: " << it.filePath();
+                return it.filePath();
+            }
+        }
+    }
+    qWarning() << "findMatchingAudioFile found no matches";
+    return QString();
+}
+
+
 void MainWindow::play(QString karaokeFilePath, bool k2k)
 {
     khTmpDir->remove();
@@ -693,30 +727,30 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
                 QMessageBox::warning(this, tr("Bad karaoke file"), tr("CDG file contains no data"),QMessageBox::Ok);
                 return;
             }
-            QString mp3fn;
-            QString baseFn = karaokeFilePath;
-            baseFn.chop(3);
-            if (QFile::exists(baseFn + "mp3"))
-                mp3fn = baseFn + "mp3";
-            else if (QFile::exists(baseFn + "Mp3"))
-                mp3fn = baseFn + "Mp3";
-            else if (QFile::exists(baseFn + "MP3"))
-                mp3fn = baseFn + "MP3";
-            else if (QFile::exists(baseFn + "mP3"))
-                mp3fn = baseFn + "mP3";
-            else
+            QString audiofn = findMatchingAudioFile(karaokeFilePath);
+//            QString baseFn = karaokeFilePath;
+//            baseFn.chop(3);
+//            if (QFile::exists(baseFn + "mp3"))
+//                audiofn = baseFn + "mp3";
+//            else if (QFile::exists(baseFn + "Mp3"))
+//                audiofn = baseFn + "Mp3";
+//            else if (QFile::exists(baseFn + "MP3"))
+//                audiofn = baseFn + "MP3";
+//            else if (QFile::exists(baseFn + "mP3"))
+//                audiofn = baseFn + "mP3";
+            if (audiofn == "")
             {
-                QMessageBox::warning(this, tr("Bad karaoke file"), tr("mp3 file missing."),QMessageBox::Ok);
+                QMessageBox::warning(this, tr("Bad karaoke file"), tr("Audio file missing."),QMessageBox::Ok);
                 return;
             }
-            QFile mp3File(mp3fn);
-            if (mp3File.size() == 0)
+            QFile audioFile(audiofn);
+            if (audioFile.size() == 0)
             {
-                QMessageBox::warning(this, tr("Bad karaoke file"), tr("mp3 file contains no data"),QMessageBox::Ok);
+                QMessageBox::warning(this, tr("Bad karaoke file"), tr("Audio file contains no data"),QMessageBox::Ok);
                 return;
             }
             cdgFile.copy(khTmpDir->path() + QDir::separator() + cdgTmpFile);
-            QFile::copy(mp3fn, khTmpDir->path() + QDir::separator() + audTmpFile);
+            QFile::copy(audiofn, khTmpDir->path() + QDir::separator() + audTmpFile);
             cdg->FileOpen(QString(khTmpDir->path() + QDir::separator() + cdgTmpFile).toStdString());
             cdg->Process();
             kAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + audTmpFile);
