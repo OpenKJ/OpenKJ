@@ -20,6 +20,7 @@
 
 #include "dlgrequests.h"
 #include "ui_dlgrequests.h"
+#include <QDesktopServices>
 #include <QMenu>
 #include <QMessageBox>
 #include "settings.h"
@@ -522,4 +523,10 @@ void DlgRequests::on_spinBoxKey_valueChanged(int arg1)
         ui->spinBoxKey->setPrefix("+");
     else
         ui->spinBoxKey->setPrefix("");
+}
+
+void DlgRequests::on_pushButtonWebSearch_clicked()
+{
+    QString link = "http://db.openkj.org/?type=All&searchstr=" + ui->lineEditSearch->text();
+    QDesktopServices::openUrl(QUrl(link));
 }

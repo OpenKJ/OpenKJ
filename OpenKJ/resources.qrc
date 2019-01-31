@@ -353,5 +353,6 @@
         <file>volslider.cpp</file>
         <file>volslider.h</file>
         <file>Icons/system-search2.png</file>
+        <file>Icons/web-arrow-icon.png</file>
     </qresource>
 </RCC>
