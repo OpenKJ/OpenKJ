@@ -46,12 +46,28 @@ DlgDatabase::DlgDatabase(QSqlDatabase db, QWidget *parent) :
     selectedRow = -1;
     customPatternsDlg = new DlgCustomPatterns(this);
     dbUpdateDlg = new DlgDbUpdate(this);
+    QStringList sourceDirs = sourcedirmodel->getSourceDirs();
+    QString path;
+    foreach (path, sourceDirs)
+    {
+        fsWatcher.addPath(path);
+        qWarning() << "Adding watch to path: " << path;
+        QDirIterator it(path, QDirIterator::Subdirectories);
+        while (it.hasNext()) {
+            QString subPath = it.next();
+            if (!it.fileInfo().isDir() || subPath.endsWith("/.") || subPath.endsWith("/.."))
+                continue;
+            qWarning() << "Adding watch to subpath: " << subPath;
+            fsWatcher.addPath(subPath);
+        }
+    }
     fsWatcher.addPaths(sourcedirmodel->getSourceDirs());
     connect(&fsWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(directoryChanged(QString)));
 }
 
 DlgDatabase::~DlgDatabase()
 {
+    fsWatcher.removePaths(fsWatcher.directories());
     delete sourcedirmodel;
     delete ui;
 }
@@ -289,7 +305,7 @@ void DlgDatabase::on_btnExport_clicked()
 
 void DlgDatabase::directoryChanged(QString dirPath)
 {
-    if (!settings->directoryWatchEnabled())
+    if (!settings->dbDirectoryWatchEnabled())
         return;
     DbUpdateThread *dbthread = new DbUpdateThread(db, this);
     qWarning() << "Directory changed fired for dir: " << dirPath;

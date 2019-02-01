@@ -25,6 +25,7 @@
 #include <QStringList>
 #include <QtSql>
 #include "sourcedirtablemodel.h"
+#include "settings.h"
 
 class DbUpdateThread : public QThread
 {
@@ -35,6 +36,7 @@ private:
     SourceDir::NamingPattern pattern;
     //QSqlDatabase database;
     QSqlDatabase database;
+    Settings *settings;
 
 
 public:

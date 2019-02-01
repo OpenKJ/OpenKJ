@@ -65,7 +65,7 @@
 #include "dlgsongshop.h"
 #include "songshop.h"
 #include "khdb.h"
-
+#include "durationlazyupdater.h"
 
 using namespace std;
 
@@ -161,6 +161,7 @@ private:
     void refreshSfxButtons();
     SfxEntry lastRtClickedSfxBtn;
     QString findMatchingAudioFile(QString cdgFilePath);
+    LazyDurationUpdateController *lazyDurationUpdater;
 
 public:
     explicit MainWindow(QWidget *parent = 0);

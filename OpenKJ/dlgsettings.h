@@ -48,7 +48,6 @@ private:
 public:
     explicit DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBackend *BmAudioBackend, QWidget *parent = 0);
     ~DlgSettings();
-    void createIcons();
 
 signals:
     void audioUseFaderChanged(bool);

@@ -617,6 +617,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(qModel, SIGNAL(queueModified(int)), this, SLOT(updateRotationDuration()));
     connect(settings, SIGNAL(rotationDurationSettingsModified()), this, SLOT(updateRotationDuration()));
     cdgWindow->setShowBgImage(true);
+    lazyDurationUpdater = new LazyDurationUpdateController(this);
 }
 
 QString MainWindow::findMatchingAudioFile(QString cdgFilePath)
@@ -788,6 +789,7 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
 
 MainWindow::~MainWindow()
 {
+    lazyDurationUpdater->stopWork();
     settings->bmSetVolume(ui->sliderBmVolume->value());
     settings->setAudioVolume(ui->sliderVolume->value());
     qWarning() << "Saving volumes - K: " << settings->audioVolume() << " BM: " << settings->bmVolume();
@@ -832,10 +834,15 @@ void MainWindow::databaseUpdated()
     settings->restoreColumnWidths(ui->tableViewDB);
     requestsDialog->databaseUpdateComplete();
     autosizeViews();
+    lazyDurationUpdater->stopWork();
+    lazyDurationUpdater->deleteLater();
+    lazyDurationUpdater = new LazyDurationUpdateController(this);
+    lazyDurationUpdater->getDurations();
 }
 
 void MainWindow::databaseCleared()
 {
+    lazyDurationUpdater->stopWork();
     dbModel->refreshCache();
     dbModel->select();
     rotModel->select();

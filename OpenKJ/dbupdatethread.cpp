@@ -110,6 +110,7 @@ DbUpdateThread::DbUpdateThread(QSqlDatabase tdb, QObject *parent) :
     database = tdb;
     pattern = SourceDir::SAT;
     g_pattern = pattern;
+    settings = new Settings(this);
 }
 
 int DbUpdateThread::getPattern() const
@@ -270,7 +271,10 @@ void DbUpdateThread::addSingleTrack(QString path)
     int duration = 0;
     QFileInfo file(path);
     archive.setArchiveFile(path);
-    duration = archive.getSongDuration();
+    if (settings->dbLazyLoadDurations())
+        duration = -2;
+    else
+        duration = archive.getSongDuration();
     QString artist;
     QString title;
     QString discid;
@@ -517,17 +521,22 @@ void DbUpdateThread::startUnthreaded()
         if (fileName.endsWith(".zip", Qt::CaseInsensitive))
         {
             archive.setArchiveFile(fileName);
-            if (!archive.isValidKaraokeFile())
+            if (!settings->dbSkipValidation())
             {
-                errorMutex.lock();
-                errors.append(archive.getLastError() + ": " + fileName);
-                errorMutex.unlock();
-                emit progressMessage(archive.getLastError() + ": " + fileName);
-                emit progressChanged(i + 1);
-                continue;
+                if (!archive.isValidKaraokeFile())
+                {
+                    errorMutex.lock();
+                    errors.append(archive.getLastError() + ": " + fileName);
+                    errorMutex.unlock();
+                    emit progressMessage(archive.getLastError() + ": " + fileName);
+                    emit progressChanged(i + 1);
+                    continue;
+                }
             }
-
-            duration = archive.getSongDuration();
+            if (settings->dbLazyLoadDurations())
+                duration = -2;
+            else
+                duration = archive.getSongDuration();
         }
         parser.setFileName(fileName);
         parser.setPattern(g_pattern, path);
@@ -535,7 +544,12 @@ void DbUpdateThread::startUnthreaded()
         title = parser.getTitle();
         discid = parser.getSongId();
         if (!fileName.endsWith(".zip", Qt::CaseInsensitive))
-            duration = parser.getDuration();
+        {
+            if (settings->dbLazyLoadDurations())
+                duration = -3;
+            else
+                duration = parser.getDuration();
+        }
         if (artist == "" && title == "" && discid == "")
         {
             // Something went wrong, no metadata found. File is probably named wrong. If we didn't try media tags, give it a shot

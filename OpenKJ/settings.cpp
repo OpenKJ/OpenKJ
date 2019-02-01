@@ -60,6 +60,11 @@ void Settings::setCurrentRotationPosition(int position)
     settings->setValue("currentRotationPosition", position);
 }
 
+void Settings::dbSetDirectoryWatchEnabled(bool val)
+{
+    settings->setValue("directoryWatchEnabled", val);
+}
+
 void Settings::setPassword(QString password)
 {
     qint64 passHash = this->hash(password);
@@ -1422,7 +1427,7 @@ int Settings::theme()
     return settings->value("theme", 1).toInt();
 }
 
-bool Settings::directoryWatchEnabled()
+bool Settings::dbDirectoryWatchEnabled()
 {
     return settings->value("directoryWatchEnabled", false).toBool();
 }
@@ -1492,6 +1497,26 @@ void Settings::setRotationDisplayPosition(bool show)
 int Settings::currentRotationPosition()
 {
     return settings->value("currentRotationPosition", -1).toInt();
+}
+
+bool Settings::dbSkipValidation()
+{
+    return settings->value("dbSkipValidation", false).toBool();
+}
+
+void Settings::dbSetSkipValidation(bool val)
+{
+    settings->setValue("dbSkipValidation", val);
+}
+
+bool Settings::dbLazyLoadDurations()
+{
+    return settings->value("dbLazyLoadDurations", false).toBool();
+}
+
+void Settings::dbSetLazyLoadDurations(bool val)
+{
+    settings->setValue("dbLazyLoadDurations", val);
 }
 
 void Settings::setBmKCrossfade(bool enabled)

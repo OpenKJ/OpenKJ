@@ -244,7 +244,7 @@ public:
     bool checkUpdates();
     int updatesBranch();
     int theme();
-    bool directoryWatchEnabled();
+    bool dbDirectoryWatchEnabled();
     SfxEntryList getSfxEntries();
     void addSfxEntry(SfxEntry entry);
     void setSfxEntries(SfxEntryList entries);
@@ -257,6 +257,8 @@ public:
     bool rotationDisplayPosition();
     void setRotationDisplayPosition(bool show);
     int currentRotationPosition();
+    bool dbSkipValidation();
+    bool dbLazyLoadDurations();
 
 signals:
     void applicationFontChanged(QFont font);
@@ -320,6 +322,8 @@ signals:
     void rotationDurationSettingsModified();
 
 public slots:
+    void dbSetLazyLoadDurations(bool val);
+    void dbSetSkipValidation(bool val);
     void setBmKCrossfade(bool enabled);
     void setShowCdgWindow(bool show);
     void setCdgWindowFullscreen(bool fullScreen);
@@ -381,7 +385,7 @@ public slots:
     void setBookCreatorPageSize(int size);
     void setStoreDownloadDir(QString path);
     void setCurrentRotationPosition(int position);
-
+    void dbSetDirectoryWatchEnabled(bool val);
 };
 
 #endif // KHSETTINGS_H

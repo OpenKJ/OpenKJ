@@ -54,8 +54,9 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     ui->spinBoxVAdjust->setValue(settings->cdgVSizeAdjustment());
     ui->spinBoxHOffset->setValue(settings->cdgHOffset());
     ui->spinBoxVOffset->setValue(settings->cdgVOffset());
-    createIcons();
-    ui->listWidget->setCurrentRow(0);
+    ui->checkBoxDbSkipValidation->setChecked(settings->dbSkipValidation());
+    ui->checkBoxLazyLoadDurations->setChecked(settings->dbLazyLoadDurations());
+    ui->checkBoxMonitorDirs->setChecked(settings->dbDirectoryWatchEnabled());
     QStringList screens = getMonitors();
     ui->listWidgetMonitors->addItems(screens);
     audioOutputDevices = kAudioBackend->getOutputDevices();
@@ -204,9 +205,10 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     connect(ui->cbxCheckUpdates, SIGNAL(clicked(bool)), settings, SLOT(setCheckUpdates(bool)));
     connect(ui->comboBoxUpdateBranch, SIGNAL(currentIndexChanged(int)), settings, SLOT(setUpdatesBranch(int)));
     ui->lineEditDownloadsDir->setText(settings->storeDownloadDir());
-    ui->listWidget->setMinimumWidth(QFontMetrics(settings->applicationFont()).width("  Network  "));
-    ui->frame->setMinimumWidth(QFontMetrics(settings->applicationFont()).width("  Network  "));
     adjustSize();
+    connect(ui->checkBoxDbSkipValidation, SIGNAL(toggled(bool)), settings, SLOT(dbSetSkipValidation(bool)));
+    connect(ui->checkBoxLazyLoadDurations, SIGNAL(toggled(bool)), settings, SLOT(dbSetLazyLoadDurations(bool)));
+    connect(ui->checkBoxMonitorDirs, SIGNAL(toggled(bool)), settings, SLOT(dbSetDirectoryWatchEnabled(bool)));
 
 }
 
@@ -242,48 +244,7 @@ void DlgSettings::onSslErrors(QNetworkReply *reply)
     }
 }
 
-void DlgSettings::createIcons()
-{
-    int scaleSize = qMax(72, QFontMetrics(settings->applicationFont()).width(" network "));
-    int imgHeight = 72;
-    int fH = QFontMetrics(settings->applicationFont()).height();
-    QListWidgetItem *audioButton = new QListWidgetItem(ui->listWidget);
-    audioButton->setIcon(QIcon(":/icons/Icons/audio-card.png"));
-    audioButton->setText(tr("Audio"));
-    audioButton->setTextAlignment(Qt::AlignHCenter);
-    audioButton->setSizeHint(QSize(scaleSize, imgHeight + fH));
-    audioButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-    QListWidgetItem *videoButton = new QListWidgetItem(ui->listWidget);
-    videoButton->setIcon(QIcon(":/icons/Icons/video-display.png"));
-    videoButton->setText(tr("Video"));
-    videoButton->setTextAlignment(Qt::AlignHCenter);
-    videoButton->setSizeHint(QSize(scaleSize, imgHeight + fH));
-    videoButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-    QListWidgetItem *networkButton = new QListWidgetItem(ui->listWidget);
-    networkButton->setIcon(QIcon(":/icons/Icons/network-wired.png"));
-    networkButton->setText(tr("Network"));
-    networkButton->setTextAlignment(Qt::AlignHCenter);
-    networkButton->setSizeHint(QSize(scaleSize, imgHeight + fH));
-    networkButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-    QListWidgetItem *otherButton = new QListWidgetItem(ui->listWidget);
-    otherButton->setIcon(QIcon(":/Icons/other-settings.png"));
-    otherButton->setText(tr("Other"));
-    otherButton->setTextAlignment(Qt::AlignHCenter);
-    otherButton->setSizeHint(QSize(scaleSize, imgHeight + fH));
-    otherButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-    QListWidgetItem *appearanceButton = new QListWidgetItem(ui->listWidget);
-    appearanceButton->setIcon(QIcon(":/icons/Icons/theme.png"));
-    appearanceButton->setText("Theme");
-    appearanceButton->setTextAlignment(Qt::AlignHCenter);
-    appearanceButton->setSizeHint(QSize(scaleSize, imgHeight + fH));
-    appearanceButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-    QListWidgetItem *rotationButton = new QListWidgetItem(ui->listWidget);
-    rotationButton->setIcon(QIcon(":/icons/Icons/rotation.png"));
-    rotationButton->setText("Rotation");
-    rotationButton->setTextAlignment(Qt::AlignHCenter);
-    rotationButton->setSizeHint(QSize(scaleSize, imgHeight + fH));
-    rotationButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-}
+
 
 void DlgSettings::on_btnClose_clicked()
 {
@@ -307,7 +268,7 @@ void DlgSettings::on_listWidgetMonitors_itemSelectionChanged()
     if (ui->listWidgetMonitors->selectedItems().count() < 1)
         return;
     QDesktopWidget widget;
-    int appMonitor = widget.screenNumber(ui->videoPage);
+    int appMonitor = widget.screenNumber(ui->tabWidget);
     int selMonitor = ui->listWidgetMonitors->selectionModel()->selectedIndexes().at(0).row();
     if ((selMonitor == appMonitor) && (settings->cdgWindowFullscreen()))
     {
@@ -609,7 +570,7 @@ void DlgSettings::on_checkBoxCdgFullscreen_toggled(bool checked)
     if (checked)
     {
         QDesktopWidget widget;
-        int appMonitor = widget.screenNumber(ui->videoPage);
+        int appMonitor = widget.screenNumber(ui->tabWidget);
         int selMonitor = settings->cdgWindowFullScreenMonitor();
         if (selMonitor == appMonitor)
         {
