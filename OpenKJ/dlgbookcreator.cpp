@@ -2,9 +2,11 @@
 #include "ui_dlgbookcreator.h"
 #include <QDebug>
 #include <QFileDialog>
+#include <QMessageBox>
 #include <QPainter>
 #include <QPdfWriter>
 #include <QPrinter>
+#include <QProgressDialog>
 #include <QSqlQuery>
 #include <QStandardPaths>
 
@@ -122,7 +124,7 @@ QStringList DlgBookCreator::getArtists()
 {
     QSqlQuery query;
     QStringList artists;
-    QString sql = "SELECT DISTINCT artist FROM dbsongs WHERE discid != '!!BAD!!' AND discid != '!!DROPPED!!' ORDER BY artist";
+    QString sql = "SELECT DISTINCT artist FROM mem.dbsongs WHERE discid != '!!BAD!!' AND discid != '!!DROPPED!!' ORDER BY artist";
     query.exec(sql);
     while (query.next())
     {
@@ -135,7 +137,7 @@ QStringList DlgBookCreator::getTitles(QString artist)
 {
     QSqlQuery query;
     QStringList titles;
-    QString sql = "SELECT DISTINCT title FROM dbsongs WHERE artist = :artist AND discid != '!!BAD!!' AND discid != '!!DROPPED!!' ORDER BY title";
+    QString sql = "SELECT DISTINCT title FROM mem.dbsongs WHERE artist = :artist AND discid != '!!BAD!!' AND discid != '!!DROPPED!!' ORDER BY title";
     query.prepare(sql);
     query.bindValue(":artist", artist);
     query.exec();
@@ -148,6 +150,14 @@ QStringList DlgBookCreator::getTitles(QString artist)
 
 void DlgBookCreator::writePdf(QString filename, int nCols)
 {
+    QProgressDialog progress(this);
+    progress.setWindowModality(Qt::WindowModal);
+    progress.setCancelButton(0);
+    progress.setLabelText("Gathering artist data");
+    progress.setValue(0);
+    progress.setMaximum(0);
+    progress.show();
+    qWarning() << "Beginning pdf generation";
     QFont aFont = settings->bookCreatorArtistFont();
     QFont tFont = settings->bookCreatorTitleFont();
     QFont hFont = settings->bookCreatorHeaderFont();
@@ -156,8 +166,13 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
     pdf.setPageSize(static_cast<QPagedPaintDevice::PageSize>(ui->cbxPageSize->currentData().toInt()));
     pdf.setPageMargins(QMarginsF(ui->doubleSpinBoxLeft->value(),ui->doubleSpinBoxTop->value(),ui->doubleSpinBoxRight->value(),ui->doubleSpinBoxBottom->value()), QPageLayout::Inch);
     QPainter painter(&pdf);
+    qWarning() << "Getting artists";
     QStringList artists = getArtists();
+    qWarning() << "Got " << artists.size() << " artists";
     QStringList entries;
+    qWarning() << "Getting titles for artists";
+    progress.setLabelText("Parsing song data");
+    progress.setMaximum(artists.size());
     for (int i=0; i < artists.size(); i++)
     {
         QApplication::processEvents();
@@ -167,8 +182,9 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
         {
             entries.append("+" + titles.at(j));
         }
-
+        progress.setValue(i);
     }
+    qWarning() << "Got titles";
     QPen pen;
     pen.setColor(QColor(0,0,0));
     pen.setWidth(4);
@@ -187,10 +203,16 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
     }
     int curDrawPos;
     int pages = 0;
+    qWarning() << "Writing data to pdf";
+    progress.setLabelText("Writing data to PDF");
+    progress.setValue(0);
+    progress.setMaximum(entries.size());
+    int curEntry = 0;
     while (!entries.isEmpty())
     {
         QApplication::processEvents();
         pages++;
+        qWarning() << "Generating page " << pages;
         int topOffset = 40;
         int headerOffset = 0;
         int bottomOffset = 0;
@@ -343,12 +365,22 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
             pdf.newPage();
             pdf.setPageMargins(QMarginsF(ui->doubleSpinBoxLeft->value(),ui->doubleSpinBoxTop->value(),ui->doubleSpinBoxRight->value(),ui->doubleSpinBoxBottom->value()), QPageLayout::Inch);
         }
-
+        curEntry++;
+        progress.setValue(curEntry);
     }
+    qWarning() << "Done writing data to pdf";
 //    painter.drawText(txtRect, Qt::AlignLeft, "This is some title");
     qWarning() << rect();
-
-    painter.end();
+    qWarning() << "Finalizing pdf";
+    progress.setLabelText("Finalizing PDF");
+    progress.setMaximum(0);
+    progress.setValue(0);
+    painter.end();    
+    progress.close();
+    QMessageBox msgBox(this);
+    msgBox.setText("Songbook PDF generation complete");
+    msgBox.exec();
+    qWarning() << "Done with songbook generation";
 }
 
 
