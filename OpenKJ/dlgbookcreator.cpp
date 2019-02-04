@@ -160,6 +160,7 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
     QStringList entries;
     for (int i=0; i < artists.size(); i++)
     {
+        QApplication::processEvents();
         entries.append("-" + artists.at(i));
         QStringList titles = getTitles(artists.at(i));
         for (int j=0; j < titles.size(); j++)
@@ -188,6 +189,7 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
     int pages = 0;
     while (!entries.isEmpty())
     {
+        QApplication::processEvents();
         pages++;
         int topOffset = 40;
         int headerOffset = 0;
@@ -226,6 +228,7 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
         }
         curDrawPos = topOffset + headerOffset;
         while ((curDrawPos + fontHeight) <= (painter.viewport().height() - bottomOffset)) {
+            QApplication::processEvents();
             if (entries.isEmpty())
                 break;
             QString entry;
@@ -262,6 +265,7 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
         }
         curDrawPos = topOffset + headerOffset;
         while ((curDrawPos + fontHeight) <= (painter.viewport().height() - bottomOffset)) {
+            QApplication::processEvents();
             if (entries.isEmpty())
                 break;
             QString entry;
@@ -299,6 +303,7 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
         {
             curDrawPos = topOffset + headerOffset;
             while ((curDrawPos + fontHeight) <= (painter.viewport().height() - bottomOffset)) {
+                QApplication::processEvents();
                 if (entries.isEmpty())
                     break;
                 QString entry;
@@ -356,6 +361,7 @@ void DlgBookCreator::on_btnGenerate_clicked()
     QString saveFilePath = QFileDialog::getSaveFileName(this,tr("Select songbook filename"), defaultFilePath, "(*.pdf)");
     if (saveFilePath != "")
     {
+        QApplication::processEvents();
         writePdf(saveFilePath, ui->cbxColumns->currentData().toInt());
     }
 }
