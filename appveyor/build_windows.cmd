@@ -20,7 +20,7 @@ cd %project_dir%\build\windows\msvc\%LONGARCH%\release\
 dir
 windeployqt OpenKJ\release\OpenKJ.exe
 echo Signing OpenKJ binary
-REM signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f "%project_dir%\cscrt\cscrt.pfx" /p "%pfx_pass%" OpenKJ\release\Openkj.exe
+signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f "%project_dir%\cscrt\cscrt.pfx" /p "%pfx_pass%" OpenKJ\release\Openkj.exe
 
 echo Copying project files for archival...
 copy "%project_dir%\README.md" "OpenKJ\release\README.md"
@@ -53,4 +53,4 @@ rem binarycreator.exe --offline-only -c config\config.xml -p packages OpenKJ-%OK
 "C:\Program Files (x86)\Inno Setup 5\iscc.exe" "%project_dir%\appveyor\openkj_%LONGARCH%.iss" /O"%project_dir%/"
 move "%project_dir%\OpenKJ.exe" "%project_dir%\OpenKJ-%OKJVERSION%-%BITS%-setup.exe"
 echo Signing installer...
-REM signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f "%project_dir%\cscrt\cscrt.pfx" /p "%pfx_pass%" "%project_dir%\OpenKJ-%OKJVERSION%-%BITS%-setup.exe
+signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f "%project_dir%\cscrt\cscrt.pfx" /p "%pfx_pass%" "%project_dir%\OpenKJ-%OKJVERSION%-%BITS%-setup.exe
