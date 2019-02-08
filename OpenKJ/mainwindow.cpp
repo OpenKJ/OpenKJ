@@ -618,6 +618,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(settings, SIGNAL(rotationDurationSettingsModified()), this, SLOT(updateRotationDuration()));
     cdgWindow->setShowBgImage(true);
     lazyDurationUpdater = new LazyDurationUpdateController(this);
+    lazyDurationUpdater->getDurations();
 }
 
 QString MainWindow::findMatchingAudioFile(QString cdgFilePath)

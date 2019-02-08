@@ -24,7 +24,6 @@ void LazyDurationUpdateWorker::getDurations(const QStringList files) {
             break;
         //QThread::msleep(50);
     }
-    /* ... here is the expensive or blocking operation ... */
 }
 
 LazyDurationUpdateController::LazyDurationUpdateController(QObject *parent) : QObject(parent) {
@@ -34,7 +33,7 @@ LazyDurationUpdateController::LazyDurationUpdateController(QObject *parent) : QO
     connect(this, &LazyDurationUpdateController::operate, worker, &LazyDurationUpdateWorker::getDurations);
     connect(worker, &LazyDurationUpdateWorker::gotDuration, this, &LazyDurationUpdateController::updateDbDuration);
     workerThread.start();
-    getDurations();
+    //getDurations();
 }
 
 LazyDurationUpdateController::~LazyDurationUpdateController() {
@@ -44,13 +43,15 @@ LazyDurationUpdateController::~LazyDurationUpdateController() {
 
 void LazyDurationUpdateController::getSongsRequiringUpdate()
 {
+    qWarning() << "Finding songs that need durations";
     files.clear();
     QSqlQuery query;
-    query.exec("SELECT path FROM dbsongs WHERE duration = -2 ORDER BY artist, title");
+    query.exec("SELECT path FROM dbsongs WHERE duration < 1 ORDER BY artist, title");
     while (query.next())
     {
         files.append(query.value(0).toString());
     }
+    qWarning() << "Done, found " << files.size() << " songs that need durations";
 }
 
 void LazyDurationUpdateController::stopWork()
