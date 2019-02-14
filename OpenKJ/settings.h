@@ -259,6 +259,8 @@ public:
     int currentRotationPosition();
     bool dbSkipValidation();
     bool dbLazyLoadDurations();
+    int systemId();
+
 
 signals:
     void applicationFontChanged(QFont font);
@@ -386,6 +388,8 @@ public slots:
     void setStoreDownloadDir(QString path);
     void setCurrentRotationPosition(int position);
     void dbSetDirectoryWatchEnabled(bool val);
+    void setSystemId(int id);
+
 };
 
 #endif // KHSETTINGS_H

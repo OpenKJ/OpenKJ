@@ -1528,3 +1528,13 @@ SfxEntry::SfxEntry()
 {
 
 }
+
+int Settings::systemId()
+{
+    return settings->value("systemId", 1).toInt();
+}
+
+void Settings::setSystemId(int id)
+{
+    return settings->setValue("systemId", id);
+}

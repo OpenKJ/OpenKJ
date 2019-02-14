@@ -131,6 +131,9 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     ui->checkBoxDownmixBm->setChecked(settings->audioDownmixBm());
     ui->checkBoxSilenceDetectionBm->setChecked(settings->audioDetectSilenceBm());
     ui->spinBoxInterval->setValue(settings->requestServerInterval());
+    ui->spinBoxSystemId->setMaximum(songbookApi->entitledSystemCount());
+    ui->spinBoxSystemId->setValue(settings->systemId());
+
     AudioRecorder recorder;
     QAudioRecorder audioRecorder;
     QStringList inputs = recorder.getDeviceList();
@@ -173,6 +176,7 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     connect(ui->cbxStopPauseWarning, SIGNAL(toggled(bool)), settings, SLOT(setShowSongPauseStopWarning(bool)));
     connect(ui->cbxTickerShowRotationInfo, SIGNAL(clicked(bool)), settings, SLOT(setTickerShowRotationInfo(bool)));
     connect(settings, SIGNAL(tickerShowRotationInfoChanged(bool)), this, SLOT(tickerShowRotationInfoChanged(bool)));
+    connect(songbookApi, SIGNAL(entitledSystemCountChanged(int)), this, SLOT(entitledSystemCountChanged(int)));
     ui->fontComboBox->setFont(settings->applicationFont());
     ui->spinBoxAppFontSize->setValue(settings->applicationFont().pointSize());
 
@@ -209,7 +213,7 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     connect(ui->checkBoxDbSkipValidation, SIGNAL(toggled(bool)), settings, SLOT(dbSetSkipValidation(bool)));
     connect(ui->checkBoxLazyLoadDurations, SIGNAL(toggled(bool)), settings, SLOT(dbSetLazyLoadDurations(bool)));
     connect(ui->checkBoxMonitorDirs, SIGNAL(toggled(bool)), settings, SLOT(dbSetDirectoryWatchEnabled(bool)));
-
+    connect(ui->spinBoxSystemId, SIGNAL(valueChanged(int)), settings, SLOT(setSystemId(int)));
 }
 
 DlgSettings::~DlgSettings()
@@ -768,4 +772,13 @@ void DlgSettings::on_checkBoxDisplayCurrentRotationPosition_clicked(bool checked
 {
     settings->setRotationDisplayPosition(checked);
 
+}
+
+void DlgSettings::entitledSystemCountChanged(int count)
+{
+    ui->spinBoxSystemId->setMaximum(count);
+    if (settings->systemId() <= count)
+    {
+        ui->spinBoxSystemId->setValue(settings->systemId());
+    }
 }

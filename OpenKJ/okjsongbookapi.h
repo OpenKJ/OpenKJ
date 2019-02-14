@@ -51,6 +51,7 @@ private:
     QTime lastSync;
     bool delayErrorEmitted;
     bool connectionReset;
+    int entitledSystems;
 
 public:
     explicit OKJSongbookAPI(QObject *parent = 0);
@@ -64,6 +65,8 @@ public:
     void updateSongDb();
     bool test();
     void alertCheck();
+    void getEntitledSystemCount();
+    int entitledSystemCount() { return entitledSystems; }
 
 signals:
     void venuesChanged(OkjsVenues);
@@ -79,6 +82,7 @@ signals:
     void testFailed(QString error);
     void testSslError(QString error);
     void alertRecieved(QString title, QString message);
+    void entitledSystemCountChanged(int count);
 
 
 public slots:

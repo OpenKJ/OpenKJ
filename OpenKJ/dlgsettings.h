@@ -116,6 +116,7 @@ private slots:
     void on_spinBoxDefaultPadTime_valueChanged(int arg1);
     void on_spinBoxDefaultSongDuration_valueChanged(int arg1);
     void on_checkBoxDisplayCurrentRotationPosition_clicked(bool checked);
+    void entitledSystemCountChanged(int count);
 };
 
 #endif // SETTINGSDIALOG_H

@@ -24,6 +24,7 @@ OKJSongbookAPI::OKJSongbookAPI(QObject *parent) : QObject(parent)
     delayErrorEmitted = false;
     connectionReset = false;
     serial = 0;
+    entitledSystems = 1;
     timer = new QTimer(this);
     timer->setInterval(settings->requestServerInterval() * 1000);
     alertTimer = new QTimer(this);
@@ -36,6 +37,7 @@ OKJSongbookAPI::OKJSongbookAPI(QObject *parent) : QObject(parent)
     connect(settings, SIGNAL(requestServerIntervalChanged(int)), this, SLOT(setInterval(int)));
     if (settings->requestServerEnabled())
     {
+        getEntitledSystemCount();
         refreshVenues();
         alertCheck();
     }
@@ -99,6 +101,7 @@ void OKJSongbookAPI::setAccepting(bool enabled)
     mainObject.insert("command","setAccepting");
     mainObject.insert("venue_id", settings->requestServerVenue());
     mainObject.insert("accepting", enabled);
+    mainObject.insert("system_id", settings->systemId());
     QJsonDocument jsonDocument;
     jsonDocument.setObject(mainObject);
     QNetworkRequest request(QUrl(settings->requestServerUrl()));
@@ -179,6 +182,7 @@ void OKJSongbookAPI::updateSongDb()
             mainObject.insert("api_key", settings->requestServerApiKey());
             mainObject.insert("command","addSongs");
             mainObject.insert("songs", songsArray);
+            mainObject.insert("system_id", settings->systemId());
             QJsonDocument jsonDocument;
             jsonDocument.setObject(mainObject);
             jsonDocs.append(jsonDocument);
@@ -187,6 +191,7 @@ void OKJSongbookAPI::updateSongDb()
         QJsonObject mainObject;
         mainObject.insert("api_key", settings->requestServerApiKey());
         mainObject.insert("command","clearDatabase");
+        mainObject.insert("system_id", settings->systemId());
         QJsonDocument jsonDocument;
         jsonDocument.setObject(mainObject);
         QNetworkRequest request(url);
@@ -325,6 +330,13 @@ void OKJSongbookAPI::onNetworkReply(QNetworkReply *reply)
         qWarning() << "Error string: " << json.object().value("errorString");
         return;
     }
+    if (command == "getEntitledSystemCount")
+    {
+        qWarning() << json;
+        entitledSystems = json.object().value("count").toInt();
+        emit entitledSystemCountChanged(entitledSystems);
+        qWarning() << "OKJSongbookAPI: Server reports entitled to run " << entitledSystems << " concurrent systems";
+    }
     if (command == "getAlert")
     {
         if(json.object().value("alert").toBool())
@@ -374,6 +386,7 @@ void OKJSongbookAPI::onNetworkReply(QNetworkReply *reply)
         {
             venues = l_venues;
             emit venuesChanged(venues);
+            getEntitledSystemCount();
         }
         lastSync = QTime::currentTime();
         emit synchronized(lastSync);
@@ -454,6 +467,18 @@ void OKJSongbookAPI::setInterval(int interval)
     timer->setInterval(interval * 1000);
 }
 
+void OKJSongbookAPI::getEntitledSystemCount()
+{
+    QJsonObject mainObject;
+    mainObject.insert("api_key", settings->requestServerApiKey());
+    mainObject.insert("command","getEntitledSystemCount");
+    QJsonDocument jsonDocument;
+    jsonDocument.setObject(mainObject);
+    QNetworkRequest request(settings->requestServerUrl());
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    manager->post(request, jsonDocument.toJson());
+}
+
 bool OkjsVenue::operator ==(const OkjsVenue &v) const
 {
     if (venueId != v.venueId)
@@ -481,3 +506,4 @@ bool OkjsRequest::operator ==(const OkjsRequest r) const
         return false;
     return true;
 }
+
