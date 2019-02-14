@@ -91,6 +91,8 @@ private slots:
     // QWidget interface
     void on_spinBoxKey_valueChanged(int arg1);
 
+    void on_pushButtonWebSearch_clicked();
+
 protected:
     void resizeEvent(QResizeEvent *event);
 

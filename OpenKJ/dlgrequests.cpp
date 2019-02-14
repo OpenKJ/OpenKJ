@@ -20,11 +20,13 @@
 
 #include "dlgrequests.h"
 #include "ui_dlgrequests.h"
+#include <QDesktopServices>
 #include <QMenu>
 #include <QMessageBox>
 #include "settings.h"
 #include "okjsongbookapi.h"
 #include <QProgressDialog>
+#include "tableviewtooltipfilter.h"
 
 extern Settings *settings;
 extern OKJSongbookAPI *songbookApi;
@@ -49,8 +51,10 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     dbModel = new DbTableModel(this);
     dbDelegate = new DbItemDelegate(this);
     ui->tableViewRequests->setModel(requestsModel);
+    ui->tableViewRequests->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewRequests));
     connect(requestsModel, SIGNAL(layoutChanged()), this, SLOT(requestsModified()));
     ui->tableViewSearch->setModel(dbModel);
+    ui->tableViewSearch->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewSearch));
     ui->tableViewSearch->setItemDelegate(dbDelegate);
     ui->groupBoxAddSong->setDisabled(true);
     ui->groupBoxSongDb->setDisabled(true);
@@ -404,6 +408,7 @@ void DlgRequests::on_pushButtonUpdateDb_clicked()
     int ret = msgBox.exec();
     if (ret == QMessageBox::Yes)
     {
+        qWarning() << "Opening progress dialog for remote db update";
         QProgressDialog *progressDialog = new QProgressDialog(this);
         progressDialog->setCancelButton(0);
         progressDialog->setMinimum(0);
@@ -416,7 +421,12 @@ void DlgRequests::on_pushButtonUpdateDb_clicked()
         connect(songbookApi, SIGNAL(remoteSongDbUpdateProgress(int)), progressDialog, SLOT(setValue(int)));
         //    progressDialog->show();
         songbookApi->updateSongDb();
+        QMessageBox msgBox;
+        msgBox.setText(tr("Remote database update completed!"));
+        msgBox.exec();
+        qWarning() << "Closing progress dialog for remote db update";
         progressDialog->close();
+        progressDialog->deleteLater();
     }
 }
 
@@ -513,4 +523,10 @@ void DlgRequests::on_spinBoxKey_valueChanged(int arg1)
         ui->spinBoxKey->setPrefix("+");
     else
         ui->spinBoxKey->setPrefix("");
+}
+
+void DlgRequests::on_pushButtonWebSearch_clicked()
+{
+    QString link = "http://db.openkj.org/?type=All&searchstr=" + ui->lineEditSearch->text();
+    QDesktopServices::openUrl(QUrl(link));
 }

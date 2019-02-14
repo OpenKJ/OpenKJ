@@ -71,12 +71,46 @@ bool DbUpdateThread::dbEntryExists(QString filepath)
     }
 }
 
+QString DbUpdateThread::findMatchingAudioFile(QString cdgFilePath)
+{
+    qWarning() << "findMatchingAudioFile(" << cdgFilePath << ") called";
+    QStringList audioExtensions;
+    audioExtensions.append("mp3");
+    audioExtensions.append("wav");
+    audioExtensions.append("ogg");
+    audioExtensions.append("mov");
+    audioExtensions.append("flac");
+    QFileInfo cdgInfo(cdgFilePath);
+    QDir srcDir = cdgInfo.absoluteDir();
+    QDirIterator it(srcDir);
+    while (it.hasNext())
+    {
+        it.next();
+        if (it.fileInfo().completeBaseName() != cdgInfo.completeBaseName())
+            continue;
+        if (it.fileInfo().suffix().toLower() == "cdg")
+            continue;
+        QString ext;
+        foreach (ext, audioExtensions)
+        {
+            if (it.fileInfo().suffix().toLower() == ext)
+            {
+                qWarning() << "findMatchingAudioFile found match: " << it.filePath();
+                return it.filePath();
+            }
+        }
+    }
+    qWarning() << "findMatchingAudioFile found no matches";
+    return QString();
+}
+
 DbUpdateThread::DbUpdateThread(QSqlDatabase tdb, QObject *parent) :
     QThread(parent)
 {
     database = tdb;
     pattern = SourceDir::SAT;
     g_pattern = pattern;
+    settings = new Settings(this);
 }
 
 int DbUpdateThread::getPattern() const
@@ -143,10 +177,12 @@ QStringList DbUpdateThread::findKaraokeFiles(QString directory)
                 files.append(fn);
             else if (fn.endsWith(".cdg", Qt::CaseInsensitive))
             {
-                QString mp3filename = fn;
-                mp3filename.chop(3);
-                if ((QFile::exists(mp3filename + "mp3")) || (QFile::exists(mp3filename + "MP3")) || (QFile::exists(mp3filename + "Mp3")) || (QFile::exists(mp3filename + "mP3")))
+                if (findMatchingAudioFile(fn) != "")
                     files.append(fn);
+//                QString audioFilename = fn;
+//                audioFilename.chop(3);
+//                if ((QFile::exists(audioFilename + "mp3")) || (QFile::exists(audioFilename + "MP3")) || (QFile::exists(audioFilename + "Mp3")) || (QFile::exists(audioFilename + "mP3")))
+//                    files.append(fn);
             }
             else if (fn.endsWith(".mkv", Qt::CaseInsensitive) || fn.endsWith(".avi", Qt::CaseInsensitive) || fn.endsWith(".wmv", Qt::CaseInsensitive) || fn.endsWith(".mp4", Qt::CaseInsensitive) || fn.endsWith(".mpg", Qt::CaseInsensitive) || fn.endsWith(".mpeg", Qt::CaseInsensitive))
                 files.append(fn);
@@ -235,7 +271,10 @@ void DbUpdateThread::addSingleTrack(QString path)
     int duration = 0;
     QFileInfo file(path);
     archive.setArchiveFile(path);
-    duration = archive.getSongDuration();
+    if (settings->dbLazyLoadDurations())
+        duration = -2;
+    else
+        duration = archive.getSongDuration();
     QString artist;
     QString title;
     QString discid;
@@ -482,17 +521,22 @@ void DbUpdateThread::startUnthreaded()
         if (fileName.endsWith(".zip", Qt::CaseInsensitive))
         {
             archive.setArchiveFile(fileName);
-            if (!archive.isValidKaraokeFile())
+            if (!settings->dbSkipValidation())
             {
-                errorMutex.lock();
-                errors.append(archive.getLastError() + ": " + fileName);
-                errorMutex.unlock();
-                emit progressMessage(archive.getLastError() + ": " + fileName);
-                emit progressChanged(i + 1);
-                continue;
+                if (!archive.isValidKaraokeFile())
+                {
+                    errorMutex.lock();
+                    errors.append(archive.getLastError() + ": " + fileName);
+                    errorMutex.unlock();
+                    emit progressMessage(archive.getLastError() + ": " + fileName);
+                    emit progressChanged(i + 1);
+                    continue;
+                }
             }
-
-            duration = archive.getSongDuration();
+            if (settings->dbLazyLoadDurations())
+                duration = -2;
+            else
+                duration = archive.getSongDuration();
         }
         parser.setFileName(fileName);
         parser.setPattern(g_pattern, path);
@@ -500,7 +544,12 @@ void DbUpdateThread::startUnthreaded()
         title = parser.getTitle();
         discid = parser.getSongId();
         if (!fileName.endsWith(".zip", Qt::CaseInsensitive))
-            duration = parser.getDuration();
+        {
+            if (settings->dbLazyLoadDurations())
+                duration = -3;
+            else
+                duration = parser.getDuration();
+        }
         if (artist == "" && title == "" && discid == "")
         {
             // Something went wrong, no metadata found. File is probably named wrong. If we didn't try media tags, give it a shot

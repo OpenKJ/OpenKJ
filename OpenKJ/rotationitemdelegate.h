@@ -30,11 +30,13 @@ class RotationItemDelegate : public QItemDelegate
 
 private:
     int m_currentSingerId;
+    int singerCount;
 
 public:
     explicit RotationItemDelegate(QObject *parent = 0);
     int currentSinger();
     void setCurrentSinger(int currentSingerId);
+    void setSingerCount(int count) {singerCount = count;}
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
 
 };

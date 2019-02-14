@@ -42,10 +42,11 @@
 #include "dlgeditsong.h"
 #include <QKeySequence>
 #include "soundfxbutton.h"
+#include "tableviewtooltipfilter.h"
 
 Settings *settings;
 OKJSongbookAPI *songbookApi;
-
+int remainSecs = 240;
 
 
 
@@ -154,6 +155,7 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif
     db = new KhDb(this);
     labelSingerCount = new QLabel(ui->statusBar);
+    labelRotationDuration = new QLabel(ui->statusBar);
     khDir = new QDir(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
     if (!khDir->exists())
     {
@@ -242,6 +244,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewRotation->setItemDelegate(rotDelegate);
     ui->tableViewQueue->setModel(qModel);
     ui->tableViewQueue->setItemDelegate(qDelegate);
+    ui->tableViewQueue->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewQueue));
     khTmpDir = new QTemporaryDir();
     dbDialog = new DlgDatabase(database, this);
     dlgKeyChange = new DlgKeyChange(qModel, this);
@@ -256,6 +259,7 @@ MainWindow::MainWindow(QWidget *parent) :
     dlgSongShop->setModal(false);
     cdg = new CDG;
     ui->tableViewDB->setModel(dbModel);
+    ui->tableViewDB->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewDB));
     dbDelegate = new DbItemDelegate(this);
     ui->tableViewDB->setItemDelegate(dbDelegate);
 //    ipcClient = new KhIPCClient("bmControl",this);
@@ -375,6 +379,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewRotation->hideColumn(2);
     qWarning() << "Adding singer count to status bar";
     ui->statusBar->addWidget(labelSingerCount);
+    ui->statusBar->addWidget(labelRotationDuration);
 
 
 
@@ -405,7 +410,9 @@ MainWindow::MainWindow(QWidget *parent) :
     bmDbDelegate = new BmDbItemDelegate(this);
     ui->tableViewBmDb->setModel(bmDbModel);
     ui->tableViewBmDb->setItemDelegate(bmDbDelegate);
+    ui->tableViewBmDb->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewBmDb));
     ui->tableViewBmPlaylist->setModel(bmPlModel);
+    ui->tableViewBmPlaylist->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewBmPlaylist));
     bmPlDelegate = new BmPlItemDelegate(this);
     ui->tableViewBmPlaylist->setItemDelegate(bmPlDelegate);
     ui->actionDisplay_Filenames->setChecked(settings->bmShowFilenames());
@@ -600,7 +607,53 @@ MainWindow::MainWindow(QWidget *parent) :
     foreach (SfxEntry entry, list) {
        addSfxButton(entry.path, entry.name);
     }
+    connect(ui->tableViewRotation->selectionModel(), SIGNAL(currentChanged(QModelIndex, QModelIndex)), this, SLOT(tableViewRotationCurrentChanged(QModelIndex, QModelIndex)));
+    rotModel->setCurrentSinger(settings->currentRotationPosition());
+    rotDelegate->setCurrentSinger(settings->currentRotationPosition());
+    updateRotationDuration();
+    slowUiUpdateTimer = new QTimer(this);
+    connect(slowUiUpdateTimer, SIGNAL(timeout()), this, SLOT(updateRotationDuration()));
+    slowUiUpdateTimer->start(10000);
+    connect(qModel, SIGNAL(queueModified(int)), this, SLOT(updateRotationDuration()));
+    connect(settings, SIGNAL(rotationDurationSettingsModified()), this, SLOT(updateRotationDuration()));
+    cdgWindow->setShowBgImage(true);
+    lazyDurationUpdater = new LazyDurationUpdateController(this);
+    lazyDurationUpdater->getDurations();
 }
+
+QString MainWindow::findMatchingAudioFile(QString cdgFilePath)
+{
+    qWarning() << "findMatchingAudioFile(" << cdgFilePath << ") called";
+    QStringList audioExtensions;
+    audioExtensions.append("mp3");
+    audioExtensions.append("wav");
+    audioExtensions.append("ogg");
+    audioExtensions.append("mov");
+    audioExtensions.append("flac");
+    QFileInfo cdgInfo(cdgFilePath);
+    QDir srcDir = cdgInfo.absoluteDir();
+    QDirIterator it(srcDir);
+    while (it.hasNext())
+    {
+        it.next();
+        if (it.fileInfo().completeBaseName() != cdgInfo.completeBaseName())
+            continue;
+        if (it.fileInfo().suffix().toLower() == "cdg")
+            continue;
+        QString ext;
+        foreach (ext, audioExtensions)
+        {
+            if (it.fileInfo().suffix().toLower() == ext)
+            {
+                qWarning() << "findMatchingAudioFile found match: " << it.filePath();
+                return it.filePath();
+            }
+        }
+    }
+    qWarning() << "findMatchingAudioFile found no matches";
+    return QString();
+}
+
 
 void MainWindow::play(QString karaokeFilePath, bool k2k)
 {
@@ -676,30 +729,30 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
                 QMessageBox::warning(this, tr("Bad karaoke file"), tr("CDG file contains no data"),QMessageBox::Ok);
                 return;
             }
-            QString mp3fn;
-            QString baseFn = karaokeFilePath;
-            baseFn.chop(3);
-            if (QFile::exists(baseFn + "mp3"))
-                mp3fn = baseFn + "mp3";
-            else if (QFile::exists(baseFn + "Mp3"))
-                mp3fn = baseFn + "Mp3";
-            else if (QFile::exists(baseFn + "MP3"))
-                mp3fn = baseFn + "MP3";
-            else if (QFile::exists(baseFn + "mP3"))
-                mp3fn = baseFn + "mP3";
-            else
+            QString audiofn = findMatchingAudioFile(karaokeFilePath);
+//            QString baseFn = karaokeFilePath;
+//            baseFn.chop(3);
+//            if (QFile::exists(baseFn + "mp3"))
+//                audiofn = baseFn + "mp3";
+//            else if (QFile::exists(baseFn + "Mp3"))
+//                audiofn = baseFn + "Mp3";
+//            else if (QFile::exists(baseFn + "MP3"))
+//                audiofn = baseFn + "MP3";
+//            else if (QFile::exists(baseFn + "mP3"))
+//                audiofn = baseFn + "mP3";
+            if (audiofn == "")
             {
-                QMessageBox::warning(this, tr("Bad karaoke file"), tr("mp3 file missing."),QMessageBox::Ok);
+                QMessageBox::warning(this, tr("Bad karaoke file"), tr("Audio file missing."),QMessageBox::Ok);
                 return;
             }
-            QFile mp3File(mp3fn);
-            if (mp3File.size() == 0)
+            QFile audioFile(audiofn);
+            if (audioFile.size() == 0)
             {
-                QMessageBox::warning(this, tr("Bad karaoke file"), tr("mp3 file contains no data"),QMessageBox::Ok);
+                QMessageBox::warning(this, tr("Bad karaoke file"), tr("Audio file contains no data"),QMessageBox::Ok);
                 return;
             }
             cdgFile.copy(khTmpDir->path() + QDir::separator() + cdgTmpFile);
-            QFile::copy(mp3fn, khTmpDir->path() + QDir::separator() + audTmpFile);
+            QFile::copy(audiofn, khTmpDir->path() + QDir::separator() + audTmpFile);
             cdg->FileOpen(QString(khTmpDir->path() + QDir::separator() + cdgTmpFile).toStdString());
             cdg->Process();
             kAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + audTmpFile);
@@ -710,7 +763,11 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
         }
         else
         {
-            kAudioBackend->setMedia(karaokeFilePath);
+            qWarning() << "Playing non-CDG video file: " << karaokeFilePath;
+            QString tmpFileName = khTmpDir->path() + QDir::separator() + "tmpvid." + karaokeFilePath.right(4);
+            QFile::copy(karaokeFilePath, tmpFileName);
+            qWarning() << "Playing temporary copy to avoid bad filename stuff w/ gstreamer: " << tmpFileName;
+            kAudioBackend->setMedia(tmpFileName);
             if (!k2k)
                 bmAudioBackend->fadeOut();
             kAudioBackend->play();
@@ -733,6 +790,7 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
 
 MainWindow::~MainWindow()
 {
+    lazyDurationUpdater->stopWork();
     settings->bmSetVolume(ui->sliderBmVolume->value());
     settings->setAudioVolume(ui->sliderVolume->value());
     qWarning() << "Saving volumes - K: " << settings->audioVolume() << " BM: " << settings->bmVolume();
@@ -777,10 +835,15 @@ void MainWindow::databaseUpdated()
     settings->restoreColumnWidths(ui->tableViewDB);
     requestsDialog->databaseUpdateComplete();
     autosizeViews();
+    lazyDurationUpdater->stopWork();
+    lazyDurationUpdater->deleteLater();
+    lazyDurationUpdater = new LazyDurationUpdateController(this);
+    lazyDurationUpdater->getDurations();
 }
 
 void MainWindow::databaseCleared()
 {
+    lazyDurationUpdater->stopWork();
     dbModel->refreshCache();
     dbModel->select();
     rotModel->select();
@@ -871,6 +934,7 @@ void MainWindow::on_tableViewDB_doubleClicked(const QModelIndex &index)
     if (qModel->singer() >= 0)
     {
         qModel->songAdd(index.sibling(index.row(),0).data().toInt());
+        updateRotationDuration();
     }
     else
     {
@@ -1000,8 +1064,6 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
             }
         }
     }
-    qModel->setSinger(index.sibling(index.row(),0).data().toInt());
-    ui->gbxQueue->setTitle(QString("Song Queue - " + rotModel->getSingerName(index.sibling(index.row(),0).data().toInt())));
 }
 
 void MainWindow::on_tableViewQueue_doubleClicked(const QModelIndex &index)
@@ -1148,7 +1210,9 @@ void MainWindow::on_buttonClearRotation_clicked()
     msgBox.exec();
     if (msgBox.clickedButton() == yesButton)
     {
+        settings->setCurrentRotationPosition(-1);
         rotModel->clearRotation();
+        rotDelegate->setCurrentSinger(-1);
         qModel->setSinger(-1);
     }    
 }
@@ -1207,6 +1271,7 @@ void MainWindow::audioBackend_positionChanged(qint64 position)
         }
         ui->labelElapsedTime->setText(kAudioBackend->msToMMSS(position));
         ui->labelRemainTime->setText(kAudioBackend->msToMMSS(kAudioBackend->duration() - position));
+        remainSecs = (kAudioBackend->duration() - position) / 1000;
     }
 }
 
@@ -1354,9 +1419,11 @@ void MainWindow::on_buttonRegulars_clicked()
 
 void MainWindow::rotationDataChanged()
 {
+    updateRotationDuration();
     requestsDialog->rotationChanged();
     QString statusBarText = "Singers: ";
     statusBarText += QString::number(rotModel->rowCount());
+    rotDelegate->setSingerCount(rotModel->rowCount());
     labelSingerCount->setText(statusBarText);
     QString tickerText;
     if (settings->tickerCustomString() != "")
@@ -1578,6 +1645,7 @@ void MainWindow::setKeyChange()
 void MainWindow::toggleQueuePlayed()
 {
     qModel->songSetPlayed(m_rtClickQueueSongId, !qModel->getSongPlayed(m_rtClickQueueSongId));
+    updateRotationDuration();
 }
 
 void MainWindow::regularNameConflict(QString name)
@@ -2938,4 +3006,39 @@ void MainWindow::showAlert(QString title, QString message)
     msgBox.setText(message);
    // msgBox.setInformativeText(file);
     msgBox.exec();
+}
+
+void MainWindow::tableViewRotationCurrentChanged(QModelIndex cur, QModelIndex prev)
+{
+    Q_UNUSED(prev)
+    qModel->setSinger(cur.sibling(cur.row(),0).data().toInt());
+    ui->gbxQueue->setTitle(QString("Song Queue - " + rotModel->getSingerName(cur.sibling(cur.row(),0).data().toInt())));
+}
+
+void MainWindow::updateRotationDuration()
+{
+    QString text;
+    int secs = rotModel->rotationDuration();
+    if (secs > 0)
+    {
+        int hours = 0;
+        int minutes = secs / 60;
+        int seconds = secs % 60;
+        if (seconds > 0)
+            minutes++;
+        if (minutes > 60)
+        {
+            hours = minutes / 60;
+            minutes = minutes % 60;
+            if (hours > 1)
+                text = " Rotation Duration: " + QString::number(hours) + " hours " + QString::number(minutes) + " min";
+            else
+                text = " Rotation Duration: " + QString::number(hours) + " hour " + QString::number(minutes) + " min";
+        }
+        else
+            text = " Rotation Duration: " + QString::number(minutes) + " min";
+    }
+    else
+        text = " Rotation Duration: 0 min";
+    labelRotationDuration->setText(text);
 }

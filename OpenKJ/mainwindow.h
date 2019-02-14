@@ -65,7 +65,7 @@
 #include "dlgsongshop.h"
 #include "songshop.h"
 #include "khdb.h"
-
+#include "durationlazyupdater.h"
 
 using namespace std;
 
@@ -108,6 +108,7 @@ private:
     AudioBackendGstreamer *bmAudioBackend;
 //    KhIPCClient *ipcClient;
     QLabel *labelSingerCount;
+    QLabel *labelRotationDuration;
     bool sliderPositionPressed;
     bool sliderBmPositionPressed;
     void play(QString karaokeFilePath, bool k2k = false);
@@ -144,6 +145,7 @@ private:
     QTimer *karaokeAATimer;
     QTimer *startupOneShot;
     UpdateChecker *checker;
+    QTimer *slowUiUpdateTimer;
     QTimer *timerButtonFlash;
     bool blinkRequestsBtn;
     QString GetRandomString() const;
@@ -158,7 +160,8 @@ private:
     void addSfxButton(QString filename, QString label, bool reset = false);
     void refreshSfxButtons();
     SfxEntry lastRtClickedSfxBtn;
-
+    QString findMatchingAudioFile(QString cdgFilePath);
+    LazyDurationUpdateController *lazyDurationUpdater;
 
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -290,6 +293,8 @@ private slots:
     void on_btnSfxStop_clicked();
     void removeSfxButton();
     void showAlert(QString title, QString message);
+    void tableViewRotationCurrentChanged(QModelIndex cur, QModelIndex prev);
+    void updateRotationDuration();
 
 protected:
     void closeEvent(QCloseEvent *event);

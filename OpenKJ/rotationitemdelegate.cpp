@@ -29,6 +29,7 @@ RotationItemDelegate::RotationItemDelegate(QObject *parent) :
     QItemDelegate(parent)
 {
     m_currentSingerId = -1;
+    singerCount = 0;
 }
 
 int RotationItemDelegate::currentSinger()
@@ -89,6 +90,35 @@ void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
     {
         if (index.sibling(index.row(), 0).data().toInt() == m_currentSingerId)
             painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QImage(":/icons/microphone").scaled(sbSize));
+        else if (settings->rotationDisplayPosition())
+        {
+            int curSingerPos = 0;
+            int drawSingerPos = index.row();
+            QSqlQuery query;
+            int wait = 0;
+            query.exec("SELECT position FROM rotationsingers WHERE singerId == " + QString::number(m_currentSingerId) + " LIMIT 1");
+            if (query.first())
+            {
+                curSingerPos = query.value("position").toInt();
+            }
+            if (curSingerPos < drawSingerPos)
+                wait = drawSingerPos - curSingerPos;
+            else if (curSingerPos > drawSingerPos)
+                wait = drawSingerPos + (singerCount - curSingerPos);
+            if (wait > 0)
+            {
+                painter->save();
+                if (option.state & QStyle::State_Selected)
+                    painter->setPen(option.palette.highlightedText().color());
+                else if (index.sibling(index.row(), 0).data().toInt() == m_currentSingerId)
+                {
+                    painter->setPen(QColor("black"));
+                }
+                painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter | Qt::AlignHCenter, QString::number(wait));
+                painter->restore();
+            }
+            return;
+        }
         return;
     }
     if (index.column() == 4)

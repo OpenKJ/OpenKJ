@@ -342,3 +342,12 @@ QVariant QueueModel::headerData(int section, Qt::Orientation orientation, int ro
         return "SongID";
     return QSqlRelationalTableModel::headerData(section, orientation, role);
 }
+
+
+QVariant QueueModel::data(const QModelIndex &index, int role) const
+{
+    if (role == Qt::ToolTipRole)
+        return data(index);
+    else
+        return QSqlRelationalTableModel::data(index, role);
+}

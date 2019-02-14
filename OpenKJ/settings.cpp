@@ -55,6 +55,16 @@ void Settings::setStoreDownloadDir(QString path)
     settings->setValue("storeDownloadDir", path);
 }
 
+void Settings::setCurrentRotationPosition(int position)
+{
+    settings->setValue("currentRotationPosition", position);
+}
+
+void Settings::dbSetDirectoryWatchEnabled(bool val)
+{
+    settings->setValue("directoryWatchEnabled", val);
+}
+
 void Settings::setPassword(QString password)
 {
     qint64 passHash = this->hash(password);
@@ -1417,7 +1427,7 @@ int Settings::theme()
     return settings->value("theme", 1).toInt();
 }
 
-bool Settings::directoryWatchEnabled()
+bool Settings::dbDirectoryWatchEnabled()
 {
     return settings->value("directoryWatchEnabled", false).toBool();
 }
@@ -1440,6 +1450,75 @@ void Settings::setSfxEntries(SfxEntryList entries)
     settings->setValue("sfxEntries", QVariant::fromValue(entries));
 }
 
+int Settings::estimationSingerPad()
+{
+    return settings->value("estimationSingerPad", 60).toInt();
+}
+
+void Settings::setEstimationSingerPad(int secs)
+{
+    settings->setValue("estimationSingerPad", secs);
+    emit rotationDurationSettingsModified();
+}
+
+int Settings::estimationEmptySongLength()
+{
+    return settings->value("estimationEmptySongLength", 240).toInt();
+}
+
+void Settings::setEstimationEmptySongLength(int secs)
+{
+    settings->setValue("estimationEmptySongLength", secs);
+    emit rotationDurationSettingsModified();
+}
+
+bool Settings::estimationSkipEmptySingers()
+{
+    return settings->value("estimationSkipEmptySingers", false).toBool();
+}
+
+void Settings::setEstimationSkipEmptySingers(bool skip)
+{
+    settings->setValue("estimationSkipEmptySingers", skip);
+    emit rotationDurationSettingsModified();
+}
+
+bool Settings::rotationDisplayPosition()
+{
+    return settings->value("rotationDisplayPosition", false).toBool();
+}
+
+void Settings::setRotationDisplayPosition(bool show)
+{
+    settings->setValue("rotationDisplayPosition", show);
+    emit rotationDisplayPositionChanged(show);
+}
+
+int Settings::currentRotationPosition()
+{
+    return settings->value("currentRotationPosition", -1).toInt();
+}
+
+bool Settings::dbSkipValidation()
+{
+    return settings->value("dbSkipValidation", false).toBool();
+}
+
+void Settings::dbSetSkipValidation(bool val)
+{
+    settings->setValue("dbSkipValidation", val);
+}
+
+bool Settings::dbLazyLoadDurations()
+{
+    return settings->value("dbLazyLoadDurations", false).toBool();
+}
+
+void Settings::dbSetLazyLoadDurations(bool val)
+{
+    settings->setValue("dbLazyLoadDurations", val);
+}
+
 void Settings::setBmKCrossfade(bool enabled)
 {
     settings->setValue("bmKCrossFade", enabled);
@@ -1448,4 +1527,14 @@ void Settings::setBmKCrossfade(bool enabled)
 SfxEntry::SfxEntry()
 {
 
+}
+
+int Settings::systemId()
+{
+    return settings->value("systemId", 1).toInt();
+}
+
+void Settings::setSystemId(int id)
+{
+    return settings->setValue("systemId", id);
 }

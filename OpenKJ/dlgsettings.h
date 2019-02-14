@@ -48,7 +48,6 @@ private:
 public:
     explicit DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBackend *BmAudioBackend, QWidget *parent = 0);
     ~DlgSettings();
-    void createIcons();
 
 signals:
     void audioUseFaderChanged(bool);
@@ -113,6 +112,11 @@ private slots:
     void reqSvrTestError(QString error);
     void reqSvrTestSslError(QString error);
     void reqSvrTestPassed();
+    void on_checkBoxIncludeEmptySingers_clicked(bool checked);
+    void on_spinBoxDefaultPadTime_valueChanged(int arg1);
+    void on_spinBoxDefaultSongDuration_valueChanged(int arg1);
+    void on_checkBoxDisplayCurrentRotationPosition_clicked(bool checked);
+    void entitledSystemCountChanged(int count);
 };
 
 #endif // SETTINGSDIALOG_H

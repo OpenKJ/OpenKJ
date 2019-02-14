@@ -54,8 +54,9 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     ui->spinBoxVAdjust->setValue(settings->cdgVSizeAdjustment());
     ui->spinBoxHOffset->setValue(settings->cdgHOffset());
     ui->spinBoxVOffset->setValue(settings->cdgVOffset());
-    createIcons();
-    ui->listWidget->setCurrentRow(0);
+    ui->checkBoxDbSkipValidation->setChecked(settings->dbSkipValidation());
+    ui->checkBoxLazyLoadDurations->setChecked(settings->dbLazyLoadDurations());
+    ui->checkBoxMonitorDirs->setChecked(settings->dbDirectoryWatchEnabled());
     QStringList screens = getMonitors();
     ui->listWidgetMonitors->addItems(screens);
     audioOutputDevices = kAudioBackend->getOutputDevices();
@@ -130,6 +131,9 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     ui->checkBoxDownmixBm->setChecked(settings->audioDownmixBm());
     ui->checkBoxSilenceDetectionBm->setChecked(settings->audioDetectSilenceBm());
     ui->spinBoxInterval->setValue(settings->requestServerInterval());
+    ui->spinBoxSystemId->setMaximum(songbookApi->entitledSystemCount());
+    ui->spinBoxSystemId->setValue(settings->systemId());
+
     AudioRecorder recorder;
     QAudioRecorder audioRecorder;
     QStringList inputs = recorder.getDeviceList();
@@ -172,8 +176,14 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     connect(ui->cbxStopPauseWarning, SIGNAL(toggled(bool)), settings, SLOT(setShowSongPauseStopWarning(bool)));
     connect(ui->cbxTickerShowRotationInfo, SIGNAL(clicked(bool)), settings, SLOT(setTickerShowRotationInfo(bool)));
     connect(settings, SIGNAL(tickerShowRotationInfoChanged(bool)), this, SLOT(tickerShowRotationInfoChanged(bool)));
+    connect(songbookApi, SIGNAL(entitledSystemCountChanged(int)), this, SLOT(entitledSystemCountChanged(int)));
     ui->fontComboBox->setFont(settings->applicationFont());
     ui->spinBoxAppFontSize->setValue(settings->applicationFont().pointSize());
+
+    ui->checkBoxIncludeEmptySingers->setChecked(!settings->estimationSkipEmptySingers());
+    ui->spinBoxDefaultPadTime->setValue(settings->estimationSingerPad());
+    ui->spinBoxDefaultSongDuration->setValue(settings->estimationEmptySongLength());
+    ui->checkBoxDisplayCurrentRotationPosition->setChecked(settings->rotationDisplayPosition());
     pageSetupDone = true;
     ui->spinBoxAADelay->setValue(settings->karaokeAATimeout());
     ui->checkBoxKAA->setChecked(settings->karaokeAutoAdvance());
@@ -199,10 +209,11 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     connect(ui->cbxCheckUpdates, SIGNAL(clicked(bool)), settings, SLOT(setCheckUpdates(bool)));
     connect(ui->comboBoxUpdateBranch, SIGNAL(currentIndexChanged(int)), settings, SLOT(setUpdatesBranch(int)));
     ui->lineEditDownloadsDir->setText(settings->storeDownloadDir());
-    ui->listWidget->setMinimumWidth(QFontMetrics(settings->applicationFont()).width("  Network  "));
-    ui->frame->setMinimumWidth(QFontMetrics(settings->applicationFont()).width("  Network  "));
     adjustSize();
-
+    connect(ui->checkBoxDbSkipValidation, SIGNAL(toggled(bool)), settings, SLOT(dbSetSkipValidation(bool)));
+    connect(ui->checkBoxLazyLoadDurations, SIGNAL(toggled(bool)), settings, SLOT(dbSetLazyLoadDurations(bool)));
+    connect(ui->checkBoxMonitorDirs, SIGNAL(toggled(bool)), settings, SLOT(dbSetDirectoryWatchEnabled(bool)));
+    connect(ui->spinBoxSystemId, SIGNAL(valueChanged(int)), settings, SLOT(setSystemId(int)));
 }
 
 DlgSettings::~DlgSettings()
@@ -237,42 +248,7 @@ void DlgSettings::onSslErrors(QNetworkReply *reply)
     }
 }
 
-void DlgSettings::createIcons()
-{
-    int scaleSize = qMax(72, QFontMetrics(settings->applicationFont()).width(" Network "));
-    int imgHeight = 72;
-    int fH = QFontMetrics(settings->applicationFont()).height();
-    QListWidgetItem *audioButton = new QListWidgetItem(ui->listWidget);
-    audioButton->setIcon(QIcon(":/icons/Icons/audio-card.png"));
-    audioButton->setText(tr("Audio"));
-    audioButton->setTextAlignment(Qt::AlignHCenter);
-    audioButton->setSizeHint(QSize(scaleSize, imgHeight + fH));
-    audioButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-    QListWidgetItem *videoButton = new QListWidgetItem(ui->listWidget);
-    videoButton->setIcon(QIcon(":/icons/Icons/video-display.png"));
-    videoButton->setText(tr("Video"));
-    videoButton->setTextAlignment(Qt::AlignHCenter);
-    videoButton->setSizeHint(QSize(scaleSize, imgHeight + fH));
-    videoButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-    QListWidgetItem *networkButton = new QListWidgetItem(ui->listWidget);
-    networkButton->setIcon(QIcon(":/icons/Icons/network-wired.png"));
-    networkButton->setText(tr("Network"));
-    networkButton->setTextAlignment(Qt::AlignHCenter);
-    networkButton->setSizeHint(QSize(scaleSize, imgHeight + fH));
-    networkButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-    QListWidgetItem *otherButton = new QListWidgetItem(ui->listWidget);
-    otherButton->setIcon(QIcon(":/Icons/other-settings.png"));
-    otherButton->setText(tr("Other"));
-    otherButton->setTextAlignment(Qt::AlignHCenter);
-    otherButton->setSizeHint(QSize(scaleSize, imgHeight + fH));
-    otherButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-    QListWidgetItem *appearanceButton = new QListWidgetItem(ui->listWidget);
-    appearanceButton->setIcon(QIcon(":/icons/Icons/theme.png"));
-    appearanceButton->setText("Theme");
-    appearanceButton->setTextAlignment(Qt::AlignHCenter);
-    appearanceButton->setSizeHint(QSize(scaleSize, imgHeight + fH));
-    appearanceButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-}
+
 
 void DlgSettings::on_btnClose_clicked()
 {
@@ -296,7 +272,7 @@ void DlgSettings::on_listWidgetMonitors_itemSelectionChanged()
     if (ui->listWidgetMonitors->selectedItems().count() < 1)
         return;
     QDesktopWidget widget;
-    int appMonitor = widget.screenNumber(ui->videoPage);
+    int appMonitor = widget.screenNumber(ui->tabWidget);
     int selMonitor = ui->listWidgetMonitors->selectionModel()->selectedIndexes().at(0).row();
     if ((selMonitor == appMonitor) && (settings->cdgWindowFullscreen()))
     {
@@ -455,26 +431,63 @@ void DlgSettings::on_checkBoxDownmixBm_toggled(bool checked)
 
 void DlgSettings::on_listWidgetAudioDevices_itemSelectionChanged()
 {
+    static QString lastSelItem = ui->listWidgetAudioDevices->selectedItems().at(0)->text();
+    QString device = ui->listWidgetAudioDevices->selectedItems().at(0)->text();
+    if (lastSelItem == device)
+        return;
+    if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Can not change audio device while audio is playing, please stop playback and try again");
+        msgBox.exec();
+        int selDevice = audioOutputDevices.indexOf(settings->audioOutputDevice());
+        if (selDevice == -1)
+            ui->listWidgetAudioDevices->item(0)->setSelected(true);
+        else
+        {
+            ui->listWidgetAudioDevices->item(selDevice)->setSelected(true);
+        }
+        return;
+    }
     if (pageSetupDone)
     {
-        QString device = ui->listWidgetAudioDevices->selectedItems().at(0)->text();
         settings->setAudioOutputDevice(device);
         int deviceIndex = audioOutputDevices.indexOf(QRegExp(device,Qt::CaseSensitive,QRegExp::FixedString));
         if (deviceIndex != -1)
             kAudioBackend->setOutputDevice(deviceIndex);
     }
+    lastSelItem = device;
 }
 
 void DlgSettings::on_listWidgetAudioDevicesBm_itemSelectionChanged()
 {
+    static QString lastSelItem = ui->listWidgetAudioDevicesBm->selectedItems().at(0)->text();
+    QString device = ui->listWidgetAudioDevicesBm->selectedItems().at(0)->text();
+    if (lastSelItem == device)
+        return;
+    if (bmAudioBackend->state() == AbstractAudioBackend::PlayingState)
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Can not change audio device while audio is playing, please stop playback and try again");
+        msgBox.exec();
+        int selDevice = audioOutputDevices.indexOf(settings->audioOutputDeviceBm());
+        if (selDevice == -1)
+            ui->listWidgetAudioDevicesBm->item(0)->setSelected(true);
+        else
+        {
+            ui->listWidgetAudioDevicesBm->item(selDevice)->setSelected(true);
+        }
+        return;
+    }
     if (pageSetupDone)
     {
-        QString device = ui->listWidgetAudioDevicesBm->selectedItems().at(0)->text();
         settings->setAudioOutputDeviceBm(device);
         int deviceIndex = audioOutputDevices.indexOf(QRegExp(device,Qt::CaseSensitive,QRegExp::FixedString));
         if (deviceIndex != -1)
             bmAudioBackend->setOutputDevice(deviceIndex);
     }
+    lastSelItem = device;
+
 }
 
 void DlgSettings::on_comboBoxDevice_currentIndexChanged(const QString &arg1)
@@ -561,7 +574,7 @@ void DlgSettings::on_checkBoxCdgFullscreen_toggled(bool checked)
     if (checked)
     {
         QDesktopWidget widget;
-        int appMonitor = widget.screenNumber(ui->videoPage);
+        int appMonitor = widget.screenNumber(ui->tabWidget);
         int selMonitor = settings->cdgWindowFullScreenMonitor();
         if (selMonitor == appMonitor)
         {
@@ -732,4 +745,40 @@ void DlgSettings::reqSvrTestPassed()
     msgBox.setWindowTitle("Request server test passed");
     msgBox.setText("Request server connection test was successful.  Server info and API key appear to be valid");
     msgBox.exec();
+}
+
+void DlgSettings::on_checkBoxIncludeEmptySingers_clicked(bool checked)
+{
+    settings->setEstimationSkipEmptySingers(!checked);
+}
+
+void DlgSettings::on_spinBoxDefaultPadTime_valueChanged(int arg1)
+{
+    if (pageSetupDone)
+    {
+        settings->setEstimationSingerPad(arg1);
+    }
+}
+
+void DlgSettings::on_spinBoxDefaultSongDuration_valueChanged(int arg1)
+{
+    if (pageSetupDone)
+    {
+        settings->setEstimationEmptySongLength(arg1);
+    }
+}
+
+void DlgSettings::on_checkBoxDisplayCurrentRotationPosition_clicked(bool checked)
+{
+    settings->setRotationDisplayPosition(checked);
+
+}
+
+void DlgSettings::entitledSystemCountChanged(int count)
+{
+    ui->spinBoxSystemId->setMaximum(count);
+    if (settings->systemId() <= count)
+    {
+        ui->spinBoxSystemId->setValue(settings->systemId());
+    }
 }

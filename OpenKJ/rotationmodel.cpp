@@ -22,6 +22,10 @@
 #include <QSqlQuery>
 #include <QDebug>
 #include <QDateTime>
+#include "settings.h"
+
+extern Settings* settings;
+extern int remainSecs;
 
 int RotationModel::currentSinger() const
 {
@@ -34,6 +38,7 @@ void RotationModel::setCurrentSinger(int currentSingerId)
     m_currentSingerId = currentSingerId;
     emit rotationModified();
     emit layoutChanged();
+    settings->setCurrentRotationPosition(currentSingerId);
 }
 
 bool RotationModel::rotationIsValid()
@@ -330,8 +335,21 @@ int RotationModel::nextSongDurationSecs(int singerId) const
 {
     QSqlQuery query("SELECT dbsongs.duration FROM dbsongs,queuesongs WHERE queuesongs.singer = " + QString::number(singerId) + " AND queuesongs.played = 0 AND dbsongs.songid = queuesongs.song ORDER BY position LIMIT 1");
     if (query.first())
-        return query.value(0).toInt() / 1000;
-    return 0;
+        return (query.value(0).toInt() / 1000) + settings->estimationSingerPad();
+    else if (!settings->estimationSkipEmptySingers())
+        return settings->estimationEmptySongLength() + settings->estimationSingerPad();
+    else
+        return 0;
+}
+
+int RotationModel::rotationDuration()
+{
+    int secs = 0;
+    for (int i=0; i < rowCount(); i++)
+    {
+        secs = secs + nextSongDurationSecs(index(i,0).data().toInt());
+    }
+    return secs;
 }
 
 int RotationModel::nextSongKeyChg(int singerId)
@@ -365,6 +383,8 @@ void RotationModel::clearRotation()
     query.exec("DELETE FROM rotationsingers");
     select();
     singerCount = singers().size();
+    settings->setCurrentRotationPosition(-1);
+    m_currentSingerId = -1;
     emit rotationModified();
 }
 
@@ -520,11 +540,13 @@ QVariant RotationModel::data(const QModelIndex &index, int role) const
             {
                 int sId = singerIdAtPosition(i);
                 if (i == curSingerPos)
-                    totalWaitDuration = totalWaitDuration + 240;
+                {
+                    totalWaitDuration = totalWaitDuration + remainSecs;
+                }
                 else if (sId != singerId)
                 {
                     int nextDuration = nextSongDurationSecs(sId);
-                    totalWaitDuration = totalWaitDuration + nextDuration + 60;
+                    totalWaitDuration = totalWaitDuration + nextDuration;
                 }
             }
         }
@@ -537,7 +559,7 @@ QVariant RotationModel::data(const QModelIndex &index, int role) const
                 if (sId != singerId)
                 {
                     int nextDuration = nextSongDurationSecs(sId);
-                    totalWaitDuration = totalWaitDuration + nextDuration + 60;
+                    totalWaitDuration = totalWaitDuration + nextDuration;
                 }
             }
             for (int i=curSingerPos; i < singerCount; i++)
@@ -548,7 +570,7 @@ QVariant RotationModel::data(const QModelIndex &index, int role) const
                 else if (sId != singerId)
                 {
                     int nextDuration = nextSongDurationSecs(sId);
-                    totalWaitDuration = totalWaitDuration + nextDuration + 60;
+                    totalWaitDuration = totalWaitDuration + nextDuration;
                 }
             }
         }

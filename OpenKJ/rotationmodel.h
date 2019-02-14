@@ -63,6 +63,7 @@ public:
     QString nextSongArtist(int singerId);
     QString nextSongTitle(int singerId);
     int nextSongDurationSecs(int singerId) const;
+    int rotationDuration();
     int nextSongKeyChg(int singerId);
     int nextSongId(int singerId);
     int nextSongQueueId(int singerId);

@@ -125,7 +125,6 @@ DlgCdg::DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *Break
     connect(settings, SIGNAL(alertTxtColorChanged(QColor)), this, SLOT(alertTxtColorChanged(QColor)));
     connect(kAudioBackend, SIGNAL(stateChanged(AbstractAudioBackend::State)), this, SLOT(triggerBg(AbstractAudioBackend::State)));
     connect(settings, SIGNAL(bgModeChanged(BgMode)), this, SLOT(triggerBg()));
-
 }
 
 DlgCdg::~DlgCdg()
@@ -327,6 +326,7 @@ void DlgCdg::fullScreenTimerTimeout()
         ui->cdgVideo->repaint();
         fullScreenTimer->stop();
     }
+    slideShowTimerTimeout();
 }
 
 QFileInfoList DlgCdg::getSlideShowImages()

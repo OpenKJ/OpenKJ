@@ -849,7 +849,6 @@ QStringList AudioBackendGstreamer::getOutputDevices()
 void AudioBackendGstreamer::setOutputDevice(int deviceIndex)
 {
     outputDeviceIdx = deviceIndex;
-    bool isPlaying = false;
     qWarning() << objName << " - Setting output device to device idx: " << outputDeviceIdx;
     gst_element_unlink(aConvEnd, audioSink);
     gst_bin_remove(GST_BIN(customBin), audioSink);
