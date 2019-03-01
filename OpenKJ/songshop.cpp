@@ -45,7 +45,7 @@ void SongShop::knLogin(QString userName, QString password)
     knLoginError = false;
     QByteArray md5hash = QCryptographicHash::hash(QByteArray::fromRawData((const char*)password.toLocal8Bit(), password.length()), QCryptographicHash::Md5).toHex();
     QString passHash = QString(md5hash);
-    QString urlstr = "https://www.karaoke.net/songshop/cat/api_account_setup.php?action=validate_login&username=" + userName + "&md5=" + passHash + "&merchant=99";
+    QString urlstr = "https://www.partytyme.net/songshop/cat/api_account_setup.php?action=validate_login&username=" + userName + "&md5=" + passHash + "&merchant=99";
     QUrl url = QUrl(urlstr);
     QNetworkRequest request(url);
     manager->get(request);
@@ -53,7 +53,7 @@ void SongShop::knLogin(QString userName, QString password)
 
 void SongShop::knPurchase(QString songId, QString ccNumber, QString ccM, QString ccY, QString ccCVV)
 {
-    QString urlstr = "https://www.karaoke.net/songshop/cat/api_make_order.php?";
+    QString urlstr = "https://www.partytyme.net/songshop/cat/api_make_order.php?";
     if (songId.contains("PY"))
         urlstr += "media_format=mp3g&";
     else
@@ -103,7 +103,7 @@ void SongShop::downloadFile(const QString &url, const QString &destFn)
     file.write(reply->readAll());
     delete reply;
     emit karaokeSongDownloaded(destPath);
-    // clear session ID to force login again before next download.  Workaround for expiring karaoke.net logins.
+    // clear session ID to force login again before next download.  Workaround for expiring partytyme.net logins.
     knSessionId = "";
 }
 
