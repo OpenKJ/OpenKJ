@@ -34,7 +34,7 @@
         <item>
          <widget class="QTabWidget" name="tabWidgetMain">
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="tabWidgetPage1">
            <attribute name="title">
@@ -755,6 +755,23 @@ QPushButton:default {
                </item>
               </layout>
              </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_21">
+              <property name="topMargin">
+               <number>10</number>
+              </property>
+              <item>
+               <widget class="QCheckBox" name="cbxShowCountdown">
+                <property name="text">
+                 <string>Show countdown timer on singer screen</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QFontComboBox" name="fontComboBox_2"/>
+              </item>
+             </layout>
             </item>
             <item>
              <spacer name="verticalSpacer_4">

@@ -117,6 +117,8 @@ DlgCdg::DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *Break
     connect(ui->cdgVideo, SIGNAL(mouseMoveEvent(QMouseEvent*)), this, SLOT(mouseMove(QMouseEvent*)));
     buttonShowTimer = new QTimer(this);
     buttonShowTimer->setInterval(1000);
+    oneSecTimer = new QTimer(this);
+    oneSecTimer->start(1000);
     ui->scroll->setVisible(settings->tickerEnabled());
     connect(buttonShowTimer, SIGNAL(timeout()), this, SLOT(buttonShowTimerTimeout()));
     alertBgColorChanged(settings->alertBgColor());
@@ -125,6 +127,7 @@ DlgCdg::DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *Break
     connect(settings, SIGNAL(alertTxtColorChanged(QColor)), this, SLOT(alertTxtColorChanged(QColor)));
     connect(kAudioBackend, SIGNAL(stateChanged(AbstractAudioBackend::State)), this, SLOT(triggerBg(AbstractAudioBackend::State)));
     connect(settings, SIGNAL(bgModeChanged(BgMode)), this, SLOT(triggerBg()));
+    connect(oneSecTimer, SIGNAL(timeout()), this, SLOT(oneSecTimerTimeout()));
 }
 
 DlgCdg::~DlgCdg()
@@ -471,6 +474,15 @@ void DlgCdg::mouseMove(QMouseEvent *event)
 void DlgCdg::buttonShowTimerTimeout()
 {
     ui->fsToggleWidget->hide();
+}
+
+void DlgCdg::oneSecTimerTimeout()
+{
+    if (kAudioBackend->state() == AbstractAudioBackend::PlayingState && !ui->lblRemain->isVisible())
+        ui->lblRemain->show();
+    else if (kAudioBackend->state() != AbstractAudioBackend::PlayingState && ui->lblRemain->isVisible())
+        ui->lblRemain->hide();
+    ui->lblRemain->setText(kAudioBackend->msToMMSS(kAudioBackend->duration() - kAudioBackend->position()));
 }
 
 

@@ -197,30 +197,40 @@ MainWindow::MainWindow(QWidget *parent) :
 
     if (schemaVersion < 100)
     {
+        qWarning() << "Updating database schema to version 101";
         query.exec("ALTER TABLE sourceDirs ADD COLUMN custompattern INTEGER");
         query.exec("PRAGMA user_version = 100");
+        qWarning() << "DB Schema update to v100 completed";
     }
     if (schemaVersion < 101)
     {
+        qWarning() << "Updating database schema to version 101";
         query.exec("CREATE TABLE custompatterns ( patternid INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, artistregex TEXT, artistcapturegrp INT, titleregex TEXT, titlecapturegrp INT, discidregex TEXT, discidcapturegrp INT)");
         query.exec("PRAGMA user_version = 101");
+        qWarning() << "DB Schema update to v101 completed";
     }
     if (schemaVersion < 102)
     {
+        qWarning() << "Updating database schema to version 102";
         query.exec("CREATE UNIQUE INDEX idx_path ON dbsongs(path)");
         query.exec("PRAGMA user_version = 102");
+        qWarning() << "DB Schema update to v102 completed";
     }
     if (schemaVersion < 103)
     {
+        qWarning() << "Updating database schema to version 103";
         query.exec("ALTER TABLE dbsongs ADD COLUMN searchstring TEXT");
         query.exec("UPDATE dbsongs SET searchstring = filename || ' ' || artist || ' ' || title || ' ' || discid");
         query.exec("PRAGMA user_version = 103");
+        qWarning() << "DB Schema update to v103 completed";
+
     }
     if (schemaVersion < 105)
     {
-        qWarning() << "Updating database schema to version 104";
+        qWarning() << "Updating database schema to version 105";
         query.exec("ALTER TABLE rotationSingers ADD COLUMN addts TIMESTAMP");
         query.exec("PRAGMA user_version = 105");
+        qWarning() << "DB Schema update to v105 completed";
     }
 
 //    query.exec("ATTACH DATABASE ':memory:' AS mem");
@@ -229,11 +239,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
     sortColDB = 1;
     sortDirDB = 0;
+    qWarning() << "Creating dbModel";
     dbModel = new DbTableModel(this, database);
     dbModel->select();
+    qWarning() << "Creating queueModel";
     qModel = new QueueModel(this, database);
     qModel->select();
+    qWarning() << "Creating qDelegate";
     qDelegate = new QueueItemDelegate(this);
+    qWarning() << "creating rotModel";
     rotModel = new RotationModel(this, database);
     rotModel->select();
     ui->tableViewDB->hideColumn(0);
@@ -246,20 +260,32 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewQueue->setItemDelegate(qDelegate);
     ui->tableViewQueue->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewQueue));
     khTmpDir = new QTemporaryDir();
+    qWarning() << "Creating dbDialog";
     dbDialog = new DlgDatabase(database, this);
+    qWarning() << "Creating dlgKeyChange";
     dlgKeyChange = new DlgKeyChange(qModel, this);
+    qWarning() << "Creating regularSingersDialog";
     regularSingersDialog = new DlgRegularSingers(rotModel, this);
+    qWarning() << "Creating regularExportDialog";
     regularExportDialog = new DlgRegularExport(rotModel, this);
+    qWarning() << "Creating regularImportDialog";
     regularImportDialog = new DlgRegularImport(rotModel, this);
+    qWarning() << "Creating requestsDialog";
     requestsDialog = new DlgRequests(rotModel, this);
+    qWarning() << "Creating dlgBookCreator";
     dlgBookCreator = new DlgBookCreator(this);
+    qWarning() << "Creating dlgEq";
     dlgEq = new DlgEq(this);
+    qWarning() << "Creating dlgAddSinger";
     dlgAddSinger = new DlgAddSinger(rotModel, this);
+    qWarning() << "Creating dlgSongShop";
     dlgSongShop = new DlgSongShop(shop);
     dlgSongShop->setModal(false);
+    qWarning() << "Creating CDG object";
     cdg = new CDG;
     ui->tableViewDB->setModel(dbModel);
     ui->tableViewDB->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewDB));
+    qWarning() << "Creating dbDelegate";
     dbDelegate = new DbItemDelegate(this);
     ui->tableViewDB->setItemDelegate(dbDelegate);
 //    ipcClient = new KhIPCClient("bmControl",this);

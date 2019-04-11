@@ -50,6 +50,7 @@ private:
     QTimer *slideShowTimer;
     bool showBgImage;
     QTimer *alertCountdownTimer;
+    QTimer *oneSecTimer;
     int countdownPos;
     QTimer *buttonShowTimer;
     AbstractAudioBackend *kAudioBackend;
@@ -79,7 +80,7 @@ private slots:
     void alertFontChanged(QFont font);
     void mouseMove(QMouseEvent *event);
     void buttonShowTimerTimeout();
-
+    void oneSecTimerTimeout();
     void on_btnToggleFullscreen_clicked();
 
 public slots:
