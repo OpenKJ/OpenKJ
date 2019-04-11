@@ -75,6 +75,7 @@ signals:
     void silenceDetected();
     void pitchChanged(int);
     void newVideoFrame(QImage frame, QString backendName);
+    void audioError(QString msg);
 
 
 public slots:

@@ -138,10 +138,21 @@ void AudioBackendGstreamer::processGstMessages()
                 gst_message_parse_error(message, &err, &debug);
                 //g_print("GStreamer error: %s\n", err->message);
                 //g_print("GStreamer debug output: %s\n", debug);
-                qWarning() << objName << " - Gst warning: " << err->message;
+                qWarning() << objName << " - Gst error: " << err->message;
                 qWarning() << objName << " - Gst debug: " << debug;
-                g_free(err);
-                g_free(debug);
+                if (QString(err->message) == "Your GStreamer installation is missing a plug-in.")
+                {
+                    QString player;
+                    if (objName == "KA")
+                        player = "karaoke";
+                    else
+                        player = "break music";
+                    qWarning() << objName << " - PLAYBACK ERROR - Missing Codec";
+                    emit audioError("Unable to play " + player + " file, missing gstreamer plugin");
+                    stop(true);
+                }
+                //g_free(err);
+                //g_free(debug);
             }
             else if (message->type == GST_MESSAGE_WARNING)
             {
@@ -152,8 +163,8 @@ void AudioBackendGstreamer::processGstMessages()
                 //g_print("GStreamer debug output: %s\n", debug);
                 qWarning() << objName << " - Gst warning: " << err->message;
                 qWarning() << objName << " - Gst debug: " << debug;
-                g_free(err);
-                g_free(debug);
+                //g_free(err);
+                //g_free(debug);
             }
             else if (message->type == GST_MESSAGE_STATE_CHANGED)
             {

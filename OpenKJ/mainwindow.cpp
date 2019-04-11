@@ -334,6 +334,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(settings, SIGNAL(tickerOutputModeChanged()), this, SLOT(rotationDataChanged()));
     connect(settings, SIGNAL(audioBackendChanged(int)), this, SLOT(audioBackendChanged(int)));
     connect(settings, SIGNAL(cdgBgImageChanged()), this, SLOT(onBgImageChange()));
+    connect(kAudioBackend, SIGNAL(audioError(QString)), this, SLOT(audioError(QString)));
+    connect(bmAudioBackend, SIGNAL(audioError(QString)), this, SLOT(audioError(QString)));
     connect(kAudioBackend, SIGNAL(silenceDetected()), this, SLOT(silenceDetected()));
     connect(bmAudioBackend, SIGNAL(silenceDetected()), this, SLOT(silenceDetectedBm()));
     connect(settingsDialog, SIGNAL(audioUseFaderChanged(bool)), kAudioBackend, SLOT(setUseFader(bool)));
@@ -2595,6 +2597,15 @@ void MainWindow::on_actionSongbook_Generator_triggered()
 void MainWindow::on_actionEqualizer_triggered()
 {
     dlgEq->show();
+}
+
+void MainWindow::audioError(QString msg)
+{
+    QMessageBox msgBox;
+    msgBox.setTextFormat(Qt::RichText);
+    msgBox.setText("Audio playback error! - " + msg);
+    msgBox.setIcon(QMessageBox::Warning);
+    msgBox.exec();
 }
 
 
