@@ -92,6 +92,9 @@ public slots:
     void tickerTextColorChanged();
     void tickerBgColorChanged();
     void tickerEnableChanged();
+    void cdgRemainFontChanged(QFont font);
+    void cdgRemainTextColorChanged(QColor color);
+    void cdgRemainBgColorChanged(QColor color);
     void setVOffset(int pixels);
     void setHOffset(int pixels);
     void setVSizeAdjustment(int pixels);
@@ -108,8 +111,13 @@ public slots:
     void alertBgColorChanged(QColor color);
     void alertTxtColorChanged(QColor color);
     void triggerBg();
+    void cdgRemainEnabledChanged(bool enabled);
 
 
+
+    // QWidget interface
+protected:
+    void closeEvent(QCloseEvent *event);
 };
 
 #endif // CDGWINDOW_H

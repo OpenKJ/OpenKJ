@@ -57,6 +57,7 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     ui->checkBoxDbSkipValidation->setChecked(settings->dbSkipValidation());
     ui->checkBoxLazyLoadDurations->setChecked(settings->dbLazyLoadDurations());
     ui->checkBoxMonitorDirs->setChecked(settings->dbDirectoryWatchEnabled());
+    ui->groupBoxShowDuration->setChecked(settings->cdgRemainEnabled());
     QStringList screens = getMonitors();
     ui->listWidgetMonitors->addItems(screens);
     audioOutputDevices = kAudioBackend->getOutputDevices();
@@ -102,6 +103,16 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     clr = settings->alertBgColor();
     ss.replace("0,0,0", QString(QString::number(clr.red()) + "," + QString::number(clr.green()) + "," + QString::number(clr.blue())));
     ui->btnAlertBgColor->setStyleSheet(ss);
+
+    ss = ui->btnDurationFontColor->styleSheet();
+    clr = settings->cdgRemainTextColor();
+    ss.replace("0,0,0", QString(QString::number(clr.red()) + "," + QString::number(clr.green()) + "," + QString::number(clr.blue())));
+    ui->btnDurationFontColor->setStyleSheet(ss);
+
+    ss = ui->btnDurationBgColor->styleSheet();
+    clr = settings->cdgRemainBgColor();
+    ss.replace("0,0,0", QString(QString::number(clr.red()) + "," + QString::number(clr.green()) + "," + QString::number(clr.blue())));
+    ui->btnDurationBgColor->setStyleSheet(ss);
 
     if (settings->tickerFullRotation())
     {
@@ -780,5 +791,46 @@ void DlgSettings::entitledSystemCountChanged(int count)
     if (settings->systemId() <= count)
     {
         ui->spinBoxSystemId->setValue(settings->systemId());
+    }
+}
+
+void DlgSettings::on_groupBoxShowDuration_clicked(bool checked)
+{
+    settings->setCdgRemainEnabled(checked);
+}
+
+void DlgSettings::on_btnDurationFont_clicked()
+{
+    bool ok;
+    QFont font = QFontDialog::getFont(&ok, settings->cdgRemainFont(), this, "Select CDG duration display font");
+    if (ok)
+    {
+        settings->setCdgRemainFont(font);
+    }
+}
+
+void DlgSettings::on_btnDurationFontColor_clicked()
+{
+    QColor clr = QColorDialog::getColor(settings->cdgRemainTextColor(),this,"Select CDG duration display text color");
+    if (clr.isValid())
+    {
+        QString ss = ui->btnDurationFontColor->styleSheet();
+        QColor oclr = settings->cdgRemainTextColor();
+        ss.replace(QString(QString::number(oclr.red()) + "," + QString::number(oclr.green()) + "," + QString::number(oclr.blue())), QString(QString::number(clr.red()) + "," + QString::number(clr.green()) + "," + QString::number(clr.blue())));
+        ui->btnDurationFontColor->setStyleSheet(ss);
+        settings->setCdgRemainTextColor(clr);
+    }
+}
+
+void DlgSettings::on_btnDurationBgColor_clicked()
+{
+    QColor clr = QColorDialog::getColor(settings->cdgRemainBgColor(),this,"Select CDG duration display background color");
+    if (clr.isValid())
+    {
+        QString ss = ui->btnDurationBgColor->styleSheet();
+        QColor oclr = settings->cdgRemainBgColor();
+        ss.replace(QString(QString::number(oclr.red()) + "," + QString::number(oclr.green()) + "," + QString::number(oclr.blue())), QString(QString::number(clr.red()) + "," + QString::number(clr.green()) + "," + QString::number(clr.blue())));
+        ui->btnDurationBgColor->setStyleSheet(ss);
+        settings->setCdgRemainBgColor(clr);
     }
 }

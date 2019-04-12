@@ -1861,7 +1861,7 @@ QPushButton:default {
                    <x>0</x>
                    <y>0</y>
                    <width>492</width>
-                   <height>168</height>
+                   <height>178</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,0,1">
@@ -1937,19 +1937,6 @@ QPushButton:default {
               <number>0</number>
              </property>
              <item>
-              <spacer name="horizontalSpacer_4">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
               <widget class="QPushButton" name="pushButtonShop">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -1959,6 +1946,19 @@ QPushButton:default {
                </property>
                <property name="text">
                 <string>Song Shop</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnToggleCdgWindow">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Show CDG Window</string>
                </property>
               </widget>
              </item>
@@ -2800,7 +2800,7 @@ QPushButton:default {
      <x>0</x>
      <y>0</y>
      <width>1309</width>
-     <height>25</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

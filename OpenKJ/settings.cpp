@@ -404,6 +404,47 @@ void Settings::setTickerTextColor(QColor color)
     emit tickerTextColorChanged();
 }
 
+QFont Settings::cdgRemainFont()
+{
+    QFont font;
+    font.fromString(settings->value("cdgRemainFont", QApplication::font().toString()).toString());
+    return font;
+}
+
+QColor Settings::cdgRemainTextColor()
+{
+    return settings->value("cdgRemainTextColor", QApplication::palette().foreground().color()).value<QColor>();
+}
+
+QColor Settings::cdgRemainBgColor()
+{
+    return settings->value("cdgRemainBgColor", QApplication::palette().background().color()).value<QColor>();
+
+}
+
+bool Settings::cdgRemainEnabled()
+{
+    return settings->value("cdgRemainEnabled", false).toBool();
+}
+
+void Settings::setCdgRemainFont(QFont font)
+{
+    settings->setValue("cdgRemainFont", font.toString());
+    emit cdgRemainFontChanged(font);
+}
+
+void Settings::setCdgRemainTextColor(QColor color)
+{
+    settings->setValue("cdgRemainTextColor", color);
+    emit cdgRemainTextColorChanged(color);
+}
+
+void Settings::setCdgRemainBgColor(QColor color)
+{
+    settings->setValue("cdgRemainBgColor", color);
+    emit cdgRemainBgColorChanged(color);
+}
+
 QColor Settings::tickerBgColor()
 {
     return settings->value("tickerBgColor", QApplication::palette().background().color()).value<QColor>();
@@ -1534,7 +1575,17 @@ int Settings::systemId()
     return settings->value("systemId", 1).toInt();
 }
 
+
+
 void Settings::setSystemId(int id)
 {
     return settings->setValue("systemId", id);
 }
+
+void Settings::setCdgRemainEnabled(bool enabled)
+{
+    settings->setValue("cdgRemainEnabled", enabled);
+    emit cdgRemainEnabledChanged(enabled);
+}
+
+

@@ -63,6 +63,9 @@ DlgCdg::DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *Break
     ui->scroll->setMinimumHeight(settings->tickerHeight());
     ui->scroll->setMaximumHeight(settings->tickerHeight());
     ui->scroll->setSpeed(settings->tickerSpeed());
+    ui->lblRemain->setFont(settings->cdgRemainFont());
+    cdgRemainTextColorChanged(settings->cdgRemainTextColor());
+    cdgRemainBgColorChanged(settings->cdgRemainBgColor());
     QPalette palette = ui->scroll->palette();
     palette.setColor(ui->scroll->foregroundRole(), settings->tickerTextColor());
     ui->scroll->setPalette(palette);
@@ -83,6 +86,9 @@ DlgCdg::DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *Break
     connect(settings, SIGNAL(cdgShowCdgWindowChanged(bool)), this, SLOT(setVisible(bool)));
     connect(settings, SIGNAL(cdgWindowFullscreenChanged(bool)), this, SLOT(setFullScreen(bool)));
     connect(settings, SIGNAL(cdgWindowFullscreenMonitorChanged(int)), this, SLOT(setFullScreenMonitor(int)));
+    connect(settings, SIGNAL(cdgRemainFontChanged(QFont)), this, SLOT(cdgRemainFontChanged(QFont)));
+    connect(settings, SIGNAL(cdgRemainTextColorChanged(QColor)), this, SLOT(cdgRemainTextColorChanged(QColor)));
+    connect(settings, SIGNAL(cdgRemainBgColorChanged(QColor)), this, SLOT(cdgRemainBgColorChanged(QColor)));
     connect(ui->cdgVideo, SIGNAL(resized(QSize)), this, SLOT(cdgSurfaceResized(QSize)));
     connect(settings, SIGNAL(karaokeAAAlertFontChanged(QFont)), this, SLOT(alertFontChanged(QFont)));
     fullScreenTimer = new QTimer(this);
@@ -128,6 +134,8 @@ DlgCdg::DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *Break
     connect(kAudioBackend, SIGNAL(stateChanged(AbstractAudioBackend::State)), this, SLOT(triggerBg(AbstractAudioBackend::State)));
     connect(settings, SIGNAL(bgModeChanged(BgMode)), this, SLOT(triggerBg()));
     connect(oneSecTimer, SIGNAL(timeout()), this, SLOT(oneSecTimerTimeout()));
+    ui->lblRemain->setVisible(settings->cdgRemainEnabled());
+    connect(settings, SIGNAL(cdgRemainEnabledChanged(bool)), ui->lblRemain, SLOT(setVisible(bool)));
 }
 
 DlgCdg::~DlgCdg()
@@ -233,6 +241,25 @@ void DlgCdg::tickerBgColorChanged()
 void DlgCdg::tickerEnableChanged()
 {
     ui->scroll->setVisible(settings->tickerEnabled());
+}
+
+void DlgCdg::cdgRemainFontChanged(QFont font)
+{
+    ui->lblRemain->setFont(font);
+}
+
+void DlgCdg::cdgRemainTextColorChanged(QColor color)
+{
+    QPalette palette = ui->lblRemain->palette();
+    palette.setColor(QPalette::Foreground, color);
+    ui->lblRemain->setPalette(palette);
+}
+
+void DlgCdg::cdgRemainBgColorChanged(QColor color)
+{
+    QPalette palette = ui->lblRemain->palette();
+    palette.setColor(QPalette::Background, color);
+    ui->lblRemain->setPalette(palette);
 }
 
 void DlgCdg::setVOffset(int pixels)
@@ -414,6 +441,12 @@ void DlgCdg::triggerBg()
         setShowBgImage(true);
 }
 
+void DlgCdg::cdgRemainEnabledChanged(bool enabled)
+{
+    if ((kAudioBackend->state() == AbstractAudioBackend::PlayingState) || enabled == false)
+        ui->lblRemain->setVisible(enabled);
+}
+
 void DlgCdg::slideShowTimerTimeout()
 {
     if ((showBgImage) && (settings->bgMode() == settings->BG_MODE_SLIDESHOW))
@@ -478,10 +511,13 @@ void DlgCdg::buttonShowTimerTimeout()
 
 void DlgCdg::oneSecTimerTimeout()
 {
-    if (kAudioBackend->state() == AbstractAudioBackend::PlayingState && !ui->lblRemain->isVisible())
-        ui->lblRemain->show();
-    else if (kAudioBackend->state() != AbstractAudioBackend::PlayingState && ui->lblRemain->isVisible())
-        ui->lblRemain->hide();
+    if (settings->cdgRemainEnabled())
+    {
+        if (kAudioBackend->state() == AbstractAudioBackend::PlayingState && !ui->lblRemain->isVisible())
+            ui->lblRemain->show();
+        else if (kAudioBackend->state() != AbstractAudioBackend::PlayingState && ui->lblRemain->isVisible())
+            ui->lblRemain->hide();
+    }
     ui->lblRemain->setText(kAudioBackend->msToMMSS(kAudioBackend->duration() - kAudioBackend->position()));
 }
 
@@ -494,4 +530,12 @@ void DlgCdg::on_btnToggleFullscreen_clicked()
     }
     else
         makeFullscreen();
+}
+
+
+void DlgCdg::closeEvent(QCloseEvent *event)
+{
+    this->hide();
+    settings->setShowCdgWindow(false);
+    event->ignore();
 }

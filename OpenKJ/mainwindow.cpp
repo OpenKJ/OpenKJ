@@ -625,6 +625,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(scutRequests, SIGNAL(activated()), this, SLOT(on_pushButtonIncomingRequests_clicked()));
     connect(bmPlModel, SIGNAL(bmSongMoved(int,int)), this, SLOT(bmSongMoved(int,int)));
     connect(songbookApi, SIGNAL(alertRecieved(QString, QString)), this, SLOT(showAlert(QString, QString)));
+    connect(settings, SIGNAL(cdgShowCdgWindowChanged(bool)), this, SLOT(cdgVisibilityChanged()));
 //    addSfxButton("some looooong string", "Some Name");
 //    addSfxButton("second string", "Second Button");
 //    addSfxButton("third string", "Third Button");
@@ -647,6 +648,8 @@ MainWindow::MainWindow(QWidget *parent) :
     cdgWindow->setShowBgImage(true);
     lazyDurationUpdater = new LazyDurationUpdateController(this);
     lazyDurationUpdater->getDurations();
+    if (settings->showCdgWindow())
+        ui->btnToggleCdgWindow->setText("Hide CDG Window");
 }
 
 QString MainWindow::findMatchingAudioFile(QString cdgFilePath)
@@ -3078,4 +3081,26 @@ void MainWindow::updateRotationDuration()
     else
         text = " Rotation Duration: 0 min";
     labelRotationDuration->setText(text);
+}
+
+void MainWindow::on_btnToggleCdgWindow_clicked()
+{
+    if (cdgWindow->isVisible())
+    {
+        cdgWindow->hide();
+        ui->btnToggleCdgWindow->setText("Show CDG Window");
+    }
+    else
+    {
+        cdgWindow->show();
+        ui->btnToggleCdgWindow->setText("Hide CDG Window");
+    }
+}
+
+void MainWindow::cdgVisibilityChanged()
+{
+    if (cdgWindow->isVisible() && ui->btnToggleCdgWindow->text() == "Show CDG Window")
+        ui->btnToggleCdgWindow->setText("Hide CDG Window");
+    else if (cdgWindow->isHidden() && ui->btnToggleCdgWindow->text() == "Hide CDG Window")
+        ui->btnToggleCdgWindow->setText("Show CDG Window");
 }

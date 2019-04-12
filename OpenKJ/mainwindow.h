@@ -297,6 +297,9 @@ private slots:
     void tableViewRotationCurrentChanged(QModelIndex cur, QModelIndex prev);
     void updateRotationDuration();
 
+    void on_btnToggleCdgWindow_clicked();
+    void cdgVisibilityChanged();
+
 protected:
     void closeEvent(QCloseEvent *event);
 

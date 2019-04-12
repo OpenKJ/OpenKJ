@@ -110,6 +110,7 @@ public:
     void setTickerSpeed(int speed);
     QColor tickerTextColor();
     void setTickerTextColor(QColor color);
+    bool cdgRemainEnabled();
     QColor tickerBgColor();
     void setTickerBgColor(QColor color);
     bool tickerFullRotation();
@@ -260,6 +261,9 @@ public:
     bool dbSkipValidation();
     bool dbLazyLoadDurations();
     int systemId();
+    QFont cdgRemainFont();
+    QColor cdgRemainTextColor();
+    QColor cdgRemainBgColor();
 
 
 signals:
@@ -322,6 +326,10 @@ signals:
     void requestServerEnabledChanged(bool enabled);
     void rotationDisplayPositionChanged(bool show);
     void rotationDurationSettingsModified();
+    void cdgRemainEnabledChanged(bool enabled);
+    void cdgRemainFontChanged(QFont font);
+    void cdgRemainTextColorChanged(QColor color);
+    void cdgRemainBgColorChanged(QColor color);
 
 public slots:
     void dbSetLazyLoadDurations(bool val);
@@ -389,6 +397,11 @@ public slots:
     void setCurrentRotationPosition(int position);
     void dbSetDirectoryWatchEnabled(bool val);
     void setSystemId(int id);
+    void setCdgRemainEnabled(bool enabled);
+    void setCdgRemainFont(QFont font);
+    void setCdgRemainTextColor(QColor color);
+    void setCdgRemainBgColor(QColor color);
+
 
 };
 

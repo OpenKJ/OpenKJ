@@ -117,6 +117,10 @@ private slots:
     void on_spinBoxDefaultSongDuration_valueChanged(int arg1);
     void on_checkBoxDisplayCurrentRotationPosition_clicked(bool checked);
     void entitledSystemCountChanged(int count);
+    void on_groupBoxShowDuration_clicked(bool checked);
+    void on_btnDurationFont_clicked();
+    void on_btnDurationFontColor_clicked();
+    void on_btnDurationBgColor_clicked();
 };
 
 #endif // SETTINGSDIALOG_H
