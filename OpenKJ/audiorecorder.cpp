@@ -123,18 +123,32 @@ void AudioRecorder::processGstMessage()
             else if (message->type == GST_MESSAGE_WARNING || message->type == GST_MESSAGE_ERROR)
             {
                 qWarning() << "AudioRecorder - Gst - Error or warning generated";
-              GError *gerror;
-              gchar *debug;
+//              GError *gerror;
+//              gchar *debug;
 
-              gst_message_parse_error (message, &gerror, &debug);
-              gst_object_default_error (GST_MESSAGE_SRC (message), gerror, debug);
+//              gst_message_parse_error (message, &gerror, &debug);
+//              gst_object_default_error (GST_MESSAGE_SRC (message), gerror, debug);
+
+              GError *err;
+              gchar *debug;
+              if (message->type == GST_MESSAGE_WARNING)
+              {
+                gst_message_parse_warning(message, &err, &debug);
+                qWarning() << "AudioRecorder - Gst warning: " << err->message;
+              }
+              else
+              {
+                gst_message_parse_error(message, &err, &debug);
+                qWarning() << "AudioRecorder - Gst error: " << err->message;
+              }
+              qWarning() << " AudioRecorder - Gst debug: " << debug;
               gst_message_unref (message);
-              g_error_free (gerror);
+              g_error_free (err);
               g_free (debug);
             }
             else
             {
-                g_print("Msg type[%d], Msg type name[%s]\n", GST_MESSAGE_TYPE(message), GST_MESSAGE_TYPE_NAME(message));
+                g_print("AudioRecorder - Msg type[%d], Msg type name[%s]\n", GST_MESSAGE_TYPE(message), GST_MESSAGE_TYPE_NAME(message));
             }
             gst_message_unref(message);
         }

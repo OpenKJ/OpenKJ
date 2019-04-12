@@ -151,8 +151,8 @@ void AudioBackendGstreamer::processGstMessages()
                     emit audioError("Unable to play " + player + " file, missing gstreamer plugin");
                     stop(true);
                 }
-                //g_free(err);
-                //g_free(debug);
+                g_error_free(err);
+                g_free(debug);
             }
             else if (message->type == GST_MESSAGE_WARNING)
             {
@@ -163,8 +163,8 @@ void AudioBackendGstreamer::processGstMessages()
                 //g_print("GStreamer debug output: %s\n", debug);
                 qWarning() << objName << " - Gst warning: " << err->message;
                 qWarning() << objName << " - Gst debug: " << debug;
-                //g_free(err);
-                //g_free(debug);
+                g_error_free(err);
+                g_free(debug);
             }
             else if (message->type == GST_MESSAGE_STATE_CHANGED)
             {
