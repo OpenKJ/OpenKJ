@@ -159,8 +159,6 @@ void AudioBackendGstreamer::processGstMessages()
                 GError *err;
                 gchar *debug;
                 gst_message_parse_warning(message, &err, &debug);
-                //g_print("GStreamer warning: %s\n", err->message);
-                //g_print("GStreamer debug output: %s\n", debug);
                 qWarning() << objName << " - Gst warning: " << err->message;
                 qWarning() << objName << " - Gst debug: " << debug;
                 g_error_free(err);
@@ -180,18 +178,17 @@ void AudioBackendGstreamer::processGstMessages()
                     emit stateChanged(AbstractAudioBackend::UnknownState);
             }
             else if (message->type == GST_MESSAGE_ELEMENT) {
-                const GstStructure *s = gst_message_get_structure (message);
-                const gchar *name = gst_structure_get_name (s);
-                if (strcmp (name, "level") == 0)
+                QString name = QString(gst_structure_get_name (gst_message_get_structure(message)));
+                if (name == "level")
                 {
-                    gint channels;
+                    guint channels;
                     gdouble rms_dB;
                     gdouble rms;
                     const GValue *value;
                     const GValue *array_val;
                     GValueArray *rms_arr;
-                    gint i;
-                    array_val = gst_structure_get_value (s, "rms");
+                    guint i;
+                    array_val = gst_structure_get_value(gst_message_get_structure(message), "rms");
                     rms_arr = (GValueArray *) g_value_get_boxed (array_val);
                     channels = rms_arr->n_values;
                     double rmsValues = 0.0;
