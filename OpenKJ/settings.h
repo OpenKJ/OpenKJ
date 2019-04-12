@@ -264,6 +264,7 @@ public:
     QFont cdgRemainFont();
     QColor cdgRemainTextColor();
     QColor cdgRemainBgColor();
+    bool rotationShowNextSong();
 
 
 signals:
@@ -330,6 +331,7 @@ signals:
     void cdgRemainFontChanged(QFont font);
     void cdgRemainTextColorChanged(QColor color);
     void cdgRemainBgColorChanged(QColor color);
+    void rotationShowNextSongChanged(bool show);
 
 public slots:
     void dbSetLazyLoadDurations(bool val);
@@ -401,6 +403,7 @@ public slots:
     void setCdgRemainFont(QFont font);
     void setCdgRemainTextColor(QColor color);
     void setCdgRemainBgColor(QColor color);
+    void setRotationShowNextSong(bool show);
 
 
 };

@@ -626,6 +626,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(bmPlModel, SIGNAL(bmSongMoved(int,int)), this, SLOT(bmSongMoved(int,int)));
     connect(songbookApi, SIGNAL(alertRecieved(QString, QString)), this, SLOT(showAlert(QString, QString)));
     connect(settings, SIGNAL(cdgShowCdgWindowChanged(bool)), this, SLOT(cdgVisibilityChanged()));
+    connect(settings, SIGNAL(rotationShowNextSongChanged(bool)), this, SLOT(resizeRotation()));
 //    addSfxButton("some looooong string", "Some Name");
 //    addSfxButton("second string", "Second Button");
 //    addSfxButton("third string", "Third Button");
@@ -1450,6 +1451,8 @@ void MainWindow::on_buttonRegulars_clicked()
 
 void MainWindow::rotationDataChanged()
 {
+    if (settings->rotationShowNextSong())
+        resizeRotation();
     updateRotationDuration();
     requestsDialog->rotationChanged();
     QString statusBarText = "Singers: ";
@@ -2798,9 +2801,44 @@ void MainWindow::appFontChanged(QFont font)
 
 }
 
+void MainWindow::resizeRotation()
+{
+    int fH = QFontMetrics(settings->applicationFont()).height();
+    int iconWidth = fH + fH;
+    int singerColSize = ui->tableViewRotation->width() - (iconWidth * 3) - 5;
+    int songColSize = 0;
+    if (!settings->rotationShowNextSong())
+    {
+        ui->tableViewRotation->hideColumn(2);
+    }
+    else
+    {
+        ui->tableViewRotation->showColumn(2);
+        QStringList singers = rotModel->singers();
+        int largestName = 0;
+        for (int i=0; i < singers.size(); i++)
+        {
+            int width = QFontMetrics(settings->applicationFont()).width("_" + singers.at(i) + "_");
+            if (width > largestName)
+                largestName = width;
+        }
+        singerColSize = largestName;
+        songColSize = ui->tableViewRotation->width() - (iconWidth * 3) - singerColSize - 5;
+        ui->tableViewRotation->horizontalHeader()->resizeSection(2, songColSize);
+    }
+    ui->tableViewRotation->horizontalHeader()->resizeSection(0, iconWidth);
+    ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
+    ui->tableViewRotation->horizontalHeader()->resizeSection(1, singerColSize);
+    ui->tableViewRotation->horizontalHeader()->resizeSection(3, iconWidth);
+    ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Fixed);
+    ui->tableViewRotation->horizontalHeader()->resizeSection(4, iconWidth);
+    ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Fixed);
+}
+
 void MainWindow::autosizeViews()
 {
     int fH = QFontMetrics(settings->applicationFont()).height();
+    int iconWidth = fH + fH;
     int durationColSize = QFontMetrics(settings->applicationFont()).width(" Duration ");
     int songidColSize = QFontMetrics(settings->applicationFont()).width(" AA0000000-0000 ");
     int remainingSpace = ui->tableViewDB->width() - durationColSize - songidColSize;
@@ -2812,15 +2850,7 @@ void MainWindow::autosizeViews()
     ui->tableViewDB->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Fixed);
     ui->tableViewDB->horizontalHeader()->resizeSection(3, songidColSize);
 
-    int iconWidth = fH + fH;
-    int singerColSize = ui->tableViewRotation->width() - (iconWidth * 3) - 5;
-    ui->tableViewRotation->horizontalHeader()->resizeSection(0, iconWidth);
-    ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
-    ui->tableViewRotation->horizontalHeader()->resizeSection(1, singerColSize);
-    ui->tableViewRotation->horizontalHeader()->resizeSection(3, iconWidth);
-    ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Fixed);
-    ui->tableViewRotation->horizontalHeader()->resizeSection(4, iconWidth);
-    ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Fixed);
+    resizeRotation();
 
     int keyColSize = QFontMetrics(settings->applicationFont()).width("Key") + iconWidth;
     remainingSpace = ui->tableViewQueue->width() - iconWidth - keyColSize - songidColSize - 16;

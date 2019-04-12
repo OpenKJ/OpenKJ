@@ -264,6 +264,7 @@ private slots:
     void on_actionSongbook_Generator_triggered();
     void on_actionEqualizer_triggered();
     void audioError(QString msg);
+    void resizeRotation();
 
     // QWidget interface
     void on_sliderVolume_sliderMoved(int position);

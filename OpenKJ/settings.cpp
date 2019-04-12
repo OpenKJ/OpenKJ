@@ -422,6 +422,11 @@ QColor Settings::cdgRemainBgColor()
 
 }
 
+bool Settings::rotationShowNextSong()
+{
+    return settings->value("rotationShowNextSong", false).toBool();
+}
+
 bool Settings::cdgRemainEnabled()
 {
     return settings->value("cdgRemainEnabled", false).toBool();
@@ -443,6 +448,12 @@ void Settings::setCdgRemainBgColor(QColor color)
 {
     settings->setValue("cdgRemainBgColor", color);
     emit cdgRemainBgColorChanged(color);
+}
+
+void Settings::setRotationShowNextSong(bool show)
+{
+    settings->setValue("rotationShowNextSong", show);
+    emit rotationShowNextSongChanged(show);
 }
 
 QColor Settings::tickerBgColor()

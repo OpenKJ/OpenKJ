@@ -97,6 +97,10 @@ public slots:
     // QAbstractItemModel interface
 public:
     QVariant data(const QModelIndex &index, int role) const;
+
+    // QAbstractItemModel interface
+public:
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 };
 
 #endif // ROTATIONMODEL_H

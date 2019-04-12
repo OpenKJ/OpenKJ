@@ -58,6 +58,7 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     ui->checkBoxLazyLoadDurations->setChecked(settings->dbLazyLoadDurations());
     ui->checkBoxMonitorDirs->setChecked(settings->dbDirectoryWatchEnabled());
     ui->groupBoxShowDuration->setChecked(settings->cdgRemainEnabled());
+    ui->cbxRotShowNextSong->setChecked(settings->rotationShowNextSong());
     QStringList screens = getMonitors();
     ui->listWidgetMonitors->addItems(screens);
     audioOutputDevices = kAudioBackend->getOutputDevices();
@@ -188,6 +189,7 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     connect(ui->cbxTickerShowRotationInfo, SIGNAL(clicked(bool)), settings, SLOT(setTickerShowRotationInfo(bool)));
     connect(settings, SIGNAL(tickerShowRotationInfoChanged(bool)), this, SLOT(tickerShowRotationInfoChanged(bool)));
     connect(songbookApi, SIGNAL(entitledSystemCountChanged(int)), this, SLOT(entitledSystemCountChanged(int)));
+    connect(ui->cbxRotShowNextSong, SIGNAL(clicked(bool)), settings, SLOT(setRotationShowNextSong(bool)));
     ui->fontComboBox->setFont(settings->applicationFont());
     ui->spinBoxAppFontSize->setValue(settings->applicationFont().pointSize());
 

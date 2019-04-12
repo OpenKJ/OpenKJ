@@ -602,3 +602,13 @@ QVariant RotationModel::data(const QModelIndex &index, int role) const
     else
         return QSqlTableModel::data(index, role);
 }
+
+
+QVariant RotationModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (section == 0)
+        return "Pos";
+    if (section == 2)
+        return "Next Song";
+    return QSqlTableModel::headerData(section, orientation, role);
+}
