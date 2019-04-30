@@ -651,6 +651,7 @@ MainWindow::MainWindow(QWidget *parent) :
     lazyDurationUpdater->getDurations();
     if (settings->showCdgWindow())
         ui->btnToggleCdgWindow->setText("Hide CDG Window");
+    connect(ui->tableViewRotation->selectionModel(), SIGNAL(selectionChanged(QItemSelection, QItemSelection)), this, SLOT(rotationSelectionChanged(QItemSelection, QItemSelection)));
 }
 
 QString MainWindow::findMatchingAudioFile(QString cdgFilePath)
@@ -880,11 +881,15 @@ void MainWindow::databaseCleared()
     dbModel->select();
     rotModel->select();
     qModel->setSinger(-1);
+    ui->tableViewQueue->reset();
     ui->tableViewDB->hideColumn(0);
     ui->tableViewDB->hideColumn(5);
     ui->tableViewDB->hideColumn(6);
     ui->tableViewDB->horizontalHeader()->resizeSection(4,75);
-    settings->restoreColumnWidths(ui->tableViewDB);
+    autosizeViews();
+    rotationDataChanged();
+
+
 }
 
 void MainWindow::on_buttonStop_clicked()
@@ -1496,7 +1501,7 @@ void MainWindow::rotationDataChanged()
     }
     if (settings->tickerShowRotationInfo())
     {
-        tickerText += "Singers: ";
+        tickerText += "| Singers: ";
         tickerText += QString::number(rotModel->rowCount());
         tickerText += " | Current: ";
         int displayPos;
@@ -1508,7 +1513,7 @@ void MainWindow::rotationDataChanged()
         }
         else
         {
-            tickerText += "None";
+            tickerText += "None ";
             displayPos = -1;
         }
         int listSize;
@@ -1539,8 +1544,8 @@ void MainWindow::rotationDataChanged()
             tickerText += rotModel->getSingerName(rotModel->singerIdAtPosition(displayPos));
             tickerText += "  ";
         }
-        if (rotModel->rowCount() == 0)
-            tickerText += " None";
+//        if (rotModel->rowCount() == 0)
+//            tickerText += " None";
     }
     cdgWindow->setTickerText(tickerText);
 }
@@ -3133,4 +3138,18 @@ void MainWindow::cdgVisibilityChanged()
         ui->btnToggleCdgWindow->setText("Hide CDG Window");
     else if (cdgWindow->isHidden() && ui->btnToggleCdgWindow->text() == "Hide CDG Window")
         ui->btnToggleCdgWindow->setText("Show CDG Window");
+}
+
+void MainWindow::rotationSelectionChanged(QItemSelection sel, QItemSelection desel)
+{
+    if (sel.size() == 0 && desel.size() > 0)
+    {
+        qWarning() << "Rotation Selection Cleared!";
+        qModel->setSinger(-1);
+        ui->tableViewRotation->reset();
+        ui->gbxQueue->setTitle("Song Queue - (No Singer Selected)");
+    }
+
+    qWarning() << "Rotation Selection Changed";
+
 }

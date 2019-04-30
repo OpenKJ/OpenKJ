@@ -40,6 +40,8 @@ void QueueModel::setSinger(int singerId)
     m_singerId = singerId;
     setFilter("singer=" + QString::number(singerId));
     select();
+    if (singerId == -1)
+        qWarning() << "Singer selection is none";
 }
 
 int QueueModel::singer()

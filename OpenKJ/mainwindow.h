@@ -300,6 +300,7 @@ private slots:
 
     void on_btnToggleCdgWindow_clicked();
     void cdgVisibilityChanged();
+    void rotationSelectionChanged(QItemSelection sel, QItemSelection desel);
 
 protected:
     void closeEvent(QCloseEvent *event);
