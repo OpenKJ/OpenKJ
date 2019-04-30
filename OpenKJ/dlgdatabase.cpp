@@ -46,24 +46,27 @@ DlgDatabase::DlgDatabase(QSqlDatabase db, QWidget *parent) :
     selectedRow = -1;
     customPatternsDlg = new DlgCustomPatterns(this);
     dbUpdateDlg = new DlgDbUpdate(this);
-    QStringList sourceDirs = sourcedirmodel->getSourceDirs();
-    QString path;
     if (settings->dbDirectoryWatchEnabled())
     {
+        QStringList sourceDirs = sourcedirmodel->getSourceDirs();
+        QString path;
         foreach (path, sourceDirs)
         {
-            fsWatcher.addPath(path);
-            qWarning() << "Adding watch to path: " << path;
-            QDirIterator it(path, QDirIterator::Subdirectories);
-            while (it.hasNext()) {
-                QString subPath = it.next();
-                if (!it.fileInfo().isDir() || subPath.endsWith("/.") || subPath.endsWith("/.."))
-                    continue;
-                qWarning() << "Adding watch to subpath: " << subPath;
-                fsWatcher.addPath(subPath);
+            QFileInfo finfo(path);
+            if (finfo.isDir() && finfo.isReadable())
+            {
+                fsWatcher.addPath(path);
+                qWarning() << "Adding watch to path: " << path;
+                QDirIterator it(path, QDirIterator::Subdirectories);
+                while (it.hasNext()) {
+                    QString subPath = it.next();
+                    if (!it.fileInfo().isDir() || subPath.endsWith("/.") || subPath.endsWith("/.."))
+                        continue;
+                    qWarning() << "Adding watch to subpath: " << subPath;
+                    fsWatcher.addPath(subPath);
+                }
             }
         }
-        fsWatcher.addPaths(sourcedirmodel->getSourceDirs());
         connect(&fsWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(directoryChanged(QString)));
     }
 }
