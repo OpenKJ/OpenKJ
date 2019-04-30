@@ -366,6 +366,7 @@ MainWindow::MainWindow(QWidget *parent) :
     settings->restoreWindowState(regularSingersDialog);
     settings->restoreWindowState(dlgSongShop);
     settings->restoreWindowState(dbDialog);
+    settings->restoreWindowState(settingsDialog);
     settings->restoreSplitterState(ui->splitter);
     settings->restoreSplitterState(ui->splitter_2);
     settings->restoreSplitterState(ui->splitterBm);
@@ -838,6 +839,7 @@ MainWindow::~MainWindow()
     settings->saveWindowState(dlgSongShop);
     settings->saveWindowState(dlgSongShop);
     settings->saveWindowState(dbDialog);
+    settings->saveWindowState(settingsDialog);
     settings->saveWindowState(this);
     settings->saveSplitterState(ui->splitterBm);
     settings->saveColumnWidths(ui->tableViewBmDb);
