@@ -271,7 +271,8 @@ MainWindow::MainWindow(QWidget *parent) :
     qWarning() << "Creating regularImportDialog";
     regularImportDialog = new DlgRegularImport(rotModel, this);
     qWarning() << "Creating requestsDialog";
-    requestsDialog = new DlgRequests(rotModel, this);
+    requestsDialog = new DlgRequests(rotModel);
+    requestsDialog->setModal(false);
     qWarning() << "Creating dlgBookCreator";
     dlgBookCreator = new DlgBookCreator(this);
     qWarning() << "Creating dlgEq";
@@ -850,6 +851,7 @@ MainWindow::~MainWindow()
     delete ui;
     delete khTmpDir;
     delete dlgSongShop;
+    delete requestsDialog;
     if(_singular->isAttached())
         _singular->detach();
 }
@@ -2644,6 +2646,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     settings->setShowCdgWindow(cdgWindow->isVisible());
     cdgWindow->setVisible(false);
     dlgSongShop->setVisible(false);
+    requestsDialog->setVisible(false);
     event->accept();
 }
 
