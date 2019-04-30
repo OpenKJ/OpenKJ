@@ -650,7 +650,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(settings, SIGNAL(rotationDurationSettingsModified()), this, SLOT(updateRotationDuration()));
     cdgWindow->setShowBgImage(true);
     lazyDurationUpdater = new LazyDurationUpdateController(this);
-    lazyDurationUpdater->getDurations();
+    if (settings->dbLazyLoadDurations())
+        lazyDurationUpdater->getDurations();
     if (settings->showCdgWindow())
         ui->btnToggleCdgWindow->setText("Hide CDG Window");
     connect(ui->tableViewRotation->selectionModel(), SIGNAL(selectionChanged(QItemSelection, QItemSelection)), this, SLOT(rotationSelectionChanged(QItemSelection, QItemSelection)));
