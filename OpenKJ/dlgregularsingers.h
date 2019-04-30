@@ -22,6 +22,7 @@
 #define REGULARSINGERSDIALOG_H
 
 #include <QDialog>
+#include <QSortFilterProxyModel>
 #include <QSqlTableModel>
 #include "regitemdelegate.h"
 #include "rotationmodel.h"
@@ -29,6 +30,18 @@
 namespace Ui {
 class DlgRegularSingers;
 }
+
+class RegProxyModel : public QSortFilterProxyModel
+{
+    Q_OBJECT
+public:
+    explicit RegProxyModel(QObject *parent = nullptr);
+    void setFilterString(const QString &value);
+private:
+    QString filterString;
+protected:
+    bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
+};
 
 class DlgRegularSingers : public QDialog
 {
@@ -38,10 +51,12 @@ private:
     int m_rtClickRegSingerId;
     Ui::DlgRegularSingers *ui;
     QSqlTableModel *regModel;
+    RegProxyModel *proxyModel;
     RegItemDelegate *regDelegate;
     RotationModel *rotModel;
 
-public:
+
+    public:
     explicit DlgRegularSingers(RotationModel *rotationModel, QWidget *parent = 0);
     ~DlgRegularSingers();
 
@@ -55,6 +70,8 @@ private slots:
     void on_tableViewRegulars_customContextMenuRequested(const QPoint &pos);
     void editSingerDuplicateError();
     void renameRegSinger();
+
+    void on_lineEditSearch_textChanged(const QString &arg1);
 
 public slots:
     void regularsChanged();

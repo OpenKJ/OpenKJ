@@ -35,7 +35,9 @@ DlgRegularSingers::DlgRegularSingers(RotationModel *rotationModel, QWidget *pare
     regModel = new QSqlTableModel(this);
     regModel->setTable("regularsingers");
     regModel->sort(1, Qt::AscendingOrder);
-    ui->tableViewRegulars->setModel(regModel);
+    proxyModel = new RegProxyModel(this);
+    proxyModel->setSourceModel(regModel);
+    ui->tableViewRegulars->setModel(proxyModel);
     regDelegate = new RegItemDelegate(this);
     ui->tableViewRegulars->setItemDelegate(regDelegate);
     ui->comboBoxAddPos->addItem("Fair");
@@ -54,6 +56,9 @@ DlgRegularSingers::DlgRegularSingers(RotationModel *rotationModel, QWidget *pare
     regModel->setHeaderData(4, Qt::Horizontal, "");
     regModel->select();
     connect(rotModel, SIGNAL(regularsModified()), regModel, SLOT(select()));
+    proxyModel->setSortCaseSensitivity(Qt::CaseInsensitive);
+    proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
+    proxyModel->sort(2);
 }
 
 DlgRegularSingers::~DlgRegularSingers()
@@ -143,4 +148,34 @@ void DlgRegularSingers::renameRegSinger()
         }
         regModel->select();
     }
+}
+
+void DlgRegularSingers::on_lineEditSearch_textChanged(const QString &arg1)
+{
+    proxyModel->setFilterString(QString("%1").arg(arg1));
+}
+
+RegProxyModel::RegProxyModel(QObject *parent) : QSortFilterProxyModel (parent)
+{
+}
+
+void RegProxyModel::setFilterString(const QString &value)
+{
+    filterString = value;
+    filterChanged();
+}
+
+bool RegProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
+{
+    QModelIndex index0 = sourceModel()->index(source_row, 1, source_parent);
+    if (filterString == " " || filterString == "")
+        return true;
+    QStringList parts = filterString.split(" ", QString::SkipEmptyParts);
+    qWarning() << "Filtering based on parts: " << parts;
+    for (int i=0; i < parts.size(); i++)
+    {
+        if (!sourceModel()->data(index0).toString().contains(parts.at(i),Qt::CaseInsensitive))
+            return false;
+    }
+    return true;
 }
