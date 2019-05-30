@@ -28,6 +28,7 @@
 #include <QDebug>
 #include <QMessageBox>
 #include "settings.h"
+#include "idledetect.h"
 
 QDataStream &operator<<(QDataStream &out, const SfxEntry &obj)
 {
@@ -43,6 +44,8 @@ QDataStream &operator>>(QDataStream &in, SfxEntry &obj)
    return in;
 }
 
+IdleDetect *filter;
+
 int main(int argc, char *argv[])
 {
     qRegisterMetaType<SfxEntry>("SfxEntry");
@@ -50,6 +53,8 @@ int main(int argc, char *argv[])
     qRegisterMetaType<QList<SfxEntry> >("QList<SfxEntry>");
     qRegisterMetaTypeStreamOperators<QList<SfxEntry> >("QList<SfxEntry>");
     QApplication a(argc, argv);
+    filter = new IdleDetect;
+    a.installEventFilter(filter);
     qputenv("GST_DEBUG", "*:3");
     Settings okjSettings;
     if (okjSettings.theme() == 1)

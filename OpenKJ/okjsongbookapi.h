@@ -52,9 +52,10 @@ private:
     bool delayErrorEmitted;
     bool connectionReset;
     int entitledSystems;
+    bool programIsIdle;
 
 public:
-    explicit OKJSongbookAPI(QObject *parent = 0);
+    explicit OKJSongbookAPI(QObject *parent = nullptr);
     void getSerial();
     void refreshRequests();
     void removeRequest(int requestId);
@@ -94,6 +95,7 @@ private slots:
         void timerTimeout();
         void alertTimerTimeout();
         void setInterval(int interval);
+        void idleStateChanged(bool isIdle);
 };
 
 #endif // OKJSONGBOOKAPI_H

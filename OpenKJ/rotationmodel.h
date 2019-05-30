@@ -35,7 +35,7 @@ private:
 public:
     explicit RotationModel(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
     enum {ADD_FAIR=0,ADD_BOTTOM,ADD_NEXT};
-    int singerAdd(QString name);
+    int singerAdd(const QString& name);
     int singerCount;
     void singerMove(int oldPosition, int newPosition);
     void singerSetName(int singerId, QString newName);
@@ -81,6 +81,8 @@ public:
     int numSongsSung(int singerId) const;
     int numSongsUnsung(int singerId) const;
     int timeAdded(int singerId) const;
+    void outputRotationDebug();
+    void fixSingerPositions();
 
 signals:
     void songDroppedOnSinger(int singerId, int songId, int dropRow);

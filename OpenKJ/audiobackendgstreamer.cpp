@@ -211,6 +211,10 @@ void AudioBackendGstreamer::processGstMessages()
             {
                 // do nothing
             }
+            else if (message->type == GST_MESSAGE_STREAM_STATUS)
+            {
+                // do nothing
+            }
             else
             {
                 //g_print("Msg type[%d], Msg type name[%s]\n", GST_MESSAGE_TYPE(message), GST_MESSAGE_TYPE_NAME(message));

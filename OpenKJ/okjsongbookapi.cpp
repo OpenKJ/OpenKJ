@@ -9,8 +9,10 @@
 #include <QFile>
 #include <QSqlQuery>
 #include "settings.h"
+#include "idledetect.h"
 
 extern Settings *settings;
+extern IdleDetect *filter;
 
 QDebug operator<<(QDebug dbg, const OkjsVenue &okjsvenue)
 {
@@ -21,6 +23,7 @@ QDebug operator<<(QDebug dbg, const OkjsVenue &okjsvenue)
 
 OKJSongbookAPI::OKJSongbookAPI(QObject *parent) : QObject(parent)
 {
+    programIsIdle = false;
     delayErrorEmitted = false;
     connectionReset = false;
     serial = 0;
@@ -35,6 +38,7 @@ OKJSongbookAPI::OKJSongbookAPI(QObject *parent) : QObject(parent)
     connect(timer, SIGNAL(timeout()), this, SLOT(timerTimeout()));
     connect(alertTimer, SIGNAL(timeout()), this, SLOT(alertTimerTimeout()));
     connect(settings, SIGNAL(requestServerIntervalChanged(int)), this, SLOT(setInterval(int)));
+    connect(filter, SIGNAL(idleStateChanged(bool)), this, SLOT(idleStateChanged(bool)));
     if (settings->requestServerEnabled())
     {
         getEntitledSystemCount();
@@ -434,7 +438,7 @@ void OKJSongbookAPI::onNetworkReply(QNetworkReply *reply)
 
 void OKJSongbookAPI::timerTimeout()
 {
-    if (settings->requestServerEnabled())
+    if (settings->requestServerEnabled() && !programIsIdle)
     {
         if ((lastSync.secsTo(QTime::currentTime()) > 300) && (!delayErrorEmitted))
         {
@@ -465,6 +469,12 @@ void OKJSongbookAPI::alertTimerTimeout()
 void OKJSongbookAPI::setInterval(int interval)
 {
     timer->setInterval(interval * 1000);
+}
+
+void OKJSongbookAPI::idleStateChanged(bool isIdle)
+{
+    programIsIdle = isIdle;
+    qWarning() << "Program idle state changed to: " << isIdle;
 }
 
 void OKJSongbookAPI::getEntitledSystemCount()

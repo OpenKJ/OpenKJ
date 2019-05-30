@@ -100,7 +100,7 @@ contains(DEFINES, STATIC_TAGLIB) {
 QMAKE_MAC_SDK = MacOSX10.13
 QMAKE_MAC_SDK.macosx.version = 10.13
 
-VERSION = 1.5.51
+VERSION = 1.5.52
 message($$VERSION)
 QMAKE_TARGET_COMPANY = OpenKJ.org
 QMAKE_TARGET_PRODUCT = OpenKJ
@@ -177,7 +177,8 @@ SOURCES += main.cpp\
     karaokefileinfo.cpp \
     dlgeditsong.cpp \
     soundfxbutton.cpp \
-    durationlazyupdater.cpp
+    durationlazyupdater.cpp \
+    idledetect.cpp
 
 contains(DEFINES, STATIC_TAGLIB) {
     SOURCES += taglib/ape/apefile.cpp \
@@ -351,7 +352,8 @@ HEADERS  += mainwindow.h \
     dlgeditsong.h \
     soundfxbutton.h \
     tableviewtooltipfilter.h \
-    durationlazyupdater.h
+    durationlazyupdater.h \
+    idledetect.h
 
 contains(DEFINES, STATIC_TAGLIB) {
     HEADERS += taglib/ape/apefile.h \

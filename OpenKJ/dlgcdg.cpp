@@ -495,7 +495,7 @@ void DlgCdg::alertFontChanged(QFont font)
 
 void DlgCdg::mouseMove(QMouseEvent *event)
 {
-    qWarning() << "Mouse moved pos:" << event->pos();
+//    qWarning() << "Mouse moved pos:" << event->pos();
     if (m_fullScreen)
         ui->btnToggleFullscreen->setText(tr("Make Windowed"));
     else

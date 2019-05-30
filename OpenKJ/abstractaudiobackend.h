@@ -39,10 +39,10 @@ private:
     QString name;
 public:
     enum State{PlayingState=0,PausedState,StoppedState,EndOfMediaState,UnknownState};
-    explicit AbstractAudioBackend(QObject *parent = 0);
+    explicit AbstractAudioBackend(QObject *parent = nullptr);
     virtual int volume() {return 0;}
     virtual qint64 position() {return 0;}
-    virtual bool isMuted() {return 0;}
+    virtual bool isMuted() {return false;}
     virtual qint64 duration() {return 0;}
     virtual AbstractAudioBackend::State state() {return AbstractAudioBackend::StoppedState;}
     virtual bool canPitchShift() {return false;}

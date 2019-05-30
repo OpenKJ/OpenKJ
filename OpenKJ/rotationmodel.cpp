@@ -87,6 +87,48 @@ int RotationModel::timeAdded(int singerId) const
     return 0;
 }
 
+void RotationModel::outputRotationDebug()
+{
+    qWarning() << " -- Rotation debug output -- ";
+    qWarning() << "singerid,position,regular,regularid,added,name";
+    QSqlQuery query;
+    query.exec("SELECT singerid,position,regular,regularid,addts,name FROM rotationSingers ORDER BY position");
+    int expectedPosition = 0;
+    bool needsRepair = false;
+    while (query.next())
+    {
+        qWarning() << query.value(0).toInt() << "," << query.value(1).toInt() << "," << query.value(2).toInt() << "," << query.value(3).toInt() << "," << query.value(4).toString() << "," << query.value(5).toString();
+        if (query.value(1).toInt() != expectedPosition)
+        {
+            needsRepair = true;
+            qWarning() << "ERROR DETECTED!!! - Singer position does not match expected position";
+        }
+        expectedPosition++;
+    }
+    if (needsRepair)
+        fixSingerPositions();
+    qWarning() << " -- Rotation debug output end -- ";
+}
+
+void RotationModel::fixSingerPositions()
+{
+    qWarning() << "Attempting to fix corrupted rotation position data...";
+    QSqlQuery query;
+    query.exec("SELECT singerId FROM rotationSingers ORDER BY position");
+    QList<int> singers;
+    while (query.next())
+    {
+        singers << query.value(0).toInt();
+    }
+    for (int i=0; i < singers.size();i++)
+    {
+        QString sql = "UPDATE rotationSingers SET position=" + QString::number(i) + " WHERE singerid = " + QString::number(singers.at(i));
+        qWarning() << sql;
+        query.exec(sql);
+    }
+    outputRotationDebug();
+}
+
 RotationModel::RotationModel(QObject *parent, QSqlDatabase db) :
     QSqlTableModel(parent, db)
 {
@@ -96,18 +138,23 @@ RotationModel::RotationModel(QObject *parent, QSqlDatabase db) :
     singerCount = singers().size();
 }
 
-int RotationModel::singerAdd(QString name)
+int RotationModel::singerAdd(const QString& name)
 {
     QSqlQuery query;
     query.exec("INSERT INTO rotationsingers (name,position,regular,regularid, addts) VALUES(\"" + name + "\"," + QString::number(rowCount()) + ",0,-1, CURRENT_TIMESTAMP)");
     select();
     singerCount = singers().size();
     emit rotationModified();
+    outputRotationDebug();
     return query.lastInsertId().toInt();
 }
 
 void RotationModel::singerMove(int oldPosition, int newPosition)
 {
+    if (newPosition == -1)
+        newPosition = 0;
+    int movingSinger = singerIdAtPosition(oldPosition);
+    qWarning() << "Moving singer " << getSingerName(movingSinger) << " from position: " << oldPosition << " to: " << newPosition;
     if (oldPosition == newPosition)
         return;
     QSqlQuery query;
@@ -124,6 +171,7 @@ void RotationModel::singerMove(int oldPosition, int newPosition)
     rotationIsValid();
     select();
     emit rotationModified();
+    outputRotationDebug();
 }
 
 void RotationModel::singerSetName(int singerId, QString newName)
@@ -132,6 +180,7 @@ void RotationModel::singerSetName(int singerId, QString newName)
     query.exec("UPDATE rotationsingers SET name = \"" + newName + "\" WHERE singerid == " + QString::number(singerId));
     emit rotationModified();
     select();
+    outputRotationDebug();
 }
 
 void RotationModel::singerDelete(int singerId)
@@ -144,6 +193,7 @@ void RotationModel::singerDelete(int singerId)
     select();
     singerCount = singers().size();
     emit rotationModified();
+    outputRotationDebug();
 }
 
 bool RotationModel::singerExists(QString name)
