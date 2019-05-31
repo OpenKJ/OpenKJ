@@ -136,6 +136,7 @@ private:
     void buildPipeline();
     void destroyPipeline();
     void resetPipeline();
+    bool faderRunning;
 
     static void DestroyCallback(gpointer user_data);
 public:
@@ -168,6 +169,8 @@ private slots:
     void fastTimer_timeout();
     void slowTimer_timeout();
     void faderChangedVolume(int volume);
+    void faderStarted();
+    void faderFinished();
 
 public slots:
     void play();

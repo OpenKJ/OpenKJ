@@ -21,6 +21,7 @@ void AudioFader::setVolumeElement(GstElement *volumeElement)
 
 void AudioFader::setPaused(bool paused)
 {
+    qWarning() << "AudioFader set paused state to: " << paused;
     this->paused = paused;
 }
 
@@ -52,6 +53,7 @@ AudioFader::AudioFader(QObject *parent) : QObject(parent)
 void AudioFader::fadeOut(bool block)
 {
     qWarning() << "fadeOut( " << block << " ) called";
+    emit fadeStarted();
     preFadeVol = volume();
     fading = true;
     targetVol = 0;
@@ -71,6 +73,8 @@ void AudioFader::fadeOut(bool block)
 
 void AudioFader::fadeIn(bool block)
 {
+    qWarning() << "fadeIn( " << block << " ) called";
+    emit fadeStarted();
     fading = true;
     targetVol = preFadeVol;
     timer->start();
@@ -99,6 +103,7 @@ void AudioFader::timerTimeout()
             qWarning() << "target volume reached";
             timer->stop();
             fading = false;
+            emit fadeComplete();
             return;
         }
 
@@ -109,10 +114,10 @@ void AudioFader::timerTimeout()
                 setVolume(targetVol);
                 timer->stop();
                 fading = false;
+                emit fadeComplete();
                 return;
             }
-            else
-                setVolume(volume() - increment);
+            setVolume(volume() - increment);
         }
         if (volume() < targetVol)
         {
@@ -121,10 +126,10 @@ void AudioFader::timerTimeout()
                 setVolume(targetVol);
                 timer->stop();
                 fading = false;
+                emit fadeComplete();
                 return;
             }
-            else
-                setVolume(volume() + increment);
+            setVolume(volume() + increment);
         }
     }
 }

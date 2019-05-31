@@ -25,6 +25,7 @@ public:
 signals:
     void volumeChanged(double volume);
     void volumeChanged(int volume);
+    void fadeStarted();
     void fadeComplete();
 
 public slots:

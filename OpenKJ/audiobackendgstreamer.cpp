@@ -78,7 +78,10 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
 //    slowTimer->start(1000);
     fastTimer = new QTimer(this);
     connect(fastTimer, SIGNAL(timeout()), this, SLOT(fastTimer_timeout()));
+    faderRunning = false;
     fader = new AudioFader(this);
+    connect(fader, SIGNAL(faderStarted()), this, SLOT(faderStarted()));
+    connect(fader, SIGNAL(faderFinished()), this, SLOT(faderFinished()));
     buildPipeline();
 
     monitor = gst_device_monitor_new ();
@@ -309,7 +312,7 @@ void AudioBackendGstreamer::play()
         g_object_set(GST_OBJECT(playBin), "uri", uri, NULL);
         g_free(uri);
         m_hasVideo = false;
-        setVolume(m_volume);
+
         gst_element_set_state(playBin, GST_STATE_PLAYING);
     }
 }
@@ -462,6 +465,19 @@ void AudioBackendGstreamer::faderChangedVolume(int volume)
 {
     m_volume = volume;
     emit volumeChanged(volume);
+}
+
+void AudioBackendGstreamer::faderStarted()
+{
+    faderRunning = true;
+    qWarning() << objName << " - Fader started";
+}
+
+void AudioBackendGstreamer::faderFinished()
+{
+    faderRunning = false;
+    qWarning() << objName << " - fader finished";
+
 }
 
 
