@@ -520,7 +520,8 @@ bool RotationModel::dropMimeData(const QMimeData *data, Qt::DropAction action, i
         int oldPosition;
         QByteArray bytedata = data->data("integer/rotationpos");
         oldPosition =  QString(bytedata.data()).toInt();
-        if ((droprow == oldPosition + 1) || (droprow == oldPosition))
+//        if ((droprow == oldPosition + 1) || (droprow == oldPosition))
+        if (droprow == oldPosition)
         {
             // Singer dropped, but would result in same position, ignore to prevent rotation corruption.
             return false;
