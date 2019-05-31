@@ -526,7 +526,8 @@ bool RotationModel::dropMimeData(const QMimeData *data, Qt::DropAction action, i
             return false;
         }
         if ((oldPosition < droprow) && (droprow != rowCount() - 1))
-            singerMove(oldPosition, droprow - 1);
+            singerMove(oldPosition, droprow);
+            //singerMove(oldPosition, droprow - 1);
         else
             singerMove(oldPosition, droprow);
         return true;

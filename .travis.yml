@@ -2,7 +2,7 @@ language: c++
 os:
 - osx
 env:
-  - OKJVER=1.5.52
+  - OKJVER=1.5.53
 before_install:
 - source travis/before_install.sh
 install:
