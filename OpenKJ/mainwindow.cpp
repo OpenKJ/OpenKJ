@@ -155,25 +155,28 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
     switch (type) {
     case QtDebugMsg:
         fprintf(stderr, "DEBG: %s (%s)\n", localMsg.constData(), context.function);
-        if (loggingEnabled) logStream << "DEGB: " << localMsg << " (" << context.function << ")\n";
-        logContents->append(QString("DEGB: " + localMsg + " (" + context.function + ")"));
+        if (loggingEnabled) logStream << "DEBG: " << localMsg << " (" << context.function << ")\n";
+        logContents->append(QString("DEBG: " + localMsg + " (" + context.function + ")"));
         break;
     case QtInfoMsg:
         fprintf(stderr, "INFO: %s (%s)\n", localMsg.constData(), context.function);
         if (loggingEnabled) logStream << "INFO: " << localMsg << " (" << context.function << ")\n";
-        logContents->append(QString("DEGB: " + localMsg + " (" + context.function + ")"));
+        logContents->append(QString("INFO: " + localMsg + " (" + context.function + ")"));
         break;
     case QtWarningMsg:
         fprintf(stderr, "WARN: %s (%s)\n", localMsg.constData(), context.function);
         if (loggingEnabled) logStream << "WARN: " << localMsg << " (" << context.function << ")\n";
+        logContents->append(QString("WARN: " + localMsg + " (" + context.function + ")"));
         break;
     case QtCriticalMsg:
         fprintf(stderr, "CRIT: %s (%s)\n", localMsg.constData(), context.function);
         if (loggingEnabled) logStream << "CRIT: " << localMsg << " (" << context.function << ")\n";
+        logContents->append(QString("CRIT: " + localMsg + " (" + context.function + ")"));
         break;
     case QtFatalMsg:
         fprintf(stderr, "FATAL!!: %s (%s)\n", localMsg.constData(), context.function);
         if (loggingEnabled) logStream << "FATAL!!: " << localMsg << " (" << context.function << ")\n";
+        logContents->append(QString("FATAL!!: " + localMsg + " (" + context.function + ")"));
         abort();
     }
 }
