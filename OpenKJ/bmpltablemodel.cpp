@@ -148,7 +148,7 @@ bool BmPlTableModel::dropMimeData(const QMimeData *data, Qt::DropAction action, 
         QDataStream stream(&encodedData, QIODevice::ReadOnly);
         QList<int> songids;
         stream >> songids;
-        qWarning() << songids;
+        qInfo() << songids;
         unsigned int droprow;
         if (parent.row() >= 0)
             droprow = parent.row();

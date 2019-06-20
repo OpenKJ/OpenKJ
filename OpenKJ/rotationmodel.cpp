@@ -89,30 +89,30 @@ int RotationModel::timeAdded(int singerId) const
 
 void RotationModel::outputRotationDebug()
 {
-    qWarning() << " -- Rotation debug output -- ";
-    qWarning() << "singerid,position,regular,regularid,added,name";
+    qInfo() << " -- Rotation debug output -- ";
+    qInfo() << "singerid,position,regular,regularid,added,name";
     QSqlQuery query;
     query.exec("SELECT singerid,position,regular,regularid,addts,name FROM rotationSingers ORDER BY position");
     int expectedPosition = 0;
     bool needsRepair = false;
     while (query.next())
     {
-        qWarning() << query.value(0).toInt() << "," << query.value(1).toInt() << "," << query.value(2).toInt() << "," << query.value(3).toInt() << "," << query.value(4).toString() << "," << query.value(5).toString();
+        qInfo() << query.value(0).toInt() << "," << query.value(1).toInt() << "," << query.value(2).toInt() << "," << query.value(3).toInt() << "," << query.value(4).toString() << "," << query.value(5).toString();
         if (query.value(1).toInt() != expectedPosition)
         {
             needsRepair = true;
-            qWarning() << "ERROR DETECTED!!! - Singer position does not match expected position";
+            qInfo() << "ERROR DETECTED!!! - Singer position does not match expected position";
         }
         expectedPosition++;
     }
     if (needsRepair)
         fixSingerPositions();
-    qWarning() << " -- Rotation debug output end -- ";
+    qInfo() << " -- Rotation debug output end -- ";
 }
 
 void RotationModel::fixSingerPositions()
 {
-    qWarning() << "Attempting to fix corrupted rotation position data...";
+    qInfo() << "Attempting to fix corrupted rotation position data...";
     QSqlQuery query;
     query.exec("SELECT singerId FROM rotationSingers ORDER BY position");
     QList<int> singers;
@@ -123,7 +123,7 @@ void RotationModel::fixSingerPositions()
     for (int i=0; i < singers.size();i++)
     {
         QString sql = "UPDATE rotationSingers SET position=" + QString::number(i) + " WHERE singerid = " + QString::number(singers.at(i));
-        qWarning() << sql;
+        qInfo() << sql;
         query.exec(sql);
     }
     outputRotationDebug();
@@ -154,7 +154,7 @@ void RotationModel::singerMove(int oldPosition, int newPosition)
     if (newPosition == -1)
         newPosition = 0;
     int movingSinger = singerIdAtPosition(oldPosition);
-    qWarning() << "Moving singer " << getSingerName(movingSinger) << " from position: " << oldPosition << " to: " << newPosition;
+    qInfo() << "Moving singer " << getSingerName(movingSinger) << " from position: " << oldPosition << " to: " << newPosition;
     if (oldPosition == newPosition)
         return;
     QSqlQuery query;
@@ -574,8 +574,8 @@ QVariant RotationModel::data(const QModelIndex &index, int role) const
         {
             curSingerPos = query.value("position").toInt();
         }
-        qWarning() << "Cur singer pos: " << curSingerPos;
-        qWarning() << "Hover singer pos: " << hoverSingerPos;
+        qInfo() << "Cur singer pos: " << curSingerPos;
+        qInfo() << "Hover singer pos: " << hoverSingerPos;
         QString toolTipText;
         int totalWaitDuration = 0;
         int singerId = index.sibling(index.row(), 0).data().toInt();

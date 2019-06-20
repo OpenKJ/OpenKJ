@@ -158,12 +158,12 @@ void OKJSongbookAPI::updateSongDb()
     if (query.exec("SELECT DISTINCT artist,title FROM dbsongs WHERE discid != '!!DROPPED!!' AND discid != '!!BAD!!' ORDER BY artist ASC, title ASC"))
     {
         bool done = false;
-        qWarning() << "Number of results: " << numEntries;
+        qInfo() << "Number of results: " << numEntries;
         int numDocs = numEntries / songsPerDoc;
         if (numEntries % songsPerDoc > 0)
             numDocs++;
         emit remoteSongDbUpdateNumDocs(numDocs);
-        qWarning() << "Emitted remoteSongDbUpdateNumDocs(" << numDocs << ")";
+        qInfo() << "Emitted remoteSongDbUpdateNumDocs(" << numDocs << ")";
         int docs = 0;
         while (!done)
         {
@@ -204,7 +204,7 @@ void OKJSongbookAPI::updateSongDb()
         QNetworkReply *reply = manager->post(request, jsonDocument.toJson());
         while (!reply->isFinished())
             QApplication::processEvents();
-        qWarning() << reply->readAll();
+        qInfo() << reply->readAll();
         for (int i=0; i < jsonDocs.size(); i++)
         {
             QApplication::processEvents();
@@ -237,21 +237,21 @@ bool OKJSongbookAPI::test()
     loop.exec();
     if (reply->error() != QNetworkReply::NoError)
     {
-        qWarning() << "Network error: " << reply->errorString();
+        qInfo() << "Network error: " << reply->errorString();
         emit testFailed(reply->errorString());
         return false;
     }
     QByteArray data = reply->readAll();
     delete reply;
     QJsonDocument json = QJsonDocument::fromJson(data);
-    qWarning() << json;
+    qInfo() << json;
     QString command = json.object().value("command").toString();
     bool error = json.object().value("error").toBool();
-    qWarning() << "error = " << error;
+    qInfo() << "error = " << error;
     if (json.object().value("errorString").toString() != "")
     {
-        qWarning() << "Got error json reply";
-        qWarning() << "Error string: " << json.object().value("errorString");
+        qInfo() << "Got error json reply";
+        qInfo() << "Error string: " << json.object().value("errorString");
         emit testFailed(json.object().value("errorString").toString());
         return false;
     }
@@ -260,12 +260,12 @@ bool OKJSongbookAPI::test()
         int newSerial = json.object().value("serial").toInt();
         if (newSerial != 0)
         {
-            qWarning() << "SongbookAPI - Server returned good serial";
+            qInfo() << "SongbookAPI - Server returned good serial";
             emit testPassed();
             return true;
         }
     }
-    qWarning() << data;
+    qInfo() << data;
     emit testFailed("Unknown error");
     return false;
 }
@@ -320,7 +320,7 @@ void OKJSongbookAPI::onNetworkReply(QNetworkReply *reply)
         reply->ignoreSslErrors();
     if (reply->error() != QNetworkReply::NoError)
     {
-        qWarning() << reply->errorString();
+        qInfo() << reply->errorString();
         //output some meaningful error msg
         return;
     }
@@ -330,16 +330,16 @@ void OKJSongbookAPI::onNetworkReply(QNetworkReply *reply)
     bool error = json.object().value("error").toBool();
     if (error)
     {
-        qWarning() << "Got error json reply";
-        qWarning() << "Error string: " << json.object().value("errorString");
+        qInfo() << "Got error json reply";
+        qInfo() << "Error string: " << json.object().value("errorString");
         return;
     }
     if (command == "getEntitledSystemCount")
     {
-        qWarning() << json;
+        qInfo() << json;
         entitledSystems = json.object().value("count").toInt();
         emit entitledSystemCountChanged(entitledSystems);
-        qWarning() << "OKJSongbookAPI: Server reports entitled to run " << entitledSystems << " concurrent systems";
+        qInfo() << "OKJSongbookAPI: Server reports entitled to run " << entitledSystems << " concurrent systems";
     }
     if (command == "getAlert")
     {
@@ -355,7 +355,7 @@ void OKJSongbookAPI::onNetworkReply(QNetworkReply *reply)
         int newSerial = json.object().value("serial").toInt();
         if (newSerial == 0)
         {
-            qWarning() << "SongbookAPI - Server didn't return valid serial";
+            qInfo() << "SongbookAPI - Server didn't return valid serial";
             return;
         }
         if (serial == newSerial)
@@ -474,7 +474,7 @@ void OKJSongbookAPI::setInterval(int interval)
 void OKJSongbookAPI::idleStateChanged(bool isIdle)
 {
     programIsIdle = isIdle;
-    qWarning() << "Program idle state changed to: " << isIdle;
+    qInfo() << "Program idle state changed to: " << isIdle;
 }
 
 void OKJSongbookAPI::getEntitledSystemCount()

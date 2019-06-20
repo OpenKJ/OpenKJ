@@ -22,8 +22,8 @@ DlgBookCreator::DlgBookCreator(QWidget *parent) :
     ui->cbxPageSize->addItem(tr("Legal"), QPagedPaintDevice::Legal);
     ui->cbxPageSize->addItem(tr("A4"), QPagedPaintDevice::A4);
     settings = new Settings(this);
-    qWarning() << "Header font: " << settings->bookCreatorArtistFont().toString();
-    qWarning() << "Item font:   " << settings->bookCreatorTitleFont().toString();
+    qInfo() << "Header font: " << settings->bookCreatorArtistFont().toString();
+    qInfo() << "Item font:   " << settings->bookCreatorTitleFont().toString();
     ui->fontCbxArtist->setCurrentFont(settings->bookCreatorArtistFont());
     ui->fontCbxTitle->setCurrentFont(settings->bookCreatorTitleFont());
     ui->fontCbxHeader->setCurrentFont(settings->bookCreatorHeaderFont());
@@ -90,7 +90,7 @@ void DlgBookCreator::on_comboBoxSort_currentIndexChanged(int index)
     if (setupdone)
     {
         settings->setBookCreatorSortCol(index);
-        qWarning() << "Set sort col to: " << index;
+        qInfo() << "Set sort col to: " << index;
     }
 }
 
@@ -157,7 +157,7 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
     progress.setValue(0);
     progress.setMaximum(0);
     progress.show();
-    qWarning() << "Beginning pdf generation";
+    qInfo() << "Beginning pdf generation";
     QFont aFont = settings->bookCreatorArtistFont();
     QFont tFont = settings->bookCreatorTitleFont();
     QFont hFont = settings->bookCreatorHeaderFont();
@@ -166,11 +166,11 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
     pdf.setPageSize(static_cast<QPagedPaintDevice::PageSize>(ui->cbxPageSize->currentData().toInt()));
     pdf.setPageMargins(QMarginsF(ui->doubleSpinBoxLeft->value(),ui->doubleSpinBoxTop->value(),ui->doubleSpinBoxRight->value(),ui->doubleSpinBoxBottom->value()), QPageLayout::Inch);
     QPainter painter(&pdf);
-    qWarning() << "Getting artists";
+    qInfo() << "Getting artists";
     QStringList artists = getArtists();
-    qWarning() << "Got " << artists.size() << " artists";
+    qInfo() << "Got " << artists.size() << " artists";
     QStringList entries;
-    qWarning() << "Getting titles for artists";
+    qInfo() << "Getting titles for artists";
     progress.setLabelText("Parsing song data");
     progress.setMaximum(artists.size());
     for (int i=0; i < artists.size(); i++)
@@ -184,7 +184,7 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
         }
         progress.setValue(i);
     }
-    qWarning() << "Got titles";
+    qInfo() << "Got titles";
     QPen pen;
     pen.setColor(QColor(0,0,0));
     pen.setWidth(4);
@@ -203,7 +203,7 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
     }
     int curDrawPos;
     int pages = 0;
-    qWarning() << "Writing data to pdf";
+    qInfo() << "Writing data to pdf";
     progress.setLabelText("Writing data to PDF");
     progress.setValue(0);
     progress.setMaximum(entries.size());
@@ -212,7 +212,7 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
     {
         QApplication::processEvents();
         pages++;
-        qWarning() << "Generating page " << pages;
+        qInfo() << "Generating page " << pages;
         int topOffset = 40;
         int headerOffset = 0;
         int bottomOffset = 0;
@@ -368,10 +368,10 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
         curEntry++;
         progress.setValue(curEntry);
     }
-    qWarning() << "Done writing data to pdf";
+    qInfo() << "Done writing data to pdf";
 //    painter.drawText(txtRect, Qt::AlignLeft, "This is some title");
-    qWarning() << rect();
-    qWarning() << "Finalizing pdf";
+    qInfo() << rect();
+    qInfo() << "Finalizing pdf";
     progress.setLabelText("Finalizing PDF");
     progress.setMaximum(0);
     progress.setValue(0);
@@ -380,7 +380,7 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
     QMessageBox msgBox(this);
     msgBox.setText("Songbook PDF generation complete");
     msgBox.exec();
-    qWarning() << "Done with songbook generation";
+    qInfo() << "Done with songbook generation";
 }
 
 

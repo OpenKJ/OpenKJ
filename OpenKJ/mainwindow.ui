@@ -2816,6 +2816,8 @@ QPushButton:default {
     <addaction name="actionSettings"/>
     <addaction name="actionSongbook_Generator"/>
     <addaction name="actionEqualizer"/>
+    <addaction name="separator"/>
+    <addaction name="actionShow_Debug_Log"/>
    </widget>
    <widget class="QMenu" name="menuKaraoke">
     <property name="title">
@@ -2983,6 +2985,14 @@ QPushButton:default {
   <action name="actionSong_Shop">
    <property name="text">
     <string>Song Shop</string>
+   </property>
+  </action>
+  <action name="actionShow_Debug_Log">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Debug Log</string>
    </property>
   </action>
  </widget>

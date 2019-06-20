@@ -60,7 +60,7 @@ void KaraokeFileInfo::readTags()
         tagTitle = "Error";
         tagSongid = "Error";
         duration = 0;
-        qWarning() << "KaraokeFileInfo::readTags() called on non zip or cdg file (" << fileName << ").  Something is terribly wrong...";
+        qInfo() << "KaraokeFileInfo::readTags() called on non zip or cdg file (" << fileName << ").  Something is terribly wrong...";
     }
     tagsRead = true;
     delete tagReader;
@@ -232,7 +232,7 @@ int KaraokeFileInfo::getDuration()
         }
         catch (...)
         {
-            qWarning() << "KaraokeFileInfo unable to get duration for file: " << fileBaseName;
+            qInfo() << "KaraokeFileInfo unable to get duration for file: " << fileBaseName;
         }
     }
     return duration;
@@ -324,7 +324,7 @@ void KaraokeFileInfo::getMetadata()
         artist = parts.join(" - ");
         break;
     case SourceDir::METADATA:
-        qWarning() << "Using metadata";
+        qInfo() << "Using metadata";
         readTags();
         artist = tagArtist;
         title = tagTitle;

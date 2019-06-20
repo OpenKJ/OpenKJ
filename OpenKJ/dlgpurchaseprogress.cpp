@@ -23,7 +23,7 @@ void DlgPurchaseProgress::setText(QString message)
 
 void DlgPurchaseProgress::setProgress(qint64 current, qint64 total)
 {
-    qWarning() << "DlgPurchaseProgress::setProgress(" << current << "," << total << ") called";
+    qInfo() << "DlgPurchaseProgress::setProgress(" << current << "," << total << ") called";
     ui->progressBar->setMaximum(total / 1000);
     ui->progressBar->setValue(current / 1000);
 }

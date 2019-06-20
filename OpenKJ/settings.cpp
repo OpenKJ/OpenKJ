@@ -50,9 +50,39 @@ QString Settings::storeDownloadDir()
     return settings->value("storeDownloadDir", QStandardPaths::writableLocation(QStandardPaths::MusicLocation) + QDir::separator() + "OpenKJ_Downloads" + QDir::separator()).toString();
 }
 
+QString Settings::logDir()
+{
+    return settings->value("logDir", QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QDir::separator() + "OpenKJ_Logs" + QDir::separator()).toString();
+}
+
+bool Settings::logShow()
+{
+    return settings->value("logVisible", false).toBool();
+}
+
+bool Settings::logEnabled()
+{
+    return settings->value("logEnabled", false).toBool();
+}
+
 void Settings::setStoreDownloadDir(QString path)
 {
     settings->setValue("storeDownloadDir", path);
+}
+
+void Settings::setLogEnabled(bool enabled)
+{
+    settings->setValue("logEnabled", enabled);
+}
+
+void Settings::setLogVisible(bool visible)
+{
+    settings->setValue("logVisible", visible);
+}
+
+void Settings::setLogDir(QString path)
+{
+    settings->setValue("logDir", path);
 }
 
 void Settings::setCurrentRotationPosition(int position)

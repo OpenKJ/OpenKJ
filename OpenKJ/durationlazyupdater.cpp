@@ -18,7 +18,7 @@ void LazyDurationUpdateWorker::getDurations(const QStringList files) {
         duration = archive.getSongDuration();
         if (duration == 0)
             duration = parser.getDuration();
-        qWarning() << "PATH: " << path << " -- DURATION: " << duration;
+        qInfo() << "PATH: " << path << " -- DURATION: " << duration;
         emit gotDuration(path, duration);
         if (QThread::currentThread()->isInterruptionRequested())
             break;
@@ -43,7 +43,7 @@ LazyDurationUpdateController::~LazyDurationUpdateController() {
 
 void LazyDurationUpdateController::getSongsRequiringUpdate()
 {
-    qWarning() << "Finding songs that need durations";
+    qInfo() << "Finding songs that need durations";
     files.clear();
     QSqlQuery query;
     query.exec("SELECT path FROM dbsongs WHERE duration < 1 ORDER BY artist, title");
@@ -51,12 +51,12 @@ void LazyDurationUpdateController::getSongsRequiringUpdate()
     {
         files.append(query.value(0).toString());
     }
-    qWarning() << "Done, found " << files.size() << " songs that need durations";
+    qInfo() << "Done, found " << files.size() << " songs that need durations";
 }
 
 void LazyDurationUpdateController::stopWork()
 {
-    qWarning() << "LazyDurationUpdateController stoWork() called";
+    qInfo() << "LazyDurationUpdateController stoWork() called";
     workerThread.requestInterruption();
 }
 

@@ -33,13 +33,13 @@
 QDataStream &operator<<(QDataStream &out, const SfxEntry &obj)
 {
     out << obj.name << obj.path;
-    qWarning() << "returning " << obj.name << " " << obj.path;
+    qInfo() << "returning " << obj.name << " " << obj.path;
     return out;
 }
 
 QDataStream &operator>>(QDataStream &in, SfxEntry &obj)
 {
-   qWarning() << "setting " << obj.name << " " << obj.path;
+   qInfo() << "setting " << obj.name << " " << obj.path;
    in >> obj.name >> obj.path;
    return in;
 }

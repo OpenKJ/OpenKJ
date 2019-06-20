@@ -21,7 +21,7 @@ void AudioFader::setVolumeElement(GstElement *volumeElement)
 
 void AudioFader::setPaused(bool paused)
 {
-    qWarning() << "AudioFader set paused state to: " << paused;
+    qInfo() << "AudioFader set paused state to: " << paused;
     this->paused = paused;
 }
 
@@ -32,9 +32,9 @@ double AudioFader::volume()
         return lastCubic;
     gdouble volume;
     g_object_get(G_OBJECT(volumeElement), "volume", &volume, NULL);
-//    qWarning() << "Linear volume: " << volume;
+//    qInfo() << "Linear volume: " << volume;
     double cubicVolume = gst_stream_volume_convert_volume(GST_STREAM_VOLUME_FORMAT_LINEAR, GST_STREAM_VOLUME_FORMAT_CUBIC, volume);
-//    qWarning() << "Cubic volume: " << QString::number(cubicVolume);
+//    qInfo() << "Cubic volume: " << QString::number(cubicVolume);
     lastCubic = cubicVolume;
     return cubicVolume;
 }
@@ -52,7 +52,7 @@ AudioFader::AudioFader(QObject *parent) : QObject(parent)
 
 void AudioFader::fadeOut(bool block)
 {
-    qWarning() << "fadeOut( " << block << " ) called";
+    qInfo() << "fadeOut( " << block << " ) called";
     emit fadeStarted();
     preFadeVol = volume();
     fading = true;
@@ -68,12 +68,12 @@ void AudioFader::fadeOut(bool block)
             QApplication::processEvents();
         }
     }
-    qWarning() << "fadeOut returned";
+    qInfo() << "fadeOut returned";
 }
 
 void AudioFader::fadeIn(bool block)
 {
-    qWarning() << "fadeIn( " << block << " ) called";
+    qInfo() << "fadeIn( " << block << " ) called";
     emit fadeStarted();
     fading = true;
     targetVol = preFadeVol;
@@ -94,13 +94,13 @@ void AudioFader::timerTimeout()
 {
     if (paused)
         return;
-    qWarning() << "Timer fader - Current: " << volume() << " Target: " << targetVol;
+    qInfo() << "Timer fader - Current: " << volume() << " Target: " << targetVol;
     double increment = .05;
     if (fading)
     {
         if (volume() == targetVol)
         {
-            qWarning() << "target volume reached";
+            qInfo() << "target volume reached";
             timer->stop();
             fading = false;
             emit fadeComplete();

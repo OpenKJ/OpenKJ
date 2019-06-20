@@ -55,6 +55,9 @@ private:
 public:
     qint64 hash(const QString & str);
     QString storeDownloadDir();
+    QString logDir();
+    bool logShow();
+    bool logEnabled();
     void setPassword(QString password);
     void clearPassword();
     bool chkPassword(QString password);
@@ -396,6 +399,9 @@ public slots:
     void setBookCreatorCols(int cols);
     void setBookCreatorPageSize(int size);
     void setStoreDownloadDir(QString path);
+    void setLogEnabled(bool enabled);
+    void setLogVisible(bool visible);
+    void setLogDir(QString path);
     void setCurrentRotationPosition(int position);
     void dbSetDirectoryWatchEnabled(bool val);
     void setSystemId(int id);

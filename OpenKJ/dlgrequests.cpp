@@ -408,7 +408,7 @@ void DlgRequests::on_pushButtonUpdateDb_clicked()
     int ret = msgBox.exec();
     if (ret == QMessageBox::Yes)
     {
-        qWarning() << "Opening progress dialog for remote db update";
+        qInfo() << "Opening progress dialog for remote db update";
         QProgressDialog *progressDialog = new QProgressDialog(this);
         progressDialog->setCancelButton(0);
         progressDialog->setMinimum(0);
@@ -424,7 +424,7 @@ void DlgRequests::on_pushButtonUpdateDb_clicked()
         QMessageBox msgBox;
         msgBox.setText(tr("Remote database update completed!"));
         msgBox.exec();
-        qWarning() << "Closing progress dialog for remote db update";
+        qInfo() << "Closing progress dialog for remote db update";
         progressDialog->close();
         progressDialog->deleteLater();
     }
@@ -436,8 +436,8 @@ void DlgRequests::on_comboBoxVenue_activated(int index)
     settings->setRequestServerVenue(venue);
     songbookApi->refreshRequests();
     ui->checkBoxAccepting->setChecked(songbookApi->getAccepting());
-    qWarning() << "Set venue_id to " << venue;
-    qWarning() << "Settings now reporting venue as " << settings->requestServerVenue();
+    qInfo() << "Set venue_id to " << venue;
+    qInfo() << "Settings now reporting venue as " << settings->requestServerVenue();
 }
 
 void DlgRequests::previewCdg()
@@ -487,10 +487,10 @@ void DlgRequests::autoSizeViews()
 
     int tsWidth = QFontMetrics(settings->applicationFont()).width(" 00/00/00 00:00 xx ");
     int keyWidth = QFontMetrics(settings->applicationFont()).width("_Key_");
-    qWarning() << "tsWidth = " << tsWidth;
+    qInfo() << "tsWidth = " << tsWidth;
     int delwidth = fH * 2;
     int singerColSize = QFontMetrics(settings->applicationFont()).width("_Isaac_Lightburn_");
-    qWarning() << "singerColSize = " << singerColSize;
+    qInfo() << "singerColSize = " << singerColSize;
     remainingSpace = ui->tableViewRequests->width() - tsWidth - delwidth - singerColSize - keyWidth - 10;
     artistColSize = remainingSpace / 2;
     titleColSize = remainingSpace / 2;

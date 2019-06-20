@@ -66,6 +66,7 @@
 #include "songshop.h"
 #include "khdb.h"
 #include "durationlazyupdater.h"
+#include "dlgdebugoutput.h"
 
 using namespace std;
 
@@ -88,6 +89,7 @@ private:
     RotationItemDelegate *rotDelegate;
     DlgCdg *cdgWindow;
     //CdgWindow *cdgWindow2;
+    DlgDebugOutput *debugDialog;
     DlgDatabase *dbDialog;
     DlgSettings *settingsDialog;
     DlgRegularSingers *regularSingersDialog;
@@ -245,6 +247,7 @@ private slots:
     void on_buttonBmPause_clicked(bool checked);
     void on_actionDisplay_Metadata_toggled(bool arg1);
     void on_actionDisplay_Filenames_toggled(bool arg1);
+    void on_actionShow_Debug_Log_toggled(bool arg1);
     void on_actionManage_Karaoke_DB_triggered();
     void on_actionPlaylistNew_triggered();
     void on_actionPlaylistImport_triggered();

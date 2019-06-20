@@ -68,7 +68,7 @@ void BmDbTableModel::search(QString searchString)
 
 void BmDbTableModel::refreshCache()
 {
-    qWarning() << "Refreshing bmsongs cache";
+    qInfo() << "Refreshing bmsongs cache";
     QSqlQuery query(db);
     query.exec("DELETE FROM mem.bmsongs");
     query.exec("VACUUM mem");
@@ -93,7 +93,7 @@ QMimeData *BmDbTableModel::mimeData(const QModelIndexList &indexes) const
     }
     stream << songids;
     mimeData->setData("application/vnd.bmsongid.list", encodedData);
-    qWarning() << songids;
+    qInfo() << songids;
     return mimeData;
 }
 

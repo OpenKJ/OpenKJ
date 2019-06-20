@@ -43,7 +43,7 @@ void DlgAddSinger::on_buttonBox_accepted()
             if (curSingerPos < 0)
                 curSingerPos = 0;
             if (rotModel->singers().size() == 1)
-                qWarning() << "Skipping singer move, the new singer is the only singer";
+                qInfo() << "Skipping singer move, the new singer is the only singer";
             else if (ui->cbxPosition->currentIndex() == 2)
                 rotModel->singerMove(rotModel->rowCount() -1, curSingerPos + 1);
             else if ((ui->cbxPosition->currentIndex() == 0) && (curSingerPos != 0))

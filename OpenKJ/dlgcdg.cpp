@@ -304,7 +304,7 @@ void DlgCdg::setHSizeAdjustment(int pixels)
 
 void DlgCdg::setShowBgImage(bool show)
 {
-    qWarning() << "DlgCdg::setShowBgImage(" << show << ") called";
+    qInfo() << "DlgCdg::setShowBgImage(" << show << ") called";
     showBgImage = show;
     if ((show) && (settings->bgMode() == settings->BG_MODE_IMAGE))
     {
@@ -436,7 +436,7 @@ void DlgCdg::alertTxtColorChanged(QColor color)
 void DlgCdg::triggerBg()
 {
         showBgImage = true;
-        qWarning() << "triggerBg called";
+        qInfo() << "triggerBg called";
         slideShowTimerTimeout();
         setShowBgImage(true);
 }
@@ -495,7 +495,7 @@ void DlgCdg::alertFontChanged(QFont font)
 
 void DlgCdg::mouseMove(QMouseEvent *event)
 {
-//    qWarning() << "Mouse moved pos:" << event->pos();
+//    qInfo() << "Mouse moved pos:" << event->pos();
     if (m_fullScreen)
         ui->btnToggleFullscreen->setText(tr("Make Windowed"));
     else

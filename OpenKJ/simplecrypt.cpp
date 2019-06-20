@@ -79,7 +79,7 @@ QByteArray SimpleCrypt::encryptToByteArray(const QString& plaintext)
 QByteArray SimpleCrypt::encryptToByteArray(QByteArray plaintext)
 {
     if (m_keyParts.isEmpty()) {
-        qWarning() << "No key set.";
+        qInfo() << "No key set.";
         m_lastError = ErrorNoKeySet;
         return QByteArray();
     }
@@ -179,7 +179,7 @@ QByteArray SimpleCrypt::decryptToByteArray(const QString& cyphertext)
 QByteArray SimpleCrypt::decryptToByteArray(QByteArray cypher)
 {
     if (m_keyParts.isEmpty()) {
-        qWarning() << "No key set.";
+        qInfo() << "No key set.";
         m_lastError = ErrorNoKeySet;
         return QByteArray();
     }
@@ -193,7 +193,7 @@ QByteArray SimpleCrypt::decryptToByteArray(QByteArray cypher)
 
     if (version !=3) {  //we only work with version 3
         m_lastError = ErrorUnknownVersion;
-        qWarning() << "Invalid version or not a cyphertext.";
+        qInfo() << "Invalid version or not a cyphertext.";
         return QByteArray();
     }
 

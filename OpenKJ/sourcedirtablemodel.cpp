@@ -218,13 +218,13 @@ SourceDir *SourceDirTableModel::getDirByPath(QString path)
         {
             if (mydata->at(i)->getPath() == dir.absolutePath())
             {
-                qWarning() << "Match found - " << mydata->at(i)->getPath() << " - " << mydata->at(i)->getPattern();
+                qInfo() << "Match found - " << mydata->at(i)->getPath() << " - " << mydata->at(i)->getPattern();
                 return mydata->at(i);
             }
         }
         dir.cdUp();
     }
-    qWarning() << "No Match Found";
+    qInfo() << "No Match Found";
     return new SourceDir();
 }
 

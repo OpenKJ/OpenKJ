@@ -37,7 +37,7 @@ OkArchive::OkArchive(QString ArchiveFile, QObject *parent) : QObject(parent)
 {
     process = new QProcess();
     archiveFile = ArchiveFile;
-    qWarning() << "OkArchive opening file: " << archiveFile;
+    qInfo() << "OkArchive opening file: " << archiveFile;
     m_cdgFound = false;
     m_audioFound = false;
     m_cdgSize = 0;
@@ -125,7 +125,7 @@ QString OkArchive::getArchiveFile() const
 
 void OkArchive::setArchiveFile(const QString &value)
 {
-//    qWarning() << "OkArchive opening archive file: " << value;
+//    qInfo() << "OkArchive opening archive file: " << value;
     archiveFile = value;
     m_cdgFound = false;
     m_audioFound = false;
@@ -176,7 +176,7 @@ bool OkArchive::isValidKaraokeFile()
 {
 //    if (!zipIsValid())
 //    {
-//        qWarning() << archiveFile << " - Archive is corrupt or invalid";
+//        qInfo() << archiveFile << " - Archive is corrupt or invalid";
 //        lastError = "Corrupt or invalid archive";
 //        return false;
 //    }
@@ -184,31 +184,31 @@ bool OkArchive::isValidKaraokeFile()
     {
         if (!goodArchive)
         {
-            qWarning() << archiveFile << " - Invalid or corrupt zip file";
+            qInfo() << archiveFile << " - Invalid or corrupt zip file";
             lastError = "Invalid or corrupt zip file";
             return false;
         }
         if (!m_cdgFound)
         {
-            qWarning() << archiveFile << " - Missing CDG file";
+            qInfo() << archiveFile << " - Missing CDG file";
             lastError = "CDG not found in zip file";
         }
         if (!m_audioFound)
         {
-            qWarning() << archiveFile << " - Missing audio file";
+            qInfo() << archiveFile << " - Missing audio file";
             lastError = "Audio file not found in zip file";
         }
         return false;
     }
     if (m_audioSize <= 0)
     {
-        qWarning() << archiveFile << " - Zero byte audio file";
+        qInfo() << archiveFile << " - Zero byte audio file";
         lastError = "Zero byte audio file";
         return false;
     }
     if (m_cdgSize <= 0)
     {
-        qWarning() << archiveFile << " - Zero byte CDG file";
+        qInfo() << archiveFile << " - Zero byte CDG file";
         lastError = "Zero byte CDG file";
         return false;
     }
@@ -294,25 +294,25 @@ zipEntries OkArchive::getZipContents()
     }
     else if (process->exitCode() <= 2)
     {
-        qWarning() << "Non-fatal error while processing zip: " << archiveFile;
-        qWarning() << "infozip returned error code: " << process->exitCode();
+        qInfo() << "Non-fatal error while processing zip: " << archiveFile;
+        qInfo() << "infozip returned error code: " << process->exitCode();
         goodArchive = true;
     }
     else if (process->exitCode() >= 3)
     {
-        qWarning() << "Fatal error while processing zip: " << archiveFile;
-        qWarning() << "infozip returned error code: " << process->exitCode();
+        qInfo() << "Fatal error while processing zip: " << archiveFile;
+        qInfo() << "infozip returned error code: " << process->exitCode();
         goodArchive = false;
         return zipEntries();
     }
     QString output = process->readAll();
     if (output.contains("zipfile is empty", Qt::CaseInsensitive))
     {
-        qWarning() << "Zip file is empty, skipping";
+        qInfo() << "Zip file is empty, skipping";
         goodArchive = false;
         return zipEntries();
     }
-    //qWarning() << "getZipContents() - infozip output: " << output;
+    //qInfo() << "getZipContents() - infozip output: " << output;
     QStringList data = output.split(QRegExp("[\r\n]"),QString::SkipEmptyParts);
     int fnStart = 0;
     int listStart = 0;
@@ -345,16 +345,16 @@ zipEntries OkArchive::getZipContents()
 
 bool OkArchive::extractFile(QString fileName, QString destDir, QString destFile)
 {
-    qWarning() << "OkArchive(" << fileName << ", " << destDir << ", " << destFile << ") called";
+    qInfo() << "OkArchive(" << fileName << ", " << destDir << ", " << destFile << ") called";
     QTemporaryDir tmpDir;
     QString tmpZipPath = tmpDir.path() + QDir::separator() + "tmp.zip";
     if (!QFile::copy(archiveFile, tmpZipPath))
     {
-        qWarning() << "error copying zip";
+        qInfo() << "error copying zip";
         return false;
     }
     QString ext = "*" + fileName.right(4);
-    qWarning() << "Finding first file with extension: " << ext;
+    qInfo() << "Finding first file with extension: " << ext;
     QStringList arguments;
     arguments << "-j";
     arguments << tmpZipPath;
@@ -369,18 +369,18 @@ bool OkArchive::extractFile(QString fileName, QString destDir, QString destFile)
     }
     else if (process->exitCode() <= 2)
     {
-        qWarning() << "Non-fatal error while processing zip: " << archiveFile;
-        qWarning() << "infozip returned error code: " << process->exitCode();
+        qInfo() << "Non-fatal error while processing zip: " << archiveFile;
+        qInfo() << "infozip returned error code: " << process->exitCode();
     }
     else if (process->exitCode() >= 3)
     {
-        qWarning() << "Fatal error while processing zip: " << archiveFile;
-        qWarning() << "infozip returned error code: " << process->exitCode();
+        qInfo() << "Fatal error while processing zip: " << archiveFile;
+        qInfo() << "infozip returned error code: " << process->exitCode();
         return false;
     }
     if (!QFile::rename(destDir + QDir::separator() + fileName, destDir + QDir::separator() + destFile))
     {
-        qWarning() << "infozip didn't report fatal error, but file was not unzipped successfully";
+        qInfo() << "infozip didn't report fatal error, but file was not unzipped successfully";
         return false;
     }
     return true;
@@ -396,9 +396,9 @@ bool OkArchive::zipIsValid()
     process->setProcessChannelMode(QProcess::ForwardedChannels);
     process->start(infoZipPath, arguments, QProcess::ReadOnly);
     process->waitForFinished();
-    //qWarning() << process->readAll();
-    qWarning() << process->state();
-    qWarning() << process->error();
+    //qInfo() << process->readAll();
+    qInfo() << process->state();
+    qInfo() << process->error();
     if (process->exitCode() != 0)
     {
         process->close();

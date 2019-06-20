@@ -18,7 +18,7 @@ void SoundFxButton::mouseReleaseEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::RightButton)
     {
-        qWarning() << "Right mouse button clicked";
+        qInfo() << "Right mouse button clicked";
         emit customContextMenuRequested(event->pos());
         return;
     }

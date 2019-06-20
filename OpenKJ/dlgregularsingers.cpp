@@ -171,7 +171,7 @@ bool RegProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_p
     if (filterString == " " || filterString == "")
         return true;
     QStringList parts = filterString.split(" ", QString::SkipEmptyParts);
-    qWarning() << "Filtering based on parts: " << parts;
+    qInfo() << "Filtering based on parts: " << parts;
     for (int i=0; i < parts.size(); i++)
     {
         if (!sourceModel()->data(index0).toString().contains(parts.at(i),Qt::CaseInsensitive))

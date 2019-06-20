@@ -29,7 +29,7 @@ bool IdleDetect::eventFilter(QObject *obj, QEvent *ev)
 void IdleDetect::idleIncrementTimeout()
 {
     idleMins++;
-//    qWarning() << "Current idle time: " << idleMins;
+//    qInfo() << "Current idle time: " << idleMins;
     if (idleMins > 60 && !idle)
     {
         idle = true;

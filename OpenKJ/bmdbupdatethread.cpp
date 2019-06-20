@@ -78,7 +78,7 @@ QStringList BmDbUpdateThread::findMediaFiles(QString directory)
 void BmDbUpdateThread::run()
 {
     database.open();
-    qWarning() << database.lastError();
+    qInfo() << database.lastError();
     TagReader reader;
     emit progressMaxChanged(0);
     emit progressChanged(0);
@@ -90,16 +90,16 @@ void BmDbUpdateThread::run()
     emit stateChanged("Getting metadata and adding songs to the database");
     emit progressMessage("Getting metadata and adding songs to the database");
     emit progressMaxChanged(files.size());
-    qWarning() << "Setting sqlite synchronous mode to OFF";
+    qInfo() << "Setting sqlite synchronous mode to OFF";
     query.exec("PRAGMA synchronous=OFF");
-    qWarning() << query.lastError();
-    qWarning() << "Increasing sqlite cache size";
+    qInfo() << query.lastError();
+    qInfo() << "Increasing sqlite cache size";
     query.exec("PRAGMA cache_size=500000");
-    qWarning() << query.lastError();
+    qInfo() << query.lastError();
     query.exec("PRAGMA temp_store=2");
-    qWarning() << "Beginning transaction";
+    qInfo() << "Beginning transaction";
     query.exec("BEGIN TRANSACTION");
-    qWarning() << query.lastError();
+    qInfo() << query.lastError();
     query.prepare("INSERT OR IGNORE INTO bmsongs (artist,title,path,filename,duration,searchstring) VALUES(:artist, :title, :path, :filename, :duration, :searchstring)");
     for (int i=0; i < files.size(); i++)
     {
@@ -119,7 +119,7 @@ void BmDbUpdateThread::run()
         emit progressChanged(i + 1);
     }
     query.exec("COMMIT TRANSACTION");
-    qWarning() << query.lastError();
+    qInfo() << query.lastError();
     emit progressMessage("Finished processing files for directory: " + m_path);
     database.close();
 }
@@ -137,16 +137,16 @@ void BmDbUpdateThread::startUnthreaded()
     emit stateChanged("Getting metadata and adding songs to the database");
     emit progressMessage("Getting metadata and adding songs to the database");
     emit progressMaxChanged(files.size());
-    qWarning() << "Setting sqlite synchronous mode to OFF";
+    qInfo() << "Setting sqlite synchronous mode to OFF";
     query.exec("PRAGMA synchronous=OFF");
-    qWarning() << query.lastError();
-    qWarning() << "Increasing sqlite cache size";
+    qInfo() << query.lastError();
+    qInfo() << "Increasing sqlite cache size";
     query.exec("PRAGMA cache_size=500000");
-    qWarning() << query.lastError();
+    qInfo() << query.lastError();
     query.exec("PRAGMA temp_store=2");
-    qWarning() << "Beginning transaction";
+    qInfo() << "Beginning transaction";
     database.transaction();
-    qWarning() << query.lastError();
+    qInfo() << query.lastError();
     query.prepare("INSERT OR IGNORE INTO bmsongs (artist,title,path,filename,duration,searchstring) VALUES(:artist, :title, :path, :filename, :duration, :searchstring)");
     for (int i=0; i < files.size(); i++)
     {
@@ -167,6 +167,6 @@ void BmDbUpdateThread::startUnthreaded()
         emit progressChanged(i + 1);
     }
     database.commit();
-    qWarning() << query.lastError();
+    qInfo() << query.lastError();
     emit progressMessage("Finished processing files for directory: " + m_path);
 }

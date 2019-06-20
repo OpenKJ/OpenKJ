@@ -1729,6 +1729,46 @@ by the number of ms specified.</string>
              </widget>
             </item>
             <item>
+             <widget class="QGroupBox" name="groupBox_7">
+              <property name="title">
+               <string>Debug Logging</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_3">
+               <item>
+                <widget class="QCheckBox" name="checkBoxLogging">
+                 <property name="text">
+                  <string>Enable debug logging</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="label_33">
+                 <property name="text">
+                  <string>Logfile output directory</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_21">
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <widget class="QLineEdit" name="lineEditLogDir"/>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btnLogDirBrowse">
+                   <property name="text">
+                    <string>Browse</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
              <spacer name="verticalSpacer_2">
               <property name="orientation">
                <enum>Qt::Vertical</enum>

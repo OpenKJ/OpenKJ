@@ -69,7 +69,7 @@ void CdgVideoWidget::resizeEvent(QResizeEvent *event)
 //        //        QWidget::resize(event->size().width(),event->size().width());
 //        //    }
 //        //    QWidget::resizeEvent(event);
-//        qWarning() << "Width: " << width << " target height: " << newHeight;
+//        qInfo() << "Width: " << width << " target height: " << newHeight;
 //        emit resized(QSize(event->size().width(), event->size().height() * 0.5625));
 //        surface->updateVideoRect();
 //        emit resizeEvent(new QResizeEvent(QSize(width, newHeight), event->size()));

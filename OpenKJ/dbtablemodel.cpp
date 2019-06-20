@@ -155,7 +155,7 @@ void DbTableModel::sort(int column, Qt::SortOrder order)
 
 void DbTableModel::refreshCache()
 {
-    qWarning() << "Refreshing dbsongs cache";
+    qInfo() << "Refreshing dbsongs cache";
     QSqlQuery query(db);
     query.exec("DELETE FROM mem.dbsongs");
     query.exec("VACUUM mem");

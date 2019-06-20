@@ -227,6 +227,9 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     connect(ui->checkBoxLazyLoadDurations, SIGNAL(toggled(bool)), settings, SLOT(dbSetLazyLoadDurations(bool)));
     connect(ui->checkBoxMonitorDirs, SIGNAL(toggled(bool)), settings, SLOT(dbSetDirectoryWatchEnabled(bool)));
     connect(ui->spinBoxSystemId, SIGNAL(valueChanged(int)), settings, SLOT(setSystemId(int)));
+    ui->checkBoxLogging->setChecked(settings->logEnabled());
+    ui->lineEditLogDir->setText(settings->logDir());
+    connect(ui->checkBoxLogging, SIGNAL(toggled(bool)), settings, SLOT(setLogEnabled(bool)));
 }
 
 DlgSettings::~DlgSettings()
@@ -834,5 +837,23 @@ void DlgSettings::on_btnDurationBgColor_clicked()
         ss.replace(QString(QString::number(oclr.red()) + "," + QString::number(oclr.green()) + "," + QString::number(oclr.blue())), QString(QString::number(clr.red()) + "," + QString::number(clr.green()) + "," + QString::number(clr.blue())));
         ui->btnDurationBgColor->setStyleSheet(ss);
         settings->setCdgRemainBgColor(clr);
+    }
+}
+
+void DlgSettings::on_btnLogDirBrowse_clicked()
+{
+    QString fileName = QFileDialog::getExistingDirectory(this, "Select directory to put logs in",settings->logDir());
+    if (fileName != "")
+    {
+        QFileInfo fi(fileName);
+        if (!fi.isWritable() || !fi.isReadable())
+        {
+            QMessageBox msgBox;
+            msgBox.setWindowTitle("Directory not writable!");
+            msgBox.setText("You do not have permission to write to the selected directory, aborting.");
+            msgBox.exec();
+        }
+        settings->setLogDir(fileName + QDir::separator());
+        ui->lineEditLogDir->setText(fileName + QDir::separator());
     }
 }
