@@ -80,8 +80,8 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     connect(fastTimer, SIGNAL(timeout()), this, SLOT(fastTimer_timeout()));
     faderRunning = false;
     fader = new AudioFader(this);
-    connect(fader, SIGNAL(faderStarted()), this, SLOT(faderStarted()));
-    connect(fader, SIGNAL(faderFinished()), this, SLOT(faderFinished()));
+    connect(fader, SIGNAL(fadeStarted()), this, SLOT(faderStarted()));
+    connect(fader, SIGNAL(fadeComplete()), this, SLOT(faderFinished()));
     buildPipeline();
 
     monitor = gst_device_monitor_new ();
@@ -567,7 +567,7 @@ void AudioBackendGstreamer::buildPipeline()
     appsinkCallbacks.new_sample		= &AudioBackendGstreamer::NewSampleCallback;
     appsinkCallbacks.eos			= &AudioBackendGstreamer::EndOfStreamCallback;
 
-    qCritical() << objName << " - Initializing gst\n";
+    qInfo() << objName << " - Initializing gst\n";
     if (!gst_is_initialized())
         gst_init(NULL,NULL);
     aConvInput = gst_element_factory_make("audioconvert", NULL);
