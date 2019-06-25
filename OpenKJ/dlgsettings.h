@@ -122,6 +122,7 @@ private slots:
     void on_btnDurationFontColor_clicked();
     void on_btnDurationBgColor_clicked();
     void on_btnLogDirBrowse_clicked();
+    void on_checkBoxProgressiveSearch_toggled(bool checked);
 };
 
 #endif // SETTINGSDIALOG_H

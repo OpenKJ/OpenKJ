@@ -561,7 +561,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     qInfo() << "Connecting signals & slots";
-    connect(ui->lineEditBmSearch, SIGNAL(textChanged(QString)), bmDbModel, SLOT(search(QString)));
+//    connect(ui->lineEditBmSearch, SIGNAL(textChanged(QString)), bmDbModel, SLOT(search(QString)));
     connect(bmAudioBackend, SIGNAL(stateChanged(AbstractAudioBackend::State)), this, SLOT(bmMediaStateChanged(AbstractAudioBackend::State)));
     connect(bmAudioBackend, SIGNAL(positionChanged(qint64)), this, SLOT(bmMediaPositionChanged(qint64)));
     connect(bmAudioBackend, SIGNAL(durationChanged(qint64)), this, SLOT(bmMediaDurationChanged(qint64)));
@@ -2638,6 +2638,8 @@ void MainWindow::on_pushButtonMplxRight_toggled(bool checked)
 
 void MainWindow::on_lineEdit_textChanged(const QString &arg1)
 {
+    if (!settings->progressiveSearchEnabled())
+        return;
     static QString lastVal;
     if (arg1.trimmed() != lastVal)
     {
@@ -3241,4 +3243,16 @@ void MainWindow::rotationSelectionChanged(QItemSelection sel, QItemSelection des
 
     qInfo() << "Rotation Selection Changed";
 
+}
+
+void MainWindow::on_lineEditBmSearch_textChanged(const QString &arg1)
+{
+    if (!settings->progressiveSearchEnabled())
+        return;
+    static QString lastVal;
+    if (arg1.trimmed() != lastVal)
+    {
+        bmDbModel->search(arg1);
+        lastVal = arg1.trimmed();
+    }
 }

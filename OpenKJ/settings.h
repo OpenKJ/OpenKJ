@@ -54,6 +54,7 @@ private:
 
 public:
     qint64 hash(const QString & str);
+    bool progressiveSearchEnabled();
     QString storeDownloadDir();
     QString logDir();
     bool logShow();
@@ -410,7 +411,7 @@ public slots:
     void setCdgRemainTextColor(QColor color);
     void setCdgRemainBgColor(QColor color);
     void setRotationShowNextSong(bool show);
-
+    void setProgressiveSearchEnabled(bool enabled);
 
 };
 

@@ -45,6 +45,11 @@ qint64 Settings::hash(const QString &str)
     return a ^ b;
 }
 
+bool Settings::progressiveSearchEnabled()
+{
+    return settings->value("progressiveSearchEnabled", true).toBool();
+}
+
 QString Settings::storeDownloadDir()
 {
     return settings->value("storeDownloadDir", QStandardPaths::writableLocation(QStandardPaths::MusicLocation) + QDir::separator() + "OpenKJ_Downloads" + QDir::separator()).toString();
@@ -484,6 +489,11 @@ void Settings::setRotationShowNextSong(bool show)
 {
     settings->setValue("rotationShowNextSong", show);
     emit rotationShowNextSongChanged(show);
+}
+
+void Settings::setProgressiveSearchEnabled(bool enabled)
+{
+    settings->setValue("progressiveSearchEnabled", enabled);
 }
 
 QColor Settings::tickerBgColor()

@@ -80,6 +80,7 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
         ui->listWidgetAudioDevicesBm->item(selDevice)->setSelected(true);
         bmAudioBackend->setOutputDevice(selDevice);
     }
+    ui->checkBoxProgressiveSearch->setChecked(settings->progressiveSearchEnabled());
     ui->checkBoxShowCdgWindow->setChecked(settings->showCdgWindow());
     ui->checkBoxCdgFullscreen->setChecked(settings->cdgWindowFullscreen());
     if (screens.count() > settings->cdgWindowFullScreenMonitor())
@@ -856,4 +857,9 @@ void DlgSettings::on_btnLogDirBrowse_clicked()
         settings->setLogDir(fileName + QDir::separator());
         ui->lineEditLogDir->setText(fileName + QDir::separator());
     }
+}
+
+void DlgSettings::on_checkBoxProgressiveSearch_toggled(bool checked)
+{
+    settings->setProgressiveSearchEnabled(checked);
 }

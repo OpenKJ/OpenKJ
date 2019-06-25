@@ -305,6 +305,8 @@ private slots:
     void cdgVisibilityChanged();
     void rotationSelectionChanged(QItemSelection sel, QItemSelection desel);
 
+    void on_lineEditBmSearch_textChanged(const QString &arg1);
+
 protected:
     void closeEvent(QCloseEvent *event);
 
