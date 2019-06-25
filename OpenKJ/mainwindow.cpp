@@ -185,7 +185,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    settings = new Settings(this);
+    settings = new Settings();
     logContents = new QStringList();
     debugDialog = new DlgDebugOutput(this);
     debugDialog->setVisible(settings->logShow());
@@ -904,6 +904,7 @@ MainWindow::~MainWindow()
     settings->bmSetVolume(ui->sliderBmVolume->value());
     settings->setAudioVolume(ui->sliderVolume->value());
     qInfo() << "Saving volumes - K: " << settings->audioVolume() << " BM: " << settings->bmVolume();
+    qInfo() << "Saving window and widget sizing and positioning info";
     settings->saveSplitterState(ui->splitter);
     settings->saveSplitterState(ui->splitter_2);
     settings->saveSplitterState(ui->splitter_3);
@@ -921,6 +922,7 @@ MainWindow::~MainWindow()
     settings->saveColumnWidths(ui->tableViewBmDb);
     settings->saveColumnWidths(ui->tableViewBmPlaylist);
     settings->bmSetPlaylistIndex(ui->comboBoxBmPlaylists->currentIndex());
+    qInfo() << "Deleting non-owned objects";
     delete cdg;
     delete khDir;
     delete ui;
@@ -929,6 +931,7 @@ MainWindow::~MainWindow()
     delete requestsDialog;
     if(_singular->isAttached())
         _singular->detach();
+    qInfo() << "OpenKJ mainwindow destructor complete";
 }
 
 void MainWindow::search()
