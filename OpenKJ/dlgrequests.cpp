@@ -400,9 +400,10 @@ void DlgRequests::venuesChanged(OkjsVenues venues)
 
 void DlgRequests::on_pushButtonUpdateDb_clicked()
 {
+    ui->pushButtonUpdateDb->setEnabled(false);
     QMessageBox msgBox;
-    msgBox.setText(tr("Are you sure?"));
-    msgBox.setInformativeText(tr("This operation can take serveral minutes depending on the size of your song database and the speed of your internet connection."));
+    msgBox.setText(tr("Are you sure?\n\nThis operation can take serveral minutes depending on the size of your song database and the speed of your internet connection.\n"));
+//    msgBox.setInformativeText(tr("This operation can take serveral minutes depending on the size of your song database and the speed of your internet connection."));
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Cancel);
     int ret = msgBox.exec();
@@ -410,7 +411,7 @@ void DlgRequests::on_pushButtonUpdateDb_clicked()
     {
         qInfo() << "Opening progress dialog for remote db update";
         QProgressDialog *progressDialog = new QProgressDialog(this);
-        progressDialog->setCancelButton(0);
+//        progressDialog->setCancelButton(0);
         progressDialog->setMinimum(0);
         progressDialog->setMaximum(20);
         progressDialog->setValue(0);
@@ -419,15 +420,22 @@ void DlgRequests::on_pushButtonUpdateDb_clicked()
         QApplication::processEvents();
         connect(songbookApi, SIGNAL(remoteSongDbUpdateNumDocs(int)), progressDialog, SLOT(setMaximum(int)));
         connect(songbookApi, SIGNAL(remoteSongDbUpdateProgress(int)), progressDialog, SLOT(setValue(int)));
+        connect(progressDialog, SIGNAL(canceled()), songbookApi, SLOT(dbUpdateCanceled()));
         //    progressDialog->show();
         songbookApi->updateSongDb();
-        QMessageBox msgBox;
-        msgBox.setText(tr("Remote database update completed!"));
-        msgBox.exec();
+        if (songbookApi->updateWasCancelled())
+            qInfo() << "Songbook DB update cancelled by user";
+        else
+        {
+            QMessageBox msgBox;
+            msgBox.setText(tr("Remote database update completed!"));
+            msgBox.exec();
+        }
         qInfo() << "Closing progress dialog for remote db update";
         progressDialog->close();
         progressDialog->deleteLater();
     }
+    ui->pushButtonUpdateDb->setEnabled(true);
 }
 
 void DlgRequests::on_comboBoxVenue_activated(int index)
