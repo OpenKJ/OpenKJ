@@ -80,6 +80,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     connect(fastTimer, SIGNAL(timeout()), this, SLOT(fastTimer_timeout()));
     faderRunning = false;
     fader = new AudioFader(this);
+    fader->setObjName(objName + "Fader");
     connect(fader, SIGNAL(fadeStarted()), this, SLOT(faderStarted()));
     connect(fader, SIGNAL(fadeComplete()), this, SLOT(faderFinished()));
     buildPipeline();
@@ -290,9 +291,11 @@ bool AudioBackendGstreamer::stopping()
 void AudioBackendGstreamer::play()
 {
     //gst_timed_value_control_source_unset_all(tv_csource);
+    qInfo() << objName << " - play() called";
     g_object_set(G_OBJECT(playBin), "volume", 1.0, NULL);
     if (state() == AbstractAudioBackend::PausedState)
     {
+        qInfo() << objName << " - play - playback is currently paused, unpausing";
         gst_element_set_state(playBin, GST_STATE_PLAYING);
         if (m_fade)
             fadeIn();
@@ -312,9 +315,10 @@ void AudioBackendGstreamer::play()
         g_object_set(GST_OBJECT(playBin), "uri", uri, NULL);
         g_free(uri);
         m_hasVideo = false;
-
+        qInfo() << objName << " - playing file: " << m_filename;
         gst_element_set_state(playBin, GST_STATE_PLAYING);
     }
+    qInfo() << objName << " - play() completed";
 }
 
 void AudioBackendGstreamer::pause()
@@ -357,9 +361,10 @@ void AudioBackendGstreamer::setPosition(qint64 position)
 
 void AudioBackendGstreamer::setVolume(int volume)
 {
+    m_volume = volume;
+    qInfo() << objName << " - setVolume(" << volume << ") called";
     double cubicVolume = volume * .01;
     double linearVolume = gst_stream_volume_convert_volume(GST_STREAM_VOLUME_FORMAT_CUBIC, GST_STREAM_VOLUME_FORMAT_LINEAR, cubicVolume);
-    m_volume = volume;
 //    fader->setBaseVolume(volume);
     qInfo() << objName << " - setVolume - setting to linear: " << linearVolume;
     g_object_set(G_OBJECT(volumeElement), "volume", linearVolume, NULL);
@@ -393,6 +398,7 @@ void AudioBackendGstreamer::stop(bool skipFade)
         qInfo() << objName << " - AudioBackendGstreamer::stop -- Setting volume back to original setting: " << curVolume;
         setVolume(curVolume);
     }
+    qInfo() << objName << " - stop() completed";
 }
 
 void AudioBackendGstreamer::fastTimer_timeout()
@@ -418,10 +424,18 @@ void AudioBackendGstreamer::fastTimer_timeout()
 //    qInfo() << objName << " - last volume: " << m_volume;
     if (m_volume != intVol)
     {
-        qInfo() << objName << " - emitting volume changed: " << intVol;
-        emit faderChangedVolume(intVol);
-        //m_volume = curVolume * 100;
-        m_volume = intVol;
+        if ((!fader->isFading()) && ((intVol < m_volume - 1) || (intVol > m_volume + 1)))
+        {
+            qInfo() << objName << " - Unrequested volume change detected, squashing";
+            setVolume(m_volume);
+        }
+        else
+        {
+            qInfo() << objName << " - emitting volume changed: " << intVol;
+            emit faderChangedVolume(intVol);
+            //m_volume = curVolume * 100;
+            m_volume = intVol;
+        }
     }
 }
 
@@ -562,14 +576,17 @@ QStringList AudioBackendGstreamer::GstGetElements(QString plugin)
 
 void AudioBackendGstreamer::buildPipeline()
 {
+    qInfo() << objName << " - buildPipeline() called";
     GstAppSinkCallbacks appsinkCallbacks;
     appsinkCallbacks.new_preroll	= &AudioBackendGstreamer::NewPrerollCallback;
     appsinkCallbacks.new_sample		= &AudioBackendGstreamer::NewSampleCallback;
     appsinkCallbacks.eos			= &AudioBackendGstreamer::EndOfStreamCallback;
 
-    qInfo() << objName << " - Initializing gst\n";
     if (!gst_is_initialized())
+    {
+        qInfo() << objName << " - gst not initialized - initializing";
         gst_init(NULL,NULL);
+    }
     aConvInput = gst_element_factory_make("audioconvert", NULL);
     aConvPreSplit = gst_element_factory_make("audioconvert", NULL);
     aConvPrePitchShift = gst_element_factory_make("audioconvert", NULL);
@@ -730,10 +747,12 @@ void AudioBackendGstreamer::buildPipeline()
     setEqLevel10(eq10);
     setDownmix(downmix);
     setMuted(m_muted);
+    qInfo() << objName << " - buildPipeline() finished";
 }
 
 void AudioBackendGstreamer::destroyPipeline()
 {
+    qInfo() << objName << " - destroyPipeline() called";
     slowTimer->stop();
     fastTimer->stop();
     fader->setPaused(true);
@@ -745,6 +764,7 @@ void AudioBackendGstreamer::destroyPipeline()
     gst_caps_unref(videoCaps);
     gst_object_unref(bus);
     gst_object_unref(tv_csource);
+    qInfo() << objName << " - destroyPipeline() finished";
 }
 
 void AudioBackendGstreamer::resetPipeline()
@@ -999,7 +1019,7 @@ void AudioBackendGstreamer::DestroyCallback(gpointer user_data)
 
 void AudioBackendGstreamer::setMplxMode(int mode)
 {
-
+    qInfo() << objName << " - setMplxMode(" << mode << ") called";
     if (mode == Multiplex_Normal)
     {
         g_object_set(mixerSinkPadN, "mute", false, NULL);
@@ -1019,6 +1039,8 @@ void AudioBackendGstreamer::setMplxMode(int mode)
         g_object_set(mixerSinkPadR, "mute", false, NULL);
     }
     //settings->setMplxMode(mode);
+    qInfo() << objName << " - setMplxMode() complete";
+
 }
 
 

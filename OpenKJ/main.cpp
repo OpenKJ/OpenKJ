@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     filter = new IdleDetect;
     a.installEventFilter(filter);
-    qputenv("GST_DEBUG", "*:3");
+    qputenv("GST_DEBUG", "*:2");
     Settings okjSettings;
     if (okjSettings.theme() == 1)
     {

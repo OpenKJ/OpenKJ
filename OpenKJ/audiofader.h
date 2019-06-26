@@ -17,11 +17,15 @@ private:
     void setVolume(double volume);
     double volume();
     bool paused;
+    QString objName;
 
 public:
     explicit AudioFader(QObject *parent = 0);
     void setVolumeElement(GstElement *volumeElement);
     void setPaused(bool paused);
+    void setObjName(QString name);
+    bool isFading() { return fading; }
+
 signals:
     void volumeChanged(double volume);
     void volumeChanged(int volume);
@@ -36,5 +40,6 @@ public slots:
 private slots:
     void timerTimeout();
 };
+
 
 #endif // AUDIOFADER_H

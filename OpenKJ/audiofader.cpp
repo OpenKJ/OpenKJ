@@ -21,8 +21,13 @@ void AudioFader::setVolumeElement(GstElement *volumeElement)
 
 void AudioFader::setPaused(bool paused)
 {
-    qInfo() << "AudioFader set paused state to: " << paused;
+    qInfo() << objName << " - set paused state to: " << paused;
     this->paused = paused;
+}
+
+void AudioFader::setObjName(QString name)
+{
+    objName = name;
 }
 
 double AudioFader::volume()
@@ -52,7 +57,7 @@ AudioFader::AudioFader(QObject *parent) : QObject(parent)
 
 void AudioFader::fadeOut(bool block)
 {
-    qInfo() << "fadeOut( " << block << " ) called";
+    qInfo() << objName << " - fadeOut( " << block << " ) called";
     emit fadeStarted();
     preFadeVol = volume();
     fading = true;
@@ -68,12 +73,12 @@ void AudioFader::fadeOut(bool block)
             QApplication::processEvents();
         }
     }
-    qInfo() << "fadeOut returned";
+    qInfo() << objName << " - fadeOut() returned";
 }
 
 void AudioFader::fadeIn(bool block)
 {
-    qInfo() << "fadeIn( " << block << " ) called";
+    qInfo() << objName << " - fadeIn( " << block << " ) called";
     emit fadeStarted();
     fading = true;
     targetVol = preFadeVol;
@@ -88,19 +93,20 @@ void AudioFader::fadeIn(bool block)
             QApplication::processEvents();
         }
     }
+    qInfo() << objName << " - fadeIn() returned";
 }
 
 void AudioFader::timerTimeout()
 {
     if (paused)
         return;
-    qInfo() << "Timer fader - Current: " << volume() << " Target: " << targetVol;
+    qInfo() << objName << " - Timer - Current: " << volume() << " Target: " << targetVol;
     double increment = .05;
     if (fading)
     {
         if (volume() == targetVol)
         {
-            qInfo() << "target volume reached";
+            qInfo() << objName << " - Timer - target volume reached";
             timer->stop();
             fading = false;
             emit fadeComplete();
