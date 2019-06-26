@@ -462,6 +462,11 @@ bool Settings::rotationShowNextSong()
     return settings->value("rotationShowNextSong", false).toBool();
 }
 
+void Settings::sync()
+{
+    settings->sync();
+}
+
 bool Settings::cdgRemainEnabled()
 {
     return settings->value("cdgRemainEnabled", false).toBool();

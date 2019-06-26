@@ -269,7 +269,7 @@ public:
     QColor cdgRemainTextColor();
     QColor cdgRemainBgColor();
     bool rotationShowNextSong();
-
+    void sync();
 
 signals:
     void applicationFontChanged(QFont font);

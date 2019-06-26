@@ -922,6 +922,7 @@ MainWindow::~MainWindow()
     settings->saveColumnWidths(ui->tableViewBmDb);
     settings->saveColumnWidths(ui->tableViewBmPlaylist);
     settings->bmSetPlaylistIndex(ui->comboBoxBmPlaylists->currentIndex());
+    settings->sync();
     qInfo() << "Deleting non-owned objects";
     delete cdg;
     delete khDir;
