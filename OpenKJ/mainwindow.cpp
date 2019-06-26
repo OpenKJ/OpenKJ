@@ -1578,7 +1578,7 @@ void MainWindow::rotationDataChanged()
             tickerText.replace("%curSong", ui->labelArtist->text() + " - " + ui->labelTitle->text());
         tickerText.replace("%curArtist", ui->labelArtist->text());
         tickerText.replace("%curTitle", ui->labelTitle->text());
-        tickerText.replace("%curSinger", ui->labelSinger->text());
+        tickerText.replace("%curSinger", rotModel->getSingerName(rotModel->currentSinger()));
         tickerText.replace("%nextSinger", ns);
 
     }
