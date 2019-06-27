@@ -207,6 +207,27 @@ void AudioBackendGstreamer::processGstMessages()
                     //qInfo() << "RMS Level: " << m_currentRmsLevel;
                 }
             }
+            else if (message->type == GST_MESSAGE_STREAM_START)
+            {
+                // workaround for gstreamer changing the volume unsolicited on playback start
+                gdouble curVolume;
+                g_object_get(G_OBJECT(volumeElement), "volume", &curVolume, NULL);
+                double cubicVolume = gst_stream_volume_convert_volume(GST_STREAM_VOLUME_FORMAT_LINEAR, GST_STREAM_VOLUME_FORMAT_CUBIC, curVolume);
+                int intVol = cubicVolume * 100;
+                if (m_volume != intVol)
+                {
+                    if ((!fader->isFading()) && ((intVol < m_volume - 1) || (intVol > m_volume + 1)))
+                    {
+                        qInfo() << objName << " - stream start - Unrequested volume change detected, squashing";
+                        setVolume(m_volume);
+                    }
+                }
+            }
+            else if (message->type == GST_MESSAGE_DURATION_CHANGED)
+            {
+                emit durationChanged(duration());
+                //curDuration = duration();
+            }
             else if (message->type == GST_MESSAGE_EOS)
             {
                 emit stateChanged(EndOfMediaState);
@@ -403,12 +424,13 @@ void AudioBackendGstreamer::stop(bool skipFade)
 
 void AudioBackendGstreamer::fastTimer_timeout()
 {
-    static int curDuration;
-    if (duration() != curDuration)
-    {
-        emit durationChanged(duration());
-        curDuration = duration();
-    }
+    processGstMessages();
+//    static int curDuration;
+//    if (duration() != curDuration)
+//    {
+//        emit durationChanged(duration());
+//        curDuration = duration();
+//    }
     static int curPosition;
     if(state() == AbstractAudioBackend::PlayingState)
     {
@@ -454,7 +476,7 @@ void AudioBackendGstreamer::slowTimer_timeout()
     else if((state() == AbstractAudioBackend::StoppedState) && (pitchShift() != 0))
             setPitchShift(0);
 
-    processGstMessages();
+//    processGstMessages();
     //qInfo() << "Silence detection enabled state: " << m_silenceDetect;
     //qInfo() << "Audio backend state            : " << state();
     if (m_silenceDetect)
@@ -470,6 +492,7 @@ void AudioBackendGstreamer::slowTimer_timeout()
             }
             m_silenceDuration++;
         }
+
         else
             m_silenceDuration = 0;
     }

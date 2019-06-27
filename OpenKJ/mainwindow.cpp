@@ -1555,12 +1555,12 @@ void MainWindow::rotationDataChanged()
         int nsPos;
         if (cs == "")
         {
-            cs = "none";
+            cs = "[nobody]";
             nsPos = -1;
         }
         else
             nsPos = rotModel->getSingerPosition(rotModel->currentSinger());
-        QString ns = "none";
+        QString ns = "[nobody]";
         if (rotModel->rowCount() > 0)
         {
             if (nsPos + 1 < rotModel->rowCount())
@@ -1578,7 +1578,7 @@ void MainWindow::rotationDataChanged()
             tickerText.replace("%curSong", ui->labelArtist->text() + " - " + ui->labelTitle->text());
         tickerText.replace("%curArtist", ui->labelArtist->text());
         tickerText.replace("%curTitle", ui->labelTitle->text());
-        tickerText.replace("%curSinger", rotModel->getSingerName(rotModel->currentSinger()));
+        tickerText.replace("%curSinger", cs);
         tickerText.replace("%nextSinger", ns);
 
     }
