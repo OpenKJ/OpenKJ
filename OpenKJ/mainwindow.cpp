@@ -1555,8 +1555,10 @@ void MainWindow::rotationDataChanged()
         int nsPos;
         if (cs == "")
         {
-            cs = "[nobody]";
-            nsPos = -1;
+            cs = rotModel->getSingerName(rotModel->singerIdAtPosition(0));
+            if (cs == "")
+                cs = "[nobody]";
+            nsPos = 0;
         }
         else
             nsPos = rotModel->getSingerPosition(rotModel->currentSinger());
@@ -2902,6 +2904,9 @@ void MainWindow::resizeRotation()
 {
     int fH = QFontMetrics(settings->applicationFont()).height();
     int iconWidth = fH + fH;
+    int waitSize = QFontMetrics(settings->applicationFont()).width("Wait_");
+    if (waitSize > iconWidth)
+        iconWidth = waitSize;
     int singerColSize = ui->tableViewRotation->width() - (iconWidth * 3) - 5;
     int songColSize = 0;
     if (!settings->rotationShowNextSong())
