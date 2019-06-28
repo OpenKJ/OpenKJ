@@ -39,8 +39,21 @@ ls -l
 ls -l /Users/travis/build/OpenKJ/OpenKJ/OpenKJ/OpenKJ.app
 cp travis/dmgbkg.png ~/
 ls -l travis/openkjdmg.json
-echo "Running appdmg travis/openkjdmg.json ${INSTALLERFN}"
-appdmg travis/openkjdmg.json ${INSTALLERFN} 
+#echo "Running appdmg travis/openkjdmg.json ${INSTALLERFN}"
+#appdmg travis/openkjdmg.json ${INSTALLERFN}
+echo "Running create-dmg to build installer"
+bash ./create-dmg \
+--volname "OpenKJ Installer" \
+--volicon "/Users/travis/build/OpenKJ/OpenKJ/OpenKJ/Icons/OpenKJ.icns" \
+--window-pos 200 120 \
+--window-size 800 400 \
+--icon-size 100 \
+--icon "OpenKJ.app" 200 190 \
+--hide-extension "OpenKJ.app" \
+--app-drop-link 600 185 \
+${INSTALLERFN} \
+OpenKJ/
+
 echo "Signing installer"
 codesign -s "Application: Isaac Lightburn (47W8CPBS5A)" -vvvv --timestamp=none ${INSTALLERFN}
 
