@@ -35,7 +35,6 @@ echo "Signing code"
 codesign -s "Application: Isaac Lightburn (47W8CPBS5A)" -vvvv --deep --timestamp=none ${BundlePath}
 echo "Creating installer"
 cp travis/dmgbkg.png ~/
-ls -l ${INSTALLERFN}
 ls -l travis/openkjdmg.json
 echo "Running appdmg travis/openkjdmg.json ${INSTALLERFN}"
 appdmg travis/openkjdmg.json ${INSTALLERFN} 
