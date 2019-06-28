@@ -108,6 +108,6 @@ void UpdateChecker::downloadInstaller()
         if (OS == "Win32")
             url = "https://storage.googleapis.com/openkj-windows-builds-master/OpenKJ-" + availVersion + "-32bit-setup.exe";
         if (OS == "MacOS")
-            url = "https://storage.googleapis.com/openkj-openkj-master/OpenKJ-" + availVersion + "-unstable-osx-installer.dmg";
+            url = "https://storage.googleapis.com/openkj-openkj-release/OpenKJ-" + availVersion + "-unstable-osx-installer.dmg";
     }
 }

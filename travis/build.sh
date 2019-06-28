@@ -49,7 +49,7 @@ bash ./create-dmg/create-dmg \
 --volicon "OpenKJ/Icons/OpenKJ.icns" \
 --background "travis/dmgbkg.png" \
 --window-pos 200 120 \
---window-size 512 320 \
+--window-size 512 380 \
 --icon-size 80 \
 --icon "OpenKJ.app" 138 225 \
 --hide-extension "OpenKJ.app" \

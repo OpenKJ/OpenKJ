@@ -2766,11 +2766,11 @@ void MainWindow::newVersionAvailable(QString version)
     }
     if (checker->getOS() == "Win32" || checker->getOS() == "Win64")
     {
-        msgBox.setInformativeText("You can download the new version at <a href=https://openkj.org/download>https://openkj.org/download</a>");
+        msgBox.setInformativeText("You can download the new version at <a href=https://openkj.org/software>https://openkj.org/software</a>");
     }
     if (checker->getOS() == "MacOS")
     {
-        msgBox.setInformativeText("You can download the new version at <a href=https://openkj.org/download>https://openkj.org/download</a>");
+        msgBox.setInformativeText("You can download the new version at <a href=https://openkj.org/software>https://openkj.org/software</a>");
     }
     msgBox.exec();
 }
