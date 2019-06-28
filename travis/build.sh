@@ -46,13 +46,14 @@ mv OpenKJ/OpenKJ.app okjimage/
 echo "Running create-dmg to build installer"
 bash ./create-dmg/create-dmg \
 --volname "OpenKJ Installer" \
---volicon "/Users/travis/build/OpenKJ/OpenKJ/OpenKJ/Icons/OpenKJ.icns" \
+--volicon "OpenKJ/Icons/OpenKJ.icns" \
+--background "travis/dmgbkg.png"
 --window-pos 200 120 \
---window-size 800 400 \
---icon-size 100 \
---icon "OpenKJ.app" 200 190 \
+--window-size 512 320 \
+--icon-size 80 \
+--icon "OpenKJ.app" 138 225 \
 --hide-extension "OpenKJ.app" \
---app-drop-link 600 185 \
+--app-drop-link 378 225 \
 ${INSTALLERFN} \
 okjimage/
 
