@@ -47,7 +47,7 @@ echo "Running create-dmg to build installer"
 bash ./create-dmg/create-dmg \
 --volname "OpenKJ Installer" \
 --volicon "OpenKJ/Icons/OpenKJ.icns" \
---background "travis/dmgbkg.png"
+--background "travis/dmgbkg.png" \
 --window-pos 200 120 \
 --window-size 512 320 \
 --icon-size 80 \
