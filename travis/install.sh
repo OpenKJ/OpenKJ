@@ -29,7 +29,9 @@ pip2 install osxrelocator
 #npm install -g appdmg
 
 echo "Grabbing create-dmg"
-wget -c --no-check-certificate -nv -Ocreate-dmg https://storage.googleapis.com/okj-installer-deps/create-dmg
+wget -c --no-check-certificate -nv -Ocreate-dmg.zip https://storage.googleapis.com/okj-installer-deps/create-dmg-1.0.0.5.zip
+unzip create-dmg.zip
+mv create-dmg* create-dmg
 
 if [ -d "Qt" ]; then
   echo "Cached copy of Qt already exists, skipping install"
