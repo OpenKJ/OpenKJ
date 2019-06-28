@@ -42,7 +42,7 @@ ls -l travis/openkjdmg.json
 #echo "Running appdmg travis/openkjdmg.json ${INSTALLERFN}"
 #appdmg travis/openkjdmg.json ${INSTALLERFN}
 echo "Running create-dmg to build installer"
-bash ./create-dmg \
+bash ./create-dmg/create-dmg \
 --volname "OpenKJ Installer" \
 --volicon "/Users/travis/build/OpenKJ/OpenKJ/OpenKJ/Icons/OpenKJ.icns" \
 --window-pos 200 120 \
