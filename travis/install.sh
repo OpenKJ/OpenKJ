@@ -25,8 +25,11 @@ security set-key-partition-list -S apple-tool:,apple: -s -k $keychainPass build.
 echo "Installing osxrelocator"
 pip2 install osxrelocator
 
-echo "Installing appdmg"
-npm install -g appdmg
+#echo "Installing appdmg"
+#npm install -g appdmg
+
+echo "Grabbing create-dmg"
+wget -c --no-check-certificate -nv -Ocreate-dmg https://storage.googleapis.com/okj-installer-deps/create-dmg
 
 if [ -d "Qt" ]; then
   echo "Cached copy of Qt already exists, skipping install"
