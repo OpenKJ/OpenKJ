@@ -32,6 +32,16 @@
 #include <QDataStream>
 
 
+int Settings::remainRtOffset()
+{
+    return settings->value("remainRtOffset", 5).toInt();
+}
+
+int Settings::remainBtmOffset()
+{
+    return settings->value("remainBtmOffset", 5).toInt();
+}
+
 qint64 Settings::hash(const QString &str)
 {
     QByteArray hash = QCryptographicHash::hash(
@@ -465,6 +475,18 @@ bool Settings::rotationShowNextSong()
 void Settings::sync()
 {
     settings->sync();
+}
+
+void Settings::setRemainRtOffset(int offset)
+{
+    settings->setValue("remainRtOffset", offset);
+    emit remainOffsetChanged(remainRtOffset(), remainBtmOffset());
+}
+
+void Settings::setRemainBtmOffset(int offset)
+{
+    settings->setValue("remainBtmOffset", offset);
+    emit remainOffsetChanged(remainRtOffset(), remainBtmOffset());
 }
 
 bool Settings::cdgRemainEnabled()

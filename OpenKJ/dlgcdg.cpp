@@ -66,6 +66,7 @@ DlgCdg::DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *Break
     ui->lblRemain->setFont(settings->cdgRemainFont());
     cdgRemainTextColorChanged(settings->cdgRemainTextColor());
     cdgRemainBgColorChanged(settings->cdgRemainBgColor());
+    remainOffsetsChanged(settings->remainRtOffset(), settings->remainBtmOffset());
     QPalette palette = ui->scroll->palette();
     palette.setColor(ui->scroll->foregroundRole(), settings->tickerTextColor());
     ui->scroll->setPalette(palette);
@@ -136,6 +137,7 @@ DlgCdg::DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *Break
     connect(oneSecTimer, SIGNAL(timeout()), this, SLOT(oneSecTimerTimeout()));
     ui->lblRemain->setVisible(settings->cdgRemainEnabled());
     connect(settings, SIGNAL(cdgRemainEnabledChanged(bool)), ui->lblRemain, SLOT(setVisible(bool)));
+    connect(settings, SIGNAL(remainOffsetChanged(int,int)), this, SLOT(remainOffsetsChanged(int,int)));
 }
 
 DlgCdg::~DlgCdg()
@@ -152,6 +154,8 @@ void DlgCdg::updateCDG(QImage image, bool overrideVisibleCheck)
      //       ui->cdgVideo->videoSurface()->present(QVideoFrame(image.scaled(ui->cdgVideo->size(), Qt::IgnoreAspectRatio)));
      //   else
             ui->cdgVideo->videoSurface()->present(QVideoFrame(image));
+            if (ui->lblRemain->isVisible())
+                ui->lblRemain->repaint();
     }
 }
 
@@ -445,6 +449,12 @@ void DlgCdg::cdgRemainEnabledChanged(bool enabled)
 {
     if ((kAudioBackend->state() == AbstractAudioBackend::PlayingState) || enabled == false)
         ui->lblRemain->setVisible(enabled);
+}
+
+void DlgCdg::remainOffsetsChanged(int r, int b)
+{
+    ui->remainSpacerRight->changeSize(r,5,QSizePolicy::Fixed);
+    ui->remainSpacerBottom->changeSize(5,b,QSizePolicy::Fixed);
 }
 
 void DlgCdg::slideShowTimerTimeout()

@@ -53,6 +53,8 @@ private:
     QSettings *settings;
 
 public:
+    int remainRtOffset();
+    int remainBtmOffset();
     qint64 hash(const QString & str);
     bool progressiveSearchEnabled();
     QString storeDownloadDir();
@@ -336,8 +338,11 @@ signals:
     void cdgRemainTextColorChanged(QColor color);
     void cdgRemainBgColorChanged(QColor color);
     void rotationShowNextSongChanged(bool show);
+    void remainOffsetChanged(int offsetR, int offsetB);
 
 public slots:
+    void setRemainRtOffset(int offset);
+    void setRemainBtmOffset(int offset);
     void dbSetLazyLoadDurations(bool val);
     void dbSetSkipValidation(bool val);
     void setBmKCrossfade(bool enabled);

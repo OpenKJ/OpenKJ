@@ -112,6 +112,7 @@ public slots:
     void alertTxtColorChanged(QColor color);
     void triggerBg();
     void cdgRemainEnabledChanged(bool enabled);
+    void remainOffsetsChanged(int r, int b);
 
 
 
