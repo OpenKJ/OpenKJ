@@ -425,12 +425,6 @@ void AudioBackendGstreamer::stop(bool skipFade)
 void AudioBackendGstreamer::fastTimer_timeout()
 {
     processGstMessages();
-//    static int curDuration;
-//    if (duration() != curDuration)
-//    {
-//        emit durationChanged(duration());
-//        curDuration = duration();
-//    }
     static int curPosition;
     if(state() == AbstractAudioBackend::PlayingState)
     {

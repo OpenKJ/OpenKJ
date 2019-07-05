@@ -43,6 +43,7 @@
 #include <QKeySequence>
 #include "soundfxbutton.h"
 #include "tableviewtooltipfilter.h"
+#include <tickernew.h>
 
 Settings *settings;
 OKJSongbookAPI *songbookApi;
@@ -729,6 +730,11 @@ MainWindow::MainWindow(QWidget *parent) :
     if (settings->showCdgWindow())
         ui->btnToggleCdgWindow->setText("Hide CDG Window");
     connect(ui->tableViewRotation->selectionModel(), SIGNAL(selectionChanged(QItemSelection, QItemSelection)), this, SLOT(rotationSelectionChanged(QItemSelection, QItemSelection)));
+//    TickerNew *tickerNew = new TickerNew();
+//    tickerNew->setText("This is some really long text just to make the ticker work since we need it to scroll off the screen and shit, blah blah.");
+//    tickerNew->start();
+//    tickerNew->setTickerGeometry(cdgWindow->width(), 200);
+//    connect(tickerNew, SIGNAL(newFrame(QImage, bool)), cdgWindow, SLOT(updateCDG(QImage, bool)));
 }
 
 QString MainWindow::findMatchingAudioFile(QString cdgFilePath)

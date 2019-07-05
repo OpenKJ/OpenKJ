@@ -29,7 +29,7 @@ unix:!macx {
     binaryfiles.files += OpenKJ
     binaryfiles.path = $$PREFIX/bin
     INSTALLS += binaryfiles iconfiles desktopfiles
-    DEFINES += USE_GL
+#    DEFINES += USE_GL
 }
 
 macx: {
@@ -100,7 +100,7 @@ contains(DEFINES, STATIC_TAGLIB) {
 QMAKE_MAC_SDK = MacOSX10.13
 QMAKE_MAC_SDK.macosx.version = 10.13
 
-VERSION = 1.5.70
+VERSION = 1.5.71
 message($$VERSION)
 QMAKE_TARGET_COMPANY = OpenKJ.org
 QMAKE_TARGET_PRODUCT = OpenKJ
@@ -161,6 +161,7 @@ SOURCES += main.cpp\
     dlgeq.cpp \
     audiofader.cpp \
     customlineedit.cpp \
+    tickernew.cpp \
     updatechecker.cpp \
     volslider.cpp \
     dlgaddsinger.cpp \
@@ -335,6 +336,7 @@ HEADERS  += mainwindow.h \
     dlgeq.h \
     audiofader.h \
     customlineedit.h \
+    tickernew.h \
     updatechecker.h \
     volslider.h \
     okjversion.h \

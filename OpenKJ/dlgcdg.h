@@ -60,7 +60,6 @@ private:
 public:
     explicit DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *BreakBackend, QWidget *parent = 0, Qt::WindowFlags f = 0);
     ~DlgCdg();
-    void updateCDG(QImage image, bool overrideVisibleCheck = false);
     void makeFullscreen();
     void makeWindowed();
     void setTickerText(QString text);
@@ -113,6 +112,7 @@ public slots:
     void triggerBg();
     void cdgRemainEnabledChanged(bool enabled);
     void remainOffsetsChanged(int r, int b);
+    void updateCDG(QImage image, bool overrideVisibleCheck = false);
 
 
 
