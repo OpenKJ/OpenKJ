@@ -15,8 +15,8 @@ void TickerNew::run() {
             qInfo() << "TickerNew - Reset offset";
             curOffset = 0;
         }
-       // QPixmap frame = scrollImage.copy(curOffset,0,m_width,m_height);
-       // emit newFrame(frame);
+        if (m_stop)
+            return;
         emit newFrameRect(scrollImage, QRect(curOffset,0,m_width,m_height));
         curOffset = curOffset + 2;
         msleep(m_speed);
@@ -112,6 +112,15 @@ TickerDisplayWidget::TickerDisplayWidget(QWidget *parent)
     rectBasedDrawing = false;
 }
 
+TickerDisplayWidget::~TickerDisplayWidget()
+{
+    qInfo() << "TickerDisplayWidget destructor called";
+    ticker->stop();
+    ticker->wait(1000);
+
+    delete ticker;
+}
+
 void TickerDisplayWidget::setText(const QString &newText)
 {
     ticker->setText(newText);
@@ -125,6 +134,11 @@ QSize TickerDisplayWidget::sizeHint() const
 void TickerDisplayWidget::setSpeed(int speed)
 {
     ticker->setSpeed(speed);
+}
+
+void TickerDisplayWidget::stop()
+{
+    ticker->stop();
 }
 
 
@@ -144,6 +158,8 @@ void TickerDisplayWidget::newFrameRect(QPixmap frame, QRect displayArea)
 
 void TickerDisplayWidget::newFrame(const QPixmap frame)
 {
+    if (!isVisible())
+        return;
     rectBasedDrawing = false;
     m_image = frame;
     update();
@@ -152,6 +168,8 @@ void TickerDisplayWidget::newFrame(const QPixmap frame)
 void TickerDisplayWidget::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event)
+    if (!isVisible())
+        return;
     QPainter p(this);
     if (!rectBasedDrawing)
         p.drawPixmap(this->rect(), m_image);

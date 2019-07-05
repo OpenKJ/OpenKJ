@@ -14,7 +14,6 @@ class TickerNew : public QThread
     Q_OBJECT
     Settings *settings;
     void run() override;
-    void stop();
     bool m_stop;
     QPixmap scrollImage;
     QString m_text;
@@ -28,6 +27,7 @@ class TickerNew : public QThread
 public:
     TickerNew();
     QSize getSize();
+    void stop();
 public slots:
     void setTickerGeometry(int width, int height);
     void setText(QString text);
@@ -44,12 +44,14 @@ class TickerDisplayWidget : public QWidget
     TickerNew *ticker;
 public:
         TickerDisplayWidget(QWidget *parent = 0);
+        ~TickerDisplayWidget();
         void setText(const QString &newText);
         QSize sizeHint() const;
         void setSpeed(int speed);
         QPixmap m_image;
         QRect drawRect;
         bool rectBasedDrawing;
+        void stop();
 
         // QWidget interface
 protected:

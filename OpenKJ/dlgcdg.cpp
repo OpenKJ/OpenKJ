@@ -41,6 +41,11 @@ void DlgCdg::setBAudioBackend(AbstractAudioBackend *value)
     bAudioBackend = value;
 }
 
+void DlgCdg::stopTicker()
+{
+    ui->scroll->stop();
+}
+
 DlgCdg::DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *BreakBackend, QWidget *parent, Qt::WindowFlags f) :
     QDialog(parent, f),
     ui(new Ui::DlgCdg)

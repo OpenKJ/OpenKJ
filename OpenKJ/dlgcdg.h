@@ -69,6 +69,7 @@ public:
     int getHAdjustment() { return hSizeAdjustment; }
     void setKAudioBackend(AbstractAudioBackend *value);
     void setBAudioBackend(AbstractAudioBackend *value);
+    void stopTicker();
 
 protected:
     void mouseDoubleClickEvent(QMouseEvent *e);
