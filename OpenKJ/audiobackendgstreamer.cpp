@@ -172,14 +172,30 @@ void AudioBackendGstreamer::processGstMessages()
             {
                 GstState state;
                 gst_element_get_state(playBin, &state, NULL, GST_CLOCK_TIME_NONE);
-                if (state == GST_STATE_PLAYING)
+                if (state == GST_STATE_PLAYING && lastState != AbstractAudioBackend::PlayingState)
+                {
+                    qInfo() << "GST notified of state change to PLAYING";
+                    lastState = AbstractAudioBackend::PlayingState;
                     emit stateChanged(AbstractAudioBackend::PlayingState);
-                else if (state == GST_STATE_PAUSED)
+                }
+                else if (state == GST_STATE_PAUSED && lastState != AbstractAudioBackend::PausedState)
+                {
+                    qInfo() << "GST notified of state change to PAUSED";
+                    lastState = AbstractAudioBackend::PausedState;
                     emit stateChanged(AbstractAudioBackend::PausedState);
-                else if (state == GST_STATE_NULL)
+                }
+                else if (state == GST_STATE_NULL && lastState != AbstractAudioBackend::StoppedState)
+                {
+                    qInfo() << "GST notified of state change to STOPPED";
+                    lastState = AbstractAudioBackend::StoppedState;
                     emit stateChanged(AbstractAudioBackend::StoppedState);
-                else
+                }
+                else if (lastState != AbstractAudioBackend::UnknownState)
+                {
+                    qInfo() << "GST notified of state change to UNKNOWN";
+                    lastState = AbstractAudioBackend::UnknownState;
                     emit stateChanged(AbstractAudioBackend::UnknownState);
+                }
             }
             else if (message->type == GST_MESSAGE_ELEMENT) {
                 QString name = QString(gst_structure_get_name (gst_message_get_structure(message)));
@@ -225,6 +241,7 @@ void AudioBackendGstreamer::processGstMessages()
             }
             else if (message->type == GST_MESSAGE_DURATION_CHANGED)
             {
+                qInfo() << objName << " - GST reports duration changed";
                 emit durationChanged(duration());
                 //curDuration = duration();
             }
@@ -436,8 +453,6 @@ void AudioBackendGstreamer::fastTimer_timeout()
     g_object_get(G_OBJECT(volumeElement), "volume", &curVolume, NULL);
     double cubicVolume = gst_stream_volume_convert_volume(GST_STREAM_VOLUME_FORMAT_LINEAR, GST_STREAM_VOLUME_FORMAT_CUBIC, curVolume);
     int intVol = cubicVolume * 100;
-//    qInfo() << objName << " - volume currently" << curVolume;
-//    qInfo() << objName << " - last volume: " << m_volume;
     if (m_volume != intVol)
     {
         if ((!fader->isFading()) && ((intVol < m_volume - 1) || (intVol > m_volume + 1)))
@@ -449,7 +464,6 @@ void AudioBackendGstreamer::fastTimer_timeout()
         {
             qInfo() << objName << " - emitting volume changed: " << intVol;
             emit faderChangedVolume(intVol);
-            //m_volume = curVolume * 100;
             m_volume = intVol;
         }
     }
@@ -459,15 +473,14 @@ void AudioBackendGstreamer::slowTimer_timeout()
 {
 
 
-    static AbstractAudioBackend::State currentState;
-    if (state() != currentState)
+    if (state() != lastState)
     {
-        currentState = state();
-        emit stateChanged(currentState);
+        lastState = state();
+        emit stateChanged(lastState);
 //        if (currentState == AbstractAudioBackend::StoppedState)
 //            stop();
     }
-    else if((state() == AbstractAudioBackend::StoppedState) && (pitchShift() != 0))
+    else if((lastState == AbstractAudioBackend::StoppedState) && (pitchShift() != 0))
             setPitchShift(0);
 
 //    processGstMessages();

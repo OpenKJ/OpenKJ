@@ -532,8 +532,9 @@ void DlgCdg::oneSecTimerTimeout()
             ui->lblRemain->show();
         else if (kAudioBackend->state() != AbstractAudioBackend::PlayingState && ui->lblRemain->isVisible())
             ui->lblRemain->hide();
+        if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
+            ui->lblRemain->setText(kAudioBackend->msToMMSS(kAudioBackend->duration() - kAudioBackend->position()));
     }
-    ui->lblRemain->setText(kAudioBackend->msToMMSS(kAudioBackend->duration() - kAudioBackend->position()));
 }
 
 

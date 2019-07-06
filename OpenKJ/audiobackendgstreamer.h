@@ -139,6 +139,7 @@ private:
     bool faderRunning;
 
     static void DestroyCallback(gpointer user_data);
+    AbstractAudioBackend::State lastState;
 public:
     explicit AudioBackendGstreamer(bool loadPitchShift = true, QObject *parent = 0, QString objectName = "unknown");
     ~AudioBackendGstreamer();

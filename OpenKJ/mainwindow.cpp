@@ -2078,7 +2078,7 @@ void MainWindow::karaokeAATimerTimeout()
 
 void MainWindow::timerButtonFlashTimeout()
 {
-    QString normalSS = " \
+    static QString normalSS = " \
         QPushButton { \
             border: 2px solid #8f8f91; \
             border-radius: 6px; \
@@ -2099,7 +2099,7 @@ void MainWindow::timerButtonFlashTimeout()
             border-color: navy; /* make the default button prominent */ \
         }";
 
-    QString blinkSS = " \
+    static QString blinkSS = " \
         QPushButton { \
             border: 2px solid #8f8f91; \
             border-radius: 6px; \
