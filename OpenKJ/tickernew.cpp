@@ -4,6 +4,10 @@
 #include <QFontMetrics>
 #include <QDebug>
 #include <QResizeEvent>
+#include <QMutex>
+#include <QApplication>
+
+QMutex mutex;
 
 void TickerNew::run() {
     while (!m_stop)
@@ -17,7 +21,9 @@ void TickerNew::run() {
         }
         if (m_stop)
             return;
+        mutex.lock();
         emit newFrameRect(scrollImage, QRect(curOffset,0,m_width,m_height));
+        mutex.unlock();
         curOffset = curOffset + 2;
         msleep(m_speed);
     }
@@ -66,6 +72,7 @@ void TickerNew::setText(QString text)
     QFont tickerFont = settings->tickerFont();
     m_imgWidth = QFontMetrics(tickerFont).width(text);
     m_txtWidth = m_imgWidth;
+    mutex.lock();
     if (m_imgWidth > m_width)
     {
         m_textOverflows = true;
@@ -86,6 +93,7 @@ void TickerNew::setText(QString text)
     p.setFont(settings->tickerFont());
     p.drawText(scrollImage.rect(), Qt::AlignLeft | Qt::AlignTop, drawText);
     p.end();
+    mutex.unlock();
 }
 
 void TickerNew::refresh()
