@@ -115,7 +115,8 @@ bool CDG::process()
             m_position++;
             if (((position() % 40) == 0) && position() >= 40)
             {
-                m_lastCDGCommandMS = frameno * 40;
+                if (m_needupdate)
+                    m_lastCDGCommandMS = frameno * 40;
                 m_skip.push_back(!m_needupdate);
                 //m_skip.push_back(false);
                 QVideoFrame frame(m_image.convertToFormat(QImage::Format_RGB32));
