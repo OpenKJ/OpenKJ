@@ -25,7 +25,6 @@
 #include <QFileInfoList>
 #include <QMouseEvent>
 #include "settings.h"
-//#include "scrolltext.h"
 #include "cdgvideowidget.h"
 #include <QTimer>
 #include "abstractaudiobackend.h"
@@ -114,6 +113,7 @@ public slots:
     void cdgRemainEnabledChanged(bool enabled);
     void remainOffsetsChanged(int r, int b);
     void updateCDG(QImage image, bool overrideVisibleCheck = false);
+    void updateCDG(QVideoFrame frame, bool overrideVisibleCheck = false);
 
 
 

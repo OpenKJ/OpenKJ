@@ -192,9 +192,9 @@ void AudioBackendGstreamer::processGstMessages()
                 }
                 else if (lastState != AbstractAudioBackend::UnknownState)
                 {
-                    qInfo() << "GST notified of state change to UNKNOWN";
-                    lastState = AbstractAudioBackend::UnknownState;
-                    emit stateChanged(AbstractAudioBackend::UnknownState);
+                    //qInfo() << "GST notified of state change to UNKNOWN";
+                    //lastState = AbstractAudioBackend::UnknownState;
+                    //emit stateChanged(AbstractAudioBackend::UnknownState);
                 }
             }
             else if (message->type == GST_MESSAGE_ELEMENT) {
@@ -441,7 +441,7 @@ void AudioBackendGstreamer::stop(bool skipFade)
 
 void AudioBackendGstreamer::fastTimer_timeout()
 {
-    processGstMessages();
+    //processGstMessages();
     static int curPosition;
     if(state() == AbstractAudioBackend::PlayingState)
     {
@@ -483,7 +483,7 @@ void AudioBackendGstreamer::slowTimer_timeout()
     else if((lastState == AbstractAudioBackend::StoppedState) && (pitchShift() != 0))
             setPitchShift(0);
 
-//    processGstMessages();
+    processGstMessages();
     //qInfo() << "Silence detection enabled state: " << m_silenceDetect;
     //qInfo() << "Audio backend state            : " << state();
     if (m_silenceDetect)
@@ -777,6 +777,8 @@ void AudioBackendGstreamer::buildPipeline()
     setEqLevel10(eq10);
     setDownmix(downmix);
     setMuted(m_muted);
+    setVolume(m_volume);
+
     qInfo() << objName << " - buildPipeline() finished";
 }
 

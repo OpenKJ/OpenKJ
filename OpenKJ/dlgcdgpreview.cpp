@@ -75,7 +75,7 @@ void DlgCdgPreview::preview()
             close();
             return;
         }
-        cdg->FileOpen(m_srcFile.toStdString());
+        cdg->FileOpen(m_srcFile);
     }
     cdg->Process();
     timer->start(40);
@@ -88,11 +88,7 @@ void DlgCdgPreview::timerTimeout()
     {
         if (cdg->GetLastCDGUpdate() >= cdgPosition)
         {
-            unsigned char* rgbdata;
-            rgbdata = cdg->GetImageByTime(cdgPosition);
-            QImage img(rgbdata, 300, 216, QImage::Format_RGB888);
-            ui->cdgVideoWidget->videoSurface()->present(QVideoFrame(img));
-            free(rgbdata);
+            ui->cdgVideoWidget->videoSurface()->present(cdg->getQVideoFrameByTime(cdgPosition));
             cdgPosition = cdgPosition + timer->interval();
         }
         else

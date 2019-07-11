@@ -864,7 +864,7 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
             }
             cdgFile.copy(khTmpDir->path() + QDir::separator() + cdgTmpFile);
             QFile::copy(audiofn, khTmpDir->path() + QDir::separator() + audTmpFile);
-            cdg->FileOpen(QString(khTmpDir->path() + QDir::separator() + cdgTmpFile).toStdString());
+            cdg->FileOpen(khTmpDir->path() + QDir::separator() + cdgTmpFile);
             cdg->Process();
             kAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + audTmpFile);
 //            ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
@@ -1379,12 +1379,15 @@ void MainWindow::audioBackend_positionChanged(qint64 position)
     {
         if (cdg->IsOpen() && cdg->GetLastCDGUpdate() >= position)
         {
-                unsigned char* rgbdata;
-                rgbdata = cdg->GetImageByTime(position + cdgOffset);
-                QImage img(rgbdata, 300, 216, QImage::Format_RGB888);
-                ui->cdgVideoWidget->videoSurface()->present(QVideoFrame(img));
-                cdgWindow->updateCDG(img);
-                free(rgbdata);
+                //unsigned char* rgbdata;
+                //rgbdata = cdg->GetImageByTime(position + cdgOffset);
+                QVideoFrame frame = cdg->getQVideoFrameByTime(position + cdgOffset);
+                //QImage img(rgbdata, 300, 216, QImage::Format_RGB888);
+//                ui->cdgVideoWidget->videoSurface()->present(QVideoFrame(img));
+//                cdgWindow->updateCDG(img);
+                ui->cdgVideoWidget->videoSurface()->present(frame);
+                cdgWindow->updateCDG(frame);
+                //free(rgbdata);
         }
         if (!sliderPositionPressed)
         {

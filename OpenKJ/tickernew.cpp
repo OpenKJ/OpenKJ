@@ -10,8 +10,11 @@
 QMutex mutex;
 
 void TickerNew::run() {
-    while (!m_stop)
+    bool l_stop  = false;
+    while (!l_stop)
     {
+        //qInfo() << "Locking mutex in run()";
+        mutex.lock();
         if (!m_textOverflows)
             curOffset = 0;
         if (curOffset >= m_txtWidth)
@@ -20,19 +23,27 @@ void TickerNew::run() {
             curOffset = 0;
         }
         if (m_stop)
+        {
+            qInfo() << "Unlocking mutex in run() (stopping)";
+            mutex.unlock();
             return;
-        mutex.lock();
+        }
         emit newFrameRect(scrollImage, QRect(curOffset,0,m_width,m_height));
-        mutex.unlock();
         curOffset = curOffset + 2;
+        l_stop = m_stop;
+        //qInfo() << "Unlocking mutex in run()";
+        mutex.unlock();
         msleep(m_speed);
     }
-
 }
 
 void TickerNew::stop()
 {
+    qInfo() << "Locking mutex in stop()";
+    mutex.lock();
     m_stop = true;
+    qInfo() << "Unlocking mutex in stop()";
+    mutex.unlock();
 }
 
 TickerNew::TickerNew()
@@ -51,28 +62,39 @@ TickerNew::TickerNew()
 
 QSize TickerNew::getSize()
 {
-    return QSize(m_width, m_height);
+    qInfo() << "Locking mutex in getSize()";
+    mutex.lock();
+    QSize size = QSize(m_width, m_height);
+    qInfo() << "Unlocking mutex in getSize()";
+    mutex.unlock();
+    return size;
 }
 
 void TickerNew::setTickerGeometry(int width, int height)
 {
     qInfo() << "TickerNew - setTickerGeometry(" << width << "," << height << ") called";
+    qInfo() << "Locking mutex in setTickerGeometry()";
+    mutex.lock();
     m_height = height;
     m_width = width;
     scrollImage = QPixmap(width * 2, height);
+    qInfo() << "Unlocking mutex in setTickerGeometry()";
+    mutex.unlock();
     setText(m_text);
+    qInfo() << "TickerNew - setTickerGeometry() completed";
 }
 
 void TickerNew::setText(QString text)
 {
     qInfo() << "TickerNew - setText(" << text << ") called";
+    qInfo() << "Locking mutex in setText()";
+    mutex.lock();
     m_textOverflows = false;
     m_text = text;
     QString drawText;
     QFont tickerFont = settings->tickerFont();
     m_imgWidth = QFontMetrics(tickerFont).width(text);
     m_txtWidth = m_imgWidth;
-    mutex.lock();
     if (m_imgWidth > m_width)
     {
         m_textOverflows = true;
@@ -85,7 +107,7 @@ void TickerNew::setText(QString text)
         drawText = text;
         scrollImage = QPixmap(m_width, m_height);
     }
-    qInfo() << "TickerNew - drawing text: " << drawText;
+    //qInfo() << "TickerNew - drawing text: " << drawText;
     scrollImage.fill(settings->tickerBgColor());
     QPainter p;
     p.begin(&scrollImage);
@@ -93,7 +115,9 @@ void TickerNew::setText(QString text)
     p.setFont(settings->tickerFont());
     p.drawText(scrollImage.rect(), Qt::AlignLeft | Qt::AlignTop, drawText);
     p.end();
+    qInfo() << "Unlocking mutex in setText()";
     mutex.unlock();
+    qInfo() << "TickerNew - setText() completed";
 }
 
 void TickerNew::refresh()
@@ -103,10 +127,14 @@ void TickerNew::refresh()
 
 void TickerNew::setSpeed(int speed)
 {
+    qInfo() << "Locking mutex in setSpeed()";
+    mutex.lock();
     if (speed > 50)
         m_speed = 50;
     else
         m_speed = 51 - speed;
+    qInfo() << "Unlocking mutex in setSpeed()";
+    mutex.unlock();
 }
 
 TickerDisplayWidget::TickerDisplayWidget(QWidget *parent)
