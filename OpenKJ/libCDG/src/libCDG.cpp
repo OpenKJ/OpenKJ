@@ -45,6 +45,14 @@ CDG::CDG()
 
 bool CDG::FileOpen(QByteArray byteArray)
 {
+    QVector<QRgb> palette;
+    for (int i=0; i < 16; i++)
+        palette.append(QColor(0,0,0).rgb());
+    image = QImage(QSize(300,216),QImage::Format_Indexed8);
+    image.setColorTable(palette);
+    image.fill(0);
+    frames.clear();
+    CurPos = 0;
     cdgData = byteArray;
     if (byteArray.size() > 0)
     {
@@ -59,6 +67,14 @@ bool CDG::FileOpen(QByteArray byteArray)
 
 bool CDG::FileOpen(QString filename)
 {
+    CurPos = 0;
+    QVector<QRgb> palette;
+    for (int i=0; i < 16; i++)
+        palette.append(QColor(0,0,0).rgb());
+    image = QImage(QSize(300,216),QImage::Format_Indexed8);
+    image.setColorTable(palette);
+    image.fill(0);
+    frames.clear();
     QFile file(filename);
     file.open(QFile::ReadOnly);
     cdgData = file.readAll();
