@@ -118,7 +118,6 @@ bool CDG::process()
                 if (m_needupdate)
                     m_lastCDGCommandMS = frameno * 40;
                 m_skip.push_back(!m_needupdate);
-                //m_skip.push_back(false);
                 QVideoFrame frame(m_image.convertToFormat(QImage::Format_RGB32));
                 frame.setStartTime(position());
                 m_frames.push_back(frame);
@@ -131,7 +130,6 @@ bool CDG::process()
             retCode = false;
         }
     }
-    qInfo() << m_skip;
     ioDevice->close();
     delete ioDevice;
     m_isOpen = true;

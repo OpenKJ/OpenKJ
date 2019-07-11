@@ -38,12 +38,20 @@
 #include "audiofader.h"
 #include <QPointer>
 
+class gstTimerCallbackData
+{
+public:
+    gstTimerCallbackData() {}
+    QObject *qObj;
+    gpointer gObject;
+};
+
 class AudioBackendGstreamer : public AbstractAudioBackend
 {
     Q_OBJECT
 
 private:
-
+    gstTimerCallbackData *myObj;
     GstElement *tee;
     GstElement *queueS;
     GstElement *queueM;
@@ -71,7 +79,6 @@ private:
     GstElement *aConvPostMixer;
     GstElement *customBin;
     GstElement *videoAppSink;
-    GstElement *playBin;
     GstElement *aConvInput;
     GstElement *aConvPreSplit;
     GstElement *aConvPrePitchShift;
@@ -93,7 +100,7 @@ private:
     GstCaps *videoCaps;
     GstPad *pad;
     GstPad *ghostPad;
-    GstBus *bus;
+ //   GstBus *bus;
     GstDeviceMonitor *monitor;
     GstControlSource *csource;
     GstTimedValueControlSource *tv_csource;
@@ -121,7 +128,7 @@ private:
     bool loadPitchShift;
     int outputDeviceIdx;
     bool downmix;
-
+    static gboolean gstTimerDispatcher(QObject *qObj);
     static void EndOfStreamCallback(GstAppSink *appsink, gpointer user_data);
     static GstFlowReturn NewPrerollCallback(GstAppSink *appsink, gpointer user_data);
     static GstFlowReturn NewSampleCallback(GstAppSink *appsink, gpointer user_data);
@@ -137,10 +144,13 @@ private:
     void destroyPipeline();
     void resetPipeline();
     bool faderRunning;
-
+    std::shared_ptr<GstBus> bus;
+    std::shared_ptr<GstElement> pipeline;
     static void DestroyCallback(gpointer user_data);
+    static GstBusSyncReply busMessageDispatcher(GstBus *bus, GstMessage *message, gpointer userData);
     AbstractAudioBackend::State lastState;
 public:
+    GstElement *playBin;
     explicit AudioBackendGstreamer(bool loadPitchShift = true, QObject *parent = 0, QString objectName = "unknown");
     ~AudioBackendGstreamer();
     int volume();
@@ -172,6 +182,12 @@ private slots:
     void faderChangedVolume(int volume);
     void faderStarted();
     void faderFinished();
+    void busMessage(std::shared_ptr<GstMessage> message);
+    void gstPositionChanged(qint64 position);
+    void gstDurationChanged(qint64 duration);
+    void gstFastTimerFired();
+    void faderChangedVolume(double volume);
+
 
 public slots:
     void play();

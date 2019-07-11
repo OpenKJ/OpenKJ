@@ -26,8 +26,14 @@
 #include <QFile>
 #include <gst/audio/streamvolume.h>
 #include "settings.h"
+#include <functional>
 
 extern Settings *settings;
+GstElement *playBinPub;
+
+
+Q_DECLARE_SMART_POINTER_METATYPE(std::shared_ptr);
+Q_DECLARE_METATYPE(std::shared_ptr<GstMessage>);
 
 AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *parent, QString objectName) :
     AbstractAudioBackend(parent)
@@ -42,6 +48,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     qInfo() << qgetenv("GST_PLUGIN_SYSTEM_PATH") << endl << qgetenv("GST_PLUGIN_SCANNER") << endl << qgetenv("GTK_PATH") << endl << qgetenv("GIO_EXTRA_MODULES") << endl;
 #endif
     qInfo() << "Start constructing GStreamer backend";
+    QMetaTypeId<std::shared_ptr<GstMessage>>::qt_metatype_id();
     this->loadPitchShift = loadPitchShift;
     objName = objectName;
     m_hasVideo = false;
@@ -83,6 +90,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     fader->setObjName(objName + "Fader");
     connect(fader, SIGNAL(fadeStarted()), this, SLOT(faderStarted()));
     connect(fader, SIGNAL(fadeComplete()), this, SLOT(faderFinished()));
+    connect(fader, SIGNAL(volumeChanged(double)), this, SLOT(faderChangedVolume(double)));
     buildPipeline();
 
     monitor = gst_device_monitor_new ();
@@ -119,7 +127,7 @@ AudioBackendGstreamer::~AudioBackendGstreamer()
     gst_caps_unref(audioCapsMono);
     gst_caps_unref(audioCapsStereo);
     gst_caps_unref(videoCaps);
-    gst_object_unref(bus);
+    gst_object_unref(bus.get());
     gst_object_unref(monitor);
     gst_object_unref(tv_csource);
 }
@@ -132,7 +140,7 @@ void AudioBackendGstreamer::processGstMessages()
     bool done = false;
     while (!done)
     {
-        message = gst_bus_pop(bus);
+        message = gst_bus_pop(bus.get());
         if (message != NULL)
         {
             if (message->type == GST_MESSAGE_ERROR)
@@ -437,62 +445,25 @@ void AudioBackendGstreamer::stop(bool skipFade)
         setVolume(curVolume);
     }
     qInfo() << objName << " - stop() completed";
+
+
 }
 
 void AudioBackendGstreamer::fastTimer_timeout()
 {
-    //processGstMessages();
-    static int curPosition;
-    if(state() == AbstractAudioBackend::PlayingState)
-    {
-        if (position() != curPosition)
-            emit positionChanged(position());
-        curPosition = position();
-    }
-    gdouble curVolume;
-    g_object_get(G_OBJECT(volumeElement), "volume", &curVolume, NULL);
-    double cubicVolume = gst_stream_volume_convert_volume(GST_STREAM_VOLUME_FORMAT_LINEAR, GST_STREAM_VOLUME_FORMAT_CUBIC, curVolume);
-    int intVol = cubicVolume * 100;
-    if (m_volume != intVol)
-    {
-        if ((!fader->isFading()) && ((intVol < m_volume - 1) || (intVol > m_volume + 1)))
-        {
-            qInfo() << objName << " - Unrequested volume change detected, squashing";
-            setVolume(m_volume);
-        }
-        else
-        {
-            qInfo() << objName << " - emitting volume changed: " << intVol;
-            emit faderChangedVolume(intVol);
-            m_volume = intVol;
-        }
-    }
+
 }
+
+
 
 void AudioBackendGstreamer::slowTimer_timeout()
 {
-
-
-    if (state() != lastState)
-    {
-        lastState = state();
-        emit stateChanged(lastState);
-//        if (currentState == AbstractAudioBackend::StoppedState)
-//            stop();
-    }
-    else if((lastState == AbstractAudioBackend::StoppedState) && (pitchShift() != 0))
-            setPitchShift(0);
-
-    processGstMessages();
-    //qInfo() << "Silence detection enabled state: " << m_silenceDetect;
-    //qInfo() << "Audio backend state            : " << state();
     if (m_silenceDetect)
     {
         if ((state() == AbstractAudioBackend::PlayingState) && (isSilent()))
         {
             if (m_silenceDuration >= 2)
             {
-                //m_silenceDuration = 0;
                 emit silenceDetected();
                 m_silenceDuration++;
                 return;
@@ -502,6 +473,17 @@ void AudioBackendGstreamer::slowTimer_timeout()
 
         else
             m_silenceDuration = 0;
+    }
+
+    gdouble curVolume;
+    g_object_get(G_OBJECT(volumeElement), "volume", &curVolume, NULL);
+    double cubicVolume = gst_stream_volume_convert_volume(GST_STREAM_VOLUME_FORMAT_LINEAR, GST_STREAM_VOLUME_FORMAT_CUBIC, curVolume);
+    int intVol = cubicVolume * 100;
+    if (m_volume != intVol)
+    {
+        qInfo() << objName << " - emitting volume changed: " << intVol;
+        emit faderChangedVolume(intVol);
+        m_volume = intVol;
     }
 }
 
@@ -604,6 +586,216 @@ QStringList AudioBackendGstreamer::GstGetElements(QString plugin)
     return list;
 }
 
+template <typename T> std::shared_ptr<T> takeGstObject(T *o)
+{
+  std::shared_ptr<T> ptr(o, [] (T *d) {
+    gst_object_unref(reinterpret_cast<GstObject*>(d));
+  });
+  return ptr;
+}
+
+template <typename T> std::shared_ptr<T> takeGstMiniObject(T *o)
+{
+    std::shared_ptr<T> ptr(o, [] (T *d) {
+        gst_mini_object_unref(reinterpret_cast<GstMiniObject*>(d));
+    });
+    return ptr;
+}
+
+void AudioBackendGstreamer::busMessage(std::shared_ptr<GstMessage> message)
+{
+    switch (GST_MESSAGE_TYPE(message.get())) {
+    case GST_MESSAGE_ERROR:
+        GError *err;
+        gchar *debug;
+        gst_message_parse_error(message.get(), &err, &debug);
+        //g_print("GStreamer error: %s\n", err->message);
+        //g_print("GStreamer debug output: %s\n", debug);
+        qInfo() << objName << " - Gst error: " << err->message;
+        qInfo() << objName << " - Gst debug: " << debug;
+        if (QString(err->message) == "Your GStreamer installation is missing a plug-in.")
+        {
+            QString player;
+            if (objName == "KA")
+                player = "karaoke";
+            else
+                player = "break music";
+            qInfo() << objName << " - PLAYBACK ERROR - Missing Codec";
+            emit audioError("Unable to play " + player + " file, missing gstreamer plugin");
+            stop(true);
+        }
+        g_error_free(err);
+        g_free(debug);
+        break;
+    case GST_MESSAGE_WARNING:
+        GError *err2;
+        gchar *debug2;
+        gst_message_parse_warning(message.get(), &err2, &debug2);
+        qInfo() << objName << " - Gst warning: " << err2->message;
+        qInfo() << objName << " - Gst debug: " << debug2;
+        g_error_free(err2);
+        g_free(debug2);
+        break;
+    case GST_MESSAGE_STATE_CHANGED:
+        GstState state;
+        gst_element_get_state(playBin, &state, NULL, GST_CLOCK_TIME_NONE);
+        if (state == GST_STATE_PLAYING && lastState != AbstractAudioBackend::PlayingState)
+        {
+            qInfo() << "GST notified of state change to PLAYING";
+            lastState = AbstractAudioBackend::PlayingState;
+            emit stateChanged(AbstractAudioBackend::PlayingState);
+        }
+        else if (state == GST_STATE_PAUSED && lastState != AbstractAudioBackend::PausedState)
+        {
+            qInfo() << "GST notified of state change to PAUSED";
+            lastState = AbstractAudioBackend::PausedState;
+            emit stateChanged(AbstractAudioBackend::PausedState);
+        }
+        else if (state == GST_STATE_NULL && lastState != AbstractAudioBackend::StoppedState)
+        {
+            qInfo() << "GST notified of state change to STOPPED";
+            lastState = AbstractAudioBackend::StoppedState;
+            emit stateChanged(AbstractAudioBackend::StoppedState);
+        }
+        else if (lastState != AbstractAudioBackend::UnknownState)
+        {
+            //qInfo() << "GST notified of state change to UNKNOWN";
+            //lastState = AbstractAudioBackend::UnknownState;
+            //emit stateChanged(AbstractAudioBackend::UnknownState);
+        }
+        break;
+    case GST_MESSAGE_ELEMENT:
+        if (QString(gst_structure_get_name (gst_message_get_structure(message.get()))) == "level")
+        {
+            guint channels;
+            gdouble rms_dB;
+            gdouble rms;
+            const GValue *value;
+            const GValue *array_val;
+            GValueArray *rms_arr;
+            guint i;
+            array_val = gst_structure_get_value(gst_message_get_structure(message.get()), "rms");
+            rms_arr = (GValueArray *) g_value_get_boxed (array_val);
+            channels = rms_arr->n_values;
+            double rmsValues = 0.0;
+            for (i = 0; i < channels; ++i)
+            {
+                value = g_value_array_get_nth (rms_arr, i);
+                rms_dB = g_value_get_double (value);
+                rms = pow (10, rms_dB / 20);
+                rmsValues = rmsValues + rms;
+            }
+            m_currentRmsLevel = rmsValues / channels;
+        }
+        break;
+    case GST_MESSAGE_STREAM_START:
+        // workaround for gstreamer changing the volume unsolicited on playback start
+        gdouble curVolume;
+        g_object_get(G_OBJECT(volumeElement), "volume", &curVolume, NULL);
+        double cubicVolume;
+        cubicVolume= gst_stream_volume_convert_volume(GST_STREAM_VOLUME_FORMAT_LINEAR, GST_STREAM_VOLUME_FORMAT_CUBIC, curVolume);
+        int intVol;
+        intVol = cubicVolume * 100;
+        if (m_volume != intVol)
+        {
+            if ((!fader->isFading()) && ((intVol < m_volume - 1) || (intVol > m_volume + 1)))
+            {
+                qInfo() << objName << " - stream start - Unrequested volume change detected, squashing";
+                setVolume(m_volume);
+            }
+        }
+        break;
+    case GST_MESSAGE_DURATION_CHANGED:
+        gint64 dur, msdur;
+        qInfo() << objName << " - GST reports duration changed";
+        if (gst_element_query_duration(playBinPub,GST_FORMAT_TIME,&dur))
+            msdur = dur / 1000000;
+        else
+            msdur = 0;
+        emit durationChanged(msdur);
+        break;
+    case GST_MESSAGE_EOS:
+        emit stateChanged(EndOfMediaState);
+        break;
+    case GST_MESSAGE_TAG:
+        // do nothing
+        break;
+    case GST_MESSAGE_STREAM_STATUS:
+        // do nothing
+        break;
+    default:
+        //g_print("Msg type[%d], Msg type name[%s]\n", GST_MESSAGE_TYPE(message), GST_MESSAGE_TYPE_NAME(message));
+        qInfo() << objName << " - Gst msg type: " << GST_MESSAGE_TYPE(message.get()) << " Gst msg name: " << GST_MESSAGE_TYPE_NAME(message.get());
+        break;
+    }
+}
+
+void AudioBackendGstreamer::gstPositionChanged(qint64 position)
+{
+    qInfo() << "gstPositionChanged(" << position << ") called";
+    emit positionChanged(position);
+}
+
+void AudioBackendGstreamer::gstDurationChanged(qint64 duration)
+{
+    emit durationChanged(duration);
+}
+
+void AudioBackendGstreamer::gstFastTimerFired()
+{
+
+    static qint64 lastPos = 0;
+    if (lastState != PlayingState)
+    {
+        if (lastPos == 0)
+            return;
+        lastPos = 0;
+        emit positionChanged(0);
+        return;
+    }
+    gint64 pos, mspos;
+    GstFormat fmt = GST_FORMAT_TIME;
+    if (gst_element_query_position (playBin, fmt, &pos))
+        mspos = pos / 1000000;
+    else
+        mspos = 0;
+    if (lastPos != mspos)
+    {
+        lastPos = mspos;
+        emit positionChanged(mspos);
+    }
+}
+
+void AudioBackendGstreamer::faderChangedVolume(double volume)
+{
+    Q_UNUSED(volume)
+    int intVol = volume * 100;
+    emit volumeChanged(intVol);
+}
+
+
+
+GstBusSyncReply AudioBackendGstreamer::busMessageDispatcher(GstBus *bus, GstMessage *message, gpointer userData)
+{
+  auto myObj = static_cast<AudioBackendGstreamer*>(userData);
+
+  Q_UNUSED(bus);
+
+  auto messagePtr = takeGstMiniObject(message);
+  QMetaObject::invokeMethod(myObj, "busMessage", Qt::QueuedConnection, Q_ARG(std::shared_ptr<GstMessage>, messagePtr));
+
+  return GST_BUS_DROP;
+}
+
+gboolean AudioBackendGstreamer::gstTimerDispatcher(QObject *qObj)
+{
+    auto abObj = static_cast<AudioBackendGstreamer*>(qObj);
+    QMetaObject::invokeMethod(abObj, "gstFastTimerFired");
+    /* call me again */
+    return TRUE;
+}
+
+
 void AudioBackendGstreamer::buildPipeline()
 {
     qInfo() << objName << " - buildPipeline() called";
@@ -629,6 +821,7 @@ void AudioBackendGstreamer::buildPipeline()
     pitchShifterRubberBand = gst_element_factory_make("ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo", "ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo");
     equalizer = gst_element_factory_make("equalizer-10bands", NULL);
     playBin = gst_element_factory_make("playbin", "playBin");
+    playBinPub = playBin;
     fltrMplxInput = gst_element_factory_make("capsfilter", "filter");
     fltrEnd = gst_element_factory_make("capsfilter", NULL);
     audioCapsStereo = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 2, NULL);
@@ -747,7 +940,8 @@ void AudioBackendGstreamer::buildPipeline()
 
     g_object_set(G_OBJECT(rgVolume), "album-mode", false, NULL);
     g_object_set(G_OBJECT (level), "message", TRUE, NULL);
-    bus = gst_element_get_bus (playBin);
+    bus = takeGstObject(gst_element_get_bus(playBin));
+    gst_bus_set_sync_handler(bus.get(), busMessageDispatcher, this, nullptr);
     gst_app_sink_set_callbacks(GST_APP_SINK(videoAppSink), &appsinkCallbacks, this, (GDestroyNotify)AudioBackendGstreamer::DestroyCallback);
     csource = gst_interpolation_control_source_new ();
     if (!csource)
@@ -761,7 +955,7 @@ void AudioBackendGstreamer::buildPipeline()
     tv_csource = (GstTimedValueControlSource *)csource;
     setVolume(m_volume);
     slowTimer->start(1000);
-    fastTimer->start(40);
+   // fastTimer->start(200);
     fader->setPaused(false);
     setOutputDevice(outputDeviceIdx);
     setEqBypass(bypass);
@@ -777,6 +971,7 @@ void AudioBackendGstreamer::buildPipeline()
     setEqLevel10(eq10);
     setDownmix(downmix);
     setMuted(m_muted);
+    g_timeout_add (40,(GSourceFunc) gstTimerDispatcher, this);
     setVolume(m_volume);
 
     qInfo() << objName << " - buildPipeline() finished";
@@ -794,7 +989,7 @@ void AudioBackendGstreamer::destroyPipeline()
     gst_caps_unref(audioCapsMono);
     gst_caps_unref(audioCapsStereo);
     gst_caps_unref(videoCaps);
-    gst_object_unref(bus);
+    gst_object_unref(bus.get());
     gst_object_unref(tv_csource);
     qInfo() << objName << " - destroyPipeline() finished";
 }
