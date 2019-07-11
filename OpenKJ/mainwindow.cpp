@@ -797,10 +797,10 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
                     QString audioFile = khTmpDir->path() + QDir::separator() + "tmp" + archive.audioExtension();
                     qInfo() << "Extracted audio file size: " << QFileInfo(audioFile).size();
                     qInfo() << "Loading CDG data";
-                    cdg->FileOpen(archive.getCDGData());
+                    cdg->open(archive.getCDGData());
                     qInfo() << "Processing CDG data";
-                    cdg->Process();
-                    qInfo() << "CDG Processed. - Duration: " << cdg->GetDuration() << " Last CDG draw command time: " << cdg->GetLastCDGUpdate();
+                    cdg->process();
+                    qInfo() << "CDG Processed. - Duration: " << cdg->duration() << " Last CDG draw command time: " << cdg->lastCDGUpdate();
                     cdgWindow->setShowBgImage(false);
                     setShowBgImage(false);
                     qInfo() << "Setting karaoke backend source file to: " << audioFile;
@@ -864,8 +864,8 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
             }
             cdgFile.copy(khTmpDir->path() + QDir::separator() + cdgTmpFile);
             QFile::copy(audiofn, khTmpDir->path() + QDir::separator() + audTmpFile);
-            cdg->FileOpen(khTmpDir->path() + QDir::separator() + cdgTmpFile);
-            cdg->Process();
+            cdg->open(khTmpDir->path() + QDir::separator() + cdgTmpFile);
+            cdg->process();
             kAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + audTmpFile);
 //            ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
             if (!k2k)
@@ -1377,17 +1377,11 @@ void MainWindow::audioBackend_positionChanged(qint64 position)
 {
     if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
     {
-        if (cdg->IsOpen() && cdg->GetLastCDGUpdate() >= position)
+        if (cdg->isOpen() && cdg->lastCDGUpdate() >= position)
         {
-                //unsigned char* rgbdata;
-                //rgbdata = cdg->GetImageByTime(position + cdgOffset);
-                QVideoFrame frame = cdg->getQVideoFrameByTime(position + cdgOffset);
-                //QImage img(rgbdata, 300, 216, QImage::Format_RGB888);
-//                ui->cdgVideoWidget->videoSurface()->present(QVideoFrame(img));
-//                cdgWindow->updateCDG(img);
+                QVideoFrame frame = cdg->videoFrameByTime(position + cdgOffset);
                 ui->cdgVideoWidget->videoSurface()->present(frame);
                 cdgWindow->updateCDG(frame);
-                //free(rgbdata);
         }
         if (!sliderPositionPressed)
         {
@@ -1414,7 +1408,7 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
     {
         qInfo() << "KAudio entered StoppedState";
         audioRecorder->stop();
-        cdg->VideoClose();
+        cdg->reset();
         if (k2kTransition)
             return;
         ui->labelArtist->setText("None");
@@ -1642,8 +1636,8 @@ void MainWindow::rotationDataChanged()
 
 void MainWindow::silenceDetected()
 {
-    qInfo() << "Detected silence.  Cur Pos: " << kAudioBackend->position() << " Last CDG update pos: " << cdg->GetLastCDGUpdate();
-    if (cdg->IsOpen() && cdg->GetLastCDGUpdate() < kAudioBackend->position())
+    qInfo() << "Detected silence.  Cur Pos: " << kAudioBackend->position() << " Last CDG update pos: " << cdg->lastCDGUpdate();
+    if (cdg->isOpen() && cdg->lastCDGUpdate() < kAudioBackend->position())
     {
         kAudioBackend->stop(true);
 //        ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);

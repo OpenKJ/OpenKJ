@@ -22,11 +22,8 @@
 #define LIBCDG_H
 
 #include <QByteArray>
-#include <QBuffer>
 #include <QVector>
 #include <QImage>
-#include <QColor>
-#include <QDebug>
 #include <QVideoFrame>
 \
 #define SC_MASK           0x3F
@@ -97,38 +94,39 @@ class CDG
 public:
 	CDG();
 	virtual ~CDG();
-    bool FileOpen(QByteArray byteArray);
-    bool FileOpen(QString filename);
-	bool Process(bool clear = true);
-	void VideoClose();
-    QVideoFrame getQVideoFrameByTime(unsigned int ms);
-    unsigned int GetDuration();
-    bool IsOpen();
-    unsigned int GetLastCDGUpdate() { return LastCDGCommandMS; }
+    bool open(QByteArray byteArray);
+    bool open(QString filename);
+    bool process();
+    void reset();
+    bool canSkipFrameByTime(unsigned int ms);
+    QVideoFrame videoFrameByTime(unsigned int ms);
+    unsigned int duration();
+    unsigned int position();
+    bool isOpen();
+    unsigned int lastCDGUpdate();
     int tempo();
     void setTempo(int percent);
 protected:
 private:
     int m_tempo;
-	void CDG_Read_SubCode_Packet(CDG_SubCode &SubCode);
-	void CMDScrollPreset(char data[16]);
-	void CMDScrollCopy(char data[16]);
-	void CMDDefineTrans(char data[16]);
-	void CMDMemoryPreset(char data[16]);
-	void CMDBorderPreset(char data[16]);
-	void CMDTileBlock(char data[16], bool XOR = false);
-	void CMDColors(char data[16], int Table);
-	unsigned int GetPosMS();
-	unsigned int LastCDGCommandMS;
-    unsigned int duration;
-    bool Open;
-	bool CDGFileOpened;
-    QByteArray cdgData;
-	unsigned int CurPos;
-	char masks[6];
-	bool needupdate;
-    QVector<QVideoFrame> frames;
-    QImage image;
+    unsigned int m_lastCDGCommandMS;
+    unsigned int m_duration;
+    bool m_isOpen;
+    QByteArray m_cdgData;
+    unsigned int m_position;
+    char m_masks[6];
+    bool m_needupdate;
+    QVector<QVideoFrame> m_frames;
+    QVector<bool> m_skip;
+    QImage m_image;
+    void readCdgSubcodePacket(CDG_SubCode &subCode);
+    void cmdScrollPreset(char data[16]);
+    void cmdScrollCopy(char data[16]);
+    void cmdDefineTrans(char data[16]);
+    void cmdMemoryPreset(char data[16]);
+    void cmdBorderPreset(char data[16]);
+    void cmdTileBlock(char data[16], bool XOR = false);
+    void cmdColors(char data[16], int Table);
 };
 
 #endif // LIBCDG_H
