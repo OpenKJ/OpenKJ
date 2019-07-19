@@ -423,6 +423,7 @@ void AudioBackendGstreamer::stop(bool skipFade)
     if (state() == AbstractAudioBackend::StoppedState)
     {
         qInfo() << objName << " - AudioBackendGstreamer::stop -- Already stopped, skipping";
+        emit stateChanged(AbstractAudioBackend::StoppedState);
         return;
     }
     if (state() == AbstractAudioBackend::PausedState)
@@ -458,9 +459,12 @@ void AudioBackendGstreamer::fastTimer_timeout()
 
 void AudioBackendGstreamer::slowTimer_timeout()
 {
+    AbstractAudioBackend::State curState = state();
+    if (lastState != curState)
+        emit stateChanged(curState);
     if (m_silenceDetect)
     {
-        if ((state() == AbstractAudioBackend::PlayingState) && (isSilent()))
+        if ((curState == AbstractAudioBackend::PlayingState) && (isSilent()))
         {
             if (m_silenceDuration >= 2)
             {
