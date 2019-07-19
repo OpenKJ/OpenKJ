@@ -17,7 +17,7 @@ void TickerNew::run() {
     {
         //qInfo() << "Locking mutex in run()";
         //mutex.lock();
-        if (!mutex.tryLock(10))
+        if (!mutex.tryLock(100))
         {
             qWarning() << "TickerNew - run() unable to lock mutex!";
             continue;
@@ -47,7 +47,7 @@ void TickerNew::run() {
 void TickerNew::stop()
 {
     qInfo() << "Locking mutex in stop()";
-    if (!mutex.tryLock(10))
+    if (!mutex.tryLock(100))
     {
         qWarning() << "TickerNew - stop() unable to lock mutex!";
         return;
@@ -75,7 +75,7 @@ TickerNew::TickerNew()
 QSize TickerNew::getSize()
 {
     qInfo() << "Locking mutex in getSize()";
-    if (!mutex.tryLock(10))
+    if (!mutex.tryLock(100))
     {
         qWarning() << "TickerNew - getSize() unable to lock mutex!";
         return QSize();
@@ -91,7 +91,7 @@ void TickerNew::setTickerGeometry(int width, int height)
 {
     qInfo() << "TickerNew - setTickerGeometry(" << width << "," << height << ") called";
     qInfo() << "Locking mutex in setTickerGeometry()";
-    if (!mutex.tryLock(10))
+    if (!mutex.tryLock(100))
     {
         qWarning() << "TickerNew - setTickerGeometry() unable to lock mutex!";
         return;
@@ -110,7 +110,7 @@ void TickerNew::setText(QString text)
 {
     qInfo() << "TickerNew - setText(" << text << ") called";
     qInfo() << "Locking mutex in setText()";
-    if (!mutex.tryLock(10))
+    if (!mutex.tryLock(100))
     {
         qWarning() << "TickerNew - setText() unable to lock mutex!";
         return;
@@ -155,7 +155,7 @@ void TickerNew::refresh()
 void TickerNew::setSpeed(int speed)
 {
     qInfo() << "Locking mutex in setSpeed()";
-    if (!mutex.tryLock(10))
+    if (!mutex.tryLock(100))
     {
         qWarning() << "TickerNew - setSpeed() unable to lock mutex!";
         return;
