@@ -132,6 +132,7 @@ DlgCdg::DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *Break
     oneSecTimer = new QTimer(this);
     oneSecTimer->start(1000);
     ui->scroll->setVisible(settings->tickerEnabled());
+    ui->scroll->setTickerEnabled(settings->tickerEnabled());
     connect(buttonShowTimer, SIGNAL(timeout()), this, SLOT(buttonShowTimerTimeout()));
     alertBgColorChanged(settings->alertBgColor());
     alertTxtColorChanged(settings->alertTxtColor());
@@ -256,6 +257,7 @@ void DlgCdg::tickerBgColorChanged()
 void DlgCdg::tickerEnableChanged()
 {
     ui->scroll->setVisible(settings->tickerEnabled());
+    ui->scroll->setTickerEnabled(settings->tickerEnabled());
 }
 
 void DlgCdg::cdgRemainFontChanged(QFont font)

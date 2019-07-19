@@ -10,6 +10,8 @@
 QMutex mutex;
 
 void TickerNew::run() {
+    qInfo() << "TickerNew - run() called, ticker starting";
+    m_stop = false;
     bool l_stop  = false;
     while (!l_stop)
     {
@@ -172,7 +174,7 @@ TickerDisplayWidget::TickerDisplayWidget(QWidget *parent)
 {
     ticker = new TickerNew();
     ticker->setTickerGeometry(this->width(), this->height());
-    ticker->start();
+    //ticker->start();
     connect(ticker, SIGNAL(newFrame(QPixmap)), this, SLOT(newFrame(QPixmap)));
     connect(ticker, SIGNAL(newFrameRect(QPixmap, QRect)), this, SLOT(newFrameRect(QPixmap, QRect)));
     rectBasedDrawing = false;
@@ -205,6 +207,15 @@ void TickerDisplayWidget::setSpeed(int speed)
 void TickerDisplayWidget::stop()
 {
     ticker->stop();
+}
+
+void TickerDisplayWidget::setTickerEnabled(bool enabled)
+{
+    qInfo() << "TickerDisplayWidget - setTickerEnabled(" << enabled << ") called";
+    if (enabled && !ticker->isRunning())
+        ticker->start();
+    else if (!enabled && ticker->isRunning())
+        ticker->stop();
 }
 
 

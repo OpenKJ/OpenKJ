@@ -52,6 +52,7 @@ public:
         QRect drawRect;
         bool rectBasedDrawing;
         void stop();
+        void setTickerEnabled(bool enabled);
 
         // QWidget interface
 protected:
