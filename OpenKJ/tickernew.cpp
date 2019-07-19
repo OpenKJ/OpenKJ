@@ -14,12 +14,17 @@ void TickerNew::run() {
     while (!l_stop)
     {
         //qInfo() << "Locking mutex in run()";
-        mutex.lock();
+        //mutex.lock();
+        if (!mutex.tryLock(10))
+        {
+            qWarning() << "TickerNew - run() unable to lock mutex!";
+            continue;
+        }
         if (!m_textOverflows)
             curOffset = 0;
         if (curOffset >= m_txtWidth)
         {
-            qInfo() << "TickerNew - Reset offset";
+           // qInfo() << "TickerNew - Reset offset";
             curOffset = 0;
         }
         if (m_stop)
@@ -40,7 +45,12 @@ void TickerNew::run() {
 void TickerNew::stop()
 {
     qInfo() << "Locking mutex in stop()";
-    mutex.lock();
+    if (!mutex.tryLock(10))
+    {
+        qWarning() << "TickerNew - stop() unable to lock mutex!";
+        return;
+    }
+    //mutex.lock();
     m_stop = true;
     qInfo() << "Unlocking mutex in stop()";
     mutex.unlock();
@@ -63,7 +73,12 @@ TickerNew::TickerNew()
 QSize TickerNew::getSize()
 {
     qInfo() << "Locking mutex in getSize()";
-    mutex.lock();
+    if (!mutex.tryLock(10))
+    {
+        qWarning() << "TickerNew - getSize() unable to lock mutex!";
+        return QSize();
+    }
+    //mutex.lock();
     QSize size = QSize(m_width, m_height);
     qInfo() << "Unlocking mutex in getSize()";
     mutex.unlock();
@@ -74,7 +89,12 @@ void TickerNew::setTickerGeometry(int width, int height)
 {
     qInfo() << "TickerNew - setTickerGeometry(" << width << "," << height << ") called";
     qInfo() << "Locking mutex in setTickerGeometry()";
-    mutex.lock();
+    if (!mutex.tryLock(10))
+    {
+        qWarning() << "TickerNew - setTickerGeometry() unable to lock mutex!";
+        return;
+    }
+    //mutex.lock();
     m_height = height;
     m_width = width;
     scrollImage = QPixmap(width * 2, height);
@@ -88,7 +108,12 @@ void TickerNew::setText(QString text)
 {
     qInfo() << "TickerNew - setText(" << text << ") called";
     qInfo() << "Locking mutex in setText()";
-    mutex.lock();
+    if (!mutex.tryLock(10))
+    {
+        qWarning() << "TickerNew - setText() unable to lock mutex!";
+        return;
+    }
+    //mutex.lock();
     m_textOverflows = false;
     m_text = text;
     QString drawText;
@@ -128,7 +153,12 @@ void TickerNew::refresh()
 void TickerNew::setSpeed(int speed)
 {
     qInfo() << "Locking mutex in setSpeed()";
-    mutex.lock();
+    if (!mutex.tryLock(10))
+    {
+        qWarning() << "TickerNew - setSpeed() unable to lock mutex!";
+        return;
+    }
+    //mutex.lock();
     if (speed > 50)
         m_speed = 50;
     else

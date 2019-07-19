@@ -79,6 +79,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     outputDeviceIdx = 0;
     downmix = false;
     bypass = false;
+    lastState = AbstractAudioBackend::StoppedState;
 
     slowTimer = new QTimer(this);
     connect(slowTimer, SIGNAL(timeout()), this, SLOT(slowTimer_timeout()));
@@ -609,6 +610,12 @@ template <typename T> std::shared_ptr<T> takeGstMiniObject(T *o)
 void AudioBackendGstreamer::busMessage(std::shared_ptr<GstMessage> message)
 {
     switch (GST_MESSAGE_TYPE(message.get())) {
+    case GST_MESSAGE_LATENCY:
+        break;
+    case GST_MESSAGE_ASYNC_DONE:
+        break;
+    case GST_MESSAGE_NEW_CLOCK:
+        break;
     case GST_MESSAGE_ERROR:
         GError *err;
         gchar *debug;
@@ -658,8 +665,11 @@ void AudioBackendGstreamer::busMessage(std::shared_ptr<GstMessage> message)
         else if (state == GST_STATE_NULL && lastState != AbstractAudioBackend::StoppedState)
         {
             qInfo() << "GST notified of state change to STOPPED";
-            lastState = AbstractAudioBackend::StoppedState;
-            emit stateChanged(AbstractAudioBackend::StoppedState);
+            if (lastState != AbstractAudioBackend::StoppedState)
+            {
+                lastState = AbstractAudioBackend::StoppedState;
+                emit stateChanged(AbstractAudioBackend::StoppedState);
+            }
         }
         else if (lastState != AbstractAudioBackend::UnknownState)
         {

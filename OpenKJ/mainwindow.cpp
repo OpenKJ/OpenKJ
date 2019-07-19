@@ -1401,9 +1401,15 @@ void MainWindow::audioBackend_durationChanged(qint64 duration)
 
 void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
 {
-    qInfo() << "MainWindow - audioBackend_stateChanged(" << state << ") triggered";
+    //qInfo() << "MainWindow - audioBackend_stateChanged(" << state << ") triggered";
     if (state == AbstractAudioBackend::StoppedState)
     {
+        qInfo() << "MainWindow - audio backend state is now STOPPED";
+        if (ui->labelTotalTime->text() == "0:00")
+        {
+            qInfo() << "MainWindow - UI is already reset, bailing out";
+            return;
+        }
         qInfo() << "KAudio entered StoppedState";
         audioRecorder->stop();
         cdg->reset();
