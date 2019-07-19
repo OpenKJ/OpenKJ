@@ -1401,9 +1401,7 @@ void MainWindow::audioBackend_durationChanged(qint64 duration)
 
 void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
 {
-    if (state == m_lastAudioState)
-        return;
-    m_lastAudioState = state;
+    qInfo() << "MainWindow - audioBackend_stateChanged(" << state << ") triggered";
     if (state == AbstractAudioBackend::StoppedState)
     {
         qInfo() << "KAudio entered StoppedState";
@@ -1423,7 +1421,9 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
         setShowBgImage(true);
         cdgWindow->setShowBgImage(true);
         cdgWindow->triggerBg();
-
+        if (state == m_lastAudioState)
+            return;
+        m_lastAudioState = state;
         bmAudioBackend->fadeIn(false);
         if (settings->karaokeAutoAdvance())
         {

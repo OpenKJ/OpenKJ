@@ -37,6 +37,7 @@
 #include <QAudioOutput>
 #include "audiofader.h"
 #include <QPointer>
+#include <memory>
 
 class gstTimerCallbackData
 {
