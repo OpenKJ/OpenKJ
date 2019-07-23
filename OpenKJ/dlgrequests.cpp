@@ -33,6 +33,10 @@ extern OKJSongbookAPI *songbookApi;
 
 QString toMixedCase(const QString& s)
 {
+    if (s.isNull())
+        return QString();
+    if (s.size() < 1)
+        return QString();
     QStringList parts = s.split(" ", QString::SkipEmptyParts);
     for (int i=1; i<parts.size(); ++i)
         parts[i].replace(0, 1, parts[i][0].toUpper());
