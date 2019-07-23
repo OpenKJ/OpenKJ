@@ -382,6 +382,8 @@ QVideoFrame CDG::videoFrameByTime(unsigned int ms)
     if (ms % 40 > 0) frameno++;
     if (frameno > m_frames.size())
         return m_frames.at(m_frames.size() - 1);
+    if (frameno < 0)
+        return m_frames.at(0);
     return m_frames.at(frameno);
 }
 
