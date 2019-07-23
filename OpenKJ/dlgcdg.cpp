@@ -374,6 +374,7 @@ void DlgCdg::fullScreenTimerTimeout()
         fullScreenTimer->stop();
     }
     slideShowTimerTimeout();
+    fullScreenTimer->stop();
 }
 
 QFileInfoList DlgCdg::getSlideShowImages()
