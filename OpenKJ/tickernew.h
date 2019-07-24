@@ -5,6 +5,10 @@
 #include <QPixmap>
 #include <QThread>
 #include <settings.h>
+#ifdef Q_OS_WIN
+#include <windows.h>
+#endif
+
 
 
 
@@ -24,6 +28,7 @@ class TickerNew : public QThread
     int curOffset;
     bool m_textOverflows;
     int m_speed;
+    bool m_textChanged;
 public:
     TickerNew();
     QSize getSize();
@@ -36,6 +41,7 @@ public slots:
 signals:
     void newFrame(QPixmap frame);
     void newFrameRect(QPixmap frame, QRect displayArea);
+    void newRect(QRect displayArea);
 };
 
 class TickerDisplayWidget : public QWidget
@@ -59,6 +65,7 @@ protected:
         void resizeEvent(QResizeEvent *event);
 private slots:
         void newFrameRect(QPixmap frame, QRect displayArea);
+        void newRect(QRect displayArea);
         void newFrame(QPixmap frame);
 
         // QWidget interface

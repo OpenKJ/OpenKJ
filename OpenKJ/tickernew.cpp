@@ -9,10 +9,36 @@
 
 QMutex mutex;
 
+
+#ifdef Q_OS_WIN
+BOOLEAN nanosleep(LONGLONG ns){
+    /* Declarations */
+    HANDLE timer;   /* Timer handle */
+    LARGE_INTEGER li;   /* Time defintion */
+    /* Create timer */
+    if(!(timer = CreateWaitableTimer(NULL, TRUE, NULL)))
+        return FALSE;
+    /* Set timer properties */
+    li.QuadPart = -ns;
+    if(!SetWaitableTimer(timer, &li, 0, NULL, NULL, FALSE)){
+        CloseHandle(timer);
+        return FALSE;
+    }
+    /* Start & wait for timer */
+    WaitForSingleObject(timer, INFINITE);
+    /* Clean resources */
+    CloseHandle(timer);
+    /* Slept without problems */
+    return TRUE;
+}
+#endif
+
+
 void TickerNew::run() {
     qInfo() << "TickerNew - run() called, ticker starting";
     m_stop = false;
     bool l_stop  = false;
+    m_textChanged = true;
     while (!l_stop)
     {
         //qInfo() << "Locking mutex in run()";
@@ -35,12 +61,22 @@ void TickerNew::run() {
             mutex.unlock();
             return;
         }
-        emit newFrameRect(scrollImage, QRect(curOffset,0,m_width,m_height));
+        if (!m_textChanged)
+            emit newRect(QRect(curOffset,0,m_width,m_height));
+        else
+        {
+            m_textChanged = false;
+            emit newFrameRect(scrollImage, QRect(curOffset,0,m_width,m_height));
+        }
         curOffset = curOffset + 2;
         l_stop = m_stop;
         //qInfo() << "Unlocking mutex in run()";
         mutex.unlock();
+#ifdef Q_OS_WIN
+        nanosleep(m_speed * 1000000);
+#else
         msleep(m_speed);
+#endif
     }
 }
 
@@ -116,6 +152,7 @@ void TickerNew::setText(QString text)
         return;
     }
     //mutex.lock();
+    m_textChanged = true;
     m_textOverflows = false;
     m_text = text;
     QString drawText;
@@ -173,10 +210,12 @@ TickerDisplayWidget::TickerDisplayWidget(QWidget *parent)
     : QWidget(parent)
 {
     ticker = new TickerNew();
+    ticker->setPriority(QThread::HighPriority);
     ticker->setTickerGeometry(this->width(), this->height());
     //ticker->start();
     connect(ticker, SIGNAL(newFrame(QPixmap)), this, SLOT(newFrame(QPixmap)));
     connect(ticker, SIGNAL(newFrameRect(QPixmap, QRect)), this, SLOT(newFrameRect(QPixmap, QRect)));
+    connect(ticker, SIGNAL(newRect(QRect)), this, SLOT(newRect(QRect)));
     rectBasedDrawing = false;
 }
 
@@ -230,6 +269,15 @@ void TickerDisplayWidget::newFrameRect(QPixmap frame, QRect displayArea)
     m_image = frame;
     drawRect = displayArea;
     //qInfo() << "Received drawRect: " << displayArea;
+    update();
+}
+
+void TickerDisplayWidget::newRect(QRect displayArea)
+{
+    if (!isVisible())
+        return;
+    rectBasedDrawing = true;
+    drawRect = displayArea;
     update();
 }
 
