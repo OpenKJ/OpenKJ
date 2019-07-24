@@ -10,30 +10,6 @@
 QMutex mutex;
 
 
-#ifdef Q_OS_WIN
-BOOLEAN nanosleep(LONGLONG ns){
-    /* Declarations */
-    HANDLE timer;   /* Timer handle */
-    LARGE_INTEGER li;   /* Time defintion */
-    /* Create timer */
-    if(!(timer = CreateWaitableTimer(NULL, TRUE, NULL)))
-        return FALSE;
-    /* Set timer properties */
-    li.QuadPart = -ns;
-    if(!SetWaitableTimer(timer, &li, 0, NULL, NULL, FALSE)){
-        CloseHandle(timer);
-        return FALSE;
-    }
-    /* Start & wait for timer */
-    WaitForSingleObject(timer, INFINITE);
-    /* Clean resources */
-    CloseHandle(timer);
-    /* Slept without problems */
-    return TRUE;
-}
-#endif
-
-
 void TickerNew::run() {
     qInfo() << "TickerNew - run() called, ticker starting";
     m_stop = false;
@@ -72,11 +48,7 @@ void TickerNew::run() {
         l_stop = m_stop;
         //qInfo() << "Unlocking mutex in run()";
         mutex.unlock();
-#ifdef Q_OS_WIN
-        nanosleep(m_speed * 1000000);
-#else
         msleep(m_speed);
-#endif
     }
 }
 

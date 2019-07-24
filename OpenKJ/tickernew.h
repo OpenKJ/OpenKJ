@@ -5,12 +5,6 @@
 #include <QPixmap>
 #include <QThread>
 #include <settings.h>
-#ifdef Q_OS_WIN
-#include <windows.h>
-#endif
-
-
-
 
 
 class TickerNew : public QThread
