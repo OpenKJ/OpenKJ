@@ -1555,7 +1555,7 @@ void MainWindow::rotationDataChanged()
     QString tickerText;
     if (settings->tickerCustomString() != "")
     {
-        tickerText += settings->tickerCustomString() + " | ";
+        tickerText += settings->tickerCustomString() + " |";
         QString cs = rotModel->getSingerName(rotModel->currentSinger());
         int nsPos;
         if (cs == "")
@@ -1591,7 +1591,7 @@ void MainWindow::rotationDataChanged()
     }
     if (settings->tickerShowRotationInfo())
     {
-        tickerText += "| Singers: ";
+        tickerText += " Singers: ";
         tickerText += QString::number(rotModel->rowCount());
         tickerText += " | Current: ";
         int displayPos;
@@ -1632,10 +1632,10 @@ void MainWindow::rotationDataChanged()
             tickerText += QString::number(i + 1);
             tickerText += ") ";
             tickerText += rotModel->getSingerName(rotModel->singerIdAtPosition(displayPos));
-            tickerText += "  ";
+            if (i < listSize - 1)
+                tickerText += "  ";
         }
-//        if (rotModel->rowCount() == 0)
-//            tickerText += " None";
+       // tickerText += "|";
     }
     cdgWindow->setTickerText(tickerText);
 }
