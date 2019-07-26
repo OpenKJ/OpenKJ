@@ -149,7 +149,7 @@ void TickerNew::setText(QString text)
     p.begin(&scrollImage);
     p.setPen(QPen(settings->tickerTextColor()));
     p.setFont(settings->tickerFont());
-    p.drawText(scrollImage.rect(), Qt::AlignLeft | Qt::AlignTop, drawText);
+    p.drawText(scrollImage.rect().adjusted(0,3,0,3), Qt::AlignLeft | Qt::AlignTop, drawText);
     p.end();
     qInfo() << "Unlocking mutex in setText()";
     mutex.unlock();
