@@ -28,6 +28,7 @@ void LazyDurationUpdateWorker::getDurations(const QStringList files) {
 
 LazyDurationUpdateController::LazyDurationUpdateController(QObject *parent) : QObject(parent) {
     LazyDurationUpdateWorker *worker = new LazyDurationUpdateWorker;
+    workerThread.setObjectName("DurationUpdater");
     worker->moveToThread(&workerThread);
     connect(&workerThread, &QThread::finished, worker, &QObject::deleteLater);
     connect(this, &LazyDurationUpdateController::operate, worker, &LazyDurationUpdateWorker::getDurations);
