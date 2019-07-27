@@ -115,6 +115,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     gst_device_monitor_stop(monitor);
 
     connect(settings, SIGNAL(mplxModeChanged(int)), this, SLOT(setMplxMode(int)));
+    g_timeout_add (40,(GSourceFunc) gstTimerDispatcher, this);
     qInfo() << "Done constructing GStreamer backend";
 }
 
@@ -985,7 +986,6 @@ void AudioBackendGstreamer::buildPipeline()
     setEqLevel10(eq10);
     setDownmix(downmix);
     setMuted(m_muted);
-    g_timeout_add (40,(GSourceFunc) gstTimerDispatcher, this);
     setVolume(m_volume);
 
     qInfo() << objName << " - buildPipeline() finished";
