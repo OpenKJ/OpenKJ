@@ -115,7 +115,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     gst_device_monitor_stop(monitor);
 
     connect(settings, SIGNAL(mplxModeChanged(int)), this, SLOT(setMplxMode(int)));
-    g_timeout_add (40,(GSourceFunc) gstTimerDispatcher, this);
+//    g_timeout_add (40,(GSourceFunc) gstTimerDispatcher, this);
     qInfo() << "Done constructing GStreamer backend";
 }
 
@@ -454,7 +454,26 @@ void AudioBackendGstreamer::stop(bool skipFade)
 
 void AudioBackendGstreamer::fastTimer_timeout()
 {
-
+    static qint64 lastPos = 0;
+    if (lastState != PlayingState)
+    {
+        if (lastPos == 0)
+            return;
+        lastPos = 0;
+        emit positionChanged(0);
+        return;
+    }
+    gint64 pos, mspos;
+    GstFormat fmt = GST_FORMAT_TIME;
+    if (gst_element_query_position (playBin, fmt, &pos))
+        mspos = pos / 1000000;
+    else
+        mspos = 0;
+    if (lastPos != mspos)
+    {
+        lastPos = mspos;
+        emit positionChanged(mspos);
+    }
 }
 
 
@@ -987,7 +1006,7 @@ void AudioBackendGstreamer::buildPipeline()
     setDownmix(downmix);
     setMuted(m_muted);
     setVolume(m_volume);
-
+    fastTimer->start(40);
     qInfo() << objName << " - buildPipeline() finished";
 }
 
