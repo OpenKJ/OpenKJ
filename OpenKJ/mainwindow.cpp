@@ -1492,6 +1492,7 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
         audioRecorder->stop();
 //        ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
         kAudioBackend->stop(true);
+        bmAudioBackend->fadeIn(false);
         cdgWindow->setShowBgImage(true);
     }
     if (state == AbstractAudioBackend::PausedState)
