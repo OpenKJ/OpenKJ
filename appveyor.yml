@@ -15,7 +15,7 @@ environment:
   OKJVERSION: 1.5.96
   matrix:
   - TARGET_ARCH: x64
-    QT: C:\Qt\5.12.2\msvc2017_64
+    QT: C:\Qt\5.13\msvc2017_64
     PLATFORM: amd64
     COMPILER: msvc
     VSVER: 14
