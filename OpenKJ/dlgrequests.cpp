@@ -172,6 +172,7 @@ void DlgRequests::requestsModified()
     if ((requestsModel->count() > 0) && (settings->requestDialogAutoShow()))
     {
         this->show();
+        this->raise();
     }
     autoSizeViews();
 }
@@ -541,4 +542,11 @@ void DlgRequests::on_pushButtonWebSearch_clicked()
 {
     QString link = "http://db.openkj.org/?type=All&searchstr=" + ui->lineEditSearch->text();
     QDesktopServices::openUrl(QUrl(link));
+}
+
+
+void DlgRequests::closeEvent(QCloseEvent *event)
+{
+    hide();
+    event->ignore();
 }

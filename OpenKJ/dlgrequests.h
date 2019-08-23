@@ -99,6 +99,10 @@ protected:
     // QWidget interface
 protected:
     void showEvent(QShowEvent *event);
+
+    // QWidget interface
+protected:
+    void closeEvent(QCloseEvent *event);
 };
 
 #endif // KHREQUESTSDIALOG_H
