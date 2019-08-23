@@ -23,7 +23,7 @@ environment:
     BITS: 64bit
     BITNUM: 64
   - TARGET_ARCH: x86
-    QT: C:\Qt\5.12.2\msvc2017
+    QT: C:\Qt\5.13\msvc2017
     PLATFORM: x86
     COMPILER: msvc
     VSVER: 14
