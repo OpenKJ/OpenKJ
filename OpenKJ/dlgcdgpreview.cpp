@@ -65,6 +65,8 @@ void DlgCdgPreview::preview()
             return;
         }
         cdg->open(archive.getCDGData());
+        cdg->process();
+        timer->start(40);
     }
     else if (m_srcFile.endsWith(".cdg", Qt::CaseInsensitive))
     {
@@ -76,9 +78,18 @@ void DlgCdgPreview::preview()
             return;
         }
         cdg->open(m_srcFile);
+        cdg->process();
+        timer->start(40);
     }
-    cdg->process();
-    timer->start(40);
+    else if (m_srcFile.endsWith(".mkv", Qt::CaseInsensitive) || m_srcFile.endsWith(".avi", Qt::CaseInsensitive) || m_srcFile.endsWith(".wmv", Qt::CaseInsensitive) || m_srcFile.endsWith(".mp4", Qt::CaseInsensitive) || m_srcFile.endsWith(".mpg", Qt::CaseInsensitive) || m_srcFile.endsWith(".mpeg", Qt::CaseInsensitive))
+    {
+        AudioBackendGstreamer *mediaBackend = new AudioBackendGstreamer(false, this, "Preview");
+        connect(mediaBackend, SIGNAL(newVideoFrame(QImage, QString)), this, SLOT(videoFrameReceived(QImage, QString)));
+        mediaBackend->setVolume(0);
+        mediaBackend->setMedia(m_srcFile);
+        mediaBackend->play();
+    }
+
 }
 
 
@@ -110,6 +121,12 @@ void DlgCdgPreview::on_pushButtonClose_clicked()
     cdgPosition = 0;
     close();
     deleteLater();
+}
+
+void DlgCdgPreview::videoFrameReceived(QImage frame, QString backendName)
+{
+    Q_UNUSED(backendName)
+    ui->cdgVideoWidget->videoSurface()->present(QVideoFrame(frame));
 }
 
 
