@@ -1401,7 +1401,7 @@ void MainWindow::audioBackend_durationChanged(qint64 duration)
 
 void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
 {
-    //qInfo() << "MainWindow - audioBackend_stateChanged(" << state << ") triggered";
+    qInfo() << "MainWindow - audioBackend_stateChanged(" << state << ") triggered";
     if (state == AbstractAudioBackend::StoppedState)
     {
         qInfo() << "MainWindow - audio backend state is now STOPPED";
@@ -1433,9 +1433,11 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
         bmAudioBackend->fadeIn(false);
         if (settings->karaokeAutoAdvance())
         {
+            qInfo() << " - Karaoke Autoplay is enabled";
             if (kAASkip == true)
             {
                 kAASkip = false;
+                qInfo() << " - Karaoke Autoplay set to skip, bailing out";
             }
             else
             {
@@ -1503,6 +1505,7 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
     if (state == AbstractAudioBackend::PlayingState)
     {
         qInfo() << "KAudio entered PlayingState";
+        m_lastAudioState = state;
         cdgWindow->setShowBgImage(false);
     }
     if (state == AbstractAudioBackend::UnknownState)

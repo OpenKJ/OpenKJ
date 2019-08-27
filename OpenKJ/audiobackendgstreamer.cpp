@@ -749,7 +749,9 @@ void AudioBackendGstreamer::busMessage(std::shared_ptr<GstMessage> message)
         emit durationChanged(msdur);
         break;
     case GST_MESSAGE_EOS:
+        qInfo() << objName << " - state change to EndOfMediaState emitted";
         emit stateChanged(EndOfMediaState);
+        //emit stateChanged(StoppedState);
         break;
     case GST_MESSAGE_TAG:
         // do nothing
