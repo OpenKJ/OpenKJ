@@ -65,8 +65,10 @@ sudo apt install libgstreamer-plugins-base1.0-dev
 ```
 
 In a terminal switch to the OpenKJ/OpenKJ directory in the repository.  
-`/usr/lib/x86_64-linux-gnu/qt5/bin/qmake
-make`
+```
+/usr/lib/x86_64-linux-gnu/qt5/bin/qmake
+make
+```
 
 Suggest installing and using checkinstall to create a .deb file  
 `sudo checkinstall`
