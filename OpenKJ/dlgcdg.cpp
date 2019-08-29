@@ -168,7 +168,11 @@ void DlgCdg::updateCDG(QImage image, bool overrideVisibleCheck)
 void DlgCdg::updateCDG(QVideoFrame frame, bool overrideVisibleCheck)
 {
     if (isVisible() || overrideVisibleCheck)
+    {
         ui->cdgVideo->videoSurface()->present(frame);
+        if (ui->lblRemain->isVisible())
+            ui->lblRemain->repaint();
+    }
 }
 
 void DlgCdg::makeFullscreen()
