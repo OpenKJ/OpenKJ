@@ -904,6 +904,8 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
         kAudioBackend->play();
     }
     k2kTransition = false;
+    if (settings->karaokeAutoAdvance())
+        kAASkip = false;
 }
 
 MainWindow::~MainWindow()
@@ -1656,7 +1658,9 @@ void MainWindow::silenceDetected()
     qInfo() << "Detected silence.  Cur Pos: " << kAudioBackend->position() << " Last CDG update pos: " << cdg->lastCDGUpdate();
     if (cdg->isOpen() && cdg->lastCDGUpdate() < kAudioBackend->position())
     {
-        kAudioBackend->stop(true);
+        kAudioBackend->rawStop();
+        if (settings->karaokeAutoAdvance())
+            kAASkip = false;
 //        ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
         bmAudioBackend->fadeIn();
     }

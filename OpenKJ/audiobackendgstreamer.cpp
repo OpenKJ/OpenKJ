@@ -452,6 +452,12 @@ void AudioBackendGstreamer::stop(bool skipFade)
 
 }
 
+void AudioBackendGstreamer::rawStop()
+{
+    qInfo() << objName << " - rawStop() called, just ending gstreamer playback";
+    gst_element_set_state(playBin, GST_STATE_NULL);
+}
+
 void AudioBackendGstreamer::fastTimer_timeout()
 {
     static qint64 lastPos = 0;

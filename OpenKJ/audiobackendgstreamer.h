@@ -198,6 +198,7 @@ public slots:
     void setPosition(qint64 position);
     void setVolume(int volume);
     void stop(bool skipFade = false);
+    void rawStop();
     void setPitchShift(int pitchShift);
     void fadeOut(bool waitForFade = true);
     void fadeIn(bool waitForFade = true);
