@@ -66,6 +66,7 @@ unsigned int CDG::position()
 
 void CDG::reset()
 {
+    qInfo() << "libCDG - CDG::reset() called, freeing memory and setting isOpen to false";
     m_isOpen = false;
     m_needupdate = true;
     m_lastCDGCommandMS = 0;

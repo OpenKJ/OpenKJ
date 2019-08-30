@@ -881,6 +881,8 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
         }
         else
         {
+            // Close CDG if open to avoid double video playback
+            cdg->reset();
             qInfo() << "Playing non-CDG video file: " << karaokeFilePath;
             QString tmpFileName = khTmpDir->path() + QDir::separator() + "tmpvid." + karaokeFilePath.right(4);
             QFile::copy(karaokeFilePath, tmpFileName);
@@ -1499,6 +1501,7 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
     }
     if (state == AbstractAudioBackend::EndOfMediaState)
     {
+        cdg->reset();
         qInfo() << "KAudio entered EndOfMediaState";
         audioRecorder->stop();
 //        ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
@@ -2626,6 +2629,9 @@ void MainWindow::videoFrameReceived(QImage frame, QString backendName)
     if (backendName == "break" && kAudioBackend->state() == AbstractAudioBackend::PlayingState)
         return;
     //QImage img = frame.copy();
+    // We shouldn't have an open CDG file while karaoke video is playing, if one is open, close it
+    if (cdg->isOpen())
+        cdg->reset();
     ui->cdgVideoWidget->videoSurface()->present(QVideoFrame(frame));
     cdgWindow->updateCDG(frame);
 }
