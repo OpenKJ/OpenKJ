@@ -49,14 +49,14 @@ win32 {
         INCLUDEPATH += C:\gstreamer\1.0\x86\include\glib-2.0
         INCLUDEPATH += C:\gstreamer\1.0\x86\lib\glib-2.0\include
         INCLUDEPATH += C:\gstreamer\1.0\x86\include\glib-2.0\gobject
-        LIBS += -LC:\gstreamer\1.0\x86\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0 -lgstapp-1.0 -lgstaudio-1.0 -lgstpbutils-1.0 -lgstcontroller-1.0
+        LIBS += -LC:\gstreamer\1.0\x86\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0 -lgstapp-1.0 -lgstaudio-1.0 -lgstpbutils-1.0 -lgstcontroller-1.0 -lwinmm
     } else {
         ## Windows x64 (64bit) specific build here
         INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\gstreamer-1.0
         INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0
         INCLUDEPATH += C:\gstreamer\1.0\x86_64\lib\glib-2.0\include
         INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0\gobject
-        LIBS += -LC:\gstreamer\1.0\x86_64\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0 -lgstapp-1.0 -lgstaudio-1.0 -lgstpbutils-1.0 -lgstcontroller-1.0
+        LIBS += -LC:\gstreamer\1.0\x86_64\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0 -lgstapp-1.0 -lgstaudio-1.0 -lgstpbutils-1.0 -lgstcontroller-1.0 -lwinmm
     }
 }
 
@@ -100,7 +100,7 @@ contains(DEFINES, STATIC_TAGLIB) {
 QMAKE_MAC_SDK = MacOSX10.13
 QMAKE_MAC_SDK.macosx.version = 10.13
 
-VERSION = 1.5.104
+VERSION = 1.5.105
 message($$VERSION)
 QMAKE_TARGET_COMPANY = OpenKJ.org
 QMAKE_TARGET_PRODUCT = OpenKJ
