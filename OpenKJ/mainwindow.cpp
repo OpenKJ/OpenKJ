@@ -45,6 +45,10 @@
 #include "tableviewtooltipfilter.h"
 #include <tickernew.h>
 
+#ifdef Q_OS_WIN
+#include <Windows.h>
+#endif
+
 Settings *settings;
 OKJSongbookAPI *songbookApi;
 int remainSecs = 240;
@@ -186,6 +190,9 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+#ifdef Q_OS_WIN
+    timeBeginPeriod(1);
+#endif
     settings = new Settings();
     logContents = new QStringList();
     debugDialog = new DlgDebugOutput(this);
@@ -913,6 +920,9 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
 MainWindow::~MainWindow()
 {
     cdgWindow->stopTicker();
+#ifdef Q_OS_WIN
+    timeEndPeriod(1);
+#endif
     lazyDurationUpdater->stopWork();
     settings->bmSetVolume(ui->sliderBmVolume->value());
     settings->setAudioVolume(ui->sliderVolume->value());
@@ -945,6 +955,7 @@ MainWindow::~MainWindow()
     delete requestsDialog;
     if(_singular->isAttached())
         _singular->detach();
+
     qInfo() << "OpenKJ mainwindow destructor complete";
 }
 
