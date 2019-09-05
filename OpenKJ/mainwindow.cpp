@@ -1818,6 +1818,11 @@ void MainWindow::regularAddError(QString errorText)
 
 void MainWindow::previewCdg()
 {
+    if (!QFile::exists(dbRtClickFile))
+    {
+        QMessageBox::warning(this, tr("Missing File!"), "Specified karaoke file missing, preview aborted!\n\n" + dbRtClickFile,QMessageBox::Ok);
+        return;
+    }
     DlgCdgPreview *cdgPreviewDialog = new DlgCdgPreview(this);
     cdgPreviewDialog->setAttribute(Qt::WA_DeleteOnClose);
     cdgPreviewDialog->setSourceFile(dbRtClickFile);
