@@ -181,7 +181,11 @@ void SourceDirTableModel::addSourceDir(QString dirpath, int pattern, int customP
 {
     layoutAboutToBeChanged();
     QSqlQuery query;
-    query.exec("INSERT INTO sourceDirs (path,pattern,custompattern) VALUES('" + dirpath + "'," + QString::number(pattern) + "," + QString::number(customPattern) + ")");
+    query.prepare("INSERT INTO sourceDirs (path,pattern,custompattern) VALUES(:path,:pattern,:custompattern)");
+    query.bindValue(":path", dirpath);
+    query.bindValue(":pattern", pattern);
+    query.bindValue(":custompattern", customPattern);
+    query.exec();
     loadFromDB();
     layoutChanged();
 }
