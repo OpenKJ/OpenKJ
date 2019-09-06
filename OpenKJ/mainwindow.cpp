@@ -2516,6 +2516,8 @@ void MainWindow::on_actionPlaylistImport_triggered()
     QString importFile = QFileDialog::getOpenFileName(this,tr("Select playlist to import"), QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), tr("(*.m3u)"));
     if (importFile != "")
     {
+        QFileInfo fi(importFile);
+        QString importPath = fi.absoluteDir().path();
         QStringList files;
         QFile textFile;
         textFile.setFileName(importFile);
@@ -2566,6 +2568,25 @@ void MainWindow::on_actionPlaylistImport_triggered()
                 QString queryString = "INSERT OR IGNORE INTO bmsongs (artist,title,path,filename,duration,searchstring) VALUES(\"" + artist + "\",\"" + title + "\",\"" + files.at(i) + "\",\"" + filename + "\",\"" + duration + "\",\"" + artist + title + filename + "\")";
                 query.exec(queryString);
             }
+            else if (QFile(importPath + "/" + files.at(i)).exists())
+            {
+                reader.setMedia(importPath + "/" + files.at(i).toLocal8Bit());
+                QString duration = QString::number(reader.getDuration() / 1000);
+                QString artist = reader.getArtist();
+                QString title = reader.getTitle();
+                QString filename = QFileInfo(files.at(i)).fileName();
+                QString path = importPath + "/" + files.at(i);
+                QString searchstring = artist + " " + title + " " + filename;
+                QString queryString = "INSERT OR IGNORE INTO bmsongs (artist,title,path,filename,duration,searchstring) VALUES(:artist,:title,:path,:filename,:duration,:searchstring)";
+                query.prepare(queryString);
+                query.bindValue(":artist", artist);
+                query.bindValue(":title", title);
+                query.bindValue(":path", path);
+                query.bindValue(":filename", filename);
+                query.bindValue(":duration", duration);
+                query.bindValue(":searchstring", searchstring);
+                query.exec();
+            }
         }
         query.exec("COMMIT TRANSACTION");
         bmDbModel->select();
@@ -2575,7 +2596,18 @@ void MainWindow::on_actionPlaylistImport_triggered()
         {
             int songId = bmPlModel->getSongIdByFilePath(files.at(i));
             if (songId >= 0)
+            {
                 songIds.push_back(songId);
+            }
+            else
+            {
+                songId = bmPlModel->getSongIdByFilePath(importPath + "/" + files.at(i));
+                if (songId >= 0)
+                {
+                    songIds.push_back(songId);
+                }
+            }
+
         }
         query.exec("BEGIN TRANSACTION");
         for (int i=0; i < songIds.size(); i++)
