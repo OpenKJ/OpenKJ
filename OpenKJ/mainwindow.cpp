@@ -946,6 +946,7 @@ MainWindow::~MainWindow()
     settings->saveColumnWidths(ui->tableViewBmPlaylist);
     settings->bmSetPlaylistIndex(ui->comboBoxBmPlaylists->currentIndex());
     settings->sync();
+    regularSingersDialog->close();
     qInfo() << "Deleting non-owned objects";
     delete cdg;
     delete khDir;
