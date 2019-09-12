@@ -497,7 +497,7 @@ bool RotationModel::canDropMimeData(const QMimeData *data, Qt::DropAction action
     Q_UNUSED(action);
     Q_UNUSED(column);
     Q_UNUSED(row);
-    if (parent.row() == -1)
+    if (parent.row() == -1  && !data->hasFormat("integer/rotationpos"))
         return false;
     if ((data->hasFormat("integer/songid")) || (data->hasFormat("integer/rotationpos")))
         return true;
