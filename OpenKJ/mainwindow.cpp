@@ -123,7 +123,6 @@ bool MainWindow::isSingleInstance()
         _singular->detach();
         return false;
     }
-
     if(_singular->create(1))
         return true;
 
@@ -213,6 +212,13 @@ MainWindow::MainWindow(QWidget *parent) :
     qInstallMessageHandler(myMessageOutput);
     kNeedAutoSize = false;
     bNeedAutoSize = true;
+#ifndef Q_OS_WIN
+    // This fixes the program refusing to start and reporting another running instance after a crashe on Linux
+    // until you try it twice.
+    _singular = new QSharedMemory("SharedMemorySingleInstanceProtectorOpenKJ", this);
+    _singular->attach();
+    delete _singular;
+#endif
     _singular = new QSharedMemory("SharedMemorySingleInstanceProtectorOpenKJ", this);
     shop = new SongShop(this);
     blinkRequestsBtn = false;
