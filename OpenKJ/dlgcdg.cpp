@@ -325,7 +325,7 @@ void DlgCdg::setHSizeAdjustment(int pixels)
 
 void DlgCdg::setShowBgImage(bool show)
 {
-    qInfo() << "DlgCdg::setShowBgImage(" << show << ") called";
+//    qInfo() << "DlgCdg::setShowBgImage(" << show << ") called";
     showBgImage = show;
     if ((show) && (settings->bgMode() == settings->BG_MODE_IMAGE))
     {
@@ -458,7 +458,7 @@ void DlgCdg::alertTxtColorChanged(QColor color)
 void DlgCdg::triggerBg()
 {
         showBgImage = true;
-        qInfo() << "triggerBg called";
+//        qInfo() << "triggerBg called";
         slideShowTimerTimeout();
         setShowBgImage(true);
 }

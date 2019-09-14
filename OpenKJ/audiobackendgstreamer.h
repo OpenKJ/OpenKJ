@@ -95,6 +95,7 @@ private:
     GstElement *fltrEnd;
     GstElement *audioResample;
     GstElement *volumeElement;
+    GstElement *faderVolumeElement;
     GstElement *equalizer;
     GstCaps *audioCapsStereo;
     GstCaps *audioCapsMono;
@@ -118,6 +119,7 @@ private:
     bool m_keyChangerSoundtouch;
     bool m_muted;
     bool isFading;
+    bool initDone;
     int m_silenceDuration;
     void processGstMessages();
     int m_outputChannels;

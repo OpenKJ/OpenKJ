@@ -1689,9 +1689,9 @@ void MainWindow::silenceDetected()
 
 void MainWindow::silenceDetectedBm()
 {
-    if (bmAudioBackend->position() > 10000)
+    if (bmAudioBackend->position() > 10000 && bmAudioBackend->position() < (bmAudioBackend->duration() - 3))
     {
-        qInfo() << "Break music silence detected";
+        qInfo() << "Break music silence detected, reporting EndOfMediaState to trigger playlist advance";
         bmMediaStateChanged(AbstractAudioBackend::EndOfMediaState);
     }
 }
@@ -2313,6 +2313,7 @@ void MainWindow::bmMediaStateChanged(AbstractAudioBackend::State newState)
             }
             else
                 nextSong = "None - Breaking after current song";
+            qInfo() << "Break music auto-advancing to song: " << path;
             bmAudioBackend->setMedia(path);
             bmAudioBackend->play();
             bmAudioBackend->setVolume(ui->sliderBmVolume->value());

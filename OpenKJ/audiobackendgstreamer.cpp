@@ -25,6 +25,7 @@
 #include <math.h>
 #include <QFile>
 #include <gst/audio/streamvolume.h>
+#include <gst/gstdebugutils.h>
 #include "settings.h"
 #include <functional>
 
@@ -38,6 +39,7 @@ Q_DECLARE_METATYPE(std::shared_ptr<GstMessage>);
 AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *parent, QString objectName) :
     AbstractAudioBackend(parent)
 {
+    initDone = false;
 #ifdef Q_OS_MACOS
     QString appPath = qApp->applicationDirPath();
     qputenv("GST_PLUGIN_SYSTEM_PATH", QString("/Applications/OpenKJ.app/Contents/Frameworks/GStreamer.framework/Versions/Current/lib/gstreamer-1.0").toLocal8Bit());
@@ -91,7 +93,21 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     fader->setObjName(objName + "Fader");
     connect(fader, SIGNAL(fadeStarted()), this, SLOT(faderStarted()));
     connect(fader, SIGNAL(fadeComplete()), this, SLOT(faderFinished()));
-    connect(fader, SIGNAL(volumeChanged(double)), this, SLOT(faderChangedVolume(double)));
+//    connect(fader, SIGNAL(volumeChanged(double)), this, SLOT(faderChangedVolume(double)));
+
+
+    if (!gst_is_initialized())
+    {
+        qInfo() << objName << " - gst not initialized - initializing";
+        gst_init(NULL,NULL);
+    }
+
+    faderVolumeElement = gst_element_factory_make("volume", "FaderVolumeElement");
+    g_object_set(G_OBJECT(faderVolumeElement), "volume", 1.0, NULL);
+    fader->setVolumeElement(faderVolumeElement);
+    gst_object_ref(faderVolumeElement);
+
+
     buildPipeline();
 
     monitor = gst_device_monitor_new ();
@@ -117,6 +133,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     connect(settings, SIGNAL(mplxModeChanged(int)), this, SLOT(setMplxMode(int)));
 //    g_timeout_add (40,(GSourceFunc) gstTimerDispatcher, this);
     qInfo() << "Done constructing GStreamer backend";
+    initDone = true;
 }
 
 AudioBackendGstreamer::~AudioBackendGstreamer()
@@ -414,9 +431,11 @@ void AudioBackendGstreamer::setVolume(int volume)
     double cubicVolume = volume * .01;
     double linearVolume = gst_stream_volume_convert_volume(GST_STREAM_VOLUME_FORMAT_CUBIC, GST_STREAM_VOLUME_FORMAT_LINEAR, cubicVolume);
 //    fader->setBaseVolume(volume);
-    qInfo() << objName << " - setVolume - setting to linear: " << linearVolume;
+//    qInfo() << objName << " - setVolume - setting to linear: " << linearVolume;
     g_object_set(G_OBJECT(volumeElement), "volume", linearVolume, NULL);
     emit volumeChanged(volume);
+    if (initDone)
+        fader->setVolume(1.0);
 }
 
 void AudioBackendGstreamer::stop(bool skipFade)
@@ -431,6 +450,7 @@ void AudioBackendGstreamer::stop(bool skipFade)
     if (state() == AbstractAudioBackend::PausedState)
     {
         setVolume(m_preFadeVolumeInt);
+        fader->setVolume(1.0);
     }
     int curVolume = volume();
     if ((m_fade) && (!skipFade) && (state() == AbstractAudioBackend::PlayingState))
@@ -446,6 +466,7 @@ void AudioBackendGstreamer::stop(bool skipFade)
     {
         qInfo() << objName << " - AudioBackendGstreamer::stop -- Setting volume back to original setting: " << curVolume;
         setVolume(curVolume);
+        fader->setVolume(1.0);
     }
     qInfo() << objName << " - stop() completed";
 
@@ -906,19 +927,22 @@ void AudioBackendGstreamer::buildPipeline()
     fltrPostMixer = gst_element_factory_make("capsfilter", NULL);
     g_object_set(fltrPostMixer, "caps", audioCapsStereo, NULL);
     volumeElement = gst_element_factory_make("volume", NULL);
-    fader->setVolumeElement(volumeElement);
+//    faderVolumeElement = gst_element_factory_make("volume", "newFaderVolumeElement");
+//    fader->setVolumeElement(faderVolumeElement);
 
 //    if (settings->audioDownmix())
 //        g_object_set(fltrEnd, "caps", audioCapsMono, NULL);
 //    else
 //        g_object_set(fltrEnd, "caps", audioCapsStereo, NULL);
 
-    gst_bin_add_many(GST_BIN(customBin), level, aConvInput, aConvPreSplit, rgVolume, volumeElement, equalizer, aConvL, aConvR, fltrMplxInput, tee, queueS, queueM, queueR, queueL, audioMixer, deInterleave, aConvPostMixer, fltrPostMixer, NULL);
+    gst_bin_add_many(GST_BIN(customBin), level, aConvInput, aConvPreSplit, rgVolume, volumeElement, equalizer, aConvL, aConvR, fltrMplxInput, tee, queueS, queueM, queueR, queueL, audioMixer, deInterleave, aConvPostMixer, fltrPostMixer, gst_object_ref(faderVolumeElement), NULL);
     gst_element_link(aConvInput, rgVolume);
     gst_element_link(rgVolume, level);
     gst_element_link(level, volumeElement);
     gst_element_link(volumeElement, equalizer);
-    gst_element_link(equalizer, tee);
+    gst_element_link(equalizer, faderVolumeElement);
+    gst_element_link(faderVolumeElement, tee);
+    //gst_element_link(equalizer, tee);
 
     // Normal path
     gst_pad_link(teeSrcPadN, queueSinkPadN);
@@ -944,9 +968,11 @@ void AudioBackendGstreamer::buildPipeline()
 
     if ((pitchShifterRubberBand) && (pitchShifterSoundtouch) && (loadPitchShift))
     {
-        qInfo() << objName << " - Pitch shift RubberBand enabled";
-        qInfo() << objName << " - Also loaded SoundTouch for tempo control";
+ //       qInfo() << objName << " - Pitch shift RubberBand enabled";
+ //       qInfo() << objName << " - Also loaded SoundTouch for tempo control";
         m_canChangeTempo = true;
+//        gst_bin_add_many(GST_BIN(customBin), aConvPrePitchShift, pitchShifterRubberBand, aConvPostPitchShift, pitchShifterSoundtouch, aConvEnd, faderVolumeElement, audioSink, NULL);
+//        gst_element_link_many(fltrPostMixer, aConvPrePitchShift, pitchShifterRubberBand, aConvPostPitchShift, pitchShifterSoundtouch, aConvEnd, faderVolumeElement, audioSink, NULL);
         gst_bin_add_many(GST_BIN(customBin), aConvPrePitchShift, pitchShifterRubberBand, aConvPostPitchShift, pitchShifterSoundtouch, aConvEnd, audioSink, NULL);
         gst_element_link_many(fltrPostMixer, aConvPrePitchShift, pitchShifterRubberBand, aConvPostPitchShift, pitchShifterSoundtouch, aConvEnd, audioSink, NULL);
         m_canKeyChange = true;
@@ -958,7 +984,9 @@ void AudioBackendGstreamer::buildPipeline()
     else if ((pitchShifterSoundtouch) && (loadPitchShift))
     {
         m_canChangeTempo = true;
-        qInfo() << objName << " - Pitch shifter SoundTouch enabled";
+//        qInfo() << objName << " - Pitch shifter SoundTouch enabled";
+//        gst_bin_add_many(GST_BIN(customBin), aConvPrePitchShift, pitchShifterSoundtouch, aConvPostPitchShift, aConvEnd, faderVolumeElement, audioSink, NULL);
+//        gst_element_link_many(fltrPostMixer, aConvPrePitchShift, pitchShifterSoundtouch, aConvPostPitchShift, aConvEnd, faderVolumeElement, audioSink, NULL);
         gst_bin_add_many(GST_BIN(customBin), aConvPrePitchShift, pitchShifterSoundtouch, aConvPostPitchShift, aConvEnd, audioSink, NULL);
         gst_element_link_many(fltrPostMixer, aConvPrePitchShift, pitchShifterSoundtouch, aConvPostPitchShift, aConvEnd, audioSink, NULL);
         m_canKeyChange = true;
@@ -969,6 +997,8 @@ void AudioBackendGstreamer::buildPipeline()
     {
         gst_bin_add_many(GST_BIN(customBin), aConvEnd, audioSink, NULL);
         gst_element_link_many(fltrPostMixer, aConvEnd, audioSink, NULL);
+//        gst_bin_add_many(GST_BIN(customBin), aConvEnd, audioSink, NULL);
+//        gst_element_link_many(fltrPostMixer, aConvEnd, audioSink, NULL);
     }
 
     // Setup outputs from playBin
@@ -988,10 +1018,10 @@ void AudioBackendGstreamer::buildPipeline()
     csource = gst_interpolation_control_source_new ();
     if (!csource)
         qInfo() << objName << " - Error createing control source";
-    GstControlBinding *cbind = gst_direct_control_binding_new (GST_OBJECT_CAST(volumeElement), "volume", csource);
+    GstControlBinding *cbind = gst_direct_control_binding_new (GST_OBJECT_CAST(faderVolumeElement), "volume", csource);
     if (!cbind)
         qInfo() << objName << " - Error creating control binding";
-    if (!gst_object_add_control_binding (GST_OBJECT_CAST(volumeElement), cbind))
+    if (!gst_object_add_control_binding (GST_OBJECT_CAST(faderVolumeElement), cbind))
         qInfo() << objName << " - Error adding control binding to volumeElement for fader control";
     g_object_set(csource, "mode", GST_INTERPOLATION_MODE_CUBIC, NULL);
     tv_csource = (GstTimedValueControlSource *)csource;
@@ -1016,6 +1046,7 @@ void AudioBackendGstreamer::buildPipeline()
     setVolume(m_volume);
     fastTimer->start(40);
     qInfo() << objName << " - buildPipeline() finished";
+    GST_DEBUG_BIN_TO_DOT_FILE((GstBin*)customBin, GST_DEBUG_GRAPH_SHOW_ALL, "pipeline");
 }
 
 void AudioBackendGstreamer::destroyPipeline()
@@ -1023,7 +1054,7 @@ void AudioBackendGstreamer::destroyPipeline()
     qInfo() << objName << " - destroyPipeline() called";
     slowTimer->stop();
     fastTimer->stop();
-    fader->setPaused(true);
+    gst_bin_remove((GstBin*)customBin, faderVolumeElement);
     if (state() == PlayingState)
         stop(true);
     gst_object_unref(playBin);
@@ -1140,12 +1171,12 @@ int AudioBackendGstreamer::tempo()
 void AudioBackendGstreamer::setDownmix(bool enabled)
 {
     downmix = enabled;
-    qDebug() << objName << " - AudioBackendGstreamer::setDownmix(" << enabled << ") called";
+ //   qDebug() << objName << " - AudioBackendGstreamer::setDownmix(" << enabled << ") called";
     if (enabled)
         g_object_set(fltrPostMixer, "caps", audioCapsMono, NULL);
     else
         g_object_set(fltrPostMixer, "caps", audioCapsStereo, NULL);
-    qDebug() << objName << " - AudioBackendGstreamer::setDownmix() completed";
+ //   qDebug() << objName << " - AudioBackendGstreamer::setDownmix() completed";
 }
 
 void AudioBackendGstreamer::setTempo(int percent)
@@ -1165,19 +1196,19 @@ QStringList AudioBackendGstreamer::getOutputDevices()
 void AudioBackendGstreamer::setOutputDevice(int deviceIndex)
 {
     outputDeviceIdx = deviceIndex;
-    qInfo() << objName << " - Setting output device to device idx: " << outputDeviceIdx;
+ //   qInfo() << objName << " - Setting output device to device idx: " << outputDeviceIdx;
     gst_element_unlink(aConvEnd, audioSink);
     gst_bin_remove(GST_BIN(customBin), audioSink);
     if (deviceIndex == 0)
     {
-        qInfo() << objName << " - Default device selected";
+//        qInfo() << objName << " - Default device selected";
         //default device selected
         audioSink = gst_element_factory_make("autoaudiosink", "audioSink");;
     }
     else
     {
         audioSink = gst_device_create_element(outputDevices.at(deviceIndex - 1), NULL);
-        qInfo() << objName << " - Non default device selected: " << outputDeviceNames.at(deviceIndex);
+//        qInfo() << objName << " - Non default device selected: " << outputDeviceNames.at(deviceIndex);
     }
     gst_bin_add(GST_BIN(customBin), audioSink);
     gst_element_link(aConvEnd, audioSink);
@@ -1215,11 +1246,11 @@ void AudioBackendGstreamer::cb_new_pad(GstElement *element, GstPad *pad, gpointe
     g_free(padName);
     if (name == "src_0")
     {
-        qInfo() << parent->objName << " - Linking deinterleave pad src_0 to queueSinkPadL";
+//        qInfo() << parent->objName << " - Linking deinterleave pad src_0 to queueSinkPadL";
         GstPadLinkReturn result = gst_pad_link(pad, parent->queueSinkPadL);
         switch (result) {
         case GST_PAD_LINK_OK:
-            qInfo() << parent->objName << " - link succeeded";
+   //         qInfo() << parent->objName << " - link succeeded";
             break;
         case GST_PAD_LINK_WRONG_HIERARCHY:
             qInfo() << parent->objName << " - pads have no common grandparent";
@@ -1246,11 +1277,11 @@ void AudioBackendGstreamer::cb_new_pad(GstElement *element, GstPad *pad, gpointe
     }
     if (name == "src_1")
     {
-        qInfo() << parent->objName << " - Linking deinterleave pad src_1 to queueSinkPadR";
+  //      qInfo() << parent->objName << " - Linking deinterleave pad src_1 to queueSinkPadR";
         GstPadLinkReturn result = gst_pad_link(pad, parent->queueSinkPadR);
         switch (result) {
         case GST_PAD_LINK_OK:
-            qInfo() << parent->objName << " - link succeeded";
+ //           qInfo() << parent->objName << " - link succeeded";
             break;
         case GST_PAD_LINK_WRONG_HIERARCHY:
             qInfo() << parent->objName << " - pads have no common grandparent";
@@ -1275,7 +1306,7 @@ void AudioBackendGstreamer::cb_new_pad(GstElement *element, GstPad *pad, gpointe
             break;
         }
     }
-    qInfo() << parent->objName << " - Linking complete";
+ //   qInfo() << parent->objName << " - Linking complete";
     parent->setMplxMode(settings->mplxMode());
 }
 
@@ -1287,7 +1318,7 @@ void AudioBackendGstreamer::DestroyCallback(gpointer user_data)
 
 void AudioBackendGstreamer::setMplxMode(int mode)
 {
-    qInfo() << objName << " - setMplxMode(" << mode << ") called";
+ //   qInfo() << objName << " - setMplxMode(" << mode << ") called";
     if (mode == Multiplex_Normal)
     {
         g_object_set(mixerSinkPadN, "mute", false, NULL);
@@ -1307,7 +1338,7 @@ void AudioBackendGstreamer::setMplxMode(int mode)
         g_object_set(mixerSinkPadR, "mute", false, NULL);
     }
     //settings->setMplxMode(mode);
-    qInfo() << objName << " - setMplxMode() complete";
+ //   qInfo() << objName << " - setMplxMode() complete";
 
 }
 

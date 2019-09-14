@@ -16,6 +16,14 @@ void AudioFader::setVolume(double volume)
 
 void AudioFader::setVolumeElement(GstElement *volumeElement)
 {
+    qInfo() << "AudioFader::setVolumeElement() called";
+    if (!volumeElement)
+    {
+        qInfo() << "Fader - Volume element invalid";
+    }
+    else {
+        qInfo() << "Fader - Volume element okay";
+    }
     this->volumeElement = volumeElement;
 }
 
@@ -51,7 +59,7 @@ AudioFader::AudioFader(QObject *parent) : QObject(parent)
     preFadeVol = 0;
     targetVol = 0;
     timer = new QTimer(this);
-    timer->setInterval(200);
+    timer->setInterval(100);
     connect(timer, SIGNAL(timeout()), this, SLOT(timerTimeout()));
 }
 
@@ -81,7 +89,7 @@ void AudioFader::fadeIn(bool block)
     qInfo() << objName << " - fadeIn( " << block << " ) called";
     emit fadeStarted();
     fading = true;
-    targetVol = preFadeVol;
+    targetVol = 1.0;
     timer->start();
     if (block)
     {

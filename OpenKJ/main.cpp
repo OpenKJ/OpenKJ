@@ -56,6 +56,7 @@ int main(int argc, char *argv[])
     filter = new IdleDetect;
     a.installEventFilter(filter);
     qputenv("GST_DEBUG", "*:2");
+    qputenv("GST_DEBUG_DUMP_DOT_DIR", "/tmp");
     Settings okjSettings;
     if (okjSettings.theme() == 1)
     {

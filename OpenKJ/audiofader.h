@@ -14,7 +14,6 @@ private:
     bool fading;
     double preFadeVol;
     double targetVol;
-    void setVolume(double volume);
     double volume();
     bool paused;
     QString objName;
@@ -25,6 +24,8 @@ public:
     void setPaused(bool paused);
     void setObjName(QString name);
     bool isFading() { return fading; }
+    void setVolume(double volume);
+
 
 signals:
     void volumeChanged(double volume);
