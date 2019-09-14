@@ -76,7 +76,7 @@ void AudioFader::fadeOut(bool block)
         while (paused)
             QApplication::processEvents();
 
-        while (volume() != targetVol)
+        while (volume() != targetVol  && fading)
         {
             QApplication::processEvents();
         }
