@@ -153,6 +153,7 @@ void DlgRegularSingers::renameRegSinger()
 void DlgRegularSingers::on_lineEditSearch_textChanged(const QString &arg1)
 {
     proxyModel->setFilterString(QString("%1").arg(arg1));
+    proxyModel->sort(1);
 }
 
 RegProxyModel::RegProxyModel(QObject *parent) : QSortFilterProxyModel (parent)
