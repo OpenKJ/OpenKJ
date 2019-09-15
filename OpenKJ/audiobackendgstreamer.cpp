@@ -434,8 +434,8 @@ void AudioBackendGstreamer::setVolume(int volume)
 //    qInfo() << objName << " - setVolume - setting to linear: " << linearVolume;
     g_object_set(G_OBJECT(volumeElement), "volume", linearVolume, NULL);
     emit volumeChanged(volume);
-    if (initDone)
-        fader->setVolume(1.0);
+//    if (initDone)
+//        fader->setVolume(1.0);
 }
 
 void AudioBackendGstreamer::stop(bool skipFade)
