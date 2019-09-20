@@ -6,9 +6,7 @@
 
 void AudioFader::setVolume(double volume)
 {
-    double linearVolume = gst_stream_volume_convert_volume(GST_STREAM_VOLUME_FORMAT_CUBIC, GST_STREAM_VOLUME_FORMAT_LINEAR, volume);
-    g_object_set(G_OBJECT(volumeElement), "volume", linearVolume, NULL);
-//    g_object_set(G_OBJECT(volumeElement), "volume", volume, NULL);
+    gst_stream_volume_set_volume(GST_STREAM_VOLUME(volumeElement), GST_STREAM_VOLUME_FORMAT_CUBIC, volume);
     emit volumeChanged(volume);
 }
 
@@ -39,14 +37,6 @@ AudioFader::FaderState AudioFader::state()
 
 void AudioFader::setVolumeElement(GstElement *volumeElement)
 {
-    qInfo() << "AudioFader::setVolumeElement() called";
-    if (!volumeElement)
-    {
-        qInfo() << "Fader - Volume element invalid";
-    }
-    else {
-        qInfo() << "Fader - Volume element okay";
-    }
     this->volumeElement = volumeElement;
 }
 
@@ -63,11 +53,7 @@ bool AudioFader::isFading() {
 
 double AudioFader::volume()
 {
-    gdouble volume;
-    g_object_get(G_OBJECT(volumeElement), "volume", &volume, NULL);
-//    qInfo() << "Linear volume: " << volume;
-    double cubicVolume = gst_stream_volume_convert_volume(GST_STREAM_VOLUME_FORMAT_LINEAR, GST_STREAM_VOLUME_FORMAT_CUBIC, volume);
-    return cubicVolume;
+    return gst_stream_volume_get_volume(GST_STREAM_VOLUME(volumeElement), GST_STREAM_VOLUME_FORMAT_CUBIC);
 }
 
 AudioFader::AudioFader(QObject *parent) : QObject(parent)

@@ -120,7 +120,6 @@ private:
     bool m_muted;
     bool initDone;
     int m_silenceDuration;
-    void processGstMessages();
     int m_outputChannels;
     double m_currentRmsLevel;
     int eq1, eq2, eq3, eq4, eq5, eq6, eq7, eq8, eq9, eq10;
