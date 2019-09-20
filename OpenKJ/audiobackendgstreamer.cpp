@@ -67,7 +67,6 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     m_keyChange = 0;
     m_silenceDuration = 0;
     m_muted = false;
-    isFading = false;
     eq1 = 0;
     eq2 = 0;
     eq3 = 0;
@@ -88,7 +87,6 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
 //    slowTimer->start(1000);
     fastTimer = new QTimer(this);
     connect(fastTimer, SIGNAL(timeout()), this, SLOT(fastTimer_timeout()));
-    faderRunning = false;
     fader = new AudioFader(this);
     fader->setObjName(objName + "Fader");
     connect(fader, SIGNAL(fadeStarted()), this, SLOT(faderStarted()));
@@ -106,7 +104,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     g_object_set(G_OBJECT(faderVolumeElement), "volume", 1.0, NULL);
     fader->setVolumeElement(faderVolumeElement);
     gst_object_ref(faderVolumeElement);
-
+    connect(fader, SIGNAL(faderStateChanged(AudioFader::FaderState)), this, SLOT(faderStateChanged(AudioFader::FaderState)));
 
     buildPipeline();
 
@@ -430,12 +428,9 @@ void AudioBackendGstreamer::setVolume(int volume)
     qInfo() << objName << " - setVolume(" << volume << ") called";
     double cubicVolume = volume * .01;
     double linearVolume = gst_stream_volume_convert_volume(GST_STREAM_VOLUME_FORMAT_CUBIC, GST_STREAM_VOLUME_FORMAT_LINEAR, cubicVolume);
-//    fader->setBaseVolume(volume);
 //    qInfo() << objName << " - setVolume - setting to linear: " << linearVolume;
     g_object_set(G_OBJECT(volumeElement), "volume", linearVolume, NULL);
     emit volumeChanged(volume);
-//    if (initDone)
-//        fader->setVolume(1.0);
 }
 
 void AudioBackendGstreamer::stop(bool skipFade)
@@ -449,25 +444,30 @@ void AudioBackendGstreamer::stop(bool skipFade)
     }
     if (state() == AbstractAudioBackend::PausedState)
     {
-        setVolume(m_preFadeVolumeInt);
-        fader->setVolume(1.0);
+        qInfo() << objName << " - AudioBackendGstreamer::stop -- Stoping paused song";
+        gst_element_set_state(playBin, GST_STATE_NULL);
+        emit stateChanged(AbstractAudioBackend::StoppedState);
+        qInfo() << objName << " - stop() completed";
+        fader->immediateIn();
+        return;
     }
-    int curVolume = volume();
     if ((m_fade) && (!skipFade) && (state() == AbstractAudioBackend::PlayingState))
     {
-        qInfo() << objName << " - AudioBackendGstreamer::stop -- Fading enabled.  Fading out audio volume";
-        fadeOut(true);
-        qInfo() << objName << " - AudioBackendGstreamer::stop -- Fading complete";
+        if (fader->state() == AudioFader::FadedIn || fader->state() == AudioFader::FadingIn)
+        {
+            qInfo() << objName << " - AudioBackendGstreamer::stop -- Fading enabled.  Fading out audio volume";
+            fadeOut(true);
+            qInfo() << objName << " - AudioBackendGstreamer::stop -- Fading complete";
+            qInfo() << objName << " - AudioBackendGstreamer::stop -- Stoping playback";
+            gst_element_set_state(playBin, GST_STATE_NULL);
+            emit stateChanged(AbstractAudioBackend::StoppedState);
+            fader->immediateIn();
+            return;
+        }
     }
-    qInfo() << objName << " - AudioBackendGstreamer::stop -- Stoping playback";
+    qInfo() << objName << " - AudioBackendGstreamer::stop -- Stoping playback without fading";
     gst_element_set_state(playBin, GST_STATE_NULL);
     emit stateChanged(AbstractAudioBackend::StoppedState);
-    if ((m_fade) && (!skipFade))
-    {
-        qInfo() << objName << " - AudioBackendGstreamer::stop -- Setting volume back to original setting: " << curVolume;
-        setVolume(curVolume);
-        fader->setVolume(1.0);
-    }
     qInfo() << objName << " - stop() completed";
 
 
@@ -547,15 +547,12 @@ void AudioBackendGstreamer::faderChangedVolume(int volume)
 
 void AudioBackendGstreamer::faderStarted()
 {
-    faderRunning = true;
     qInfo() << objName << " - Fader started";
 }
 
 void AudioBackendGstreamer::faderFinished()
 {
-    faderRunning = false;
     qInfo() << objName << " - fader finished";
-
 }
 
 
@@ -836,6 +833,11 @@ void AudioBackendGstreamer::faderChangedVolume(double volume)
     emit volumeChanged(intVol);
 }
 
+void AudioBackendGstreamer::faderStateChanged(AudioFader::FaderState state)
+{
+    qInfo() << objName << " - Fader state changed to: " << fader->stateToStr(state);
+}
+
 
 
 GstBusSyncReply AudioBackendGstreamer::busMessageDispatcher(GstBus *bus, GstMessage *message, gpointer userData)
@@ -1028,7 +1030,6 @@ void AudioBackendGstreamer::buildPipeline()
     setVolume(m_volume);
     slowTimer->start(1000);
    // fastTimer->start(200);
-    fader->setPaused(false);
     setOutputDevice(outputDeviceIdx);
     setEqBypass(bypass);
     setEqLevel1(eq1);
@@ -1081,12 +1082,10 @@ void AudioBackendGstreamer::fadeOut(bool waitForFade)
 {
     gdouble curVolume;
     g_object_get(G_OBJECT(volumeElement), "volume", &curVolume, NULL);
-    m_preFadeVolume = curVolume;
-    m_preFadeVolumeInt = m_volume;
     if (state() != PlayingState)
     {
         qInfo() << objName << " - fadeOut - State not playing, skipping fade and setting volume directly";
-        setVolume(0);
+        fader->immediateOut();
         return;
     }
     fader->fadeOut(waitForFade);
@@ -1097,13 +1096,13 @@ void AudioBackendGstreamer::fadeIn(bool waitForFade)
     if (state() != PlayingState)
     {
         qInfo() << objName << " - fadeIn - State not playing, skipping fade and setting volume";
-        setVolume(m_preFadeVolume * 100);
+        fader->immediateIn();
         return;
     }
     if (isSilent())
     {
         qInfo() << objName << "- fadeOut - Audio is currently slient, skipping fade and setting volume immediately";
-        setVolume(m_preFadeVolume * 100);
+        fader->immediateIn();
         return;
     }
     fader->fadeIn(waitForFade);
@@ -1122,7 +1121,7 @@ bool AudioBackendGstreamer::canDetectSilence()
 
 bool AudioBackendGstreamer::isSilent()
 {
-    if ((m_currentRmsLevel <= 0.01) && (m_volume > 0) && (!isFading))
+    if ((m_currentRmsLevel <= 0.01) && (m_volume > 0) && (!fader->isFading()))
         return true;
     return false;
 }
@@ -1447,5 +1446,15 @@ void AudioBackendGstreamer::setEqLevel10(int level)
 
 bool AudioBackendGstreamer::hasVideo()
 {
-   return m_hasVideo;
+    return m_hasVideo;
+}
+
+void AudioBackendGstreamer::fadeInImmediate()
+{
+    fader->immediateIn();
+}
+
+void AudioBackendGstreamer::fadeOutImmediate()
+{
+    fader->immediateOut();
 }
