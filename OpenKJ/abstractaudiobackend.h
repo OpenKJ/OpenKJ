@@ -90,6 +90,8 @@ public slots:
     virtual void setPitchShift(int pitchShift) {Q_UNUSED(pitchShift);}
     virtual void fadeOut(bool waitForFade = true) {Q_UNUSED(waitForFade);}
     virtual void fadeIn(bool waitForFade = true) {Q_UNUSED(waitForFade);}
+    virtual void fadeInImmediate() {}
+    virtual void fadeOutImmediate() {}
     virtual void setUseFader(bool fade) {Q_UNUSED(fade);}
     virtual void setUseSilenceDetection(bool enabled) {Q_UNUSED(enabled);}
     virtual void setDownmix(bool enabled) {Q_UNUSED(enabled);}

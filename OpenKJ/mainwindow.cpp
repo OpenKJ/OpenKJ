@@ -830,6 +830,7 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
                         bmAudioBackend->fadeOut(!settings->bmKCrossFade());
                     qInfo() << "Beginning playback of file: " << audioFile;
                     kAudioBackend->play();
+                    kAudioBackend->fadeInImmediate();
                 }
             }
             else
@@ -891,6 +892,7 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
             if (!k2k)
                 bmAudioBackend->fadeOut(!settings->bmKCrossFade());
             kAudioBackend->play();
+            kAudioBackend->fadeInImmediate();
         }
         else
         {
@@ -904,6 +906,7 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
             if (!k2k)
                 bmAudioBackend->fadeOut();
             kAudioBackend->play();
+            kAudioBackend->fadeInImmediate();
         }
         if (settings->recordingEnabled())
         {
@@ -917,6 +920,7 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
         if (settings->recordingEnabled())
             audioRecorder->unpause();
         kAudioBackend->play();
+        kAudioBackend->fadeIn(false);
     }
     k2kTransition = false;
     if (settings->karaokeAutoAdvance())
@@ -2448,6 +2452,8 @@ void MainWindow::on_tableViewBmPlaylist_doubleClicked(const QModelIndex &index)
         nextSong = "None - Breaking after current song";
     bmAudioBackend->setMedia(path);
     bmAudioBackend->play();
+    if (kAudioBackend->state() != AbstractAudioBackend::PlayingState)
+        bmAudioBackend->fadeInImmediate();
     ui->labelBmPlaying->setText(song);
     ui->labelBmNext->setText(nextSong);
     bmPlDelegate->setCurrentSong(index.row());
@@ -2824,11 +2830,14 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::on_sliderVolume_sliderMoved(int position)
 {
     kAudioBackend->setVolume(position);
+    kAudioBackend->fadeInImmediate();
 }
 
 void MainWindow::on_sliderBmVolume_sliderMoved(int position)
 {
     bmAudioBackend->setVolume(position);
+    if (kAudioBackend->state() != AbstractAudioBackend::PlayingState)
+        bmAudioBackend->fadeInImmediate();
 }
 
 void MainWindow::songDropNoSingerSel()

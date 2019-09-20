@@ -6,12 +6,35 @@
 
 void AudioFader::setVolume(double volume)
 {
-    while (paused)
-        QApplication::processEvents();
     double linearVolume = gst_stream_volume_convert_volume(GST_STREAM_VOLUME_FORMAT_CUBIC, GST_STREAM_VOLUME_FORMAT_LINEAR, volume);
     g_object_set(G_OBJECT(volumeElement), "volume", linearVolume, NULL);
 //    g_object_set(G_OBJECT(volumeElement), "volume", volume, NULL);
     emit volumeChanged(volume);
+}
+
+void AudioFader::immediateIn()
+{
+    timer->stop();
+    if (volume() == 1.0 && curState == FadedIn)
+        return;
+    setVolume(1.0);
+    curState = FadedIn;
+    emit faderStateChanged(curState);
+}
+
+void AudioFader::immediateOut()
+{
+    timer->stop();
+    if (volume() == 0.0 && curState == FadedOut)
+        return;
+    setVolume(0);
+    curState = FadedOut;
+    emit faderStateChanged(curState);
+}
+
+AudioFader::FaderState AudioFader::state()
+{
+    return curState;
 }
 
 void AudioFader::setVolumeElement(GstElement *volumeElement)
@@ -27,56 +50,63 @@ void AudioFader::setVolumeElement(GstElement *volumeElement)
     this->volumeElement = volumeElement;
 }
 
-void AudioFader::setPaused(bool paused)
-{
-    qInfo() << objName << " - set paused state to: " << paused;
-    this->paused = paused;
-}
-
 void AudioFader::setObjName(QString name)
 {
     objName = name;
 }
 
+bool AudioFader::isFading() {
+    if (curState == FadingIn || curState == FadingOut)
+        return true;
+    return false;
+}
+
 double AudioFader::volume()
 {
-    static double lastCubic = 0.0;
-    if (paused)
-        return lastCubic;
     gdouble volume;
     g_object_get(G_OBJECT(volumeElement), "volume", &volume, NULL);
 //    qInfo() << "Linear volume: " << volume;
     double cubicVolume = gst_stream_volume_convert_volume(GST_STREAM_VOLUME_FORMAT_LINEAR, GST_STREAM_VOLUME_FORMAT_CUBIC, volume);
-//    qInfo() << "Cubic volume: " << QString::number(cubicVolume);
-    lastCubic = cubicVolume;
     return cubicVolume;
 }
 
 AudioFader::AudioFader(QObject *parent) : QObject(parent)
 {
-    paused = true;
-    fading = false;
-    preFadeVol = 0;
+    curState = FadedIn;
+    emit faderStateChanged(curState);
     targetVol = 0;
     timer = new QTimer(this);
     timer->setInterval(100);
     connect(timer, SIGNAL(timeout()), this, SLOT(timerTimeout()));
 }
 
+QString AudioFader::stateToStr(AudioFader::FaderState state)
+{
+    switch (state)
+    {
+    case AudioFader::FadedIn:
+        return "AudioFader::FadedIn";
+    case AudioFader::FadingIn:
+        return "AudioFader::FadingIn";
+    case AudioFader::FadedOut:
+        return "AudioFader::FadedOut";
+    case AudioFader::FadingOut:
+        return "AudioFader::FadingOut";
+    }
+    return "Unknown";
+}
+
 void AudioFader::fadeOut(bool block)
 {
     qInfo() << objName << " - fadeOut( " << block << " ) called";
     emit fadeStarted();
-    preFadeVol = volume();
-    fading = true;
     targetVol = 0;
+    curState = FadingOut;
+    emit faderStateChanged(curState);
     timer->start();
     if (block)
     {
-        while (paused)
-            QApplication::processEvents();
-
-        while (volume() != targetVol  && fading)
+        while (volume() != targetVol  && curState == FadingOut)
         {
             QApplication::processEvents();
         }
@@ -88,15 +118,13 @@ void AudioFader::fadeIn(bool block)
 {
     qInfo() << objName << " - fadeIn( " << block << " ) called";
     emit fadeStarted();
-    fading = true;
     targetVol = 1.0;
+    curState = FadingIn;
+    emit faderStateChanged(curState);
     timer->start();
     if (block)
     {
-        while (paused)
-            QApplication::processEvents();
-
-        while (volume() != targetVol)
+        while (volume() != targetVol && curState == FadingIn)
         {
             QApplication::processEvents();
         }
@@ -106,28 +134,30 @@ void AudioFader::fadeIn(bool block)
 
 void AudioFader::timerTimeout()
 {
-    if (paused)
-        return;
     qInfo() << objName << " - Timer - Current: " << volume() << " Target: " << targetVol;
     double increment = .05;
-    if (fading)
+    if (isFading())
     {
         if (volume() == targetVol)
         {
             qInfo() << objName << " - Timer - target volume reached";
             timer->stop();
-            fading = false;
+            if (curState == FadingOut)
+                curState = FadedOut;
+            if (curState == FadingIn)
+                curState = FadedIn;
+            emit faderStateChanged(curState);
             emit fadeComplete();
             return;
         }
-
         if (volume() > targetVol)
         {
             if ((volume() - increment) < targetVol)
             {
                 setVolume(targetVol);
                 timer->stop();
-                fading = false;
+                curState = FadedOut;
+                emit faderStateChanged(curState);
                 emit fadeComplete();
                 return;
             }
@@ -139,7 +169,8 @@ void AudioFader::timerTimeout()
             {
                 setVolume(targetVol);
                 timer->stop();
-                fading = false;
+                curState = FadedIn;
+                emit faderStateChanged(curState);
                 emit fadeComplete();
                 return;
             }

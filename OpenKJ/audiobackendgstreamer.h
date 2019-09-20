@@ -118,14 +118,11 @@ private:
     bool m_keyChangerRubberBand;
     bool m_keyChangerSoundtouch;
     bool m_muted;
-    bool isFading;
     bool initDone;
     int m_silenceDuration;
     void processGstMessages();
     int m_outputChannels;
     double m_currentRmsLevel;
-    double m_preFadeVolume;
-    int m_preFadeVolumeInt;
     int eq1, eq2, eq3, eq4, eq5, eq6, eq7, eq8, eq9, eq10;
     bool bypass;
     bool loadPitchShift;
@@ -146,7 +143,6 @@ private:
     void buildPipeline();
     void destroyPipeline();
     void resetPipeline();
-    bool faderRunning;
     std::shared_ptr<GstBus> bus;
     std::shared_ptr<GstElement> pipeline;
     static void DestroyCallback(gpointer user_data);
@@ -190,6 +186,7 @@ private slots:
     void gstDurationChanged(qint64 duration);
     void gstFastTimerFired();
     void faderChangedVolume(double volume);
+    void faderStateChanged(AudioFader::FaderState state);
 
 
 public slots:
@@ -242,6 +239,11 @@ public slots:
     // AbstractAudioBackend interface
 public:
     bool hasVideo();
+
+    // AbstractAudioBackend interface
+public slots:
+    void fadeInImmediate();
+    void fadeOutImmediate();
 };
 
 #endif // AUDIOBACKENDGSTREAMER_H
