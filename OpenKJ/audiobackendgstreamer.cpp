@@ -378,6 +378,17 @@ void AudioBackendGstreamer::slowTimer_timeout()
         emit faderChangedVolume(intVol);
         m_volume = intVol;
     }
+    // Detect hung playback
+    static int lastpos = 0;
+    if (curState == PlayingState)
+    {
+        if (lastpos == position())
+        {
+            qWarning() << objName << " - Playback appears to be hung, emitting end of stream";
+            emit stateChanged(EndOfMediaState);
+        }
+        lastpos = position();
+    }
 }
 
 void AudioBackendGstreamer::faderChangedVolume(int volume)
