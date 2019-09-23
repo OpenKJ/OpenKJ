@@ -205,7 +205,17 @@ QString KaraokeFileInfo::getSongId()
 //    QRegularExpressionMatch match = r.match(fileBaseName);
 //    QString result = match.captured(songIdCaptureGroup);
 //    result.replace("_", " ");
-//    return result;
+    //    return result;
+}
+
+QString KaraokeFileInfo::testPattern(QString regex, QString filename, int captureGroup)
+{
+    QRegularExpression r;
+    QRegularExpressionMatch match;
+    r.setPattern(regex);
+    match = r.match(filename);
+    return match.captured(captureGroup).replace("_", " ");
+
 }
 
 int KaraokeFileInfo::getDuration()
