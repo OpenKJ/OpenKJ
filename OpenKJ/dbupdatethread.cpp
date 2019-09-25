@@ -184,7 +184,7 @@ QStringList DbUpdateThread::findKaraokeFiles(QString directory)
 //                if ((QFile::exists(audioFilename + "mp3")) || (QFile::exists(audioFilename + "MP3")) || (QFile::exists(audioFilename + "Mp3")) || (QFile::exists(audioFilename + "mP3")))
 //                    files.append(fn);
             }
-            else if (fn.endsWith(".mkv", Qt::CaseInsensitive) || fn.endsWith(".avi", Qt::CaseInsensitive) || fn.endsWith(".wmv", Qt::CaseInsensitive) || fn.endsWith(".mp4", Qt::CaseInsensitive) || fn.endsWith(".mpg", Qt::CaseInsensitive) || fn.endsWith(".mpeg", Qt::CaseInsensitive))
+            else if (fn.endsWith(".mkv", Qt::CaseInsensitive) || fn.endsWith(".avi", Qt::CaseInsensitive) || fn.endsWith(".wmv", Qt::CaseInsensitive) || fn.endsWith(".mp4", Qt::CaseInsensitive) || fn.endsWith(".m4v", Qt::CaseInsensitive) || fn.endsWith(".mpg", Qt::CaseInsensitive) || fn.endsWith(".mpeg", Qt::CaseInsensitive))
                 files.append(fn);
             notInDb++;
         }
