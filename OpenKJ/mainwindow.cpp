@@ -2121,9 +2121,26 @@ void MainWindow::markSongBad()
         databaseUpdated();
         // connect
     } else if (msgBox.clickedButton() == removeFileButton) {
+        bool isCdg = false;
+        if (QFileInfo(dbRtClickFile).suffix().toLower() == "cdg")
+            isCdg = true;
+        QString mediaFile;
+        if (isCdg)
+            mediaFile = DbUpdateThread::findMatchingAudioFile(dbRtClickFile);
         QFile file(dbRtClickFile);
         if (file.remove())
         {
+            if (isCdg)
+            {
+                if (!QFile::remove(mediaFile))
+                {
+                    QMessageBox msgBoxErr;
+                    msgBoxErr.setText("Error deleting file");
+                    msgBoxErr.setInformativeText("The cdg file was deleted, but there was an error while deleting the matching media file.  You will need to manually remove the file.");
+                    msgBoxErr.setStandardButtons(QMessageBox::Ok);
+                    msgBoxErr.exec();
+                }
+            }
             db->songMarkBad(dbRtClickFile);
             databaseUpdated();
         }
