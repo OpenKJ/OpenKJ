@@ -44,6 +44,7 @@
 #include "soundfxbutton.h"
 #include "tableviewtooltipfilter.h"
 #include <tickernew.h>
+#include "dbupdatethread.h"
 
 #ifdef Q_OS_WIN
 #include <Windows.h>
@@ -1842,6 +1843,12 @@ void MainWindow::previewCdg()
 
 void MainWindow::editSong()
 {
+    bool isCdg = false;
+    if (QFileInfo(dbRtClickFile).suffix().toLower() == "cdg")
+        isCdg = true;
+    QString mediaFile;
+    if (isCdg)
+        mediaFile = DbUpdateThread::findMatchingAudioFile(dbRtClickFile);
     SourceDirTableModel model;
     SourceDir *srcDir = model.getDirByPath(dbRtClickFile);
     if (srcDir->getIndex() == -1)
@@ -1895,29 +1902,56 @@ void MainWindow::editSong()
             msgBoxErr.exec();
             return;
         }
+        if (isCdg)
+        {
+            if (!QFileInfo(mediaFile).isWritable())
+            {
+                QMessageBox msgBoxErr;
+                msgBoxErr.setText("Unable to rename file");
+                msgBoxErr.setInformativeText("Unable to rename file, your user does not have write permissions. Operation cancelled.");
+                msgBoxErr.setStandardButtons(QMessageBox::Ok);
+                msgBoxErr.exec();
+                return;
+            }
+        }
         QString newFn;
+        QString newMediaFn;
         bool unsupported = false;
         switch (srcDir->getPattern()) {
         case SourceDir::SAT:
             newFn = dlg.songId() + " - " + dlg.artist() + " - " + dlg.title() + "." + QFileInfo(dbRtClickFile).completeSuffix();
+            if (isCdg)
+                newMediaFn = dlg.songId() + " - " + dlg.artist() + " - " + dlg.title() + "." + QFileInfo(mediaFile).completeSuffix();
             break;
         case SourceDir::STA:
             newFn = dlg.songId() + " - " + dlg.title() + " - " + dlg.artist() + "." + QFileInfo(dbRtClickFile).completeSuffix();
+            if (isCdg)
+                newMediaFn = dlg.songId() + " - " + dlg.title() + " - " + dlg.artist() + "." + QFileInfo(mediaFile).completeSuffix();
             break;
         case SourceDir::ATS:
             newFn = dlg.artist() + " - " + dlg.title() + " - " + dlg.songId() + "." + QFileInfo(dbRtClickFile).completeSuffix();
+            if (isCdg)
+                newMediaFn = dlg.artist() + " - " + dlg.title() + " - " + dlg.songId() + "." + QFileInfo(mediaFile).completeSuffix();
             break;
         case SourceDir::TAS:
             newFn = dlg.title() + " - " + dlg.artist() + " - " + dlg.songId() + "." + QFileInfo(dbRtClickFile).completeSuffix();
+            if (isCdg)
+                newMediaFn = dlg.title() + " - " + dlg.artist() + " - " + dlg.songId() + "." + QFileInfo(mediaFile).completeSuffix();
             break;
         case SourceDir::S_T_A:
             newFn = dlg.songId() + "_" + dlg.title() + "_" + dlg.artist() + "." + QFileInfo(dbRtClickFile).completeSuffix();
+            if (isCdg)
+                newMediaFn = dlg.songId() + "_" + dlg.title() + "_" + dlg.artist() + "." + QFileInfo(mediaFile).completeSuffix();
             break;
         case SourceDir::AT:
             newFn = dlg.artist() + " - " + dlg.title() + "." + QFileInfo(dbRtClickFile).completeSuffix();
+            if (isCdg)
+                newMediaFn = dlg.artist() + " - " + dlg.title() + "." + QFileInfo(mediaFile).completeSuffix();
             break;
         case SourceDir::TA:
             newFn = dlg.title() + " - " + dlg.artist() + "." + QFileInfo(dbRtClickFile).completeSuffix();
+            if (isCdg)
+                newMediaFn = dlg.title() + " - " + dlg.artist() + "." + QFileInfo(mediaFile).completeSuffix();
             break;
         case SourceDir::CUSTOM:
             unsupported = true;
@@ -1944,6 +1978,18 @@ void MainWindow::editSong()
             msgBoxErr.exec();
             return;
         }
+        if (isCdg)
+        {
+            if (QFile::exists(newMediaFn))
+            {
+                QMessageBox msgBoxErr;
+                msgBoxErr.setText("Unable to rename file");
+                msgBoxErr.setInformativeText("Unable to rename file, a file by that name already exists in the same directory. Operation cancelled.");
+                msgBoxErr.setStandardButtons(QMessageBox::Ok);
+                msgBoxErr.exec();
+                return;
+            }
+        }
         QString newFilePath = QFileInfo(dbRtClickFile).absoluteDir().absolutePath() + "/" + newFn;
         if (newFilePath != dbRtClickFile)
         {
@@ -1955,6 +2001,18 @@ void MainWindow::editSong()
                 msgBoxErr.setStandardButtons(QMessageBox::Ok);
                 msgBoxErr.exec();
                 return;
+            }
+            if (isCdg)
+            {
+                if (!QFile::rename(mediaFile, QFileInfo(dbRtClickFile).absoluteDir().absolutePath() + "/" + newMediaFn))
+                {
+                    QMessageBox msgBoxErr;
+                    msgBoxErr.setText("Error while renaming file!");
+                    msgBoxErr.setInformativeText("An unknown error occurred while renaming the file. Operation cancelled.");
+                    msgBoxErr.setStandardButtons(QMessageBox::Ok);
+                    msgBoxErr.exec();
+                    return;
+                }
             }
         }
         qInfo() << "New filename: " << newFn;

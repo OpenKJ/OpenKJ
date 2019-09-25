@@ -54,7 +54,7 @@ public:
     int addDroppedFile(QString path);
     void startUnthreaded();
     bool dbEntryExists(QString filepath);
-    QString findMatchingAudioFile(QString cdgFilePath);
+    static QString findMatchingAudioFile(QString cdgFilePath);
 
 signals:
     void threadFinished();
