@@ -43,7 +43,7 @@ unsigned int TagReader::getDuration()
 void TagReader::setMedia(QString path)
 {
     qInfo() << "Getting tags for: " << path;
-    if ((path.endsWith(".mp3", Qt::CaseInsensitive)) || (path.endsWith(".ogg", Qt::CaseInsensitive)))
+    if ((path.endsWith(".mp3", Qt::CaseInsensitive)) || (path.endsWith(".ogg", Qt::CaseInsensitive)) || path.endsWith(".mp4", Qt::CaseInsensitive))
     {
         qInfo() << "Using taglib to get tags";
         taglibTags(path);
@@ -108,9 +108,11 @@ void TagReader::taglibTags(QString path)
             m_track = "0" + QString::number(track);
         else
             m_track = QString::number(track);
+        qInfo() << "Taglib result - Artist: " << m_artist << " Title: " << m_title << " Album: " << m_album << " Track: " << m_track << " Duration: " << m_duration;
     }
     else
     {
+        qWarning() << "Taglib was unable to process the file";
         m_artist = QString();
         m_title = QString();
         m_album = QString();

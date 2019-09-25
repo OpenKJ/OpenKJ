@@ -56,11 +56,16 @@ void KaraokeFileInfo::readTags()
     }
     else
     {
-        tagArtist = "Error";
-        tagTitle = "Error";
-        tagSongid = "Error";
-        duration = 0;
-        qInfo() << "KaraokeFileInfo::readTags() called on non zip or cdg file (" << fileName << ").  Something is terribly wrong...";
+        qInfo() << "KaraokeFileInfo::readTags() called on non zip or cdg file (" << fileName << ").  Trying taglib.";
+        tagReader->setMedia(fileName);
+        tagArtist = tagReader->getArtist();
+        tagTitle = tagReader->getTitle();
+        tagSongid = tagReader->getAlbum();
+        duration = tagReader->getDuration();
+//        tagArtist = "Error";
+//        tagTitle = "Error";
+//        tagSongid = "Error";
+//        duration = 0;
     }
     tagsRead = true;
     delete tagReader;
