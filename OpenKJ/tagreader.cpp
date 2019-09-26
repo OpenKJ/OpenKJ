@@ -43,7 +43,7 @@ unsigned int TagReader::getDuration()
 void TagReader::setMedia(QString path)
 {
     qInfo() << "Getting tags for: " << path;
-    if ((path.endsWith(".mp3", Qt::CaseInsensitive)) || (path.endsWith(".ogg", Qt::CaseInsensitive)) || path.endsWith(".mp4", Qt::CaseInsensitive))
+    if ((path.endsWith(".mp3", Qt::CaseInsensitive)) || (path.endsWith(".ogg", Qt::CaseInsensitive)) || path.endsWith(".mp4", Qt::CaseInsensitive) || path.endsWith(".m4v", Qt::CaseInsensitive))
     {
         qInfo() << "Using taglib to get tags";
         taglibTags(path);
