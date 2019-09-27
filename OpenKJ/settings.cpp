@@ -308,8 +308,9 @@ int Settings::cdgWindowFullScreenMonitor()
 void Settings::saveWindowState(QWidget *window)
 {
     settings->beginGroup(window->objectName());
-    settings->setValue("size", window->size());
-    settings->setValue("pos", window->pos());
+    //settings->setValue("size", window->size());
+    //settings->setValue("pos", window->pos());
+    settings->setValue("geometry", window->saveGeometry());
     settings->endGroup();
 }
 
@@ -317,7 +318,11 @@ void Settings::restoreWindowState(QWidget *window)
 {
 
     settings->beginGroup(window->objectName());
-    if (settings->contains("size") && settings->contains("pos"))
+    if (settings->contains("geometry"))
+    {
+        window->restoreGeometry(settings->value("geometry").toByteArray());
+    }
+    else if (settings->contains("size") && settings->contains("pos"))
     {
         window->resize(settings->value("size", QSize(640, 480)).toSize());
         window->move(settings->value("pos", QPoint(100, 100)).toPoint());
