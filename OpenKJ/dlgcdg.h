@@ -69,6 +69,7 @@ public:
     void setKAudioBackend(AbstractAudioBackend *value);
     void setBAudioBackend(AbstractAudioBackend *value);
     void stopTicker();
+    WId getCdgWinId();
 
 protected:
     void mouseDoubleClickEvent(QMouseEvent *e);
@@ -111,7 +112,6 @@ public slots:
     void alertTxtColorChanged(QColor color);
     void triggerBg();
     void cdgRemainEnabledChanged(bool enabled);
-    void remainOffsetsChanged(int r, int b);
     void updateCDG(QImage image, bool overrideVisibleCheck = false);
     void updateCDG(QVideoFrame frame, bool overrideVisibleCheck = false);
 

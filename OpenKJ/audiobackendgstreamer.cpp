@@ -28,6 +28,7 @@
 #include <gst/gstdebugutils.h>
 #include "settings.h"
 #include <functional>
+#include <gst/video/videooverlay.h>
 
 extern Settings *settings;
 GstElement *playBinPub;
@@ -67,6 +68,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     m_keyChange = 0;
     m_silenceDuration = 0;
     m_muted = false;
+    m_vidMuted = false;
     eq1 = 0;
     eq2 = 0;
     eq3 = 0;
@@ -132,6 +134,34 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
 //    g_timeout_add (40,(GSourceFunc) gstTimerDispatcher, this);
     qInfo() << "Done constructing GStreamer backend";
     initDone = true;
+}
+
+void AudioBackendGstreamer::videoMute(bool mute)
+{
+    gint flags;
+    if (mute)
+    {
+        g_object_get (playBin, "flags", &flags, NULL);
+        flags |= GST_PLAY_FLAG_AUDIO;
+        flags &= ~GST_PLAY_FLAG_TEXT;
+        flags &= ~GST_PLAY_FLAG_VIDEO;
+        g_object_set (playBin, "flags", flags, NULL);
+    }
+    else if (!mute)
+    {
+        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(xvsink), videoWinId);
+        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(xvsink2), videoWinId2);
+        g_object_get (playBin, "flags", &flags, NULL);
+        flags |= GST_PLAY_FLAG_VIDEO | GST_PLAY_FLAG_AUDIO;
+        flags &= ~GST_PLAY_FLAG_TEXT;
+        g_object_set (playBin, "flags", flags, NULL);
+    }
+    m_vidMuted = mute;
+}
+
+bool AudioBackendGstreamer::videoMuted()
+{
+    return m_vidMuted;
 }
 
 AudioBackendGstreamer::~AudioBackendGstreamer()
@@ -779,6 +809,23 @@ void AudioBackendGstreamer::buildPipeline()
     fltrPostMixer = gst_element_factory_make("capsfilter", NULL);
     g_object_set(fltrPostMixer, "caps", audioCapsStereo, NULL);
     volumeElement = gst_element_factory_make("volume", NULL);
+
+    xvsink = gst_element_factory_make ("xvimagesink", NULL);
+    xvsink2 = gst_element_factory_make("xvimagesink", NULL);
+    videoQueue1 = gst_element_factory_make("queue", NULL);
+    videoQueue2 = gst_element_factory_make("queue", NULL);
+    videoTee = gst_element_factory_make("tee", NULL);
+    videoTeePad1 = gst_element_get_request_pad(videoTee, "src_%u");
+    videoTeePad2 = gst_element_get_request_pad(videoTee, "src_%u");
+    videoQueue1SrcPad = gst_element_get_static_pad(videoQueue1, "sink");
+    videoQueue2SrcPad = gst_element_get_static_pad(videoQueue2, "sink");
+
+    videoBin = gst_bin_new("videoBin");
+    gst_bin_add_many(GST_BIN(videoBin),videoTee,videoQueue1,videoQueue2,xvsink,xvsink2,NULL);
+    gst_pad_link(videoTeePad1,videoQueue1SrcPad);
+    gst_pad_link(videoTeePad2,videoQueue2SrcPad);
+    gst_element_link(videoQueue1,xvsink);
+    gst_element_link(videoQueue2,xvsink2);
 //    faderVolumeElement = gst_element_factory_make("volume", "newFaderVolumeElement");
 //    fader->setVolumeElement(faderVolumeElement);
 
@@ -854,13 +901,30 @@ void AudioBackendGstreamer::buildPipeline()
     }
 
     // Setup outputs from playBin
+//    pad = gst_element_get_static_pad(aConvInput, "sink");
+//    ghostPad = gst_ghost_pad_new("sink", pad);
+//    gst_pad_set_active(ghostPad, true);
+//    gst_element_add_pad(customBin, ghostPad);
+//    gst_object_unref(pad);
+//    g_object_set(G_OBJECT(playBin), "audio-sink", customBin, NULL);
+//    g_object_set(G_OBJECT(playBin), "video-sink", videoAppSink, NULL);
+
     pad = gst_element_get_static_pad(aConvInput, "sink");
     ghostPad = gst_ghost_pad_new("sink", pad);
+    ghostVideoPad = gst_ghost_pad_new("sink", gst_element_get_static_pad(videoTee, "sink"));
     gst_pad_set_active(ghostPad, true);
+    gst_pad_set_active(ghostVideoPad,true);
     gst_element_add_pad(customBin, ghostPad);
+    gst_element_add_pad(videoBin, ghostVideoPad);
     gst_object_unref(pad);
     g_object_set(G_OBJECT(playBin), "audio-sink", customBin, NULL);
-    g_object_set(G_OBJECT(playBin), "video-sink", videoAppSink, NULL);
+//    g_object_set(G_OBJECT(playBin), "video-sink", videoAppSink, NULL);
+    g_object_set(G_OBJECT(playBin), "video-sink", videoBin, NULL);
+    gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(xvsink), videoWinId);
+    gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(xvsink2), videoWinId2);
+
+
+
 
     g_object_set(G_OBJECT(rgVolume), "album-mode", false, NULL);
     g_object_set(G_OBJECT (level), "message", TRUE, NULL);
@@ -894,6 +958,7 @@ void AudioBackendGstreamer::buildPipeline()
     setEqLevel10(eq10);
     setDownmix(downmix);
     setMuted(m_muted);
+    videoMute(m_vidMuted);
     setVolume(m_volume);
     fastTimer->start(40);
     qInfo() << objName << " - buildPipeline() finished";

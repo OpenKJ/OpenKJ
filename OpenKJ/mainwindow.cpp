@@ -449,6 +449,10 @@ MainWindow::MainWindow(QWidget *parent) :
     qInfo() << "Setting backgrounds on CDG displays";
     ui->cdgVideoWidget->setKeepAspect(true);
     cdgWindow->setShowBgImage(true);
+    kAudioBackend->setVideoWinId(ui->cdgVideoWidget->winId());
+    kAudioBackend->setVideoWinId2(cdgWindow->getCdgWinId());
+    bmAudioBackend->setVideoWinId(ui->cdgVideoWidget->winId());
+    bmAudioBackend->setVideoWinId2(cdgWindow->getCdgWinId());
     setShowBgImage(true);
     qInfo() << "Restoring window and listview states";
     settings->restoreWindowState(cdgWindow);
@@ -830,6 +834,7 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
                     if (!k2k)
                         bmAudioBackend->fadeOut(!settings->bmKCrossFade());
                     qInfo() << "Beginning playback of file: " << audioFile;
+                    bmAudioBackend->videoMute(true);
                     kAudioBackend->play();
                     kAudioBackend->fadeInImmediate();
                 }
@@ -892,6 +897,7 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
 //            ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
             if (!k2k)
                 bmAudioBackend->fadeOut(!settings->bmKCrossFade());
+            bmAudioBackend->videoMute(true);
             kAudioBackend->play();
             kAudioBackend->fadeInImmediate();
         }
@@ -906,6 +912,7 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
             kAudioBackend->setMedia(tmpFileName);
             if (!k2k)
                 bmAudioBackend->fadeOut();
+            bmAudioBackend->videoMute(true);
             kAudioBackend->play();
             kAudioBackend->fadeInImmediate();
         }
@@ -1445,6 +1452,7 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
             return;
         }
         qInfo() << "KAudio entered StoppedState";
+        bmAudioBackend->videoMute(false);
         audioRecorder->stop();
         cdg->reset();
         if (k2kTransition)
@@ -1528,6 +1536,7 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
         qInfo() << "KAudio entered EndOfMediaState";
         audioRecorder->stop();
 //        ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
+        bmAudioBackend->videoMute(false);
         kAudioBackend->stop(true);
         bmAudioBackend->fadeIn(false);
         cdgWindow->setShowBgImage(true);
@@ -1541,6 +1550,7 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
     {
         qInfo() << "KAudio entered PlayingState";
         m_lastAudioState = state;
+        bmAudioBackend->videoMute(true);
         cdgWindow->setShowBgImage(false);
     }
     if (state == AbstractAudioBackend::UnknownState)
@@ -3379,6 +3389,10 @@ void MainWindow::updateRotationDuration()
     else
         text = " Rotation Duration: 0 min";
     labelRotationDuration->setText(text);
+
+    // Safety check to make sure break music video is muted if karaoke is playing
+    if (bmAudioBackend->videoMuted() && kAudioBackend->state() != AbstractAudioBackend::PlayingState && kAudioBackend->state() != AbstractAudioBackend::PausedState)
+        bmAudioBackend->videoMute(false);
 }
 
 void MainWindow::on_btnToggleCdgWindow_clicked()

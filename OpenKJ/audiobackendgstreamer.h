@@ -39,6 +39,13 @@
 #include <QPointer>
 #include <memory>
 
+/* playbin flags */
+typedef enum {
+  GST_PLAY_FLAG_VIDEO         = (1 << 0), /* We want video output */
+  GST_PLAY_FLAG_AUDIO         = (1 << 1), /* We want audio output */
+  GST_PLAY_FLAG_TEXT          = (1 << 2)  /* We want subtitle output */
+} GstPlayFlags;
+
 class gstTimerCallbackData
 {
 public:
@@ -102,6 +109,7 @@ private:
     GstCaps *videoCaps;
     GstPad *pad;
     GstPad *ghostPad;
+    GstPad *ghostVideoPad;
  //   GstBus *bus;
     GstDeviceMonitor *monitor;
     GstControlSource *csource;
@@ -118,6 +126,7 @@ private:
     bool m_keyChangerRubberBand;
     bool m_keyChangerSoundtouch;
     bool m_muted;
+    bool m_vidMuted;
     bool initDone;
     int m_silenceDuration;
     int m_outputChannels;
@@ -147,9 +156,26 @@ private:
     static void DestroyCallback(gpointer user_data);
     static GstBusSyncReply busMessageDispatcher(GstBus *bus, GstMessage *message, gpointer userData);
     AbstractAudioBackend::State lastState;
+    GstElement *xvsink;
+    GstElement *xvsink2;
+    GstElement *videoTee;
+    GstElement *videoBin;
+    GstElement *videoQueue1;
+    GstElement *videoQueue2;
+    GstPad *videoQueue1SrcPad;
+    GstPad *videoQueue2SrcPad;
+    GstPad *videoTeePad1;
+    GstPad *videoTeePad2;
+    WId videoWinId;
+    WId videoWinId2;
+
 public:
     GstElement *playBin;
     explicit AudioBackendGstreamer(bool loadPitchShift = true, QObject *parent = 0, QString objectName = "unknown");
+    void setVideoWinId(WId winID) { videoWinId = winID; }
+    void setVideoWinId2(WId winID) { videoWinId2 = winID; }
+    void videoMute(bool mute);
+    bool videoMuted();
     ~AudioBackendGstreamer();
     int volume();
     qint64 position();

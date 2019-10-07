@@ -50,8 +50,6 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     bmAudioBackend = BmAudioBackend;
     networkManager = new QNetworkAccessManager(this);
     ui->setupUi(this);
-    ui->spinBoxRemainRtOffset->setValue(settings->remainRtOffset());
-    ui->spinBoxRemainBtmOffset->setValue(settings->remainBtmOffset());
     ui->spinBoxHAdjust->setValue(settings->cdgHSizeAdjustment());
     ui->spinBoxVAdjust->setValue(settings->cdgVSizeAdjustment());
     ui->spinBoxHOffset->setValue(settings->cdgHOffset());
@@ -185,8 +183,6 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     connect(ui->spinBoxVAdjust, SIGNAL(valueChanged(int)), settings, SLOT(setCdgVSizeAdjustment(int)));
     connect(ui->spinBoxHOffset, SIGNAL(valueChanged(int)), settings, SLOT(setCdgHOffset(int)));
     connect(ui->spinBoxVOffset, SIGNAL(valueChanged(int)), settings, SLOT(setCdgVOffset(int)));
-    connect(ui->spinBoxRemainRtOffset, SIGNAL(valueChanged(int)), settings, SLOT(setRemainRtOffset(int)));
-    connect(ui->spinBoxRemainBtmOffset, SIGNAL(valueChanged(int)), settings, SLOT(setRemainBtmOffset(int)));
     connect(ui->cbxQueueRemovalWarning, SIGNAL(toggled(bool)), settings, SLOT(setShowQueueRemovalWarning(bool)));
     connect(ui->cbxSingerRemovalWarning, SIGNAL(toggled(bool)), settings, SLOT(setShowSingerRemovalWarning(bool)));
     connect(ui->cbxSongInterruptionWarning, SIGNAL(toggled(bool)), settings, SLOT(setShowSongInterruptionWarning(bool)));

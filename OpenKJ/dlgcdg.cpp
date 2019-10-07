@@ -46,6 +46,11 @@ void DlgCdg::stopTicker()
     ui->scroll->stop();
 }
 
+WId DlgCdg::getCdgWinId()
+{
+    return ui->cdgVideo->winId();
+}
+
 DlgCdg::DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *BreakBackend, QWidget *parent, Qt::WindowFlags f) :
     QDialog(parent, f),
     ui(new Ui::DlgCdg)
@@ -71,7 +76,6 @@ DlgCdg::DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *Break
     ui->lblRemain->setFont(settings->cdgRemainFont());
     cdgRemainTextColorChanged(settings->cdgRemainTextColor());
     cdgRemainBgColorChanged(settings->cdgRemainBgColor());
-    remainOffsetsChanged(settings->remainRtOffset(), settings->remainBtmOffset());
     QPalette palette = ui->scroll->palette();
     palette.setColor(ui->scroll->foregroundRole(), settings->tickerTextColor());
     ui->scroll->setPalette(palette);
@@ -469,12 +473,6 @@ void DlgCdg::cdgRemainEnabledChanged(bool enabled)
         ui->lblRemain->setVisible(enabled);
 }
 
-void DlgCdg::remainOffsetsChanged(int r, int b)
-{
-    ui->remainSpacerRight->changeSize(r,5,QSizePolicy::Fixed);
-    ui->remainSpacerBottom->changeSize(5,b,QSizePolicy::Fixed);
-}
-
 void DlgCdg::slideShowTimerTimeout()
 {
     if ((showBgImage) && (settings->bgMode() == settings->BG_MODE_SLIDESHOW))
@@ -541,12 +539,12 @@ void DlgCdg::oneSecTimerTimeout()
 {
     if (settings->cdgRemainEnabled())
     {
-        if (kAudioBackend->state() == AbstractAudioBackend::PlayingState && !ui->lblRemain->isVisible())
+        if (kAudioBackend->state() == AbstractAudioBackend::PlayingState && !ui->lblRemain->isVisible() && settings->tickerEnabled())
             ui->lblRemain->show();
         else if (kAudioBackend->state() != AbstractAudioBackend::PlayingState && ui->lblRemain->isVisible())
             ui->lblRemain->hide();
         if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
-            ui->lblRemain->setText(kAudioBackend->msToMMSS(kAudioBackend->duration() - kAudioBackend->position()));
+            ui->lblRemain->setText(" " + kAudioBackend->msToMMSS(kAudioBackend->duration() - kAudioBackend->position()));
     }
 }
 

@@ -102,7 +102,7 @@ private:
     DlgAddSinger *dlgAddSinger;
     DlgSongShop *dlgSongShop;
     //DlgCdgPreview *cdgPreviewDialog;
-    AbstractAudioBackend *kAudioBackend;
+    AudioBackendGstreamer *kAudioBackend;
     AbstractAudioBackend *sfxAudioBackend;
 //    KhAudioBackends *audioBackends;
 //    KhAudioRecorder *audioRecorder;
