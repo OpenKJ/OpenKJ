@@ -29,6 +29,7 @@
 #include <QTreeView>
 #include <QWidget>
 #include <QMetaType>
+#include <QDebug>
 
 struct SfxEntry
 {
@@ -38,6 +39,9 @@ struct SfxEntry
 
 
 }; Q_DECLARE_METATYPE(SfxEntry)
+
+QDebug operator<<(QDebug dbg, const SfxEntry &entry);
+
 
 
 

@@ -1558,20 +1558,40 @@ bool Settings::dbDirectoryWatchEnabled()
 
 SfxEntryList Settings::getSfxEntries()
 {
-    SfxEntryList list = settings->value("sfxEntries", QVariant::fromValue(SfxEntryList())).value<SfxEntryList>();
+    QStringList buttons = settings->value("sfxEntryButtons", QStringList()).toStringList();
+    QStringList paths = settings->value("sfxEntryPaths", QStringList()).toStringList();
+    SfxEntryList list;
+    for (int i=0; i < buttons.size(); i++)
+    {
+        SfxEntry entry;
+        entry.name = buttons.at(i);
+        entry.path = paths.at(i);
+        list.append(entry);
+    }
     return list;
 }
 
 void Settings::addSfxEntry(SfxEntry entry)
 {
+    qInfo() << "addSfxEntry called";
     SfxEntryList list = getSfxEntries();
+    qInfo() << "Current sfxEntries: " << list;
     list.append(entry);
     setSfxEntries(list);
+    qInfo() << "addSfxEntry completed";
 }
 
 void Settings::setSfxEntries(SfxEntryList entries)
 {
-    settings->setValue("sfxEntries", QVariant::fromValue(entries));
+    QStringList buttons;
+    QStringList paths;
+    foreach (SfxEntry entry, entries) {
+       buttons.append(entry.name);
+       paths.append(entry.path);
+    }
+    QVariant v = QVariant::fromValue(entries).toList();
+    settings->setValue("sfxEntryButtons", buttons);
+    settings->setValue("sfxEntryPaths", paths);
 }
 
 int Settings::estimationSingerPad()
@@ -1672,3 +1692,9 @@ void Settings::setCdgRemainEnabled(bool enabled)
 }
 
 
+
+QDebug operator<<(QDebug dbg, const SfxEntry &entry)
+{
+        dbg.nospace() << "SfxEntry - " << entry.name << " - " << entry.path;
+        return dbg.maybeSpace();
+}
