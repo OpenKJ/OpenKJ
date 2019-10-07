@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2019 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -40,6 +40,8 @@ void QueueModel::setSinger(int singerId)
     m_singerId = singerId;
     setFilter("singer=" + QString::number(singerId));
     select();
+    if (singerId == -1)
+        qInfo() << "Singer selection is none";
 }
 
 int QueueModel::singer()
@@ -170,7 +172,7 @@ bool QueueModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int 
 
     if (singer() == -1)
     {
-        qWarning() << "Song dropped into queue w/ no singer selected";
+        qInfo() << "Song dropped into queue w/ no singer selected";
         emit songDroppedWithoutSinger();
         return false;
     }
@@ -226,7 +228,7 @@ bool QueueModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int 
     else
     {
 
-        qWarning() << data->data("text/plain");
+        qInfo() << data->data("text/plain");
     }
     return false;
 }
@@ -239,7 +241,7 @@ bool QueueModel::canDropMimeData(const QMimeData *data, Qt::DropAction action, i
     Q_UNUSED(parent);
     if ((data->hasFormat("integer/songid")) || (data->hasFormat("integer/queuepos")) || data->hasFormat("text/plain") || data->hasFormat("text/uri-list"))
         return true;
-    qWarning() << "Unknown data type dropped on queue: " << data->formats();
+    qInfo() << "Unknown data type dropped on queue: " << data->formats();
     return false;
 }
 

@@ -42,14 +42,14 @@ unsigned int TagReader::getDuration()
 
 void TagReader::setMedia(QString path)
 {
-    qWarning() << "Getting tags for: " << path;
-    if ((path.endsWith(".mp3", Qt::CaseInsensitive)) || (path.endsWith(".ogg", Qt::CaseInsensitive)))
+    qInfo() << "Getting tags for: " << path;
+    if ((path.endsWith(".mp3", Qt::CaseInsensitive)) || (path.endsWith(".ogg", Qt::CaseInsensitive)) || path.endsWith(".mp4", Qt::CaseInsensitive) || path.endsWith(".m4v", Qt::CaseInsensitive))
     {
-        qWarning() << "Using taglib to get tags";
+        qInfo() << "Using taglib to get tags";
         taglibTags(path);
         return;
     }
-    qWarning() << "Using gstreamer to get tags";
+    qInfo() << "Using gstreamer to get tags";
     QString uri;
 #ifdef Q_OS_WIN
     uri = "file:///" + path;
@@ -67,7 +67,7 @@ void TagReader::setMedia(QString path)
     {
         gint64 duration = gst_discoverer_info_get_duration(discovererInfo);
         m_duration = duration / 1000000;
-        qWarning() << "Got duration: " << m_duration;
+        qInfo() << "Got duration: " << m_duration;
         const GstTagList *tags = gst_discoverer_info_get_tags(discovererInfo);
         if (GST_IS_TAG_LIST(tags))
         {
@@ -75,21 +75,21 @@ void TagReader::setMedia(QString path)
             if (gst_tag_list_get_string(tags,"artist",&tagVal))
             {
                 m_artist = tagVal;
-                qWarning() << "Got artist tag: " << m_artist;
+                qInfo() << "Got artist tag: " << m_artist;
             }
             if (gst_tag_list_get_string(tags,"title",&tagVal))
             {
                 m_title = tagVal;
-                qWarning() << "Got title tag: " << m_title;
+                qInfo() << "Got title tag: " << m_title;
             }
         }
         else
-            qWarning() << "Invalid or missing metadata tags";
+            qInfo() << "Invalid or missing metadata tags";
         gst_discoverer_info_unref(discovererInfo);
     }
     else
-        qWarning() << "Error retreiving discovererInfo";
-    qWarning() << "Done getting tags for: " << path;
+        qInfo() << "Error retreiving discovererInfo";
+    qInfo() << "Done getting tags for: " << path;
 }
 
 void TagReader::taglibTags(QString path)
@@ -108,9 +108,11 @@ void TagReader::taglibTags(QString path)
             m_track = "0" + QString::number(track);
         else
             m_track = QString::number(track);
+        qInfo() << "Taglib result - Artist: " << m_artist << " Title: " << m_title << " Album: " << m_album << " Track: " << m_track << " Duration: " << m_duration;
     }
     else
     {
+        qWarning() << "Taglib was unable to process the file";
         m_artist = QString();
         m_title = QString();
         m_album = QString();

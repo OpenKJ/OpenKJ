@@ -11,13 +11,9 @@ extern Settings *settings;
 void DlgCustomPatterns::evaluateRegEx()
 {
     KaraokeFileInfo parser;
-    parser.setArtistRegEx(ui->lineEditArtistRegEx->text(), ui->spinBoxArtistCaptureGrp->value());
-    parser.setTitleRegEx(ui->lineEditTitleRegEx->text(), ui->spinBoxTitleCaptureGrp->value());
-    parser.setSongIdRegEx(ui->lineEditDiscIdRegEx->text(), ui->spinBoxDiscIdCaptureGrp->value());
-    parser.setFileName(ui->lineEditFilenameExample->text());
-    ui->labelArtistExample->setText(parser.getArtist());
-    ui->labelTitleExample->setText(parser.getTitle());
-    ui->labelDiscIdExample->setText(parser.getSongId());
+    ui->labelArtistExample->setText(parser.testPattern(ui->lineEditArtistRegEx->text(), ui->lineEditFilenameExample->text(), ui->spinBoxArtistCaptureGrp->value()));
+    ui->labelTitleExample->setText(parser.testPattern(ui->lineEditTitleRegEx->text(), ui->lineEditFilenameExample->text(), ui->spinBoxTitleCaptureGrp->value()));
+    ui->labelDiscIdExample->setText(parser.testPattern(ui->lineEditDiscIdRegEx->text(), ui->lineEditFilenameExample->text(), ui->spinBoxDiscIdCaptureGrp->value()));
 }
 
 DlgCustomPatterns::DlgCustomPatterns(QWidget *parent) :

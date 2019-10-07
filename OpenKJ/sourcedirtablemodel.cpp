@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2019 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -181,7 +181,11 @@ void SourceDirTableModel::addSourceDir(QString dirpath, int pattern, int customP
 {
     layoutAboutToBeChanged();
     QSqlQuery query;
-    query.exec("INSERT INTO sourceDirs (path,pattern,custompattern) VALUES('" + dirpath + "'," + QString::number(pattern) + "," + QString::number(customPattern) + ")");
+    query.prepare("INSERT INTO sourceDirs (path,pattern,custompattern) VALUES(:path,:pattern,:custompattern)");
+    query.bindValue(":path", dirpath);
+    query.bindValue(":pattern", pattern);
+    query.bindValue(":custompattern", customPattern);
+    query.exec();
     loadFromDB();
     layoutChanged();
 }
@@ -218,13 +222,13 @@ SourceDir *SourceDirTableModel::getDirByPath(QString path)
         {
             if (mydata->at(i)->getPath() == dir.absolutePath())
             {
-                qWarning() << "Match found - " << mydata->at(i)->getPath() << " - " << mydata->at(i)->getPattern();
+                qInfo() << "Match found - " << mydata->at(i)->getPath() << " - " << mydata->at(i)->getPattern();
                 return mydata->at(i);
             }
         }
         dir.cdUp();
     }
-    qWarning() << "No Match Found";
+    qInfo() << "No Match Found";
     return new SourceDir();
 }
 

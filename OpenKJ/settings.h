@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2019 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -29,6 +29,7 @@
 #include <QTreeView>
 #include <QWidget>
 #include <QMetaType>
+#include <QDebug>
 
 struct SfxEntry
 {
@@ -38,6 +39,9 @@ struct SfxEntry
 
 
 }; Q_DECLARE_METATYPE(SfxEntry)
+
+QDebug operator<<(QDebug dbg, const SfxEntry &entry);
+
 
 
 
@@ -53,8 +57,14 @@ private:
     QSettings *settings;
 
 public:
+    int remainRtOffset();
+    int remainBtmOffset();
     qint64 hash(const QString & str);
+    bool progressiveSearchEnabled();
     QString storeDownloadDir();
+    QString logDir();
+    bool logShow();
+    bool logEnabled();
     void setPassword(QString password);
     void clearPassword();
     bool chkPassword(QString password);
@@ -110,6 +120,7 @@ public:
     void setTickerSpeed(int speed);
     QColor tickerTextColor();
     void setTickerTextColor(QColor color);
+    bool cdgRemainEnabled();
     QColor tickerBgColor();
     void setTickerBgColor(QColor color);
     bool tickerFullRotation();
@@ -260,7 +271,11 @@ public:
     bool dbSkipValidation();
     bool dbLazyLoadDurations();
     int systemId();
-
+    QFont cdgRemainFont();
+    QColor cdgRemainTextColor();
+    QColor cdgRemainBgColor();
+    bool rotationShowNextSong();
+    void sync();
 
 signals:
     void applicationFontChanged(QFont font);
@@ -322,8 +337,16 @@ signals:
     void requestServerEnabledChanged(bool enabled);
     void rotationDisplayPositionChanged(bool show);
     void rotationDurationSettingsModified();
+    void cdgRemainEnabledChanged(bool enabled);
+    void cdgRemainFontChanged(QFont font);
+    void cdgRemainTextColorChanged(QColor color);
+    void cdgRemainBgColorChanged(QColor color);
+    void rotationShowNextSongChanged(bool show);
+    void remainOffsetChanged(int offsetR, int offsetB);
 
 public slots:
+    void setRemainRtOffset(int offset);
+    void setRemainBtmOffset(int offset);
     void dbSetLazyLoadDurations(bool val);
     void dbSetSkipValidation(bool val);
     void setBmKCrossfade(bool enabled);
@@ -386,9 +409,18 @@ public slots:
     void setBookCreatorCols(int cols);
     void setBookCreatorPageSize(int size);
     void setStoreDownloadDir(QString path);
+    void setLogEnabled(bool enabled);
+    void setLogVisible(bool visible);
+    void setLogDir(QString path);
     void setCurrentRotationPosition(int position);
     void dbSetDirectoryWatchEnabled(bool val);
     void setSystemId(int id);
+    void setCdgRemainEnabled(bool enabled);
+    void setCdgRemainFont(QFont font);
+    void setCdgRemainTextColor(QColor color);
+    void setCdgRemainBgColor(QColor color);
+    void setRotationShowNextSong(bool show);
+    void setProgressiveSearchEnabled(bool enabled);
 
 };
 

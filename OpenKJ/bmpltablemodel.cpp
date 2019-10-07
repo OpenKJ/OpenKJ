@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2019 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -148,7 +148,7 @@ bool BmPlTableModel::dropMimeData(const QMimeData *data, Qt::DropAction action, 
         QDataStream stream(&encodedData, QIODevice::ReadOnly);
         QList<int> songids;
         stream >> songids;
-        qWarning() << songids;
+        qInfo() << songids;
         unsigned int droprow;
         if (parent.row() >= 0)
             droprow = parent.row();

@@ -29,7 +29,7 @@ unix:!macx {
     binaryfiles.files += OpenKJ
     binaryfiles.path = $$PREFIX/bin
     INSTALLS += binaryfiles iconfiles desktopfiles
-    DEFINES += USE_GL
+#    DEFINES += USE_GL
 }
 
 macx: {
@@ -49,14 +49,14 @@ win32 {
         INCLUDEPATH += C:\gstreamer\1.0\x86\include\glib-2.0
         INCLUDEPATH += C:\gstreamer\1.0\x86\lib\glib-2.0\include
         INCLUDEPATH += C:\gstreamer\1.0\x86\include\glib-2.0\gobject
-        LIBS += -LC:\gstreamer\1.0\x86\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0 -lgstapp-1.0 -lgstaudio-1.0 -lgstpbutils-1.0 -lgstcontroller-1.0
+        LIBS += -LC:\gstreamer\1.0\x86\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0 -lgstapp-1.0 -lgstaudio-1.0 -lgstpbutils-1.0 -lgstcontroller-1.0 -lwinmm
     } else {
         ## Windows x64 (64bit) specific build here
         INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\gstreamer-1.0
         INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0
         INCLUDEPATH += C:\gstreamer\1.0\x86_64\lib\glib-2.0\include
         INCLUDEPATH += C:\gstreamer\1.0\x86_64\include\glib-2.0\gobject
-        LIBS += -LC:\gstreamer\1.0\x86_64\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0 -lgstapp-1.0 -lgstaudio-1.0 -lgstpbutils-1.0 -lgstcontroller-1.0
+        LIBS += -LC:\gstreamer\1.0\x86_64\lib -lgstreamer-1.0 -lglib-2.0 -lgobject-2.0 -lgstapp-1.0 -lgstaudio-1.0 -lgstpbutils-1.0 -lgstcontroller-1.0 -lwinmm
     }
 }
 
@@ -100,12 +100,12 @@ contains(DEFINES, STATIC_TAGLIB) {
 QMAKE_MAC_SDK = MacOSX10.13
 QMAKE_MAC_SDK.macosx.version = 10.13
 
-VERSION = 1.4.9
+VERSION = 1.6.
 message($$VERSION)
 QMAKE_TARGET_COMPANY = OpenKJ.org
 QMAKE_TARGET_PRODUCT = OpenKJ
 QMAKE_TARGET_DESCRIPTION = OpenKJ karaoke hosting software
-DEFINES += OKJ_UNSTABLE
+# DEFINES += OKJ_UNSTABLE
 
 
 unix: BLDDATE = $$system(date -R)
@@ -114,8 +114,6 @@ DEFINES += BUILD_DATE=__DATE__
 
 SOURCES += main.cpp\
     mainwindow.cpp \
-    libCDG/src/libCDG_Frame_Image.cpp \
-    libCDG/src/libCDG_Color.cpp \
     libCDG/src/libCDG.cpp \
     sourcedirtablemodel.cpp \
     dbupdatethread.cpp \
@@ -161,6 +159,7 @@ SOURCES += main.cpp\
     dlgeq.cpp \
     audiofader.cpp \
     customlineedit.cpp \
+    tickernew.cpp \
     updatechecker.cpp \
     volslider.cpp \
     dlgaddsinger.cpp \
@@ -177,7 +176,9 @@ SOURCES += main.cpp\
     karaokefileinfo.cpp \
     dlgeditsong.cpp \
     soundfxbutton.cpp \
-    durationlazyupdater.cpp
+    durationlazyupdater.cpp \
+    idledetect.cpp \
+    dlgdebugoutput.cpp
 
 contains(DEFINES, STATIC_TAGLIB) {
     SOURCES += taglib/ape/apefile.cpp \
@@ -287,8 +288,6 @@ contains(DEFINES, STATIC_TAGLIB) {
 
 HEADERS  += mainwindow.h \
     libCDG/include/libCDG.h \
-    libCDG/include/libCDG_Frame_Image.h \
-    libCDG/include/libCDG_Color.h \
     sourcedirtablemodel.h \
     dbupdatethread.h \
     scrolltext.h \
@@ -333,6 +332,7 @@ HEADERS  += mainwindow.h \
     dlgeq.h \
     audiofader.h \
     customlineedit.h \
+    tickernew.h \
     updatechecker.h \
     volslider.h \
     okjversion.h \
@@ -351,7 +351,9 @@ HEADERS  += mainwindow.h \
     dlgeditsong.h \
     soundfxbutton.h \
     tableviewtooltipfilter.h \
-    durationlazyupdater.h
+    durationlazyupdater.h \
+    idledetect.h \
+    dlgdebugoutput.h
 
 contains(DEFINES, STATIC_TAGLIB) {
     HEADERS += taglib/ape/apefile.h \
@@ -489,7 +491,8 @@ FORMS    += mainwindow.ui \
     dlgsetpassword.ui \
     dlgpassword.ui \
     dlgpurchaseprogress.ui \
-    dlgeditsong.ui
+    dlgeditsong.ui \
+    dlgdebugoutput.ui
 
 RESOURCES += resources.qrc
 

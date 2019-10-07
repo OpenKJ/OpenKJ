@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2019 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -99,6 +99,10 @@ protected:
     // QWidget interface
 protected:
     void showEvent(QShowEvent *event);
+
+    // QWidget interface
+protected:
+    void closeEvent(QCloseEvent *event);
 };
 
 #endif // KHREQUESTSDIALOG_H

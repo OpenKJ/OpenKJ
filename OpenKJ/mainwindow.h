@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2019 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -66,6 +66,7 @@
 #include "songshop.h"
 #include "khdb.h"
 #include "durationlazyupdater.h"
+#include "dlgdebugoutput.h"
 
 using namespace std;
 
@@ -88,6 +89,7 @@ private:
     RotationItemDelegate *rotDelegate;
     DlgCdg *cdgWindow;
     //CdgWindow *cdgWindow2;
+    DlgDebugOutput *debugDialog;
     DlgDatabase *dbDialog;
     DlgSettings *settingsDialog;
     DlgRegularSingers *regularSingersDialog;
@@ -245,6 +247,7 @@ private slots:
     void on_buttonBmPause_clicked(bool checked);
     void on_actionDisplay_Metadata_toggled(bool arg1);
     void on_actionDisplay_Filenames_toggled(bool arg1);
+    void on_actionShow_Debug_Log_toggled(bool arg1);
     void on_actionManage_Karaoke_DB_triggered();
     void on_actionPlaylistNew_triggered();
     void on_actionPlaylistImport_triggered();
@@ -263,6 +266,8 @@ private slots:
     void on_spinBoxTempo_valueChanged(int arg1);
     void on_actionSongbook_Generator_triggered();
     void on_actionEqualizer_triggered();
+    void audioError(QString msg);
+    void resizeRotation();
 
     // QWidget interface
     void on_sliderVolume_sliderMoved(int position);
@@ -295,6 +300,12 @@ private slots:
     void showAlert(QString title, QString message);
     void tableViewRotationCurrentChanged(QModelIndex cur, QModelIndex prev);
     void updateRotationDuration();
+
+    void on_btnToggleCdgWindow_clicked();
+    void cdgVisibilityChanged();
+    void rotationSelectionChanged(QItemSelection sel, QItemSelection desel);
+
+    void on_lineEditBmSearch_textChanged(const QString &arg1);
 
 protected:
     void closeEvent(QCloseEvent *event);

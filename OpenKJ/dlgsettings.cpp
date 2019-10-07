@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2019 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -50,6 +50,8 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     bmAudioBackend = BmAudioBackend;
     networkManager = new QNetworkAccessManager(this);
     ui->setupUi(this);
+    ui->spinBoxRemainRtOffset->setValue(settings->remainRtOffset());
+    ui->spinBoxRemainBtmOffset->setValue(settings->remainBtmOffset());
     ui->spinBoxHAdjust->setValue(settings->cdgHSizeAdjustment());
     ui->spinBoxVAdjust->setValue(settings->cdgVSizeAdjustment());
     ui->spinBoxHOffset->setValue(settings->cdgHOffset());
@@ -57,6 +59,8 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     ui->checkBoxDbSkipValidation->setChecked(settings->dbSkipValidation());
     ui->checkBoxLazyLoadDurations->setChecked(settings->dbLazyLoadDurations());
     ui->checkBoxMonitorDirs->setChecked(settings->dbDirectoryWatchEnabled());
+    ui->groupBoxShowDuration->setChecked(settings->cdgRemainEnabled());
+    ui->cbxRotShowNextSong->setChecked(settings->rotationShowNextSong());
     QStringList screens = getMonitors();
     ui->listWidgetMonitors->addItems(screens);
     audioOutputDevices = kAudioBackend->getOutputDevices();
@@ -78,6 +82,7 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
         ui->listWidgetAudioDevicesBm->item(selDevice)->setSelected(true);
         bmAudioBackend->setOutputDevice(selDevice);
     }
+    ui->checkBoxProgressiveSearch->setChecked(settings->progressiveSearchEnabled());
     ui->checkBoxShowCdgWindow->setChecked(settings->showCdgWindow());
     ui->checkBoxCdgFullscreen->setChecked(settings->cdgWindowFullscreen());
     if (screens.count() > settings->cdgWindowFullScreenMonitor())
@@ -102,6 +107,16 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     clr = settings->alertBgColor();
     ss.replace("0,0,0", QString(QString::number(clr.red()) + "," + QString::number(clr.green()) + "," + QString::number(clr.blue())));
     ui->btnAlertBgColor->setStyleSheet(ss);
+
+    ss = ui->btnDurationFontColor->styleSheet();
+    clr = settings->cdgRemainTextColor();
+    ss.replace("0,0,0", QString(QString::number(clr.red()) + "," + QString::number(clr.green()) + "," + QString::number(clr.blue())));
+    ui->btnDurationFontColor->setStyleSheet(ss);
+
+    ss = ui->btnDurationBgColor->styleSheet();
+    clr = settings->cdgRemainBgColor();
+    ss.replace("0,0,0", QString(QString::number(clr.red()) + "," + QString::number(clr.green()) + "," + QString::number(clr.blue())));
+    ui->btnDurationBgColor->setStyleSheet(ss);
 
     if (settings->tickerFullRotation())
     {
@@ -170,6 +185,8 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     connect(ui->spinBoxVAdjust, SIGNAL(valueChanged(int)), settings, SLOT(setCdgVSizeAdjustment(int)));
     connect(ui->spinBoxHOffset, SIGNAL(valueChanged(int)), settings, SLOT(setCdgHOffset(int)));
     connect(ui->spinBoxVOffset, SIGNAL(valueChanged(int)), settings, SLOT(setCdgVOffset(int)));
+    connect(ui->spinBoxRemainRtOffset, SIGNAL(valueChanged(int)), settings, SLOT(setRemainRtOffset(int)));
+    connect(ui->spinBoxRemainBtmOffset, SIGNAL(valueChanged(int)), settings, SLOT(setRemainBtmOffset(int)));
     connect(ui->cbxQueueRemovalWarning, SIGNAL(toggled(bool)), settings, SLOT(setShowQueueRemovalWarning(bool)));
     connect(ui->cbxSingerRemovalWarning, SIGNAL(toggled(bool)), settings, SLOT(setShowSingerRemovalWarning(bool)));
     connect(ui->cbxSongInterruptionWarning, SIGNAL(toggled(bool)), settings, SLOT(setShowSongInterruptionWarning(bool)));
@@ -177,6 +194,7 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     connect(ui->cbxTickerShowRotationInfo, SIGNAL(clicked(bool)), settings, SLOT(setTickerShowRotationInfo(bool)));
     connect(settings, SIGNAL(tickerShowRotationInfoChanged(bool)), this, SLOT(tickerShowRotationInfoChanged(bool)));
     connect(songbookApi, SIGNAL(entitledSystemCountChanged(int)), this, SLOT(entitledSystemCountChanged(int)));
+    connect(ui->cbxRotShowNextSong, SIGNAL(clicked(bool)), settings, SLOT(setRotationShowNextSong(bool)));
     ui->fontComboBox->setFont(settings->applicationFont());
     ui->spinBoxAppFontSize->setValue(settings->applicationFont().pointSize());
 
@@ -214,6 +232,9 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     connect(ui->checkBoxLazyLoadDurations, SIGNAL(toggled(bool)), settings, SLOT(dbSetLazyLoadDurations(bool)));
     connect(ui->checkBoxMonitorDirs, SIGNAL(toggled(bool)), settings, SLOT(dbSetDirectoryWatchEnabled(bool)));
     connect(ui->spinBoxSystemId, SIGNAL(valueChanged(int)), settings, SLOT(setSystemId(int)));
+    ui->checkBoxLogging->setChecked(settings->logEnabled());
+    ui->lineEditLogDir->setText(settings->logDir());
+    connect(ui->checkBoxLogging, SIGNAL(toggled(bool)), settings, SLOT(setLogEnabled(bool)));
 }
 
 DlgSettings::~DlgSettings()
@@ -781,4 +802,68 @@ void DlgSettings::entitledSystemCountChanged(int count)
     {
         ui->spinBoxSystemId->setValue(settings->systemId());
     }
+}
+
+void DlgSettings::on_groupBoxShowDuration_clicked(bool checked)
+{
+    settings->setCdgRemainEnabled(checked);
+}
+
+void DlgSettings::on_btnDurationFont_clicked()
+{
+    bool ok;
+    QFont font = QFontDialog::getFont(&ok, settings->cdgRemainFont(), this, "Select CDG duration display font");
+    if (ok)
+    {
+        settings->setCdgRemainFont(font);
+    }
+}
+
+void DlgSettings::on_btnDurationFontColor_clicked()
+{
+    QColor clr = QColorDialog::getColor(settings->cdgRemainTextColor(),this,"Select CDG duration display text color");
+    if (clr.isValid())
+    {
+        QString ss = ui->btnDurationFontColor->styleSheet();
+        QColor oclr = settings->cdgRemainTextColor();
+        ss.replace(QString(QString::number(oclr.red()) + "," + QString::number(oclr.green()) + "," + QString::number(oclr.blue())), QString(QString::number(clr.red()) + "," + QString::number(clr.green()) + "," + QString::number(clr.blue())));
+        ui->btnDurationFontColor->setStyleSheet(ss);
+        settings->setCdgRemainTextColor(clr);
+    }
+}
+
+void DlgSettings::on_btnDurationBgColor_clicked()
+{
+    QColor clr = QColorDialog::getColor(settings->cdgRemainBgColor(),this,"Select CDG duration display background color");
+    if (clr.isValid())
+    {
+        QString ss = ui->btnDurationBgColor->styleSheet();
+        QColor oclr = settings->cdgRemainBgColor();
+        ss.replace(QString(QString::number(oclr.red()) + "," + QString::number(oclr.green()) + "," + QString::number(oclr.blue())), QString(QString::number(clr.red()) + "," + QString::number(clr.green()) + "," + QString::number(clr.blue())));
+        ui->btnDurationBgColor->setStyleSheet(ss);
+        settings->setCdgRemainBgColor(clr);
+    }
+}
+
+void DlgSettings::on_btnLogDirBrowse_clicked()
+{
+    QString fileName = QFileDialog::getExistingDirectory(this, "Select directory to put logs in",settings->logDir());
+    if (fileName != "")
+    {
+        QFileInfo fi(fileName);
+        if (!fi.isWritable() || !fi.isReadable())
+        {
+            QMessageBox msgBox;
+            msgBox.setWindowTitle("Directory not writable!");
+            msgBox.setText("You do not have permission to write to the selected directory, aborting.");
+            msgBox.exec();
+        }
+        settings->setLogDir(fileName + QDir::separator());
+        ui->lineEditLogDir->setText(fileName + QDir::separator());
+    }
+}
+
+void DlgSettings::on_checkBoxProgressiveSearch_toggled(bool checked)
+{
+    settings->setProgressiveSearchEnabled(checked);
 }

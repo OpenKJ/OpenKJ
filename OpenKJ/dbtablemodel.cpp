@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2019 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -155,7 +155,7 @@ void DbTableModel::sort(int column, Qt::SortOrder order)
 
 void DbTableModel::refreshCache()
 {
-    qWarning() << "Refreshing dbsongs cache";
+    qInfo() << "Refreshing dbsongs cache";
     QSqlQuery query(db);
     query.exec("DELETE FROM mem.dbsongs");
     query.exec("VACUUM mem");

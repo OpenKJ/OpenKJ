@@ -39,6 +39,8 @@ public:
     QString getArtist();
     QString getTitle();
     QString getSongId();
+    QString testPattern(QString regex, QString filename, int captureGroup = 0);
+
     int getDuration();
     void getMetadata();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2019 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -46,23 +46,29 @@ DlgDatabase::DlgDatabase(QSqlDatabase db, QWidget *parent) :
     selectedRow = -1;
     customPatternsDlg = new DlgCustomPatterns(this);
     dbUpdateDlg = new DlgDbUpdate(this);
-    QStringList sourceDirs = sourcedirmodel->getSourceDirs();
-    QString path;
-    foreach (path, sourceDirs)
+    if (settings->dbDirectoryWatchEnabled())
     {
-        fsWatcher.addPath(path);
-        qWarning() << "Adding watch to path: " << path;
-        QDirIterator it(path, QDirIterator::Subdirectories);
-        while (it.hasNext()) {
-            QString subPath = it.next();
-            if (!it.fileInfo().isDir() || subPath.endsWith("/.") || subPath.endsWith("/.."))
-                continue;
-            qWarning() << "Adding watch to subpath: " << subPath;
-            fsWatcher.addPath(subPath);
+        QStringList sourceDirs = sourcedirmodel->getSourceDirs();
+        QString path;
+        foreach (path, sourceDirs)
+        {
+            QFileInfo finfo(path);
+            if (finfo.isDir() && finfo.isReadable())
+            {
+                fsWatcher.addPath(path);
+                qInfo() << "Adding watch to path: " << path;
+                QDirIterator it(path, QDirIterator::Subdirectories);
+                while (it.hasNext()) {
+                    QString subPath = it.next();
+                    if (!it.fileInfo().isDir() || subPath.endsWith("/.") || subPath.endsWith("/.."))
+                        continue;
+                    qInfo() << "Adding watch to subpath: " << subPath;
+                    fsWatcher.addPath(subPath);
+                }
+            }
         }
+        connect(&fsWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(directoryChanged(QString)));
     }
-    fsWatcher.addPaths(sourcedirmodel->getSourceDirs());
-    connect(&fsWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(directoryChanged(QString)));
 }
 
 DlgDatabase::~DlgDatabase()
@@ -74,7 +80,7 @@ DlgDatabase::~DlgDatabase()
 
 void DlgDatabase::singleSongAdd(QString path)
 {
-    qWarning() << "singleSongAdd(" << path << ") called";
+    qInfo() << "singleSongAdd(" << path << ") called";
     DbUpdateThread *updateThread = new DbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "threaddb"),this);
     updateThread->addSingleTrack(path);
     delete updateThread;
@@ -308,7 +314,7 @@ void DlgDatabase::directoryChanged(QString dirPath)
     if (!settings->dbDirectoryWatchEnabled())
         return;
     DbUpdateThread *dbthread = new DbUpdateThread(db, this);
-    qWarning() << "Directory changed fired for dir: " << dirPath;
+    qInfo() << "Directory changed fired for dir: " << dirPath;
     QDirIterator it(dirPath);
     while (it.hasNext()) {
         QString file = it.next();
@@ -325,8 +331,8 @@ void DlgDatabase::directoryChanged(QString dirPath)
         {
             continue;
         }
-        qWarning() << "Detected new file: " << file;
-        qWarning() << "Adding file to the database";
+        qInfo() << "Detected new file: " << file;
+        qInfo() << "Adding file to the database";
         dbthread->addSingleTrack(file);
         emit databaseUpdateComplete();
     }

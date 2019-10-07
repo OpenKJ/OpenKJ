@@ -56,20 +56,20 @@ void UpdateChecker::checkForUpdates()
 {
     if (!settings->checkUpdates())
         return;
-    qWarning() << "Requesting current version info for branch: " << channel;
+    qInfo() << "Requesting current version info for branch: " << channel;
     connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
     QNetworkReply *reply = manager->get(QNetworkRequest(QUrl("http://openkj.org/downloads/" + OS + "-" + channel + "-curversion.txt")));
 //    while (!reply->isFinished())
 //        QApplication::processEvents();
-//    qWarning() << "Request completed";
+//    qInfo() << "Request completed";
 }
 
 void UpdateChecker::onNetworkReply(QNetworkReply *reply)
 {
-    qWarning() << "Received network reply";
+    qInfo() << "Received network reply";
     if (reply->error() != QNetworkReply::NoError)
     {
-        qWarning() << reply->errorString();
+        qInfo() << reply->errorString();
         //output some meaningful error msg
         return;
     }
@@ -79,7 +79,7 @@ void UpdateChecker::onNetworkReply(QNetworkReply *reply)
     QStringList availVersionParts = availVersion.split(".");
     if (availVersionParts.size() != 3 || curVersionParts.size() != 3)
     {
-        qWarning() << "Got invalid version info from server";
+        qInfo() << "Got invalid version info from server";
         return;
     }
     int availMajor = availVersionParts.at(0).toInt();
@@ -94,7 +94,7 @@ void UpdateChecker::onNetworkReply(QNetworkReply *reply)
         emit newVersionAvailable(availVersion);
     else if (availMajor == curMajor && availMinor == curMinor && availRevis > curRevis)
         emit newVersionAvailable(availVersion);
-    qWarning() << "Received version: " << availVersion << " Current version: " << currentVer;
+    qInfo() << "Received version: " << availVersion << " Current version: " << currentVer;
     reply->deleteLater();
 }
 
@@ -108,6 +108,6 @@ void UpdateChecker::downloadInstaller()
         if (OS == "Win32")
             url = "https://storage.googleapis.com/openkj-windows-builds-master/OpenKJ-" + availVersion + "-32bit-setup.exe";
         if (OS == "MacOS")
-            url = "https://storage.googleapis.com/openkj-openkj-master/OpenKJ-" + availVersion + "-unstable-osx-installer.dmg";
+            url = "https://storage.googleapis.com/openkj-openkj-release/OpenKJ-" + availVersion + "-unstable-osx-installer.dmg";
     }
 }

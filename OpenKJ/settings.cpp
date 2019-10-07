@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2019 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -32,6 +32,16 @@
 #include <QDataStream>
 
 
+int Settings::remainRtOffset()
+{
+    return settings->value("remainRtOffset", 5).toInt();
+}
+
+int Settings::remainBtmOffset()
+{
+    return settings->value("remainBtmOffset", 5).toInt();
+}
+
 qint64 Settings::hash(const QString &str)
 {
     QByteArray hash = QCryptographicHash::hash(
@@ -45,14 +55,49 @@ qint64 Settings::hash(const QString &str)
     return a ^ b;
 }
 
+bool Settings::progressiveSearchEnabled()
+{
+    return settings->value("progressiveSearchEnabled", true).toBool();
+}
+
 QString Settings::storeDownloadDir()
 {
     return settings->value("storeDownloadDir", QStandardPaths::writableLocation(QStandardPaths::MusicLocation) + QDir::separator() + "OpenKJ_Downloads" + QDir::separator()).toString();
 }
 
+QString Settings::logDir()
+{
+    return settings->value("logDir", QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QDir::separator() + "OpenKJ_Logs" + QDir::separator()).toString();
+}
+
+bool Settings::logShow()
+{
+    return settings->value("logVisible", false).toBool();
+}
+
+bool Settings::logEnabled()
+{
+    return settings->value("logEnabled", false).toBool();
+}
+
 void Settings::setStoreDownloadDir(QString path)
 {
     settings->setValue("storeDownloadDir", path);
+}
+
+void Settings::setLogEnabled(bool enabled)
+{
+    settings->setValue("logEnabled", enabled);
+}
+
+void Settings::setLogVisible(bool visible)
+{
+    settings->setValue("logVisible", visible);
+}
+
+void Settings::setLogDir(QString path)
+{
+    settings->setValue("logDir", path);
 }
 
 void Settings::setCurrentRotationPosition(int position)
@@ -263,8 +308,9 @@ int Settings::cdgWindowFullScreenMonitor()
 void Settings::saveWindowState(QWidget *window)
 {
     settings->beginGroup(window->objectName());
-    settings->setValue("size", window->size());
-    settings->setValue("pos", window->pos());
+    //settings->setValue("size", window->size());
+    //settings->setValue("pos", window->pos());
+    settings->setValue("geometry", window->saveGeometry());
     settings->endGroup();
 }
 
@@ -272,7 +318,11 @@ void Settings::restoreWindowState(QWidget *window)
 {
 
     settings->beginGroup(window->objectName());
-    if (settings->contains("size") && settings->contains("pos"))
+    if (settings->contains("geometry"))
+    {
+        window->restoreGeometry(settings->value("geometry").toByteArray());
+    }
+    else if (settings->contains("size") && settings->contains("pos"))
     {
         window->resize(settings->value("size", QSize(640, 480)).toSize());
         window->move(settings->value("pos", QPoint(100, 100)).toPoint());
@@ -402,6 +452,80 @@ void Settings::setTickerTextColor(QColor color)
 {
     settings->setValue("tickerTextColor", color);
     emit tickerTextColorChanged();
+}
+
+QFont Settings::cdgRemainFont()
+{
+    QFont font;
+    font.fromString(settings->value("cdgRemainFont", QApplication::font().toString()).toString());
+    return font;
+}
+
+QColor Settings::cdgRemainTextColor()
+{
+    return settings->value("cdgRemainTextColor", QApplication::palette().foreground().color()).value<QColor>();
+}
+
+QColor Settings::cdgRemainBgColor()
+{
+    return settings->value("cdgRemainBgColor", QApplication::palette().background().color()).value<QColor>();
+
+}
+
+bool Settings::rotationShowNextSong()
+{
+    return settings->value("rotationShowNextSong", false).toBool();
+}
+
+void Settings::sync()
+{
+    settings->sync();
+}
+
+void Settings::setRemainRtOffset(int offset)
+{
+    settings->setValue("remainRtOffset", offset);
+    emit remainOffsetChanged(remainRtOffset(), remainBtmOffset());
+}
+
+void Settings::setRemainBtmOffset(int offset)
+{
+    settings->setValue("remainBtmOffset", offset);
+    emit remainOffsetChanged(remainRtOffset(), remainBtmOffset());
+}
+
+bool Settings::cdgRemainEnabled()
+{
+    return settings->value("cdgRemainEnabled", false).toBool();
+}
+
+void Settings::setCdgRemainFont(QFont font)
+{
+    settings->setValue("cdgRemainFont", font.toString());
+    emit cdgRemainFontChanged(font);
+}
+
+void Settings::setCdgRemainTextColor(QColor color)
+{
+    settings->setValue("cdgRemainTextColor", color);
+    emit cdgRemainTextColorChanged(color);
+}
+
+void Settings::setCdgRemainBgColor(QColor color)
+{
+    settings->setValue("cdgRemainBgColor", color);
+    emit cdgRemainBgColorChanged(color);
+}
+
+void Settings::setRotationShowNextSong(bool show)
+{
+    settings->setValue("rotationShowNextSong", show);
+    emit rotationShowNextSongChanged(show);
+}
+
+void Settings::setProgressiveSearchEnabled(bool enabled)
+{
+    settings->setValue("progressiveSearchEnabled", enabled);
 }
 
 QColor Settings::tickerBgColor()
@@ -1434,20 +1558,40 @@ bool Settings::dbDirectoryWatchEnabled()
 
 SfxEntryList Settings::getSfxEntries()
 {
-    SfxEntryList list = settings->value("sfxEntries", QVariant::fromValue(SfxEntryList())).value<SfxEntryList>();
+    QStringList buttons = settings->value("sfxEntryButtons", QStringList()).toStringList();
+    QStringList paths = settings->value("sfxEntryPaths", QStringList()).toStringList();
+    SfxEntryList list;
+    for (int i=0; i < buttons.size(); i++)
+    {
+        SfxEntry entry;
+        entry.name = buttons.at(i);
+        entry.path = paths.at(i);
+        list.append(entry);
+    }
     return list;
 }
 
 void Settings::addSfxEntry(SfxEntry entry)
 {
+    qInfo() << "addSfxEntry called";
     SfxEntryList list = getSfxEntries();
+    qInfo() << "Current sfxEntries: " << list;
     list.append(entry);
     setSfxEntries(list);
+    qInfo() << "addSfxEntry completed";
 }
 
 void Settings::setSfxEntries(SfxEntryList entries)
 {
-    settings->setValue("sfxEntries", QVariant::fromValue(entries));
+    QStringList buttons;
+    QStringList paths;
+    foreach (SfxEntry entry, entries) {
+       buttons.append(entry.name);
+       paths.append(entry.path);
+    }
+    QVariant v = QVariant::fromValue(entries).toList();
+    settings->setValue("sfxEntryButtons", buttons);
+    settings->setValue("sfxEntryPaths", paths);
 }
 
 int Settings::estimationSingerPad()
@@ -1534,7 +1678,23 @@ int Settings::systemId()
     return settings->value("systemId", 1).toInt();
 }
 
+
+
 void Settings::setSystemId(int id)
 {
     return settings->setValue("systemId", id);
+}
+
+void Settings::setCdgRemainEnabled(bool enabled)
+{
+    settings->setValue("cdgRemainEnabled", enabled);
+    emit cdgRemainEnabledChanged(enabled);
+}
+
+
+
+QDebug operator<<(QDebug dbg, const SfxEntry &entry)
+{
+        dbg.nospace() << "SfxEntry - " << entry.name << " - " << entry.path;
+        return dbg.maybeSpace();
 }

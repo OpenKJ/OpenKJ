@@ -13,7 +13,7 @@ extern Settings *settings;
 
 void AudioRecorder::generateDeviceList()
 {
-    qWarning() << "AudioRecorder::generateDeviceList() called";
+    qInfo() << "AudioRecorder::generateDeviceList() called";
     monitor = gst_device_monitor_new ();
     GstCaps *moncaps;
     moncaps = gst_caps_new_empty_simple ("audio/x-raw");
@@ -34,16 +34,16 @@ void AudioRecorder::generateDeviceList()
 
 void AudioRecorder::initGStreamer()
 {
-    qWarning() << "AudioRecorder::initGStreamer() called";
+    qInfo() << "AudioRecorder::initGStreamer() called";
 #ifndef Q_OS_WIN
     generateDeviceList();
 #else
     // Give Windows users something to look at in the dropdown
     inputDeviceNames.append("System default");
 #endif
-    qWarning() << "AudioRecorder - Initializing gstreamer";
+    qInfo() << "AudioRecorder - Initializing gstreamer";
     gst_init(NULL,NULL);
-    qWarning() << "AudioRecorder - Creating elements";
+    qInfo() << "AudioRecorder - Creating elements";
     autoAudioSrc    = gst_element_factory_make("autoaudiosrc", NULL);
     if (!autoAudioSrc)
         qCritical() << "Failed to create autoAudioSrc";
@@ -82,7 +82,7 @@ void AudioRecorder::initGStreamer()
     bus             = gst_element_get_bus (pipeline);
     if (!bus)
         qCritical() << "Failed to create bus";
-    qWarning() << "Elements created, adding to pipeline and linking";
+    qInfo() << "Elements created, adding to pipeline and linking";
     g_object_set(vorbisEnc, "quality", 0.9, NULL);
 #ifdef Q_OS_WIN
     gst_bin_add_many(GST_BIN (pipeline), autoAudioSrc, audioRate, audioConvert, lameMp3Enc, wavEnc, vorbisEnc, oggMux, fileSink, NULL);
@@ -92,9 +92,9 @@ void AudioRecorder::initGStreamer()
     bool result = gst_element_link_many(audioSrc, audioRate, audioConvert, vorbisEnc, oggMux, fileSink, NULL);
 #endif
     if (result == false)
-        qWarning() << "Gst - Error linking elements";
+        qInfo() << "Gst - Error linking elements";
     getRecordingSettings();
-    qWarning() << "AudioRecorder::initGStreamer() completed";
+    qInfo() << "AudioRecorder::initGStreamer() completed";
 }
 
 
@@ -112,29 +112,43 @@ void AudioRecorder::processGstMessage()
 //                GstState state;
 //                gst_element_get_state(pipeline, &state, NULL, GST_CLOCK_TIME_NONE);
 //                if (state == GST_STATE_PLAYING)
-//                    qWarning() << "AudioRecorder - Gst - State changed to PLAYING";
+//                    qInfo() << "AudioRecorder - Gst - State changed to PLAYING";
 //                else if (state == GST_STATE_PAUSED)
-//                    qWarning() << "AudioRecorder - Gst - State changed to PAUSED";
+//                    qInfo() << "AudioRecorder - Gst - State changed to PAUSED";
 //                else if (state == GST_STATE_NULL)
-//                    qWarning() << "AudioRecorder - Gst - State changed to NULL";
+//                    qInfo() << "AudioRecorder - Gst - State changed to NULL";
 //                else
-//                    qWarning() << "AudioRecorder - Gst - State changed to undefined state";
+//                    qInfo() << "AudioRecorder - Gst - State changed to undefined state";
             }
             else if (message->type == GST_MESSAGE_WARNING || message->type == GST_MESSAGE_ERROR)
             {
-                qWarning() << "AudioRecorder - Gst - Error or warning generated";
-              GError *gerror;
-              gchar *debug;
+                qInfo() << "AudioRecorder - Gst - Error or warning generated";
+//              GError *gerror;
+//              gchar *debug;
 
-              gst_message_parse_error (message, &gerror, &debug);
-              gst_object_default_error (GST_MESSAGE_SRC (message), gerror, debug);
+//              gst_message_parse_error (message, &gerror, &debug);
+//              gst_object_default_error (GST_MESSAGE_SRC (message), gerror, debug);
+
+              GError *err;
+              gchar *debug;
+              if (message->type == GST_MESSAGE_WARNING)
+              {
+                gst_message_parse_warning(message, &err, &debug);
+                qInfo() << "AudioRecorder - Gst warning: " << err->message;
+              }
+              else
+              {
+                gst_message_parse_error(message, &err, &debug);
+                qInfo() << "AudioRecorder - Gst error: " << err->message;
+              }
+              qInfo() << " AudioRecorder - Gst debug: " << debug;
               gst_message_unref (message);
-              g_error_free (gerror);
+              g_error_free (err);
               g_free (debug);
             }
             else
             {
-                g_print("Msg type[%d], Msg type name[%s]\n", GST_MESSAGE_TYPE(message), GST_MESSAGE_TYPE_NAME(message));
+                g_print("AudioRecorder - Msg type[%d], Msg type name[%s]\n", GST_MESSAGE_TYPE(message), GST_MESSAGE_TYPE_NAME(message));
             }
             gst_message_unref(message);
         }
@@ -147,7 +161,7 @@ void AudioRecorder::processGstMessage()
 
 int AudioRecorder::getCurrentCodec() const
 {
-    qWarning() << "AudioRecorder::getCurrentCodec() called.  Return: " << currentCodec;
+    qInfo() << "AudioRecorder::getCurrentCodec() called.  Return: " << currentCodec;
     return currentCodec;
 }
 
@@ -175,35 +189,35 @@ void AudioRecorder::record(QString filename)
     getRecordingSettings();
     setInputDevice(currentDevice);
 
-    qWarning() << "AudioRecorder::record(" << filename << ") called";
+    qInfo() << "AudioRecorder::record(" << filename << ") called";
     setOutputFile(filename);
     gst_element_set_state(pipeline, GST_STATE_PLAYING);
 }
 
 void AudioRecorder::stop()
 {
-    qWarning() << "AudioRecorder::stop() called";
+    qInfo() << "AudioRecorder::stop() called";
     gst_element_set_state(pipeline, GST_STATE_NULL);
 
 }
 
 void AudioRecorder::pause()
 {
-    qWarning() << "AudioRecorder::pause() called";
+    qInfo() << "AudioRecorder::pause() called";
     gst_element_set_state(pipeline, GST_STATE_PAUSED);
 
 }
 
 void AudioRecorder::unpause()
 {
-    qWarning() << "AudioRecorder::unpause() called";
+    qInfo() << "AudioRecorder::unpause() called";
     gst_element_set_state(pipeline, GST_STATE_PLAYING);
 
 }
 
 AudioRecorder::AudioRecorder(QObject *parent) : QObject(parent)
 {
-    qWarning() << "AudioRecorder constructor called";
+    qInfo() << "AudioRecorder constructor called";
     currentFileExt = ".ogg";
     currentCodec = 1;
     codecs << "MPEG 2 Layer 3 (mp3)";
@@ -252,19 +266,19 @@ void AudioRecorder::setOutputFile(QString filename)
 #else
     outputFilePath = outputDir.toStdString() + "/" + filename.toStdString() + currentFileExt.toStdString();
 #endif
-    qWarning() << "AudioRecorder - Capturing to: " << QString(outputFilePath.c_str());
+    qInfo() << "AudioRecorder - Capturing to: " << QString(outputFilePath.c_str());
     g_object_set(GST_OBJECT(fileSink), "location", outputFilePath.c_str(), NULL);
 }
 
 void AudioRecorder::setInputDevice(int inputDeviceId)
 {
 #ifndef Q_OS_WIN
-    qWarning() << "AudioRecorder::setInputDevice(" << inputDeviceId << ") called";
+    qInfo() << "AudioRecorder::setInputDevice(" << inputDeviceId << ") called";
     gst_element_unlink(audioSrc, audioRate);
     gst_bin_remove(GST_BIN(pipeline), audioSrc);
     audioSrc = gst_device_create_element(inputDevices.at(inputDeviceId), NULL);
     if (!audioSrc)
-        qWarning() << "Error creating audio source element";
+        qInfo() << "Error creating audio source element";
     gst_bin_add(GST_BIN(pipeline), audioSrc);
     gst_element_link(audioSrc, audioRate);
 #endif
@@ -317,7 +331,7 @@ void AudioRecorder::setCurrentCodec(int value)
             gst_element_link(wavEnc,fileSink);
         }
 
-        qWarning() << "AudioRecorder::setCurrentCodec(" << value << ")";
+        qInfo() << "AudioRecorder::setCurrentCodec(" << value << ")";
         currentCodec = value;
         lastCodec = value;
         currentFileExt = fileExtensions.at(value);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2019 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -39,10 +39,10 @@ private:
     QString name;
 public:
     enum State{PlayingState=0,PausedState,StoppedState,EndOfMediaState,UnknownState};
-    explicit AbstractAudioBackend(QObject *parent = 0);
+    explicit AbstractAudioBackend(QObject *parent = nullptr);
     virtual int volume() {return 0;}
     virtual qint64 position() {return 0;}
-    virtual bool isMuted() {return 0;}
+    virtual bool isMuted() {return false;}
     virtual qint64 duration() {return 0;}
     virtual AbstractAudioBackend::State state() {return AbstractAudioBackend::StoppedState;}
     virtual bool canPitchShift() {return false;}
@@ -75,6 +75,7 @@ signals:
     void silenceDetected();
     void pitchChanged(int);
     void newVideoFrame(QImage frame, QString backendName);
+    void audioError(QString msg);
 
 
 public slots:
@@ -85,9 +86,12 @@ public slots:
     virtual void setPosition(qint64 position) {Q_UNUSED(position);}
     virtual void setVolume(int volume) {Q_UNUSED(volume);}
     virtual void stop(bool skipFade = false) {Q_UNUSED(skipFade);}
+    virtual void rawStop() {}
     virtual void setPitchShift(int pitchShift) {Q_UNUSED(pitchShift);}
     virtual void fadeOut(bool waitForFade = true) {Q_UNUSED(waitForFade);}
     virtual void fadeIn(bool waitForFade = true) {Q_UNUSED(waitForFade);}
+    virtual void fadeInImmediate() {}
+    virtual void fadeOutImmediate() {}
     virtual void setUseFader(bool fade) {Q_UNUSED(fade);}
     virtual void setUseSilenceDetection(bool enabled) {Q_UNUSED(enabled);}
     virtual void setDownmix(bool enabled) {Q_UNUSED(enabled);}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2019 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -37,13 +37,22 @@
 #include <QAudioOutput>
 #include "audiofader.h"
 #include <QPointer>
+#include <memory>
+
+class gstTimerCallbackData
+{
+public:
+    gstTimerCallbackData() {}
+    QObject *qObj;
+    gpointer gObject;
+};
 
 class AudioBackendGstreamer : public AbstractAudioBackend
 {
     Q_OBJECT
 
 private:
-
+    gstTimerCallbackData *myObj;
     GstElement *tee;
     GstElement *queueS;
     GstElement *queueM;
@@ -71,7 +80,6 @@ private:
     GstElement *aConvPostMixer;
     GstElement *customBin;
     GstElement *videoAppSink;
-    GstElement *playBin;
     GstElement *aConvInput;
     GstElement *aConvPreSplit;
     GstElement *aConvPrePitchShift;
@@ -87,13 +95,14 @@ private:
     GstElement *fltrEnd;
     GstElement *audioResample;
     GstElement *volumeElement;
+    GstElement *faderVolumeElement;
     GstElement *equalizer;
     GstCaps *audioCapsStereo;
     GstCaps *audioCapsMono;
     GstCaps *videoCaps;
     GstPad *pad;
     GstPad *ghostPad;
-    GstBus *bus;
+ //   GstBus *bus;
     GstDeviceMonitor *monitor;
     GstControlSource *csource;
     GstTimedValueControlSource *tv_csource;
@@ -109,19 +118,16 @@ private:
     bool m_keyChangerRubberBand;
     bool m_keyChangerSoundtouch;
     bool m_muted;
-    bool isFading;
+    bool initDone;
     int m_silenceDuration;
-    void processGstMessages();
     int m_outputChannels;
     double m_currentRmsLevel;
-    double m_preFadeVolume;
-    int m_preFadeVolumeInt;
     int eq1, eq2, eq3, eq4, eq5, eq6, eq7, eq8, eq9, eq10;
     bool bypass;
     bool loadPitchShift;
     int outputDeviceIdx;
     bool downmix;
-
+    static gboolean gstTimerDispatcher(QObject *qObj);
     static void EndOfStreamCallback(GstAppSink *appsink, gpointer user_data);
     static GstFlowReturn NewPrerollCallback(GstAppSink *appsink, gpointer user_data);
     static GstFlowReturn NewSampleCallback(GstAppSink *appsink, gpointer user_data);
@@ -136,9 +142,13 @@ private:
     void buildPipeline();
     void destroyPipeline();
     void resetPipeline();
-
+    std::shared_ptr<GstBus> bus;
+    std::shared_ptr<GstElement> pipeline;
     static void DestroyCallback(gpointer user_data);
+    static GstBusSyncReply busMessageDispatcher(GstBus *bus, GstMessage *message, gpointer userData);
+    AbstractAudioBackend::State lastState;
 public:
+    GstElement *playBin;
     explicit AudioBackendGstreamer(bool loadPitchShift = true, QObject *parent = 0, QString objectName = "unknown");
     ~AudioBackendGstreamer();
     int volume();
@@ -168,6 +178,15 @@ private slots:
     void fastTimer_timeout();
     void slowTimer_timeout();
     void faderChangedVolume(int volume);
+    void faderStarted();
+    void faderFinished();
+    void busMessage(std::shared_ptr<GstMessage> message);
+    void gstPositionChanged(qint64 position);
+    void gstDurationChanged(qint64 duration);
+    void gstFastTimerFired();
+    void faderChangedVolume(double volume);
+    void faderStateChanged(AudioFader::FaderState state);
+
 
 public slots:
     void play();
@@ -177,6 +196,7 @@ public slots:
     void setPosition(qint64 position);
     void setVolume(int volume);
     void stop(bool skipFade = false);
+    void rawStop();
     void setPitchShift(int pitchShift);
     void fadeOut(bool waitForFade = true);
     void fadeIn(bool waitForFade = true);
@@ -218,6 +238,11 @@ public slots:
     // AbstractAudioBackend interface
 public:
     bool hasVideo();
+
+    // AbstractAudioBackend interface
+public slots:
+    void fadeInImmediate();
+    void fadeOutImmediate();
 };
 
 #endif // AUDIOBACKENDGSTREAMER_H

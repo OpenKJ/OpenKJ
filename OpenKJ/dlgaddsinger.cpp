@@ -1,6 +1,7 @@
 #include "dlgaddsinger.h"
 #include "ui_dlgaddsinger.h"
 #include "settings.h"
+#include <QDebug>
 
 #include <QMessageBox>
 
@@ -39,7 +40,11 @@ void DlgAddSinger::on_buttonBox_accepted()
         if (rotModel->currentSinger() != -1)
         {
             int curSingerPos = rotModel->getSingerPosition(rotModel->currentSinger());
-            if (ui->cbxPosition->currentIndex() == 2)
+            if (curSingerPos < 0)
+                curSingerPos = 0;
+            if (rotModel->singers().size() == 1)
+                qInfo() << "Skipping singer move, the new singer is the only singer";
+            else if (ui->cbxPosition->currentIndex() == 2)
                 rotModel->singerMove(rotModel->rowCount() -1, curSingerPos + 1);
             else if ((ui->cbxPosition->currentIndex() == 0) && (curSingerPos != 0))
                 rotModel->singerMove(rotModel->rowCount() -1, curSingerPos);

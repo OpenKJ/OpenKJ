@@ -23,7 +23,7 @@ SongShop::SongShop(QObject *parent) : QObject(parent)
 
 void SongShop::updateCache()
 {
-    qWarning() << "Requesting songs from db.openkj.org";
+    qInfo() << "Requesting songs from db.openkj.org";
     QJsonObject mainObject;
     mainObject.insert("command","getsongs");
     QJsonDocument jsonDocument;
@@ -103,23 +103,23 @@ void SongShop::downloadFile(const QString &url, const QString &destFn)
     file.write(reply->readAll());
     delete reply;
     emit karaokeSongDownloaded(destPath);
-    // clear session ID to force login again before next download.  Workaround for expiring partytyme.net logins.
+    // clear session ID to force login again before next download.  Workaround for expiring karaoke.net logins.
     knSessionId = "";
 }
 
 void SongShop::onSslErrors(QNetworkReply *reply, QList<QSslError> errors)
 {
     reply->abort();
-    qWarning() << "Got ssl error";
-    qWarning() << errors;
+    qInfo() << "Got ssl error";
+    qInfo() << errors;
 }
 
 void SongShop::onNetworkReply(QNetworkReply *reply)
 {
-    qWarning() << "Got network reply from db.openkj.org";
+    qInfo() << "Got network reply from db.openkj.org";
     if (reply->error() != QNetworkReply::NoError)
     {
-        qWarning() << reply->errorString();
+        qInfo() << reply->errorString();
         //output some meaningful error msg
         return;
     }
@@ -129,8 +129,8 @@ void SongShop::onNetworkReply(QNetworkReply *reply)
     bool error = json.object().value("error").toBool();
     if (error)
     {
-        qWarning() << "Got error json reply";
-        qWarning() << "Error string: " << json.object().value("errorString");
+        qInfo() << "Got error json reply";
+        qInfo() << "Error string: " << json.object().value("errorString");
         return;
     }
     if (command == "getsongs")
@@ -162,28 +162,28 @@ void SongShop::onNetworkReply(QNetworkReply *reply)
     }
     else if ((json.object().value("result").toString() == "ERROR") && (json.object().value("error").toString() == "Wrong username or password"))
     {
-        qWarning() << "Login failed to Karoake.NET";
-        qWarning() << "Incorrect username or password";
+        qInfo() << "Login failed to Karoake.NET";
+        qInfo() << "Incorrect username or password";
         knLoginError = true;
         knSessionId = "";
         emit knLoginFailure();
     }
     else if ((json.object().value("result").toString() == "ERROR") && (json.object().value("error").toString() == "User not logged in"))
     {
-        qWarning() << "Karaoke.NET reported user not logged in";
+        qInfo() << "Karaoke.NET reported user not logged in";
         knSessionId = "";
     }
     else if ((json.object().value("result").toString() == "SUCCESS") && (json.object().value("download_links").isArray()))
     {
-        qWarning() << "Sucessfully purchased track";
+        qInfo() << "Sucessfully purchased track";
         QString url = json.object().value("download_links").toArray().at(0).toString();
-        qWarning()  <<  json.object().value("download_links").toArray();
-        qWarning() << "Downloading";
+        qInfo()  <<  json.object().value("download_links").toArray();
+        qInfo() << "Downloading";
         QString fileExt = ".mp4";
         if (url.contains("mp3g"))
             fileExt = ".zip";
         downloadFile(url, QString(dlSongId + " - " + dlArtist + " - " + dlTitle + fileExt));
-        qWarning() << "Done";
+        qInfo() << "Done";
 
     }
     else if ((json.object().value("result").toString() == "ERROR") && (json.object().value("error").toString() == "Payment failed. Check your credit card details."))
@@ -191,13 +191,13 @@ void SongShop::onNetworkReply(QNetworkReply *reply)
         emit paymentProcessingFailed();
     }
     else
-        qWarning() << "JSON REPLY: " << data;
+        qInfo() << "JSON REPLY: " << data;
 
 
 }
 
 void SongShop::onDownloadProgress(qint64 received, qint64 total)
 {
-    qWarning() << "onDownloadProgress(" << received << "," << total << ") called";
+    qInfo() << "onDownloadProgress(" << received << "," << total << ") called";
     emit downloadProgress(received, total);
 }

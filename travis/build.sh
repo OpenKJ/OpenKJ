@@ -34,10 +34,33 @@ osxrelocator ${BundlePath}/Contents/MacOS /Library/Frameworks/GStreamer.framewor
 echo "Signing code"
 codesign -s "Application: Isaac Lightburn (47W8CPBS5A)" -vvvv --deep --timestamp=none ${BundlePath}
 echo "Creating installer"
+pwd
+ls -l
+ls -l /Users/travis/build/OpenKJ/OpenKJ/OpenKJ/OpenKJ.app
 cp travis/dmgbkg.png ~/
-appdmg travis/openkjdmg.json ${INSTALLERFN} 
+ls -l travis/openkjdmg.json
+#echo "Running appdmg travis/openkjdmg.json ${INSTALLERFN}"
+#appdmg travis/openkjdmg.json ${INSTALLERFN}
+mkdir okjimage
+mv OpenKJ/OpenKJ.app okjimage/
+echo "Running create-dmg to build installer"
+bash ./create-dmg/create-dmg \
+--volname "OpenKJ Installer" \
+--volicon "OpenKJ/Icons/OpenKJ.icns" \
+--background "travis/dmgbkg.png" \
+--window-pos 200 120 \
+--window-size 512 340 \
+--icon-size 80 \
+--icon "OpenKJ.app" 138 225 \
+--hide-extension "OpenKJ.app" \
+--app-drop-link 378 225 \
+${INSTALLERFN} \
+okjimage/
+
 echo "Signing installer"
 codesign -s "Application: Isaac Lightburn (47W8CPBS5A)" -vvvv --timestamp=none ${INSTALLERFN}
 
 mkdir deploy
-mv ${INSTALLERFN} deploy/
+mkdir deploy/macos
+mkdir deploy/macos/${BRANCH}
+mv ${INSTALLERFN} deploy/macos/${BRANCH}/

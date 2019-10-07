@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2019 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -41,6 +41,11 @@ void DlgCdg::setBAudioBackend(AbstractAudioBackend *value)
     bAudioBackend = value;
 }
 
+void DlgCdg::stopTicker()
+{
+    ui->scroll->stop();
+}
+
 DlgCdg::DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *BreakBackend, QWidget *parent, Qt::WindowFlags f) :
     QDialog(parent, f),
     ui(new Ui::DlgCdg)
@@ -63,6 +68,10 @@ DlgCdg::DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *Break
     ui->scroll->setMinimumHeight(settings->tickerHeight());
     ui->scroll->setMaximumHeight(settings->tickerHeight());
     ui->scroll->setSpeed(settings->tickerSpeed());
+    ui->lblRemain->setFont(settings->cdgRemainFont());
+    cdgRemainTextColorChanged(settings->cdgRemainTextColor());
+    cdgRemainBgColorChanged(settings->cdgRemainBgColor());
+    remainOffsetsChanged(settings->remainRtOffset(), settings->remainBtmOffset());
     QPalette palette = ui->scroll->palette();
     palette.setColor(ui->scroll->foregroundRole(), settings->tickerTextColor());
     ui->scroll->setPalette(palette);
@@ -83,6 +92,9 @@ DlgCdg::DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *Break
     connect(settings, SIGNAL(cdgShowCdgWindowChanged(bool)), this, SLOT(setVisible(bool)));
     connect(settings, SIGNAL(cdgWindowFullscreenChanged(bool)), this, SLOT(setFullScreen(bool)));
     connect(settings, SIGNAL(cdgWindowFullscreenMonitorChanged(int)), this, SLOT(setFullScreenMonitor(int)));
+    connect(settings, SIGNAL(cdgRemainFontChanged(QFont)), this, SLOT(cdgRemainFontChanged(QFont)));
+    connect(settings, SIGNAL(cdgRemainTextColorChanged(QColor)), this, SLOT(cdgRemainTextColorChanged(QColor)));
+    connect(settings, SIGNAL(cdgRemainBgColorChanged(QColor)), this, SLOT(cdgRemainBgColorChanged(QColor)));
     connect(ui->cdgVideo, SIGNAL(resized(QSize)), this, SLOT(cdgSurfaceResized(QSize)));
     connect(settings, SIGNAL(karaokeAAAlertFontChanged(QFont)), this, SLOT(alertFontChanged(QFont)));
     fullScreenTimer = new QTimer(this);
@@ -117,7 +129,10 @@ DlgCdg::DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *Break
     connect(ui->cdgVideo, SIGNAL(mouseMoveEvent(QMouseEvent*)), this, SLOT(mouseMove(QMouseEvent*)));
     buttonShowTimer = new QTimer(this);
     buttonShowTimer->setInterval(1000);
+    oneSecTimer = new QTimer(this);
+    oneSecTimer->start(1000);
     ui->scroll->setVisible(settings->tickerEnabled());
+    ui->scroll->setTickerEnabled(settings->tickerEnabled());
     connect(buttonShowTimer, SIGNAL(timeout()), this, SLOT(buttonShowTimerTimeout()));
     alertBgColorChanged(settings->alertBgColor());
     alertTxtColorChanged(settings->alertTxtColor());
@@ -125,6 +140,10 @@ DlgCdg::DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *Break
     connect(settings, SIGNAL(alertTxtColorChanged(QColor)), this, SLOT(alertTxtColorChanged(QColor)));
     connect(kAudioBackend, SIGNAL(stateChanged(AbstractAudioBackend::State)), this, SLOT(triggerBg(AbstractAudioBackend::State)));
     connect(settings, SIGNAL(bgModeChanged(BgMode)), this, SLOT(triggerBg()));
+    connect(oneSecTimer, SIGNAL(timeout()), this, SLOT(oneSecTimerTimeout()));
+    ui->lblRemain->setVisible(settings->cdgRemainEnabled());
+    connect(settings, SIGNAL(cdgRemainEnabledChanged(bool)), ui->lblRemain, SLOT(setVisible(bool)));
+    connect(settings, SIGNAL(remainOffsetChanged(int,int)), this, SLOT(remainOffsetsChanged(int,int)));
 }
 
 DlgCdg::~DlgCdg()
@@ -141,6 +160,18 @@ void DlgCdg::updateCDG(QImage image, bool overrideVisibleCheck)
      //       ui->cdgVideo->videoSurface()->present(QVideoFrame(image.scaled(ui->cdgVideo->size(), Qt::IgnoreAspectRatio)));
      //   else
             ui->cdgVideo->videoSurface()->present(QVideoFrame(image));
+            if (ui->lblRemain->isVisible())
+                ui->lblRemain->repaint();
+    }
+}
+
+void DlgCdg::updateCDG(QVideoFrame frame, bool overrideVisibleCheck)
+{
+    if (isVisible() || overrideVisibleCheck)
+    {
+        ui->cdgVideo->videoSurface()->present(frame);
+        if (ui->lblRemain->isVisible())
+            ui->lblRemain->repaint();
     }
 }
 
@@ -230,6 +261,26 @@ void DlgCdg::tickerBgColorChanged()
 void DlgCdg::tickerEnableChanged()
 {
     ui->scroll->setVisible(settings->tickerEnabled());
+    ui->scroll->setTickerEnabled(settings->tickerEnabled());
+}
+
+void DlgCdg::cdgRemainFontChanged(QFont font)
+{
+    ui->lblRemain->setFont(font);
+}
+
+void DlgCdg::cdgRemainTextColorChanged(QColor color)
+{
+    QPalette palette = ui->lblRemain->palette();
+    palette.setColor(QPalette::Foreground, color);
+    ui->lblRemain->setPalette(palette);
+}
+
+void DlgCdg::cdgRemainBgColorChanged(QColor color)
+{
+    QPalette palette = ui->lblRemain->palette();
+    palette.setColor(QPalette::Background, color);
+    ui->lblRemain->setPalette(palette);
 }
 
 void DlgCdg::setVOffset(int pixels)
@@ -274,7 +325,7 @@ void DlgCdg::setHSizeAdjustment(int pixels)
 
 void DlgCdg::setShowBgImage(bool show)
 {
-    qWarning() << "DlgCdg::setShowBgImage(" << show << ") called";
+//    qInfo() << "DlgCdg::setShowBgImage(" << show << ") called";
     showBgImage = show;
     if ((show) && (settings->bgMode() == settings->BG_MODE_IMAGE))
     {
@@ -327,6 +378,7 @@ void DlgCdg::fullScreenTimerTimeout()
         fullScreenTimer->stop();
     }
     slideShowTimerTimeout();
+    fullScreenTimer->stop();
 }
 
 QFileInfoList DlgCdg::getSlideShowImages()
@@ -406,9 +458,21 @@ void DlgCdg::alertTxtColorChanged(QColor color)
 void DlgCdg::triggerBg()
 {
         showBgImage = true;
-        qWarning() << "triggerBg called";
+//        qInfo() << "triggerBg called";
         slideShowTimerTimeout();
         setShowBgImage(true);
+}
+
+void DlgCdg::cdgRemainEnabledChanged(bool enabled)
+{
+    if ((kAudioBackend->state() == AbstractAudioBackend::PlayingState) || enabled == false)
+        ui->lblRemain->setVisible(enabled);
+}
+
+void DlgCdg::remainOffsetsChanged(int r, int b)
+{
+    ui->remainSpacerRight->changeSize(r,5,QSizePolicy::Fixed);
+    ui->remainSpacerBottom->changeSize(5,b,QSizePolicy::Fixed);
 }
 
 void DlgCdg::slideShowTimerTimeout()
@@ -459,7 +523,7 @@ void DlgCdg::alertFontChanged(QFont font)
 
 void DlgCdg::mouseMove(QMouseEvent *event)
 {
-    qWarning() << "Mouse moved pos:" << event->pos();
+//    qInfo() << "Mouse moved pos:" << event->pos();
     if (m_fullScreen)
         ui->btnToggleFullscreen->setText(tr("Make Windowed"));
     else
@@ -473,6 +537,19 @@ void DlgCdg::buttonShowTimerTimeout()
     ui->fsToggleWidget->hide();
 }
 
+void DlgCdg::oneSecTimerTimeout()
+{
+    if (settings->cdgRemainEnabled())
+    {
+        if (kAudioBackend->state() == AbstractAudioBackend::PlayingState && !ui->lblRemain->isVisible())
+            ui->lblRemain->show();
+        else if (kAudioBackend->state() != AbstractAudioBackend::PlayingState && ui->lblRemain->isVisible())
+            ui->lblRemain->hide();
+        if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
+            ui->lblRemain->setText(kAudioBackend->msToMMSS(kAudioBackend->duration() - kAudioBackend->position()));
+    }
+}
+
 
 void DlgCdg::on_btnToggleFullscreen_clicked()
 {
@@ -482,4 +559,12 @@ void DlgCdg::on_btnToggleFullscreen_clicked()
     }
     else
         makeFullscreen();
+}
+
+
+void DlgCdg::closeEvent(QCloseEvent *event)
+{
+    this->hide();
+    settings->setShowCdgWindow(false);
+    event->ignore();
 }

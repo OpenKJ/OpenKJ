@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2019 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -117,6 +117,12 @@ private slots:
     void on_spinBoxDefaultSongDuration_valueChanged(int arg1);
     void on_checkBoxDisplayCurrentRotationPosition_clicked(bool checked);
     void entitledSystemCountChanged(int count);
+    void on_groupBoxShowDuration_clicked(bool checked);
+    void on_btnDurationFont_clicked();
+    void on_btnDurationFontColor_clicked();
+    void on_btnDurationBgColor_clicked();
+    void on_btnLogDirBrowse_clicked();
+    void on_checkBoxProgressiveSearch_toggled(bool checked);
 };
 
 #endif // SETTINGSDIALOG_H

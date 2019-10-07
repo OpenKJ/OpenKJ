@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2019 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -25,6 +25,7 @@
 #include <QTimer>
 #include <QTemporaryDir>
 #include "libCDG/include/libCDG.h"
+#include "audiobackendgstreamer.h"
 
 namespace Ui {
 class DlgCdgPreview;
@@ -40,6 +41,7 @@ private:
     QTimer *timer;
     QTemporaryDir *cdgTempDir;
     CDG *cdg;
+//    AudioBackendGstreamer *mediaBackend;
     unsigned int cdgPosition;
 
 public:
@@ -50,6 +52,7 @@ public:
 private slots:
     void timerTimeout();
     void on_pushButtonClose_clicked();
+    void videoFrameReceived(QImage frame, QString backendName);
 
 public slots:
     void preview();

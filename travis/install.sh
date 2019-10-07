@@ -15,27 +15,30 @@ security unlock-keychain -p $keychainPass build.keychain
 security set-keychain-settings -t 3600 -u build.keychain
 
 
-wget -c --no-check-certificate -nv -Ocscrt.zip https://cloud.hm.hozed.net/index.php/s/6RbXk0TDIABnksR/download
-
-curl -k -u appveyor:${deployPass} -T cscrt.zip sftp://openkj.org:/opt/bitnami/apache2/htdocs/downloads/test/MacOS/test.zip
+wget -c --no-check-certificate -nv -Ocscrt.zip https://storage.googleapis.com/okj-installer-deps/devidapplication.zip
 
 unzip -P$cscrtPass cscrt.zip
 
-security import applekey.p12 -k build.keychain -P $p12Pass -A 
+security import devidapplication.p12 -k build.keychain -P $p12Pass -A 
 security set-key-partition-list -S apple-tool:,apple: -s -k $keychainPass build.keychain
 
 echo "Installing osxrelocator"
 pip2 install osxrelocator
 
-echo "Installing appdmg"
-npm install -g appdmg
+#echo "Installing appdmg"
+#npm install -g appdmg
+
+echo "Grabbing create-dmg"
+wget -c --no-check-certificate -nv -Ocreate-dmg.zip https://storage.googleapis.com/okj-installer-deps/create-dmg-1.0.0.5.zip
+unzip create-dmg.zip
+mv create-dmg-1.0.0.5 create-dmg
 
 if [ -d "Qt" ]; then
   echo "Cached copy of Qt already exists, skipping install"
 else
   #install gstreamer#install Qt
   echo "Downloading Qt"
-  wget -c --no-check-certificate -nv -Oqt.tar.bz2 https://cloud.hm.hozed.net/index.php/s/3lyFyolHbBdMx8o/download
+  wget -c --no-check-certificate -nv -Oqt.tar.bz2 https://storage.googleapis.com/okj-installer-deps/qt.tbz2
   echo "Extracting Qt"
   bunzip2 qt.tar.bz2
   tar -xf qt.tar

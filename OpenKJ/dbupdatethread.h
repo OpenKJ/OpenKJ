@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2019 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -54,7 +54,7 @@ public:
     int addDroppedFile(QString path);
     void startUnthreaded();
     bool dbEntryExists(QString filepath);
-    QString findMatchingAudioFile(QString cdgFilePath);
+    static QString findMatchingAudioFile(QString cdgFilePath);
 
 signals:
     void threadFinished();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2019 Thomas Isaac Lightburn
  *
  *
  * This file is part of libCDG.
@@ -19,324 +19,204 @@
 */
 
 #include "../include/libCDG.h"
+#include <QFile>
 #include <QDebug>
+#include <QBuffer>
+#include <QColor>
 
-#define UNUSED(x) (void)x
 
 CDG::CDG()
 {
-    masks[0] = 0x20;
-    masks[1] = 0x10;
-    masks[2] = 0x08;
-    masks[3] = 0x04;
-    masks[4] = 0x02;
-    masks[5] = 0x01;
-    CDGImage = new CDG_Frame_Image();
-    LastCDGCommandMS = 0;
-    Open = false;
-    CDGFileOpened = false;
-    CDGFile = NULL;
-    CurPos = 0;
-    needupdate = true;
-    NeedFullUpdate = true;
-    mode = MODE_FILE;
+    m_masks[0] = 0x20;
+    m_masks[1] = 0x10;
+    m_masks[2] = 0x08;
+    m_masks[3] = 0x04;
+    m_masks[4] = 0x02;
+    m_masks[5] = 0x01;
     m_tempo = 100;
+    reset();
 }
 
-bool CDG::FileOpen(string filename)
+bool CDG::open(QByteArray byteArray)
 {
-    CDGFile = fopen(filename.c_str(), "rb");
-    CurPos = 0;
-    if (CDGFile != NULL)
+    reset();
+    m_cdgData = byteArray;
+    if (byteArray.size() == 0)
     {
-        CDGFileOpened = true;
-        mode = MODE_FILE;
-    }
-    else
-    {
-        CDGFileOpened = false;
-    }
-    needupdate = true;
-    NeedFullUpdate = true;
-    return CDGFileOpened;
-}
-
-bool CDG::FileOpen(QByteArray byteArray)
-{
-    mode = MODE_QIODEVICE;
-    cdgData = byteArray;
-    if (byteArray.size() > 0)
-        return true;
-    else
-    {
-        qCritical() << "Received zero bytes of CDG data";
+        qWarning() << "CDG - Received zero bytes of CDG data";
         return false;
     }
+    return true;
 }
 
-void CDG::FileClose()
+bool CDG::open(QString filename)
 {
-    fclose(CDGFile);
-    CDGFileOpened = false;
+    QFile file(filename);
+    file.open(QFile::ReadOnly);
+    m_cdgData = file.readAll();
+    file.close();
+    return open(m_cdgData);
 }
 
-void CDG::VideoClose()
+unsigned int CDG::position()
 {
-    for(unsigned int i=0; i<CDGVideo.size(); i++)
-    {
-        if (!SkipFrames.at(i))
-            delete(CDGVideo.at(i));
-    }
-    CDGVideo.clear();
-    SkipFrames.clear();
-    CurPos = 0;
-    CDGFileOpened = false;
-    Open = false;
-}
-
-unsigned int CDG::GetPosMS()
-{
-    float fpos = (CurPos / 300.0) * 1000;
+    float fpos = (m_position / 300.0) * 1000;
     return (int) fpos;
 }
 
-bool CDG::SkipFrame(int ms)
+void CDG::reset()
 {
-    bool retval = false;
-    unsigned int frame = ms / 40;
-    if ((ms % 40 < 0) && (SkipFrames.size() > frame + 1) && (SkipFrames.at(frame + 1)))
-        retval = true;
-    if ((SkipFrames.at(frame)) && (SkipFrames.size() > frame))
-        retval = true;
-    return retval;
+    qInfo() << "libCDG - CDG::reset() called, freeing memory and setting isOpen to false";
+    m_isOpen = false;
+    m_needupdate = true;
+    m_lastCDGCommandMS = 0;
+    m_position = 0;
+    m_cdgData = QByteArray();
+    QVector<QRgb> palette;
+    for (int i=0; i < 16; i++)
+        palette.append(QColor(0,0,0).rgb());
+    m_image = QImage(QSize(300,216),QImage::Format_Indexed8);
+    m_image.setColorTable(palette);
+    m_image.fill(0);
+    m_frames.clear();
+    m_skip.clear();
 }
 
-bool CDG::Process(bool clear)
+bool CDG::canSkipFrameByTime(unsigned int ms)
 {
-    NeedFullUpdate = true;
+    int scaledMs = ms * ((float)m_tempo / 100.0);
+    int frameno = scaledMs / 40;
+    if (ms % 40 > 0) frameno++;
+    if (frameno > m_frames.size())
+        return false;
+    bool skip = true;
+    if (!m_skip.at(frameno - 1))
+        skip = false;
+    if (!m_skip.at(frameno))
+        skip = false;
+    if (!m_skip.at(frameno + 1))
+        skip = false;
+    return skip;
+}
 
-    needupdate = true;
-    CDG_SubCode SubCode;
-    static int lastupdate;
-    static int frame;
-    if (clear)
+bool CDG::process()
+{
+    m_needupdate = true;
+    bool retCode = true;
+    CDG_SubCode subCode;
+    int frameno = 0;
+    QBuffer *ioDevice = new QBuffer(&m_cdgData);
+    ioDevice->open(QIODevice::ReadOnly);
+    while ((!ioDevice->atEnd()) && (ioDevice->isReadable()) && (ioDevice->size() > 0))
     {
-        lastupdate = 0;
-        frame = 0;
-    }
-    if (mode == MODE_FILE)
-    {
-        while (CDGFileOpened)
+        if (ioDevice->read((char *)&subCode, sizeof(subCode)) > 0)
         {
-            if (!feof(CDGFile))
+            m_needupdate = false;
+            readCdgSubcodePacket(subCode);
+            m_position++;
+            if (((position() % 40) == 0) && position() >= 40)
             {
-                if (fread(&SubCode, sizeof(SubCode), 1, CDGFile) == 1)
-                {
-                    CDG_Read_SubCode_Packet(SubCode);
-                    CurPos++;
-                    if (((GetPosMS() % 40) == 0) && (GetPosMS() >= 40))
-                    {
-                        CDG_Frame_Image *img;;
-                        if (needupdate)
-                        {
-                            LastCDGCommandMS = frame * 40;
-                            lastupdate = frame;
-                            needupdate = false;
-                            img = new CDG_Frame_Image();
-                            for (unsigned int i=0; i < ChangedRows.size(); i++)
-                            {
-                                img->ChangedRowAdd(ChangedRows.at(i));
-                            }
-                            img->NeedFullUpdate = NeedFullUpdate;
-                            NeedFullUpdate = false;
-                            ChangedRows.clear();
-                            memcpy(&img->colors, &colors,sizeof(img->colors));
-                            memcpy(&img->CDG_Map, &CDGImage->CDG_Map, sizeof(img->CDG_Map));
-                            SkipFrames.push_back(false);
-                        }
-                        else
-                        {
-                            img = CDGVideo.at(lastupdate);
-                            SkipFrames.push_back(true);
-                        }
-                        CDGVideo.push_back(img);
-                        frame++;
-                    }
-                }
-                else
-                {
-                    FileClose();
-                    Open = true;
-                    return true;
-                }
-            }
-            else
-            {
-                FileClose();
-                Open = true;
-                return true;
+                if (m_needupdate)
+                    m_lastCDGCommandMS = frameno * 40;
+                m_skip.push_back(!m_needupdate);
+                QVideoFrame frame(m_image.convertToFormat(QImage::Format_RGB32));
+                frame.setStartTime(position());
+                m_frames.push_back(frame);
+                frameno++;
             }
         }
-    }
-    if (mode == MODE_QIODEVICE)
-    {
-        QBuffer *ioDevice = new QBuffer(&cdgData);
-        ioDevice->open(QIODevice::ReadOnly);
-        while ((!ioDevice->atEnd()) && (ioDevice->isReadable()) && (ioDevice->size() > 0))
+        else
         {
-            if (ioDevice->read((char *)&SubCode, sizeof(SubCode)) > 0)
-            {
-                CDG_Read_SubCode_Packet(SubCode);
-                CurPos++;
-                if (((GetPosMS() % 40) == 0) && (GetPosMS() >= 40))
-                {
-                    CDG_Frame_Image *img;;
-                    if (needupdate)
-                    {
-                        LastCDGCommandMS = frame * 40;
-                        lastupdate = frame;
-                        needupdate = false;
-                        img = new CDG_Frame_Image();
-                        for (unsigned int i=0; i < ChangedRows.size(); i++)
-                        {
-                            img->ChangedRowAdd(ChangedRows.at(i));
-                        }
-                        img->NeedFullUpdate = NeedFullUpdate;
-                        NeedFullUpdate = false;
-                        ChangedRows.clear();
-                        memcpy(&img->colors, &colors,sizeof(img->colors));
-                        memcpy(&img->CDG_Map, &CDGImage->CDG_Map, sizeof(img->CDG_Map));
-                        SkipFrames.push_back(false);
-                    }
-                    else
-                    {
-                        img = CDGVideo.at(lastupdate);
-                        SkipFrames.push_back(true);
-                    }
-                    CDGVideo.push_back(img);
-                    frame++;
-                }
-            }
-            else
-            {
-                ioDevice->close();
-                delete ioDevice;
-                Open = true;
-                return true;
-            }
+            qWarning() << "CDG - Error processing CDG data!";
+            retCode = false;
         }
-        ioDevice->close();
-        delete ioDevice;
-        Open = true;
-        return true;
     }
-    return false;
+    ioDevice->close();
+    delete ioDevice;
+    m_isOpen = true;
+    return retCode;
 }
 
 
-void CDG::CDG_Read_SubCode_Packet(CDG_SubCode &SubCode)
+void CDG::readCdgSubcodePacket(CDG_SubCode &subCode)
 {
-    if ((SubCode.command & SC_MASK) == SC_CDG_COMMAND)
+    if ((subCode.command & SC_MASK) != SC_CDG_COMMAND)
+        return;
+    switch (subCode.instruction & SC_MASK)
     {
-        switch (SubCode.instruction & SC_MASK)
-        {
-        case CDG_MEMORYPRESET:
-            needupdate = true;
-            NeedFullUpdate = true;
-            CMDMemoryPreset(SubCode.data);
-            break;
-        case CDG_BORDERPRESET:
-            needupdate = true;
-            NeedFullUpdate = true;
-            CMDBorderPreset(SubCode.data);
-            break;
-        case CDG_TILEBLOCK:
-            needupdate = true;
-            CMDTileBlock(SubCode.data, false);
-            break;
-        case CDG_SCROLLPRESET:
-            needupdate = true;
-            NeedFullUpdate = true;
-            CMDScrollPreset(SubCode.data);
-            break;
-        case CDG_SCROLLCOPY:
-            needupdate = true;
-            NeedFullUpdate = true;
-            CMDScrollCopy(SubCode.data);
-            break;
-        case CDG_DEFINETRANS:
-            needupdate = true;
-            NeedFullUpdate = true;
-            CMDDefineTrans(SubCode.data);
-            break;
-        case CDG_COLORSLOW:
-            needupdate = true;
-            CMDColors(SubCode.data, CDG_COLOR_TABLE_LOW);
-            break;
-        case CDG_COLORSHIGH:
-            needupdate = true;
-            CMDColors(SubCode.data, CDG_COLOR_TABLE_HIGH);
-            break;
-        case CDG_TILEBLOCKXOR:
-            needupdate = true;
-            CMDTileBlock(SubCode.data, true);
-            break;
-        }
+    case CDG_MEMORYPRESET:
+        cmdMemoryPreset(subCode.data);
+        break;
+    case CDG_BORDERPRESET:
+        cmdBorderPreset(subCode.data);
+        break;
+    case CDG_TILEBLOCK:
+        cmdTileBlock(subCode.data, false);
+        break;
+    case CDG_SCROLLPRESET:
+        cmdScrollPreset(subCode.data);
+        break;
+    case CDG_SCROLLCOPY:
+        cmdScrollCopy(subCode.data);
+        break;
+    case CDG_DEFINETRANS:
+        cmdDefineTrans(subCode.data);
+        break;
+    case CDG_COLORSLOW:
+        cmdColors(subCode.data, CDG_COLOR_TABLE_LOW);
+        break;
+    case CDG_COLORSHIGH:
+        cmdColors(subCode.data, CDG_COLOR_TABLE_HIGH);
+        break;
+    case CDG_TILEBLOCKXOR:
+        cmdTileBlock(subCode.data, true);
+        break;
     }
 }
 
-void CDG::CMDBorderPreset(char data[16])
+void CDG::cmdBorderPreset(char data[16])
 {
     CDG_Border_Preset preset;
     preset.color = (data[0] & 0x0F);
-    if (preset.color <= 15)
+    if (preset.color > 15)
+        return;
+    // Top rows
+    for (unsigned int y = 0; y < 12; y++)
     {
-        // Top rows
-        for (unsigned int y = 0; y < 12; y++)
-        {
-            for (unsigned int x=0; x < 300; x++)
-                CDGImage->CDG_Map[y][x] = preset.color;
-        }
-        // Bottom rows
-        for (unsigned int y = 202; y < 216; y++)
-        {
-            for (unsigned int x=0; x < 300; x++)
-                CDGImage->CDG_Map[y][x] = preset.color;
-        }
-        // Sides
-        for (unsigned int y = 11; y < 204; y++)
-        {
-            // Left
-            for (unsigned int x = 0; x < 6; x++)
-                CDGImage->CDG_Map[y][x] = preset.color;
-            // Right
-            for (unsigned int x=294; x < 300; x++)
-                CDGImage->CDG_Map[y][x] = preset.color;
-        }
+        for (unsigned int x=0; x < 300; x++)
+            m_image.setPixel(x,y,preset.color);
     }
+    // Bottom rows
+    for (unsigned int y = 202; y < 216; y++)
+    {
+        for (unsigned int x=0; x < 300; x++)
+            m_image.setPixel(x,y,preset.color);
+    }
+    // Sides
+    for (unsigned int y = 11; y < 204; y++)
+    {
+        // Left
+        for (unsigned int x = 0; x < 6; x++)
+            m_image.setPixel(x,y,preset.color);
+        // Right
+        for (unsigned int x=294; x < 300; x++)
+            m_image.setPixel(x,y,preset.color);
+    }
+    m_needupdate = true;
 }
 
-void CDG::CMDColors(char data[16], int Table)
+void CDG::cmdColors(char data[16], int Table)
 {
-    static CDG_Color original[16];
-    for (unsigned int i=0; i < 16; i++)
-    {
-        original[i] = colors[i];
-    }
-    char highbyte, lowbyte;
-    int i, j, red, green, blue;
-    i = 0;
+    int colorIdx = 0;
     if (Table == CDG_COLOR_TABLE_HIGH)
-        j = 8;
-    else
-        j = 0;
-    while (i < 15)
+        colorIdx = 8;
+    for (int i=0; i < 15; i = i + 2)
     {
-        lowbyte = data[i];
-        highbyte = data[i + 1];
-        red = 0;
-        green = 0;
-        blue = 0;
+        char lowbyte = data[i];
+        char highbyte = data[i + 1];
+        int red = 0;
+        int green = 0;
+        int blue = 0;
         if ((lowbyte & 0x20) > 0)
             red = 8;
         if ((lowbyte & 0x10) > 0)
@@ -361,53 +241,95 @@ void CDG::CMDColors(char data[16], int Table)
             blue = blue + 2;
         if ((highbyte & 0x01) > 0)
             blue = blue + 1;
-        blue  = blue  * 17;
-        red   = red   * 17;
-        green = green * 17;
-        i++;
-        i++;
-        colors[j].SetRGB(red, green, blue);
-        j++;
+        QRgb color = QColor(red * 17, green * 17, blue * 17).rgb();
+        if (m_image.colorTable().at(colorIdx) != color)
+        {
+            m_image.setColor(colorIdx, color);
+            m_needupdate = true;
+        }
+        colorIdx++;
     }
-    bool change = false;
-    for (unsigned int i=0; i < 16; i++)
-    {
-        if (colors[i] != original[i]) change = true;
-    }
-    if (change) NeedFullUpdate = true;
 }
 
-void CDG::CMDDefineTrans(char data[16])
+void CDG::cmdDefineTrans(char data[16])
 {
-    UNUSED(data);
+    Q_UNUSED(data);
     // Unused CDG command from red book spec
 }
 
-void CDG::CMDMemoryPreset(char data[16])
+void CDG::cmdMemoryPreset(char data[16])
 {
     CDG_Memory_Preset preset;
     preset.color = (data[0] & 0x0F);
-    preset.repeat = (data[1] & 0x0F);
-    if (preset.color <= 15)
-    {
-        memset(&CDGImage->CDG_Map, preset.color, sizeof(CDGImage->CDG_Map));
-    }
+    if (preset.color > 15)
+        return;
+    m_image.fill(preset.color);
+    m_needupdate = true;
 }
 
-void CDG::CMDScrollCopy(char data[16])
+void CDG::cmdScrollCopy(char data[16])
 {
-    UNUSED(data);
+//    static int hOffset = 0;
+//    static int vOffset = 0;
+    CDG_Scroll_CMD scmd;
+    scmd.color = (data[0] & 0x0F);
+    scmd.hScroll = (data[1] & 0x3F);
+    scmd.hSCmd = (scmd.hScroll & 0x30) >> 4;
+    scmd.hSOffset = (scmd.hScroll & 0x07);
+    scmd.vScroll = (data[2] & 0x3F);
+    scmd.vSCmd = (scmd.vScroll & 0x30) >> 4;
+    scmd.vSOffset = (scmd.vScroll & 0x07);
+    m_needupdate = true;
+//    qInfo() << "ScrollCopy command found";
+//    qInfo() << "Color: " << (int)scmd.color;
+////    qInfo() << "hSCmd: " << (int)scmd.hSCmd;
+////    qInfo() << "hSOffset: " << (int)scmd.hSOffset;
+//    qInfo() << "vSCmd: " << (int)scmd.vSCmd;
+//    qInfo() << "vSOffset: " << (int)scmd.vSOffset;
+//    if (scmd.hSCmd == 0 && scmd.hSOffset == 0)
+//        qInfo() << "Not scrolling horizontally";
+//    if (scmd.hSCmd == 1)
+//    {
+//        qInfo() << "Scrolling 6px rt";
+//        QImage image2 = image.copy(-6,0,300,216);
+//        image.swap(image2);
+//        needupdate = true;
+//    }
+//    if (scmd.hSCmd == 2)
+//    {
+//        qInfo() << "Scrolling 6px lft";
+//        QImage image2 = image.copy(6,0,300,216);
+//        image.swap(image2);
+//        needupdate = true;
+//    }
+//    if (scmd.hSOffset > 0)
+//    {
+//        qInfo() << "Scrolling " << (int)scmd.hSOffset << "to the left?";
+//    }
 }
 
-void CDG::CMDScrollPreset(char data[16])
+void CDG::cmdScrollPreset(char data[16])
 {
-    UNUSED(data);
+    CDG_Scroll_CMD scmd;
+    scmd.color = (data[0] & 0x0F);
+    scmd.hScroll = (data[1] & 0x3F);
+    scmd.hSCmd = (scmd.hScroll & 0x30) >> 4;
+    scmd.hSOffset = (scmd.hScroll & 0x07);
+    scmd.vScroll = (data[2] & 0x3F);
+    scmd.vSCmd = (scmd.vScroll & 0x30) >> 4;
+    scmd.vSOffset = (scmd.vScroll & 0x07);
+    m_needupdate = true;
+//    qInfo() << "ScrollPreset command found";
+//    qInfo() << "Color: " << scmd.color;
+//    qInfo() << "hSCmd: " << scmd.hSCmd;
+//    qInfo() << "hSOffset: " << scmd.hSOffset;
+//    qInfo() << "vSCmd: " << scmd.vSCmd;
+//    qInfo() << "vSOffset: " << scmd.vSOffset;
 }
 
-void CDG::CMDTileBlock(char data[16], bool XOR)
+void CDG::cmdTileBlock(char data[16], bool XOR)
 {
     CDG_Tile_Block tile;
-    int top, left, i, j;
     tile.color0 = (data[0] & 0x0F);
     tile.color1 = (data[1] & 0x0F);
     tile.row = (data[2] & 0x1F);
@@ -424,96 +346,60 @@ void CDG::CMDTileBlock(char data[16], bool XOR)
     tile.tilePixels[9]  = data[13];
     tile.tilePixels[10] = data[14];
     tile.tilePixels[11] = data[15];
-    ChangedRows.push_back(tile.row);
-    top  = (tile.row    * 12);
-    left = (tile.column * 6);
-    for (i = 0; i <= 11; i++)
+    int top  = (tile.row    * 12);
+    int left = (tile.column * 6);
+    for (int i = 0; i <= 11; i++)
     {
-        for (j = 0; j <= 5; j++)
+        for (int j = 0; j <= 5; j++)
         {
             if (((top + i) <= 215) && ((left + j) <= 299) && (tile.color0 <= 15) && (tile.color1 <= 15))
             {
-                if ((tile.tilePixels[i] & masks[j]) > 0)
-                {
-                    int coloridx;
-                    if (XOR) coloridx = CDGImage->GetCDG_Color(left + j, top + i) ^ tile.color1;
-                    else     coloridx = tile.color1;
-                    CDGImage->SetColor(left + j, top + i, coloridx);
-                }
+                int color = tile.color0;
+                if ((tile.tilePixels[i] & m_masks[j]) > 0)
+                    color = tile.color1;
+                int idxnew;
+                if (XOR)
+                    idxnew = m_image.pixelIndex(left + j, top + i) ^ color;
                 else
-                {
-                    int coloridx;
-                    if (XOR) coloridx = CDGImage->GetCDG_Color(left + j, top + i) ^ tile.color0;
-                    else     coloridx = tile.color0;
-                    CDGImage->SetColor(left + j, top + i, coloridx);
-                }
+                    idxnew = color;
+                int posx = left + j;
+                int posy = top + i;
+                m_image.setPixel(posx, posy, idxnew);
             }
         }
     }
+    m_needupdate = true;
 }
 
 CDG::~CDG()
 {
-    delete CDGImage;
+
 }
 
-
-
-unsigned char *CDG::GetImageByTime(unsigned int ms)
+QVideoFrame CDG::videoFrameByTime(unsigned int ms)
 {
     int scaledMs = ms * ((float)m_tempo / 100.0);
-    unsigned int frameno = scaledMs / 40;
+    int frameno = scaledMs / 40;
     if (ms % 40 > 0) frameno++;
-    if (frameno < CDGVideo.size())
-        return CDGVideo.at(frameno)->Get_RGB_Data();
-    else
-    {
-        return CDGVideo.at(CDGVideo.size() -1)->Get_RGB_Data();
-    }
+    if (frameno > m_frames.size())
+        return m_frames.at(m_frames.size() - 1);
+    if (frameno < 0)
+        return m_frames.at(0);
+    return m_frames.at(frameno);
 }
 
-void CDG::GetImageByTime(unsigned int ms, unsigned char * pRGB)
+unsigned int CDG::duration()
 {
-    int scaledMs = ms * ((float)m_tempo / 100.0);
-    unsigned int frameno = scaledMs / 40;
-    if (ms % 40 > 0) frameno++;
-    if (frameno < CDGVideo.size())
-        CDGVideo.at(frameno)->Get_RGB_Data(pRGB);
-    else
-    {
-        CDGVideo.at(CDGVideo.size() -1)->Get_RGB_Data(pRGB);
-    }
-}
-unsigned char *CDG::GetCDGRowByTime(unsigned int ms, unsigned int row)
-{
-    unsigned int frameno = ms / 40;
-    if (ms % 40 > 0) frameno++;
-    if (frameno < CDGVideo.size())
-        return CDGVideo.at(frameno)->Get_Row_Data(row);
-    else
-    {
-        return CDGVideo.at(CDGVideo.size() -1)->Get_Row_Data(row);
-    }
-
-
+    return m_cdgData.size() * 40;
 }
 
-bool CDG::RowNeedsUpdate(unsigned int ms, int row)
-{
-    unsigned int frameno = ms / 40;
-    if ((ms % 40 > 0) && (frameno + 1 < CDGVideo.size()) && (CDGVideo.at(frameno + 1)->RowChanged(row)))
-        return true;
-    if ((frameno < CDGVideo.size()) && (CDGVideo.at(frameno)->RowChanged(row)))
-        return true;
-    return false;
+bool CDG::isOpen() {
+    return m_isOpen;
 }
-bool CDG::AllNeedUpdate(unsigned int ms)
-{
 
-    unsigned int frameno = ms / 40;
-    if (frameno < CDGVideo.size())
-    return CDGVideo.at(frameno)->NeedFullUpdate;
-    else return false;
+unsigned int CDG::lastCDGUpdate()
+{
+    return m_lastCDGCommandMS;
 }
 
 int CDG::tempo()

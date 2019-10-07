@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2019 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -52,7 +52,7 @@ void DlgCdgPreview::preview()
 {
     timer->stop();
     cdgPosition = 0;
-    if (cdg->IsOpen()) cdg->VideoClose();
+    if (cdg->isOpen()) cdg->reset();
     setVisible(true);
     QApplication::processEvents();
     if (m_srcFile.endsWith(".zip", Qt::CaseInsensitive))
@@ -64,7 +64,9 @@ void DlgCdgPreview::preview()
             close();
             return;
         }
-        cdg->FileOpen(archive.getCDGData());
+        cdg->open(archive.getCDGData());
+        cdg->process();
+        timer->start(40);
     }
     else if (m_srcFile.endsWith(".cdg", Qt::CaseInsensitive))
     {
@@ -75,30 +77,35 @@ void DlgCdgPreview::preview()
             close();
             return;
         }
-        cdg->FileOpen(m_srcFile.toStdString());
+        cdg->open(m_srcFile);
+        cdg->process();
+        timer->start(40);
     }
-    cdg->Process();
-    timer->start(40);
+    else if (m_srcFile.endsWith(".mkv", Qt::CaseInsensitive) || m_srcFile.endsWith(".avi", Qt::CaseInsensitive) || m_srcFile.endsWith(".wmv", Qt::CaseInsensitive) || m_srcFile.endsWith(".mp4", Qt::CaseInsensitive) || m_srcFile.endsWith(".mpg", Qt::CaseInsensitive) || m_srcFile.endsWith(".mpeg", Qt::CaseInsensitive))
+    {
+        AudioBackendGstreamer *mediaBackend = new AudioBackendGstreamer(false, this, "Preview");
+        connect(mediaBackend, SIGNAL(newVideoFrame(QImage, QString)), this, SLOT(videoFrameReceived(QImage, QString)));
+        mediaBackend->setVolume(0);
+        mediaBackend->setMedia(m_srcFile);
+        mediaBackend->play();
+    }
+
 }
 
 
 void DlgCdgPreview::timerTimeout()
 {
-    if (cdg->IsOpen())
+    if (cdg->isOpen())
     {
-        if (cdg->GetLastCDGUpdate() >= cdgPosition)
+        if (cdg->lastCDGUpdate() >= cdgPosition)
         {
-            unsigned char* rgbdata;
-            rgbdata = cdg->GetImageByTime(cdgPosition);
-            QImage img(rgbdata, 300, 216, QImage::Format_RGB888);
-            ui->cdgVideoWidget->videoSurface()->present(QVideoFrame(img));
-            free(rgbdata);
+            ui->cdgVideoWidget->videoSurface()->present(cdg->videoFrameByTime(cdgPosition));
             cdgPosition = cdgPosition + timer->interval();
         }
         else
         {
             timer->stop();
-            cdg->VideoClose();
+            cdg->reset();
             cdgPosition = 0;
             close();
         }
@@ -110,17 +117,23 @@ void DlgCdgPreview::timerTimeout()
 void DlgCdgPreview::on_pushButtonClose_clicked()
 {
     timer->stop();
-    cdg->VideoClose();
+    cdg->reset();
     cdgPosition = 0;
     close();
     deleteLater();
+}
+
+void DlgCdgPreview::videoFrameReceived(QImage frame, QString backendName)
+{
+    Q_UNUSED(backendName)
+    ui->cdgVideoWidget->videoSurface()->present(QVideoFrame(frame));
 }
 
 
 void DlgCdgPreview::closeEvent(QCloseEvent *)
 {
     timer->stop();
-    cdg->VideoClose();
+    cdg->reset();
     cdgPosition = 0;
     close();
     deleteLater();

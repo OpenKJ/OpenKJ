@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2019 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -25,7 +25,6 @@
 #include <QFileInfoList>
 #include <QMouseEvent>
 #include "settings.h"
-#include "scrolltext.h"
 #include "cdgvideowidget.h"
 #include <QTimer>
 #include "abstractaudiobackend.h"
@@ -50,6 +49,7 @@ private:
     QTimer *slideShowTimer;
     bool showBgImage;
     QTimer *alertCountdownTimer;
+    QTimer *oneSecTimer;
     int countdownPos;
     QTimer *buttonShowTimer;
     AbstractAudioBackend *kAudioBackend;
@@ -59,7 +59,6 @@ private:
 public:
     explicit DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *BreakBackend, QWidget *parent = 0, Qt::WindowFlags f = 0);
     ~DlgCdg();
-    void updateCDG(QImage image, bool overrideVisibleCheck = false);
     void makeFullscreen();
     void makeWindowed();
     void setTickerText(QString text);
@@ -69,6 +68,7 @@ public:
     int getHAdjustment() { return hSizeAdjustment; }
     void setKAudioBackend(AbstractAudioBackend *value);
     void setBAudioBackend(AbstractAudioBackend *value);
+    void stopTicker();
 
 protected:
     void mouseDoubleClickEvent(QMouseEvent *e);
@@ -79,7 +79,7 @@ private slots:
     void alertFontChanged(QFont font);
     void mouseMove(QMouseEvent *event);
     void buttonShowTimerTimeout();
-
+    void oneSecTimerTimeout();
     void on_btnToggleFullscreen_clicked();
 
 public slots:
@@ -91,6 +91,9 @@ public slots:
     void tickerTextColorChanged();
     void tickerBgColorChanged();
     void tickerEnableChanged();
+    void cdgRemainFontChanged(QFont font);
+    void cdgRemainTextColorChanged(QColor color);
+    void cdgRemainBgColorChanged(QColor color);
     void setVOffset(int pixels);
     void setHOffset(int pixels);
     void setVSizeAdjustment(int pixels);
@@ -107,8 +110,16 @@ public slots:
     void alertBgColorChanged(QColor color);
     void alertTxtColorChanged(QColor color);
     void triggerBg();
+    void cdgRemainEnabledChanged(bool enabled);
+    void remainOffsetsChanged(int r, int b);
+    void updateCDG(QImage image, bool overrideVisibleCheck = false);
+    void updateCDG(QVideoFrame frame, bool overrideVisibleCheck = false);
 
 
+
+    // QWidget interface
+protected:
+    void closeEvent(QCloseEvent *event);
 };
 
 #endif // CDGWINDOW_H

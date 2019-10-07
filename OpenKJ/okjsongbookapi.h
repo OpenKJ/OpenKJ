@@ -52,9 +52,12 @@ private:
     bool delayErrorEmitted;
     bool connectionReset;
     int entitledSystems;
+    bool programIsIdle;
+    bool cancelUpdate;
+    bool updateInProgress;
 
 public:
-    explicit OKJSongbookAPI(QObject *parent = 0);
+    explicit OKJSongbookAPI(QObject *parent = nullptr);
     void getSerial();
     void refreshRequests();
     void removeRequest(int requestId);
@@ -67,6 +70,7 @@ public:
     void alertCheck();
     void getEntitledSystemCount();
     int entitledSystemCount() { return entitledSystems; }
+    bool updateWasCancelled() {return cancelUpdate; }
 
 signals:
     void venuesChanged(OkjsVenues);
@@ -86,6 +90,7 @@ signals:
 
 
 public slots:
+    void dbUpdateCanceled();
 
 private slots:
         void onSslErrors(QNetworkReply * reply, QList<QSslError> errors);
@@ -94,6 +99,7 @@ private slots:
         void timerTimeout();
         void alertTimerTimeout();
         void setInterval(int interval);
+        void idleStateChanged(bool isIdle);
 };
 
 #endif // OKJSONGBOOKAPI_H

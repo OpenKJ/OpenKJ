@@ -61,7 +61,7 @@ void DlgSongShopPurchase::doAuth()
 {
     if (!setupDone)
         return;
-    qWarning() << "running doAuth";
+    qInfo() << "running doAuth";
     if ((settings->saveCC() || settings->saveKNAccount()) && settings->passIsSet())
     {
         setupDone = false;

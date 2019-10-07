@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2019 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -28,20 +28,23 @@
 #include <QDebug>
 #include <QMessageBox>
 #include "settings.h"
+#include "idledetect.h"
 
 QDataStream &operator<<(QDataStream &out, const SfxEntry &obj)
 {
     out << obj.name << obj.path;
-    qWarning() << "returning " << obj.name << " " << obj.path;
+    qInfo() << "returning " << obj.name << " " << obj.path;
     return out;
 }
 
 QDataStream &operator>>(QDataStream &in, SfxEntry &obj)
 {
-   qWarning() << "setting " << obj.name << " " << obj.path;
+   qInfo() << "setting " << obj.name << " " << obj.path;
    in >> obj.name >> obj.path;
    return in;
 }
+
+IdleDetect *filter;
 
 int main(int argc, char *argv[])
 {
@@ -50,7 +53,10 @@ int main(int argc, char *argv[])
     qRegisterMetaType<QList<SfxEntry> >("QList<SfxEntry>");
     qRegisterMetaTypeStreamOperators<QList<SfxEntry> >("QList<SfxEntry>");
     QApplication a(argc, argv);
-    qputenv("GST_DEBUG", "*:3");
+    filter = new IdleDetect;
+    a.installEventFilter(filter);
+    qputenv("GST_DEBUG", "*:1");
+    qputenv("GST_DEBUG_DUMP_DOT_DIR", "/tmp");
     Settings okjSettings;
     if (okjSettings.theme() == 1)
     {

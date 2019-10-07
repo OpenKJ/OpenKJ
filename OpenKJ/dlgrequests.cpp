@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2019 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -33,6 +33,10 @@ extern OKJSongbookAPI *songbookApi;
 
 QString toMixedCase(const QString& s)
 {
+    if (s.isNull())
+        return QString();
+    if (s.size() < 1)
+        return QString();
     QStringList parts = s.split(" ", QString::SkipEmptyParts);
     for (int i=1; i<parts.size(); ++i)
         parts[i].replace(0, 1, parts[i][0].toUpper());
@@ -168,6 +172,7 @@ void DlgRequests::requestsModified()
     if ((requestsModel->count() > 0) && (settings->requestDialogAutoShow()))
     {
         this->show();
+        this->raise();
     }
     autoSizeViews();
 }
@@ -400,17 +405,18 @@ void DlgRequests::venuesChanged(OkjsVenues venues)
 
 void DlgRequests::on_pushButtonUpdateDb_clicked()
 {
+    ui->pushButtonUpdateDb->setEnabled(false);
     QMessageBox msgBox;
-    msgBox.setText(tr("Are you sure?"));
-    msgBox.setInformativeText(tr("This operation can take serveral minutes depending on the size of your song database and the speed of your internet connection."));
+    msgBox.setText(tr("Are you sure?\n\nThis operation can take serveral minutes depending on the size of your song database and the speed of your internet connection.\n"));
+//    msgBox.setInformativeText(tr("This operation can take serveral minutes depending on the size of your song database and the speed of your internet connection."));
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Cancel);
     int ret = msgBox.exec();
     if (ret == QMessageBox::Yes)
     {
-        qWarning() << "Opening progress dialog for remote db update";
+        qInfo() << "Opening progress dialog for remote db update";
         QProgressDialog *progressDialog = new QProgressDialog(this);
-        progressDialog->setCancelButton(0);
+//        progressDialog->setCancelButton(0);
         progressDialog->setMinimum(0);
         progressDialog->setMaximum(20);
         progressDialog->setValue(0);
@@ -419,15 +425,22 @@ void DlgRequests::on_pushButtonUpdateDb_clicked()
         QApplication::processEvents();
         connect(songbookApi, SIGNAL(remoteSongDbUpdateNumDocs(int)), progressDialog, SLOT(setMaximum(int)));
         connect(songbookApi, SIGNAL(remoteSongDbUpdateProgress(int)), progressDialog, SLOT(setValue(int)));
+        connect(progressDialog, SIGNAL(canceled()), songbookApi, SLOT(dbUpdateCanceled()));
         //    progressDialog->show();
         songbookApi->updateSongDb();
-        QMessageBox msgBox;
-        msgBox.setText(tr("Remote database update completed!"));
-        msgBox.exec();
-        qWarning() << "Closing progress dialog for remote db update";
+        if (songbookApi->updateWasCancelled())
+            qInfo() << "Songbook DB update cancelled by user";
+        else
+        {
+            QMessageBox msgBox;
+            msgBox.setText(tr("Remote database update completed!"));
+            msgBox.exec();
+        }
+        qInfo() << "Closing progress dialog for remote db update";
         progressDialog->close();
         progressDialog->deleteLater();
     }
+    ui->pushButtonUpdateDb->setEnabled(true);
 }
 
 void DlgRequests::on_comboBoxVenue_activated(int index)
@@ -436,8 +449,8 @@ void DlgRequests::on_comboBoxVenue_activated(int index)
     settings->setRequestServerVenue(venue);
     songbookApi->refreshRequests();
     ui->checkBoxAccepting->setChecked(songbookApi->getAccepting());
-    qWarning() << "Set venue_id to " << venue;
-    qWarning() << "Settings now reporting venue as " << settings->requestServerVenue();
+    qInfo() << "Set venue_id to " << venue;
+    qInfo() << "Settings now reporting venue as " << settings->requestServerVenue();
 }
 
 void DlgRequests::previewCdg()
@@ -487,10 +500,10 @@ void DlgRequests::autoSizeViews()
 
     int tsWidth = QFontMetrics(settings->applicationFont()).width(" 00/00/00 00:00 xx ");
     int keyWidth = QFontMetrics(settings->applicationFont()).width("_Key_");
-    qWarning() << "tsWidth = " << tsWidth;
+    qInfo() << "tsWidth = " << tsWidth;
     int delwidth = fH * 2;
     int singerColSize = QFontMetrics(settings->applicationFont()).width("_Isaac_Lightburn_");
-    qWarning() << "singerColSize = " << singerColSize;
+    qInfo() << "singerColSize = " << singerColSize;
     remainingSpace = ui->tableViewRequests->width() - tsWidth - delwidth - singerColSize - keyWidth - 10;
     artistColSize = remainingSpace / 2;
     titleColSize = remainingSpace / 2;
@@ -529,4 +542,11 @@ void DlgRequests::on_pushButtonWebSearch_clicked()
 {
     QString link = "http://db.openkj.org/?type=All&searchstr=" + ui->lineEditSearch->text();
     QDesktopServices::openUrl(QUrl(link));
+}
+
+
+void DlgRequests::closeEvent(QCloseEvent *event)
+{
+    hide();
+    event->ignore();
 }
