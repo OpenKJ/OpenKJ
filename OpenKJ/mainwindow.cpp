@@ -449,10 +449,10 @@ MainWindow::MainWindow(QWidget *parent) :
     qInfo() << "Setting backgrounds on CDG displays";
     ui->cdgVideoWidget->setKeepAspect(true);
     cdgWindow->setShowBgImage(true);
-    kAudioBackend->setVideoWinId(ui->cdgVideoWidget->winId());
-    kAudioBackend->setVideoWinId2(cdgWindow->getCdgWinId());
-    bmAudioBackend->setVideoWinId(ui->cdgVideoWidget->winId());
-    bmAudioBackend->setVideoWinId2(cdgWindow->getCdgWinId());
+    kAudioBackend->setVideoWinId2(ui->cdgVideoWidget->winId());
+    kAudioBackend->setVideoWinId(cdgWindow->getCdgWinId());
+    bmAudioBackend->setVideoWinId2(ui->cdgVideoWidget->winId());
+    bmAudioBackend->setVideoWinId(cdgWindow->getCdgWinId());
     setShowBgImage(true);
     qInfo() << "Restoring window and listview states";
     settings->restoreWindowState(cdgWindow);
@@ -755,6 +755,8 @@ MainWindow::MainWindow(QWidget *parent) :
     if (settings->showCdgWindow())
         ui->btnToggleCdgWindow->setText("Hide CDG Window");
     connect(ui->tableViewRotation->selectionModel(), SIGNAL(selectionChanged(QItemSelection, QItemSelection)), this, SLOT(rotationSelectionChanged(QItemSelection, QItemSelection)));
+    previewEnabled = settings->previewEnabled();
+    connect(settings, &Settings::previewEnabledChanged, this, &MainWindow::previewEnabledChanged);
 }
 
 QString MainWindow::findMatchingAudioFile(QString cdgFilePath)
@@ -1421,7 +1423,8 @@ void MainWindow::audioBackend_positionChanged(qint64 position)
         if (cdg->isOpen() && cdg->lastCDGUpdate() >= position)
         {
                 QVideoFrame frame = cdg->videoFrameByTime(position + cdgOffset);
-                ui->cdgVideoWidget->videoSurface()->present(frame);
+                if (previewEnabled)
+                    ui->cdgVideoWidget->videoSurface()->present(frame);
                 cdgWindow->updateCDG(frame);
         }
         if (!sliderPositionPressed)
@@ -2779,7 +2782,8 @@ void MainWindow::videoFrameReceived(QImage frame, QString backendName)
     // We shouldn't have an open CDG file while karaoke video is playing, if one is open, close it
     if (cdg->isOpen())
         cdg->reset();
-    ui->cdgVideoWidget->videoSurface()->present(QVideoFrame(frame));
+    if (previewEnabled)
+        ui->cdgVideoWidget->videoSurface()->present(QVideoFrame(frame));
     cdgWindow->updateCDG(frame);
 }
 

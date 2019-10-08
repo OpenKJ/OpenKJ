@@ -130,6 +130,7 @@ private:
     bool initDone;
     int m_silenceDuration;
     int m_outputChannels;
+    bool m_previewEnabledLastBuild;
     double m_currentRmsLevel;
     int eq1, eq2, eq3, eq4, eq5, eq6, eq7, eq8, eq9, eq10;
     bool bypass;
@@ -137,10 +138,10 @@ private:
     int outputDeviceIdx;
     bool downmix;
     static gboolean gstTimerDispatcher(QObject *qObj);
-    static void EndOfStreamCallback(GstAppSink *appsink, gpointer user_data);
-    static GstFlowReturn NewPrerollCallback(GstAppSink *appsink, gpointer user_data);
-    static GstFlowReturn NewSampleCallback(GstAppSink *appsink, gpointer user_data);
-    static GstFlowReturn NewAudioSampleCallback(GstAppSink *appsink, gpointer user_data);
+//    static void EndOfStreamCallback(GstAppSink *appsink, gpointer user_data);
+//    static GstFlowReturn NewPrerollCallback(GstAppSink *appsink, gpointer user_data);
+//    static GstFlowReturn NewSampleCallback(GstAppSink *appsink, gpointer user_data);
+//    static GstFlowReturn NewAudioSampleCallback(GstAppSink *appsink, gpointer user_data);
     static void cb_new_pad (GstElement *element, GstPad *pad, gpointer data);
 
     QStringList GstGetPlugins();
@@ -196,7 +197,7 @@ public:
     bool canFade();
     bool canDownmix();
     bool downmixChangeRequiresRestart() { return false; }
-    void newFrame();
+//    void newFrame();
     QString objName;
     int m_tempo;
     int tempo();

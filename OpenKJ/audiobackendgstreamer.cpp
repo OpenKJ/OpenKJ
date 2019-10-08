@@ -150,7 +150,8 @@ void AudioBackendGstreamer::videoMute(bool mute)
     else if (!mute)
     {
         gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink), videoWinId);
-        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink2), videoWinId2);
+        if (m_previewEnabledLastBuild)
+            gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink2), videoWinId2);
         g_object_get (playBin, "flags", &flags, NULL);
         flags |= GST_PLAY_FLAG_VIDEO | GST_PLAY_FLAG_AUDIO;
         flags &= ~GST_PLAY_FLAG_TEXT;
@@ -412,7 +413,7 @@ void AudioBackendGstreamer::slowTimer_timeout()
     static int lastpos = 0;
     if (curState == PlayingState)
     {
-        if (lastpos == position())
+        if (lastpos == position() && lastpos > 10)
         {
             qWarning() << objName << " - Playback appears to be hung, emitting end of stream";
             emit stateChanged(EndOfMediaState);
@@ -744,16 +745,12 @@ gboolean AudioBackendGstreamer::gstTimerDispatcher(QObject *qObj)
 void AudioBackendGstreamer::buildPipeline()
 {
     qInfo() << objName << " - buildPipeline() called";
-    GstAppSinkCallbacks appsinkCallbacks;
-    appsinkCallbacks.new_preroll	= &AudioBackendGstreamer::NewPrerollCallback;
-    appsinkCallbacks.new_sample		= &AudioBackendGstreamer::NewSampleCallback;
-    appsinkCallbacks.eos			= &AudioBackendGstreamer::EndOfStreamCallback;
-
     if (!gst_is_initialized())
     {
         qInfo() << objName << " - gst not initialized - initializing";
         gst_init(NULL,NULL);
     }
+    m_previewEnabledLastBuild = settings->previewEnabled();
     aConvInput = gst_element_factory_make("audioconvert", NULL);
     aConvPreSplit = gst_element_factory_make("audioconvert", NULL);
     aConvPrePitchShift = gst_element_factory_make("audioconvert", NULL);
@@ -809,39 +806,20 @@ void AudioBackendGstreamer::buildPipeline()
     fltrPostMixer = gst_element_factory_make("capsfilter", NULL);
     g_object_set(fltrPostMixer, "caps", audioCapsStereo, NULL);
     volumeElement = gst_element_factory_make("volume", NULL);
-#ifdef Q_OS_LINUX
-    videoSink = gst_element_factory_make ("xvimagesink", NULL);
-    videoSink2 = gst_element_factory_make("xvimagesink", NULL);
-#endif
-#ifdef Q_OS_WIN
-    videoSink = gst_element_factory_make ("directdrawsink", NULL);
-    videoSink2 = gst_element_factory_make("directdrawsink", NULL);
-#endif
-#ifdef Q_OS_MAC
-    videoSink = gst_element_factory_make ("osxvideosink", NULL);
-    videoSink2 = gst_element_factory_make("osxvideosink", NULL);
-#endif
-    videoQueue1 = gst_element_factory_make("queue", NULL);
-    videoQueue2 = gst_element_factory_make("queue", NULL);
-    videoTee = gst_element_factory_make("tee", NULL);
-    videoTeePad1 = gst_element_get_request_pad(videoTee, "src_%u");
-    videoTeePad2 = gst_element_get_request_pad(videoTee, "src_%u");
-    videoQueue1SrcPad = gst_element_get_static_pad(videoQueue1, "sink");
-    videoQueue2SrcPad = gst_element_get_static_pad(videoQueue2, "sink");
 
-    videoBin = gst_bin_new("videoBin");
-    gst_bin_add_many(GST_BIN(videoBin),videoTee,videoQueue1,videoQueue2,videoSink,videoSink2,NULL);
-    gst_pad_link(videoTeePad1,videoQueue1SrcPad);
-    gst_pad_link(videoTeePad2,videoQueue2SrcPad);
-    gst_element_link(videoQueue1,videoSink);
-    gst_element_link(videoQueue2,videoSink2);
-//    faderVolumeElement = gst_element_factory_make("volume", "newFaderVolumeElement");
-//    fader->setVolumeElement(faderVolumeElement);
-
-//    if (settings->audioDownmix())
-//        g_object_set(fltrEnd, "caps", audioCapsMono, NULL);
-//    else
-//        g_object_set(fltrEnd, "caps", audioCapsStereo, NULL);
+//    videoQueue1 = gst_element_factory_make("queue", NULL);
+//    videoQueue2 = gst_element_factory_make("queue", NULL);
+//    videoTee = gst_element_factory_make("tee", NULL);
+//    videoTeePad1 = gst_element_get_request_pad(videoTee, "src_%u");
+//    videoTeePad2 = gst_element_get_request_pad(videoTee, "src_%u");
+//    videoQueue1SrcPad = gst_element_get_static_pad(videoQueue1, "sink");
+//    videoQueue2SrcPad = gst_element_get_static_pad(videoQueue2, "sink");
+//    videoBin = gst_bin_new("videoBin");
+//    gst_bin_add_many(GST_BIN(videoBin),videoTee,videoQueue1,videoQueue2,videoSink,videoSink2,NULL);
+//    gst_pad_link(videoTeePad1,videoQueue1SrcPad);
+//    gst_pad_link(videoTeePad2,videoQueue2SrcPad);
+//    gst_element_link(videoQueue1,videoSink);
+//    gst_element_link(videoQueue2,videoSink2);
 
     gst_bin_add_many(GST_BIN(customBin), level, aConvInput, aConvPreSplit, rgVolume, volumeElement, equalizer, aConvL, aConvR, fltrMplxInput, tee, queueS, queueM, queueR, queueL, audioMixer, deInterleave, aConvPostMixer, fltrPostMixer, gst_object_ref(faderVolumeElement), NULL);
     gst_element_link(aConvInput, rgVolume);
@@ -918,19 +896,67 @@ void AudioBackendGstreamer::buildPipeline()
 //    g_object_set(G_OBJECT(playBin), "audio-sink", customBin, NULL);
 //    g_object_set(G_OBJECT(playBin), "video-sink", videoAppSink, NULL);
 
-    pad = gst_element_get_static_pad(aConvInput, "sink");
-    ghostPad = gst_ghost_pad_new("sink", pad);
-    ghostVideoPad = gst_ghost_pad_new("sink", gst_element_get_static_pad(videoTee, "sink"));
-    gst_pad_set_active(ghostPad, true);
-    gst_pad_set_active(ghostVideoPad,true);
-    gst_element_add_pad(customBin, ghostPad);
-    gst_element_add_pad(videoBin, ghostVideoPad);
-    gst_object_unref(pad);
-    g_object_set(G_OBJECT(playBin), "audio-sink", customBin, NULL);
-//    g_object_set(G_OBJECT(playBin), "video-sink", videoAppSink, NULL);
-    g_object_set(G_OBJECT(playBin), "video-sink", videoBin, NULL);
-    gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink), videoWinId);
-    gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink2), videoWinId2);
+
+// Video output
+
+//    m_previewEnabled = false;
+    if (settings->previewEnabled())
+    {
+#ifdef Q_OS_LINUX
+        videoSink = gst_element_factory_make ("xvimagesink", NULL);
+        videoSink2 = gst_element_factory_make("xvimagesink", NULL);
+#endif
+#ifdef Q_OS_WIN
+        videoSink = gst_element_factory_make ("directdrawsink", NULL);
+        videoSink2 = gst_element_factory_make("directdrawsink", NULL);
+#endif
+#ifdef Q_OS_MAC
+        videoSink = gst_element_factory_make ("osxvideosink", NULL);
+        videoSink2 = gst_element_factory_make("osxvideosink", NULL);
+#endif
+        videoQueue1 = gst_element_factory_make("queue", NULL);
+        videoQueue2 = gst_element_factory_make("queue", NULL);
+        videoTee = gst_element_factory_make("tee", NULL);
+        videoTeePad1 = gst_element_get_request_pad(videoTee, "src_%u");
+        videoTeePad2 = gst_element_get_request_pad(videoTee, "src_%u");
+        videoQueue1SrcPad = gst_element_get_static_pad(videoQueue1, "sink");
+        videoQueue2SrcPad = gst_element_get_static_pad(videoQueue2, "sink");
+        videoBin = gst_bin_new("videoBin");
+        gst_bin_add_many(GST_BIN(videoBin),videoTee,videoQueue1,videoQueue2,videoSink,videoSink2,NULL);
+        gst_pad_link(videoTeePad1,videoQueue1SrcPad);
+        gst_pad_link(videoTeePad2,videoQueue2SrcPad);
+        gst_element_link(videoQueue1,videoSink);
+        gst_element_link(videoQueue2,videoSink2);
+        pad = gst_element_get_static_pad(aConvInput, "sink");
+        ghostPad = gst_ghost_pad_new("sink", pad);
+        ghostVideoPad = gst_ghost_pad_new("sink", gst_element_get_static_pad(videoTee, "sink"));
+        gst_pad_set_active(ghostPad, true);
+        gst_pad_set_active(ghostVideoPad,true);
+        gst_element_add_pad(customBin, ghostPad);
+        gst_element_add_pad(videoBin, ghostVideoPad);
+        gst_object_unref(pad);
+        g_object_set(G_OBJECT(playBin), "audio-sink", customBin, NULL);
+        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink), videoWinId);
+        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink2), videoWinId2);
+        g_object_set(G_OBJECT(playBin), "video-sink", videoBin, NULL);
+    }
+    else
+    {
+        qInfo() << "Main window preview disabled, building pipeline without video tee";
+#ifdef Q_OS_LINUX
+        videoSink = gst_element_factory_make ("xvimagesink", NULL);
+#endif
+#ifdef Q_OS_WIN
+        videoSink = gst_element_factory_make ("directdrawsink", NULL);
+#endif
+#ifdef Q_OS_MAC
+        videoSink = gst_element_factory_make ("osxvideosink", NULL);
+#endif
+        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink), videoWinId);
+        g_object_set(G_OBJECT(playBin), "video-sink", videoSink, NULL);
+    }
+
+// End video output setup
 
 
 
@@ -939,7 +965,6 @@ void AudioBackendGstreamer::buildPipeline()
     g_object_set(G_OBJECT (level), "message", TRUE, NULL);
     bus = takeGstObject(gst_element_get_bus(playBin));
     gst_bus_set_sync_handler(bus.get(), busMessageDispatcher, this, nullptr);
-    gst_app_sink_set_callbacks(GST_APP_SINK(videoAppSink), &appsinkCallbacks, this, (GDestroyNotify)AudioBackendGstreamer::DestroyCallback);
     csource = gst_interpolation_control_source_new ();
     if (!csource)
         qInfo() << objName << " - Error createing control source";
@@ -1061,30 +1086,30 @@ bool AudioBackendGstreamer::canDownmix()
     return true;
 }
 
-void AudioBackendGstreamer::newFrame()
-{
-    GstSample* sample = gst_app_sink_pull_sample((GstAppSink*)videoAppSink);
+//void AudioBackendGstreamer::newFrame()
+//{
+//    GstSample* sample = gst_app_sink_pull_sample((GstAppSink*)videoAppSink);
 
-    if (sample) {
-        m_hasVideo = true;
-        GstBuffer *buffer;
-        GstCaps *caps;
-        GstStructure *s;
-        int width, height;
-        caps = gst_sample_get_caps (sample);
-        s = gst_caps_get_structure (caps, 0);
-        gst_structure_get_int (s, "width", &width);
-        gst_structure_get_int (s, "height", &height);
-        buffer = gst_sample_get_buffer (sample);
-        GstMapInfo bufferInfo;
-        gst_buffer_map(buffer,&bufferInfo,GST_MAP_READ);
-        guint8 *rawFrame = bufferInfo.data;
-        QImage frame = QImage(rawFrame,width,height,QImage::Format_RGBX8888);
-        emit newVideoFrame(frame, getName());
-        gst_buffer_unmap(buffer, &bufferInfo);
-        gst_sample_unref(sample);
-    }
-}
+//    if (sample) {
+//        m_hasVideo = true;
+//        GstBuffer *buffer;
+//        GstCaps *caps;
+//        GstStructure *s;
+//        int width, height;
+//        caps = gst_sample_get_caps (sample);
+//        s = gst_caps_get_structure (caps, 0);
+//        gst_structure_get_int (s, "width", &width);
+//        gst_structure_get_int (s, "height", &height);
+//        buffer = gst_sample_get_buffer (sample);
+//        GstMapInfo bufferInfo;
+//        gst_buffer_map(buffer,&bufferInfo,GST_MAP_READ);
+//        guint8 *rawFrame = bufferInfo.data;
+//        QImage frame = QImage(rawFrame,width,height,QImage::Format_RGBX8888);
+//        emit newVideoFrame(frame, getName());
+//        gst_buffer_unmap(buffer, &bufferInfo);
+//        gst_sample_unref(sample);
+//    }
+//}
 
 int AudioBackendGstreamer::tempo()
 {
@@ -1137,28 +1162,28 @@ void AudioBackendGstreamer::setOutputDevice(int deviceIndex)
     gst_element_link(aConvEnd, audioSink);
 }
 
-void AudioBackendGstreamer::EndOfStreamCallback(GstAppSink* appsink, gpointer user_data)
-{
-    Q_UNUSED(appsink)
-    Q_UNUSED(user_data)
-}
+//void AudioBackendGstreamer::EndOfStreamCallback(GstAppSink* appsink, gpointer user_data)
+//{
+//    Q_UNUSED(appsink)
+//    Q_UNUSED(user_data)
+//}
 
-GstFlowReturn AudioBackendGstreamer::NewPrerollCallback(GstAppSink* appsink, gpointer user_data)
-{
-    Q_UNUSED(user_data)
-    Q_UNUSED(appsink)
-    return GST_FLOW_OK;
+//GstFlowReturn AudioBackendGstreamer::NewPrerollCallback(GstAppSink* appsink, gpointer user_data)
+//{
+//    Q_UNUSED(user_data)
+//    Q_UNUSED(appsink)
+//    return GST_FLOW_OK;
 
-}
+//}
 
-GstFlowReturn AudioBackendGstreamer::NewSampleCallback(GstAppSink* appsink, gpointer user_data)
-{
-    Q_UNUSED(appsink)
-    AudioBackendGstreamer *myObject = (AudioBackendGstreamer*) user_data;
-    myObject->newFrame();
-    return GST_FLOW_OK;
+//GstFlowReturn AudioBackendGstreamer::NewSampleCallback(GstAppSink* appsink, gpointer user_data)
+//{
+//    Q_UNUSED(appsink)
+//    AudioBackendGstreamer *myObject = (AudioBackendGstreamer*) user_data;
+//    myObject->newFrame();
+//    return GST_FLOW_OK;
 
-}
+//}
 
 void AudioBackendGstreamer::cb_new_pad(GstElement *element, GstPad *pad, gpointer data)
 {

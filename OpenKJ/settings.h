@@ -276,6 +276,7 @@ public:
     QColor cdgRemainBgColor();
     bool rotationShowNextSong();
     void sync();
+    bool previewEnabled();
 
 signals:
     void applicationFontChanged(QFont font);
@@ -343,6 +344,7 @@ signals:
     void cdgRemainBgColorChanged(QColor color);
     void rotationShowNextSongChanged(bool show);
     void remainOffsetChanged(int offsetR, int offsetB);
+    void previewEnabledChanged(bool enabled);
 
 public slots:
     void setRemainRtOffset(int offset);
@@ -421,6 +423,7 @@ public slots:
     void setCdgRemainBgColor(QColor color);
     void setRotationShowNextSong(bool show);
     void setProgressiveSearchEnabled(bool enabled);
+    void setPreviewEnabled(bool enabled);
 
 };
 

@@ -123,6 +123,7 @@ private slots:
     void on_btnDurationBgColor_clicked();
     void on_btnLogDirBrowse_clicked();
     void on_checkBoxProgressiveSearch_toggled(bool checked);
+    void on_cbxPreviewEnabled_toggled(bool checked);
 };
 
 #endif // SETTINGSDIALOG_H

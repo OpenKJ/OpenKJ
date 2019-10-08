@@ -34,7 +34,7 @@
         <item>
          <widget class="QTabWidget" name="tabWidgetMain">
           <property name="currentIndex">
-           <number>1</number>
+           <number>3</number>
           </property>
           <widget class="QWidget" name="tabWidgetPage1">
            <attribute name="title">
@@ -1250,6 +1250,13 @@ QPushButton:default {
                </widget>
               </item>
              </layout>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="cbxPreviewEnabled">
+              <property name="text">
+               <string>Disable video output display on main window (Saves CPU on older/slower systems)</string>
+              </property>
+             </widget>
             </item>
             <item>
              <spacer name="verticalSpacer_5">

@@ -482,6 +482,11 @@ void Settings::sync()
     settings->sync();
 }
 
+bool Settings::previewEnabled()
+{
+    return settings->value("previewEnabled", true).toBool();
+}
+
 void Settings::setRemainRtOffset(int offset)
 {
     settings->setValue("remainRtOffset", offset);
@@ -526,6 +531,12 @@ void Settings::setRotationShowNextSong(bool show)
 void Settings::setProgressiveSearchEnabled(bool enabled)
 {
     settings->setValue("progressiveSearchEnabled", enabled);
+}
+
+void Settings::setPreviewEnabled(bool enabled)
+{
+    settings->setValue("previewEnabled", enabled);
+    emit previewEnabledChanged(enabled);
 }
 
 QColor Settings::tickerBgColor()

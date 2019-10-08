@@ -131,7 +131,7 @@ private:
     int cdgOffset;
     SongShop *shop;
     bool k2kTransition;
-
+    bool previewEnabled;
     BmDbDialog *bmDbDialog;
     BmDbTableModel *bmDbModel;
     BmDbItemDelegate *bmDbDelegate;
@@ -268,6 +268,7 @@ private slots:
     void on_actionEqualizer_triggered();
     void audioError(QString msg);
     void resizeRotation();
+    void previewEnabledChanged(bool enabled) { previewEnabled = enabled; }
 
     // QWidget interface
     void on_sliderVolume_sliderMoved(int position);

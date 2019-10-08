@@ -59,6 +59,7 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     ui->checkBoxMonitorDirs->setChecked(settings->dbDirectoryWatchEnabled());
     ui->groupBoxShowDuration->setChecked(settings->cdgRemainEnabled());
     ui->cbxRotShowNextSong->setChecked(settings->rotationShowNextSong());
+    ui->cbxPreviewEnabled->setChecked(!settings->previewEnabled());
     QStringList screens = getMonitors();
     ui->listWidgetMonitors->addItems(screens);
     audioOutputDevices = kAudioBackend->getOutputDevices();
@@ -862,4 +863,9 @@ void DlgSettings::on_btnLogDirBrowse_clicked()
 void DlgSettings::on_checkBoxProgressiveSearch_toggled(bool checked)
 {
     settings->setProgressiveSearchEnabled(checked);
+}
+
+void DlgSettings::on_cbxPreviewEnabled_toggled(bool checked)
+{
+    settings->setPreviewEnabled(!checked);
 }
