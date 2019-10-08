@@ -156,8 +156,10 @@ private:
     static void DestroyCallback(gpointer user_data);
     static GstBusSyncReply busMessageDispatcher(GstBus *bus, GstMessage *message, gpointer userData);
     AbstractAudioBackend::State lastState;
-    GstElement *xvsink;
-    GstElement *xvsink2;
+    GstElement *videoSink;
+    GstElement *videoSink2;
+    GstElement *glsink;
+    GstElement *glsink2;
     GstElement *videoTee;
     GstElement *videoBin;
     GstElement *videoQueue1;

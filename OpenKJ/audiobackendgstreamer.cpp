@@ -149,8 +149,8 @@ void AudioBackendGstreamer::videoMute(bool mute)
     }
     else if (!mute)
     {
-        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(xvsink), videoWinId);
-        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(xvsink2), videoWinId2);
+        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink), videoWinId);
+        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink2), videoWinId2);
         g_object_get (playBin, "flags", &flags, NULL);
         flags |= GST_PLAY_FLAG_VIDEO | GST_PLAY_FLAG_AUDIO;
         flags &= ~GST_PLAY_FLAG_TEXT;
@@ -809,9 +809,18 @@ void AudioBackendGstreamer::buildPipeline()
     fltrPostMixer = gst_element_factory_make("capsfilter", NULL);
     g_object_set(fltrPostMixer, "caps", audioCapsStereo, NULL);
     volumeElement = gst_element_factory_make("volume", NULL);
-
-    xvsink = gst_element_factory_make ("xvimagesink", NULL);
-    xvsink2 = gst_element_factory_make("xvimagesink", NULL);
+#ifdef Q_OS_LINUX
+    videoSink = gst_element_factory_make ("xvimagesink", NULL);
+    videoSink2 = gst_element_factory_make("xvimagesink", NULL);
+#endif
+#ifdef Q_OS_WIN
+    videoSink = gst_element_factory_make ("directdrawsink", NULL);
+    videoSink2 = gst_element_factory_make("directdrawsink", NULL);
+#endif
+#ifdef Q_OS_MAC
+    videoSink = gst_element_factory_make ("osxvideosink", NULL);
+    videoSink2 = gst_element_factory_make("osxvideosink", NULL);
+#endif
     videoQueue1 = gst_element_factory_make("queue", NULL);
     videoQueue2 = gst_element_factory_make("queue", NULL);
     videoTee = gst_element_factory_make("tee", NULL);
@@ -821,11 +830,11 @@ void AudioBackendGstreamer::buildPipeline()
     videoQueue2SrcPad = gst_element_get_static_pad(videoQueue2, "sink");
 
     videoBin = gst_bin_new("videoBin");
-    gst_bin_add_many(GST_BIN(videoBin),videoTee,videoQueue1,videoQueue2,xvsink,xvsink2,NULL);
+    gst_bin_add_many(GST_BIN(videoBin),videoTee,videoQueue1,videoQueue2,videoSink,videoSink2,NULL);
     gst_pad_link(videoTeePad1,videoQueue1SrcPad);
     gst_pad_link(videoTeePad2,videoQueue2SrcPad);
-    gst_element_link(videoQueue1,xvsink);
-    gst_element_link(videoQueue2,xvsink2);
+    gst_element_link(videoQueue1,videoSink);
+    gst_element_link(videoQueue2,videoSink2);
 //    faderVolumeElement = gst_element_factory_make("volume", "newFaderVolumeElement");
 //    fader->setVolumeElement(faderVolumeElement);
 
@@ -920,8 +929,8 @@ void AudioBackendGstreamer::buildPipeline()
     g_object_set(G_OBJECT(playBin), "audio-sink", customBin, NULL);
 //    g_object_set(G_OBJECT(playBin), "video-sink", videoAppSink, NULL);
     g_object_set(G_OBJECT(playBin), "video-sink", videoBin, NULL);
-    gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(xvsink), videoWinId);
-    gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(xvsink2), videoWinId2);
+    gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink), videoWinId);
+    gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink2), videoWinId2);
 
 
 
