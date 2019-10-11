@@ -262,6 +262,7 @@ QMimeData *QueueModel::mimeData(const QModelIndexList &indexes) const
 
 Qt::ItemFlags QueueModel::flags(const QModelIndex &index) const
 {
+    qInfo() << "QueueModel::flags() called. Valid index: " << index.isValid();
     if (!index.isValid())
         return Qt::ItemIsEnabled | Qt::ItemIsDropEnabled;
 
