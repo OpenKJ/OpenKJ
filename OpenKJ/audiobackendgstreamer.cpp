@@ -382,7 +382,7 @@ void AudioBackendGstreamer::slowTimer_timeout()
     static int lastpos = 0;
     if (curState == PlayingState)
     {
-        if (lastpos == position())
+        if (lastpos == position() && lastpos > 500)
         {
             qWarning() << objName << " - Playback appears to be hung, emitting end of stream";
             emit stateChanged(EndOfMediaState);
