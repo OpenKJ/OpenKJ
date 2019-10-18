@@ -23,6 +23,7 @@
 #include <QDebug>
 #include <QBuffer>
 #include <QColor>
+#include <QCryptographicHash>
 
 
 CDG::CDG()
@@ -134,6 +135,11 @@ bool CDG::process()
     ioDevice->close();
     delete ioDevice;
     m_isOpen = true;
+    qInfo() << "CDG Hash at 10s:  " << md5HashByTime(10000);
+    qInfo() << "CDG Hash at 30s:  " << md5HashByTime(30000);
+    qInfo() << "CDG Hash at 60s:  " << md5HashByTime(60000);
+    qInfo() << "CDG Hash at 90s:  " << md5HashByTime(90000);
+    qInfo() << "CDG Hash at 120s: " << md5HashByTime(120000);
     return retCode;
 }
 
@@ -381,11 +387,32 @@ QVideoFrame CDG::videoFrameByTime(unsigned int ms)
     int scaledMs = ms * ((float)m_tempo / 100.0);
     int frameno = scaledMs / 40;
     if (ms % 40 > 0) frameno++;
-    if (frameno > m_frames.size())
+    if (frameno >= m_frames.size())
+    {
+        qInfo() << "Frame past end of CDG requested, returning last frame";
         return m_frames.at(m_frames.size() - 1);
+    }
     if (frameno < 0)
         return m_frames.at(0);
     return m_frames.at(frameno);
+}
+
+QString CDG::md5HashByTime(unsigned int ms)
+{
+    int frameno = ms / 40;
+    if (ms % 40 > 0) frameno++;
+    QVideoFrame frame;
+    if (frameno > m_frames.size())
+        frame = m_frames.at(m_frames.size() - 1);
+    else if (frameno < 0)
+        frame = m_frames.at(0);
+    else
+        frame = m_frames.at(frameno);
+    frame.map(QAbstractVideoBuffer::ReadOnly);
+    QImage img = QImage(frame.bits(), frame.width(), frame.height(), QVideoFrame::imageFormatFromPixelFormat(frame.pixelFormat()));
+    frame.unmap();
+    QByteArray arr = QByteArray::fromRawData((const char*)img.bits(), img.byteCount());
+    return QString(QCryptographicHash::hash(arr, QCryptographicHash::Md5).toHex());
 }
 
 unsigned int CDG::duration()

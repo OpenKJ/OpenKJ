@@ -100,6 +100,7 @@ public:
     void reset();
     bool canSkipFrameByTime(unsigned int ms);
     QVideoFrame videoFrameByTime(unsigned int ms);
+    QString md5HashByTime(unsigned int ms);
     unsigned int duration();
     unsigned int position();
     bool isOpen();
