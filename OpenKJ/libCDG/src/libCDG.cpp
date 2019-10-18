@@ -381,8 +381,11 @@ QVideoFrame CDG::videoFrameByTime(unsigned int ms)
     int scaledMs = ms * ((float)m_tempo / 100.0);
     int frameno = scaledMs / 40;
     if (ms % 40 > 0) frameno++;
-    if (frameno > m_frames.size())
+    if (frameno >= m_frames.size())
+    {
+        qInfo() << "Frame past end of CDG requested, returning last frame";
         return m_frames.at(m_frames.size() - 1);
+    }
     if (frameno < 0)
         return m_frames.at(0);
     return m_frames.at(frameno);
