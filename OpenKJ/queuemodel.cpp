@@ -240,7 +240,10 @@ bool QueueModel::canDropMimeData(const QMimeData *data, Qt::DropAction action, i
     Q_UNUSED(column);
     Q_UNUSED(parent);
     if ((data->hasFormat("integer/songid")) || (data->hasFormat("integer/queuepos")) || data->hasFormat("text/plain") || data->hasFormat("text/uri-list"))
+    {
+        //qInfo() << "Okay to drop data on queue: " << data->formats();
         return true;
+    }
     qInfo() << "Unknown data type dropped on queue: " << data->formats();
     return false;
 }

@@ -1,3 +1,9 @@
+openkj (1.6.6-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 15 Nov 2019 15:57:49 -0600
+
 openkj (1.6.5-1~xenial) xenial; urgency=medium
 
   * Autobuild from git tag
