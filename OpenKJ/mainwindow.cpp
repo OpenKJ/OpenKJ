@@ -935,6 +935,10 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
     k2kTransition = false;
     if (settings->karaokeAutoAdvance())
         kAASkip = false;
+
+    ui->tableViewQueue->setAttribute(Qt::WA_AcceptDrops, false);
+    ui->tableViewQueue->setAttribute(Qt::WA_AcceptDrops, true);
+
 }
 
 MainWindow::~MainWindow()
@@ -3397,16 +3401,6 @@ void MainWindow::updateRotationDuration()
     // Safety check to make sure break music video is muted if karaoke is playing
     if (bmAudioBackend->videoMuted() && kAudioBackend->state() != AbstractAudioBackend::PlayingState && kAudioBackend->state() != AbstractAudioBackend::PausedState)
         bmAudioBackend->videoMute(false);
-
-
-    qInfo() << "DnD Debug - Queue drag enabled: " << ui->tableViewQueue->dragEnabled();
-    qInfo() << "DnD Debug - Queue current DragDropMode: << " << ui->tableViewQueue->dragDropMode();
-    if (!ui->tableViewQueue->dragEnabled())
-    {
-        qInfo() << "Drag is disabled on Queue!!!!";
-        qInfo() << "Current DragDropMode: << " << ui->tableViewQueue->dragDropMode();
-        ui->tableViewQueue->setDragDropMode(QTableView::DragDrop);
-    }
 }
 
 void MainWindow::on_btnToggleCdgWindow_clicked()
