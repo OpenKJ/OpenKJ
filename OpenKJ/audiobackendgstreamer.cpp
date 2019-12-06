@@ -528,8 +528,9 @@ template <typename T> std::shared_ptr<T> takeGstObject(T *o)
 
 template <typename T> std::shared_ptr<T> takeGstMiniObject(T *o)
 {
+
     std::shared_ptr<T> ptr(o, [] (T *d) {
-        gst_mini_object_unref(reinterpret_cast<GstMiniObject*>(d));
+        gst_mini_object_ref(reinterpret_cast<GstMiniObject*>(d));
     });
     return ptr;
 }
