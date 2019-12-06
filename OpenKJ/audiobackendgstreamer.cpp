@@ -908,8 +908,8 @@ void AudioBackendGstreamer::buildPipeline()
         videoSink2 = gst_element_factory_make("xvimagesink", NULL);
 #endif
 #ifdef Q_OS_WIN
-        videoSink = gst_element_factory_make ("directdrawsink", NULL);
-        videoSink2 = gst_element_factory_make("directdrawsink", NULL);
+        videoSink = gst_element_factory_make ("d3dvideosink", NULL);
+        videoSink2 = gst_element_factory_make("d3dvideosink", NULL);
 #endif
 #ifdef Q_OS_MAC
         videoSink = gst_element_factory_make ("osxvideosink", NULL);
@@ -948,7 +948,7 @@ void AudioBackendGstreamer::buildPipeline()
         videoSink = gst_element_factory_make ("xvimagesink", NULL);
 #endif
 #ifdef Q_OS_WIN
-        videoSink = gst_element_factory_make ("directdrawsink", NULL);
+        videoSink = gst_element_factory_make ("d3dvideosink", NULL);
 #endif
 #ifdef Q_OS_MAC
         videoSink = gst_element_factory_make ("osxvideosink", NULL);
