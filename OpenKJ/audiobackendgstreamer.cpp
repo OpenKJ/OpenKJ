@@ -954,7 +954,7 @@ void AudioBackendGstreamer::buildPipeline(bool cdgMode)
         m_keyChangerRubberBand = true;
         g_object_set(G_OBJECT(pitchShifterRubberBand), "formant-preserving", true, NULL);
         g_object_set(G_OBJECT(pitchShifterRubberBand), "crispness", 1, NULL);
-        g_object_set(G_OBJECT(pitchShifterRubberBand), "semitones", 1.0, NULL);
+        g_object_set(G_OBJECT(pitchShifterRubberBand), "semitones", 0, NULL);
     }
     else if ((pitchShifterSoundtouch) && (loadPitchShift))
     {
@@ -1000,8 +1000,8 @@ void AudioBackendGstreamer::buildPipeline(bool cdgMode)
         videoSink2 = gst_element_factory_make("d3dvideosink", NULL);
 #endif
 #ifdef Q_OS_MAC
-        videoSink = gst_element_factory_make ("osxvideosink", NULL);
-        videoSink2 = gst_element_factory_make("osxvideosink", NULL);
+        videoSink = gst_element_factory_make ("glimagesink", NULL);
+        videoSink2 = gst_element_factory_make("glimagesink", NULL);
 #endif
         videoQueue1 = gst_element_factory_make("queue", NULL);
         videoQueue2 = gst_element_factory_make("queue", NULL);
