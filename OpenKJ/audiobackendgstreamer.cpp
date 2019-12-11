@@ -41,7 +41,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     AbstractAudioBackend(parent)
 {
     initDone = false;
-#ifdef Q_OS_MACOS
+#ifdef MACPLATFORM
     QString appPath = qApp->applicationDirPath();
     qputenv("GST_PLUGIN_SYSTEM_PATH", QString("/Applications/OpenKJ.app/Contents/Frameworks/GStreamer.framework/Versions/Current/lib/gstreamer-1.0").toLocal8Bit());
     qputenv("GST_PLUGIN_SCANNER", QString("/Applications/OpenKJ.app/Contents/Frameworks/GStreamer.framework/Versions/Current/libexec/gstreamer-1.0/gst-plugin-scanner").toLocal8Bit());
@@ -994,12 +994,10 @@ void AudioBackendGstreamer::buildPipeline(bool cdgMode)
 #ifdef Q_OS_LINUX
         videoSink = gst_element_factory_make ("xvimagesink", NULL);
         videoSink2 = gst_element_factory_make("xvimagesink", NULL);
-#endif
-#ifdef Q_OS_WIN
+#elif Q_OS_WIN
         videoSink = gst_element_factory_make ("d3dvideosink", NULL);
         videoSink2 = gst_element_factory_make("d3dvideosink", NULL);
-#endif
-#ifdef Q_OS_MAC
+#else
         videoSink = gst_element_factory_make ("glimagesink", NULL);
         videoSink2 = gst_element_factory_make("glimagesink", NULL);
 #endif

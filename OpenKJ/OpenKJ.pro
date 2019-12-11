@@ -37,6 +37,7 @@ macx: {
     INCLUDEPATH += /Library/Frameworks/GStreamer.framework/Headers
     ICON = Icons/OpenKJ.icns
     DEFINES += STATIC_TAGLIB
+    DEFINES += MACPLATFORM
 }
 
 win32 {
@@ -100,7 +101,7 @@ contains(DEFINES, STATIC_TAGLIB) {
 QMAKE_MAC_SDK = MacOSX10.13
 QMAKE_MAC_SDK.macosx.version = 10.13
 
-VERSION = 1.7.13
+VERSION = 1.7.14
 message($$VERSION)
 QMAKE_TARGET_COMPANY = OpenKJ.org
 QMAKE_TARGET_PRODUCT = OpenKJ
