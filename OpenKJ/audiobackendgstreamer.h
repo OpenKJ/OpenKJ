@@ -86,6 +86,7 @@ private:
     GstPad *aConvSrcPadL;
     GstElement *aConvPostMixer;
     GstElement *customBin;
+    GstElement *cdgBin;
     GstElement *videoAppSink;
     GstElement *aConvInput;
     GstElement *aConvPreSplit;
@@ -115,10 +116,12 @@ private:
     GstControlSource *csource;
     GstTimedValueControlSource *tv_csource;
     QString m_filename;
+    QString m_cdgFilename;
     QTimer *fastTimer;
     QTimer *slowTimer;
     int m_keyChange;
     int m_volume;
+    bool m_cdgMode;
     bool m_fade;
     bool m_silenceDetect;
     bool m_canKeyChange;
@@ -127,6 +130,7 @@ private:
     bool m_keyChangerSoundtouch;
     bool m_muted;
     bool m_vidMuted;
+    bool m_canRenderCdg;
     bool initDone;
     int m_silenceDuration;
     int m_outputChannels;
@@ -149,9 +153,9 @@ private:
     QStringList outputDeviceNames;
     QList<GstDevice*> outputDevices;
     QPointer<AudioFader> fader;
-    void buildPipeline();
+    void buildPipeline(bool cdgMode = false);
     void destroyPipeline();
-    void resetPipeline();
+    void resetPipeline(bool cdgMode = false);
     std::shared_ptr<GstBus> bus;
     std::shared_ptr<GstElement> pipeline;
     static void DestroyCallback(gpointer user_data);
@@ -174,6 +178,7 @@ private:
 
 public:
     GstElement *playBin;
+    GstElement *playBinCdg;
     explicit AudioBackendGstreamer(bool loadPitchShift = true, QObject *parent = 0, QString objectName = "unknown");
     void setVideoWinId(WId winID) { videoWinId = winID; }
     void setVideoWinId2(WId winID) { videoWinId2 = winID; }
@@ -190,12 +195,14 @@ public:
     void keyChangerOn();
     void keyChangerOff();
     bool canPitchShift();
+    bool canRenderCdg() { return m_canRenderCdg; }
     int pitchShift();
     bool canChangeTempo();
     bool canDetectSilence();
     bool isSilent();
     bool canFade();
     bool canDownmix();
+    void syncCdg();
     bool downmixChangeRequiresRestart() { return false; }
 //    void newFrame();
     QString objName;
@@ -221,6 +228,7 @@ public slots:
     void play();
     void pause();
     void setMedia(QString filename);
+    void setMediaCdg(QString cdgFilename, QString audioFilename);
     void setMuted(bool muted);
     void setPosition(qint64 position);
     void setVolume(int volume);

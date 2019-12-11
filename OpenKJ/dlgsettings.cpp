@@ -50,6 +50,7 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     bmAudioBackend = BmAudioBackend;
     networkManager = new QNetworkAccessManager(this);
     ui->setupUi(this);
+    ui->tabWidgetMain->setCurrentIndex(0);
     ui->spinBoxHAdjust->setValue(settings->cdgHSizeAdjustment());
     ui->spinBoxVAdjust->setValue(settings->cdgVSizeAdjustment());
     ui->spinBoxHOffset->setValue(settings->cdgHOffset());

@@ -102,6 +102,18 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
         gst_init(NULL,NULL);
     }
 
+    GstElement *cdgdec = gst_element_factory_make("cdgdec", "CDGDecoder");
+    if (!cdgdec)
+    {
+        m_canRenderCdg = false;
+        qInfo() << objName << "CDG decoder from gst-plugins-rs not installed. Can't render CDG graphics via gstreamer";
+    }
+    else {
+        m_canRenderCdg = true;
+        qInfo() << objName << "CDG decoder from gst-plugins-rs is installed.  Can render CDG graphics via gstreamer";
+        gst_object_unref(cdgdec);
+    }
+
     faderVolumeElement = gst_element_factory_make("volume", "FaderVolumeElement");
     g_object_set(G_OBJECT(faderVolumeElement), "volume", 1.0, NULL);
     fader->setVolumeElement(faderVolumeElement);
@@ -246,10 +258,11 @@ void AudioBackendGstreamer::play()
         gst_element_set_state(playBin, GST_STATE_PLAYING);
         if (m_fade)
             fadeIn();
+        return;
     }
     else
     {
-        resetPipeline();
+        resetPipeline(m_cdgMode);
         if (!QFile::exists(m_filename))
         {
             qInfo() << "File doesn't exist, bailing out";
@@ -263,7 +276,27 @@ void AudioBackendGstreamer::play()
         g_free(uri);
         m_hasVideo = false;
         qInfo() << objName << " - playing file: " << m_filename;
+        if (!m_cdgMode)
+            gst_element_set_state(playBin, GST_STATE_PLAYING);
+    }
+    if (m_cdgMode)
+    {
+        if (!QFile::exists(m_cdgFilename))
+        {
+            qInfo() << "CDG file doesn't exist, bailing out";
+            emit stateChanged(PlayingState);
+            QApplication::processEvents();
+            emit stateChanged(EndOfMediaState);
+            return;
+        }
+        gchar *cdguri = gst_filename_to_uri(m_cdgFilename.toLocal8Bit(), NULL);
+        g_object_set(GST_OBJECT(playBinCdg), "uri", cdguri, NULL);
+        g_free(cdguri);
+        m_hasVideo = false;
+        qInfo() << objName << " - playing cdg:   " << m_cdgFilename;
+        qInfo() << objName << " - playing audio: " << m_filename;
         gst_element_set_state(playBin, GST_STATE_PLAYING);
+        gst_element_set_state(playBinCdg, GST_STATE_PAUSED);
     }
     qInfo() << objName << " - play() completed";
 }
@@ -279,6 +312,19 @@ void AudioBackendGstreamer::setMedia(QString filename)
 {
     m_hasVideo = false;
     m_filename = filename;
+    m_cdgMode = false;
+}
+
+void AudioBackendGstreamer::setMediaCdg(QString cdgFilename, QString audioFilename)
+{
+    m_hasVideo = false;
+    if (m_canRenderCdg)
+        m_cdgMode = true;
+    else {
+        m_cdgMode = false;
+    }
+    m_filename = audioFilename;
+    m_cdgFilename = cdgFilename;
 }
 
 void AudioBackendGstreamer::setMuted(bool muted)
@@ -297,6 +343,8 @@ void AudioBackendGstreamer::setPosition(qint64 position)
     {
       qDebug() << objName << " - Seek failed!";
     }
+    if (m_cdgMode)
+        gst_element_seek_simple(playBinCdg, GST_FORMAT_TIME, flags, GST_MSECOND * position);
     emit positionChanged(position);
 }
 
@@ -321,6 +369,8 @@ void AudioBackendGstreamer::stop(bool skipFade)
     {
         qInfo() << objName << " - AudioBackendGstreamer::stop -- Stoping paused song";
         gst_element_set_state(playBin, GST_STATE_NULL);
+        if (m_cdgMode)
+            gst_element_set_state(playBinCdg, GST_STATE_NULL);
         emit stateChanged(AbstractAudioBackend::StoppedState);
         qInfo() << objName << " - stop() completed";
         fader->immediateIn();
@@ -335,6 +385,8 @@ void AudioBackendGstreamer::stop(bool skipFade)
             qInfo() << objName << " - AudioBackendGstreamer::stop -- Fading complete";
             qInfo() << objName << " - AudioBackendGstreamer::stop -- Stoping playback";
             gst_element_set_state(playBin, GST_STATE_NULL);
+            if (m_cdgMode)
+                gst_element_set_state(playBinCdg, GST_STATE_NULL);
             emit stateChanged(AbstractAudioBackend::StoppedState);
             fader->immediateIn();
             return;
@@ -342,6 +394,8 @@ void AudioBackendGstreamer::stop(bool skipFade)
     }
     qInfo() << objName << " - AudioBackendGstreamer::stop -- Stoping playback without fading";
     gst_element_set_state(playBin, GST_STATE_NULL);
+    if (m_cdgMode)
+        gst_element_set_state(playBinCdg, GST_STATE_NULL);
     emit stateChanged(AbstractAudioBackend::StoppedState);
     qInfo() << objName << " - stop() completed";
 
@@ -378,7 +432,28 @@ void AudioBackendGstreamer::fastTimer_timeout()
     }
 }
 
+void AudioBackendGstreamer::syncCdg()
+{
+    gint64 audiopos, cdgpos, audioposms, cdgposms;
 
+    if (m_cdgMode)
+    {
+        GstFormat fmt = GST_FORMAT_TIME;
+        gst_element_query_position(playBin, fmt, &audiopos);
+        gst_element_query_position(playBinCdg, fmt, &cdgpos);
+        cdgposms = cdgpos / 1000000;
+        audioposms = audiopos / 1000000;
+        if (cdgposms > audioposms + 50 || cdgposms < audioposms - 50)
+        {
+            qInfo() << "Syncing cdg to audio: " << cdgposms << " != " << audioposms;
+            GstSeekFlags flags = GST_SEEK_FLAG_FLUSH;
+            gst_element_seek_simple(playBinCdg, GST_FORMAT_TIME, flags, audiopos);
+        }
+        else {
+            qInfo() << "CDG and audio already synced: " << cdgposms << " == " << audioposms;
+        }
+    }
+}
 
 void AudioBackendGstreamer::slowTimer_timeout()
 {
@@ -576,18 +651,27 @@ void AudioBackendGstreamer::busMessage(std::shared_ptr<GstMessage> message)
         g_free(debug2);
         break;
     case GST_MESSAGE_STATE_CHANGED:
-        GstState state;
+        GstState state, cdgstate;
         gst_element_get_state(playBin, &state, NULL, GST_CLOCK_TIME_NONE);
+        if (m_cdgMode)
+            gst_element_get_state(playBinCdg, &cdgstate, NULL, GST_CLOCK_TIME_NONE);
         if (state == GST_STATE_PLAYING && lastState != AbstractAudioBackend::PlayingState)
         {
             qInfo() << "GST notified of state change to PLAYING";
             lastState = AbstractAudioBackend::PlayingState;
             emit stateChanged(AbstractAudioBackend::PlayingState);
         }
+        if (m_cdgMode && state == GST_STATE_PLAYING && cdgstate != GST_STATE_PLAYING)
+        {
+            gst_element_set_state(playBinCdg, GST_STATE_PLAYING);
+            syncCdg();
+        }
         else if (state == GST_STATE_PAUSED && lastState != AbstractAudioBackend::PausedState)
         {
             qInfo() << "GST notified of state change to PAUSED";
             lastState = AbstractAudioBackend::PausedState;
+            if (m_cdgMode)
+                gst_element_set_state(playBinCdg, GST_STATE_PAUSED);
             emit stateChanged(AbstractAudioBackend::PausedState);
         }
         else if (state == GST_STATE_NULL && lastState != AbstractAudioBackend::StoppedState)
@@ -596,6 +680,8 @@ void AudioBackendGstreamer::busMessage(std::shared_ptr<GstMessage> message)
             if (lastState != AbstractAudioBackend::StoppedState)
             {
                 lastState = AbstractAudioBackend::StoppedState;
+                if (m_cdgMode)
+                    gst_element_set_state(playBinCdg, GST_STATE_NULL);
                 emit stateChanged(AbstractAudioBackend::StoppedState);
             }
         }
@@ -703,9 +789,9 @@ void AudioBackendGstreamer::gstFastTimerFired()
         mspos = 0;
     if (lastPos != mspos)
     {
-        lastPos = mspos;
         emit positionChanged(mspos);
     }
+
 }
 
 void AudioBackendGstreamer::faderChangedVolume(double volume)
@@ -743,7 +829,7 @@ gboolean AudioBackendGstreamer::gstTimerDispatcher(QObject *qObj)
 }
 
 
-void AudioBackendGstreamer::buildPipeline()
+void AudioBackendGstreamer::buildPipeline(bool cdgMode)
 {
     qInfo() << objName << " - buildPipeline() called";
     if (!gst_is_initialized())
@@ -764,6 +850,7 @@ void AudioBackendGstreamer::buildPipeline()
     pitchShifterRubberBand = gst_element_factory_make("ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo", "ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo");
     equalizer = gst_element_factory_make("equalizer-10bands", NULL);
     playBin = gst_element_factory_make("playbin", "playBin");
+    playBinCdg = gst_element_factory_make("playbin", "playBinCdg");
     playBinPub = playBin;
     fltrMplxInput = gst_element_factory_make("capsfilter", "filter");
     fltrEnd = gst_element_factory_make("capsfilter", NULL);
@@ -778,6 +865,7 @@ void AudioBackendGstreamer::buildPipeline()
     deInterleave = gst_element_factory_make("deinterleave", NULL);
     g_signal_connect (deInterleave, "pad-added", G_CALLBACK (this->cb_new_pad), this);
     customBin = gst_bin_new("newBin");
+    cdgBin = gst_bin_new("cdgBin");
     tee = gst_element_factory_make("tee", NULL);
     teeSrcPadN = gst_element_get_request_pad(tee, "src_1");
     teeSrcPadM = gst_element_get_request_pad(tee, "src_0");
@@ -939,7 +1027,10 @@ void AudioBackendGstreamer::buildPipeline()
         g_object_set(G_OBJECT(playBin), "audio-sink", customBin, NULL);
         gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink), videoWinId);
         gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink2), videoWinId2);
-        g_object_set(G_OBJECT(playBin), "video-sink", videoBin, NULL);
+        if (m_cdgMode)
+            g_object_set(G_OBJECT(playBinCdg), "video-sink", videoBin, NULL);
+        else
+            g_object_set(G_OBJECT(playBin), "video-sink", videoBin, NULL);
     }
     else
     {
@@ -954,7 +1045,10 @@ void AudioBackendGstreamer::buildPipeline()
         videoSink = gst_element_factory_make ("osxvideosink", NULL);
 #endif
         gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink), videoWinId);
-        g_object_set(G_OBJECT(playBin), "video-sink", videoSink, NULL);
+        if (cdgMode)
+            g_object_set(G_OBJECT(playBinCdg), "video-sink", videoSink, NULL);
+        else
+            g_object_set(G_OBJECT(playBin), "video-sink", videoSink, NULL);
     }
 
 // End video output setup
@@ -1009,6 +1103,8 @@ void AudioBackendGstreamer::destroyPipeline()
     if (state() == PlayingState)
         stop(true);
     gst_object_unref(playBin);
+    if (m_cdgMode)
+        gst_object_unref(playBinCdg);
     gst_caps_unref(audioCapsMono);
     gst_caps_unref(audioCapsStereo);
     gst_caps_unref(videoCaps);
@@ -1017,10 +1113,10 @@ void AudioBackendGstreamer::destroyPipeline()
     qInfo() << objName << " - destroyPipeline() finished";
 }
 
-void AudioBackendGstreamer::resetPipeline()
+void AudioBackendGstreamer::resetPipeline(bool cdgMode)
 {
     destroyPipeline();
-    buildPipeline();
+    buildPipeline(cdgMode);
 }
 
 bool AudioBackendGstreamer::canFade()

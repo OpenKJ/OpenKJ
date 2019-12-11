@@ -49,6 +49,7 @@ public:
     bool checkAudio();
     QString audioExtension();
     bool extractAudio(QString destPath, QString destFile);
+    bool extractCdg(QString destPath, QString destFile);
     bool isValidKaraokeFile();
     QString getLastError();
 

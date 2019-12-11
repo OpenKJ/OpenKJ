@@ -821,7 +821,13 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
                         QMessageBox::warning(this, tr("Bad karaoke file"), tr("Failed to extract audio file."),QMessageBox::Ok);
                         return;
                     }
+                    if (!archive.extractCdg(khTmpDir->path(), "tmp.cdg"))
+                    {
+                        QMessageBox::warning(this, tr("Bad karaoke file"), tr("Failed to extract CDG file."),QMessageBox::Ok);
+                        return;
+                    }
                     QString audioFile = khTmpDir->path() + QDir::separator() + "tmp" + archive.audioExtension();
+                    QString cdgFile = khTmpDir->path() + QDir::separator() + "tmp.cdg";
                     qInfo() << "Extracted audio file size: " << QFileInfo(audioFile).size();
                     qInfo() << "Loading CDG data";
                     cdg->open(archive.getCDGData());
@@ -831,7 +837,8 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
                     cdgWindow->setShowBgImage(false);
                     setShowBgImage(false);
                     qInfo() << "Setting karaoke backend source file to: " << audioFile;
-                    kAudioBackend->setMedia(audioFile);
+                    //kAudioBackend->setMedia(audioFile);
+                    kAudioBackend->setMediaCdg(cdgFile, audioFile);
                     //                ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
                     if (!k2k)
                         bmAudioBackend->fadeOut(!settings->bmKCrossFade());
@@ -895,7 +902,8 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
             QFile::copy(audiofn, khTmpDir->path() + QDir::separator() + audTmpFile);
             cdg->open(khTmpDir->path() + QDir::separator() + cdgTmpFile);
             cdg->process();
-            kAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + audTmpFile);
+            kAudioBackend->setMediaCdg(khTmpDir->path() + QDir::separator() + cdgTmpFile, khTmpDir->path() + QDir::separator() + audTmpFile);
+//            kAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + audTmpFile);
 //            ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
             if (!k2k)
                 bmAudioBackend->fadeOut(!settings->bmKCrossFade());
@@ -1424,12 +1432,15 @@ void MainWindow::audioBackend_positionChanged(qint64 position)
 {
     if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
     {
-        if (cdg->isOpen() && cdg->lastCDGUpdate() >= position)
+        if (!kAudioBackend->canRenderCdg())
         {
+            if (cdg->isOpen() && cdg->lastCDGUpdate() >= position)
+            {
                 QVideoFrame frame = cdg->videoFrameByTime(position + cdgOffset);
                 if (previewEnabled)
                     ui->cdgVideoWidget->videoSurface()->present(frame);
                 cdgWindow->updateCDG(frame);
+            }
         }
         if (!sliderPositionPressed)
         {

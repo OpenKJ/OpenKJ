@@ -172,6 +172,16 @@ bool OkArchive::extractAudio(QString destPath, QString destFile)
     return false;
 }
 
+bool OkArchive::extractCdg(QString destPath, QString destFile)
+{
+    if (findCDG())
+    {
+        if (extractFile(cdgFileName, destPath, destFile))
+            return true;
+    }
+    return false;
+}
+
 bool OkArchive::isValidKaraokeFile()
 {
 //    if (!zipIsValid())
