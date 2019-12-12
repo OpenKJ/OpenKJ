@@ -11,7 +11,7 @@ BundlePath=$PWD/OpenKJ/OpenKJ.app
 
 $HOME/Qt/5.12.6/clang_64/bin/qmake
 
-make -j4
+make -j8
 
 $HOME/Qt/5.12.6/clang_64/bin/macdeployqt ${BundlePath}
 echo "Removing unneeded and non-appstore compliant plugins"
@@ -21,9 +21,10 @@ rm -f ${BundlePath}/Contents/PlugIns/sqldrivers/libqsqlpsql.dylib
 echo "Copying GStreamer framework to package dir"
 cp -pR /Library/Frameworks/GStreamer.framework.deploy ${BundlePath}/Contents/Frameworks/GStreamer.framework
 echo "Fixing directory structure in the GStreamer framework"
-rm -f ${BundlePath}/Contents/Frameworks/GStreamer.framework/Versions/Current
+#rm -f ${BundlePath}/Contents/Frameworks/GStreamer.framework/Versions/Current
 cd ${BundlePath}/Contents/Frameworks/GStreamer.framework/Versions
-ln -s 1.0 Current
+ls -l
+#ln -s 1.0 Current
 cd -
 echo "Modifying linker path info for GStreamer library to app bundle pathing"
 osxrelocator ${BundlePath}/Contents/Frameworks/GStreamer.framework/Versions/Current/lib /Library/Frameworks/GStreamer.framework/ /Applications/OpenKJ.app/Contents/Frameworks/GStreamer.framework/ -r &>/dev/null
