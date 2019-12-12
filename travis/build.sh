@@ -18,19 +18,19 @@ echo "Removing unneeded and non-appstore compliant plugins"
 rm -f ${BundlePath}/Contents/PlugIns/sqldrivers/libqsqlmysql.dylib
 rm -f ${BundlePath}/Contents/PlugIns/sqldrivers/libqsqlodbc.dylib
 rm -f ${BundlePath}/Contents/PlugIns/sqldrivers/libqsqlpsql.dylib
-echo "Copying GStreamer framework to package dir"
-cp -pR /Library/Frameworks/GStreamer.framework.deploy ${BundlePath}/Contents/Frameworks/GStreamer.framework
-echo "Fixing directory structure in the GStreamer framework"
-#rm -f ${BundlePath}/Contents/Frameworks/GStreamer.framework/Versions/Current
-cd ${BundlePath}/Contents/Frameworks/GStreamer.framework/Versions
-ls -l
+#echo "Copying GStreamer framework to package dir"
+#cp -pR /Library/Frameworks/GStreamer.framework.deploy ${BundlePath}/Contents/Frameworks/GStreamer.framework
+#echo "Fixing directory structure in the GStreamer framework"
+##rm -f ${BundlePath}/Contents/Frameworks/GStreamer.framework/Versions/Current
+#cd ${BundlePath}/Contents/Frameworks/GStreamer.framework/Versions
+#ls -l
 #ln -s 1.0 Current
-cd -
-echo "Modifying linker path info for GStreamer library to app bundle pathing"
-osxrelocator ${BundlePath}/Contents/Frameworks/GStreamer.framework/Versions/Current/lib /Library/Frameworks/GStreamer.framework/ /Applications/OpenKJ.app/Contents/Frameworks/GStreamer.framework/ -r &>/dev/null
-osxrelocator ${BundlePath}/Contents/Frameworks/GStreamer.framework/Versions/Current/libexec /Library/Frameworks/GStreamer.framework/ /Applications/OpenKJ.app/Contents/Frameworks/GStreamer.framework -r &>/dev/null
-osxrelocator ${BundlePath}/Contents/Frameworks/GStreamer.framework/Versions/Current/bin /Library/Frameworks/GStreamer.framework/ /Applications/OpenKJ.app/Contents/Frameworks/GStreamer.framework/ -r &>/dev/null
-osxrelocator ${BundlePath}/Contents/MacOS /Library/Frameworks/GStreamer.framework/ /Applications/OpenKJ.app/Contents/Frameworks/GStreamer.framework/ -r &>/dev/null
+#cd -
+#echo "Modifying linker path info for GStreamer library to app bundle pathing"
+#osxrelocator ${BundlePath}/Contents/Frameworks/GStreamer.framework/Versions/Current/lib /Library/Frameworks/GStreamer.framework/ /Applications/OpenKJ.app/Contents/Frameworks/GStreamer.framework/ -r &>/dev/null
+#osxrelocator ${BundlePath}/Contents/Frameworks/GStreamer.framework/Versions/Current/libexec /Library/Frameworks/GStreamer.framework/ /Applications/OpenKJ.app/Contents/Frameworks/GStreamer.framework -r &>/dev/null
+#osxrelocator ${BundlePath}/Contents/Frameworks/GStreamer.framework/Versions/Current/bin /Library/Frameworks/GStreamer.framework/ /Applications/OpenKJ.app/Contents/Frameworks/GStreamer.framework/ -r &>/dev/null
+#osxrelocator ${BundlePath}/Contents/MacOS /Library/Frameworks/GStreamer.framework/ /Applications/OpenKJ.app/Contents/Frameworks/GStreamer.framework/ -r &>/dev/null
 
 echo "Signing code"
 codesign -s "Application: Isaac Lightburn (47W8CPBS5A)" -vvvv --deep --timestamp=none ${BundlePath}
