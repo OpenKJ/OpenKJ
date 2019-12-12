@@ -98,10 +98,10 @@ contains(DEFINES, STATIC_TAGLIB) {
     INCLUDEPATH += taglib/xm
 }
 # fix macOS build after upgrading xcode
-QMAKE_MAC_SDK = MacOSX10.13
-QMAKE_MAC_SDK.macosx.version = 10.13
+#QMAKE_MAC_SDK = MacOSX10.13
+#QMAKE_MAC_SDK.macosx.version = 10.13
 
-VERSION = 1.7.21
+VERSION = 1.7.22
 message($$VERSION)
 QMAKE_TARGET_COMPANY = OpenKJ.org
 QMAKE_TARGET_PRODUCT = OpenKJ
