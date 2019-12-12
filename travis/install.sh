@@ -38,7 +38,7 @@ if [ -d "Qt" ]; then
 else
   #install gstreamer#install Qt
   echo "Downloading Qt"
-  wget -c --no-check-certificate -nv -Oqt.tar.bz2 https://storage.googleapis.com/okj-installer-deps/qt.tbz2
+  wget -c --no-check-certificate -nv -Oqt.tar.bz2 https://storage.googleapis.com/okj-installer-deps/qt-5.12.6.tbz2
   echo "Extracting Qt"
   bunzip2 qt.tar.bz2
   tar -xf qt.tar
@@ -51,9 +51,11 @@ if [ -d "/Library/Frameworks/GStreamer.framework" ]; then
 else
   echo "gstreamer install"
   echo "Downloading gstreamer runtime package"
-  wget -c --no-check-certificate -nv -Ogstreamer.pkg https://storage.googleapis.com/okj-installer-deps/gstreamer-1.0-1.11.2-x86_64.pkg 
+#  wget -c --no-check-certificate -nv -Ogstreamer.pkg https://storage.googleapis.com/okj-installer-deps/gstreamer-1.0-1.11.2-x86_64.pkg 
+  wget -c --no-check-certificate -nv -Ogstreamer.pkg https://gstreamer.freedesktop.org/data/pkg/osx/1.16.2/gstreamer-1.0-1.16.2-x86_64.pkg
   echo "Downloading gstreamer devel package"
-  wget -c --no-check-certificate -nv -Ogstreamer-dev.pkg https://storage.googleapis.com/okj-installer-deps/gstreamer-1.0-devel-1.11.2-x86_64.pkg
+#  wget -c --no-check-certificate -nv -Ogstreamer-dev.pkg https://storage.googleapis.com/okj-installer-deps/gstreamer-1.0-devel-1.11.2-x86_64.pkg
+  wget -c --no-check-certificate -nv -Ogstreamer-dev.pkg https://gstreamer.freedesktop.org/data/pkg/osx/1.16.2/gstreamer-1.0-devel-1.16.2-x86_64.pkg 
   echo "Installing gstreamer runtime package"
   sudo installer -package gstreamer.pkg -target /;
   echo "Making a deployment copy of the runtime"

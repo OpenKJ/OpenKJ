@@ -9,11 +9,11 @@ fi
 
 BundlePath=$PWD/OpenKJ/OpenKJ.app
 
-$HOME/Qt/5.10.0/clang_64/bin/qmake
+$HOME/Qt/5.12.6/clang_64/bin/qmake
 
-make -j3
+make -j4
 
-$HOME/Qt/5.10.0/clang_64/bin/macdeployqt ${BundlePath}
+$HOME/Qt/5.12.6/clang_64/bin/macdeployqt ${BundlePath}
 echo "Removing unneeded and non-appstore compliant plugins"
 rm -f ${BundlePath}/Contents/PlugIns/sqldrivers/libqsqlmysql.dylib
 rm -f ${BundlePath}/Contents/PlugIns/sqldrivers/libqsqlodbc.dylib
