@@ -976,6 +976,13 @@ void AudioBackendGstreamer::buildPipeline(bool cdgMode)
 //        gst_element_link_many(fltrPostMixer, aConvEnd, audioSink, NULL);
     }
 
+    GstPad *pad;
+    pad = gst_element_get_static_pad(aConvInput, "sink");
+    ghostPad = gst_ghost_pad_new("sink", pad);
+    gst_pad_set_active(ghostPad, true);
+    gst_element_add_pad(customBin, ghostPad);
+    gst_object_unref(pad);
+    g_object_set(G_OBJECT(playBin), "audio-sink", customBin, NULL);
     // Setup outputs from playBin
 //    pad = gst_element_get_static_pad(aConvInput, "sink");
 //    ghostPad = gst_ghost_pad_new("sink", pad);
@@ -1014,15 +1021,9 @@ void AudioBackendGstreamer::buildPipeline(bool cdgMode)
         gst_pad_link(videoTeePad2,videoQueue2SrcPad);
         gst_element_link(videoQueue1,videoSink);
         gst_element_link(videoQueue2,videoSink2);
-        pad = gst_element_get_static_pad(aConvInput, "sink");
-        ghostPad = gst_ghost_pad_new("sink", pad);
         ghostVideoPad = gst_ghost_pad_new("sink", gst_element_get_static_pad(videoTee, "sink"));
-        gst_pad_set_active(ghostPad, true);
         gst_pad_set_active(ghostVideoPad,true);
-        gst_element_add_pad(customBin, ghostPad);
         gst_element_add_pad(videoBin, ghostVideoPad);
-        gst_object_unref(pad);
-        g_object_set(G_OBJECT(playBin), "audio-sink", customBin, NULL);
         gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink), videoWinId);
         gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink2), videoWinId2);
         if (m_cdgMode)
@@ -1035,12 +1036,10 @@ void AudioBackendGstreamer::buildPipeline(bool cdgMode)
         qInfo() << "Main window preview disabled, building pipeline without video tee";
 #ifdef Q_OS_LINUX
         videoSink = gst_element_factory_make ("xvimagesink", NULL);
-#endif
-#ifdef Q_OS_WIN
+#elif Q_OS_WIN
         videoSink = gst_element_factory_make ("d3dvideosink", NULL);
-#endif
-#ifdef Q_OS_MAC
-        videoSink = gst_element_factory_make ("osxvideosink", NULL);
+#else
+        videoSink = gst_element_factory_make ("glimagesink", NULL);
 #endif
         gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink), videoWinId);
         if (cdgMode)
@@ -1089,7 +1088,7 @@ void AudioBackendGstreamer::buildPipeline(bool cdgMode)
     setVolume(m_volume);
     fastTimer->start(40);
     qInfo() << objName << " - buildPipeline() finished";
-    GST_DEBUG_BIN_TO_DOT_FILE((GstBin*)customBin, GST_DEBUG_GRAPH_SHOW_ALL, "pipeline");
+ //   GST_DEBUG_BIN_TO_DOT_FILE((GstBin*)customBin, GST_DEBUG_GRAPH_SHOW_ALL, "pipeline");
 }
 
 void AudioBackendGstreamer::destroyPipeline()

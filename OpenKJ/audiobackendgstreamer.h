@@ -108,7 +108,7 @@ private:
     GstCaps *audioCapsStereo;
     GstCaps *audioCapsMono;
     GstCaps *videoCaps;
-    GstPad *pad;
+//    GstPad *pad;
     GstPad *ghostPad;
     GstPad *ghostVideoPad;
  //   GstBus *bus;
