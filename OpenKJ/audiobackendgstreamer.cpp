@@ -41,23 +41,6 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     AbstractAudioBackend(parent)
 {
     initDone = false;
-#ifdef MACPLATFORM
-    if (!QFile::exists("/Library/Frameworks/GStreamer.framework"))
-    {
-        qInfo() << "No global GStreamer install detected, using bundled";
-        QString appPath = qApp->applicationDirPath();
-        qputenv("GST_PLUGIN_SYSTEM_PATH", QString("/Applications/OpenKJ.app/Contents/Frameworks/GStreamer.framework/Versions/Current/lib/gstreamer-1.0").toLocal8Bit());
-        qputenv("GST_PLUGIN_SCANNER", QString("/Applications/OpenKJ.app/Contents/Frameworks/GStreamer.framework/Versions/Current/libexec/gstreamer-1.0/gst-plugin-scanner").toLocal8Bit());
-        qputenv("GTK_PATH", QString("/Applications/OpenKJ.app/Contents/Frameworks/GStreamer.framework/Versions/Current/").toLocal8Bit());
-        qputenv("GIO_EXTRA_MODULES", QString("/Applications/OpenKJ.app/Contents/Frameworks/GStreamer.framework/Versions/Current/lib/gio/modules").toLocal8Bit());
-        qInfo() << "MacOS detected, changed GST env vars to point to the bundled framework";
-        qInfo() << qgetenv("GST_PLUGIN_SYSTEM_PATH") << endl << qgetenv("GST_PLUGIN_SCANNER") << endl << qgetenv("GTK_PATH") << endl << qgetenv("GIO_EXTRA_MODULES") << endl;
-    }
-    else
-    {
-        qInfo() << "Global GStreamer install detected, using it";
-    }
-#endif
     qInfo() << "Start constructing GStreamer backend";
     QMetaTypeId<std::shared_ptr<GstMessage>>::qt_metatype_id();
     this->loadPitchShift = loadPitchShift;
@@ -198,7 +181,6 @@ AudioBackendGstreamer::~AudioBackendGstreamer()
     gst_caps_unref(audioCapsMono);
     gst_caps_unref(audioCapsStereo);
     gst_caps_unref(videoCaps);
-    gst_object_unref(bus.get());
     gst_object_unref(monitor);
     gst_object_unref(tv_csource);
 }

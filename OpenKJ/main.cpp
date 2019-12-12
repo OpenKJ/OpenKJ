@@ -112,6 +112,18 @@ int main(int argc, char *argv[])
         msgBox.exec();
         return 1;
     }
+#ifdef MACPLATFORM
+    if (!QFile::exists("/Library/Frameworks/GStreamer.framework"))
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Required library GStreamer is not installed!");
+        msgBox.setTextFormat(Qt::RichText);
+        msgBox.setInformativeText("OpenKJ no longer bundles the GStreamer multimedia library with the application.<br><br>Please download and install <a href=https://gstreamer.freedesktop.org/data/pkg/osx/1.16.2/gstreamer-1.0-1.16.2-x86_64.pkg>this version</a> and re-run OpenKJ.<br><br>Exiting now.");
+        msgBox.setIcon(QMessageBox::Critical);
+        msgBox.exec();
+        return 1;
+    }
+#endif
     w.show();
 
     return a.exec();
