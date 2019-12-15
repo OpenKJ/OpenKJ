@@ -40,6 +40,7 @@ Q_DECLARE_METATYPE(std::shared_ptr<GstMessage>);
 AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *parent, QString objectName) :
     AbstractAudioBackend(parent)
 {
+    accelMode = XVideo;
     initDone = false;
     qInfo() << "Start constructing GStreamer backend";
     QMetaTypeId<std::shared_ptr<GstMessage>>::qt_metatype_id();
@@ -114,6 +115,28 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     gst_object_ref(faderVolumeElement);
     connect(fader, SIGNAL(faderStateChanged(AudioFader::FaderState)), this, SLOT(faderStateChanged(AudioFader::FaderState)));
 
+#ifdef Q_OS_LINUX
+        switch (accelMode) {
+        case OpenGL:
+            videoSink = gst_element_factory_make ("glimagesink", NULL);
+            videoSink2 = gst_element_factory_make("glimagesink", NULL);
+            break;
+        case XVideo:
+            videoSink = gst_element_factory_make ("xvimagesink", NULL);
+            videoSink2 = gst_element_factory_make("xvimagesink", NULL);
+            break;
+        }
+//        videoSink = gst_element_factory_make ("xvimagesink", NULL);
+//        videoSink2 = gst_element_factory_make("xvimagesink", NULL);
+#elif Q_OS_WIN
+        videoSink = gst_element_factory_make ("d3dvideosink", NULL);
+        videoSink2 = gst_element_factory_make("d3dvideosink", NULL);
+#else
+        videoSink = gst_element_factory_make ("glimagesink", NULL);
+        videoSink2 = gst_element_factory_make("glimagesink", NULL);
+#endif
+    gst_object_ref(videoSink);
+    gst_object_ref(videoSink2);
     buildPipeline();
 
     monitor = gst_device_monitor_new ();
@@ -178,6 +201,15 @@ AudioBackendGstreamer::~AudioBackendGstreamer()
     if (state() == PlayingState)
         stop(true);
     gst_object_unref(playBin);
+    if (cdgBin)
+        gst_object_unref(playBinCdg);
+    if (videoSink)
+    {
+        gst_object_unref(videoSink);
+        qInfo() << "Unreffed videoSink";
+    }
+    if (videoSink2)
+        gst_object_unref(videoSink2);
     gst_caps_unref(audioCapsMono);
     gst_caps_unref(audioCapsStereo);
     gst_caps_unref(videoCaps);
@@ -991,16 +1023,26 @@ void AudioBackendGstreamer::buildPipeline(bool cdgMode)
 //    m_previewEnabled = false;
     if (settings->previewEnabled())
     {
-#ifdef Q_OS_LINUX
-        videoSink = gst_element_factory_make ("xvimagesink", NULL);
-        videoSink2 = gst_element_factory_make("xvimagesink", NULL);
-#elif Q_OS_WIN
-        videoSink = gst_element_factory_make ("d3dvideosink", NULL);
-        videoSink2 = gst_element_factory_make("d3dvideosink", NULL);
-#else
-        videoSink = gst_element_factory_make ("glimagesink", NULL);
-        videoSink2 = gst_element_factory_make("glimagesink", NULL);
-#endif
+//#ifdef Q_OS_LINUX
+//        switch (accelMode) {
+//        case OpenGL:
+//            videoSink = gst_element_factory_make ("glimagesink", NULL);
+//            videoSink2 = gst_element_factory_make("glimagesink", NULL);
+//            break;
+//        case XVideo:
+//            videoSink = gst_element_factory_make ("xvimagesink", NULL);
+//            videoSink2 = gst_element_factory_make("xvimagesink", NULL);
+//            break;
+//        }
+////        videoSink = gst_element_factory_make ("xvimagesink", NULL);
+////        videoSink2 = gst_element_factory_make("xvimagesink", NULL);
+//#elif Q_OS_WIN
+//        videoSink = gst_element_factory_make ("d3dvideosink", NULL);
+//        videoSink2 = gst_element_factory_make("d3dvideosink", NULL);
+//#else
+//        videoSink = gst_element_factory_make ("glimagesink", NULL);
+//        videoSink2 = gst_element_factory_make("glimagesink", NULL);
+//#endif
         videoQueue1 = gst_element_factory_make("queue", NULL);
         videoQueue2 = gst_element_factory_make("queue", NULL);
         videoTee = gst_element_factory_make("tee", NULL);
@@ -1027,13 +1069,21 @@ void AudioBackendGstreamer::buildPipeline(bool cdgMode)
     else
     {
         qInfo() << "Main window preview disabled, building pipeline without video tee";
-#ifdef Q_OS_LINUX
-        videoSink = gst_element_factory_make ("xvimagesink", NULL);
-#elif Q_OS_WIN
-        videoSink = gst_element_factory_make ("d3dvideosink", NULL);
-#else
-        videoSink = gst_element_factory_make ("glimagesink", NULL);
-#endif
+//#ifdef Q_OS_LINUX
+//        switch (accelMode) {
+//        case OpenGL:
+//            videoSink = gst_element_factory_make ("glimagesink", NULL);
+//            break;
+//        case XVideo:
+//            videoSink = gst_element_factory_make ("xvimagesink", NULL);
+//            break;
+//        }
+////        videoSink = gst_element_factory_make ("xvimagesink", NULL);
+//#elif Q_OS_WIN
+//        videoSink = gst_element_factory_make ("d3dvideosink", NULL);
+//#else
+//        videoSink = gst_element_factory_make ("glimagesink", NULL);
+//#endif
         gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink), videoWinId);
         if (cdgMode)
             g_object_set(G_OBJECT(playBinCdg), "video-sink", videoSink, NULL);
@@ -1092,6 +1142,8 @@ void AudioBackendGstreamer::destroyPipeline()
     gst_bin_remove((GstBin*)customBin, faderVolumeElement);
     if (state() == PlayingState)
         stop(true);
+    gst_bin_remove((GstBin*)videoBin, videoSink);
+    gst_bin_remove((GstBin*)videoBin, videoSink2);
     gst_object_unref(playBin);
     if (m_cdgMode)
         gst_object_unref(playBinCdg);

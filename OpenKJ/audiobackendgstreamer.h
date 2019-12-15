@@ -57,7 +57,8 @@ public:
 class AudioBackendGstreamer : public AbstractAudioBackend
 {
     Q_OBJECT
-
+public:
+        enum accel{OpenGL=0,XVideo};
 private:
     gstTimerCallbackData *myObj;
     GstElement *tee;
@@ -175,10 +176,12 @@ private:
     GstPad *videoTeePad2;
     WId videoWinId;
     WId videoWinId2;
+    accel accelMode;
 
 public:
     GstElement *playBin;
     GstElement *playBinCdg;
+    void setAccelType(accel type=accel::XVideo) { accelMode = type; }
     explicit AudioBackendGstreamer(bool loadPitchShift = true, QObject *parent = 0, QString objectName = "unknown");
     void setVideoWinId(WId winID) { videoWinId = winID; }
     void setVideoWinId2(WId winID) { videoWinId2 = winID; }
