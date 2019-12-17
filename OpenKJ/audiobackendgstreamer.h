@@ -87,7 +87,6 @@ private:
     GstPad *aConvSrcPadL;
     GstElement *aConvPostMixer;
     GstElement *customBin;
-    GstElement *cdgBin;
     GstElement *videoAppSink;
     GstElement *aConvInput;
     GstElement *aConvPreSplit;
@@ -143,10 +142,6 @@ private:
     int outputDeviceIdx;
     bool downmix;
     static gboolean gstTimerDispatcher(QObject *qObj);
-//    static void EndOfStreamCallback(GstAppSink *appsink, gpointer user_data);
-//    static GstFlowReturn NewPrerollCallback(GstAppSink *appsink, gpointer user_data);
-//    static GstFlowReturn NewSampleCallback(GstAppSink *appsink, gpointer user_data);
-//    static GstFlowReturn NewAudioSampleCallback(GstAppSink *appsink, gpointer user_data);
     static void cb_new_pad (GstElement *element, GstPad *pad, gpointer data);
 
     QStringList GstGetPlugins();
@@ -154,9 +149,9 @@ private:
     QStringList outputDeviceNames;
     QList<GstDevice*> outputDevices;
     QPointer<AudioFader> fader;
-    void buildPipeline(bool cdgMode = false);
+    void buildPipeline();
     void destroyPipeline();
-    void resetPipeline(bool cdgMode = false);
+    void resetPipeline();
     std::shared_ptr<GstBus> bus;
     std::shared_ptr<GstElement> pipeline;
     static void DestroyCallback(gpointer user_data);
@@ -180,7 +175,6 @@ private:
 
 public:
     GstElement *playBin;
-    GstElement *playBinCdg;
     void setAccelType(accel type=accel::XVideo) { accelMode = type; }
     explicit AudioBackendGstreamer(bool loadPitchShift = true, QObject *parent = 0, QString objectName = "unknown");
     void setVideoWinId(WId winID) { videoWinId = winID; }
@@ -205,7 +199,6 @@ public:
     bool isSilent();
     bool canFade();
     bool canDownmix();
-    void syncCdg();
     bool downmixChangeRequiresRestart() { return false; }
 //    void newFrame();
     QString objName;
