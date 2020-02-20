@@ -308,6 +308,22 @@ private slots:
 
     void on_lineEditBmSearch_textChanged(const QString &arg1);
 
+    void on_btnRotTop_clicked();
+
+    void on_btnRotUp_clicked();
+
+    void on_btnRotDown_clicked();
+
+    void on_btnRotBottom_clicked();
+
+    void on_btnQTop_clicked();
+
+    void on_btnQUp_clicked();
+
+    void on_btnQDown_clicked();
+
+    void on_btnQBottom_clicked();
+
 protected:
     void closeEvent(QCloseEvent *event);
 

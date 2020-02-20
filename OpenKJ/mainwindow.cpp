@@ -3461,3 +3461,100 @@ void MainWindow::on_lineEditBmSearch_textChanged(const QString &arg1)
         lastVal = arg1.trimmed();
     }
 }
+
+
+void MainWindow::on_btnRotTop_clicked()
+{
+    if (ui->tableViewRotation->selectionModel()->selectedRows().count() < 1)
+        return;
+    int curPos = ui->tableViewRotation->selectionModel()->selectedRows().at(0).row();
+    if (curPos == 0)
+        return;
+    rotModel->singerMove(curPos, 0);
+    ui->tableViewRotation->selectRow(0);
+    rotationDataChanged();
+}
+
+void MainWindow::on_btnRotUp_clicked()
+{
+    if (ui->tableViewRotation->selectionModel()->selectedRows().count() < 1)
+        return;
+    int curPos = ui->tableViewRotation->selectionModel()->selectedRows().at(0).row();
+    if (curPos == 0)
+        return;
+    rotModel->singerMove(curPos, curPos - 1);
+    ui->tableViewRotation->selectRow(curPos - 1);
+    rotationDataChanged();
+}
+
+void MainWindow::on_btnRotDown_clicked()
+{
+    if (ui->tableViewRotation->selectionModel()->selectedRows().count() < 1)
+        return;
+    int curPos = ui->tableViewRotation->selectionModel()->selectedRows().at(0).row();
+    if (curPos == rotModel->singerCount - 1)
+        return;
+    rotModel->singerMove(curPos, curPos + 1);
+    ui->tableViewRotation->selectRow(curPos + 1);
+    rotationDataChanged();
+}
+
+void MainWindow::on_btnRotBottom_clicked()
+{
+    if (ui->tableViewRotation->selectionModel()->selectedRows().count() < 1)
+        return;
+    int curPos = ui->tableViewRotation->selectionModel()->selectedRows().at(0).row();
+    if (curPos == rotModel->singerCount - 1)
+        return;
+    rotModel->singerMove(curPos, rotModel->singerCount - 1);
+    ui->tableViewRotation->selectRow(rotModel->singerCount - 1);
+    rotationDataChanged();
+}
+
+void MainWindow::on_btnQTop_clicked()
+{
+    if (ui->tableViewQueue->selectionModel()->selectedRows().count() < 1)
+        return;
+    int curPos = ui->tableViewQueue->selectionModel()->selectedRows().at(0).row();
+    if (curPos == 0)
+        return;
+    qModel->songMove(curPos, 0);
+    ui->tableViewQueue->selectRow(0);
+    rotationDataChanged();
+}
+
+void MainWindow::on_btnQUp_clicked()
+{
+    if (ui->tableViewQueue->selectionModel()->selectedRows().count() < 1)
+        return;
+    int curPos = ui->tableViewQueue->selectionModel()->selectedRows().at(0).row();
+    if (curPos == 0)
+        return;
+    qModel->songMove(curPos, curPos - 1);
+    ui->tableViewQueue->selectRow(curPos - 1);
+    rotationDataChanged();
+}
+
+void MainWindow::on_btnQDown_clicked()
+{
+    if (ui->tableViewQueue->selectionModel()->selectedRows().count() < 1)
+        return;
+    int curPos = ui->tableViewQueue->selectionModel()->selectedRows().at(0).row();
+    if (curPos == ui->tableViewQueue->model()->rowCount() - 1)
+        return;
+    qModel->songMove(curPos, curPos + 1);
+    ui->tableViewQueue->selectRow(curPos + 1);
+    rotationDataChanged();
+}
+
+void MainWindow::on_btnQBottom_clicked()
+{
+    if (ui->tableViewQueue->selectionModel()->selectedRows().count() < 1)
+        return;
+    int curPos = ui->tableViewQueue->selectionModel()->selectedRows().at(0).row();
+    if (curPos == ui->tableViewQueue->model()->rowCount() - 1)
+        return;
+    qModel->songMove(curPos, ui->tableViewQueue->model()->rowCount() - 1);
+    ui->tableViewQueue->selectRow(ui->tableViewQueue->model()->rowCount() - 1);
+    rotationDataChanged();
+}
