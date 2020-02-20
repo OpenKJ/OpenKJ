@@ -32,6 +32,7 @@ BmDbTableModel::BmDbTableModel(QObject *parent, QSqlDatabase db) :
     artistOrder = "ASC";
     titleOrder = "ASC";
     filenameOrder = "ASC";
+    durationOrder = "ASC";
     this->db = db;
     QSqlQuery query;
     query.exec("ATTACH DATABASE ':memory:' AS mem");
@@ -110,6 +111,8 @@ QString BmDbTableModel::orderByClause() const
     case SORT_FILENAME:
         sql.append("filename " + filenameOrder + ", artist " + artistOrder + ", title " + titleOrder);
         break;
+    case SORT_DURATION:
+        sql.append("CAST(duration as INTEGER) " + durationOrder + ", artist " + artistOrder + ", title " + titleOrder + ", filename " + filenameOrder);
     }
     return sql;
 }
@@ -130,6 +133,9 @@ void BmDbTableModel::sort(int column, Qt::SortOrder order)
         break;
     case SORT_FILENAME:
         filenameOrder = orderString;
+        break;
+    case SORT_DURATION:
+        durationOrder = orderString;
         break;
     }
     select();

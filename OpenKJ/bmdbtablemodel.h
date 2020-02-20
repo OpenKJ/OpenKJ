@@ -31,6 +31,7 @@ private:
     QString artistOrder;
     QString titleOrder;
     QString filenameOrder;
+    QString durationOrder;
     QSqlDatabase db;
     QString lastSearch;
 public:
