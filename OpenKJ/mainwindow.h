@@ -324,6 +324,16 @@ private slots:
 
     void on_btnQBottom_clicked();
 
+    void on_btnBmPlRandomize_clicked();
+
+    void on_btnPlTop_clicked();
+
+    void on_btnPlUp_clicked();
+
+    void on_btnPlDown_clicked();
+
+    void on_btnPlBottom_clicked();
+
 protected:
     void closeEvent(QCloseEvent *event);
 

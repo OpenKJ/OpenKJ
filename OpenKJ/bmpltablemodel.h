@@ -43,6 +43,8 @@ public:
     QString currentSongString();
     QString nextSongString();
     int numSongs();
+    qint32 randomizePlaylist(qint32 currentpos);
+    qint32 getPlSongIdAtPos(qint32 position);
 
 signals:
     void bmSongMoved(int oldPos, int newPos);

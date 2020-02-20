@@ -22,6 +22,7 @@
 #include <QSqlQuery>
 #include <QDebug>
 #include <QDataStream>
+#include <QRandomGenerator>
 
 BmPlTableModel::BmPlTableModel(QObject *parent, QSqlDatabase db) :
     QSqlRelationalTableModel(parent, db)
@@ -120,10 +121,56 @@ int BmPlTableModel::numSongs()
     return this->rowCount();
 }
 
+qint32 BmPlTableModel::randomizePlaylist(qint32 currentpos)
+{
+    qint32 newplayingpos = -1;
+    QSqlQuery query;
+    QRandomGenerator rnd;
+    QList<qint32> newNums;
+    QList<qint32> ids;
+    int rows = this->rowCount();
+    for (int i=0; i<rows; i++)
+    {
+        ids.append(getPlSongIdAtPos(i));
+        bool good = false;
+        while(!good) {
+            qint32 newpos = rnd.bounded(rows);
+            if (!newNums.contains(newpos))
+            {
+                newNums.append(newpos);
+                good = true;
+                if (currentpos == i)
+                    newplayingpos = newpos;
+            }
+
+        }
+    }
+    query.exec("BEGIN TRANSACTION");
+    for (int i=0; i<ids.size(); i++)
+    {
+        QString sql = "UPDATE bmplsongs SET position = " + QString::number(newNums.at(i)) + " WHERE playlist = " + QString::number(currentPlaylist()) + " AND plsongid == " + QString::number(ids.at(i));
+        query.exec(sql);
+        qInfo() << sql;
+    }
+
+    query.exec("COMMIT TRANSACTION");
+    select();
+    return newplayingpos;
+}
+
+qint32 BmPlTableModel::getPlSongIdAtPos(qint32 position)
+{
+    QSqlQuery query("SELECT plsongid FROM bmplsongs WHERE playlist = " + QString::number(currentPlaylist()) + " AND position = " + QString::number(position) + " LIMIT 1");
+    if (query.first())
+        return query.value(0).toInt();
+
+    return -1;
+}
+
 bool BmPlTableModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
 {
-    Q_UNUSED(action);
-    Q_UNUSED(column);
+    Q_UNUSED(action)
+    Q_UNUSED(column)
     if (data->hasFormat("integer/queuepos"))
     {
         int droprow;

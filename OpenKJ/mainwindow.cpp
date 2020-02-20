@@ -2470,6 +2470,13 @@ void MainWindow::on_tableViewBmPlaylist_clicked(const QModelIndex &index)
     {
         if (bmCurrentPosition == index.row())
         {
+            if (bmAudioBackend->state() != AudioBackendGstreamer::PlayingState && bmAudioBackend->state() != AudioBackendGstreamer::PausedState)
+            {
+                bmPlDelegate->setCurrentSong(-1);
+                bmCurrentPosition = -1;
+                bmPlModel->deleteSong(index.row());
+                return;
+            }
             QMessageBox msgBox;
             msgBox.setWindowTitle("Unable to remove");
             msgBox.setText("The playlist song you are trying to remove is currently playing and can not be removed.");
@@ -3557,4 +3564,59 @@ void MainWindow::on_btnQBottom_clicked()
     qModel->songMove(curPos, ui->tableViewQueue->model()->rowCount() - 1);
     ui->tableViewQueue->selectRow(ui->tableViewQueue->model()->rowCount() - 1);
     rotationDataChanged();
+}
+
+void MainWindow::on_btnBmPlRandomize_clicked()
+{
+    qint32 newplayinpos = bmPlModel->randomizePlaylist(bmCurrentPosition);
+    bmCurrentPosition = newplayinpos;
+    bmPlDelegate->setCurrentSong(bmCurrentPosition);
+}
+
+
+
+void MainWindow::on_btnPlTop_clicked()
+{
+    if (ui->tableViewBmPlaylist->selectionModel()->selectedRows().count() < 1)
+        return;
+    int curPos = ui->tableViewBmPlaylist->selectionModel()->selectedRows().at(0).row();
+    if (curPos == 0)
+        return;
+   bmPlModel->moveSong(curPos, 0);
+   ui->tableViewBmPlaylist->selectRow(0);
+}
+
+void MainWindow::on_btnPlUp_clicked()
+{
+    if (ui->tableViewBmPlaylist->selectionModel()->selectedRows().count() < 1)
+        return;
+    int curPos = ui->tableViewBmPlaylist->selectionModel()->selectedRows().at(0).row();
+    if (curPos == 0)
+        return;
+   bmPlModel->moveSong(curPos, curPos - 1);
+   ui->tableViewBmPlaylist->selectRow(curPos - 1);
+}
+
+void MainWindow::on_btnPlDown_clicked()
+{
+    int maxpos = ui->tableViewBmPlaylist->model()->rowCount() - 1;
+    if (ui->tableViewBmPlaylist->selectionModel()->selectedRows().count() < 1)
+        return;
+    int curPos = ui->tableViewBmPlaylist->selectionModel()->selectedRows().at(0).row();
+    if (curPos == maxpos)
+        return;
+   bmPlModel->moveSong(curPos, curPos + 1);
+   ui->tableViewBmPlaylist->selectRow(curPos + 1);
+}
+
+void MainWindow::on_btnPlBottom_clicked()
+{
+    int maxpos = ui->tableViewBmPlaylist->model()->rowCount() - 1;
+    if (ui->tableViewBmPlaylist->selectionModel()->selectedRows().count() < 1)
+        return;
+    int curPos = ui->tableViewBmPlaylist->selectionModel()->selectedRows().at(0).row();
+    if (curPos == maxpos)
+        return;
+   bmPlModel->moveSong(curPos, maxpos);
+   ui->tableViewBmPlaylist->selectRow(maxpos);
 }
