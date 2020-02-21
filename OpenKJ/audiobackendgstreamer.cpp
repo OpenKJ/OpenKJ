@@ -132,10 +132,10 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
         videoSink = gst_element_factory_make ("d3dvideosink", NULL);
         videoSink2 = gst_element_factory_make("d3dvideosink", NULL);
 #else
-        videoSink = gst_element_factory_make ("glimagesink", NULL);
-        videoSink2 = gst_element_factory_make("glimagesink", NULL);
+        videoSink1 = gst_element_factory_make ("glimagesink", "videoSink1");
+        videoSink2 = gst_element_factory_make("glimagesink", "videoSink2");
 #endif
-    gst_object_ref(videoSink);
+    gst_object_ref(videoSink1);
     gst_object_ref(videoSink2);
     buildPipeline();
 
@@ -178,7 +178,7 @@ void AudioBackendGstreamer::videoMute(bool mute)
     }
     else if (!mute)
     {
-        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink), videoWinId);
+        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink1), videoWinId);
         if (m_previewEnabledLastBuild)
             gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink2), videoWinId2);
         g_object_get (playBin, "flags", &flags, NULL);
@@ -726,6 +726,11 @@ void AudioBackendGstreamer::busMessage(std::shared_ptr<GstMessage> message)
     case GST_MESSAGE_STREAM_STATUS:
         // do nothing
         break;
+    case GST_MESSAGE_NEED_CONTEXT:
+        qInfo() << objName  << " - context requested - " << message->src->name;
+        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink1), videoWinId);
+        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink2), videoWinId2);
+        break;
     default:
         //g_print("Msg type[%d], Msg type name[%s]\n", GST_MESSAGE_TYPE(message), GST_MESSAGE_TYPE_NAME(message));
         qInfo() << objName << " - Gst msg type: " << GST_MESSAGE_TYPE(message.get()) << " Gst msg name: " << GST_MESSAGE_TYPE_NAME(message.get());
@@ -948,23 +953,23 @@ void AudioBackendGstreamer::buildPipeline()
         videoQueue1SrcPad = gst_element_get_static_pad(videoQueue1, "sink");
         videoQueue2SrcPad = gst_element_get_static_pad(videoQueue2, "sink");
         videoBin = gst_bin_new("videoBin");
-        gst_bin_add_many(GST_BIN(videoBin),videoTee,videoQueue1,videoQueue2,videoSink,videoSink2,NULL);
+        gst_bin_add_many(GST_BIN(videoBin),videoTee,videoQueue1,videoQueue2,videoSink1,videoSink2,NULL);
         gst_pad_link(videoTeePad1,videoQueue1SrcPad);
         gst_pad_link(videoTeePad2,videoQueue2SrcPad);
-        gst_element_link(videoQueue1,videoSink);
+        gst_element_link(videoQueue1,videoSink1);
         gst_element_link(videoQueue2,videoSink2);
         ghostVideoPad = gst_ghost_pad_new("sink", gst_element_get_static_pad(videoTee, "sink"));
         gst_pad_set_active(ghostVideoPad,true);
         gst_element_add_pad(videoBin, ghostVideoPad);
-        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink), videoWinId);
+        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink1), videoWinId);
         gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink2), videoWinId2);
         g_object_set(G_OBJECT(playBin), "video-sink", videoBin, NULL);
     }
     else
     {
         qInfo() << "Main window preview disabled, building pipeline without video tee";
-        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink), videoWinId);
-        g_object_set(G_OBJECT(playBin), "video-sink", videoSink, NULL);
+        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink1), videoWinId);
+        g_object_set(G_OBJECT(playBin), "video-sink", videoSink1, NULL);
     }
 
 // End video output setup
@@ -1018,7 +1023,7 @@ void AudioBackendGstreamer::destroyPipeline()
     gst_bin_remove((GstBin*)customBin, faderVolumeElement);
     if (state() == PlayingState)
         stop(true);
-    gst_bin_remove((GstBin*)videoBin, videoSink);
+    gst_bin_remove((GstBin*)videoBin, videoSink1);
     gst_bin_remove((GstBin*)videoBin, videoSink2);
     gst_object_unref(playBin);
     gst_caps_unref(audioCapsMono);
