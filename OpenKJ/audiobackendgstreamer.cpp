@@ -115,7 +115,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     gst_object_ref(faderVolumeElement);
     connect(fader, SIGNAL(faderStateChanged(AudioFader::FaderState)), this, SLOT(faderStateChanged(AudioFader::FaderState)));
 
-#ifdef Q_OS_LINUX
+#if defined(Q_OS_LINUX)
         switch (accelMode) {
         case OpenGL:
             videoSink = gst_element_factory_make ("glimagesink", NULL);
@@ -128,7 +128,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
         }
 //        videoSink = gst_element_factory_make ("xvimagesink", NULL);
 //        videoSink2 = gst_element_factory_make("xvimagesink", NULL);
-#elif Q_OS_WIN
+#elif defined(Q_OS_WIN)
         videoSink = gst_element_factory_make ("d3dvideosink", NULL);
         videoSink2 = gst_element_factory_make("d3dvideosink", NULL);
 #else
