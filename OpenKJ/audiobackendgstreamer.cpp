@@ -31,7 +31,7 @@
 #include <gst/video/videooverlay.h>
 
 extern Settings *settings;
-GstElement *playBinPub;
+//GstElement *playBinPub;
 
 
 Q_DECLARE_SMART_POINTER_METATYPE(std::shared_ptr);
@@ -118,19 +118,17 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
 #if defined(Q_OS_LINUX)
         switch (accelMode) {
         case OpenGL:
-            videoSink = gst_element_factory_make ("glimagesink", NULL);
-            videoSink2 = gst_element_factory_make("glimagesink", NULL);
+            videoSink1 = gst_element_factory_make ("glimagesink", "videoSink1");
+            videoSink2 = gst_element_factory_make("glimagesink", "videoSink2");
             break;
         case XVideo:
-            videoSink = gst_element_factory_make ("xvimagesink", NULL);
-            videoSink2 = gst_element_factory_make("xvimagesink", NULL);
+            videoSink1 = gst_element_factory_make ("xvimagesink", "videoSink1");
+            videoSink2 = gst_element_factory_make("xvimagesink", "videoSink2");
             break;
         }
-//        videoSink = gst_element_factory_make ("xvimagesink", NULL);
-//        videoSink2 = gst_element_factory_make("xvimagesink", NULL);
 #elif defined(Q_OS_WIN)
-        videoSink = gst_element_factory_make ("d3dvideosink", NULL);
-        videoSink2 = gst_element_factory_make("d3dvideosink", NULL);
+        videoSink1 = gst_element_factory_make ("d3dvideosink", "videoSink1");
+        videoSink2 = gst_element_factory_make("d3dvideosink", "videoSink2");
 #else
         videoSink1 = gst_element_factory_make ("glimagesink", "videoSink1");
         videoSink2 = gst_element_factory_make("glimagesink", "videoSink2");
@@ -709,7 +707,7 @@ void AudioBackendGstreamer::busMessage(std::shared_ptr<GstMessage> message)
     case GST_MESSAGE_DURATION_CHANGED:
         gint64 dur, msdur;
         qInfo() << objName << " - GST reports duration changed";
-        if (gst_element_query_duration(playBinPub,GST_FORMAT_TIME,&dur))
+        if (gst_element_query_duration(playBin,GST_FORMAT_TIME,&dur))
             msdur = dur / 1000000;
         else
             msdur = 0;
@@ -830,7 +828,7 @@ void AudioBackendGstreamer::buildPipeline()
     pitchShifterRubberBand = gst_element_factory_make("ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo", "ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo");
     equalizer = gst_element_factory_make("equalizer-10bands", NULL);
     playBin = gst_element_factory_make("playbin", "playBin");
-    playBinPub = playBin;
+    // playBinPub = playBin;
     fltrMplxInput = gst_element_factory_make("capsfilter", "filter");
     fltrEnd = gst_element_factory_make("capsfilter", NULL);
     audioCapsStereo = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 2, NULL);
