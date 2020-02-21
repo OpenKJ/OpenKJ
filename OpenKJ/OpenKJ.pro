@@ -13,13 +13,16 @@ unix:!macx {
     isEmpty(PREFIX) {
       PREFIX=/usr
     }
-#    equals(DISTVER, "16.04")|equals(DISTVER, "7") {
-#        DEFINES += STATIC_TAGLIB
-#        message("Out of date Linux distro detected, using built in taglib instead of OS package")
-#    } else {
+    equals(DISTVER, "16.04") {
+        message("Ubuntu 16.04 detected")
+        DEFINES += STATIC_TAGLIB
+        message("Out of date Linux distro detected, using built in taglib instead of OS package")
+        message("Enabling c++11 support in old distro")
+        CONFIG += c++11
+    } else {
         message("Using OS packages for taglib")
         PKGCONFIG += taglib taglib-extras
-#    }
+    }
     CONFIG += link_pkgconfig
     PKGCONFIG += gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0 gstreamer-pbutils-1.0 gstreamer-controller-1.0 gstreamer-video-1.0
     iconfiles.files += Icons/okjicon.svg
@@ -101,7 +104,7 @@ contains(DEFINES, STATIC_TAGLIB) {
 #QMAKE_MAC_SDK = MacOSX10.13
 #QMAKE_MAC_SDK.macosx.version = 10.13
 
-VERSION = 1.7.31
+VERSION = 1.7.32
 message($$VERSION)
 QMAKE_TARGET_COMPANY = OpenKJ.org
 QMAKE_TARGET_PRODUCT = OpenKJ
