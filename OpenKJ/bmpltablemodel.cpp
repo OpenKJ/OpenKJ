@@ -22,7 +22,7 @@
 #include <QSqlQuery>
 #include <QDebug>
 #include <QDataStream>
-#include <QRandomGenerator>
+//#include <QRandomGenerator>
 
 BmPlTableModel::BmPlTableModel(QObject *parent, QSqlDatabase db) :
     QSqlRelationalTableModel(parent, db)
@@ -125,7 +125,6 @@ qint32 BmPlTableModel::randomizePlaylist(qint32 currentpos)
 {
     qint32 newplayingpos = -1;
     QSqlQuery query;
-    QRandomGenerator rnd;
     QList<qint32> newNums;
     QList<qint32> ids;
     int rows = this->rowCount();
@@ -134,7 +133,7 @@ qint32 BmPlTableModel::randomizePlaylist(qint32 currentpos)
         ids.append(getPlSongIdAtPos(i));
         bool good = false;
         while(!good) {
-            qint32 newpos = rnd.bounded(rows);
+            qint32 newpos = rand() % rows;
             if (!newNums.contains(newpos))
             {
                 newNums.append(newpos);
