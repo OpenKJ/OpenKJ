@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1074</width>
-    <height>923</height>
+    <width>903</width>
+    <height>600</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -34,7 +34,7 @@
         <item>
          <widget class="QTabWidget" name="tabWidgetMain">
           <property name="currentIndex">
-           <number>0</number>
+           <number>6</number>
           </property>
           <widget class="QWidget" name="tabWidgetPage1">
            <attribute name="title">
@@ -44,7 +44,7 @@
             <item>
              <widget class="QTabWidget" name="tabWidget">
               <property name="currentIndex">
-               <number>0</number>
+               <number>1</number>
               </property>
               <widget class="QWidget" name="tabKaraoke">
                <attribute name="title">
@@ -52,14 +52,28 @@
                </attribute>
                <layout class="QVBoxLayout" name="verticalLayout_13">
                 <item>
-                 <widget class="QLabel" name="label_10">
-                  <property name="text">
-                   <string>Audio output device</string>
+                 <layout class="QFormLayout" name="formLayout_4">
+                  <property name="topMargin">
+                   <number>0</number>
                   </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QListWidget" name="listWidgetAudioDevices"/>
+                  <item row="0" column="0">
+                   <widget class="QLabel" name="label_34">
+                    <property name="text">
+                     <string>Auido output device</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QComboBox" name="comboBoxKAudioDevices">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
                 </item>
                 <item>
                  <widget class="QCheckBox" name="checkBoxFader">
@@ -208,14 +222,28 @@
                </attribute>
                <layout class="QVBoxLayout" name="verticalLayout_14">
                 <item>
-                 <widget class="QLabel" name="label_11">
-                  <property name="text">
-                   <string>Audio output device</string>
+                 <layout class="QFormLayout" name="formLayout_5">
+                  <property name="topMargin">
+                   <number>0</number>
                   </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QListWidget" name="listWidgetAudioDevicesBm"/>
+                  <item row="0" column="0">
+                   <widget class="QLabel" name="label_10">
+                    <property name="text">
+                     <string>Audio output device</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QComboBox" name="comboBoxBAudioDevices">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
                 </item>
                 <item>
                  <widget class="QCheckBox" name="checkBoxFaderBm">
@@ -244,6 +272,19 @@
                   </property>
                  </widget>
                 </item>
+                <item>
+                 <spacer name="verticalSpacer_10">
+                  <property name="orientation">
+                   <enum>Qt::Vertical</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>20</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
                </layout>
               </widget>
              </widget>
@@ -256,663 +297,683 @@
            </attribute>
            <layout class="QVBoxLayout" name="verticalLayout_6">
             <item>
-             <widget class="QCheckBox" name="checkBoxShowCdgWindow">
-              <property name="text">
-               <string>Show CDG window</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="checkBoxCdgFullscreen">
-              <property name="text">
-               <string>CDG window fullscreen</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QGroupBox" name="groupBoxMonitors">
-              <property name="enabled">
+             <widget class="QScrollArea" name="scrollArea">
+              <property name="widgetResizable">
                <bool>true</bool>
               </property>
-              <property name="title">
-               <string>CDG fullscreen settings</string>
-              </property>
-              <property name="checkable">
-               <bool>false</bool>
-              </property>
-              <property name="checked">
-               <bool>false</bool>
-              </property>
-              <layout class="QVBoxLayout" name="verticalLayout_8">
-               <item>
-                <widget class="QListWidget" name="listWidgetMonitors"/>
-               </item>
-               <item>
-                <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0,0,0">
-                 <property name="topMargin">
-                  <number>6</number>
-                 </property>
-                 <property name="bottomMargin">
-                  <number>6</number>
-                 </property>
-                 <item row="0" column="2">
-                  <spacer name="horizontalSpacer_10">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>40</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                 <item row="0" column="1">
-                  <widget class="QSpinBox" name="spinBoxHOffset">
-                   <property name="minimum">
-                    <number>-255</number>
-                   </property>
-                   <property name="maximum">
-                    <number>255</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="4">
-                  <widget class="QSpinBox" name="spinBoxVOffset">
-                   <property name="minimum">
-                    <number>-255</number>
-                   </property>
-                   <property name="maximum">
-                    <number>255</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="3">
-                  <widget class="QLabel" name="label_18">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="text">
-                    <string>Vertical Offset</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="0">
-                  <widget class="QLabel" name="label_17">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="text">
-                    <string>Horizontal Offset</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="0">
-                  <widget class="QLabel" name="label_19">
-                   <property name="text">
-                    <string>HSize Adjust</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="1">
-                  <widget class="QSpinBox" name="spinBoxHAdjust">
-                   <property name="minimum">
-                    <number>-255</number>
-                   </property>
-                   <property name="maximum">
-                    <number>255</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="4">
-                  <widget class="QSpinBox" name="spinBoxVAdjust">
-                   <property name="minimum">
-                    <number>-255</number>
-                   </property>
-                   <property name="maximum">
-                    <number>255</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="3">
-                  <widget class="QLabel" name="label_20">
-                   <property name="text">
-                    <string>VSize Adjust</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout_12">
-              <property name="topMargin">
-               <number>10</number>
-              </property>
-              <property name="bottomMargin">
-               <number>10</number>
-              </property>
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_8">
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
+              <widget class="QWidget" name="scrollAreaWidgetContents">
+               <property name="geometry">
+                <rect>
+                 <x>0</x>
+                 <y>0</y>
+                 <width>831</width>
+                 <height>715</height>
+                </rect>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_11">
                 <item>
-                 <widget class="QRadioButton" name="rbBgImage">
+                 <widget class="QCheckBox" name="checkBoxShowCdgWindow">
                   <property name="text">
-                   <string>Background Image</string>
+                   <string>Show CDG window</string>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="lineEditCdgBackground"/>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="pushButtonClearBgImg">
+                 <widget class="QCheckBox" name="checkBoxCdgFullscreen">
                   <property name="text">
-                   <string/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="resources.qrc">
-                    <normaloff>:/icons/Icons/edit-clear.png</normaloff>:/icons/Icons/edit-clear.png</iconset>
+                   <string>CDG window fullscreen</string>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="pushButtonBrowse">
-                  <property name="text">
-                   <string>Browse</string>
+                 <widget class="QGroupBox" name="groupBoxMonitors">
+                  <property name="enabled">
+                   <bool>true</bool>
                   </property>
+                  <property name="title">
+                   <string>CDG fullscreen settings</string>
+                  </property>
+                  <property name="checkable">
+                   <bool>false</bool>
+                  </property>
+                  <property name="checked">
+                   <bool>false</bool>
+                  </property>
+                  <layout class="QVBoxLayout" name="verticalLayout_8">
+                   <item>
+                    <layout class="QFormLayout" name="formLayout_6">
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <item row="0" column="0">
+                      <widget class="QLabel" name="label_11">
+                       <property name="text">
+                        <string>Fullscreen diaplay</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="1">
+                      <widget class="QComboBox" name="comboBoxMonitors">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0,0,0">
+                     <property name="topMargin">
+                      <number>6</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>6</number>
+                     </property>
+                     <item row="1" column="4">
+                      <widget class="QSpinBox" name="spinBoxVAdjust">
+                       <property name="minimum">
+                        <number>-255</number>
+                       </property>
+                       <property name="maximum">
+                        <number>255</number>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="3">
+                      <widget class="QLabel" name="label_18">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string>Vertical Offset</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="0">
+                      <widget class="QLabel" name="label_17">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string>Horizontal Offset</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="0">
+                      <widget class="QLabel" name="label_19">
+                       <property name="text">
+                        <string>HSize Adjust</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="1">
+                      <widget class="QSpinBox" name="spinBoxHAdjust">
+                       <property name="minimum">
+                        <number>-255</number>
+                       </property>
+                       <property name="maximum">
+                        <number>255</number>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="2">
+                      <spacer name="horizontalSpacer_10">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                     <item row="1" column="3">
+                      <widget class="QLabel" name="label_20">
+                       <property name="text">
+                        <string>VSize Adjust</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="1">
+                      <widget class="QSpinBox" name="spinBoxHOffset">
+                       <property name="minimum">
+                        <number>-255</number>
+                       </property>
+                       <property name="maximum">
+                        <number>255</number>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="4">
+                      <widget class="QSpinBox" name="spinBoxVOffset">
+                       <property name="minimum">
+                        <number>-255</number>
+                       </property>
+                       <property name="maximum">
+                        <number>255</number>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                  </layout>
                  </widget>
                 </item>
-               </layout>
-              </item>
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_10">
-                <property name="topMargin">
-                 <number>10</number>
-                </property>
                 <item>
-                 <widget class="QRadioButton" name="rbSlideshow">
-                  <property name="text">
-                   <string>Slideshow Directory</string>
+                 <layout class="QVBoxLayout" name="verticalLayout_12">
+                  <property name="topMargin">
+                   <number>10</number>
                   </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="lineEditSlideshowDir"/>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="pushButtonSlideshowBrowse">
-                  <property name="text">
-                   <string>Browse</string>
+                  <property name="bottomMargin">
+                   <number>10</number>
                   </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <widget class="Line" name="line">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QGroupBox" name="groupBoxTicker">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="title">
-               <string>Ticker</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-              <layout class="QVBoxLayout" name="verticalLayout_9">
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_4">
-                 <property name="topMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="bottomMargin">
-                  <number>0</number>
-                 </property>
-                 <item>
-                  <widget class="QPushButton" name="pushButtonFont">
-                   <property name="text">
-                    <string>Font</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="horizontalSpacer_2">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeType">
-                    <enum>QSizePolicy::Fixed</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>40</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_3">
-                   <property name="text">
-                    <string>Text Color</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="pushButtonTextColor">
-                   <property name="styleSheet">
-                    <string notr="true">QPushButton {
-    border: 2px solid #8f8f91;
-    border-radius: 6px;
-    background-color: rgb(0,0,0);
-    min-width: 40px;
-    padding-left: 5px;
-    padding-right: 5px;
-    padding-top: 3px;
-    padding-bottom: 3px;
-}
-
-QPushButton:pressed {
-    background-color: rgb(0,0,0);
-}
-
-QPushButton:flat {
-    border: none; /* no border for a flat push button */
-}
-
-QPushButton:default {
-    border-color: navy; /* make the default button prominent */
-}</string>
-                   </property>
-                   <property name="text">
-                    <string/>
-                   </property>
-                   <property name="autoDefault">
-                    <bool>false</bool>
-                   </property>
-                   <property name="flat">
-                    <bool>false</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="horizontalSpacer_3">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeType">
-                    <enum>QSizePolicy::Fixed</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>40</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_4">
-                   <property name="text">
-                    <string>Background Color</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="pushButtonBgColor">
-                   <property name="styleSheet">
-                    <string notr="true">QPushButton {
-    border: 2px solid #8f8f91;
-    border-radius: 6px;
-    background-color: rgb(0,0,0);
-    min-width: 40px;
-    padding-left: 5px;
-    padding-right: 5px;
-    padding-top: 3px;
-    padding-bottom: 3px;
-}
-
-QPushButton:pressed {
-    background-color: rgb(0,0,0);
-}
-
-QPushButton:flat {
-    border: none; /* no border for a flat push button */
-}
-
-QPushButton:default {
-    border-color: navy; /* make the default button prominent */
-}</string>
-                   </property>
-                   <property name="text">
-                    <string/>
-                   </property>
-                   <property name="autoDefault">
-                    <bool>false</bool>
-                   </property>
-                   <property name="flat">
-                    <bool>false</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="horizontalSpacer_4">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>40</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label">
-                   <property name="text">
-                    <string>Ticker Height</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QSpinBox" name="spinBoxTickerHeight"/>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_5">
-                 <property name="topMargin">
-                  <number>5</number>
-                 </property>
-                 <item>
-                  <widget class="QLabel" name="label_2">
-                   <property name="text">
-                    <string>Speed</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QSlider" name="horizontalSliderTickerSpeed">
-                   <property name="minimum">
-                    <number>0</number>
-                   </property>
-                   <property name="maximum">
-                    <number>50</number>
-                   </property>
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="invertedAppearance">
-                    <bool>false</bool>
-                   </property>
-                   <property name="invertedControls">
-                    <bool>false</bool>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <widget class="QCheckBox" name="cbxTickerShowRotationInfo">
-                 <property name="text">
-                  <string>Show rotation info</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_7">
-                 <property name="spacing">
-                  <number>6</number>
-                 </property>
-                 <property name="topMargin">
-                  <number>0</number>
-                 </property>
-                 <item>
-                  <widget class="QRadioButton" name="radioButtonFullRotation">
-                   <property name="text">
-                    <string>Show Full Rotation</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QRadioButton" name="radioButtonPartialRotation">
-                   <property name="text">
-                    <string>Show next</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QSpinBox" name="spinBoxTickerSingers"/>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_5">
-                   <property name="text">
-                    <string>singers</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="horizontalSpacer_5">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>40</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_9">
-                 <property name="topMargin">
-                  <number>5</number>
-                 </property>
-                 <item>
-                  <widget class="QLabel" name="label_8">
-                   <property name="text">
-                    <string>Custom Message</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLineEdit" name="lineEditTickerMessage">
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:9pt; font-weight:600;&quot;&gt;Custom text to display on the ticker&lt;/span&gt;&lt;span style=&quot; font-size:9pt;&quot;&gt;&lt;br/&gt;Supports the following varaible substitutions:&lt;br/&gt;&lt;br/&gt;%curSinger = Current singer name&lt;br/&gt;%curSong = Current song (aritst - title)&lt;br/&gt;%curArtist = Current artist&lt;br/&gt;%curTitle = Current title&lt;br/&gt;%nextSinger = Next singer name&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <widget class="QGroupBox" name="groupBoxShowDuration">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="title">
-                  <string>Show duration remaining on ticker</string>
-                 </property>
-                 <property name="checkable">
-                  <bool>true</bool>
-                 </property>
-                 <layout class="QHBoxLayout" name="horizontalLayout_6">
                   <item>
-                   <widget class="QPushButton" name="btnDurationFont">
-                    <property name="text">
-                     <string>Font</string>
+                   <layout class="QHBoxLayout" name="horizontalLayout_8">
+                    <property name="topMargin">
+                     <number>0</number>
                     </property>
-                   </widget>
+                    <item>
+                     <widget class="QRadioButton" name="rbBgImage">
+                      <property name="text">
+                       <string>Background Image</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="lineEditCdgBackground"/>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="pushButtonClearBgImg">
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="icon">
+                       <iconset resource="resources.qrc">
+                        <normaloff>:/icons/Icons/edit-clear.png</normaloff>:/icons/Icons/edit-clear.png</iconset>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="pushButtonBrowse">
+                      <property name="text">
+                       <string>Browse</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
                   </item>
                   <item>
-                   <spacer name="horizontalSpacer_15">
-                    <property name="orientation">
-                     <enum>Qt::Horizontal</enum>
+                   <layout class="QHBoxLayout" name="horizontalLayout_10">
+                    <property name="topMargin">
+                     <number>10</number>
                     </property>
-                    <property name="sizeType">
-                     <enum>QSizePolicy::Fixed</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>40</width>
-                      <height>20</height>
-                     </size>
-                    </property>
-                   </spacer>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="label_31">
-                    <property name="text">
-                     <string>Text Color</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="btnDurationFontColor">
-                    <property name="styleSheet">
-                     <string notr="true">QPushButton {
-    border: 2px solid #8f8f91;
-    border-radius: 6px;
-    background-color: rgb(0,0,0);
-    min-width: 40px;
-    padding-left: 5px;
-    padding-right: 5px;
-    padding-top: 3px;
-    padding-bottom: 3px;
-}
-
-QPushButton:pressed {
-    background-color: rgb(0,0,0);
-}
-
-QPushButton:flat {
-    border: none; /* no border for a flat push button */
-}
-
-QPushButton:default {
-    border-color: navy; /* make the default button prominent */
-}</string>
-                    </property>
-                    <property name="text">
-                     <string/>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <spacer name="horizontalSpacer_16">
-                    <property name="orientation">
-                     <enum>Qt::Horizontal</enum>
-                    </property>
-                    <property name="sizeType">
-                     <enum>QSizePolicy::Fixed</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>40</width>
-                      <height>20</height>
-                     </size>
-                    </property>
-                   </spacer>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="label_32">
-                    <property name="text">
-                     <string>Background Color</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="btnDurationBgColor">
-                    <property name="styleSheet">
-                     <string notr="true">QPushButton {
-    border: 2px solid #8f8f91;
-    border-radius: 6px;
-    background-color: rgb(0,0,0);
-    min-width: 40px;
-    padding-left: 5px;
-    padding-right: 5px;
-    padding-top: 3px;
-    padding-bottom: 3px;
-}
-
-QPushButton:pressed {
-    background-color: rgb(0,0,0);
-}
-
-QPushButton:flat {
-    border: none; /* no border for a flat push button */
-}
-
-QPushButton:default {
-    border-color: navy; /* make the default button prominent */
-}</string>
-                    </property>
-                    <property name="text">
-                     <string/>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <spacer name="horizontalSpacer_17">
-                    <property name="orientation">
-                     <enum>Qt::Horizontal</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>40</width>
-                      <height>20</height>
-                     </size>
-                    </property>
-                   </spacer>
+                    <item>
+                     <widget class="QRadioButton" name="rbSlideshow">
+                      <property name="text">
+                       <string>Slideshow Directory</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="lineEditSlideshowDir"/>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="pushButtonSlideshowBrowse">
+                      <property name="text">
+                       <string>Browse</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
                   </item>
                  </layout>
-                </widget>
-               </item>
-              </layout>
+                </item>
+                <item>
+                 <widget class="QGroupBox" name="groupBoxTicker">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="title">
+                   <string>Ticker</string>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
+                  <layout class="QVBoxLayout" name="verticalLayout_9">
+                   <item>
+                    <layout class="QHBoxLayout" name="horizontalLayout_4">
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QPushButton" name="pushButtonFont">
+                       <property name="text">
+                        <string>Font</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <spacer name="horizontalSpacer_2">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeType">
+                        <enum>QSizePolicy::Fixed</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="label_3">
+                       <property name="text">
+                        <string>Text Color</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="pushButtonTextColor">
+                       <property name="styleSheet">
+                        <string notr="true">QPushButton {
+    border: 2px solid #8f8f91;
+    border-radius: 6px;
+    background-color: rgb(0,0,0);
+    min-width: 40px;
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+QPushButton:pressed {
+    background-color: rgb(0,0,0);
+}
+
+QPushButton:flat {
+    border: none; /* no border for a flat push button */
+}
+
+QPushButton:default {
+    border-color: navy; /* make the default button prominent */
+}</string>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                       <property name="autoDefault">
+                        <bool>false</bool>
+                       </property>
+                       <property name="flat">
+                        <bool>false</bool>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <spacer name="horizontalSpacer_3">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeType">
+                        <enum>QSizePolicy::Fixed</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="label_4">
+                       <property name="text">
+                        <string>Background Color</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="pushButtonBgColor">
+                       <property name="styleSheet">
+                        <string notr="true">QPushButton {
+    border: 2px solid #8f8f91;
+    border-radius: 6px;
+    background-color: rgb(0,0,0);
+    min-width: 40px;
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+QPushButton:pressed {
+    background-color: rgb(0,0,0);
+}
+
+QPushButton:flat {
+    border: none; /* no border for a flat push button */
+}
+
+QPushButton:default {
+    border-color: navy; /* make the default button prominent */
+}</string>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                       <property name="autoDefault">
+                        <bool>false</bool>
+                       </property>
+                       <property name="flat">
+                        <bool>false</bool>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <spacer name="horizontalSpacer_4">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="label">
+                       <property name="text">
+                        <string>Ticker Height</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QSpinBox" name="spinBoxTickerHeight"/>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QHBoxLayout" name="horizontalLayout_5">
+                     <property name="topMargin">
+                      <number>5</number>
+                     </property>
+                     <item>
+                      <widget class="QLabel" name="label_2">
+                       <property name="text">
+                        <string>Speed</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QSlider" name="horizontalSliderTickerSpeed">
+                       <property name="minimum">
+                        <number>0</number>
+                       </property>
+                       <property name="maximum">
+                        <number>50</number>
+                       </property>
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="invertedAppearance">
+                        <bool>false</bool>
+                       </property>
+                       <property name="invertedControls">
+                        <bool>false</bool>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="cbxTickerShowRotationInfo">
+                     <property name="text">
+                      <string>Show rotation info</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <layout class="QHBoxLayout" name="horizontalLayout_7">
+                     <property name="spacing">
+                      <number>6</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QRadioButton" name="radioButtonFullRotation">
+                       <property name="text">
+                        <string>Show Full Rotation</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QRadioButton" name="radioButtonPartialRotation">
+                       <property name="text">
+                        <string>Show next</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QSpinBox" name="spinBoxTickerSingers"/>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="label_5">
+                       <property name="text">
+                        <string>singers</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <spacer name="horizontalSpacer_5">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QHBoxLayout" name="horizontalLayout_9">
+                     <property name="topMargin">
+                      <number>5</number>
+                     </property>
+                     <item>
+                      <widget class="QLabel" name="label_8">
+                       <property name="text">
+                        <string>Custom Message</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLineEdit" name="lineEditTickerMessage">
+                       <property name="toolTip">
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:9pt; font-weight:600;&quot;&gt;Custom text to display on the ticker&lt;/span&gt;&lt;span style=&quot; font-size:9pt;&quot;&gt;&lt;br/&gt;Supports the following varaible substitutions:&lt;br/&gt;&lt;br/&gt;%curSinger = Current singer name&lt;br/&gt;%curSong = Current song (aritst - title)&lt;br/&gt;%curArtist = Current artist&lt;br/&gt;%curTitle = Current title&lt;br/&gt;%nextSinger = Next singer name&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <widget class="QGroupBox" name="groupBoxShowDuration">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="title">
+                      <string>Show duration remaining on ticker</string>
+                     </property>
+                     <property name="checkable">
+                      <bool>true</bool>
+                     </property>
+                     <layout class="QHBoxLayout" name="horizontalLayout_6">
+                      <item>
+                       <widget class="QPushButton" name="btnDurationFont">
+                        <property name="text">
+                         <string>Font</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <spacer name="horizontalSpacer_15">
+                        <property name="orientation">
+                         <enum>Qt::Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                         <enum>QSizePolicy::Fixed</enum>
+                        </property>
+                        <property name="sizeHint" stdset="0">
+                         <size>
+                          <width>40</width>
+                          <height>20</height>
+                         </size>
+                        </property>
+                       </spacer>
+                      </item>
+                      <item>
+                       <widget class="QLabel" name="label_31">
+                        <property name="text">
+                         <string>Text Color</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QPushButton" name="btnDurationFontColor">
+                        <property name="styleSheet">
+                         <string notr="true">QPushButton {
+    border: 2px solid #8f8f91;
+    border-radius: 6px;
+    background-color: rgb(0,0,0);
+    min-width: 40px;
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+QPushButton:pressed {
+    background-color: rgb(0,0,0);
+}
+
+QPushButton:flat {
+    border: none; /* no border for a flat push button */
+}
+
+QPushButton:default {
+    border-color: navy; /* make the default button prominent */
+}</string>
+                        </property>
+                        <property name="text">
+                         <string/>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <spacer name="horizontalSpacer_16">
+                        <property name="orientation">
+                         <enum>Qt::Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                         <enum>QSizePolicy::Fixed</enum>
+                        </property>
+                        <property name="sizeHint" stdset="0">
+                         <size>
+                          <width>40</width>
+                          <height>20</height>
+                         </size>
+                        </property>
+                       </spacer>
+                      </item>
+                      <item>
+                       <widget class="QLabel" name="label_32">
+                        <property name="text">
+                         <string>Background Color</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QPushButton" name="btnDurationBgColor">
+                        <property name="styleSheet">
+                         <string notr="true">QPushButton {
+    border: 2px solid #8f8f91;
+    border-radius: 6px;
+    background-color: rgb(0,0,0);
+    min-width: 40px;
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+QPushButton:pressed {
+    background-color: rgb(0,0,0);
+}
+
+QPushButton:flat {
+    border: none; /* no border for a flat push button */
+}
+
+QPushButton:default {
+    border-color: navy; /* make the default button prominent */
+}</string>
+                        </property>
+                        <property name="text">
+                         <string/>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <spacer name="horizontalSpacer_17">
+                        <property name="orientation">
+                         <enum>Qt::Horizontal</enum>
+                        </property>
+                        <property name="sizeHint" stdset="0">
+                         <size>
+                          <width>40</width>
+                          <height>20</height>
+                         </size>
+                        </property>
+                       </spacer>
+                      </item>
+                     </layout>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
              </widget>
-            </item>
-            <item>
-             <spacer name="verticalSpacer_4">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>40</height>
-               </size>
-              </property>
-             </spacer>
             </item>
            </layout>
           </widget>
@@ -1432,91 +1493,106 @@ QPushButton:default {
            </attribute>
            <layout class="QVBoxLayout" name="verticalLayout_15">
             <item>
-             <widget class="QGroupBox" name="groupBox">
-              <property name="title">
-               <string>Karaoke Autoplay</string>
+             <widget class="QScrollArea" name="scrollArea_2">
+              <property name="widgetResizable">
+               <bool>true</bool>
               </property>
-              <property name="flat">
-               <bool>false</bool>
-              </property>
-              <layout class="QVBoxLayout" name="verticalLayout_16">
-               <item>
-                <widget class="QCheckBox" name="checkBoxKAA">
-                 <property name="text">
-                  <string>Automatically play next karaoke song on song end</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_11">
-                 <item>
-                  <widget class="QLabel" name="label_9">
-                   <property name="text">
-                    <string>Autoplay delay (seconds)</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QSpinBox" name="spinBoxAADelay"/>
-                 </item>
-                 <item>
-                  <spacer name="horizontalSpacer_6">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>40</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <widget class="QCheckBox" name="checkBoxShowKAAAlert">
-                 <property name="text">
-                  <string>Show autoplay alert with next singer info on CDG display</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_13">
-                 <property name="topMargin">
-                  <number>10</number>
-                 </property>
-                 <item>
-                  <widget class="QPushButton" name="btnAlertFont">
-                   <property name="text">
-                    <string>Alert Font</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="horizontalSpacer_7">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>40</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_12">
-                   <property name="text">
-                    <string>Text Color</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="btnAlertTxtColor">
-                   <property name="styleSheet">
-                    <string notr="true">QPushButton {
+              <widget class="QWidget" name="scrollAreaWidgetContents_2">
+               <property name="geometry">
+                <rect>
+                 <x>0</x>
+                 <y>0</y>
+                 <width>831</width>
+                 <height>776</height>
+                </rect>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_26">
+                <item>
+                 <widget class="QGroupBox" name="groupBox">
+                  <property name="title">
+                   <string>Karaoke Autoplay</string>
+                  </property>
+                  <property name="flat">
+                   <bool>false</bool>
+                  </property>
+                  <layout class="QVBoxLayout" name="verticalLayout_16">
+                   <item>
+                    <widget class="QCheckBox" name="checkBoxKAA">
+                     <property name="text">
+                      <string>Automatically play next karaoke song on song end</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <layout class="QHBoxLayout" name="horizontalLayout_11">
+                     <item>
+                      <widget class="QLabel" name="label_9">
+                       <property name="text">
+                        <string>Autoplay delay (seconds)</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QSpinBox" name="spinBoxAADelay"/>
+                     </item>
+                     <item>
+                      <spacer name="horizontalSpacer_6">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="checkBoxShowKAAAlert">
+                     <property name="text">
+                      <string>Show autoplay alert with next singer info on CDG display</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <layout class="QHBoxLayout" name="horizontalLayout_13">
+                     <property name="topMargin">
+                      <number>10</number>
+                     </property>
+                     <item>
+                      <widget class="QPushButton" name="btnAlertFont">
+                       <property name="text">
+                        <string>Alert Font</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <spacer name="horizontalSpacer_7">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="label_12">
+                       <property name="text">
+                        <string>Text Color</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="btnAlertTxtColor">
+                       <property name="styleSheet">
+                        <string notr="true">QPushButton {
     border: 2px solid #8f8f91;
     border-radius: 6px;
     background-color: rgb(0,0,0);
@@ -1538,36 +1614,36 @@ QPushButton:flat {
 QPushButton:default {
     border-color: navy; /* make the default button prominent */
 }</string>
-                   </property>
-                   <property name="text">
-                    <string/>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="horizontalSpacer_8">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>40</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_16">
-                   <property name="text">
-                    <string>Background Color</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="btnAlertBgColor">
-                   <property name="styleSheet">
-                    <string notr="true">QPushButton {
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <spacer name="horizontalSpacer_8">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="label_16">
+                       <property name="text">
+                        <string>Background Color</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="btnAlertBgColor">
+                       <property name="styleSheet">
+                        <string notr="true">QPushButton {
     border: 2px solid #8f8f91;
     border-radius: 6px;
     background-color: rgb(0,0,0);
@@ -1589,218 +1665,209 @@ QPushButton:flat {
 QPushButton:default {
     border-color: navy; /* make the default button prominent */
 }</string>
-                   </property>
-                   <property name="text">
-                    <string/>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item>
-             <widget class="QGroupBox" name="groupBox_2">
-              <property name="title">
-               <string>Warnings</string>
-              </property>
-              <layout class="QVBoxLayout" name="verticalLayout_17">
-               <item>
-                <widget class="QCheckBox" name="cbxQueueRemovalWarning">
-                 <property name="text">
-                  <string>Warn when removing unplayed song from queue</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QCheckBox" name="cbxSingerRemovalWarning">
-                 <property name="text">
-                  <string>Warn when removing a singer from the rotation</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QCheckBox" name="cbxSongInterruptionWarning">
-                 <property name="text">
-                  <string>Warn when playing a karaoke song will interrupt one currently playing</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QCheckBox" name="cbxStopPauseWarning">
-                 <property name="text">
-                  <string>Warn before pausing/stopping when pause/stop button is clicked</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item>
-             <widget class="QGroupBox" name="groupBox_4">
-              <property name="title">
-               <string>Song Shop</string>
-              </property>
-              <layout class="QVBoxLayout" name="verticalLayout_20">
-               <item>
-                <widget class="QLabel" name="label_25">
-                 <property name="text">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Downloads directory&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_18">
-                 <property name="topMargin">
-                  <number>0</number>
-                 </property>
-                 <item>
-                  <widget class="QLineEdit" name="lineEditDownloadsDir">
-                   <property name="enabled">
-                    <bool>true</bool>
-                   </property>
-                   <property name="readOnly">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="btnBrowse">
-                   <property name="text">
-                    <string>Browse</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item>
-             <widget class="QGroupBox" name="groupBox_3">
-              <property name="title">
-               <string>Other</string>
-              </property>
-              <layout class="QVBoxLayout" name="verticalLayout_18">
-               <item>
-                <widget class="QCheckBox" name="cbxBmAutostart">
-                 <property name="text">
-                  <string>Start break music playback on program launch</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QCheckBox" name="cbxIgnoreApos">
-                 <property name="toolTip">
-                  <string>If set, karaoke searches will ignore the apostrophe character. 
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QGroupBox" name="groupBox_2">
+                  <property name="title">
+                   <string>Warnings</string>
+                  </property>
+                  <layout class="QVBoxLayout" name="verticalLayout_17">
+                   <item>
+                    <widget class="QCheckBox" name="cbxQueueRemovalWarning">
+                     <property name="text">
+                      <string>Warn when removing unplayed song from queue</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="cbxSingerRemovalWarning">
+                     <property name="text">
+                      <string>Warn when removing a singer from the rotation</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="cbxSongInterruptionWarning">
+                     <property name="text">
+                      <string>Warn when playing a karaoke song will interrupt one currently playing</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="cbxStopPauseWarning">
+                     <property name="text">
+                      <string>Warn before pausing/stopping when pause/stop button is clicked</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QGroupBox" name="groupBox_4">
+                  <property name="title">
+                   <string>Song Shop</string>
+                  </property>
+                  <layout class="QVBoxLayout" name="verticalLayout_20">
+                   <item>
+                    <widget class="QLabel" name="label_25">
+                     <property name="text">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Downloads directory&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <layout class="QHBoxLayout" name="horizontalLayout_18">
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QLineEdit" name="lineEditDownloadsDir">
+                       <property name="enabled">
+                        <bool>true</bool>
+                       </property>
+                       <property name="readOnly">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="btnBrowse">
+                       <property name="text">
+                        <string>Browse</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QGroupBox" name="groupBox_3">
+                  <property name="title">
+                   <string>Other</string>
+                  </property>
+                  <layout class="QVBoxLayout" name="verticalLayout_18">
+                   <item>
+                    <widget class="QCheckBox" name="cbxBmAutostart">
+                     <property name="text">
+                      <string>Start break music playback on program launch</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="cbxIgnoreApos">
+                     <property name="toolTip">
+                      <string>If set, karaoke searches will ignore the apostrophe character. 
 For example, searching for &quot;im&quot; will find songs that contain &quot;I'm&quot;, 
 &quot;hes&quot; will find &quot;he's&quot;, etc.</string>
-                 </property>
-                 <property name="text">
-                  <string>Ignore apostrophe characters in karaoke searches</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_14">
-                 <property name="topMargin">
-                  <number>0</number>
-                 </property>
-                 <item>
-                  <widget class="QLabel" name="label_21">
-                   <property name="text">
-                    <string>CDG video offset (ms)</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QSpinBox" name="spinBoxCdgOffset">
-                   <property name="toolTip">
-                    <string>Controls the offset between the CDG video position displayed
+                     </property>
+                     <property name="text">
+                      <string>Ignore apostrophe characters in karaoke searches</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <layout class="QHBoxLayout" name="horizontalLayout_14">
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QLabel" name="label_21">
+                       <property name="text">
+                        <string>CDG video offset (ms)</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QSpinBox" name="spinBoxCdgOffset">
+                       <property name="toolTip">
+                        <string>Controls the offset between the CDG video position displayed
 from the current audio position.  Positive numbers mean that the
 CDG will be ahead of the auido position by the number of ms 
 specified.  Negative numbers mean that it will be behind the audio
 by the number of ms specified.</string>
-                   </property>
-                   <property name="minimum">
-                    <number>-10000</number>
-                   </property>
-                   <property name="maximum">
-                    <number>10000</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="horizontalSpacer_9">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>40</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                </layout>
-               </item>
-              </layout>
+                       </property>
+                       <property name="minimum">
+                        <number>-10000</number>
+                       </property>
+                       <property name="maximum">
+                        <number>10000</number>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <spacer name="horizontalSpacer_9">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                    </layout>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QGroupBox" name="groupBox_7">
+                  <property name="title">
+                   <string>Debug Logging</string>
+                  </property>
+                  <layout class="QVBoxLayout" name="verticalLayout_3">
+                   <item>
+                    <widget class="QCheckBox" name="checkBoxLogging">
+                     <property name="text">
+                      <string>Enable debug logging</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_33">
+                     <property name="text">
+                      <string>Logfile output directory</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <layout class="QHBoxLayout" name="horizontalLayout_21">
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QLineEdit" name="lineEditLogDir"/>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="btnLogDirBrowse">
+                       <property name="text">
+                        <string>Browse</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
              </widget>
-            </item>
-            <item>
-             <widget class="QGroupBox" name="groupBox_7">
-              <property name="title">
-               <string>Debug Logging</string>
-              </property>
-              <layout class="QVBoxLayout" name="verticalLayout_3">
-               <item>
-                <widget class="QCheckBox" name="checkBoxLogging">
-                 <property name="text">
-                  <string>Enable debug logging</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="label_33">
-                 <property name="text">
-                  <string>Logfile output directory</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_21">
-                 <property name="topMargin">
-                  <number>0</number>
-                 </property>
-                 <item>
-                  <widget class="QLineEdit" name="lineEditLogDir"/>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="btnLogDirBrowse">
-                   <property name="text">
-                    <string>Browse</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item>
-             <spacer name="verticalSpacer_2">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>524</height>
-               </size>
-              </property>
-             </spacer>
             </item>
            </layout>
           </widget>

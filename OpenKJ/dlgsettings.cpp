@@ -62,33 +62,38 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     ui->cbxRotShowNextSong->setChecked(settings->rotationShowNextSong());
     ui->cbxPreviewEnabled->setChecked(!settings->previewEnabled());
     QStringList screens = getMonitors();
-    ui->listWidgetMonitors->addItems(screens);
+    ui->comboBoxMonitors->addItems(screens);
     audioOutputDevices = kAudioBackend->getOutputDevices();
-    ui->listWidgetAudioDevices->addItems(audioOutputDevices);
+    ui->comboBoxKAudioDevices->addItems(audioOutputDevices);
     int selDevice = audioOutputDevices.indexOf(settings->audioOutputDevice());
     if (selDevice == -1)
-        ui->listWidgetAudioDevices->item(0)->setSelected(true);
+    {
+        ui->comboBoxKAudioDevices->setCurrentIndex(0);
+    }
     else
     {
-        ui->listWidgetAudioDevices->item(selDevice)->setSelected(true);
         kAudioBackend->setOutputDevice(selDevice);
+        ui->comboBoxKAudioDevices->setCurrentIndex(selDevice);
     }
-    ui->listWidgetAudioDevicesBm->addItems(audioOutputDevices);
+    ui->comboBoxBAudioDevices->addItems(audioOutputDevices);
     selDevice = audioOutputDevices.indexOf(settings->audioOutputDeviceBm());
     if (selDevice == -1)
-        ui->listWidgetAudioDevicesBm->item(0)->setSelected(true);
+        ui->comboBoxBAudioDevices->setCurrentIndex(0);
     else
     {
-        ui->listWidgetAudioDevicesBm->item(selDevice)->setSelected(true);
+        ui->comboBoxBAudioDevices->setCurrentIndex(selDevice);
         bmAudioBackend->setOutputDevice(selDevice);
     }
     ui->checkBoxProgressiveSearch->setChecked(settings->progressiveSearchEnabled());
     ui->checkBoxShowCdgWindow->setChecked(settings->showCdgWindow());
     ui->checkBoxCdgFullscreen->setChecked(settings->cdgWindowFullscreen());
     if (screens.count() > settings->cdgWindowFullScreenMonitor())
-        ui->listWidgetMonitors->item(settings->cdgWindowFullScreenMonitor())->setSelected(true);
+        ui->comboBoxMonitors->setCurrentIndex(settings->cdgWindowFullScreenMonitor());
     else
+    {
         settings->setCdgWindowFullscreen(false);
+        ui->comboBoxMonitors->setCurrentIndex(0);
+    }
     ui->spinBoxTickerHeight->setValue(settings->tickerHeight());
     ui->horizontalSliderTickerSpeed->setValue(settings->tickerSpeed());
     QString ss = ui->pushButtonTextColor->styleSheet();
@@ -277,34 +282,6 @@ void DlgSettings::on_btnClose_clicked()
 void DlgSettings::on_checkBoxShowCdgWindow_stateChanged(int arg1)
 {
     settings->setShowCdgWindow(arg1);
-    ui->listWidgetMonitors->setEnabled(arg1);
-    ui->groupBoxMonitors->setEnabled(arg1);
-    ui->pushButtonBrowse->setEnabled(arg1);
-    ui->lineEditCdgBackground->setEnabled(arg1);
-    ui->pushButtonClearBgImg->setEnabled(arg1);
-}
-
-void DlgSettings::on_listWidgetMonitors_itemSelectionChanged()
-{
-    if (!pageSetupDone)
-        return;
-    if (ui->listWidgetMonitors->selectedItems().count() < 1)
-        return;
-    QDesktopWidget widget;
-    int appMonitor = widget.screenNumber(ui->tabWidget);
-    int selMonitor = ui->listWidgetMonitors->selectionModel()->selectedIndexes().at(0).row();
-    if ((selMonitor == appMonitor) && (settings->cdgWindowFullscreen()))
-    {
-        QMessageBox msgBox;
-        msgBox.setText("Warning: The selected CDG fullscreen display monitor is the same as the one that the main app is displayed on!");
-        msgBox.setInformativeText("This is probably not what you want. Are you sure you want to do this?");
-        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
-        msgBox.setDefaultButton(QMessageBox::Cancel);
-        int ret = msgBox.exec();
-        if (ret == QMessageBox::Cancel)
-            return;
-    }
-    settings->setCdgWindowFullscreenMonitor(selMonitor);
 }
 
 void DlgSettings::on_pushButtonFont_clicked()
@@ -446,67 +423,6 @@ void DlgSettings::on_checkBoxDownmixBm_toggled(bool checked)
 {
     settings->setAudioDownmixBm(checked);
     emit audioDownmixChangedBm(checked);
-}
-
-void DlgSettings::on_listWidgetAudioDevices_itemSelectionChanged()
-{
-    static QString lastSelItem = ui->listWidgetAudioDevices->selectedItems().at(0)->text();
-    QString device = ui->listWidgetAudioDevices->selectedItems().at(0)->text();
-    if (lastSelItem == device)
-        return;
-    if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
-    {
-        QMessageBox msgBox;
-        msgBox.setText("Can not change audio device while audio is playing, please stop playback and try again");
-        msgBox.exec();
-        int selDevice = audioOutputDevices.indexOf(settings->audioOutputDevice());
-        if (selDevice == -1)
-            ui->listWidgetAudioDevices->item(0)->setSelected(true);
-        else
-        {
-            ui->listWidgetAudioDevices->item(selDevice)->setSelected(true);
-        }
-        return;
-    }
-    if (pageSetupDone)
-    {
-        settings->setAudioOutputDevice(device);
-        int deviceIndex = audioOutputDevices.indexOf(QRegExp(device,Qt::CaseSensitive,QRegExp::FixedString));
-        if (deviceIndex != -1)
-            kAudioBackend->setOutputDevice(deviceIndex);
-    }
-    lastSelItem = device;
-}
-
-void DlgSettings::on_listWidgetAudioDevicesBm_itemSelectionChanged()
-{
-    static QString lastSelItem = ui->listWidgetAudioDevicesBm->selectedItems().at(0)->text();
-    QString device = ui->listWidgetAudioDevicesBm->selectedItems().at(0)->text();
-    if (lastSelItem == device)
-        return;
-    if (bmAudioBackend->state() == AbstractAudioBackend::PlayingState)
-    {
-        QMessageBox msgBox;
-        msgBox.setText("Can not change audio device while audio is playing, please stop playback and try again");
-        msgBox.exec();
-        int selDevice = audioOutputDevices.indexOf(settings->audioOutputDeviceBm());
-        if (selDevice == -1)
-            ui->listWidgetAudioDevicesBm->item(0)->setSelected(true);
-        else
-        {
-            ui->listWidgetAudioDevicesBm->item(selDevice)->setSelected(true);
-        }
-        return;
-    }
-    if (pageSetupDone)
-    {
-        settings->setAudioOutputDeviceBm(device);
-        int deviceIndex = audioOutputDevices.indexOf(QRegExp(device,Qt::CaseSensitive,QRegExp::FixedString));
-        if (deviceIndex != -1)
-            bmAudioBackend->setOutputDevice(deviceIndex);
-    }
-    lastSelItem = device;
-
 }
 
 void DlgSettings::on_comboBoxDevice_currentIndexChanged(const QString &arg1)
@@ -869,4 +785,86 @@ void DlgSettings::on_checkBoxProgressiveSearch_toggled(bool checked)
 void DlgSettings::on_cbxPreviewEnabled_toggled(bool checked)
 {
     settings->setPreviewEnabled(!checked);
+}
+
+void DlgSettings::on_comboBoxKAudioDevices_currentIndexChanged(int index)
+{
+    static int lastSelIndex = index;
+    static QString lastSelItem = ui->comboBoxKAudioDevices->itemText(index);
+    QString device = ui->comboBoxKAudioDevices->itemText(index);
+    if (lastSelItem == device)
+        return;
+    if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Can not change audio device while audio is playing, please stop playback and try again");
+        msgBox.exec();
+        int selDevice = audioOutputDevices.indexOf(settings->audioOutputDevice());
+        if (selDevice == -1)
+            ui->comboBoxKAudioDevices->setCurrentIndex(0);
+        else
+            ui->comboBoxKAudioDevices->setCurrentIndex(lastSelIndex);
+        return;
+    }
+    if (pageSetupDone)
+    {
+        settings->setAudioOutputDevice(device);
+        int deviceIndex = audioOutputDevices.indexOf(QRegExp(device,Qt::CaseSensitive,QRegExp::FixedString));
+        if (deviceIndex != -1)
+            kAudioBackend->setOutputDevice(deviceIndex);
+    }
+    lastSelItem = device;
+}
+
+void DlgSettings::on_comboBoxBAudioDevices_currentIndexChanged(int index)
+{
+    static int lastSelIndex = index;
+    static QString lastSelItem = ui->comboBoxBAudioDevices->itemText(index);
+    QString device = ui->comboBoxBAudioDevices->itemText(index);
+    if (lastSelIndex == index)
+    {
+        qInfo() << "BM audio device index change fired but index is the same, ignoring";
+        return;
+    }
+    if (bmAudioBackend->state() == AbstractAudioBackend::PlayingState)
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Can not change audio device while audio is playing, please stop playback and try again");
+        msgBox.exec();
+        int selDevice = audioOutputDevices.indexOf(settings->audioOutputDevice());
+        if (selDevice == -1)
+            ui->comboBoxBAudioDevices->setCurrentIndex(0);
+        else
+            ui->comboBoxBAudioDevices->setCurrentIndex(lastSelIndex);
+        return;
+    }
+    if (pageSetupDone)
+    {
+        settings->setAudioOutputDeviceBm(device);
+        int deviceIndex = audioOutputDevices.indexOf(QRegExp(device,Qt::CaseSensitive,QRegExp::FixedString));
+        if (deviceIndex != -1)
+            bmAudioBackend->setOutputDevice(deviceIndex);
+    }
+    lastSelItem = device;
+}
+
+void DlgSettings::on_comboBoxMonitors_currentIndexChanged(int index)
+{
+    if (!pageSetupDone)
+        return;
+    QDesktopWidget widget;
+    int appMonitor = widget.screenNumber(ui->tabWidget);
+    int selMonitor = index;
+    if ((selMonitor == appMonitor) && (settings->cdgWindowFullscreen()))
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Warning: The selected CDG fullscreen display monitor is the same as the one that the main app is displayed on!");
+        msgBox.setInformativeText("This is probably not what you want. Are you sure you want to do this?");
+        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+        msgBox.setDefaultButton(QMessageBox::Cancel);
+        int ret = msgBox.exec();
+        if (ret == QMessageBox::Cancel)
+            return;
+    }
+    settings->setCdgWindowFullscreenMonitor(selMonitor);
 }

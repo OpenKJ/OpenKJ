@@ -60,7 +60,6 @@ signals:
 private slots:
     void on_btnClose_clicked();
     void on_checkBoxShowCdgWindow_stateChanged(int arg1);
-    void on_listWidgetMonitors_itemSelectionChanged();
     void on_pushButtonFont_clicked();
     void on_spinBoxTickerHeight_valueChanged(int arg1);
     void on_horizontalSliderTickerSpeed_valueChanged(int value);
@@ -79,8 +78,6 @@ private slots:
     void on_checkBoxSilenceDetectionBm_toggled(bool checked);
     void on_checkBoxDownmix_toggled(bool checked);
     void on_checkBoxDownmixBm_toggled(bool checked);
-    void on_listWidgetAudioDevices_itemSelectionChanged();
-    void on_listWidgetAudioDevicesBm_itemSelectionChanged();
     void on_comboBoxDevice_currentIndexChanged(const QString &arg1);
     void on_comboBoxCodec_currentIndexChanged(const QString &arg1);
     void on_groupBoxRecording_toggled(bool arg1);
@@ -124,6 +121,9 @@ private slots:
     void on_btnLogDirBrowse_clicked();
     void on_checkBoxProgressiveSearch_toggled(bool checked);
     void on_cbxPreviewEnabled_toggled(bool checked);
+    void on_comboBoxKAudioDevices_currentIndexChanged(int index);
+    void on_comboBoxBAudioDevices_currentIndexChanged(int index);
+    void on_comboBoxMonitors_currentIndexChanged(int index);
 };
 
 #endif // SETTINGSDIALOG_H
