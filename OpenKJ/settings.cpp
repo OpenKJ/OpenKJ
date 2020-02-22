@@ -860,15 +860,28 @@ void Settings::setRecordingRawExtension(QString extension)
     settings->setValue("recordingRawExtension", extension);
 }
 
-int Settings::cdgVOffset()
+void Settings::setCdgOffsetTop(int pixels)
 {
-    return settings->value("cdgVOffset", 0).toInt();
+    settings->setValue("cdgOffsetTop", pixels);
+    emit cdgOffsetsChanged();
 }
 
-void Settings::setCdgVOffset(int pixels)
+void Settings::setCdgOffsetBottom(int pixels)
 {
-    settings->setValue("cdgVOffset", pixels);
-    emit cdgVOffsetChanged(pixels);
+    settings->setValue("cdgOffsetBottom", pixels);
+    emit cdgOffsetsChanged();
+}
+
+void Settings::setCdgOffsetLeft(int pixels)
+{
+    settings->setValue("cdgOffsetLeft", pixels);
+    emit cdgOffsetsChanged();
+}
+
+void Settings::setCdgOffsetRight(int pixels)
+{
+    settings->setValue("cdgOffsetRight", pixels);
+    emit cdgOffsetsChanged();
 }
 
 void Settings::setShowQueueRemovalWarning(bool show)
@@ -883,33 +896,25 @@ void Settings::setShowSingerRemovalWarning(bool show)
     emit showSingerRemovalWarningChanged(show);
 }
 
-int Settings::cdgHOffset()
+int Settings::cdgOffsetTop()
 {
-    return settings->value("cdgHOffset", 0).toInt();
+    return settings->value("cdgOffsetTop", 0).toInt();
 }
 
-void Settings::setCdgHOffset(int pixels)
+int Settings::cdgOffsetBottom()
 {
-    settings->setValue("cdgHOffset", pixels);
-    emit cdgHOffsetChanged(pixels);
+    return settings->value("cdgOffsetBottom", 0).toInt();
 }
 
-int Settings::cdgVSizeAdjustment()
+int Settings::cdgOffsetLeft()
 {
-    return settings->value("cdgVSizeAdjustment", 0).toInt();
+    return settings->value("cdgOffsetLeft", 0).toInt();
 }
 
-void Settings::setCdgVSizeAdjustment(int pixels)
+int Settings::cdgOffsetRight()
 {
-    settings->setValue("cdgVSizeAdjustment", pixels);
-    emit cdgVSizeAdjustmentChanged(pixels);
+    return settings->value("cdgOffsetRight", 0).toInt();
 }
-
-int Settings::cdgHSizeAdjustment()
-{
-    return settings->value("cdgHSizeAdjustment", 0).toInt();
-}
-
 bool Settings::ignoreAposInSearch()
 {
     return settings->value("ignoreAposInSearch", false).toBool();
@@ -918,12 +923,6 @@ bool Settings::ignoreAposInSearch()
 void Settings::setIgnoreAposInSearch(bool ignore)
 {
     settings->setValue("ignoreAposInSearch", ignore);
-}
-
-void Settings::setCdgDisplayOffset(int offset)
-{
-    settings->setValue("CDGDisplayOffset", offset);
-    emit cdgDisplayOffsetChanged(offset);
 }
 
 void Settings::setShowSongPauseStopWarning(bool enabled)
@@ -1171,12 +1170,6 @@ void Settings::setBookCreatorCols(int cols)
 void Settings::setBookCreatorPageSize(int size)
 {
     settings->setValue("bookCreatorPageSize", size);
-}
-
-void Settings::setCdgHSizeAdjustment(int pixels)
-{
-    settings->setValue("cdgHSizeAdjustment", pixels);
-    emit cdgHSizeAdjustmentChanged(pixels);
 }
 
 bool Settings::bmShowFilenames()

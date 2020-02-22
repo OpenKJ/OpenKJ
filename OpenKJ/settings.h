@@ -180,10 +180,10 @@ public:
     void setRecordingEnabled(bool enabled);
     QString recordingRawExtension();
     void setRecordingRawExtension(QString extension);
-    int cdgVOffset();
-    int cdgHOffset();
-    int cdgVSizeAdjustment();
-    int cdgHSizeAdjustment();
+    int cdgOffsetTop();
+    int cdgOffsetBottom();
+    int cdgOffsetLeft();
+    int cdgOffsetRight();
     bool ignoreAposInSearch();
 
     bool bmShowFilenames();
@@ -294,10 +294,7 @@ signals:
     void cdgShowCdgWindowChanged(bool show);
     void cdgWindowFullscreenChanged(bool fullscreen);
     void cdgWindowFullscreenMonitorChanged(int monitor);
-    void cdgHSizeAdjustmentChanged(int pixels);
-    void cdgVSizeAdjustmentChanged(int pixels);
-    void cdgHOffsetChanged(int pixels);
-    void cdgVOffsetChanged(int pixels);
+    void cdgOffsetsChanged();
     void bgModeChanged(BgMode mode);
     void bgSlideShowDirChanged(QString dir);
     void requestServerVenueChanged(int venueId);
@@ -310,7 +307,6 @@ signals:
     void showSongInterruptionWarningChanged(bool enabled);
     void alertTxtColorChanged(QColor color);
     void alertBgColorChanged(QColor color);
-    void cdgDisplayOffsetChanged(int offset);
     void showSongStopPauseWarningChanged(bool enabled);
     void eqKBypassChanged(bool bypass);
     void eqBBypassChanged(bool bypass);
@@ -354,10 +350,10 @@ public slots:
     void setBmKCrossfade(bool enabled);
     void setShowCdgWindow(bool show);
     void setCdgWindowFullscreen(bool fullScreen);
-    void setCdgHSizeAdjustment(int pixels);
-    void setCdgVSizeAdjustment(int pixels);
-    void setCdgHOffset(int pixels);
-    void setCdgVOffset(int pixels);
+    void setCdgOffsetTop(int pixels);
+    void setCdgOffsetBottom(int pixels);
+    void setCdgOffsetLeft(int pixels);
+    void setCdgOffsetRight(int pixels);
     void setShowQueueRemovalWarning(bool show);
     void setShowSingerRemovalWarning(bool show);
     void setKaraokeAutoAdvance(bool enabled);
@@ -365,7 +361,6 @@ public slots:
     void setAlertBgColor(QColor color);
     void setAlertTxtColor(QColor color);
     void setIgnoreAposInSearch(bool ignore);
-    void setCdgDisplayOffset(int offset);
     void setShowSongPauseStopWarning(bool enabled);
     void setBookCreatorArtistFont(QFont font);
     void setBookCreatorTitleFont(QFont font);

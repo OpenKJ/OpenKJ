@@ -41,10 +41,6 @@ private:
     Ui::DlgCdg *ui;
     bool m_fullScreen;
     QRect m_lastSize;
-    int vOffset;
-    int hOffset;
-    int vSizeAdjustment;
-    int hSizeAdjustment;
     QTimer *fullScreenTimer;
     QTimer *slideShowTimer;
     bool showBgImage;
@@ -57,15 +53,11 @@ private:
 
 
 public:
-    explicit DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *BreakBackend, QWidget *parent = 0, Qt::WindowFlags f = 0);
+    explicit DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *BreakBackend, QWidget *parent = nullptr, Qt::WindowFlags f = nullptr);
     ~DlgCdg();
     void makeFullscreen();
     void makeWindowed();
     void setTickerText(QString text);
-    int getVOffset() { return vOffset; }
-    int getHOffset() { return hOffset; }
-    int getVAdjustment() { return vSizeAdjustment; }
-    int getHAdjustment() { return hSizeAdjustment; }
     void setKAudioBackend(AbstractAudioBackend *value);
     void setBAudioBackend(AbstractAudioBackend *value);
     void stopTicker();
@@ -82,6 +74,7 @@ private slots:
     void buttonShowTimerTimeout();
     void oneSecTimerTimeout();
     void on_btnToggleFullscreen_clicked();
+    void cdgOffsetsChanged();
 
 public slots:
     void setFullScreen(bool fullscreen);
@@ -95,10 +88,6 @@ public slots:
     void cdgRemainFontChanged(QFont font);
     void cdgRemainTextColorChanged(QColor color);
     void cdgRemainBgColorChanged(QColor color);
-    void setVOffset(int pixels);
-    void setHOffset(int pixels);
-    void setVSizeAdjustment(int pixels);
-    void setHSizeAdjustment(int pixels);
     void setShowBgImage(bool show);
     void cdgSurfaceResized(QSize size);
     QFileInfoList getSlideShowImages();
@@ -114,6 +103,7 @@ public slots:
     void cdgRemainEnabledChanged(bool enabled);
     void updateCDG(QImage image, bool overrideVisibleCheck = false);
     void updateCDG(QVideoFrame frame, bool overrideVisibleCheck = false);
+
 
 
 

@@ -124,6 +124,9 @@ private slots:
     void on_comboBoxKAudioDevices_currentIndexChanged(int index);
     void on_comboBoxBAudioDevices_currentIndexChanged(int index);
     void on_comboBoxMonitors_currentIndexChanged(int index);
+    void on_spinBoxHAdjust_valueChanged(int arg1);
+
+
 };
 
 #endif // SETTINGSDIALOG_H

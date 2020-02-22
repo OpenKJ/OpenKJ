@@ -61,10 +61,6 @@ DlgCdg::DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *Break
     {
         settings->setCdgWindowFullscreen(false);
     }
-    hSizeAdjustment = settings->cdgHSizeAdjustment();
-    vSizeAdjustment = settings->cdgVSizeAdjustment();
-    hOffset = settings->cdgHOffset();
-    vOffset = settings->cdgVOffset();
     ui->setupUi(this);
     m_fullScreen = false;
     m_lastSize.setWidth(300);
@@ -148,6 +144,8 @@ DlgCdg::DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *Break
     ui->lblRemain->setVisible(settings->cdgRemainEnabled());
     connect(settings, SIGNAL(cdgRemainEnabledChanged(bool)), ui->lblRemain, SLOT(setVisible(bool)));
     connect(settings, SIGNAL(remainOffsetChanged(int,int)), this, SLOT(remainOffsetsChanged(int,int)));
+    connect(settings, SIGNAL(cdgOffsetsChanged()), this, SLOT(cdgOffsetsChanged()));
+    cdgOffsetsChanged();
 }
 
 DlgCdg::~DlgCdg()
@@ -159,13 +157,13 @@ void DlgCdg::updateCDG(QImage image, bool overrideVisibleCheck)
 {
     if ((isVisible()) || (overrideVisibleCheck))
     {
-     //   if (image.size().height() > ui->cdgVideo->size().height() || image.size().width() > ui->cdgVideo->size().width())
-     //       ui->cdgVideo->videoSurface()->present(QVideoFrame(image));
-     //       ui->cdgVideo->videoSurface()->present(QVideoFrame(image.scaled(ui->cdgVideo->size(), Qt::IgnoreAspectRatio)));
-     //   else
-            ui->cdgVideo->videoSurface()->present(QVideoFrame(image));
-            if (ui->lblRemain->isVisible())
-                ui->lblRemain->repaint();
+        //   if (image.size().height() > ui->cdgVideo->size().height() || image.size().width() > ui->cdgVideo->size().width())
+        //       ui->cdgVideo->videoSurface()->present(QVideoFrame(image));
+        //       ui->cdgVideo->videoSurface()->present(QVideoFrame(image.scaled(ui->cdgVideo->size(), Qt::IgnoreAspectRatio)));
+        //   else
+        ui->cdgVideo->videoSurface()->present(QVideoFrame(image));
+        if (ui->lblRemain->isVisible())
+            ui->lblRemain->repaint();
     }
 }
 
@@ -189,8 +187,9 @@ void DlgCdg::makeFullscreen()
     flags |= Qt::FramelessWindowHint;
     setWindowFlags(flags);
     QRect screenDimensions = QApplication::desktop()->screenGeometry(settings->cdgWindowFullScreenMonitor());
-    move(screenDimensions.left()  + hOffset, screenDimensions.top() + vOffset);
-    resize(screenDimensions.width() + hSizeAdjustment,screenDimensions.height() + vSizeAdjustment);
+    move(screenDimensions.left(), screenDimensions.top());
+    resize(screenDimensions.width(),screenDimensions.height());
+    cdgOffsetsChanged();
     show();
     fullScreenTimer->start();
 }
@@ -203,6 +202,7 @@ void DlgCdg::makeWindowed()
         show();
     ui->cdgVideo->repaint();
     m_fullScreen = false;
+    cdgOffsetsChanged();
 }
 
 void DlgCdg::setTickerText(QString text)
@@ -220,7 +220,7 @@ void DlgCdg::setFullScreen(bool fullscreen)
 
 void DlgCdg::setFullScreenMonitor(int monitor)
 {
-    Q_UNUSED(monitor);
+    Q_UNUSED(monitor)
     if (settings->cdgWindowFullscreen())
     {
         makeWindowed();
@@ -240,7 +240,7 @@ void DlgCdg::tickerHeightChanged()
 {
     ui->scroll->setMinimumHeight(settings->tickerHeight());
     ui->scroll->setMaximumHeight(settings->tickerHeight());
-   // ui->scroll->refresh();
+    // ui->scroll->refresh();
 }
 
 void DlgCdg::tickerSpeedChanged()
@@ -271,6 +271,9 @@ void DlgCdg::tickerEnableChanged()
 void DlgCdg::cdgRemainFontChanged(QFont font)
 {
     ui->lblRemain->setFont(font);
+    //QFontMetrics metrics(font);
+    //int width = metrics.width("00:00");
+    //ui->lblRemain->size().setWidth(width);
 }
 
 void DlgCdg::cdgRemainTextColorChanged(QColor color)
@@ -287,49 +290,9 @@ void DlgCdg::cdgRemainBgColorChanged(QColor color)
     ui->lblRemain->setPalette(palette);
 }
 
-void DlgCdg::setVOffset(int pixels)
-{
-    vOffset = pixels;
-    if (m_fullScreen)
-    {
-        QRect screenDimensions = QApplication::desktop()->screenGeometry(settings->cdgWindowFullScreenMonitor());
-        move(screenDimensions.left()  + hOffset, screenDimensions.top() + vOffset);
-    }
-}
-
-void DlgCdg::setHOffset(int pixels)
-{
-    hOffset = pixels;
-    if (m_fullScreen)
-    {
-        QRect screenDimensions = QApplication::desktop()->screenGeometry(settings->cdgWindowFullScreenMonitor());
-        move(screenDimensions.left()  + hOffset, screenDimensions.top() + vOffset);
-    }
-}
-
-void DlgCdg::setVSizeAdjustment(int pixels)
-{
-    vSizeAdjustment = pixels;
-    if (m_fullScreen)
-    {
-        QRect screenDimensions = QApplication::desktop()->screenGeometry(settings->cdgWindowFullScreenMonitor());
-        resize(screenDimensions.width() + hSizeAdjustment,screenDimensions.height() + vSizeAdjustment);
-    }
-}
-
-void DlgCdg::setHSizeAdjustment(int pixels)
-{
-    hSizeAdjustment = pixels;
-    if (m_fullScreen)
-    {
-        QRect screenDimensions = QApplication::desktop()->screenGeometry(settings->cdgWindowFullScreenMonitor());
-        resize(screenDimensions.width() + hSizeAdjustment,screenDimensions.height() + vSizeAdjustment);
-    }
-}
-
 void DlgCdg::setShowBgImage(bool show)
 {
-//    qInfo() << "DlgCdg::setShowBgImage(" << show << ") called";
+    //    qInfo() << "DlgCdg::setShowBgImage(" << show << ") called";
     showBgImage = show;
     if ((show) && (settings->bgMode() == settings->BG_MODE_IMAGE))
     {
@@ -337,7 +300,7 @@ void DlgCdg::setShowBgImage(bool show)
             return;
         if (bAudioBackend->state() == AbstractAudioBackend::PlayingState && bAudioBackend->hasVideo())
             return;
-        if (settings->cdgDisplayBackgroundImage() != QString::null)
+        if (settings->cdgDisplayBackgroundImage() != QString())
             ui->cdgVideo->videoSurface()->present(QVideoFrame(QImage(settings->cdgDisplayBackgroundImage())));
         else
         {
@@ -361,7 +324,7 @@ void DlgCdg::cdgSurfaceResized(QSize size)
 
 void DlgCdg::mouseDoubleClickEvent(QMouseEvent *e)
 {
-    Q_UNUSED(e);
+    Q_UNUSED(e)
     if (m_fullScreen)
     {
         makeWindowed();
@@ -376,8 +339,7 @@ void DlgCdg::fullScreenTimerTimeout()
     // before moving it.
     if ((settings->showCdgWindow()) && (settings->cdgWindowFullscreen()))
     {
-        setVOffset(settings->cdgVOffset());
-        setHOffset(settings->cdgHOffset());
+        cdgOffsetsChanged();
         ui->cdgVideo->repaint();
         fullScreenTimer->stop();
     }
@@ -461,10 +423,10 @@ void DlgCdg::alertTxtColorChanged(QColor color)
 
 void DlgCdg::triggerBg()
 {
-        showBgImage = true;
-//        qInfo() << "triggerBg called";
-        slideShowTimerTimeout();
-        setShowBgImage(true);
+    showBgImage = true;
+    //        qInfo() << "triggerBg called";
+    slideShowTimerTimeout();
+    setShowBgImage(true);
 }
 
 void DlgCdg::cdgRemainEnabledChanged(bool enabled)
@@ -521,7 +483,8 @@ void DlgCdg::alertFontChanged(QFont font)
 
 void DlgCdg::mouseMove(QMouseEvent *event)
 {
-//    qInfo() << "Mouse moved pos:" << event->pos();
+    Q_UNUSED(event)
+    //    qInfo() << "Mouse moved pos:" << event->pos();
     if (m_fullScreen)
         ui->btnToggleFullscreen->setText(tr("Make Windowed"));
     else
@@ -544,7 +507,7 @@ void DlgCdg::oneSecTimerTimeout()
         else if (kAudioBackend->state() != AbstractAudioBackend::PlayingState && ui->lblRemain->isVisible())
             ui->lblRemain->hide();
         if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
-            ui->lblRemain->setText(" " + kAudioBackend->msToMMSS(kAudioBackend->duration() - kAudioBackend->position()));
+            ui->lblRemain->setText(" " + kAudioBackend->msToMMSS(kAudioBackend->duration() - kAudioBackend->position()) + " ");
     }
 }
 
@@ -557,6 +520,14 @@ void DlgCdg::on_btnToggleFullscreen_clicked()
     }
     else
         makeFullscreen();
+}
+
+void DlgCdg::cdgOffsetsChanged()
+{
+    if (settings->cdgWindowFullscreen())
+        this->layout()->setContentsMargins(settings->cdgOffsetLeft(),settings->cdgOffsetTop(),settings->cdgOffsetRight(),settings->cdgOffsetBottom());
+    else
+        this->layout()->setContentsMargins(0,0,0,0);
 }
 
 

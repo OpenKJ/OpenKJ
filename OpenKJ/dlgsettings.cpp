@@ -51,10 +51,6 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     networkManager = new QNetworkAccessManager(this);
     ui->setupUi(this);
     ui->tabWidgetMain->setCurrentIndex(0);
-    ui->spinBoxHAdjust->setValue(settings->cdgHSizeAdjustment());
-    ui->spinBoxVAdjust->setValue(settings->cdgVSizeAdjustment());
-    ui->spinBoxHOffset->setValue(settings->cdgHOffset());
-    ui->spinBoxVOffset->setValue(settings->cdgVOffset());
     ui->checkBoxDbSkipValidation->setChecked(settings->dbSkipValidation());
     ui->checkBoxLazyLoadDurations->setChecked(settings->dbLazyLoadDurations());
     ui->checkBoxMonitorDirs->setChecked(settings->dbDirectoryWatchEnabled());
@@ -153,6 +149,15 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     ui->spinBoxInterval->setValue(settings->requestServerInterval());
     ui->spinBoxSystemId->setMaximum(songbookApi->entitledSystemCount());
     ui->spinBoxSystemId->setValue(settings->systemId());
+    ui->spinBoxCdgOffsetTop->setValue(settings->cdgOffsetTop());
+    ui->spinBoxCdgOffsetBottom->setValue(settings->cdgOffsetBottom());
+    ui->spinBoxCdgOffsetLeft->setValue(settings->cdgOffsetLeft());
+    ui->spinBoxCdgOffsetRight->setValue(settings->cdgOffsetRight());
+
+    connect(ui->spinBoxCdgOffsetTop, SIGNAL(valueChanged(int)), settings, SLOT(setCdgOffsetTop(int)));
+    connect(ui->spinBoxCdgOffsetBottom, SIGNAL(valueChanged(int)), settings, SLOT(setCdgOffsetBottom(int)));
+    connect(ui->spinBoxCdgOffsetLeft, SIGNAL(valueChanged(int)), settings, SLOT(setCdgOffsetLeft(int)));
+    connect(ui->spinBoxCdgOffsetRight, SIGNAL(valueChanged(int)), settings, SLOT(setCdgOffsetRight(int)));
 
     AudioRecorder recorder;
     QAudioRecorder audioRecorder;
@@ -186,10 +191,6 @@ DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBacken
     connect(networkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
     connect(networkManager, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(onSslErrors(QNetworkReply*)));
     connect(settings, SIGNAL(tickerHeightChanged(int)), ui->spinBoxTickerHeight, SLOT(setValue(int)));
-    connect(ui->spinBoxHAdjust, SIGNAL(valueChanged(int)), settings, SLOT(setCdgHSizeAdjustment(int)));
-    connect(ui->spinBoxVAdjust, SIGNAL(valueChanged(int)), settings, SLOT(setCdgVSizeAdjustment(int)));
-    connect(ui->spinBoxHOffset, SIGNAL(valueChanged(int)), settings, SLOT(setCdgHOffset(int)));
-    connect(ui->spinBoxVOffset, SIGNAL(valueChanged(int)), settings, SLOT(setCdgVOffset(int)));
     connect(ui->cbxQueueRemovalWarning, SIGNAL(toggled(bool)), settings, SLOT(setShowQueueRemovalWarning(bool)));
     connect(ui->cbxSingerRemovalWarning, SIGNAL(toggled(bool)), settings, SLOT(setShowSingerRemovalWarning(bool)));
     connect(ui->cbxSongInterruptionWarning, SIGNAL(toggled(bool)), settings, SLOT(setShowSongInterruptionWarning(bool)));
@@ -867,4 +868,9 @@ void DlgSettings::on_comboBoxMonitors_currentIndexChanged(int index)
             return;
     }
     settings->setCdgWindowFullscreenMonitor(selMonitor);
+}
+
+void DlgSettings::on_spinBoxHAdjust_valueChanged(int arg1)
+{
+
 }
