@@ -70,6 +70,10 @@ private:
     GstElement *aConvL;
     GstElement *audioMixer;
     GstElement *fltrPostMixer;
+    GstElement *queueEndAudio;
+    GstElement *queueMainAudio;
+    GstElement *queueMainVideo;
+    GstElement *audioPanorama;
     GstPad *teeSrcPadN;
     GstPad *teeSrcPadM;
     GstPad *queueSinkPadN;
@@ -86,7 +90,7 @@ private:
     GstPad *aConvSrcPadR;
     GstPad *aConvSrcPadL;
     GstElement *aConvPostMixer;
-    GstElement *customBin;
+    GstElement *audioBin;
     GstElement *videoAppSink;
     GstElement *aConvInput;
     GstElement *aConvPreSplit;
@@ -142,7 +146,7 @@ private:
     int outputDeviceIdx;
     bool downmix;
     static gboolean gstTimerDispatcher(QObject *qObj);
-    static void cb_new_pad (GstElement *element, GstPad *pad, gpointer data);
+//    static void cb_new_pad (GstElement *element, GstPad *pad, gpointer data);
 
     QStringList GstGetPlugins();
     QStringList GstGetElements(QString plugin);

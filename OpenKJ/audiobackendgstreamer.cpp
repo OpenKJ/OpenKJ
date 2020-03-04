@@ -726,7 +726,7 @@ void AudioBackendGstreamer::busMessage(std::shared_ptr<GstMessage> message)
         break;
     default:
         //g_print("Msg type[%d], Msg type name[%s]\n", GST_MESSAGE_TYPE(message), GST_MESSAGE_TYPE_NAME(message));
-        qInfo() << objName << " - Gst msg type: " << GST_MESSAGE_TYPE(message.get()) << " Gst msg name: " << GST_MESSAGE_TYPE_NAME(message.get());
+        qInfo() << objName << " - Gst msg type: " << GST_MESSAGE_TYPE(message.get()) << " Gst msg name: " << GST_MESSAGE_TYPE_NAME(message.get()) << " Element: " << message->src->name;
         break;
     }
 }
@@ -835,8 +835,8 @@ void AudioBackendGstreamer::buildPipeline()
     mixerSinkPadL = gst_element_get_request_pad(audioMixer, "sink_0");
     mixerSinkPadR = gst_element_get_request_pad(audioMixer, "sink_1");
     deInterleave = gst_element_factory_make("deinterleave", NULL);
-    g_signal_connect (deInterleave, "pad-added", G_CALLBACK (this->cb_new_pad), this);
-    customBin = gst_bin_new("newBin");
+//    g_signal_connect (deInterleave, "pad-added", G_CALLBACK (this->cb_new_pad), this);
+    audioBin = gst_bin_new("audioBin");
     tee = gst_element_factory_make("tee", NULL);
     teeSrcPadN = gst_element_get_request_pad(tee, "src_1");
     teeSrcPadM = gst_element_get_request_pad(tee, "src_0");
@@ -866,34 +866,52 @@ void AudioBackendGstreamer::buildPipeline()
     fltrPostMixer = gst_element_factory_make("capsfilter", NULL);
     g_object_set(fltrPostMixer, "caps", audioCapsStereo, NULL);
     volumeElement = gst_element_factory_make("volume", NULL);
+    queueMainAudio = gst_element_factory_make("queue", "queueMainAudio");
+    queueEndAudio = gst_element_factory_make("queue", "queueEndAudio");
+    audioPanorama = gst_element_factory_make("audiopanorama", "audioPanorama");
+    g_object_set(audioPanorama, "method", 1, NULL);
 
-    gst_bin_add_many(GST_BIN(customBin), level, aConvInput, aConvPreSplit, rgVolume, volumeElement, equalizer, aConvL, aConvR, fltrMplxInput, tee, queueS, queueM, queueR, queueL, audioMixer, deInterleave, aConvPostMixer, fltrPostMixer, gst_object_ref(faderVolumeElement), NULL);
+    gst_bin_add_many(GST_BIN(audioBin),queueMainAudio, audioPanorama, level, aConvInput, aConvPreSplit, rgVolume, volumeElement, equalizer, aConvL, aConvR, fltrMplxInput, tee, queueS, queueM, queueR, queueL, audioMixer, deInterleave, aConvPostMixer, fltrPostMixer, gst_object_ref(faderVolumeElement), NULL);
+    gst_element_link(queueMainAudio, aConvInput);
     gst_element_link(aConvInput, rgVolume);
     gst_element_link(rgVolume, level);
     gst_element_link(level, volumeElement);
     gst_element_link(volumeElement, equalizer);
     gst_element_link(equalizer, faderVolumeElement);
-    gst_element_link(faderVolumeElement, tee);
-    //gst_element_link(equalizer, tee);
 
-    // Normal path
-    gst_pad_link(teeSrcPadN, queueSinkPadN);
-    gst_pad_link(queueSrcPadN, mixerSinkPadN);
-
-    // Multiplex path input to deinterleave
-    gst_pad_link(teeSrcPadM, queueSinkPadM);
-    gst_element_link(queueM, aConvPreSplit);
-    gst_element_link(aConvPreSplit, fltrMplxInput);
-    gst_element_link(fltrMplxInput, deInterleave);
-    // Left Channel to mixer
-    gst_element_link(queueL, aConvL);
-    gst_pad_link(aConvSrcPadL, mixerSinkPadL);
-    // Right Channel to mixer
-    gst_element_link(queueR, aConvR);
-    gst_pad_link(aConvSrcPadR, mixerSinkPadR);
-
-    gst_element_link(audioMixer, aConvPostMixer);
+    gst_element_link(faderVolumeElement, audioPanorama);
+    gst_element_link(audioPanorama, aConvPostMixer);
     gst_element_link(aConvPostMixer, fltrPostMixer);
+
+    // commented for mplx change
+//    gst_element_link(faderVolumeElement, tee);
+
+
+//    //gst_element_link(equalizer, tee);
+
+//    // Normal path
+//    gst_pad_link(teeSrcPadN, queueSinkPadN);
+//    gst_pad_link(queueSrcPadN, mixerSinkPadN);
+
+//    // Multiplex path input to deinterleave
+//    gst_pad_link(teeSrcPadM, queueSinkPadM);
+
+
+
+
+//    gst_element_link(queueM, aConvPreSplit);
+
+//    gst_element_link(aConvPreSplit, fltrMplxInput);
+//    gst_element_link(fltrMplxInput, deInterleave);
+//    // Left Channel to mixer
+//    gst_element_link(queueL, aConvL);
+//    gst_pad_link(aConvSrcPadL, mixerSinkPadL);
+//    // Right Channel to mixer
+//    gst_element_link(queueR, aConvR);
+//    gst_pad_link(aConvSrcPadR, mixerSinkPadR);
+
+//    gst_element_link(audioMixer, aConvPostMixer);
+//    gst_element_link(aConvPostMixer, fltrPostMixer);
 
 
     // Normal or Multiplex stream to effects and end of chain
@@ -903,8 +921,8 @@ void AudioBackendGstreamer::buildPipeline()
         qInfo() << objName << " - Pitch shift RubberBand enabled";
         qInfo() << objName << " - Also loaded SoundTouch for tempo control";
         m_canChangeTempo = true;
-        gst_bin_add_many(GST_BIN(customBin), aConvPrePitchShift, pitchShifterRubberBand, aConvPostPitchShift, pitchShifterSoundtouch, aConvEnd, audioSink, NULL);
-        gst_element_link_many(fltrPostMixer, aConvPrePitchShift, pitchShifterRubberBand, aConvPostPitchShift, pitchShifterSoundtouch, aConvEnd, audioSink, NULL);
+        gst_bin_add_many(GST_BIN(audioBin), aConvPrePitchShift, pitchShifterRubberBand, aConvPostPitchShift, pitchShifterSoundtouch, aConvEnd, queueEndAudio, audioSink, NULL);
+        gst_element_link_many(fltrPostMixer, aConvPrePitchShift, pitchShifterRubberBand, aConvPostPitchShift, pitchShifterSoundtouch, aConvEnd, queueEndAudio, audioSink, NULL);
         m_canKeyChange = true;
         m_keyChangerRubberBand = true;
         g_object_set(G_OBJECT(pitchShifterRubberBand), "formant-preserving", true, NULL);
@@ -915,29 +933,30 @@ void AudioBackendGstreamer::buildPipeline()
     {
         m_canChangeTempo = true;
         qInfo() << objName << " - Pitch shifter SoundTouch enabled";
-        gst_bin_add_many(GST_BIN(customBin), aConvPrePitchShift, pitchShifterSoundtouch, aConvPostPitchShift, aConvEnd, audioSink, NULL);
-        gst_element_link_many(fltrPostMixer, aConvPrePitchShift, pitchShifterSoundtouch, aConvPostPitchShift, aConvEnd, audioSink, NULL);
+        gst_bin_add_many(GST_BIN(audioBin), aConvPrePitchShift, pitchShifterSoundtouch, aConvPostPitchShift, aConvEnd, queueEndAudio, audioSink, NULL);
+        gst_element_link_many(fltrPostMixer, aConvPrePitchShift, pitchShifterSoundtouch, queueEndAudio, aConvEnd, audioSink, NULL);
         m_canKeyChange = true;
         m_keyChangerSoundtouch = true;
         g_object_set(G_OBJECT(pitchShifterSoundtouch), "pitch", 1.0, "tempo", 1.0, NULL);
     }
     else
     {
-        gst_bin_add_many(GST_BIN(customBin), aConvEnd, audioSink, NULL);
-        gst_element_link_many(fltrPostMixer, aConvEnd, audioSink, NULL);
+        gst_bin_add_many(GST_BIN(audioBin), aConvEnd, queueEndAudio, audioSink, NULL);
+        gst_element_link_many(fltrPostMixer, aConvEnd, queueEndAudio, audioSink, NULL);
     }
 
     GstPad *pad;
-    pad = gst_element_get_static_pad(aConvInput, "sink");
+    pad = gst_element_get_static_pad(queueMainAudio, "sink");
     ghostPad = gst_ghost_pad_new("sink", pad);
     gst_pad_set_active(ghostPad, true);
-    gst_element_add_pad(customBin, ghostPad);
+    gst_element_add_pad(audioBin, ghostPad);
     gst_object_unref(pad);
-    g_object_set(G_OBJECT(playBin), "audio-sink", customBin, NULL);
+    g_object_set(G_OBJECT(playBin), "audio-sink", audioBin, NULL);
 
 // Video output
     if (settings->previewEnabled())
     {
+        queueMainVideo = gst_element_factory_make("queue", "queueMainVideo");
         videoQueue1 = gst_element_factory_make("queue", NULL);
         videoQueue2 = gst_element_factory_make("queue", NULL);
         videoTee = gst_element_factory_make("tee", NULL);
@@ -946,12 +965,13 @@ void AudioBackendGstreamer::buildPipeline()
         videoQueue1SrcPad = gst_element_get_static_pad(videoQueue1, "sink");
         videoQueue2SrcPad = gst_element_get_static_pad(videoQueue2, "sink");
         videoBin = gst_bin_new("videoBin");
-        gst_bin_add_many(GST_BIN(videoBin),videoTee,videoQueue1,videoQueue2,videoSink1,videoSink2,NULL);
+        gst_bin_add_many(GST_BIN(videoBin),queueMainVideo,videoTee,videoQueue1,videoQueue2,videoSink1,videoSink2,NULL);
+        gst_element_link(queueMainVideo, videoTee);
         gst_pad_link(videoTeePad1,videoQueue1SrcPad);
         gst_pad_link(videoTeePad2,videoQueue2SrcPad);
         gst_element_link(videoQueue1,videoSink1);
         gst_element_link(videoQueue2,videoSink2);
-        ghostVideoPad = gst_ghost_pad_new("sink", gst_element_get_static_pad(videoTee, "sink"));
+        ghostVideoPad = gst_ghost_pad_new("sink", gst_element_get_static_pad(queueMainVideo, "sink"));
         gst_pad_set_active(ghostVideoPad,true);
         gst_element_add_pad(videoBin, ghostVideoPad);
         gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink1), videoWinId);
@@ -1013,7 +1033,7 @@ void AudioBackendGstreamer::destroyPipeline()
     qInfo() << objName << " - destroyPipeline() called";
     slowTimer->stop();
     fastTimer->stop();
-    gst_bin_remove((GstBin*)customBin, faderVolumeElement);
+    gst_bin_remove((GstBin*)audioBin, faderVolumeElement);
     if (state() == PlayingState)
         stop(true);
     gst_bin_remove((GstBin*)videoBin, videoSink1);
@@ -1157,7 +1177,7 @@ void AudioBackendGstreamer::setOutputDevice(int deviceIndex)
     outputDeviceIdx = deviceIndex;
  //   qInfo() << objName << " - Setting output device to device idx: " << outputDeviceIdx;
     gst_element_unlink(aConvEnd, audioSink);
-    gst_bin_remove(GST_BIN(customBin), audioSink);
+    gst_bin_remove(GST_BIN(audioBin), audioSink);
     if (deviceIndex == 0)
     {
 //        qInfo() << objName << " - Default device selected";
@@ -1169,7 +1189,7 @@ void AudioBackendGstreamer::setOutputDevice(int deviceIndex)
         audioSink = gst_device_create_element(outputDevices.at(deviceIndex - 1), NULL);
 //        qInfo() << objName << " - Non default device selected: " << outputDeviceNames.at(deviceIndex);
     }
-    gst_bin_add(GST_BIN(customBin), audioSink);
+    gst_bin_add(GST_BIN(audioBin), audioSink);
     gst_element_link(aConvEnd, audioSink);
 }
 
@@ -1196,78 +1216,78 @@ void AudioBackendGstreamer::setOutputDevice(int deviceIndex)
 
 //}
 
-void AudioBackendGstreamer::cb_new_pad(GstElement *element, GstPad *pad, gpointer data)
-{
-    Q_UNUSED(element);
-    AudioBackendGstreamer *parent = reinterpret_cast<AudioBackendGstreamer*>(data);
-    gchar *padName = gst_pad_get_name(pad);
-    QString name = QString(padName);
-    g_free(padName);
-    if (name == "src_0")
-    {
-//        qInfo() << parent->objName << " - Linking deinterleave pad src_0 to queueSinkPadL";
-        GstPadLinkReturn result = gst_pad_link(pad, parent->queueSinkPadL);
-        switch (result) {
-        case GST_PAD_LINK_OK:
-   //         qInfo() << parent->objName << " - link succeeded";
-            break;
-        case GST_PAD_LINK_WRONG_HIERARCHY:
-            qInfo() << parent->objName << " - pads have no common grandparent";
-            break;
-        case GST_PAD_LINK_WAS_LINKED:
-            qInfo() << parent->objName << " - pad was already linked";
-            break;
-        case GST_PAD_LINK_WRONG_DIRECTION:
-            qInfo() << parent->objName << " - pads have wrong direction";
-            break;
-        case GST_PAD_LINK_NOFORMAT:
-            qInfo() << parent->objName << " - pads do not have common format";
-            break;
-        case GST_PAD_LINK_NOSCHED:
-            qInfo() << parent->objName << " - pads cannot cooperate in scheduling";
-            break;
-        case GST_PAD_LINK_REFUSED:
-            qInfo() << parent->objName << " - refused for some reason";
-            break;
-        default:
-            qInfo() << parent->objName << " - Unknown return type";
-            break;
-        }
-    }
-    if (name == "src_1")
-    {
-  //      qInfo() << parent->objName << " - Linking deinterleave pad src_1 to queueSinkPadR";
-        GstPadLinkReturn result = gst_pad_link(pad, parent->queueSinkPadR);
-        switch (result) {
-        case GST_PAD_LINK_OK:
- //           qInfo() << parent->objName << " - link succeeded";
-            break;
-        case GST_PAD_LINK_WRONG_HIERARCHY:
-            qInfo() << parent->objName << " - pads have no common grandparent";
-            break;
-        case GST_PAD_LINK_WAS_LINKED:
-            qInfo() << parent->objName << " - pad was already linked";
-            break;
-        case GST_PAD_LINK_WRONG_DIRECTION:
-            qInfo() << parent->objName << " - pads have wrong direction";
-            break;
-        case GST_PAD_LINK_NOFORMAT:
-            qInfo() << parent->objName << " - pads do not have common format";
-            break;
-        case GST_PAD_LINK_NOSCHED:
-            qInfo() << parent->objName << " - pads cannot cooperate in scheduling";
-            break;
-        case GST_PAD_LINK_REFUSED:
-            qInfo() << parent->objName << " - refused for some reason";
-            break;
-        default:
-            qInfo() << parent->objName << " - Unknown return type";
-            break;
-        }
-    }
- //   qInfo() << parent->objName << " - Linking complete";
-    parent->setMplxMode(settings->mplxMode());
-}
+//void AudioBackendGstreamer::cb_new_pad(GstElement *element, GstPad *pad, gpointer data)
+//{
+//    Q_UNUSED(element);
+//    AudioBackendGstreamer *parent = reinterpret_cast<AudioBackendGstreamer*>(data);
+//    gchar *padName = gst_pad_get_name(pad);
+//    QString name = QString(padName);
+//    g_free(padName);
+//    if (name == "src_0")
+//    {
+////        qInfo() << parent->objName << " - Linking deinterleave pad src_0 to queueSinkPadL";
+//        GstPadLinkReturn result = gst_pad_link(pad, parent->queueSinkPadL);
+//        switch (result) {
+//        case GST_PAD_LINK_OK:
+//   //         qInfo() << parent->objName << " - link succeeded";
+//            break;
+//        case GST_PAD_LINK_WRONG_HIERARCHY:
+//            qInfo() << parent->objName << " - pads have no common grandparent";
+//            break;
+//        case GST_PAD_LINK_WAS_LINKED:
+//            qInfo() << parent->objName << " - pad was already linked";
+//            break;
+//        case GST_PAD_LINK_WRONG_DIRECTION:
+//            qInfo() << parent->objName << " - pads have wrong direction";
+//            break;
+//        case GST_PAD_LINK_NOFORMAT:
+//            qInfo() << parent->objName << " - pads do not have common format";
+//            break;
+//        case GST_PAD_LINK_NOSCHED:
+//            qInfo() << parent->objName << " - pads cannot cooperate in scheduling";
+//            break;
+//        case GST_PAD_LINK_REFUSED:
+//            qInfo() << parent->objName << " - refused for some reason";
+//            break;
+//        default:
+//            qInfo() << parent->objName << " - Unknown return type";
+//            break;
+//        }
+//    }
+//    if (name == "src_1")
+//    {
+//  //      qInfo() << parent->objName << " - Linking deinterleave pad src_1 to queueSinkPadR";
+//        GstPadLinkReturn result = gst_pad_link(pad, parent->queueSinkPadR);
+//        switch (result) {
+//        case GST_PAD_LINK_OK:
+// //           qInfo() << parent->objName << " - link succeeded";
+//            break;
+//        case GST_PAD_LINK_WRONG_HIERARCHY:
+//            qInfo() << parent->objName << " - pads have no common grandparent";
+//            break;
+//        case GST_PAD_LINK_WAS_LINKED:
+//            qInfo() << parent->objName << " - pad was already linked";
+//            break;
+//        case GST_PAD_LINK_WRONG_DIRECTION:
+//            qInfo() << parent->objName << " - pads have wrong direction";
+//            break;
+//        case GST_PAD_LINK_NOFORMAT:
+//            qInfo() << parent->objName << " - pads do not have common format";
+//            break;
+//        case GST_PAD_LINK_NOSCHED:
+//            qInfo() << parent->objName << " - pads cannot cooperate in scheduling";
+//            break;
+//        case GST_PAD_LINK_REFUSED:
+//            qInfo() << parent->objName << " - refused for some reason";
+//            break;
+//        default:
+//            qInfo() << parent->objName << " - Unknown return type";
+//            break;
+//        }
+//    }
+// //   qInfo() << parent->objName << " - Linking complete";
+//    parent->setMplxMode(settings->mplxMode());
+//}
 
 void AudioBackendGstreamer::DestroyCallback(gpointer user_data)
 {
@@ -1280,21 +1300,29 @@ void AudioBackendGstreamer::setMplxMode(int mode)
  //   qInfo() << objName << " - setMplxMode(" << mode << ") called";
     if (mode == Multiplex_Normal)
     {
-        g_object_set(mixerSinkPadN, "mute", false, NULL);
-        g_object_set(mixerSinkPadL, "mute", true, NULL);
-        g_object_set(mixerSinkPadR, "mute", true, NULL);
+        g_object_set(audioPanorama, "panorama", 0.0, NULL);
+        setDownmix(settings->audioDownmix());
+//        g_object_set(mixerSinkPadN, "mute", false, NULL);
+//        g_object_set(mixerSinkPadL, "mute", true, NULL);
+//        g_object_set(mixerSinkPadR, "mute", true, NULL);
     }
     else if (mode == Multiplex_LeftChannel)
     {
-        g_object_set(mixerSinkPadN, "mute", true, NULL);
-        g_object_set(mixerSinkPadL, "mute", false, NULL);
-        g_object_set(mixerSinkPadR, "mute", true, NULL);
+        setDownmix(true);
+        g_object_set(audioPanorama, "panorama", -1.0, NULL);
+
+//        g_object_set(mixerSinkPadN, "mute", true, NULL);
+//        g_object_set(mixerSinkPadL, "mute", false, NULL);
+//        g_object_set(mixerSinkPadR, "mute", true, NULL);
     }
     else if (mode == Multiplex_RightChannel)
     {
-        g_object_set(mixerSinkPadN, "mute", true, NULL);
-        g_object_set(mixerSinkPadL, "mute", true, NULL);
-        g_object_set(mixerSinkPadR, "mute", false, NULL);
+        setDownmix(true);
+        g_object_set(audioPanorama, "panorama", 1.0, NULL);
+
+//        g_object_set(mixerSinkPadN, "mute", true, NULL);
+//        g_object_set(mixerSinkPadL, "mute", true, NULL);
+//        g_object_set(mixerSinkPadR, "mute", false, NULL);
     }
     //settings->setMplxMode(mode);
  //   qInfo() << objName << " - setMplxMode() complete";
