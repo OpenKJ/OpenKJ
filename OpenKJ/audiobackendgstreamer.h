@@ -204,7 +204,6 @@ public:
     QString objName;
     int m_tempo;
     int tempo();
-    bool m_hasVideo;
 
 private slots:
     void fastTimer_timeout();

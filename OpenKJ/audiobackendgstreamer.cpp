@@ -46,7 +46,6 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     QMetaTypeId<std::shared_ptr<GstMessage>>::qt_metatype_id();
     this->loadPitchShift = loadPitchShift;
     objName = objectName;
-    m_hasVideo = false;
     m_volume = 0;
     m_tempo = 100;
     m_canKeyChange = false;
@@ -288,7 +287,6 @@ void AudioBackendGstreamer::play()
         gchar *uri = gst_filename_to_uri(m_filename.toLocal8Bit(), NULL);
         g_object_set(GST_OBJECT(playBin), "uri", uri, NULL);
         g_free(uri);
-        m_hasVideo = false;
         qInfo() << objName << " - playing file: " << m_filename;
         if (!m_cdgMode)
             gst_element_set_state(playBin, GST_STATE_PLAYING);
@@ -307,7 +305,6 @@ void AudioBackendGstreamer::play()
 //        g_object_set(GST_OBJECT(playBinCdg), "uri", cdguri, NULL);
         g_object_set(GST_OBJECT(playBin), "suburi", cdguri, NULL);
         g_free(cdguri);
-        m_hasVideo = false;
         qInfo() << objName << " - playing cdg:   " << m_cdgFilename;
         qInfo() << objName << " - playing audio: " << m_filename;
         gst_element_set_state(playBin, GST_STATE_PLAYING);
@@ -325,14 +322,12 @@ void AudioBackendGstreamer::pause()
 
 void AudioBackendGstreamer::setMedia(QString filename)
 {
-    m_hasVideo = false;
     m_filename = filename;
     m_cdgMode = false;
 }
 
 void AudioBackendGstreamer::setMediaCdg(QString cdgFilename, QString audioFilename)
 {
-    m_hasVideo = false;
     if (m_canRenderCdg)
         m_cdgMode = true;
     else {
@@ -1411,7 +1406,12 @@ void AudioBackendGstreamer::setEqLevel10(int level)
 
 bool AudioBackendGstreamer::hasVideo()
 {
-    return m_hasVideo;
+    gint numVidStreams;
+    g_object_get(playBin, "n-video", &numVidStreams, NULL);
+    qWarning() << "Num video streams: " << numVidStreams;
+    if (numVidStreams > 0)
+        return true;
+    return false;
 }
 
 void AudioBackendGstreamer::fadeInImmediate()
