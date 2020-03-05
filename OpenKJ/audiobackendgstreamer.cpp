@@ -90,7 +90,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     if (!gst_is_initialized())
     {
         qInfo() << objName << " - gst not initialized - initializing";
-        gst_init(NULL,NULL);
+        gst_init(nullptr,nullptr);
     }
 
     guint major, minor, micro, nano;
@@ -109,7 +109,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     }
 
     faderVolumeElement = gst_element_factory_make("volume", "FaderVolumeElement");
-    g_object_set(G_OBJECT(faderVolumeElement), "volume", 1.0, NULL);
+    g_object_set(faderVolumeElement, "volume", 1.0, NULL);
     fader->setVolumeElement(faderVolumeElement);
     gst_object_ref(faderVolumeElement);
     connect(fader, SIGNAL(faderStateChanged(AudioFader::FaderState)), this, SLOT(faderStateChanged(AudioFader::FaderState)));
@@ -147,13 +147,13 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *paren
     GList *devices, *elem;
     devices = gst_device_monitor_get_devices(monitor);
     for(elem = devices; elem; elem = elem->next) {
-        GstDevice *device = (GstDevice*)elem->data;
+        GstDevice *device = reinterpret_cast<GstDevice*>(elem->data);
         gchar *deviceName = gst_device_get_display_name(device);
         outputDeviceNames.append(QString::number(outputDeviceNames.size()) + " - " + deviceName);
         g_free(deviceName);
         outputDevices.append(device);
     }
-    g_object_set(G_OBJECT(playBin), "volume", 1.0, NULL);
+    g_object_set(playBin, "volume", 1.0, NULL);
     gst_device_monitor_stop(monitor);
 
     connect(settings, SIGNAL(mplxModeChanged(int)), this, SLOT(setMplxMode(int)));
@@ -240,7 +240,7 @@ qint64 AudioBackendGstreamer::duration()
 AbstractAudioBackend::State AudioBackendGstreamer::state()
 {
     GstState state;
-    gst_element_get_state(playBin, &state, NULL, GST_CLOCK_TIME_NONE);
+    gst_element_get_state(playBin, &state, nullptr, GST_CLOCK_TIME_NONE);
     if (state == GST_STATE_PLAYING)
         return AbstractAudioBackend::PlayingState;
     if (state == GST_STATE_PAUSED)
@@ -832,46 +832,29 @@ void AudioBackendGstreamer::buildPipeline()
     g_object_set(fltrMplxInput, "caps", audioCapsStereo, NULL);
     g_object_set(videoAppSink, "caps", videoCaps, NULL);
     audioMixer = gst_element_factory_make("audiomixer", NULL);
-    mixerSinkPadL = gst_element_get_request_pad(audioMixer, "sink_0");
-    mixerSinkPadR = gst_element_get_request_pad(audioMixer, "sink_1");
     deInterleave = gst_element_factory_make("deinterleave", NULL);
 //    g_signal_connect (deInterleave, "pad-added", G_CALLBACK (this->cb_new_pad), this);
     audioBin = gst_bin_new("audioBin");
     tee = gst_element_factory_make("tee", NULL);
-    teeSrcPadN = gst_element_get_request_pad(tee, "src_1");
-    teeSrcPadM = gst_element_get_request_pad(tee, "src_0");
     queueS = gst_element_factory_make("queue", NULL);
-    queueSinkPadN = gst_element_get_static_pad(queueS, "sink");
-    queueSrcPadN = gst_element_get_static_pad(queueS, "src");
     queueM = gst_element_factory_make("queue", NULL);
-    queueSinkPadM = gst_element_get_static_pad(queueM, "sink");
-    queueSrcPadM = gst_element_get_static_pad(queueM, "src");
     aConvL = gst_element_factory_make("audioconvert", NULL);
-    aConvSrcPadL = gst_element_get_static_pad(aConvL, "src");
     aConvR = gst_element_factory_make("audioconvert", NULL);
-    aConvSrcPadR = gst_element_get_static_pad(aConvR, "src");
     audioMixer = gst_element_factory_make("audiomixer", NULL);
-    aConvPostMixer = gst_element_factory_make("audioconvert", NULL);
+    aConvPostPanorama = gst_element_factory_make("audioconvert", NULL);
     aConvEnd = gst_element_factory_make("audioconvert", NULL);
     audioResample = gst_element_factory_make("audioresample", NULL);
-    mixerSinkPadL = gst_element_get_request_pad(audioMixer, "sink_0");
-    mixerSinkPadR = gst_element_get_request_pad(audioMixer, "sink_1");
-    mixerSinkPadN = gst_element_get_request_pad(audioMixer, "sink_2");
     queueL = gst_element_factory_make("queue", NULL);
-    queueSinkPadL = gst_element_get_static_pad(queueL, "sink");
-    queueSrcPadL = gst_element_get_static_pad(queueL, "src");
     queueR = gst_element_factory_make("queue", NULL);
-    queueSinkPadR = gst_element_get_static_pad(queueR, "sink");
-    queueSrcPadR = gst_element_get_static_pad(queueR, "src");
-    fltrPostMixer = gst_element_factory_make("capsfilter", NULL);
-    g_object_set(fltrPostMixer, "caps", audioCapsStereo, NULL);
+    fltrPostPanorama = gst_element_factory_make("capsfilter", NULL);
+    g_object_set(fltrPostPanorama, "caps", audioCapsStereo, NULL);
     volumeElement = gst_element_factory_make("volume", NULL);
     queueMainAudio = gst_element_factory_make("queue", "queueMainAudio");
     queueEndAudio = gst_element_factory_make("queue", "queueEndAudio");
     audioPanorama = gst_element_factory_make("audiopanorama", "audioPanorama");
     g_object_set(audioPanorama, "method", 1, NULL);
 
-    gst_bin_add_many(GST_BIN(audioBin),queueMainAudio, audioPanorama, level, aConvInput, aConvPreSplit, rgVolume, volumeElement, equalizer, aConvL, aConvR, fltrMplxInput, tee, queueS, queueM, queueR, queueL, audioMixer, deInterleave, aConvPostMixer, fltrPostMixer, gst_object_ref(faderVolumeElement), NULL);
+    gst_bin_add_many(GST_BIN(audioBin),queueMainAudio, audioPanorama, level, aConvInput, aConvPreSplit, rgVolume, volumeElement, equalizer, aConvL, aConvR, fltrMplxInput, tee, queueS, queueM, queueR, queueL, audioMixer, deInterleave, aConvPostPanorama, fltrPostPanorama, gst_object_ref(faderVolumeElement), NULL);
     gst_element_link(queueMainAudio, aConvInput);
     gst_element_link(aConvInput, rgVolume);
     gst_element_link(rgVolume, level);
@@ -880,8 +863,8 @@ void AudioBackendGstreamer::buildPipeline()
     gst_element_link(equalizer, faderVolumeElement);
 
     gst_element_link(faderVolumeElement, audioPanorama);
-    gst_element_link(audioPanorama, aConvPostMixer);
-    gst_element_link(aConvPostMixer, fltrPostMixer);
+    gst_element_link(audioPanorama, aConvPostPanorama);
+    gst_element_link(aConvPostPanorama, fltrPostPanorama);
 
     // commented for mplx change
 //    gst_element_link(faderVolumeElement, tee);
@@ -922,7 +905,7 @@ void AudioBackendGstreamer::buildPipeline()
         qInfo() << objName << " - Also loaded SoundTouch for tempo control";
         m_canChangeTempo = true;
         gst_bin_add_many(GST_BIN(audioBin), aConvPrePitchShift, pitchShifterRubberBand, aConvPostPitchShift, pitchShifterSoundtouch, aConvEnd, queueEndAudio, audioSink, NULL);
-        gst_element_link_many(fltrPostMixer, aConvPrePitchShift, pitchShifterRubberBand, aConvPostPitchShift, pitchShifterSoundtouch, aConvEnd, queueEndAudio, audioSink, NULL);
+        gst_element_link_many(fltrPostPanorama, aConvPrePitchShift, pitchShifterRubberBand, aConvPostPitchShift, pitchShifterSoundtouch, queueEndAudio, aConvEnd, audioSink, NULL);
         m_canKeyChange = true;
         m_keyChangerRubberBand = true;
         g_object_set(G_OBJECT(pitchShifterRubberBand), "formant-preserving", true, NULL);
@@ -934,7 +917,7 @@ void AudioBackendGstreamer::buildPipeline()
         m_canChangeTempo = true;
         qInfo() << objName << " - Pitch shifter SoundTouch enabled";
         gst_bin_add_many(GST_BIN(audioBin), aConvPrePitchShift, pitchShifterSoundtouch, aConvPostPitchShift, aConvEnd, queueEndAudio, audioSink, NULL);
-        gst_element_link_many(fltrPostMixer, aConvPrePitchShift, pitchShifterSoundtouch, queueEndAudio, aConvEnd, audioSink, NULL);
+        gst_element_link_many(fltrPostPanorama, aConvPrePitchShift, pitchShifterSoundtouch, queueEndAudio, aConvEnd, audioSink, NULL);
         m_canKeyChange = true;
         m_keyChangerSoundtouch = true;
         g_object_set(G_OBJECT(pitchShifterSoundtouch), "pitch", 1.0, "tempo", 1.0, NULL);
@@ -942,7 +925,7 @@ void AudioBackendGstreamer::buildPipeline()
     else
     {
         gst_bin_add_many(GST_BIN(audioBin), aConvEnd, queueEndAudio, audioSink, NULL);
-        gst_element_link_many(fltrPostMixer, aConvEnd, queueEndAudio, audioSink, NULL);
+        gst_element_link_many(fltrPostPanorama, queueEndAudio, aConvEnd, audioSink, NULL);
     }
 
     GstPad *pad;
@@ -1152,9 +1135,9 @@ void AudioBackendGstreamer::setDownmix(bool enabled)
     downmix = enabled;
  //   qDebug() << objName << " - AudioBackendGstreamer::setDownmix(" << enabled << ") called";
     if (enabled)
-        g_object_set(fltrPostMixer, "caps", audioCapsMono, NULL);
+        g_object_set(fltrPostPanorama, "caps", audioCapsMono, NULL);
     else
-        g_object_set(fltrPostMixer, "caps", audioCapsStereo, NULL);
+        g_object_set(fltrPostPanorama, "caps", audioCapsStereo, NULL);
  //   qDebug() << objName << " - AudioBackendGstreamer::setDownmix() completed";
 }
 
