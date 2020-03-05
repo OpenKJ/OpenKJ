@@ -200,7 +200,6 @@ AudioBackendGstreamer::~AudioBackendGstreamer()
     gst_object_unref(playBin);
     gst_caps_unref(audioCapsMono);
     gst_caps_unref(audioCapsStereo);
-    gst_caps_unref(videoCaps);
     gst_object_unref(monitor);
     gst_object_unref(tv_csource);
 }
@@ -284,8 +283,8 @@ void AudioBackendGstreamer::play()
             emit stateChanged(EndOfMediaState);
             return;
         }
-        gchar *uri = gst_filename_to_uri(m_filename.toLocal8Bit(), NULL);
-        g_object_set(GST_OBJECT(playBin), "uri", uri, NULL);
+        gchar *uri = gst_filename_to_uri(m_filename.toLocal8Bit(), nullptr);
+        g_object_set(playBin, "uri", uri, nullptr);
         g_free(uri);
         qInfo() << objName << " - playing file: " << m_filename;
         if (!m_cdgMode)
@@ -301,9 +300,9 @@ void AudioBackendGstreamer::play()
             emit stateChanged(EndOfMediaState);
             return;
         }
-        gchar *cdguri = gst_filename_to_uri(m_cdgFilename.toLocal8Bit(), NULL);
+        gchar *cdguri = gst_filename_to_uri(m_cdgFilename.toLocal8Bit(), nullptr);
 //        g_object_set(GST_OBJECT(playBinCdg), "uri", cdguri, NULL);
-        g_object_set(GST_OBJECT(playBin), "suburi", cdguri, NULL);
+        g_object_set(playBin, "suburi", cdguri, NULL);
         g_free(cdguri);
         qInfo() << objName << " - playing cdg:   " << m_cdgFilename;
         qInfo() << objName << " - playing audio: " << m_filename;
@@ -513,10 +512,10 @@ void AudioBackendGstreamer::setPitchShift(int pitchShift)
 {
     m_keyChange = pitchShift;
     if (m_keyChangerRubberBand)
-        g_object_set(G_OBJECT(pitchShifterRubberBand), "semitones", pitchShift, NULL);
+        g_object_set(pitchShifterRubberBand, "semitones", pitchShift, NULL);
     else if (m_keyChangerSoundtouch)
     {
-        g_object_set(G_OBJECT(pitchShifterSoundtouch), "pitch", getPitchForSemitone(pitchShift), NULL);
+        g_object_set(pitchShifterSoundtouch, "pitch", getPitchForSemitone(pitchShift), NULL);
     }
     emit pitchChanged(pitchShift);
 }
@@ -533,7 +532,7 @@ QStringList AudioBackendGstreamer::GstGetPlugins()
     plugins = pnode = gst_registry_get_plugin_list(gst_registry_get());
     while(pnode) {
             /* plugin: the plug-in info object pointed to by pnode */
-            GstPlugin* plugin = (GstPlugin*)pnode->data;
+            GstPlugin* plugin = reinterpret_cast<GstPlugin*>(pnode->data);
 
             list << gst_plugin_get_name(plugin);
             qInfo() << gst_plugin_get_name(plugin);
@@ -631,7 +630,7 @@ void AudioBackendGstreamer::busMessage(std::shared_ptr<GstMessage> message)
         break;
     case GST_MESSAGE_STATE_CHANGED:
         GstState state;
-        gst_element_get_state(playBin, &state, NULL, GST_CLOCK_TIME_NONE);
+        gst_element_get_state(playBin, &state, nullptr, GST_CLOCK_TIME_NONE);
         if (state == GST_STATE_PLAYING && lastState != AbstractAudioBackend::PlayingState)
         {
             qInfo() << "GST notified of state change to PLAYING";
@@ -671,7 +670,7 @@ void AudioBackendGstreamer::busMessage(std::shared_ptr<GstMessage> message)
             GValueArray *rms_arr;
             guint i;
             array_val = gst_structure_get_value(gst_message_get_structure(message.get()), "rms");
-            rms_arr = (GValueArray *) g_value_get_boxed (array_val);
+            rms_arr = reinterpret_cast<GValueArray*>(g_value_get_boxed (array_val));
             channels = rms_arr->n_values;
             double rmsValues = 0.0;
             for (i = 0; i < channels; ++i)
@@ -785,20 +784,12 @@ GstBusSyncReply AudioBackendGstreamer::busMessageDispatcher(GstBus *bus, GstMess
 {
   auto myObj = static_cast<AudioBackendGstreamer*>(userData);
 
-  Q_UNUSED(bus);
+  Q_UNUSED(bus)
 
   auto messagePtr = takeGstMiniObject(message);
   QMetaObject::invokeMethod(myObj, "busMessage", Qt::QueuedConnection, Q_ARG(std::shared_ptr<GstMessage>, messagePtr));
 
   return GST_BUS_DROP;
-}
-
-gboolean AudioBackendGstreamer::gstTimerDispatcher(QObject *qObj)
-{
-    auto abObj = static_cast<AudioBackendGstreamer*>(qObj);
-    QMetaObject::invokeMethod(abObj, "gstFastTimerFired");
-    /* call me again */
-    return TRUE;
 }
 
 
@@ -808,53 +799,35 @@ void AudioBackendGstreamer::buildPipeline()
     if (!gst_is_initialized())
     {
         qInfo() << objName << " - gst not initialized - initializing";
-        gst_init(NULL,NULL);
+        gst_init(nullptr,nullptr);
     }
     m_previewEnabledLastBuild = settings->previewEnabled();
-    aConvInput = gst_element_factory_make("audioconvert", NULL);
-    aConvPreSplit = gst_element_factory_make("audioconvert", NULL);
-    aConvPrePitchShift = gst_element_factory_make("audioconvert", NULL);
-    aConvPostPitchShift = gst_element_factory_make("audioconvert", NULL);
+    aConvInput = gst_element_factory_make("audioconvert", "aConvInput");
+    aConvPrePitchShift = gst_element_factory_make("audioconvert", "aConvPrePitchShift");
+    aConvPostPitchShift = gst_element_factory_make("audioconvert", "aConvPostPitchShift");
     audioSink = gst_element_factory_make("autoaudiosink", "autoAudioSink");
-    videoAppSink = gst_element_factory_make("appsink", "videoAppSink");
-    rgVolume = gst_element_factory_make("rgvolume", NULL);
+    rgVolume = gst_element_factory_make("rgvolume", "rgVolume");
     level = gst_element_factory_make("level", "level");
     pitchShifterSoundtouch = gst_element_factory_make("pitch", "pitch");
     pitchShifterRubberBand = gst_element_factory_make("ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo", "ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo");
-    equalizer = gst_element_factory_make("equalizer-10bands", NULL);
+    equalizer = gst_element_factory_make("equalizer-10bands", "equalizer");
     playBin = gst_element_factory_make("playbin", "playBin");
     // playBinPub = playBin;
-    fltrMplxInput = gst_element_factory_make("capsfilter", "filter");
-    fltrEnd = gst_element_factory_make("capsfilter", NULL);
+    fltrEnd = gst_element_factory_make("capsfilter", "fltrEnd");
     audioCapsStereo = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 2, NULL);
     audioCapsMono = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 1, NULL);
-    videoCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "BGRx", NULL);
-    g_object_set(fltrMplxInput, "caps", audioCapsStereo, NULL);
-    g_object_set(videoAppSink, "caps", videoCaps, NULL);
-    audioMixer = gst_element_factory_make("audiomixer", NULL);
-    deInterleave = gst_element_factory_make("deinterleave", NULL);
-//    g_signal_connect (deInterleave, "pad-added", G_CALLBACK (this->cb_new_pad), this);
     audioBin = gst_bin_new("audioBin");
-    tee = gst_element_factory_make("tee", NULL);
-    queueS = gst_element_factory_make("queue", NULL);
-    queueM = gst_element_factory_make("queue", NULL);
-    aConvL = gst_element_factory_make("audioconvert", NULL);
-    aConvR = gst_element_factory_make("audioconvert", NULL);
-    audioMixer = gst_element_factory_make("audiomixer", NULL);
-    aConvPostPanorama = gst_element_factory_make("audioconvert", NULL);
-    aConvEnd = gst_element_factory_make("audioconvert", NULL);
-    audioResample = gst_element_factory_make("audioresample", NULL);
-    queueL = gst_element_factory_make("queue", NULL);
-    queueR = gst_element_factory_make("queue", NULL);
-    fltrPostPanorama = gst_element_factory_make("capsfilter", NULL);
+    aConvPostPanorama = gst_element_factory_make("audioconvert", "aConvPostPanorama");
+    aConvEnd = gst_element_factory_make("audioconvert", "aConvEnd");
+    fltrPostPanorama = gst_element_factory_make("capsfilter", "fltrPostPanorama");
     g_object_set(fltrPostPanorama, "caps", audioCapsStereo, NULL);
-    volumeElement = gst_element_factory_make("volume", NULL);
+    volumeElement = gst_element_factory_make("volume", "volumeElement");
     queueMainAudio = gst_element_factory_make("queue", "queueMainAudio");
     queueEndAudio = gst_element_factory_make("queue", "queueEndAudio");
     audioPanorama = gst_element_factory_make("audiopanorama", "audioPanorama");
     g_object_set(audioPanorama, "method", 1, NULL);
 
-    gst_bin_add_many(GST_BIN(audioBin),queueMainAudio, audioPanorama, level, aConvInput, aConvPreSplit, rgVolume, volumeElement, equalizer, aConvL, aConvR, fltrMplxInput, tee, queueS, queueM, queueR, queueL, audioMixer, deInterleave, aConvPostPanorama, fltrPostPanorama, gst_object_ref(faderVolumeElement), NULL);
+    gst_bin_add_many(GST_BIN(audioBin),queueMainAudio, audioPanorama, level, aConvInput, rgVolume, volumeElement, equalizer, aConvPostPanorama, fltrPostPanorama, gst_object_ref(faderVolumeElement), NULL);
     gst_element_link(queueMainAudio, aConvInput);
     gst_element_link(aConvInput, rgVolume);
     gst_element_link(rgVolume, level);
@@ -866,39 +839,6 @@ void AudioBackendGstreamer::buildPipeline()
     gst_element_link(audioPanorama, aConvPostPanorama);
     gst_element_link(aConvPostPanorama, fltrPostPanorama);
 
-    // commented for mplx change
-//    gst_element_link(faderVolumeElement, tee);
-
-
-//    //gst_element_link(equalizer, tee);
-
-//    // Normal path
-//    gst_pad_link(teeSrcPadN, queueSinkPadN);
-//    gst_pad_link(queueSrcPadN, mixerSinkPadN);
-
-//    // Multiplex path input to deinterleave
-//    gst_pad_link(teeSrcPadM, queueSinkPadM);
-
-
-
-
-//    gst_element_link(queueM, aConvPreSplit);
-
-//    gst_element_link(aConvPreSplit, fltrMplxInput);
-//    gst_element_link(fltrMplxInput, deInterleave);
-//    // Left Channel to mixer
-//    gst_element_link(queueL, aConvL);
-//    gst_pad_link(aConvSrcPadL, mixerSinkPadL);
-//    // Right Channel to mixer
-//    gst_element_link(queueR, aConvR);
-//    gst_pad_link(aConvSrcPadR, mixerSinkPadR);
-
-//    gst_element_link(audioMixer, aConvPostMixer);
-//    gst_element_link(aConvPostMixer, fltrPostMixer);
-
-
-    // Normal or Multiplex stream to effects and end of chain
-
     if ((pitchShifterRubberBand) && (pitchShifterSoundtouch) && (loadPitchShift))
     {
         qInfo() << objName << " - Pitch shift RubberBand enabled";
@@ -908,9 +848,9 @@ void AudioBackendGstreamer::buildPipeline()
         gst_element_link_many(fltrPostPanorama, aConvPrePitchShift, pitchShifterRubberBand, aConvPostPitchShift, pitchShifterSoundtouch, queueEndAudio, aConvEnd, audioSink, NULL);
         m_canKeyChange = true;
         m_keyChangerRubberBand = true;
-        g_object_set(G_OBJECT(pitchShifterRubberBand), "formant-preserving", true, NULL);
-        g_object_set(G_OBJECT(pitchShifterRubberBand), "crispness", 1, NULL);
-        g_object_set(G_OBJECT(pitchShifterRubberBand), "semitones", 0, NULL);
+        g_object_set(pitchShifterRubberBand, "formant-preserving", true, NULL);
+        g_object_set(pitchShifterRubberBand, "crispness", 1, NULL);
+        g_object_set(pitchShifterRubberBand, "semitones", 0, NULL);
     }
     else if ((pitchShifterSoundtouch) && (loadPitchShift))
     {
@@ -920,7 +860,7 @@ void AudioBackendGstreamer::buildPipeline()
         gst_element_link_many(fltrPostPanorama, aConvPrePitchShift, pitchShifterSoundtouch, queueEndAudio, aConvEnd, audioSink, NULL);
         m_canKeyChange = true;
         m_keyChangerSoundtouch = true;
-        g_object_set(G_OBJECT(pitchShifterSoundtouch), "pitch", 1.0, "tempo", 1.0, NULL);
+        g_object_set(pitchShifterSoundtouch, "pitch", 1.0, "tempo", 1.0, NULL);
     }
     else
     {
@@ -934,15 +874,15 @@ void AudioBackendGstreamer::buildPipeline()
     gst_pad_set_active(ghostPad, true);
     gst_element_add_pad(audioBin, ghostPad);
     gst_object_unref(pad);
-    g_object_set(G_OBJECT(playBin), "audio-sink", audioBin, NULL);
+    g_object_set(playBin, "audio-sink", audioBin, NULL);
 
 // Video output
     if (settings->previewEnabled())
     {
         queueMainVideo = gst_element_factory_make("queue", "queueMainVideo");
-        videoQueue1 = gst_element_factory_make("queue", NULL);
-        videoQueue2 = gst_element_factory_make("queue", NULL);
-        videoTee = gst_element_factory_make("tee", NULL);
+        videoQueue1 = gst_element_factory_make("queue", "videoQueue1");
+        videoQueue2 = gst_element_factory_make("queue", "videoQueue2");
+        videoTee = gst_element_factory_make("tee", "videoTee");
         videoTeePad1 = gst_element_get_request_pad(videoTee, "src_%u");
         videoTeePad2 = gst_element_get_request_pad(videoTee, "src_%u");
         videoQueue1SrcPad = gst_element_get_static_pad(videoQueue1, "sink");
@@ -959,13 +899,13 @@ void AudioBackendGstreamer::buildPipeline()
         gst_element_add_pad(videoBin, ghostVideoPad);
         gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink1), videoWinId);
         gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink2), videoWinId2);
-        g_object_set(G_OBJECT(playBin), "video-sink", videoBin, NULL);
+        g_object_set(playBin, "video-sink", videoBin, NULL);
     }
     else
     {
         qInfo() << "Main window preview disabled, building pipeline without video tee";
         gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink1), videoWinId);
-        g_object_set(G_OBJECT(playBin), "video-sink", videoSink1, NULL);
+        g_object_set(playBin, "video-sink", videoSink1, NULL);
     }
 
 // End video output setup
@@ -973,8 +913,8 @@ void AudioBackendGstreamer::buildPipeline()
 
 
 
-    g_object_set(G_OBJECT(rgVolume), "album-mode", false, NULL);
-    g_object_set(G_OBJECT (level), "message", TRUE, NULL);
+    g_object_set(rgVolume, "album-mode", false, NULL);
+    g_object_set(level, "message", TRUE, NULL);
     bus = takeGstObject(gst_element_get_bus(playBin));
     gst_bus_set_sync_handler(bus.get(), busMessageDispatcher, this, nullptr);
     csource = gst_interpolation_control_source_new ();
@@ -986,7 +926,7 @@ void AudioBackendGstreamer::buildPipeline()
     if (!gst_object_add_control_binding (GST_OBJECT_CAST(faderVolumeElement), cbind))
         qInfo() << objName << " - Error adding control binding to volumeElement for fader control";
     g_object_set(csource, "mode", GST_INTERPOLATION_MODE_CUBIC, NULL);
-    tv_csource = (GstTimedValueControlSource *)csource;
+    tv_csource = reinterpret_cast<GstTimedValueControlSource*>(csource);
     setVolume(m_volume);
     slowTimer->start(1000);
    // fastTimer->start(200);
@@ -1024,7 +964,6 @@ void AudioBackendGstreamer::destroyPipeline()
     gst_object_unref(playBin);
     gst_caps_unref(audioCapsMono);
     gst_caps_unref(audioCapsStereo);
-    gst_caps_unref(videoCaps);
     gst_object_unref(bus.get());
     gst_object_unref(tv_csource);
     qInfo() << objName << " - destroyPipeline() finished";
@@ -1100,31 +1039,6 @@ bool AudioBackendGstreamer::canDownmix()
     return true;
 }
 
-//void AudioBackendGstreamer::newFrame()
-//{
-//    GstSample* sample = gst_app_sink_pull_sample((GstAppSink*)videoAppSink);
-
-//    if (sample) {
-//        m_hasVideo = true;
-//        GstBuffer *buffer;
-//        GstCaps *caps;
-//        GstStructure *s;
-//        int width, height;
-//        caps = gst_sample_get_caps (sample);
-//        s = gst_caps_get_structure (caps, 0);
-//        gst_structure_get_int (s, "width", &width);
-//        gst_structure_get_int (s, "height", &height);
-//        buffer = gst_sample_get_buffer (sample);
-//        GstMapInfo bufferInfo;
-//        gst_buffer_map(buffer,&bufferInfo,GST_MAP_READ);
-//        guint8 *rawFrame = bufferInfo.data;
-//        QImage frame = QImage(rawFrame,width,height,QImage::Format_RGBX8888);
-//        emit newVideoFrame(frame, getName());
-//        gst_buffer_unmap(buffer, &bufferInfo);
-//        gst_sample_unref(sample);
-//    }
-//}
-
 int AudioBackendGstreamer::tempo()
 {
     return m_tempo;
@@ -1176,106 +1090,6 @@ void AudioBackendGstreamer::setOutputDevice(int deviceIndex)
     gst_element_link(aConvEnd, audioSink);
 }
 
-//void AudioBackendGstreamer::EndOfStreamCallback(GstAppSink* appsink, gpointer user_data)
-//{
-//    Q_UNUSED(appsink)
-//    Q_UNUSED(user_data)
-//}
-
-//GstFlowReturn AudioBackendGstreamer::NewPrerollCallback(GstAppSink* appsink, gpointer user_data)
-//{
-//    Q_UNUSED(user_data)
-//    Q_UNUSED(appsink)
-//    return GST_FLOW_OK;
-
-//}
-
-//GstFlowReturn AudioBackendGstreamer::NewSampleCallback(GstAppSink* appsink, gpointer user_data)
-//{
-//    Q_UNUSED(appsink)
-//    AudioBackendGstreamer *myObject = (AudioBackendGstreamer*) user_data;
-//    myObject->newFrame();
-//    return GST_FLOW_OK;
-
-//}
-
-//void AudioBackendGstreamer::cb_new_pad(GstElement *element, GstPad *pad, gpointer data)
-//{
-//    Q_UNUSED(element);
-//    AudioBackendGstreamer *parent = reinterpret_cast<AudioBackendGstreamer*>(data);
-//    gchar *padName = gst_pad_get_name(pad);
-//    QString name = QString(padName);
-//    g_free(padName);
-//    if (name == "src_0")
-//    {
-////        qInfo() << parent->objName << " - Linking deinterleave pad src_0 to queueSinkPadL";
-//        GstPadLinkReturn result = gst_pad_link(pad, parent->queueSinkPadL);
-//        switch (result) {
-//        case GST_PAD_LINK_OK:
-//   //         qInfo() << parent->objName << " - link succeeded";
-//            break;
-//        case GST_PAD_LINK_WRONG_HIERARCHY:
-//            qInfo() << parent->objName << " - pads have no common grandparent";
-//            break;
-//        case GST_PAD_LINK_WAS_LINKED:
-//            qInfo() << parent->objName << " - pad was already linked";
-//            break;
-//        case GST_PAD_LINK_WRONG_DIRECTION:
-//            qInfo() << parent->objName << " - pads have wrong direction";
-//            break;
-//        case GST_PAD_LINK_NOFORMAT:
-//            qInfo() << parent->objName << " - pads do not have common format";
-//            break;
-//        case GST_PAD_LINK_NOSCHED:
-//            qInfo() << parent->objName << " - pads cannot cooperate in scheduling";
-//            break;
-//        case GST_PAD_LINK_REFUSED:
-//            qInfo() << parent->objName << " - refused for some reason";
-//            break;
-//        default:
-//            qInfo() << parent->objName << " - Unknown return type";
-//            break;
-//        }
-//    }
-//    if (name == "src_1")
-//    {
-//  //      qInfo() << parent->objName << " - Linking deinterleave pad src_1 to queueSinkPadR";
-//        GstPadLinkReturn result = gst_pad_link(pad, parent->queueSinkPadR);
-//        switch (result) {
-//        case GST_PAD_LINK_OK:
-// //           qInfo() << parent->objName << " - link succeeded";
-//            break;
-//        case GST_PAD_LINK_WRONG_HIERARCHY:
-//            qInfo() << parent->objName << " - pads have no common grandparent";
-//            break;
-//        case GST_PAD_LINK_WAS_LINKED:
-//            qInfo() << parent->objName << " - pad was already linked";
-//            break;
-//        case GST_PAD_LINK_WRONG_DIRECTION:
-//            qInfo() << parent->objName << " - pads have wrong direction";
-//            break;
-//        case GST_PAD_LINK_NOFORMAT:
-//            qInfo() << parent->objName << " - pads do not have common format";
-//            break;
-//        case GST_PAD_LINK_NOSCHED:
-//            qInfo() << parent->objName << " - pads cannot cooperate in scheduling";
-//            break;
-//        case GST_PAD_LINK_REFUSED:
-//            qInfo() << parent->objName << " - refused for some reason";
-//            break;
-//        default:
-//            qInfo() << parent->objName << " - Unknown return type";
-//            break;
-//        }
-//    }
-// //   qInfo() << parent->objName << " - Linking complete";
-//    parent->setMplxMode(settings->mplxMode());
-//}
-
-void AudioBackendGstreamer::DestroyCallback(gpointer user_data)
-{
-    Q_UNUSED(user_data)
-}
 
 
 void AudioBackendGstreamer::setMplxMode(int mode)
@@ -1285,31 +1099,18 @@ void AudioBackendGstreamer::setMplxMode(int mode)
     {
         g_object_set(audioPanorama, "panorama", 0.0, NULL);
         setDownmix(settings->audioDownmix());
-//        g_object_set(mixerSinkPadN, "mute", false, NULL);
-//        g_object_set(mixerSinkPadL, "mute", true, NULL);
-//        g_object_set(mixerSinkPadR, "mute", true, NULL);
     }
     else if (mode == Multiplex_LeftChannel)
     {
         setDownmix(true);
         g_object_set(audioPanorama, "panorama", -1.0, NULL);
-
-//        g_object_set(mixerSinkPadN, "mute", true, NULL);
-//        g_object_set(mixerSinkPadL, "mute", false, NULL);
-//        g_object_set(mixerSinkPadR, "mute", true, NULL);
     }
     else if (mode == Multiplex_RightChannel)
     {
         setDownmix(true);
         g_object_set(audioPanorama, "panorama", 1.0, NULL);
 
-//        g_object_set(mixerSinkPadN, "mute", true, NULL);
-//        g_object_set(mixerSinkPadL, "mute", true, NULL);
-//        g_object_set(mixerSinkPadR, "mute", false, NULL);
     }
-    //settings->setMplxMode(mode);
- //   qInfo() << objName << " - setMplxMode() complete";
-
 }
 
 
