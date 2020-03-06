@@ -41,7 +41,8 @@ else
   wget -c --no-check-certificate -nv -Oqt.tar.bz2 https://storage.googleapis.com/okj-installer-deps/qt-5.12.6.tbz2
   echo "Extracting Qt"
   bunzip2 -v qt.tar.bz2
-  tar -xvf qt.tar
+  echo "Untarring Qt"
+  tar -xf qt.tar
   echo "Moving Qt to proper location"
   mv Qt $HOME/Qt
 fi
