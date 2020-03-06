@@ -22,8 +22,8 @@ unzip -P$cscrtPass cscrt.zip
 security import devidapplication.p12 -k build.keychain -P $p12Pass -A 
 security set-key-partition-list -S apple-tool:,apple: -s -k $keychainPass build.keychain
 
-#echo "Installing osxrelocator"
-#pip2 install osxrelocator
+echo "Installing osxrelocator"
+pip2 install osxrelocator
 
 #echo "Installing appdmg"
 #npm install -g appdmg
@@ -40,8 +40,8 @@ else
   echo "Downloading Qt"
   wget -c --no-check-certificate -nv -Oqt.tar.bz2 https://storage.googleapis.com/okj-installer-deps/qt-5.12.6.tbz2
   echo "Extracting Qt"
-  bunzip2 qt.tar.bz2
-  tar -xf qt.tar
+  bunzip2 -v qt.tar.bz2
+  tar -xvf qt.tar
   echo "Moving Qt to proper location"
   mv Qt $HOME/Qt
 fi
@@ -58,8 +58,8 @@ else
   wget -c --no-check-certificate -nv -Ogstreamer-dev.pkg https://storage.googleapis.com/okj-installer-deps/gstreamer-1.0-devel-1.16.2-x86_64.pkg 
   echo "Installing gstreamer runtime package"
   sudo installer -package gstreamer.pkg -target /;
-#  echo "Making a deployment copy of the runtime"
-#  sudo cp -R /Library/Frameworks/GStreamer.framework /Library/Frameworks/GStreamer.framework.deploy
+  echo "Making a deployment copy of the runtime"
+  sudo cp -R /Library/Frameworks/GStreamer.framework /Library/Frameworks/GStreamer.framework.deploy
   echo "Installing gstreamer devel package"
   sudo installer -package gstreamer-dev.pkg -target /;
   sudo ln -s /Users/travis /Users/lightburnisaac
