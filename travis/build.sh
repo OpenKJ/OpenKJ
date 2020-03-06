@@ -36,7 +36,7 @@ echo "Signing code"
 codesign -s "Developer ID Application: Isaac Lightburn (47W8CPBS5A)" -vvvv --deep --timestamp=none ${BundlePath}
 
 echo "Creating installer pkg"
-cp -r ${BundlePath} /Applications/OpenKJ.app
+mv ${BundlePath} /Applications/OpenKJ.app
 productbuild --component /Applications/OpenKJ.app OpenKJ.pkg
 
 echo "Signing installer"
