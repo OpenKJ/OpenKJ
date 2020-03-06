@@ -1,8 +1,10 @@
 language: c++
 os:
 - osx
+osx_image: 
+- xcode11.3
 env:
-  - OKJVER=1.7.42
+  - OKJVER=1.7.43
 before_install:
 - source travis/before_install.sh
 install:
