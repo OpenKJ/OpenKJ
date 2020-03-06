@@ -40,6 +40,17 @@ Q_DECLARE_METATYPE(std::shared_ptr<GstMessage>);
 AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *parent, QString objectName) :
     AbstractAudioBackend(parent)
 {
+#ifdef Q_OS_MACOS
+    QString appDir = QCoreApplication::applicationDirPath();
+    qputenv("GST_PLUGIN_SYSTEM_PATH", QString(appDir + "/../Frameworks/GStreamer.framework/Versions/Current/lib/gstreamer-1.0").toLocal8Bit());
+    qputenv("GST_PLUGIN_SCANNER", QString(appDir + "/../Frameworks/GStreamer.framework/Versions/Current/libexec/gstreamer-1.0/gst-plugin-scanner").toLocal8Bit());
+    qputenv("GTK_PATH", QString(appDir + "/../Frameworks/GStreamer.framework/Versions/Current/").toLocal8Bit());
+    qputenv("GIO_EXTRA_MODULES", QString(appDir + "/../Frameworks/GStreamer.framework/Versions/Current/lib/gio/modules").toLocal8Bit());
+    qWarning() << "MacOS detected, changed GST env vars to point to the bundled framework";
+    qInfo() << "Application dir: " << appDir;
+    qWarning() << qgetenv("GST_PLUGIN_SYSTEM_PATH") << endl << qgetenv("GST_PLUGIN_SCANNER") << endl << qgetenv("GTK_PATH") << endl << qgetenv("GIO_EXTRA_MODULES") << endl;
+#endif
+
     accelMode = XVideo;
     initDone = false;
     qInfo() << "Start constructing GStreamer backend";
