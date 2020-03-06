@@ -27,9 +27,9 @@ ls -l
 ln -s 1.0 Current
 cd -
 echo "Modifying linker path info for GStreamer library to app bundle pathing"
-osxrelocator ${BundlePath}/Contents/Frameworks/GStreamer.framework/Versions/Current/lib /Library/Frameworks/GStreamer.framework/ /Applications/OpenKJ.app/Contents/Frameworks/GStreamer.framework/ -r 
-osxrelocator ${BundlePath}/Contents/Frameworks/GStreamer.framework/Versions/Current/libexec /Library/Frameworks/GStreamer.framework/ /Applications/OpenKJ.app/Contents/Frameworks/GStreamer.framework/ -r 
-osxrelocator ${BundlePath}/Contents/Frameworks/GStreamer.framework/Versions/Current/bin /Library/Frameworks/GStreamer.framework/ /Applications/OpenKJ.app/Contents/Frameworks/GStreamer.framework/ -r 
+osxrelocator ${BundlePath}/Contents/Frameworks/GStreamer.framework/Versions/Current/lib /Library/Frameworks/GStreamer.framework/ @executable_path/../Frameworks/GStreamer.framework/ -r 
+osxrelocator ${BundlePath}/Contents/Frameworks/GStreamer.framework/Versions/Current/libexec /Library/Frameworks/GStreamer.framework/ @executable_path/../../../../../GStreamer.framework/ -r 
+osxrelocator ${BundlePath}/Contents/Frameworks/GStreamer.framework/Versions/Current/bin /Library/Frameworks/GStreamer.framework/ @executable_path/../../../../GStreamer.framework/ -r 
 osxrelocator ${BundlePath}/Contents/MacOS /Library/Frameworks/GStreamer.framework/ /Applications/OpenKJ.app/Contents/Frameworks/GStreamer.framework/ -r &>/dev/null
 
 echo "Signing code"
