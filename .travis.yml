@@ -4,7 +4,7 @@ os:
 osx_image: 
 - xcode11.3
 env:
-  - OKJVER=1.7.44
+  - OKJVER=1.7.45
 before_install:
 - source travis/before_install.sh
 install:

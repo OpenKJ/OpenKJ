@@ -37,7 +37,7 @@ codesign -s "Developer ID Application: Isaac Lightburn (47W8CPBS5A)" -vvvv --dee
 
 echo "Creating installer pkg"
 mv ${BundlePath} /Applications/OpenKJ.app
-productbuild --component /Applications/OpenKJ.app OpenKJ.pkg
+productbuild --identifier org.openkj.openkj --version ${OKJVER} --component /Applications/OpenKJ.app OpenKJ.pkg
 
 echo "Signing installer"
 productsign --sign "Developer ID Installer: Isaac Lightburn (47W8CPBS5A)" OpenKJ.pkg ${INSTALLERFN}
