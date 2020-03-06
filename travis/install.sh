@@ -20,6 +20,7 @@ wget -c --no-check-certificate -nv -Ocscrt.zip https://storage.googleapis.com/ok
 unzip -P$cscrtPass cscrt.zip
 
 security import devidapplication.p12 -k build.keychain -P $p12Pass -A 
+security import macosinstallercert.p12 -k build.keychain -P $p12Pass -A
 security set-key-partition-list -S apple-tool:,apple: -s -k $keychainPass build.keychain
 
 echo "Installing osxrelocator"
