@@ -58,8 +58,8 @@ else
   wget -c --no-check-certificate -nv -Ogstreamer-dev.pkg https://storage.googleapis.com/okj-installer-deps/gstreamer-1.0-devel-1.16.2-x86_64.pkg 
   echo "Installing gstreamer runtime package"
   sudo installer -package gstreamer.pkg -target /;
-#  echo "Making a deployment copy of the runtime"
-#  sudo cp -R /Library/Frameworks/GStreamer.framework /Library/Frameworks/GStreamer.framework.deploy
+  echo "Making a deployment copy of the runtime"
+  sudo cp -R /Library/Frameworks/GStreamer.framework /Library/Frameworks/GStreamer.framework.deploy
   echo "Installing gstreamer devel package"
   sudo installer -package gstreamer-dev.pkg -target /;
   sudo ln -s /Users/travis /Users/lightburnisaac
