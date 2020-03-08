@@ -819,6 +819,8 @@ void AudioBackendGstreamer::buildPipeline()
     aConvPostPitchShift = gst_element_factory_make("audioconvert", "aConvPostPitchShift");
     audioSink = gst_element_factory_make("autoaudiosink", "autoAudioSink");
     rgVolume = gst_element_factory_make("rgvolume", "rgVolume");
+    g_object_set(rgVolume, "pre-amp", 6.0, "headroom", 10.0, NULL);
+    rgLimiter = gst_element_factory_make("rglimiter", "rgLimiter");
     level = gst_element_factory_make("level", "level");
     pitchShifterSoundtouch = gst_element_factory_make("pitch", "pitch");
     pitchShifterRubberBand = gst_element_factory_make("ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo", "ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo");
@@ -839,10 +841,11 @@ void AudioBackendGstreamer::buildPipeline()
     audioPanorama = gst_element_factory_make("audiopanorama", "audioPanorama");
     g_object_set(audioPanorama, "method", 1, NULL);
 
-    gst_bin_add_many(GST_BIN(audioBin),queueMainAudio, audioPanorama, level, aConvInput, rgVolume, volumeElement, equalizer, aConvPostPanorama, fltrPostPanorama, gst_object_ref(faderVolumeElement), NULL);
+    gst_bin_add_many(GST_BIN(audioBin),queueMainAudio, audioPanorama, level, aConvInput, rgVolume, rgLimiter, volumeElement, equalizer, aConvPostPanorama, fltrPostPanorama, gst_object_ref(faderVolumeElement), NULL);
     gst_element_link(queueMainAudio, aConvInput);
     gst_element_link(aConvInput, rgVolume);
-    gst_element_link(rgVolume, level);
+    gst_element_link(rgVolume, rgLimiter);
+    gst_element_link(rgLimiter, level);
     gst_element_link(level, volumeElement);
     gst_element_link(volumeElement, equalizer);
     gst_element_link(equalizer, faderVolumeElement);

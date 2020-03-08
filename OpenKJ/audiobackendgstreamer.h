@@ -74,6 +74,7 @@ private:
     GstElement *aConvEnd;
     GstElement *audioSink;
     GstElement *rgVolume;
+    GstElement *rgLimiter;
     GstElement *pitchShifterRubberBand;
     GstElement *pitchShifterSoundtouch;
     GstElement *level;
