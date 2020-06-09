@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT += core gui sql network widgets multimedia concurrent svg printsupport
+QT += core gui sql network widgets multimedia concurrent svg printsupport opengl
 
 unix:DISTVER = $$system(cat /etc/os-release |grep VERSION_ID |cut -d'=' -f2 | sed -e \'s/^\"//\' -e \'s/\"$//\')
 message($$DISTVER)
@@ -104,7 +104,7 @@ contains(DEFINES, STATIC_TAGLIB) {
 #QMAKE_MAC_SDK = MacOSX10.13
 #QMAKE_MAC_SDK.macosx.version = 10.13
 
-VERSION = 1.7.48
+VERSION = 1.7.49
 message($$VERSION)
 QMAKE_TARGET_COMPANY = OpenKJ.org
 QMAKE_TARGET_PRODUCT = OpenKJ
