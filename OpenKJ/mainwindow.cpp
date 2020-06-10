@@ -45,6 +45,7 @@
 #include "tableviewtooltipfilter.h"
 #include <tickernew.h>
 #include "dbupdatethread.h"
+#include <chrono>
 
 #ifdef Q_OS_WIN
 #include <Windows.h>
@@ -54,7 +55,7 @@ Settings *settings;
 OKJSongbookAPI *songbookApi;
 int remainSecs = 240;
 
-
+auto startTime = std::chrono::high_resolution_clock::now();
 
 QString MainWindow::GetRandomString() const
 {
@@ -136,6 +137,8 @@ QStringList *logContents;
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
     bool loggingEnabled = settings->logEnabled();
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    unsigned int elapsed = chrono::duration_cast<chrono::milliseconds>(currentTime - startTime).count();
     if (loggingEnabled && !logFile->isOpen())
     {
         QString logDir = settings->logDir();
@@ -161,27 +164,27 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
     case QtDebugMsg:
         fprintf(stderr, "DEBG: %s (%s)\n", localMsg.constData(), context.function);
         if (loggingEnabled) logStream << "DEBG: " << localMsg << " (" << context.function << ")\n";
-        logContents->append(QString("DEBG: " + localMsg + " (" + context.function + ")"));
+        logContents->append(QString::number(elapsed) + QString(" - DEBG: " + localMsg + " (" + context.function + ")"));
         break;
     case QtInfoMsg:
         fprintf(stderr, "INFO: %s (%s)\n", localMsg.constData(), context.function);
         if (loggingEnabled) logStream << "INFO: " << localMsg << " (" << context.function << ")\n";
-        logContents->append(QString("INFO: " + localMsg + " (" + context.function + ")"));
+        logContents->append(QString::number(elapsed) + QString(" - INFO: " + localMsg + " (" + context.function + ")"));
         break;
     case QtWarningMsg:
         fprintf(stderr, "WARN: %s (%s)\n", localMsg.constData(), context.function);
         if (loggingEnabled) logStream << "WARN: " << localMsg << " (" << context.function << ")\n";
-        logContents->append(QString("WARN: " + localMsg + " (" + context.function + ")"));
+        logContents->append(QString::number(elapsed) + QString(" - WARN: " + localMsg + " (" + context.function + ")"));
         break;
     case QtCriticalMsg:
         fprintf(stderr, "CRIT: %s (%s)\n", localMsg.constData(), context.function);
         if (loggingEnabled) logStream << "CRIT: " << localMsg << " (" << context.function << ")\n";
-        logContents->append(QString("CRIT: " + localMsg + " (" + context.function + ")"));
+        logContents->append(QString::number(elapsed) + QString(" - CRIT: " + localMsg + " (" + context.function + ")"));
         break;
     case QtFatalMsg:
         fprintf(stderr, "FATAL!!: %s (%s)\n", localMsg.constData(), context.function);
         if (loggingEnabled) logStream << "FATAL!!: " << localMsg << " (" << context.function << ")\n";
-        logContents->append(QString("FATAL!!: " + localMsg + " (" + context.function + ")"));
+        logContents->append(QString::number(elapsed) + QString(" - FATAL!!: " + localMsg + " (" + context.function + ")"));
         abort();
     }
 }
@@ -641,7 +644,7 @@ MainWindow::MainWindow(QWidget *parent) :
         }
     }
     cdgOffset = settings->cdgDisplayOffset();
-    connect(settings, SIGNAL(cdgDisplayOffsetChanged(int)), this, SLOT(cdgOffsetChanged(int)));
+    //connect(settings, SIGNAL(cdgDisplayOffsetChanged(int)), this, SLOT(cdgOffsetChanged(int)));
 
     connect(settings, SIGNAL(eqBBypassChanged(bool)), bmAudioBackend, SLOT(setEqBypass(bool)));
     connect(settings, SIGNAL(eqBLevel1Changed(int)), bmAudioBackend, SLOT(setEqLevel1(int)));

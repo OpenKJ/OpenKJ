@@ -78,7 +78,7 @@ DlgDatabase::~DlgDatabase()
     delete ui;
 }
 
-void DlgDatabase::singleSongAdd(QString path)
+void DlgDatabase::singleSongAdd(const QString& path)
 {
     qInfo() << "singleSongAdd(" << path << ") called";
     DbUpdateThread *updateThread = new DbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "threaddb"),this);
@@ -88,7 +88,7 @@ void DlgDatabase::singleSongAdd(QString path)
     //emit databaseSongAdded();
 }
 
-int DlgDatabase::dropFileAdd(QString path)
+int DlgDatabase::dropFileAdd(const QString &path)
 {
     DbUpdateThread *updateThread = new DbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "threaddb"),this);
     int songId = updateThread->addDroppedFile(path);

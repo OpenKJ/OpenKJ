@@ -25,7 +25,6 @@ private:
     GstElement *audioRate;
     GstElement *autoAudioSrc;
     GstBus *bus;
-    GstDeviceMonitor *monitor;
     QList<GstDevice*> inputDevices;
     QStringList inputDeviceNames;
     QStringList codecs;
@@ -45,6 +44,7 @@ private:
 
 public:
     explicit AudioRecorder(QObject *parent = 0);
+    ~AudioRecorder();
     void refreshDeviceList();
     QStringList getDeviceList();
     QStringList getCodecs();

@@ -14,15 +14,20 @@ void LazyDurationUpdateWorker::getDurations(const QStringList files) {
     foreach (path, files)
     {
         int duration = 0;
-        archive.setArchiveFile(path);
-        duration = archive.getSongDuration();
+        if (path.endsWith(".zip", Qt::CaseInsensitive))
+        {
+            archive.setArchiveFile(path);
+            duration = archive.getSongDuration();
+        }
         if (duration == 0)
+        {
+            parser.setFileName(path);
             duration = parser.getDuration();
-        qInfo() << "PATH: " << path << " -- DURATION: " << duration;
+        }
+        //qInfo() << "PATH: " << path << " -- DURATION: " << duration;
         emit gotDuration(path, duration);
         if (QThread::currentThread()->isInterruptionRequested())
             break;
-        //QThread::msleep(50);
     }
 }
 
@@ -48,6 +53,7 @@ void LazyDurationUpdateController::getSongsRequiringUpdate()
     files.clear();
     QSqlQuery query;
     query.exec("SELECT path FROM dbsongs WHERE duration < 1 ORDER BY artist, title");
+    files.reserve(query.size());
     while (query.next())
     {
         files.append(query.value(0).toString());

@@ -183,7 +183,7 @@ bool Settings::saveKNAccount()
     return settings->value("saveKNAccount", false).toBool();
 }
 
-QString Settings::getCCN(QString password)
+QString Settings::getCCN(const QString &password)
 {
     SimpleCrypt simpleCrypt(this->hash(password));
     QString encrypted = settings->value("cc", QString()).toString();
@@ -194,7 +194,7 @@ QString Settings::getCCN(QString password)
     return parts.at(0);
 }
 
-QString Settings::getCCM(QString password)
+QString Settings::getCCM(const QString &password)
 {
     SimpleCrypt simpleCrypt(this->hash(password));
     QString encrypted = settings->value("cc", QString()).toString();
@@ -205,7 +205,7 @@ QString Settings::getCCM(QString password)
     return parts.at(1);
 }
 
-QString Settings::getCCY(QString password)
+QString Settings::getCCY(const QString &password)
 {
     SimpleCrypt simpleCrypt(this->hash(password));
     QString encrypted = settings->value("cc", QString()).toString();
@@ -216,7 +216,7 @@ QString Settings::getCCY(QString password)
     return parts.at(2);
 }
 
-QString Settings::getCCV(QString password)
+QString Settings::getCCV(const QString &password)
 {
     SimpleCrypt simpleCrypt(this->hash(password));
     QString encrypted = settings->value("cc", QString()).toString();
@@ -227,19 +227,19 @@ QString Settings::getCCV(QString password)
     return parts.at(3);
 }
 
-void Settings::setKaroakeDotNetUser(QString username, QString password)
+void Settings::setKaroakeDotNetUser(const QString &username, const QString &password)
 {
     SimpleCrypt simpleCrypt(this->hash(password));
     settings->setValue("karaokeDotNetUser", simpleCrypt.encryptToString(username));
 }
 
-void Settings::setKaraokeDotNetPass(QString KDNPassword, QString password)
+void Settings::setKaraokeDotNetPass(const QString &KDNPassword, const QString &password)
 {
     SimpleCrypt simpleCrypt(this->hash(password));
     settings->setValue("karaokeDotNetPass", simpleCrypt.encryptToString(KDNPassword));
 }
 
-QString Settings::karoakeDotNetUser(QString password)
+QString Settings::karoakeDotNetUser(const QString &password)
 {
     SimpleCrypt simpleCrypt(this->hash(password));
     QString encrypted = settings->value("karaokeDotNetUser", QString()).toString();
@@ -249,7 +249,7 @@ QString Settings::karoakeDotNetUser(QString password)
     return username;
 }
 
-QString Settings::karoakeDotNetPass(QString password)
+QString Settings::karoakeDotNetPass(const QString &password)
 {
     SimpleCrypt simpleCrypt(this->hash(password));
     QString encrypted = settings->value("karaokeDotNetPass", QString()).toString();
@@ -302,7 +302,7 @@ int Settings::cdgWindowFullScreenMonitor()
 {
     //We default to the highest mointor present, by default, rather than the primary display.  Seems to make more sense
     //and will help prevent people from popping up a full screen window in front of the main window and getting confused.
-    return settings->value("cdgWindowFullScreenMonitor", QApplication::desktop()->screenCount() - 1).toInt();
+    return settings->value("cdgWindowFullScreenMonitor", QGuiApplication::screens().count() - 1).toInt();
 }
 
 void Settings::saveWindowState(QWidget *window)
@@ -392,13 +392,13 @@ void Settings::restoreSplitterState(QSplitter *splitter)
     settings->endGroup();
 }
 
-void Settings::setTickerFont(QFont font)
+void Settings::setTickerFont(const QFont &font)
 {
     settings->setValue("tickerFont", font.toString());
     emit tickerFontChanged();
 }
 
-void Settings::setApplicationFont(QFont font)
+void Settings::setApplicationFont(const QFont &font)
 {
     settings->setValue("applicationFont", font.toString());
     QApplication::setFont(font, "QWidget");
@@ -445,7 +445,7 @@ void Settings::setTickerSpeed(int speed)
 
 QColor Settings::tickerTextColor()
 {
-    return settings->value("tickerTextColor", QApplication::palette().foreground().color()).value<QColor>();
+    return settings->value("tickerTextColor", QApplication::palette().windowText().color()).value<QColor>();
 }
 
 void Settings::setTickerTextColor(QColor color)
@@ -463,12 +463,12 @@ QFont Settings::cdgRemainFont()
 
 QColor Settings::cdgRemainTextColor()
 {
-    return settings->value("cdgRemainTextColor", QApplication::palette().foreground().color()).value<QColor>();
+    return settings->value("cdgRemainTextColor", QApplication::palette().windowText().color()).value<QColor>();
 }
 
 QColor Settings::cdgRemainBgColor()
 {
-    return settings->value("cdgRemainBgColor", QApplication::palette().background().color()).value<QColor>();
+    return settings->value("cdgRemainBgColor", QApplication::palette().window().color()).value<QColor>();
 
 }
 
@@ -541,7 +541,7 @@ void Settings::setPreviewEnabled(bool enabled)
 
 QColor Settings::tickerBgColor()
 {
-    return settings->value("tickerBgColor", QApplication::palette().background().color()).value<QColor>();
+    return settings->value("tickerBgColor", QApplication::palette().window().color()).value<QColor>();
 }
 
 void Settings::setTickerBgColor(QColor color)
@@ -588,7 +588,7 @@ QString Settings::tickerCustomString()
     return settings->value("tickerCustomString", "").toString();
 }
 
-void Settings::setTickerCustomString(QString value)
+void Settings::setTickerCustomString(const QString &value)
 {
     settings->setValue("tickerCustomString", value);
     emit tickerCustomStringChanged();
@@ -1309,12 +1309,12 @@ bool Settings::showSongPauseStopWarning()
 
 QColor Settings::alertTxtColor()
 {
-    return settings->value("alertTxtColor", QApplication::palette().foreground().color()).value<QColor>();
+    return settings->value("alertTxtColor", QApplication::palette().windowText().color()).value<QColor>();
 }
 
 QColor Settings::alertBgColor()
 {
-    return settings->value("alertBgColor", QApplication::palette().background().color()).value<QColor>();
+    return settings->value("alertBgColor", QApplication::palette().window().color()).value<QColor>();
 }
 
 bool Settings::bmAutoStart()
@@ -1649,7 +1649,7 @@ int Settings::currentRotationPosition()
 
 bool Settings::dbSkipValidation()
 {
-    return settings->value("dbSkipValidation", false).toBool();
+    return settings->value("dbSkipValidation", true).toBool();
 }
 
 void Settings::dbSetSkipValidation(bool val)
@@ -1659,7 +1659,7 @@ void Settings::dbSetSkipValidation(bool val)
 
 bool Settings::dbLazyLoadDurations()
 {
-    return settings->value("dbLazyLoadDurations", false).toBool();
+    return settings->value("dbLazyLoadDurations", true).toBool();
 }
 
 void Settings::dbSetLazyLoadDurations(bool val)

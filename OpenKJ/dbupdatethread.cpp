@@ -132,16 +132,13 @@ QString DbUpdateThread::getPath() const
 QStringList DbUpdateThread::findKaraokeFiles(QString directory)
 {
     qInfo() << "DbUpdateThread::findKaraokeFiles(" << directory << ") called";
-//    qInfo() << "Creating thread db connection";
-//    QSqlDatabase database = genUniqueDbConn();
-////    database.setDatabaseName(QStandardPaths::writableLocation(QStandardPaths::DataLocation) + QDir::separator() + "openkj.sqlite");
-//    database.open();
-//    qInfo() << "Created";
     QStringList files;
     emit progressMessage("Finding karaoke files in " + directory);
     files.clear();
+    files.reserve(200000);
     QDir dir(directory);
     QDirIterator iterator(dir.absolutePath(), QDirIterator::Subdirectories);
+
     int existing = 0;
     int notInDb = 0;
     int total = 0;
@@ -150,6 +147,7 @@ QStringList DbUpdateThread::findKaraokeFiles(QString directory)
     qInfo() << "Created";
     bool alreadyInDb = false;
     query.prepare("SELECT songid FROM dbsongs WHERE path = :filepath AND discid != '!!DROPPED!!' LIMIT 1");
+    int loops = 0;
     while (iterator.hasNext()) {
         QApplication::processEvents();
         iterator.next();
@@ -157,7 +155,7 @@ QStringList DbUpdateThread::findKaraokeFiles(QString directory)
             total++;
             query.bindValue(":filepath", iterator.filePath());
             query.exec();
-            qInfo() << query.lastError();
+            //qInfo() << query.lastError();
             if (query.first())
             {
                 alreadyInDb = true;
@@ -169,7 +167,11 @@ QStringList DbUpdateThread::findKaraokeFiles(QString directory)
             if (alreadyInDb)
             {
                 existing++;
-                emit stateChanged("Finding potential karaoke files... " + QString::number(total) + " found. " + QString::number(notInDb) + " new/" + QString::number(existing) + " existing");
+                if (loops >= 5)
+                {
+                    emit stateChanged("Finding potential karaoke files... " + QString::number(total) + " found. " + QString::number(notInDb) + " new/" + QString::number(existing) + " existing");
+                    loops = 0;
+                }
                 continue;
             }
             QString fn = iterator.filePath();
@@ -179,25 +181,21 @@ QStringList DbUpdateThread::findKaraokeFiles(QString directory)
             {
                 if (findMatchingAudioFile(fn) != "")
                     files.append(fn);
-//                QString audioFilename = fn;
-//                audioFilename.chop(3);
-//                if ((QFile::exists(audioFilename + "mp3")) || (QFile::exists(audioFilename + "MP3")) || (QFile::exists(audioFilename + "Mp3")) || (QFile::exists(audioFilename + "mP3")))
-//                    files.append(fn);
             }
             else if (fn.endsWith(".mkv", Qt::CaseInsensitive) || fn.endsWith(".avi", Qt::CaseInsensitive) || fn.endsWith(".wmv", Qt::CaseInsensitive) || fn.endsWith(".mp4", Qt::CaseInsensitive) || fn.endsWith(".m4v", Qt::CaseInsensitive) || fn.endsWith(".mpg", Qt::CaseInsensitive) || fn.endsWith(".mpeg", Qt::CaseInsensitive))
                 files.append(fn);
             notInDb++;
         }
-        emit stateChanged("Finding potential karaoke files... " + QString::number(total) + " found. " + QString::number(notInDb) + " new/" + QString::number(existing) + " existing");
-
-        //emit stateChanged("Finding potential karaoke files... " + QString::number(files.size()) + " found.");
+        if (loops >= 5)
+        {
+            emit stateChanged("Finding potential karaoke files... " + QString::number(total) + " found. " + QString::number(notInDb) + " new/" + QString::number(existing) + " existing");
+            loops = 0;
+        }
+        loops++;
     }
+    emit stateChanged("Finding potential karaoke files... " + QString::number(total) + " found. " + QString::number(notInDb) + " new/" + QString::number(existing) + " existing");
     qInfo() << "File search results - Potential files: " << files.size() << " - Already in DB: " << existing << " - New: " << notInDb;
     emit progressMessage("Done searching for files.");
-//    qInfo() << "Removing thread db connection";
-//    query.clear();
-//    QSqlDatabase::removeDatabase(database.connectionName());
-//    qInfo() << "Removed";
     qInfo() << "DbUpdateThread::findKaraokeFiles(" << directory << ") ended";
     return files;
 }
@@ -499,13 +497,14 @@ void DbUpdateThread::startUnthreaded()
     OkArchive archive;
     KaraokeFileInfo parser;
     qInfo() << "looping over songs";
+    int loops = 0;
     for (int i=0; i < newSongs.count(); i++)
     {
         QApplication::processEvents();
         QString fileName = newSongs.at(i);
-        qInfo() << "Beginning processing file: " << fileName;
+        //qInfo() << "Beginning processing file: " << fileName;
         QFileInfo file(fileName);
-        emit progressMessage("Processing file: " + file.completeBaseName());
+        //emit progressMessage("Processing file: " + file.completeBaseName());
 #ifdef Q_OS_WIN
         if (fileName.contains("*") || fileName.contains("?") || fileName.contains("<") || fileName.contains(">") || fileName.contains("|"))
         {
@@ -528,8 +527,13 @@ void DbUpdateThread::startUnthreaded()
                     errorMutex.lock();
                     errors.append(archive.getLastError() + ": " + fileName);
                     errorMutex.unlock();
-                    emit progressMessage(archive.getLastError() + ": " + fileName);
-                    emit progressChanged(i + 1);
+                    //emit progressMessage(archive.getLastError() + ": " + fileName);
+                    if (loops >= 5)
+                    {
+                        emit stateChanged("Validating karaoke files and getting song durations... " + QString::number(i + 1) + " of " + QString::number(newSongs.size()));
+                        emit progressChanged(i + 1);
+                        loops = 0;
+                    }
                     continue;
                 }
             }
@@ -575,9 +579,14 @@ void DbUpdateThread::startUnthreaded()
         query.bindValue(":duration", duration);
         query.bindValue(":searchstring", searchString);
         query.exec();
-        emit progressChanged(i + 1);
-        emit stateChanged("Validating karaoke files and getting song durations... " + QString::number(i + 1) + " of " + QString::number(newSongs.size()));
-        qInfo() << "Done processing file: " << fileName;
+        if (loops >= 5)
+        {
+            emit progressChanged(i + 1);
+            emit stateChanged("Validating karaoke files and getting song durations... " + QString::number(i + 1) + " of " + QString::number(newSongs.size()));
+            loops = 0;
+        }
+        //qInfo() << "Done processing file: " << fileName;
+        loops++;
     }
     qInfo() << "Done looping";
     qInfo() << "Committing transaction";
