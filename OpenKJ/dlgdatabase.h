@@ -58,8 +58,8 @@ signals:
     void databaseSongAdded();
 
 public slots:
-    void singleSongAdd(QString path);
-    int dropFileAdd(QString path);
+    void singleSongAdd(const QString &path);
+    int dropFileAdd(const QString &path);
 
 private slots:
     void on_buttonUpdateAll_clicked();

@@ -1649,7 +1649,7 @@ int Settings::currentRotationPosition()
 
 bool Settings::dbSkipValidation()
 {
-    return settings->value("dbSkipValidation", false).toBool();
+    return settings->value("dbSkipValidation", true).toBool();
 }
 
 void Settings::dbSetSkipValidation(bool val)
@@ -1659,7 +1659,7 @@ void Settings::dbSetSkipValidation(bool val)
 
 bool Settings::dbLazyLoadDurations()
 {
-    return settings->value("dbLazyLoadDurations", false).toBool();
+    return settings->value("dbLazyLoadDurations", true).toBool();
 }
 
 void Settings::dbSetLazyLoadDurations(bool val)

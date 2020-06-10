@@ -81,7 +81,7 @@ KaraokeFileInfo::KaraokeFileInfo(QObject *parent) : QObject(parent)
     tagsRead = false;
 }
 
-void KaraokeFileInfo::setFileName(QString filename)
+void KaraokeFileInfo::setFileName(const QString &filename)
 {
     fileName = filename;
     fileBaseName = QFileInfo(filename).completeBaseName();
@@ -165,7 +165,7 @@ void KaraokeFileInfo::setPattern(SourceDir::NamingPattern pattern, QString path)
 //    }
 }
 
-QString KaraokeFileInfo::getArtist()
+const QString &KaraokeFileInfo::getArtist()
 {
     getMetadata();
     return artist;
@@ -181,7 +181,7 @@ QString KaraokeFileInfo::getArtist()
 //    return result;
 }
 
-QString KaraokeFileInfo::getTitle()
+const QString &KaraokeFileInfo::getTitle()
 {
     getMetadata();
     return title;
@@ -197,7 +197,7 @@ QString KaraokeFileInfo::getTitle()
 //    return result;
 }
 
-QString KaraokeFileInfo::getSongId()
+const QString &KaraokeFileInfo::getSongId()
 {
     getMetadata();
     return songId;
@@ -223,7 +223,7 @@ QString KaraokeFileInfo::testPattern(QString regex, QString filename, int captur
 
 }
 
-int KaraokeFileInfo::getDuration()
+const int& KaraokeFileInfo::getDuration()
 {
     if (duration > 0)
         return duration;
