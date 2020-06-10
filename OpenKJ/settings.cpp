@@ -302,7 +302,7 @@ int Settings::cdgWindowFullScreenMonitor()
 {
     //We default to the highest mointor present, by default, rather than the primary display.  Seems to make more sense
     //and will help prevent people from popping up a full screen window in front of the main window and getting confused.
-    return settings->value("cdgWindowFullScreenMonitor", QApplication::desktop()->screenCount() - 1).toInt();
+    return settings->value("cdgWindowFullScreenMonitor", QGuiApplication::screens().count() - 1).toInt();
 }
 
 void Settings::saveWindowState(QWidget *window)
@@ -445,7 +445,7 @@ void Settings::setTickerSpeed(int speed)
 
 QColor Settings::tickerTextColor()
 {
-    return settings->value("tickerTextColor", QApplication::palette().foreground().color()).value<QColor>();
+    return settings->value("tickerTextColor", QApplication::palette().windowText().color()).value<QColor>();
 }
 
 void Settings::setTickerTextColor(QColor color)
@@ -463,12 +463,12 @@ QFont Settings::cdgRemainFont()
 
 QColor Settings::cdgRemainTextColor()
 {
-    return settings->value("cdgRemainTextColor", QApplication::palette().foreground().color()).value<QColor>();
+    return settings->value("cdgRemainTextColor", QApplication::palette().windowText().color()).value<QColor>();
 }
 
 QColor Settings::cdgRemainBgColor()
 {
-    return settings->value("cdgRemainBgColor", QApplication::palette().background().color()).value<QColor>();
+    return settings->value("cdgRemainBgColor", QApplication::palette().window().color()).value<QColor>();
 
 }
 
@@ -541,7 +541,7 @@ void Settings::setPreviewEnabled(bool enabled)
 
 QColor Settings::tickerBgColor()
 {
-    return settings->value("tickerBgColor", QApplication::palette().background().color()).value<QColor>();
+    return settings->value("tickerBgColor", QApplication::palette().window().color()).value<QColor>();
 }
 
 void Settings::setTickerBgColor(QColor color)
@@ -1309,12 +1309,12 @@ bool Settings::showSongPauseStopWarning()
 
 QColor Settings::alertTxtColor()
 {
-    return settings->value("alertTxtColor", QApplication::palette().foreground().color()).value<QColor>();
+    return settings->value("alertTxtColor", QApplication::palette().windowText().color()).value<QColor>();
 }
 
 QColor Settings::alertBgColor()
 {
-    return settings->value("alertBgColor", QApplication::palette().background().color()).value<QColor>();
+    return settings->value("alertBgColor", QApplication::palette().window().color()).value<QColor>();
 }
 
 bool Settings::bmAutoStart()
