@@ -230,6 +230,7 @@ void DlgCdg::setFullScreenMonitor(int monitor)
 
 void DlgCdg::tickerFontChanged()
 {
+    ui->scroll->refreshTickerSettings();
     ui->scroll->setFont(settings->tickerFont());
     //ui->scroll->refresh();
     int newHeight = QFontMetrics(ui->scroll->font()).height() * 1.2;
@@ -253,6 +254,7 @@ void DlgCdg::tickerTextColorChanged()
     QPalette palette = ui->scroll->palette();
     palette.setColor(ui->scroll->foregroundRole(), settings->tickerTextColor());
     ui->scroll->setPalette(palette);
+    ui->scroll->refreshTickerSettings();
 }
 
 void DlgCdg::tickerBgColorChanged()
@@ -260,6 +262,7 @@ void DlgCdg::tickerBgColorChanged()
     QPalette palette = this->palette();
     palette.setColor(QPalette::Background, settings->tickerBgColor());
     this->setPalette(palette);
+    ui->scroll->refreshTickerSettings();
 }
 
 void DlgCdg::tickerEnableChanged()
@@ -271,9 +274,9 @@ void DlgCdg::tickerEnableChanged()
 void DlgCdg::cdgRemainFontChanged(QFont font)
 {
     ui->lblRemain->setFont(font);
-    //QFontMetrics metrics(font);
-    //int width = metrics.width("00:00");
-    //ui->lblRemain->size().setWidth(width);
+    QFontMetrics metrics(font);
+    int width = metrics.width(" 00:00 ");
+    ui->lblRemain->size().setWidth(width);
 }
 
 void DlgCdg::cdgRemainTextColorChanged(QColor color)
@@ -432,7 +435,9 @@ void DlgCdg::triggerBg()
 void DlgCdg::cdgRemainEnabledChanged(bool enabled)
 {
     if ((kAudioBackend->state() == AbstractAudioBackend::PlayingState) || enabled == false)
+    {
         ui->lblRemain->setVisible(enabled);
+    }
 }
 
 void DlgCdg::slideShowTimerTimeout()
