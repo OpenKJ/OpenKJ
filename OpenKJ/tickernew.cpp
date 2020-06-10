@@ -19,6 +19,7 @@ TickerDisplayWidget::TickerDisplayWidget(QWidget *parent)
 {
     underflow = false;
     heightHint = 100;
+    jumpPoint = 0;
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setAlignment(Qt::AlignLeft | Qt::AlignTop);
@@ -27,21 +28,22 @@ TickerDisplayWidget::TickerDisplayWidget(QWidget *parent)
     setRenderHints(QPainter::SmoothPixmapTransform);
     setViewportUpdateMode(SmartViewportUpdate);
     setCacheMode(QGraphicsView::CacheNone);
+    speed = 25;
     spm = new QGraphicsPixmapItem(getPixmapFromString("Placeholder txt"));
     scene->addItem(spm);
     spm->setPos(QPointF(0.0f, 0.0f));
     timer = new QTimer(this);
-    timer->setInterval(4);
-    qreal pixelShift = 2.2;
-    QObject::connect(timer, &QTimer::timeout, [this,pixelShift]() {
+    timer->setInterval(3);
+    speed = settings.tickerSpeed();
+    pixelShift = (float)this->speed / 10.0f;
+    QObject::connect(timer, &QTimer::timeout, [this]() {
        if (underflow)
        {
            spm->setPos(0.0f,0.0f);
            return;
        }
-       qreal halfway = spm->pixmap().width() / 2.0f;
        qreal xpos = spm->pos().x();
-       if (xpos <= -halfway)
+       if (xpos <= (float)-jumpPoint + pixelShift)
        {
             spm->setPos(0.0f,0.0f);
        }
@@ -75,6 +77,11 @@ void TickerDisplayWidget::setText(const QString &newText)
 
 void TickerDisplayWidget::setSpeed(int speed)
 {
+
+    if (speed > 50)
+        this->speed = 50;
+    else this->speed = speed;
+    pixelShift = (float)speed / 10.0f;
 }
 
 void TickerDisplayWidget::stop()
@@ -109,12 +116,15 @@ QPixmap TickerDisplayWidget::getPixmapFromString(const QString& text)
         pxWidth = myWidth * 2;
         underflow = true;
         drawText = text;
+        jumpPoint = 99999;
 
     }
     else
     {
-        drawText = text + " | " + text;
+        drawText = " " + text + " | " + text;
         pxWidth = metrics.horizontalAdvance(drawText);
+        jumpPoint = metrics.horizontalAdvance(" " + text + " | q"
+                                                           "");
         underflow = false;
     }
     QPixmap img = QPixmap(pxWidth, metrics.boundingRect(drawText).height() + 30);

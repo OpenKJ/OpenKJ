@@ -183,7 +183,7 @@ bool Settings::saveKNAccount()
     return settings->value("saveKNAccount", false).toBool();
 }
 
-QString Settings::getCCN(QString password)
+QString Settings::getCCN(const QString &password)
 {
     SimpleCrypt simpleCrypt(this->hash(password));
     QString encrypted = settings->value("cc", QString()).toString();
@@ -194,7 +194,7 @@ QString Settings::getCCN(QString password)
     return parts.at(0);
 }
 
-QString Settings::getCCM(QString password)
+QString Settings::getCCM(const QString &password)
 {
     SimpleCrypt simpleCrypt(this->hash(password));
     QString encrypted = settings->value("cc", QString()).toString();
@@ -205,7 +205,7 @@ QString Settings::getCCM(QString password)
     return parts.at(1);
 }
 
-QString Settings::getCCY(QString password)
+QString Settings::getCCY(const QString &password)
 {
     SimpleCrypt simpleCrypt(this->hash(password));
     QString encrypted = settings->value("cc", QString()).toString();
@@ -216,7 +216,7 @@ QString Settings::getCCY(QString password)
     return parts.at(2);
 }
 
-QString Settings::getCCV(QString password)
+QString Settings::getCCV(const QString &password)
 {
     SimpleCrypt simpleCrypt(this->hash(password));
     QString encrypted = settings->value("cc", QString()).toString();
@@ -227,19 +227,19 @@ QString Settings::getCCV(QString password)
     return parts.at(3);
 }
 
-void Settings::setKaroakeDotNetUser(QString username, QString password)
+void Settings::setKaroakeDotNetUser(const QString &username, const QString &password)
 {
     SimpleCrypt simpleCrypt(this->hash(password));
     settings->setValue("karaokeDotNetUser", simpleCrypt.encryptToString(username));
 }
 
-void Settings::setKaraokeDotNetPass(QString KDNPassword, QString password)
+void Settings::setKaraokeDotNetPass(const QString &KDNPassword, const QString &password)
 {
     SimpleCrypt simpleCrypt(this->hash(password));
     settings->setValue("karaokeDotNetPass", simpleCrypt.encryptToString(KDNPassword));
 }
 
-QString Settings::karoakeDotNetUser(QString password)
+QString Settings::karoakeDotNetUser(const QString &password)
 {
     SimpleCrypt simpleCrypt(this->hash(password));
     QString encrypted = settings->value("karaokeDotNetUser", QString()).toString();
@@ -249,7 +249,7 @@ QString Settings::karoakeDotNetUser(QString password)
     return username;
 }
 
-QString Settings::karoakeDotNetPass(QString password)
+QString Settings::karoakeDotNetPass(const QString &password)
 {
     SimpleCrypt simpleCrypt(this->hash(password));
     QString encrypted = settings->value("karaokeDotNetPass", QString()).toString();
@@ -392,13 +392,13 @@ void Settings::restoreSplitterState(QSplitter *splitter)
     settings->endGroup();
 }
 
-void Settings::setTickerFont(QFont font)
+void Settings::setTickerFont(const QFont &font)
 {
     settings->setValue("tickerFont", font.toString());
     emit tickerFontChanged();
 }
 
-void Settings::setApplicationFont(QFont font)
+void Settings::setApplicationFont(const QFont &font)
 {
     settings->setValue("applicationFont", font.toString());
     QApplication::setFont(font, "QWidget");
@@ -588,7 +588,7 @@ QString Settings::tickerCustomString()
     return settings->value("tickerCustomString", "").toString();
 }
 
-void Settings::setTickerCustomString(QString value)
+void Settings::setTickerCustomString(const QString &value)
 {
     settings->setValue("tickerCustomString", value);
     emit tickerCustomStringChanged();

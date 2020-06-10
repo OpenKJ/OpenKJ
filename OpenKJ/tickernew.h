@@ -34,6 +34,9 @@ private:
         QOpenGLWidget *glWidget;
         QTimer *timer;
         bool underflow;
+        int speed;
+        qreal pixelShift;
+        int jumpPoint;
 
 private slots:
 
