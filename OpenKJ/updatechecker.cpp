@@ -54,6 +54,7 @@ else
 
 void UpdateChecker::checkForUpdates()
 {
+    return;
     if (!settings->checkUpdates())
         return;
     qInfo() << "Requesting current version info for branch: " << channel;

@@ -85,10 +85,10 @@ DlgCdg::DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *Break
     connect(settings, SIGNAL(tickerTextColorChanged()), this, SLOT(tickerTextColorChanged()));
     connect(settings, SIGNAL(tickerBgColorChanged()), this, SLOT(tickerBgColorChanged()));
     connect(settings, SIGNAL(tickerEnableChanged()), this, SLOT(tickerEnableChanged()));
-    connect(settings, SIGNAL(cdgHOffsetChanged(int)), this, SLOT(setHOffset(int)));
-    connect(settings, SIGNAL(cdgVOffsetChanged(int)), this, SLOT(setVOffset(int)));
-    connect(settings, SIGNAL(cdgHSizeAdjustmentChanged(int)), this, SLOT(setHSizeAdjustment(int)));
-    connect(settings, SIGNAL(cdgVSizeAdjustmentChanged(int)), this, SLOT(setVSizeAdjustment(int)));
+    //connect(settings, SIGNAL(cdgHOffsetChanged(int)), this, SLOT(setHOffset(int)));
+    //connect(settings, SIGNAL(cdgVOffsetChanged(int)), this, SLOT(setVOffset(int)));
+    //connect(settings, SIGNAL(cdgHSizeAdjustmentChanged(int)), this, SLOT(setHSizeAdjustment(int)));
+    //connect(settings, SIGNAL(cdgVSizeAdjustmentChanged(int)), this, SLOT(setVSizeAdjustment(int)));
     connect(settings, SIGNAL(cdgShowCdgWindowChanged(bool)), this, SLOT(setVisible(bool)));
     connect(settings, SIGNAL(cdgWindowFullscreenChanged(bool)), this, SLOT(setFullScreen(bool)));
     connect(settings, SIGNAL(cdgWindowFullscreenMonitorChanged(int)), this, SLOT(setFullScreenMonitor(int)));
@@ -138,12 +138,12 @@ DlgCdg::DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *Break
     alertTxtColorChanged(settings->alertTxtColor());
     connect(settings, SIGNAL(alertBgColorChanged(QColor)), this, SLOT(alertBgColorChanged(QColor)));
     connect(settings, SIGNAL(alertTxtColorChanged(QColor)), this, SLOT(alertTxtColorChanged(QColor)));
-    connect(kAudioBackend, SIGNAL(stateChanged(AbstractAudioBackend::State)), this, SLOT(triggerBg(AbstractAudioBackend::State)));
+    //connect(kAudioBackend, SIGNAL(stateChanged(AbstractAudioBackend::State)), this, SLOT(triggerBg(AbstractAudioBackend::State)));
     connect(settings, SIGNAL(bgModeChanged(BgMode)), this, SLOT(triggerBg()));
     connect(oneSecTimer, SIGNAL(timeout()), this, SLOT(oneSecTimerTimeout()));
     ui->lblRemain->setVisible(settings->cdgRemainEnabled());
     connect(settings, SIGNAL(cdgRemainEnabledChanged(bool)), ui->lblRemain, SLOT(setVisible(bool)));
-    connect(settings, SIGNAL(remainOffsetChanged(int,int)), this, SLOT(remainOffsetsChanged(int,int)));
+    //connect(settings, SIGNAL(remainOffsetChanged(int,int)), this, SLOT(remainOffsetsChanged(int,int)));
     connect(settings, SIGNAL(cdgOffsetsChanged()), this, SLOT(cdgOffsetsChanged()));
     cdgOffsetsChanged();
 }

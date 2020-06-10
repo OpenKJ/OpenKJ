@@ -23,6 +23,7 @@ SongShop::SongShop(QObject *parent) : QObject(parent)
 
 void SongShop::updateCache()
 {
+    return;
     qInfo() << "Requesting songs from db.openkj.org";
     QJsonObject mainObject;
     mainObject.insert("command","getsongs");

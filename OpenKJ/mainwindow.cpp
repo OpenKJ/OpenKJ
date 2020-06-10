@@ -641,7 +641,7 @@ MainWindow::MainWindow(QWidget *parent) :
         }
     }
     cdgOffset = settings->cdgDisplayOffset();
-    connect(settings, SIGNAL(cdgDisplayOffsetChanged(int)), this, SLOT(cdgOffsetChanged(int)));
+    //connect(settings, SIGNAL(cdgDisplayOffsetChanged(int)), this, SLOT(cdgOffsetChanged(int)));
 
     connect(settings, SIGNAL(eqBBypassChanged(bool)), bmAudioBackend, SLOT(setEqBypass(bool)));
     connect(settings, SIGNAL(eqBLevel1Changed(int)), bmAudioBackend, SLOT(setEqLevel1(int)));

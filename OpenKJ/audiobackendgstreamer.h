@@ -78,7 +78,7 @@ private:
     GstElement *pitchShifterRubberBand;
     GstElement *pitchShifterSoundtouch;
     GstElement *level;
-    GstElement *fltrEnd;
+//    GstElement *fltrEnd;
     GstElement *volumeElement;
     GstElement *faderVolumeElement;
     GstElement *equalizer;
@@ -96,7 +96,6 @@ private:
     GstCaps *audioCapsMono;
     GstPad *ghostPad;
     GstPad *ghostVideoPad;
-    GstDeviceMonitor *monitor;
     GstControlSource *csource;
     GstTimedValueControlSource *tv_csource;
     QString m_filename;

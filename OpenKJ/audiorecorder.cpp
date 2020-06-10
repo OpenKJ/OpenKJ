@@ -14,6 +14,7 @@ extern Settings *settings;
 void AudioRecorder::generateDeviceList()
 {
     qInfo() << "AudioRecorder::generateDeviceList() called";
+    GstDeviceMonitor *monitor;
     monitor = gst_device_monitor_new ();
     GstCaps *moncaps;
     moncaps = gst_caps_new_empty_simple ("audio/x-raw");
@@ -30,6 +31,10 @@ void AudioRecorder::generateDeviceList()
         g_free(deviceName);
         inputDevices.append(device);
     }
+    gst_device_monitor_stop(monitor);
+    g_list_free(devices);
+    g_object_unref(monitor);
+
 }
 
 void AudioRecorder::initGStreamer()
@@ -44,9 +49,11 @@ void AudioRecorder::initGStreamer()
     qInfo() << "AudioRecorder - Initializing gstreamer";
     gst_init(NULL,NULL);
     qInfo() << "AudioRecorder - Creating elements";
+#ifdef Q_OS_WIN
     autoAudioSrc    = gst_element_factory_make("autoaudiosrc", NULL);
     if (!autoAudioSrc)
         qCritical() << "Failed to create autoAudioSrc";
+#endif
     audioConvert    = gst_element_factory_make("audioconvert", NULL);
     if (!audioConvert)
         qCritical() << "Failed to create audioConvert";
@@ -83,13 +90,13 @@ void AudioRecorder::initGStreamer()
     if (!bus)
         qCritical() << "Failed to create bus";
     qInfo() << "Elements created, adding to pipeline and linking";
-    g_object_set(vorbisEnc, "quality", 0.9, NULL);
+    g_object_set(vorbisEnc, "quality", 0.9, nullptr);
 #ifdef Q_OS_WIN
-    gst_bin_add_many(GST_BIN (pipeline), autoAudioSrc, audioRate, audioConvert, lameMp3Enc, wavEnc, vorbisEnc, oggMux, fileSink, NULL);
-    bool result = gst_element_link_many(autoAudioSrc, audioRate, audioConvert, vorbisEnc, oggMux, fileSink, NULL);
+    gst_bin_add_many(GST_BIN (pipeline), autoAudioSrc, audioRate, audioConvert, lameMp3Enc, wavEnc, vorbisEnc, oggMux, fileSink, nullptr);
+    bool result = gst_element_link_many(autoAudioSrc, audioRate, audioConvert, vorbisEnc, oggMux, fileSink, nullptr);
 #else
-    gst_bin_add_many(GST_BIN (pipeline), audioSrc, audioRate, audioConvert, lameMp3Enc, wavEnc, vorbisEnc, oggMux, fileSink, NULL);
-    bool result = gst_element_link_many(audioSrc, audioRate, audioConvert, vorbisEnc, oggMux, fileSink, NULL);
+    gst_bin_add_many(GST_BIN (pipeline), audioSrc, audioRate, audioConvert, lameMp3Enc, wavEnc, vorbisEnc, oggMux, fileSink, nullptr);
+    bool result = gst_element_link_many(audioSrc, audioRate, audioConvert, vorbisEnc, oggMux, fileSink, nullptr);
 #endif
     if (result == false)
         qInfo() << "Gst - Error linking elements";
@@ -234,6 +241,11 @@ AudioRecorder::AudioRecorder(QObject *parent) : QObject(parent)
     connect(timer, SIGNAL(timeout()), this, SLOT(timerFired()));
 }
 
+AudioRecorder::~AudioRecorder()
+{
+    gst_object_unref(pipeline);
+}
+
 void AudioRecorder::refreshDeviceList()
 {
     generateDeviceList();
@@ -267,7 +279,7 @@ void AudioRecorder::setOutputFile(QString filename)
     outputFilePath = outputDir.toStdString() + "/" + filename.toStdString() + currentFileExt.toStdString();
 #endif
     qInfo() << "AudioRecorder - Capturing to: " << QString(outputFilePath.c_str());
-    g_object_set(GST_OBJECT(fileSink), "location", outputFilePath.c_str(), NULL);
+    g_object_set(GST_OBJECT(fileSink), "location", outputFilePath.c_str(), nullptr);
 }
 
 void AudioRecorder::setInputDevice(int inputDeviceId)
