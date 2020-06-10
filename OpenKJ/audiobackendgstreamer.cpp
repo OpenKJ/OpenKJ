@@ -981,18 +981,24 @@ void AudioBackendGstreamer::destroyPipeline()
     if (state() == PlayingState)
         stop(true);
 
-    gst_element_release_request_pad(videoTee, videoTeePad1);
-    gst_element_release_request_pad(videoTee, videoTeePad2);
-    gst_object_unref(videoTeePad1);
-    gst_object_unref(videoTeePad2);
-    gst_object_unref(videoQueue1SrcPad);
-    gst_object_unref(videoQueue2SrcPad);
-//    videoQueue1SrcPad
-//    videoQueue2SrcPad
 
-    gst_bin_remove((GstBin*)videoBin, videoSink1);
-    gst_bin_remove((GstBin*)videoBin, videoSink2);
-    gst_object_unref(GST_OBJECT(videoBin));
+    if (m_previewEnabledLastBuild)
+    {
+        gst_element_release_request_pad(videoTee, videoTeePad1);
+        gst_element_release_request_pad(videoTee, videoTeePad2);
+        gst_object_unref(videoTeePad1);
+        gst_object_unref(videoTeePad2);
+        gst_object_unref(videoQueue1SrcPad);
+        gst_object_unref(videoQueue2SrcPad);
+
+        //    videoQueue1SrcPad
+        //    videoQueue2SrcPad
+
+        gst_bin_remove((GstBin*)videoBin, videoSink1);
+        gst_bin_remove((GstBin*)videoBin, videoSink2);
+
+        gst_object_unref(GST_OBJECT(videoBin));
+    }
     gst_object_unref(GST_OBJECT(pitchShifterRubberBand));
     gst_caps_unref(audioCapsMono);
     gst_caps_unref(audioCapsStereo);
