@@ -85,13 +85,13 @@ jobs:
         call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         qmake
         nmake
-        dir OpenKJ/release
+        dir OpenKJ\release
       shell: cmd
 
     - name: Run windeployqt
       run: |
         windeployqt --release OpenKJ/release/openkj.exe
-        dir OpenKJ/release
+        dir OpenKJ\release
       shell: cmd
       
     - name: Copy in gstreamer dependencies
