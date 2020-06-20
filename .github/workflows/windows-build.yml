@@ -32,8 +32,8 @@ jobs:
         RTYPE=$BRANCH
         fi
         OKJVER=`grep VERSION_STRING OpenKJ/okjversion.h | cut -d'"' -f2`
-        $env:python_version=$(python -c 'import sys; print(\".\".join(map(str, sys.version_info[:3])))')         
-        $env:CLOUDSDK_PYTHON="C:\hostedtoolcache\windows\Python\$env:python_version\x64\python"
+        python_version=$(python -c 'import sys; print(\".\".join(map(str, sys.version_info[:3])))')         
+        CLOUDSDK_PYTHON="C:\hostedtoolcache\windows\Python\$env:python_version\x64\python"
         IFN="OpenKJ-${OKJVER}-64bit-license.txt"
         gsutil cp LICENSE gs://okj-installer-deps/installertest/${RTYPE}/${IFN}
       shell: bash
