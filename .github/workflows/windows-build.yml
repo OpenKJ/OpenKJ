@@ -23,10 +23,10 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2        
 
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v1
-      with:
-        python-version: 3.8
+#    - name: Set up Python 3.8
+#      uses: actions/setup-python@v1
+#      with:
+#        python-version: 3.8
 
     - name: Installing gcloud console tools
       uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
@@ -39,7 +39,7 @@ jobs:
       run: |
         $env:python_version=$(python -c 'import sys; print(\".\".join(map(str, sys.version_info[:3])))')         
         $env:CLOUDSDK_PYTHON="C:\hostedtoolcache\windows\Python\$env:python_version\x64\python"
-        gsutil cp LICENSE gs://openkj-installer-deps/installertest/
+        gsutil cp LICENSE gs://okj-installer-deps/installertest/
 
     - name: Cache GStreamer
       id: cache-gstreamer
@@ -153,4 +153,4 @@ jobs:
       run: |
         $env:python_version=$(python -c 'import sys; print(\".\".join(map(str, sys.version_info[:3])))')         
         $env:CLOUDSDK_PYTHON="C:\hostedtoolcache\windows\Python\$env:python_version\x64\python"
-        gsutil cp installer/OpenKJ.exe gs://openkj-installer-deps/installertest/
+        gsutil cp installer/OpenKJ.exe gs://okj-installer-deps/installertest/
