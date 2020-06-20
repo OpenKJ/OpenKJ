@@ -1,0 +1,72 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Windows Build
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build64:
+    name: Windows 64bit Build
+    # The type of runner that the job will run on
+    runs-on: windows-2019
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2        
+        
+    - name: Installing gcloud console tools
+      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      with:
+        version: '290.0.1'
+        service_account_key: ${{ secrets.GCLOUD_KEY }}
+        export_default_credentials: true
+  
+    - name: Cache Qt
+      id: cache-qt
+      uses: actions/cache@v1
+      with:
+       path: ../Qt
+       key: ${{ runner.os }}-QtCache
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2
+      with:
+       cached: ${{ steps.cache-qt.outputs.cache-hit }}
+
+    - name: Install GST
+      run: |
+        Write-Host "Installing GStreamer..." -ForegroundColor Cyan
+        Write-Host "Platform - $($env:LONGARCH)"
+        $msiPath = "$($env:USERPROFILE)\gstreamer.msi"
+        $gstInstallUrl = "https://storage.googleapis.com/okj-installer-deps/gstreamer-1.0-$($env:LONGARCH)-1.14.4.msi"
+        Write-Host "Downloading..."
+        (New-Object Net.WebClient).DownloadFile($gstInstallUrl, $msiPath)
+        Write-Host "Installing..."
+        cmd /c start /wait msiexec /package $msiPath /passive ADDLOCAL=ALL
+        Write-Host "Installed" -ForegroundColor Green
+        
+    - name: Install GST-Dev
+      run: |
+        Write-Host "Installing GStreamer dev..." -ForegroundColor Cyan
+        $msiPath = "$($env:USERPROFILE)\gstreamer-devel.msi"
+        $gstDevelInstallUrl = "https://storage.googleapis.com/okj-installer-deps/gstreamer-1.0-devel-$($env:LONGARCH)-1.14.4.msi"
+        Write-Host "Downloading..."
+        (New-Object Net.WebClient).DownloadFile($gstDevelInstallUrl, $msiPath)
+        Write-Host "Installing..."
+        cmd /c start /wait msiexec /package $msiPath /passive ADDLOCAL=ALL
+        Write-Host "Installed" -ForegroundColor Green
+
+    - name: Run qmake
+      run: qmake
+
+    - name: Run make
+      run: make
