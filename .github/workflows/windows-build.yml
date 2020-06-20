@@ -32,7 +32,7 @@ jobs:
       with:
         file-url: 'https://storage.googleapis.com/okj-installer-deps/gstreamer-1.0-x86_64-1.14.4.msi'
         file-name: 'gstreamer-1.0-x86_64-1.14.4.msi'
-        location: './gstdownloads'
+        location: './downloads'
 
     - name: Download GST-Dev Installer
       uses: carlosperate/download-file-action@v1.0.3
@@ -40,7 +40,23 @@ jobs:
       with:
         file-url: 'https://storage.googleapis.com/okj-installer-deps/gstreamer-1.0-devel-x86_64-1.14.4.msi'
         file-name: 'gstreamer-1.0-devel-x86_64-1.14.4.msi'
-        location: './gstdownloads'
+        location: './downloads'
+
+    - name: Download InfoZip Binary
+      uses: carlosperate/download-file-action@v1.0.3
+      id: download-infozip
+      with:
+        file-url: 'https://storage.googleapis.com/okj-installer-deps/unzip.exe'
+        file-name: unzip.exe
+        location: /downloads
+
+    - name: Download OpenSSL dll files
+      uses: carlosperate/download-file-action@v1.0.3
+      id: download-openssl
+      with:
+        file-url: 'https://storage.googleapis.com/okj-installer-deps/ssl-x86_64.zip'
+        file-name: unzip.exe
+        location: /downloads
 
     - name: Install GST
       run: |
@@ -70,8 +86,29 @@ jobs:
         qmake
         nmake
         dir OpenKJ/release
-        windeployqt OpenKJ/release/openkj.exe
       shell: cmd
+
+    - name: Run windeployqt
+      run: |
+        windeployqt --release OpenKJ/release/openkj.exe
+        dir OpenKJ/release
+      shell: cmd
+      
+    - name: Copy in gstreamer dependencies
+      run: |
+        copy c:\gstreamer\1.0\%LONGARCH%\bin\*.dll "%project_dir%\output\"
+        mkdir OpenKJ\release\lib
+        mkdir OpenKJ\release\lib\gstreamer-1.0"
+        mkdir OpenKJ\release\lib\gstreamer-1.0\validate"
+        copy c:\gstreamer\1.0\x86_64\lib\gstreamer-1.0\*.dll OpenKJ\release\lib\gstreamer-1.0\
+        copy c:\gstreamer\1.0\x86_64\lib\gstreamer-1.0\validate\*.dll OpenKJ\release\lib\gstreamer-1.0\validate\
+
+    - name: Copy in other dependencies
+      run: |
+        copy LICENSE OpenKJ\release\LICENSE.txt
+        copy ${{ steps.download-infozip.outputs.file-path }} OpenKJ\release\
+        7z e ${{ steps.download-openssl.outputs.file-path }} OpenKJ\release\
+        dir OpenKJ\release
 
     - name: Installing gcloud console tools
       uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
