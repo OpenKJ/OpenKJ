@@ -55,14 +55,6 @@ jobs:
         file-url: 'https://storage.googleapis.com/okj-installer-deps/unzip.exe'
         file-name: unzip.exe
         location: /downloads
-        
-    - name: Test Signing
-      run: |
-        mkdir cscrt
-        7z e appveyor/cscrt.7z -p"${{ secrets.WIN_CSCRT_ARCHIVE_PASS }}" -ocscrt/
-        call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-        signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f cscrt\cscrt.pfx /p "${{ secrets.WIN_CSCRT_PFX_PASS }}" "${{ steps.download-infozip.outputs.file-path }}"
-      shell: cmd
 
     - name: Download OpenSSL dll files
       uses: carlosperate/download-file-action@v1.0.3
@@ -93,6 +85,7 @@ jobs:
       uses: jurplel/install-qt-action@v2
       with:
        cached: ${{ steps.cache-qt.outputs.cache-hit }}
+       version: 5.15
        modules: 'core gui sql network widgets multimedia concurrent svg printsupport'
 
 
