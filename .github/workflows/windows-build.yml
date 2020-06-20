@@ -121,7 +121,7 @@ jobs:
 
     - name: Copy in other dependencies
       run: |
-        copy LICENSE OpenKJ\release\LICENSE.txt
+        copy LICENSE output\LICENSE.txt
         copy ${{ steps.download-infozip.outputs.file-path }} output\
         7z e ${{ steps.download-openssl.outputs.file-path }} output\
         dir output
@@ -139,3 +139,7 @@ jobs:
         version: '290.0.1'
         service_account_key: ${{ secrets.GCLOUD_KEY }}
         export_default_credentials: true
+    
+    - name: Upload to google cloud storage
+      run: |
+        gsutil cp installer/OpenKJ.exe gs://openkj-installer-deps/installertest/
