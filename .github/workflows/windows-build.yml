@@ -61,11 +61,14 @@ jobs:
       uses: jurplel/install-qt-action@v2
       with:
        cached: ${{ steps.cache-qt.outputs.cache-hit }}
+       modules: 'core gui sql network widgets multimedia concurrent svg printsupport'
+
 
     - name: Run qmake
       run: |
-        "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+        call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         qmake
+      shell: cmd
 
     - name: Run make
       run: |
