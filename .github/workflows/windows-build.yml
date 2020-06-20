@@ -40,7 +40,8 @@ jobs:
 
     - name: Test reading version
       run: |
-        echo ${{steps.get-okjversion.outputs.okjver}}
+        echo "Version: ${{steps.get-okjversion.outputs.okjver}}"
+      shell: bash
 
     - name: Cache GStreamer
       id: cache-gstreamer
