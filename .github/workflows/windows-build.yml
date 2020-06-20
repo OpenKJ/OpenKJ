@@ -25,8 +25,16 @@ jobs:
 
 #    - name: Add msbuild to PATH
 #      uses: microsoft/setup-msbuild@v1.0.0
+    - name: Cache GStreamer
+      id: cache-gstreamer
+      uses: actions/cache@v2
+      with:
+        path: 'c:\gstreamer'
+        key: ${{ runner.os }}-gstreamer
+
 
     - name: Download GST Installer
+      if: steps.cache-gstreamer.outputs.cache-hit != 'true'
       uses: carlosperate/download-file-action@v1.0.3
       id: download-gst
       with:
@@ -35,6 +43,7 @@ jobs:
         location: './downloads'
 
     - name: Download GST-Dev Installer
+      if: steps.cache-gstreamer.outputs.cache-hit != 'true'
       uses: carlosperate/download-file-action@v1.0.3
       id: download-gst-dev
       with:
@@ -59,10 +68,12 @@ jobs:
         location: /downloads
 
     - name: Install GST
+      if: steps.cache-gstreamer.outputs.cache-hit != 'true'
       run: |
         cmd /c start /wait msiexec /package ${{ steps.download-gst.outputs.file-path }} /passive ADDLOCAL=ALL
         
     - name: Install GST-Dev
+      if: steps.cache-gstreamer.outputs.cache-hit != 'true'
       run: |
         cmd /c start /wait msiexec /package ${{ steps.download-gst-dev.outputs.file-path }} /passive ADDLOCAL=ALL
   
@@ -117,8 +128,9 @@ jobs:
 
     - name: Create Installer
       run: |
+        cp cd\openkj64.iss inst.iss
         mkdir installer
-        "%programfiles(x86)%\Inno Setup 6\iscc.exe" "cd\openkj64.iss" /Oinstaller\
+        "%programfiles(x86)%\Inno Setup 6\iscc.exe" inst.iss /Oinstaller\
       shell: cmd
 
     - name: Installing gcloud console tools
