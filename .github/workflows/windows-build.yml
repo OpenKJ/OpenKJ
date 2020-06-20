@@ -66,14 +66,18 @@ jobs:
 
     - name: Run qmake
       run: |
+        mkdir build
+        cd build
         call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-        qmake
+        qmake ..
       shell: cmd
 
     - name: Run make
       run: |
-        "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+        call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         make
+        tree
+      shell: cmd
 
     - name: Installing gcloud console tools
       uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
