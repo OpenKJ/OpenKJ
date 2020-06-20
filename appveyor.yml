@@ -1,6 +1,6 @@
 image: Visual Studio 2017
 
-version: 1.7.58
+version: 1.7.59
 
 branches:
   only:
@@ -12,7 +12,7 @@ max_jobs: 4
 environment:
   boto:
     secure: E6k49x/FqxNauxAKPasdtiWLRC+wsr+BDXhm7qf+FMNjhUYa7sSkbdsml+UDesn24d+02ZFr2QvLiaC0ISH1vsokTaZbnD9I0dcF7vijA2AJrqQ2NZ/JvJdWY43ABZINrZt7eaQHAuVJmZ1zwqCldJaUALCPu1FCcfKlPQWNJqlI4aTJ9CqQEZ6Iava52ArolQEUIbY97WPZX/yqp5Np1ok5hDC8Vhfbj34VusBzGeDvgDvYmqjg+hklEEUa8zrSICoQDJHpLA59P1MiIpaCkGEW8d8MtbRYytwjE3cFbKSHnCB1V6YacztbsDzFedE3hFRBJeAMeOkD8a3MwcwrgQ==
-  OKJVERSION: 1.7.58
+  OKJVERSION: 1.7.59
   matrix:
   - TARGET_ARCH: x64
     QT: C:\Qt\5.13\msvc2017_64

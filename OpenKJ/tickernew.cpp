@@ -111,7 +111,11 @@ QPixmap TickerDisplayWidget::getPixmapFromString(const QString& text)
     QFontMetrics metrics = QFontMetrics(tickerFont);
     QString drawText;
     int pxWidth;
+#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
     if (myWidth >= metrics.horizontalAdvance(text))
+#else
+    if (myWidth >= metrics.width(text))
+#endif
     {
         pxWidth = myWidth * 2;
         underflow = true;
@@ -122,9 +126,13 @@ QPixmap TickerDisplayWidget::getPixmapFromString(const QString& text)
     else
     {
         drawText = " " + text + " | " + text;
+#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
         pxWidth = metrics.horizontalAdvance(drawText);
-        jumpPoint = metrics.horizontalAdvance(" " + text + " | q"
-                                                           "");
+        jumpPoint = metrics.horizontalAdvance(" " + text + " | q" "");
+#else
+        pxWidth = metrics.width(drawText);
+        jumpPoint = metrics.width(" " + text + " | q" "");
+#endif
         underflow = false;
     }
     QPixmap img = QPixmap(pxWidth, metrics.boundingRect(drawText).height() + 30);
