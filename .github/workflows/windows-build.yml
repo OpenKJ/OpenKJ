@@ -87,28 +87,39 @@ jobs:
         nmake
         dir OpenKJ\release
       shell: cmd
+    
+    - name: Create output dir and copy exe
+      run: |
+        mkdir output
+        copy OpenKJ\release\openkj.exe output\
 
     - name: Run windeployqt
       run: |
-        windeployqt --release OpenKJ/release/openkj.exe
-        dir OpenKJ\release
+        windeployqt --release output/openkj.exe
+        dir output
       shell: cmd
       
     - name: Copy in gstreamer dependencies
       run: |
-        copy c:\gstreamer\1.0\x86_64\bin\*.dll OpenKJ\release\
-        mkdir OpenKJ\release\lib
-        mkdir OpenKJ\release\lib\gstreamer-1.0
-        mkdir OpenKJ\release\lib\gstreamer-1.0\validate
-        copy c:\gstreamer\1.0\x86_64\lib\gstreamer-1.0\*.dll OpenKJ\release\lib\gstreamer-1.0\
-        copy c:\gstreamer\1.0\x86_64\lib\gstreamer-1.0\validate\*.dll OpenKJ\release\lib\gstreamer-1.0\validate\
+        copy c:\gstreamer\1.0\x86_64\bin\*.dll output\
+        mkdir output\lib
+        mkdir output\lib\gstreamer-1.0
+        mkdir output\lib\gstreamer-1.0\validate
+        copy c:\gstreamer\1.0\x86_64\lib\gstreamer-1.0\*.dll output\lib\gstreamer-1.0\
+        copy c:\gstreamer\1.0\x86_64\lib\gstreamer-1.0\validate\*.dll output\lib\gstreamer-1.0\validate\
 
     - name: Copy in other dependencies
       run: |
         copy LICENSE OpenKJ\release\LICENSE.txt
-        copy ${{ steps.download-infozip.outputs.file-path }} OpenKJ\release\
-        7z e ${{ steps.download-openssl.outputs.file-path }} OpenKJ\release\
-        dir OpenKJ\release
+        copy ${{ steps.download-infozip.outputs.file-path }} output\
+        7z e ${{ steps.download-openssl.outputs.file-path }} output\
+        dir output
+
+    - name: Create Installer
+      run: |
+        mkdir installer
+        "%programfiles(x86)%\Inno Setup 6\iscc.exe" "cd\openkj64.iss" /Oinstaller\
+      shell: cmd
 
     - name: Installing gcloud console tools
       uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
