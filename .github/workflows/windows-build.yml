@@ -23,8 +23,18 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2        
 
-#    - name: Add msbuild to PATH
-#      uses: microsoft/setup-msbuild@v1.0.0
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+
+    - name: Installing gcloud console tools
+      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      with:
+        version: '290.0.1'
+        service_account_key: ${{ secrets.GCLOUD_KEY }}
+        export_default_credentials: true
+
     - name: Cache GStreamer
       id: cache-gstreamer
       uses: actions/cache@v2
@@ -132,13 +142,6 @@ jobs:
         mkdir installer
         "%programfiles(x86)%\Inno Setup 6\iscc.exe" inst.iss /Oinstaller\
       shell: cmd
-
-    - name: Installing gcloud console tools
-      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
-      with:
-        version: '290.0.1'
-        service_account_key: ${{ secrets.GCLOUD_KEY }}
-        export_default_credentials: true
     
     - name: Upload to google cloud storage
       run: |
