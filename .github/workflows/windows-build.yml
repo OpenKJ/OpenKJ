@@ -23,6 +23,9 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2        
 
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.0
+
     - name: Download GST Installer
       uses: carlosperate/download-file-action@v1.0.3
       id: download-gst
@@ -50,13 +53,6 @@ jobs:
         Write-Host "Installing GStreamer dev..." -ForegroundColor Cyan
         cmd /c start /wait msiexec /package ${{ steps.download-gst-dev.outputs.file-path }} /passive ADDLOCAL=ALL
         Write-Host "Installed" -ForegroundColor Green
-
-    - name: Installing gcloud console tools
-      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
-      with:
-        version: '290.0.1'
-        service_account_key: ${{ secrets.GCLOUD_KEY }}
-        export_default_credentials: true
   
     - name: Cache Qt
       id: cache-qt
@@ -71,7 +67,18 @@ jobs:
        cached: ${{ steps.cache-qt.outputs.cache-hit }}
 
     - name: Run qmake
-      run: qmake
+      run: |
+        call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+        qmake
 
     - name: Run make
-      run: make
+      run: |
+        call call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+        make
+
+    - name: Installing gcloud console tools
+      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      with:
+        version: '290.0.1'
+        service_account_key: ${{ secrets.GCLOUD_KEY }}
+        export_default_credentials: true
