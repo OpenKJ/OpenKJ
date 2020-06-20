@@ -64,7 +64,7 @@ jobs:
       id: download-openssl
       with:
         file-url: 'https://storage.googleapis.com/okj-installer-deps/ssl-x86_64.zip'
-        file-name: unzip.exe
+        file-name: openssl.zip
         location: /downloads
 
     - name: Install GST
