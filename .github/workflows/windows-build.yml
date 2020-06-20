@@ -21,17 +21,12 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2        
-
-#    - name: Set up Python 3.8
-#      uses: actions/setup-python@v1
-#      with:
-#        python-version: 3.8
+    - uses: actions/checkout@v2
 
     - name: Installing gcloud console tools
       uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
       with:
-        version: '290.0.1'
+        version: 'latest'
         service_account_key: ${{ secrets.GCLOUD_KEY }}
         export_default_credentials: true
 
@@ -122,7 +117,7 @@ jobs:
 
     - name: Run windeployqt
       run: |
-        windeployqt --release output/openkj.exe
+        windeployqt --release --compiler-runtime output/openkj.exe
         dir output
       shell: cmd
       
