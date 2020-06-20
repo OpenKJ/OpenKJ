@@ -44,15 +44,11 @@ jobs:
 
     - name: Install GST
       run: |
-        Write-Host "Installing GStreamer..." -ForegroundColor Cyan
         cmd /c start /wait msiexec /package ${{ steps.download-gst.outputs.file-path }} /passive ADDLOCAL=ALL
-        Write-Host "Installed" -ForegroundColor Green
         
     - name: Install GST-Dev
       run: |
-        Write-Host "Installing GStreamer dev..." -ForegroundColor Cyan
         cmd /c start /wait msiexec /package ${{ steps.download-gst-dev.outputs.file-path }} /passive ADDLOCAL=ALL
-        Write-Host "Installed" -ForegroundColor Green
   
     - name: Cache Qt
       id: cache-qt
@@ -68,12 +64,12 @@ jobs:
 
     - name: Run qmake
       run: |
-        call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+        "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
         qmake
 
     - name: Run make
       run: |
-        call call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+        "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
         make
 
     - name: Installing gcloud console tools
