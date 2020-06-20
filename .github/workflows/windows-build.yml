@@ -23,6 +23,25 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
+    - name: Get version
+      id: get-okjversion
+      run: |
+        BRANCH=${GITHUB_REF##*/}
+        if [ "$BRANCH" = "master" ];then
+        RTYPE="unstable"
+        else
+        RTYPE=$BRANCH
+        fi
+        SBVER=`grep VERSION_STRING okjversion.h | cut -d'"' -f2`
+        echo "OpenKJ Version: $OKJVER"
+        echo "Git Branch: $BRANCH"
+        echo "::set-output name=okjver::$OKJVER"
+      shell: bash
+
+    - name: Test reading version
+      run: |
+        echo ${{steps.get-okjversion.outputs.okjver}}
+
     - name: Cache GStreamer
       id: cache-gstreamer
       uses: actions/cache@v2
