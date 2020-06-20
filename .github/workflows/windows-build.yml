@@ -74,6 +74,7 @@ jobs:
 
     - name: Run make
       run: |
+        cd build
         call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         make
         tree
