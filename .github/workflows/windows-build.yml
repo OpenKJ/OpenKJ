@@ -23,8 +23,8 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2        
 
-    - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.0.0
+#    - name: Add msbuild to PATH
+#      uses: microsoft/setup-msbuild@v1.0.0
 
     - name: Download GST Installer
       uses: carlosperate/download-file-action@v1.0.3
@@ -64,20 +64,12 @@ jobs:
        modules: 'core gui sql network widgets multimedia concurrent svg printsupport'
 
 
-    - name: Run qmake
+    - name: Compile
       run: |
-        mkdir build
-        cd build
         call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-        qmake ..
-      shell: cmd
-
-    - name: Run make
-      run: |
-        cd build
-        call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        qmake
         make
-        tree
+        dir OpenKJ
       shell: cmd
 
     - name: Installing gcloud console tools
