@@ -69,7 +69,8 @@ jobs:
         call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         qmake
         nmake
-        dir OpenKJ
+        dir OpenKJ/release
+        windeployqt OpenKJ/release/openkj.exe
       shell: cmd
 
     - name: Installing gcloud console tools
