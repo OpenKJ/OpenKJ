@@ -23,13 +23,6 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
-    - name: Installing gcloud console tools
-      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
-      with:
-        version: 'latest'
-        service_account_key: ${{ secrets.GCLOUD_KEY }}
-        export_default_credentials: true
-
     - name: Cache GStreamer
       id: cache-gstreamer
       uses: actions/cache@v2
@@ -62,6 +55,13 @@ jobs:
         file-url: 'https://storage.googleapis.com/okj-installer-deps/unzip.exe'
         file-name: unzip.exe
         location: /downloads
+        
+    - name: Test Signing
+      run: |
+        mkdir cscrt
+        7z e appveyor\cscrt.7z" -p"${{ secrets.WIN_CSCRT_ARCHIVE_PASS }}" -ocscrt\
+        signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f cscrt\cscrt.pfx /p "${{ secrets.WIN_CSCRT_PFX_PASS }}" "${{ steps.download-infozip.outputs.file-path }}"
+      shell: cmd
 
     - name: Download OpenSSL dll files
       uses: carlosperate/download-file-action@v1.0.3
@@ -129,6 +129,13 @@ jobs:
         copy ${{ steps.download-infozip.outputs.file-path }} output\
         7z e ${{ steps.download-openssl.outputs.file-path }} output\
 
+    - name: Sign OpenKJ executable
+      run: |
+        mkdir cscrt
+        7z e appveyor/cscrt.7z" -p"${{ secrets.WIN_CSCRT_ARCHIVE_PASS }}" -ocscrt/
+        signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f cscrt\cscrt.pfx /p "${{ secrets.WIN_CSCRT_PFX_PASS }}" OpenKJ\release\Openkj.exe
+      shell: cmd
+
     - name: Create Installer
       run: |
         cp cd\openkj64.iss inst.iss
@@ -150,6 +157,13 @@ jobs:
         mkdir installer/${RTYPE}
         mv installer/OpenKJ.exe installer/${RTYPE}/${IFN}
       shell: bash
+
+    - name: Installing gcloud console tools
+      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      with:
+        version: 'latest'
+        service_account_key: ${{ secrets.GCLOUD_KEY }}
+        export_default_credentials: true
 
     - name: Upload to google cloud storage
       run: |
