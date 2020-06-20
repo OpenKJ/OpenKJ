@@ -96,10 +96,10 @@ jobs:
       
     - name: Copy in gstreamer dependencies
       run: |
-        copy c:\gstreamer\1.0\%LONGARCH%\bin\*.dll "%project_dir%\output\"
+        copy c:\gstreamer\1.0\x86_64\bin\*.dll OpenKJ\release\
         mkdir OpenKJ\release\lib
-        mkdir OpenKJ\release\lib\gstreamer-1.0"
-        mkdir OpenKJ\release\lib\gstreamer-1.0\validate"
+        mkdir OpenKJ\release\lib\gstreamer-1.0
+        mkdir OpenKJ\release\lib\gstreamer-1.0\validate
         copy c:\gstreamer\1.0\x86_64\lib\gstreamer-1.0\*.dll OpenKJ\release\lib\gstreamer-1.0\
         copy c:\gstreamer\1.0\x86_64\lib\gstreamer-1.0\validate\*.dll OpenKJ\release\lib\gstreamer-1.0\validate\
 
