@@ -155,4 +155,4 @@ jobs:
       run: |
         $env:python_version=$(python -c 'import sys; print(\".\".join(map(str, sys.version_info[:3])))')         
         $env:CLOUDSDK_PYTHON="C:\hostedtoolcache\windows\Python\$env:python_version\x64\python"
-        gsutil cp installer/* gs://okj-installer-deps/installertest/
+        gsutil cp -r installer/* gs://okj-installer-deps/installertest/
