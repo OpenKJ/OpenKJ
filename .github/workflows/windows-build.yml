@@ -85,7 +85,7 @@ jobs:
       uses: jurplel/install-qt-action@v2
       with:
        cached: ${{ steps.cache-qt.outputs.cache-hit }}
-       version: 5.15
+       version: '5.15.0'
        modules: 'core gui sql network widgets multimedia concurrent svg printsupport'
 
 
