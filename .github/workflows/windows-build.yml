@@ -32,7 +32,7 @@ jobs:
         else
         RTYPE=$BRANCH
         fi
-        SBVER=`grep VERSION_STRING okjversion.h | cut -d'"' -f2`
+        SBVER=`grep VERSION_STRING OpenKJ/okjversion.h | cut -d'"' -f2`
         echo "OpenKJ Version: $OKJVER"
         echo "Git Branch: $BRANCH"
         echo "::set-output name=okjver::$OKJVER"
