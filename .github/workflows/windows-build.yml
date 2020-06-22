@@ -60,7 +60,7 @@ jobs:
       uses: carlosperate/download-file-action@v1.0.3
       id: download-openssl
       with:
-        file-url: 'https://storage.googleapis.com/okj-installer-deps/ssl-x86_64.zip'
+        file-url: 'https://storage.googleapis.com/okj-installer-deps/ssl-x86_64-1.1.1.zip'
         file-name: openssl.zip
         location: /downloads
 
@@ -121,7 +121,7 @@ jobs:
       run: |
         copy LICENSE output\LICENSE.txt
         copy ${{ steps.download-infozip.outputs.file-path }} output\
-        7z e -y ${{ steps.download-openssl.outputs.file-path }} -o"output\"
+        7z e -bb3 -y ${{ steps.download-openssl.outputs.file-path }} -o"output\"
 
     - name: Sign OpenKJ executable
       run: |
