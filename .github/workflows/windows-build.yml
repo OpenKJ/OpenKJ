@@ -121,7 +121,7 @@ jobs:
       run: |
         copy LICENSE output\LICENSE.txt
         copy ${{ steps.download-infozip.outputs.file-path }} output\
-        7z e ${{ steps.download-openssl.outputs.file-path }} -o output\
+        7z e ${{ steps.download-openssl.outputs.file-path }} -o"output\"
 
     - name: Sign OpenKJ executable
       run: |
