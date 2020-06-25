@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT += core gui sql network widgets multimedia concurrent svg printsupport #opengl
+QT += core gui sql network widgets multimedia concurrent svg printsupport websockets #opengl
 
 unix:DISTVER = $$system(cat /etc/os-release |grep VERSION_ID |cut -d'=' -f2 | sed -e \'s/^\"//\' -e \'s/\"$//\')
 message($$DISTVER)
@@ -104,7 +104,7 @@ contains(DEFINES, STATIC_TAGLIB) {
 #QMAKE_MAC_SDK = MacOSX10.13
 #QMAKE_MAC_SDK.macosx.version = 10.13
 
-VERSION = 1.7.60
+VERSION = 1.7.61
 message($$VERSION)
 QMAKE_TARGET_COMPANY = OpenKJ.org
 QMAKE_TARGET_PRODUCT = OpenKJ
@@ -118,8 +118,11 @@ win32: BLDDATE = $$system(date /t)
 DEFINES += BUILD_DATE=__DATE__
 
 SOURCES += main.cpp\
+    chatmessageswidget.cpp \
+    dlgchat.cpp \
     mainwindow.cpp \
     libCDG/src/libCDG.cpp \
+    messagingclient.cpp \
     sourcedirtablemodel.cpp \
     dbupdatethread.cpp \
     scrolltext.cpp \
@@ -292,7 +295,11 @@ contains(DEFINES, STATIC_TAGLIB) {
 }
 
 HEADERS  += mainwindow.h \
+    chatmessageswidget.h \
+    dlgchat.h \
     libCDG/include/libCDG.h \
+    messagingclient.h \
+    messagingtypes.h \
     sourcedirtablemodel.h \
     dbupdatethread.h \
     scrolltext.h \
@@ -476,6 +483,7 @@ contains(DEFINES, STATIC_TAGLIB) {
 }
 
 FORMS    += mainwindow.ui \
+    dlgchat.ui \
     dlgkeychange.ui \
     dlgcdgpreview.ui \
     dlgdatabase.ui \

@@ -257,6 +257,7 @@ MainWindow::MainWindow(QWidget *parent) :
     if (settings->theme() != 0)
     {
         ui->pushButtonIncomingRequests->setStyleSheet("");
+        ui->pushButtonChat->setStyleSheet("");
         update();
     }
     songbookApi = new OKJSongbookAPI(this);
@@ -374,6 +375,8 @@ MainWindow::MainWindow(QWidget *parent) :
     qInfo() << "Creating dlgSongShop";
     dlgSongShop = new DlgSongShop(shop);
     dlgSongShop->setModal(false);
+    dlgChat = new DlgChat();
+    unreadMessages = false;
     qInfo() << "Creating CDG object";
     cdg = new CDG;
     ui->tableViewDB->setModel(dbModel);
@@ -2273,7 +2276,47 @@ void MainWindow::timerButtonFlashTimeout()
         QPushButton:default { \
             border-color: navy; /* make the default button prominent */ \
         } \
-    ";
+            ";
+//blah
+
+    if (unreadMessages)
+    {
+            static bool chatFlashed = false;
+            if (settings->theme() != 0)
+            {
+                QColor normal = this->palette().button().color();
+                QColor blink = QColor("yellow");
+                QColor blinkTxt = QColor("black");
+                QColor normalTxt = this->palette().buttonText().color();
+                QPalette palette = QPalette(ui->pushButtonChat->palette());
+                palette.setColor(QPalette::Button, (chatFlashed) ? normal : blink);
+                palette.setColor(QPalette::ButtonText, (chatFlashed) ? normalTxt : blinkTxt);
+                ui->pushButtonChat->setPalette(palette);
+  //              ui->pushButtonChat->setText(" Requests (" + QString::number(requestsDialog->numRequests()) + ") ");
+                chatFlashed = !chatFlashed;
+            }
+            else
+            {
+//                ui->pushButtonChat->setText(" Requests (" + QString::number(requestsDialog->numRequests()) + ") ");
+                ui->pushButtonChat->setStyleSheet((chatFlashed) ? normalSS : blinkSS);
+                chatFlashed = !chatFlashed;
+            }
+            update();
+    }
+    else
+    {
+            if (settings->theme() != 0)
+            {
+                ui->pushButtonIncomingRequests->setPalette(this->palette());
+  //              ui->pushButtonIncomingRequests->setText("Requests");
+            }
+            else
+            {
+                ui->pushButtonIncomingRequests->setStyleSheet(normalSS);
+    //            ui->pushButtonIncomingRequests->setText(" Requests ");
+            }
+            update();
+    }
 
     if (requestsDialog->numRequests() > 0)
     {
@@ -3622,4 +3665,9 @@ void MainWindow::on_btnPlBottom_clicked()
         return;
    bmPlModel->moveSong(curPos, maxpos);
    ui->tableViewBmPlaylist->selectRow(maxpos);
+}
+
+void MainWindow::on_pushButtonChat_clicked()
+{
+    dlgChat->show();
 }

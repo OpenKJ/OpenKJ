@@ -67,6 +67,7 @@
 #include "khdb.h"
 #include "durationlazyupdater.h"
 #include "dlgdebugoutput.h"
+#include "dlgchat.h"
 
 using namespace std;
 
@@ -101,6 +102,7 @@ private:
     DlgEq *dlgEq;
     DlgAddSinger *dlgAddSinger;
     DlgSongShop *dlgSongShop;
+    DlgChat *dlgChat;
     //DlgCdgPreview *cdgPreviewDialog;
     AudioBackendGstreamer *kAudioBackend;
     AbstractAudioBackend *sfxAudioBackend;
@@ -164,6 +166,7 @@ private:
     SfxEntry lastRtClickedSfxBtn;
     QString findMatchingAudioFile(QString cdgFilePath);
     LazyDurationUpdateController *lazyDurationUpdater;
+    bool unreadMessages;
 
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -333,6 +336,8 @@ private slots:
     void on_btnPlDown_clicked();
 
     void on_btnPlBottom_clicked();
+
+    void on_pushButtonChat_clicked();
 
 protected:
     void closeEvent(QCloseEvent *event);
