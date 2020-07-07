@@ -96,8 +96,7 @@ public:
     QString fromUuid;
     QString toUuid;
     QString venueId;
-    QString singerDisplayName;
-    QString kjDisplayName;
+    QString senderDisplayName;
     QString message;
     QDateTime createdTime;
     QDateTime receiptTime;
@@ -114,28 +113,14 @@ public:
         fromUuid = doc.object().value("fromUuid").toString();
         toUuid = doc.object().value("toUuid").toString();
         venueId = doc.object().value("venueId").toString();
-        singerDisplayName = doc.object().value("singerDisplayName").toString();
-        kjDisplayName = doc.object().value("kjDisplayName").toString();
+        senderDisplayName = doc.object().value("senderDisplayName").toString();
         message = doc.object().value("message").toString();
         createdTime = QDateTime::fromTime_t(doc.object().value("createdTime").toInt());
         receiptTime = QDateTime::fromTime_t(doc.object().value("receiptTime").toInt());
         readTime = QDateTime::fromTime_t(doc.object().value("readTime").toInt());
     }
     QByteArray toJson() const {
-        QJsonObject jsonObject;
-        jsonObject.insert("dataType", MsgType::IM);
-        jsonObject.insert("msgId", QJsonValue(msgId));
-        jsonObject.insert("fromSinger", fromSinger);
-        jsonObject.insert("fromUuid", fromUuid);
-        jsonObject.insert("toUuid", toUuid);
-        jsonObject.insert("venueId", venueId);
-        jsonObject.insert("singerDisplayName", singerDisplayName);
-        jsonObject.insert("kjDisplayName", kjDisplayName);
-        jsonObject.insert("message", message);
-        jsonObject.insert("createdTime", createdTime.toMSecsSinceEpoch());
-        jsonObject.insert("receiptTime", receiptTime.toMSecsSinceEpoch());
-        jsonObject.insert("readTime", readTime.toMSecsSinceEpoch());
-        return QJsonDocument(jsonObject).toJson(QJsonDocument::Compact);
+        return QJsonDocument(toJsonObject()).toJson(QJsonDocument::Compact);
     }
     QJsonObject toJsonObject() const {
         QJsonObject jsonObject;
@@ -145,8 +130,7 @@ public:
         jsonObject.insert("fromUuid", fromUuid);
         jsonObject.insert("toUuid", toUuid);
         jsonObject.insert("venueId", venueId);
-        jsonObject.insert("singerDisplayName", singerDisplayName);
-        jsonObject.insert("kjDisplayName", kjDisplayName);
+        jsonObject.insert("senderDisplayName", senderDisplayName);
         jsonObject.insert("message", message);
         jsonObject.insert("createdTime", createdTime.toMSecsSinceEpoch());
         jsonObject.insert("receiptTime", receiptTime.toMSecsSinceEpoch());
