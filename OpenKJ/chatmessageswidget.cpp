@@ -1,5 +1,8 @@
 #include "chatmessageswidget.h"
 #include <QTimer>
+#include <QLabel>
+#include <QSpacerItem>
+#include <QHBoxLayout>
 #include <QDebug>
 #include <settings.h>
 
@@ -7,45 +10,21 @@ extern Settings *settings;
 
 ChatMessagesWidget::ChatMessagesWidget(QWidget *parent) : QWidget(parent)
 {
-
-    vLayout = new QVBoxLayout(this);
-    this->setLayout(vLayout);
-    msgPalette.setColor(QPalette::Window,QColor(53,53,53));
-//    msgPalette.setColor(QPalette::WindowText,Qt::white);
-    msgPalette.setColor(QPalette::Base,QColor(42,42,42));
-    msgPalette.setColor(QPalette::Window,QColor(53,53,53));
-    msgPalette.setColor(QPalette::WindowText,Qt::white);
-    msgPalette.setColor(QPalette::Disabled,QPalette::WindowText,QColor(127,127,127));
-    msgPalette.setColor(QPalette::Base,QColor(42,42,42));
-    msgPalette.setColor(QPalette::AlternateBase,QColor(66,66,66));
-    msgPalette.setColor(QPalette::ToolTipBase,Qt::white);
-    msgPalette.setColor(QPalette::ToolTipText,QColor(53,53,53));
-//    msgPalette.setColor(QPalette::Text,Qt::white);
-    msgPalette.setColor(QPalette::Disabled,QPalette::Text,QColor(127,127,127));
-    msgPalette.setColor(QPalette::Dark,QColor(35,35,35));
-    msgPalette.setColor(QPalette::Shadow,QColor(20,20,20));
-    msgPalette.setColor(QPalette::Button,QColor(53,53,53));
-    msgPalette.setColor(QPalette::ButtonText,Qt::white);
-    msgPalette.setColor(QPalette::Disabled,QPalette::ButtonText,QColor(127,127,127));
-    msgPalette.setColor(QPalette::BrightText,Qt::red);
-    msgPalette.setColor(QPalette::Link,QColor(42,130,218));
-    msgPalette.setColor(QPalette::Highlight,QColor(42,130,218));
-    msgPalette.setColor(QPalette::Disabled,QPalette::Highlight,QColor(80,80,80));
-    msgPalette.setColor(QPalette::HighlightedText,Qt::white);
-    msgPalette.setColor(QPalette::Disabled,QPalette::HighlightedText,QColor(127,127,127));
-    //this->setPalette(msgPalette);
-    indentWidth = 30;
-    QWidget *grower = new QWidget(this);
-    QHBoxLayout *hLayout = new QHBoxLayout(grower);
-    QSpacerItem *spacer = new QSpacerItem(0,5,QSizePolicy::Minimum, QSizePolicy::Expanding);
+    m_vLayout = new QVBoxLayout(this);
+    this->setLayout(m_vLayout);
+    m_indentWidth = 30;
+    auto grower = new QWidget(this);
+    auto hLayout = new QHBoxLayout(grower);
+    auto spacer = new QSpacerItem(0,5,QSizePolicy::Minimum, QSizePolicy::Expanding);
     grower->setLayout(hLayout);
     hLayout->addSpacerItem(spacer);
-    vLayout->addWidget(grower);
-
+    m_vLayout->addWidget(grower);
 }
 
 void ChatMessagesWidget::clearLayout(QLayout *layout)
 {
+    // Removes all children from a layout since QLayout doesn't have a recursive clear function
+
     QLayoutItem* child;
     while (layout->count() != 0)
     {
@@ -64,36 +43,36 @@ void ChatMessagesWidget::clearLayout(QLayout *layout)
 
 void ChatMessagesWidget::clear()
 {
-    clearLayout(vLayout);
-    QWidget *grower = new QWidget(this);
-    QHBoxLayout *hLayout = new QHBoxLayout(grower);
-    QSpacerItem *spacer = new QSpacerItem(0,5,QSizePolicy::Minimum, QSizePolicy::Expanding);
+    // Completely clears the message contents and reset back to an empty state
+
+    clearLayout(m_vLayout);
+    auto grower = new QWidget(this);
+    auto hLayout = new QHBoxLayout(grower);
+    auto spacer = new QSpacerItem(0,5,QSizePolicy::Minimum, QSizePolicy::Expanding);
     grower->setLayout(hLayout);
     hLayout->addSpacerItem(spacer);
-    vLayout->addWidget(grower);
+    m_vLayout->addWidget(grower);
 }
 
-void ChatMessagesWidget::addMessage(QString message, int pos)
+void ChatMessagesWidget::addMessage(const QString &message, const int &pos)
 {
+    // Adds a message to the chat messages widget
+
+    // this enables color emoji substitution characters
     QFont::insertSubstitution(QFont("Noto Sans Display").family(), "Noto Color Emoji");
     QFont::insertSubstitution(settings->applicationFont().family(), "Noto Color Emoji");
-//    this->setFont(QFont("Noto Sans Display"));
-    qWarning() << "Substitutes: " << QFont::substitutes(settings->applicationFont().family());
 
-    QWidget *msgWidget = new QWidget(this);
+    auto msgWidget = new QWidget(this);
     msgWidget->setContentsMargins(0,0,0,0);
-    QHBoxLayout *hLayout = new QHBoxLayout(msgWidget);
+    auto hLayout = new QHBoxLayout(msgWidget);
     msgWidget->setLayout(hLayout);
-    QSpacerItem *spacer = new QSpacerItem(indentWidth,0,QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
-
-    QLabel *label = new QLabel(message, this);
-    QFont imFont = settings->applicationFont();
+    auto spacer = new QSpacerItem(m_indentWidth,0,QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
+    auto label = new QLabel(message, this);
+    auto imFont = settings->applicationFont();
     label->setFont(imFont);
-
     label->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
     auto lpalette = label->palette();
     lpalette.setColor(QPalette::WindowText, Qt::white);
-    lpalette.setColor(QPalette::Window, Qt::black);
     label->setPalette(lpalette);
     label->setAutoFillBackground(true);
     label->setMargin(15);
@@ -111,10 +90,10 @@ void ChatMessagesWidget::addMessage(QString message, int pos)
         hLayout->addSpacerItem(spacer);
         hLayout->addWidget(label);
     }
-    vLayout->addWidget(msgWidget);
-    QTimer timer;
+    m_vLayout->addWidget(msgWidget);
+
+    // We wait to emit this signal to give the UI time to add the message widget, otherwise the receiver won't scroll
+    // the view all the way to the bottom with the new message
     QTimer::singleShot(150, [this] () { emit messagesUpdated(); });
-
-
 }
 

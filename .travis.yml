@@ -4,7 +4,7 @@ os:
   osx_image: 
   - xcode8
 env:
-  - OKJVER=1.7.61
+  - OKJVER=1.7.62
 before_install:
 - source travis/before_install.sh
 install:

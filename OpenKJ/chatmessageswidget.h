@@ -3,25 +3,21 @@
 
 #include <QWidget>
 #include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QSpacerItem>
-#include <QLabel>
-#include <QTimer>
 
 class ChatMessagesWidget : public QWidget
 {
     Q_OBJECT
-    QVBoxLayout *vLayout;
-    int indentWidth;
+private:
+    QVBoxLayout *m_vLayout;
+    int m_indentWidth;
     void clearLayout(QLayout *layout);
-    QPalette msgPalette;
-    QTimer timer;
 
 public:
     enum position {LEFT, RIGHT};
     explicit ChatMessagesWidget(QWidget *parent = nullptr);
     void clear();
-    void addMessage(QString message, int pos);
+    void addMessage(const QString &message, const int &pos);
+
 signals:
     void messagesUpdated();
 };
