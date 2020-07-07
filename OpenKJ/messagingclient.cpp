@@ -7,6 +7,16 @@
 
 
 
+MessagingClient::MessagingClient()
+{
+    setParent(nullptr);
+    reconnect = false;
+    connect(&m_webSocket, &QWebSocket::disconnected, this, &MessagingClient::closed);
+    connect(&m_webSocket, QOverload<QAbstractSocket::SocketError>::of(&QWebSocket::error), this, &MessagingClient::onError);
+    connect(&m_webSocket, &QWebSocket::stateChanged, this, &MessagingClient::stateChanged);
+    connect(&m_webSocket, &QWebSocket::textMessageReceived, this, &MessagingClient::onTextMessageReceived);
+}
+
 MessagingClient::MessagingClient(QObject *parent) :
     QObject(parent)
 {

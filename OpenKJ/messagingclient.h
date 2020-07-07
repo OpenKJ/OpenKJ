@@ -7,6 +7,7 @@
 #include <QWebSocket>
 #include <QJsonArray>
 #include <QTimer>
+#include <vector>
 #include "messagingtypes.h"
 
 struct IMSinger {
@@ -21,6 +22,7 @@ class MessagingClient : public QObject
     QTimer timer;
     QUrl url;
 public:
+    MessagingClient();
     explicit MessagingClient(QObject *parent);
     QWebSocket m_webSocket;
     QUrl m_url;
@@ -32,15 +34,15 @@ public:
     QString apiKey;
     bool isSinger;
     bool reconnect;
-    QList<IMSinger> currentSingerList;
+    std::vector<IMSinger> currentSingerList;
 
 signals:
   //  void messageReceived(const QString&);
     void disconnected();
     void connected();
-    void singerListChanged(QList<IMSinger>);
-    void messageReceived(Message);
-    void historyReceived(QList<Message>);
+    void singerListChanged(const std::vector<IMSinger>&);
+    void messageReceived(const Message&);
+    void historyReceived(const std::vector<Message>&);
 
 public slots:
     void connectSocket(QUrl url);

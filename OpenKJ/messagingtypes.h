@@ -7,6 +7,8 @@
 #include <QDateTime>
 #include <QWebSocket>
 #include <QJsonArray>
+#include <vector>
+#include <algorithm>
 
 
 
@@ -158,7 +160,7 @@ public:
     int dataType;
     QString uuid1;
     QString uuid2;
-    QList<Message> messages;
+    std::vector<Message> messages;
     MsgHistory() {
         dataType = MsgType::MSG_HISTORY;
     }
@@ -176,10 +178,9 @@ public:
     }
     QByteArray toJson() const {
         QJsonArray msgArray;
-        for (int i=0; i < messages.size(); i++)
-        {
-            msgArray.append(messages.at(i).toJsonObject());
-        }
+        std::for_each(messages.begin(),messages.end(),[&] (Message msg) {
+           msgArray.append(msg.toJsonObject());
+        });
         QJsonObject jsonObject;
         jsonObject.insert("dataType", MsgType::MSG_HISTORY);
         jsonObject.insert("uuid1", uuid1);
