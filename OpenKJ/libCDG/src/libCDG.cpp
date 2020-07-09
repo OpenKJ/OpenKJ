@@ -375,7 +375,8 @@ void CdgParser::cmdScroll(const cdg::CdgScrollCmdData &scrollCmdData, const cdg:
     {
         // scroll up 12px
         auto bits = m_image.bits();
-        unsigned char* tmpLines[m_image.bytesPerLine() * 12];
+        int arrSize = m_image.bytesPerLine() * 12;
+        unsigned char* tmpLines[arrSize];
         memcpy(tmpLines, bits, m_image.bytesPerLine() * 12);
         memcpy(bits, bits + m_image.bytesPerLine() * 12, 204 * m_image.bytesPerLine());
         if (type == cdg::ScrollCopy)
@@ -387,7 +388,8 @@ void CdgParser::cmdScroll(const cdg::CdgScrollCmdData &scrollCmdData, const cdg:
     {
         // scroll down 12px
         auto bits = m_image.bits();
-        unsigned char* tmpLines[m_image.bytesPerLine() * 12];
+        int arrSize = m_image.bytesPerLine() * 12;
+        unsigned char* tmpLines[arrSize];
         memcpy(tmpLines, bits + (m_image.bytesPerLine() * 204), m_image.bytesPerLine() * 12);
         memcpy(bits + (m_image.bytesPerLine() * 12), bits, 204 * m_image.bytesPerLine());
         if (type == cdg::ScrollCopy)
