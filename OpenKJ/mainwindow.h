@@ -68,8 +68,6 @@
 #include "durationlazyupdater.h"
 #include "dlgdebugoutput.h"
 
-using namespace std;
-
 namespace Ui {
 class MainWindow;
 }

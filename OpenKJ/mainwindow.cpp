@@ -138,7 +138,7 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
 {
     bool loggingEnabled = settings->logEnabled();
     auto currentTime = std::chrono::high_resolution_clock::now();
-    unsigned int elapsed = chrono::duration_cast<chrono::milliseconds>(currentTime - startTime).count();
+    unsigned int elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count();
     if (loggingEnabled && !logFile->isOpen())
     {
         QString logDir = settings->logDir();
@@ -3051,7 +3051,7 @@ void MainWindow::appFontChanged(QFont font)
     QApplication::setFont(font, "QWidget");
     setFont(font);
     QFontMetrics fm(settings->applicationFont());
-    int cvwWidth = max(300, fm.width("Total: 00:00  Current:00:00  Remain: 00:00"));
+    int cvwWidth = std::max(300, fm.width("Total: 00:00  Current:00:00  Remain: 00:00"));
     qInfo() << "Resizing cdgVideoWidget to width: " << cvwWidth;
     ui->cdgVideoWidget->arResize(cvwWidth);
     ui->cdgFrame->setMinimumWidth(cvwWidth);
