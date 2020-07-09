@@ -341,7 +341,6 @@ void CdgParser::setTempo(const int &percent)
 
 void CdgParser::cmdScroll(const cdg::CdgScrollCmdData &scrollCmdData, const cdg::ScrollType type)
 {
-    auto bytesPerLine = m_image.bytesPerLine();
     if (scrollCmdData.hSCmd == 2)
     {
         // scroll left 6px
@@ -376,25 +375,25 @@ void CdgParser::cmdScroll(const cdg::CdgScrollCmdData &scrollCmdData, const cdg:
     {
         // scroll up 12px
         auto bits = m_image.bits();
-        unsigned char* tmpLines[bytesPerLine * 12];
-        memcpy(tmpLines, bits, bytesPerLine * 12);
-        memcpy(bits, bits + bytesPerLine * 12, 204 * bytesPerLine);
+        unsigned char* tmpLines[m_image.bytesPerLine() * 12];
+        memcpy(tmpLines, bits, m_image.bytesPerLine() * 12);
+        memcpy(bits, bits + m_image.bytesPerLine() * 12, 204 * m_image.bytesPerLine());
         if (type == cdg::ScrollCopy)
-            memcpy(bits + (204 * bytesPerLine), tmpLines, bytesPerLine * 12);
+            memcpy(bits + (204 * m_image.bytesPerLine()), tmpLines, m_image.bytesPerLine() * 12);
         else
-            memset(bits + (204 * bytesPerLine), scrollCmdData.color, bytesPerLine * 12);
+            memset(bits + (204 * m_image.bytesPerLine()), scrollCmdData.color, m_image.bytesPerLine() * 12);
     }
     if (scrollCmdData.vSCmd == 1)
     {
         // scroll down 12px
         auto bits = m_image.bits();
-        unsigned char* tmpLines[bytesPerLine * 12];
-        memcpy(tmpLines, bits + (bytesPerLine * 204), bytesPerLine * 12);
-        memcpy(bits + (bytesPerLine * 12), bits, 204 * bytesPerLine);
+        unsigned char* tmpLines[m_image.bytesPerLine() * 12];
+        memcpy(tmpLines, bits + (m_image.bytesPerLine() * 204), m_image.bytesPerLine() * 12);
+        memcpy(bits + (m_image.bytesPerLine() * 12), bits, 204 * m_image.bytesPerLine());
         if (type == cdg::ScrollCopy)
-            memcpy(bits, tmpLines, bytesPerLine * 12);
+            memcpy(bits, tmpLines, m_image.bytesPerLine() * 12);
         else
-            memset(bits, scrollCmdData.color, bytesPerLine * 12);
+            memset(bits, scrollCmdData.color, m_image.bytesPerLine() * 12);
     }
     if (m_curVOffset != scrollCmdData.vSOffset)
     m_curHOffset = scrollCmdData.hSOffset;
