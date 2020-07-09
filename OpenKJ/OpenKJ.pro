@@ -13,6 +13,9 @@ unix:!macx {
     isEmpty(PREFIX) {
       PREFIX=/usr
     }
+    equals(DISTVER, "18.04") {
+        QMAKE_CXXFLAGS += -std=c++1z
+    }
     equals(DISTVER, "16.04") {
         message("Ubuntu 16.04 detected")
         DEFINES += STATIC_TAGLIB
@@ -101,7 +104,7 @@ contains(DEFINES, STATIC_TAGLIB) {
 #QMAKE_MAC_SDK = MacOSX10.13
 #QMAKE_MAC_SDK.macosx.version = 10.13
 
-VERSION = 1.7.67
+VERSION = 1.7.68
 message($$VERSION)
 QMAKE_TARGET_COMPANY = OpenKJ.org
 QMAKE_TARGET_PRODUCT = OpenKJ
