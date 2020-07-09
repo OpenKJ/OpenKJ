@@ -5,7 +5,7 @@
 #-------------------------------------------------
 
 QT += core gui sql network widgets multimedia concurrent svg printsupport #opengl
-
+CONFIG += c++17
 unix:DISTVER = $$system(cat /etc/os-release |grep VERSION_ID |cut -d'=' -f2 | sed -e \'s/^\"//\' -e \'s/\"$//\')
 message($$DISTVER)
 
@@ -16,9 +16,6 @@ unix:!macx {
     equals(DISTVER, "16.04") {
         message("Ubuntu 16.04 detected")
         DEFINES += STATIC_TAGLIB
-        message("Out of date Linux distro detected, using built in taglib instead of OS package")
-        message("Enabling c++11 support in old distro")
-        CONFIG += c++11
     } else {
         message("Using OS packages for taglib")
         PKGCONFIG += taglib taglib-extras
@@ -104,7 +101,7 @@ contains(DEFINES, STATIC_TAGLIB) {
 #QMAKE_MAC_SDK = MacOSX10.13
 #QMAKE_MAC_SDK.macosx.version = 10.13
 
-VERSION = 1.7.60
+VERSION = 1.7.61
 message($$VERSION)
 QMAKE_TARGET_COMPANY = OpenKJ.org
 QMAKE_TARGET_PRODUCT = OpenKJ

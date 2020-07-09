@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2013-2019 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2020 Thomas Isaac Lightburn
  *
  *
- * This file is part of libCDG.
+ * This file is part of OpenKJ.
  *
  * OpenKJ is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,6 +16,9 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+ * Based on the wonderful work demystifying the CD+G spec by Jim Bumgardner in CDG Revealed
+ * https://jbum.com/cdg_revealed.html
 */
 
 #ifndef LIBCDG_H
@@ -25,109 +28,280 @@
 #include <QVector>
 #include <QImage>
 #include <QVideoFrame>
-\
-#define SC_MASK           0x3F
-#define SC_CDG_COMMAND    0x09
-#define CDG_MEMORYPRESET     1
-#define CDG_BORDERPRESET     2
-#define CDG_TILEBLOCK	     6
-#define CDG_SCROLLPRESET    20
-#define CDG_SCROLLCOPY      24
-#define CDG_DEFINETRANS     28
-#define CDG_COLORSLOW       30
-#define CDG_COLORSHIGH      31
-#define CDG_TILEBLOCKXOR    38
-#define CDG_COLOR_TABLE_LOW  0
-#define CDG_COLOR_TABLE_HIGH 1
+#include <QColor>
+#include <vector>
+#include <array>
 
-#define MODE_FILE           0
-#define MODE_QIODEVICE       1
 
+namespace cdg {
+
+enum ProcessingMode {
+    File,
+    QIODevice
+};
+
+enum TileBlockType {
+    TileBlockNormal,
+    TileBlockXOR
+};
+
+enum ScrollType {
+    ScrollCopy,
+    ScrollPreset
+};
+
+// these are statically set because the values are part of the
+// CD redbook standard
+enum CdgCommand : char {
+    CmdMemoryPreset = 1,
+    CmdBorderPreset = 2,
+    CmdTileBlock = 6,
+    CmdScrollPreset = 20,
+    CmdScrollCopy = 24,
+    CmdDefineTrans = 28,
+    CmdColorsLow = 30,
+    CmdColorsHigh = 31,
+    CmdTileBlockXOR = 38
+};
+
+// these are also defined in the CD redbook
+enum CdgColorTables : char {
+    LowColors = 0,
+    HighColors = 1
+};
 
 struct CDG_SubCode
 {
-	char	command;
-	char	instruction;
-	char	parityQ[2];
-	char	data[16];
-	char	parityP[4];
+    CdgCommand command;
+    char instruction;
+    std::array<char,2> parityQ;
+    std::array<char,16> data;
+    std::array<char,4> parityP;
 };
 
-
-struct CDG_Memory_Preset
+struct CdgColorsData
 {
-	char	color;
-	char	repeat;
-	char	filler[14];
+    CdgColorsData(const std::array<char,16> &data)
+    {
+        int colorIdx = 0;
+        for (int i=0; i < 15; i += 2)
+        {
+            char lowbyte = data[i];
+            char highbyte = data[i + 1];
+            int red{0};
+            int green{0};
+            int blue{0};
+
+            if (lowbyte & 0x20) red += 8;
+            if (lowbyte & 0x10) red += 4;
+            if (lowbyte & 0x08) red += 2;
+            if (lowbyte & 0x04) red += 1;
+
+            if (lowbyte & 0x02) green += 8;
+            if (lowbyte & 0x01) green += 4;
+            if (highbyte & 0x20) green += 2;
+            if (highbyte & 0x10) green += 1;
+
+            if (highbyte & 0x08) blue += 8;
+            if (highbyte & 0x04) blue += 4;
+            if (highbyte & 0x02) blue += 2;
+            if (highbyte & 0x01) blue += 1;
+
+            colors[colorIdx] = QColor(red * 17, green * 17, blue * 17);
+            colorIdx++;
+        }
+    }
+    std::array<QColor,8> colors;
 };
 
-
-struct CDG_Border_Preset
+struct CdgMemoryPresetData
 {
-	char	color;
-	char	filler[15];
+    CdgMemoryPresetData(const std::array<char,16> &data)
+    {
+        // use clamp to pull corruped CDG data into range
+        color = std::clamp(data[0] & 0x0F, 0, 15);
+        repeat = (data[1] & 0x0F);
+    }
+    char color;
+    char repeat;
+    // Only the first two bits are used, the other 14 are filler
 };
 
 
-struct CDG_Tile_Block
+struct CdgBorderPresetData
 {
-	char	color0;
-	char	color1;
-	char	row;
-	char	column;
-	char	tilePixels[12];
+    CdgBorderPresetData (const std::array<char,16> &data)
+    {
+        // use clamp to pull corruped CDG data into range
+        color = std::clamp(data[0] & 0x0F, 0, 15);
+    }
+    char color;
+    // Only the first bit is used, the other 15 are filler
 };
 
-struct CDG_Scroll_CMD
+
+struct CdgTileBlockData
 {
-	char	color;
-	char	hScroll;
-    char    hSCmd;
-    char    hSOffset;
-	char	vScroll;
-    char    vSCmd;
-    char    vSOffset;
+    CdgTileBlockData (const std::array<char,16> &data)
+    {
+        color0 = (data[0] & 0x0F);
+        color1 = (data[1] & 0x0F);
+        row = (data[2] & 0x1F);
+        column = (data[3] & 0x3F);
+        std::copy(data.begin() + 4, data.end(), tilePixels.begin());
+        top  = (row    * 12);
+        left = (column * 6);
+    }
+    char color0;
+    char color1;
+    char row;
+    char column;
+    unsigned int top;
+    unsigned int left;
+    std::array<char,12> tilePixels;
 };
 
-class CDG
+/*
+***
+Scroll Preset (subCode.instruction==20)
+Scroll Copy (subCode.instruction==24)
+***
+
+In these instruction, the 16 byte data field is interepreted as follows.
+
+ typedef struct {
+    char	color;				// Only lower 4 bits are used, mask with 0x0F
+    char	hScroll;			// Only lower 6 bits are used, mask with 0x3F
+    char	vScroll;			// Only lower 6 bits are used, mask with 0x3F
+ } CDG_Scroll;
+
+This command is used to scroll all the pixels on the screen horizontally and/or
+vertically.
+
+The color refers to a fill color to use for the new area uncovered by the
+scrolling action.  It is only used in the Scroll Preset command.  In the Scroll
+Copy command the screen is "rotated" around.  For example, in scrolling to the
+left, pixels uncovered on the right are filled in by the pixels being scrolled
+off the screen on the left.
+
+The hScroll field is a compound field. It can be divided into two fields like so:
+
+  SCmd = (hScroll & 0x30) >> 4;
+  HOffset = (hScroll & 0x07);
+
+    SCmd is a scrolliing instruction, which is either 0, 1 or 2.
+        0 means don't scroll
+        1 means scroll 6 pixels to the right,
+        2 means scroll 6 pixels to the left.
+
+    HOffset is a horizontal offset which is used for offsetting the graphic
+    display by amounts less than 6 pixels. It can assume values from 0 to 5.
+
+Similarly, the vScroll field is a compound field. It can be divided into two
+fields like so:
+
+  SCmd = (vScroll & 0x30) >> 4;
+  VOffset = (vScroll & 0x0F);
+
+    SCmd is a scrolliing instruction, which is either 0, 1 or 2.
+        0 means don't scroll
+        1 means scroll 12 pixels down,
+        2 means scroll 12 pixels up.
+
+    VOffset is a vertical offset which is used for offsetting the graphic
+    display by amounts less than 12 pixels. It can assume values from 0 to 11.
+
+Smooth horizontal and vertical scrolling in all directions can be done by
+combining scroll commands.  For example, here is a smooth horizontal scroll to
+the left:
+
+    SCmd			HScroll
+    ===             =======
+    0				1
+    0				2
+    0				3
+    0				4
+    0				5
+    0				6
+    2				0
+    (repeat)
+
+You can create the effect of an infinite panorama by continually loading in new
+tiles into the border area and scrolling them into view.
+
+*/
+
+
+struct CdgScrollCmdData
+{
+    CdgScrollCmdData (const std::array<char,16> &data)
+    {
+        color = (data[0] & 0x0F);
+        hScroll = (data[1] & 0x3F);
+        vScroll = (data[2] & 0x3F);
+        hSCmd = (hScroll & 0x30) >> 4;
+        hSOffset = (hScroll & 0x07);
+        vSCmd = (vScroll & 0x30) >> 4;
+        vSOffset = (vScroll & 0x0F);
+    }
+    char color;
+    char hScroll;
+    char hSCmd;
+    char hSOffset;
+    char vScroll;
+    char vSCmd;
+    char vSOffset;
+};
+
+}
+
+class CdgParser
 {
 public:
-	CDG();
-	virtual ~CDG();
-    bool open(QByteArray byteArray);
-    bool open(QString filename);
+    CdgParser();
+    bool open(const QByteArray &byteArray);
+    bool open(const QString &filename);
     bool process();
     void reset();
-    bool canSkipFrameByTime(unsigned int ms);
-    QVideoFrame videoFrameByTime(unsigned int ms);
-    QString md5HashByTime(unsigned int ms);
+    bool canSkipFrameByTime(const unsigned int &ms);
+    const QVideoFrame& videoFrameByTime(const unsigned int &ms);
+    QString md5HashByTime(const unsigned int &ms);
     unsigned int duration();
     unsigned int position();
     bool isOpen();
     unsigned int lastCDGUpdate();
     int tempo();
-    void setTempo(int percent);
+    void setTempo(const int &percent);
 protected:
 private:
     int m_tempo;
     unsigned int m_lastCDGCommandMS;
     unsigned int m_duration;
     bool m_isOpen;
+    bool m_lastCmdWasMempreset;
     QByteArray m_cdgData;
     unsigned int m_position;
-    char m_masks[6];
+    inline constexpr static std::array<char,6> m_masks{0x20,0x10,0x08,0x04,0x02,0x01};
     bool m_needupdate;
-    QVector<QVideoFrame> m_frames;
-    QVector<bool> m_skip;
+    std::vector<QVideoFrame> m_frames;
+    std::vector<bool> m_skip;
     QImage m_image;
-    void readCdgSubcodePacket(CDG_SubCode &subCode);
-    void cmdScrollPreset(char data[16]);
-    void cmdScrollCopy(char data[16]);
-    void cmdDefineTrans(char data[16]);
-    void cmdMemoryPreset(char data[16]);
-    void cmdBorderPreset(char data[16]);
-    void cmdTileBlock(char data[16], bool XOR = false);
-    void cmdColors(char data[16], int Table);
+    int m_bytesPerPixel;
+    int m_borderLRBytes;
+    int m_borderRBytesOffset;
+    int m_curVOffset;
+    int m_curHOffset;
+    constexpr static char m_subcodeMask = 0x3F;
+    constexpr static char m_subcodeCommand = 0x09;
+
+    void readCdgSubcodePacket(const cdg::CDG_SubCode &subCode);
+    void cmdScroll(const cdg::CdgScrollCmdData &scrollCmdData, const cdg::ScrollType type);
+    void cmdDefineTransparent(const std::array<char,16> &data);
+    void cmdMemoryPreset(const cdg::CdgMemoryPresetData &memoryPreset);
+    void cmdBorderPreset(const cdg::CdgBorderPresetData &borderPreset);
+    void cmdTileBlock(const cdg::CdgTileBlockData &tileBlockPacket, const cdg::TileBlockType &type);
+    void cmdColors(const cdg::CdgColorsData &data,const cdg::CdgColorTables &table);
+    QImage getSafeArea();
 };
 
 #endif // LIBCDG_H
