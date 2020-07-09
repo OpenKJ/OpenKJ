@@ -156,9 +156,9 @@ jobs:
         fi
         OKJVER=`grep VERSION_STRING OpenKJ/okjversion.h | cut -d'"' -f2`
         echo "OpenKJ Version: $OKJVER"
-        IFN=OpenKJ-$OKJVER-64bit-setup.exe
-        mkdir installer/${RTYPE}
-        mv installer/OpenKJ.exe installer/${RTYPE}/${IFN}
+        IFN=OpenKJ-$OKJVER-64bit-${RTYPE}-setup.exe
+        mkdir installer/${BRANCH}
+        mv installer/OpenKJ.exe installer/${BRANCH}/${IFN}
       shell: bash
 
     - name: Installing gcloud console tools
