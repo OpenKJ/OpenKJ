@@ -30,30 +30,51 @@ TickerDisplayWidget::TickerDisplayWidget(QWidget *parent)
     setCacheMode(QGraphicsView::CacheNone);
     speed = 25;
     spm = new QGraphicsPixmapItem(getPixmapFromString("Placeholder txt"));
+    spm2 = new QGraphicsPixmapItem(getPixmapFromString("Placeholder Text"));
     scene->addItem(spm);
     spm->setPos(QPointF(0.0f, 0.0f));
-    timer = new QTimer(this);
-    timer->setInterval(3);
+    spm2->setPos(spm->pos().x() + spm->boundingRect().right(), spm->pos().y());
+    timer.setInterval(3);
     speed = settings.tickerSpeed();
     pixelShift = (float)this->speed / 10.0f;
-    QObject::connect(timer, &QTimer::timeout, [this]() {
-       if (underflow)
-       {
-           spm->setPos(0.0f,0.0f);
-           return;
-       }
-       qreal xpos = spm->pos().x();
-       if (xpos <= (float)-jumpPoint + pixelShift)
-       {
-            spm->setPos(0.0f,0.0f);
-       }
-       else
-       {
+    QObject::connect(&timer, &QTimer::timeout, [this]() {
+        if (underflow)
+        {
+            if (spm->pos() != QPoint(0,0))
+                spm->setPos(0.0f,0.0f);
+            if (spm2->isVisible())
+                spm2->hide();
+            return;
+        }
+        else
+        {
+            if (!spm2->isVisible())
+                spm2->show();
+        }
+        if (!flipped)
+        {
+            qreal xpos = spm->pos().x();
             spm->setPos(QPointF(xpos - pixelShift, 0.0f));
-       }
-
+            spm2->setPos(spm->pos().x() + spm->boundingRect().right(), spm->pos().y());
+            if (xpos + spm->boundingRect().right() < 0)
+            {
+                spm->setPos(spm2->pos().x() + spm2->boundingRect().right(), spm2->pos().y());
+                flipped = true;
+            }
+        }
+        else
+        {
+            qreal xpos = spm2->pos().x();
+            spm2->setPos(QPointF(xpos - pixelShift, 0.0f));
+            spm->setPos(spm2->pos().x() + spm2->boundingRect().right(), spm2->pos().y());
+            if (xpos + spm2->boundingRect().right() < 0)
+            {
+                spm2->setPos(spm->pos().x() + spm->boundingRect().right(), spm->pos().y());
+                flipped = false;
+            }
+        }
     });
-    timer->start();
+    timer.start();
 }
 
 TickerDisplayWidget::~TickerDisplayWidget()
@@ -64,14 +85,20 @@ TickerDisplayWidget::~TickerDisplayWidget()
 void TickerDisplayWidget::setText(const QString &newText)
 {
     currentTxt = newText;
-    timer->stop();
+    timer.stop();
     scene->removeItem(spm);
+    scene->removeItem(spm2);
     delete spm;
+    delete spm2;
     spm = new QGraphicsPixmapItem(getPixmapFromString(newText));
+    spm2 = new QGraphicsPixmapItem(getPixmapFromString(newText));
     scene->addItem(spm);
+    scene->addItem(spm2);
+    flipped = false;
     spm->setPos(QPointF(rect().left(), 0.0f));
+    spm2->setPos(spm->pos().x() + spm->boundingRect().right(), spm->pos().y());
 
-    timer->start();
+    timer.start();
 }
 
 
@@ -86,38 +113,38 @@ void TickerDisplayWidget::setSpeed(int speed)
 
 void TickerDisplayWidget::stop()
 {
-    timer->stop();
+    timer.stop();
 }
 
 void TickerDisplayWidget::setTickerEnabled(const bool& enabled)
 {
     if (enabled)
-        timer->start();
+        timer.start();
     else
-        timer->stop();
+        timer.stop();
 }
 
 void TickerDisplayWidget::refreshTickerSettings()
 {
     setText(currentTxt);
-   // setBackgroundBrush(QBrush(settings.tickerBgColor()));
-   // setAutoFillBackground(true);
+    // setBackgroundBrush(QBrush(settings.tickerBgColor()));
+    // setAutoFillBackground(true);
 }
 
 QPixmap TickerDisplayWidget::getPixmapFromString(const QString& text)
 {
-    int myWidth = this->visibleRegion().boundingRect().width();
-    QFont tickerFont = settings.tickerFont();
-    QFontMetrics metrics = QFontMetrics(tickerFont);
+    auto tickerWidth = this->visibleRegion().boundingRect().width();
+    auto tickerFont = settings.tickerFont();
+    auto metrics = QFontMetrics(tickerFont);
     QString drawText;
     int pxWidth;
 #if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
-    if (myWidth >= metrics.horizontalAdvance(text))
+    if (tickerWidth >= metrics.horizontalAdvance(text))
 #else
     if (myWidth >= metrics.width(text))
 #endif
     {
-        pxWidth = myWidth * 2;
+        pxWidth = tickerWidth * 2;
         underflow = true;
         drawText = text;
         jumpPoint = 99999;
@@ -125,13 +152,11 @@ QPixmap TickerDisplayWidget::getPixmapFromString(const QString& text)
     }
     else
     {
-        drawText = " " + text + " | " + text;
+        drawText = " " + text + " |";
 #if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
         pxWidth = metrics.horizontalAdvance(drawText);
-        jumpPoint = metrics.horizontalAdvance(" " + text + " | q" "");
 #else
         pxWidth = metrics.width(drawText);
-        jumpPoint = metrics.width(" " + text + " | q" "");
 #endif
         underflow = false;
     }

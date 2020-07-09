@@ -19,6 +19,7 @@ public:
         void setText(const QString &newText);
         void setSpeed(int speed);
         QPixmap m_image;
+        QPixmap m_image2;
         void stop();
         void setTickerEnabled(const bool &enabled);
         void refreshTickerSettings();
@@ -29,11 +30,13 @@ private:
         QString currentTxt;
         QVariantAnimation *animation;
         QGraphicsPixmapItem* spm;
+        QGraphicsPixmapItem* spm2;
         QGraphicsScene *scene;
         Settings settings;
         QOpenGLWidget *glWidget;
-        QTimer *timer;
+        QTimer timer;
         bool underflow;
+        bool flipped{false};
         int speed;
         qreal pixelShift;
         int jumpPoint;
