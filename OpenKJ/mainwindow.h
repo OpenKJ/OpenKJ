@@ -118,7 +118,7 @@ private:
     int m_rtClickRotationSingerId;
     QTemporaryDir *khTmpDir;
     QDir *khDir;
-    CDG *cdg;
+    CdgParser cdg;
     int sortColDB;
     int sortDirDB;
     QString dbRtClickFile;

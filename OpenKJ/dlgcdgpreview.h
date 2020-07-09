@@ -38,9 +38,9 @@ class DlgCdgPreview : public QDialog
 private:
     Ui::DlgCdgPreview *ui;
     QString m_srcFile;
-    QTimer *timer;
+    QTimer timer;
     QTemporaryDir *cdgTempDir;
-    CDG *cdg;
+    CdgParser cdg;
 //    AudioBackendGstreamer *mediaBackend;
     unsigned int cdgPosition;
 

@@ -29,10 +29,7 @@ DlgCdgPreview::DlgCdgPreview(QWidget *parent) :
     ui(new Ui::DlgCdgPreview)
 {
     ui->setupUi(this);
-    cdg = new CDG();
-    timer = new QTimer(this);
-    timer->stop();
-    connect(timer, SIGNAL(timeout()), this, SLOT(timerTimeout()));
+    connect(&timer, &QTimer::timeout, this, &DlgCdgPreview::timerTimeout);
     cdgPosition = 0;
     cdgTempDir = NULL;
 }
@@ -40,7 +37,6 @@ DlgCdgPreview::DlgCdgPreview(QWidget *parent) :
 DlgCdgPreview::~DlgCdgPreview()
 {
     delete ui;
-    delete cdg;
 }
 
 void DlgCdgPreview::setSourceFile(QString srcFile)
@@ -50,9 +46,9 @@ void DlgCdgPreview::setSourceFile(QString srcFile)
 
 void DlgCdgPreview::preview()
 {
-    timer->stop();
+    timer.stop();
     cdgPosition = 0;
-    if (cdg->isOpen()) cdg->reset();
+    if (cdg.isOpen()) cdg.reset();
     setVisible(true);
     QApplication::processEvents();
     if (m_srcFile.endsWith(".zip", Qt::CaseInsensitive))
@@ -64,9 +60,9 @@ void DlgCdgPreview::preview()
             close();
             return;
         }
-        cdg->open(archive.getCDGData());
-        cdg->process();
-        timer->start(40);
+        cdg.open(archive.getCDGData());
+        cdg.process();
+        timer.start(40);
     }
     else if (m_srcFile.endsWith(".cdg", Qt::CaseInsensitive))
     {
@@ -77,9 +73,9 @@ void DlgCdgPreview::preview()
             close();
             return;
         }
-        cdg->open(m_srcFile);
-        cdg->process();
-        timer->start(40);
+        cdg.open(m_srcFile);
+        cdg.process();
+        timer.start(40);
     }
     else if (m_srcFile.endsWith(".mkv", Qt::CaseInsensitive) || m_srcFile.endsWith(".avi", Qt::CaseInsensitive) || m_srcFile.endsWith(".wmv", Qt::CaseInsensitive) || m_srcFile.endsWith(".mp4", Qt::CaseInsensitive) || m_srcFile.endsWith(".mpg", Qt::CaseInsensitive) || m_srcFile.endsWith(".mpeg", Qt::CaseInsensitive))
     {
@@ -95,17 +91,17 @@ void DlgCdgPreview::preview()
 
 void DlgCdgPreview::timerTimeout()
 {
-    if (cdg->isOpen())
+    if (cdg.isOpen())
     {
-        if (cdg->lastCDGUpdate() >= cdgPosition)
+        if (cdg.lastCDGUpdate() >= cdgPosition)
         {
-            ui->cdgVideoWidget->videoSurface()->present(cdg->videoFrameByTime(cdgPosition));
-            cdgPosition = cdgPosition + timer->interval();
+            ui->cdgVideoWidget->videoSurface()->present(cdg.videoFrameByTime(cdgPosition));
+            cdgPosition = cdgPosition + timer.interval();
         }
         else
         {
-            timer->stop();
-            cdg->reset();
+            timer.stop();
+            cdg.reset();
             cdgPosition = 0;
             close();
         }
@@ -116,8 +112,8 @@ void DlgCdgPreview::timerTimeout()
 
 void DlgCdgPreview::on_pushButtonClose_clicked()
 {
-    timer->stop();
-    cdg->reset();
+    timer.stop();
+    cdg.reset();
     cdgPosition = 0;
     close();
     deleteLater();
@@ -132,8 +128,8 @@ void DlgCdgPreview::videoFrameReceived(QImage frame, QString backendName)
 
 void DlgCdgPreview::closeEvent(QCloseEvent *)
 {
-    timer->stop();
-    cdg->reset();
+    timer.stop();
+    cdg.reset();
     cdgPosition = 0;
     close();
     deleteLater();
