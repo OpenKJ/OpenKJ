@@ -141,7 +141,7 @@ QPixmap TickerDisplayWidget::getPixmapFromString(const QString& text)
 #if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
     if (tickerWidth >= metrics.horizontalAdvance(text))
 #else
-    if (myWidth >= metrics.width(text))
+    if (tickerWidth >= metrics.width(text))
 #endif
     {
         pxWidth = tickerWidth * 2;
