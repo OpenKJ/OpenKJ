@@ -37,7 +37,9 @@ macx: {
     INCLUDEPATH += /Library/Frameworks/GStreamer.framework/Headers
     ICON = Icons/OpenKJ.icns
     DEFINES += STATIC_TAGLIB
-}
+    !contains(DEFINES, BREW_BUILD) {
+        DEFINES += MAC_OVERRIDE_GST
+    }
 
 win32 {
     ## Windows common build here
@@ -96,9 +98,6 @@ contains(DEFINES, STATIC_TAGLIB) {
     INCLUDEPATH += taglib/wavpack
     INCLUDEPATH += taglib/xm
 }
-# fix macOS build after upgrading xcode
-QMAKE_MAC_SDK = MacOSX10.13
-QMAKE_MAC_SDK.macosx.version = 10.13
 
 VERSION = 1.6.7
 message($$VERSION)
