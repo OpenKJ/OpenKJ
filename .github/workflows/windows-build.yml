@@ -1,0 +1,170 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Windows Build
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ master, release ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build64:
+    name: Windows 64bit Build
+    # The type of runner that the job will run on
+    runs-on: windows-2019
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2
+
+    - name: Cache GStreamer
+      id: cache-gstreamer
+      uses: actions/cache@v2
+      with:
+        path: 'c:\gstreamer'
+        key: ${{ runner.os }}-gstreamer
+
+    - name: Download GST Installer
+      if: steps.cache-gstreamer.outputs.cache-hit != 'true'
+      uses: carlosperate/download-file-action@v1.0.3
+      id: download-gst
+      with:
+        file-url: 'https://storage.googleapis.com/okj-installer-deps/gstreamer-1.0-x86_64-1.14.4.msi'
+        file-name: 'gstreamer-1.0-x86_64-1.14.4.msi'
+        location: './downloads'
+
+    - name: Download GST-Dev Installer
+      if: steps.cache-gstreamer.outputs.cache-hit != 'true'
+      uses: carlosperate/download-file-action@v1.0.3
+      id: download-gst-dev
+      with:
+        file-url: 'https://storage.googleapis.com/okj-installer-deps/gstreamer-1.0-devel-x86_64-1.14.4.msi'
+        file-name: 'gstreamer-1.0-devel-x86_64-1.14.4.msi'
+        location: './downloads'
+
+    - name: Download InfoZip Binary
+      uses: carlosperate/download-file-action@v1.0.3
+      id: download-infozip
+      with:
+        file-url: 'https://storage.googleapis.com/okj-installer-deps/unzip.exe'
+        file-name: unzip.exe
+        location: /downloads
+
+    - name: Download OpenSSL dll files
+      uses: carlosperate/download-file-action@v1.0.3
+      id: download-openssl
+      with:
+        file-url: 'https://storage.googleapis.com/okj-installer-deps/ssl-x86_64-1.1.1.zip'
+        file-name: openssl.zip
+        location: /downloads
+
+    - name: Install GST
+      if: steps.cache-gstreamer.outputs.cache-hit != 'true'
+      run: |
+        cmd /c start /wait msiexec /package ${{ steps.download-gst.outputs.file-path }} /passive ADDLOCAL=ALL
+        
+    - name: Install GST-Dev
+      if: steps.cache-gstreamer.outputs.cache-hit != 'true'
+      run: |
+        cmd /c start /wait msiexec /package ${{ steps.download-gst-dev.outputs.file-path }} /passive ADDLOCAL=ALL
+  
+    - name: Cache Qt
+      id: cache-qt
+      uses: actions/cache@v1
+      with:
+       path: ../Qt
+       key: ${{ runner.os }}-QtCache-5.15.0
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2
+      with:
+       cached: ${{ steps.cache-qt.outputs.cache-hit }}
+       version: '5.15.0'
+       modules: 'core gui sql network widgets multimedia concurrent svg printsupport'
+
+
+    - name: Compile
+      run: |
+        call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        qmake
+        nmake
+      shell: cmd
+    
+    - name: Create output dir and copy exe
+      run: |
+        mkdir output
+        copy OpenKJ\release\openkj.exe output\
+    - name: Run windeployqt
+      run: |
+        call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        windeployqt --release --compiler-runtime output/openkj.exe
+        dir output
+      shell: cmd
+      
+    - name: Copy in gstreamer dependencies
+      run: |
+        copy c:\gstreamer\1.0\x86_64\bin\*.dll output\
+        mkdir output\lib
+        mkdir output\lib\gstreamer-1.0
+        mkdir output\lib\gstreamer-1.0\validate
+        copy c:\gstreamer\1.0\x86_64\lib\gstreamer-1.0\*.dll output\lib\gstreamer-1.0\
+        copy c:\gstreamer\1.0\x86_64\lib\gstreamer-1.0\validate\*.dll output\lib\gstreamer-1.0\validate\
+    - name: Copy in other dependencies
+      run: |
+        copy LICENSE output\LICENSE.txt
+        copy ${{ steps.download-infozip.outputs.file-path }} output\
+        7z e -bb3 -y ${{ steps.download-openssl.outputs.file-path }} -o"output\"
+    - name: Sign OpenKJ executable
+      run: |
+        mkdir cscrt
+        7z e appveyor/cscrt.7z -p"${{ secrets.WIN_CSCRT_ARCHIVE_PASS }}" -ocscrt/
+        call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f cscrt\cscrt.pfx /p "${{ secrets.WIN_CSCRT_PFX_PASS }}" output/OpenKJ.exe
+      shell: cmd
+
+    - name: Create Installer
+      run: |
+        cp cd\openkj64.iss inst.iss
+        mkdir installer
+        "%programfiles(x86)%\Inno Setup 6\iscc.exe" inst.iss /Oinstaller\
+      shell: cmd
+
+    - name: Sign Installer
+      run: |
+        mkdir cscrt
+        7z e appveyor/cscrt.7z -p"${{ secrets.WIN_CSCRT_ARCHIVE_PASS }}" -ocscrt/
+        call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f cscrt\cscrt.pfx /p "${{ secrets.WIN_CSCRT_PFX_PASS }}" installer\OpenKJ.exe
+      shell: cmd
+
+    - name: Rename Installer
+      run: |
+        BRANCH=${GITHUB_REF##*/}
+        if [ "$BRANCH" = "master" ];then
+        RTYPE="unstable"
+        else
+        RTYPE=$BRANCH
+        fi
+        OKJVER=`grep VERSION_STRING OpenKJ/okjversion.h | cut -d'"' -f2`
+        echo "OpenKJ Version: $OKJVER"
+        IFN=OpenKJ-$OKJVER-64bit-${RTYPE}-setup.exe
+        mkdir installer/${BRANCH}
+        mv installer/OpenKJ.exe installer/${BRANCH}/${IFN}
+      shell: bash
+
+    - name: Installing gcloud console tools
+      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      with:
+        version: 'latest'
+        service_account_key: ${{ secrets.GCLOUD_KEY }}
+        export_default_credentials: true
+
+    - name: Upload to google cloud storage
+      run: |
+        $env:python_version=$(python -c 'import sys; print(\".\".join(map(str, sys.version_info[:3])))')         
+        $env:CLOUDSDK_PYTHON="C:\hostedtoolcache\windows\Python\$env:python_version\x64\python"
+        gsutil cp -r installer/* gs://openkj-installers/windows/
