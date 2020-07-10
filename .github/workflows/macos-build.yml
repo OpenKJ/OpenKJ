@@ -1,0 +1,73 @@
+name: MacOS Builder
+
+on:
+  push:
+    branches: [ master, release ]
+
+jobs:
+  build:
+    runs-on: [ self-hosted, macOS ]
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Run qmake
+      run: | 
+        ~/Qt/5.15.0/clang_64/bin/qmake
+    - name: Run make
+      run: |
+        make -j12
+        mv OpenKJ/OpenKJ.app ./
+    - name: Run macdeployqt
+      run: |
+         /Users/lightburnisaac/Qt/5.15.0/clang_64/bin/macdeployqt "OpenKJ.app" -codesign="Developer ID Application: Isaac Lightburn (47W8CPBS5A)" -appstore-compliant
+    - name: Pull gstreamer into app bundle
+      run: |
+        echo "Copying GStreamer framework to package dir"
+        BundlePath=OpenKJ.app
+        cp -pR /Library/Frameworks/GStreamer.framework.dist ${BundlePath}/Contents/Frameworks/GStreamer.framework
+        echo "Modifying linker path info for GStreamer library to app bundle pathing"
+        osxrelocator ${BundlePath}/Contents/Frameworks/GStreamer.framework/Versions/Current/lib /Library/Frameworks/GStreamer.framework/ @executable_path/../Frameworks/GStreamer.framework/ -r 
+        osxrelocator ${BundlePath}/Contents/Frameworks/GStreamer.framework/Versions/Current/libexec /Library/Frameworks/GStreamer.framework/ @executable_path/../../../../../GStreamer.framework/ -r 
+        osxrelocator ${BundlePath}/Contents/Frameworks/GStreamer.framework/Versions/Current/bin /Library/Frameworks/GStreamer.framework/ @executable_path/../../../../GStreamer.framework/ -r 
+        osxrelocator ${BundlePath}/Contents/MacOS /Library/Frameworks/GStreamer.framework/ @executable_path/../Frameworks/GStreamer.framework/ -r &>/dev/null
+    - name: Sign app bundle
+      run: |
+        codesign -s "Developer ID Application: Isaac Lightburn (47W8CPBS5A)" --identifier "org.freedesktop.gstreamer" --timestamp OpenKJ.app/Contents/Frameworks/GStreamer.framework
+        codesign --force -s "Developer ID Application: Isaac Lightburn (47W8CPBS5A)" --identifier "org.openkj.openkj" --timestamp OpenKJ.app
+    - name: Create installer
+      run: |
+        BRANCH=${GITHUB_REF##*/}
+        if [ "$BRANCH" = "master" ];then
+        RTYPE="unstable"
+        else
+        RTYPE=$BRANCH
+        fi
+        OKJVER=`grep VERSION_STRING OpenKJ/okjversion.h | cut -d'"' -f2`
+        echo "OpenKJ Version: $OKJVER"
+        FN="OpenKJ-${OKJVER}-${RTYPE}-osx-installer.pkg"
+        echo "Package filename: $FN"
+        mkdir -p fakeroot/Applications
+        mv "OpenKJ.app" fakeroot/Applications
+        pkgbuild --root "fakeroot" --component-plist macos/openkj.plist --identifier "org.openkj.openkj" --sign "Developer ID Installer: Isaac Lightburn (47W8CPBS5A)" ${FN}
+        
+    - name: Installing gcloud console tools
+      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      with:
+        version: '290.0.1'
+        service_account_key: ${{ secrets.GCLOUD_KEY }}
+        export_default_credentials: true
+        
+    - name: Upload installer to Google Cloud Storage
+      continue-on-error: true
+      run: |
+        BRANCH=${GITHUB_REF##*/}
+        if [ "$BRANCH" = "master" ];then
+        RTYPE="unstable"
+        else
+        RTYPE=$BRANCH
+        fi
+        OKJVER=`grep VERSION_STRING OpenKJ/okjversion.h | cut -d'"' -f2`
+        echo "OpenKJ Version: $OKJVER"
+        FN="OpenKJ-${OKJVER}-${RTYPE}-osx-installer.pkg"
+        echo "Package filename: $FN"
+        gsutil cp $FN gs://openkj-installers/macos/$RTYPE/
