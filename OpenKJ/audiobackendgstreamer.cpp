@@ -40,7 +40,7 @@ Q_DECLARE_METATYPE(std::shared_ptr<GstMessage>);
 AudioBackendGstreamer::AudioBackendGstreamer(bool loadPitchShift, QObject *parent, QString objectName) :
     AbstractAudioBackend(parent)
 {
-#ifdef Q_OS_MACOS
+#ifdef MAC_OVERRIDE_GST
     QString appDir = QCoreApplication::applicationDirPath();
     appDir.replace("MacOS/", "");
     qputenv("GST_PLUGIN_SYSTEM_PATH", QString(appDir + "/../Frameworks/GStreamer.framework/Versions/Current/lib/gstreamer-1.0").toLocal8Bit());
