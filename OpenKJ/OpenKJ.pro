@@ -36,13 +36,17 @@ unix:!macx {
 }
 
 macx: {
-    LIBS += -F/Library/Frameworks -framework GStreamer
-    INCLUDEPATH += /Library/Frameworks/GStreamer.framework/Headers
+
     ICON = Icons/OpenKJ.icns
-    DEFINES += STATIC_TAGLIB
     DEFINES += MACPLATFORM
     !contains(DEFINES, BREW_BUILD) {
         DEFINES += MAC_OVERRIDE_GST
+        DEFINES += STATIC_TAGLIB
+        LIBS += -F/Library/Frameworks -framework GStreamer
+        INCLUDEPATH += /Library/Frameworks/GStreamer.framework/Headers
+    } else {
+        CONFIG += link_pkgconfig
+        PKGCONFIG += gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0 gstreamer-pbutils-1.0 gstreamer-controller-1.0 gstreamer-video-1.0 taglib
     }
     
 }
