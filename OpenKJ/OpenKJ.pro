@@ -41,6 +41,10 @@ macx: {
     ICON = Icons/OpenKJ.icns
     DEFINES += STATIC_TAGLIB
     DEFINES += MACPLATFORM
+    !contains(DEFINES, BREW_BUILD) {
+        DEFINES += MAC_OVERRIDE_GST
+    }
+    
 }
 
 win32 {
