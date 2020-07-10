@@ -34,7 +34,6 @@ void AudioRecorder::generateDeviceList()
     gst_device_monitor_stop(monitor);
     g_list_free(devices);
     g_object_unref(monitor);
-
 }
 
 void AudioRecorder::initGStreamer()
@@ -81,7 +80,10 @@ void AudioRecorder::initGStreamer()
     if (!wavEnc)
         qCritical() << "Failed to create wavEnc";
 #ifndef Q_OS_WIN
-    audioSrc        = gst_device_create_element(inputDevices.at(0), NULL);
+    if (inputDevices.isEmpty())
+        audioSrc = gst_element_factory_make("fakesrc", "fakesrc");
+    else
+        audioSrc        = gst_device_create_element(inputDevices.at(0), NULL);
 #endif
     pipeline        = gst_pipeline_new("pipeline");
     if (!pipeline)
