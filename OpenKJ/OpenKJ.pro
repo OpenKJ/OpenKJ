@@ -40,7 +40,7 @@ macx: {
     !contains(DEFINES, BREW_BUILD) {
         DEFINES += MAC_OVERRIDE_GST
     }
-
+}
 win32 {
     ## Windows common build here
     DEFINES += STATIC_TAGLIB
