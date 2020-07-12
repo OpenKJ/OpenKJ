@@ -188,7 +188,7 @@ class CdgParser
 {
 public:
     CdgParser();
-    bool open(const QByteArray &byteArray);
+    bool open(const QByteArray &byteArray, const bool &bypassReset = false);
     bool open(const QString &filename);
     bool process();
     void reset();

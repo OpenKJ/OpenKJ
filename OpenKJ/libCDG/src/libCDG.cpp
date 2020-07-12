@@ -31,10 +31,11 @@ CdgParser::CdgParser()
     reset();
 }
 
-bool CdgParser::open(const QByteArray &byteArray)
+bool CdgParser::open(const QByteArray &byteArray, const bool &bypassReset)
 {
     qInfo() << "libCDG - Opening byte array for processing";
-    reset();
+    if (!bypassReset)
+        reset();
     m_cdgData = byteArray;
     if (byteArray.size() == 0)
     {
@@ -57,7 +58,7 @@ bool CdgParser::open(const QString &filename)
     file.open(QFile::ReadOnly);
     m_cdgData = file.readAll();
     file.close();
-    return open(m_cdgData);
+    return open(m_cdgData, true);
 }
 
 unsigned int CdgParser::position()
