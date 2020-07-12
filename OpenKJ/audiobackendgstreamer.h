@@ -38,6 +38,8 @@
 #include "audiofader.h"
 #include <QPointer>
 #include <memory>
+#include <array>
+#include <vector>
 
 /* playbin flags */
 typedef enum {
@@ -61,78 +63,63 @@ public:
     enum accel{OpenGL=0,XVideo};
 private:
     gstTimerCallbackData *myObj;
-    GstElement *fltrPostPanorama;
-    GstElement *queueEndAudio;
-    GstElement *queueMainAudio;
-    GstElement *queueMainVideo;
-    GstElement *audioPanorama;
-    GstElement *aConvPostPanorama;
-    GstElement *audioBin;
-    GstElement *aConvInput;
-    GstElement *aConvPrePitchShift;
-    GstElement *aConvPostPitchShift;
     GstElement *aConvEnd;
+    GstElement *audioPanorama;
+    GstElement *fltrPostPanorama;
+    GstElement *audioBin;
     GstElement *audioSink;
-    GstElement *rgVolume;
-    GstElement *rgLimiter;
     GstElement *pitchShifterRubberBand;
     GstElement *pitchShifterSoundtouch;
-    GstElement *level;
-//    GstElement *fltrEnd;
-    GstElement *volumeElement;
-    GstElement *faderVolumeElement;
-    GstElement *equalizer;
-    GstElement *videoSink1;
-    GstElement *videoSink2;
-    GstElement *videoTee;
-    GstElement *videoBin;
-    GstElement *videoQueue1;
-    GstElement *videoQueue2;
     GstPad *videoQueue1SrcPad;
     GstPad *videoQueue2SrcPad;
     GstPad *videoTeePad1;
     GstPad *videoTeePad2;
+//    GstElement *fltrEnd;
+    GstElement *volumeElement;
+    GstElement *faderVolumeElement;
+    GstElement *equalizer;
+    GstElement *videoTee;
+    GstElement *videoBin;
+    GstElement *videoSink1;
+    GstElement *videoSink2;
     GstCaps *audioCapsStereo;
     GstCaps *audioCapsMono;
-    GstPad *ghostPad;
-    GstPad *ghostVideoPad;
-    GstControlSource *csource;
-    GstTimedValueControlSource *tv_csource;
     QString m_filename;
     QString m_cdgFilename;
-    QTimer *fastTimer;
-    QTimer *slowTimer;
-    int m_keyChange;
-    int m_volume;
-    bool m_cdgMode;
-    bool m_fade;
-    bool m_silenceDetect;
-    bool m_canKeyChange;
-    bool m_canChangeTempo;
-    bool m_keyChangerRubberBand;
-    bool m_keyChangerSoundtouch;
-    bool m_muted;
-    bool m_vidMuted;
-    bool m_canRenderCdg;
-    bool initDone;
-    int m_silenceDuration;
-    int m_outputChannels;
-    bool m_previewEnabledLastBuild;
-    double m_currentRmsLevel;
-    int eq1, eq2, eq3, eq4, eq5, eq6, eq7, eq8, eq9, eq10;
-    bool bypass;
+    QTimer fastTimer;
+    QTimer slowTimer;
+    int m_keyChange{0};
+    int m_volume{0};
+    bool m_cdgMode{false};
+    bool m_fade{false};
+    bool m_silenceDetect{false};
+    bool m_canKeyChange{false};
+    bool m_canChangeTempo{false};
+    bool m_keyChangerRubberBand{false};
+    bool m_keyChangerSoundtouch{false};
+    bool m_muted{false};
+    bool m_vidMuted{false};
+    bool m_canRenderCdg{false};
+    bool initDone{false};
+    int m_silenceDuration{0};
+    int m_outputChannels{0};
+    bool m_previewEnabledLastBuild{true};
+    double m_currentRmsLevel{0.0};
+    std::array<int,10> eqLevels{0,0,0,0,0,0,0,0,0,0};
+    bool bypass{false};
     bool loadPitchShift;
-    int outputDeviceIdx;
-    bool downmix;
-    std::shared_ptr<GstBus> bus;
-    std::shared_ptr<GstElement> pipeline;
+    int outputDeviceIdx{0};
+    bool downmix{false};
+    std::unique_ptr<GstBus> bus;
+    std::unique_ptr<GstElement> pipeline;
     QStringList outputDeviceNames;
-    QList<GstDevice*> outputDevices;
+    int lastPosition{0};
+    std::vector<GstDevice*> outputDevices;
     QPointer<AudioFader> fader;
-    AbstractAudioBackend::State lastState;
-    WId videoWinId;
-    WId videoWinId2;
-    accel accelMode;
+    AbstractAudioBackend::State lastState{AbstractAudioBackend::StoppedState};
+    WId videoWinId{0};
+    WId videoWinId2{0};
+    accel accelMode{XVideo};
 
     QStringList GstGetPlugins();
     QStringList GstGetElements(QString plugin);
@@ -145,7 +132,7 @@ private:
 public:
     GstElement *playBin;
     QString objName;
-    int m_tempo;
+    int m_tempo{100};
 
     void setAccelType(accel type=accel::XVideo) { accelMode = type; }
     explicit AudioBackendGstreamer(bool loadPitchShift = true, QObject *parent = nullptr, QString objectName = "unknown");
