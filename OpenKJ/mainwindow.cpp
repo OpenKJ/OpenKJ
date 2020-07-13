@@ -384,7 +384,7 @@ MainWindow::MainWindow(QWidget *parent) :
     bmAudioBackend = new MediaBackend(false, this, "BM");
     bmAudioBackend->setName("break");
     qInfo() << "Creating karaoke audio backend object";
-    kAudioBackend = new MediaBackend();
+    kAudioBackend = new MediaBackend(false, this, "KAR");
     kAudioBackend->setName("karaoke");
     if (kAudioBackend->canFade())
         kAudioBackend->setUseFader(settings->audioUseFader());

@@ -178,7 +178,7 @@ private:
     void destroyPipeline();
     void resetPipeline();
     static GstBusSyncReply busMessageDispatcher(GstBus *bus, GstMessage *message, gpointer userData);
-
+    static GstBusSyncReply busMessageDispatcherCdg(GstBus *bus, GstMessage *message, gpointer userData);
     guint64 cdgPosition{0};
     unsigned int curFrame{0};
     static void cb_need_data(GstElement *appsrc, guint unused_size, gpointer user_data);
@@ -191,6 +191,7 @@ private slots:
     void faderStarted();
     void faderFinished();
     void busMessage(std::shared_ptr<GstMessage> message);
+    void busMessageCdg(std::shared_ptr<GstMessage> message);
     void gstPositionChanged(qint64 position);
     void gstDurationChanged(qint64 duration);
     void gstFastTimerFired();

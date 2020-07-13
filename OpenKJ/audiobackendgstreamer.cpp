@@ -700,6 +700,21 @@ void MediaBackend::busMessage(std::shared_ptr<GstMessage> message)
     }
 }
 
+void MediaBackend::busMessageCdg(std::shared_ptr<GstMessage> message)
+{
+    switch (GST_MESSAGE_TYPE(message.get())) {
+    case GST_MESSAGE_NEED_CONTEXT:
+        qInfo() << objName  << " - CDG pipeline - context requested - " << message->src->name;
+        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink1), videoWinId);
+        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink2), videoWinId2);
+        break;
+    default:
+        //g_print("Msg type[%d], Msg type name[%s]\n", GST_MESSAGE_TYPE(message), GST_MESSAGE_TYPE_NAME(message));
+        //qInfo() << objName << " - Gst msg type: " << GST_MESSAGE_TYPE(message.get()) << " Gst msg name: " << GST_MESSAGE_TYPE_NAME(message.get()) << " Element: " << message->src->name;
+        break;
+    }
+}
+
 void MediaBackend::gstPositionChanged(qint64 position)
 {
     qInfo() << "gstPositionChanged(" << position << ") called";
@@ -951,6 +966,11 @@ void MediaBackend::buildPipeline()
     g_object_set(level, "message", TRUE, nullptr);
     auto bus = takeGstObject(gst_element_get_bus(playBin));
     gst_bus_set_sync_handler(bus.get(), busMessageDispatcher, this, nullptr);
+    if (m_cdgMode)
+    {
+        auto busCdg = takeGstObject(gst_element_get_bus(cdgPipeline));
+        gst_bus_set_sync_handler(bus.get(), busMessageDispatcherCdg, this, nullptr);
+    }
     auto csource = gst_interpolation_control_source_new ();
     if (!csource)
         qInfo() << objName << " - Error createing control source";
@@ -1014,6 +1034,14 @@ void MediaBackend::resetPipeline()
 {
     destroyPipeline();
     buildPipeline();
+}
+
+GstBusSyncReply MediaBackend::busMessageDispatcherCdg([[maybe_unused]]GstBus *bus, GstMessage *message, gpointer userData)
+{
+    auto myObj = static_cast<MediaBackend*>(userData);
+    auto messagePtr = takeGstMiniObject(message);
+    QMetaObject::invokeMethod(myObj, "busMessageCdg", Qt::QueuedConnection, Q_ARG(std::shared_ptr<GstMessage>, messagePtr));
+    return GST_BUS_DROP;
 }
 
 void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused_size, gpointer user_data)
