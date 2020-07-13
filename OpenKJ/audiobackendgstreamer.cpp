@@ -118,7 +118,7 @@ AudioBackendGstreamer::AudioBackendGstreamer(bool pitchShift, QObject *parent, Q
     initDone = true;
 }
 
-void AudioBackendGstreamer::videoMute(bool mute)
+void AudioBackendGstreamer::videoMute(const bool &mute)
 {
     gint flags;
     if (mute)
@@ -142,10 +142,7 @@ void AudioBackendGstreamer::videoMute(bool mute)
     m_vidMuted = mute;
 }
 
-bool AudioBackendGstreamer::videoMuted()
-{
-    return m_vidMuted;
-}
+
 
 AudioBackendGstreamer::~AudioBackendGstreamer()
 {
@@ -161,10 +158,7 @@ AudioBackendGstreamer::~AudioBackendGstreamer()
         gst_object_unref(videoSink2);
 }
 
-int AudioBackendGstreamer::volume()
-{
-    return m_volume;
-}
+
 
 qint64 AudioBackendGstreamer::position()
 {
@@ -176,10 +170,7 @@ qint64 AudioBackendGstreamer::position()
     return 0;
 }
 
-bool AudioBackendGstreamer::isMuted()
-{
-    return m_muted;
-}
+
 
 qint64 AudioBackendGstreamer::duration()
 {
@@ -207,15 +198,9 @@ AbstractAudioBackend::State AudioBackendGstreamer::state()
     }
 }
 
-QString AudioBackendGstreamer::backendName()
-{
-    return "GStreamer";
-}
 
-bool AudioBackendGstreamer::stopping()
-{
-    return false;
-}
+
+
 
 void AudioBackendGstreamer::play()
 {
@@ -450,20 +435,11 @@ void AudioBackendGstreamer::faderFinished()
 
 
 
-bool AudioBackendGstreamer::canPitchShift()
-{
-    return m_canKeyChange;
-}
 
-int AudioBackendGstreamer::pitchShift()
-{
-    return m_keyChange;
-}
 
-bool AudioBackendGstreamer::canChangeTempo()
-{
-    return m_canChangeTempo;
-}
+
+
+
 
 void AudioBackendGstreamer::setPitchShift(int pitchShift)
 {
@@ -943,10 +919,7 @@ void AudioBackendGstreamer::resetPipeline()
     buildPipeline();
 }
 
-bool AudioBackendGstreamer::canFade()
-{
-    return true;
-}
+
 
 void AudioBackendGstreamer::fadeOut(bool waitForFade)
 {
@@ -984,10 +957,7 @@ void AudioBackendGstreamer::setUseFader(bool fade)
 }
 
 
-bool AudioBackendGstreamer::canDetectSilence()
-{
-    return true;
-}
+
 
 bool AudioBackendGstreamer::isSilent()
 {
@@ -1002,15 +972,9 @@ void AudioBackendGstreamer::setUseSilenceDetection(bool enabled)
 }
 
 
-bool AudioBackendGstreamer::canDownmix()
-{
-    return true;
-}
 
-int AudioBackendGstreamer::tempo()
-{
-    return m_tempo;
-}
+
+
 
 void AudioBackendGstreamer::setDownmix(bool enabled)
 {
@@ -1030,10 +994,7 @@ void AudioBackendGstreamer::setTempo(int percent)
     qInfo() << objName << " - Tempo changed to " << tempo;
 }
 
-QStringList AudioBackendGstreamer::getOutputDevices()
-{
-    return outputDeviceNames;
-}
+
 
 void AudioBackendGstreamer::setOutputDevice(int deviceIndex)
 {

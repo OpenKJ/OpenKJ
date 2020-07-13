@@ -57,9 +57,7 @@ public:
     virtual bool downmixChangeRequiresRestart() { return true; }
     virtual QStringList getOutputDevices();
     virtual void setOutputDevice(int deviceIndex) {Q_UNUSED(deviceIndex);}
-    virtual bool stopping() {return false;}
     float getPitchForSemitone(int semitone);
-    QString getName() const;
     void setName(const QString &value);
     virtual bool hasVideo() {return false;}
 

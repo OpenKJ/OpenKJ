@@ -60,9 +60,40 @@ class AudioBackendGstreamer : public AbstractAudioBackend
 {
     Q_OBJECT
 public:
+    explicit AudioBackendGstreamer(bool loadPitchShift = true, QObject *parent = nullptr, QString objectName = "unknown");
+    ~AudioBackendGstreamer();
     enum accel{OpenGL=0,XVideo};
+    bool canChangeTempo() { return m_canChangeTempo; }
+    bool canDetectSilence() { return true; }
+    bool canDownmix() { return true; }
+    bool canFade() { return true; }
+    bool canPitchShift() { return m_canKeyChange; }
+    bool canRenderCdg() { return m_canRenderCdg; }
+    bool hasVideo();
+    bool isMuted() { return m_muted; }
+    bool isSilent();
+    void setAccelType(const accel &type=accel::XVideo) { accelMode = type; }
+    void setOutputDevice(int deviceIndex);
+    void setVideoWinId(WId winID) { videoWinId = winID; }
+    void setVideoWinId2(WId winID) { videoWinId2 = winID; }
+    void videoMute(const bool &mute);
+    const bool& videoMuted() { return m_vidMuted; }
+    int volume() { return m_volume; }
+    qint64 position();
+    qint64 duration();
+    AbstractAudioBackend::State state();
+    QString backendName() { return "GStreamer"; }
+    int pitchShift() { return m_keyChange; }
+    bool downmixChangeRequiresRestart() { return false; }
+    int tempo() { return m_tempo; }
+    QStringList getOutputDevices() { return outputDeviceNames; }
+
 private:
-    gstTimerCallbackData *myObj;
+    GstPad *videoQueue1SrcPad;
+    GstPad *videoQueue2SrcPad;
+    GstPad *videoTeePad1;
+    GstPad *videoTeePad2;
+    GstElement *playBin;
     GstElement *aConvEnd;
     GstElement *audioPanorama;
     GstElement *fltrPostPanorama;
@@ -70,11 +101,6 @@ private:
     GstElement *audioSink;
     GstElement *pitchShifterRubberBand;
     GstElement *pitchShifterSoundtouch;
-    GstPad *videoQueue1SrcPad;
-    GstPad *videoQueue2SrcPad;
-    GstPad *videoTeePad1;
-    GstPad *videoTeePad2;
-//    GstElement *fltrEnd;
     GstElement *volumeElement;
     GstElement *faderVolumeElement;
     GstElement *equalizer;
@@ -82,14 +108,24 @@ private:
     GstElement *videoBin;
     GstElement *videoSink1;
     GstElement *videoSink2;
+    gstTimerCallbackData *myObj;
     GstCaps *audioCapsStereo;
     GstCaps *audioCapsMono;
+    QString objName;
     QString m_filename;
     QString m_cdgFilename;
+    QStringList outputDeviceNames;
+    QStringList GstGetPlugins();
+    QStringList GstGetElements(QString plugin);
     QTimer fastTimer;
     QTimer slowTimer;
+    int m_silenceDuration{0};
+    int m_outputChannels{0};    int m_tempo{100};
     int m_keyChange{0};
     int m_volume{0};
+    int lastPosition{0};
+    int outputDeviceIdx{0};
+    double m_currentRmsLevel{0.0};
     bool m_cdgMode{false};
     bool m_fade{false};
     bool m_silenceDetect{false};
@@ -101,19 +137,11 @@ private:
     bool m_vidMuted{false};
     bool m_canRenderCdg{false};
     bool initDone{false};
-    int m_silenceDuration{0};
-    int m_outputChannels{0};
     bool m_previewEnabledLastBuild{true};
-    double m_currentRmsLevel{0.0};
-    std::array<int,10> eqLevels{0,0,0,0,0,0,0,0,0,0};
     bool bypass{false};
-    bool loadPitchShift;
-    int outputDeviceIdx{0};
+    bool loadPitchShift{false};
     bool downmix{false};
-    std::unique_ptr<GstBus> bus;
-    std::unique_ptr<GstElement> pipeline;
-    QStringList outputDeviceNames;
-    int lastPosition{0};
+    std::array<int,10> eqLevels{0,0,0,0,0,0,0,0,0,0};
     std::vector<GstDevice*> outputDevices;
     QPointer<AudioFader> fader;
     AbstractAudioBackend::State lastState{AbstractAudioBackend::StoppedState};
@@ -121,49 +149,10 @@ private:
     WId videoWinId2{0};
     accel accelMode{XVideo};
 
-    QStringList GstGetPlugins();
-    QStringList GstGetElements(QString plugin);
     void buildPipeline();
     void destroyPipeline();
     void resetPipeline();
     static GstBusSyncReply busMessageDispatcher(GstBus *bus, GstMessage *message, gpointer userData);
-
-
-public:
-    GstElement *playBin;
-    QString objName;
-    int m_tempo{100};
-
-    void setAccelType(accel type=accel::XVideo) { accelMode = type; }
-    explicit AudioBackendGstreamer(bool loadPitchShift = true, QObject *parent = nullptr, QString objectName = "unknown");
-    void setVideoWinId(WId winID) { videoWinId = winID; }
-    void setVideoWinId2(WId winID) { videoWinId2 = winID; }
-    void videoMute(bool mute);
-    bool videoMuted();
-    ~AudioBackendGstreamer();
-    int volume();
-    qint64 position();
-    bool isMuted();
-    qint64 duration();
-    AbstractAudioBackend::State state();
-    QString backendName();
-    bool stopping();
-    void keyChangerOn();
-    void keyChangerOff();
-    bool canPitchShift();
-    bool canRenderCdg() { return m_canRenderCdg; }
-    int pitchShift();
-    bool canChangeTempo();
-    bool canDetectSilence();
-    bool isSilent();
-    bool canFade();
-    bool canDownmix();
-    bool downmixChangeRequiresRestart() { return false; }
-
-    int tempo();
-    QStringList getOutputDevices();
-    void setOutputDevice(int deviceIndex);
-    bool hasVideo();
 
 private slots:
     void fastTimer_timeout();
@@ -177,7 +166,6 @@ private slots:
     void gstFastTimerFired();
     void faderChangedVolume(double volume);
     void faderStateChanged(AudioFader::FaderState state);
-
 
 public slots:
     void play();
