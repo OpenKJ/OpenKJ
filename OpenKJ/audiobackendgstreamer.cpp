@@ -779,8 +779,8 @@ void MediaBackend::buildPipeline()
         videoSink1 = gst_element_factory_make ("d3dvideosink", "videoSink1");
         videoSink2 = gst_element_factory_make("d3dvideosink", "videoSink2");
 #elif defined(Q_OS_MAC)
-        videoSink1 = gst_element_factory_make("osxvideosink", "videosink1");
-        videoSink2 = gst_element_factory_make("osxvideosink", "videosink2");
+        videoSink1 = gst_element_factory_make("glimagesink", "videosink1");
+        videoSink2 = gst_element_factory_make("glimagesink", "videosink2");
 #else
         qWarning() << "Unknown platform, defaulting to OpenGL video output";
         videoSink1 = gst_element_factory_make ("glimagesink", "videoSink1");
@@ -882,19 +882,23 @@ void MediaBackend::buildPipeline()
         {
             auto videoQueue1 = gst_element_factory_make("queue", "videoQueue1");
             auto videoQueue2 = gst_element_factory_make("queue", "videoQueue2");
+            auto videoConv1 = gst_element_factory_make("videoconvert", "preOutVideoConvert1");
+            auto videoConv2 = gst_element_factory_make("videoconvert", "preOutVideoConvert2");
             videoTee = gst_element_factory_make("tee", "videoTee");
             videoTeePad1 = gst_element_get_request_pad(videoTee, "src_%u");
             videoTeePad2 = gst_element_get_request_pad(videoTee, "src_%u");
             videoQueue1SrcPad = gst_element_get_static_pad(videoQueue1, "sink");
             videoQueue2SrcPad = gst_element_get_static_pad(videoQueue2, "sink");
             videoBin = gst_bin_new("videoBin");
-            gst_bin_add_many(reinterpret_cast<GstBin *>(cdgPipeline), cdgAppSrc, cdgVidConv,videoTee,videoQueue1,videoQueue2,videoSink1,videoSink2,nullptr);
+            gst_bin_add_many(reinterpret_cast<GstBin *>(cdgPipeline), cdgAppSrc, cdgVidConv, videoConv1, videoConv2,videoTee,videoQueue1,videoQueue2,videoSink1,videoSink2,nullptr);
             gst_element_link(cdgAppSrc, cdgVidConv);
             gst_element_link(cdgVidConv, videoTee);
             gst_pad_link(videoTeePad1,videoQueue1SrcPad);
             gst_pad_link(videoTeePad2,videoQueue2SrcPad);
-            gst_element_link(videoQueue1,videoSink1);
-            gst_element_link(videoQueue2,videoSink2);
+            gst_element_link(videoQueue1,videoConv1);
+            gst_element_link(videoQueue2,videoConv2);
+            gst_element_link(videoConv1, videoSink1);
+            gst_element_link(videoConv2, videoSink2);
             gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(videoSink1), videoWinId);
             gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(videoSink2), videoWinId2);
         }
