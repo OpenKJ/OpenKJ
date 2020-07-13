@@ -26,6 +26,7 @@
 #include <QNetworkAccessManager>
 #include "settings.h"
 #include "abstractaudiobackend.h"
+#include "audiobackendgstreamer.h"
 #include "okjsongbookapi.h"
 
 namespace Ui {
@@ -39,14 +40,14 @@ class DlgSettings : public QDialog
 private:
     Ui::DlgSettings *ui;
     QStringList getMonitors();
-    AbstractAudioBackend *kAudioBackend;
+    MediaBackend *kAudioBackend;
     AbstractAudioBackend *bmAudioBackend;
     QNetworkAccessManager *networkManager;
     bool pageSetupDone;
     QStringList audioOutputDevices;
 
 public:
-    explicit DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBackend *BmAudioBackend, QWidget *parent = 0);
+    explicit DlgSettings(MediaBackend *AudioBackend, AbstractAudioBackend *BmAudioBackend, QWidget *parent = 0);
     ~DlgSettings();
 
 signals:

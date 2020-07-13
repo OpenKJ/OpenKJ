@@ -31,7 +31,7 @@
 extern Settings *settings;
 
 
-void DlgCdg::setKAudioBackend(AbstractAudioBackend *value)
+void DlgCdg::setKAudioBackend(MediaBackend *value)
 {
     kAudioBackend = value;
 }
@@ -51,7 +51,7 @@ WId DlgCdg::getCdgWinId()
     return ui->cdgVideo->winId();
 }
 
-DlgCdg::DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *BreakBackend, QWidget *parent, Qt::WindowFlags f) :
+DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, AbstractAudioBackend *BreakBackend, QWidget *parent, Qt::WindowFlags f) :
     QDialog(parent, f),
     ui(new Ui::DlgCdg)
 {

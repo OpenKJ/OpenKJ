@@ -28,6 +28,7 @@
 #include "cdgvideowidget.h"
 #include <QTimer>
 #include "abstractaudiobackend.h"
+#include "audiobackendgstreamer.h"
 
 namespace Ui {
 class DlgCdg;
@@ -48,17 +49,17 @@ private:
     QTimer *oneSecTimer;
     int countdownPos;
     QTimer *buttonShowTimer;
-    AbstractAudioBackend *kAudioBackend;
+    MediaBackend *kAudioBackend;
     AbstractAudioBackend *bAudioBackend;
 
 
 public:
-    explicit DlgCdg(AbstractAudioBackend *KaraokeBackend, AbstractAudioBackend *BreakBackend, QWidget *parent = nullptr, Qt::WindowFlags f = nullptr);
+    explicit DlgCdg(MediaBackend *KaraokeBackend, AbstractAudioBackend *BreakBackend, QWidget *parent = nullptr, Qt::WindowFlags f = nullptr);
     ~DlgCdg();
     void makeFullscreen();
     void makeWindowed();
     void setTickerText(QString text);
-    void setKAudioBackend(AbstractAudioBackend *value);
+    void setKAudioBackend(MediaBackend *value);
     void setBAudioBackend(AbstractAudioBackend *value);
     void stopTicker();
     WId getCdgWinId();

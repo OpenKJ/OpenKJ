@@ -381,10 +381,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewDB->setItemDelegate(dbDelegate);
 //    ipcClient = new KhIPCClient("bmControl",this);
     qInfo() << "Creating break music audio backend object";
-    bmAudioBackend = new AudioBackendGstreamer(false, this, "BM");
+    bmAudioBackend = new MediaBackend(false, this, "BM");
     bmAudioBackend->setName("break");
     qInfo() << "Creating karaoke audio backend object";
-    kAudioBackend = new AudioBackendGstreamer(true, this, "KA");
+    kAudioBackend = new MediaBackend();
     kAudioBackend->setName("karaoke");
     if (kAudioBackend->canFade())
         kAudioBackend->setUseFader(settings->audioUseFader());
@@ -399,7 +399,7 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->spinBoxTempo->hide();
         ui->lblTempo->hide();
     }
-    sfxAudioBackend = new AudioBackendGstreamer(false, this, "SFX");
+    sfxAudioBackend = new MediaBackend(false, this, "SFX");
     qInfo() << "Creating audio recorder object";
     audioRecorder = new AudioRecorder(this);
     qInfo() << "Creating settings dialog";
@@ -830,17 +830,10 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
                     QString audioFile = khTmpDir->path() + QDir::separator() + "tmp" + archive.audioExtension();
                     QString cdgFile = khTmpDir->path() + QDir::separator() + "tmp.cdg";
                     qInfo() << "Extracted audio file size: " << QFileInfo(audioFile).size();
-                    qInfo() << "Loading CDG data";
-                    cdg.open(archive.getCDGData());
-                    qInfo() << "Processing CDG data";
-                    cdg.process();
-                    qInfo() << "CDG Processed. - Duration: " << cdg.duration() << " Last CDG draw command time: " << cdg.lastCDGUpdate();
                     cdgWindow->setShowBgImage(false);
                     setShowBgImage(false);
                     qInfo() << "Setting karaoke backend source file to: " << audioFile;
-                    //kAudioBackend->setMedia(audioFile);
                     kAudioBackend->setMediaCdg(cdgFile, audioFile);
-                    //                ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
                     if (!k2k)
                         bmAudioBackend->fadeOut(!settings->bmKCrossFade());
                     qInfo() << "Beginning playback of file: " << audioFile;
@@ -878,16 +871,6 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
                 return;
             }
             QString audiofn = findMatchingAudioFile(karaokeFilePath);
-//            QString baseFn = karaokeFilePath;
-//            baseFn.chop(3);
-//            if (QFile::exists(baseFn + "mp3"))
-//                audiofn = baseFn + "mp3";
-//            else if (QFile::exists(baseFn + "Mp3"))
-//                audiofn = baseFn + "Mp3";
-//            else if (QFile::exists(baseFn + "MP3"))
-//                audiofn = baseFn + "MP3";
-//            else if (QFile::exists(baseFn + "mP3"))
-//                audiofn = baseFn + "mP3";
             if (audiofn == "")
             {
                 QMessageBox::warning(this, tr("Bad karaoke file"), tr("Audio file missing."),QMessageBox::Ok);
@@ -901,11 +884,7 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
             }
             cdgFile.copy(khTmpDir->path() + QDir::separator() + cdgTmpFile);
             QFile::copy(audiofn, khTmpDir->path() + QDir::separator() + audTmpFile);
-            cdg.open(khTmpDir->path() + QDir::separator() + cdgTmpFile);
-            cdg.process();
             kAudioBackend->setMediaCdg(khTmpDir->path() + QDir::separator() + cdgTmpFile, khTmpDir->path() + QDir::separator() + audTmpFile);
-//            kAudioBackend->setMedia(khTmpDir->path() + QDir::separator() + audTmpFile);
-//            ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_OUT);
             if (!k2k)
                 bmAudioBackend->fadeOut(!settings->bmKCrossFade());
             bmAudioBackend->videoMute(true);
@@ -915,7 +894,6 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
         else
         {
             // Close CDG if open to avoid double video playback
-            cdg.reset();
             qInfo() << "Playing non-CDG video file: " << karaokeFilePath;
             QString tmpFileName = khTmpDir->path() + QDir::separator() + "tmpvid." + karaokeFilePath.right(4);
             QFile::copy(karaokeFilePath, tmpFileName);
@@ -1432,16 +1410,6 @@ void MainWindow::audioBackend_positionChanged(qint64 position)
 {
     if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
     {
-        if (false /*!kAudioBackend->canRenderCdg()*/)
-        {
-            if (cdg.isOpen() && cdg.lastCDGUpdate() >= position)
-            {
-                QVideoFrame frame = cdg.videoFrameByTime(position + cdgOffset);
-                if (previewEnabled)
-                    ui->cdgVideoWidget->videoSurface()->present(frame);
-                cdgWindow->updateCDG(frame);
-            }
-        }
         if (!sliderPositionPressed)
         {
             ui->sliderProgress->setMaximum(kAudioBackend->duration());
@@ -1472,7 +1440,6 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
         qInfo() << "KAudio entered StoppedState";
         bmAudioBackend->videoMute(false);
         audioRecorder->stop();
-        cdg.reset();
         if (k2kTransition)
             return;
         ui->labelArtist->setText("None");
@@ -1550,7 +1517,6 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
     }
     if (state == AbstractAudioBackend::EndOfMediaState)
     {
-        cdg.reset();
         qInfo() << "KAudio entered EndOfMediaState";
         audioRecorder->stop();
 //        ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
@@ -1709,8 +1675,8 @@ void MainWindow::rotationDataChanged()
 
 void MainWindow::silenceDetected()
 {
-    qInfo() << "Detected silence.  Cur Pos: " << kAudioBackend->position() << " Last CDG update pos: " << cdg.lastCDGUpdate();
-    if (cdg.isOpen() && cdg.lastCDGUpdate() < kAudioBackend->position())
+    qInfo() << "Detected silence.  Cur Pos: " << kAudioBackend->position() << " Last CDG update pos: " << kAudioBackend->getCdgLastDraw();
+    if (kAudioBackend->isCdgMode() && kAudioBackend->getCdgLastDraw() < kAudioBackend->position())
     {
         kAudioBackend->rawStop();
         if (settings->karaokeAutoAdvance())
@@ -2470,7 +2436,7 @@ void MainWindow::on_tableViewBmPlaylist_clicked(const QModelIndex &index)
     {
         if (bmCurrentPosition == index.row())
         {
-            if (bmAudioBackend->state() != AudioBackendGstreamer::PlayingState && bmAudioBackend->state() != AudioBackendGstreamer::PausedState)
+            if (bmAudioBackend->state() != MediaBackend::PlayingState && bmAudioBackend->state() != MediaBackend::PausedState)
             {
                 bmPlDelegate->setCurrentSong(-1);
                 bmCurrentPosition = -1;
@@ -2800,10 +2766,6 @@ void MainWindow::videoFrameReceived(QImage frame, QString backendName)
 {
     if (backendName == "break" && kAudioBackend->state() == AbstractAudioBackend::PlayingState)
         return;
-    //QImage img = frame.copy();
-    // We shouldn't have an open CDG file while karaoke video is playing, if one is open, close it
-    if (cdg.isOpen())
-        cdg.reset();
     if (previewEnabled)
         ui->cdgVideoWidget->videoSurface()->present(QVideoFrame(frame));
     cdgWindow->updateCDG(frame);
@@ -2889,7 +2851,6 @@ void MainWindow::setMultiUnplayed()
 void MainWindow::on_spinBoxTempo_valueChanged(int arg1)
 {
     kAudioBackend->setTempo(arg1);
-    cdg.setTempo(arg1);
 }
 
 void MainWindow::on_actionSongbook_Generator_triggered()
@@ -3167,8 +3128,6 @@ void MainWindow::autosizeViews()
     ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(8, QHeaderView::Fixed);
     ui->tableViewQueue->horizontalHeader()->resizeSection(7, keyColSize);
     ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(7, QHeaderView::Fixed);
-
-
 }
 
 void MainWindow::autosizeBmViews()

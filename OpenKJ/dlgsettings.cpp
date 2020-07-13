@@ -41,7 +41,7 @@ extern Settings *settings;
 extern OKJSongbookAPI *songbookApi;
 
 
-DlgSettings::DlgSettings(AbstractAudioBackend *AudioBackend, AbstractAudioBackend *BmAudioBackend, QWidget *parent) :
+DlgSettings::DlgSettings(MediaBackend *AudioBackend, AbstractAudioBackend *BmAudioBackend, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DlgSettings)
 {

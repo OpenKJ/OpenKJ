@@ -79,7 +79,7 @@ void DlgCdgPreview::preview()
     }
     else if (m_srcFile.endsWith(".mkv", Qt::CaseInsensitive) || m_srcFile.endsWith(".avi", Qt::CaseInsensitive) || m_srcFile.endsWith(".wmv", Qt::CaseInsensitive) || m_srcFile.endsWith(".mp4", Qt::CaseInsensitive) || m_srcFile.endsWith(".mpg", Qt::CaseInsensitive) || m_srcFile.endsWith(".mpeg", Qt::CaseInsensitive))
     {
-        AudioBackendGstreamer *mediaBackend = new AudioBackendGstreamer(false, this, "Preview");
+        MediaBackend *mediaBackend = new MediaBackend(false, this, "Preview");
         connect(mediaBackend, SIGNAL(newVideoFrame(QImage, QString)), this, SLOT(videoFrameReceived(QImage, QString)));
         mediaBackend->setVolume(0);
         mediaBackend->setMedia(m_srcFile);

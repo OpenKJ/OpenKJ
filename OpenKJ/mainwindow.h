@@ -100,12 +100,12 @@ private:
     DlgAddSinger *dlgAddSinger;
     DlgSongShop *dlgSongShop;
     //DlgCdgPreview *cdgPreviewDialog;
-    AudioBackendGstreamer *kAudioBackend;
+    MediaBackend *kAudioBackend;
     AbstractAudioBackend *sfxAudioBackend;
 //    KhAudioBackends *audioBackends;
 //    KhAudioRecorder *audioRecorder;
     AudioRecorder *audioRecorder;
-    AudioBackendGstreamer *bmAudioBackend;
+    MediaBackend *bmAudioBackend;
 //    KhIPCClient *ipcClient;
     QLabel *labelSingerCount;
     QLabel *labelRotationDuration;
@@ -116,7 +116,6 @@ private:
     int m_rtClickRotationSingerId;
     QTemporaryDir *khTmpDir;
     QDir *khDir;
-    CdgParser cdg;
     int sortColDB;
     int sortDirDB;
     QString dbRtClickFile;
