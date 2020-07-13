@@ -764,7 +764,6 @@ void MediaBackend::buildPipeline()
         qInfo() << objName << " - gst not initialized - initializing";
         gst_init(nullptr,nullptr);
     }
-
 #if defined(Q_OS_LINUX)
         switch (accelMode) {
         case OpenGL:
@@ -1024,7 +1023,14 @@ void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused
     auto buffer = gst_buffer_new_allocate(NULL, vframe.sizeInBytes(), NULL);
     GstMapInfo map;
     gst_buffer_map(buffer, &map, GST_MAP_WRITE);
+
+#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
     memcpy(map.data, vframe.bits(), vframe.sizeInBytes());
+#else
+    memcpy(map.data, vframe.bits(), vframe.byteCount());
+#endif
+
+
     gst_buffer_unmap(buffer, &map);
     GST_BUFFER_PTS(buffer) = backend->cdgPosition;
     GST_BUFFER_DURATION(buffer) = 40000000;
