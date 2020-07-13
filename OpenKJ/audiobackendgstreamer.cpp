@@ -1020,7 +1020,11 @@ void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused
     }
 
     auto vframe = backend->cdg.videoImageByFrame(backend->curFrame);
+#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
     auto buffer = gst_buffer_new_allocate(NULL, vframe.sizeInBytes(), NULL);
+#else
+    auto buffer = gst_buffer_new_allocate(NULL, vframe.byteCount(), NULL);
+#endif
     GstMapInfo map;
     gst_buffer_map(buffer, &map, GST_MAP_WRITE);
 
