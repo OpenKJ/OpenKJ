@@ -243,13 +243,12 @@ void AudioBackendGstreamer::play()
             emit stateChanged(EndOfMediaState);
             return;
         }
-        gchar *cdguri = gst_filename_to_uri(m_cdgFilename.toLocal8Bit(), nullptr);
-//        g_object_set(GST_OBJECT(playBinCdg), "uri", cdguri, NULL);
-        g_object_set(playBin, "suburi", cdguri, nullptr);
-        g_free(cdguri);
+        cdg.open(m_cdgFilename);
+        cdg.process();
         qInfo() << objName << " - playing cdg:   " << m_cdgFilename;
         qInfo() << objName << " - playing audio: " << m_filename;
         gst_element_set_state(playBin, GST_STATE_PLAYING);
+        gst_element_set_state(cdgPipeline, GST_STATE_PLAYING);
        // gst_element_set_state(playBinCdg, GST_STATE_PAUSED);
     }
     qInfo() << objName << " - play() completed";
@@ -270,11 +269,7 @@ void AudioBackendGstreamer::setMedia(QString filename)
 
 void AudioBackendGstreamer::setMediaCdg(QString cdgFilename, QString audioFilename)
 {
-    if (m_canRenderCdg)
-        m_cdgMode = true;
-    else {
-        m_cdgMode = false;
-    }
+    m_cdgMode = true;
     m_filename = audioFilename;
     m_cdgFilename = cdgFilename;
 }
@@ -289,10 +284,15 @@ void AudioBackendGstreamer::setMuted(bool muted)
 
 void AudioBackendGstreamer::setPosition(qint64 position)
 {
-    qDebug() << objName << " - Seeking to: " << position << "ms";
+    qInfo() << objName << " - Seeking to: " << position << "ms";
     if (!gst_element_seek_simple(playBin, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_MSECOND * position))
     {
-      qDebug() << objName << " - Seek failed!";
+      qWarning() << objName << " - Audio seek failed!";
+    }
+    if (m_cdgMode)
+    {
+        if (!gst_element_seek_simple(cdgPipeline, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_MSECOND * position))
+            qWarning() << objName << " - CDG seek failed!";
     }
     emit positionChanged(position);
 }
@@ -318,6 +318,8 @@ void AudioBackendGstreamer::stop(bool skipFade)
     {
         qInfo() << objName << " - AudioBackendGstreamer::stop -- Stoping paused song";
         gst_element_set_state(playBin, GST_STATE_NULL);
+        if (m_cdgMode)
+            gst_element_set_state(cdgPipeline, GST_STATE_NULL);
         emit stateChanged(AbstractAudioBackend::StoppedState);
         qInfo() << objName << " - stop() completed";
         fader->immediateIn();
@@ -332,6 +334,8 @@ void AudioBackendGstreamer::stop(bool skipFade)
             qInfo() << objName << " - AudioBackendGstreamer::stop -- Fading complete";
             qInfo() << objName << " - AudioBackendGstreamer::stop -- Stoping playback";
             gst_element_set_state(playBin, GST_STATE_NULL);
+            if (m_cdgMode)
+                gst_element_set_state(cdgPipeline, GST_STATE_NULL);
             emit stateChanged(AbstractAudioBackend::StoppedState);
             fader->immediateIn();
             return;
@@ -339,6 +343,8 @@ void AudioBackendGstreamer::stop(bool skipFade)
     }
     qInfo() << objName << " - AudioBackendGstreamer::stop -- Stoping playback without fading";
     gst_element_set_state(playBin, GST_STATE_NULL);
+    if (m_cdgMode)
+        gst_element_set_state(cdgPipeline, GST_STATE_NULL);
     emit stateChanged(AbstractAudioBackend::StoppedState);
     qInfo() << objName << " - stop() completed";
 
@@ -817,38 +823,80 @@ void AudioBackendGstreamer::buildPipeline()
     gst_object_unref(pad);
     g_object_set(playBin, "audio-sink", audioBin, nullptr);
 
-// Video output
-    if (settings->previewEnabled())
+
+    // CDG video pipeline
+    if (m_cdgMode)
     {
-        auto queueMainVideo = gst_element_factory_make("queue", "queueMainVideo");
-        auto videoQueue1 = gst_element_factory_make("queue", "videoQueue1");
-        auto videoQueue2 = gst_element_factory_make("queue", "videoQueue2");
-        videoTee = gst_element_factory_make("tee", "videoTee");
-        videoTeePad1 = gst_element_get_request_pad(videoTee, "src_%u");
-        videoTeePad2 = gst_element_get_request_pad(videoTee, "src_%u");
-        videoQueue1SrcPad = gst_element_get_static_pad(videoQueue1, "sink");
-        videoQueue2SrcPad = gst_element_get_static_pad(videoQueue2, "sink");
-        videoBin = gst_bin_new("videoBin");
-        gst_bin_add_many(GST_BIN(videoBin),queueMainVideo,videoTee,videoQueue1,videoQueue2,videoSink1,videoSink2,nullptr);
-        gst_element_link(queueMainVideo, videoTee);
-        gst_pad_link(videoTeePad1,videoQueue1SrcPad);
-        gst_pad_link(videoTeePad2,videoQueue2SrcPad);
-        gst_element_link(videoQueue1,videoSink1);
-        gst_element_link(videoQueue2,videoSink2);
-        auto ghostVideoPad = gst_ghost_pad_new("sink", gst_element_get_static_pad(queueMainVideo, "sink"));
-        gst_pad_set_active(ghostVideoPad,true);
-        gst_element_add_pad(videoBin, ghostVideoPad);
-        gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(videoSink1), videoWinId);
-        gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(videoSink2), videoWinId2);
-        g_object_set(playBin, "video-sink", videoBin, nullptr);
+        cdgPipeline = gst_pipeline_new("cdgPipeline");
+        auto cdgAppSrc = gst_element_factory_make("appsrc", "cdgAppSrc");
+        auto cdgVidConv = gst_element_factory_make("videoconvert", "cdgVideoConv");
+        g_object_set(G_OBJECT(cdgAppSrc), "caps",
+                     gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB16", "width", G_TYPE_INT, 288, "height",
+                                         G_TYPE_INT, 192, "framerate", GST_TYPE_FRACTION, 1, 30, NULL),
+                     NULL);
+        if (settings->previewEnabled())
+        {
+            auto videoQueue1 = gst_element_factory_make("queue", "videoQueue1");
+            auto videoQueue2 = gst_element_factory_make("queue", "videoQueue2");
+            videoTee = gst_element_factory_make("tee", "videoTee");
+            videoTeePad1 = gst_element_get_request_pad(videoTee, "src_%u");
+            videoTeePad2 = gst_element_get_request_pad(videoTee, "src_%u");
+            videoQueue1SrcPad = gst_element_get_static_pad(videoQueue1, "sink");
+            videoQueue2SrcPad = gst_element_get_static_pad(videoQueue2, "sink");
+            videoBin = gst_bin_new("videoBin");
+            gst_bin_add_many(reinterpret_cast<GstBin *>(cdgPipeline), cdgAppSrc, cdgVidConv,videoTee,videoQueue1,videoQueue2,videoSink1,videoSink2,nullptr);
+            gst_element_link(cdgAppSrc, cdgVidConv);
+            gst_element_link(cdgVidConv, videoTee);
+            gst_pad_link(videoTeePad1,videoQueue1SrcPad);
+            gst_pad_link(videoTeePad2,videoQueue2SrcPad);
+            gst_element_link(videoQueue1,videoSink1);
+            gst_element_link(videoQueue2,videoSink2);
+            gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(videoSink1), videoWinId);
+            gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(videoSink2), videoWinId2);
+        }
+        else
+        {
+            gst_bin_add_many(reinterpret_cast<GstBin *>(cdgPipeline), cdgAppSrc, cdgVidConv, videoSink1, nullptr);
+            gst_element_link_many(cdgAppSrc, cdgVidConv, videoSink1, nullptr);
+            gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(videoSink1), videoWinId);
+        }
+        g_object_set(G_OBJECT(cdgAppSrc), "stream-type", 1, "format", GST_FORMAT_TIME, NULL);
+        g_signal_connect(cdgAppSrc, "need-data", G_CALLBACK(cb_need_data), this);
+        g_signal_connect(cdgAppSrc, "seek-data", G_CALLBACK(cb_seek_data), this);
     }
     else
     {
-        qInfo() << "Main window preview disabled, building pipeline without video tee";
-        gst_video_overlay_set_window_handle(GST_VIDEO_OVERLAY(videoSink1), videoWinId);
-        g_object_set(playBin, "video-sink", videoSink1, nullptr);
+        if (settings->previewEnabled())
+        {
+            auto queueMainVideo = gst_element_factory_make("queue", "queueMainVideo");
+            auto videoQueue1 = gst_element_factory_make("queue", "videoQueue1");
+            auto videoQueue2 = gst_element_factory_make("queue", "videoQueue2");
+            videoTee = gst_element_factory_make("tee", "videoTee");
+            videoTeePad1 = gst_element_get_request_pad(videoTee, "src_%u");
+            videoTeePad2 = gst_element_get_request_pad(videoTee, "src_%u");
+            videoQueue1SrcPad = gst_element_get_static_pad(videoQueue1, "sink");
+            videoQueue2SrcPad = gst_element_get_static_pad(videoQueue2, "sink");
+            videoBin = gst_bin_new("videoBin");
+            gst_bin_add_many(GST_BIN(videoBin),queueMainVideo,videoTee,videoQueue1,videoQueue2,videoSink1,videoSink2,nullptr);
+            gst_element_link(queueMainVideo, videoTee);
+            gst_pad_link(videoTeePad1,videoQueue1SrcPad);
+            gst_pad_link(videoTeePad2,videoQueue2SrcPad);
+            gst_element_link(videoQueue1,videoSink1);
+            gst_element_link(videoQueue2,videoSink2);
+            auto ghostVideoPad = gst_ghost_pad_new("sink", gst_element_get_static_pad(queueMainVideo, "sink"));
+            gst_pad_set_active(ghostVideoPad,true);
+            gst_element_add_pad(videoBin, ghostVideoPad);
+            gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(videoSink1), videoWinId);
+            gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(videoSink2), videoWinId2);
+            g_object_set(playBin, "video-sink", videoBin, nullptr);
+        }
+        else
+        {
+            qInfo() << "Main window preview disabled, building pipeline without video tee";
+            gst_video_overlay_set_window_handle(GST_VIDEO_OVERLAY(videoSink1), videoWinId);
+            g_object_set(playBin, "video-sink", videoSink1, nullptr);
+        }
     }
-
 // End video output setup
 
     g_object_set(rgVolume, "album-mode", false, nullptr);
@@ -910,6 +958,7 @@ void AudioBackendGstreamer::destroyPipeline()
     gst_caps_unref(audioCapsMono);
     gst_caps_unref(audioCapsStereo);
     gst_object_unref(audioBin);
+    //gst_object_unref(cdgPipeline);
     qInfo() << objName << " - destroyPipeline() finished";
 }
 
@@ -917,6 +966,47 @@ void AudioBackendGstreamer::resetPipeline()
 {
     destroyPipeline();
     buildPipeline();
+}
+
+void AudioBackendGstreamer::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused_size, gpointer user_data)
+{
+    auto backend = reinterpret_cast<AudioBackendGstreamer *>(user_data);
+    //static GstClockTime timestamp = 0;
+
+    if (backend->curFrame > backend->cdg.getFrameCount())
+    {
+        g_signal_emit_by_name(appsrc, "end-of-stream", (backend->curFrame - 1) * 40000000, nullptr);
+        return;
+    }
+
+    auto vframe = backend->cdg.videoImageByFrame(backend->curFrame);
+    auto buffer = gst_buffer_new_allocate(NULL, vframe.sizeInBytes(), NULL);
+    GstMapInfo map;
+    gst_buffer_map(buffer, &map, GST_MAP_WRITE);
+    memcpy(map.data, vframe.bits(), vframe.sizeInBytes());
+    gst_buffer_unmap(buffer, &map);
+    GST_BUFFER_PTS(buffer) = backend->cdgPosition;
+    GST_BUFFER_DURATION(buffer) = 40000000;
+    backend->cdgPosition += GST_BUFFER_DURATION(buffer);
+    backend->curFrame++;
+    GstFlowReturn ret;
+    g_signal_emit_by_name(appsrc, "push-buffer", buffer, &ret);
+    gst_buffer_unref(buffer);
+}
+
+void AudioBackendGstreamer::cb_seek_data([[maybe_unused]]GstElement *appsrc, guint64 position, gpointer user_data)
+{
+    qWarning() << "Got seek event: " << position << " ms: " << position / 40000000;
+    auto backend = reinterpret_cast<AudioBackendGstreamer *>(user_data);
+    GST_DEBUG ("seek to offset %" G_GUINT64_FORMAT, position);
+    if (position == 0)
+    {
+        backend->curFrame = 0;
+        backend->cdgPosition = 0;
+        return;
+    }
+    backend->curFrame = position / 40000000;
+    backend->cdgPosition = position;
 }
 
 

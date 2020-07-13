@@ -134,8 +134,7 @@ bool CdgParser::process()
         {
 
             m_skip.emplace_back(!m_needupdate);
-            auto frame = m_frames.emplace_back(getSafeArea().convertToFormat(QImage::Format_RGB32));
-            frame.setStartTime(position());
+            auto frame = m_frames.emplace_back(getSafeArea().convertToFormat(QImage::Format_RGB16));
             frameno++;
         }
     }
@@ -279,41 +278,41 @@ void CdgParser::cmdTileBlock(const cdg::CdgTileBlockData &tileBlockPacket, const
     m_needupdate = true;
 }
 
-const QVideoFrame& CdgParser::videoFrameByTime(const unsigned int &ms)
+const QImage& CdgParser::videoFrameByTime(const unsigned int &ms)
 {
     size_t frameno = (ms * ((float)m_tempo / 100.0)) / 40;
     if (ms % 40 > 0) frameno++;
     if (frameno >= m_frames.size())
     {
         qInfo() << "Frame past end of CDG requested, returning last frame";
-        return m_frames.at(m_frames.size() - 1);
+        return m_frames.at(m_frames.size() - 1).convertToFormat(QImage::Format_RGB32);
     }
-    return m_frames.at(frameno);
+    return m_frames.at(frameno).convertToFormat(QImage::Format_RGB32);
 }
 
-QString CdgParser::md5HashByTime(const unsigned int &ms)
-{
-    // This is for future use in a CDG fingerprinting system planned
-    // for auto-naming files based on the fingerprint
-    size_t frameno = ms / 40;
-    if (ms % 40 > 0) frameno++;
-    if (frameno > m_frames.size())
-        frameno = m_frames.size() - 1;
-    m_frames.at(frameno).map(QAbstractVideoBuffer::ReadOnly);
-    QByteArray arr = QByteArray::fromRawData((const char*)m_frames.at(frameno).bits(), m_frames.at(frameno).mappedBytes());
-    m_frames.at(frameno).unmap();
-    return QString(QCryptographicHash::hash(arr, QCryptographicHash::Md5).toHex());
+//QString CdgParser::md5HashByTime(const unsigned int &ms)
+//{
+//    // This is for future use in a CDG fingerprinting system planned
+//    // for auto-naming files based on the fingerprint
+//    size_t frameno = ms / 40;
+//    if (ms % 40 > 0) frameno++;
+//    if (frameno > m_frames.size())
+//        frameno = m_frames.size() - 1;
+//    m_frames.at(frameno).map(QAbstractVideoBuffer::ReadOnly);
+//    QByteArray arr = QByteArray::fromRawData((const char*)m_frames.at(frameno).bits(), m_frames.at(frameno).mappedBytes());
+//    m_frames.at(frameno).unmap();
+//    return QString(QCryptographicHash::hash(arr, QCryptographicHash::Md5).toHex());
 
-    /*
-     * To be used after successful file processing later for CDG fingerprinting for auto-renaming
-    qInfo() << "CDG Hash at 10s:  " << md5HashByTime(10000);
-    qInfo() << "CDG Hash at 30s:  " << md5HashByTime(30000);
-    qInfo() << "CDG Hash at 60s:  " << md5HashByTime(60000);
-    qInfo() << "CDG Hash at 90s:  " << md5HashByTime(90000);
-    qInfo() << "CDG Hash at 120s: " << md5HashByTime(120000);
-    */
+//    /*
+//     * To be used after successful file processing later for CDG fingerprinting for auto-renaming
+//    qInfo() << "CDG Hash at 10s:  " << md5HashByTime(10000);
+//    qInfo() << "CDG Hash at 30s:  " << md5HashByTime(30000);
+//    qInfo() << "CDG Hash at 60s:  " << md5HashByTime(60000);
+//    qInfo() << "CDG Hash at 90s:  " << md5HashByTime(90000);
+//    qInfo() << "CDG Hash at 120s: " << md5HashByTime(120000);
+//    */
 
-}
+//}
 
 unsigned int CdgParser::duration()
 {
@@ -338,6 +337,11 @@ int CdgParser::tempo()
 void CdgParser::setTempo(const int &percent)
 {
     m_tempo = percent;
+}
+
+const QImage &CdgParser::videoImageByFrame(const int &frame)
+{
+    return m_frames.at(frame);
 }
 
 void CdgParser::cmdScroll(const cdg::CdgScrollCmdData &scrollCmdData, const cdg::ScrollType type)

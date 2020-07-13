@@ -40,6 +40,7 @@
 #include <memory>
 #include <array>
 #include <vector>
+#include "libCDG/include/libCDG.h"
 
 /* playbin flags */
 typedef enum {
@@ -68,7 +69,7 @@ public:
     bool canDownmix() { return true; }
     bool canFade() { return true; }
     bool canPitchShift() { return m_canKeyChange; }
-    bool canRenderCdg() { return m_canRenderCdg; }
+    bool canRenderCdg() { return true; }
     bool hasVideo();
     bool isMuted() { return m_muted; }
     bool isSilent();
@@ -93,6 +94,7 @@ private:
     GstPad *videoQueue2SrcPad;
     GstPad *videoTeePad1;
     GstPad *videoTeePad2;
+    GstElement *cdgPipeline;
     GstElement *playBin;
     GstElement *aConvEnd;
     GstElement *audioPanorama;
@@ -144,6 +146,7 @@ private:
     std::array<int,10> eqLevels{0,0,0,0,0,0,0,0,0,0};
     std::vector<GstDevice*> outputDevices;
     QPointer<AudioFader> fader;
+    CdgParser cdg;
     AbstractAudioBackend::State lastState{AbstractAudioBackend::StoppedState};
     WId videoWinId{0};
     WId videoWinId2{0};
@@ -153,6 +156,11 @@ private:
     void destroyPipeline();
     void resetPipeline();
     static GstBusSyncReply busMessageDispatcher(GstBus *bus, GstMessage *message, gpointer userData);
+
+    guint64 cdgPosition{0};
+    unsigned int curFrame{0};
+    static void cb_need_data(GstElement *appsrc, guint unused_size, gpointer user_data);
+    static void cb_seek_data(GstElement *appsrc, guint64 position, gpointer user_data);
 
 private slots:
     void fastTimer_timeout();

@@ -193,14 +193,16 @@ public:
     bool process();
     void reset();
     bool canSkipFrameByTime(const unsigned int &ms);
-    const QVideoFrame& videoFrameByTime(const unsigned int &ms);
-    QString md5HashByTime(const unsigned int &ms);
+    const QImage &videoFrameByTime(const unsigned int &ms);
+    //QString md5HashByTime(const unsigned int &ms);
     unsigned int duration();
     unsigned int position();
     bool isOpen();
     unsigned int lastCDGUpdate();
     int tempo();
     void setTempo(const int &percent);
+    unsigned int getFrameCount() { return m_frames.size(); }
+    const QImage& videoImageByFrame(const int &frame);
 protected:
 private:
     int m_tempo;
@@ -212,7 +214,7 @@ private:
     unsigned int m_position;
     inline constexpr static std::array<char,6> m_masks{0x20,0x10,0x08,0x04,0x02,0x01};
     bool m_needupdate;
-    std::vector<QVideoFrame> m_frames;
+    std::vector<QImage> m_frames;
     std::vector<bool> m_skip;
     QImage m_image;
     int m_bytesPerPixel;

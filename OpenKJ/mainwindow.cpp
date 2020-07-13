@@ -1432,7 +1432,7 @@ void MainWindow::audioBackend_positionChanged(qint64 position)
 {
     if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
     {
-        if (!kAudioBackend->canRenderCdg())
+        if (false /*!kAudioBackend->canRenderCdg()*/)
         {
             if (cdg.isOpen() && cdg.lastCDGUpdate() >= position)
             {
