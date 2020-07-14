@@ -27,7 +27,6 @@
 #include "settings.h"
 #include "cdgvideowidget.h"
 #include <QTimer>
-#include "abstractaudiobackend.h"
 #include "audiobackendgstreamer.h"
 
 namespace Ui {
@@ -40,27 +39,23 @@ class DlgCdg : public QDialog
 
 private:
     Ui::DlgCdg *ui;
-    bool m_fullScreen;
+    bool m_showBgImage{false};
+    bool m_fullScreen{false};
+    int m_countdownPos{0};
     QRect m_lastSize;
-    QTimer *fullScreenTimer;
-    QTimer *slideShowTimer;
-    bool showBgImage;
-    QTimer *alertCountdownTimer;
-    QTimer *oneSecTimer;
-    int countdownPos;
-    QTimer *buttonShowTimer;
-    MediaBackend *kAudioBackend;
-    AbstractAudioBackend *bAudioBackend;
+    QTimer m_timer1s;
+    QTimer m_timerAlertCountdown;
+    QTimer m_timerButtonShow;
+    QTimer m_timerFullScreen;
+    QTimer m_timerSlideShow;
+    MediaBackend *m_kmb;
+    MediaBackend *m_bmb;
 
 
 public:
-    explicit DlgCdg(MediaBackend *KaraokeBackend, AbstractAudioBackend *BreakBackend, QWidget *parent = nullptr, Qt::WindowFlags f = nullptr);
+    explicit DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget *parent = nullptr, Qt::WindowFlags f = nullptr);
     ~DlgCdg();
-    void makeFullscreen();
-    void makeWindowed();
     void setTickerText(QString text);
-    void setKAudioBackend(MediaBackend *value);
-    void setBAudioBackend(AbstractAudioBackend *value);
     void stopTicker();
     WId getCdgWinId();
 
@@ -68,47 +63,37 @@ protected:
     void mouseDoubleClickEvent(QMouseEvent *e);
 
 private slots:
-    void fullScreenTimerTimeout();
-    void slideShowTimerTimeout();
+    void timerSlideShowTimeout();
     void alertFontChanged(QFont font);
     void mouseMove(QMouseEvent *event);
-    void buttonShowTimerTimeout();
-    void oneSecTimerTimeout();
+    void timer1sTimeout();
+    void timerCountdownTimeout();
     void on_btnToggleFullscreen_clicked();
     void cdgOffsetsChanged();
+    void cdgRemainFontChanged(QFont font);
+    void cdgRemainTextColorChanged(QColor color);
+    void tickerFontChanged();
+    void tickerSpeedChanged();
+    void tickerHeightChanged(const int &height);
+    void tickerTextColorChanged();
+    void tickerBgColorChanged();
+    void tickerEnableChanged();
+    void cdgRemainBgColorChanged(QColor color);
+    QFileInfoList getSlideShowImages();
+    void alertBgColorChanged(QColor color);
+    void alertTxtColorChanged(QColor color);
+    void cdgRemainEnabledChanged(bool enabled);
 
 public slots:
     void setFullScreen(bool fullscreen);
     void setFullScreenMonitor(int monitor);
-    void tickerFontChanged();
-    void tickerHeightChanged();
-    void tickerSpeedChanged();
-    void tickerTextColorChanged();
-    void tickerBgColorChanged();
-    void tickerEnableChanged();
-    void cdgRemainFontChanged(QFont font);
-    void cdgRemainTextColorChanged(QColor color);
-    void cdgRemainBgColorChanged(QColor color);
     void setShowBgImage(bool show);
-    void cdgSurfaceResized(QSize size);
-    QFileInfoList getSlideShowImages();
-    void setAlert(QString text);
     void showAlert(bool show);
     void setNextSinger(QString name);
     void setNextSong(QString song);
     void setCountdownSecs(int seconds);
-    void countdownTimerTimeout();
-    void alertBgColorChanged(QColor color);
-    void alertTxtColorChanged(QColor color);
     void triggerBg();
-    void cdgRemainEnabledChanged(bool enabled);
-    void updateCDG(QImage image, bool overrideVisibleCheck = false);
-    void updateCDG(QVideoFrame frame, bool overrideVisibleCheck = false);
 
-
-
-
-    // QWidget interface
 protected:
     void closeEvent(QCloseEvent *event);
 };

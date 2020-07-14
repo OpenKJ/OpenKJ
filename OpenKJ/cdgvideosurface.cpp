@@ -99,9 +99,7 @@ void CdgVideoSurface::paint(QPainter *painter)
 {
     if (m_currentlyPlaying)
     {
-        auto img = QImage(sourceRect.size(),QImage::Format_RGB16);
-        img.fill(Qt::black);
-        painter->drawImage(sourceRect, img);
+        painter->fillRect(targetRect, Qt::black);
         return;
     }
     if (currentFrame.map(QAbstractVideoBuffer::ReadOnly)) {

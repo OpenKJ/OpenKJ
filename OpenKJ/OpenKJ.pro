@@ -112,7 +112,7 @@ contains(DEFINES, STATIC_TAGLIB) {
 #QMAKE_MAC_SDK = MacOSX10.13
 #QMAKE_MAC_SDK.macosx.version = 10.13
 
-VERSION = 1.7.84
+VERSION = 1.7.85
 message($$VERSION)
 QMAKE_TARGET_COMPANY = OpenKJ.org
 QMAKE_TARGET_PRODUCT = OpenKJ
@@ -126,6 +126,7 @@ win32: BLDDATE = $$system(date /t)
 DEFINES += BUILD_DATE=__DATE__
 
 SOURCES += main.cpp\
+    cdgdisplay.cpp \
     mainwindow.cpp \
     libCDG/src/libCDG.cpp \
     sourcedirtablemodel.cpp \
@@ -300,6 +301,7 @@ contains(DEFINES, STATIC_TAGLIB) {
 }
 
 HEADERS  += mainwindow.h \
+    cdgdisplay.h \
     libCDG/include/libCDG.h \
     sourcedirtablemodel.h \
     dbupdatethread.h \

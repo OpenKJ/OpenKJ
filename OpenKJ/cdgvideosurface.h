@@ -21,6 +21,7 @@ public:
     void paint(QPainter *painter);
     void blankImage();
     void setPlaying(const bool &playing) { m_currentlyPlaying = playing; }
+    bool getPlaying() { return m_currentlyPlaying; }
 
 private:
     QWidget *widget;

@@ -472,7 +472,7 @@ MainWindow::MainWindow(QWidget *parent) :
     if ((settings->cdgWindowFullscreen()) && (settings->showCdgWindow()))
     {
         qInfo() << "Making CDG window fullscreen";
-        cdgWindow->makeFullscreen();
+        cdgWindow->setFullScreen(true);
     }
     qInfo() << "Refreshing rotation data";
     rotationDataChanged();
@@ -2760,15 +2760,6 @@ void MainWindow::on_actionPlaylistDelete_triggered()
 void MainWindow::on_buttonBmSearch_clicked()
 {
     bmDbModel->search(ui->lineEditBmSearch->text());
-}
-
-void MainWindow::videoFrameReceived(QImage frame, QString backendName)
-{
-    if (backendName == "break" && kAudioBackend->state() == AbstractAudioBackend::PlayingState)
-        return;
-    if (previewEnabled)
-        ui->cdgVideoWidget->videoSurface()->present(QVideoFrame(frame));
-    cdgWindow->updateCDG(frame);
 }
 
 void MainWindow::on_actionAbout_triggered()
