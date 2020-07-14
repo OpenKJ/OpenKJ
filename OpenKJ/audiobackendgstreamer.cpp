@@ -1049,13 +1049,16 @@ void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused
     auto backend = reinterpret_cast<MediaBackend *>(user_data);
     //static GstClockTime timestamp = 0;
 
-    if (backend->curFrame > backend->cdg.getFrameCount())
-    {
-        g_signal_emit_by_name(appsrc, "end-of-stream", (backend->curFrame - 1) * 40000000, nullptr);
-        return;
-    }
+//    if (backend->curFrame > backend->cdg.getFrameCount())
+//    {
+//        g_signal_emit_by_name(appsrc, "end-of-stream", (backend->curFrame - 1) * 40000000, nullptr);
+//        return;
+//    }
+    QImage vframe(QSize(288,192), QImage::Format_RGB16);
+    vframe.fill(Qt::black);
+    if (backend->curFrame < backend->cdg.getFrameCount())
+        vframe = backend->cdg.videoImageByFrame(backend->curFrame);
 
-    auto vframe = backend->cdg.videoImageByFrame(backend->curFrame);
 #if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
     auto buffer = gst_buffer_new_allocate(NULL, vframe.sizeInBytes(), NULL);
 #else

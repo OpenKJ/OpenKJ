@@ -278,7 +278,7 @@ void CdgParser::cmdTileBlock(const cdg::CdgTileBlockData &tileBlockPacket, const
     m_needupdate = true;
 }
 
-const QImage& CdgParser::videoFrameByTime(const unsigned int &ms)
+QImage CdgParser::videoFrameByTime(const unsigned int &ms)
 {
     size_t frameno = (ms * ((float)m_tempo / 100.0)) / 40;
     if (ms % 40 > 0) frameno++;
@@ -339,7 +339,7 @@ void CdgParser::setTempo(const int &percent)
     m_tempo = percent;
 }
 
-const QImage &CdgParser::videoImageByFrame(const int &frame)
+const QImage &CdgParser::videoImageByFrame(const unsigned int &frame)
 {
     return m_frames.at(frame);
 }
