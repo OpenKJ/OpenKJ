@@ -87,6 +87,7 @@ public:
     const bool& videoMuted() { return m_vidMuted; }
     int volume() { return m_volume; }
     qint64 position();
+    qint64 getCdgPosition();
     qint64 duration();
     State state();
     State cdgState();
@@ -207,6 +208,7 @@ public slots:
     void setMediaCdg(QString cdgFilename, QString audioFilename);
     void setMuted(bool muted);
     void setPosition(qint64 position);
+    void cdgSetPosition(qint64 position);
     void setVolume(int volume);
     void stop(bool skipFade = false);
     void cdgStop();

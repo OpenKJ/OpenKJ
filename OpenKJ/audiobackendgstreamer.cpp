@@ -170,6 +170,16 @@ qint64 MediaBackend::position()
     return 0;
 }
 
+qint64 MediaBackend::getCdgPosition()
+{
+    gint64 pos;
+    if (gst_element_query_position (playBin, GST_FORMAT_TIME, &pos))
+    {
+        return pos / 1000000;
+    }
+    return 0;
+}
+
 
 
 qint64 MediaBackend::duration()
@@ -327,6 +337,11 @@ void MediaBackend::setPosition(qint64 position)
     emit positionChanged(position);
 }
 
+void MediaBackend::cdgSetPosition(qint64 position)
+{
+    gst_element_seek_simple(cdgPipeline, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_MSECOND * position);
+}
+
 void MediaBackend::setVolume(int volume)
 {
     m_volume = volume;
@@ -411,6 +426,11 @@ void MediaBackend::fastTimer_timeout()
         mspos = 0;
     if (lastPos != mspos)
     {
+        if (getCdgPosition() > mspos + 10 || getCdgPosition() < mspos - 10)
+        {
+            qDebug() << "resyncing cdg";
+            cdgSetPosition(mspos);
+        }
         lastPos = mspos;
         emit positionChanged(mspos);
     }
