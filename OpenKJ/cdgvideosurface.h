@@ -20,6 +20,7 @@ public:
     QRect videoRect() const { return targetRect; }
     void paint(QPainter *painter);
     void blankImage();
+    void setPlaying(const bool &playing) { m_currentlyPlaying = playing; }
 
 private:
     QWidget *widget;
@@ -28,6 +29,7 @@ private:
     QSize imageSize;
     QRect sourceRect;
     QVideoFrame currentFrame;
+    bool m_currentlyPlaying{false};
 };
 
 #endif // CDGVIDEOSURFACE_H

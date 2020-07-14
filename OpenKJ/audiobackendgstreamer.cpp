@@ -38,7 +38,7 @@ Q_DECLARE_SMART_POINTER_METATYPE(std::shared_ptr);
 Q_DECLARE_METATYPE(std::shared_ptr<GstMessage>);
 
 MediaBackend::MediaBackend(bool pitchShift, QObject *parent, QString objectName) :
-    AbstractAudioBackend(parent), loadPitchShift{pitchShift}, objName{objectName}
+    AbstractAudioBackend(parent), objName(objectName), loadPitchShift(pitchShift)
 {
 #ifdef MAC_OVERRIDE_GST
     // This points GStreamer paths to the framework contained in the app bundle.  Not needed on brew installs.
@@ -1343,6 +1343,8 @@ void MediaBackend::setEqLevel10(int level)
 
 bool MediaBackend::hasVideo()
 {
+    if (m_cdgMode)
+        return true;
     gint numVidStreams;
     g_object_get(playBin, "n-video", &numVidStreams, nullptr);
     qWarning() << "Num video streams: " << numVidStreams;

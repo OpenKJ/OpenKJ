@@ -87,6 +87,7 @@ void CdgVideoWidget::resizeEvent(QResizeEvent *event)
 
 void CdgVideoWidget::paintEvent(QPaintEvent *event)
 {
+    return;
     QPainter painter(this);
     if (surface->isActive()) {
         const QRect videoRect = surface->videoRect();

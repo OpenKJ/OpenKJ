@@ -146,6 +146,12 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, AbstractAudioBackend *BreakBackend,
     //connect(settings, SIGNAL(remainOffsetChanged(int,int)), this, SLOT(remainOffsetsChanged(int,int)));
     connect(settings, SIGNAL(cdgOffsetsChanged()), this, SLOT(cdgOffsetsChanged()));
     cdgOffsetsChanged();
+    connect(kAudioBackend, &MediaBackend::stateChanged, [&] (auto state) {
+            if (state == MediaBackend::PlayingState || state == MediaBackend::PausedState)
+                ui->cdgVideo->videoSurface()->setPlaying(true);
+            else
+                ui->cdgVideo->videoSurface()->setPlaying(false);
+    });
 }
 
 DlgCdg::~DlgCdg()
@@ -426,6 +432,9 @@ void DlgCdg::alertTxtColorChanged(QColor color)
 
 void DlgCdg::triggerBg()
 {
+    if (kAudioBackend->state() == MediaBackend::PlayingState ||
+            (bAudioBackend->state() == MediaBackend::PlayingState && bAudioBackend->hasVideo()))
+        return;
     showBgImage = true;
     //        qInfo() << "triggerBg called";
     slideShowTimerTimeout();

@@ -164,7 +164,7 @@ private:
     bool initDone{false};
     bool m_previewEnabledLastBuild{true};
     bool bypass{false};
-    bool loadPitchShift{false};
+    bool loadPitchShift;
     bool downmix{false};
     std::array<int,10> eqLevels{0,0,0,0,0,0,0,0,0,0};
     std::vector<GstDevice*> outputDevices;

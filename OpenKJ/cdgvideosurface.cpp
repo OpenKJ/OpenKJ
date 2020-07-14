@@ -97,6 +97,13 @@ void CdgVideoSurface::updateVideoRect()
 
 void CdgVideoSurface::paint(QPainter *painter)
 {
+    if (m_currentlyPlaying)
+    {
+        auto img = QImage(sourceRect.size(),QImage::Format_RGB16);
+        img.fill(Qt::black);
+        painter->drawImage(sourceRect, img);
+        return;
+    }
     if (currentFrame.map(QAbstractVideoBuffer::ReadOnly)) {
         const QTransform oldTransform = painter->transform();
         painter->setRenderHint(QPainter::Antialiasing);
