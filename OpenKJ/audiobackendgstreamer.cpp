@@ -173,7 +173,7 @@ qint64 MediaBackend::position()
 qint64 MediaBackend::getCdgPosition()
 {
     gint64 pos;
-    if (gst_element_query_position (playBin, GST_FORMAT_TIME, &pos))
+    if (gst_element_query_position (cdgPipeline, GST_FORMAT_TIME, &pos))
     {
         return pos / 1000000;
     }
@@ -424,13 +424,14 @@ void MediaBackend::fastTimer_timeout()
         mspos = pos / 1000000;
     else
         mspos = 0;
+    if (getCdgPosition() > mspos + 10 || getCdgPosition() < mspos - 10)
+    {
+        qInfo() << "resyncing cdg";
+        cdgSetPosition(mspos);
+    }
     if (lastPos != mspos)
     {
-        if (getCdgPosition() > mspos + 10 || getCdgPosition() < mspos - 10)
-        {
-            qDebug() << "resyncing cdg";
-            cdgSetPosition(mspos);
-        }
+
         lastPos = mspos;
         emit positionChanged(mspos);
     }
