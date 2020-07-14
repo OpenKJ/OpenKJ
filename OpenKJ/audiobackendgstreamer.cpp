@@ -424,7 +424,7 @@ void MediaBackend::fastTimer_timeout()
         mspos = pos / 1000000;
     else
         mspos = 0;
-    if (getCdgPosition() > mspos + 10 || getCdgPosition() < mspos - 10)
+    if (m_cdgMode && (getCdgPosition() > mspos + 10 || getCdgPosition() < mspos - 10))
     {
         qInfo() << "resyncing cdg";
         cdgSetPosition(mspos);
