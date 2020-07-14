@@ -1347,7 +1347,6 @@ bool MediaBackend::hasVideo()
         return true;
     gint numVidStreams;
     g_object_get(playBin, "n-video", &numVidStreams, nullptr);
-    qWarning() << "Num video streams: " << numVidStreams;
     if (numVidStreams > 0)
         return true;
     return false;

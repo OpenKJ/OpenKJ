@@ -36,7 +36,7 @@ TickerDisplayWidget::TickerDisplayWidget(QWidget *parent)
     spm2->setPos(spm->pos().x() + spm->boundingRect().right(), spm->pos().y());
     timer.setInterval(3);
     speed = settings.tickerSpeed();
-    pixelShift = (float)this->speed / 10.0f;
+    pixelShift = (float)this->speed / 25.0f;
     QObject::connect(&timer, &QTimer::timeout, [this]() {
         if (underflow)
         {

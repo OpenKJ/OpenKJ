@@ -112,7 +112,7 @@ contains(DEFINES, STATIC_TAGLIB) {
 #QMAKE_MAC_SDK = MacOSX10.13
 #QMAKE_MAC_SDK.macosx.version = 10.13
 
-VERSION = 1.7.85
+VERSION = 1.7.86
 message($$VERSION)
 QMAKE_TARGET_COMPANY = OpenKJ.org
 QMAKE_TARGET_PRODUCT = OpenKJ
@@ -126,12 +126,10 @@ win32: BLDDATE = $$system(date /t)
 DEFINES += BUILD_DATE=__DATE__
 
 SOURCES += main.cpp\
-    cdgdisplay.cpp \
     mainwindow.cpp \
     libCDG/src/libCDG.cpp \
     sourcedirtablemodel.cpp \
     dbupdatethread.cpp \
-    scrolltext.cpp \
     requeststablemodel.cpp \
     khdb.cpp \
     dlgkeychange.cpp \
@@ -175,9 +173,9 @@ SOURCES += main.cpp\
     customlineedit.cpp \
     tickernew.cpp \
     updatechecker.cpp \
+    videodisplay.cpp \
     volslider.cpp \
     dlgaddsinger.cpp \
-    ticker.cpp \
     songshop.cpp \
     dlgsongshop.cpp \
     songshopmodel.cpp \
@@ -301,11 +299,9 @@ contains(DEFINES, STATIC_TAGLIB) {
 }
 
 HEADERS  += mainwindow.h \
-    cdgdisplay.h \
     libCDG/include/libCDG.h \
     sourcedirtablemodel.h \
     dbupdatethread.h \
-    scrolltext.h \
     requeststablemodel.h \
     khdb.h \
     dlgkeychange.h \
@@ -349,10 +345,10 @@ HEADERS  += mainwindow.h \
     customlineedit.h \
     tickernew.h \
     updatechecker.h \
+    videodisplay.h \
     volslider.h \
     okjversion.h \
     dlgaddsinger.h \
-    ticker.h \
     songshop.h \
     dlgsongshop.h \
     songshopmodel.h \

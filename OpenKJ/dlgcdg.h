@@ -25,7 +25,6 @@
 #include <QFileInfoList>
 #include <QMouseEvent>
 #include "settings.h"
-#include "cdgvideowidget.h"
 #include <QTimer>
 #include "audiobackendgstreamer.h"
 

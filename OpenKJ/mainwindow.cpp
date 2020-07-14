@@ -240,6 +240,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QCoreApplication::setApplicationName("OpenKJ");
     ui->setupUi(this);
     ui->actionShow_Debug_Log->setChecked(settings->logShow());
+    ui->videoPreview->setAspectRatio(16.0,9.0);
 #ifdef Q_OS_WIN
     ui->sliderBmPosition->setMaximumHeight(12);
     ui->sliderBmVolume->setMaximumWidth(12);
@@ -399,6 +400,7 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->spinBoxTempo->hide();
         ui->lblTempo->hide();
     }
+    ui->videoPreview->videoDisplay()->setMediaBackends(kAudioBackend, bmAudioBackend);
     sfxAudioBackend = new MediaBackend(false, this, "SFX");
     qInfo() << "Creating audio recorder object";
     audioRecorder = new AudioRecorder(this);
@@ -448,11 +450,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(requestsDialog, SIGNAL(addRequestSong(int,int,int)), qModel, SLOT(songAdd(int,int,int)));
     connect(settings, SIGNAL(tickerCustomStringChanged()), this, SLOT(rotationDataChanged()));
     qInfo() << "Setting backgrounds on CDG displays";
-    ui->cdgVideoWidget->setKeepAspect(true);
     cdgWindow->setShowBgImage(true);
-    kAudioBackend->setVideoWinId2(ui->cdgVideoWidget->winId());
+    kAudioBackend->setVideoWinId2(ui->videoPreview->winId());
     kAudioBackend->setVideoWinId(cdgWindow->getCdgWinId());
-    bmAudioBackend->setVideoWinId2(ui->cdgVideoWidget->winId());
+    bmAudioBackend->setVideoWinId2(ui->videoPreview->winId());
     bmAudioBackend->setVideoWinId(cdgWindow->getCdgWinId());
     setShowBgImage(true);
     qInfo() << "Restoring window and listview states";
@@ -1374,7 +1375,7 @@ void MainWindow::on_buttonClearRotation_clicked()
 
 void MainWindow::clearQueueSort()
 {
-    ui->tableViewQueue->sortByColumn(-1);
+    ui->tableViewQueue->sortByColumn(-1, Qt::AscendingOrder);
 }
 
 
@@ -1449,7 +1450,6 @@ void MainWindow::audioBackend_stateChanged(AbstractAudioBackend::State state)
         ui->labelRemainTime->setText("0:00");
         ui->labelTotalTime->setText("0:00");
         ui->sliderProgress->setValue(0);
-        ui->cdgVideoWidget->clear();
         ui->spinBoxTempo->setValue(100);
         setShowBgImage(true);
         cdgWindow->setShowBgImage(true);
@@ -2155,11 +2155,11 @@ void MainWindow::setShowBgImage(bool show)
 {
     if (show)
     {
-        QImage bgImage(ui->cdgVideoWidget->size(), QImage::Format_ARGB32);
+        QPixmap bgImage(ui->videoPreview->size());
         QPainter painter(&bgImage);
         QSvgRenderer renderer(QString(":icons/Icons/okjlogo.svg"));
         renderer.render(&painter);
-        ui->cdgVideoWidget->videoSurface()->present(QVideoFrame(bgImage));
+        ui->videoPreview->videoDisplay()->setBackground(bgImage);
     }
 }
 
@@ -2405,7 +2405,6 @@ void MainWindow::bmMediaStateChanged(AbstractAudioBackend::State newState)
             ui->sliderBmPosition->setValue(0);
             if (kAudioBackend->state() != AbstractAudioBackend::PlayingState)
             {
-                ui->cdgVideoWidget->clear();
                 setShowBgImage(true);
                 cdgWindow->setShowBgImage(true);
                 cdgWindow->triggerBg();
@@ -3003,9 +3002,12 @@ void MainWindow::appFontChanged(QFont font)
     QApplication::setFont(font, "QWidget");
     setFont(font);
     QFontMetrics fm(settings->applicationFont());
+#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
+    int cvwWidth = std::max(300, fm.horizontalAdvance("Total: 00:00  Current:00:00  Remain: 00:00"));
+#else
     int cvwWidth = std::max(300, fm.width("Total: 00:00  Current:00:00  Remain: 00:00"));
-    qInfo() << "Resizing cdgVideoWidget to width: " << cvwWidth;
-    ui->cdgVideoWidget->arResize(cvwWidth);
+#endif
+    qInfo() << "Resizing videoPreview to width: " << cvwWidth;
     ui->cdgFrame->setMinimumWidth(cvwWidth);
     ui->cdgFrame->setMaximumWidth(cvwWidth);
     ui->mediaFrame->setMinimumWidth(cvwWidth);
@@ -3058,7 +3060,11 @@ void MainWindow::resizeRotation()
 {
     int fH = QFontMetrics(settings->applicationFont()).height();
     int iconWidth = fH + fH;
+#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
+    int waitSize = QFontMetrics(settings->applicationFont()).horizontalAdvance("Wait_");
+#else
     int waitSize = QFontMetrics(settings->applicationFont()).width("Wait_");
+#endif
     if (waitSize > iconWidth)
         iconWidth = waitSize;
     int singerColSize = ui->tableViewRotation->width() - (iconWidth * 3) - 5;
@@ -3074,7 +3080,11 @@ void MainWindow::resizeRotation()
         int largestName = 0;
         for (int i=0; i < singers.size(); i++)
         {
+#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
+            int width = QFontMetrics(settings->applicationFont()).horizontalAdvance("_" + singers.at(i) + "_");
+#else
             int width = QFontMetrics(settings->applicationFont()).width("_" + singers.at(i) + "_");
+#endif
             if (width > largestName)
                 largestName = width;
         }
@@ -3095,8 +3105,13 @@ void MainWindow::autosizeViews()
 {
     int fH = QFontMetrics(settings->applicationFont()).height();
     int iconWidth = fH + fH;
+#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
+    int durationColSize = QFontMetrics(settings->applicationFont()).horizontalAdvance(" Duration ");
+    int songidColSize = QFontMetrics(settings->applicationFont()).horizontalAdvance(" AA0000000-0000 ");
+#else
     int durationColSize = QFontMetrics(settings->applicationFont()).width(" Duration ");
     int songidColSize = QFontMetrics(settings->applicationFont()).width(" AA0000000-0000 ");
+#endif
     int remainingSpace = ui->tableViewDB->width() - durationColSize - songidColSize;
     int artistColSize = (remainingSpace / 2) - 120;
     int titleColSize = (remainingSpace / 2) + 100;
@@ -3107,8 +3122,11 @@ void MainWindow::autosizeViews()
     ui->tableViewDB->horizontalHeader()->resizeSection(3, songidColSize);
 
     resizeRotation();
-
+#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
+    int keyColSize = QFontMetrics(settings->applicationFont()).horizontalAdvance("Key") + iconWidth;
+#else
     int keyColSize = QFontMetrics(settings->applicationFont()).width("Key") + iconWidth;
+#endif
     remainingSpace = ui->tableViewQueue->width() - iconWidth - keyColSize - songidColSize - 16;
     artistColSize = (remainingSpace / 2);
     titleColSize = (remainingSpace / 2);
@@ -3126,8 +3144,11 @@ void MainWindow::autosizeBmViews()
 
     int fH = QFontMetrics(settings->applicationFont()).height();
     int iconWidth = fH + fH;
+#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
+    int durationColSize = QFontMetrics(settings->applicationFont()).horizontalAdvance("Duration") + fH;
+#else
     int durationColSize = QFontMetrics(settings->applicationFont()).width("Duration") + fH;
-
+#endif
     // 4 = filename 1 = metadata artist 2 = medatada title
 
     int artistColSize = 0;

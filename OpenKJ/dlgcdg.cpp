@@ -34,7 +34,7 @@ extern Settings *settings;
 
 WId DlgCdg::getCdgWinId()
 {
-    return ui->cdgDisplay->winId();
+    return ui->videoDisplay->winId();
 }
 
 DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget *parent, Qt::WindowFlags f) :
@@ -45,7 +45,7 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
         settings->setCdgWindowFullscreen(false);
     }
     ui->setupUi(this);
-    ui->cdgDisplay->setMediaBackends(m_kmb, m_bmb);
+    ui->videoDisplay->setMediaBackends(m_kmb, m_bmb);
     ui->widgetAlert->setAutoFillBackground(true);
     ui->fsToggleWidget->hide();
     ui->widgetAlert->hide();
@@ -78,7 +78,7 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
     alertTxtColorChanged(settings->alertTxtColor());
     cdgOffsetsChanged();
 
-    connect(ui->cdgDisplay, &CdgDisplay::mouseMoveEvent, this, &DlgCdg::mouseMove);
+    connect(ui->videoDisplay, &VideoDisplay::mouseMoveEvent, this, &DlgCdg::mouseMove);
     connect(settings, &Settings::alertBgColorChanged, this, &DlgCdg::alertBgColorChanged);
     connect(settings, &Settings::alertTxtColorChanged, this, &DlgCdg::alertTxtColorChanged);
     connect(settings, &Settings::bgModeChanged, [&] () {triggerBg();});
@@ -106,7 +106,7 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
         if ((settings->showCdgWindow()) && (settings->cdgWindowFullscreen()))
         {
             cdgOffsetsChanged();
-            ui->cdgDisplay->repaint();
+            ui->videoDisplay->repaint();
         }
         timerSlideShowTimeout();
     });
@@ -249,14 +249,14 @@ void DlgCdg::setShowBgImage(bool show)
     if ((show) && (settings->bgMode() == Settings::BgMode::BG_MODE_IMAGE))
     {
         if (settings->cdgDisplayBackgroundImage() != QString())
-            ui->cdgDisplay->setBackground(QPixmap(settings->cdgDisplayBackgroundImage()));
+            ui->videoDisplay->setBackground(QPixmap(settings->cdgDisplayBackgroundImage()));
         else
         {
-            QPixmap bgImage(ui->cdgDisplay->size());
+            QPixmap bgImage(ui->videoDisplay->size());
             QPainter painter(&bgImage);
             QSvgRenderer renderer(QString(":icons/Icons/okjlogo.svg"));
             renderer.render(&painter);
-            ui->cdgDisplay->setBackground(bgImage);
+            ui->videoDisplay->setBackground(bgImage);
         }
     }
 }
@@ -283,13 +283,13 @@ void DlgCdg::showAlert(bool show)
 {
     if ((show) && (settings->karaokeAAAlertEnabled()))
     {
-        ui->cdgDisplay->hide();
+        ui->videoDisplay->hide();
         ui->widgetAlert->show();
     }
     else
     {
         ui->widgetAlert->hide();
-        ui->cdgDisplay->show();
+        ui->videoDisplay->show();
     }
 }
 
@@ -356,25 +356,25 @@ void DlgCdg::timerSlideShowTimeout()
         auto images = getSlideShowImages();
         if (images.size() == 0)
         {
-            QPixmap bgImage(ui->cdgDisplay->size());
+            QPixmap bgImage(ui->videoDisplay->size());
             QPainter painter(&bgImage);
             QSvgRenderer renderer(QString(":icons/Icons/okjlogo.svg"));
             renderer.render(&painter);
-            ui->cdgDisplay->setBackground(QPixmap(bgImage));
+            ui->videoDisplay->setBackground(QPixmap(bgImage));
             return;
         }
         if (position >= images.size())
             position = 0;
         if (images.at(position).fileName().endsWith("svg", Qt::CaseInsensitive))
         {
-            QPixmap bgImage(ui->cdgDisplay->size());
+            QPixmap bgImage(ui->videoDisplay->size());
             QPainter painter(&bgImage);
             QSvgRenderer renderer(images.at(position).absoluteFilePath());
             renderer.render(&painter);
-            ui->cdgDisplay->setBackground(bgImage);
+            ui->videoDisplay->setBackground(bgImage);
         }
         else
-            ui->cdgDisplay->setBackground(images.at(position).absoluteFilePath());
+            ui->videoDisplay->setBackground(images.at(position).absoluteFilePath());
         position++;
 
     }

@@ -938,7 +938,7 @@ QPushButton:default {
             <widget class="QFrame" name="cdgFrame">
              <property name="baseSize">
               <size>
-               <width>300</width>
+               <width>256</width>
                <height>216</height>
               </size>
              </property>
@@ -965,17 +965,17 @@ QPushButton:default {
                <number>0</number>
               </property>
               <item>
-               <widget class="CdgVideoWidget" name="cdgVideoWidget" native="true">
+               <widget class="VideoDisplayAR" name="videoPreview" native="true">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
                 <property name="minimumSize">
                  <size>
-                  <width>300</width>
-                  <height>216</height>
+                  <width>256</width>
+                  <height>144</height>
                  </size>
                 </property>
                 <property name="palette">
@@ -1146,6 +1146,15 @@ QPushButton:default {
                    <colorrole role="ToolTipText">
                     <brush brushstyle="SolidPattern">
                      <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="PlaceholderText">
+                    <brush brushstyle="NoBrush">
+                     <color alpha="128">
                       <red>0</red>
                       <green>0</green>
                       <blue>0</blue>
@@ -1325,6 +1334,15 @@ QPushButton:default {
                      </color>
                     </brush>
                    </colorrole>
+                   <colorrole role="PlaceholderText">
+                    <brush brushstyle="NoBrush">
+                     <color alpha="128">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
                   </inactive>
                   <disabled>
                    <colorrole role="WindowText">
@@ -1492,6 +1510,15 @@ QPushButton:default {
                    <colorrole role="ToolTipText">
                     <brush brushstyle="SolidPattern">
                      <color alpha="255">
+                      <red>0</red>
+                      <green>0</green>
+                      <blue>0</blue>
+                     </color>
+                    </brush>
+                   </colorrole>
+                   <colorrole role="PlaceholderText">
+                    <brush brushstyle="NoBrush">
+                     <color alpha="128">
                       <red>0</red>
                       <green>0</green>
                       <blue>0</blue>
@@ -2180,8 +2207,8 @@ QPushButton:default {
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>408</width>
-                   <height>154</height>
+                   <width>500</width>
+                   <height>289</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,0,1">
@@ -3240,7 +3267,7 @@ QPushButton:default {
      <x>0</x>
      <y>0</y>
      <width>1309</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -3439,12 +3466,6 @@ QPushButton:default {
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>CdgVideoWidget</class>
-   <extends>QWidget</extends>
-   <header>cdgvideowidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>CustomLineEdit</class>
    <extends>QLineEdit</extends>
    <header>customlineedit.h</header>
@@ -3453,6 +3474,12 @@ QPushButton:default {
    <class>VolSlider</class>
    <extends>QSlider</extends>
    <header location="global">volslider.h</header>
+  </customwidget>
+  <customwidget>
+   <class>VideoDisplayAR</class>
+   <extends>QWidget</extends>
+   <header>videodisplay.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>
