@@ -41,7 +41,6 @@
 #include "dlgregularexport.h"
 #include "dlgregularimport.h"
 #include "dlgrequests.h"
-#include "dlgcdgpreview.h"
 #include "dlgkeychange.h"
 #include "khaudiorecorder.h"
 #include "dbtablemodel.h"
@@ -67,6 +66,7 @@
 #include "khdb.h"
 #include "durationlazyupdater.h"
 #include "dlgdebugoutput.h"
+#include "dlgvideopreview.h"
 
 namespace Ui {
 class MainWindow;
@@ -159,7 +159,6 @@ private:
     void addSfxButton(QString filename, QString label, bool reset = false);
     void refreshSfxButtons();
     SfxEntry lastRtClickedSfxBtn;
-    QString findMatchingAudioFile(QString cdgFilePath);
     LazyDurationUpdateController *lazyDurationUpdater;
 
 public:

@@ -46,6 +46,7 @@
 #include <tickernew.h>
 #include "dbupdatethread.h"
 #include <chrono>
+#include "okjutil.h"
 
 #ifdef Q_OS_WIN
 #include <Windows.h>
@@ -760,40 +761,6 @@ MainWindow::MainWindow(QWidget *parent) :
     previewEnabled = settings->previewEnabled();
     connect(settings, &Settings::previewEnabledChanged, this, &MainWindow::previewEnabledChanged);
 }
-
-QString MainWindow::findMatchingAudioFile(QString cdgFilePath)
-{
-    qInfo() << "findMatchingAudioFile(" << cdgFilePath << ") called";
-    QStringList audioExtensions;
-    audioExtensions.append("mp3");
-    audioExtensions.append("wav");
-    audioExtensions.append("ogg");
-    audioExtensions.append("mov");
-    audioExtensions.append("flac");
-    QFileInfo cdgInfo(cdgFilePath);
-    QDir srcDir = cdgInfo.absoluteDir();
-    QDirIterator it(srcDir);
-    while (it.hasNext())
-    {
-        it.next();
-        if (it.fileInfo().completeBaseName() != cdgInfo.completeBaseName())
-            continue;
-        if (it.fileInfo().suffix().toLower() == "cdg")
-            continue;
-        QString ext;
-        foreach (ext, audioExtensions)
-        {
-            if (it.fileInfo().suffix().toLower() == ext)
-            {
-                qInfo() << "findMatchingAudioFile found match: " << it.filePath();
-                return it.filePath();
-            }
-        }
-    }
-    qInfo() << "findMatchingAudioFile found no matches";
-    return QString();
-}
-
 
 void MainWindow::play(QString karaokeFilePath, bool k2k)
 {
@@ -1829,10 +1796,13 @@ void MainWindow::previewCdg()
         QMessageBox::warning(this, tr("Missing File!"), "Specified karaoke file missing, preview aborted!\n\n" + dbRtClickFile,QMessageBox::Ok);
         return;
     }
-    DlgCdgPreview *cdgPreviewDialog = new DlgCdgPreview(this);
-    cdgPreviewDialog->setAttribute(Qt::WA_DeleteOnClose);
-    cdgPreviewDialog->setSourceFile(dbRtClickFile);
-    cdgPreviewDialog->preview();
+    auto *videoPreview = new DlgVideoPreview(dbRtClickFile, this);
+    videoPreview->setAttribute(Qt::WA_DeleteOnClose);
+    videoPreview->show();
+//    DlgCdgPreview *cdgPreviewDialog = new DlgCdgPreview(this);
+//    cdgPreviewDialog->setAttribute(Qt::WA_DeleteOnClose);
+//    cdgPreviewDialog->setSourceFile(dbRtClickFile);
+//    cdgPreviewDialog->preview();
 }
 
 void MainWindow::editSong()

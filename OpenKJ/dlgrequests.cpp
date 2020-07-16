@@ -27,6 +27,7 @@
 #include "okjsongbookapi.h"
 #include <QProgressDialog>
 #include "tableviewtooltipfilter.h"
+#include "dlgvideopreview.h"
 
 extern Settings *settings;
 extern OKJSongbookAPI *songbookApi;
@@ -455,10 +456,9 @@ void DlgRequests::on_comboBoxVenue_activated(int index)
 
 void DlgRequests::previewCdg()
 {
-    DlgCdgPreview *cdgPreviewDialog = new DlgCdgPreview(this);
-    cdgPreviewDialog->setAttribute(Qt::WA_DeleteOnClose);
-    cdgPreviewDialog->setSourceFile(rtClickFile);
-    cdgPreviewDialog->preview();
+    DlgVideoPreview *videoPreviewDialog = new DlgVideoPreview(rtClickFile, this);
+    videoPreviewDialog->setAttribute(Qt::WA_DeleteOnClose);
+    videoPreviewDialog->show();
 }
 
 void DlgRequests::on_lineEditSearch_textChanged(const QString &arg1)

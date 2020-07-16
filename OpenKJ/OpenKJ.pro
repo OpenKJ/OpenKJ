@@ -112,7 +112,7 @@ contains(DEFINES, STATIC_TAGLIB) {
 #QMAKE_MAC_SDK = MacOSX10.13
 #QMAKE_MAC_SDK.macosx.version = 10.13
 
-VERSION = 1.7.86
+VERSION = 1.7.87
 message($$VERSION)
 QMAKE_TARGET_COMPANY = OpenKJ.org
 QMAKE_TARGET_PRODUCT = OpenKJ
@@ -126,6 +126,8 @@ win32: BLDDATE = $$system(date /t)
 DEFINES += BUILD_DATE=__DATE__
 
 SOURCES += main.cpp\
+    okjutil.h \
+    dlgvideopreview.cpp \
     mainwindow.cpp \
     libCDG/src/libCDG.cpp \
     sourcedirtablemodel.cpp \
@@ -133,7 +135,6 @@ SOURCES += main.cpp\
     requeststablemodel.cpp \
     khdb.cpp \
     dlgkeychange.cpp \
-    dlgcdgpreview.cpp \
     dlgdatabase.cpp \
     dlgrequests.cpp \
     dlgregularexport.cpp \
@@ -150,8 +151,6 @@ SOURCES += main.cpp\
     queueitemdelegate.cpp \
     regitemdelegate.cpp \
     okarchive.cpp \
-    cdgvideosurface.cpp \
-    cdgvideowidget.cpp \
     abstractaudiobackend.cpp \
     audiobackendgstreamer.cpp \
     tagreader.cpp \
@@ -299,13 +298,14 @@ contains(DEFINES, STATIC_TAGLIB) {
 }
 
 HEADERS  += mainwindow.h \
+    dlgvideopreview.h \
     libCDG/include/libCDG.h \
+    okjutil.h \
     sourcedirtablemodel.h \
     dbupdatethread.h \
     requeststablemodel.h \
     khdb.h \
     dlgkeychange.h \
-    dlgcdgpreview.h \
     dlgdatabase.h \
     dlgrequests.h \
     dlgregularexport.h \
@@ -322,8 +322,6 @@ HEADERS  += mainwindow.h \
     queueitemdelegate.h \
     regitemdelegate.h \
     okarchive.h \
-    cdgvideosurface.h \
-    cdgvideowidget.h \
     abstractaudiobackend.h \
     audiobackendgstreamer.h \
     tagreader.h \
@@ -483,7 +481,6 @@ contains(DEFINES, STATIC_TAGLIB) {
 
 FORMS    += mainwindow.ui \
     dlgkeychange.ui \
-    dlgcdgpreview.ui \
     dlgdatabase.ui \
     dlgrequests.ui \
     dlgregularexport.ui \
@@ -503,7 +500,8 @@ FORMS    += mainwindow.ui \
     dlgpassword.ui \
     dlgpurchaseprogress.ui \
     dlgeditsong.ui \
-    dlgdebugoutput.ui
+    dlgdebugoutput.ui \
+    dlgvideopreview.ui
 
 RESOURCES += resources.qrc
 

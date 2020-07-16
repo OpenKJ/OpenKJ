@@ -41,7 +41,7 @@ VideoDisplayAR::VideoDisplayAR(QWidget *parent) :
     QWidget(parent)
 {
     auto palette = this->palette();
-    palette.setColor(QPalette::Window, Qt::white);
+    palette.setColor(QPalette::Window, Qt::black);
     this->setPalette(palette);
     m_videoDisplay = new VideoDisplay(this);
     layout = new QBoxLayout(QBoxLayout::LeftToRight, this);

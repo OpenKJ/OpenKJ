@@ -1068,13 +1068,6 @@ GstBusSyncReply MediaBackend::busMessageDispatcherCdg([[maybe_unused]]GstBus *bu
 void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused_size, gpointer user_data)
 {
     auto backend = reinterpret_cast<MediaBackend *>(user_data);
-    //static GstClockTime timestamp = 0;
-
-//    if (backend->curFrame > backend->cdg.getFrameCount())
-//    {
-//        g_signal_emit_by_name(appsrc, "end-of-stream", (backend->curFrame - 1) * 40000000, nullptr);
-//        return;
-//    }
     QImage vframe(QSize(288,192), QImage::Format_RGB16);
     vframe.fill(Qt::black);
     if (backend->curFrame < backend->cdg.getFrameCount())
@@ -1093,8 +1086,6 @@ void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused
 #else
     memcpy(map.data, vframe.bits(), vframe.byteCount());
 #endif
-
-
     gst_buffer_unmap(buffer, &map);
     GST_BUFFER_PTS(buffer) = backend->cdgPosition;
     GST_BUFFER_DURATION(buffer) = 40000000;

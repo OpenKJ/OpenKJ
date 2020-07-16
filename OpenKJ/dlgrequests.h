@@ -27,7 +27,6 @@
 #include "dbtablemodel.h"
 #include "dbitemdelegate.h"
 #include "rotationmodel.h"
-#include "dlgcdgpreview.h"
 #include "okjsongbookapi.h"
 
 namespace Ui {
