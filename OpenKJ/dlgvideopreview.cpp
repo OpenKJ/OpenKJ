@@ -118,7 +118,7 @@ void DlgVideoPreview::playCdg(const QString &filename)
 #elif defined(Q_OS_MAC)
     videoSink = gst_element_factory_make("glimagesink", "videoPreviewVS");
 #else
-    qWarning() << Unknown platform, defaulting to OpenGL video output";
+    qWarning() << "Unknown platform, defaulting to OpenGL video output";
     videoSink = gst_element_factory_make("glimagesink", "videoPreviewVS");
 #endif
     gst_bin_add_many(reinterpret_cast<GstBin *>(pipeline),appSrc,videoConvert,videoSink,NULL);
@@ -140,7 +140,7 @@ void DlgVideoPreview::playVideo(const QString &filename)
 #elif defined(Q_OS_MAC)
     videoSink = gst_element_factory_make("glimagesink", "videoPreviewVS");
 #else
-    qWarning() << Unknown platform, defaulting to OpenGL video output";
+    qWarning() << "Unknown platform, defaulting to OpenGL video output";
     videoSink = gst_element_factory_make("glimagesink", "videoPreviewVS");
 #endif
     gst_bin_add_many(reinterpret_cast<GstBin *>(pipeline), videoConvert, videoSink, NULL);
