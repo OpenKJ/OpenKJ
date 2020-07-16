@@ -201,8 +201,8 @@ public:
     unsigned int getFrameCount() { return m_frames.size(); }
     bool canSkipFrameByTime(const unsigned int &ms);
     QString md5HashByTime(const unsigned int &ms);
-    const QImage& videoFrameByTime(const unsigned int &ms);
-    const QImage& videoFrameByIndex(const unsigned int &frame);
+    QImage videoFrameByTime(const unsigned int &ms);
+    QImage videoFrameByIndex(const unsigned int &frame);
 protected:
 private:
     int m_tempo;

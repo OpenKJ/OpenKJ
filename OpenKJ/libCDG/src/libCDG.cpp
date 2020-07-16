@@ -276,16 +276,16 @@ void CdgParser::cmdTileBlock(const cdg::CdgTileBlockData &tileBlockPacket, const
     m_needupdate = true;
 }
 
-const QImage &CdgParser::videoFrameByTime(const unsigned int &ms)
+QImage CdgParser::videoFrameByTime(const unsigned int &ms)
 {
     size_t frameno = (ms * ((float)m_tempo / 100.0)) / 40;
     if (ms % 40 > 0) frameno++;
     if (frameno >= m_frames.size())
     {
         qInfo() << "Frame past end of CDG requested, returning last frame";
-        return std::move(m_frames.at(m_frames.size() - 1).convertToFormat(QImage::Format_RGB32));
+        return m_frames.at(m_frames.size() - 1).convertToFormat(QImage::Format_RGB32);
     }
-    return std::move(m_frames.at(frameno).convertToFormat(QImage::Format_RGB32));
+    return m_frames.at(frameno).convertToFormat(QImage::Format_RGB32);
 }
 
 QString CdgParser::md5HashByTime(const unsigned int &ms)
@@ -323,7 +323,7 @@ void CdgParser::setTempo(const int &percent)
     m_tempo = percent;
 }
 
-const QImage &CdgParser::videoFrameByIndex(const unsigned int &frame)
+QImage CdgParser::videoFrameByIndex(const unsigned int &frame)
 {
     return m_frames.at(frame);
 }
