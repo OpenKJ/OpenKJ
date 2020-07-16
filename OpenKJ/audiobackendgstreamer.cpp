@@ -29,6 +29,7 @@
 #include "settings.h"
 #include <functional>
 #include <gst/video/videooverlay.h>
+#include <gst/app/gstappsrc.h>
 
 extern Settings *settings;
 //GstElement *playBinPub;
@@ -1056,39 +1057,22 @@ GstBusSyncReply MediaBackend::busMessageDispatcherCdg([[maybe_unused]]GstBus *bu
 void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused_size, gpointer user_data)
 {
     auto backend = reinterpret_cast<MediaBackend *>(user_data);
-    QImage vframe(QSize(288,192), QImage::Format_RGB16);
-    vframe.fill(Qt::black);
-    if (backend->curFrame < backend->cdg.getFrameCount())
-        vframe = backend->cdg.videoFrameByIndex(backend->curFrame);
-
-#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
-    auto buffer = gst_buffer_new_allocate(NULL, vframe.sizeInBytes(), NULL);
-#else
-    auto buffer = gst_buffer_new_allocate(NULL, vframe.byteCount(), NULL);
-#endif
-    GstMapInfo map;
-    gst_buffer_map(buffer, &map, GST_MAP_WRITE);
-
-#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
-    memcpy(map.data, vframe.bits(), vframe.sizeInBytes());
-#else
-    memcpy(map.data, vframe.bits(), vframe.byteCount());
-#endif
-    gst_buffer_unmap(buffer, &map);
+    auto buffer = gst_buffer_new_and_alloc(backend->cdg.videoFrameByIndex(backend->curFrame).sizeInBytes());
+    gst_buffer_fill(buffer,
+                    0,
+                    backend->cdg.videoFrameByIndex(backend->curFrame).constBits(),
+                    backend->cdg.videoFrameByTime(backend->curFrame).sizeInBytes()
+                    );
     GST_BUFFER_PTS(buffer) = backend->cdgPosition;
-    GST_BUFFER_DURATION(buffer) = 40000000;
+    GST_BUFFER_DURATION(buffer) = 40000000; // 40ms
     backend->cdgPosition += GST_BUFFER_DURATION(buffer);
     backend->curFrame++;
-    GstFlowReturn ret;
-    g_signal_emit_by_name(appsrc, "push-buffer", buffer, &ret);
-    gst_buffer_unref(buffer);
+    gst_app_src_push_buffer(reinterpret_cast<GstAppSrc *>(appsrc), buffer);
 }
 
 void MediaBackend::cb_seek_data([[maybe_unused]]GstElement *appsrc, guint64 position, gpointer user_data)
 {
-    qWarning() << "Got seek event: " << position << " ms: " << position / 40000000;
     auto backend = reinterpret_cast<MediaBackend *>(user_data);
-    GST_DEBUG ("seek to offset %" G_GUINT64_FORMAT, position);
     if (position == 0)
     {
         backend->curFrame = 0;

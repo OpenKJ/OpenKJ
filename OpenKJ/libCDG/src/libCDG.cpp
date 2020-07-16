@@ -132,7 +132,7 @@ bool CdgParser::process()
         {
 
             m_skip.emplace_back(!m_needupdate);
-            auto frame = m_frames.emplace_back(getSafeArea().convertToFormat(QImage::Format_RGB16));
+            m_frames.emplace_back(getSafeArea().convertToFormat(QImage::Format_RGB16));
             frameno++;
         }
     }
@@ -276,17 +276,7 @@ void CdgParser::cmdTileBlock(const cdg::CdgTileBlockData &tileBlockPacket, const
     m_needupdate = true;
 }
 
-QImage CdgParser::videoFrameByTime(const unsigned int &ms)
-{
-    size_t frameno = (ms * ((float)m_tempo / 100.0)) / 40;
-    if (ms % 40 > 0) frameno++;
-    if (frameno >= m_frames.size())
-    {
-        qInfo() << "Frame past end of CDG requested, returning last frame";
-        return m_frames.at(m_frames.size() - 1).convertToFormat(QImage::Format_RGB32);
-    }
-    return m_frames.at(frameno).convertToFormat(QImage::Format_RGB32);
-}
+
 
 QString CdgParser::md5HashByTime(const unsigned int &ms)
 {
@@ -325,7 +315,15 @@ void CdgParser::setTempo(const int &percent)
 
 QImage CdgParser::videoFrameByIndex(const unsigned int &frame)
 {
-    return m_frames.at(frame);
+    if (frame < m_frames.size())
+        return m_frames.at(frame);
+    else
+        return QImage(QSize(288,192),QImage::Format_RGB16);
+}
+
+QImage CdgParser::videoFrameByTime(const unsigned int &ms)
+{
+    return videoFrameByIndex((ms * ((float)m_tempo / 100.0)) / 40);
 }
 
 void CdgParser::cmdScroll(const cdg::CdgScrollCmdData &scrollCmdData, const cdg::ScrollType type)

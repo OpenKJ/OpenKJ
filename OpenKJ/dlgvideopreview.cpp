@@ -5,6 +5,7 @@
 #include "okarchive.h"
 #include "okjutil.h"
 #include <gst/video/videooverlay.h>
+#include <gst/app/gstappsrc.h>
 
 DlgVideoPreview::DlgVideoPreview(const QString &mediaFilePath, QWidget *parent) :
     QDialog(parent), ui(new Ui::DlgVideoPreview), m_mediaFilename(mediaFilePath)
@@ -163,40 +164,29 @@ void DlgVideoPreview::playVideo(const QString &filename)
 
 void DlgVideoPreview::cb_seek_data([[maybe_unused]]GstElement *appsrc, guint64 position, gpointer user_data)
 {
-    qWarning() << "Got seek event: " << position << " ms: " << position / 40000000;
-    auto backend = reinterpret_cast<DlgVideoPreview *>(user_data);
-    GST_DEBUG ("seek to offset %" G_GUINT64_FORMAT, position);
+    auto dlg = reinterpret_cast<DlgVideoPreview *>(user_data);
     if (position == 0)
     {
-        backend->curFrame = 0;
-        backend->position = 0;
+        dlg->curFrame = 0;
+        dlg->position = 0;
         return;
     }
-    backend->curFrame = position / 40000000;
-    backend->position = position;
+    dlg->curFrame = position / 40000000;
+    dlg->position = position;
 }
 
 void DlgVideoPreview::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused_size, gpointer user_data)
 {
-    auto dlgVideoPreview = reinterpret_cast<DlgVideoPreview *>(user_data);
-    //static GstClockTime timestamp = 0;
-
-    if (dlgVideoPreview->curFrame > dlgVideoPreview->parser.getFrameCount())
-    {
-        g_signal_emit_by_name(appsrc, "end-of-stream", (dlgVideoPreview->curFrame - 1) * 40000000, nullptr);
-        return;
-    }
-    auto vframe = dlgVideoPreview->parser.videoFrameByIndex(dlgVideoPreview->curFrame);
-    auto buffer = gst_buffer_new_allocate(NULL, vframe.sizeInBytes(), NULL);
-    GstMapInfo map;
-    gst_buffer_map(buffer, &map, GST_MAP_WRITE);
-    memcpy(map.data, vframe.bits(), vframe.sizeInBytes());
-    gst_buffer_unmap(buffer, &map);
-    GST_BUFFER_PTS(buffer) = dlgVideoPreview->position;
-    GST_BUFFER_DURATION(buffer) = 40000000;
-    dlgVideoPreview->position += GST_BUFFER_DURATION(buffer);
-    dlgVideoPreview->curFrame++;
-    GstFlowReturn ret;
-    g_signal_emit_by_name(appsrc, "push-buffer", buffer, &ret);
-    gst_buffer_unref(buffer);
+    auto dlg = reinterpret_cast<DlgVideoPreview *>(user_data);
+    auto buffer = gst_buffer_new_and_alloc(dlg->parser.videoFrameByIndex(dlg->curFrame).sizeInBytes());
+    gst_buffer_fill(buffer,
+                    0,
+                    dlg->parser.videoFrameByIndex(dlg->curFrame).constBits(),
+                    dlg->parser.videoFrameByTime(dlg->curFrame).sizeInBytes()
+                    );
+    GST_BUFFER_PTS(buffer) = dlg->position;
+    GST_BUFFER_DURATION(buffer) = 40000000; // 40ms
+    dlg->position += GST_BUFFER_DURATION(buffer);
+    dlg->curFrame++;
+    gst_app_src_push_buffer(reinterpret_cast<GstAppSrc *>(appsrc), buffer);
 }
