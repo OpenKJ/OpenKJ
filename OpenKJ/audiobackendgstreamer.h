@@ -160,7 +160,6 @@ private:
     bool m_keyChangerSoundtouch{false};
     bool m_muted{false};
     bool m_vidMuted{false};
-    bool m_canRenderCdg{false};
     bool initDone{false};
     bool m_previewEnabledLastBuild{true};
     bool bypass{false};

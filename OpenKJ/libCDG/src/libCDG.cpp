@@ -43,8 +43,6 @@ bool CdgParser::open(const QByteArray &byteArray, const bool &bypassReset)
         return false;
     }
     qInfo() << "libCDG - Byte array opened successfully";
-    // reserve enough room in our frames vector to fit the number
-    // of frames we should be producing
     m_frames.reserve(byteArray.size() / 24);
     m_skip.reserve(byteArray.size() / 24);
     return true;
@@ -278,41 +276,27 @@ void CdgParser::cmdTileBlock(const cdg::CdgTileBlockData &tileBlockPacket, const
     m_needupdate = true;
 }
 
-QImage CdgParser::videoFrameByTime(const unsigned int &ms)
+const QImage &CdgParser::videoFrameByTime(const unsigned int &ms)
 {
     size_t frameno = (ms * ((float)m_tempo / 100.0)) / 40;
     if (ms % 40 > 0) frameno++;
     if (frameno >= m_frames.size())
     {
         qInfo() << "Frame past end of CDG requested, returning last frame";
-        return m_frames.at(m_frames.size() - 1).convertToFormat(QImage::Format_RGB32);
+        return std::move(m_frames.at(m_frames.size() - 1).convertToFormat(QImage::Format_RGB32));
     }
-    return m_frames.at(frameno).convertToFormat(QImage::Format_RGB32);
+    return std::move(m_frames.at(frameno).convertToFormat(QImage::Format_RGB32));
 }
 
-//QString CdgParser::md5HashByTime(const unsigned int &ms)
-//{
-//    // This is for future use in a CDG fingerprinting system planned
-//    // for auto-naming files based on the fingerprint
-//    size_t frameno = ms / 40;
-//    if (ms % 40 > 0) frameno++;
-//    if (frameno > m_frames.size())
-//        frameno = m_frames.size() - 1;
-//    m_frames.at(frameno).map(QAbstractVideoBuffer::ReadOnly);
-//    QByteArray arr = QByteArray::fromRawData((const char*)m_frames.at(frameno).bits(), m_frames.at(frameno).mappedBytes());
-//    m_frames.at(frameno).unmap();
-//    return QString(QCryptographicHash::hash(arr, QCryptographicHash::Md5).toHex());
-
-//    /*
-//     * To be used after successful file processing later for CDG fingerprinting for auto-renaming
-//    qInfo() << "CDG Hash at 10s:  " << md5HashByTime(10000);
-//    qInfo() << "CDG Hash at 30s:  " << md5HashByTime(30000);
-//    qInfo() << "CDG Hash at 60s:  " << md5HashByTime(60000);
-//    qInfo() << "CDG Hash at 90s:  " << md5HashByTime(90000);
-//    qInfo() << "CDG Hash at 120s: " << md5HashByTime(120000);
-//    */
-
-//}
+QString CdgParser::md5HashByTime(const unsigned int &ms)
+{
+    size_t frameno = ms / 40;
+    if (ms % 40 > 0) frameno++;
+    if (frameno > m_frames.size())
+        frameno = m_frames.size() - 1;
+    QByteArray arr = QByteArray::fromRawData((const char*)m_frames.at(frameno).bits(), m_frames.at(frameno).sizeInBytes());
+    return QString(QCryptographicHash::hash(arr, QCryptographicHash::Md5).toHex());
+}
 
 unsigned int CdgParser::duration()
 {
@@ -339,7 +323,7 @@ void CdgParser::setTempo(const int &percent)
     m_tempo = percent;
 }
 
-const QImage &CdgParser::videoImageByFrame(const unsigned int &frame)
+const QImage &CdgParser::videoFrameByIndex(const unsigned int &frame)
 {
     return m_frames.at(frame);
 }
@@ -411,6 +395,6 @@ void CdgParser::cmdDefineTransparent([[maybe_unused]] const std::array<char,16> 
 {
     qInfo() << "libCDG - unsupported DefineTransparent command called";
     // Unused CDG command from redbook spec
-    // I've never actually seen this command used in the wild on commercial CD+Gs
+    // This is rarely if ever used
     // No idea what the data structure is, it's missing from CDG Revealed
 }

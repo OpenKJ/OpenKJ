@@ -66,18 +66,6 @@ MediaBackend::MediaBackend(bool pitchShift, QObject *parent, QString objectName)
     guint major, minor, micro, nano;
     gst_version (&major, &minor, &micro, &nano);
     qInfo() << "Using GStreamer version: " << major << "." << minor << "." << micro;
-    GstElement *cdgdec = gst_element_factory_make("cdgdec", "CDGDecoder");
-    if (!cdgdec)
-    {
-        m_canRenderCdg = false;
-        qInfo() << objName << "CDG decoder from gst-plugins-rs not installed. Can't render CDG graphics via gstreamer";
-    }
-    else {
-        m_canRenderCdg = true;
-        qInfo() << objName << "CDG decoder from gst-plugins-rs is installed.  Can render CDG graphics via gstreamer";
-        gst_object_unref(cdgdec);
-    }
-
     faderVolumeElement = gst_element_factory_make("volume", "FaderVolumeElement");
     g_object_set(faderVolumeElement, "volume", 1.0, nullptr);
     fader = new AudioFader(this);
@@ -1071,7 +1059,7 @@ void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused
     QImage vframe(QSize(288,192), QImage::Format_RGB16);
     vframe.fill(Qt::black);
     if (backend->curFrame < backend->cdg.getFrameCount())
-        vframe = backend->cdg.videoImageByFrame(backend->curFrame);
+        vframe = backend->cdg.videoFrameByIndex(backend->curFrame);
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
     auto buffer = gst_buffer_new_allocate(NULL, vframe.sizeInBytes(), NULL);

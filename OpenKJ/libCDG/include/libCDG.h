@@ -192,9 +192,6 @@ public:
     bool open(const QString &filename);
     bool process();
     void reset();
-    bool canSkipFrameByTime(const unsigned int &ms);
-    QImage videoFrameByTime(const unsigned int &ms);
-    //QString md5HashByTime(const unsigned int &ms);
     unsigned int duration();
     unsigned int position();
     bool isOpen();
@@ -202,26 +199,30 @@ public:
     int tempo();
     void setTempo(const int &percent);
     unsigned int getFrameCount() { return m_frames.size(); }
-    const QImage& videoImageByFrame(const unsigned int &frame);
+    bool canSkipFrameByTime(const unsigned int &ms);
+    QString md5HashByTime(const unsigned int &ms);
+    const QImage& videoFrameByTime(const unsigned int &ms);
+    const QImage& videoFrameByIndex(const unsigned int &frame);
 protected:
 private:
     int m_tempo;
-    unsigned int m_lastCDGCommandMS;
-    unsigned int m_duration;
-    bool m_isOpen;
-    bool m_lastCmdWasMempreset;
-    QByteArray m_cdgData;
-    unsigned int m_position;
-    inline constexpr static std::array<char,6> m_masks{0x20,0x10,0x08,0x04,0x02,0x01};
-    bool m_needupdate;
-    std::vector<QImage> m_frames;
-    std::vector<bool> m_skip;
-    QImage m_image;
     int m_bytesPerPixel;
     int m_borderLRBytes;
     int m_borderRBytesOffset;
     int m_curVOffset;
     int m_curHOffset;
+    unsigned int m_position;
+    unsigned int m_lastCDGCommandMS;
+    unsigned int m_duration;
+    bool m_needupdate;
+    bool m_isOpen;
+    bool m_lastCmdWasMempreset;
+    QByteArray m_cdgData;
+
+    inline constexpr static std::array<char,6> m_masks{0x20,0x10,0x08,0x04,0x02,0x01};
+    std::vector<QImage> m_frames;
+    std::vector<bool> m_skip;
+    QImage m_image;
     constexpr static char m_subcodeMask = 0x3F;
     constexpr static char m_subcodeCommand = 0x09;
 

@@ -503,6 +503,7 @@ MainWindow::MainWindow(QWidget *parent) :
     rotModel->setHeaderData(3,Qt::Horizontal,"");
     rotModel->setHeaderData(4,Qt::Horizontal,"");
     ui->tableViewRotation->hideColumn(2);
+    ui->tableViewRotation->hideColumn(5);
     qInfo() << "Adding singer count to status bar";
     ui->statusBar->addWidget(labelSingerCount);
     ui->statusBar->addWidget(labelRotationDuration);

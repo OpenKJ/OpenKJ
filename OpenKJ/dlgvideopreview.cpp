@@ -186,7 +186,7 @@ void DlgVideoPreview::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unu
         g_signal_emit_by_name(appsrc, "end-of-stream", (dlgVideoPreview->curFrame - 1) * 40000000, nullptr);
         return;
     }
-    auto vframe = dlgVideoPreview->parser.videoImageByFrame(dlgVideoPreview->curFrame);
+    auto vframe = dlgVideoPreview->parser.videoFrameByIndex(dlgVideoPreview->curFrame);
     auto buffer = gst_buffer_new_allocate(NULL, vframe.sizeInBytes(), NULL);
     GstMapInfo map;
     gst_buffer_map(buffer, &map, GST_MAP_WRITE);
