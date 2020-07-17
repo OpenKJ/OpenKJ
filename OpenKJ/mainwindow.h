@@ -41,7 +41,6 @@
 #include "dlgregularimport.h"
 #include "dlgrequests.h"
 #include "dlgkeychange.h"
-#include "khaudiorecorder.h"
 #include "dbtablemodel.h"
 #include "queuemodel.h"
 #include "queueitemdelegate.h"
@@ -62,7 +61,6 @@
 #include "dlgaddsinger.h"
 #include "dlgsongshop.h"
 #include "songshop.h"
-#include "khdb.h"
 #include "durationlazyupdater.h"
 #include "dlgdebugoutput.h"
 #include "dlgvideopreview.h"
@@ -85,7 +83,6 @@ private:
     RotationModel *rotModel;
     RotationItemDelegate *rotDelegate;
     DlgCdg *cdgWindow;
-    //CdgWindow *cdgWindow2;
     DlgDebugOutput *debugDialog;
     DlgDatabase *dbDialog;
     DlgSettings *settingsDialog;
@@ -98,23 +95,18 @@ private:
     DlgEq *dlgEq;
     DlgAddSinger *dlgAddSinger;
     DlgSongShop *dlgSongShop;
-    //DlgCdgPreview *cdgPreviewDialog;
     MediaBackend *kAudioBackend;
     MediaBackend *sfxAudioBackend;
-//    KhAudioBackends *audioBackends;
-//    KhAudioRecorder *audioRecorder;
     AudioRecorder *audioRecorder;
     MediaBackend *bmAudioBackend;
-//    KhIPCClient *ipcClient;
-    QLabel *labelSingerCount;
-    QLabel *labelRotationDuration;
+    QLabel labelSingerCount;
+    QLabel labelRotationDuration;
     bool sliderPositionPressed{false};
     bool sliderBmPositionPressed{false};
     void play(QString karaokeFilePath, bool k2k = false);
     int m_rtClickQueueSongId{-1};
     int m_rtClickRotationSingerId{-1};
     QTemporaryDir *khTmpDir;
-    QDir *khDir;
     int sortColDB{1};
     int sortDirDB{0};
     QString dbRtClickFile;
@@ -140,17 +132,14 @@ private:
     bool bmPlaylistExists(QString name);
     MediaBackend::State m_lastAudioState{MediaBackend::StoppedState};
     void refreshSongDbCache();
-    QTimer *karaokeAATimer;
-    QTimer *startupOneShot;
+    QTimer m_timerKaraokeAA;
     UpdateChecker *checker;
-    QTimer *slowUiUpdateTimer;
-    QTimer *timerButtonFlash;
+    QTimer m_timerSlowUiUpdate;
+    QTimer m_timerButtonFlash;
     bool blinkRequestsBtn{false};
-    QString GetRandomString() const;
     QSharedMemory *_singular;
     bool kNeedAutoSize{false};
     bool bNeedAutoSize{true};
-    KhDb *db;
     QShortcut *scutAddSinger;
     QShortcut *scutSearch;
     QShortcut *scutRegulars;
@@ -163,7 +152,6 @@ private:
 public:
     explicit MainWindow(QWidget *parent = 0);
     bool isSingleInstance();
-
     ~MainWindow();
     
 private slots:
@@ -263,76 +251,48 @@ private slots:
     void audioError(QString msg);
     void resizeRotation();
     void previewEnabledChanged(bool enabled) { previewEnabled = enabled; }
-
-    // QWidget interface
     void on_sliderVolume_sliderMoved(int position);
-
     void on_sliderBmVolume_sliderMoved(int position);
     void songDropNoSingerSel();
     void newVersionAvailable(QString version);
-
     void on_pushButtonIncomingRequests_clicked();
-
     void on_pushButtonShop_clicked();
     void filesDroppedOnQueue(QList<QUrl> urls, int singerId, int position);
     void appFontChanged(QFont font);
-
     void on_tabWidget_currentChanged(int index);
     void databaseAboutToUpdate();
     void bmDatabaseAboutToUpdate();
     void scutSearchActivated();
     void bmSongMoved(int oldPos, int newPos);
-
     void on_sliderBmPosition_sliderPressed();
-
     void on_sliderBmPosition_sliderReleased();
     void sfxButtonPressed();
-
     void on_btnAddSfx_clicked();
-
     void on_btnSfxStop_clicked();
     void removeSfxButton();
     void showAlert(QString title, QString message);
     void tableViewRotationCurrentChanged(QModelIndex cur, QModelIndex prev);
     void updateRotationDuration();
-
     void on_btnToggleCdgWindow_clicked();
     void cdgVisibilityChanged();
     void rotationSelectionChanged(QItemSelection sel, QItemSelection desel);
-
     void on_lineEditBmSearch_textChanged(const QString &arg1);
-
     void on_btnRotTop_clicked();
-
     void on_btnRotUp_clicked();
-
     void on_btnRotDown_clicked();
-
     void on_btnRotBottom_clicked();
-
     void on_btnQTop_clicked();
-
     void on_btnQUp_clicked();
-
     void on_btnQDown_clicked();
-
     void on_btnQBottom_clicked();
-
     void on_btnBmPlRandomize_clicked();
-
     void on_btnPlTop_clicked();
-
     void on_btnPlUp_clicked();
-
     void on_btnPlDown_clicked();
-
     void on_btnPlBottom_clicked();
 
 protected:
     void closeEvent(QCloseEvent *event);
-
-    // QWidget interface
-protected:
     void resizeEvent(QResizeEvent *event);
 };
 

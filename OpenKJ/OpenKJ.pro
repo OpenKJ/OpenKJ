@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT += core gui sql network widgets multimedia concurrent svg printsupport #opengl
+QT += core gui sql network widgets concurrent svg printsupport #opengl
 CONFIG += c++17
 unix:DISTVER = $$system(cat /etc/os-release |grep VERSION_ID |cut -d'=' -f2 | sed -e \'s/^\"//\' -e \'s/\"$//\')
 message($$DISTVER)
@@ -121,7 +121,7 @@ contains(DEFINES, STATIC_TAGLIB) {
 #QMAKE_MAC_SDK = MacOSX10.13
 #QMAKE_MAC_SDK.macosx.version = 10.13
 
-VERSION = 1.7.95
+VERSION = 1.7.96
 message($$VERSION)
 QMAKE_TARGET_COMPANY = OpenKJ.org
 QMAKE_TARGET_PRODUCT = OpenKJ
@@ -142,7 +142,6 @@ SOURCES += main.cpp\
     sourcedirtablemodel.cpp \
     dbupdatethread.cpp \
     requeststablemodel.cpp \
-    khdb.cpp \
     dlgkeychange.cpp \
     dlgdatabase.cpp \
     dlgrequests.cpp \
@@ -151,7 +150,6 @@ SOURCES += main.cpp\
     dlgregularsingers.cpp \
     dlgsettings.cpp \
     dlgcdg.cpp \
-    khaudiorecorder.cpp \
     dbtablemodel.cpp \
     queuemodel.cpp \
     rotationmodel.cpp \
@@ -312,7 +310,6 @@ HEADERS  += mainwindow.h \
     sourcedirtablemodel.h \
     dbupdatethread.h \
     requeststablemodel.h \
-    khdb.h \
     dlgkeychange.h \
     dlgdatabase.h \
     dlgrequests.h \
@@ -321,7 +318,6 @@ HEADERS  += mainwindow.h \
     dlgregularsingers.h \
     dlgsettings.h \
     dlgcdg.h \
-    khaudiorecorder.h \
     dbtablemodel.h \
     queuemodel.h \
     rotationmodel.h \

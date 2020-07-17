@@ -58,27 +58,11 @@ int remainSecs = 240;
 
 auto startTime = std::chrono::high_resolution_clock::now();
 
-QString MainWindow::GetRandomString() const
-{
-   const QString possibleCharacters("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
-   const int randomStringLength = 12; // assuming you want random strings of 12 characters
-
-   QString randomString;
-   for(int i=0; i<randomStringLength; ++i)
-   {
-       int index = qrand() % possibleCharacters.length();
-       QChar nextChar = possibleCharacters.at(index);
-       randomString.append(nextChar);
-   }
-   return randomString;
-}
-
 void MainWindow::addSfxButton(QString filename, QString label, bool reset)
 {
     static int numButtons = 0;
     if (reset)
         numButtons = 0;
-    //numButtons = ui->sfxButtonGrid->children().count();
     qInfo() << "sfxButtonGrid contains " << numButtons << " children";
     int col = 0;
     if (numButtons % 2)
@@ -91,8 +75,8 @@ void MainWindow::addSfxButton(QString filename, QString label, bool reset)
     button->setButtonData(filename);
     button->setText(label);
     ui->sfxButtonGrid->addWidget(button,row,col);
-    connect(button, SIGNAL(clicked(bool)), this, SLOT(sfxButtonPressed()));
-    connect(button, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(sfxButton_customContextMenuRequested(QPoint)));
+    connect(button, &SoundFxButton::clicked, this, &MainWindow::sfxButtonPressed);
+    connect(button, &SoundFxButton::customContextMenuRequested, this, &MainWindow::sfxButton_customContextMenuRequested);
     numButtons++;
 }
 
@@ -128,7 +112,6 @@ bool MainWindow::isSingleInstance()
     }
     if(_singular->create(1))
         return true;
-
     return false;
 }
 
@@ -224,13 +207,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->sliderProgress->setMaximumHeight(12);
     ui->sliderVolume->setMaximumWidth(12);
 #endif
-    db = new KhDb(this);
-    labelSingerCount = new QLabel(ui->statusBar);
-    labelRotationDuration = new QLabel(ui->statusBar);
-    khDir = new QDir(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
-    if (!khDir->exists())
+    QDir khDir(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
+    if (!khDir.exists())
     {
-        khDir->mkpath(khDir->absolutePath());
+        khDir.mkpath(khDir.absolutePath());
     }
     if (settings->theme() != 0)
     {
@@ -243,7 +223,7 @@ MainWindow::MainWindow(QWidget *parent) :
     qInfo() << "Initial volumes - K: " << initialKVol << " BM: " << initialBMVol;
     settings->restoreWindowState(this);
     database = QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE"));
-    database.setDatabaseName(khDir->absolutePath() + QDir::separator() + "openkj.sqlite");
+    database.setDatabaseName(khDir.absolutePath() + QDir::separator() + "openkj.sqlite");
     database.open();
     QSqlQuery query("CREATE TABLE IF NOT EXISTS dbSongs ( songid INTEGER PRIMARY KEY AUTOINCREMENT, Artist COLLATE NOCASE, Title COLLATE NOCASE, DiscId COLLATE NOCASE, 'Duration' INTEGER, path VARCHAR(700) NOT NULL UNIQUE, filename COLLATE NOCASE, searchstring TEXT)");
     query.exec("CREATE TABLE IF NOT EXISTS rotationSingers ( singerid INTEGER PRIMARY KEY AUTOINCREMENT, name COLLATE NOCASE UNIQUE, 'position' INTEGER NOT NULL, 'regular' LOGICAL DEFAULT(0), 'regularid' INTEGER)");
@@ -453,8 +433,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewRotation->hideColumn(2);
     ui->tableViewRotation->hideColumn(5);
     qInfo() << "Adding singer count to status bar";
-    ui->statusBar->addWidget(labelSingerCount);
-    ui->statusBar->addWidget(labelRotationDuration);
+    ui->statusBar->addWidget(&labelSingerCount);
+    ui->statusBar->addWidget(&labelRotationDuration);
 
 
 
@@ -518,8 +498,7 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->pushButtonMplxLeft->setChecked(true);
     else if (settings->mplxMode() == Multiplex_RightChannel)
         ui->pushButtonMplxRight->setChecked(true);
-    karaokeAATimer = new QTimer(this);
-    connect(karaokeAATimer, SIGNAL(timeout()), this, SLOT(karaokeAATimerTimeout()));
+    connect(&m_timerKaraokeAA, &QTimer::timeout, this, &MainWindow::karaokeAATimerTimeout);
     ui->actionAutoplay_mode->setChecked(settings->karaokeAutoAdvance());
     connect(ui->actionAutoplay_mode, SIGNAL(toggled(bool)), settings, SLOT(setKaraokeAutoAdvance(bool)));
     connect(settings, SIGNAL(karaokeAutoAdvanceChanged(bool)), ui->actionAutoplay_mode, SLOT(setChecked(bool)));
@@ -610,9 +589,8 @@ MainWindow::MainWindow(QWidget *parent) :
     checker = new UpdateChecker(this);
     connect(checker, SIGNAL(newVersionAvailable(QString)), this, SLOT(newVersionAvailable(QString)));
     checker->checkForUpdates();
-    timerButtonFlash = new QTimer(this);
-    connect(timerButtonFlash, SIGNAL(timeout()), this, SLOT(timerButtonFlashTimeout()));
-    timerButtonFlash->start(1000);
+    connect(&m_timerButtonFlash, &QTimer::timeout, this, &MainWindow::timerButtonFlashTimeout);
+    m_timerButtonFlash.start(1000);
     ui->pushButtonIncomingRequests->setVisible(settings->requestServerEnabled());
     connect(settings, SIGNAL(requestServerEnabledChanged(bool)), ui->pushButtonIncomingRequests, SLOT(setVisible(bool)));
     connect(ui->actionSong_Shop, SIGNAL(triggered(bool)), dlgSongShop, SLOT(show()));
@@ -622,11 +600,10 @@ MainWindow::MainWindow(QWidget *parent) :
     QApplication::processEvents();
     QApplication::processEvents();
     appFontChanged(settings->applicationFont());
-    startupOneShot = new QTimer(this);
-    connect(startupOneShot, SIGNAL(timeout()), this, SLOT(autosizeViews()));
-    connect(startupOneShot, SIGNAL(timeout()), this, SLOT(autosizeBmViews()));
-    startupOneShot->setSingleShot(true);
-    startupOneShot->start(500);
+    QTimer::singleShot(500, [&] () {
+       autosizeViews();
+       autosizeBmViews();
+    });
     scutAddSinger = new QShortcut(this);
     scutSearch = new QShortcut(this);
     scutRegulars = new QShortcut(this);
@@ -652,9 +629,8 @@ MainWindow::MainWindow(QWidget *parent) :
     rotModel->setCurrentSinger(settings->currentRotationPosition());
     rotDelegate->setCurrentSinger(settings->currentRotationPosition());
     updateRotationDuration();
-    slowUiUpdateTimer = new QTimer(this);
-    connect(slowUiUpdateTimer, SIGNAL(timeout()), this, SLOT(updateRotationDuration()));
-    slowUiUpdateTimer->start(10000);
+    connect(&m_timerSlowUiUpdate, &QTimer::timeout, this, &MainWindow::updateRotationDuration);
+    m_timerSlowUiUpdate.start(10000);
     connect(qModel, SIGNAL(queueModified(int)), this, SLOT(updateRotationDuration()));
     connect(settings, SIGNAL(rotationDurationSettingsModified()), this, SLOT(updateRotationDuration()));
     cdgWindow->setShowBgImage(true);
@@ -724,15 +700,8 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
         }
         else if (karaokeFilePath.endsWith(".cdg", Qt::CaseInsensitive))
         {
-            static QString prevCdgTmpFile;
-            static QString prevAudioTmpFile;
-            //QFile::remove(khTmpDir->path() + QDir::separator() + prevCdgTmpFile);
-            //QFile::remove(khTmpDir->path() + QDir::separator() + prevAudioTmpFile);
-            QString tmpString = GetRandomString();
-            QString cdgTmpFile = tmpString + ".cdg";
-            QString audTmpFile = tmpString + ".mp3";
-            prevCdgTmpFile = cdgTmpFile;
-            prevAudioTmpFile = audTmpFile;
+            QString cdgTmpFile = "tmp.cdg";
+            QString audTmpFile = "tmp.mp3";
             QFile cdgFile(karaokeFilePath);
             if (!cdgFile.exists())
             {
@@ -833,7 +802,6 @@ MainWindow::~MainWindow()
     settings->sync();
     regularSingersDialog->close();
     qInfo() << "Deleting non-owned objects";
-    delete khDir;
     delete ui;
     delete khTmpDir;
     delete dlgSongShop;
@@ -1379,7 +1347,7 @@ void MainWindow::audioBackend_stateChanged(MediaBackend::State state)
                     kAANextSongPath = nextSongPath;
                     qInfo() << "KaraokeAA - Will play: " << rotModel->getSingerName(nextSinger) << " - " << nextSongPath;
                     qInfo() << "KaraokeAA - Starting " << settings->karaokeAATimeout() << " second timer";
-                    karaokeAATimer->start(settings->karaokeAATimeout() * 1000);
+                    m_timerKaraokeAA.start(settings->karaokeAATimeout() * 1000);
                     cdgWindow->setNextSinger(rotModel->getSingerName(nextSinger));
                     cdgWindow->setNextSong(rotModel->nextSongArtist(nextSinger) + " - " + rotModel->nextSongTitle(nextSinger));
                     cdgWindow->setCountdownSecs(settings->karaokeAATimeout());
@@ -1457,7 +1425,7 @@ void MainWindow::rotationDataChanged()
     QString statusBarText = "Singers: ";
     statusBarText += QString::number(rotModel->rowCount());
     rotDelegate->setSingerCount(rotModel->rowCount());
-    labelSingerCount->setText(statusBarText);
+    labelSingerCount.setText(statusBarText);
     QString tickerText;
     if (settings->tickerCustomString() != "")
     {
@@ -1987,7 +1955,8 @@ void MainWindow::markSongBad()
     msgBox.exec();
 
     if (msgBox.clickedButton() == markBadButton) {
-        db->songMarkBad(dbRtClickFile);
+        QSqlQuery query;
+        query.exec("UPDATE dbsongs SET 'discid'=\"!!BAD!!\" WHERE path == \"" + dbRtClickFile + "\"");
         databaseUpdated();
         // connect
     } else if (msgBox.clickedButton() == removeFileButton) {
@@ -2011,7 +1980,8 @@ void MainWindow::markSongBad()
                     msgBoxErr.exec();
                 }
             }
-            db->songMarkBad(dbRtClickFile);
+            QSqlQuery query;
+            query.exec("UPDATE dbsongs SET 'discid'=\"!!BAD!!\" WHERE path == \"" + dbRtClickFile + "\"");
             databaseUpdated();
         }
         else
@@ -2048,7 +2018,7 @@ void MainWindow::onBgImageChange()
 void MainWindow::karaokeAATimerTimeout()
 {
     qInfo() << "KaraokeAA - timer timeout";
-    karaokeAATimer->stop();
+    m_timerKaraokeAA.stop();
     cdgWindow->showAlert(false);
     if (kAASkip)
     {
@@ -3261,7 +3231,7 @@ void MainWindow::updateRotationDuration()
     }
     else
         text = " Rotation Duration: 0 min";
-    labelRotationDuration->setText(text);
+    labelRotationDuration.setText(text);
 
     // Safety check to make sure break music video is muted if karaoke is playing
     if (bmAudioBackend->videoMuted() && kAudioBackend->state() != MediaBackend::PlayingState && kAudioBackend->state() != MediaBackend::PausedState)
