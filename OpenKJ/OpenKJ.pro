@@ -54,7 +54,10 @@ macx: {
         CONFIG += link_pkgconfig
         PKGCONFIG += gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0 gstreamer-pbutils-1.0 gstreamer-controller-1.0 gstreamer-video-1.0 taglib
     }
-    
+    QMAKE_CXXFLAGS -= -O1
+    QMAKE_CXXFLAGS -= -O2
+    QMAKE_CXXFLAGS_RELEASE -= -O1
+    QMAKE_CXXFLAGS_RELEASE -= -O2 
 }
 
 win32 {
