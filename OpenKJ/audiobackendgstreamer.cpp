@@ -823,8 +823,8 @@ void MediaBackend::buildPipeline()
         videoSink1 = gst_element_factory_make ("d3dvideosink", "videoSink1");
         videoSink2 = gst_element_factory_make("d3dvideosink", "videoSink2");
 #elif defined(Q_OS_MAC)
-        videoSink1 = gst_element_factory_make("glimagesink", "videosink1");
-        videoSink2 = gst_element_factory_make("glimagesink", "videosink2");
+        videoSink1 = gst_element_factory_make("osxvideosink", "videosink1");
+        videoSink2 = gst_element_factory_make("osxvideosink", "videosink2");
 #else
         qWarning() << "Unknown platform, defaulting to OpenGL video output";
         videoSink1 = gst_element_factory_make ("glimagesink", "videoSink1");
