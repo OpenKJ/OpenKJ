@@ -60,10 +60,20 @@ void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
     }
     if (index.column() == 3)
     {
-        if (index.data().toBool())
-            painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QImage(":/icons/Icons/emblem-favorite-16x16.png").scaled(sbSize));
+        if (index.sibling(index.row(), 0).data().toInt() == m_currentSingerId)
+        {
+            if (index.data().toBool())
+                painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QImage(":/Icons/breeze-light/im-user-online.svg"));
+            else
+                painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QImage(":/Icons/breeze-light/im-user.svg"));
+        }
         else
-            painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QImage(":/icons/Icons/emblem-favorite-disabled-16x16").scaled(sbSize));
+        {
+            if (index.data().toBool())
+                painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QImage(":/Icons/breeze-dark/im-user-online.svg"));
+            else
+                painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QImage(":/Icons/breeze-dark/im-user.svg"));
+        }
         return;
     }
     if (index.column() == 2)
@@ -123,7 +133,7 @@ void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
     }
     if (index.column() == 4)
     {
-        painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QImage(":/icons/Icons/edit-delete.png").scaled(sbSize));
+        painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QImage(":/Icons/breeze-light/edit-delete.svg"));
         return;
     }
     painter->save();

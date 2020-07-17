@@ -27,7 +27,6 @@
 #include <QByteArray>
 #include <QVector>
 #include <QImage>
-#include <QVideoFrame>
 #include <QColor>
 #include <vector>
 #include <array>

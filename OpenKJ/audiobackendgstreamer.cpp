@@ -55,15 +55,11 @@ MediaBackend::MediaBackend(bool pitchShift, QObject *parent, QString objectName)
 #endif
     qInfo() << "Start constructing GStreamer backend";
     QMetaTypeId<std::shared_ptr<GstMessage>>::qt_metatype_id();
-
-
-
     if (!gst_is_initialized())
     {
         qInfo() << objName << " - gst not initialized - initializing";
         gst_init(nullptr,nullptr);
     }
-
     guint major, minor, micro, nano;
     gst_version (&major, &minor, &micro, &nano);
     qInfo() << "Using GStreamer version: " << major << "." << minor << "." << micro;
@@ -98,9 +94,15 @@ MediaBackend::MediaBackend(bool pitchShift, QObject *parent, QString objectName)
 
     connect(&slowTimer, &QTimer::timeout, this, &MediaBackend::slowTimer_timeout);
     connect(&fastTimer, &QTimer::timeout, this, &MediaBackend::fastTimer_timeout);
-    connect(fader, &AudioFader::fadeStarted, this, &MediaBackend::faderStarted);
-    connect(fader, &AudioFader::fadeComplete, this, &MediaBackend::faderFinished);
-    connect(fader, &AudioFader::faderStateChanged, this, &MediaBackend::faderStateChanged);
+    connect(fader, &AudioFader::fadeStarted, [&] () {
+        qInfo() << objName << " - Fader started";
+    });
+    connect(fader, &AudioFader::fadeComplete, [&] () {
+        qInfo() << objName << " - fader finished";
+    });
+    connect(fader, &AudioFader::faderStateChanged, [&] (auto state) {
+        qInfo() << objName << " - Fader state changed to: " << fader->stateToStr(state);
+    });
     connect(settings, &Settings::mplxModeChanged, this, &MediaBackend::setMplxMode);
 
     qInfo() << "Done constructing GStreamer backend";
@@ -136,22 +138,17 @@ float MediaBackend::getPitchForSemitone(int semitone)
     double pitch;
     if (semitone > 0)
     {
-        // shifting up
         pitch = pow(STUP,semitone);
     }
     else if (semitone < 0){
-        // shifting down
         pitch = 1 - ((100 - (pow(STDN,abs(semitone)) * 100)) / 100);
     }
     else
     {
-        // no change
         pitch = 1.0;
     }
     return pitch;
 }
-
-
 
 MediaBackend::~MediaBackend()
 {
@@ -166,8 +163,6 @@ MediaBackend::~MediaBackend()
     if (videoSink2)
         gst_object_unref(videoSink2);
 }
-
-
 
 qint64 MediaBackend::position()
 {
@@ -189,8 +184,6 @@ qint64 MediaBackend::getCdgPosition()
     return 0;
 }
 
-
-
 qint64 MediaBackend::duration()
 {
     gint64 duration;
@@ -211,7 +204,6 @@ MediaBackend::State MediaBackend::state()
     case GST_STATE_PAUSED:
         return PausedState;
     case GST_STATE_NULL:
-        return StoppedState;
     default:
         return StoppedState;
     }
@@ -227,19 +219,13 @@ MediaBackend::State MediaBackend::cdgState()
     case GST_STATE_PAUSED:
         return PausedState;
     case GST_STATE_NULL:
-        return StoppedState;
     default:
         return StoppedState;
     }
 }
 
-
-
-
-
 void MediaBackend::play()
 {
-    //gst_timed_value_control_source_unset_all(tv_csource);
     qInfo() << objName << " - play() called";
     gst_stream_volume_set_volume(GST_STREAM_VOLUME(playBin), GST_STREAM_VOLUME_FORMAT_LINEAR, 1.0);
     if (state() == MediaBackend::PausedState)
@@ -252,29 +238,28 @@ void MediaBackend::play()
             cdgPlay();
         return;
     }
-    else
+    resetPipeline();
+    if (!QFile::exists(m_filename))
     {
-        resetPipeline();
-        if (!QFile::exists(m_filename))
-        {
-            qInfo() << "File doesn't exist, bailing out";
-            emit stateChanged(PlayingState);
-            QApplication::processEvents();
-            emit stateChanged(EndOfMediaState);
-            return;
-        }
-        auto uri = gst_filename_to_uri(m_filename.toLocal8Bit(), nullptr);
-        g_object_set(playBin, "uri", uri, nullptr);
-        g_free(uri);
-        qInfo() << objName << " - playing file: " << m_filename;
-        if (!m_cdgMode)
-            gst_element_set_state(playBin, GST_STATE_PLAYING);
+        qInfo() << " - play - File doesn't exist, bailing out";
+        emit stateChanged(PlayingState);
+        QApplication::processEvents();
+        emit stateChanged(EndOfMediaState);
+        return;
     }
-    if (m_cdgMode)
+    auto uri = gst_filename_to_uri(m_filename.toLocal8Bit(), nullptr);
+    g_object_set(playBin, "uri", uri, nullptr);
+    g_free(uri);
+    if (!m_cdgMode)
+    {
+        qInfo() << objName << " - play - playing media: " << m_filename;
+        gst_element_set_state(playBin, GST_STATE_PLAYING);
+    }
+    else
     {
         if (!QFile::exists(m_cdgFilename))
         {
-            qInfo() << "CDG file doesn't exist, bailing out";
+            qInfo() << " - play - CDG file doesn't exist, bailing out";
             emit stateChanged(PlayingState);
             QApplication::processEvents();
             emit stateChanged(EndOfMediaState);
@@ -282,13 +267,11 @@ void MediaBackend::play()
         }
         cdg.open(m_cdgFilename);
         cdg.process();
-        qInfo() << objName << " - playing cdg:   " << m_cdgFilename;
-        qInfo() << objName << " - playing audio: " << m_filename;
+        qInfo() << objName << " - play - playing cdg:   " << m_cdgFilename;
+        qInfo() << objName << " - play - playing audio: " << m_filename;
         gst_element_set_state(playBin, GST_STATE_PLAYING);
         gst_element_set_state(cdgPipeline, GST_STATE_PLAYING);
-       // gst_element_set_state(playBinCdg, GST_STATE_PAUSED);
     }
-    qInfo() << objName << " - play() completed";
 }
 
 void MediaBackend::cdgPlay()
@@ -312,8 +295,8 @@ void MediaBackend::cdgPause()
 
 void MediaBackend::setMedia(QString filename)
 {
-    m_filename = filename;
     m_cdgMode = false;
+    m_filename = filename;
 }
 
 void MediaBackend::setMediaCdg(QString cdgFilename, QString audioFilename)
@@ -325,24 +308,15 @@ void MediaBackend::setMediaCdg(QString cdgFilename, QString audioFilename)
 
 void MediaBackend::setMuted(bool muted)
 {
-
     gst_stream_volume_set_mute(GST_STREAM_VOLUME(volumeElement), muted);
     m_muted = muted;
-
 }
 
 void MediaBackend::setPosition(qint64 position)
 {
-    qInfo() << objName << " - Seeking to: " << position << "ms";
-    if (!gst_element_seek_simple(playBin, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_MSECOND * position))
-    {
-      qWarning() << objName << " - Audio seek failed!";
-    }
+    gst_element_seek_simple(playBin, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_MSECOND * position);
     if (m_cdgMode)
-    {
-        if (!gst_element_seek_simple(cdgPipeline, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_MSECOND * position))
-            qWarning() << objName << " - CDG seek failed!";
-    }
+        cdgSetPosition(position);
     emit positionChanged(position);
 }
 
@@ -354,8 +328,7 @@ void MediaBackend::cdgSetPosition(qint64 position)
 void MediaBackend::setVolume(int volume)
 {
     m_volume = volume;
-    double floatVol = volume * .01;
-    gst_stream_volume_set_volume(GST_STREAM_VOLUME(volumeElement), GST_STREAM_VOLUME_FORMAT_CUBIC, floatVol);
+    gst_stream_volume_set_volume(GST_STREAM_VOLUME(volumeElement), GST_STREAM_VOLUME_FORMAT_CUBIC, volume * .01);
     emit volumeChanged(volume);
 }
 
@@ -401,8 +374,6 @@ void MediaBackend::stop(bool skipFade)
         cdgStop();
     emit stateChanged(MediaBackend::StoppedState);
     qInfo() << objName << " - stop() completed";
-
-
 }
 
 void MediaBackend::cdgStop()
@@ -418,31 +389,31 @@ void MediaBackend::rawStop()
 
 void MediaBackend::fastTimer_timeout()
 {
-    static qint64 lastPos = 0;
     if (lastState != PlayingState)
     {
-        if (lastPos == 0)
+        if (lastPosition == 0)
             return;
-        lastPos = 0;
+        lastPosition = 0;
         emit positionChanged(0);
         return;
     }
-    gint64 pos, mspos;
-    GstFormat fmt = GST_FORMAT_TIME;
-    if (gst_element_query_position (playBin, fmt, &pos))
-        mspos = pos / 1000000;
-    else
-        mspos = 0;
-    if (m_cdgMode && (getCdgPosition() > mspos + 10 || getCdgPosition() < mspos - 10))
+    gint64 pos;
+    if (!gst_element_query_position (playBin, GST_FORMAT_TIME, &pos))
     {
-        qInfo() << "resyncing cdg";
-        cdgSetPosition(mspos);
+        lastPosition = 0;
+        cdgSetPosition(0);
+        emit positionChanged(0);
+        return;
     }
-    if (lastPos != mspos)
+    auto mspos = pos / 1000000;
+    if (lastPosition != mspos)
     {
-
-        lastPos = mspos;
+        lastPosition = mspos;
         emit positionChanged(mspos);
+        if (m_cdgMode && (getCdgPosition() > mspos + 10 || getCdgPosition() < mspos - 10))
+        {
+            cdgSetPosition(mspos);
+        }
     }
 }
 
@@ -463,19 +434,9 @@ void MediaBackend::slowTimer_timeout()
             }
             m_silenceDuration++;
         }
-
         else
             m_silenceDuration = 0;
     }
-    auto cubicVolume = gst_stream_volume_get_volume(GST_STREAM_VOLUME(volumeElement), GST_STREAM_VOLUME_FORMAT_CUBIC);
-    int intVol = cubicVolume * 100;
-    if (m_volume != intVol)
-    {
-        qInfo() << objName << " - emitting volume changed: " << intVol;
-        emit faderChangedVolume(intVol);
-        m_volume = intVol;
-    }
-    // Detect hung playback
     static int lastpos = 0;
     if (curState == PlayingState)
     {
@@ -483,34 +444,12 @@ void MediaBackend::slowTimer_timeout()
         {
             qWarning() << objName << " - Playback appears to be hung, emitting end of stream";
             emit stateChanged(EndOfMediaState);
+            if (m_cdgMode)
+                cdgStop();
         }
         lastpos = position();
     }
 }
-
-void MediaBackend::faderChangedVolume(int volume)
-{
-    m_volume = volume;
-    emit volumeChanged(volume);
-}
-
-void MediaBackend::faderStarted()
-{
-    qInfo() << objName << " - Fader started";
-}
-
-void MediaBackend::faderFinished()
-{
-    qInfo() << objName << " - fader finished";
-}
-
-
-
-
-
-
-
-
 
 void MediaBackend::setPitchShift(int pitchShift)
 {
@@ -527,23 +466,13 @@ void MediaBackend::setPitchShift(int pitchShift)
 QStringList MediaBackend::GstGetPlugins()
 {
     QStringList list;
-    GList* plugins; /* The head of the plug-in list */
-    GList* pnode;   /* The currently viewed node */
-
-    /* Empty the list out here */
-    list.clear();
-
+    GList* plugins;
+    GList* pnode;
     plugins = pnode = gst_registry_get_plugin_list(gst_registry_get());
     while(pnode) {
-            /* plugin: the plug-in info object pointed to by pnode */
-            GstPlugin* plugin = reinterpret_cast<GstPlugin*>(pnode->data);
-
-            list << gst_plugin_get_name(plugin);
-            qInfo() << gst_plugin_get_name(plugin);
+            list << gst_plugin_get_name(reinterpret_cast<GstPlugin*>(pnode->data));
             pnode = g_list_next(pnode);
     }
-
-    /* Clean-up */
     gst_plugin_list_free (plugins);
     return list;
 }
@@ -551,18 +480,10 @@ QStringList MediaBackend::GstGetPlugins()
 QStringList MediaBackend::GstGetElements(QString plugin)
 {
     QStringList list;
-    GList* features;        /* The list of plug-in features */
-    GList* fnode;           /* The currently viewed node */
-
-    /* Empty the list out here */
-    list.clear();
-
-    features = fnode = gst_registry_get_feature_list_by_plugin( gst_registry_get(), plugin.toUtf8().data());
+    auto fnode = gst_registry_get_feature_list_by_plugin( gst_registry_get(), plugin.toUtf8().data());
     while(fnode) {
         if (fnode->data) {
-            /* Currently pointed-to feature */
             GstPluginFeature* feature = GST_PLUGIN_FEATURE(fnode->data);
-
             if (GST_IS_ELEMENT_FACTORY (feature)) {
                 GstElementFactory* factory = GST_ELEMENT_FACTORY(gst_plugin_feature_load(feature));
                 list << QString(GST_OBJECT_NAME(factory));
@@ -571,7 +492,7 @@ QStringList MediaBackend::GstGetElements(QString plugin)
         }
         fnode = g_list_next(fnode);
     }
-    gst_plugin_feature_list_free(features);
+    gst_plugin_feature_list_free(fnode);
     return list;
 }
 
@@ -585,7 +506,6 @@ template <typename T> std::shared_ptr<T> takeGstObject(T *o)
 
 template <typename T> std::shared_ptr<T> takeGstMiniObject(T *o)
 {
-
     std::shared_ptr<T> ptr(o, [] (T *d) {
         gst_mini_object_ref(reinterpret_cast<GstMiniObject*>(d));
     });
@@ -595,12 +515,6 @@ template <typename T> std::shared_ptr<T> takeGstMiniObject(T *o)
 void MediaBackend::busMessage(std::shared_ptr<GstMessage> message)
 {
     switch (GST_MESSAGE_TYPE(message.get())) {
-    case GST_MESSAGE_LATENCY:
-        break;
-    case GST_MESSAGE_ASYNC_DONE:
-        break;
-    case GST_MESSAGE_NEW_CLOCK:
-        break;
     case GST_MESSAGE_ERROR:
         GError *err;
         gchar *debug;
@@ -711,19 +625,18 @@ void MediaBackend::busMessage(std::shared_ptr<GstMessage> message)
         qInfo() << objName << " - state change to EndOfMediaState emitted";
         emit stateChanged(EndOfMediaState);
         break;
-    case GST_MESSAGE_TAG:
-        // do nothing
-        break;
-    case GST_MESSAGE_STREAM_STATUS:
-        // do nothing
-        break;
     case GST_MESSAGE_NEED_CONTEXT:
         qInfo() << objName  << " - context requested - " << message->src->name;
         gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink1), videoWinId);
         gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink2), videoWinId2);
         break;
+    case GST_MESSAGE_TAG:
+    case GST_MESSAGE_STREAM_STATUS:
+    case GST_MESSAGE_LATENCY:
+    case GST_MESSAGE_ASYNC_DONE:
+    case GST_MESSAGE_NEW_CLOCK:
+        break;
     default:
-        //g_print("Msg type[%d], Msg type name[%s]\n", GST_MESSAGE_TYPE(message), GST_MESSAGE_TYPE_NAME(message));
         qInfo() << objName << " - Gst msg type: " << GST_MESSAGE_TYPE(message.get()) << " Gst msg name: " << GST_MESSAGE_TYPE_NAME(message.get()) << " Element: " << message->src->name;
         break;
     }
@@ -738,67 +651,16 @@ void MediaBackend::busMessageCdg(std::shared_ptr<GstMessage> message)
         gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(videoSink2), videoWinId2);
         break;
     default:
-        //g_print("Msg type[%d], Msg type name[%s]\n", GST_MESSAGE_TYPE(message), GST_MESSAGE_TYPE_NAME(message));
-        //qInfo() << objName << " - Gst msg type: " << GST_MESSAGE_TYPE(message.get()) << " Gst msg name: " << GST_MESSAGE_TYPE_NAME(message.get()) << " Element: " << message->src->name;
         break;
     }
 }
 
-void MediaBackend::gstPositionChanged(qint64 position)
-{
-    qInfo() << "gstPositionChanged(" << position << ") called";
-    emit positionChanged(position);
-}
-
-void MediaBackend::gstDurationChanged(qint64 duration)
-{
-    emit durationChanged(duration);
-}
-
-void MediaBackend::gstFastTimerFired()
-{
-    if (lastState != PlayingState)
-    {
-        if (lastPosition == 0)
-            return;
-        lastPosition = 0;
-        emit positionChanged(0);
-        return;
-    }
-    gint64 pos;
-    if (gst_element_query_position (playBin, GST_FORMAT_TIME, &pos))
-    {
-        auto mspos = pos / 1000000;
-        if (lastPosition != mspos)
-            emit positionChanged(mspos);
-    }
-    else
-    {
-        if (lastPosition != 0)
-            emit positionChanged(0);
-    }
-}
-
-void MediaBackend::faderChangedVolume(double volume)
-{
-    emit volumeChanged(volume * 100);
-}
-
-void MediaBackend::faderStateChanged(AudioFader::FaderState state)
-{
-    qInfo() << objName << " - Fader state changed to: " << fader->stateToStr(state);
-}
-
-
-
 GstBusSyncReply MediaBackend::busMessageDispatcher([[maybe_unused]]GstBus *bus, GstMessage *message, gpointer userData)
 {
-  auto myObj = static_cast<MediaBackend*>(userData);
   auto messagePtr = takeGstMiniObject(message);
-  QMetaObject::invokeMethod(myObj, "busMessage", Qt::QueuedConnection, Q_ARG(std::shared_ptr<GstMessage>, messagePtr));
+  QMetaObject::invokeMethod(static_cast<MediaBackend*>(userData), "busMessage", Qt::QueuedConnection, Q_ARG(std::shared_ptr<GstMessage>, messagePtr));
   return GST_BUS_DROP;
 }
-
 
 void MediaBackend::buildPipeline()
 {
@@ -832,9 +694,6 @@ void MediaBackend::buildPipeline()
 #endif
     gst_object_ref(videoSink1);
     gst_object_ref(videoSink2);
-
-
-
     m_previewEnabledLastBuild = settings->previewEnabled();
     auto aConvInput = gst_element_factory_make("audioconvert", "aConvInput");
     auto aConvPrePitchShift = gst_element_factory_make("audioconvert", "aConvPrePitchShift");
@@ -869,7 +728,6 @@ void MediaBackend::buildPipeline()
     gst_element_link(level, volumeElement);
     gst_element_link(volumeElement, equalizer);
     gst_element_link(equalizer, faderVolumeElement);
-
     gst_element_link(faderVolumeElement, audioPanorama);
     gst_element_link(audioPanorama, aConvPostPanorama);
     gst_element_link(aConvPostPanorama, fltrPostPanorama);
@@ -902,9 +760,7 @@ void MediaBackend::buildPipeline()
         gst_bin_add_many(GST_BIN(audioBin), aConvEnd, queueEndAudio, audioSink, nullptr);
         gst_element_link_many(fltrPostPanorama, queueEndAudio, aConvEnd, audioSink, nullptr);
     }
-
-    GstPad *pad;
-    pad = gst_element_get_static_pad(queueMainAudio, "sink");
+    auto pad = gst_element_get_static_pad(queueMainAudio, "sink");
     auto ghostPad = gst_ghost_pad_new("sink", pad);
     gst_pad_set_active(ghostPad, true);
     gst_element_add_pad(audioBin, ghostPad);
@@ -1006,7 +862,7 @@ void MediaBackend::buildPipeline()
     auto csource = gst_interpolation_control_source_new ();
     if (!csource)
         qInfo() << objName << " - Error createing control source";
-    GstControlBinding *cbind = gst_direct_control_binding_new (GST_OBJECT_CAST(faderVolumeElement), "volume", csource);
+    auto *cbind = gst_direct_control_binding_new(GST_OBJECT_CAST(faderVolumeElement), "volume", csource);
     if (!cbind)
         qInfo() << objName << " - Error creating control binding";
     if (!gst_object_add_control_binding (GST_OBJECT_CAST(faderVolumeElement), cbind))
@@ -1032,7 +888,6 @@ void MediaBackend::buildPipeline()
     setVolume(m_volume);
     fastTimer.start(40);
     qInfo() << objName << " - buildPipeline() finished";
- //   GST_DEBUG_BIN_TO_DOT_FILE((GstBin*)customBin, GST_DEBUG_GRAPH_SHOW_ALL, "pipeline");
 }
 
 void MediaBackend::destroyPipeline()
@@ -1142,30 +997,12 @@ void MediaBackend::fadeIn(bool waitForFade)
     fader->fadeIn(waitForFade);
 }
 
-void MediaBackend::setUseFader(bool fade)
-{
-    m_fade = fade;
-}
-
-
-
-
 bool MediaBackend::isSilent()
 {
     if ((m_currentRmsLevel <= 0.01) && (m_volume > 0) && (!fader->isFading()))
         return true;
     return false;
 }
-
-void MediaBackend::setUseSilenceDetection(bool enabled)
-{
-    m_silenceDetect = enabled;
-}
-
-
-
-
-
 
 void MediaBackend::setDownmix(bool enabled)
 {
@@ -1178,14 +1015,10 @@ void MediaBackend::setDownmix(bool enabled)
 
 void MediaBackend::setTempo(int percent)
 {
-    float tempo = (float)percent / 100.0;
     m_tempo = percent;
-    g_object_set(pitchShifterSoundtouch, "tempo", tempo, nullptr);
+    g_object_set(pitchShifterSoundtouch, "tempo", (float)percent / 100.0, nullptr);
     setPosition(position());
-    qInfo() << objName << " - Tempo changed to " << tempo;
 }
-
-
 
 void MediaBackend::setOutputDevice(int deviceIndex)
 {
@@ -1208,22 +1041,19 @@ void MediaBackend::setOutputDevice(int deviceIndex)
 
 void MediaBackend::setMplxMode(int mode)
 {
- //   qInfo() << objName << " - setMplxMode(" << mode << ") called";
-    if (mode == Multiplex_Normal)
-    {
+    switch (mode) {
+    case Multiplex_Normal:
         g_object_set(audioPanorama, "panorama", 0.0, nullptr);
         setDownmix(settings->audioDownmix());
-    }
-    else if (mode == Multiplex_LeftChannel)
-    {
+        break;
+    case Multiplex_LeftChannel:
         setDownmix(true);
         g_object_set(audioPanorama, "panorama", -1.0, nullptr);
-    }
-    else if (mode == Multiplex_RightChannel)
-    {
+        break;
+    case Multiplex_RightChannel:
         setDownmix(true);
         g_object_set(audioPanorama, "panorama", 1.0, nullptr);
-
+        break;
     }
 }
 

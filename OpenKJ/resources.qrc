@@ -36,5 +36,36 @@
         <file>Icons/other-settings.png</file>
         <file>Icons/system-search2.png</file>
         <file>Icons/web-arrow-icon.png</file>
+        <file>Icons/breeze-dark/edit-delete.svg</file>
+        <file>Icons/breeze-dark/go-bottom.svg</file>
+        <file>Icons/breeze-dark/go-down.svg</file>
+        <file>Icons/breeze-dark/go-top.svg</file>
+        <file>Icons/breeze-dark/go-up.svg</file>
+        <file>Icons/breeze-dark/im-user-offline.svg</file>
+        <file>Icons/breeze-dark/im-user-online.svg</file>
+        <file>Icons/breeze-dark/list-add-user.svg</file>
+        <file>Icons/breeze-dark/list-remove-user.svg</file>
+        <file>Icons/breeze-dark/media-playback-pause.svg</file>
+        <file>Icons/breeze-dark/media-playback-start.svg</file>
+        <file>Icons/breeze-dark/media-playback-stop.svg</file>
+        <file>Icons/breeze-dark/user-others.svg</file>
+        <file>Icons/breeze-light/edit-delete.svg</file>
+        <file>Icons/breeze-light/go-bottom.svg</file>
+        <file>Icons/breeze-light/go-down.svg</file>
+        <file>Icons/breeze-light/go-top.svg</file>
+        <file>Icons/breeze-light/go-up.svg</file>
+        <file>Icons/breeze-light/im-user.svg</file>
+        <file>Icons/breeze-light/im-user-online.svg</file>
+        <file>Icons/breeze-light/list-add-user.svg</file>
+        <file>Icons/breeze-light/list-remove-user.svg</file>
+        <file>Icons/breeze-light/media-playback-pause.svg</file>
+        <file>Icons/breeze-light/media-playback-start.svg</file>
+        <file>Icons/breeze-light/media-playback-stop.svg</file>
+        <file>Icons/breeze-light/user-others.svg</file>
+        <file>Icons/breeze-dark/im-user.svg</file>
+        <file>Icons/breeze-dark/edit-find.svg</file>
+        <file>Icons/breeze-light/edit-find.svg</file>
+        <file>Icons/breeze-light/audio-volume-high.svg</file>
+        <file>Icons/breeze-dark/audio-volume-high.svg</file>
     </qresource>
 </RCC>

@@ -12,6 +12,8 @@ bool VideoDisplay::videoIsPlaying()
 
 VideoDisplay::VideoDisplay(QWidget *parent) : QWidget(parent)
 {
+
+    setAttribute(Qt::WA_NoSystemBackground, true);
     auto palette = this->palette();
     palette.setColor(QPalette::Window, Qt::black);
     setPalette(palette);
@@ -33,6 +35,7 @@ void VideoDisplay::paintEvent(QPaintEvent *event)
         painter.fillRect(event->rect(), Qt::black);
         return;
     }
+    painter.fillRect(event->rect(), Qt::black);
     painter.drawPixmap(rect(), m_currentBg, m_currentBg.rect());
 }
 
@@ -40,14 +43,13 @@ void VideoDisplay::paintEvent(QPaintEvent *event)
 VideoDisplayAR::VideoDisplayAR(QWidget *parent) :
     QWidget(parent)
 {
-    auto palette = this->palette();
-    palette.setColor(QPalette::Window, Qt::black);
-    this->setPalette(palette);
     m_videoDisplay = new VideoDisplay(this);
     layout = new QBoxLayout(QBoxLayout::LeftToRight, this);
     layout->addItem(new QSpacerItem(0, 0));
     layout->addWidget(m_videoDisplay);
     layout->addItem(new QSpacerItem(0, 0));
+    layout->setSpacing(0);
+    layout->setMargin(5);
 }
 
 void VideoDisplayAR::resizeEvent(QResizeEvent *event)

@@ -33,7 +33,6 @@
 #include <QTimer>
 #include <QThread>
 #include <QImage>
-#include <QAudioOutput>
 #include "audiofader.h"
 #include <QPointer>
 #include <memory>
@@ -74,11 +73,11 @@ public:
     explicit MediaBackend(bool loadPitchShift = true, QObject *parent = nullptr, QString objectName = "unknown");
     ~MediaBackend();
     enum accel{OpenGL=0,XVideo};
-    bool canChangeTempo() { return m_canChangeTempo; }
+    bool canChangeTempo() { return true; }
     bool canDetectSilence() { return true; }
     bool canDownmix() { return true; }
     bool canFade() { return true; }
-    bool canPitchShift() { return m_canKeyChange; }
+    bool canPitchShift() { return true; }
     bool canRenderCdg() { return true; }
     bool hasVideo();
     bool isMuted() { return m_muted; }
@@ -155,7 +154,8 @@ private:
     QTimer fastTimer;
     QTimer slowTimer;
     int m_silenceDuration{0};
-    int m_outputChannels{0};    int m_tempo{100};
+    int m_outputChannels{0};
+    int m_tempo{100};
     int m_keyChange{0};
     int m_volume{0};
     int lastPosition{0};
@@ -197,16 +197,8 @@ private:
 private slots:
     void fastTimer_timeout();
     void slowTimer_timeout();
-    void faderChangedVolume(int volume);
-    void faderStarted();
-    void faderFinished();
     void busMessage(std::shared_ptr<GstMessage> message);
     void busMessageCdg(std::shared_ptr<GstMessage> message);
-    void gstPositionChanged(qint64 position);
-    void gstDurationChanged(qint64 duration);
-    void gstFastTimerFired();
-    void faderChangedVolume(double volume);
-    void faderStateChanged(AudioFader::FaderState state);
 
 public slots:
     void play();
@@ -225,8 +217,8 @@ public slots:
     void setPitchShift(int pitchShift);
     void fadeOut(bool waitForFade = true);
     void fadeIn(bool waitForFade = true);
-    void setUseFader(bool fade);
-    void setUseSilenceDetection(bool enabled);
+    void setUseFader(bool fade) {m_fade = fade;}
+    void setUseSilenceDetection(bool enabled) {m_silenceDetect = enabled;}
     void setDownmix(bool enabled);
     void setTempo(int percent);
     void setMplxMode(int mode);
@@ -259,147 +251,5 @@ signals:
     void audioError(QString msg);
 
 };
-
-
-//class MediaBackend : public QThread {
-//    Q_OBJECT
-//private:
-//    AudioBackendGstreamer *gst;
-//    void run() override {
-//        gst = new AudioBackendGstreamer(true, this, "karaoke");
-//        connect(gst, &AudioBackendGstreamer::audioAvailableChanged, [&] (auto val) {
-//            emit audioAvailableChanged(val);
-//        });
-//        connect(gst, &AudioBackendGstreamer::bufferStatusChanged, [&] (auto val) {
-//            emit bufferStatusChanged(val);
-//        });
-//        connect(gst, &AudioBackendGstreamer::durationChanged, [&] (auto val) {
-//            emit durationChanged(val);
-//        });
-//        connect(gst, &AudioBackendGstreamer::mutedChanged, [&] (auto val) {
-//            emit mutedChanged(val);
-//        });
-//        connect(gst, &AudioBackendGstreamer::positionChanged, [&] (auto val) {
-//            emit positionChanged(val);
-//        });
-//        connect(gst, &AudioBackendGstreamer::stateChanged, [&] (auto val) {
-//            emit stateChanged(val);
-//        });
-//        connect(gst, &AudioBackendGstreamer::videoAvailableChanged, [&] (auto val) {
-//            emit videoAvailableChanged(val);
-//        });
-//        connect(gst, &AudioBackendGstreamer::volumeChanged, [&] (auto val) {
-//            emit volumeChanged(val);
-//        });
-//        connect(gst, &AudioBackendGstreamer::silenceDetected, [&] () {
-//            emit silenceDetected();
-//        });
-//        connect(gst, &AudioBackendGstreamer::pitchChanged, [&] (auto val) {
-//            emit pitchChanged(val);
-//        });
-//        connect(gst, &AudioBackendGstreamer::newVideoFrame, [&] (auto val1, auto val2) {
-//            emit newVideoFrame(val1, val2);
-//        });
-//        connect(gst, &AudioBackendGstreamer::audioError, [&] (auto val) {
-//            emit audioError(val);
-//        });
-//        while (true)
-//        {
-//            this->yieldCurrentThread();
-//        }
-//    }
-
-//public:
-//    //enum accel{OpenGL=0,XVideo};
-//    bool canChangeTempo() { return gst->canChangeTempo(); }
-//    bool canDetectSilence() { return gst->canDetectSilence(); }
-//    bool canDownmix() { return gst->canDownmix(); }
-//    bool canFade() { return gst->canFade(); }
-//    bool canPitchShift() { return gst->canPitchShift(); }
-//    bool canRenderCdg() { return gst->canRenderCdg(); }
-//    bool hasVideo() {return gst->hasVideo();}
-//    bool isMuted() { return gst->isMuted(); }
-//    bool isSilent() {return gst->isSilent();}
-//    //void setAccelType(const accel &type=accel::XVideo) { gst->setAccelType(type); }
-//    void setOutputDevice(int deviceIndex) {gst->setOutputDevice(deviceIndex);}
-//    void setVideoWinId(WId winID) { gst->setVideoWinId(winID); }
-//    void setVideoWinId2(WId winID) { gst->setVideoWinId2(winID); }
-//    void videoMute(const bool &mute) {gst->videoMute(mute);}
-//    int getCdgLastDraw() { return gst->getCdgLastDraw(); }
-//    bool isCdgMode() { return gst->isCdgMode(); }
-//    const bool& videoMuted() { return gst->videoMuted(); }
-//    int volume() { return gst->volume(); }
-//    qint64 position() { return gst->position();}
-//    qint64 duration() { return gst->duration();}
-//    AbstractAudioBackend::State state() {return gst->state();}
-//    QString backendName() { return gst->backendName(); }
-//    int pitchShift() { return gst->pitchShift(); }
-//    bool downmixChangeRequiresRestart() { return gst->downmixChangeRequiresRestart(); }
-//    int tempo() { return gst->tempo(); }
-//    QStringList getOutputDevices() { return gst->getOutputDevices(); }
-//    QString msToMMSS(qint64 msec)
-//    {
-//        QString sec;
-//        QString min;
-//        int seconds = (int) (msec / 1000) % 60 ;
-//        int minutes = (int) ((msec / (1000*60)) % 60);
-
-//        if (seconds < 10)
-//            sec = "0" + QString::number(seconds);
-//        else
-//        {
-//            sec = QString::number(seconds);
-//        }
-//        min = QString::number(minutes);
-//        return QString(min + ":" + sec);
-//    }
-
-//public slots:
-//    void play() {gst->play();}
-//    void pause() {gst->pause();}
-//    void setMedia(QString filename) { gst->setMedia(filename);}
-//    void setMediaCdg(QString cdgFilename, QString audioFilename) {gst->setMediaCdg(cdgFilename, audioFilename);}
-//    void setMuted(bool muted) {gst->setMuted(muted);}
-//    void setPosition(qint64 position) {gst->setPosition(position);}
-//    void setVolume(int volume) {gst->setVolume(volume);}
-//    void stop(bool skipFade = false) {gst->stop(skipFade);}
-//    void rawStop() {gst->rawStop();}
-//    void setPitchShift(int pitchShift) {gst->setPitchShift(pitchShift);}
-//    void fadeOut(bool waitForFade = true) {gst->fadeOut(waitForFade);}
-//    void fadeIn(bool waitForFade = true) {gst->fadeIn(waitForFade);}
-//    void setUseFader(bool fade) {gst->setUseFader(fade);}
-//    void setUseSilenceDetection(bool enabled) {gst->setUseSilenceDetection(enabled);}
-//    void setDownmix(bool enabled) {gst->setDownmix(enabled);}
-//    void setTempo(int percent) {gst->setTempo(percent);}
-//    void setMplxMode(int mode) {gst->setMplxMode(mode);}
-//    void setEqBypass(bool bypass) {gst->setEqBypass(bypass);}
-//    void setEqLevel1(int level) {gst->setEqLevel1(level);}
-//    void setEqLevel2(int level) {gst->setEqLevel1(level);}
-//    void setEqLevel3(int level) {gst->setEqLevel1(level);}
-//    void setEqLevel4(int level) {gst->setEqLevel1(level);}
-//    void setEqLevel5(int level) {gst->setEqLevel1(level);}
-//    void setEqLevel6(int level) {gst->setEqLevel1(level);}
-//    void setEqLevel7(int level) {gst->setEqLevel1(level);}
-//    void setEqLevel8(int level) {gst->setEqLevel1(level);}
-//    void setEqLevel9(int level) {gst->setEqLevel1(level);}
-//    void setEqLevel10(int level) {gst->setEqLevel1(level);}
-//    void fadeInImmediate() {gst->fadeInImmediate();}
-//    void fadeOutImmediate() {gst->fadeOutImmediate();}
-
-//signals:
-//    void audioAvailableChanged(bool);
-//    void bufferStatusChanged(int);
-//    void durationChanged(qint64);
-//    void mutedChanged(bool);
-//    void positionChanged(qint64);
-//    void stateChanged(AbstractAudioBackend::State);
-//    void videoAvailableChanged(bool);
-//    void volumeChanged(int);
-//    void silenceDetected();
-//    void pitchChanged(int);
-//    void newVideoFrame(QImage frame, QString backendName);
-//    void audioError(QString msg);
-//};
-
 
 #endif // AUDIOBACKENDGSTREAMER_H

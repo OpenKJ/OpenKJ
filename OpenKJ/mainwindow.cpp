@@ -385,7 +385,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(requestsDialog, SIGNAL(addRequestSong(int,int,int)), qModel, SLOT(songAdd(int,int,int)));
     connect(settings, SIGNAL(tickerCustomStringChanged()), this, SLOT(rotationDataChanged()));
     cdgWindow->setShowBgImage(true);
-    kAudioBackend->setVideoWinId2(ui->videoPreview->winId());
+    kAudioBackend->setVideoWinId2(ui->videoPreview->videoDisplay()->winId());
     kAudioBackend->setVideoWinId(cdgWindow->getCdgWinId());
     bmAudioBackend->setVideoWinId2(ui->videoPreview->winId());
     bmAudioBackend->setVideoWinId(cdgWindow->getCdgWinId());
@@ -2845,6 +2845,15 @@ void MainWindow::filesDroppedOnQueue(QList<QUrl> urls, int singerId, int positio
 
 void MainWindow::appFontChanged(QFont font)
 {
+    auto smallerFont = font;
+    smallerFont.setPointSize(font.pointSize() - 2);
+    ui->labelTotal->setFont(smallerFont);
+    ui->labelTotalTime->setFont(smallerFont);
+    ui->labelElapsed->setFont(smallerFont);
+    ui->labelElapsedTime->setFont(smallerFont);
+    ui->labelRemain->setFont(smallerFont);
+    ui->labelRemainTime->setFont(smallerFont);
+
     QApplication::setFont(font, "QWidget");
     setFont(font);
     QFontMetrics fm(settings->applicationFont());
@@ -2854,18 +2863,23 @@ void MainWindow::appFontChanged(QFont font)
     int cvwWidth = std::max(300, fm.width("Total: 00:00  Current:00:00  Remain: 00:00"));
 #endif
     qInfo() << "Resizing videoPreview to width: " << cvwWidth;
-    ui->cdgFrame->setMinimumWidth(cvwWidth);
-    ui->cdgFrame->setMaximumWidth(cvwWidth);
-    ui->mediaFrame->setMinimumWidth(cvwWidth);
-    ui->mediaFrame->setMaximumWidth(cvwWidth);
+//    ui->cdgFrame->setMinimumWidth(cvwWidth);
+//    ui->cdgFrame->setMaximumWidth(cvwWidth);
+//    ui->mediaFrame->setMinimumWidth(cvwWidth);
+//    ui->mediaFrame->setMaximumWidth(cvwWidth);
 
     QSize mcbSize(fm.height(), fm.height());
-    ui->buttonStop->resize(mcbSize);
-    ui->buttonPause->resize(mcbSize);
-    ui->buttonStop->setIconSize(mcbSize);
-    ui->buttonPause->setIconSize(mcbSize);
-    ui->buttonStop->setIcon(style()->standardIcon(QStyle::SP_MediaStop));
-    ui->buttonPause->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
+    if (mcbSize.width() < 32)
+    {
+        mcbSize.setWidth(32);
+        mcbSize.setHeight(32);
+    }
+//    ui->buttonStop->resize(mcbSize);
+//    ui->buttonPause->resize(mcbSize);
+//    ui->buttonStop->setIconSize(mcbSize);
+//    ui->buttonPause->setIconSize(mcbSize);
+//    ui->buttonStop->setIcon(style()->standardIcon(QStyle::SP_MediaStop));
+//    ui->buttonPause->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
 
     ui->buttonBmStop->resize(mcbSize);
     ui->buttonBmPause->resize(mcbSize);
@@ -2874,29 +2888,29 @@ void MainWindow::appFontChanged(QFont font)
     ui->buttonBmStop->setIcon(style()->standardIcon(QStyle::SP_MediaStop));
     ui->buttonBmPause->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
 
-    ui->pushButton->resize(mcbSize);
-    ui->pushButton->setIcon(QIcon(QPixmap(":/Icons/system-search2.png").scaled(mcbSize)));
-    ui->pushButton->setIconSize(mcbSize);
+//    ui->pushButton->resize(mcbSize);
+//    ui->pushButton->setIcon(QIcon(QPixmap(":/Icons/system-search2.png").scaled(mcbSize)));
+//    ui->pushButton->setIconSize(mcbSize);
 
-    ui->buttonBmSearch->resize(mcbSize);
-    ui->buttonBmSearch->setIcon(QIcon(QPixmap(":/Icons/system-search2.png").scaled(mcbSize)));
-    ui->buttonBmSearch->setIconSize(mcbSize);
+//    ui->buttonBmSearch->resize(mcbSize);
+//    ui->buttonBmSearch->setIcon(QIcon(QPixmap(":/Icons/system-search2.png").scaled(mcbSize)));
+//    ui->buttonBmSearch->setIconSize(mcbSize);
 
-    ui->buttonAddSinger->resize(mcbSize);
-    ui->buttonAddSinger->setIcon(QIcon(QPixmap(":/icons/Icons/list-add-user.png").scaled(mcbSize)));
-    ui->buttonAddSinger->setIconSize(mcbSize);
+//    ui->buttonAddSinger->resize(mcbSize);
+//    ui->buttonAddSinger->setIcon(QIcon(QPixmap(":/Icons/breeze-dark/list-add-user.svg").scaled(mcbSize)));
+//    ui->buttonAddSinger->setIconSize(mcbSize);
 
-    ui->buttonClearRotation->resize(mcbSize);
-    ui->buttonClearRotation->setIcon(QIcon(QPixmap(":/icons/Icons/edit-clear.png").scaled(mcbSize)));
-    ui->buttonClearRotation->setIconSize(mcbSize);
+//    ui->buttonClearRotation->resize(mcbSize);
+//    ui->buttonClearRotation->setIcon(QIcon(QPixmap(":/Icons/breeze-dark/edit-delete.svg").scaled(mcbSize)));
+//    ui->buttonClearRotation->setIconSize(mcbSize);
 
-    ui->buttonClearQueue->resize(mcbSize);
-    ui->buttonClearQueue->setIcon(QIcon(QPixmap(":/icons/Icons/edit-clear.png").scaled(mcbSize)));
-    ui->buttonClearQueue->setIconSize(mcbSize);
+//    ui->buttonClearQueue->resize(mcbSize);
+//    ui->buttonClearQueue->setIcon(QIcon(QPixmap(":/Icons/breeze-dark/edit-delete.svg").scaled(mcbSize)));
+//    ui->buttonClearQueue->setIconSize(mcbSize);
 
-    ui->buttonRegulars->resize(mcbSize);
-    ui->buttonRegulars->setIcon(QIcon(QPixmap(":/icons/Icons/emblem-favorite.png").scaled(mcbSize)));
-    ui->buttonRegulars->setIconSize(mcbSize);
+//    ui->buttonRegulars->resize(mcbSize);
+//    ui->buttonRegulars->setIcon(QIcon(QPixmap(":/Icons/breeze-dark/user-others.svg").scaled(mcbSize)));
+//    ui->buttonRegulars->setIconSize(mcbSize);
 
     autosizeViews();
 

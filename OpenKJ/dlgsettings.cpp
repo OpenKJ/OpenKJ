@@ -28,7 +28,6 @@
 #include <QFileDialog>
 #include <QStandardPaths>
 #include <QMessageBox>
-#include <QAudioRecorder>
 #include <QSqlQuery>
 #include <QtSql>
 #include <QXmlStreamWriter>
