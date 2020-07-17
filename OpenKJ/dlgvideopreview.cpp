@@ -178,11 +178,16 @@ void DlgVideoPreview::cb_seek_data([[maybe_unused]]GstElement *appsrc, guint64 p
 void DlgVideoPreview::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused_size, gpointer user_data)
 {
     auto dlg = reinterpret_cast<DlgVideoPreview *>(user_data);
-    auto buffer = gst_buffer_new_and_alloc(dlg->parser.videoFrameByIndex(dlg->curFrame).sizeInBytes());
+#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
+    auto bufferSize = dlg->parser.videoFrameByIndex(dlg->curFrame).sizeInBytes();
+#else
+    auto bufferSize = dlg->parser.videoFrameByIndex(dlg->curFrame).byteCount();
+#endif
+    auto buffer = gst_buffer_new_and_alloc(bufferSize);
     gst_buffer_fill(buffer,
                     0,
                     dlg->parser.videoFrameByIndex(dlg->curFrame).constBits(),
-                    dlg->parser.videoFrameByTime(dlg->curFrame).sizeInBytes()
+                    bufferSize
                     );
     GST_BUFFER_PTS(buffer) = dlg->position;
     GST_BUFFER_DURATION(buffer) = 40000000; // 40ms

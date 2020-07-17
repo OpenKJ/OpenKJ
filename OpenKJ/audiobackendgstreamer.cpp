@@ -1079,11 +1079,16 @@ GstBusSyncReply MediaBackend::busMessageDispatcherCdg([[maybe_unused]]GstBus *bu
 void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused_size, gpointer user_data)
 {
     auto backend = reinterpret_cast<MediaBackend *>(user_data);
-    auto buffer = gst_buffer_new_and_alloc(backend->cdg.videoFrameByIndex(backend->curFrame).sizeInBytes());
+#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
+    auto bufferSize = backend->cdg.videoFrameByIndex(backend->curFrame).sizeInBytes();
+#else
+    auto bufferSize = backend->cdg.videoFrameByIndex(backend->curFrame).byteCount();
+#endif
+    auto buffer = gst_buffer_new_and_alloc(bufferSize);
     gst_buffer_fill(buffer,
                     0,
                     backend->cdg.videoFrameByIndex(backend->curFrame).constBits(),
-                    backend->cdg.videoFrameByTime(backend->curFrame).sizeInBytes()
+                    bufferSize
                     );
     GST_BUFFER_PTS(buffer) = backend->cdgPosition;
     GST_BUFFER_DURATION(buffer) = 40000000; // 40ms

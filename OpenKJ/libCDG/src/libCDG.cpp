@@ -284,7 +284,11 @@ QString CdgParser::md5HashByTime(const unsigned int &ms)
     if (ms % 40 > 0) frameno++;
     if (frameno > m_frames.size())
         frameno = m_frames.size() - 1;
+#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
     QByteArray arr = QByteArray::fromRawData((const char*)m_frames.at(frameno).bits(), m_frames.at(frameno).sizeInBytes());
+#else
+    QByteArray arr = QByteArray::fromRawData((const char*)m_frames.at(frameno).bits(), m_frames.at(frameno).byteCount());
+#endif
     return QString(QCryptographicHash::hash(arr, QCryptographicHash::Md5).toHex());
 }
 
