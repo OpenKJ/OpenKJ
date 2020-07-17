@@ -39,7 +39,7 @@ Q_DECLARE_SMART_POINTER_METATYPE(std::shared_ptr);
 Q_DECLARE_METATYPE(std::shared_ptr<GstMessage>);
 
 MediaBackend::MediaBackend(bool pitchShift, QObject *parent, QString objectName) :
-    AbstractAudioBackend(parent), objName(objectName), loadPitchShift(pitchShift)
+    QObject(parent), objName(objectName), loadPitchShift(pitchShift)
 {
 #ifdef MAC_OVERRIDE_GST
     // This points GStreamer paths to the framework contained in the app bundle.  Not needed on brew installs.
@@ -131,6 +131,26 @@ void MediaBackend::videoMute(const bool &mute)
     m_vidMuted = mute;
 }
 
+float MediaBackend::getPitchForSemitone(int semitone)
+{
+    double pitch;
+    if (semitone > 0)
+    {
+        // shifting up
+        pitch = pow(STUP,semitone);
+    }
+    else if (semitone < 0){
+        // shifting down
+        pitch = 1 - ((100 - (pow(STDN,abs(semitone)) * 100)) / 100);
+    }
+    else
+    {
+        // no change
+        pitch = 1.0;
+    }
+    return pitch;
+}
+
 
 
 MediaBackend::~MediaBackend()
@@ -181,7 +201,7 @@ qint64 MediaBackend::duration()
     return 0;
 }
 
-AbstractAudioBackend::State MediaBackend::state()
+MediaBackend::State MediaBackend::state()
 {
     GstState state = GST_STATE_NULL;
     gst_element_get_state(playBin, &state, nullptr, GST_CLOCK_TIME_NONE);
@@ -197,7 +217,7 @@ AbstractAudioBackend::State MediaBackend::state()
     }
 }
 
-AbstractAudioBackend::State MediaBackend::cdgState()
+MediaBackend::State MediaBackend::cdgState()
 {
     GstState state = GST_STATE_NULL;
     gst_element_get_state(cdgPipeline, &state, nullptr, GST_CLOCK_TIME_NONE);
@@ -222,7 +242,7 @@ void MediaBackend::play()
     //gst_timed_value_control_source_unset_all(tv_csource);
     qInfo() << objName << " - play() called";
     gst_stream_volume_set_volume(GST_STREAM_VOLUME(playBin), GST_STREAM_VOLUME_FORMAT_LINEAR, 1.0);
-    if (state() == AbstractAudioBackend::PausedState)
+    if (state() == MediaBackend::PausedState)
     {
         qInfo() << objName << " - play - playback is currently paused, unpausing";
         gst_element_set_state(playBin, GST_STATE_PLAYING);
@@ -342,24 +362,24 @@ void MediaBackend::setVolume(int volume)
 void MediaBackend::stop(bool skipFade)
 {
     qInfo() << objName << " - AudioBackendGstreamer::stop(" << skipFade << ") called";
-    if (state() == AbstractAudioBackend::StoppedState)
+    if (state() == MediaBackend::StoppedState)
     {
         qInfo() << objName << " - AudioBackendGstreamer::stop -- Already stopped, skipping";
-        emit stateChanged(AbstractAudioBackend::StoppedState);
+        emit stateChanged(MediaBackend::StoppedState);
         return;
     }
-    if (state() == AbstractAudioBackend::PausedState)
+    if (state() == MediaBackend::PausedState)
     {
         qInfo() << objName << " - AudioBackendGstreamer::stop -- Stoping paused song";
         gst_element_set_state(playBin, GST_STATE_NULL);
         if (m_cdgMode)
             cdgStop();
-        emit stateChanged(AbstractAudioBackend::StoppedState);
+        emit stateChanged(MediaBackend::StoppedState);
         qInfo() << objName << " - stop() completed";
         fader->immediateIn();
         return;
     }
-    if ((m_fade) && (!skipFade) && (state() == AbstractAudioBackend::PlayingState))
+    if ((m_fade) && (!skipFade) && (state() == MediaBackend::PlayingState))
     {
         if (fader->state() == AudioFader::FadedIn || fader->state() == AudioFader::FadingIn)
         {
@@ -370,7 +390,7 @@ void MediaBackend::stop(bool skipFade)
             gst_element_set_state(playBin, GST_STATE_NULL);
             if (m_cdgMode)
                 cdgStop();
-            emit stateChanged(AbstractAudioBackend::StoppedState);
+            emit stateChanged(MediaBackend::StoppedState);
             fader->immediateIn();
             return;
         }
@@ -379,7 +399,7 @@ void MediaBackend::stop(bool skipFade)
     gst_element_set_state(playBin, GST_STATE_NULL);
     if (m_cdgMode)
         cdgStop();
-    emit stateChanged(AbstractAudioBackend::StoppedState);
+    emit stateChanged(MediaBackend::StoppedState);
     qInfo() << objName << " - stop() completed";
 
 
@@ -433,7 +453,7 @@ void MediaBackend::slowTimer_timeout()
         emit stateChanged(curState);
     if (m_silenceDetect)
     {
-        if ((curState == AbstractAudioBackend::PlayingState) && (isSilent()))
+        if ((curState == MediaBackend::PlayingState) && (isSilent()))
         {
             if (m_silenceDuration >= 2)
             {
@@ -613,38 +633,38 @@ void MediaBackend::busMessage(std::shared_ptr<GstMessage> message)
     case GST_MESSAGE_STATE_CHANGED:
         GstState state;
         gst_element_get_state(playBin, &state, nullptr, GST_CLOCK_TIME_NONE);
-        if (state == GST_STATE_PLAYING && lastState != AbstractAudioBackend::PlayingState)
+        if (state == GST_STATE_PLAYING && lastState != MediaBackend::PlayingState)
         {
             qInfo() << "GST notified of state change to PLAYING";
             if (m_cdgMode && cdgState() != PlayingState)
                 cdgPlay();
-            lastState = AbstractAudioBackend::PlayingState;
-            emit stateChanged(AbstractAudioBackend::PlayingState);
+            lastState = MediaBackend::PlayingState;
+            emit stateChanged(MediaBackend::PlayingState);
         }
-        else if (state == GST_STATE_PAUSED && lastState != AbstractAudioBackend::PausedState)
+        else if (state == GST_STATE_PAUSED && lastState != MediaBackend::PausedState)
         {
             qInfo() << "GST notified of state change to PAUSED";
             if (m_cdgMode && cdgState() != PausedState)
                 cdgPause();
-            lastState = AbstractAudioBackend::PausedState;
-            emit stateChanged(AbstractAudioBackend::PausedState);
+            lastState = MediaBackend::PausedState;
+            emit stateChanged(MediaBackend::PausedState);
         }
-        else if (state == GST_STATE_NULL && lastState != AbstractAudioBackend::StoppedState)
+        else if (state == GST_STATE_NULL && lastState != MediaBackend::StoppedState)
         {
             qInfo() << "GST notified of state change to STOPPED";
-            if (lastState != AbstractAudioBackend::StoppedState)
+            if (lastState != MediaBackend::StoppedState)
             {
-                lastState = AbstractAudioBackend::StoppedState;
+                lastState = MediaBackend::StoppedState;
                 if (m_cdgMode && cdgState() != StoppedState)
                     cdgStop();
-                emit stateChanged(AbstractAudioBackend::StoppedState);
+                emit stateChanged(MediaBackend::StoppedState);
             }
         }
-        else if (lastState != AbstractAudioBackend::UnknownState)
+        else if (lastState != MediaBackend::UnknownState)
         {
             //qInfo() << "GST notified of state change to UNKNOWN";
-            //lastState = AbstractAudioBackend::UnknownState;
-            //emit stateChanged(AbstractAudioBackend::UnknownState);
+            //lastState = MediaBackend::UnknownState;
+            //emit stateChanged(MediaBackend::UnknownState);
         }
         break;
     case GST_MESSAGE_ELEMENT:
@@ -690,7 +710,6 @@ void MediaBackend::busMessage(std::shared_ptr<GstMessage> message)
     case GST_MESSAGE_EOS:
         qInfo() << objName << " - state change to EndOfMediaState emitted";
         emit stateChanged(EndOfMediaState);
-        //emit stateChanged(StoppedState);
         break;
     case GST_MESSAGE_TAG:
         // do nothing
@@ -934,6 +953,9 @@ void MediaBackend::buildPipeline()
             gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(videoSink1), videoWinId);
         }
         g_object_set(G_OBJECT(cdgAppSrc), "stream-type", 1, "format", GST_FORMAT_TIME, NULL);
+
+
+
         g_signal_connect(cdgAppSrc, "need-data", G_CALLBACK(cb_need_data), this);
         g_signal_connect(cdgAppSrc, "seek-data", G_CALLBACK(cb_seek_data), this);
     }

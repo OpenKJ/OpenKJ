@@ -41,7 +41,7 @@ extern Settings *settings;
 extern OKJSongbookAPI *songbookApi;
 
 
-DlgSettings::DlgSettings(MediaBackend *AudioBackend, AbstractAudioBackend *BmAudioBackend, QWidget *parent) :
+DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBackend, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DlgSettings)
 {
@@ -795,7 +795,7 @@ void DlgSettings::on_comboBoxKAudioDevices_currentIndexChanged(int index)
     QString device = ui->comboBoxKAudioDevices->itemText(index);
     if (lastSelItem == device)
         return;
-    if (kAudioBackend->state() == AbstractAudioBackend::PlayingState)
+    if (kAudioBackend->state() == MediaBackend::PlayingState)
     {
         QMessageBox msgBox;
         msgBox.setText("Can not change audio device while audio is playing, please stop playback and try again");
@@ -827,7 +827,7 @@ void DlgSettings::on_comboBoxBAudioDevices_currentIndexChanged(int index)
         qInfo() << "BM audio device index change fired but index is the same, ignoring";
         return;
     }
-    if (bmAudioBackend->state() == AbstractAudioBackend::PlayingState)
+    if (bmAudioBackend->state() == MediaBackend::PlayingState)
     {
         QMessageBox msgBox;
         msgBox.setText("Can not change audio device while audio is playing, please stop playback and try again");

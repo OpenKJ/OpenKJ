@@ -25,7 +25,6 @@
 #include <QList>
 #include <QNetworkAccessManager>
 #include "settings.h"
-#include "abstractaudiobackend.h"
 #include "audiobackendgstreamer.h"
 #include "okjsongbookapi.h"
 
@@ -41,13 +40,13 @@ private:
     Ui::DlgSettings *ui;
     QStringList getMonitors();
     MediaBackend *kAudioBackend;
-    AbstractAudioBackend *bmAudioBackend;
+    MediaBackend *bmAudioBackend;
     QNetworkAccessManager *networkManager;
     bool pageSetupDone;
     QStringList audioOutputDevices;
 
 public:
-    explicit DlgSettings(MediaBackend *AudioBackend, AbstractAudioBackend *BmAudioBackend, QWidget *parent = 0);
+    explicit DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBackend, QWidget *parent = 0);
     ~DlgSettings();
 
 signals:

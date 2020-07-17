@@ -33,7 +33,6 @@
 #include "dlgdatabase.h"
 #include "dlgsettings.h"
 //#include "khipcclient.h"
-#include "abstractaudiobackend.h"
 #include "audiobackendgstreamer.h"
 #include "dlgcdg.h"
 #include "settings.h"
@@ -101,7 +100,7 @@ private:
     DlgSongShop *dlgSongShop;
     //DlgCdgPreview *cdgPreviewDialog;
     MediaBackend *kAudioBackend;
-    AbstractAudioBackend *sfxAudioBackend;
+    MediaBackend *sfxAudioBackend;
 //    KhAudioBackends *audioBackends;
 //    KhAudioRecorder *audioRecorder;
     AudioRecorder *audioRecorder;
@@ -109,25 +108,25 @@ private:
 //    KhIPCClient *ipcClient;
     QLabel *labelSingerCount;
     QLabel *labelRotationDuration;
-    bool sliderPositionPressed;
-    bool sliderBmPositionPressed;
+    bool sliderPositionPressed{false};
+    bool sliderBmPositionPressed{false};
     void play(QString karaokeFilePath, bool k2k = false);
-    int m_rtClickQueueSongId;
-    int m_rtClickRotationSingerId;
+    int m_rtClickQueueSongId{-1};
+    int m_rtClickRotationSingerId{-1};
     QTemporaryDir *khTmpDir;
     QDir *khDir;
-    int sortColDB;
-    int sortDirDB;
+    int sortColDB{1};
+    int sortDirDB{0};
     QString dbRtClickFile;
     QString curSinger;
     QString curArtist;
     QString curTitle;
-    int kAANextSinger;
+    int kAANextSinger{-1};
     QString kAANextSongPath;
-    bool kAASkip;
+    bool kAASkip{false};
     int cdgOffset;
     SongShop *shop;
-    bool k2kTransition;
+    bool k2kTransition{false};
     bool previewEnabled;
     BmDbDialog *bmDbDialog;
     BmDbTableModel *bmDbModel;
@@ -135,22 +134,22 @@ private:
     BmPlTableModel *bmPlModel;
     BmPlItemDelegate *bmPlDelegate;
     QSqlTableModel *bmPlaylistsModel;
-    int bmCurrentPosition;
+    int bmCurrentPosition{0};
     int bmCurrentPlaylist;
     void bmAddPlaylist(QString title);
     bool bmPlaylistExists(QString name);
-    AbstractAudioBackend::State m_lastAudioState;
+    MediaBackend::State m_lastAudioState{MediaBackend::StoppedState};
     void refreshSongDbCache();
     QTimer *karaokeAATimer;
     QTimer *startupOneShot;
     UpdateChecker *checker;
     QTimer *slowUiUpdateTimer;
     QTimer *timerButtonFlash;
-    bool blinkRequestsBtn;
+    bool blinkRequestsBtn{false};
     QString GetRandomString() const;
     QSharedMemory *_singular;
-    bool kNeedAutoSize;
-    bool bNeedAutoSize;
+    bool kNeedAutoSize{false};
+    bool bNeedAutoSize{true};
     KhDb *db;
     QShortcut *scutAddSinger;
     QShortcut *scutSearch;
@@ -195,10 +194,10 @@ private slots:
     void on_spinBoxKey_valueChanged(int arg1);
     void audioBackend_positionChanged(qint64 position);
     void audioBackend_durationChanged(qint64 duration);
-    void audioBackend_stateChanged(AbstractAudioBackend::State state);
+    void audioBackend_stateChanged(MediaBackend::State state);
     void sfxAudioBackend_positionChanged(qint64 position);
     void sfxAudioBackend_durationChanged(qint64 duration);
-    void sfxAudioBackend_stateChanged(AbstractAudioBackend::State state);
+    void sfxAudioBackend_stateChanged(MediaBackend::State state);
     void on_sliderProgress_sliderMoved(int position);
     void on_buttonRegulars_clicked();
     void rotationDataChanged();
@@ -229,7 +228,7 @@ private slots:
     void bmDbCleared();
     void bmShowMetadata(bool checked);
     void bmShowFilenames(bool checked);
-    void bmMediaStateChanged(AbstractAudioBackend::State newState);
+    void bmMediaStateChanged(MediaBackend::State newState);
     void bmMediaPositionChanged(qint64 position);
     void bmMediaDurationChanged(qint64 duration);
     void on_actionManage_Break_DB_triggered();

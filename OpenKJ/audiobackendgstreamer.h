@@ -21,7 +21,6 @@
 #ifndef AUDIOBACKENDGSTREAMER_H
 #define AUDIOBACKENDGSTREAMER_H
 
-#include "abstractaudiobackend.h"
 #define GLIB_DISABLE_DEPRECATION_WARNINGS
 #include <gst/gst.h>
 #include <gst/app/gstappsink.h>
@@ -42,6 +41,12 @@
 #include <vector>
 #include "libCDG/include/libCDG.h"
 
+#define STUP 1.0594630943592952645618252949461
+#define STDN 0.94387431268169349664191315666784
+#define Multiplex_Normal 0
+#define Multiplex_LeftChannel 1
+#define Multiplex_RightChannel 2
+
 /* playbin flags */
 typedef enum {
     GST_PLAY_FLAG_VIDEO         = (1 << 0), /* We want video output */
@@ -61,10 +66,11 @@ public:
     gpointer gObject;
 };
 
-class MediaBackend : public AbstractAudioBackend
+class MediaBackend : public QObject
 {
     Q_OBJECT
 public:
+    enum State{PlayingState=0,PausedState,StoppedState,EndOfMediaState,UnknownState};
     explicit MediaBackend(bool loadPitchShift = true, QObject *parent = nullptr, QString objectName = "unknown");
     ~MediaBackend();
     enum accel{OpenGL=0,XVideo};
@@ -84,6 +90,9 @@ public:
     void videoMute(const bool &mute);
     int getCdgLastDraw() { return cdg.lastCDGUpdate(); }
     bool isCdgMode() { return m_cdgMode; }
+    float getPitchForSemitone(int semitone);
+    void setName(const QString &value) { name = value; };
+
     const bool& videoMuted() { return m_vidMuted; }
     int volume() { return m_volume; }
     qint64 position();
@@ -137,6 +146,7 @@ private:
     GstCaps *audioCapsStereo;
     GstCaps *audioCapsMono;
     QString objName;
+    QString name;
     QString m_filename;
     QString m_cdgFilename;
     QStringList outputDeviceNames;
@@ -169,7 +179,7 @@ private:
     std::vector<GstDevice*> outputDevices;
     QPointer<AudioFader> fader;
     CdgParser cdg;
-    AbstractAudioBackend::State lastState{AbstractAudioBackend::StoppedState};
+    State lastState{StoppedState};
     WId videoWinId{0};
     WId videoWinId2{0};
     accel accelMode{XVideo};
@@ -235,7 +245,18 @@ public slots:
     void fadeOutImmediate();
 
 signals:
-
+    void audioAvailableChanged(bool);
+    void bufferStatusChanged(int);
+    void durationChanged(qint64);
+    void mutedChanged(bool);
+    void positionChanged(qint64);
+    void stateChanged(State);
+    void videoAvailableChanged(bool);
+    void volumeChanged(int);
+    void silenceDetected();
+    void pitchChanged(int);
+    void newVideoFrame(QImage frame, QString backendName);
+    void audioError(QString msg);
 
 };
 
