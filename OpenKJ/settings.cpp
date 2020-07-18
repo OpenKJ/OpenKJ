@@ -487,6 +487,46 @@ bool Settings::previewEnabled()
     return settings->value("previewEnabled", true).toBool();
 }
 
+bool Settings::showMainWindowVideo()
+{
+    return settings->value("showMainWindowVideo", true).toBool();
+}
+
+void Settings::setShowMainWindowVideo(const bool &show)
+{
+    settings->setValue("showMainWindowVideo", show);
+}
+
+bool Settings::showMainWindowSoundClips()
+{
+    return settings->value("showMainWindowSoundClips", false).toBool();
+}
+
+void Settings::setShowMainWindowSoundClips(const bool &show)
+{
+    settings->setValue("showMainWindowSoundClips", show);
+}
+
+bool Settings::showMainWindowNowPlaying()
+{
+    return settings->value("showMainWindowNowPlaying", true).toBool();
+}
+
+void Settings::setShowMainWindowNowPlaying(const bool &show)
+{
+    settings->setValue("showMainWindowNowPlaying", show);
+}
+
+int Settings::mainWindowVideoSize()
+{
+    return settings->value("mainWindowVideoSize", 0).toInt();
+}
+
+void Settings::setMainWindowVideoSize(const Settings::PreviewSize &size)
+{
+    settings->setValue("mainWindowVideoSize", size);
+}
+
 void Settings::setRemainRtOffset(int offset)
 {
     settings->setValue("remainRtOffset", offset);

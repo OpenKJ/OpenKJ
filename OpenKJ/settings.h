@@ -85,6 +85,7 @@ public:
     QString karoakeDotNetUser(const QString &password);
     QString karoakeDotNetPass(const QString &password);
     enum BgMode { BG_MODE_IMAGE = 0, BG_MODE_SLIDESHOW };
+    enum PreviewSize { Small, Medium, Large };
     explicit Settings(QObject *parent = 0);
     bool cdgWindowFullscreen();
     bool showCdgWindow();
@@ -277,6 +278,14 @@ public:
     bool rotationShowNextSong();
     void sync();
     bool previewEnabled();
+    bool showMainWindowVideo();
+    void setShowMainWindowVideo(const bool &show);
+    bool showMainWindowSoundClips();
+    void setShowMainWindowSoundClips(const bool &show);
+    bool showMainWindowNowPlaying();
+    void setShowMainWindowNowPlaying(const bool &show);
+    int mainWindowVideoSize();
+    void setMainWindowVideoSize(const PreviewSize &size);
 
 signals:
     void applicationFontChanged(QFont font);

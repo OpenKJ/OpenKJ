@@ -200,7 +200,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QCoreApplication::setApplicationName("OpenKJ");
     ui->setupUi(this);
     ui->actionShow_Debug_Log->setChecked(settings->logShow());
-    ui->videoPreview->setAspectRatio(16.0,9.0);
+    //ui->videoPreview->setAspectRatio(16.0,9.0);
 #ifdef Q_OS_WIN
     ui->sliderBmPosition->setMaximumHeight(12);
     ui->sliderBmVolume->setMaximumWidth(12);
@@ -338,7 +338,7 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->spinBoxTempo->hide();
         ui->lblTempo->hide();
     }
-    ui->videoPreview->videoDisplay()->setMediaBackends(kAudioBackend, bmAudioBackend);
+    ui->videoPreview->setMediaBackends(kAudioBackend, bmAudioBackend);
     sfxAudioBackend = new MediaBackend(false, this, "SFX");
     audioRecorder = new AudioRecorder(this);
     settingsDialog = new DlgSettings(kAudioBackend, bmAudioBackend, this);
@@ -385,7 +385,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(requestsDialog, SIGNAL(addRequestSong(int,int,int)), qModel, SLOT(songAdd(int,int,int)));
     connect(settings, SIGNAL(tickerCustomStringChanged()), this, SLOT(rotationDataChanged()));
     cdgWindow->setShowBgImage(true);
-    kAudioBackend->setVideoWinId2(ui->videoPreview->videoDisplay()->winId());
+    kAudioBackend->setVideoWinId2(ui->videoPreview->winId());
     kAudioBackend->setVideoWinId(cdgWindow->getCdgWinId());
     bmAudioBackend->setVideoWinId2(ui->videoPreview->winId());
     bmAudioBackend->setVideoWinId(cdgWindow->getCdgWinId());
@@ -642,6 +642,24 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->tableViewRotation->selectionModel(), SIGNAL(selectionChanged(QItemSelection, QItemSelection)), this, SLOT(rotationSelectionChanged(QItemSelection, QItemSelection)));
     previewEnabled = settings->previewEnabled();
     connect(settings, &Settings::previewEnabledChanged, this, &MainWindow::previewEnabledChanged);
+
+    ui->groupBoxNowPlaying->setVisible(settings->showMainWindowNowPlaying());
+    ui->groupBoxSoundClips->setVisible(settings->showMainWindowSoundClips());
+    ui->videoPreview->setVisible(settings->showMainWindowVideo());
+    ui->actionNow_Playing->setChecked(settings->showMainWindowNowPlaying());
+    ui->actionSound_Clips->setChecked(settings->showMainWindowSoundClips());
+    ui->actionVideo_Output_2->setChecked(settings->showMainWindowVideo());
+    switch (settings->mainWindowVideoSize()) {
+    case Settings::Small:
+        on_actionVideoSmall_triggered();
+        break;
+    case Settings::Medium:
+        on_actionVideoMedium_triggered();
+        break;
+    case Settings::Large:
+        on_actionVideoLarge_triggered();
+        break;
+    }
 }
 
 void MainWindow::play(QString karaokeFilePath, bool k2k)
@@ -768,7 +786,6 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
 
     ui->tableViewQueue->setAttribute(Qt::WA_AcceptDrops, false);
     ui->tableViewQueue->setAttribute(Qt::WA_AcceptDrops, true);
-
 }
 
 MainWindow::~MainWindow()
@@ -2005,7 +2022,7 @@ void MainWindow::setShowBgImage(bool show)
         QPainter painter(&bgImage);
         QSvgRenderer renderer(QString(":icons/Icons/okjlogo.svg"));
         renderer.render(&painter);
-        ui->videoPreview->videoDisplay()->setBackground(bgImage);
+        ui->videoPreview->setBackground(bgImage);
     }
 }
 
@@ -3458,4 +3475,52 @@ void MainWindow::on_btnPlBottom_clicked()
         return;
    bmPlModel->moveSong(curPos, maxpos);
    ui->tableViewBmPlaylist->selectRow(maxpos);
+}
+
+void MainWindow::on_actionSound_Clips_triggered(bool checked)
+{
+    ui->groupBoxSoundClips->setVisible(checked);
+    settings->setShowMainWindowSoundClips(checked);
+}
+
+void MainWindow::on_actionNow_Playing_triggered(bool checked)
+{
+    ui->groupBoxNowPlaying->setVisible(checked);
+    settings->setShowMainWindowNowPlaying(checked);
+}
+
+void MainWindow::on_actionVideoSmall_triggered()
+{
+    ui->videoPreview->setMinimumSize(QSize(256,144));
+    ui->videoPreview->setMaximumSize(QSize(256,144));
+    ui->mediaFrame->setMaximumWidth(300);
+    ui->mediaFrame->setMinimumWidth(300);
+    settings->setMainWindowVideoSize(Settings::Small);
+    QTimer::singleShot(15, [&] () {autosizeViews();});
+}
+
+void MainWindow::on_actionVideoMedium_triggered()
+{
+    ui->videoPreview->setMinimumSize(QSize(384,216));
+    ui->videoPreview->setMaximumSize(QSize(384,216));
+    ui->mediaFrame->setMaximumWidth(430);
+    ui->mediaFrame->setMinimumWidth(430);
+    settings->setMainWindowVideoSize(Settings::Medium);
+    QTimer::singleShot(15, [&] () {autosizeViews();});
+}
+
+void MainWindow::on_actionVideoLarge_triggered()
+{
+    ui->videoPreview->setMinimumSize(QSize(512,288));
+    ui->videoPreview->setMaximumSize(QSize(512,288));
+    ui->mediaFrame->setMaximumWidth(560);
+    ui->mediaFrame->setMinimumWidth(560);
+    settings->setMainWindowVideoSize(Settings::Large);
+    QTimer::singleShot(15, [&] () {autosizeViews();});
+}
+
+void MainWindow::on_actionVideo_Output_2_triggered(bool checked)
+{
+    ui->videoPreview->setVisible(checked);
+    settings->setShowMainWindowVideo(checked);
 }

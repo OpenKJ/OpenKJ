@@ -290,6 +290,12 @@ private slots:
     void on_btnPlUp_clicked();
     void on_btnPlDown_clicked();
     void on_btnPlBottom_clicked();
+    void on_actionSound_Clips_triggered(bool checked);
+    void on_actionNow_Playing_triggered(bool checked);
+    void on_actionVideoSmall_triggered();
+    void on_actionVideoMedium_triggered();
+    void on_actionVideoLarge_triggered();
+    void on_actionVideo_Output_2_triggered(bool checked);
 
 protected:
     void closeEvent(QCloseEvent *event);
