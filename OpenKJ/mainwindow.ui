@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1309</width>
-    <height>807</height>
+    <height>813</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -1308,7 +1308,7 @@ QPushButton:default {
               <item>
                <layout class="QGridLayout" name="gridLayout_2">
                 <property name="topMargin">
-                 <number>6</number>
+                 <number>0</number>
                 </property>
                 <property name="rightMargin">
                  <number>0</number>
@@ -1316,46 +1316,7 @@ QPushButton:default {
                 <property name="verticalSpacing">
                  <number>0</number>
                 </property>
-                <item row="1" column="0">
-                 <widget class="QSpinBox" name="spinBoxTempo">
-                  <property name="buttonSymbols">
-                   <enum>QAbstractSpinBox::UpDownArrows</enum>
-                  </property>
-                  <property name="suffix">
-                   <string>%</string>
-                  </property>
-                  <property name="prefix">
-                   <string/>
-                  </property>
-                  <property name="maximum">
-                   <number>200</number>
-                  </property>
-                  <property name="value">
-                   <number>100</number>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="0">
-                 <widget class="QLabel" name="lblTempo">
-                  <property name="text">
-                   <string>Tempo</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="1">
-                 <widget class="QLabel" name="lblKey">
-                  <property name="text">
-                   <string>Key</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="1">
+                <item row="1" column="3">
                  <widget class="QSpinBox" name="spinBoxKey">
                   <property name="minimumSize">
                    <size>
@@ -1389,6 +1350,45 @@ QPushButton:default {
                   </property>
                   <property name="maximum">
                    <number>12</number>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QSpinBox" name="spinBoxTempo">
+                  <property name="buttonSymbols">
+                   <enum>QAbstractSpinBox::UpDownArrows</enum>
+                  </property>
+                  <property name="suffix">
+                   <string>%</string>
+                  </property>
+                  <property name="prefix">
+                   <string/>
+                  </property>
+                  <property name="maximum">
+                   <number>200</number>
+                  </property>
+                  <property name="value">
+                   <number>100</number>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="lblTempo">
+                  <property name="text">
+                   <string>Tempo</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="2">
+                 <widget class="QLabel" name="lblKey">
+                  <property name="text">
+                   <string>Key</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
                   </property>
                  </widget>
                 </item>
@@ -1525,7 +1525,7 @@ QPushButton:default {
                  <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
                 </property>
                 <item row="0" column="0">
-                 <widget class="QLabel" name="label_10">
+                 <widget class="QLabel" name="labelTitleHeader">
                   <property name="text">
                    <string>Title:</string>
                   </property>
@@ -1551,7 +1551,7 @@ QPushButton:default {
                  </widget>
                 </item>
                 <item row="1" column="0">
-                 <widget class="QLabel" name="label_11">
+                 <widget class="QLabel" name="labelArtistHeader">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
                     <horstretch>0</horstretch>
@@ -1583,7 +1583,7 @@ QPushButton:default {
                  </widget>
                 </item>
                 <item row="2" column="0">
-                 <widget class="QLabel" name="label_12">
+                 <widget class="QLabel" name="labelSingerHeader">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
                     <horstretch>0</horstretch>

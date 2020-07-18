@@ -2847,12 +2847,20 @@ void MainWindow::appFontChanged(QFont font)
 {
     auto smallerFont = font;
     smallerFont.setPointSize(font.pointSize() - 2);
+    auto smallerFontBold = smallerFont;
+    smallerFontBold.setBold(true);
     ui->labelTotal->setFont(smallerFont);
     ui->labelTotalTime->setFont(smallerFont);
     ui->labelElapsed->setFont(smallerFont);
     ui->labelElapsedTime->setFont(smallerFont);
     ui->labelRemain->setFont(smallerFont);
     ui->labelRemainTime->setFont(smallerFont);
+    ui->labelArtistHeader->setFont(smallerFontBold);
+    ui->labelArtist->setFont(smallerFont);
+    ui->labelTitleHeader->setFont(smallerFontBold);
+    ui->labelTitle->setFont(smallerFont);
+    ui->labelSingerHeader->setFont(smallerFontBold);
+    ui->labelSinger->setFont(smallerFont);
 
     QApplication::setFont(font, "QWidget");
     setFont(font);
