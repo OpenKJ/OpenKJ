@@ -286,8 +286,11 @@ public:
     void setShowMainWindowNowPlaying(const bool &show);
     int mainWindowVideoSize();
     void setMainWindowVideoSize(const PreviewSize &size);
+    bool enforceAspectRatio();
+    void setEnforceAspectRatio(const bool &enforce);
 
 signals:
+    void enforceAspectRatioChanged(const bool &enforce);
     void applicationFontChanged(QFont font);
     void tickerFontChanged();
     void tickerHeightChanged(int height);

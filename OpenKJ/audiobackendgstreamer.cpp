@@ -92,6 +92,7 @@ MediaBackend::MediaBackend(bool pitchShift, QObject *parent, QString objectName)
     g_object_unref(monitor);
     g_list_free(devices);
 
+    connect(settings, &Settings::enforceAspectRatioChanged, this, &MediaBackend::setEnforceAspectRatio);
     connect(&slowTimer, &QTimer::timeout, this, &MediaBackend::slowTimer_timeout);
     connect(&fastTimer, &QTimer::timeout, this, &MediaBackend::fastTimer_timeout);
     connect(fader, &AudioFader::fadeStarted, [&] () {
@@ -148,6 +149,13 @@ float MediaBackend::getPitchForSemitone(int semitone)
         pitch = 1.0;
     }
     return pitch;
+}
+
+void MediaBackend::setEnforceAspectRatio(const bool &enforce)
+{
+    g_object_set(videoSink1, "force-aspect-ratio", enforce, nullptr);
+    if (m_previewEnabledLastBuild)
+        g_object_set(videoSink2, "force-aspect-ratio", enforce, nullptr);
 }
 
 MediaBackend::~MediaBackend()
@@ -888,6 +896,7 @@ void MediaBackend::buildPipeline()
     setVolume(m_volume);
     fastTimer.start(40);
     qInfo() << objName << " - buildPipeline() finished";
+    setEnforceAspectRatio(settings->enforceAspectRatio());
 }
 
 void MediaBackend::destroyPipeline()

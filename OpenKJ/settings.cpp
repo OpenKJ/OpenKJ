@@ -527,6 +527,17 @@ void Settings::setMainWindowVideoSize(const Settings::PreviewSize &size)
     settings->setValue("mainWindowVideoSize", size);
 }
 
+bool Settings::enforceAspectRatio()
+{
+    return settings->value("enforceAspectRatio", true).toBool();
+}
+
+void Settings::setEnforceAspectRatio(const bool &enforce)
+{
+    settings->setValue("enforceAspectRatio", enforce);
+    emit enforceAspectRatioChanged(enforce);
+}
+
 void Settings::setRemainRtOffset(int offset)
 {
     settings->setValue("remainRtOffset", offset);

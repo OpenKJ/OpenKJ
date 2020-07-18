@@ -239,6 +239,7 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     ui->checkBoxLogging->setChecked(settings->logEnabled());
     ui->lineEditLogDir->setText(settings->logDir());
     connect(ui->checkBoxLogging, SIGNAL(toggled(bool)), settings, SLOT(setLogEnabled(bool)));
+    ui->checkBoxEnforceAspectRatio->setChecked(settings->enforceAspectRatio());
 }
 
 DlgSettings::~DlgSettings()
@@ -868,4 +869,9 @@ void DlgSettings::on_comboBoxMonitors_currentIndexChanged(int index)
             return;
     }
     settings->setCdgWindowFullscreenMonitor(selMonitor);
+}
+
+void DlgSettings::on_checkBoxEnforceAspectRatio_clicked(bool checked)
+{
+    settings->setEnforceAspectRatio(checked);
 }

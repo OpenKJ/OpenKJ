@@ -235,6 +235,8 @@ public slots:
     void setEqLevel10(int level);
     void fadeInImmediate();
     void fadeOutImmediate();
+    void setEnforceAspectRatio(const bool &enforce);
+
 
 signals:
     void audioAvailableChanged(bool);

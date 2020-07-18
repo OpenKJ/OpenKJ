@@ -126,6 +126,7 @@ private slots:
     void on_comboBoxMonitors_currentIndexChanged(int index);
 
 
+    void on_checkBoxEnforceAspectRatio_clicked(bool checked);
 };
 
 #endif // SETTINGSDIALOG_H
