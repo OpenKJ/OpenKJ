@@ -32,7 +32,7 @@ unix:!macx {
     binaryfiles.files += OpenKJ
     binaryfiles.path = $$PREFIX/bin
     INSTALLS += binaryfiles iconfiles desktopfiles
-    QMAKE_CXXFLAGS += -std=gnu++1z
+    QMAKE_CXXFLAGS += -std=gnu++1z -Wall -Wextra -Winline
     #-fno-inline -fkeep-static-functions
     QMAKE_CXXFLAGS -= -O1
     QMAKE_CXXFLAGS -= -O2
@@ -121,7 +121,7 @@ contains(DEFINES, STATIC_TAGLIB) {
 #QMAKE_MAC_SDK = MacOSX10.13
 #QMAKE_MAC_SDK.macosx.version = 10.13
 
-VERSION = 1.7.97
+VERSION = 1.7.98
 message($$VERSION)
 QMAKE_TARGET_COMPANY = OpenKJ.org
 QMAKE_TARGET_PRODUCT = OpenKJ

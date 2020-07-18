@@ -58,7 +58,7 @@ void UpdateChecker::checkForUpdates()
         return;
     qInfo() << "Requesting current version info for branch: " << channel;
     connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
-    QNetworkReply *reply = manager->get(QNetworkRequest(QUrl("http://openkj.org/downloads/" + OS + "-" + channel + "-curversion.txt")));
+    [[maybe_unused]]QNetworkReply *reply = manager->get(QNetworkRequest(QUrl("http://openkj.org/downloads/" + OS + "-" + channel + "-curversion.txt")));
 //    while (!reply->isFinished())
 //        QApplication::processEvents();
 //    qInfo() << "Request completed";

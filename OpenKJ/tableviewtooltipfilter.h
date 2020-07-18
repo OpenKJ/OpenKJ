@@ -35,7 +35,11 @@ QString itemText = view->model()->data(index).toString();
  QString itemTooltip = view->model()->data(index, Qt::ToolTipRole).toString();
 
  QFontMetrics fm(view->font());
+#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
+ int itemTextWidth = fm.horizontalAdvance(itemText);
+#else
  int itemTextWidth = fm.width(itemText);
+#endif
  QRect rect = view->visualRect(index);
  int rectWidth = rect.width();
 

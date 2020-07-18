@@ -223,8 +223,11 @@ void DlgCdg::tickerEnableChanged()
 void DlgCdg::cdgRemainFontChanged(QFont font)
 {
     ui->lblRemain->setFont(font);
-    QFontMetrics metrics(font);
-    int width = metrics.width(" 00:00 ");
+#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
+    int width = QFontMetrics(font).horizontalAdvance(" 00:00 ");
+#else
+    int width = QFontMetrics(font).width(" 00:00 ");
+#endif
     ui->lblRemain->size().setWidth(width);
 }
 

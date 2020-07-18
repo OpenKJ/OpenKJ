@@ -21,7 +21,7 @@
 #include "dlgsettings.h"
 #include "ui_dlgsettings.h"
 #include <QDebug>
-#include <QApplication>
+#include <QGuiApplication>
 #include <QDesktopWidget>
 #include <QFontDialog>
 #include <QColorDialog>
@@ -34,6 +34,7 @@
 #include <QNetworkReply>
 #include <QAuthenticator>
 #include "audiorecorder.h"
+#include <QScreen>
 
 
 extern Settings *settings;
@@ -248,10 +249,10 @@ DlgSettings::~DlgSettings()
 QStringList DlgSettings::getMonitors()
 {
     QStringList screenStrings;
-    for (int i=0; i < QApplication::desktop()->screenCount(); i++)
+    for (int i=0; i < QGuiApplication::screens().size(); i++)
     {
-        int sWidth = QApplication::desktop()->screenGeometry(i).width();
-        int sHeight = QApplication::desktop()->screenGeometry(i).height();
+        auto sWidth = QGuiApplication::screens().at(i)->size().width();
+        auto sHeight = QGuiApplication::screens().at(i)->size().height();
         screenStrings << "Monitor " + QString::number(i) + " - " + QString::number(sWidth) + "x" + QString::number(sHeight);
     }
     return screenStrings;
@@ -461,8 +462,8 @@ void DlgSettings::on_buttonBrowse_clicked()
 
 void DlgSettings::on_pushButtonClearBgImg_clicked()
 {
-    settings->setCdgDisplayBackgroundImage(QString::null);
-    ui->lineEditCdgBackground->setText(QString::null);
+    settings->setCdgDisplayBackgroundImage(QString());
+    ui->lineEditCdgBackground->setText(QString());
 }
 
 void DlgSettings::on_pushButtonSlideshowBrowse_clicked()
@@ -867,9 +868,4 @@ void DlgSettings::on_comboBoxMonitors_currentIndexChanged(int index)
             return;
     }
     settings->setCdgWindowFullscreenMonitor(selMonitor);
-}
-
-void DlgSettings::on_spinBoxHAdjust_valueChanged(int arg1)
-{
-
 }

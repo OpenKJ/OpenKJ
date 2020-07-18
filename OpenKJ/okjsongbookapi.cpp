@@ -529,7 +529,7 @@ void OKJSongbookAPI::dbUpdateCanceled()
    //     msgBox.setInformativeText("Are you sure?  Your previous Songbook DB contents have already been cleared.\nCancelling now will result in an incomplete database of songs on your Songbook account.");
         QPushButton *yesButton = msgBox.addButton(tr("Cancel Update"), QMessageBox::AcceptRole);
         msgBox.addButton(tr("Continue Update"), QMessageBox::RejectRole);
-        int ret = msgBox.exec();
+        msgBox.exec();
         if (msgBox.clickedButton() == yesButton)
         {
             cancelUpdate = true;

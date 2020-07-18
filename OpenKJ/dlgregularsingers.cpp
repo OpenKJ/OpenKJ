@@ -163,7 +163,7 @@ RegProxyModel::RegProxyModel(QObject *parent) : QSortFilterProxyModel (parent)
 void RegProxyModel::setFilterString(const QString &value)
 {
     filterString = value;
-    filterChanged();
+    invalidateFilter();
 }
 
 bool RegProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const

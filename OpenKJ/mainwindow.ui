@@ -1499,7 +1499,7 @@ QPushButton:default {
             </widget>
            </item>
            <item>
-            <widget class="QGroupBox" name="">
+            <widget class="QGroupBox" name="groupBoxNowPlaying">
              <property name="title">
               <string>Now Playing</string>
              </property>
@@ -1614,7 +1614,7 @@ QPushButton:default {
             </widget>
            </item>
            <item>
-            <widget class="QGroupBox" name="groupBox_3">
+            <widget class="QGroupBox" name="groupBoxSoundClips">
              <property name="title">
               <string>Sound Clips</string>
              </property>

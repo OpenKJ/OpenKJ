@@ -483,8 +483,13 @@ void DlgRequests::lineEditSearchEscapePressed()
 void DlgRequests::autoSizeViews()
 {
     int fH = QFontMetrics(settings->applicationFont()).height();
+#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
+    int durationColSize = QFontMetrics(settings->applicationFont()).horizontalAdvance(tr(" Duration "));
+    int songidColSize = QFontMetrics(settings->applicationFont()).horizontalAdvance(" AA0000000-0000 ");
+#else
     int durationColSize = QFontMetrics(settings->applicationFont()).width(tr(" Duration "));
     int songidColSize = QFontMetrics(settings->applicationFont()).width(" AA0000000-0000 ");
+#endif
     int remainingSpace = ui->tableViewSearch->width() - durationColSize - songidColSize - 12;
     int artistColSize = (remainingSpace / 2) - 12;
     int titleColSize = (remainingSpace / 2);
@@ -497,12 +502,17 @@ void DlgRequests::autoSizeViews()
     ui->tableViewSearch->horizontalHeader()->resizeSection(4, durationColSize);
     ui->tableViewSearch->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Fixed);
     ui->tableViewSearch->horizontalHeader()->resizeSection(3, songidColSize);
-
+#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
+    int tsWidth = QFontMetrics(settings->applicationFont()).horizontalAdvance(" 00/00/00 00:00 xx ");
+    int keyWidth = QFontMetrics(settings->applicationFont()).horizontalAdvance("_Key_");
+    int singerColSize = QFontMetrics(settings->applicationFont()).horizontalAdvance("_Isaac_Lightburn_");
+#else
     int tsWidth = QFontMetrics(settings->applicationFont()).width(" 00/00/00 00:00 xx ");
     int keyWidth = QFontMetrics(settings->applicationFont()).width("_Key_");
+    int singerColSize = QFontMetrics(settings->applicationFont()).width("_Isaac_Lightburn_");
+#endif
     qInfo() << "tsWidth = " << tsWidth;
     int delwidth = fH * 2;
-    int singerColSize = QFontMetrics(settings->applicationFont()).width("_Isaac_Lightburn_");
     qInfo() << "singerColSize = " << singerColSize;
     remainingSpace = ui->tableViewRequests->width() - tsWidth - delwidth - singerColSize - keyWidth - 10;
     artistColSize = remainingSpace / 2;
