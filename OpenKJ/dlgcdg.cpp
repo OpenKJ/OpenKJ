@@ -255,7 +255,7 @@ void DlgCdg::setShowBgImage(bool show)
             ui->videoDisplay->setBackground(QPixmap(settings->cdgDisplayBackgroundImage()));
         else
         {
-            QPixmap bgImage(ui->videoDisplay->size());
+            QPixmap bgImage(QSize(1920,1080));
             QPainter painter(&bgImage);
             QSvgRenderer renderer(QString(":icons/Icons/okjlogo.svg"));
             renderer.render(&painter);
@@ -359,7 +359,7 @@ void DlgCdg::timerSlideShowTimeout()
         auto images = getSlideShowImages();
         if (images.size() == 0)
         {
-            QPixmap bgImage(ui->videoDisplay->size());
+            QPixmap bgImage(QSize(1920,1080));
             QPainter painter(&bgImage);
             QSvgRenderer renderer(QString(":icons/Icons/okjlogo.svg"));
             renderer.render(&painter);
@@ -370,7 +370,7 @@ void DlgCdg::timerSlideShowTimeout()
             position = 0;
         if (images.at(position).fileName().endsWith("svg", Qt::CaseInsensitive))
         {
-            QPixmap bgImage(ui->videoDisplay->size());
+            QPixmap bgImage(QSize(1920,1080));
             QPainter painter(&bgImage);
             QSvgRenderer renderer(images.at(position).absoluteFilePath());
             renderer.render(&painter);

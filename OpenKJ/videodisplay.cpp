@@ -39,6 +39,19 @@ void VideoDisplay::paintEvent(QPaintEvent *event)
     painter.drawPixmap(rect(), m_currentBg, m_currentBg.rect());
 }
 
+void VideoDisplay::resizeEvent(QResizeEvent *event)
+{
+    QWidget::resizeEvent(event);
+    QPainter painter(this);
+    if(videoIsPlaying())
+    {
+        painter.fillRect(rect(), Qt::black);
+        return;
+    }
+    painter.fillRect(rect(), Qt::black);
+    painter.drawPixmap(rect(), m_currentBg, m_currentBg.rect());
+}
+
 
 VideoDisplayAR::VideoDisplayAR(QWidget *parent) :
     QWidget(parent)

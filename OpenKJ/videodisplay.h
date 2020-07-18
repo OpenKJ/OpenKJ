@@ -29,6 +29,10 @@ public slots:
 
 protected:
     void paintEvent(QPaintEvent *event) override;
+
+    // QWidget interface
+protected:
+    void resizeEvent(QResizeEvent *event) override;
 };
 
 
