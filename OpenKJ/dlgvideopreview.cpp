@@ -162,17 +162,19 @@ void DlgVideoPreview::playVideo(const QString &filename)
     gst_element_set_state(playBin, GST_STATE_PLAYING);
 }
 
-void DlgVideoPreview::cb_seek_data([[maybe_unused]]GstElement *appsrc, guint64 position, gpointer user_data)
+gboolean DlgVideoPreview::cb_seek_data([[maybe_unused]]GstElement *appsrc, guint64 position, gpointer user_data)
 {
+    qInfo() << "cb_seek_data called";
     auto dlg = reinterpret_cast<DlgVideoPreview *>(user_data);
     if (position == 0)
     {
         dlg->curFrame = 0;
         dlg->position = 0;
-        return;
+        return true;
     }
     dlg->curFrame = position / 40000000;
     dlg->position = position;
+    return true;
 }
 
 void DlgVideoPreview::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused_size, gpointer user_data)

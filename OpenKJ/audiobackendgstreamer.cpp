@@ -952,17 +952,18 @@ void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused
     gst_app_src_push_buffer(reinterpret_cast<GstAppSrc *>(appsrc), buffer);
 }
 
-void MediaBackend::cb_seek_data([[maybe_unused]]GstElement *appsrc, guint64 position, gpointer user_data)
+gboolean MediaBackend::cb_seek_data([[maybe_unused]]GstElement *appsrc, guint64 position, gpointer user_data)
 {
     auto backend = reinterpret_cast<MediaBackend *>(user_data);
     if (position == 0)
     {
         backend->curFrame = 0;
         backend->cdgPosition = 0;
-        return;
+        return true;
     }
     backend->curFrame = position / 40000000;
     backend->cdgPosition = position;
+    return true;
 }
 
 

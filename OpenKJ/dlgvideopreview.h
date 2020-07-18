@@ -26,11 +26,12 @@ private:
     GstElement *pipeline;
     GstElement *playBin;
     GstElement *videoSink;
+    GstElement *appSrc;
     CdgParser parser;
     guint64 position{0};
     unsigned int curFrame{0};
     static void cb_need_data(GstElement *appsrc, guint unused_size, gpointer user_data);
-    static void cb_seek_data(GstElement *appsrc, guint64 position, gpointer user_data);
+    static gboolean cb_seek_data(GstElement *appsrc, guint64 position, gpointer user_data);
     void playCdg(const QString &filename);
     void playVideo(const QString &filename);
 };

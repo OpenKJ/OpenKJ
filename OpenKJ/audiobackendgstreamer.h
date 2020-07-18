@@ -192,7 +192,7 @@ private:
     guint64 cdgPosition{0};
     unsigned int curFrame{0};
     static void cb_need_data(GstElement *appsrc, guint unused_size, gpointer user_data);
-    static void cb_seek_data(GstElement *appsrc, guint64 position, gpointer user_data);
+    static gboolean cb_seek_data(GstElement *appsrc, guint64 position, gpointer user_data);
 
 private slots:
     void fastTimer_timeout();
