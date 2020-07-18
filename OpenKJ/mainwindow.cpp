@@ -323,7 +323,7 @@ MainWindow::MainWindow(QWidget *parent) :
 //    ipcClient = new KhIPCClient("bmControl",this);
     bmAudioBackend = new MediaBackend(false, this, "BM");
     bmAudioBackend->setName("break");
-    kAudioBackend = new MediaBackend(false, this, "KAR");
+    kAudioBackend = new MediaBackend(true, this, "KAR");
     kAudioBackend->setName("karaoke");
     if (kAudioBackend->canFade())
         kAudioBackend->setUseFader(settings->audioUseFader());
