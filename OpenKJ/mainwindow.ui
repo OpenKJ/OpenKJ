@@ -2851,16 +2851,10 @@ QPushButton:default {
      <addaction name="actionVideoMedium"/>
      <addaction name="actionVideoLarge"/>
     </widget>
-    <widget class="QMenu" name="menuType_Here">
-     <property name="title">
-      <string>Type Here</string>
-     </property>
-    </widget>
     <addaction name="actionNow_Playing"/>
     <addaction name="actionSound_Clips"/>
     <addaction name="actionVideo_Output_2"/>
     <addaction name="menuVideo_Output_Size"/>
-    <addaction name="menuType_Here"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTools"/>
