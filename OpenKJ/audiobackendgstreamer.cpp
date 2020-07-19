@@ -712,7 +712,9 @@ void MediaBackend::buildPipeline()
     auto rgLimiter = gst_element_factory_make("rglimiter", "rgLimiter");
     auto level = gst_element_factory_make("level", "level");
     pitchShifterSoundtouch = gst_element_factory_make("pitch", "pitch");
+#ifdef Q_OS_LINUX
     pitchShifterRubberBand = gst_element_factory_make("ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo", "ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo");
+#endif
     equalizer = gst_element_factory_make("equalizer-10bands", "equalizer");
     playBin = gst_element_factory_make("playbin", "playBin");
     audioCapsStereo = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 2, nullptr);
@@ -739,7 +741,7 @@ void MediaBackend::buildPipeline()
     gst_element_link(faderVolumeElement, audioPanorama);
     gst_element_link(audioPanorama, aConvPostPanorama);
     gst_element_link(aConvPostPanorama, fltrPostPanorama);
-
+#ifdef Q_OS_LINUX
     if ((pitchShifterRubberBand) && (pitchShifterSoundtouch) && (loadPitchShift))
     {
         qInfo() << objName << " - Pitch shift RubberBand enabled";
@@ -754,6 +756,9 @@ void MediaBackend::buildPipeline()
         g_object_set(pitchShifterRubberBand, "semitones", 0, nullptr);
     }
     else if ((pitchShifterSoundtouch) && (loadPitchShift))
+#else
+    if ((pitchShifterSoundtouch) && (loadPitchShift))
+#endif
     {
         m_canChangeTempo = true;
         qInfo() << objName << " - Pitch shifter SoundTouch enabled";
