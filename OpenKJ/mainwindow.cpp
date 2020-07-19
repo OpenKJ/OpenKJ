@@ -186,9 +186,9 @@ MainWindow::MainWindow(QWidget *parent) :
     debugDialog->setVisible(settings->logShow());
     logFile = new QFile();
     qInstallMessageHandler(myMessageOutput);
-#ifdef Q_OS_LINUX
+#ifndef Q_OS_WIN
     // This fixes the program refusing to start and reporting another running instance after a crash on Linux
-    // until you try it twice.
+    // and Mac until you try it twice.
     _singular = new QSharedMemory("SharedMemorySingleInstanceProtectorOpenKJ", this);
     _singular->attach();
     delete _singular;
