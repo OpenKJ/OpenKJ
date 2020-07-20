@@ -70,7 +70,7 @@ class MediaBackend : public QObject
     Q_OBJECT
 public:
     enum State{PlayingState=0,PausedState,StoppedState,EndOfMediaState,UnknownState};
-    explicit MediaBackend(bool loadPitchShift = true, QObject *parent = nullptr, QString objectName = "unknown");
+    explicit MediaBackend(bool m_loadPitchShift = true, QObject *parent = nullptr, QString objectName = "unknown");
     ~MediaBackend();
     enum accel{OpenGL=0,XVideo};
     bool canChangeTempo() { return true; }
@@ -158,8 +158,8 @@ private:
     int m_tempo{100};
     int m_keyChange{0};
     int m_volume{0};
-    int lastPosition{0};
-    int outputDeviceIdx{0};
+    int m_lastPosition{0};
+    int m_outputDeviceIdx{0};
     double m_currentRmsLevel{0.0};
     bool m_cdgMode{false};
     bool m_fade{false};
@@ -170,14 +170,14 @@ private:
     bool m_keyChangerSoundtouch{false};
     bool m_muted{false};
     bool m_vidMuted{false};
-    bool initDone{false};
+    bool m_initDone{false};
     bool m_previewEnabledLastBuild{true};
-    bool bypass{false};
-    bool loadPitchShift;
-    bool downmix{false};
-    std::array<int,10> eqLevels{0,0,0,0,0,0,0,0,0,0};
-    std::vector<GstDevice*> outputDevices;
-    QPointer<AudioFader> fader;
+    bool m_bypass{false};
+    bool m_loadPitchShift;
+    bool m_downmix{false};
+    std::array<int,10> m_eqLevels{0,0,0,0,0,0,0,0,0,0};
+    std::vector<GstDevice*> m_outputDevices;
+    QPointer<AudioFader> m_fader;
     CdgParser cdg;
     State lastState{StoppedState};
     WId videoWinId{0};
@@ -187,8 +187,8 @@ private:
     void buildPipeline();
     void destroyPipeline();
     void resetPipeline();
-    static GstBusSyncReply busMessageDispatcher(GstBus *bus, GstMessage *message, gpointer userData);
-    static GstBusSyncReply busMessageDispatcherCdg(GstBus *bus, GstMessage *message, gpointer userData);
+    static int gst_cb_bus_msg(GstBus *bus, GstMessage *message, gpointer userData);
+    static int gst_cb_bus_msg_cdg(GstBus *bus, GstMessage *message, gpointer userData);
     guint64 cdgPosition{0};
     unsigned int curFrame{0};
     static void cb_need_data(GstElement *appsrc, guint unused_size, gpointer user_data);
@@ -197,8 +197,6 @@ private:
 private slots:
     void fastTimer_timeout();
     void slowTimer_timeout();
-    void busMessage(std::shared_ptr<GstMessage> message);
-    void busMessageCdg(std::shared_ptr<GstMessage> message);
 
 public slots:
     void play();
@@ -222,7 +220,7 @@ public slots:
     void setDownmix(bool enabled);
     void setTempo(int percent);
     void setMplxMode(int mode);
-    void setEqBypass(bool bypass);
+    void setEqBypass(bool m_bypass);
     void setEqLevel1(int level);
     void setEqLevel2(int level);
     void setEqLevel3(int level);
