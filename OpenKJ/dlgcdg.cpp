@@ -99,7 +99,7 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
     connect(settings, &Settings::karaokeAAAlertFontChanged, this, &DlgCdg::alertFontChanged);
     connect(&m_timerSlideShow, &QTimer::timeout, this, &DlgCdg::timerSlideShowTimeout);
     connect(&m_timer1s, &QTimer::timeout, this, &DlgCdg::timer1sTimeout);
-    connect(&m_timerAlertCountdown, SIGNAL(timeout()), this, SLOT(timerCountdownTimeout()));
+    connect(&m_timerAlertCountdown, &QTimer::timeout, this, &DlgCdg::timerCountdownTimeout);
     connect(&m_timerButtonShow, &QTimer::timeout, [&] () { ui->fsToggleWidget->hide(); });
     connect(&m_timerFullScreen, &QTimer::timeout, [&] () {
         m_timerFullScreen.stop();
@@ -183,8 +183,7 @@ void DlgCdg::tickerFontChanged()
 {
     ui->scroll->refreshTickerSettings();
     ui->scroll->setFont(settings->tickerFont());
-    int newHeight = QFontMetrics(ui->scroll->font()).height() * 1.2;
-    settings->setTickerHeight(newHeight);
+    settings->setTickerHeight(QFontMetrics(ui->scroll->font()).height() * 1.2);
 }
 
 void DlgCdg::tickerHeightChanged(const int &height)
@@ -224,11 +223,10 @@ void DlgCdg::cdgRemainFontChanged(QFont font)
 {
     ui->lblRemain->setFont(font);
 #if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
-    int width = QFontMetrics(font).horizontalAdvance(" 00:00 ");
+    ui->lblRemain->size().setWidth(QFontMetrics(font).horizontalAdvance(" 00:00 "));
 #else
-    int width = QFontMetrics(font).width(" 00:00 ");
+    ui->lblRemain->size().setWidth(QFontMetrics(font).width(" 00:00 "));
 #endif
-    ui->lblRemain->size().setWidth(width);
 }
 
 void DlgCdg::cdgRemainTextColorChanged(QColor color)
@@ -247,7 +245,6 @@ void DlgCdg::cdgRemainBgColorChanged(QColor color)
 
 void DlgCdg::setShowBgImage(bool show)
 {
-    //    qInfo() << "DlgCdg::setShowBgImage(" << show << ") called";
     m_showBgImage = show;
     if ((show) && (settings->bgMode() == Settings::BgMode::BG_MODE_IMAGE))
     {

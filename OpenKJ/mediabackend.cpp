@@ -576,15 +576,15 @@ void MediaBackend::buildPipeline()
             break;
         }
 #elif defined(Q_OS_WIN)
-        videoSink1 = gst_element_factory_make ("d3dvideosink", "videoSink1");
-        videoSink2 = gst_element_factory_make("d3dvideosink", "videoSink2");
+        m_videoSink1 = gst_element_factory_make ("d3dvideosink", "videoSink1");
+        m_videoSink2 = gst_element_factory_make("d3dvideosink", "videoSink2");
 #elif defined(Q_OS_MAC)
-        videoSink1 = gst_element_factory_make("osxvideosink", "videosink1");
-        videoSink2 = gst_element_factory_make("osxvideosink", "videosink2");
+        m_videoSink1 = gst_element_factory_make("osxvideosink", "videosink1");
+        m_videoSink2 = gst_element_factory_make("osxvideosink", "videosink2");
 #else
         qWarning() << "Unknown platform, defaulting to OpenGL video output";
-        videoSink1 = gst_element_factory_make ("glimagesink", "videoSink1");
-        videoSink2 = gst_element_factory_make("glimagesink", "videoSink2");
+        m_videoSink1 = gst_element_factory_make ("glimagesink", "videoSink1");
+        m_videoSink2 = gst_element_factory_make("glimagesink", "videoSink2");
 #endif
     gst_object_ref(m_videoSink1);
     gst_object_ref(m_videoSink2);
@@ -642,7 +642,7 @@ void MediaBackend::buildPipeline()
     }
     else if ((m_pitchShifterSoundtouch) && (m_loadPitchShift))
 #else
-    if ((pitchShifterSoundtouch) && (loadPitchShift))
+    if ((m_pitchShifterSoundtouch) && (m_loadPitchShift))
 #endif
     {
         m_canChangeTempo = true;
