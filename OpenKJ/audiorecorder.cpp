@@ -2,14 +2,6 @@
 #include <QDebug>
 #include <QDir>
 #include <QDateTime>
-#include "settings.h"
-
-extern Settings *settings;
-
-
-
-
-
 
 void AudioRecorder::generateDeviceList()
 {
@@ -183,11 +175,11 @@ void AudioRecorder::timerFired()
 
 void AudioRecorder::getRecordingSettings()
 {
-    QString captureDevice = settings->recordingInput();
+    QString captureDevice = settings.recordingInput();
     currentDevice = inputDeviceNames.indexOf(captureDevice);
     if ((currentDevice == -1) || (currentDevice >= inputDevices.size()))
         currentDevice = 0;
-    int codec = codecs.indexOf(settings->recordingCodec());
+    int codec = codecs.indexOf(settings.recordingCodec());
     if (codec == -1)
         codec = 1;
     setCurrentCodec(codec);
@@ -270,7 +262,7 @@ QString AudioRecorder::getCodecFileExtension(int CodecId)
 
 void AudioRecorder::setOutputFile(QString filename)
 {
-    QString outputDir = settings->recordingOutputDir() + QDir::separator() + "Karaoke Recordings" + QDir::separator() + "Show Beginning " + startDateTime;
+    QString outputDir = settings.recordingOutputDir() + QDir::separator() + "Karaoke Recordings" + QDir::separator() + "Show Beginning " + startDateTime;
     QDir dir;
     std::string outputFilePath;
     dir.mkpath(outputDir);

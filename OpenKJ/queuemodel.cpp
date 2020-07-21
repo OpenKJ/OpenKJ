@@ -268,7 +268,7 @@ Qt::ItemFlags QueueModel::flags(const QModelIndex &index) const
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | Qt::ItemIsEditable;
 }
 
-void QueueModel::songAdd(int songId, int singerId, int keyChg)
+void QueueModel::songAddSlot(int songId, int singerId, int keyChg)
 {
     QSqlQuery query;
     QString songIdStr = QString::number(songId);

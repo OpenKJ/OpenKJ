@@ -9,11 +9,13 @@
 #include <gst/gstdevicemonitor.h>
 #include <gst/gstdevice.h>
 #include <gst/gstplugin.h>
+#include "settings.h"
 
 class AudioRecorder : public QObject
 {
     Q_OBJECT
 private:
+    Settings settings;
     GstElement *pipeline;
     GstElement *audioConvert;
     GstElement *fileSink;

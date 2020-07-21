@@ -26,7 +26,7 @@
 #include <QMouseEvent>
 #include "settings.h"
 #include <QTimer>
-#include "audiobackendgstreamer.h"
+#include "mediabackend.h"
 
 namespace Ui {
 class DlgCdg;

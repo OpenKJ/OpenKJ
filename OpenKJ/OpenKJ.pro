@@ -32,7 +32,8 @@ unix:!macx {
     binaryfiles.files += OpenKJ
     binaryfiles.path = $$PREFIX/bin
     INSTALLS += binaryfiles iconfiles desktopfiles
-    QMAKE_CXXFLAGS_RELEASE += -std=gnu++1z -Wall -Wextra -Winline -O3
+    QMAKE_CXXFLAGS_DEBUG += -std=gnu++1z -Wall -Wextra
+    QMAKE_CXXFLAGS_RELEASE += -std=gnu++1z -O2
 #    DEFINES += USE_GL
 }
 
@@ -112,7 +113,7 @@ contains(DEFINES, STATIC_TAGLIB) {
 #QMAKE_MAC_SDK = MacOSX10.13
 #QMAKE_MAC_SDK.macosx.version = 10.13
 
-VERSION = 1.7.111
+VERSION = 1.7.112
 message($$VERSION)
 QMAKE_TARGET_COMPANY = OpenKJ.org
 QMAKE_TARGET_PRODUCT = OpenKJ
@@ -126,6 +127,7 @@ win32: BLDDATE = $$system(date /t)
 DEFINES += BUILD_DATE=__DATE__
 
 SOURCES += main.cpp\
+    mediabackend.cpp \
     okjutil.h \
     dlgvideopreview.cpp \
     mainwindow.cpp \
@@ -149,7 +151,6 @@ SOURCES += main.cpp\
     queueitemdelegate.cpp \
     regitemdelegate.cpp \
     okarchive.cpp \
-    audiobackendgstreamer.cpp \
     tagreader.cpp \
     bmdbitemdelegate.cpp \
     bmdbtablemodel.cpp \
@@ -297,6 +298,7 @@ contains(DEFINES, STATIC_TAGLIB) {
 HEADERS  += mainwindow.h \
     dlgvideopreview.h \
     libCDG/include/libCDG.h \
+    mediabackend.h \
     okjutil.h \
     sourcedirtablemodel.h \
     dbupdatethread.h \
@@ -317,7 +319,6 @@ HEADERS  += mainwindow.h \
     queueitemdelegate.h \
     regitemdelegate.h \
     okarchive.h \
-    audiobackendgstreamer.h \
     tagreader.h \
     bmdbitemdelegate.h \
     bmdbtablemodel.h \

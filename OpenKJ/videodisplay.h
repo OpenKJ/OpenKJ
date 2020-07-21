@@ -4,7 +4,7 @@
 #include <QWidget>
 #include <QBoxLayout>
 #include <QResizeEvent>
-#include "audiobackendgstreamer.h"
+#include "mediabackend.h"
 
 
 

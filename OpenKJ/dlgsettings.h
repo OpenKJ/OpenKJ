@@ -25,7 +25,7 @@
 #include <QList>
 #include <QNetworkAccessManager>
 #include "settings.h"
-#include "audiobackendgstreamer.h"
+#include "mediabackend.h"
 #include "okjsongbookapi.h"
 
 namespace Ui {

@@ -24,7 +24,7 @@
 #include <iostream>
 #include <QTemporaryDir>
 #include <QDir>
-#include "audiobackendgstreamer.h"
+#include "mediabackend.h"
 #include <QDesktopWidget>
 #include <QStandardPaths>
 #include <QCoreApplication>
@@ -58,7 +58,7 @@ int remainSecs = 240;
 
 auto startTime = std::chrono::high_resolution_clock::now();
 
-void MainWindow::addSfxButton(QString filename, QString label, bool reset)
+void MainWindow::addSfxButton(const QString &filename, const QString &label, const bool &reset)
 {
     static int numButtons = 0;
     if (reset)
@@ -205,7 +205,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->sliderBmPosition->setMaximumHeight(12);
     ui->sliderBmVolume->setMaximumWidth(12);
     ui->sliderProgress->setMaximumHeight(12);
-    ui->sliderVolume->setMaximumWidth(12);
+    //ui->sliderVolume->setMaximumWidth(12);
 #endif
     QDir khDir(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
     if (!khDir.exists())
@@ -321,28 +321,22 @@ MainWindow::MainWindow(QWidget *parent) :
     dbDelegate = new DbItemDelegate(this);
     ui->tableViewDB->setItemDelegate(dbDelegate);
 //    ipcClient = new KhIPCClient("bmControl",this);
-    bmAudioBackend = new MediaBackend(false, this, "BM");
-    bmAudioBackend->setName("break");
-    kAudioBackend = new MediaBackend(true, this, "KAR");
-    kAudioBackend->setName("karaoke");
-    if (kAudioBackend->canFade())
-        kAudioBackend->setUseFader(settings->audioUseFader());
-    if (!kAudioBackend->canPitchShift())
+    if (kMediaBackend.canFade())
+        kMediaBackend.setUseFader(settings->audioUseFader());
+    if (!kMediaBackend.canPitchShift())
     {
         ui->spinBoxKey->hide();
         ui->lblKey->hide();
         ui->tableViewQueue->hideColumn(7);
     }
-    if (!kAudioBackend->canChangeTempo())
+    if (!kMediaBackend.canChangeTempo())
     {
         ui->spinBoxTempo->hide();
         ui->lblTempo->hide();
     }
-    ui->videoPreview->setMediaBackends(kAudioBackend, bmAudioBackend);
-    sfxAudioBackend = new MediaBackend(false, this, "SFX");
-    audioRecorder = new AudioRecorder(this);
-    settingsDialog = new DlgSettings(kAudioBackend, bmAudioBackend, this);
-    cdgWindow = new DlgCdg(kAudioBackend, bmAudioBackend, 0, Qt::Window);
+    ui->videoPreview->setMediaBackends(&kMediaBackend, &bmMediaBackend);
+    settingsDialog = new DlgSettings(&kMediaBackend, &bmMediaBackend, this);
+    cdgWindow = new DlgCdg(&kMediaBackend, &bmMediaBackend, 0, Qt::Window);
     connect(rotModel, &RotationModel::songDroppedOnSinger, this, &MainWindow::songDroppedOnSinger);
     connect(dbDialog, &DlgDatabase::databaseUpdateComplete, this, &MainWindow::databaseUpdated);
     connect(dbDialog, &DlgDatabase::databaseAboutToUpdate, this, &MainWindow::databaseAboutToUpdate);
@@ -350,45 +344,45 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(dbDialog, &DlgDatabase::databaseSongAdded, requestsDialog, &DlgRequests::databaseSongAdded);
     connect(dbDialog, &DlgDatabase::databaseCleared, this, &MainWindow::databaseCleared);
     connect(dbDialog, &DlgDatabase::databaseCleared, regularSingersDialog, &DlgRegularSingers::regularsChanged);
-    connect(kAudioBackend, &MediaBackend::volumeChanged, ui->sliderVolume, &QSlider::setValue);
-    connect(kAudioBackend, &MediaBackend::positionChanged, this, &MainWindow::audioBackend_positionChanged);
-    connect(kAudioBackend, &MediaBackend::durationChanged, this, &MainWindow::audioBackend_durationChanged);
-    connect(kAudioBackend, &MediaBackend::stateChanged, this, &MainWindow::audioBackend_stateChanged);
-    connect(kAudioBackend, &MediaBackend::pitchChanged, ui->spinBoxKey, &QSpinBox::setValue);
-    connect(kAudioBackend, &MediaBackend::audioError, this, &MainWindow::audioError);
-    connect(kAudioBackend, &MediaBackend::silenceDetected, this, &MainWindow::silenceDetected);
-    connect(bmAudioBackend, &MediaBackend::audioError, this, &MainWindow::audioError);
-    connect(bmAudioBackend, &MediaBackend::silenceDetected, this, &MainWindow::silenceDetectedBm);
-    connect(sfxAudioBackend, &MediaBackend::positionChanged, this, &MainWindow::sfxAudioBackend_positionChanged);
-    connect(sfxAudioBackend, &MediaBackend::durationChanged, this, &MainWindow::sfxAudioBackend_durationChanged);
-    connect(sfxAudioBackend, &MediaBackend::stateChanged, this, &MainWindow::sfxAudioBackend_stateChanged);
+    connect(&kMediaBackend, &MediaBackend::volumeChanged, ui->sliderVolume, &QSlider::setValue);
+    connect(&kMediaBackend, &MediaBackend::positionChanged, this, &MainWindow::audioBackend_positionChanged);
+    connect(&kMediaBackend, &MediaBackend::durationChanged, this, &MainWindow::audioBackend_durationChanged);
+    connect(&kMediaBackend, &MediaBackend::stateChanged, this, &MainWindow::audioBackend_stateChanged);
+    connect(&kMediaBackend, &MediaBackend::pitchChanged, ui->spinBoxKey, &QSpinBox::setValue);
+    connect(&kMediaBackend, &MediaBackend::audioError, this, &MainWindow::audioError);
+    connect(&kMediaBackend, &MediaBackend::silenceDetected, this, &MainWindow::silenceDetected);
+    connect(&bmMediaBackend, &MediaBackend::audioError, this, &MainWindow::audioError);
+    connect(&bmMediaBackend, &MediaBackend::silenceDetected, this, &MainWindow::silenceDetectedBm);
+    connect(&sfxMediaBackend, &MediaBackend::positionChanged, this, &MainWindow::sfxAudioBackend_positionChanged);
+    connect(&sfxMediaBackend, &MediaBackend::durationChanged, this, &MainWindow::sfxAudioBackend_durationChanged);
+    connect(&sfxMediaBackend, &MediaBackend::stateChanged, this, &MainWindow::sfxAudioBackend_stateChanged);
     connect(rotModel, &RotationModel::rotationModified, this, &MainWindow::rotationDataChanged);
     connect(settings, &Settings::tickerOutputModeChanged, this, &MainWindow::rotationDataChanged);
     connect(settings, &Settings::audioBackendChanged, this, &MainWindow::audioBackendChanged);
     connect(settings, &Settings::cdgBgImageChanged, this, &MainWindow::onBgImageChange);
-    connect(settingsDialog, &DlgSettings::audioUseFaderChanged, kAudioBackend, &MediaBackend::setUseFader);
+    connect(settingsDialog, &DlgSettings::audioUseFaderChanged, &kMediaBackend, &MediaBackend::setUseFader);
     connect(shop, &SongShop::karaokeSongDownloaded, dbDialog, &DlgDatabase::singleSongAdd);
-    kAudioBackend->setUseFader(settings->audioUseFader());
-    connect(settingsDialog, &DlgSettings::audioSilenceDetectChanged, kAudioBackend, &MediaBackend::setUseSilenceDetection);
-    kAudioBackend->setUseSilenceDetection(settings->audioDetectSilence());
+    kMediaBackend.setUseFader(settings->audioUseFader());
+    connect(settingsDialog, &DlgSettings::audioSilenceDetectChanged, &kMediaBackend, &MediaBackend::setUseSilenceDetection);
+    kMediaBackend.setUseSilenceDetection(settings->audioDetectSilence());
 
-    connect(settingsDialog, SIGNAL(audioUseFaderChangedBm(bool)), bmAudioBackend, SLOT(setUseFader(bool)));
-    bmAudioBackend->setUseFader(settings->audioUseFaderBm());
-    connect(settingsDialog, SIGNAL(audioSilenceDetectChangedBm(bool)), bmAudioBackend, SLOT(setUseSilenceDetection(bool)));
-    bmAudioBackend->setUseSilenceDetection(settings->audioDetectSilenceBm());
+    connect(settingsDialog, &DlgSettings::audioUseFaderChangedBm, &bmMediaBackend, &MediaBackend::setUseFader);
+    bmMediaBackend.setUseFader(settings->audioUseFaderBm());
+    connect(settingsDialog, &DlgSettings::audioSilenceDetectChangedBm, &bmMediaBackend, &MediaBackend::setUseSilenceDetection);
+    bmMediaBackend.setUseSilenceDetection(settings->audioDetectSilenceBm());
 
-    connect(settingsDialog, SIGNAL(audioDownmixChanged(bool)), kAudioBackend, SLOT(setDownmix(bool)));
-    connect(settingsDialog, SIGNAL(audioDownmixChangedBm(bool)), bmAudioBackend, SLOT(setDownmix(bool)));
-    kAudioBackend->setDownmix(settings->audioDownmix());
-    bmAudioBackend->setDownmix(settings->audioDownmixBm());
-    connect(qModel, SIGNAL(queueModified(int)), rotModel, SLOT(queueModified(int)));
-    connect(requestsDialog, SIGNAL(addRequestSong(int,int,int)), qModel, SLOT(songAdd(int,int,int)));
-    connect(settings, SIGNAL(tickerCustomStringChanged()), this, SLOT(rotationDataChanged()));
+    connect(settingsDialog, &DlgSettings::audioDownmixChanged, &kMediaBackend, &MediaBackend::setDownmix);
+    connect(settingsDialog, &DlgSettings::audioDownmixChangedBm, &bmMediaBackend, &MediaBackend::setDownmix);
+    kMediaBackend.setDownmix(settings->audioDownmix());
+    bmMediaBackend.setDownmix(settings->audioDownmixBm());
+    connect(qModel, &QueueModel::queueModified, rotModel, &RotationModel::queueModified);
+    connect(requestsDialog, &DlgRequests::addRequestSong, qModel, &QueueModel::songAddSlot);
+    connect(settings, &Settings::tickerCustomStringChanged, this, &MainWindow::rotationDataChanged);
     cdgWindow->setShowBgImage(true);
-    kAudioBackend->setVideoWinId2(ui->videoPreview->winId());
-    kAudioBackend->setVideoWinId(cdgWindow->getCdgWinId());
-    bmAudioBackend->setVideoWinId2(ui->videoPreview->winId());
-    bmAudioBackend->setVideoWinId(cdgWindow->getCdgWinId());
+    kMediaBackend.setVideoWinId2(ui->videoPreview->winId());
+    kMediaBackend.setVideoWinId(cdgWindow->getCdgWinId());
+    bmMediaBackend.setVideoWinId2(ui->videoPreview->winId());
+    bmMediaBackend.setVideoWinId(cdgWindow->getCdgWinId());
     setShowBgImage(true);
     settings->restoreWindowState(cdgWindow);
     settings->restoreWindowState(requestsDialog);
@@ -420,7 +414,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewQueue->hideColumn(10);
     ui->tableViewQueue->hideColumn(11);
     ui->tableViewQueue->hideColumn(12);
-    if (!kAudioBackend->canPitchShift())
+    if (!kMediaBackend.canPitchShift())
     {
         ui->tableViewQueue->hideColumn(7);
     }
@@ -438,8 +432,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
 
-    bmAudioBackend->setUseFader(true);
-    bmAudioBackend->setUseSilenceDetection(true);
+    bmMediaBackend.setUseFader(true);
+    bmMediaBackend.setUseSilenceDetection(true);
     bmPlaylistsModel = new QSqlTableModel(this, database);
     bmPlaylistsModel->setTable("bmplaylists");
     bmPlaylistsModel->sort(2, Qt::AscendingOrder);
@@ -481,17 +475,17 @@ MainWindow::MainWindow(QWidget *parent) :
     on_actionDisplay_Metadata_toggled(settings->bmShowMetadata());
 
 
-    connect(bmAudioBackend, &MediaBackend::stateChanged, this, &MainWindow::bmMediaStateChanged);
-    connect(bmAudioBackend, &MediaBackend::positionChanged, this, &MainWindow::bmMediaPositionChanged);
-    connect(bmAudioBackend, &MediaBackend::durationChanged, this, &MainWindow::bmMediaDurationChanged);
-    connect(bmAudioBackend, &MediaBackend::volumeChanged, ui->sliderBmVolume, &QSlider::setValue);
-    connect(bmDbDialog, SIGNAL(bmDbUpdated()), this, SLOT(bmDbUpdated()));
-    connect(bmDbDialog, SIGNAL(bmDbCleared()), this, SLOT(bmDbCleared()));
-    connect(bmDbDialog, SIGNAL(bmDbAboutToUpdate()), this, SLOT(bmDatabaseAboutToUpdate()));
+    connect(&bmMediaBackend, &MediaBackend::stateChanged, this, &MainWindow::bmMediaStateChanged);
+    connect(&bmMediaBackend, &MediaBackend::positionChanged, this, &MainWindow::bmMediaPositionChanged);
+    connect(&bmMediaBackend, &MediaBackend::durationChanged, this, &MainWindow::bmMediaDurationChanged);
+    connect(&bmMediaBackend, &MediaBackend::volumeChanged, ui->sliderBmVolume, &QSlider::setValue);
+    connect(bmDbDialog, &BmDbDialog::bmDbUpdated, this, &MainWindow::bmDbUpdated);
+    connect(bmDbDialog, &BmDbDialog::bmDbCleared, this, &MainWindow::bmDbCleared);
+    connect(bmDbDialog, &BmDbDialog::bmDbAboutToUpdate, this, &MainWindow::bmDatabaseAboutToUpdate);
     ui->sliderBmVolume->setValue(initialBMVol);
-    bmAudioBackend->setVolume(initialBMVol);
+    bmMediaBackend.setVolume(initialBMVol);
     ui->sliderVolume->setValue(initialKVol);
-    kAudioBackend->setVolume(initialKVol);
+    kMediaBackend.setVolume(initialKVol);
     if (settings->mplxMode() == Multiplex_Normal)
         ui->pushButtonMplxBoth->setChecked(true);
     else if (settings->mplxMode() == Multiplex_LeftChannel)
@@ -500,8 +494,8 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->pushButtonMplxRight->setChecked(true);
     connect(&m_timerKaraokeAA, &QTimer::timeout, this, &MainWindow::karaokeAATimerTimeout);
     ui->actionAutoplay_mode->setChecked(settings->karaokeAutoAdvance());
-    connect(ui->actionAutoplay_mode, SIGNAL(toggled(bool)), settings, SLOT(setKaraokeAutoAdvance(bool)));
-    connect(settings, SIGNAL(karaokeAutoAdvanceChanged(bool)), ui->actionAutoplay_mode, SLOT(setChecked(bool)));
+    connect(ui->actionAutoplay_mode, &QAction::toggled, settings, &Settings::setKaraokeAutoAdvance);
+    connect(settings, &Settings::karaokeAutoAdvanceChanged, ui->actionAutoplay_mode, &QAction::setChecked);
 
     if ((settings->bmAutoStart()) && (bmPlModel->rowCount() > 0))
     {
@@ -521,9 +515,9 @@ MainWindow::MainWindow(QWidget *parent) :
             }
             else
                 nextSong = "None - Breaking after current song";
-            bmAudioBackend->setMedia(path);
-            bmAudioBackend->play();
-            bmAudioBackend->setVolume(ui->sliderBmVolume->value());
+            bmMediaBackend.setMedia(path);
+            bmMediaBackend.play();
+            bmMediaBackend.setVolume(ui->sliderBmVolume->value());
             ui->labelBmPlaying->setText(song);
             ui->labelBmNext->setText(nextSong);
             bmPlDelegate->setCurrentSong(bmCurrentPosition);
@@ -536,67 +530,70 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     cdgOffset = settings->cdgDisplayOffset();
 
-    connect(settings, SIGNAL(eqBBypassChanged(bool)), bmAudioBackend, SLOT(setEqBypass(bool)));
-    connect(settings, SIGNAL(eqBLevel1Changed(int)), bmAudioBackend, SLOT(setEqLevel1(int)));
-    connect(settings, SIGNAL(eqBLevel2Changed(int)), bmAudioBackend, SLOT(setEqLevel2(int)));
-    connect(settings, SIGNAL(eqBLevel3Changed(int)), bmAudioBackend, SLOT(setEqLevel3(int)));
-    connect(settings, SIGNAL(eqBLevel4Changed(int)), bmAudioBackend, SLOT(setEqLevel4(int)));
-    connect(settings, SIGNAL(eqBLevel5Changed(int)), bmAudioBackend, SLOT(setEqLevel5(int)));
-    connect(settings, SIGNAL(eqBLevel6Changed(int)), bmAudioBackend, SLOT(setEqLevel6(int)));
-    connect(settings, SIGNAL(eqBLevel7Changed(int)), bmAudioBackend, SLOT(setEqLevel7(int)));
-    connect(settings, SIGNAL(eqBLevel8Changed(int)), bmAudioBackend, SLOT(setEqLevel8(int)));
-    connect(settings, SIGNAL(eqBLevel9Changed(int)), bmAudioBackend, SLOT(setEqLevel9(int)));
-    connect(settings, SIGNAL(eqBLevel10Changed(int)), bmAudioBackend, SLOT(setEqLevel10(int)));
-    connect(settings, SIGNAL(eqKBypassChanged(bool)), kAudioBackend, SLOT(setEqBypass(bool)));
-    connect(settings, SIGNAL(eqKLevel1Changed(int)), kAudioBackend, SLOT(setEqLevel1(int)));
-    connect(settings, SIGNAL(eqKLevel2Changed(int)), kAudioBackend, SLOT(setEqLevel2(int)));
-    connect(settings, SIGNAL(eqKLevel3Changed(int)), kAudioBackend, SLOT(setEqLevel3(int)));
-    connect(settings, SIGNAL(eqKLevel4Changed(int)), kAudioBackend, SLOT(setEqLevel4(int)));
-    connect(settings, SIGNAL(eqKLevel5Changed(int)), kAudioBackend, SLOT(setEqLevel5(int)));
-    connect(settings, SIGNAL(eqKLevel6Changed(int)), kAudioBackend, SLOT(setEqLevel6(int)));
-    connect(settings, SIGNAL(eqKLevel7Changed(int)), kAudioBackend, SLOT(setEqLevel7(int)));
-    connect(settings, SIGNAL(eqKLevel8Changed(int)), kAudioBackend, SLOT(setEqLevel8(int)));
-    connect(settings, SIGNAL(eqKLevel9Changed(int)), kAudioBackend, SLOT(setEqLevel9(int)));
-    connect(settings, SIGNAL(eqKLevel10Changed(int)), kAudioBackend, SLOT(setEqLevel10(int)));
-    kAudioBackend->setEqBypass(settings->eqKBypass());
-    kAudioBackend->setEqLevel1(settings->eqKLevel1());
-    kAudioBackend->setEqLevel2(settings->eqKLevel2());
-    kAudioBackend->setEqLevel3(settings->eqKLevel3());
-    kAudioBackend->setEqLevel4(settings->eqKLevel4());
-    kAudioBackend->setEqLevel5(settings->eqKLevel5());
-    kAudioBackend->setEqLevel6(settings->eqKLevel6());
-    kAudioBackend->setEqLevel7(settings->eqKLevel7());
-    kAudioBackend->setEqLevel8(settings->eqKLevel8());
-    kAudioBackend->setEqLevel9(settings->eqKLevel9());
-    kAudioBackend->setEqLevel10(settings->eqKLevel10());
-    bmAudioBackend->setEqBypass(settings->eqBBypass());
-    bmAudioBackend->setEqLevel1(settings->eqBLevel1());
-    bmAudioBackend->setEqLevel2(settings->eqBLevel2());
-    bmAudioBackend->setEqLevel3(settings->eqBLevel3());
-    bmAudioBackend->setEqLevel4(settings->eqBLevel4());
-    bmAudioBackend->setEqLevel5(settings->eqBLevel5());
-    bmAudioBackend->setEqLevel6(settings->eqBLevel6());
-    bmAudioBackend->setEqLevel7(settings->eqBLevel7());
-    bmAudioBackend->setEqLevel8(settings->eqBLevel8());
-    bmAudioBackend->setEqLevel9(settings->eqBLevel9());
-    bmAudioBackend->setEqLevel10(settings->eqBLevel10());
-    connect(ui->lineEdit, SIGNAL(escapePressed()), ui->lineEdit, SLOT(clear()));
-    connect(ui->lineEditBmSearch, SIGNAL(escapePressed()), ui->lineEditBmSearch, SLOT(clear()));
-    connect(qModel, SIGNAL(songDroppedWithoutSinger()), this, SLOT(songDropNoSingerSel()));
-    connect(ui->splitter_3, SIGNAL(splitterMoved(int,int)), this, SLOT(autosizeViews()));
-    connect(ui->splitterBm, SIGNAL(splitterMoved(int,int)), this, SLOT(autosizeBmViews()));
+    connect(settings, &Settings::eqBBypassChanged, &bmMediaBackend, &MediaBackend::setEqBypass);
+    connect(settings, &Settings::eqBLevel1Changed, &bmMediaBackend, &MediaBackend::setEqLevel1);
+    connect(settings, &Settings::eqBLevel2Changed, &bmMediaBackend, &MediaBackend::setEqLevel2);
+    connect(settings, &Settings::eqBLevel3Changed, &bmMediaBackend, &MediaBackend::setEqLevel3);
+    connect(settings, &Settings::eqBLevel4Changed, &bmMediaBackend, &MediaBackend::setEqLevel4);
+    connect(settings, &Settings::eqBLevel5Changed, &bmMediaBackend, &MediaBackend::setEqLevel5);
+    connect(settings, &Settings::eqBLevel6Changed, &bmMediaBackend, &MediaBackend::setEqLevel6);
+    connect(settings, &Settings::eqBLevel7Changed, &bmMediaBackend, &MediaBackend::setEqLevel7);
+    connect(settings, &Settings::eqBLevel8Changed, &bmMediaBackend, &MediaBackend::setEqLevel8);
+    connect(settings, &Settings::eqBLevel9Changed, &bmMediaBackend, &MediaBackend::setEqLevel9);
+    connect(settings, &Settings::eqBLevel10Changed, &bmMediaBackend, &MediaBackend::setEqLevel10);
+    connect(settings, &Settings::eqKBypassChanged, &kMediaBackend, &MediaBackend::setEqBypass);
+    connect(settings, &Settings::eqKLevel1Changed, &kMediaBackend, &MediaBackend::setEqLevel1);
+    connect(settings, &Settings::eqKLevel2Changed, &kMediaBackend, &MediaBackend::setEqLevel2);
+    connect(settings, &Settings::eqKLevel3Changed, &kMediaBackend, &MediaBackend::setEqLevel3);
+    connect(settings, &Settings::eqKLevel4Changed, &kMediaBackend, &MediaBackend::setEqLevel4);
+    connect(settings, &Settings::eqKLevel5Changed, &kMediaBackend, &MediaBackend::setEqLevel5);
+    connect(settings, &Settings::eqKLevel6Changed, &kMediaBackend, &MediaBackend::setEqLevel6);
+    connect(settings, &Settings::eqKLevel7Changed, &kMediaBackend, &MediaBackend::setEqLevel7);
+    connect(settings, &Settings::eqKLevel8Changed, &kMediaBackend, &MediaBackend::setEqLevel8);
+    connect(settings, &Settings::eqKLevel9Changed, &kMediaBackend, &MediaBackend::setEqLevel9);
+    connect(settings, &Settings::eqKLevel10Changed, &kMediaBackend, &MediaBackend::setEqLevel10);
+    connect(settings, &Settings::enforceAspectRatioChanged, &kMediaBackend, &MediaBackend::setEnforceAspectRatio);
+    connect(settings, &Settings::enforceAspectRatioChanged, &bmMediaBackend, &MediaBackend::setEnforceAspectRatio);
+    connect(settings, &Settings::mplxModeChanged, &kMediaBackend, &MediaBackend::setMplxMode);
 
+    kMediaBackend.setEqBypass(settings->eqKBypass());
+    kMediaBackend.setEqLevel1(settings->eqKLevel1());
+    kMediaBackend.setEqLevel2(settings->eqKLevel2());
+    kMediaBackend.setEqLevel3(settings->eqKLevel3());
+    kMediaBackend.setEqLevel4(settings->eqKLevel4());
+    kMediaBackend.setEqLevel5(settings->eqKLevel5());
+    kMediaBackend.setEqLevel6(settings->eqKLevel6());
+    kMediaBackend.setEqLevel7(settings->eqKLevel7());
+    kMediaBackend.setEqLevel8(settings->eqKLevel8());
+    kMediaBackend.setEqLevel9(settings->eqKLevel9());
+    kMediaBackend.setEqLevel10(settings->eqKLevel10());
+    bmMediaBackend.setEqBypass(settings->eqBBypass());
+    bmMediaBackend.setEqLevel1(settings->eqBLevel1());
+    bmMediaBackend.setEqLevel2(settings->eqBLevel2());
+    bmMediaBackend.setEqLevel3(settings->eqBLevel3());
+    bmMediaBackend.setEqLevel4(settings->eqBLevel4());
+    bmMediaBackend.setEqLevel5(settings->eqBLevel5());
+    bmMediaBackend.setEqLevel6(settings->eqBLevel6());
+    bmMediaBackend.setEqLevel7(settings->eqBLevel7());
+    bmMediaBackend.setEqLevel8(settings->eqBLevel8());
+    bmMediaBackend.setEqLevel9(settings->eqBLevel9());
+    bmMediaBackend.setEqLevel10(settings->eqBLevel10());
+    connect(ui->lineEdit, &CustomLineEdit::escapePressed, ui->lineEdit, &CustomLineEdit::clear);
+    connect(ui->lineEditBmSearch, &CustomLineEdit::escapePressed, ui->lineEditBmSearch, &CustomLineEdit::clear);
+    connect(qModel, &QueueModel::songDroppedWithoutSinger, this, &MainWindow::songDropNoSingerSel);
+    connect(ui->splitter_3, &QSplitter::splitterMoved, [&] () { autosizeViews(); });
+    connect(ui->splitterBm, &QSplitter::splitterMoved, [&] () { autosizeBmViews(); });
     checker = new UpdateChecker(this);
-    connect(checker, SIGNAL(newVersionAvailable(QString)), this, SLOT(newVersionAvailable(QString)));
+    connect(checker, &UpdateChecker::newVersionAvailable, this, &MainWindow::newVersionAvailable);
     checker->checkForUpdates();
     connect(&m_timerButtonFlash, &QTimer::timeout, this, &MainWindow::timerButtonFlashTimeout);
     m_timerButtonFlash.start(1000);
     ui->pushButtonIncomingRequests->setVisible(settings->requestServerEnabled());
-    connect(settings, SIGNAL(requestServerEnabledChanged(bool)), ui->pushButtonIncomingRequests, SLOT(setVisible(bool)));
-    connect(ui->actionSong_Shop, SIGNAL(triggered(bool)), dlgSongShop, SLOT(show()));
+    connect(settings, &Settings::requestServerEnabledChanged, ui->pushButtonIncomingRequests, &QPushButton::setVisible);
+    connect(ui->actionSong_Shop, &QAction::triggered, [&] () { show(); });
     qInfo() << "Initial UI stup complete";
-    connect(qModel, SIGNAL(filesDroppedOnSinger(QList<QUrl>,int,int)), this, SLOT(filesDroppedOnQueue(QList<QUrl>,int,int)));
-    connect(settings, SIGNAL(applicationFontChanged(QFont)), this, SLOT(appFontChanged(QFont)));
+    connect(qModel, &QueueModel::filesDroppedOnSinger, this, &MainWindow::filesDroppedOnQueue);
+    connect(settings, &Settings::applicationFontChanged, this, &MainWindow::appFontChanged);
     QApplication::processEvents();
     QApplication::processEvents();
     appFontChanged(settings->applicationFont());
@@ -604,42 +601,38 @@ MainWindow::MainWindow(QWidget *parent) :
        autosizeViews();
        autosizeBmViews();
     });
-    scutAddSinger = new QShortcut(this);
-    scutSearch = new QShortcut(this);
-    scutRegulars = new QShortcut(this);
-    scutRequests = new QShortcut(this);
-    scutAddSinger->setKey(QKeySequence(Qt::Key_Insert));
-    scutSearch->setKey((QKeySequence(Qt::Key_Slash)));
-    scutRegulars->setKey(QKeySequence(Qt::CTRL + Qt::Key_R));
-    scutRequests->setKey(QKeySequence(Qt::CTRL + Qt::Key_Q));
-    connect(scutAddSinger, SIGNAL(activated()), this, SLOT(on_buttonAddSinger_clicked()));
-    connect(scutSearch, SIGNAL(activated()), this, SLOT(scutSearchActivated()));
-    connect(scutRegulars, SIGNAL(activated()), this, SLOT(on_buttonRegulars_clicked()));
-    connect(scutRequests, SIGNAL(activated()), this, SLOT(on_pushButtonIncomingRequests_clicked()));
-    connect(bmPlModel, SIGNAL(bmSongMoved(int,int)), this, SLOT(bmSongMoved(int,int)));
-    connect(songbookApi, SIGNAL(alertRecieved(QString, QString)), this, SLOT(showAlert(QString, QString)));
-    connect(settings, SIGNAL(cdgShowCdgWindowChanged(bool)), this, SLOT(cdgVisibilityChanged()));
-    connect(settings, SIGNAL(rotationShowNextSongChanged(bool)), this, SLOT(resizeRotation()));
+    scutAddSinger.setKey(QKeySequence(Qt::Key_Insert));
+    scutSearch.setKey((QKeySequence(Qt::Key_Slash)));
+    scutRegulars.setKey(QKeySequence(Qt::CTRL + Qt::Key_R));
+    scutRequests.setKey(QKeySequence(Qt::CTRL + Qt::Key_Q));
+    connect(&scutAddSinger, &QShortcut::activated, this, &MainWindow::on_buttonAddSinger_clicked);
+    connect(&scutSearch, &QShortcut::activated, this, &MainWindow::scutSearchActivated);
+    connect(&scutRegulars, &QShortcut::activated, this, &MainWindow::on_buttonRegulars_clicked);
+    connect(&scutRequests, &QShortcut::activated, this, &MainWindow::on_pushButtonIncomingRequests_clicked);
+    connect(bmPlModel, &BmPlTableModel::bmSongMoved, this, &MainWindow::bmSongMoved);
+    connect(songbookApi, &OKJSongbookAPI::alertRecieved, this, &MainWindow::showAlert);
+    connect(settings, &Settings::cdgShowCdgWindowChanged, this, &MainWindow::cdgVisibilityChanged);
+    connect(settings, &Settings::rotationShowNextSongChanged, [&] () { resizeRotation(); });
     SfxEntryList list = settings->getSfxEntries();
     qInfo() << "SfxEntryList size: " << list.size();
     foreach (SfxEntry entry, list) {
        addSfxButton(entry.path, entry.name);
     }
-    connect(ui->tableViewRotation->selectionModel(), SIGNAL(currentChanged(QModelIndex, QModelIndex)), this, SLOT(tableViewRotationCurrentChanged(QModelIndex, QModelIndex)));
+    connect(ui->tableViewRotation->selectionModel(), &QItemSelectionModel::currentChanged, this, &MainWindow::tableViewRotationCurrentChanged);
     rotModel->setCurrentSinger(settings->currentRotationPosition());
     rotDelegate->setCurrentSinger(settings->currentRotationPosition());
     updateRotationDuration();
     connect(&m_timerSlowUiUpdate, &QTimer::timeout, this, &MainWindow::updateRotationDuration);
     m_timerSlowUiUpdate.start(10000);
-    connect(qModel, SIGNAL(queueModified(int)), this, SLOT(updateRotationDuration()));
-    connect(settings, SIGNAL(rotationDurationSettingsModified()), this, SLOT(updateRotationDuration()));
+    connect(qModel, &QueueModel::queueModified, [&] () { updateRotationDuration(); });
+    connect(settings, &Settings::rotationDurationSettingsModified, this, &MainWindow::updateRotationDuration);
     cdgWindow->setShowBgImage(true);
     lazyDurationUpdater = new LazyDurationUpdateController(this);
     if (settings->dbLazyLoadDurations())
         lazyDurationUpdater->getDurations();
     if (settings->showCdgWindow())
         ui->btnToggleCdgWindow->setText("Hide CDG Window");
-    connect(ui->tableViewRotation->selectionModel(), SIGNAL(selectionChanged(QItemSelection, QItemSelection)), this, SLOT(rotationSelectionChanged(QItemSelection, QItemSelection)));
+    connect(ui->tableViewRotation->selectionModel(), &QItemSelectionModel::selectionChanged, this, &MainWindow::rotationSelectionChanged);
     previewEnabled = settings->previewEnabled();
     connect(settings, &Settings::previewEnabledChanged, this, &MainWindow::previewEnabledChanged);
 
@@ -662,21 +655,21 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 }
 
-void MainWindow::play(QString karaokeFilePath, bool k2k)
+void MainWindow::play(const QString &karaokeFilePath, const bool &k2k)
 {
     khTmpDir->remove();
     delete khTmpDir;
     khTmpDir = new QTemporaryDir();
-    if (kAudioBackend->state() != MediaBackend::PausedState)
+    if (kMediaBackend.state() != MediaBackend::PausedState)
     {
-        if (kAudioBackend->state() == MediaBackend::PlayingState)
+        if (kMediaBackend.state() == MediaBackend::PlayingState)
         {
             if (settings->karaokeAutoAdvance())
             {
                 kAASkip = true;
                 cdgWindow->showAlert(false);
             }
-            kAudioBackend->stop();
+            kMediaBackend.stop();
         }
         if (karaokeFilePath.endsWith(".zip", Qt::CaseInsensitive))
         {
@@ -701,13 +694,13 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
                     cdgWindow->setShowBgImage(false);
                     setShowBgImage(false);
                     qInfo() << "Setting karaoke backend source file to: " << audioFile;
-                    kAudioBackend->setMediaCdg(cdgFile, audioFile);
+                    kMediaBackend.setMediaCdg(cdgFile, audioFile);
                     if (!k2k)
-                        bmAudioBackend->fadeOut(!settings->bmKCrossFade());
+                        bmMediaBackend.fadeOut(!settings->bmKCrossFade());
                     qInfo() << "Beginning playback of file: " << audioFile;
-                    bmAudioBackend->videoMute(true);
-                    kAudioBackend->play();
-                    kAudioBackend->fadeInImmediate();
+                    bmMediaBackend.videoMute(true);
+                    kMediaBackend.play();
+                    kMediaBackend.fadeInImmediate();
                 }
             }
             else
@@ -745,12 +738,12 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
             }
             cdgFile.copy(khTmpDir->path() + QDir::separator() + cdgTmpFile);
             QFile::copy(audiofn, khTmpDir->path() + QDir::separator() + audTmpFile);
-            kAudioBackend->setMediaCdg(khTmpDir->path() + QDir::separator() + cdgTmpFile, khTmpDir->path() + QDir::separator() + audTmpFile);
+            kMediaBackend.setMediaCdg(khTmpDir->path() + QDir::separator() + cdgTmpFile, khTmpDir->path() + QDir::separator() + audTmpFile);
             if (!k2k)
-                bmAudioBackend->fadeOut(!settings->bmKCrossFade());
-            bmAudioBackend->videoMute(true);
-            kAudioBackend->play();
-            kAudioBackend->fadeInImmediate();
+                bmMediaBackend.fadeOut(!settings->bmKCrossFade());
+            bmMediaBackend.videoMute(true);
+            kMediaBackend.play();
+            kMediaBackend.fadeInImmediate();
         }
         else
         {
@@ -759,26 +752,26 @@ void MainWindow::play(QString karaokeFilePath, bool k2k)
             QString tmpFileName = khTmpDir->path() + QDir::separator() + "tmpvid." + karaokeFilePath.right(4);
             QFile::copy(karaokeFilePath, tmpFileName);
             qInfo() << "Playing temporary copy to avoid bad filename stuff w/ gstreamer: " << tmpFileName;
-            kAudioBackend->setMedia(tmpFileName);
+            kMediaBackend.setMedia(tmpFileName);
             if (!k2k)
-                bmAudioBackend->fadeOut();
-            bmAudioBackend->videoMute(true);
-            kAudioBackend->play();
-            kAudioBackend->fadeInImmediate();
+                bmMediaBackend.fadeOut();
+            bmMediaBackend.videoMute(true);
+            kMediaBackend.play();
+            kMediaBackend.fadeInImmediate();
         }
         if (settings->recordingEnabled())
         {
             qInfo() << "Starting recording";
             QString timeStamp = QDateTime::currentDateTime().toString("yyyy-MM-dd-hhmm");
-            audioRecorder->record(curSinger + " - " + curArtist + " - " + curTitle + " - " + timeStamp);
+            audioRecorder.record(curSinger + " - " + curArtist + " - " + curTitle + " - " + timeStamp);
         }
     }
-    else if (kAudioBackend->state() == MediaBackend::PausedState)
+    else if (kMediaBackend.state() == MediaBackend::PausedState)
     {
         if (settings->recordingEnabled())
-            audioRecorder->unpause();
-        kAudioBackend->play();
-        kAudioBackend->fadeIn(false);
+            audioRecorder.unpause();
+        kMediaBackend.play();
+        kMediaBackend.fadeIn(false);
     }
     k2kTransition = false;
     if (settings->karaokeAutoAdvance())
@@ -871,7 +864,7 @@ void MainWindow::databaseCleared()
 
 void MainWindow::on_buttonStop_clicked()
 {
-    if (kAudioBackend->state() == MediaBackend::PlayingState)
+    if (kMediaBackend.state() == MediaBackend::PlayingState)
     {
         if (settings->showSongPauseStopWarning())
         {
@@ -884,7 +877,7 @@ void MainWindow::on_buttonStop_clicked()
             QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
             msgBox.addButton(QMessageBox::Cancel);
             msgBox.setCheckBox(cb);
-            connect(cb, SIGNAL(toggled(bool)), settings, SLOT(setShowSongPauseStopWarning(bool)));
+            connect(cb, &QCheckBox::toggled, settings, &Settings::setShowSongPauseStopWarning);
             msgBox.exec();
             if (msgBox.clickedButton() != yesButton)
             {
@@ -894,27 +887,27 @@ void MainWindow::on_buttonStop_clicked()
     }
     kAASkip = true;
     cdgWindow->showAlert(false);
-    audioRecorder->stop();
+    audioRecorder.stop();
     if (settings->bmKCrossFade())
     {
-        bmAudioBackend->fadeIn(false);
-        kAudioBackend->stop();
+        bmMediaBackend.fadeIn(false);
+        kMediaBackend.stop();
     }
     else
     {
-        kAudioBackend->stop();
-        bmAudioBackend->fadeIn();
+        kMediaBackend.stop();
+        bmMediaBackend.fadeIn();
     }
 //    ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
 }
 
 void MainWindow::on_buttonPause_clicked()
 {
-    if (kAudioBackend->state() == MediaBackend::PausedState)
+    if (kMediaBackend.state() == MediaBackend::PausedState)
     {
-        kAudioBackend->play();
+        kMediaBackend.play();
     }
-    else if (kAudioBackend->state() == MediaBackend::PlayingState)
+    else if (kMediaBackend.state() == MediaBackend::PlayingState)
     {
         if (settings->showSongPauseStopWarning())
         {
@@ -927,14 +920,14 @@ void MainWindow::on_buttonPause_clicked()
             QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
             msgBox.addButton(QMessageBox::Cancel);
             msgBox.setCheckBox(cb);
-            connect(cb, SIGNAL(toggled(bool)), settings, SLOT(setShowSongPauseStopWarning(bool)));
+            connect(cb, &QCheckBox::toggled, settings, &Settings::setShowSongPauseStopWarning);
             msgBox.exec();
             if (msgBox.clickedButton() != yesButton)
             {
                 return;
             }
         }
-        kAudioBackend->pause();
+        kMediaBackend.pause();
     }
 }
 
@@ -973,7 +966,7 @@ void MainWindow::on_tableViewRotation_doubleClicked(const QModelIndex &index)
         QString nextSongPath = rotModel->nextSongPath(singerId);
         if (nextSongPath != "")
         {
-            if ((kAudioBackend->state() == MediaBackend::PlayingState) && (settings->showSongInterruptionWarning()))
+            if ((kMediaBackend.state() == MediaBackend::PlayingState) && (settings->showSongInterruptionWarning()))
             {
                 QMessageBox msgBox(this);
                 QCheckBox *cb = new QCheckBox("Show this warning in the future");
@@ -984,7 +977,7 @@ void MainWindow::on_tableViewRotation_doubleClicked(const QModelIndex &index)
                 QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
                 msgBox.addButton(QMessageBox::Cancel);
                 msgBox.setCheckBox(cb);
-                connect(cb, SIGNAL(toggled(bool)), settings, SLOT(setShowSongInterruptionWarning(bool)));
+                connect(cb, &QCheckBox::toggled, settings, &Settings::setShowSongInterruptionWarning);
                 msgBox.exec();
                 if (msgBox.clickedButton() != yesButton)
                 {
@@ -992,18 +985,18 @@ void MainWindow::on_tableViewRotation_doubleClicked(const QModelIndex &index)
                 }
                 k2kTransition = true;
             }
-            if (kAudioBackend->state() == MediaBackend::PausedState)
+            if (kMediaBackend.state() == MediaBackend::PausedState)
             {
                 if (settings->karaokeAutoAdvance())
                 {
                     kAASkip = true;
                     cdgWindow->showAlert(false);
                 }
-                audioRecorder->stop();
-                kAudioBackend->stop(true);
+                audioRecorder.stop();
+                kMediaBackend.stop(true);
             }
  //           play(nextSongPath);
- //           kAudioBackend->setPitchShift(rotModel->nextSongKeyChg(singerId));
+ //           kAudioBackend.setPitchShift(rotModel->nextSongKeyChg(singerId));
             rotDelegate->setCurrentSinger(singerId);
             rotModel->setCurrentSinger(singerId);
             curSinger = rotModel->getSingerName(singerId);
@@ -1013,7 +1006,7 @@ void MainWindow::on_tableViewRotation_doubleClicked(const QModelIndex &index)
             ui->labelTitle->setText(curTitle);
             ui->labelSinger->setText(curSinger);
             play(nextSongPath, k2kTransition);
-            kAudioBackend->setPitchShift(rotModel->nextSongKeyChg(singerId));
+            kMediaBackend.setPitchShift(rotModel->nextSongKeyChg(singerId));
             qModel->songSetPlayed(rotModel->nextSongQueueId(singerId));
         }
     }
@@ -1034,7 +1027,7 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
             QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
             msgBox.addButton(QMessageBox::Cancel);
             msgBox.setCheckBox(cb);
-            connect(cb, SIGNAL(toggled(bool)), settings, SLOT(setShowSingerRemovalWarning(bool)));
+            connect(cb, &QCheckBox::toggled, settings, &Settings::setShowSingerRemovalWarning);
             msgBox.exec();
             if (msgBox.clickedButton() != yesButton)
             {
@@ -1083,7 +1076,7 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
 void MainWindow::on_tableViewQueue_doubleClicked(const QModelIndex &index)
 {
     k2kTransition = false;
-    if (kAudioBackend->state() == MediaBackend::PlayingState)
+    if (kMediaBackend.state() == MediaBackend::PlayingState)
     {
         if (settings->showSongInterruptionWarning())
         {
@@ -1096,7 +1089,7 @@ void MainWindow::on_tableViewQueue_doubleClicked(const QModelIndex &index)
             QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
             msgBox.addButton(QMessageBox::Cancel);
             msgBox.setCheckBox(cb);
-            connect(cb, SIGNAL(toggled(bool)), settings, SLOT(setShowSongInterruptionWarning(bool)));
+            connect(cb, &QCheckBox::toggled, settings, &Settings::setShowSongInterruptionWarning);
             msgBox.exec();
             if (msgBox.clickedButton() != yesButton)
             {
@@ -1105,15 +1098,15 @@ void MainWindow::on_tableViewQueue_doubleClicked(const QModelIndex &index)
         }
         k2kTransition = true;
     }
-    if (kAudioBackend->state() == MediaBackend::PausedState)
+    if (kMediaBackend.state() == MediaBackend::PausedState)
     {
         if (settings->karaokeAutoAdvance())
         {
             kAASkip = true;
             cdgWindow->showAlert(false);
         }
-        audioRecorder->stop();
-        kAudioBackend->stop(true);
+        audioRecorder.stop();
+        kMediaBackend.stop(true);
     }
     curSinger = rotModel->getSingerName(index.sibling(index.row(),1).data().toInt());
     curArtist = index.sibling(index.row(),3).data().toString();
@@ -1124,7 +1117,7 @@ void MainWindow::on_tableViewQueue_doubleClicked(const QModelIndex &index)
     rotModel->setCurrentSinger(index.sibling(index.row(),1).data().toInt());
     rotDelegate->setCurrentSinger(index.sibling(index.row(),1).data().toInt());
     play(index.sibling(index.row(), 6).data().toString(), k2kTransition);
-    kAudioBackend->setPitchShift(index.sibling(index.row(),7).data().toInt());
+    kMediaBackend.setPitchShift(index.sibling(index.row(),7).data().toInt());
     qModel->songSetPlayed(index.sibling(index.row(),0).data().toInt());
 }
 
@@ -1158,7 +1151,7 @@ void MainWindow::on_actionIncoming_Requests_triggered()
     requestsDialog->show();
 }
 
-void MainWindow::songDroppedOnSinger(int singerId, int songId, int dropRow)
+void MainWindow::songDroppedOnSinger(const int &singerId, const int &songId, const int &dropRow)
 {
     qModel->setSinger(singerId);
     qModel->songAdd(songId);
@@ -1192,7 +1185,7 @@ void MainWindow::on_tableViewQueue_clicked(const QModelIndex &index)
             QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
             msgBox.addButton(QMessageBox::Cancel);
             msgBox.setCheckBox(cb);
-            connect(cb, SIGNAL(toggled(bool)), settings, SLOT(setShowQueueRemovalWarning(bool)));
+            connect(cb, &QCheckBox::toggled, settings, &Settings::setShowQueueRemovalWarning);
             msgBox.exec();
             if (msgBox.clickedButton() == yesButton)
             {
@@ -1206,7 +1199,7 @@ void MainWindow::on_tableViewQueue_clicked(const QModelIndex &index)
     }
 }
 
-void MainWindow::notify_user(QString message)
+void MainWindow::notify_user(const QString &message)
 {
     QMessageBox msgbox(this);
     msgbox.setText(message);
@@ -1251,11 +1244,11 @@ void MainWindow::on_buttonClearQueue_clicked()
     }
 }
 
-void MainWindow::on_spinBoxKey_valueChanged(int arg1)
+void MainWindow::on_spinBoxKey_valueChanged(const int &arg1)
 {
-    if ((kAudioBackend->state() == MediaBackend::PlayingState) || (kAudioBackend->state() == MediaBackend::PausedState))
+    if ((kMediaBackend.state() == MediaBackend::PlayingState) || (kMediaBackend.state() == MediaBackend::PausedState))
     {
-        kAudioBackend->setPitchShift(arg1);
+        kMediaBackend.setPitchShift(arg1);
         if (arg1 > 0)
             ui->spinBoxKey->setPrefix("+");
         else
@@ -1265,27 +1258,27 @@ void MainWindow::on_spinBoxKey_valueChanged(int arg1)
         ui->spinBoxKey->setValue(0);
 }
 
-void MainWindow::audioBackend_positionChanged(qint64 position)
+void MainWindow::audioBackend_positionChanged(const qint64 &position)
 {
-    if (kAudioBackend->state() == MediaBackend::PlayingState)
+    if (kMediaBackend.state() == MediaBackend::PlayingState)
     {
         if (!sliderPositionPressed)
         {
-            ui->sliderProgress->setMaximum(kAudioBackend->duration());
+            ui->sliderProgress->setMaximum(kMediaBackend.duration());
             ui->sliderProgress->setValue(position);
         }
-        ui->labelElapsedTime->setText(kAudioBackend->msToMMSS(position));
-        ui->labelRemainTime->setText(kAudioBackend->msToMMSS(kAudioBackend->duration() - position));
-        remainSecs = (kAudioBackend->duration() - position) / 1000;
+        ui->labelElapsedTime->setText(kMediaBackend.msToMMSS(position));
+        ui->labelRemainTime->setText(kMediaBackend.msToMMSS(kMediaBackend.duration() - position));
+        remainSecs = (kMediaBackend.duration() - position) / 1000;
     }
 }
 
-void MainWindow::audioBackend_durationChanged(qint64 duration)
+void MainWindow::audioBackend_durationChanged(const qint64 &duration)
 {
-    ui->labelTotalTime->setText(kAudioBackend->msToMMSS(duration));
+    ui->labelTotalTime->setText(kMediaBackend.msToMMSS(duration));
 }
 
-void MainWindow::audioBackend_stateChanged(MediaBackend::State state)
+void MainWindow::audioBackend_stateChanged(const MediaBackend::State &state)
 {
     qInfo() << "MainWindow - audioBackend_stateChanged(" << state << ") triggered";
     if (state == MediaBackend::StoppedState)
@@ -1297,8 +1290,8 @@ void MainWindow::audioBackend_stateChanged(MediaBackend::State state)
             return;
         }
         qInfo() << "KAudio entered StoppedState";
-        bmAudioBackend->videoMute(false);
-        audioRecorder->stop();
+        bmMediaBackend.videoMute(false);
+        audioRecorder.stop();
         if (k2kTransition)
             return;
         ui->labelArtist->setText("None");
@@ -1315,7 +1308,7 @@ void MainWindow::audioBackend_stateChanged(MediaBackend::State state)
         if (state == m_lastAudioState)
             return;
         m_lastAudioState = state;
-        bmAudioBackend->fadeIn(false);
+        bmMediaBackend.fadeIn(false);
         if (settings->karaokeAutoAdvance())
         {
             qInfo() << " - Karaoke Autoplay is enabled";
@@ -1376,23 +1369,23 @@ void MainWindow::audioBackend_stateChanged(MediaBackend::State state)
     if (state == MediaBackend::EndOfMediaState)
     {
         qInfo() << "KAudio entered EndOfMediaState";
-        audioRecorder->stop();
+        audioRecorder.stop();
 //        ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
-        bmAudioBackend->videoMute(false);
-        kAudioBackend->stop(true);
-        bmAudioBackend->fadeIn(false);
+        bmMediaBackend.videoMute(false);
+        kMediaBackend.stop(true);
+        bmMediaBackend.fadeIn(false);
         cdgWindow->setShowBgImage(true);
     }
     if (state == MediaBackend::PausedState)
     {
         qInfo() << "KAudio entered PausedState";
-            audioRecorder->pause();
+            audioRecorder.pause();
     }
     if (state == MediaBackend::PlayingState)
     {
         qInfo() << "KAudio entered PlayingState";
         m_lastAudioState = state;
-        bmAudioBackend->videoMute(true);
+        bmMediaBackend.videoMute(true);
         cdgWindow->setShowBgImage(false);
     }
     if (state == MediaBackend::UnknownState)
@@ -1402,28 +1395,28 @@ void MainWindow::audioBackend_stateChanged(MediaBackend::State state)
     rotationDataChanged();
 }
 
-void MainWindow::sfxAudioBackend_positionChanged(qint64 position)
+void MainWindow::sfxAudioBackend_positionChanged(const qint64 &position)
 {
     ui->sliderSfxPos->setValue(position);
 }
 
-void MainWindow::sfxAudioBackend_durationChanged(qint64 duration)
+void MainWindow::sfxAudioBackend_durationChanged(const qint64 &duration)
 {
     ui->sliderSfxPos->setMaximum(duration);
 }
 
-void MainWindow::sfxAudioBackend_stateChanged(MediaBackend::State state)
+void MainWindow::sfxAudioBackend_stateChanged(const MediaBackend::State &state)
 {
     if (state == MediaBackend::EndOfMediaState)
     {
         ui->sliderSfxPos->setValue(0);
-        sfxAudioBackend->stop();
+        sfxMediaBackend.stop();
     }
     if (state == MediaBackend::StoppedState || state == MediaBackend::UnknownState)
         ui->sliderSfxPos->setValue(0);
 }
 
-void MainWindow::on_sliderProgress_sliderMoved(int position)
+void MainWindow::on_sliderProgress_sliderMoved(const int &position)
 {
     Q_UNUSED(position);
 }
@@ -1533,27 +1526,27 @@ void MainWindow::rotationDataChanged()
 
 void MainWindow::silenceDetected()
 {
-    qInfo() << "Detected silence.  Cur Pos: " << kAudioBackend->position() << " Last CDG update pos: " << kAudioBackend->getCdgLastDraw();
-    if (kAudioBackend->isCdgMode() && kAudioBackend->getCdgLastDraw() < kAudioBackend->position())
+    qInfo() << "Detected silence.  Cur Pos: " << kMediaBackend.position() << " Last CDG update pos: " << kMediaBackend.getCdgLastDraw();
+    if (kMediaBackend.isCdgMode() && kMediaBackend.getCdgLastDraw() < kMediaBackend.position())
     {
-        kAudioBackend->rawStop();
+        kMediaBackend.rawStop();
         if (settings->karaokeAutoAdvance())
             kAASkip = false;
 //        ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
-        bmAudioBackend->fadeIn();
+        bmMediaBackend.fadeIn();
     }
 }
 
 void MainWindow::silenceDetectedBm()
 {
-    if (bmAudioBackend->position() > 10000 && bmAudioBackend->position() < (bmAudioBackend->duration() - 3))
+    if (bmMediaBackend.position() > 10000 && bmMediaBackend.position() < (bmMediaBackend.duration() - 3))
     {
         qInfo() << "Break music silence detected, reporting EndOfMediaState to trigger playlist advance";
         bmMediaStateChanged(MediaBackend::EndOfMediaState);
     }
 }
 
-void MainWindow::audioBackendChanged(int index)
+void MainWindow::audioBackendChanged(const int &index)
 {
     Q_UNUSED(index)
     //kAudioBackend = audioBackends->at(index);
@@ -1566,10 +1559,10 @@ void MainWindow::on_tableViewDB_customContextMenuRequested(const QPoint &pos)
     {
         dbRtClickFile = index.sibling(index.row(), 5).data().toString();
         QMenu contextMenu(this);
-        contextMenu.addAction("Preview", this, SLOT(previewCdg()));
+        contextMenu.addAction("Preview", this, &MainWindow::previewCdg);
         contextMenu.addSeparator();
-        contextMenu.addAction("Edit", this, SLOT(editSong()));
-        contextMenu.addAction("Mark bad", this, SLOT(markSongBad()));
+        contextMenu.addAction("Edit", this, &MainWindow::editSong);
+        contextMenu.addAction("Mark bad", this, &MainWindow::markSongBad);
         contextMenu.exec(QCursor::pos());
     }
 }
@@ -1581,7 +1574,7 @@ void MainWindow::on_tableViewRotation_customContextMenuRequested(const QPoint &p
     {
            m_rtClickRotationSingerId = index.sibling(index.row(),0).data().toInt();
            QMenu contextMenu(this);
-           contextMenu.addAction("Rename", this, SLOT(renameSinger()));
+           contextMenu.addAction("Rename", this, &MainWindow::renameSinger);
            contextMenu.exec(QCursor::pos());
     }
 }
@@ -1593,7 +1586,7 @@ void MainWindow::sfxButton_customContextMenuRequested(const QPoint &pos)
     lastRtClickedSfxBtn.path = btn->buttonData().toString();
     lastRtClickedSfxBtn.name = btn->text();
     QMenu contextMenu(this);
-    contextMenu.addAction("Remove", this, SLOT(removeSfxButton()));
+    contextMenu.addAction("Remove", this, &MainWindow::removeSfxButton);
     contextMenu.exec(QCursor::pos());
 }
 
@@ -1633,17 +1626,17 @@ void MainWindow::on_tableViewQueue_customContextMenuRequested(const QPoint &pos)
             m_rtClickQueueSongId = index.sibling(index.row(), 0).data().toInt();
             dlgKeyChange->setActiveSong(m_rtClickQueueSongId);
             QMenu contextMenu(this);
-            contextMenu.addAction("Preview", this, SLOT(previewCdg()));
-            contextMenu.addAction("Set Key Change", this, SLOT(setKeyChange()));
-            contextMenu.addAction("Toggle played", this, SLOT(toggleQueuePlayed()));
+            contextMenu.addAction("Preview", this, &MainWindow::previewCdg);
+            contextMenu.addAction("Set Key Change", this, &MainWindow::setKeyChange);
+            contextMenu.addAction("Toggle played", this, &MainWindow::toggleQueuePlayed);
             contextMenu.exec(QCursor::pos());
         }
     }
     else if (selCount > 1)
     {
         QMenu contextMenu(this);
-        contextMenu.addAction("Set Played", this, SLOT(setMultiPlayed()));
-        contextMenu.addAction("Set Unplayed", this, SLOT(setMultiUnplayed()));
+        contextMenu.addAction("Set Played", this, &MainWindow::setMultiPlayed);
+        contextMenu.addAction("Set Unplayed", this, &MainWindow::setMultiUnplayed);
         contextMenu.exec(QCursor::pos());
     }
 }
@@ -1655,7 +1648,7 @@ void MainWindow::on_sliderProgress_sliderPressed()
 
 void MainWindow::on_sliderProgress_sliderReleased()
 {
-    kAudioBackend->setPosition(ui->sliderProgress->value());
+    kMediaBackend.setPosition(ui->sliderProgress->value());
     sliderPositionPressed = false;
 }
 
@@ -1670,12 +1663,12 @@ void MainWindow::toggleQueuePlayed()
     updateRotationDuration();
 }
 
-void MainWindow::regularNameConflict(QString name)
+void MainWindow::regularNameConflict(const QString &name)
 {
     QMessageBox::warning(this, "Regular singer exists!","A regular singer named " + name + " already exists. You must either delete or rename the existing regular first, or rename the new regular singer and try again. The operation has been cancelled.",QMessageBox::Ok);
 }
 
-void MainWindow::regularAddError(QString errorText)
+void MainWindow::regularAddError(const QString &errorText)
 {
     QMessageBox::warning(this, "Error adding regular singer!", errorText,QMessageBox::Ok);
 }
@@ -2014,7 +2007,7 @@ void MainWindow::markSongBad()
     }
 }
 
-void MainWindow::setShowBgImage(bool show)
+void MainWindow::setShowBgImage(const bool &show)
 {
     if (show)
     {
@@ -2028,7 +2021,7 @@ void MainWindow::setShowBgImage(bool show)
 
 void MainWindow::onBgImageChange()
 {
-   if (kAudioBackend->state() == MediaBackend::StoppedState)
+   if (kMediaBackend.state() == MediaBackend::StoppedState)
        cdgWindow->setShowBgImage(true);
 }
 
@@ -2051,7 +2044,7 @@ void MainWindow::karaokeAATimerTimeout()
         ui->labelTitle->setText(curTitle);
         ui->labelSinger->setText(curSinger);
         play(kAANextSongPath);
-        kAudioBackend->setPitchShift(rotModel->nextSongKeyChg(kAANextSinger));
+        kMediaBackend.setPitchShift(rotModel->nextSongKeyChg(kAANextSinger));
         qModel->songSetPlayed(rotModel->nextSongQueueId(kAANextSinger));
     }
 }
@@ -2190,7 +2183,7 @@ void MainWindow::bmDbCleared()
     ui->tableViewBmDb->horizontalHeader()->resizeSection(5,75);
 }
 
-void MainWindow::bmShowMetadata(bool checked)
+void MainWindow::bmShowMetadata(const bool &checked)
 {
     ui->tableViewBmDb->setColumnHidden(1, !checked);
     ui->tableViewBmDb->setColumnHidden(2, !checked);
@@ -2204,7 +2197,7 @@ void MainWindow::bmShowMetadata(bool checked)
 }
 
 
-void MainWindow::bmShowFilenames(bool checked)
+void MainWindow::bmShowFilenames(const bool &checked)
 {
     ui->tableViewBmDb->setColumnHidden(4, !checked);
     ui->tableViewBmDb->horizontalHeader()->resizeSection(4, 100);
@@ -2218,7 +2211,7 @@ void MainWindow::on_actionManage_Break_DB_triggered()
     bmDbDialog->show();
 }
 
-void MainWindow::bmMediaStateChanged(MediaBackend::State newState)
+void MainWindow::bmMediaStateChanged(const MediaBackend::State &newState)
 {
     static MediaBackend::State lastState = MediaBackend::StoppedState;
     if (newState != lastState)
@@ -2228,7 +2221,7 @@ void MainWindow::bmMediaStateChanged(MediaBackend::State newState)
         {
             if (ui->checkBoxBmBreak->isChecked())
             {
-                bmAudioBackend->stop(true);
+                bmMediaBackend.stop(true);
                 ui->checkBoxBmBreak->setChecked(false);
                 return;
             }
@@ -2236,7 +2229,7 @@ void MainWindow::bmMediaStateChanged(MediaBackend::State newState)
                 bmCurrentPosition++;
             else
                 bmCurrentPosition = 0;
-            bmAudioBackend->stop(true);
+            bmMediaBackend.stop(true);
             QString path = bmPlModel->index(bmCurrentPosition, 7).data().toString();
             QString song = bmPlModel->index(bmCurrentPosition, 3).data().toString() + " - " + bmPlModel->index(bmCurrentPosition, 4).data().toString();
             QString nextSong;
@@ -2250,9 +2243,9 @@ void MainWindow::bmMediaStateChanged(MediaBackend::State newState)
             else
                 nextSong = "None - Breaking after current song";
             qInfo() << "Break music auto-advancing to song: " << path;
-            bmAudioBackend->setMedia(path);
-            bmAudioBackend->play();
-            bmAudioBackend->setVolume(ui->sliderBmVolume->value());
+            bmMediaBackend.setMedia(path);
+            bmMediaBackend.play();
+            bmMediaBackend.setVolume(ui->sliderBmVolume->value());
             ui->labelBmPlaying->setText(song);
             ui->labelBmNext->setText(nextSong);
             bmPlDelegate->setCurrentSong(bmCurrentPosition);
@@ -2266,7 +2259,7 @@ void MainWindow::bmMediaStateChanged(MediaBackend::State newState)
             ui->labelBmRemaining->setText("00:00");
             ui->labelBmPosition->setText("00:00");
             ui->sliderBmPosition->setValue(0);
-            if (kAudioBackend->state() != MediaBackend::PlayingState)
+            if (kMediaBackend.state() != MediaBackend::PlayingState)
             {
                 setShowBgImage(true);
                 cdgWindow->setShowBgImage(true);
@@ -2276,17 +2269,17 @@ void MainWindow::bmMediaStateChanged(MediaBackend::State newState)
     }
 }
 
-void MainWindow::bmMediaPositionChanged(qint64 position)
+void MainWindow::bmMediaPositionChanged(const qint64 &position)
 {
     if (!sliderBmPositionPressed)
     {
         ui->sliderBmPosition->setValue(position);
     }
     ui->labelBmPosition->setText(QTime(0,0,0,0).addMSecs(position).toString("m:ss"));
-    ui->labelBmRemaining->setText(QTime(0,0,0,0).addMSecs(bmAudioBackend->duration() - position).toString("m:ss"));
+    ui->labelBmRemaining->setText(QTime(0,0,0,0).addMSecs(bmMediaBackend.duration() - position).toString("m:ss"));
 }
 
-void MainWindow::bmMediaDurationChanged(qint64 duration)
+void MainWindow::bmMediaDurationChanged(const qint64 &duration)
 {
     ui->sliderBmPosition->setMaximum(duration);
     ui->labelBmDuration->setText(QTime(0,0,0,0).addMSecs(duration).toString("m:ss"));
@@ -2298,7 +2291,7 @@ void MainWindow::on_tableViewBmPlaylist_clicked(const QModelIndex &index)
     {
         if (bmCurrentPosition == index.row())
         {
-            if (bmAudioBackend->state() != MediaBackend::PlayingState && bmAudioBackend->state() != MediaBackend::PausedState)
+            if (bmMediaBackend.state() != MediaBackend::PlayingState && bmMediaBackend.state() != MediaBackend::PausedState)
             {
                 bmPlDelegate->setCurrentSong(-1);
                 bmCurrentPosition = -1;
@@ -2334,13 +2327,13 @@ void MainWindow::on_tableViewBmPlaylist_clicked(const QModelIndex &index)
     }
 }
 
-void MainWindow::on_comboBoxBmPlaylists_currentIndexChanged(int index)
+void MainWindow::on_comboBoxBmPlaylists_currentIndexChanged(const int &index)
 {
     bmCurrentPlaylist = bmPlaylistsModel->index(index, 0).data().toInt();
     bmPlModel->setCurrentPlaylist(bmCurrentPlaylist);
 }
 
-void MainWindow::on_checkBoxBmBreak_toggled(bool checked)
+void MainWindow::on_checkBoxBmBreak_toggled(const bool &checked)
 {
     QString nextSong;
     if (!checked)
@@ -2363,7 +2356,7 @@ void MainWindow::on_tableViewBmDb_doubleClicked(const QModelIndex &index)
 
 void MainWindow::on_buttonBmStop_clicked()
 {
-    bmAudioBackend->stop(false);
+    bmMediaBackend.stop(false);
 }
 
 void MainWindow::on_lineEditBmSearch_returnPressed()
@@ -2373,8 +2366,8 @@ void MainWindow::on_lineEditBmSearch_returnPressed()
 
 void MainWindow::on_tableViewBmPlaylist_doubleClicked(const QModelIndex &index)
 {
-    if (bmAudioBackend->state() == MediaBackend::PlayingState)
-        bmAudioBackend->stop(false);
+    if (bmMediaBackend.state() == MediaBackend::PlayingState)
+        bmMediaBackend.stop(false);
     bmCurrentPosition = index.row();
     QString path = index.sibling(index.row(), 7).data().toString();
     QString song = index.sibling(index.row(), 3).data().toString() + " - " + index.sibling(index.row(), 4).data().toString();
@@ -2388,22 +2381,22 @@ void MainWindow::on_tableViewBmPlaylist_doubleClicked(const QModelIndex &index)
     }
     else
         nextSong = "None - Breaking after current song";
-    bmAudioBackend->setMedia(path);
-    bmAudioBackend->play();
-    if (kAudioBackend->state() != MediaBackend::PlayingState)
-        bmAudioBackend->fadeInImmediate();
+    bmMediaBackend.setMedia(path);
+    bmMediaBackend.play();
+    if (kMediaBackend.state() != MediaBackend::PlayingState)
+        bmMediaBackend.fadeInImmediate();
     ui->labelBmPlaying->setText(song);
     ui->labelBmNext->setText(nextSong);
     bmPlDelegate->setCurrentSong(index.row());
     bmPlModel->select();
 }
 
-void MainWindow::on_buttonBmPause_clicked(bool checked)
+void MainWindow::on_buttonBmPause_clicked(const bool &checked)
 {
     if (checked)
-        bmAudioBackend->pause();
+        bmMediaBackend.pause();
     else
-        bmAudioBackend->play();
+        bmMediaBackend.play();
 }
 
 bool MainWindow::bmPlaylistExists(QString name)
@@ -2424,7 +2417,7 @@ void MainWindow::refreshSongDbCache()
     query.exec("CREATE TABLE mem.dbsongs AS SELECT * FROM main.dbsongs");
 }
 
-void MainWindow::on_actionDisplay_Metadata_toggled(bool arg1)
+void MainWindow::on_actionDisplay_Metadata_toggled(const bool &arg1)
 {
     ui->tableViewBmDb->setColumnHidden(1, !arg1);
     ui->tableViewBmDb->setColumnHidden(2, !arg1);
@@ -2434,7 +2427,7 @@ void MainWindow::on_actionDisplay_Metadata_toggled(bool arg1)
     autosizeBmViews();
 }
 
-void MainWindow::on_actionDisplay_Filenames_toggled(bool arg1)
+void MainWindow::on_actionDisplay_Filenames_toggled(const bool &arg1)
 {
     ui->tableViewBmDb->setColumnHidden(4, !arg1);
     ui->tableViewBmPlaylist->setColumnHidden(5, !arg1);
@@ -2442,7 +2435,7 @@ void MainWindow::on_actionDisplay_Filenames_toggled(bool arg1)
     autosizeBmViews();
 }
 
-void MainWindow::on_actionShow_Debug_Log_toggled(bool arg1)
+void MainWindow::on_actionShow_Debug_Log_toggled(const bool &arg1)
 {
     debugDialog->setVisible(arg1);
     settings->setLogVisible(arg1);
@@ -2635,19 +2628,19 @@ void MainWindow::on_actionAbout_triggered()
 }
 
 
-void MainWindow::on_pushButtonMplxLeft_toggled(bool checked)
+void MainWindow::on_pushButtonMplxLeft_toggled(const bool &checked)
 {
     if (checked)
         settings->setMplxMode(Multiplex_LeftChannel);
 }
 
-void MainWindow::on_pushButtonMplxBoth_toggled(bool checked)
+void MainWindow::on_pushButtonMplxBoth_toggled(const bool &checked)
 {
     if (checked)
         settings->setMplxMode(Multiplex_Normal);
 }
 
-void MainWindow::on_pushButtonMplxRight_toggled(bool checked)
+void MainWindow::on_pushButtonMplxRight_toggled(const bool &checked)
 {
     if (checked)
         settings->setMplxMode(Multiplex_RightChannel);
@@ -2665,7 +2658,7 @@ void MainWindow::on_lineEdit_textChanged(const QString &arg1)
     }
 }
 
-void MainWindow::cdgOffsetChanged(int offset)
+void MainWindow::cdgOffsetChanged(const int &offset)
 {
     cdgOffset = offset;
 }
@@ -2701,9 +2694,9 @@ void MainWindow::setMultiUnplayed()
 }
 
 
-void MainWindow::on_spinBoxTempo_valueChanged(int arg1)
+void MainWindow::on_spinBoxTempo_valueChanged(const int &arg1)
 {
-    kAudioBackend->setTempo(arg1);
+    kMediaBackend.setTempo(arg1);
 }
 
 void MainWindow::on_actionSongbook_Generator_triggered()
@@ -2716,7 +2709,7 @@ void MainWindow::on_actionEqualizer_triggered()
     dlgEq->show();
 }
 
-void MainWindow::audioError(QString msg)
+void MainWindow::audioError(const QString &msg)
 {
     QMessageBox msgBox;
     msgBox.setTextFormat(Qt::RichText);
@@ -2728,7 +2721,7 @@ void MainWindow::audioError(QString msg)
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    if (kAudioBackend->state() == MediaBackend::PlayingState)
+    if (kMediaBackend.state() == MediaBackend::PlayingState)
     {
         QMessageBox msgBox(this);
         msgBox.setIcon(QMessageBox::Warning);
@@ -2752,17 +2745,17 @@ void MainWindow::closeEvent(QCloseEvent *event)
     event->accept();
 }
 
-void MainWindow::on_sliderVolume_sliderMoved(int position)
+void MainWindow::on_sliderVolume_sliderMoved(const int &position)
 {
-    kAudioBackend->setVolume(position);
-    kAudioBackend->fadeInImmediate();
+    kMediaBackend.setVolume(position);
+    kMediaBackend.fadeInImmediate();
 }
 
-void MainWindow::on_sliderBmVolume_sliderMoved(int position)
+void MainWindow::on_sliderBmVolume_sliderMoved(const int &position)
 {
-    bmAudioBackend->setVolume(position);
-    if (kAudioBackend->state() != MediaBackend::PlayingState)
-        bmAudioBackend->fadeInImmediate();
+    bmMediaBackend.setVolume(position);
+    if (kMediaBackend.state() != MediaBackend::PlayingState)
+        bmMediaBackend.fadeInImmediate();
 }
 
 void MainWindow::songDropNoSingerSel()
@@ -2772,7 +2765,7 @@ void MainWindow::songDropNoSingerSel()
     msgBox.exec();
 }
 
-void MainWindow::newVersionAvailable(QString version)
+void MainWindow::newVersionAvailable(const QString &version)
 {
     QMessageBox msgBox;
     msgBox.setTextFormat(Qt::RichText);
@@ -2804,7 +2797,7 @@ void MainWindow::on_pushButtonShop_clicked()
     dlgSongShop->setModal(false);
 }
 
-void MainWindow::filesDroppedOnQueue(QList<QUrl> urls, int singerId, int position)
+void MainWindow::filesDroppedOnQueue(const QList<QUrl> &urls, const int &singerId, const int &position)
 {
     foreach (QUrl url, urls)
     {
@@ -2860,7 +2853,7 @@ void MainWindow::filesDroppedOnQueue(QList<QUrl> urls, int singerId, int positio
     }
 }
 
-void MainWindow::appFontChanged(QFont font)
+void MainWindow::appFontChanged(const QFont &font)
 {
     auto smallerFont = font;
     smallerFont.setPointSize(font.pointSize() - 2);
@@ -3109,7 +3102,7 @@ void MainWindow::resizeEvent(QResizeEvent *event)
     }
 }
 
-void MainWindow::on_tabWidget_currentChanged(int index)
+void MainWindow::on_tabWidget_currentChanged(const int &index)
 {
     if (bNeedAutoSize && index == 1)
     {
@@ -3147,7 +3140,7 @@ void MainWindow::scutSearchActivated()
     ui->lineEdit->setFocus();
 }
 
-void MainWindow::bmSongMoved(int oldPos, int newPos)
+void MainWindow::bmSongMoved(const int &oldPos, const int &newPos)
 {
     QString nextSong;
     if (oldPos < bmCurrentPosition && newPos >= bmCurrentPosition)
@@ -3177,7 +3170,7 @@ void MainWindow::on_sliderBmPosition_sliderPressed()
 
 void MainWindow::on_sliderBmPosition_sliderReleased()
 {
-    bmAudioBackend->setPosition(ui->sliderBmPosition->value());
+    bmMediaBackend.setPosition(ui->sliderBmPosition->value());
     sliderBmPositionPressed = false;
     qInfo() << "BM slider up.  Position:" << ui->sliderBmPosition->value();
 }
@@ -3186,9 +3179,9 @@ void MainWindow::sfxButtonPressed()
 {
     SoundFxButton *btn = (SoundFxButton*)sender();
     qInfo() << "SfxButton pressed: " << btn->buttonData();
-    sfxAudioBackend->setMedia(btn->buttonData().toString());
-    sfxAudioBackend->setVolume(ui->sliderVolume->value());
-    sfxAudioBackend->play();
+    sfxMediaBackend.setMedia(btn->buttonData().toString());
+    sfxMediaBackend.setVolume(ui->sliderVolume->value());
+    sfxMediaBackend.play();
 }
 
 void MainWindow::on_btnAddSfx_clicked()
@@ -3213,7 +3206,7 @@ void MainWindow::on_btnAddSfx_clicked()
 
 void MainWindow::on_btnSfxStop_clicked()
 {
-    sfxAudioBackend->stop(true);
+    sfxMediaBackend.stop(true);
 }
 
 void MainWindow::removeSfxButton()
@@ -3229,7 +3222,7 @@ void MainWindow::removeSfxButton()
     refreshSfxButtons();
 }
 
-void MainWindow::showAlert(QString title, QString message)
+void MainWindow::showAlert(const QString &title, const QString &message)
 {
     QMessageBox msgBox;
     msgBox.setWindowTitle(title);
@@ -3238,7 +3231,7 @@ void MainWindow::showAlert(QString title, QString message)
     msgBox.exec();
 }
 
-void MainWindow::tableViewRotationCurrentChanged(QModelIndex cur, QModelIndex prev)
+void MainWindow::tableViewRotationCurrentChanged(const QModelIndex &cur, const QModelIndex &prev)
 {
     Q_UNUSED(prev)
     qModel->setSinger(cur.sibling(cur.row(),0).data().toInt());
@@ -3273,8 +3266,8 @@ void MainWindow::updateRotationDuration()
     labelRotationDuration.setText(text);
 
     // Safety check to make sure break music video is muted if karaoke is playing
-    if (bmAudioBackend->videoMuted() && kAudioBackend->state() != MediaBackend::PlayingState && kAudioBackend->state() != MediaBackend::PausedState)
-        bmAudioBackend->videoMute(false);
+    if (bmMediaBackend.videoMuted() && kMediaBackend.state() != MediaBackend::PlayingState && kMediaBackend.state() != MediaBackend::PausedState)
+        bmMediaBackend.videoMute(false);
 }
 
 void MainWindow::on_btnToggleCdgWindow_clicked()
@@ -3299,7 +3292,7 @@ void MainWindow::cdgVisibilityChanged()
         ui->btnToggleCdgWindow->setText("Show CDG Window");
 }
 
-void MainWindow::rotationSelectionChanged(QItemSelection sel, QItemSelection desel)
+void MainWindow::rotationSelectionChanged(const QItemSelection &sel, const QItemSelection &desel)
 {
     if (sel.size() == 0 && desel.size() > 0)
     {
@@ -3477,13 +3470,13 @@ void MainWindow::on_btnPlBottom_clicked()
    ui->tableViewBmPlaylist->selectRow(maxpos);
 }
 
-void MainWindow::on_actionSound_Clips_triggered(bool checked)
+void MainWindow::on_actionSound_Clips_triggered(const bool &checked)
 {
     ui->groupBoxSoundClips->setVisible(checked);
     settings->setShowMainWindowSoundClips(checked);
 }
 
-void MainWindow::on_actionNow_Playing_triggered(bool checked)
+void MainWindow::on_actionNow_Playing_triggered(const bool &checked)
 {
     ui->groupBoxNowPlaying->setVisible(checked);
     settings->setShowMainWindowNowPlaying(checked);
@@ -3519,7 +3512,7 @@ void MainWindow::on_actionVideoLarge_triggered()
     QTimer::singleShot(15, [&] () {autosizeViews();});
 }
 
-void MainWindow::on_actionVideo_Output_2_triggered(bool checked)
+void MainWindow::on_actionVideo_Output_2_triggered(const bool &checked)
 {
     ui->videoPreview->setVisible(checked);
     settings->setShowMainWindowVideo(checked);
