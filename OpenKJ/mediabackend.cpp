@@ -389,7 +389,8 @@ void MediaBackend::timerFast_timeout()
     if (!gst_element_query_position (m_playBin, GST_FORMAT_TIME, &pos))
     {
         m_lastPosition = 0;
-        cdgSetPosition(0);
+        if (m_cdgMode)
+            cdgSetPosition(0);
         emit positionChanged(0);
         return;
     }
