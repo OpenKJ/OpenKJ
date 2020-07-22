@@ -113,9 +113,7 @@ jobs:
         copy c:\gstreamer\1.0\x86_64\bin\*.dll output\
         mkdir output\lib
         mkdir output\lib\gstreamer-1.0
-        mkdir output\lib\gstreamer-1.0\validate
         copy c:\gstreamer\1.0\x86_64\lib\gstreamer-1.0\*.dll output\lib\gstreamer-1.0\
-        copy c:\gstreamer\1.0\x86_64\lib\gstreamer-1.0\validate\*.dll output\lib\gstreamer-1.0\validate\
 
     - name: Copy in other dependencies
       run: |
