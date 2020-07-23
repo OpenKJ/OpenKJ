@@ -23,29 +23,20 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
-    - name: Cache GStreamer
-      id: cache-gstreamer
-      uses: actions/cache@v2
-      with:
-        path: 'c:\gstreamer'
-        key: ${{ runner.os }}-gstreamer
-
     - name: Download GST Installer
-      if: steps.cache-gstreamer.outputs.cache-hit != 'true'
       uses: carlosperate/download-file-action@v1.0.3
       id: download-gst
       with:
-        file-url: 'https://storage.googleapis.com/okj-installer-deps/gstreamer-1.0-x86_64-1.14.4.msi'
-        file-name: 'gstreamer-1.0-x86_64-1.14.4.msi'
+        file-url: 'https://storage.googleapis.com/okj-installer-deps/gstreamer-1.0-msvc-x86_64-1.16.2.msi'
+        file-name: 'gstreamer.msi'
         location: './downloads'
 
     - name: Download GST-Dev Installer
-      if: steps.cache-gstreamer.outputs.cache-hit != 'true'
       uses: carlosperate/download-file-action@v1.0.3
       id: download-gst-dev
       with:
-        file-url: 'https://storage.googleapis.com/okj-installer-deps/gstreamer-1.0-devel-x86_64-1.14.4.msi'
-        file-name: 'gstreamer-1.0-devel-x86_64-1.14.4.msi'
+        file-url: 'https://storage.googleapis.com/okj-installer-deps/gstreamer-1.0-devel-msvc-x86_64-1.16.2.msi'
+        file-name: 'gstreamer-devel.msi'
         location: './downloads'
 
     - name: Download InfoZip Binary
@@ -65,12 +56,15 @@ jobs:
         location: /downloads
 
     - name: Install GST
-      if: steps.cache-gstreamer.outputs.cache-hit != 'true'
       run: |
         cmd /c start /wait msiexec /package ${{ steps.download-gst.outputs.file-path }} /passive ADDLOCAL=ALL
         
+    - name: Make dist copy of gstreamer
+      run: |
+        cp -Rv c:/gstreamer ./gstreamer-dist
+      shell: bash
+
     - name: Install GST-Dev
-      if: steps.cache-gstreamer.outputs.cache-hit != 'true'
       run: |
         cmd /c start /wait msiexec /package ${{ steps.download-gst-dev.outputs.file-path }} /passive ADDLOCAL=ALL
   
@@ -110,12 +104,9 @@ jobs:
       
     - name: Copy in gstreamer dependencies
       run: |
-        copy c:\gstreamer\1.0\x86_64\bin\*.dll output\
-        mkdir output\lib
-        mkdir output\lib\gstreamer-1.0
-        mkdir output\lib\gstreamer-1.0\validate
-        copy c:\gstreamer\1.0\x86_64\lib\gstreamer-1.0\*.dll output\lib\gstreamer-1.0\
-        copy c:\gstreamer\1.0\x86_64\lib\gstreamer-1.0\validate\*.dll output\lib\gstreamer-1.0\validate\
+        cp -Rv ./gstreamer-dist/1.0/x86_64/* output/
+        cp -v ./gstreamer-dist/1.0/x86_64/bin/*.dll output/
+      shell: bash
 
     - name: Copy in other dependencies
       run: |

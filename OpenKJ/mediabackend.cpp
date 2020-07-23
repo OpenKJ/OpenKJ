@@ -31,11 +31,25 @@
 #include <gst/video/videooverlay.h>
 #include <gst/app/gstappsrc.h>
 
-//GstElement *playBinPub;
-
 
 Q_DECLARE_SMART_POINTER_METATYPE(std::shared_ptr);
 Q_DECLARE_METATYPE(std::shared_ptr<GstMessage>);
+
+template <typename T> std::shared_ptr<T> takeGstObject(T *o)
+{
+  std::shared_ptr<T> ptr(o, [] (T *d) {
+    gst_object_unref(reinterpret_cast<GstObject*>(d));
+  });
+  return ptr;
+}
+
+template <typename T> std::shared_ptr<T> takeGstMiniObject(T *o)
+{
+    std::shared_ptr<T> ptr(o, [] (T *d) {
+        gst_mini_object_ref(reinterpret_cast<GstMiniObject*>(d));
+    });
+    return ptr;
+}
 
 MediaBackend::MediaBackend(bool pitchShift, QObject *parent, QString objectName) :
     QObject(parent), m_objName(objectName), m_loadPitchShift(pitchShift)
@@ -53,6 +67,7 @@ MediaBackend::MediaBackend(bool pitchShift, QObject *parent, QString objectName)
     qWarning() << qgetenv("GST_PLUGIN_SYSTEM_PATH") << endl << qgetenv("GST_PLUGIN_SCANNER") << endl << qgetenv("GTK_PATH") << endl << qgetenv("GIO_EXTRA_MODULES") << endl;
 #endif
     qInfo() << "Start constructing GStreamer backend";
+    QMetaTypeId<std::shared_ptr<GstMessage>>::qt_metatype_id();
     if (!gst_is_initialized())
     {
         qInfo() << m_objName << " - gst not initialized - initializing";
@@ -448,23 +463,35 @@ void MediaBackend::setPitchShift(const int &pitchShift)
     emit pitchChanged(pitchShift);
 }
 
-int MediaBackend::gst_cb_bus_msg([[maybe_unused]]GstBus *bus, GstMessage *message, gpointer userData)
+GstBusSyncReply MediaBackend::busMessageDispatcher([[maybe_unused]]GstBus *bus, GstMessage *message, gpointer userData)
 {
-    auto backend = static_cast<MediaBackend*>(userData);
-    auto objName = backend->m_objName;
-    switch (GST_MESSAGE_TYPE(message)) {
+  auto messagePtr = takeGstMiniObject(message);
+  QMetaObject::invokeMethod(static_cast<MediaBackend*>(userData), "gstBusMsg", Qt::QueuedConnection, Q_ARG(std::shared_ptr<GstMessage>, messagePtr));
+  return GST_BUS_DROP;
+}
+
+GstBusSyncReply MediaBackend::busMessageDispatcherCdg([[maybe_unused]]GstBus *bus, GstMessage *message, gpointer userData)
+{
+  auto messagePtr = takeGstMiniObject(message);
+  QMetaObject::invokeMethod(static_cast<MediaBackend*>(userData), "gstBusMsgCdg", Qt::QueuedConnection, Q_ARG(std::shared_ptr<GstMessage>, messagePtr));
+  return GST_BUS_DROP;
+}
+
+void MediaBackend::gstBusMsg(std::shared_ptr<GstMessage> message)
+{
+    switch (GST_MESSAGE_TYPE(message.get())) {
     case GST_MESSAGE_ERROR:
         GError *err;
         gchar *debug;
-        gst_message_parse_error(message, &err, &debug);
-        qInfo() << objName << " - Gst error: " << err->message;
-        qInfo() << objName << " - Gst debug: " << debug;
+        gst_message_parse_error(message.get(), &err, &debug);
+        qInfo() << m_objName << " - Gst error: " << err->message;
+        qInfo() << m_objName << " - Gst debug: " << debug;
         if (QString(err->message) == "Your GStreamer installation is missing a plug-in.")
         {
-            QString player = (objName == "KAR") ? "karaoke" : "break music";
-            qInfo() << objName << " - PLAYBACK ERROR - Missing Codec";
-            backend->audioError("Unable to play " + player + " file, missing gstreamer plugin");
-            backend->stop(true);
+            QString player = (m_objName == "KAR") ? "karaoke" : "break music";
+            qInfo() << m_objName << " - PLAYBACK ERROR - Missing Codec";
+            emit audioError("Unable to play " + player + " file, missing gstreamer plugin");
+            stop(true);
         }
         g_error_free(err);
         g_free(debug);
@@ -472,47 +499,47 @@ int MediaBackend::gst_cb_bus_msg([[maybe_unused]]GstBus *bus, GstMessage *messag
     case GST_MESSAGE_WARNING:
         GError *err2;
         gchar *debug2;
-        gst_message_parse_warning(message, &err2, &debug2);
-        qInfo() << objName << " - Gst warning: " << err2->message;
-        qInfo() << objName << " - Gst debug: " << debug2;
+        gst_message_parse_warning(message.get(), &err2, &debug2);
+        qInfo() << m_objName << " - Gst warning: " << err2->message;
+        qInfo() << m_objName << " - Gst debug: " << debug2;
         g_error_free(err2);
         g_free(debug2);
         break;
     case GST_MESSAGE_STATE_CHANGED:
         GstState state;
-        gst_element_get_state(backend->m_playBin, &state, nullptr, GST_CLOCK_TIME_NONE);
-        if (state == GST_STATE_PLAYING && backend->m_lastState != MediaBackend::PlayingState)
+        gst_element_get_state(m_playBin, &state, nullptr, GST_CLOCK_TIME_NONE);
+        if (state == GST_STATE_PLAYING && m_lastState != MediaBackend::PlayingState)
         {
             qInfo() << "GST notified of state change to PLAYING";
-            if (backend->m_cdgMode && backend->cdgState() != PlayingState)
-                backend->cdgPlay();
-            backend->m_lastState = MediaBackend::PlayingState;
-            backend->stateChanged(MediaBackend::PlayingState);
+            if (m_cdgMode && cdgState() != PlayingState)
+                cdgPlay();
+            m_lastState = MediaBackend::PlayingState;
+            emit stateChanged(MediaBackend::PlayingState);
         }
-        else if (state == GST_STATE_PAUSED && backend->m_lastState != MediaBackend::PausedState)
+        else if (state == GST_STATE_PAUSED && m_lastState != MediaBackend::PausedState)
         {
             qInfo() << "GST notified of state change to PAUSED";
-            if (backend->m_cdgMode && backend->cdgState() != PausedState)
-                backend->cdgPause();
-            backend->m_lastState = MediaBackend::PausedState;
-            backend->stateChanged(MediaBackend::PausedState);
+            if (m_cdgMode && cdgState() != PausedState)
+                cdgPause();
+            m_lastState = MediaBackend::PausedState;
+            emit stateChanged(MediaBackend::PausedState);
         }
-        else if (state == GST_STATE_NULL && backend->m_lastState != MediaBackend::StoppedState)
+        else if (state == GST_STATE_NULL && m_lastState != MediaBackend::StoppedState)
         {
             qInfo() << "GST notified of state change to STOPPED";
-            if (backend->m_lastState != MediaBackend::StoppedState)
+            if (m_lastState != MediaBackend::StoppedState)
             {
-                backend->m_lastState = MediaBackend::StoppedState;
-                if (backend->m_cdgMode && backend->cdgState() != StoppedState)
-                    backend->cdgStop();
-                backend->stateChanged(MediaBackend::StoppedState);
+                m_lastState = MediaBackend::StoppedState;
+                if (m_cdgMode && cdgState() != StoppedState)
+                    cdgStop();
+                emit stateChanged(MediaBackend::StoppedState);
             }
         }
         break;
     case GST_MESSAGE_ELEMENT:
-        if (QString(gst_structure_get_name (gst_message_get_structure(message))) == "level")
+        if (QString(gst_structure_get_name (gst_message_get_structure(message.get()))) == "level")
         {
-            auto array_val = gst_structure_get_value(gst_message_get_structure(message), "rms");
+            auto array_val = gst_structure_get_value(gst_message_get_structure(message.get()), "rms");
             auto rms_arr = reinterpret_cast<GValueArray*>(g_value_get_boxed (array_val));
             double rmsValues = 0.0;
             for (unsigned int i{0}; i < rms_arr->n_values; ++i)
@@ -522,26 +549,26 @@ int MediaBackend::gst_cb_bus_msg([[maybe_unused]]GstBus *bus, GstMessage *messag
                 auto rms = pow (10, rms_dB / 20);
                 rmsValues += rms;
             }
-            backend->m_currentRmsLevel = rmsValues / rms_arr->n_values;
+            m_currentRmsLevel = rmsValues / rms_arr->n_values;
         }
         break;
     case GST_MESSAGE_DURATION_CHANGED:
         gint64 dur, msdur;
-        qInfo() << objName << " - GST reports duration changed";
-        if (gst_element_query_duration(backend->m_playBin,GST_FORMAT_TIME,&dur))
+        qInfo() << m_objName << " - GST reports duration changed";
+        if (gst_element_query_duration(m_playBin,GST_FORMAT_TIME,&dur))
             msdur = dur / 1000000;
         else
             msdur = 0;
-        backend->durationChanged(msdur);
+        emit durationChanged(msdur);
         break;
     case GST_MESSAGE_EOS:
-        qInfo() << objName << " - state change to EndOfMediaState emitted";
-        backend->stateChanged(EndOfMediaState);
+        qInfo() << m_objName << " - state change to EndOfMediaState emitted";
+        emit stateChanged(EndOfMediaState);
         break;
     case GST_MESSAGE_NEED_CONTEXT:
-        qInfo() << objName  << " - context requested - " << message->src->name;
-        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(backend->m_videoSink1), backend->m_videoWinId);
-        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(backend->m_videoSink2), backend->m_videoWinId2);
+        qInfo() << m_objName  << " - context requested - " << message->src->name;
+        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(m_videoSink1), m_videoWinId);
+        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(m_videoSink2), m_videoWinId2);
         break;
     case GST_MESSAGE_TAG:
     case GST_MESSAGE_STREAM_STATUS:
@@ -550,10 +577,9 @@ int MediaBackend::gst_cb_bus_msg([[maybe_unused]]GstBus *bus, GstMessage *messag
     case GST_MESSAGE_NEW_CLOCK:
         break;
     default:
-        qInfo() << objName << " - Gst msg type: " << GST_MESSAGE_TYPE(message) << " Gst msg name: " << GST_MESSAGE_TYPE_NAME(message) << " Element: " << message->src->name;
+        qInfo() << m_objName << " - Gst msg type: " << GST_MESSAGE_TYPE(message.get()) << " Gst msg name: " << GST_MESSAGE_TYPE_NAME(message.get()) << " Element: " << message.get()->src->name;
         break;
     }
-  return true;
 }
 
 void MediaBackend::buildPipeline()
@@ -603,6 +629,7 @@ void MediaBackend::buildPipeline()
 #endif
     m_equalizer = gst_element_factory_make("equalizer-10bands", "equalizer");
     m_playBin = gst_element_factory_make("playbin", "playBin");
+    gst_bus_set_sync_handler(gst_element_get_bus(m_playBin), (GstBusSyncHandler)busMessageDispatcher, this, NULL);
     m_audioCapsStereo = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 2, nullptr);
     m_audioCapsMono = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 1, nullptr);
     m_audioBin = gst_bin_new("audioBin");
@@ -670,6 +697,7 @@ void MediaBackend::buildPipeline()
     if (m_cdgMode)
     {
         m_cdgPipeline = gst_pipeline_new("cdgPipeline");
+        gst_bus_set_sync_handler(gst_element_get_bus(m_cdgPipeline), (GstBusSyncHandler)busMessageDispatcher, this, NULL);
         auto cdgAppSrc = gst_element_factory_make("appsrc", "cdgAppSrc");
         auto cdgVidConv = gst_element_factory_make("videoconvert", "cdgVideoConv");
         g_object_set(G_OBJECT(cdgAppSrc), "caps",
@@ -747,9 +775,8 @@ void MediaBackend::buildPipeline()
 
     g_object_set(rgVolume, "album-mode", false, nullptr);
     g_object_set(level, "message", TRUE, nullptr);
-    gst_bus_add_watch(gst_element_get_bus(m_playBin), (GstBusFunc)gst_cb_bus_msg, this);
     if (m_cdgMode)
-        gst_bus_add_watch(gst_element_get_bus(m_cdgPipeline), (GstBusFunc)gst_cb_bus_msg_cdg, this);
+        gst_bus_add_watch(gst_element_get_bus(m_cdgPipeline), (GstBusFunc)busMessageDispatcherCdg, this);
     auto csource = gst_interpolation_control_source_new ();
     if (!csource)
         qInfo() << m_objName << " - Error createing control source";
@@ -824,21 +851,17 @@ void MediaBackend::resetPipeline()
     buildPipeline();
 }
 
-int MediaBackend::gst_cb_bus_msg_cdg([[maybe_unused]]GstBus *bus, GstMessage *message, gpointer userData)
+void MediaBackend::gstBusMsgCdg(std::shared_ptr<GstMessage> message)
 {
-    auto myObj = static_cast<MediaBackend*>(userData);
-
-    switch (GST_MESSAGE_TYPE(message)) {
+    switch (GST_MESSAGE_TYPE(message.get())) {
     case GST_MESSAGE_NEED_CONTEXT:
-        qInfo() << myObj->m_objName  << " - CDG pipeline - context requested - " << message->src->name;
-        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(myObj->m_videoSink1), myObj->m_videoWinId);
-        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(myObj->m_videoSink2), myObj->m_videoWinId2);
+        qInfo() << m_objName  << " - CDG pipeline - context requested - " << message->src->name;
+        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(m_videoSink1), m_videoWinId);
+        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(m_videoSink2), m_videoWinId2);
         break;
     default:
         break;
     }
-
-    return true;
 }
 
 void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused_size, gpointer user_data)
