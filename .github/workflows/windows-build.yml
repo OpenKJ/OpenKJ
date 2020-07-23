@@ -131,8 +131,6 @@ jobs:
 
     - name: Sign Installer
       run: |
-        mkdir cscrt
-        7z e appveyor/cscrt.7z -p"${{ secrets.WIN_CSCRT_ARCHIVE_PASS }}" -ocscrt/
         call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f cscrt\cscrt.pfx /p "${{ secrets.WIN_CSCRT_PFX_PASS }}" installer\OpenKJ.exe
       shell: cmd
