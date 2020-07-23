@@ -51,60 +51,54 @@ Filename: "{app}\{#MyAppExeName}"; Flags: nowait postinstall skipifsilent; Descr
 Filename: "{app}\vc_redist.x64.exe"; Parameters: "/install /quiet /norestart"; Description: "MS Visual C++ Redistributable"; StatusMsg: "Installing vcredist"
 
 [Code]
+{ ///////////////////////////////////////////////////////////////////// }
 function GetUninstallString(): String;
 var
   sUnInstPath: String;
   sUnInstallString: String;
 begin
-  // sUnInstPath := ExpandConstant('SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{{#MyAppId}_is1'); // for ver 1.4.5 and newer
-  sUnInstPath := ExpandConstant('SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{{#MyAppId}'); // ver 1.4.4 -> ver 1.4.5
-  if (Is64BitPowerPointFromRegisteredExe()) then begin
-    RegQueryStringValue(HKLM64, sUnInstPath, 'UninstallString', sUnInstallString);
-    Result := sUnInstallString;
-  end
-  else begin
-    RegQueryStringValue(HKLM32, sUnInstPath, 'UninstallString', sUnInstallString);
-    Result := sUnInstallString;
-  end;
-  // MsgBox(sUnInstallString, mbInformation, MB_OK);
+  sUnInstPath := ExpandConstant('Software\Microsoft\Windows\CurrentVersion\Uninstall\{#emit SetupSetting("AppId")}_is1');
+  sUnInstallString := '';
+  if not RegQueryStringValue(HKLM, sUnInstPath, 'UninstallString', sUnInstallString) then
+    RegQueryStringValue(HKCU, sUnInstPath, 'UninstallString', sUnInstallString);
+  Result := sUnInstallString;
 end;
- 
- 
-/////////////////////////////////////////////////////////////////////
+
+
+{ ///////////////////////////////////////////////////////////////////// }
 function IsUpgrade(): Boolean;
 begin
   Result := (GetUninstallString() <> '');
 end;
- 
- 
-/////////////////////////////////////////////////////////////////////
+
+
+{ ///////////////////////////////////////////////////////////////////// }
 function UnInstallOldVersion(): Integer;
 var
   sUnInstallString: String;
   iResultCode: Integer;
 begin
-// Return Values:
-// 1 - uninstall string is empty
-// 2 - error executing the UnInstallString
-// 3 - successfully executed the UnInstallString
- 
-  // default return value
+{ Return Values: }
+{ 1 - uninstall string is empty }
+{ 2 - error executing the UnInstallString }
+{ 3 - successfully executed the UnInstallString }
+
+  { default return value }
   Result := 0;
- 
-  // get the uninstall string of the old app
+
+  { get the uninstall string of the old app }
   sUnInstallString := GetUninstallString();
   if sUnInstallString <> '' then begin
-    // sUnInstallString := RemoveQuotes(sUnInstallString);
-    if ShellExec('', 'msiexec',  '/uninstall {D94628E7-2C6F-4A17-85BF-AD30316F61BD} /quiet', '', SW_SHOWNORMAL, ewWaitUntilTerminated, iResultCode) then // for ver 1.4.4 -> 1.4.5
-    // if ShellExec('', sUnInstallString, '/SILENT /NORESTART /SUPPRESSMSGBOXES', '', SW_SHOWNORMAL, ewWaitUntilTerminated, iResultCode) then // for ver 1.4.5 and later
+    sUnInstallString := RemoveQuotes(sUnInstallString);
+    if Exec(sUnInstallString, '/SILENT /NORESTART /SUPPRESSMSGBOXES','', SW_HIDE, ewWaitUntilTerminated, iResultCode) then
       Result := 3
     else
       Result := 2;
   end else
     Result := 1;
 end;
- 
-/////////////////////////////////////////////////////////////////////
+
+{ ///////////////////////////////////////////////////////////////////// }
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if (CurStep=ssInstall) then
@@ -114,14 +108,4 @@ begin
       UnInstallOldVersion();
     end;
   end;
-end;
- 
-function InitializeSetup(): boolean;
-begin
-  if (IsUpgrade()) then
-  begin
-    MsgBox(ExpandConstant('{cm:RemoveOld}'), mbInformation, MB_OK);
-    UnInstallOldVersion();
-  end;
-    Result := true;
 end;
