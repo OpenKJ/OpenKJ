@@ -27,8 +27,10 @@ jobs:
       id: cache-gstreamer
       uses: actions/cache@v2
       with:
-        path: 'c:\gstreamer'
-        key: ${{ runner.os }}-gstreamer-1.16.2
+        path: |
+          'c:\gstreamer'
+          ~/gstreamer-dist
+        key: ${{ runner.os }}-gstreamer-1.16.2-1
 
     - name: Download GST Installer
       if: steps.cache-gstreamer.outputs.cache-hit != 'true'
