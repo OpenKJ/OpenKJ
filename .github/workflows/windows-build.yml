@@ -58,8 +58,12 @@ jobs:
     - name: Install GST
       run: |
         cmd /c start /wait msiexec /package ${{ steps.download-gst.outputs.file-path }} /passive ADDLOCAL=ALL
-        cp -Rv c:/gstreamer ./gstreamer-dist
         
+    - name: Make dist copy of gstreamer
+      run: |
+        cp -Rv c:/gstreamer ./gstreamer.dist
+      shell: bash
+
     - name: Install GST-Dev
       run: |
         cmd /c start /wait msiexec /package ${{ steps.download-gst-dev.outputs.file-path }} /passive ADDLOCAL=ALL
@@ -102,6 +106,7 @@ jobs:
       run: |
         cp -Rv ./gstreamer-dist/1.0/x86_64/* output\
         cp -v ./gstreamer-dist/1.0/x86_64/bin/*.dll output\
+      shell: bash
 
     - name: Copy in other dependencies
       run: |
