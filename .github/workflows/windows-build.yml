@@ -61,7 +61,7 @@ jobs:
         
     - name: Make dist copy of gstreamer
       run: |
-        cp -Rv c:/gstreamer ./gstreamer.dist
+        cp -Rv c:/gstreamer ./gstreamer-dist
       shell: bash
 
     - name: Install GST-Dev
