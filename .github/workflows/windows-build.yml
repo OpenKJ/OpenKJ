@@ -114,6 +114,7 @@ jobs:
     - name: Copy in gstreamer dependencies
       run: |
         copy gstreamer-dist\1.0\x86_64\* output\
+        copy gstreamer-dist\1.0\x86_64\bin\*.dll output\
 
     - name: Copy in other dependencies
       run: |
