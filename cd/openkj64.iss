@@ -6,7 +6,7 @@
 #define MyAppPublisher "OpenKJ Project"
 #define MyAppURL "https://openkj.org/"
 #define MyAppExeName "OpenKJ.exe"
-#define MyAppId {474EEC43-B55A-4FCE-8E5A-4ACD90E56103}
+#define MyAppId {{474EEC43-B55A-4FCE-8E5A-4ACD90E56103}
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
