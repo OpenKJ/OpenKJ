@@ -23,17 +23,7 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
-    - name: Cache GStreamer
-      id: cache-gstreamer
-      uses: actions/cache@v2
-      with:
-        path: |
-          'c:\gstreamer'
-          ~/gstreamer-dist
-        key: ${{ runner.os }}-gstreamer-1.16.2-1
-
     - name: Download GST Installer
-      if: steps.cache-gstreamer.outputs.cache-hit != 'true'
       uses: carlosperate/download-file-action@v1.0.3
       id: download-gst
       with:
@@ -42,7 +32,6 @@ jobs:
         location: './downloads'
 
     - name: Download GST-Dev Installer
-      if: steps.cache-gstreamer.outputs.cache-hit != 'true'
       uses: carlosperate/download-file-action@v1.0.3
       id: download-gst-dev
       with:
@@ -67,13 +56,11 @@ jobs:
         location: /downloads
 
     - name: Install GST
-      if: steps.cache-gstreamer.outputs.cache-hit != 'true'
       run: |
         cmd /c start /wait msiexec /package ${{ steps.download-gst.outputs.file-path }} /passive ADDLOCAL=ALL
         cp -R c:\gstreamer gstreamer-dist
         
     - name: Install GST-Dev
-      if: steps.cache-gstreamer.outputs.cache-hit != 'true'
       run: |
         cmd /c start /wait msiexec /package ${{ steps.download-gst-dev.outputs.file-path }} /passive ADDLOCAL=ALL
   
