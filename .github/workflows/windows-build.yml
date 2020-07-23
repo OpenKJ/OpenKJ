@@ -16,7 +16,7 @@ jobs:
   build64:
     name: Windows 64bit Build
     # The type of runner that the job will run on
-    runs-on: windows-2019
+    runs-on: [ self-hosted, Windows, azure ]
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
