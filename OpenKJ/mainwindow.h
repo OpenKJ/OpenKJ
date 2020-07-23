@@ -103,6 +103,7 @@ private:
     QLabel labelRotationDuration;
     bool sliderPositionPressed{false};
     bool sliderBmPositionPressed{false};
+    bool m_shuttingDown{false};
     void play(const QString &karaokeFilePath, const bool &k2k = false);
     int m_rtClickQueueSongId{-1};
     int m_rtClickRotationSingerId{-1};
