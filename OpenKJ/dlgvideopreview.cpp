@@ -11,7 +11,6 @@ DlgVideoPreview::DlgVideoPreview(const QString &mediaFilePath, QWidget *parent) 
     QDialog(parent), ui(new Ui::DlgVideoPreview), m_mediaFilename(mediaFilePath)
 {
     ui->setupUi(this);
-
     connect(ui->pushButtonClose, &QPushButton::clicked, [&] () {
        close();
        deleteLater();
@@ -91,13 +90,15 @@ DlgVideoPreview::DlgVideoPreview(const QString &mediaFilePath, QWidget *parent) 
 DlgVideoPreview::~DlgVideoPreview()
 {
     delete ui;
+//    if (!m_cdgMode)
+//    {
+//        gst_element_set_state (playBin, GST_STATE_NULL);
+//        gst_object_unref (playBin);
+//    }
     gst_element_set_state (pipeline, GST_STATE_NULL);
-    gst_object_unref (pipeline);
-    if (!m_cdgMode)
-    {
-        gst_element_set_state (playBin, GST_STATE_NULL);
-        gst_object_unref (playBin);
-    }
+    if (pipeline)
+        gst_object_unref (pipeline);
+
 }
 
 void DlgVideoPreview::playCdg(const QString &filename)
