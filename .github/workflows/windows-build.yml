@@ -16,6 +16,7 @@ jobs:
   build64:
     name: Windows 64bit Build
     # The type of runner that the job will run on
+    # runs-on: [ self-hosted, Windows, azure ]
     runs-on: windows-2019
 
     # Steps represent a sequence of tasks that will be executed as part of the job
@@ -23,15 +24,7 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
-    - name: Cache GStreamer
-      id: cache-gstreamer
-      uses: actions/cache@v2
-      with:
-        path: 'c:\gstreamer'
-        key: ${{ runner.os }}-gstreamer-1.16.2
-
     - name: Download GST Installer
-      if: steps.cache-gstreamer.outputs.cache-hit != 'true'
       uses: carlosperate/download-file-action@v1.0.3
       id: download-gst
       with:
@@ -40,7 +33,6 @@ jobs:
         location: './downloads'
 
     - name: Download GST-Dev Installer
-      if: steps.cache-gstreamer.outputs.cache-hit != 'true'
       uses: carlosperate/download-file-action@v1.0.3
       id: download-gst-dev
       with:
@@ -65,12 +57,15 @@ jobs:
         location: /downloads
 
     - name: Install GST
-      if: steps.cache-gstreamer.outputs.cache-hit != 'true'
       run: |
         cmd /c start /wait msiexec /package ${{ steps.download-gst.outputs.file-path }} /passive ADDLOCAL=ALL
         
+    - name: Make dist copy of gstreamer
+      run: |
+        cp -Rv c:/gstreamer ./gstreamer-dist
+      shell: bash
+
     - name: Install GST-Dev
-      if: steps.cache-gstreamer.outputs.cache-hit != 'true'
       run: |
         cmd /c start /wait msiexec /package ${{ steps.download-gst-dev.outputs.file-path }} /passive ADDLOCAL=ALL
   
@@ -110,10 +105,9 @@ jobs:
       
     - name: Copy in gstreamer dependencies
       run: |
-        copy c:\gstreamer\1.0\x86_64\bin\*.dll output\
-        mkdir output\lib
-        mkdir output\lib\gstreamer-1.0
-        copy c:\gstreamer\1.0\x86_64\lib\gstreamer-1.0\*.dll output\lib\gstreamer-1.0\
+        cp -Rv ./gstreamer-dist/1.0/x86_64/* output/
+        cp -v ./gstreamer-dist/1.0/x86_64/bin/*.dll output/
+      shell: bash
 
     - name: Copy in other dependencies
       run: |
@@ -124,7 +118,7 @@ jobs:
     - name: Sign OpenKJ executable
       run: |
         mkdir cscrt
-        7z e appveyor/cscrt.7z -p"${{ secrets.WIN_CSCRT_ARCHIVE_PASS }}" -ocscrt/
+        7z e cd/cscrt.7z -p"${{ secrets.WIN_CSCRT_ARCHIVE_PASS }}" -ocscrt/
         call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f cscrt\cscrt.pfx /p "${{ secrets.WIN_CSCRT_PFX_PASS }}" output/OpenKJ.exe
       shell: cmd
@@ -138,8 +132,6 @@ jobs:
 
     - name: Sign Installer
       run: |
-        mkdir cscrt
-        7z e appveyor/cscrt.7z -p"${{ secrets.WIN_CSCRT_ARCHIVE_PASS }}" -ocscrt/
         call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f cscrt\cscrt.pfx /p "${{ secrets.WIN_CSCRT_PFX_PASS }}" installer\OpenKJ.exe
       shell: cmd

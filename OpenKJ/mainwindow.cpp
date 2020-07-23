@@ -783,6 +783,7 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k)
 
 MainWindow::~MainWindow()
 {
+    m_shuttingDown = true;
     cdgWindow->stopTicker();
 #ifdef Q_OS_WIN
     timeEndPeriod(1);
@@ -1280,6 +1281,8 @@ void MainWindow::audioBackend_durationChanged(const qint64 &duration)
 
 void MainWindow::audioBackend_stateChanged(const MediaBackend::State &state)
 {
+    if (m_shuttingDown)
+        return;
     qInfo() << "MainWindow - audioBackend_stateChanged(" << state << ") triggered";
     if (state == MediaBackend::StoppedState)
     {
@@ -1428,6 +1431,8 @@ void MainWindow::on_buttonRegulars_clicked()
 
 void MainWindow::rotationDataChanged()
 {
+    if (m_shuttingDown)
+        return;
     if (settings->rotationShowNextSong())
         resizeRotation();
     updateRotationDuration();
