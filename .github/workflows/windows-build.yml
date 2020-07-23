@@ -70,8 +70,7 @@ jobs:
       if: steps.cache-gstreamer.outputs.cache-hit != 'true'
       run: |
         cmd /c start /wait msiexec /package ${{ steps.download-gst.outputs.file-path }} /passive ADDLOCAL=ALL
-        copy c:\gstreamer gstreamer-dist
-      shell: cmd
+        cp -R c:\gstreamer gstreamer-dist
         
     - name: Install GST-Dev
       if: steps.cache-gstreamer.outputs.cache-hit != 'true'
