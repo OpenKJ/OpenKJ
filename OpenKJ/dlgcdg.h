@@ -42,6 +42,7 @@ private:
     bool m_fullScreen{false};
     int m_countdownPos{0};
     QRect m_lastSize;
+    QRect m_lastPos;
     QTimer m_timer1s;
     QTimer m_timerAlertCountdown;
     QTimer m_timerButtonShow;

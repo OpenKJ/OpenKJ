@@ -147,22 +147,18 @@ void DlgCdg::setFullScreen(bool fullscreen)
 {
     if (fullscreen)
     {
-        m_fullScreen = true;
         m_lastSize.setSize(size());
-        Qt::WindowFlags flags;
-        flags |= Qt::Window;
-        flags |= Qt::FramelessWindowHint;
-        setWindowFlags(flags);
+        m_lastPos.setTopLeft(pos());
         auto screenDimensions = QGuiApplication::screens().at(settings->cdgWindowFullscreen())->geometry();
         move(screenDimensions.topLeft());
-        resize(screenDimensions.size());
-        show();
-        m_timerFullScreen.start();
+        setWindowState(windowState() ^ Qt::WindowFullScreen);
+        m_fullScreen = true;
     }
     else
     {
-        setWindowFlags(Qt::Window);
-        resize(300, 216);
+        setWindowState(windowState() & ~Qt::WindowFullScreen);
+        this->move(m_lastSize.topLeft());
+        resize(m_lastSize.width(), m_lastSize.height());
         if (settings->showCdgWindow())
             show();
         m_fullScreen = false;

@@ -425,7 +425,7 @@ void MediaBackend::timerSlow_timeout()
 {
     if (m_silenceDetect)
     {
-        if ((state() == MediaBackend::PlayingState) && (isSilent()))
+        if (isSilent() && state() == MediaBackend::PlayingState)
         {
             if (m_silenceDuration >= 2)
             {
