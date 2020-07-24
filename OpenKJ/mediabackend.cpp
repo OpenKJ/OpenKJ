@@ -464,17 +464,25 @@ void MediaBackend::setPitchShift(const int &pitchShift)
 }
 
 GstBusSyncReply MediaBackend::busMessageDispatcher([[maybe_unused]]GstBus *bus, GstMessage *message, gpointer userData)
-{
-  auto messagePtr = takeGstMiniObject(message);
-  QMetaObject::invokeMethod(static_cast<MediaBackend*>(userData), "gstBusMsg", Qt::QueuedConnection, Q_ARG(std::shared_ptr<GstMessage>, messagePtr));
-  return GST_BUS_DROP;
+{  
+#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
+    auto backend = static_cast<MediaBackend*>(userData);
+    QMetaObject::invokeMethod(backend, [backend, message] () { backend->gstBusMsg(takeGstMiniObject(message)); }, Qt::QueuedConnection);
+#else
+    QMetaObject::invokeMethod(static_cast<MediaBackend*>(userData), "gstBusMsg", Qt::QueuedConnection, Q_ARG(std::shared_ptr<GstMessage>, takeGstMiniObject(message)));
+#endif
+    return GST_BUS_DROP;
 }
 
 GstBusSyncReply MediaBackend::busMessageDispatcherCdg([[maybe_unused]]GstBus *bus, GstMessage *message, gpointer userData)
 {
-  auto messagePtr = takeGstMiniObject(message);
-  QMetaObject::invokeMethod(static_cast<MediaBackend*>(userData), "gstBusMsgCdg", Qt::QueuedConnection, Q_ARG(std::shared_ptr<GstMessage>, messagePtr));
-  return GST_BUS_DROP;
+#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
+    auto backend = static_cast<MediaBackend*>(userData);
+    QMetaObject::invokeMethod(backend, [backend, message] () { backend->gstBusMsgCdg(takeGstMiniObject(message)); }, Qt::QueuedConnection);
+#else
+    QMetaObject::invokeMethod(static_cast<MediaBackend*>(userData), "gstBusMsgCdg", Qt::QueuedConnection, Q_ARG(std::shared_ptr<GstMessage>, takeGstMiniObject(message)));
+#endif
+    return GST_BUS_DROP;
 }
 
 void MediaBackend::gstBusMsg(std::shared_ptr<GstMessage> message)
@@ -803,7 +811,7 @@ void MediaBackend::buildPipeline()
     setDownmix(m_downmix);
     videoMute(m_vidMuted);
     setVolume(m_volume);
-    m_timerFast.start(40);
+    m_timerFast.start(250);
     qInfo() << m_objName << " - buildPipeline() finished";
     setEnforceAspectRatio(m_settings.enforceAspectRatio());
     m_cdgModeLastBuild = m_cdgMode;
