@@ -272,6 +272,9 @@ void MediaBackend::play()
         qInfo() << m_objName << " - play - playing cdg:   " << m_cdgFilename;
         qInfo() << m_objName << " - play - playing audio: " << m_filename;
         gst_element_set_state(m_playBin, GST_STATE_PLAYING);
+        gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1), m_videoWinId);
+        if (m_previewEnabledLastBuild)
+            gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2), m_videoWinId2);
         gst_element_set_state(m_cdgPipeline, GST_STATE_PLAYING);
     }
 }
@@ -738,8 +741,9 @@ void MediaBackend::buildPipeline()
         }
         else
         {
-            gst_bin_add_many(reinterpret_cast<GstBin *>(m_cdgPipeline), cdgAppSrc, cdgVidConv, m_videoSink1, nullptr);
-            gst_element_link_many(cdgAppSrc, cdgVidConv, m_videoSink1, nullptr);
+            auto preoutQueue = gst_element_factory_make("queue", "preoutQueue");
+            gst_bin_add_many(reinterpret_cast<GstBin *>(m_cdgPipeline), cdgAppSrc, cdgVidConv, preoutQueue, m_videoSink1, nullptr);
+            gst_element_link_many(cdgAppSrc, cdgVidConv, preoutQueue, m_videoSink1, nullptr);
             gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1), m_videoWinId);
         }
         g_object_set(G_OBJECT(cdgAppSrc), "stream-type", 1, "format", GST_FORMAT_TIME, NULL);
