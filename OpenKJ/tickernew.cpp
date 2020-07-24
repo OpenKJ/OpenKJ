@@ -19,7 +19,6 @@ TickerDisplayWidget::TickerDisplayWidget(QWidget *parent)
 {
     underflow = false;
     heightHint = 100;
-    jumpPoint = 0;
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setAlignment(Qt::AlignLeft | Qt::AlignTop);
@@ -119,7 +118,12 @@ void TickerDisplayWidget::stop()
 void TickerDisplayWidget::setTickerEnabled(const bool& enabled)
 {
     if (enabled)
+    {
+        flipped = false;
+        spm->setPos(QPointF(rect().left(), 0.0f));
+        spm2->setPos(spm->pos().x() + spm->boundingRect().right(), spm->pos().y());
         timer.start();
+    }
     else
         timer.stop();
 }
@@ -147,8 +151,6 @@ QPixmap TickerDisplayWidget::getPixmapFromString(const QString& text)
         pxWidth = tickerWidth * 2;
         underflow = true;
         drawText = text;
-        jumpPoint = 99999;
-
     }
     else
     {

@@ -39,7 +39,6 @@ private:
         bool flipped{false};
         int speed;
         qreal pixelShift;
-        int jumpPoint;
 
 private slots:
 
