@@ -72,7 +72,7 @@ public:
     bool isSilent();
     void setAccelType(const accel &type=accel::XVideo) { m_accelMode = type; }
     void setOutputDevice(int deviceIndex);
-    void setVideoWinId(WId winID) { m_videoWinId = winID; }
+    void setVideoWinId(WId winID) { m_videoWinId1 = winID; }
     void setVideoWinId2(WId winID) { m_videoWinId2 = winID; }
     void videoMute(const bool &mute);
     int getCdgLastDraw() { return (m_cdgMode) ? m_cdg.lastCDGUpdate() : 0; }
@@ -107,14 +107,6 @@ private:
         GST_PLAY_FLAG_TEXT          = (1 << 2)
     };
     Settings m_settings;
-    GstPad *m_videoQueue1SrcPad;
-    GstPad *m_videoQueue2SrcPad;
-    GstPad *m_videoQueue1SrcPadCdg;
-    GstPad *m_videoQueue2SrcPadCdg;
-    GstPad *m_videoTeePad1;
-    GstPad *m_videoTeePad2;
-    GstPad *m_videoTeePad1Cdg;
-    GstPad *m_videoTeePad2Cdg;
     GstElement *m_cdgPipeline;
     GstElement *m_playBin;
     GstElement *m_aConvEnd;
@@ -127,12 +119,8 @@ private:
     GstElement *m_volumeElement;
     GstElement *m_faderVolumeElement;
     GstElement *m_equalizer;
-    GstElement *m_videoTee;
-    GstElement *m_videoBin;
     GstElement *m_videoSink1;
     GstElement *m_videoSink2;
-    GstElement *m_videoTeeCdg;
-    GstElement *m_videoBinCdg;
     GstElement *m_videoSink1Cdg;
     GstElement *m_videoSink2Cdg;
     GstCaps *m_audioCapsStereo;
@@ -167,7 +155,7 @@ private:
     QPointer<AudioFader> m_fader;
     CdgParser m_cdg;
     State m_lastState{StoppedState};
-    WId m_videoWinId{0};
+    WId m_videoWinId1{0};
     WId m_videoWinId2{0};
     accel m_accelMode{XVideo};
     guint64 cdgPosition{0};
@@ -175,12 +163,12 @@ private:
 
     void buildPipeline();
     void buildCdgPipeline();
+    void getGstDevices();
     double getPitchForSemitone(const int &semitone);
     qint64 getCdgPosition();
     State cdgState();
 
     static GstBusSyncReply busMessageDispatcher(GstBus *bus, GstMessage *message, gpointer userData);
-    static GstBusSyncReply busMessageDispatcherCdg(GstBus *bus, GstMessage *message, gpointer userData);
     static void cb_need_data(GstElement *appsrc, guint unused_size, gpointer user_data);
     static gboolean cb_seek_data(GstElement *appsrc, guint64 position, gpointer user_data);
 
@@ -226,8 +214,6 @@ public slots:
     void fadeOutImmediate();
     void setEnforceAspectRatio(const bool &enforce);
     void gstBusMsg(std::shared_ptr<GstMessage> message);
-    void gstBusMsgCdg(std::shared_ptr<GstMessage> message);
-
 
 signals:
     void audioAvailableChanged(const bool&);

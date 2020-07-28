@@ -68,55 +68,12 @@ MediaBackend::MediaBackend(bool pitchShift, QObject *parent, QString objectName)
 #endif
     qInfo() << "Start constructing GStreamer backend";
     QMetaTypeId<std::shared_ptr<GstMessage>>::qt_metatype_id();
-    if (!gst_is_initialized())
-    {
-        qInfo() << m_objName << " - gst not initialized - initializing";
-        gst_init(nullptr,nullptr);
-    }
-    guint major, minor, micro, nano;
-    gst_version (&major, &minor, &micro, &nano);
-    qInfo() << "Using GStreamer version: " << major << "." << minor << "." << micro;
-    m_faderVolumeElement = gst_element_factory_make("volume", "FaderVolumeElement");
-    g_object_set(m_faderVolumeElement, "volume", 1.0, nullptr);
-    m_fader = new AudioFader(this);
-    m_fader->setObjName(m_objName + "Fader");
-    m_fader->setVolumeElement(m_faderVolumeElement);
-    gst_object_ref(m_faderVolumeElement);
-
     buildCdgPipeline();
     buildPipeline();
-
-    auto monitor = gst_device_monitor_new ();
-    auto moncaps = gst_caps_new_empty_simple ("audio/x-raw");
-    gst_device_monitor_add_filter (monitor, "Audio/Sink", moncaps);
-    gst_caps_unref (moncaps);
-    gst_device_monitor_start (monitor);
-    m_outputDeviceNames.clear();
-    m_outputDeviceNames.append("0 - Default");
-    GList *devices, *elem;
-    devices = gst_device_monitor_get_devices(monitor);
-    for(elem = devices; elem; elem = elem->next) {
-        auto device = m_outputDevices.emplace_back(reinterpret_cast<GstDevice*>(elem->data));
-        auto *deviceName = gst_device_get_display_name(device);
-        m_outputDeviceNames.append(QString::number(m_outputDeviceNames.size()) + " - " + deviceName);
-        g_free(deviceName);
-    }
-    g_object_set(m_playBin, "volume", 1.0, nullptr);
-    gst_device_monitor_stop(monitor);
-    g_object_unref(monitor);
-    g_list_free(devices);
+    getGstDevices();
+    qInfo() << "Done constructing GStreamer backend";
     connect(&m_timerSlow, &QTimer::timeout, this, &MediaBackend::timerSlow_timeout);
     connect(&m_timerFast, &QTimer::timeout, this, &MediaBackend::timerFast_timeout);
-    connect(m_fader, &AudioFader::fadeStarted, [&] () {
-        qInfo() << m_objName << " - Fader started";
-    });
-    connect(m_fader, &AudioFader::fadeComplete, [&] () {
-        qInfo() << m_objName << " - fader finished";
-    });
-    connect(m_fader, &AudioFader::faderStateChanged, [&] (auto state) {
-        qInfo() << m_objName << " - Fader state changed to: " << m_fader->stateToStr(state);
-    });
-    qInfo() << "Done constructing GStreamer backend";
 }
 
 void MediaBackend::videoMute(const bool &mute)
@@ -132,7 +89,7 @@ void MediaBackend::videoMute(const bool &mute)
     }
     else
     {
-        gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1), m_videoWinId);
+        gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1), m_videoWinId1);
         gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2), m_videoWinId2);
         g_object_get (m_playBin, "flags", &flags, nullptr);
         flags |= GST_PLAY_FLAG_VIDEO | GST_PLAY_FLAG_AUDIO;
@@ -229,9 +186,9 @@ MediaBackend::State MediaBackend::cdgState()
 void MediaBackend::play()
 {
     qInfo() << m_objName << " - play() called";
-    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1), m_videoWinId);
+    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1), m_videoWinId1);
     gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2), m_videoWinId2);
-    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1Cdg), m_videoWinId);
+    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1Cdg), m_videoWinId1);
     gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2Cdg), m_videoWinId2);
     gst_stream_volume_set_volume(GST_STREAM_VOLUME(m_playBin), GST_STREAM_VOLUME_FORMAT_LINEAR, 1.0);
     if (state() == MediaBackend::PausedState)
@@ -275,8 +232,6 @@ void MediaBackend::play()
         qInfo() << m_objName << " - play - playing cdg:   " << m_cdgFilename;
         qInfo() << m_objName << " - play - playing audio: " << m_filename;
         gst_element_set_state(m_playBin, GST_STATE_PLAYING);
-        gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1), m_videoWinId);
-        gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2), m_videoWinId2);
         gst_element_set_state(m_cdgPipeline, GST_STATE_PLAYING);
     }
 }
@@ -470,24 +425,24 @@ void MediaBackend::setPitchShift(const int &pitchShift)
 
 GstBusSyncReply MediaBackend::busMessageDispatcher([[maybe_unused]]GstBus *bus, GstMessage *message, gpointer userData)
 {  
-#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
     auto backend = static_cast<MediaBackend*>(userData);
-    QMetaObject::invokeMethod(backend, [backend, message] () { backend->gstBusMsg(takeGstMiniObject(message)); }, Qt::QueuedConnection);
-#else
-    QMetaObject::invokeMethod(static_cast<MediaBackend*>(userData), "gstBusMsg", Qt::QueuedConnection, Q_ARG(std::shared_ptr<GstMessage>, takeGstMiniObject(message)));
-#endif
-    return GST_BUS_DROP;
-}
-
-GstBusSyncReply MediaBackend::busMessageDispatcherCdg([[maybe_unused]]GstBus *bus, GstMessage *message, gpointer userData)
-{
+    switch(GST_MESSAGE_TYPE(message)) {
+    case GST_MESSAGE_ERROR:
+    case GST_MESSAGE_WARNING:
+    case GST_MESSAGE_INFO:
+    case GST_MESSAGE_STATE_CHANGED:
+    case GST_MESSAGE_ELEMENT:
+    case GST_MESSAGE_DURATION_CHANGED:
+    case GST_MESSAGE_EOS:
 #if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
-    auto backend = static_cast<MediaBackend*>(userData);
-    QMetaObject::invokeMethod(backend, [backend, message] () { backend->gstBusMsgCdg(takeGstMiniObject(message)); }, Qt::QueuedConnection);
+        QMetaObject::invokeMethod(backend, [backend, message] () { backend->gstBusMsg(takeGstMiniObject(message)); }, Qt::QueuedConnection);
 #else
-    QMetaObject::invokeMethod(static_cast<MediaBackend*>(userData), "gstBusMsgCdg", Qt::QueuedConnection, Q_ARG(std::shared_ptr<GstMessage>, takeGstMiniObject(message)));
+        QMetaObject::invokeMethod(static_cast<MediaBackend*>(userData), "gstBusMsg", Qt::QueuedConnection, Q_ARG(std::shared_ptr<GstMessage>, takeGstMiniObject(message)));
 #endif
-    return GST_BUS_DROP;
+        return GST_BUS_DROP;
+    default:
+        return GST_BUS_PASS;
+    }
 }
 
 void MediaBackend::gstBusMsg(std::shared_ptr<GstMessage> message)
@@ -579,10 +534,6 @@ void MediaBackend::gstBusMsg(std::shared_ptr<GstMessage> message)
         emit stateChanged(EndOfMediaState);
         break;
     case GST_MESSAGE_NEED_CONTEXT:
-//        qInfo() << m_objName  << " - context requested - " << message->src->name;
-//        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(m_videoSink1), m_videoWinId);
-//        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(m_videoSink2), m_videoWinId2);
-        break;
     case GST_MESSAGE_TAG:
     case GST_MESSAGE_STREAM_STATUS:
     case GST_MESSAGE_LATENCY:
@@ -622,6 +573,13 @@ void MediaBackend::buildPipeline()
         m_videoSink1 = gst_element_factory_make ("glimagesink", "videoSink1");
         m_videoSink2 = gst_element_factory_make("glimagesink", "videoSink2");
 #endif
+    m_faderVolumeElement = gst_element_factory_make("volume", "FaderVolumeElement");
+    g_object_set(m_faderVolumeElement, "volume", 1.0, nullptr);
+    m_fader = new AudioFader(this);
+    m_fader->setObjName(m_objName + "Fader");
+    m_fader->setVolumeElement(m_faderVolumeElement);
+    gst_object_ref(m_faderVolumeElement);
+
     auto aConvInput = gst_element_factory_make("audioconvert", "aConvInput");
     auto aConvPrePitchShift = gst_element_factory_make("audioconvert", "aConvPrePitchShift");
     auto aConvPostPitchShift = gst_element_factory_make("audioconvert", "aConvPostPitchShift");
@@ -650,16 +608,7 @@ void MediaBackend::buildPipeline()
     m_audioPanorama = gst_element_factory_make("audiopanorama", "audioPanorama");
     g_object_set(m_audioPanorama, "method", 1, nullptr);
     gst_bin_add_many(GST_BIN(m_audioBin),queueMainAudio, m_audioPanorama, level, aConvInput, rgVolume, rgLimiter, m_volumeElement, m_equalizer, aConvPostPanorama, m_fltrPostPanorama, gst_object_ref(m_faderVolumeElement), nullptr);
-    gst_element_link(queueMainAudio, aConvInput);
-    gst_element_link(aConvInput, rgVolume);
-    gst_element_link(rgVolume, rgLimiter);
-    gst_element_link(rgLimiter, level);
-    gst_element_link(level, m_volumeElement);
-    gst_element_link(m_volumeElement, m_equalizer);
-    gst_element_link(m_equalizer, m_faderVolumeElement);
-    gst_element_link(m_faderVolumeElement, m_audioPanorama);
-    gst_element_link(m_audioPanorama, aConvPostPanorama);
-    gst_element_link(aConvPostPanorama, m_fltrPostPanorama);
+    gst_element_link_many(queueMainAudio, aConvInput, rgVolume, rgLimiter, level, m_volumeElement, m_equalizer, m_faderVolumeElement, m_audioPanorama, aConvPostPanorama, m_fltrPostPanorama, nullptr);
 #ifdef Q_OS_LINUX
     if ((m_pitchShifterRubberBand) && (m_pitchShifterSoundtouch) && (m_loadPitchShift))
     {
@@ -698,34 +647,37 @@ void MediaBackend::buildPipeline()
     gst_element_add_pad(m_audioBin, ghostPad);
     gst_object_unref(pad);
     g_object_set(m_playBin, "audio-sink", m_audioBin, nullptr);
+
+    // Video output setup
+    auto videoBin = gst_bin_new("videoBin");
     auto queueMainVideo = gst_element_factory_make("queue", "queueMainVideo");
     auto videoQueue1 = gst_element_factory_make("queue", "videoQueue1");
     auto videoQueue2 = gst_element_factory_make("queue", "videoQueue2");
-    m_videoTee = gst_element_factory_make("tee", "videoTee");
-    m_videoTeePad1 = gst_element_get_request_pad(m_videoTee, "src_%u");
-    m_videoTeePad2 = gst_element_get_request_pad(m_videoTee, "src_%u");
-    m_videoQueue1SrcPad = gst_element_get_static_pad(videoQueue1, "sink");
-    m_videoQueue2SrcPad = gst_element_get_static_pad(videoQueue2, "sink");
-    m_videoBin = gst_bin_new("videoBin");
-    gst_bin_add_many(GST_BIN(m_videoBin),queueMainVideo,m_videoTee,videoQueue1,videoQueue2,m_videoSink1,m_videoSink2,nullptr);
-    gst_element_link(queueMainVideo, m_videoTee);
-    gst_pad_link(m_videoTeePad1,m_videoQueue1SrcPad);
-    gst_pad_link(m_videoTeePad2,m_videoQueue2SrcPad);
-    gst_element_link(videoQueue1,m_videoSink1);
-    gst_element_link(videoQueue2,m_videoSink2);
+    auto videoConv1 = gst_element_factory_make("videoconvert", "preOutVideoConvert1");
+    auto videoConv2 = gst_element_factory_make("videoconvert", "preOutVideoConvert2");
+    auto videoScale1 = gst_element_factory_make("videoscale", "videoScale1");
+    auto videoScale2 = gst_element_factory_make("videoscale", "videoScale2");
+    auto videoTee = gst_element_factory_make("tee", "videoTee");
+    auto videoTeePad1 = gst_element_get_request_pad(videoTee, "src_%u");
+    auto videoTeePad2 = gst_element_get_request_pad(videoTee, "src_%u");
+    auto videoQueue1SrcPad = gst_element_get_static_pad(videoQueue1, "sink");
+    auto videoQueue2SrcPad = gst_element_get_static_pad(videoQueue2, "sink");
+    gst_bin_add_many(GST_BIN(videoBin), queueMainVideo, videoTee, videoQueue1, videoQueue2, videoConv1,
+                     videoConv2, videoScale1, videoScale2, m_videoSink1, m_videoSink2,nullptr);
+    gst_element_link(queueMainVideo, videoTee);
+    gst_pad_link(videoTeePad1,videoQueue1SrcPad);
+    gst_pad_link(videoTeePad2,videoQueue2SrcPad);
+    gst_element_link_many(videoQueue1, videoConv1, videoScale1, m_videoSink1, nullptr);
+    gst_element_link_many(videoQueue2, videoConv2, videoScale2, m_videoSink2, nullptr);
     auto ghostVideoPad = gst_ghost_pad_new("sink", gst_element_get_static_pad(queueMainVideo, "sink"));
     gst_pad_set_active(ghostVideoPad,true);
-    gst_element_add_pad(m_videoBin, ghostVideoPad);
-    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1), m_videoWinId);
-    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2), m_videoWinId2);
-    g_object_set(m_playBin, "video-sink", m_videoBin, nullptr);
+    gst_element_add_pad(videoBin, ghostVideoPad);
+    g_object_set(m_playBin, "video-sink", videoBin, nullptr);
 
     // End video output setup
 
     g_object_set(rgVolume, "album-mode", false, nullptr);
     g_object_set(level, "message", TRUE, nullptr);
-    if (m_cdgMode)
-        gst_bus_add_watch(gst_element_get_bus(m_cdgPipeline), (GstBusFunc)busMessageDispatcherCdg, this);
     auto csource = gst_interpolation_control_source_new ();
     if (!csource)
         qInfo() << m_objName << " - Error createing control source";
@@ -756,12 +708,25 @@ void MediaBackend::buildPipeline()
     qInfo() << m_objName << " - buildPipeline() finished";
     setEnforceAspectRatio(m_settings.enforceAspectRatio());
     m_cdgModeLastBuild = m_cdgMode;
+    connect(m_fader, &AudioFader::fadeStarted, [&] () {
+        qInfo() << m_objName << " - Fader started";
+    });
+    connect(m_fader, &AudioFader::fadeComplete, [&] () {
+        qInfo() << m_objName << " - fader finished";
+    });
+    connect(m_fader, &AudioFader::faderStateChanged, [&] (auto state) {
+        qInfo() << m_objName << " - Fader state changed to: " << m_fader->stateToStr(state);
+    });
 }
 
 void MediaBackend::buildCdgPipeline()
 {
+    if (!gst_is_initialized())
+    {
+        qInfo() << m_objName << " - gst not initialized - initializing";
+        gst_init(nullptr,nullptr);
+    }
 #if defined(Q_OS_LINUX)
-    //m_accelMode = OpenGL;
     switch (m_accelMode) {
     case OpenGL:
         m_videoSink1Cdg = gst_element_factory_make("glimagesink", "videoSink1");
@@ -780,7 +745,6 @@ void MediaBackend::buildCdgPipeline()
     m_videoSink2Cdg = gst_element_factory_make("glimagesink", "videoSink2");
 #endif
     m_cdgPipeline = gst_pipeline_new("cdgPipeline");
-    gst_bus_set_sync_handler(gst_element_get_bus(m_cdgPipeline), (GstBusSyncHandler)busMessageDispatcher, this, NULL);
     auto cdgAppSrc = gst_element_factory_make("appsrc", "cdgAppSrc");
     auto cdgVidConv = gst_element_factory_make("videoconvert", "cdgVideoConv");
     g_object_set(G_OBJECT(cdgAppSrc), "caps",
@@ -791,38 +755,50 @@ void MediaBackend::buildCdgPipeline()
     auto videoQueue2 = gst_element_factory_make("queue", "videoQueue2");
     auto videoConv1 = gst_element_factory_make("videoconvert", "preOutVideoConvert1");
     auto videoConv2 = gst_element_factory_make("videoconvert", "preOutVideoConvert2");
-    m_videoTeeCdg = gst_element_factory_make("tee", "videoTee");
-    m_videoTeePad1Cdg = gst_element_get_request_pad(m_videoTeeCdg, "src_%u");
-    m_videoTeePad2Cdg = gst_element_get_request_pad(m_videoTeeCdg, "src_%u");
-    m_videoQueue1SrcPadCdg = gst_element_get_static_pad(videoQueue1, "sink");
-    m_videoQueue2SrcPadCdg = gst_element_get_static_pad(videoQueue2, "sink");
-    gst_bin_add_many(reinterpret_cast<GstBin *>(m_cdgPipeline), cdgAppSrc, cdgVidConv, videoConv1, videoConv2, m_videoTeeCdg,videoQueue1,videoQueue2,m_videoSink1Cdg,m_videoSink2Cdg,nullptr);
+    auto videoScale1 = gst_element_factory_make("videoscale", "videoScale1");
+    auto videoScale2 = gst_element_factory_make("videoscale", "videoScale2");
+    auto videoTee = gst_element_factory_make("tee", "videoTee");
+    auto videoTeePad1 = gst_element_get_request_pad(videoTee, "src_%u");
+    auto videoTeePad2 = gst_element_get_request_pad(videoTee, "src_%u");
+    auto videoQueue1SrcPad = gst_element_get_static_pad(videoQueue1, "sink");
+    auto videoQueue2SrcPad = gst_element_get_static_pad(videoQueue2, "sink");
+    gst_bin_add_many(reinterpret_cast<GstBin *>(m_cdgPipeline), cdgAppSrc, cdgVidConv, videoConv1,
+                     videoConv2, videoTee, videoQueue1, videoQueue2, videoScale1, videoScale2,
+                     m_videoSink1Cdg, m_videoSink2Cdg,nullptr);
     gst_element_link(cdgAppSrc, cdgVidConv);
-    gst_element_link(cdgVidConv, m_videoTeeCdg);
-    gst_pad_link(m_videoTeePad1Cdg,m_videoQueue1SrcPadCdg);
-    gst_pad_link(m_videoTeePad2Cdg,m_videoQueue2SrcPadCdg);
-    gst_element_link(videoQueue1,videoConv1);
-    gst_element_link(videoQueue2,videoConv2);
-    gst_element_link(videoConv1, m_videoSink1Cdg);
-    gst_element_link(videoConv2, m_videoSink2Cdg);
-    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1Cdg), m_videoWinId);
+    gst_element_link(cdgVidConv, videoTee);
+    gst_pad_link(videoTeePad1, videoQueue1SrcPad);
+    gst_pad_link(videoTeePad2, videoQueue2SrcPad);
+    gst_element_link_many(videoQueue1, videoConv1, videoScale1, m_videoSink1Cdg, nullptr);
+    gst_element_link_many(videoQueue2, videoConv2, videoScale2, m_videoSink2Cdg, nullptr);
+    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1Cdg), m_videoWinId1);
     gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2Cdg), m_videoWinId2);
     g_object_set(G_OBJECT(cdgAppSrc), "stream-type", 1, "format", GST_FORMAT_TIME, NULL);
     g_signal_connect(cdgAppSrc, "need-data", G_CALLBACK(cb_need_data), this);
     g_signal_connect(cdgAppSrc, "seek-data", G_CALLBACK(cb_seek_data), this);
 }
 
-void MediaBackend::gstBusMsgCdg(std::shared_ptr<GstMessage> message)
+void MediaBackend::getGstDevices()
 {
-    switch (GST_MESSAGE_TYPE(message.get())) {
-    case GST_MESSAGE_NEED_CONTEXT:
-//        qInfo() << m_objName  << " - CDG pipeline - context requested - " << message->src->name;
-//        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(m_videoSink1), m_videoWinId);
-//        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(m_videoSink2), m_videoWinId2);
-        break;
-    default:
-        break;
+    auto monitor = gst_device_monitor_new ();
+    auto moncaps = gst_caps_new_empty_simple ("audio/x-raw");
+    gst_device_monitor_add_filter (monitor, "Audio/Sink", moncaps);
+    gst_caps_unref (moncaps);
+    gst_device_monitor_start (monitor);
+    m_outputDeviceNames.clear();
+    m_outputDeviceNames.append("0 - Default");
+    GList *devices, *elem;
+    devices = gst_device_monitor_get_devices(monitor);
+    for(elem = devices; elem; elem = elem->next) {
+        auto device = m_outputDevices.emplace_back(reinterpret_cast<GstDevice*>(elem->data));
+        auto *deviceName = gst_device_get_display_name(device);
+        m_outputDeviceNames.append(QString::number(m_outputDeviceNames.size()) + " - " + deviceName);
+        g_free(deviceName);
     }
+    g_object_set(m_playBin, "volume", 1.0, nullptr);
+    gst_device_monitor_stop(monitor);
+    g_object_unref(monitor);
+    g_list_free(devices);
 }
 
 void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused_size, gpointer user_data)
