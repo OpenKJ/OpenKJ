@@ -109,8 +109,12 @@ private:
     Settings m_settings;
     GstPad *m_videoQueue1SrcPad;
     GstPad *m_videoQueue2SrcPad;
+    GstPad *m_videoQueue1SrcPadCdg;
+    GstPad *m_videoQueue2SrcPadCdg;
     GstPad *m_videoTeePad1;
     GstPad *m_videoTeePad2;
+    GstPad *m_videoTeePad1Cdg;
+    GstPad *m_videoTeePad2Cdg;
     GstElement *m_cdgPipeline;
     GstElement *m_playBin;
     GstElement *m_aConvEnd;
@@ -127,6 +131,10 @@ private:
     GstElement *m_videoBin;
     GstElement *m_videoSink1;
     GstElement *m_videoSink2;
+    GstElement *m_videoTeeCdg;
+    GstElement *m_videoBinCdg;
+    GstElement *m_videoSink1Cdg;
+    GstElement *m_videoSink2Cdg;
     GstCaps *m_audioCapsStereo;
     GstCaps *m_audioCapsMono;
     QString m_objName;
@@ -166,8 +174,7 @@ private:
     unsigned int curFrame{0};
 
     void buildPipeline();
-    void destroyPipeline();
-    void resetPipeline();
+    void buildCdgPipeline();
     double getPitchForSemitone(const int &semitone);
     qint64 getCdgPosition();
     State cdgState();

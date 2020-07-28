@@ -83,6 +83,7 @@ MediaBackend::MediaBackend(bool pitchShift, QObject *parent, QString objectName)
     m_fader->setVolumeElement(m_faderVolumeElement);
     gst_object_ref(m_faderVolumeElement);
 
+    buildCdgPipeline();
     buildPipeline();
 
     auto monitor = gst_device_monitor_new ();
@@ -132,8 +133,7 @@ void MediaBackend::videoMute(const bool &mute)
     else
     {
         gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1), m_videoWinId);
-        if (m_previewEnabledLastBuild)
-            gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2), m_videoWinId2);
+        gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2), m_videoWinId2);
         g_object_get (m_playBin, "flags", &flags, nullptr);
         flags |= GST_PLAY_FLAG_VIDEO | GST_PLAY_FLAG_AUDIO;
         flags &= ~GST_PLAY_FLAG_TEXT;
@@ -154,8 +154,9 @@ double MediaBackend::getPitchForSemitone(const int &semitone)
 void MediaBackend::setEnforceAspectRatio(const bool &enforce)
 {
     g_object_set(m_videoSink1, "force-aspect-ratio", enforce, nullptr);
-    if (m_previewEnabledLastBuild)
-        g_object_set(m_videoSink2, "force-aspect-ratio", enforce, nullptr);
+    g_object_set(m_videoSink2, "force-aspect-ratio", enforce, nullptr);
+    g_object_set(m_videoSink1Cdg, "force-aspect-ratio", enforce, nullptr);
+    g_object_set(m_videoSink2Cdg, "force-aspect-ratio", enforce, nullptr);
 }
 
 MediaBackend::~MediaBackend()
@@ -164,7 +165,6 @@ MediaBackend::~MediaBackend()
     m_timerFast.stop();
     if (state() == PlayingState)
         stop(true);
-    destroyPipeline();
     gst_object_unref(m_faderVolumeElement);
     if (m_videoSink1)
         gst_object_unref(m_videoSink1);
@@ -229,6 +229,10 @@ MediaBackend::State MediaBackend::cdgState()
 void MediaBackend::play()
 {
     qInfo() << m_objName << " - play() called";
+    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1), m_videoWinId);
+    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2), m_videoWinId2);
+    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1Cdg), m_videoWinId);
+    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2Cdg), m_videoWinId2);
     gst_stream_volume_set_volume(GST_STREAM_VOLUME(m_playBin), GST_STREAM_VOLUME_FORMAT_LINEAR, 1.0);
     if (state() == MediaBackend::PausedState)
     {
@@ -240,7 +244,6 @@ void MediaBackend::play()
             cdgPlay();
         return;
     }
-    resetPipeline();
     if (!QFile::exists(m_filename))
     {
         qInfo() << " - play - File doesn't exist, bailing out";
@@ -273,8 +276,7 @@ void MediaBackend::play()
         qInfo() << m_objName << " - play - playing audio: " << m_filename;
         gst_element_set_state(m_playBin, GST_STATE_PLAYING);
         gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1), m_videoWinId);
-        if (m_previewEnabledLastBuild)
-            gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2), m_videoWinId2);
+        gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2), m_videoWinId2);
         gst_element_set_state(m_cdgPipeline, GST_STATE_PLAYING);
     }
 }
@@ -577,9 +579,9 @@ void MediaBackend::gstBusMsg(std::shared_ptr<GstMessage> message)
         emit stateChanged(EndOfMediaState);
         break;
     case GST_MESSAGE_NEED_CONTEXT:
-        qInfo() << m_objName  << " - context requested - " << message->src->name;
-        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(m_videoSink1), m_videoWinId);
-        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(m_videoSink2), m_videoWinId2);
+//        qInfo() << m_objName  << " - context requested - " << message->src->name;
+//        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(m_videoSink1), m_videoWinId);
+//        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(m_videoSink2), m_videoWinId2);
         break;
     case GST_MESSAGE_TAG:
     case GST_MESSAGE_STREAM_STATUS:
@@ -602,6 +604,7 @@ void MediaBackend::buildPipeline()
         gst_init(nullptr,nullptr);
     }
 #if defined(Q_OS_LINUX)
+        //m_accelMode = OpenGL;
         switch (m_accelMode) {
         case OpenGL:
             m_videoSink1 = gst_element_factory_make("glimagesink", "videoSink1");
@@ -615,17 +618,10 @@ void MediaBackend::buildPipeline()
 #elif defined(Q_OS_WIN)
         m_videoSink1 = gst_element_factory_make ("d3dvideosink", "videoSink1");
         m_videoSink2 = gst_element_factory_make("d3dvideosink", "videoSink2");
-#elif defined(Q_OS_MAC)
-        m_videoSink1 = gst_element_factory_make("osxvideosink", "videosink1");
-        m_videoSink2 = gst_element_factory_make("osxvideosink", "videosink2");
 #else
-        qWarning() << "Unknown platform, defaulting to OpenGL video output";
         m_videoSink1 = gst_element_factory_make ("glimagesink", "videoSink1");
         m_videoSink2 = gst_element_factory_make("glimagesink", "videoSink2");
 #endif
-    gst_object_ref(m_videoSink1);
-    gst_object_ref(m_videoSink2);
-    m_previewEnabledLastBuild = m_settings.previewEnabled();
     auto aConvInput = gst_element_factory_make("audioconvert", "aConvInput");
     auto aConvPrePitchShift = gst_element_factory_make("audioconvert", "aConvPrePitchShift");
     auto aConvPostPitchShift = gst_element_factory_make("audioconvert", "aConvPostPitchShift");
@@ -702,88 +698,29 @@ void MediaBackend::buildPipeline()
     gst_element_add_pad(m_audioBin, ghostPad);
     gst_object_unref(pad);
     g_object_set(m_playBin, "audio-sink", m_audioBin, nullptr);
+    auto queueMainVideo = gst_element_factory_make("queue", "queueMainVideo");
+    auto videoQueue1 = gst_element_factory_make("queue", "videoQueue1");
+    auto videoQueue2 = gst_element_factory_make("queue", "videoQueue2");
+    m_videoTee = gst_element_factory_make("tee", "videoTee");
+    m_videoTeePad1 = gst_element_get_request_pad(m_videoTee, "src_%u");
+    m_videoTeePad2 = gst_element_get_request_pad(m_videoTee, "src_%u");
+    m_videoQueue1SrcPad = gst_element_get_static_pad(videoQueue1, "sink");
+    m_videoQueue2SrcPad = gst_element_get_static_pad(videoQueue2, "sink");
+    m_videoBin = gst_bin_new("videoBin");
+    gst_bin_add_many(GST_BIN(m_videoBin),queueMainVideo,m_videoTee,videoQueue1,videoQueue2,m_videoSink1,m_videoSink2,nullptr);
+    gst_element_link(queueMainVideo, m_videoTee);
+    gst_pad_link(m_videoTeePad1,m_videoQueue1SrcPad);
+    gst_pad_link(m_videoTeePad2,m_videoQueue2SrcPad);
+    gst_element_link(videoQueue1,m_videoSink1);
+    gst_element_link(videoQueue2,m_videoSink2);
+    auto ghostVideoPad = gst_ghost_pad_new("sink", gst_element_get_static_pad(queueMainVideo, "sink"));
+    gst_pad_set_active(ghostVideoPad,true);
+    gst_element_add_pad(m_videoBin, ghostVideoPad);
+    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1), m_videoWinId);
+    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2), m_videoWinId2);
+    g_object_set(m_playBin, "video-sink", m_videoBin, nullptr);
 
-
-    // CDG video pipeline
-    if (m_cdgMode)
-    {
-        m_cdgPipeline = gst_pipeline_new("cdgPipeline");
-        gst_bus_set_sync_handler(gst_element_get_bus(m_cdgPipeline), (GstBusSyncHandler)busMessageDispatcher, this, NULL);
-        auto cdgAppSrc = gst_element_factory_make("appsrc", "cdgAppSrc");
-        auto cdgVidConv = gst_element_factory_make("videoconvert", "cdgVideoConv");
-        g_object_set(G_OBJECT(cdgAppSrc), "caps",
-                     gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB16", "width", G_TYPE_INT, 288, "height",
-                                         G_TYPE_INT, 192, "framerate", GST_TYPE_FRACTION, 1, 30, NULL),
-                     NULL);
-        if (m_settings.previewEnabled())
-        {
-            auto videoQueue1 = gst_element_factory_make("queue", "videoQueue1");
-            auto videoQueue2 = gst_element_factory_make("queue", "videoQueue2");
-            auto videoConv1 = gst_element_factory_make("videoconvert", "preOutVideoConvert1");
-            auto videoConv2 = gst_element_factory_make("videoconvert", "preOutVideoConvert2");
-            m_videoTee = gst_element_factory_make("tee", "videoTee");
-            m_videoTeePad1 = gst_element_get_request_pad(m_videoTee, "src_%u");
-            m_videoTeePad2 = gst_element_get_request_pad(m_videoTee, "src_%u");
-            m_videoQueue1SrcPad = gst_element_get_static_pad(videoQueue1, "sink");
-            m_videoQueue2SrcPad = gst_element_get_static_pad(videoQueue2, "sink");
-            m_videoBin = gst_bin_new("videoBin");
-            gst_bin_add_many(reinterpret_cast<GstBin *>(m_cdgPipeline), cdgAppSrc, cdgVidConv, videoConv1, videoConv2, m_videoTee,videoQueue1,videoQueue2,m_videoSink1,m_videoSink2,nullptr);
-            gst_element_link(cdgAppSrc, cdgVidConv);
-            gst_element_link(cdgVidConv, m_videoTee);
-            gst_pad_link(m_videoTeePad1,m_videoQueue1SrcPad);
-            gst_pad_link(m_videoTeePad2,m_videoQueue2SrcPad);
-            gst_element_link(videoQueue1,videoConv1);
-            gst_element_link(videoQueue2,videoConv2);
-            gst_element_link(videoConv1, m_videoSink1);
-            gst_element_link(videoConv2, m_videoSink2);
-            gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1), m_videoWinId);
-            gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2), m_videoWinId2);
-        }
-        else
-        {
-            auto preoutQueue = gst_element_factory_make("queue", "preoutQueue");
-            gst_bin_add_many(reinterpret_cast<GstBin *>(m_cdgPipeline), cdgAppSrc, cdgVidConv, preoutQueue, m_videoSink1, nullptr);
-            gst_element_link_many(cdgAppSrc, cdgVidConv, preoutQueue, m_videoSink1, nullptr);
-            gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1), m_videoWinId);
-        }
-        g_object_set(G_OBJECT(cdgAppSrc), "stream-type", 1, "format", GST_FORMAT_TIME, NULL);
-        g_signal_connect(cdgAppSrc, "need-data", G_CALLBACK(cb_need_data), this);
-        g_signal_connect(cdgAppSrc, "seek-data", G_CALLBACK(cb_seek_data), this);
-    }
-    else
-    {
-        if (m_settings.previewEnabled())
-        {
-            auto queueMainVideo = gst_element_factory_make("queue", "queueMainVideo");
-            auto videoQueue1 = gst_element_factory_make("queue", "videoQueue1");
-            auto videoQueue2 = gst_element_factory_make("queue", "videoQueue2");
-            m_videoTee = gst_element_factory_make("tee", "videoTee");
-            m_videoTeePad1 = gst_element_get_request_pad(m_videoTee, "src_%u");
-            m_videoTeePad2 = gst_element_get_request_pad(m_videoTee, "src_%u");
-            m_videoQueue1SrcPad = gst_element_get_static_pad(videoQueue1, "sink");
-            m_videoQueue2SrcPad = gst_element_get_static_pad(videoQueue2, "sink");
-            m_videoBin = gst_bin_new("videoBin");
-            gst_bin_add_many(GST_BIN(m_videoBin),queueMainVideo,m_videoTee,videoQueue1,videoQueue2,m_videoSink1,m_videoSink2,nullptr);
-            gst_element_link(queueMainVideo, m_videoTee);
-            gst_pad_link(m_videoTeePad1,m_videoQueue1SrcPad);
-            gst_pad_link(m_videoTeePad2,m_videoQueue2SrcPad);
-            gst_element_link(videoQueue1,m_videoSink1);
-            gst_element_link(videoQueue2,m_videoSink2);
-            auto ghostVideoPad = gst_ghost_pad_new("sink", gst_element_get_static_pad(queueMainVideo, "sink"));
-            gst_pad_set_active(ghostVideoPad,true);
-            gst_element_add_pad(m_videoBin, ghostVideoPad);
-            gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1), m_videoWinId);
-            gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2), m_videoWinId2);
-            g_object_set(m_playBin, "video-sink", m_videoBin, nullptr);
-        }
-        else
-        {
-            qInfo() << "Main window preview disabled, building pipeline without video tee";
-            gst_video_overlay_set_window_handle(GST_VIDEO_OVERLAY(m_videoSink1), m_videoWinId);
-            g_object_set(m_playBin, "video-sink", m_videoSink1, nullptr);
-        }
-    }
-// End video output setup
+    // End video output setup
 
     g_object_set(rgVolume, "album-mode", false, nullptr);
     g_object_set(level, "message", TRUE, nullptr);
@@ -821,55 +758,67 @@ void MediaBackend::buildPipeline()
     m_cdgModeLastBuild = m_cdgMode;
 }
 
-void MediaBackend::destroyPipeline()
+void MediaBackend::buildCdgPipeline()
 {
-    qInfo() << m_objName << " - destroyPipeline() called";
-    m_timerSlow.stop();
-    m_timerFast.stop();
-    gst_bin_remove(reinterpret_cast<GstBin *>(m_audioBin), m_faderVolumeElement);
-    if (state() == PlayingState)
-        stop(true);
-    if (m_previewEnabledLastBuild)
-    {
-        gst_element_release_request_pad(m_videoTee, m_videoTeePad1);
-        gst_element_release_request_pad(m_videoTee, m_videoTeePad2);
-        gst_object_unref(m_videoTeePad1);
-        gst_object_unref(m_videoTeePad2);
-        gst_object_unref(m_videoQueue1SrcPad);
-        gst_object_unref(m_videoQueue2SrcPad);
-        if (!m_cdgModeLastBuild)
-        {
-            gst_bin_remove(reinterpret_cast<GstBin *>(m_videoBin), m_videoSink1);
-            gst_bin_remove(reinterpret_cast<GstBin *>(m_videoBin), m_videoSink2);
-        }
-        else
-        {
-            gst_bin_remove(reinterpret_cast<GstBin *>(m_cdgPipeline), m_videoSink1);
-            gst_bin_remove(reinterpret_cast<GstBin *>(m_cdgPipeline), m_videoSink2);
-        }
-        gst_object_unref(m_videoBin);
+#if defined(Q_OS_LINUX)
+    //m_accelMode = OpenGL;
+    switch (m_accelMode) {
+    case OpenGL:
+        m_videoSink1Cdg = gst_element_factory_make("glimagesink", "videoSink1");
+        m_videoSink2Cdg = gst_element_factory_make("glimagesink", "videoSink2");
+        break;
+    case XVideo:
+        m_videoSink1Cdg = gst_element_factory_make("xvimagesink", "videoSink1");
+        m_videoSink2Cdg = gst_element_factory_make("xvimagesink", "videoSink2");
+        break;
     }
-    gst_caps_unref(m_audioCapsMono);
-    gst_caps_unref(m_audioCapsStereo);
-    gst_object_unref(m_audioBin);
-    if (m_cdgModeLastBuild)
-        gst_object_unref(m_cdgPipeline);
-    qInfo() << m_objName << " - destroyPipeline() finished";
-}
-
-void MediaBackend::resetPipeline()
-{
-    destroyPipeline();
-    buildPipeline();
+#elif defined(Q_OS_WIN)
+    m_videoSink1Cdg = gst_element_factory_make ("d3dvideosink", "videoSink1");
+    m_videoSink2Cdg = gst_element_factory_make("d3dvideosink", "videoSink2");
+#else
+    m_videoSink1Cdg = gst_element_factory_make ("glimagesink", "videoSink1");
+    m_videoSink2Cdg = gst_element_factory_make("glimagesink", "videoSink2");
+#endif
+    m_cdgPipeline = gst_pipeline_new("cdgPipeline");
+    gst_bus_set_sync_handler(gst_element_get_bus(m_cdgPipeline), (GstBusSyncHandler)busMessageDispatcher, this, NULL);
+    auto cdgAppSrc = gst_element_factory_make("appsrc", "cdgAppSrc");
+    auto cdgVidConv = gst_element_factory_make("videoconvert", "cdgVideoConv");
+    g_object_set(G_OBJECT(cdgAppSrc), "caps",
+                 gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB16", "width", G_TYPE_INT, 288, "height",
+                                     G_TYPE_INT, 192, "framerate", GST_TYPE_FRACTION, 1, 30, NULL),
+                 NULL);
+    auto videoQueue1 = gst_element_factory_make("queue", "videoQueue1");
+    auto videoQueue2 = gst_element_factory_make("queue", "videoQueue2");
+    auto videoConv1 = gst_element_factory_make("videoconvert", "preOutVideoConvert1");
+    auto videoConv2 = gst_element_factory_make("videoconvert", "preOutVideoConvert2");
+    m_videoTeeCdg = gst_element_factory_make("tee", "videoTee");
+    m_videoTeePad1Cdg = gst_element_get_request_pad(m_videoTeeCdg, "src_%u");
+    m_videoTeePad2Cdg = gst_element_get_request_pad(m_videoTeeCdg, "src_%u");
+    m_videoQueue1SrcPadCdg = gst_element_get_static_pad(videoQueue1, "sink");
+    m_videoQueue2SrcPadCdg = gst_element_get_static_pad(videoQueue2, "sink");
+    gst_bin_add_many(reinterpret_cast<GstBin *>(m_cdgPipeline), cdgAppSrc, cdgVidConv, videoConv1, videoConv2, m_videoTeeCdg,videoQueue1,videoQueue2,m_videoSink1Cdg,m_videoSink2Cdg,nullptr);
+    gst_element_link(cdgAppSrc, cdgVidConv);
+    gst_element_link(cdgVidConv, m_videoTeeCdg);
+    gst_pad_link(m_videoTeePad1Cdg,m_videoQueue1SrcPadCdg);
+    gst_pad_link(m_videoTeePad2Cdg,m_videoQueue2SrcPadCdg);
+    gst_element_link(videoQueue1,videoConv1);
+    gst_element_link(videoQueue2,videoConv2);
+    gst_element_link(videoConv1, m_videoSink1Cdg);
+    gst_element_link(videoConv2, m_videoSink2Cdg);
+    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1Cdg), m_videoWinId);
+    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2Cdg), m_videoWinId2);
+    g_object_set(G_OBJECT(cdgAppSrc), "stream-type", 1, "format", GST_FORMAT_TIME, NULL);
+    g_signal_connect(cdgAppSrc, "need-data", G_CALLBACK(cb_need_data), this);
+    g_signal_connect(cdgAppSrc, "seek-data", G_CALLBACK(cb_seek_data), this);
 }
 
 void MediaBackend::gstBusMsgCdg(std::shared_ptr<GstMessage> message)
 {
     switch (GST_MESSAGE_TYPE(message.get())) {
     case GST_MESSAGE_NEED_CONTEXT:
-        qInfo() << m_objName  << " - CDG pipeline - context requested - " << message->src->name;
-        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(m_videoSink1), m_videoWinId);
-        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(m_videoSink2), m_videoWinId2);
+//        qInfo() << m_objName  << " - CDG pipeline - context requested - " << message->src->name;
+//        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(m_videoSink1), m_videoWinId);
+//        gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY(m_videoSink2), m_videoWinId2);
         break;
     default:
         break;
