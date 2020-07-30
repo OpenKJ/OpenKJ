@@ -158,6 +158,7 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     connect(ui->spinBoxCdgOffsetBottom, SIGNAL(valueChanged(int)), settings, SLOT(setCdgOffsetBottom(int)));
     connect(ui->spinBoxCdgOffsetLeft, SIGNAL(valueChanged(int)), settings, SLOT(setCdgOffsetLeft(int)));
     connect(ui->spinBoxCdgOffsetRight, SIGNAL(valueChanged(int)), settings, SLOT(setCdgOffsetRight(int)));
+    connect(ui->spinBoxVideoOffset, SIGNAL(valueChanged(int)), settings, SLOT(setVideoOffsetMs(int)));
 
     AudioRecorder recorder;
  //   QAudioRecorder audioRecorder;
@@ -215,7 +216,7 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     ui->cbxSongInterruptionWarning->setChecked(settings->showSongInterruptionWarning());
     ui->cbxBmAutostart->setChecked(settings->bmAutoStart());
     ui->cbxIgnoreApos->setChecked(settings->ignoreAposInSearch());
-    ui->spinBoxCdgOffset->setValue(settings->cdgDisplayOffset());
+    ui->spinBoxVideoOffset->setValue(settings->videoOffsetMs());
     ui->cbxStopPauseWarning->setChecked(settings->showSongPauseStopWarning());
     ui->cbxCheckUpdates->setChecked(settings->checkUpdates());
     ui->comboBoxUpdateBranch->setCurrentIndex(settings->updatesBranch());

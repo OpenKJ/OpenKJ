@@ -590,6 +590,11 @@ void Settings::setPreviewEnabled(bool enabled)
     emit previewEnabledChanged(enabled);
 }
 
+void Settings::setVideoOffsetMs(int offset)
+{
+    settings->setValue("videoOffsetMs", offset);
+}
+
 QColor Settings::tickerBgColor()
 {
     return settings->value("tickerBgColor", QApplication::palette().window().color()).value<QColor>();
@@ -969,6 +974,11 @@ int Settings::cdgOffsetRight()
 bool Settings::ignoreAposInSearch()
 {
     return settings->value("ignoreAposInSearch", false).toBool();
+}
+
+int Settings::videoOffsetMs()
+{
+    return settings->value("videoOffsetMs", 0).toInt();
 }
 
 void Settings::setIgnoreAposInSearch(bool ignore)

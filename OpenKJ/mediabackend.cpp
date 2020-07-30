@@ -186,6 +186,16 @@ MediaBackend::State MediaBackend::cdgState()
 void MediaBackend::play()
 {
     qInfo() << m_objName << " - play() called";
+    m_videoOffsetMs = m_settings.videoOffsetMs();
+    if (!m_cdgMode)
+    {
+        auto gstOffset = (m_videoOffsetMs * GST_MSECOND) * -1;
+        g_object_set(m_playBin, "av-offset", gstOffset, nullptr);
+    }
+    else
+    {
+        g_object_set(m_playBin, "av-offset", 0, nullptr);
+    }
     gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1), m_videoWinId1);
     gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2), m_videoWinId2);
     gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1Cdg), m_videoWinId1);
@@ -283,7 +293,7 @@ void MediaBackend::setPosition(const qint64 &position)
 
 void MediaBackend::cdgSetPosition(const qint64 &position)
 {
-    gst_element_seek_simple(m_cdgPipeline, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_MSECOND * position);
+    gst_element_seek_simple(m_cdgPipeline, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_MSECOND * (position + m_videoOffsetMs));
 }
 
 void MediaBackend::setVolume(const int &volume)
@@ -374,9 +384,9 @@ void MediaBackend::timerFast_timeout()
     {
         m_lastPosition = mspos;
         emit positionChanged(mspos);
-        if (m_cdgMode && (getCdgPosition() > mspos + 10 || getCdgPosition() < mspos - 10))
+        if (m_cdgMode && (getCdgPosition() + m_videoOffsetMs > mspos + 10 || getCdgPosition() + m_videoOffsetMs < mspos - 10))
         {
-            cdgSetPosition(mspos);
+            cdgSetPosition(mspos + m_videoOffsetMs);
         }
     }
 }

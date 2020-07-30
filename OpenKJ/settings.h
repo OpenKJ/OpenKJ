@@ -186,6 +186,7 @@ public:
     int cdgOffsetLeft();
     int cdgOffsetRight();
     bool ignoreAposInSearch();
+    int videoOffsetMs();
 
     bool bmShowFilenames();
     void bmSetShowFilenames(bool show);
@@ -431,7 +432,7 @@ public slots:
     void setRotationShowNextSong(bool show);
     void setProgressiveSearchEnabled(bool enabled);
     void setPreviewEnabled(bool enabled);
-
+    void setVideoOffsetMs(int offset);
 };
 
 #endif // KHSETTINGS_H

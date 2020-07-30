@@ -160,6 +160,7 @@ private:
     accel m_accelMode{XVideo};
     guint64 cdgPosition{0};
     unsigned int curFrame{0};
+    int m_videoOffsetMs{0};
 
     void buildPipeline();
     void buildCdgPipeline();
