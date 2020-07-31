@@ -107,6 +107,8 @@ private:
         GST_PLAY_FLAG_TEXT          = (1 << 2)
     };
     Settings m_settings;
+    GstElement *m_cdgAppSrc;
+    GstElement *m_scaleTempo;
     GstElement *m_cdgPipeline;
     GstElement *m_playBin;
     GstElement *m_aConvEnd;
@@ -150,6 +152,7 @@ private:
     bool m_bypass{false};
     bool m_loadPitchShift;
     bool m_downmix{false};
+    bool m_appSrcNeedData{false};
     std::array<int,10> m_eqLevels{0,0,0,0,0,0,0,0,0,0};
     std::vector<GstDevice*> m_outputDevices;
     QPointer<AudioFader> m_fader;
@@ -172,7 +175,7 @@ private:
     static GstBusSyncReply busMessageDispatcher(GstBus *bus, GstMessage *message, gpointer userData);
     static void cb_need_data(GstElement *appsrc, guint unused_size, gpointer user_data);
     static gboolean cb_seek_data(GstElement *appsrc, guint64 position, gpointer user_data);
-
+    static void cb_enough_data(GstElement *appsrc, gpointer user_data);
 private slots:
     void timerFast_timeout();
     void timerSlow_timeout();

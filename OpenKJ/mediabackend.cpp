@@ -141,7 +141,7 @@ qint64 MediaBackend::getCdgPosition()
 {
     gint64 pos;
     if (gst_element_query_position(m_cdgPipeline, GST_FORMAT_TIME, &pos))
-        return pos / 1000000;
+        return (pos / 1000000);
     return 0;
 }
 
@@ -182,6 +182,8 @@ MediaBackend::State MediaBackend::cdgState()
         return StoppedState;
     }
 }
+
+
 
 void MediaBackend::play()
 {
@@ -239,6 +241,7 @@ void MediaBackend::play()
         }
         m_cdg.open(m_cdgFilename);
         m_cdg.process();
+        gst_app_src_set_duration(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), (m_cdg.getFrameCount() * 40) * GST_MSECOND);
         qInfo() << m_objName << " - play - playing cdg:   " << m_cdgFilename;
         qInfo() << m_objName << " - play - playing audio: " << m_filename;
         gst_element_set_state(m_playBin, GST_STATE_PLAYING);
@@ -371,7 +374,7 @@ void MediaBackend::timerFast_timeout()
         return;
     }
     gint64 pos;
-    if (!gst_element_query_position (m_playBin, GST_FORMAT_TIME, &pos))
+    if (!gst_element_query_position (m_audioBin, GST_FORMAT_TIME, &pos))
     {
         m_lastPosition = 0;
         if (m_cdgMode)
@@ -384,9 +387,11 @@ void MediaBackend::timerFast_timeout()
     {
         m_lastPosition = mspos;
         emit positionChanged(mspos);
-        if (m_cdgMode && (getCdgPosition() + m_videoOffsetMs > mspos + 10 || getCdgPosition() + m_videoOffsetMs < mspos - 10))
+        if (m_cdgMode && m_tempo == 100 && (getCdgPosition() + m_videoOffsetMs > mspos + 10 || getCdgPosition() + m_videoOffsetMs < mspos - 10))
         {
             cdgSetPosition(mspos + m_videoOffsetMs);
+        } else if (m_cdgMode) {
+            cdgSetPosition((mspos * ((double)m_tempo / 100.0) + m_videoOffsetMs));
         }
     }
 }
@@ -615,10 +620,11 @@ void MediaBackend::buildPipeline()
     m_volumeElement = gst_element_factory_make("volume", "volumeElement");
     auto queueMainAudio = gst_element_factory_make("queue", "queueMainAudio");
     auto queueEndAudio = gst_element_factory_make("queue", "queueEndAudio");
+    m_scaleTempo = gst_element_factory_make("scaletempo", "scaleTempo");
     m_audioPanorama = gst_element_factory_make("audiopanorama", "audioPanorama");
     g_object_set(m_audioPanorama, "method", 1, nullptr);
-    gst_bin_add_many(GST_BIN(m_audioBin),queueMainAudio, m_audioPanorama, level, aConvInput, rgVolume, rgLimiter, m_volumeElement, m_equalizer, aConvPostPanorama, m_fltrPostPanorama, gst_object_ref(m_faderVolumeElement), nullptr);
-    gst_element_link_many(queueMainAudio, aConvInput, rgVolume, rgLimiter, level, m_volumeElement, m_equalizer, m_faderVolumeElement, m_audioPanorama, aConvPostPanorama, m_fltrPostPanorama, nullptr);
+    gst_bin_add_many(GST_BIN(m_audioBin),queueMainAudio, m_audioPanorama, level, m_scaleTempo, aConvInput, rgVolume, rgLimiter, m_volumeElement, m_equalizer, aConvPostPanorama, m_fltrPostPanorama, gst_object_ref(m_faderVolumeElement), nullptr);
+    gst_element_link_many(queueMainAudio, aConvInput, rgVolume, rgLimiter, m_scaleTempo, level, m_volumeElement, m_equalizer, m_faderVolumeElement, m_audioPanorama, aConvPostPanorama, m_fltrPostPanorama, nullptr);
 #ifdef Q_OS_LINUX
     if ((m_pitchShifterRubberBand) && (m_pitchShifterSoundtouch) && (m_loadPitchShift))
     {
@@ -755,9 +761,9 @@ void MediaBackend::buildCdgPipeline()
     m_videoSink2Cdg = gst_element_factory_make("glimagesink", "videoSink2");
 #endif
     m_cdgPipeline = gst_pipeline_new("cdgPipeline");
-    auto cdgAppSrc = gst_element_factory_make("appsrc", "cdgAppSrc");
+    m_cdgAppSrc = gst_element_factory_make("appsrc", "cdgAppSrc");
     auto cdgVidConv = gst_element_factory_make("videoconvert", "cdgVideoConv");
-    g_object_set(G_OBJECT(cdgAppSrc), "caps",
+    g_object_set(G_OBJECT(m_cdgAppSrc), "caps",
                  gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB16", "width", G_TYPE_INT, 288, "height",
                                      G_TYPE_INT, 192, "framerate", GST_TYPE_FRACTION, 1, 30, NULL),
                  NULL);
@@ -772,10 +778,10 @@ void MediaBackend::buildCdgPipeline()
     auto videoTeePad2 = gst_element_get_request_pad(videoTee, "src_%u");
     auto videoQueue1SrcPad = gst_element_get_static_pad(videoQueue1, "sink");
     auto videoQueue2SrcPad = gst_element_get_static_pad(videoQueue2, "sink");
-    gst_bin_add_many(reinterpret_cast<GstBin *>(m_cdgPipeline), cdgAppSrc, cdgVidConv, videoConv1,
+    gst_bin_add_many(reinterpret_cast<GstBin *>(m_cdgPipeline), m_cdgAppSrc, cdgVidConv, videoConv1,
                      videoConv2, videoTee, videoQueue1, videoQueue2, videoScale1, videoScale2,
                      m_videoSink1Cdg, m_videoSink2Cdg,nullptr);
-    gst_element_link(cdgAppSrc, cdgVidConv);
+    gst_element_link(m_cdgAppSrc, cdgVidConv);
     gst_element_link(cdgVidConv, videoTee);
     gst_pad_link(videoTeePad1, videoQueue1SrcPad);
     gst_pad_link(videoTeePad2, videoQueue2SrcPad);
@@ -783,9 +789,10 @@ void MediaBackend::buildCdgPipeline()
     gst_element_link_many(videoQueue2, videoConv2, videoScale2, m_videoSink2Cdg, nullptr);
     gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1Cdg), m_videoWinId1);
     gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2Cdg), m_videoWinId2);
-    g_object_set(G_OBJECT(cdgAppSrc), "stream-type", 1, "format", GST_FORMAT_TIME, NULL);
-    g_signal_connect(cdgAppSrc, "need-data", G_CALLBACK(cb_need_data), this);
-    g_signal_connect(cdgAppSrc, "seek-data", G_CALLBACK(cb_seek_data), this);
+    g_object_set(G_OBJECT(m_cdgAppSrc), "stream-type", 1, "format", GST_FORMAT_TIME, NULL);
+    g_signal_connect(m_cdgAppSrc, "need-data", G_CALLBACK(cb_need_data), this);
+    g_signal_connect(m_cdgAppSrc, "seek-data", G_CALLBACK(cb_seek_data), this);
+    g_signal_connect(m_cdgAppSrc, "enough-data", G_CALLBACK(cb_enough_data), this);
 }
 
 void MediaBackend::getGstDevices()
@@ -811,6 +818,12 @@ void MediaBackend::getGstDevices()
     g_list_free(devices);
 }
 
+void MediaBackend::cb_enough_data([[maybe_unused]]GstElement *appsrc, gpointer user_data)
+{
+    reinterpret_cast<MediaBackend *>(user_data)->m_appSrcNeedData = false;
+}
+
+
 void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused_size, gpointer user_data)
 {
     auto backend = reinterpret_cast<MediaBackend *>(user_data);
@@ -819,17 +832,23 @@ void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused
 #else
     auto bufferSize = backend->m_cdg.videoFrameByIndex(backend->curFrame).byteCount();
 #endif
+    backend->m_appSrcNeedData = true;
+    while (backend->m_appSrcNeedData && backend->curFrame < backend->m_cdg.getFrameCount())
+    {
     auto buffer = gst_buffer_new_and_alloc(bufferSize);
     gst_buffer_fill(buffer,
                     0,
                     backend->m_cdg.videoFrameByIndex(backend->curFrame).constBits(),
                     bufferSize
                     );
+    GST_BUFFER_TIMESTAMP(buffer) = backend->cdgPosition;
     GST_BUFFER_PTS(buffer) = backend->cdgPosition;
-    GST_BUFFER_DURATION(buffer) = 40000000; // 40ms
+    GST_BUFFER_DURATION(buffer) = 40 * GST_MSECOND;
     backend->cdgPosition += GST_BUFFER_DURATION(buffer);
     backend->curFrame++;
     gst_app_src_push_buffer(reinterpret_cast<GstAppSrc *>(appsrc), buffer);
+    QApplication::processEvents();
+    }
 }
 
 gboolean MediaBackend::cb_seek_data([[maybe_unused]]GstElement *appsrc, guint64 position, gpointer user_data)
@@ -841,7 +860,7 @@ gboolean MediaBackend::cb_seek_data([[maybe_unused]]GstElement *appsrc, guint64 
         backend->cdgPosition = 0;
         return true;
     }
-    backend->curFrame = position / 40000000;
+    backend->curFrame = position / (40 * GST_MSECOND);
     backend->cdgPosition = position;
     return true;
 }
@@ -894,8 +913,18 @@ void MediaBackend::setDownmix(const bool &enabled)
 void MediaBackend::setTempo(const int &percent)
 {
     m_tempo = percent;
-    g_object_set(m_pitchShifterSoundtouch, "tempo", (float)percent / 100.0, nullptr);
-    setPosition(position());
+    gint64 curpos;
+    gst_element_query_position(m_audioBin, GST_FORMAT_TIME, &curpos);
+    auto sinkEvent = gst_event_new_seek((double)m_tempo / 100.0, GST_FORMAT_TIME, (GstSeekFlags)(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE), GST_SEEK_TYPE_SET, curpos, GST_SEEK_TYPE_END, 0);
+    if (m_cdgMode)
+    {
+        g_object_set(m_pitchShifterSoundtouch, "tempo", (double)percent / 100.0, nullptr);
+        QTimer::singleShot(100, [&] () {
+            setPosition((position()));
+        });
+    }
+    else
+        gst_element_send_event(m_playBin, sinkEvent);
 }
 
 void MediaBackend::setOutputDevice(int deviceIndex)
