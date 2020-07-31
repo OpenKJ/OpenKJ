@@ -365,7 +365,10 @@ MainWindow::MainWindow(QWidget *parent) :
     kMediaBackend.setUseFader(settings->audioUseFader());
     connect(settingsDialog, &DlgSettings::audioSilenceDetectChanged, &kMediaBackend, &MediaBackend::setUseSilenceDetection);
     kMediaBackend.setUseSilenceDetection(settings->audioDetectSilence());
-
+    connect(ui->pushButtonTempoDn, &QPushButton::clicked, ui->spinBoxTempo, &QSpinBox::stepDown);
+    connect(ui->pushButtonTempoUp, &QPushButton::clicked, ui->spinBoxTempo, &QSpinBox::stepUp);
+    connect(ui->pushButtonKeyDn, &QPushButton::clicked, ui->spinBoxKey, &QSpinBox::stepDown);
+    connect(ui->pushButtonKeyUp, &QPushButton::clicked, ui->spinBoxKey, &QSpinBox::stepUp);
     connect(settingsDialog, &DlgSettings::audioUseFaderChangedBm, &bmMediaBackend, &MediaBackend::setUseFader);
     bmMediaBackend.setUseFader(settings->audioUseFaderBm());
     connect(settingsDialog, &DlgSettings::audioSilenceDetectChangedBm, &bmMediaBackend, &MediaBackend::setUseSilenceDetection);
@@ -1257,6 +1260,9 @@ void MainWindow::on_spinBoxKey_valueChanged(const int &arg1)
     }
     else
         ui->spinBoxKey->setValue(0);
+    QTimer::singleShot(20, [&] () {
+        ui->spinBoxKey->findChild<QLineEdit*>()->deselect();
+    });
 }
 
 void MainWindow::audioBackend_positionChanged(const qint64 &position)
@@ -2702,6 +2708,9 @@ void MainWindow::setMultiUnplayed()
 void MainWindow::on_spinBoxTempo_valueChanged(const int &arg1)
 {
     kMediaBackend.setTempo(arg1);
+    QTimer::singleShot(20, [&] () {
+        ui->spinBoxTempo->findChild<QLineEdit*>()->deselect();
+    });
 }
 
 void MainWindow::on_actionSongbook_Generator_triggered()

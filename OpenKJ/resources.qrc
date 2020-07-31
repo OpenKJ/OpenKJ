@@ -67,5 +67,7 @@
         <file>Icons/breeze-light/edit-find.svg</file>
         <file>Icons/breeze-light/audio-volume-high.svg</file>
         <file>Icons/breeze-dark/audio-volume-high.svg</file>
+        <file>Icons/breeze-dark/downindicator.svg</file>
+        <file>Icons/breeze-dark/upindicator.svg</file>
     </qresource>
 </RCC>
