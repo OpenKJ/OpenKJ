@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
         palette.setColor(QPalette::Disabled,QPalette::ButtonText,QColor(127,127,127));
         palette.setColor(QPalette::BrightText,Qt::red);
         palette.setColor(QPalette::Link,QColor(42,130,218));
-        palette.setColor(QPalette::Highlight,QColor(42,130,218));
+        palette.setColor(QPalette::Highlight,QColor(1,87,155));
         palette.setColor(QPalette::Disabled,QPalette::Highlight,QColor(80,80,80));
         palette.setColor(QPalette::HighlightedText,Qt::white);
         palette.setColor(QPalette::Disabled,QPalette::HighlightedText,QColor(127,127,127));

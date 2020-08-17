@@ -45,13 +45,18 @@ void DlgChat::connectChat()
     client.venueId = venueId;
     QUrl url;
     url.setHost("messaging.openkj.org");
-    url.setPort(8080);
-    url.setScheme("ws");
+    url.setPort(8443);
+    url.setScheme("wss");
     client.connectSocket(url);
 }
 
 void DlgChat::messageReceived(const Message &msg)
 {
+    if (msg.fromUuid != client.toUuid && msg.fromUuid != client.fromUuid)
+    {
+        // message received from non-selected singer
+        return;
+    }
     ChatMessagesWidget::position pos;
     if (msg.fromSinger)
         pos = ChatMessagesWidget::LEFT;
@@ -77,10 +82,13 @@ void DlgChat::disconnected()
 void DlgChat::singerListChanged(const std::vector<IMSinger> &singers)
 {
     ui->listWidgetSingers->clear();
+    auto onlinePixmap = QPixmap(":/icons/Icons/onineicon.png"); //.scaledToHeight(24, Qt::SmoothTransformation);
     std::for_each(singers.begin(), singers.end(), [&] (IMSinger singer) {
-       auto it = new QListWidgetItem(singer.displayName);
-       it->setData(Qt::UserRole, singer.uuid);
-       ui->listWidgetSingers->addItem(it);
+        auto it = new QListWidgetItem(singer.displayName);
+
+        it->setIcon(QIcon(QPixmap(":/icons/Icons/onlineicon.png").scaled(QSize(13,13))));
+        it->setData(Qt::UserRole, singer.uuid);
+        ui->listWidgetSingers->addItem(it);
     });
 }
 

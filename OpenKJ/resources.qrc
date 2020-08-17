@@ -31,6 +31,8 @@
         <file>Icons/okicon.svg</file>
         <file>Icons/theme.png</file>
         <file>Icons/rotation.png</file>
+        <file>Icons/offlineicon.png</file>
+        <file>Icons/onlineicon.png</file>
     </qresource>
     <qresource prefix="/">
         <file>Icons/other-settings.png</file>
