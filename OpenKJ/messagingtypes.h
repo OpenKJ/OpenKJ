@@ -7,15 +7,22 @@
 #include <QDateTime>
 #include <QWebSocket>
 #include <QJsonArray>
-#include <vector>
-#include <algorithm>
 
 
-
-
-
-
-enum MsgType {REGISTRATION, IM, DISPLAY_NAME_CHANGE, VENUE_CHANGE, VENUE_SINGERS, CLIENT_CONNECT_ACK, GET_SINGERS, GET_MSG_HISTORY, MSG_HISTORY};
+enum MsgType {
+    REGISTRATION,
+    IM,
+    DISPLAY_NAME_CHANGE,
+    VENUE_CHANGE,
+    VENUE_SINGERS,
+    CLIENT_CONNECT_ACK,
+    GET_SINGERS,
+    GET_MSG_HISTORY,
+    MSG_HISTORY,
+    MARK_CONV_READ,
+    MARK_MSG_RECEIVED,
+    MARK_CONV_RECEIVED
+};
 
 class DisplayNameChange {
 public:
@@ -86,7 +93,77 @@ public:
     }
 };
 
+class MarkConvRead {
+public:
+    int dataType;
+    QString toUuid;
+    QString fromUuid;
+    MarkConvRead() {
+        dataType = MARK_CONV_READ;
+    }
+    MarkConvRead(const QByteArray& json) {
+        QJsonDocument doc = QJsonDocument::fromJson(json);
+        dataType = MsgType::MARK_CONV_READ;
+        toUuid = doc.object().value("toUuid").toString();
+        fromUuid = doc.object().value("fromUuid").toString();
+    }
+    QByteArray toJson() const {
+        QJsonObject jsonObject;
+        jsonObject.insert("dataType", MsgType::MARK_CONV_READ);
+        jsonObject.insert("toUuid", toUuid);
+        jsonObject.insert("fromUuid", fromUuid);
+        return QJsonDocument(jsonObject).toJson(QJsonDocument::Compact);
+    }
+};
 
+class MarkConvReceived {
+public:
+    int dataType;
+    QString toUuid;
+    QString fromUuid;
+    MarkConvReceived() {
+        dataType = MARK_CONV_RECEIVED;
+    }
+    MarkConvReceived(const QByteArray& json) {
+        QJsonDocument doc = QJsonDocument::fromJson(json);
+        dataType = MsgType::MARK_CONV_RECEIVED;
+        toUuid = doc.object().value("toUuid").toString();
+        fromUuid = doc.object().value("fromUuid").toString();
+    }
+    QByteArray toJson() const {
+        QJsonObject jsonObject;
+        jsonObject.insert("dataType", MsgType::MARK_CONV_RECEIVED);
+        jsonObject.insert("toUuid", toUuid);
+        jsonObject.insert("fromUuid", fromUuid);
+        return QJsonDocument(jsonObject).toJson(QJsonDocument::Compact);
+    }
+};
+
+class MarkMsgReceived {
+public:
+    int dataType;
+    int msgId;
+    QString toUuid;
+    QString fromUuid;
+    MarkMsgReceived() {
+        dataType = MARK_MSG_RECEIVED;
+    }
+    MarkMsgReceived(const QByteArray& json) {
+        QJsonDocument doc = QJsonDocument::fromJson(json);
+        dataType = MsgType::MARK_MSG_RECEIVED;
+        toUuid = doc.object().value("toUuid").toString();
+        fromUuid = doc.object().value("fromUuid").toString();
+        msgId = doc.object().value("msgId").toInt();
+    }
+    QByteArray toJson() const {
+        QJsonObject jsonObject;
+        jsonObject.insert("dataType", MsgType::MARK_MSG_RECEIVED);
+        jsonObject.insert("toUuid", toUuid);
+        jsonObject.insert("fromUuid", fromUuid);
+        jsonObject.insert("msgId", msgId);
+        return QJsonDocument(jsonObject).toJson(QJsonDocument::Compact);
+    }
+};
 
 class Message {
 public:
@@ -154,15 +231,13 @@ public:
         uuid1 = doc.object().value("uuid1").toString();
         uuid2 = doc.object().value("uuid2").toString();
         QJsonArray arr = doc.object().value("messages").toArray();
-        for (int i=0; i<arr.size(); i++)
-        {
-           // qInfo() << QJsonDocument(arr.at(i).toObject()).toJson() << "\n\n";
-            messages.push_back(QJsonDocument(arr.at(i).toObject()).toJson());
-        }
+        std::for_each(arr.begin(), arr.end(), [&] (auto msg) {
+           messages.push_back(QJsonDocument(msg.toObject()).toJson());
+        });
     }
     QByteArray toJson() const {
         QJsonArray msgArray;
-        std::for_each(messages.begin(),messages.end(),[&] (Message msg) {
+        std::for_each(messages.begin(), messages.end(), [&] (auto msg) {
            msgArray.append(msg.toJsonObject());
         });
         QJsonObject jsonObject;
@@ -190,7 +265,7 @@ public:
 class Venue {
 public:
     QString venueId;
-    QList<Message> messages;
+    std::vector<Message> messages;
     bool online;
     Venue() {
         online = false;
@@ -239,19 +314,18 @@ public:
 class RegisteredSingers {
 public:
     QString venueId;
-    QList<Peer> singers;
+    std::vector<Peer> singers;
     QByteArray getJson() {
         QJsonObject obj;
         obj.insert("dataType", MsgType::VENUE_SINGERS);
         QJsonArray arr;
-        for (int i=0; i < singers.size(); i++)
-        {
-            QJsonObject singerObj;
-            singerObj.insert("displayName", singers.at(i).displayName);
-            singerObj.insert("venueId", singers.at(i).venueId);
-            singerObj.insert("uuid", singers.at(i).uuid);
-            arr.append(singerObj);
-        }
+        std::for_each(singers.begin(), singers.end(), [&] (auto singer) {
+           QJsonObject singerObj;
+           singerObj.insert("displayName", singer.displayName);
+           singerObj.insert("venueId", singer.venueId);
+           singerObj.insert("uuid", singer.uuid);
+           arr.append(singerObj);
+        });
         obj.insert("singers", arr);
         return QJsonDocument(obj).toJson();
     }
@@ -269,24 +343,6 @@ public:
         return QJsonDocument(jsonObject).toJson();
     }
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

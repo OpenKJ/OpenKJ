@@ -107,6 +107,7 @@ void DlgChat::on_listWidgetSingers_currentItemChanged(QListWidgetItem *current, 
     }
     client.toUuid = current->data(Qt::UserRole).toString();
     client.getMessageHistory(current->data(Qt::UserRole).toString());
+    client.markConvRead(current->data(Qt::UserRole).toString());
 }
 
 void DlgChat::on_lineEditMessage_returnPressed()
