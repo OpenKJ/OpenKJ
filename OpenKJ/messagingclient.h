@@ -52,6 +52,9 @@ public slots:
     void sendIM(QString message);
     void getMessageHistory(const QString &uuid);
     void setVenue(const QString &venueId);
+    void markConvRead(const QString &fromUuid);
+    void markConvReceived(const QString &fromUuid);
+    void markMsgRecieved(const QString &fromUuid, const int msgId);
 
 
 private slots:

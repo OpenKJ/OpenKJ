@@ -134,6 +134,31 @@ void MessagingClient::setVenue(const QString &venueId)
 
 }
 
+void MessagingClient::markConvRead(const QString &fromUuid)
+{
+    MarkConvRead mcr;
+    mcr.toUuid = this->fromUuid;
+    mcr.fromUuid = fromUuid;
+    m_webSocket.sendBinaryMessage(mcr.toJson());
+}
+
+void MessagingClient::markConvReceived(const QString &fromUuid)
+{
+    MarkConvReceived mcr;
+    mcr.toUuid = this->fromUuid;
+    mcr.fromUuid = fromUuid;
+    m_webSocket.sendBinaryMessage(mcr.toJson());
+}
+
+void MessagingClient::markMsgRecieved(const QString &fromUuid, const int msgId)
+{
+    MarkMsgReceived mmr;
+    mmr.toUuid = this->fromUuid;
+    mmr.fromUuid = fromUuid;
+    mmr.msgId = msgId;
+    m_webSocket.sendBinaryMessage(mmr.toJson());
+}
+
 void MessagingClient::onTextMessageReceived(const QString &message)
 {
     onBinaryMessageReceived(message.toLocal8Bit());
@@ -148,6 +173,7 @@ void MessagingClient::onBinaryMessageReceived(const QByteArray &data)
     case MsgType::IM:
         qInfo() << "MessagingClient - Received new IM";
         emit messageReceived(Message(data));
+        markMsgRecieved(Message(data).fromUuid, Message(data).msgId);
         break;
     case MsgType::REGISTRATION:
         qInfo() << "MessagingClient - Received registration message";
@@ -159,6 +185,7 @@ void MessagingClient::onBinaryMessageReceived(const QByteArray &data)
     case MsgType::MSG_HISTORY:
         qInfo() << "MessagingClient - Received message history data";
         updateHistory(data);
+        markConvReceived(MsgHistory(data).uuid2);
         break;
     case MsgType::CLIENT_CONNECT_ACK:
         qInfo() << "MessagingClient - Received client connnection ack message";
