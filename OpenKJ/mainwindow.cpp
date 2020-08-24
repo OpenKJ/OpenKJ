@@ -937,6 +937,7 @@ void MainWindow::on_buttonPause_clicked()
 
 void MainWindow::on_lineEdit_returnPressed()
 {
+    ui->tableViewDB->scrollToTop();
     search();
 }
 
@@ -2661,6 +2662,7 @@ void MainWindow::on_lineEdit_textChanged(const QString &arg1)
 {
     if (!settings->progressiveSearchEnabled())
         return;
+    ui->tableViewDB->scrollToTop();
     static QString lastVal;
     if (arg1.trimmed() != lastVal)
     {

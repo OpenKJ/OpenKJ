@@ -22,6 +22,10 @@ private slots:
 private:
     Ui::DlgAddSinger *ui;
     RotationModel *rotModel;
+
+    // QWidget interface
+protected:
+    void showEvent(QShowEvent *event) override;
 };
 
 #endif // DLGADDSINGER_H

@@ -53,3 +53,9 @@ void DlgAddSinger::on_buttonBox_accepted()
         close();
     }
 }
+
+void DlgAddSinger::showEvent(QShowEvent *event)
+{
+    ui->lineEditName->setFocus();
+    QDialog::showEvent(event);
+}
