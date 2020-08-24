@@ -63,6 +63,7 @@ void DlgChat::messageReceived(const Message &msg)
     else
         pos = ChatMessagesWidget::RIGHT;
     ui->cmWidget->addMessage(msg.message, pos);
+    client.markConvRead(client.toUuid);
 }
 
 void DlgChat::messageHistoryReceived(const std::vector<Message> &messages)
