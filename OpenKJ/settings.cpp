@@ -317,8 +317,6 @@ int Settings::cdgWindowFullScreenMonitor()
 void Settings::saveWindowState(QWidget *window)
 {
     settings->beginGroup(window->objectName());
-    //settings->setValue("size", window->size());
-    //settings->setValue("pos", window->pos());
     settings->setValue("geometry", window->saveGeometry());
     settings->endGroup();
 }

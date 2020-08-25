@@ -74,13 +74,13 @@ jobs:
       uses: actions/cache@v1
       with:
        path: ../Qt
-       key: ${{ runner.os }}-QtCache-5.14.2
+       key: ${{ runner.os }}-QtCache-5.13.2
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v2
       with:
        cached: ${{ steps.cache-qt.outputs.cache-hit }}
-       version: '5.14.2'
+       version: '5.13.2'
        modules: 'core gui sql network widgets multimedia concurrent svg printsupport'
 
 
