@@ -267,6 +267,9 @@ Settings::Settings(QObject *parent) :
     QCoreApplication::setOrganizationDomain("OpenKJ.org");
     QCoreApplication::setApplicationName("OpenKJ");
     settings = new QSettings(this);
+#ifndef Q_OS_LINUX
+    settings->setDefaultFormat(QSettings::IniFormat);
+#endif
 }
 
 bool Settings::cdgWindowFullscreen()
