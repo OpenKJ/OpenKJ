@@ -266,9 +266,15 @@ Settings::Settings(QObject *parent) :
     QCoreApplication::setOrganizationName("OpenKJ");
     QCoreApplication::setOrganizationDomain("OpenKJ.org");
     QCoreApplication::setApplicationName("OpenKJ");
+#ifdef Q_OS_LINUX
     settings = new QSettings(this);
-#ifndef Q_OS_LINUX
-    settings->setDefaultFormat(QSettings::IniFormat);
+#else
+    QDir khDir(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
+    if (!khDir.exists())
+    {
+        khDir.mkpath(khDir.absolutePath());
+    }
+    settings = new QSettings(khDir.absolutePath() + QDir::separator() + "openkj.ini", QSettings::IniFormat);
 #endif
 }
 
