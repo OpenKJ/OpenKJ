@@ -415,7 +415,9 @@ QFont Settings::tickerFont()
 QFont Settings::applicationFont()
 {
     QFont font;
-    font.fromString(settings->value("applicationFont", QApplication::font().toString()).toString());
+    QFont defaultFont = QApplication::font();
+    defaultFont.setPointSize(12);
+    font.fromString(settings->value("applicationFont", defaultFont.toString()).toString());
     return font;
 }
 
