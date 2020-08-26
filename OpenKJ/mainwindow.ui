@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1317</width>
-    <height>749</height>
+    <width>1239</width>
+    <height>772</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -1814,7 +1814,7 @@ QPushButton:default {
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>374</width>
+                     <width>364</width>
                      <height>68</height>
                     </rect>
                    </property>
@@ -2894,7 +2894,7 @@ QPushButton:default {
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1317</width>
+     <width>1239</width>
      <height>21</height>
     </rect>
    </property>

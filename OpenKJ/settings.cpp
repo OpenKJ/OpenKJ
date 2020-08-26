@@ -30,6 +30,8 @@
 #include <QStandardPaths>
 #include <QDir>
 #include <QDataStream>
+#include <QGuiApplication>
+#include <QScreen>
 
 
 int Settings::remainRtOffset()
@@ -323,7 +325,14 @@ void Settings::saveWindowState(QWidget *window)
 
 void Settings::restoreWindowState(QWidget *window)
 {
-
+    if (window->objectName() == "MainWindow")
+    {
+        if (QGuiApplication::primaryScreen()->availableSize().height() < 800)
+        {
+            qInfo() << "Screen available height < 800px, skipping MainWindow geometry restor";
+            return;
+        }
+    }
     qInfo() << "Restoring last saved geometry for window: " << window->objectName();
     settings->beginGroup(window->objectName());
     if (settings->contains("geometry"))
