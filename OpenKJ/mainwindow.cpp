@@ -651,9 +651,9 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     else
     {
+        ui->groupBoxSoundClips->setVisible(false);
         ui->groupBoxSoundClips->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Ignored);
         ui->verticalSpacerRtPanel->changeSize(0, 20, QSizePolicy::Ignored, QSizePolicy::Expanding);
-        ui->groupBoxSoundClips->setVisible(false);
     }
     ui->videoPreview->setVisible(settings->showMainWindowVideo());
     ui->actionNow_Playing->setChecked(settings->showMainWindowNowPlaying());

@@ -30,8 +30,6 @@
 #include <QStandardPaths>
 #include <QDir>
 #include <QDataStream>
-#include <QGuiApplication>
-#include <QScreen>
 
 
 int Settings::remainRtOffset()
@@ -318,30 +316,16 @@ int Settings::cdgWindowFullScreenMonitor()
 
 void Settings::saveWindowState(QWidget *window)
 {
-//    if (window->objectName() == "MainWindow")
-//    {
-//        if (QGuiApplication::primaryScreen()->availableSize().height() < 800)
-//        {
-//            qInfo() << "Screen available height < 800px, skipping MainWindow geometry save";
-//            return;
-//        }
-//    }
     settings->beginGroup(window->objectName());
+    //settings->setValue("size", window->size());
+    //settings->setValue("pos", window->pos());
     settings->setValue("geometry", window->saveGeometry());
     settings->endGroup();
 }
 
 void Settings::restoreWindowState(QWidget *window)
 {
-//    if (window->objectName() == "MainWindow")
-//    {
-//        if (QGuiApplication::primaryScreen()->availableSize().height() < 800)
-//        {
-//            qInfo() << "Screen available height < 800px, skipping MainWindow geometry restore";
-//            return;
-//        }
-//    }
-    qInfo() << "Restoring last saved geometry for window: " << window->objectName();
+
     settings->beginGroup(window->objectName());
     if (settings->contains("geometry"))
     {
@@ -1017,7 +1001,7 @@ void Settings::setShowSongPauseStopWarning(bool enabled)
 {
     settings->setValue("showStopPauseInterruptWarning", enabled);
     emit showSongStopPauseWarningChanged(enabled);
-    
+
 }
 
 void Settings::setBookCreatorArtistFont(QFont font)
