@@ -122,7 +122,6 @@ MediaBackend::~MediaBackend()
     m_timerFast.stop();
     if (state() == PlayingState)
         stop(true);
-    gst_object_unref(m_faderVolumeElement);
     if (m_videoSink1)
         gst_object_unref(m_videoSink1);
     if (m_videoSink2)
@@ -203,6 +202,11 @@ void MediaBackend::play()
     gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1Cdg), m_videoWinId1);
     gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2Cdg), m_videoWinId2);
     gst_stream_volume_set_volume(GST_STREAM_VOLUME(m_playBin), GST_STREAM_VOLUME_FORMAT_LINEAR, 1.0);
+    if (m_currentlyFadedOut)
+    {
+        g_object_set(m_faderVolumeElement, "mute", true, nullptr);
+        g_object_set(m_faderVolumeElement, "volume", 0.0, nullptr);
+    }
     if (state() == MediaBackend::PausedState)
     {
         qInfo() << m_objName << " - play - playback is currently paused, unpausing";
@@ -301,6 +305,7 @@ void MediaBackend::cdgSetPosition(const qint64 &position)
 
 void MediaBackend::setVolume(const int &volume)
 {
+    qInfo() << m_objName << " - fadeOut called";
     m_volume = volume;
     gst_stream_volume_set_volume(GST_STREAM_VOLUME(m_volumeElement), GST_STREAM_VOLUME_FORMAT_CUBIC, volume * .01);
     emit volumeChanged(volume);
@@ -491,6 +496,8 @@ void MediaBackend::gstBusMsg(std::shared_ptr<GstMessage> message)
     case GST_MESSAGE_STATE_CHANGED:
         GstState state;
         gst_element_get_state(m_playBin, &state, nullptr, GST_CLOCK_TIME_NONE);
+        if (m_currentlyFadedOut)
+            g_object_set(m_faderVolumeElement, "volume", 0.0, nullptr);
         if (state == GST_STATE_PLAYING && m_lastState != MediaBackend::PlayingState)
         {
             qInfo() << "GST notified of state change to PLAYING";
@@ -498,6 +505,8 @@ void MediaBackend::gstBusMsg(std::shared_ptr<GstMessage> message)
                 cdgPlay();
             m_lastState = MediaBackend::PlayingState;
             emit stateChanged(MediaBackend::PlayingState);
+            if (m_currentlyFadedOut)
+                m_fader->immediateOut();
         }
         else if (state == GST_STATE_PAUSED && m_lastState != MediaBackend::PausedState)
         {
@@ -593,8 +602,6 @@ void MediaBackend::buildPipeline()
     m_fader = new AudioFader(this);
     m_fader->setObjName(m_objName + "Fader");
     m_fader->setVolumeElement(m_faderVolumeElement);
-    gst_object_ref(m_faderVolumeElement);
-
     auto aConvInput = gst_element_factory_make("audioconvert", "aConvInput");
     auto aConvPrePitchShift = gst_element_factory_make("audioconvert", "aConvPrePitchShift");
     auto aConvPostPitchShift = gst_element_factory_make("audioconvert", "aConvPostPitchShift");
@@ -694,15 +701,6 @@ void MediaBackend::buildPipeline()
 
     g_object_set(rgVolume, "album-mode", false, nullptr);
     g_object_set(level, "message", TRUE, nullptr);
-    auto csource = gst_interpolation_control_source_new ();
-    if (!csource)
-        qInfo() << m_objName << " - Error createing control source";
-    auto *cbind = gst_direct_control_binding_new(GST_OBJECT_CAST(m_faderVolumeElement), "volume", csource);
-    if (!cbind)
-        qInfo() << m_objName << " - Error creating control binding";
-    if (!gst_object_add_control_binding (GST_OBJECT_CAST(m_faderVolumeElement), cbind))
-        qInfo() << m_objName << " - Error adding control binding to volumeElement for fader control";
-    g_object_set(csource, "mode", GST_INTERPOLATION_MODE_CUBIC, nullptr);
     setVolume(m_volume);
     m_timerSlow.start(1000);
     setOutputDevice(m_outputDeviceIdx);
@@ -869,6 +867,8 @@ gboolean MediaBackend::cb_seek_data([[maybe_unused]]GstElement *appsrc, guint64 
 
 void MediaBackend::fadeOut(const bool &waitForFade)
 {
+    qInfo() << m_objName << " - fadeOut called";
+    m_currentlyFadedOut = true;
     gdouble curVolume;
     g_object_get(G_OBJECT(m_volumeElement), "volume", &curVolume, nullptr);
     if (state() != PlayingState)
@@ -882,6 +882,8 @@ void MediaBackend::fadeOut(const bool &waitForFade)
 
 void MediaBackend::fadeIn(const bool &waitForFade)
 {
+    qInfo() << m_objName << " - fadeIn called";
+    m_currentlyFadedOut = false;
     if (state() != PlayingState)
     {
         qInfo() << m_objName << " - fadeIn - State not playing, skipping fade and setting volume";
@@ -1081,10 +1083,14 @@ bool MediaBackend::hasVideo()
 
 void MediaBackend::fadeInImmediate()
 {
+    qInfo() << m_objName << " - fadeInImmediate called";
+    m_currentlyFadedOut = false;
     m_fader->immediateIn();
 }
 
 void MediaBackend::fadeOutImmediate()
 {
+    qInfo() << m_objName << " - fadeOutImmediate called";
+    m_currentlyFadedOut = true;
     m_fader->immediateOut();
 }

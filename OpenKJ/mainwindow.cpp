@@ -2257,7 +2257,9 @@ void MainWindow::bmMediaStateChanged(const MediaBackend::State &newState)
             qInfo() << "Break music auto-advancing to song: " << path;
             bmMediaBackend.setMedia(path);
             bmMediaBackend.play();
-            bmMediaBackend.setVolume(ui->sliderBmVolume->value());
+            //bmMediaBackend.setVolume(ui->sliderBmVolume->value());
+            if (kMediaBackend.state() == MediaBackend::PlayingState)
+                bmMediaBackend.fadeOutImmediate();
             ui->labelBmPlaying->setText(song);
             ui->labelBmNext->setText(nextSong);
             bmPlDelegate->setCurrentSong(bmCurrentPosition);

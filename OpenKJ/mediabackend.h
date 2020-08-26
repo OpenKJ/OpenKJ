@@ -142,6 +142,7 @@ private:
     bool m_cdgMode{false};
     bool m_cdgModeLastBuild{false};
     bool m_fade{false};
+    bool m_currentlyFadedOut{false};
     bool m_silenceDetect{false};
     bool m_canKeyChange{false};
     bool m_canChangeTempo{false};
