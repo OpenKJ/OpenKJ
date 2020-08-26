@@ -318,14 +318,14 @@ int Settings::cdgWindowFullScreenMonitor()
 
 void Settings::saveWindowState(QWidget *window)
 {
-    if (window->objectName() == "MainWindow")
-    {
-        if (QGuiApplication::primaryScreen()->availableSize().height() < 800)
-        {
-            qInfo() << "Screen available height < 800px, skipping MainWindow geometry save";
-            return;
-        }
-    }
+//    if (window->objectName() == "MainWindow")
+//    {
+//        if (QGuiApplication::primaryScreen()->availableSize().height() < 800)
+//        {
+//            qInfo() << "Screen available height < 800px, skipping MainWindow geometry save";
+//            return;
+//        }
+//    }
     settings->beginGroup(window->objectName());
     settings->setValue("geometry", window->saveGeometry());
     settings->endGroup();
@@ -333,23 +333,19 @@ void Settings::saveWindowState(QWidget *window)
 
 void Settings::restoreWindowState(QWidget *window)
 {
-    if (window->objectName() == "MainWindow")
-    {
-        if (QGuiApplication::primaryScreen()->availableSize().height() < 800)
-        {
-            qInfo() << "Screen available height < 800px, skipping MainWindow geometry restore";
-            return;
-        }
-    }
+//    if (window->objectName() == "MainWindow")
+//    {
+//        if (QGuiApplication::primaryScreen()->availableSize().height() < 800)
+//        {
+//            qInfo() << "Screen available height < 800px, skipping MainWindow geometry restore";
+//            return;
+//        }
+//    }
     qInfo() << "Restoring last saved geometry for window: " << window->objectName();
     settings->beginGroup(window->objectName());
     if (settings->contains("geometry"))
     {
-        if (!window->restoreGeometry(settings->value("geometry").toByteArray()))
-        {
-            qWarning() << "Error restoring main window geometry for window: " << window->objectName();
-            window->setGeometry(0,0,1000,680);
-        }
+        window->restoreGeometry(settings->value("geometry").toByteArray());
     }
     else if (settings->contains("size") && settings->contains("pos"))
     {

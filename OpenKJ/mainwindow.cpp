@@ -641,6 +641,20 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->groupBoxNowPlaying->setVisible(settings->showMainWindowNowPlaying());
     ui->groupBoxSoundClips->setVisible(settings->showMainWindowSoundClips());
+    if (settings->showMainWindowSoundClips())
+    {
+        ui->groupBoxSoundClips->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        ui->scrollAreaSoundClips->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        ui->scrollAreaWidgetContents->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        ui->verticalSpacerRtPanel->changeSize(0, 20, QSizePolicy::Ignored, QSizePolicy::Ignored);
+        ui->groupBoxSoundClips->setVisible(true);
+    }
+    else
+    {
+        ui->groupBoxSoundClips->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Ignored);
+        ui->verticalSpacerRtPanel->changeSize(0, 20, QSizePolicy::Ignored, QSizePolicy::Expanding);
+        ui->groupBoxSoundClips->setVisible(false);
+    }
     ui->videoPreview->setVisible(settings->showMainWindowVideo());
     ui->actionNow_Playing->setChecked(settings->showMainWindowNowPlaying());
     ui->actionSound_Clips->setChecked(settings->showMainWindowSoundClips());
@@ -3490,6 +3504,18 @@ void MainWindow::on_btnPlBottom_clicked()
 
 void MainWindow::on_actionSound_Clips_triggered(const bool &checked)
 {
+    if (checked)
+    {
+        ui->groupBoxSoundClips->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        ui->scrollAreaSoundClips->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        ui->scrollAreaWidgetContents->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        ui->verticalSpacerRtPanel->changeSize(0, 20, QSizePolicy::Ignored, QSizePolicy::Ignored);
+    }
+    else
+    {
+        ui->groupBoxSoundClips->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Ignored);
+        ui->verticalSpacerRtPanel->changeSize(0, 20, QSizePolicy::Ignored, QSizePolicy::Expanding);
+    }
     ui->groupBoxSoundClips->setVisible(checked);
     settings->setShowMainWindowSoundClips(checked);
 }

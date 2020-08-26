@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1239</width>
-    <height>772</height>
+    <width>1082</width>
+    <height>886</height>
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+   <sizepolicy hsizetype="Preferred" vsizetype="Ignored">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
@@ -1748,6 +1748,12 @@ QPushButton:default {
              </item>
              <item>
               <widget class="QGroupBox" name="groupBoxSoundClips">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Ignored">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="title">
                 <string>Sound Clips</string>
                </property>
@@ -1805,7 +1811,7 @@ QPushButton:default {
                  </layout>
                 </item>
                 <item>
-                 <widget class="QScrollArea" name="scrollArea">
+                 <widget class="QScrollArea" name="scrollAreaSoundClips">
                   <property name="widgetResizable">
                    <bool>true</bool>
                   </property>
@@ -1814,9 +1820,15 @@ QPushButton:default {
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>364</width>
-                     <height>68</height>
+                     <width>285</width>
+                     <height>42</height>
                     </rect>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
                    </property>
                    <layout class="QVBoxLayout" name="verticalLayout_17">
                     <property name="spacing">
@@ -1836,16 +1848,13 @@ QPushButton:default {
                     </property>
                     <item>
                      <layout class="QGridLayout" name="sfxButtonGrid">
-                      <property name="sizeConstraint">
-                       <enum>QLayout::SetMaximumSize</enum>
-                      </property>
                       <property name="bottomMargin">
                        <number>0</number>
                       </property>
                      </layout>
                     </item>
                     <item>
-                     <spacer name="verticalSpacer_2">
+                     <spacer name="verticalSpacerSoundClips">
                       <property name="orientation">
                        <enum>Qt::Vertical</enum>
                       </property>
@@ -1892,9 +1901,12 @@ QPushButton:default {
               </widget>
              </item>
              <item>
-              <spacer name="verticalSpacer">
+              <spacer name="verticalSpacerRtPanel">
                <property name="orientation">
                 <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::Expanding</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -2894,7 +2906,7 @@ QPushButton:default {
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1239</width>
+     <width>1082</width>
      <height>21</height>
     </rect>
    </property>
