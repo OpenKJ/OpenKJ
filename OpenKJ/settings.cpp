@@ -318,6 +318,14 @@ int Settings::cdgWindowFullScreenMonitor()
 
 void Settings::saveWindowState(QWidget *window)
 {
+    if (window->objectName() == "MainWindow")
+    {
+        if (QGuiApplication::primaryScreen()->availableSize().height() < 800)
+        {
+            qInfo() << "Screen available height < 800px, skipping MainWindow geometry save";
+            return;
+        }
+    }
     settings->beginGroup(window->objectName());
     settings->setValue("geometry", window->saveGeometry());
     settings->endGroup();
@@ -329,7 +337,7 @@ void Settings::restoreWindowState(QWidget *window)
     {
         if (QGuiApplication::primaryScreen()->availableSize().height() < 800)
         {
-            qInfo() << "Screen available height < 800px, skipping MainWindow geometry restor";
+            qInfo() << "Screen available height < 800px, skipping MainWindow geometry restore";
             return;
         }
     }
