@@ -47,8 +47,10 @@
 #include "dbupdatethread.h"
 #include <chrono>
 #include "okjutil.h"
+#include <algorithm>
 
 #ifdef Q_OS_WIN
+#define NOMINMAX
 #include <Windows.h>
 #endif
 
