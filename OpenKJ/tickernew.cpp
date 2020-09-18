@@ -3,184 +3,243 @@
 #include <QPainter>
 #include <QFontMetrics>
 #include <QDebug>
-#include <QApplication>
-#include <QOpenGLWidget>
-#include <QGraphicsPixmapItem>
-#include <QVariantAnimation>
-#include <settings.h>
+#include <QResizeEvent>
 #include <QMutex>
-//#include <QGLWidget>
+#include <QApplication>
 
 QMutex mutex;
 
 
-TickerDisplayWidget::TickerDisplayWidget(QWidget *parent)
-    : QGraphicsView(parent)
+void TickerNew::run() {
+    qInfo() << "TickerNew - run() called, ticker starting";
+    m_stop = false;
+    m_textChanged = true;
+    while (!m_stop)
+    {
+        if (!m_textOverflows)
+            curOffset = 0;
+        if (curOffset >= m_txtWidth)
+        {
+            curOffset = 0;
+        }
+        if (!m_textChanged)
+            emit newRect(QRect(curOffset,0,m_width,m_height));
+        else
+        {
+            m_textChanged = false;
+            mutex.lock();
+            emit newFrameRect(scrollImage, QRect(curOffset,0,m_width,m_height));
+            mutex.unlock();
+        }
+        curOffset++;
+        this->usleep(m_speed / 2 * 250);
+    }
+}
+
+void TickerNew::stop()
 {
-    underflow = false;
-    heightHint = 100;
-    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    setAlignment(Qt::AlignLeft | Qt::AlignTop);
-    scene = new QGraphicsScene(this);
-    setScene(scene);
-    setRenderHints(QPainter::SmoothPixmapTransform);
-    setViewportUpdateMode(SmartViewportUpdate);
-    setCacheMode(QGraphicsView::CacheNone);
-    speed = 25;
-    spm = new QGraphicsPixmapItem(getPixmapFromString("Placeholder txt"));
-    spm2 = new QGraphicsPixmapItem(getPixmapFromString("Placeholder Text"));
-    scene->addItem(spm);
-    spm->setPos(QPointF(0.0f, 0.0f));
-    spm2->setPos(spm->pos().x() + spm->boundingRect().right(), spm->pos().y());
-    timer.setInterval(3);
-    speed = settings.tickerSpeed();
-    pixelShift = (float)this->speed / 25.0f;
-    QObject::connect(&timer, &QTimer::timeout, [this]() {
-        if (underflow)
-        {
-            if (spm->pos() != QPoint(0,0))
-                spm->setPos(0.0f,0.0f);
-            if (spm2->isVisible())
-                spm2->hide();
-            return;
-        }
-        else
-        {
-            if (!spm2->isVisible())
-                spm2->show();
-        }
-        if (!flipped)
-        {
-            qreal xpos = spm->pos().x();
-            spm->setPos(QPointF(xpos - pixelShift, 0.0f));
-            spm2->setPos(spm->pos().x() + spm->boundingRect().right(), spm->pos().y());
-            if (xpos + spm->boundingRect().right() < 0)
-            {
-                spm->setPos(spm2->pos().x() + spm2->boundingRect().right(), spm2->pos().y());
-                flipped = true;
-            }
-        }
-        else
-        {
-            qreal xpos = spm2->pos().x();
-            spm2->setPos(QPointF(xpos - pixelShift, 0.0f));
-            spm->setPos(spm2->pos().x() + spm2->boundingRect().right(), spm2->pos().y());
-            if (xpos + spm2->boundingRect().right() < 0)
-            {
-                spm2->setPos(spm->pos().x() + spm->boundingRect().right(), spm->pos().y());
-                flipped = false;
-            }
-        }
-    });
-    timer.start();
+    qInfo() << "Locking mutex in stop()";
+    if (!mutex.tryLock(100))
+    {
+        qWarning() << "TickerNew - stop() unable to lock mutex!";
+        return;
+    }
+    m_stop = true;
+    qInfo() << "Unlocking mutex in stop()";
+    mutex.unlock();
+}
+
+TickerNew::TickerNew()
+{
+    setText("No ticker data");
+}
+
+const QSize TickerNew::getSize()
+{
+    qInfo() << "Locking mutex in getSize()";
+    if (!mutex.tryLock(100))
+    {
+        qWarning() << "TickerNew - getSize() unable to lock mutex!";
+        return QSize();
+    }
+    //mutex.lock();
+    QSize size = QSize(m_width, m_height);
+    qInfo() << "Unlocking mutex in getSize()";
+    mutex.unlock();
+    return size;
+}
+
+void TickerNew::setTickerGeometry(const int width, const int height)
+{
+    qInfo() << "TickerNew - setTickerGeometry(" << width << "," << height << ") called";
+    qInfo() << "Locking mutex in setTickerGeometry()";
+    if (!mutex.tryLock(100))
+    {
+        qWarning() << "TickerNew - setTickerGeometry() unable to lock mutex!";
+        return;
+    }
+    //mutex.lock();
+    m_height = height;
+    m_width = width;
+    scrollImage = QPixmap(width * 2, height);
+    qInfo() << "Unlocking mutex in setTickerGeometry()";
+    mutex.unlock();
+    setText(m_text);
+    qInfo() << "TickerNew - setTickerGeometry() completed";
+}
+
+void TickerNew::setText(QString text)
+{
+    qInfo() << "TickerNew - setText(" << text << ") called";
+    qInfo() << "Locking mutex in setText()";
+    if (!mutex.tryLock(100))
+    {
+        qWarning() << "TickerNew - setText() unable to lock mutex!";
+        return;
+    }
+    //mutex.lock();
+    m_textChanged = true;
+    m_textOverflows = false;
+    m_text = text;
+    QString drawText;
+    QFont tickerFont = settings.tickerFont();
+    m_imgWidth = QFontMetrics(tickerFont).width(text);
+    m_txtWidth = m_imgWidth;
+    if (m_imgWidth > m_width)
+    {
+        m_textOverflows = true;
+        drawText.append(text + " | " + text + " | ");
+        m_imgWidth = QFontMetrics(tickerFont).width(drawText);
+        m_txtWidth = m_txtWidth + QFontMetrics(tickerFont).width(" | ");
+        scrollImage = QPixmap(m_imgWidth, m_height);
+    }
+    else {
+        drawText = text;
+        scrollImage = QPixmap(m_width, m_height);
+    }
+    //qInfo() << "TickerNew - drawing text: " << drawText;
+    scrollImage.fill(settings.tickerBgColor());
+    QPainter p;
+    p.begin(&scrollImage);
+    p.setPen(QPen(settings.tickerTextColor()));
+    p.setFont(settings.tickerFont());
+    p.drawText(scrollImage.rect().adjusted(0,3,0,3), Qt::AlignLeft | Qt::AlignTop, drawText);
+    p.end();
+    qInfo() << "Unlocking mutex in setText()";
+    mutex.unlock();
+    qInfo() << "TickerNew - setText() completed";
+}
+
+void TickerNew::refresh()
+{
+    setText(m_text);
+}
+
+void TickerNew::setSpeed(int speed)
+{
+    qInfo() << "Locking mutex in setSpeed()";
+    if (!mutex.tryLock(100))
+    {
+        qWarning() << "TickerNew - setSpeed() unable to lock mutex!";
+        return;
+    }
+    //mutex.lock();
+    if (speed > 50)
+        m_speed = 50;
+    else
+        m_speed = 51 - speed;
+    qInfo() << "Unlocking mutex in setSpeed()";
+    mutex.unlock();
+}
+
+TickerDisplayWidget::TickerDisplayWidget(QWidget *parent)
+    : QWidget(parent)
+{
+    ticker = new TickerNew();
+    ticker->setPriority(QThread::TimeCriticalPriority);
+    ticker->setTickerGeometry(this->width(), this->height());
+    connect(ticker, SIGNAL(newFrame(QPixmap)), this, SLOT(newFrame(QPixmap)));
+    connect(ticker, SIGNAL(newFrameRect(QPixmap, QRect)), this, SLOT(newFrameRect(QPixmap, QRect)));
+    connect(ticker, SIGNAL(newRect(QRect)), this, SLOT(newRect(QRect)));
 }
 
 TickerDisplayWidget::~TickerDisplayWidget()
 {
-
+    qInfo() << "TickerDisplayWidget destructor called";
+    ticker->stop();
+    ticker->wait(1000);
+    delete ticker;
 }
 
 void TickerDisplayWidget::setText(const QString &newText)
 {
-    currentTxt = newText;
-    timer.stop();
-    scene->removeItem(spm);
-    scene->removeItem(spm2);
-    delete spm;
-    delete spm2;
-    spm = new QGraphicsPixmapItem(getPixmapFromString(newText));
-    spm2 = new QGraphicsPixmapItem(getPixmapFromString(newText));
-    scene->addItem(spm);
-    scene->addItem(spm2);
-    flipped = false;
-    spm->setPos(QPointF(rect().left(), 0.0f));
-    spm2->setPos(spm->pos().x() + spm->boundingRect().right(), spm->pos().y());
-
-    timer.start();
-}
-
-
-void TickerDisplayWidget::setSpeed(int speed)
-{
-
-    if (speed > 50)
-        this->speed = 50;
-    else this->speed = speed;
-    pixelShift = (float)speed / 10.0f;
-}
-
-void TickerDisplayWidget::stop()
-{
-    timer.stop();
-}
-
-void TickerDisplayWidget::setTickerEnabled(const bool& enabled)
-{
-    if (enabled)
-    {
-        flipped = false;
-        spm->setPos(QPointF(rect().left(), 0.0f));
-        spm2->setPos(spm->pos().x() + spm->boundingRect().right(), spm->pos().y());
-        timer.start();
-    }
-    else
-        timer.stop();
-}
-
-void TickerDisplayWidget::refreshTickerSettings()
-{
-    setText(currentTxt);
-    // setBackgroundBrush(QBrush(settings.tickerBgColor()));
-    // setAutoFillBackground(true);
-}
-
-QPixmap TickerDisplayWidget::getPixmapFromString(const QString& text)
-{
-    auto tickerWidth = this->visibleRegion().boundingRect().width();
-    auto tickerFont = settings.tickerFont();
-    auto metrics = QFontMetrics(tickerFont);
-    QString drawText;
-    int pxWidth;
-#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
-    if (tickerWidth >= metrics.horizontalAdvance(text))
-#else
-    if (tickerWidth >= metrics.width(text))
-#endif
-    {
-        pxWidth = tickerWidth * 2;
-        underflow = true;
-        drawText = text;
-    }
-    else
-    {
-        drawText = " " + text + " |";
-#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
-        pxWidth = metrics.horizontalAdvance(drawText);
-#else
-        pxWidth = metrics.width(drawText);
-#endif
-        underflow = false;
-    }
-    QPixmap img = QPixmap(pxWidth, metrics.boundingRect(drawText).height() + 30);
-    img.fill(settings.tickerBgColor());
-    QPainter p;
-    p.begin(&img);
-    p.setPen(QPen(settings.tickerTextColor()));
-    p.setFont(tickerFont);
-    p.drawText(img.rect() /*.adjusted(0,3,0,3)*/, Qt::AlignLeft | Qt::AlignTop, drawText);
-    p.end();
-    heightHint = metrics.height();
-    return img;
+    ticker->setText(newText);
 }
 
 QSize TickerDisplayWidget::sizeHint() const
 {
-    return QSize(1024, heightHint);
+    return ticker->getSize();
 }
+
+void TickerDisplayWidget::setSpeed(int speed)
+{
+    ticker->setSpeed(speed);
+}
+
+void TickerDisplayWidget::stop()
+{
+    ticker->stop();
+}
+
+void TickerDisplayWidget::setTickerEnabled(bool enabled)
+{
+    qInfo() << "TickerDisplayWidget - setTickerEnabled(" << enabled << ") called";
+    if (enabled && !ticker->isRunning())
+        ticker->start();
+    else if (!enabled && ticker->isRunning())
+        ticker->stop();
+}
+
 
 void TickerDisplayWidget::resizeEvent(QResizeEvent *event)
 {
-    QGraphicsView::resizeEvent(event);
-    refreshTickerSettings();
+    ticker->setTickerGeometry(event->size().width(), event->size().height());
+}
+
+void TickerDisplayWidget::newFrameRect(const QPixmap frame, const QRect displayArea)
+{
+    rectBasedDrawing = true;
+    m_image = frame;
+    drawRect = displayArea;
+    update();
+}
+
+void TickerDisplayWidget::newRect(const QRect displayArea)
+{
+    if (!isVisible())
+        return;
+    rectBasedDrawing = true;
+    drawRect = displayArea;
+    update();
+}
+
+void TickerDisplayWidget::newFrame(const QPixmap frame)
+{
+    if (!isVisible())
+        return;
+    rectBasedDrawing = false;
+    m_image = frame;
+    update();
+}
+
+void TickerDisplayWidget::paintEvent(QPaintEvent *event)
+{
+    Q_UNUSED(event)
+    if (!isVisible())
+        return;
+    QPainter p(this);
+    if (!rectBasedDrawing)
+        p.drawPixmap(this->rect(), m_image);
+    else
+        p.drawPixmap(this->rect(), m_image, drawRect);
 }

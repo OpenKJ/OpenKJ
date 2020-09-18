@@ -763,7 +763,7 @@ void MediaBackend::buildCdgPipeline()
     auto cdgVidConv = gst_element_factory_make("videoconvert", "cdgVideoConv");
     g_object_set(G_OBJECT(m_cdgAppSrc), "caps",
                  gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB16", "width", G_TYPE_INT, 288, "height",
-                                     G_TYPE_INT, 192, "framerate", GST_TYPE_FRACTION, 1, 30, NULL),
+                                     G_TYPE_INT, 192, NULL),
                  NULL);
     auto videoQueue1 = gst_element_factory_make("queue", "videoQueue1");
     auto videoQueue2 = gst_element_factory_make("queue", "videoQueue2");

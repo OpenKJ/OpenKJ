@@ -133,6 +133,7 @@ bool CdgParser::process()
 
             m_skip.emplace_back(!m_needupdate);
             m_frames.emplace_back(getSafeArea().convertToFormat(QImage::Format_RGB16));
+
             frameno++;
         }
     }

@@ -177,7 +177,7 @@ void DlgCdg::setFullScreenMonitor([[maybe_unused]]int monitor)
 
 void DlgCdg::tickerFontChanged()
 {
-    ui->scroll->refreshTickerSettings();
+    //ui->scroll->refreshTickerSettings();
     ui->scroll->setFont(settings->tickerFont());
     settings->setTickerHeight(QFontMetrics(ui->scroll->font()).height() * 1.2);
 }
@@ -198,7 +198,7 @@ void DlgCdg::tickerTextColorChanged()
     auto palette = ui->scroll->palette();
     palette.setColor(ui->scroll->foregroundRole(), settings->tickerTextColor());
     ui->scroll->setPalette(palette);
-    ui->scroll->refreshTickerSettings();
+    //ui->scroll->refreshTickerSettings();
 }
 
 void DlgCdg::tickerBgColorChanged()
@@ -206,7 +206,7 @@ void DlgCdg::tickerBgColorChanged()
     auto palette = this->palette();
     palette.setColor(QPalette::Window, settings->tickerBgColor());
     this->setPalette(palette);
-    ui->scroll->refreshTickerSettings();
+    //ui->scroll->refreshTickerSettings();
 }
 
 void DlgCdg::tickerEnableChanged()
