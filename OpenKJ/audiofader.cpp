@@ -15,7 +15,7 @@ void AudioFader::immediateIn()
 {
     qInfo() << objName << "Immediate IN called";
     timer->stop();
-    g_object_set(volumeElement, "mute", false, nullptr);
+    //g_object_set(volumeElement, "mute", false, nullptr);
     if (volume() == 1.0 && curState == FadedIn)
         return;
     setVolume(1.0);
@@ -28,7 +28,7 @@ void AudioFader::immediateOut()
     qInfo() << objName << "Immediate OUT called";
     timer->stop();
     setVolume(0);
-    g_object_set(volumeElement, "mute", true, nullptr);
+    //g_object_set(volumeElement, "mute", true, nullptr);
     curState = FadedOut;
     emit faderStateChanged(curState);
 }
@@ -111,7 +111,7 @@ void AudioFader::fadeIn(bool block)
     targetVol = 1.0;
     curState = FadingIn;
     emit faderStateChanged(curState);
-    g_object_set(volumeElement, "mute", false, nullptr);
+    //g_object_set(volumeElement, "mute", false, nullptr);
     timer->start();
     if (block)
     {
@@ -148,7 +148,7 @@ void AudioFader::timerTimeout()
                 setVolume(targetVol);
                 timer->stop();
                 curState = FadedOut;
-                g_object_set(volumeElement, "mute", true, nullptr);
+                //g_object_set(volumeElement, "mute", true, nullptr);
                 emit faderStateChanged(curState);
                 emit fadeComplete();
                 return;

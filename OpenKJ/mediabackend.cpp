@@ -205,7 +205,7 @@ void MediaBackend::play()
     gst_stream_volume_set_volume(GST_STREAM_VOLUME(m_playBin), GST_STREAM_VOLUME_FORMAT_LINEAR, 0.85);
     if (m_currentlyFadedOut)
     {
-        g_object_set(m_faderVolumeElement, "mute", true, nullptr);
+        //4g_object_set(m_faderVolumeElement, "mute", true, nullptr);
         g_object_set(m_faderVolumeElement, "volume", 0.0, nullptr);
     }
     if (state() == MediaBackend::PausedState)
@@ -649,6 +649,18 @@ void MediaBackend::buildPipeline()
     gst_element_add_pad(m_audioBin, ghostPad);
     gst_object_unref(pad);
     g_object_set(m_playBin, "audio-sink", m_audioBin, nullptr);
+
+
+    auto csource = gst_interpolation_control_source_new ();
+    if (!csource)
+        qInfo() << m_objName << " - Error createing control source";
+    GstControlBinding *cbind = gst_direct_control_binding_new (GST_OBJECT_CAST(m_faderVolumeElement), "volume", csource);
+    if (!cbind)
+        qInfo() << m_objName << " - Error creating control binding";
+    if (!gst_object_add_control_binding (GST_OBJECT_CAST(m_faderVolumeElement), cbind))
+        qInfo() << m_objName << " - Error adding control binding to volumeElement for fader control";
+    g_object_set(csource, "mode", GST_INTERPOLATION_MODE_CUBIC, nullptr);
+
 
     // Video output setup
     auto videoBin = gst_bin_new("videoBin");
