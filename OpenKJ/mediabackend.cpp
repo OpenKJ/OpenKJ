@@ -202,7 +202,7 @@ void MediaBackend::play()
     gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2), m_videoWinId2);
     gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1Cdg), m_videoWinId1);
     gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2Cdg), m_videoWinId2);
-    gst_stream_volume_set_volume(GST_STREAM_VOLUME(m_playBin), GST_STREAM_VOLUME_FORMAT_LINEAR, 1.0);
+    gst_stream_volume_set_volume(GST_STREAM_VOLUME(m_playBin), GST_STREAM_VOLUME_FORMAT_LINEAR, 0.85);
     if (m_currentlyFadedOut)
     {
         g_object_set(m_faderVolumeElement, "mute", true, nullptr);
