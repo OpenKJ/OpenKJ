@@ -197,7 +197,7 @@ public:
     unsigned int lastCDGUpdate();
     int tempo();
     void setTempo(const int &percent);
-    unsigned int getFrameCount() { return m_frames.size(); }
+    std::size_t getFrameCount() { return m_frames.size(); }
     bool canSkipFrameByTime(const unsigned int &ms);
     QString md5HashByTime(const unsigned int &ms);
     QImage videoFrameByTime(const unsigned int &ms);

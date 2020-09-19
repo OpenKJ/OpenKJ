@@ -107,9 +107,14 @@ private:
         GST_PLAY_FLAG_TEXT          = (1 << 2)
     };
     Settings m_settings;
+    GstElement *m_cdgBin;
+    GstElement *m_mediaBin;
     GstElement *m_cdgAppSrc;
     GstElement *m_scaleTempo;
-    GstElement *m_cdgPipeline;
+    //GstElement *m_cdgPipeline;
+    GstElement *m_queueMainVideo;
+    GstElement *m_queuePostAppSrc;
+    GstElement *m_fakeVideoSink;
     GstElement *m_playBin;
     GstElement *m_aConvEnd;
     GstElement *m_audioPanorama;
@@ -125,6 +130,23 @@ private:
     GstElement *m_videoSink2;
     GstElement *m_videoSink1Cdg;
     GstElement *m_videoSink2Cdg;
+
+    //GstElement *m_cdgPlaybin;
+
+//    GstElement *cdgVidConv;
+//    GstElement *videoQueue1;
+//    GstElement *videoQueue2;
+//    GstElement *videoConv1;
+//    GstElement *videoConv2;
+//    GstElement *videoScale1;
+//    GstElement *videoScale2;
+//    GstElement *videoTee;
+//    GstPad *videoTeePad1;
+//    GstPad *videoTeePad2;
+//    GstPad *videoQueue1SrcPad;
+//    GstPad *videoQueue2SrcPad;
+
+
     GstCaps *m_audioCapsStereo;
     GstCaps *m_audioCapsMono;
     QString m_objName;
@@ -140,7 +162,6 @@ private:
     int m_outputDeviceIdx{0};
     double m_currentRmsLevel{0.0};
     bool m_cdgMode{false};
-    bool m_cdgModeLastBuild{false};
     bool m_fade{false};
     bool m_currentlyFadedOut{false};
     bool m_silenceDetect{false};
@@ -153,7 +174,6 @@ private:
     bool m_bypass{false};
     bool m_loadPitchShift;
     bool m_downmix{false};
-    bool m_appSrcNeedData{false};
     std::array<int,10> m_eqLevels{0,0,0,0,0,0,0,0,0,0};
     std::vector<GstDevice*> m_outputDevices;
     QPointer<AudioFader> m_fader;
@@ -162,12 +182,10 @@ private:
     WId m_videoWinId1{0};
     WId m_videoWinId2{0};
     accel m_accelMode{XVideo};
-    guint64 cdgPosition{0};
-    unsigned int curFrame{0};
     int m_videoOffsetMs{0};
 
     void buildPipeline();
-    void buildCdgPipeline();
+    void buildCdgBin();
     void getGstDevices();
     double getPitchForSemitone(const int &semitone);
     qint64 getCdgPosition();
@@ -184,17 +202,13 @@ private slots:
 
 public slots:
     void play();
-    void cdgPlay();
     void pause();
-    void cdgPause();
     void setMedia(const QString &filename);
     void setMediaCdg(const QString &cdgFilename, const QString &audioFilename);
     void setMuted(const bool &muted);
     void setPosition(const qint64 &position);
-    void cdgSetPosition(const qint64 &position);
     void setVolume(const int &volume);
     void stop(const bool &skipFade = false);
-    void cdgStop();
     void rawStop();
     void setPitchShift(const int &pitchShift);
     void fadeOut(const bool &waitForFade = true);

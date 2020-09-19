@@ -35,6 +35,10 @@
 Q_DECLARE_SMART_POINTER_METATYPE(std::shared_ptr);
 Q_DECLARE_METATYPE(std::shared_ptr<GstMessage>);
 
+std::atomic<size_t> g_appSrcCurFrame{0};
+std::atomic<uint64_t> g_appSrcCurPosition{0};
+std::atomic<bool> g_appSrcNeedData{false};
+
 template <typename T> std::shared_ptr<T> takeGstObject(T *o)
 {
   std::shared_ptr<T> ptr(o, [] (T *d) {
@@ -68,8 +72,8 @@ MediaBackend::MediaBackend(bool pitchShift, QObject *parent, QString objectName)
 #endif
     qInfo() << "Start constructing GStreamer backend";
     QMetaTypeId<std::shared_ptr<GstMessage>>::qt_metatype_id();
-    buildCdgPipeline();
     buildPipeline();
+    //buildCdgBin();
     getGstDevices();
     qInfo() << "Done constructing GStreamer backend";
     connect(&m_timerSlow, &QTimer::timeout, this, &MediaBackend::timerSlow_timeout);
@@ -122,10 +126,6 @@ MediaBackend::~MediaBackend()
     m_timerFast.stop();
     if (state() == PlayingState)
         stop(true);
-    if (m_videoSink1)
-        gst_object_unref(m_videoSink1);
-    if (m_videoSink2)
-        gst_object_unref(m_videoSink2);
 }
 
 qint64 MediaBackend::position()
@@ -138,9 +138,9 @@ qint64 MediaBackend::position()
 
 qint64 MediaBackend::getCdgPosition()
 {
-    gint64 pos;
-    if (gst_element_query_position(m_cdgPipeline, GST_FORMAT_TIME, &pos))
-        return (pos / 1000000);
+    //gint64 pos;
+   // if (gst_element_query_position(m_cdgPipeline, GST_FORMAT_TIME, &pos))
+   //     return (pos / 1000000);
     return 0;
 }
 
@@ -169,8 +169,9 @@ MediaBackend::State MediaBackend::state()
 
 MediaBackend::State MediaBackend::cdgState()
 {
+    return MediaBackend::PlayingState;
     GstState state = GST_STATE_NULL;
-    gst_element_get_state(m_cdgPipeline, &state, nullptr, GST_CLOCK_TIME_NONE);
+   // gst_element_get_state(m_cdgPipeline, &state, nullptr, GST_CLOCK_TIME_NONE);
     switch (state) {
     case GST_STATE_PLAYING:
         return PlayingState;
@@ -213,8 +214,6 @@ void MediaBackend::play()
         gst_element_set_state(m_playBin, GST_STATE_PLAYING);
         if (m_fade)
             fadeIn();
-        if (m_cdgMode)
-            cdgPlay();
         return;
     }
     if (!QFile::exists(m_filename))
@@ -230,6 +229,9 @@ void MediaBackend::play()
     g_free(uri);
     if (!m_cdgMode)
     {
+//        g_object_set(m_cdgPlaybin, "audio-sink", NULL, nullptr);
+//        g_object_set(m_playBin, "audio-sink", m_audioBin, nullptr);
+        gst_bin_remove(reinterpret_cast<GstBin*>(m_audioBin), m_cdgBin);
         qInfo() << m_objName << " - play - playing media: " << m_filename;
         gst_element_set_state(m_playBin, GST_STATE_PLAYING);
     }
@@ -243,19 +245,29 @@ void MediaBackend::play()
             emit stateChanged(EndOfMediaState);
             return;
         }
+        gst_bin_add(reinterpret_cast<GstBin*>(m_audioBin), m_cdgBin);
         m_cdg.open(m_cdgFilename);
         m_cdg.process();
-        gst_app_src_set_duration(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), (m_cdg.getFrameCount() * 40) * GST_MSECOND);
+        g_appSrcCurFrame = 0;
+        g_appSrcCurPosition = 0;
+        g_appSrcNeedData = false;
+        auto as = gst_bin_get_by_name(reinterpret_cast<GstBin*>(m_cdgBin), "cdgAppSrc");
+//        gst_app_src_set_duration(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), m_cdg.duration() * GST_MSECOND);
+        gst_app_src_set_max_bytes(reinterpret_cast<GstAppSrc*>(as), 110592 * 500);
+        qInfo() << "ASMB: " << gst_app_src_get_max_bytes(reinterpret_cast<GstAppSrc*>(as));
+        gst_app_src_set_size(reinterpret_cast<GstAppSrc*>(as), m_cdg.getFrameCount() * 110592);
+        gst_app_src_set_duration(reinterpret_cast<GstAppSrc*>(as), (m_cdg.getFrameCount() * 40) * GST_MSECOND);
         qInfo() << m_objName << " - play - playing cdg:   " << m_cdgFilename;
         qInfo() << m_objName << " - play - playing audio: " << m_filename;
-        gst_element_set_state(m_playBin, GST_STATE_PLAYING);
-        gst_element_set_state(m_cdgPipeline, GST_STATE_PLAYING);
-    }
-}
+//        auto uri = gst_filename_to_uri(m_filename.toLocal8Bit(), nullptr);
+//        g_object_set(m_playBin, "audio-sink", NULL, nullptr);
+//        g_object_set(m_cdgPlaybin, "audio-sink", m_audioBin, nullptr);
+        //g_object_set(m_cdgPlaybin, "uri", uri, nullptr);
+        //g_free(uri);
 
-void MediaBackend::cdgPlay()
-{
-    gst_element_set_state(m_cdgPipeline, GST_STATE_PLAYING);
+        gst_element_set_state(m_playBin, GST_STATE_PLAYING);
+        //gst_element_set_state(m_cdgPipeline, GST_STATE_PLAYING);
+    }
 }
 
 void MediaBackend::pause()
@@ -263,13 +275,6 @@ void MediaBackend::pause()
     if (m_fade)
         fadeOut();
     gst_element_set_state(m_playBin, GST_STATE_PAUSED);
-    if (m_cdgMode)
-        cdgPause();
-}
-
-void MediaBackend::cdgPause()
-{
-    gst_element_set_state(m_cdgPipeline, GST_STATE_PAUSED);
 }
 
 void MediaBackend::setMedia(const QString &filename)
@@ -293,14 +298,7 @@ void MediaBackend::setMuted(const bool &muted)
 void MediaBackend::setPosition(const qint64 &position)
 {
     gst_element_seek_simple(m_playBin, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_MSECOND * position);
-    if (m_cdgMode)
-        cdgSetPosition(position);
     emit positionChanged(position);
-}
-
-void MediaBackend::cdgSetPosition(const qint64 &position)
-{
-    gst_element_seek_simple(m_cdgPipeline, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_MSECOND * (position + m_videoOffsetMs));
 }
 
 void MediaBackend::setVolume(const int &volume)
@@ -324,8 +322,6 @@ void MediaBackend::stop(const bool &skipFade)
     {
         qInfo() << m_objName << " - AudioBackendGstreamer::stop -- Stopping paused song";
         gst_element_set_state(m_playBin, GST_STATE_NULL);
-        if (m_cdgMode)
-            cdgStop();
         emit stateChanged(MediaBackend::StoppedState);
         qInfo() << m_objName << " - stop() completed";
         m_fader->immediateIn();
@@ -340,8 +336,6 @@ void MediaBackend::stop(const bool &skipFade)
             qInfo() << m_objName << " - AudioBackendGstreamer::stop -- Fading complete";
             qInfo() << m_objName << " - AudioBackendGstreamer::stop -- Stoping playback";
             gst_element_set_state(m_playBin, GST_STATE_NULL);
-            if (m_cdgMode)
-                cdgStop();
             emit stateChanged(MediaBackend::StoppedState);
             m_fader->immediateIn();
             return;
@@ -349,23 +343,14 @@ void MediaBackend::stop(const bool &skipFade)
     }
     qInfo() << m_objName << " - AudioBackendGstreamer::stop -- Stoping playback without fading";
     gst_element_set_state(m_playBin, GST_STATE_NULL);
-    if (m_cdgMode)
-        cdgStop();
     emit stateChanged(MediaBackend::StoppedState);
     qInfo() << m_objName << " - stop() completed";
-}
-
-void MediaBackend::cdgStop()
-{
-    gst_element_set_state(m_cdgPipeline, GST_STATE_NULL);
 }
 
 void MediaBackend::rawStop()
 {
     qInfo() << m_objName << " - rawStop() called, just ending gstreamer playback";
     gst_element_set_state(m_playBin, GST_STATE_NULL);
-    if (m_cdgMode)
-        cdgStop();
 }
 
 void MediaBackend::timerFast_timeout()
@@ -382,22 +367,22 @@ void MediaBackend::timerFast_timeout()
     if (!gst_element_query_position (m_audioBin, GST_FORMAT_TIME, &pos))
     {
         m_lastPosition = 0;
-        if (m_cdgMode)
-            cdgSetPosition(0);
         emit positionChanged(0);
         return;
     }
-    auto mspos = pos / 1000000;
+    auto mspos = pos / GST_MSECOND;
     if (m_lastPosition != mspos)
     {
         m_lastPosition = mspos;
         emit positionChanged(mspos);
-        if (m_cdgMode && m_tempo == 100 && (getCdgPosition() + m_videoOffsetMs > mspos + 10 || getCdgPosition() + m_videoOffsetMs < mspos - 10))
-        {
-            cdgSetPosition(mspos + m_videoOffsetMs);
-        } else if (m_cdgMode) {
-            cdgSetPosition((mspos * ((double)m_tempo / 100.0) + m_videoOffsetMs));
-        }
+//        if (m_cdgMode && m_tempo == 100 && (getCdgPosition() + m_videoOffsetMs > mspos + 100 || getCdgPosition() + m_videoOffsetMs < mspos - 100))
+//        {
+//            qInfo() << "cdgpos: " << getCdgPosition();
+//            qInfo() << "mp3pos: " << mspos;
+//            cdgSetPosition(mspos + m_videoOffsetMs);
+//        } else if (m_cdgMode) {
+//            cdgSetPosition((mspos * ((double)m_tempo / 100.0) + m_videoOffsetMs));
+//        }
     }
 }
 
@@ -425,8 +410,6 @@ void MediaBackend::timerSlow_timeout()
         {
             qWarning() << m_objName << " - Playback appears to be hung, emitting end of stream";
             emit stateChanged(EndOfMediaState);
-            if (m_cdgMode)
-                cdgStop();
         }
         lastpos = position();
     }
@@ -501,8 +484,6 @@ void MediaBackend::gstBusMsg(std::shared_ptr<GstMessage> message)
         if (state == GST_STATE_PLAYING && m_lastState != MediaBackend::PlayingState)
         {
             qInfo() << "GST notified of state change to PLAYING";
-            if (m_cdgMode && cdgState() != PlayingState)
-                cdgPlay();
             m_lastState = MediaBackend::PlayingState;
             emit stateChanged(MediaBackend::PlayingState);
             if (m_currentlyFadedOut)
@@ -511,8 +492,6 @@ void MediaBackend::gstBusMsg(std::shared_ptr<GstMessage> message)
         else if (state == GST_STATE_PAUSED && m_lastState != MediaBackend::PausedState)
         {
             qInfo() << "GST notified of state change to PAUSED";
-            if (m_cdgMode && cdgState() != PausedState)
-                cdgPause();
             m_lastState = MediaBackend::PausedState;
             emit stateChanged(MediaBackend::PausedState);
         }
@@ -522,8 +501,6 @@ void MediaBackend::gstBusMsg(std::shared_ptr<GstMessage> message)
             if (m_lastState != MediaBackend::StoppedState)
             {
                 m_lastState = MediaBackend::StoppedState;
-                if (m_cdgMode && cdgState() != StoppedState)
-                    cdgStop();
                 emit stateChanged(MediaBackend::StoppedState);
             }
         }
@@ -630,8 +607,10 @@ void MediaBackend::buildPipeline()
     m_scaleTempo = gst_element_factory_make("scaletempo", "scaleTempo");
     m_audioPanorama = gst_element_factory_make("audiopanorama", "audioPanorama");
     g_object_set(m_audioPanorama, "method", 1, nullptr);
-    gst_bin_add_many(GST_BIN(m_audioBin),queueMainAudio, m_audioPanorama, level, m_scaleTempo, aConvInput, rgVolume, rgLimiter, m_volumeElement, m_equalizer, aConvPostPanorama, m_fltrPostPanorama, gst_object_ref(m_faderVolumeElement), nullptr);
+    buildCdgBin();
+    gst_bin_add_many(GST_BIN(m_audioBin),m_cdgBin, queueMainAudio, m_audioPanorama, level, m_scaleTempo, aConvInput, rgVolume, rgLimiter, m_volumeElement, m_equalizer, aConvPostPanorama, m_fltrPostPanorama, gst_object_ref(m_faderVolumeElement), nullptr);
     gst_element_link_many(queueMainAudio, aConvInput, rgVolume, rgLimiter, m_scaleTempo, level, m_volumeElement, m_equalizer, m_faderVolumeElement, m_audioPanorama, aConvPostPanorama, m_fltrPostPanorama, nullptr);
+    //gst_element_link_many(m_cdgAppSrc, videoConvert, buffer, videoConvert2, autoVideoSink, nullptr);
 #ifdef Q_OS_LINUX
     if ((m_pitchShifterRubberBand) && (m_pitchShifterSoundtouch) && (m_loadPitchShift))
     {
@@ -720,8 +699,7 @@ void MediaBackend::buildPipeline()
     setVolume(m_volume);
     m_timerFast.start(250);
     qInfo() << m_objName << " - buildPipeline() finished";
-    setEnforceAspectRatio(m_settings.enforceAspectRatio());
-    m_cdgModeLastBuild = m_cdgMode;
+    //setEnforceAspectRatio(m_settings.enforceAspectRatio());
     connect(m_fader, &AudioFader::fadeStarted, [&] () {
         qInfo() << m_objName << " - Fader started";
     });
@@ -731,24 +709,27 @@ void MediaBackend::buildPipeline()
     connect(m_fader, &AudioFader::faderStateChanged, [&] (auto state) {
         qInfo() << m_objName << " - Fader state changed to: " << m_fader->stateToStr(state);
     });
+
+    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1Cdg), m_videoWinId1);
+    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2Cdg), m_videoWinId2);
+    g_object_set(G_OBJECT(m_cdgAppSrc), "stream-type", 1, "format", GST_FORMAT_TIME, NULL);
+    g_signal_connect(m_cdgAppSrc, "need-data", G_CALLBACK(cb_need_data), this);
+    g_signal_connect(m_cdgAppSrc, "seek-data", G_CALLBACK(cb_seek_data), this);
+    g_signal_connect(m_cdgAppSrc, "enough-data", G_CALLBACK(cb_enough_data), this);
 }
 
-void MediaBackend::buildCdgPipeline()
+void MediaBackend::buildCdgBin()
 {
-    if (!gst_is_initialized())
-    {
-        qInfo() << m_objName << " - gst not initialized - initializing";
-        gst_init(nullptr,nullptr);
-    }
 #if defined(Q_OS_LINUX)
+    //m_accelMode = OpenGL;
     switch (m_accelMode) {
     case OpenGL:
-        m_videoSink1Cdg = gst_element_factory_make("glimagesink", "videoSink1");
-        m_videoSink2Cdg = gst_element_factory_make("glimagesink", "videoSink2");
+        m_videoSink1Cdg = gst_element_factory_make("glimagesink", "cdgvideoSink1");
+        m_videoSink2Cdg = gst_element_factory_make("glimagesink", "cdgvideoSink2");
         break;
     case XVideo:
-        m_videoSink1Cdg = gst_element_factory_make("xvimagesink", "videoSink1");
-        m_videoSink2Cdg = gst_element_factory_make("xvimagesink", "videoSink2");
+        m_videoSink1Cdg = gst_element_factory_make("xvimagesink", "cdgvideoSink1");
+        m_videoSink2Cdg = gst_element_factory_make("xvimagesink", "cdgvideoSink2");
         break;
     }
 #elif defined(Q_OS_WIN)
@@ -758,7 +739,9 @@ void MediaBackend::buildCdgPipeline()
     m_videoSink1Cdg = gst_element_factory_make ("glimagesink", "videoSink1");
     m_videoSink2Cdg = gst_element_factory_make("glimagesink", "videoSink2");
 #endif
-    m_cdgPipeline = gst_pipeline_new("cdgPipeline");
+//    m_cdgPipeline = gst_pipeline_new("cdgPipeline");
+    m_cdgBin = gst_bin_new("cdgBin");
+    g_object_ref(m_cdgBin);
     m_cdgAppSrc = gst_element_factory_make("appsrc", "cdgAppSrc");
     auto cdgVidConv = gst_element_factory_make("videoconvert", "cdgVideoConv");
     g_object_set(G_OBJECT(m_cdgAppSrc), "caps",
@@ -776,9 +759,11 @@ void MediaBackend::buildCdgPipeline()
     auto videoTeePad2 = gst_element_get_request_pad(videoTee, "src_%u");
     auto videoQueue1SrcPad = gst_element_get_static_pad(videoQueue1, "sink");
     auto videoQueue2SrcPad = gst_element_get_static_pad(videoQueue2, "sink");
-    gst_bin_add_many(reinterpret_cast<GstBin *>(m_cdgPipeline), m_cdgAppSrc, cdgVidConv, videoConv1,
+    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1Cdg), m_videoWinId1);
+    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2Cdg), m_videoWinId2);
+    gst_bin_add_many(reinterpret_cast<GstBin *>(m_cdgBin), m_cdgAppSrc, cdgVidConv, videoConv1,
                      videoConv2, videoTee, videoQueue1, videoQueue2, videoScale1, videoScale2,
-                     m_videoSink1Cdg, m_videoSink2Cdg,nullptr);
+                     m_videoSink1Cdg, m_videoSink2Cdg, nullptr);
     gst_element_link(m_cdgAppSrc, cdgVidConv);
     gst_element_link(cdgVidConv, videoTee);
     gst_pad_link(videoTeePad1, videoQueue1SrcPad);
@@ -787,10 +772,6 @@ void MediaBackend::buildCdgPipeline()
     gst_element_link_many(videoQueue2, videoConv2, videoScale2, m_videoSink2Cdg, nullptr);
     gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1Cdg), m_videoWinId1);
     gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2Cdg), m_videoWinId2);
-    g_object_set(G_OBJECT(m_cdgAppSrc), "stream-type", 1, "format", GST_FORMAT_TIME, NULL);
-    g_signal_connect(m_cdgAppSrc, "need-data", G_CALLBACK(cb_need_data), this);
-    g_signal_connect(m_cdgAppSrc, "seek-data", G_CALLBACK(cb_seek_data), this);
-    g_signal_connect(m_cdgAppSrc, "enough-data", G_CALLBACK(cb_enough_data), this);
 }
 
 void MediaBackend::getGstDevices()
@@ -815,51 +796,70 @@ void MediaBackend::getGstDevices()
     g_object_unref(monitor);
     g_list_free(devices);
 }
-
-void MediaBackend::cb_enough_data([[maybe_unused]]GstElement *appsrc, gpointer user_data)
+void MediaBackend::cb_enough_data([[maybe_unused]]GstElement *appsrc, [[maybe_unused]]gpointer user_data)
 {
-    reinterpret_cast<MediaBackend *>(user_data)->m_appSrcNeedData = false;
+    g_appSrcNeedData = false;
+    qInfo() << "cdg buffer full";
 }
 
 
 void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused_size, gpointer user_data)
 {
     auto backend = reinterpret_cast<MediaBackend *>(user_data);
-#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
-    auto bufferSize = backend->m_cdg.videoFrameByIndex(backend->curFrame).sizeInBytes();
-#else
-    auto bufferSize = backend->m_cdg.videoFrameByIndex(backend->curFrame).byteCount();
-#endif
-    backend->m_appSrcNeedData = true;
-    while (backend->m_appSrcNeedData && backend->curFrame < backend->m_cdg.getFrameCount())
+//  Using the known buffer size of 110592 rather than calling the function every callback
+//  It's a "magic number" but can be derived like below if ever in question
+//#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
+//    auto bufferSize = backend->m_cdg.videoFrameByIndex(backend->curFrame).sizeInBytes();
+//#else
+//    auto bufferSize = backend->m_cdg.videoFrameByIndex(backend->curFrame).byteCount();
+//#endif
+    g_appSrcNeedData = true;
+    qInfo() << "cdg buffering - free space: " << unused_size;
+    while (g_appSrcNeedData && g_appSrcCurFrame < backend->m_cdg.getFrameCount())
     {
-    auto buffer = gst_buffer_new_and_alloc(bufferSize);
-    gst_buffer_fill(buffer,
-                    0,
-                    backend->m_cdg.videoFrameByIndex(backend->curFrame).constBits(),
-                    bufferSize
-                    );
-    GST_BUFFER_TIMESTAMP(buffer) = backend->cdgPosition;
-    GST_BUFFER_PTS(buffer) = backend->cdgPosition;
-    GST_BUFFER_DURATION(buffer) = 40 * GST_MSECOND;
-    backend->cdgPosition += GST_BUFFER_DURATION(buffer);
-    backend->curFrame++;
-    gst_app_src_push_buffer(reinterpret_cast<GstAppSrc *>(appsrc), buffer);
-    QApplication::processEvents();
+        auto buffer = gst_buffer_new_and_alloc(110592);
+        gst_buffer_fill(buffer,
+                        0,
+                        backend->m_cdg.videoFrameByIndex(g_appSrcCurFrame).constBits(),
+                        110592
+                        );
+        GST_BUFFER_TIMESTAMP(buffer) = g_appSrcCurPosition;
+        //GST_BUFFER_PTS(buffer) = g_appSrcCurPosition;
+        //GST_BUFFER_DTS(buffer) = g_appSrcCurPosition - 10;
+        GST_BUFFER_DURATION(buffer) = 40 * GST_MSECOND;
+        GST_BUFFER_OFFSET(buffer) = g_appSrcCurFrame;
+        auto rc = gst_app_src_push_buffer(reinterpret_cast<GstAppSrc *>(appsrc), buffer);
+        if (rc != GST_FLOW_OK)
+        {
+            qWarning() << "push buffer returned non-OK status: " << rc;
+            break;
+        }
+        if (g_appSrcCurFrame == backend->m_cdg.getFrameCount() - 1)
+        {
+            qInfo() << "Reached EOS in decoding";
+            gst_app_src_end_of_stream(reinterpret_cast<GstAppSrc*>(appsrc));
+            break;
+        }
+        g_appSrcCurPosition += 40 * GST_MSECOND;
+        g_appSrcCurFrame++;
+        QApplication::processEvents();
     }
+
+    qInfo() << "curFrame: " << g_appSrcCurFrame << " total frames: " << backend->m_cdg.getFrameCount();
+    qInfo() << "cdg done buffering";
 }
 
-gboolean MediaBackend::cb_seek_data([[maybe_unused]]GstElement *appsrc, guint64 position, gpointer user_data)
+gboolean MediaBackend::cb_seek_data([[maybe_unused]]GstElement *appsrc, guint64 position, [[maybe_unused]]gpointer user_data)
 {
-    auto backend = reinterpret_cast<MediaBackend *>(user_data);
+    qInfo() << "Got seek request to position " << position;
     if (position == 0)
     {
-        backend->curFrame = 0;
-        backend->cdgPosition = 0;
+        g_appSrcCurFrame = 0;
+        g_appSrcCurPosition = 0;
         return true;
     }
-    backend->curFrame = position / (40 * GST_MSECOND);
-    backend->cdgPosition = position;
+    g_appSrcCurFrame = position / (40 * GST_MSECOND);
+    g_appSrcCurPosition = position;
     return true;
 }
 
