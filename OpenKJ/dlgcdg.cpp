@@ -259,7 +259,19 @@ void DlgCdg::setShowBgImage(bool show)
 
 void DlgCdg::mouseDoubleClickEvent([[maybe_unused]]QMouseEvent *e)
 {
-    setFullScreen(!m_fullScreen);
+    if (!m_fullScreen)
+    {
+        m_lastSize.setSize(size());
+        m_lastPos.setTopLeft(pos());
+        setWindowState(windowState() ^ Qt::WindowFullScreen);
+        m_fullScreen = true;
+    }
+    else
+    {
+        setWindowState(windowState() & ~Qt::WindowFullScreen);
+        m_fullScreen = false;
+    }
+    cdgOffsetsChanged();
 }
 
 QFileInfoList DlgCdg::getSlideShowImages()
@@ -412,7 +424,19 @@ void DlgCdg::timer1sTimeout()
 
 void DlgCdg::on_btnToggleFullscreen_clicked()
 {
-    setFullScreen(!m_fullScreen);
+    if (!m_fullScreen)
+    {
+        m_lastSize.setSize(size());
+        m_lastPos.setTopLeft(pos());
+        setWindowState(windowState() ^ Qt::WindowFullScreen);
+        m_fullScreen = true;
+    }
+    else
+    {
+        setWindowState(windowState() & ~Qt::WindowFullScreen);
+        m_fullScreen = false;
+    }
+    cdgOffsetsChanged();
 }
 
 void DlgCdg::cdgOffsetsChanged()
