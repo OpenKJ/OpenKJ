@@ -808,11 +808,7 @@ void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused
     auto backend = reinterpret_cast<MediaBackend *>(user_data);
 //  Using the known buffer size of 110592 rather than calling the function every callback
 //  It's a "magic number" but can be derived like below if ever in question
-//#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
 //    auto bufferSize = backend->m_cdg.videoFrameByIndex(backend->curFrame).sizeInBytes();
-//#else
-//    auto bufferSize = backend->m_cdg.videoFrameByIndex(backend->curFrame).byteCount();
-//#endif
     g_appSrcNeedData = true;
     qInfo() << "cdg buffering - free space: " << unused_size;
     while (g_appSrcNeedData && g_appSrcCurFrame < backend->m_cdg.getFrameCount())

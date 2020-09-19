@@ -2391,6 +2391,9 @@ QPushButton:default {
                     <property name="text">
                      <string>Now Playing:</string>
                     </property>
+                    <property name="alignment">
+                     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                    </property>
                    </widget>
                   </item>
                   <item>
@@ -2406,6 +2409,12 @@ QPushButton:default {
                     </property>
                     <property name="text">
                      <string/>
+                    </property>
+                    <property name="scaledContents">
+                     <bool>false</bool>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
                     </property>
                    </widget>
                   </item>
@@ -2438,6 +2447,9 @@ QPushButton:default {
                     <property name="text">
                      <string>Next Up:</string>
                     </property>
+                    <property name="alignment">
+                     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                    </property>
                    </widget>
                   </item>
                   <item>
@@ -2450,6 +2462,9 @@ QPushButton:default {
                     </property>
                     <property name="text">
                      <string/>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
                     </property>
                    </widget>
                   </item>
