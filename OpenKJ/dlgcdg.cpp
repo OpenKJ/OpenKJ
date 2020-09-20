@@ -40,10 +40,6 @@ WId DlgCdg::getCdgWinId()
 DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget *parent, Qt::WindowFlags f) :
     QDialog(parent, f), ui(new Ui::DlgCdg), m_kmb(KaraokeBackend), m_bmb(BreakBackend)
 {
-    if (settings->cdgWindowFullScreenMonitor() > QGuiApplication::screens().size())
-    {
-        settings->setCdgWindowFullscreen(false);
-    }
     ui->setupUi(this);
     ui->videoDisplay->setMediaBackends(m_kmb, m_bmb);
     ui->widgetAlert->setAutoFillBackground(true);
@@ -65,9 +61,9 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
     palette = this->palette();
     palette.setColor(QPalette::Window, settings->tickerBgColor());
     setPalette(palette);
-
     m_lastSize.setWidth(300);
     m_lastSize.setHeight(216);
+    m_fullScreen = settings->cdgWindowFullscreen();
     cdgRemainTextColorChanged(settings->cdgRemainTextColor());
     cdgRemainBgColorChanged(settings->cdgRemainBgColor());
     setShowBgImage(true);
@@ -90,9 +86,6 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
     connect(settings, &Settings::tickerTextColorChanged, this, &DlgCdg::tickerTextColorChanged);
     connect(settings, &Settings::tickerBgColorChanged, this, &DlgCdg::tickerBgColorChanged);
     connect(settings, &Settings::tickerEnableChanged, this, &DlgCdg::tickerEnableChanged);
-    connect(settings, &Settings::cdgShowCdgWindowChanged, this, &DlgCdg::setVisible);
-    connect(settings, &Settings::cdgWindowFullscreenChanged, this, &DlgCdg::setFullScreen);
-    connect(settings, &Settings::cdgWindowFullscreenMonitorChanged, this, &DlgCdg::setFullScreenMonitor);
     connect(settings, &Settings::cdgRemainFontChanged, this, &DlgCdg::cdgRemainFontChanged);
     connect(settings, &Settings::cdgRemainTextColorChanged, this, &DlgCdg::cdgRemainTextColorChanged);
     connect(settings, &Settings::cdgRemainBgColorChanged, this, &DlgCdg::cdgRemainBgColorChanged);
@@ -101,31 +94,14 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
     connect(&m_timer1s, &QTimer::timeout, this, &DlgCdg::timer1sTimeout);
     connect(&m_timerAlertCountdown, &QTimer::timeout, this, &DlgCdg::timerCountdownTimeout);
     connect(&m_timerButtonShow, &QTimer::timeout, [&] () { ui->fsToggleWidget->hide(); });
-    connect(&m_timerFullScreen, &QTimer::timeout, [&] () {
-        m_timerFullScreen.stop();
-        if ((settings->showCdgWindow()) && (settings->cdgWindowFullscreen()))
-        {
-            cdgOffsetsChanged();
-            ui->videoDisplay->repaint();
-        }
-        timerSlideShowTimeout();
-    });
     m_timerButtonShow.setInterval(1000);
-    m_timerFullScreen.setInterval(500);
     m_timerAlertCountdown.setInterval(1000);
-    m_timerFullScreen.setInterval(500);
     m_timer1s.start(1000);
     m_timerSlideShow.start(15000);
-
     if (!settings->showCdgWindow())
-    {
         hide();
-    }
     else
-    {
         show();
-        setFullScreen(settings->cdgWindowFullscreen());
-    }
 }
 
 DlgCdg::~DlgCdg()
@@ -141,38 +117,6 @@ void DlgCdg::setTickerText(QString text)
 void DlgCdg::stopTicker()
 {
     ui->scroll->stop();
-}
-
-void DlgCdg::setFullScreen(bool fullscreen)
-{
-    if (fullscreen)
-    {
-        m_lastSize.setSize(size());
-        m_lastPos.setTopLeft(pos());
-        auto screenDimensions = QGuiApplication::screens().at(settings->cdgWindowFullscreen())->geometry();
-        move(screenDimensions.topLeft());
-        setWindowState(windowState() ^ Qt::WindowFullScreen);
-        m_fullScreen = true;
-    }
-    else
-    {
-        setWindowState(windowState() & ~Qt::WindowFullScreen);
-        this->move(m_lastSize.topLeft());
-        resize(m_lastSize.width(), m_lastSize.height());
-        if (settings->showCdgWindow())
-            show();
-        m_fullScreen = false;
-    }
-    cdgOffsetsChanged();
-}
-
-void DlgCdg::setFullScreenMonitor([[maybe_unused]]int monitor)
-{
-    if (settings->cdgWindowFullscreen())
-    {
-        setFullScreen(false);
-        setFullScreen(true);
-    }
 }
 
 void DlgCdg::tickerFontChanged()
@@ -259,19 +203,16 @@ void DlgCdg::setShowBgImage(bool show)
 
 void DlgCdg::mouseDoubleClickEvent([[maybe_unused]]QMouseEvent *e)
 {
-    if (!m_fullScreen)
-    {
-        m_lastSize.setSize(size());
-        m_lastPos.setTopLeft(pos());
-        setWindowState(windowState() ^ Qt::WindowFullScreen);
-        m_fullScreen = true;
-    }
+    m_fullScreen = !m_fullScreen;
+    if (m_fullScreen)
+        showFullScreen();
     else
-    {
-        setWindowState(windowState() & ~Qt::WindowFullScreen);
-        m_fullScreen = false;
-    }
+        showNormal();
     cdgOffsetsChanged();
+    settings->setCdgWindowFullscreen(m_fullScreen);
+    settings->saveWindowState(this);
+    QDesktopWidget widget;
+    settings->setCdgWindowFullscreenMonitor(widget.screenNumber(this));
 }
 
 QFileInfoList DlgCdg::getSlideShowImages()
@@ -424,19 +365,16 @@ void DlgCdg::timer1sTimeout()
 
 void DlgCdg::on_btnToggleFullscreen_clicked()
 {
-    if (!m_fullScreen)
-    {
-        m_lastSize.setSize(size());
-        m_lastPos.setTopLeft(pos());
-        setWindowState(windowState() ^ Qt::WindowFullScreen);
-        m_fullScreen = true;
-    }
+    m_fullScreen = !m_fullScreen;
+    if (m_fullScreen)
+        showFullScreen();
     else
-    {
-        setWindowState(windowState() & ~Qt::WindowFullScreen);
-        m_fullScreen = false;
-    }
+        showNormal();
     cdgOffsetsChanged();
+    settings->setCdgWindowFullscreen(m_fullScreen);
+    settings->saveWindowState(this);
+    QDesktopWidget widget;
+    settings->setCdgWindowFullscreenMonitor(widget.screenNumber(this));
 }
 
 void DlgCdg::cdgOffsetsChanged()
@@ -448,9 +386,29 @@ void DlgCdg::cdgOffsetsChanged()
 }
 
 
-void DlgCdg::closeEvent(QCloseEvent *event)
+void DlgCdg::closeEvent([[maybe_unused]]QCloseEvent *event)
 {
     this->hide();
     settings->setShowCdgWindow(false);
-    event->ignore();
+}
+
+void DlgCdg::showEvent(QShowEvent *event)
+{
+    QDialog::showEvent(event);
+    settings->restoreWindowState(this);
+    settings->setShowCdgWindow(true);
+    cdgOffsetsChanged();
+    if (settings->cdgWindowFullscreen())
+    {
+        ui->btnToggleFullscreen->setText("Make Windowed");
+        this->showFullScreen();
+    }
+    else
+        ui->btnToggleFullscreen->setText("Make Fullscreen");
+}
+
+void DlgCdg::hideEvent(QHideEvent *event)
+{
+    settings->saveWindowState(this);
+    QWidget::hideEvent(event);
 }

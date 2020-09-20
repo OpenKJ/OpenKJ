@@ -46,7 +46,6 @@ private:
     QTimer m_timer1s;
     QTimer m_timerAlertCountdown;
     QTimer m_timerButtonShow;
-    QTimer m_timerFullScreen;
     QTimer m_timerSlideShow;
     MediaBackend *m_kmb;
     MediaBackend *m_bmb;
@@ -85,8 +84,6 @@ private slots:
     void cdgRemainEnabledChanged(bool enabled);
 
 public slots:
-    void setFullScreen(bool fullscreen);
-    void setFullScreenMonitor(int monitor);
     void setShowBgImage(bool show);
     void showAlert(bool show);
     void setNextSinger(QString name);
@@ -95,7 +92,12 @@ public slots:
     void triggerBg();
 
 protected:
-    void closeEvent(QCloseEvent *event);
+    void closeEvent(QCloseEvent *event) override;
+    void showEvent(QShowEvent *event) override;
+
+    // QWidget interface
+protected:
+    void hideEvent(QHideEvent *event) override;
 };
 
 #endif // CDGWINDOW_H

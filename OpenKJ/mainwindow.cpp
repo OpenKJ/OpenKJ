@@ -402,10 +402,6 @@ MainWindow::MainWindow(QWidget *parent) :
 //    settings->restoreColumnWidths(ui->tableViewQueue);
 //    settings->restoreColumnWidths(ui->tableViewRotation);
     settings->restoreWindowState(dlgSongShop);
-    if ((settings->cdgWindowFullscreen()) && (settings->showCdgWindow()))
-    {
-        cdgWindow->setFullScreen(true);
-    }
     rotationDataChanged();
     ui->tableViewDB->hideColumn(0);
     ui->tableViewDB->hideColumn(5);

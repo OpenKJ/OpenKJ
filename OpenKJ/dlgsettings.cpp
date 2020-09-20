@@ -57,8 +57,6 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     ui->groupBoxShowDuration->setChecked(settings->cdgRemainEnabled());
     ui->cbxRotShowNextSong->setChecked(settings->rotationShowNextSong());
     ui->cbxPreviewEnabled->setChecked(!settings->previewEnabled());
-    QStringList screens = getMonitors();
-    ui->comboBoxMonitors->addItems(screens);
     audioOutputDevices = kAudioBackend->getOutputDevices();
     ui->comboBoxKAudioDevices->addItems(audioOutputDevices);
     int selDevice = audioOutputDevices.indexOf(settings->audioOutputDevice());
@@ -81,15 +79,6 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
         bmAudioBackend->setOutputDevice(selDevice);
     }
     ui->checkBoxProgressiveSearch->setChecked(settings->progressiveSearchEnabled());
-    ui->checkBoxShowCdgWindow->setChecked(settings->showCdgWindow());
-    ui->checkBoxCdgFullscreen->setChecked(settings->cdgWindowFullscreen());
-    if (screens.count() > settings->cdgWindowFullScreenMonitor())
-        ui->comboBoxMonitors->setCurrentIndex(settings->cdgWindowFullScreenMonitor());
-    else
-    {
-        settings->setCdgWindowFullscreen(false);
-        ui->comboBoxMonitors->setCurrentIndex(0);
-    }
     ui->spinBoxTickerHeight->setValue(settings->tickerHeight());
     ui->horizontalSliderTickerSpeed->setValue(settings->tickerSpeed());
     QString ss = ui->pushButtonTextColor->styleSheet();
@@ -280,11 +269,6 @@ void DlgSettings::onSslErrors(QNetworkReply *reply)
 void DlgSettings::on_btnClose_clicked()
 {
     close();
-}
-
-void DlgSettings::on_checkBoxShowCdgWindow_stateChanged(int arg1)
-{
-    settings->setShowCdgWindow(arg1);
 }
 
 void DlgSettings::on_pushButtonFont_clicked()
@@ -505,32 +489,6 @@ void DlgSettings::on_lineEditApiKey_editingFinished()
 void DlgSettings::on_lineEditTickerMessage_textChanged(const QString &arg1)
 {
     settings->setTickerCustomString(arg1);
-}
-
-void DlgSettings::on_checkBoxCdgFullscreen_toggled(bool checked)
-{
-    if (checked)
-    {
-        QDesktopWidget widget;
-        int appMonitor = widget.screenNumber(ui->tabWidget);
-        int selMonitor = settings->cdgWindowFullScreenMonitor();
-        if (selMonitor == appMonitor)
-        {
-            QMessageBox msgBox;
-            msgBox.setText("Warning: The selected CDG fullscreen display monitor is the same as the one that the main app is displayed on!");
-            msgBox.setInformativeText("This is probably not what you want. Are you sure you want to do this?");
-            msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
-            msgBox.setDefaultButton(QMessageBox::Cancel);
-            int ret = msgBox.exec();
-            if (ret == QMessageBox::Cancel)
-            {
-                ui->checkBoxCdgFullscreen->setChecked(false);
-                settings->setCdgWindowFullscreen(false);
-                return;
-            }
-        }
-    }
-    settings->setCdgWindowFullscreen(checked);
 }
 
 void DlgSettings::on_checkBoxShowKAAAlert_toggled(bool checked)
@@ -851,26 +809,26 @@ void DlgSettings::on_comboBoxBAudioDevices_currentIndexChanged(int index)
     lastSelItem = device;
 }
 
-void DlgSettings::on_comboBoxMonitors_currentIndexChanged(int index)
-{
-    if (!pageSetupDone)
-        return;
-    QDesktopWidget widget;
-    int appMonitor = widget.screenNumber(ui->tabWidget);
-    int selMonitor = index;
-    if ((selMonitor == appMonitor) && (settings->cdgWindowFullscreen()))
-    {
-        QMessageBox msgBox;
-        msgBox.setText("Warning: The selected CDG fullscreen display monitor is the same as the one that the main app is displayed on!");
-        msgBox.setInformativeText("This is probably not what you want. Are you sure you want to do this?");
-        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
-        msgBox.setDefaultButton(QMessageBox::Cancel);
-        int ret = msgBox.exec();
-        if (ret == QMessageBox::Cancel)
-            return;
-    }
-    settings->setCdgWindowFullscreenMonitor(selMonitor);
-}
+//void DlgSettings::on_comboBoxMonitors_currentIndexChanged(int index)
+//{
+//    if (!pageSetupDone)
+//        return;
+//    QDesktopWidget widget;
+//    int appMonitor = widget.screenNumber(ui->tabWidget);
+//    int selMonitor = index;
+//    if ((selMonitor == appMonitor) && (settings->cdgWindowFullscreen()))
+//    {
+//        QMessageBox msgBox;
+//        msgBox.setText("Warning: The selected CDG fullscreen display monitor is the same as the one that the main app is displayed on!");
+//        msgBox.setInformativeText("This is probably not what you want. Are you sure you want to do this?");
+//        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+//        msgBox.setDefaultButton(QMessageBox::Cancel);
+//        int ret = msgBox.exec();
+//        if (ret == QMessageBox::Cancel)
+//            return;
+//    }
+//    settings->setCdgWindowFullscreenMonitor(selMonitor);
+//}
 
 void DlgSettings::on_checkBoxEnforceAspectRatio_clicked(bool checked)
 {

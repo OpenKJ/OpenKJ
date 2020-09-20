@@ -34,7 +34,7 @@
         <item>
          <widget class="QTabWidget" name="tabWidgetMain">
           <property name="currentIndex">
-           <number>6</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="tabWidgetPage1">
            <attribute name="title">
@@ -307,7 +307,7 @@
                  <x>0</x>
                  <y>0</y>
                  <width>825</width>
-                 <height>786</height>
+                 <height>643</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_11">
@@ -322,157 +322,101 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QCheckBox" name="checkBoxShowCdgWindow">
-                  <property name="text">
-                   <string>Show CDG window</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QCheckBox" name="checkBoxCdgFullscreen">
-                  <property name="text">
-                   <string>CDG window fullscreen</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QGroupBox" name="groupBoxMonitors">
-                  <property name="enabled">
-                   <bool>true</bool>
+                 <widget class="QGroupBox" name="groupBox_8">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>0</height>
+                   </size>
                   </property>
                   <property name="title">
-                   <string>CDG fullscreen settings</string>
+                   <string>Video Offset Adjustments</string>
                   </property>
-                  <property name="checkable">
-                   <bool>false</bool>
-                  </property>
-                  <property name="checked">
-                   <bool>false</bool>
-                  </property>
-                  <layout class="QVBoxLayout" name="verticalLayout_8">
+                  <layout class="QVBoxLayout" name="verticalLayout_27">
                    <item>
-                    <layout class="QFormLayout" name="formLayout_6">
+                    <layout class="QGridLayout" name="gridLayout_2">
                      <property name="topMargin">
                       <number>0</number>
                      </property>
-                     <item row="0" column="0">
-                      <widget class="QLabel" name="label_11">
-                       <property name="text">
-                        <string>Fullscreen diaplay</string>
+                     <item row="1" column="2">
+                      <widget class="QSpinBox" name="spinBoxCdgOffsetTop">
+                       <property name="maximum">
+                        <number>1024</number>
                        </property>
                       </widget>
                      </item>
-                     <item row="0" column="1">
-                      <widget class="QComboBox" name="comboBoxMonitors">
-                       <property name="sizePolicy">
-                        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                         <horstretch>0</horstretch>
-                         <verstretch>0</verstretch>
-                        </sizepolicy>
+                     <item row="0" column="2">
+                      <widget class="QLabel" name="label_35">
+                       <property name="text">
+                        <string>Top</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="2" column="3">
+                      <widget class="QSpinBox" name="spinBoxCdgOffsetRight">
+                       <property name="maximum">
+                        <number>1024</number>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="2" column="0">
+                      <widget class="QLabel" name="label_36">
+                       <property name="text">
+                        <string>Left</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="2" column="1">
+                      <widget class="QSpinBox" name="spinBoxCdgOffsetLeft">
+                       <property name="maximum">
+                        <number>1024</number>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="3" column="2">
+                      <widget class="QSpinBox" name="spinBoxCdgOffsetBottom">
+                       <property name="maximum">
+                        <number>1024</number>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="2" column="4">
+                      <widget class="QLabel" name="label_37">
+                       <property name="text">
+                        <string>Right</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="2" column="5">
+                      <spacer name="horizontalSpacer_18">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                     <item row="4" column="2">
+                      <widget class="QLabel" name="label_38">
+                       <property name="text">
+                        <string>Bottom</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignCenter</set>
                        </property>
                       </widget>
                      </item>
                     </layout>
-                   </item>
-                   <item>
-                    <widget class="QGroupBox" name="groupBox_8">
-                     <property name="minimumSize">
-                      <size>
-                       <width>0</width>
-                       <height>0</height>
-                      </size>
-                     </property>
-                     <property name="title">
-                      <string>Offset adjustments</string>
-                     </property>
-                     <layout class="QVBoxLayout" name="verticalLayout_27">
-                      <item>
-                       <layout class="QGridLayout" name="gridLayout_2">
-                        <property name="topMargin">
-                         <number>0</number>
-                        </property>
-                        <item row="1" column="2">
-                         <widget class="QSpinBox" name="spinBoxCdgOffsetTop">
-                          <property name="maximum">
-                           <number>1024</number>
-                          </property>
-                         </widget>
-                        </item>
-                        <item row="0" column="2">
-                         <widget class="QLabel" name="label_35">
-                          <property name="text">
-                           <string>Top</string>
-                          </property>
-                          <property name="alignment">
-                           <set>Qt::AlignCenter</set>
-                          </property>
-                         </widget>
-                        </item>
-                        <item row="2" column="3">
-                         <widget class="QSpinBox" name="spinBoxCdgOffsetRight">
-                          <property name="maximum">
-                           <number>1024</number>
-                          </property>
-                         </widget>
-                        </item>
-                        <item row="2" column="0">
-                         <widget class="QLabel" name="label_36">
-                          <property name="text">
-                           <string>Left</string>
-                          </property>
-                          <property name="alignment">
-                           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                          </property>
-                         </widget>
-                        </item>
-                        <item row="2" column="1">
-                         <widget class="QSpinBox" name="spinBoxCdgOffsetLeft">
-                          <property name="maximum">
-                           <number>1024</number>
-                          </property>
-                         </widget>
-                        </item>
-                        <item row="3" column="2">
-                         <widget class="QSpinBox" name="spinBoxCdgOffsetBottom">
-                          <property name="maximum">
-                           <number>1024</number>
-                          </property>
-                         </widget>
-                        </item>
-                        <item row="2" column="4">
-                         <widget class="QLabel" name="label_37">
-                          <property name="text">
-                           <string>Right</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item row="2" column="5">
-                         <spacer name="horizontalSpacer_18">
-                          <property name="orientation">
-                           <enum>Qt::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>40</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                        <item row="4" column="2">
-                         <widget class="QLabel" name="label_38">
-                          <property name="text">
-                           <string>Bottom</string>
-                          </property>
-                          <property name="alignment">
-                           <set>Qt::AlignCenter</set>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </item>
-                     </layout>
-                    </widget>
                    </item>
                   </layout>
                  </widget>

@@ -59,7 +59,6 @@ signals:
 
 private slots:
     void on_btnClose_clicked();
-    void on_checkBoxShowCdgWindow_stateChanged(int arg1);
     void on_pushButtonFont_clicked();
     void on_spinBoxTickerHeight_valueChanged(int arg1);
     void on_horizontalSliderTickerSpeed_valueChanged(int value);
@@ -91,7 +90,6 @@ private slots:
     void on_rbBgImage_toggled(bool checked);
     void on_lineEditApiKey_editingFinished();
     void on_lineEditTickerMessage_textChanged(const QString &arg1);
-    void on_checkBoxCdgFullscreen_toggled(bool checked);
     void on_checkBoxShowKAAAlert_toggled(bool checked);
     void on_checkBoxKAA_toggled(bool checked);
     void on_spinBoxAADelay_valueChanged(int arg1);
@@ -123,9 +121,6 @@ private slots:
     void on_cbxPreviewEnabled_toggled(bool checked);
     void on_comboBoxKAudioDevices_currentIndexChanged(int index);
     void on_comboBoxBAudioDevices_currentIndexChanged(int index);
-    void on_comboBoxMonitors_currentIndexChanged(int index);
-
-
     void on_checkBoxEnforceAspectRatio_clicked(bool checked);
 };
 
