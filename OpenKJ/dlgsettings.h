@@ -89,7 +89,6 @@ private slots:
     void on_rbSlideshow_toggled(bool checked);
     void on_rbBgImage_toggled(bool checked);
     void on_lineEditApiKey_editingFinished();
-    void on_lineEditTickerMessage_textChanged(const QString &arg1);
     void on_checkBoxShowKAAAlert_toggled(bool checked);
     void on_checkBoxKAA_toggled(bool checked);
     void on_spinBoxAADelay_valueChanged(int arg1);
@@ -122,6 +121,7 @@ private slots:
     void on_comboBoxKAudioDevices_currentIndexChanged(int index);
     void on_comboBoxBAudioDevices_currentIndexChanged(int index);
     void on_checkBoxEnforceAspectRatio_clicked(bool checked);
+    void on_pushButtonApplyTickerMsg_clicked();
 };
 
 #endif // SETTINGSDIALOG_H

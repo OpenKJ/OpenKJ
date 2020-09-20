@@ -486,11 +486,6 @@ void DlgSettings::on_lineEditApiKey_editingFinished()
     settings->setRequestServerApiKey(ui->lineEditApiKey->text());
 }
 
-void DlgSettings::on_lineEditTickerMessage_textChanged(const QString &arg1)
-{
-    settings->setTickerCustomString(arg1);
-}
-
 void DlgSettings::on_checkBoxShowKAAAlert_toggled(bool checked)
 {
     settings->setKaraokeAAAlertEnabled(checked);
@@ -833,4 +828,9 @@ void DlgSettings::on_comboBoxBAudioDevices_currentIndexChanged(int index)
 void DlgSettings::on_checkBoxEnforceAspectRatio_clicked(bool checked)
 {
     settings->setEnforceAspectRatio(checked);
+}
+
+void DlgSettings::on_pushButtonApplyTickerMsg_clicked()
+{
+    settings->setTickerCustomString(ui->lineEditTickerMessage->text());
 }
