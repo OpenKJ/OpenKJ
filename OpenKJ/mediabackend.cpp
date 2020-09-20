@@ -584,8 +584,8 @@ void MediaBackend::buildPipeline()
     auto aConvPostPitchShift = gst_element_factory_make("audioconvert", "aConvPostPitchShift");
     m_audioSink = gst_element_factory_make("autoaudiosink", "autoAudioSink");
     auto rgVolume = gst_element_factory_make("rgvolume", "rgVolume");
-    g_object_set(rgVolume, "pre-amp", 6.0, "headroom", 10.0, nullptr);
-    auto rgLimiter = gst_element_factory_make("rglimiter", "rgLimiter");
+    //g_object_set(rgVolume, "pre-amp", 6.0, "headroom", 10.0, nullptr);
+    //auto rgLimiter = gst_element_factory_make("rglimiter", "rgLimiter");
     auto level = gst_element_factory_make("level", "level");
     m_pitchShifterSoundtouch = gst_element_factory_make("pitch", "pitch");
 #ifdef Q_OS_LINUX
@@ -608,8 +608,8 @@ void MediaBackend::buildPipeline()
     m_audioPanorama = gst_element_factory_make("audiopanorama", "audioPanorama");
     g_object_set(m_audioPanorama, "method", 1, nullptr);
     buildCdgBin();
-    gst_bin_add_many(GST_BIN(m_audioBin),m_cdgBin, queueMainAudio, m_audioPanorama, level, m_scaleTempo, aConvInput, rgVolume, rgLimiter, m_volumeElement, m_equalizer, aConvPostPanorama, m_fltrPostPanorama, gst_object_ref(m_faderVolumeElement), nullptr);
-    gst_element_link_many(queueMainAudio, aConvInput, rgVolume, rgLimiter, m_scaleTempo, level, m_volumeElement, m_equalizer, m_faderVolumeElement, m_audioPanorama, aConvPostPanorama, m_fltrPostPanorama, nullptr);
+    gst_bin_add_many(GST_BIN(m_audioBin),m_cdgBin, queueMainAudio, m_audioPanorama, level, m_scaleTempo, aConvInput, rgVolume, /*rgLimiter,*/ m_volumeElement, m_equalizer, aConvPostPanorama, m_fltrPostPanorama, gst_object_ref(m_faderVolumeElement), nullptr);
+    gst_element_link_many(queueMainAudio, aConvInput, rgVolume, /*rgLimiter,*/ m_scaleTempo, level, m_volumeElement, m_equalizer, m_faderVolumeElement, m_audioPanorama, aConvPostPanorama, m_fltrPostPanorama, nullptr);
     //gst_element_link_many(m_cdgAppSrc, videoConvert, buffer, videoConvert2, autoVideoSink, nullptr);
 #ifdef Q_OS_LINUX
     if ((m_pitchShifterRubberBand) && (m_pitchShifterSoundtouch) && (m_loadPitchShift))
