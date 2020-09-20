@@ -85,6 +85,7 @@ int main(int argc, char *argv[])
         palette.setColor(QPalette::Disabled,QPalette::HighlightedText,QColor(127,127,127));
         a.setPalette(palette);
         a.setFont(okjSettings.applicationFont(), "QWidget");
+        a.setFont(okjSettings.applicationFont(), "QMenu");
 
     }
     else if (okjSettings.theme() == 2)

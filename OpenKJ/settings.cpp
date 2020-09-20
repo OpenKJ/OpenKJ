@@ -411,6 +411,7 @@ void Settings::setApplicationFont(const QFont &font)
 {
     settings->setValue("applicationFont", font.toString());
     QApplication::setFont(font, "QWidget");
+    QApplication::setFont(font, "QMenu");
     emit applicationFontChanged(font);
 }
 
