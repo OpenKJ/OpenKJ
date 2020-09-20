@@ -54,7 +54,7 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
     ui->scroll->setMinimumHeight(settings->tickerHeight());
     ui->scroll->setMaximumHeight(settings->tickerHeight());
     ui->scroll->setSpeed(settings->tickerSpeed());
-    ui->lblRemain->setFont(settings->cdgRemainFont());
+    cdgRemainFontChanged(settings->cdgRemainFont());
     QPalette palette = ui->scroll->palette();
     palette.setColor(ui->scroll->foregroundRole(), settings->tickerTextColor());
     ui->scroll->setPalette(palette);
@@ -163,9 +163,9 @@ void DlgCdg::cdgRemainFontChanged(QFont font)
 {
     ui->lblRemain->setFont(font);
 #if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
-    ui->lblRemain->size().setWidth(QFontMetrics(font).horizontalAdvance(" 00:00 "));
+    ui->lblRemain->setFixedWidth(QFontMetrics(font).horizontalAdvance("______"));
 #else
-    ui->lblRemain->size().setWidth(QFontMetrics(font).width(" 00:00 "));
+    ui->lblRemain->setFixedWidth(QFontMetrics(font).width("_______"));
 #endif
 }
 

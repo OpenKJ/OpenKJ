@@ -375,14 +375,6 @@ void MediaBackend::timerFast_timeout()
     {
         m_lastPosition = mspos;
         emit positionChanged(mspos);
-//        if (m_cdgMode && m_tempo == 100 && (getCdgPosition() + m_videoOffsetMs > mspos + 100 || getCdgPosition() + m_videoOffsetMs < mspos - 100))
-//        {
-//            qInfo() << "cdgpos: " << getCdgPosition();
-//            qInfo() << "mp3pos: " << mspos;
-//            cdgSetPosition(mspos + m_videoOffsetMs);
-//        } else if (m_cdgMode) {
-//            cdgSetPosition((mspos * ((double)m_tempo / 100.0) + m_videoOffsetMs));
-//        }
     }
 }
 
