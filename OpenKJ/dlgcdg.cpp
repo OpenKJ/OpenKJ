@@ -41,6 +41,8 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
     QDialog(parent, f), ui(new Ui::DlgCdg), m_kmb(KaraokeBackend), m_bmb(BreakBackend)
 {
     ui->setupUi(this);
+    tWidget = new TransparentWidget(this);
+    tWidget->show();
     ui->videoDisplay->setMediaBackends(m_kmb, m_bmb);
     ui->widgetAlert->setAutoFillBackground(true);
     ui->fsToggleWidget->hide();
@@ -49,7 +51,7 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
     ui->widgetAlert->setMouseTracking(true);
     ui->scroll->setVisible(settings->tickerEnabled());
     ui->scroll->setTickerEnabled(settings->tickerEnabled());
-    ui->lblRemain->setVisible(settings->cdgRemainEnabled());
+    tWidget->setVisible(settings->cdgRemainEnabled());
     ui->scroll->setFont(settings->tickerFont());
     ui->scroll->setMinimumHeight(settings->tickerHeight());
     ui->scroll->setMaximumHeight(settings->tickerHeight());
@@ -78,7 +80,7 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
     connect(settings, &Settings::alertBgColorChanged, this, &DlgCdg::alertBgColorChanged);
     connect(settings, &Settings::alertTxtColorChanged, this, &DlgCdg::alertTxtColorChanged);
     connect(settings, &Settings::bgModeChanged, [&] () {triggerBg();});
-    connect(settings, &Settings::cdgRemainEnabledChanged, ui->lblRemain, &QLabel::setVisible);
+    connect(settings, &Settings::cdgRemainEnabledChanged, tWidget, &QWidget::setVisible);
     connect(settings, &Settings::cdgOffsetsChanged, this, &DlgCdg::cdgOffsetsChanged);
     connect(settings, &Settings::tickerFontChanged, this, &DlgCdg::tickerFontChanged);
     connect(settings, &Settings::tickerHeightChanged, this, &DlgCdg::tickerHeightChanged);
@@ -106,6 +108,7 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
 
 DlgCdg::~DlgCdg()
 {
+    tWidget->deleteLater();
     delete ui;
 }
 
@@ -161,26 +164,28 @@ void DlgCdg::tickerEnableChanged()
 
 void DlgCdg::cdgRemainFontChanged(QFont font)
 {
-    ui->lblRemain->setFont(font);
+    tWidget->label->setFont(font);
 #if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
-    ui->lblRemain->setFixedWidth(QFontMetrics(font).horizontalAdvance("______"));
+    tWidget->setFixedSize(QFontMetrics(font).horizontalAdvance("_____"),QFontMetrics(font).height());
+    tWidget->label->setFixedSize(QFontMetrics(font).horizontalAdvance("_____"),QFontMetrics(font).height());
 #else
-    ui->lblRemain->setFixedWidth(QFontMetrics(font).width("_______"));
+    tWidget->setFixedSize(QFontMetrics(font).width("_____"),QFontMetrics(font).height());
+    tWidget->label->setFixedSize(QFontMetrics(font).width("_____"),QFontMetrics(font).height());
 #endif
 }
 
 void DlgCdg::cdgRemainTextColorChanged(QColor color)
 {
-    auto palette = ui->lblRemain->palette();
+    auto palette = tWidget->label->palette();
     palette.setColor(QPalette::WindowText, color);
-    ui->lblRemain->setPalette(palette);
+    tWidget->label->setPalette(palette);
 }
 
 void DlgCdg::cdgRemainBgColorChanged(QColor color)
 {
-    auto palette = ui->lblRemain->palette();
+    auto palette = tWidget->label->palette();
     palette.setColor(QPalette::Window, color);
-    ui->lblRemain->setPalette(palette);
+    tWidget->label->setPalette(palette);
 }
 
 void DlgCdg::setShowBgImage(bool show)
@@ -293,7 +298,7 @@ void DlgCdg::cdgRemainEnabledChanged(bool enabled)
 {
     if ((m_kmb->state() == MediaBackend::PlayingState) || !enabled)
     {
-        ui->lblRemain->setVisible(enabled);
+        tWidget->setVisible(enabled);
     }
 }
 
@@ -353,12 +358,18 @@ void DlgCdg::timer1sTimeout()
 {
     if (settings->cdgRemainEnabled())
     {
-        if (m_kmb->state() == MediaBackend::PlayingState && !ui->lblRemain->isVisible() && settings->tickerEnabled())
-            ui->lblRemain->show();
-        else if (m_kmb->state() != MediaBackend::PlayingState && ui->lblRemain->isVisible())
-            ui->lblRemain->hide();
+        if (m_kmb->state() == MediaBackend::PlayingState && !tWidget->isVisible() && settings->tickerEnabled())
+        {
+            tWidget->show();
+        }
+        else if (m_kmb->state() != MediaBackend::PlayingState && tWidget->isVisible())
+        {
+            tWidget->hide();
+        }
         if (m_kmb->state() == MediaBackend::PlayingState)
-            ui->lblRemain->setText(" " + m_kmb->msToMMSS(m_kmb->duration() - m_kmb->position()) + " ");
+        {
+            tWidget->setString(" " + m_kmb->msToMMSS(m_kmb->duration() - m_kmb->position()) + " ");
+        }
     }
 }
 

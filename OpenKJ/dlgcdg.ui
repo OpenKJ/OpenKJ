@@ -322,25 +322,6 @@
           </property>
          </spacer>
         </item>
-        <item>
-         <widget class="QLabel" name="lblRemain">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="autoFillBackground">
-           <bool>true</bool>
-          </property>
-          <property name="text">
-           <string>00:00</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
-          </property>
-         </widget>
-        </item>
        </layout>
       </widget>
      </item>

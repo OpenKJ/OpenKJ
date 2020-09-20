@@ -23,10 +23,67 @@
 
 #include <QDialog>
 #include <QFileInfoList>
+#include <QHBoxLayout>
+#include <QLabel>
 #include <QMouseEvent>
+#include <QPainter>
+#include <QPushButton>
 #include "settings.h"
 #include <QTimer>
 #include "mediabackend.h"
+
+
+class TransparentWidget : public QWidget
+{
+  Q_OBJECT
+public:
+    QLabel *label;
+  TransparentWidget(QWidget *parent = 0)
+    : QWidget(parent)
+  {
+    setWindowFlags(Qt::FramelessWindowHint);
+    QHBoxLayout *layout = new QHBoxLayout(this);
+    setLayout(layout);
+
+    layout->setMargin(0);
+    layout->setSpacing(0);
+    layout->setContentsMargins(0,0,0,0);
+    setContentsMargins(0,0,0,0);
+    label = new QLabel(this);
+    layout->addWidget(label);
+    label->setMargin(0);
+    label->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
+    label->setText("00:00");
+    label->setAutoFillBackground(true);
+    label->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+
+  }
+  void setString(QString string) {
+      label->setText(string);
+  }
+  void paintEvent(QPaintEvent *)
+  {
+    QPainter painter(this);
+    painter.fillRect (this->rect(), QColor(0, 0, 0, 0x20)); /* set transparent color*/
+  }
+
+  void mousePressEvent(QMouseEvent *event)
+  {
+    if (event->button() == Qt::LeftButton) {
+      m_startPoint = frameGeometry().topLeft() - event->globalPos();
+    }
+  }
+
+  void mouseMoveEvent(QMouseEvent *event)
+  {
+    this->move(event->globalPos() + m_startPoint);
+  }
+
+private:
+  QPoint m_startPoint;
+};
+
+
 
 namespace Ui {
 class DlgCdg;
@@ -49,6 +106,7 @@ private:
     QTimer m_timerSlideShow;
     MediaBackend *m_kmb;
     MediaBackend *m_bmb;
+    TransparentWidget *tWidget;
 
 
 public:
@@ -59,7 +117,7 @@ public:
     WId getCdgWinId();
 
 protected:
-    void mouseDoubleClickEvent(QMouseEvent *e);
+    void mouseDoubleClickEvent(QMouseEvent *e) override;
 
 private slots:
     void timerSlideShowTimeout();
