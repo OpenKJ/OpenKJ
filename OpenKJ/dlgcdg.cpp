@@ -126,7 +126,7 @@ void DlgCdg::tickerFontChanged()
 {
     //ui->scroll->refreshTickerSettings();
     ui->scroll->setFont(settings->tickerFont());
-    settings->setTickerHeight(QFontMetrics(ui->scroll->font()).height() * 1.2);
+    settings->setTickerHeight(QFontMetrics(ui->scroll->font()).height());
 }
 
 void DlgCdg::tickerHeightChanged(const int &height)
@@ -358,7 +358,7 @@ void DlgCdg::timer1sTimeout()
 {
     if (settings->cdgRemainEnabled())
     {
-        if (m_kmb->state() == MediaBackend::PlayingState && !tWidget->isVisible() && settings->tickerEnabled())
+        if (m_kmb->state() == MediaBackend::PlayingState && !tWidget->isVisible())
         {
             tWidget->show();
         }

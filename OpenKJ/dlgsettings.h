@@ -60,7 +60,6 @@ signals:
 private slots:
     void on_btnClose_clicked();
     void on_pushButtonFont_clicked();
-    void on_spinBoxTickerHeight_valueChanged(int arg1);
     void on_horizontalSliderTickerSpeed_valueChanged(int value);
     void on_pushButtonTextColor_clicked();
     void on_pushButtonBgColor_clicked();

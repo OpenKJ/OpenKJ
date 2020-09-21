@@ -79,7 +79,6 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
         bmAudioBackend->setOutputDevice(selDevice);
     }
     ui->checkBoxProgressiveSearch->setChecked(settings->progressiveSearchEnabled());
-    ui->spinBoxTickerHeight->setValue(settings->tickerHeight());
     ui->horizontalSliderTickerSpeed->setValue(settings->tickerSpeed());
     QString ss = ui->pushButtonTextColor->styleSheet();
     QColor clr = settings->tickerTextColor();
@@ -180,7 +179,6 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     ui->lineEditTickerMessage->setText(settings->tickerCustomString());
     connect(networkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
     connect(networkManager, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(onSslErrors(QNetworkReply*)));
-    connect(settings, SIGNAL(tickerHeightChanged(int)), ui->spinBoxTickerHeight, SLOT(setValue(int)));
     connect(ui->cbxQueueRemovalWarning, SIGNAL(toggled(bool)), settings, SLOT(setShowQueueRemovalWarning(bool)));
     connect(ui->cbxSingerRemovalWarning, SIGNAL(toggled(bool)), settings, SLOT(setShowSingerRemovalWarning(bool)));
     connect(ui->cbxSongInterruptionWarning, SIGNAL(toggled(bool)), settings, SLOT(setShowSongInterruptionWarning(bool)));
@@ -278,19 +276,6 @@ void DlgSettings::on_pushButtonFont_clicked()
     if (ok)
     {
         settings->setTickerFont(font);
-    }
-}
-
-void DlgSettings::on_spinBoxTickerHeight_valueChanged(int arg1)
-{
-    if (arg1 >= 1)
-    {
-        settings->setTickerHeight(arg1);
-    }
-    else
-    {
-        settings->setTickerHeight(1);
-        ui->spinBoxTickerHeight->setValue(1);
     }
 }
 

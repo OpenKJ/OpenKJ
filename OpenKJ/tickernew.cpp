@@ -80,6 +80,7 @@ void TickerNew::setTickerGeometry(const int width, const int height)
     }
     //mutex.lock();
     m_height = height;
+    m_height = QFontMetrics(settings.tickerFont()).height();
     m_width = width;
     scrollImage = QPixmap(width * 2, height);
     qInfo() << "Unlocking mutex in setTickerGeometry()";
@@ -174,6 +175,7 @@ TickerDisplayWidget::~TickerDisplayWidget()
 void TickerDisplayWidget::setText(const QString &newText)
 {
     ticker->setText(newText);
+
 }
 
 QSize TickerDisplayWidget::sizeHint() const
