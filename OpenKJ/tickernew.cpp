@@ -108,9 +108,9 @@ void TickerNew::setText(QString text)
     if (m_imgWidth > m_width)
     {
         m_textOverflows = true;
-        drawText.append(text + " | " + text + " | ");
+        drawText.append(text + " • " + text + " • ");
         m_imgWidth = QFontMetrics(tickerFont).width(drawText);
-        m_txtWidth = m_txtWidth + QFontMetrics(tickerFont).width(" | ");
+        m_txtWidth = m_txtWidth + QFontMetrics(tickerFont).width(" • ");
         scrollImage = QPixmap(m_imgWidth, m_height);
     }
     else {

@@ -1455,6 +1455,7 @@ void MainWindow::rotationDataChanged()
     if (settings->rotationShowNextSong())
         resizeRotation();
     updateRotationDuration();
+    QString sep = "•";
     requestsDialog->rotationChanged();
     QString statusBarText = "Singers: ";
     statusBarText += QString::number(rotModel->rowCount());
@@ -1463,7 +1464,7 @@ void MainWindow::rotationDataChanged()
     QString tickerText;
     if (settings->tickerCustomString() != "")
     {
-        tickerText += settings->tickerCustomString() + " |";
+        tickerText += settings->tickerCustomString() + sep;
         QString cs = rotModel->getSingerName(rotModel->currentSinger());
         int nsPos;
         if (cs == "")
@@ -1499,9 +1500,9 @@ void MainWindow::rotationDataChanged()
     }
     if (settings->tickerShowRotationInfo())
     {
-        tickerText += " Singers: ";
+        tickerText += "Singers: ";
         tickerText += QString::number(rotModel->rowCount());
-        tickerText += " | Current: ";
+        tickerText += " " + sep + " Current: ";
         int displayPos;
         QString curSinger = rotModel->getSingerName(rotModel->currentSinger());
         if (curSinger != "")
@@ -1522,12 +1523,12 @@ void MainWindow::rotationDataChanged()
             else
                 listSize = rotModel->rowCount() - 1;
             if (listSize > 0)
-                tickerText += " | Upcoming: ";
+                tickerText += " " + sep + " Upcoming: ";
         }
         else
         {
             listSize = settings->tickerShowNumSingers();
-            tickerText += " | Next ";
+            tickerText += " " + sep + " Next ";
             tickerText += QString::number(settings->tickerShowNumSingers());
             tickerText += " Singers: ";
         }
