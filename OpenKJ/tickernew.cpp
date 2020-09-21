@@ -81,9 +81,8 @@ void TickerNew::setTickerGeometry(const int width, const int height)
 #ifdef Q_OS_WIN
     m_height = QFontMetrics(settings.tickerFont()).height();
 #else
-    m_height = QFontMetrics(tickerFont).tightBoundingRect(text).height() * 1.2;
-#endif
     m_height = QFontMetrics(settings.tickerFont()).tightBoundingRect("PLACEHOLDERtextgj|i01").height() * 1.2;
+#endif
     m_width = width;
     scrollImage = QPixmap(width * 2, m_height);
     qInfo() << "Unlocking mutex in setTickerGeometry()";
