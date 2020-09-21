@@ -56,6 +56,30 @@ jobs:
         file-name: openssl.zip
         location: /downloads
 
+    - name: Download Roboto Bold
+      uses: carlosperate/download-file-action@v1.0.3
+      id: download-roboto-bold
+      with:
+        file-url: 'https://storage.googleapis.com/okj-installer-deps/Roboto-Bold.ttf' 
+        file-name: Roboto-Bold.ttf
+        location: /downloads
+
+    - name: Download Roboto Medium
+      uses: carlosperate/download-file-action@v1.0.3
+      id: download-roboto-medium
+      with:
+        file-url: 'https://storage.googleapis.com/okj-installer-deps/Roboto-Medium.ttf' 
+        file-name: Roboto-Medium.ttf
+        location: /downloads
+
+    - name: Download Roboto Regular
+      uses: carlosperate/download-file-action@v1.0.3
+      id: download-roboto-Regular
+      with:
+        file-url: 'https://storage.googleapis.com/okj-installer-deps/Roboto-Regular.ttf' 
+        file-name: Roboto-Regular.ttf
+        location: /downloads
+
     - name: Install GST
       run: |
         cmd /c start /wait msiexec /package ${{ steps.download-gst.outputs.file-path }} /passive ADDLOCAL=ALL
