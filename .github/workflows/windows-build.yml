@@ -145,10 +145,10 @@ jobs:
       run: |
         copy LICENSE output\LICENSE.txt
         copy ${{ steps.download-infozip.outputs.file-path }} output\
-        copy ${{ steps.download-download-roboto-bold.outputs.file-path }} output\
-        copy ${{ steps.download-download-roboto-medium.outputs.file-path }} output\
-        copy ${{ steps.download-download-roboto-regular.outputs.file-path }} output\
-        copy ${{ steps.download-download-source-code-pro-medium.outputs.file-path }} output\
+        copy ${{ steps.download-roboto-bold.outputs.file-path }} output\
+        copy ${{ steps.download-roboto-medium.outputs.file-path }} output\
+        copy ${{ steps.download-roboto-regular.outputs.file-path }} output\
+        copy ${{ steps.download-source-code-pro-medium.outputs.file-path }} output\
         
         
         7z e -bb3 -y ${{ steps.download-openssl.outputs.file-path }} -o"output\"
