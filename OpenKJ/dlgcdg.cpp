@@ -179,6 +179,7 @@ void DlgCdg::cdgRemainFontChanged(QFont font)
     tWidget->setFixedSize(QFontMetrics(font).width("_____"),QFontMetrics(font).height());
     tWidget->label->setFixedSize(QFontMetrics(font).width("_____"),QFontMetrics(font).height());
 #endif
+    ui->scroll->refresh();
 }
 
 void DlgCdg::cdgRemainTextColorChanged(QColor color)
