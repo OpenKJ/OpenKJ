@@ -53,7 +53,7 @@ public:
         bool rectBasedDrawing{false};
         void stop();
         void setTickerEnabled(bool enabled);
-
+        void refresh() {ticker->refresh();}
         // QWidget interface
 protected:
         void resizeEvent(QResizeEvent *event);
