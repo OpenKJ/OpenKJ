@@ -486,7 +486,9 @@ QFont Settings::cdgRemainFont()
     QFontDatabase fdb;
     QFont font;
     QFont defaultFont = QApplication::font();
-    if (fdb.hasFamily("Source Code Pro Medium"))
+    if (fdb.hasFamily("Roboto Mono Medium"))
+        defaultFont = QFont("Roboto Mono Medium");
+    else if (fdb.hasFamily("Source Code Pro Medium"))
         defaultFont = QFont("Source Code Pro Medium");
     else if (fdb.hasFamily("Verdana"))
         defaultFont = QFont("Verdana");
