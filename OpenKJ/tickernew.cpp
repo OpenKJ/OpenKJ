@@ -78,6 +78,11 @@ void TickerNew::setTickerGeometry(const int width, const int height)
         qWarning() << "TickerNew - setTickerGeometry() unable to lock mutex!";
         return;
     }
+#ifdef Q_OS_WIN
+    m_height = QFontMetrics(settings.tickerFont()).height();
+#else
+    m_height = QFontMetrics(tickerFont).tightBoundingRect(text).height() * 1.2;
+#endif
     m_height = QFontMetrics(settings.tickerFont()).tightBoundingRect("PLACEHOLDERtextgj|i01").height() * 1.2;
     m_width = width;
     scrollImage = QPixmap(width * 2, m_height);
@@ -102,7 +107,11 @@ void TickerNew::setText(QString text)
     m_text = text;
     QString drawText;
     QFont tickerFont = settings.tickerFont();
+#ifdef Q_OS_WIN
+    m_height = QFontMetrics(tickerFont).height();
+#else
     m_height = QFontMetrics(tickerFont).tightBoundingRect(text).height() * 1.2;
+#endif
     m_imgWidth = QFontMetrics(tickerFont).width(text);
     m_txtWidth = m_imgWidth;
     if (m_imgWidth > m_width)
@@ -123,7 +132,7 @@ void TickerNew::setText(QString text)
     p.begin(&scrollImage);
     p.setPen(QPen(settings.tickerTextColor()));
     p.setFont(settings.tickerFont());
-    p.drawText(scrollImage.rect(), Qt::AlignLeft | Qt::AlignVCenter, drawText);
+    p.drawText(scrollImage.rect(), Qt::AlignLeft | Qt::AlignTop, drawText);
     p.end();
     qInfo() << "Unlocking mutex in setText()";
     mutex.unlock();
