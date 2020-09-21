@@ -74,10 +74,18 @@ jobs:
 
     - name: Download Roboto Regular
       uses: carlosperate/download-file-action@v1.0.3
-      id: download-roboto-Regular
+      id: download-roboto-regular
       with:
         file-url: 'https://storage.googleapis.com/okj-installer-deps/Roboto-Regular.ttf' 
         file-name: Roboto-Regular.ttf
+        location: /downloads
+
+    - name: Download Source Code Pro Medium
+      uses: carlosperate/download-file-action@v1.0.3
+      id: download-source-code-pro-medium
+      with:
+        file-url: 'https://storage.googleapis.com/okj-installer-deps/SourceCodePro-Medium.ttf' 
+        file-name: SourceCodePro-Medium.ttf
         location: /downloads
 
     - name: Install GST
@@ -137,6 +145,12 @@ jobs:
       run: |
         copy LICENSE output\LICENSE.txt
         copy ${{ steps.download-infozip.outputs.file-path }} output\
+        copy ${{ steps.download-download-roboto-bold.outputs.file-path }} output\
+        copy ${{ steps.download-download-roboto-medium.outputs.file-path }} output\
+        copy ${{ steps.download-download-roboto-regular.outputs.file-path }} output\
+        copy ${{ steps.download-download-source-code-pro-medium.outputs.file-path }} output\
+        
+        
         7z e -bb3 -y ${{ steps.download-openssl.outputs.file-path }} -o"output\"
 
     - name: Sign OpenKJ executable
