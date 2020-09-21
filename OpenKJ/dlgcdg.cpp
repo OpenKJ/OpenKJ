@@ -384,19 +384,21 @@ void DlgCdg::on_btnToggleFullscreen_clicked()
 {
     m_fullScreen = !m_fullScreen;
     if (m_fullScreen)
+    {
         showFullScreen();
+    }
     else
         showNormal();
-    cdgOffsetsChanged();
     settings->setCdgWindowFullscreen(m_fullScreen);
     settings->saveWindowState(this);
     QDesktopWidget widget;
     settings->setCdgWindowFullscreenMonitor(widget.screenNumber(this));
+    cdgOffsetsChanged();
 }
 
 void DlgCdg::cdgOffsetsChanged()
 {
-    if (settings->cdgWindowFullscreen())
+    if (isFullScreen())
         this->layout()->setContentsMargins(settings->cdgOffsetLeft(),settings->cdgOffsetTop(),settings->cdgOffsetRight(),settings->cdgOffsetBottom());
     else
         this->layout()->setContentsMargins(0,0,0,0);
@@ -415,11 +417,11 @@ void DlgCdg::showEvent(QShowEvent *event)
     QDialog::showEvent(event);
     settings->restoreWindowState(this);
     settings->setShowCdgWindow(true);
-    cdgOffsetsChanged();
     if (settings->cdgWindowFullscreen())
     {
         ui->btnToggleFullscreen->setText("Make Windowed");
         this->showFullScreen();
+        cdgOffsetsChanged();
     }
     else
         ui->btnToggleFullscreen->setText("Make Fullscreen");
