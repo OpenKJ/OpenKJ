@@ -78,9 +78,7 @@ void TickerNew::setTickerGeometry(const int width, const int height)
         qWarning() << "TickerNew - setTickerGeometry() unable to lock mutex!";
         return;
     }
-    //mutex.lock();
-    m_height = height;
-    m_height = QFontMetrics(settings.tickerFont()).height();
+    m_height = QFontMetrics(settings.tickerFont()).height() * 1.2;
     m_width = width;
     scrollImage = QPixmap(width * 2, height);
     qInfo() << "Unlocking mutex in setTickerGeometry()";
@@ -104,6 +102,7 @@ void TickerNew::setText(QString text)
     m_text = text;
     QString drawText;
     QFont tickerFont = settings.tickerFont();
+    m_height = QFontMetrics(tickerFont).height() * 1.2;
     m_imgWidth = QFontMetrics(tickerFont).width(text);
     m_txtWidth = m_imgWidth;
     if (m_imgWidth > m_width)
@@ -124,7 +123,7 @@ void TickerNew::setText(QString text)
     p.begin(&scrollImage);
     p.setPen(QPen(settings.tickerTextColor()));
     p.setFont(settings.tickerFont());
-    p.drawText(scrollImage.rect().adjusted(0,3,0,3), Qt::AlignLeft | Qt::AlignTop, drawText);
+    p.drawText(scrollImage.rect(), Qt::AlignLeft | Qt::AlignVCenter, drawText);
     p.end();
     qInfo() << "Unlocking mutex in setText()";
     mutex.unlock();
