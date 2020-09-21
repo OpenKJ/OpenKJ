@@ -63,7 +63,7 @@ const QSize TickerNew::getSize()
         return QSize();
     }
     //mutex.lock();
-    QSize size = QSize(m_width, m_height);
+    QSize size = scrollImage.size();
     qInfo() << "Unlocking mutex in getSize()";
     mutex.unlock();
     return size;
@@ -78,9 +78,9 @@ void TickerNew::setTickerGeometry(const int width, const int height)
         qWarning() << "TickerNew - setTickerGeometry() unable to lock mutex!";
         return;
     }
-    m_height = QFontMetrics(settings.tickerFont()).height() * 1.2;
+    m_height = QFontMetrics(settings.tickerFont()).tightBoundingRect("PLACEHOLDERtextgj|i01").height() * 1.2;
     m_width = width;
-    scrollImage = QPixmap(width * 2, height);
+    scrollImage = QPixmap(width * 2, m_height);
     qInfo() << "Unlocking mutex in setTickerGeometry()";
     mutex.unlock();
     setText(m_text);
@@ -102,7 +102,7 @@ void TickerNew::setText(QString text)
     m_text = text;
     QString drawText;
     QFont tickerFont = settings.tickerFont();
-    m_height = QFontMetrics(tickerFont).height() * 1.2;
+    m_height = QFontMetrics(tickerFont).tightBoundingRect(text).height() * 1.2;
     m_imgWidth = QFontMetrics(tickerFont).width(text);
     m_txtWidth = m_imgWidth;
     if (m_imgWidth > m_width)
@@ -174,7 +174,7 @@ TickerDisplayWidget::~TickerDisplayWidget()
 void TickerDisplayWidget::setText(const QString &newText)
 {
     ticker->setText(newText);
-
+    setFixedHeight(ticker->getSize().height());
 }
 
 QSize TickerDisplayWidget::sizeHint() const
