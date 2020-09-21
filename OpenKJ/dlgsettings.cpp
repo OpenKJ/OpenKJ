@@ -56,7 +56,6 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     ui->checkBoxMonitorDirs->setChecked(settings->dbDirectoryWatchEnabled());
     ui->groupBoxShowDuration->setChecked(settings->cdgRemainEnabled());
     ui->cbxRotShowNextSong->setChecked(settings->rotationShowNextSong());
-    ui->cbxPreviewEnabled->setChecked(!settings->previewEnabled());
     audioOutputDevices = kAudioBackend->getOutputDevices();
     ui->comboBoxKAudioDevices->addItems(audioOutputDevices);
     int selDevice = audioOutputDevices.indexOf(settings->audioOutputDevice());

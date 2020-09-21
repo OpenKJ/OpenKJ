@@ -34,7 +34,7 @@
         <item>
          <widget class="QTabWidget" name="tabWidgetMain">
           <property name="currentIndex">
-           <number>1</number>
+           <number>3</number>
           </property>
           <widget class="QWidget" name="tabWidgetPage1">
            <attribute name="title">
@@ -306,8 +306,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>825</width>
-                 <height>643</height>
+                 <width>839</width>
+                 <height>641</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_11">
@@ -1271,13 +1271,6 @@ QPushButton:default {
              </layout>
             </item>
             <item>
-             <widget class="QCheckBox" name="cbxPreviewEnabled">
-              <property name="text">
-               <string>Disable video output display on main window (Saves CPU on older/slower systems)</string>
-              </property>
-             </widget>
-            </item>
-            <item>
              <spacer name="verticalSpacer_5">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -1461,7 +1454,7 @@ QPushButton:default {
                  <x>0</x>
                  <y>0</y>
                  <width>825</width>
-                 <height>759</height>
+                 <height>642</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_26">
