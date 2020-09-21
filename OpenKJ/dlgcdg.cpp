@@ -42,8 +42,9 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
 {
     ui->setupUi(this);
     tWidget = new TransparentWidget(this);
+    tWidget->setObjectName("DurationTimer");
     tWidget->show();
-    settings->restoreWindowState(tWidget);
+    tWidget->move(settings->durationPosition());
     ui->videoDisplay->setMediaBackends(m_kmb, m_bmb);
     ui->widgetAlert->setAutoFillBackground(true);
     ui->fsToggleWidget->hide();
@@ -367,6 +368,7 @@ void DlgCdg::timer1sTimeout()
         if (m_kmb->state() == MediaBackend::PlayingState && !tWidget->isVisible())
         {
             tWidget->show();
+            //tWidget->move(settings->durationPosition());
         }
         else if (m_kmb->state() != MediaBackend::PlayingState && tWidget->isVisible())
         {
@@ -425,17 +427,32 @@ void DlgCdg::showEvent(QShowEvent *event)
     }
     else
         ui->btnToggleFullscreen->setText("Make Fullscreen");
+//    QTimer::singleShot(200, [&] () {
+//        settings->restoreWindowState(tWidget);
+//    });
 }
 
 void DlgCdg::hideEvent(QHideEvent *event)
 {
     settings->saveWindowState(this);
+    //settings->saveWindowState(tWidget);
     QWidget::hideEvent(event);
 }
 
 
+TransparentWidget::~TransparentWidget()
+{
+    settings->saveWindowState(this);
+}
+
+void TransparentWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    this->move(event->globalPos() + m_startPoint);
+    settings->setDurationPosition(this->pos());
+}
+
 void TransparentWidget::moveEvent(QMoveEvent *event)
 {
     QWidget::moveEvent(event);
-    settings->saveWindowState(this);
+    //settings->saveWindowState(this);
 }

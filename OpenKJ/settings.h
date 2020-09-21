@@ -257,6 +257,7 @@ public:
     bool checkUpdates();
     int updatesBranch();
     int theme();
+    const QPoint durationPosition();
     bool dbDirectoryWatchEnabled();
     SfxEntryList getSfxEntries();
     void addSfxEntry(SfxEntry entry);
@@ -356,6 +357,7 @@ signals:
     void previewEnabledChanged(bool enabled);
     void durationPositionReset();
 public slots:
+    void setDurationPosition(const QPoint pos);
     void resetDurationPosition();
     void setRemainRtOffset(int offset);
     void setRemainBtmOffset(int offset);

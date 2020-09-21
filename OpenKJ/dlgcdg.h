@@ -58,6 +58,7 @@ public:
     label->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 
   }
+  ~TransparentWidget();
   void setString(QString string) {
       label->setText(string);
   }
@@ -74,10 +75,7 @@ public:
     }
   }
 
-  void mouseMoveEvent(QMouseEvent *event) override
-  {
-    this->move(event->globalPos() + m_startPoint);
-  }
+  void mouseMoveEvent(QMouseEvent *event) override;
 
 private:
   QPoint m_startPoint;

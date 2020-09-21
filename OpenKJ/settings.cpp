@@ -316,6 +316,7 @@ int Settings::cdgWindowFullScreenMonitor()
 
 void Settings::saveWindowState(QWidget *window)
 {
+    qInfo() << "Saving state for " << window->objectName() << " x:" << window->pos().x() << " y:" << window->pos().y();
     settings->beginGroup(window->objectName());
     //settings->setValue("size", window->size());
     //settings->setValue("pos", window->pos());
@@ -325,7 +326,7 @@ void Settings::saveWindowState(QWidget *window)
 
 void Settings::restoreWindowState(QWidget *window)
 {
-
+    qInfo() << "Restoring window state for: " << window->objectName();
     settings->beginGroup(window->objectName());
     if (settings->contains("geometry"))
     {
@@ -548,6 +549,12 @@ void Settings::setEnforceAspectRatio(const bool &enforce)
 {
     settings->setValue("enforceAspectRatio", enforce);
     emit enforceAspectRatioChanged(enforce);
+}
+
+void Settings::setDurationPosition(const QPoint pos)
+{
+    qInfo() << "Saving duration position: " << pos;
+    settings->setValue("DurationPosition", pos);
 }
 
 void Settings::resetDurationPosition()
@@ -1631,6 +1638,12 @@ int Settings::updatesBranch()
 int Settings::theme()
 {
     return settings->value("theme", 1).toInt();
+}
+
+const QPoint Settings::durationPosition()
+{
+    qInfo() << "Getting saved duration position: " << settings->value("DurationPosition", QPoint(0,0)).toPoint();
+    return settings->value("DurationPosition", QPoint(0,0)).toPoint();
 }
 
 bool Settings::dbDirectoryWatchEnabled()
