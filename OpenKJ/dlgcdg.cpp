@@ -172,12 +172,13 @@ void DlgCdg::tickerEnableChanged()
 void DlgCdg::cdgRemainFontChanged(QFont font)
 {
     tWidget->label->setFont(font);
+    tWidget->label->setAlignment(Qt::AlignVCenter | Qt::AlignHCenter);
 #if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
     tWidget->setFixedSize(QFontMetrics(font).horizontalAdvance("_____"),QFontMetrics(font).height());
     tWidget->label->setFixedSize(QFontMetrics(font).horizontalAdvance("_____"),QFontMetrics(font).height());
 #else
-    tWidget->setFixedSize(QFontMetrics(font).width("_____"),QFontMetrics(font).height());
-    tWidget->label->setFixedSize(QFontMetrics(font).width("_____"),QFontMetrics(font).height());
+    tWidget->setFixedSize(QFontMetrics(font).width("_____"),QFontMetrics(font).tightBoundingRect("0123456789:").height());
+    tWidget->label->setFixedSize(QFontMetrics(font).width("_____"),QFontMetrics(font).tightBoundingRect("0123456789:").height());
 #endif
     ui->scroll->refresh();
 }

@@ -30,6 +30,7 @@
 #include <QStandardPaths>
 #include <QDir>
 #include <QDataStream>
+#include <QFontDatabase>
 
 
 int Settings::remainRtOffset()
@@ -418,15 +419,28 @@ void Settings::setApplicationFont(const QFont &font)
 
 QFont Settings::tickerFont()
 {
+    QFontDatabase fdb;
+    qInfo() << fdb.families();
     QFont font;
-    font.fromString(settings->value("tickerFont", QApplication::font().toString()).toString());
+    QFont defaultFont = QApplication::font();
+    if (fdb.hasFamily("Roboto Medium"))
+        defaultFont = QFont("Roboto Medium");
+    else if (fdb.hasFamily("Verdana"))
+        defaultFont = QFont("Verdana");
+    defaultFont.setPointSize(48);
+    font.fromString(settings->value("tickerFont", defaultFont.toString()).toString());
     return font;
 }
 
 QFont Settings::applicationFont()
 {
+    QFontDatabase fdb;
     QFont font;
     QFont defaultFont = QApplication::font();
+    if (fdb.hasFamily("Roboto"))
+        defaultFont = QFont("Roboto");
+    else if (fdb.hasFamily("Verdana"))
+        defaultFont = QFont("Verdana");
     defaultFont.setPointSize(14);
     font.fromString(settings->value("applicationFont", defaultFont.toString()).toString());
     return font;
@@ -469,8 +483,15 @@ void Settings::setTickerTextColor(QColor color)
 
 QFont Settings::cdgRemainFont()
 {
+    QFontDatabase fdb;
     QFont font;
-    font.fromString(settings->value("cdgRemainFont", QApplication::font().toString()).toString());
+    QFont defaultFont = QApplication::font();
+    if (fdb.hasFamily("Source Code Pro Medium"))
+        defaultFont = QFont("Source Code Pro Medium");
+    else if (fdb.hasFamily("Verdana"))
+        defaultFont = QFont("Verdana");
+    defaultFont.setPointSize(48);
+    font.fromString(settings->value("cdgRemainFont", defaultFont.toString()).toString());
     return font;
 }
 
