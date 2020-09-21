@@ -1464,7 +1464,7 @@ void MainWindow::rotationDataChanged()
     QString tickerText;
     if (settings->tickerCustomString() != "")
     {
-        tickerText += settings->tickerCustomString() + sep;
+        tickerText += settings->tickerCustomString() + " " + sep + " ";
         QString cs = rotModel->getSingerName(rotModel->currentSinger());
         int nsPos;
         if (cs == "")
@@ -1542,7 +1542,7 @@ void MainWindow::rotationDataChanged()
             tickerText += ") ";
             tickerText += rotModel->getSingerName(rotModel->singerIdAtPosition(displayPos));
             if (i < listSize - 1)
-                tickerText += "  ";
+                tickerText += " ";
         }
        // tickerText += "|";
     }
