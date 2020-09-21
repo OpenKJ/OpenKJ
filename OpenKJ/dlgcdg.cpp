@@ -401,6 +401,7 @@ void DlgCdg::closeEvent([[maybe_unused]]QCloseEvent *event)
 {
     this->hide();
     settings->setShowCdgWindow(false);
+    event->ignore();
 }
 
 void DlgCdg::showEvent(QShowEvent *event)
