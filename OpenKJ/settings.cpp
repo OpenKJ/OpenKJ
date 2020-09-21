@@ -427,7 +427,7 @@ QFont Settings::applicationFont()
 {
     QFont font;
     QFont defaultFont = QApplication::font();
-    defaultFont.setPointSize(12);
+    defaultFont.setPointSize(14);
     font.fromString(settings->value("applicationFont", defaultFont.toString()).toString());
     return font;
 }
