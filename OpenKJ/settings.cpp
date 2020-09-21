@@ -550,6 +550,11 @@ void Settings::setEnforceAspectRatio(const bool &enforce)
     emit enforceAspectRatioChanged(enforce);
 }
 
+void Settings::resetDurationPosition()
+{
+    emit durationPositionReset();
+}
+
 void Settings::setRemainRtOffset(int offset)
 {
     settings->setValue("remainRtOffset", offset);

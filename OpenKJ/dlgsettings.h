@@ -121,6 +121,7 @@ private slots:
     void on_comboBoxBAudioDevices_currentIndexChanged(int index);
     void on_checkBoxEnforceAspectRatio_clicked(bool checked);
     void on_pushButtonApplyTickerMsg_clicked();
+    void on_pushButtonResetDurationPos_clicked();
 };
 
 #endif // SETTINGSDIALOG_H

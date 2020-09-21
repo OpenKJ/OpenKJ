@@ -916,6 +916,16 @@ QPushButton:default {
                      </property>
                     </spacer>
                    </item>
+                   <item>
+                    <widget class="QPushButton" name="pushButtonResetDurationPos">
+                     <property name="toolTip">
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reset duration display location to default.  Use this if the duration gets hidden due to a resolution or window size change.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     </property>
+                     <property name="text">
+                      <string>Reset Position</string>
+                     </property>
+                    </widget>
+                   </item>
                   </layout>
                  </widget>
                 </item>

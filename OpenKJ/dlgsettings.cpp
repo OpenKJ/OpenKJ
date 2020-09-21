@@ -819,3 +819,8 @@ void DlgSettings::on_pushButtonApplyTickerMsg_clicked()
 {
     settings->setTickerCustomString(ui->lineEditTickerMessage->text());
 }
+
+void DlgSettings::on_pushButtonResetDurationPos_clicked()
+{
+    settings->resetDurationPosition();
+}

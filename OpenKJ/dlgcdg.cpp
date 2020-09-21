@@ -43,6 +43,7 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
     ui->setupUi(this);
     tWidget = new TransparentWidget(this);
     tWidget->show();
+    settings->restoreWindowState(tWidget);
     ui->videoDisplay->setMediaBackends(m_kmb, m_bmb);
     ui->widgetAlert->setAutoFillBackground(true);
     ui->fsToggleWidget->hide();
@@ -92,6 +93,9 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
     connect(settings, &Settings::cdgRemainTextColorChanged, this, &DlgCdg::cdgRemainTextColorChanged);
     connect(settings, &Settings::cdgRemainBgColorChanged, this, &DlgCdg::cdgRemainBgColorChanged);
     connect(settings, &Settings::karaokeAAAlertFontChanged, this, &DlgCdg::alertFontChanged);
+    connect(settings, &Settings::durationPositionReset, [&] () {
+       tWidget->move(0,0);
+    });
     connect(&m_timerSlideShow, &QTimer::timeout, this, &DlgCdg::timerSlideShowTimeout);
     connect(&m_timer1s, &QTimer::timeout, this, &DlgCdg::timer1sTimeout);
     connect(&m_timerAlertCountdown, &QTimer::timeout, this, &DlgCdg::timerCountdownTimeout);
@@ -425,4 +429,11 @@ void DlgCdg::hideEvent(QHideEvent *event)
 {
     settings->saveWindowState(this);
     QWidget::hideEvent(event);
+}
+
+
+void TransparentWidget::moveEvent(QMoveEvent *event)
+{
+    QWidget::moveEvent(event);
+    settings->saveWindowState(this);
 }

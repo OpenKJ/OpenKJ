@@ -61,26 +61,30 @@ public:
   void setString(QString string) {
       label->setText(string);
   }
-  void paintEvent(QPaintEvent *)
+  void paintEvent(QPaintEvent *) override
   {
     QPainter painter(this);
     painter.fillRect (this->rect(), QColor(0, 0, 0, 0x20)); /* set transparent color*/
   }
 
-  void mousePressEvent(QMouseEvent *event)
+  void mousePressEvent(QMouseEvent *event) override
   {
     if (event->button() == Qt::LeftButton) {
       m_startPoint = frameGeometry().topLeft() - event->globalPos();
     }
   }
 
-  void mouseMoveEvent(QMouseEvent *event)
+  void mouseMoveEvent(QMouseEvent *event) override
   {
     this->move(event->globalPos() + m_startPoint);
   }
 
 private:
   QPoint m_startPoint;
+
+  // QWidget interface
+protected:
+  void moveEvent(QMoveEvent *event) override;
 };
 
 

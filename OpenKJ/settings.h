@@ -354,8 +354,9 @@ signals:
     void rotationShowNextSongChanged(bool show);
     void remainOffsetChanged(int offsetR, int offsetB);
     void previewEnabledChanged(bool enabled);
-
+    void durationPositionReset();
 public slots:
+    void resetDurationPosition();
     void setRemainRtOffset(int offset);
     void setRemainBtmOffset(int offset);
     void dbSetLazyLoadDurations(bool val);
