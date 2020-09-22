@@ -58,8 +58,6 @@ int main(int argc, char *argv[])
     //qputenv("GST_DEBUG", "*:4");
     //qputenv("GST_DEBUG_DUMP_DOT_DIR", "/tmp");
     Settings okjSettings;
-    a.setFont(okjSettings.applicationFont(), "QWidget");
-    a.setFont(okjSettings.applicationFont(), "QMenu");
     QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     if (okjSettings.theme() == 1)
     {
@@ -104,6 +102,8 @@ int main(int argc, char *argv[])
         QIcon::setThemeSearchPaths(spaths);
         QIcon::setThemeName("okjbreeze");
     }
+    a.setFont(okjSettings.applicationFont(), "QWidget");
+    a.setFont(okjSettings.applicationFont(), "QMenu");
 //    QFile file(":/QTDark.css");
 //    QString stylesheet;
 //    QString line;
