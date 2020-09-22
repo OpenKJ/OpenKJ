@@ -214,7 +214,7 @@ public slots:
     void fadeOut(const bool &waitForFade = true);
     void fadeIn(const bool &waitForFade = true);
     void setUseFader(const bool &fade) {m_fade = fade;}
-    void setUseSilenceDetection(const bool &enabled) {m_silenceDetect = enabled;}
+    void setUseSilenceDetection(const bool &enabled);
     void setDownmix(const bool &enabled);
     void setTempo(const int &percent);
     void setMplxMode(const int &mode);

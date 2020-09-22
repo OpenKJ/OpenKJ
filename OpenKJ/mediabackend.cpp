@@ -899,6 +899,12 @@ void MediaBackend::fadeIn(const bool &waitForFade)
     m_fader->fadeIn(waitForFade);
 }
 
+void MediaBackend::setUseSilenceDetection(const bool &enabled) {
+    QString state = enabled ? "on" : "off";
+    qInfo() << m_objName << " - Setting silence detection to " << state;
+    m_silenceDetect = enabled;
+}
+
 bool MediaBackend::isSilent()
 {
     if ((m_currentRmsLevel <= 0.01) && (m_volume > 0) && (!m_fader->isFading()))

@@ -434,7 +434,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     bmMediaBackend.setUseFader(true);
-    bmMediaBackend.setUseSilenceDetection(true);
     bmPlaylistsModel = new QSqlTableModel(this, database);
     bmPlaylistsModel->setTable("bmplaylists");
     bmPlaylistsModel->sort(2, Qt::AscendingOrder);
