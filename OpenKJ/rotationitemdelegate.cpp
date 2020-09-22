@@ -63,16 +63,16 @@ void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
         if (index.sibling(index.row(), 0).data().toInt() == m_currentSingerId)
         {
             if (index.data().toBool())
-                painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QImage(":/Icons/breeze-light/im-user-online.svg"));
+                painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon::fromTheme("im-user-online").pixmap(sbSize));
             else
-                painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QImage(":/Icons/breeze-light/im-user.svg"));
+                painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon::fromTheme("im-user").pixmap(sbSize));
         }
         else
         {
             if (index.data().toBool())
-                painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QImage(":/Icons/breeze-dark/im-user-online.svg"));
+                painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon::fromTheme("im-user-online").pixmap(sbSize));
             else
-                painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QImage(":/Icons/breeze-dark/im-user.svg"));
+                painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon::fromTheme("im-user").pixmap(sbSize));
         }
         return;
     }
@@ -99,7 +99,12 @@ void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
     if (index.column() == 0)
     {
         if (index.sibling(index.row(), 0).data().toInt() == m_currentSingerId)
-            painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QImage(":/icons/microphone").scaled(sbSize));
+        {
+            if (settings->theme() == 1)
+                painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon::fromTheme("mic-on-dark").pixmap(sbSize));
+            else
+                painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon::fromTheme("mic-on").pixmap(sbSize));
+        }
         else if (settings->rotationDisplayPosition())
         {
             int curSingerPos = 0;
@@ -133,7 +138,7 @@ void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
     }
     if (index.column() == 4)
     {
-        painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QImage(":/Icons/breeze-light/edit-delete.svg"));
+        painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon::fromTheme("edit-delete").pixmap(sbSize));
         return;
     }
     painter->save();

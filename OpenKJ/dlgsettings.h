@@ -122,6 +122,7 @@ private slots:
     void on_checkBoxEnforceAspectRatio_clicked(bool checked);
     void on_pushButtonApplyTickerMsg_clicked();
     void on_pushButtonResetDurationPos_clicked();
+    void on_lineEditTickerMessage_returnPressed();
 };
 
 #endif // SETTINGSDIALOG_H

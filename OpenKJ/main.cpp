@@ -58,6 +58,9 @@ int main(int argc, char *argv[])
     //qputenv("GST_DEBUG", "*:4");
     //qputenv("GST_DEBUG_DUMP_DOT_DIR", "/tmp");
     Settings okjSettings;
+    a.setFont(okjSettings.applicationFont(), "QWidget");
+    a.setFont(okjSettings.applicationFont(), "QMenu");
+    QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     if (okjSettings.theme() == 1)
     {
         //a.setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }");
@@ -84,14 +87,22 @@ int main(int argc, char *argv[])
         palette.setColor(QPalette::HighlightedText,Qt::white);
         palette.setColor(QPalette::Disabled,QPalette::HighlightedText,QColor(127,127,127));
         a.setPalette(palette);
-        a.setFont(okjSettings.applicationFont(), "QWidget");
-        a.setFont(okjSettings.applicationFont(), "QMenu");
-
+        QStringList spaths{":/theme/Icons"};
+        QIcon::setThemeSearchPaths(spaths);
+        QIcon::setThemeName("okjbreeze-dark");
     }
     else if (okjSettings.theme() == 2)
     {
         QApplication::setStyle(QStyleFactory::create("Fusion"));
-        a.setFont(okjSettings.applicationFont(), "QWidget");
+        QStringList spaths{":/theme/Icons"};
+        QIcon::setThemeSearchPaths(spaths);
+        QIcon::setThemeName("okjbreeze");
+    }
+    else
+    {
+        QStringList spaths{":/theme/Icons"};
+        QIcon::setThemeSearchPaths(spaths);
+        QIcon::setThemeName("okjbreeze");
     }
 //    QFile file(":/QTDark.css");
 //    QString stylesheet;

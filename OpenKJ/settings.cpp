@@ -420,7 +420,6 @@ void Settings::setApplicationFont(const QFont &font)
 QFont Settings::tickerFont()
 {
     QFontDatabase fdb;
-    qInfo() << fdb.families();
     QFont font;
     QFont defaultFont = QApplication::font();
     if (fdb.hasFamily("Roboto Medium"))

@@ -65,7 +65,10 @@ void BmPlItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
             //painter->drawText(option.rect, Qt::AlignCenter, index.data().toString());
             return;
         }
-        painter->drawImage(QRect(option.rect.x(),option.rect.y(), sbSize.width(), sbSize.height()), QImage(":/icons/Icons/play-small.png").scaled(sbSize));
+        if (settings->theme() == 1)
+            painter->drawPixmap(QRect(option.rect.x(),option.rect.y(), sbSize.width(), sbSize.height()), QIcon::fromTheme("media-playback-start-dark").pixmap(sbSize));
+        else
+            painter->drawPixmap(QRect(option.rect.x(),option.rect.y(), sbSize.width(), sbSize.height()), QIcon::fromTheme("media-playback-start").pixmap(sbSize));
         return;
     }
     if (index.column() == 5)
@@ -98,7 +101,7 @@ void BmPlItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     }
     if (index.column() == 7)
     {
-        painter->drawImage(QRect(option.rect.x() + leftPad, option.rect.y() + topPad, sbSize.width(), sbSize.height()), QImage(":/icons/Icons/edit-delete.png").scaled(sbSize));
+        painter->drawPixmap(QRect(option.rect.x() + leftPad, option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon::fromTheme("edit-delete").pixmap(sbSize));
         return;
     }
     if (index.column() == 6)

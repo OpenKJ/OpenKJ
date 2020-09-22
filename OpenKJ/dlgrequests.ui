@@ -62,8 +62,13 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset resource="resources.qrc">
-            <normaloff>:/icons/Icons/edit-clear.png</normaloff>:/icons/Icons/edit-clear.png</iconset>
+           <iconset theme="edit-delete"/>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>32</width>
+            <height>32</height>
+           </size>
           </property>
          </widget>
         </item>
@@ -88,7 +93,14 @@
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="comboBoxVenue"/>
+         <widget class="QComboBox" name="comboBoxVenue">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QCheckBox" name="checkBoxAccepting">
@@ -119,8 +131,14 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset resource="resources.qrc">
-            <normaloff>:/icons/Icons/view-refresh.png</normaloff>:/icons/Icons/view-refresh.png</iconset>
+           <iconset theme="view-refresh">
+            <normaloff>.</normaloff>.</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>32</width>
+            <height>32</height>
+           </size>
           </property>
          </widget>
         </item>
@@ -176,7 +194,14 @@
          </widget>
         </item>
         <item>
-         <widget class="CustomLineEdit" name="lineEditSearch"/>
+         <widget class="CustomLineEdit" name="lineEditSearch">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QPushButton" name="pushButtonSearch">
@@ -187,8 +212,13 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset resource="resources.qrc">
-            <normaloff>:/icons/Icons/system-search.png</normaloff>:/icons/Icons/system-search.png</iconset>
+           <iconset theme="edit-find"/>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>32</width>
+            <height>32</height>
+           </size>
           </property>
          </widget>
         </item>
@@ -201,13 +231,12 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset resource="resources.qrc">
-            <normaloff>:/Icons/web-arrow-icon.png</normaloff>:/Icons/web-arrow-icon.png</iconset>
+           <iconset theme="internet-web-browser"/>
           </property>
           <property name="iconSize">
            <size>
-            <width>16</width>
-            <height>16</height>
+            <width>32</width>
+            <height>32</height>
            </size>
           </property>
          </widget>
@@ -574,8 +603,6 @@
    <header>customlineedit.h</header>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="resources.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

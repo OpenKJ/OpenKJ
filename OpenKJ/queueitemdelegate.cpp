@@ -62,7 +62,7 @@ void QueueItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
     }
     if (index.column() == 8)
     {
-        painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QImage(":/Icons/breeze-dark/edit-delete.svg"));
+        painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon::fromTheme("edit-delete").pixmap(sbSize));
         return;
     }
     if ((index.column() == 5) && (index.data().toString() == "!!DROPPED!!"))

@@ -59,12 +59,12 @@ void RegItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
     }
     if (index.column() == 3)
     {
-        painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QImage(":/icons/Icons/list-add-user-small.png").scaled(sbSize));
+        painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon::fromTheme("list-add-user-small").pixmap(sbSize));
         return;
     }
     if (index.column() == 4)
     {
-        painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QImage(":/icons/Icons/edit-delete.png").scaled(sbSize));
+        painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon::fromTheme("edit-delete").pixmap(sbSize));
         return;
     }
     painter->save();

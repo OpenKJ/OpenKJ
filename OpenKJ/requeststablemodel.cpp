@@ -73,8 +73,7 @@ QVariant RequestsTableModel::data(const QModelIndex &index, int role) const
         return QVariant();
     if ((index.column() == 5) && (role == Qt::DecorationRole))
     {
-        QPixmap icon(":/icons/Icons/edit-delete.png");
-        return icon.scaled(sbSize);
+        return QIcon::fromTheme("edit-delete").pixmap(sbSize);
     }
     if (role == Qt::TextAlignmentRole)
         switch(index.column())

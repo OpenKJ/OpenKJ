@@ -93,14 +93,6 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
 
     QFontMetrics fm(settings->applicationFont());
     QSize mcbSize(fm.height(), fm.height());
-
-    ui->buttonRefresh->resize(mcbSize);
-    ui->buttonRefresh->setIcon(style()->standardIcon(QStyle::SP_BrowserReload));
-    ui->buttonRefresh->setIconSize(mcbSize);
-
-    ui->pushButtonClearReqs->resize(mcbSize);
-    ui->pushButtonClearReqs->setIcon(QIcon(QPixmap(":/icons/Icons/edit-clear.png").scaled(mcbSize)));
-    ui->pushButtonClearReqs->setIconSize(mcbSize);
     ui->spinBoxKey->setMaximum(12);
     ui->spinBoxKey->setMinimum(-12);
     autoSizeViews();

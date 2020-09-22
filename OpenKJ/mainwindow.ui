@@ -146,8 +146,7 @@
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset resource="resources.qrc">
-                        <normaloff>:/Icons/breeze-dark/edit-delete.svg</normaloff>:/Icons/breeze-dark/edit-delete.svg</iconset>
+                       <iconset theme="edit-delete"/>
                       </property>
                       <property name="iconSize">
                        <size>
@@ -182,8 +181,7 @@
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset resource="resources.qrc">
-                        <normaloff>:/Icons/breeze-dark/list-add-user.svg</normaloff>:/Icons/breeze-dark/list-add-user.svg</iconset>
+                       <iconset theme="list-add-user"/>
                       </property>
                       <property name="iconSize">
                        <size>
@@ -205,8 +203,7 @@
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset resource="resources.qrc">
-                        <normaloff>:/Icons/breeze-dark/user-others.svg</normaloff>:/Icons/breeze-dark/user-others.svg</iconset>
+                       <iconset theme="user-others"/>
                       </property>
                       <property name="iconSize">
                        <size>
@@ -259,8 +256,7 @@
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset resource="resources.qrc">
-                        <normaloff>:/Icons/breeze-dark/go-top.svg</normaloff>:/Icons/breeze-dark/go-top.svg</iconset>
+                       <iconset theme="go-top"/>
                       </property>
                       <property name="iconSize">
                        <size>
@@ -300,8 +296,7 @@
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset resource="resources.qrc">
-                        <normaloff>:/Icons/breeze-dark/go-up.svg</normaloff>:/Icons/breeze-dark/go-up.svg</iconset>
+                       <iconset theme="go-up"/>
                       </property>
                       <property name="iconSize">
                        <size>
@@ -341,8 +336,7 @@
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset resource="resources.qrc">
-                        <normaloff>:/Icons/breeze-dark/go-down.svg</normaloff>:/Icons/breeze-dark/go-down.svg</iconset>
+                       <iconset theme="go-down"/>
                       </property>
                       <property name="iconSize">
                        <size>
@@ -382,8 +376,7 @@
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset resource="resources.qrc">
-                        <normaloff>:/Icons/breeze-dark/go-bottom.svg</normaloff>:/Icons/breeze-dark/go-bottom.svg</iconset>
+                       <iconset theme="go-bottom"/>
                       </property>
                       <property name="iconSize">
                        <size>
@@ -512,8 +505,7 @@
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset resource="resources.qrc">
-                        <normaloff>:/Icons/breeze-dark/edit-find.svg</normaloff>:/Icons/breeze-dark/edit-find.svg</iconset>
+                       <iconset theme="edit-find"/>
                       </property>
                       <property name="iconSize">
                        <size>
@@ -700,8 +692,7 @@ QPushButton:default {
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="resources.qrc">
-                          <normaloff>:/Icons/breeze-dark/edit-delete.svg</normaloff>:/Icons/breeze-dark/edit-delete.svg</iconset>
+                         <iconset theme="edit-delete"/>
                         </property>
                         <property name="iconSize">
                          <size>
@@ -751,8 +742,7 @@ QPushButton:default {
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="resources.qrc">
-                          <normaloff>:/Icons/breeze-dark/go-top.svg</normaloff>:/Icons/breeze-dark/go-top.svg</iconset>
+                         <iconset theme="go-top"/>
                         </property>
                         <property name="iconSize">
                          <size>
@@ -789,8 +779,7 @@ QPushButton:default {
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="resources.qrc">
-                          <normaloff>:/Icons/breeze-dark/go-up.svg</normaloff>:/Icons/breeze-dark/go-up.svg</iconset>
+                         <iconset theme="go-up"/>
                         </property>
                         <property name="iconSize">
                          <size>
@@ -827,8 +816,7 @@ QPushButton:default {
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="resources.qrc">
-                          <normaloff>:/Icons/breeze-dark/go-down.svg</normaloff>:/Icons/breeze-dark/go-down.svg</iconset>
+                         <iconset theme="go-down"/>
                         </property>
                         <property name="iconSize">
                          <size>
@@ -865,8 +853,7 @@ QPushButton:default {
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="resources.qrc">
-                          <normaloff>:/Icons/breeze-dark/go-bottom.svg</normaloff>:/Icons/breeze-dark/go-bottom.svg</iconset>
+                         <iconset theme="go-bottom"/>
                         </property>
                         <property name="iconSize">
                          <size>
@@ -1217,8 +1204,7 @@ QPushButton:default {
                       <enum>Qt::NoFocus</enum>
                      </property>
                      <property name="icon">
-                      <iconset resource="resources.qrc">
-                       <normaloff>:/Icons/breeze-dark/media-playback-pause.svg</normaloff>:/Icons/breeze-dark/media-playback-pause.svg</iconset>
+                      <iconset theme="media-playback-pause"/>
                      </property>
                      <property name="iconSize">
                       <size>
@@ -1237,8 +1223,7 @@ QPushButton:default {
                       <enum>Qt::NoFocus</enum>
                      </property>
                      <property name="icon">
-                      <iconset resource="resources.qrc">
-                       <normaloff>:/Icons/breeze-dark/media-playback-stop.svg</normaloff>:/Icons/breeze-dark/media-playback-stop.svg</iconset>
+                      <iconset theme="media-playback-stop"/>
                      </property>
                      <property name="iconSize">
                       <size>
@@ -1351,8 +1336,7 @@ QPushButton:default {
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="resources.qrc">
-                          <normaloff>:/Icons/breeze-dark/downindicator.svg</normaloff>:/Icons/breeze-dark/downindicator.svg</iconset>
+                         <iconset theme="downindicator"/>
                         </property>
                         <property name="iconSize">
                          <size>
@@ -1393,8 +1377,7 @@ QPushButton:default {
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="resources.qrc">
-                          <normaloff>:/Icons/breeze-dark/upindicator.svg</normaloff>:/Icons/breeze-dark/upindicator.svg</iconset>
+                         <iconset theme="upindicator"/>
                         </property>
                         <property name="iconSize">
                          <size>
@@ -1447,8 +1430,7 @@ QPushButton:default {
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="resources.qrc">
-                          <normaloff>:/Icons/breeze-dark/downindicator.svg</normaloff>:/Icons/breeze-dark/downindicator.svg</iconset>
+                         <iconset theme="downindicator"/>
                         </property>
                         <property name="iconSize">
                          <size>
@@ -1501,8 +1483,7 @@ QPushButton:default {
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="resources.qrc">
-                          <normaloff>:/Icons/breeze-dark/upindicator.svg</normaloff>:/Icons/breeze-dark/upindicator.svg</iconset>
+                         <iconset theme="upindicator"/>
                         </property>
                         <property name="iconSize">
                          <size>
@@ -1794,8 +1775,7 @@ QPushButton:default {
                      <enum>Qt::NoFocus</enum>
                     </property>
                     <property name="icon">
-                     <iconset resource="resources.qrc">
-                      <normaloff>:/Icons/breeze-dark/media-playback-stop.svg</normaloff>:/Icons/breeze-dark/media-playback-stop.svg</iconset>
+                     <iconset theme="media-playback-stop"/>
                     </property>
                     <property name="iconSize">
                      <size>
@@ -1820,8 +1800,8 @@ QPushButton:default {
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>285</width>
-                     <height>42</height>
+                     <width>290</width>
+                     <height>45</height>
                     </rect>
                    </property>
                    <property name="sizePolicy">
@@ -2232,20 +2212,19 @@ QPushButton:default {
                               <string/>
                              </property>
                              <property name="icon">
-                              <iconset resource="resources.qrc">
-                               <normaloff>:/icons/pause</normaloff>:/icons/pause</iconset>
+                              <iconset theme="media-playback-pause"/>
                              </property>
                              <property name="iconSize">
                               <size>
-                               <width>22</width>
-                               <height>22</height>
+                               <width>26</width>
+                               <height>26</height>
                               </size>
                              </property>
                              <property name="checkable">
                               <bool>true</bool>
                              </property>
                              <property name="flat">
-                              <bool>true</bool>
+                              <bool>false</bool>
                              </property>
                             </widget>
                            </item>
@@ -2258,17 +2237,16 @@ QPushButton:default {
                               <string/>
                              </property>
                              <property name="icon">
-                              <iconset resource="resources.qrc">
-                               <normaloff>:/icons/stop</normaloff>:/icons/stop</iconset>
+                              <iconset theme="media-playback-stop"/>
                              </property>
                              <property name="iconSize">
                               <size>
-                               <width>22</width>
-                               <height>22</height>
+                               <width>26</width>
+                               <height>26</height>
                               </size>
                              </property>
                              <property name="flat">
-                              <bool>true</bool>
+                              <bool>false</bool>
                              </property>
                             </widget>
                            </item>
@@ -2598,17 +2576,13 @@ QPushButton:default {
                      <string/>
                     </property>
                     <property name="icon">
-                     <iconset resource="resources.qrc">
-                      <normaloff>:/icons/Icons/system-search.png</normaloff>:/icons/Icons/system-search.png</iconset>
+                     <iconset theme="edit-find"/>
                     </property>
                     <property name="iconSize">
                      <size>
-                      <width>22</width>
-                      <height>22</height>
+                      <width>32</width>
+                      <height>32</height>
                      </size>
-                    </property>
-                    <property name="flat">
-                     <bool>true</bool>
                     </property>
                    </widget>
                   </item>
@@ -2790,6 +2764,12 @@ QPushButton:default {
                  </property>
                  <item>
                   <widget class="QPushButton" name="btnBmPlRandomize">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="text">
                     <string>Randomize</string>
                    </property>
@@ -2814,17 +2794,13 @@ QPushButton:default {
                     <string/>
                    </property>
                    <property name="icon">
-                    <iconset resource="resources.qrc">
-                     <normaloff>:/icons/Icons/go-top.png</normaloff>:/icons/Icons/go-top.png</iconset>
+                    <iconset theme="go-top"/>
                    </property>
                    <property name="iconSize">
                     <size>
-                     <width>22</width>
-                     <height>22</height>
+                     <width>32</width>
+                     <height>32</height>
                     </size>
-                   </property>
-                   <property name="flat">
-                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
@@ -2834,17 +2810,13 @@ QPushButton:default {
                     <string/>
                    </property>
                    <property name="icon">
-                    <iconset resource="resources.qrc">
-                     <normaloff>:/icons/Icons/go-up.png</normaloff>:/icons/Icons/go-up.png</iconset>
+                    <iconset theme="go-up"/>
                    </property>
                    <property name="iconSize">
                     <size>
-                     <width>22</width>
-                     <height>22</height>
+                     <width>32</width>
+                     <height>32</height>
                     </size>
-                   </property>
-                   <property name="flat">
-                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
@@ -2854,17 +2826,13 @@ QPushButton:default {
                     <string/>
                    </property>
                    <property name="icon">
-                    <iconset resource="resources.qrc">
-                     <normaloff>:/icons/Icons/go-down.png</normaloff>:/icons/Icons/go-down.png</iconset>
+                    <iconset theme="go-down"/>
                    </property>
                    <property name="iconSize">
                     <size>
-                     <width>22</width>
-                     <height>22</height>
+                     <width>32</width>
+                     <height>32</height>
                     </size>
-                   </property>
-                   <property name="flat">
-                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
@@ -2874,17 +2842,13 @@ QPushButton:default {
                     <string/>
                    </property>
                    <property name="icon">
-                    <iconset resource="resources.qrc">
-                     <normaloff>:/icons/Icons/go-bottom.png</normaloff>:/icons/Icons/go-bottom.png</iconset>
+                    <iconset theme="go-bottom"/>
                    </property>
                    <property name="iconSize">
                     <size>
-                     <width>22</width>
-                     <height>22</height>
+                     <width>32</width>
+                     <height>32</height>
                     </size>
-                   </property>
-                   <property name="flat">
-                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
