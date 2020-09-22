@@ -146,7 +146,7 @@
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset theme="edit-delete"/>
+                       <iconset theme="edit-clear-all"/>
                       </property>
                       <property name="iconSize">
                        <size>
@@ -181,7 +181,8 @@
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset theme="list-add-user"/>
+                       <iconset theme="list-add-user">
+                        <normaloff>.</normaloff>.</iconset>
                       </property>
                       <property name="iconSize">
                        <size>
@@ -203,7 +204,8 @@
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset theme="user-others"/>
+                       <iconset theme="user-others">
+                        <normaloff>.</normaloff>.</iconset>
                       </property>
                       <property name="iconSize">
                        <size>
@@ -256,7 +258,8 @@
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset theme="go-top"/>
+                       <iconset theme="go-top">
+                        <normaloff>.</normaloff>.</iconset>
                       </property>
                       <property name="iconSize">
                        <size>
@@ -296,7 +299,8 @@
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset theme="go-up"/>
+                       <iconset theme="go-up">
+                        <normaloff>.</normaloff>.</iconset>
                       </property>
                       <property name="iconSize">
                        <size>
@@ -336,7 +340,8 @@
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset theme="go-down"/>
+                       <iconset theme="go-down">
+                        <normaloff>.</normaloff>.</iconset>
                       </property>
                       <property name="iconSize">
                        <size>
@@ -376,7 +381,8 @@
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset theme="go-bottom"/>
+                       <iconset theme="go-bottom">
+                        <normaloff>.</normaloff>.</iconset>
                       </property>
                       <property name="iconSize">
                        <size>
@@ -505,7 +511,8 @@
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset theme="edit-find"/>
+                       <iconset theme="edit-find">
+                        <normaloff>.</normaloff>.</iconset>
                       </property>
                       <property name="iconSize">
                        <size>
@@ -692,7 +699,7 @@ QPushButton:default {
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset theme="edit-delete"/>
+                         <iconset theme="edit-clear-all"/>
                         </property>
                         <property name="iconSize">
                          <size>
@@ -742,7 +749,8 @@ QPushButton:default {
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset theme="go-top"/>
+                         <iconset theme="go-top">
+                          <normaloff>.</normaloff>.</iconset>
                         </property>
                         <property name="iconSize">
                          <size>
@@ -779,7 +787,8 @@ QPushButton:default {
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset theme="go-up"/>
+                         <iconset theme="go-up">
+                          <normaloff>.</normaloff>.</iconset>
                         </property>
                         <property name="iconSize">
                          <size>
@@ -816,7 +825,8 @@ QPushButton:default {
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset theme="go-down"/>
+                         <iconset theme="go-down">
+                          <normaloff>.</normaloff>.</iconset>
                         </property>
                         <property name="iconSize">
                          <size>
@@ -853,7 +863,8 @@ QPushButton:default {
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset theme="go-bottom"/>
+                         <iconset theme="go-bottom">
+                          <normaloff>.</normaloff>.</iconset>
                         </property>
                         <property name="iconSize">
                          <size>
@@ -1204,7 +1215,8 @@ QPushButton:default {
                       <enum>Qt::NoFocus</enum>
                      </property>
                      <property name="icon">
-                      <iconset theme="media-playback-pause"/>
+                      <iconset theme="media-playback-pause">
+                       <normaloff>.</normaloff>.</iconset>
                      </property>
                      <property name="iconSize">
                       <size>
@@ -1223,7 +1235,8 @@ QPushButton:default {
                       <enum>Qt::NoFocus</enum>
                      </property>
                      <property name="icon">
-                      <iconset theme="media-playback-stop"/>
+                      <iconset theme="media-playback-stop">
+                       <normaloff>.</normaloff>.</iconset>
                      </property>
                      <property name="iconSize">
                       <size>
@@ -1255,7 +1268,7 @@ QPushButton:default {
                       <string/>
                      </property>
                      <property name="pixmap">
-                      <pixmap resource="resources.qrc">:/Icons/breeze-dark/audio-volume-high.svg</pixmap>
+                      <pixmap>:/Icons/breeze-dark/audio-volume-high.svg</pixmap>
                      </property>
                      <property name="scaledContents">
                       <bool>false</bool>
@@ -1336,7 +1349,8 @@ QPushButton:default {
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset theme="downindicator"/>
+                         <iconset theme="downindicator">
+                          <normaloff>.</normaloff>.</iconset>
                         </property>
                         <property name="iconSize">
                          <size>
@@ -1377,7 +1391,8 @@ QPushButton:default {
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset theme="upindicator"/>
+                         <iconset theme="upindicator">
+                          <normaloff>.</normaloff>.</iconset>
                         </property>
                         <property name="iconSize">
                          <size>
@@ -1430,7 +1445,8 @@ QPushButton:default {
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset theme="downindicator"/>
+                         <iconset theme="downindicator">
+                          <normaloff>.</normaloff>.</iconset>
                         </property>
                         <property name="iconSize">
                          <size>
@@ -1483,7 +1499,8 @@ QPushButton:default {
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset theme="upindicator"/>
+                         <iconset theme="upindicator">
+                          <normaloff>.</normaloff>.</iconset>
                         </property>
                         <property name="iconSize">
                          <size>
@@ -1775,7 +1792,8 @@ QPushButton:default {
                      <enum>Qt::NoFocus</enum>
                     </property>
                     <property name="icon">
-                     <iconset theme="media-playback-stop"/>
+                     <iconset theme="media-playback-stop">
+                      <normaloff>.</normaloff>.</iconset>
                     </property>
                     <property name="iconSize">
                      <size>
@@ -1800,8 +1818,8 @@ QPushButton:default {
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>290</width>
-                     <height>45</height>
+                     <width>285</width>
+                     <height>42</height>
                     </rect>
                    </property>
                    <property name="sizePolicy">
@@ -2212,7 +2230,8 @@ QPushButton:default {
                               <string/>
                              </property>
                              <property name="icon">
-                              <iconset theme="media-playback-pause"/>
+                              <iconset theme="media-playback-pause">
+                               <normaloff>.</normaloff>.</iconset>
                              </property>
                              <property name="iconSize">
                               <size>
@@ -2237,7 +2256,8 @@ QPushButton:default {
                               <string/>
                              </property>
                              <property name="icon">
-                              <iconset theme="media-playback-stop"/>
+                              <iconset theme="media-playback-stop">
+                               <normaloff>.</normaloff>.</iconset>
                              </property>
                              <property name="iconSize">
                               <size>
@@ -2576,7 +2596,8 @@ QPushButton:default {
                      <string/>
                     </property>
                     <property name="icon">
-                     <iconset theme="edit-find"/>
+                     <iconset theme="edit-find">
+                      <normaloff>.</normaloff>.</iconset>
                     </property>
                     <property name="iconSize">
                      <size>
@@ -2794,7 +2815,8 @@ QPushButton:default {
                     <string/>
                    </property>
                    <property name="icon">
-                    <iconset theme="go-top"/>
+                    <iconset theme="go-top">
+                     <normaloff>.</normaloff>.</iconset>
                    </property>
                    <property name="iconSize">
                     <size>
@@ -2810,7 +2832,8 @@ QPushButton:default {
                     <string/>
                    </property>
                    <property name="icon">
-                    <iconset theme="go-up"/>
+                    <iconset theme="go-up">
+                     <normaloff>.</normaloff>.</iconset>
                    </property>
                    <property name="iconSize">
                     <size>
@@ -2826,7 +2849,8 @@ QPushButton:default {
                     <string/>
                    </property>
                    <property name="icon">
-                    <iconset theme="go-down"/>
+                    <iconset theme="go-down">
+                     <normaloff>.</normaloff>.</iconset>
                    </property>
                    <property name="iconSize">
                     <size>
@@ -2842,7 +2866,8 @@ QPushButton:default {
                     <string/>
                    </property>
                    <property name="icon">
-                    <iconset theme="go-bottom"/>
+                    <iconset theme="go-bottom">
+                     <normaloff>.</normaloff>.</iconset>
                    </property>
                    <property name="iconSize">
                     <size>

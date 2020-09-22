@@ -40,7 +40,7 @@
            </sizepolicy>
           </property>
           <property name="currentIndex">
-           <number>2</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="tabWidgetPage1">
            <attribute name="title">
@@ -456,8 +456,7 @@
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset theme="edit-clear">
-                        <normaloff>.</normaloff>.</iconset>
+                       <iconset theme="edit-clear-all"/>
                       </property>
                      </widget>
                     </item>

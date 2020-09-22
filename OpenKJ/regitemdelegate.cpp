@@ -59,7 +59,7 @@ void RegItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
     }
     if (index.column() == 3)
     {
-        painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon::fromTheme("list-add-user-small").pixmap(sbSize));
+        painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon::fromTheme("list-add-user").pixmap(sbSize));
         return;
     }
     if (index.column() == 4)

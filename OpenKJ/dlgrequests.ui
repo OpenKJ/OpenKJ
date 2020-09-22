@@ -62,7 +62,7 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset theme="edit-delete"/>
+           <iconset theme="edit-clear-all"/>
           </property>
           <property name="iconSize">
            <size>
@@ -212,7 +212,8 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset theme="edit-find"/>
+           <iconset theme="edit-find">
+            <normaloff>.</normaloff>.</iconset>
           </property>
           <property name="iconSize">
            <size>
@@ -231,7 +232,8 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset theme="internet-web-browser"/>
+           <iconset theme="internet-web-browser">
+            <normaloff>.</normaloff>.</iconset>
           </property>
           <property name="iconSize">
            <size>
