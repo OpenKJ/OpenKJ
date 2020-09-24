@@ -206,11 +206,7 @@ void DlgCdg::setShowBgImage(bool show)
             ui->videoDisplay->setBackground(QPixmap(settings->cdgDisplayBackgroundImage()));
         else
         {
-            QPixmap bgImage(QSize(1920,1080));
-            QPainter painter(&bgImage);
-            QSvgRenderer renderer(QString(":icons/Icons/okjlogo.svg"));
-            renderer.render(&painter);
-            ui->videoDisplay->setBackground(bgImage);
+            ui->videoDisplay->useDefaultBackground();
         }
     }
 }

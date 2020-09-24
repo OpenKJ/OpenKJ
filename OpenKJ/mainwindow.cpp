@@ -2035,11 +2035,7 @@ void MainWindow::setShowBgImage(const bool &show)
 {
     if (show)
     {
-        QPixmap bgImage(QSize(1920,1080));
-        QPainter painter(&bgImage);
-        QSvgRenderer renderer(QString(":icons/Icons/okjlogo.svg"));
-        renderer.render(&painter);
-        ui->videoPreview->setBackground(bgImage);
+        ui->videoPreview->useDefaultBackground();
     }
 }
 

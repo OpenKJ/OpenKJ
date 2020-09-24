@@ -13,6 +13,7 @@ class VideoDisplay : public QWidget
     Q_OBJECT
 private:
     QPixmap m_currentBg;
+    bool m_useDefaultBg{true};
     MediaBackend *kmb;
     MediaBackend *bmb;
     bool videoIsPlaying();
@@ -26,7 +27,7 @@ signals:
 
 public slots:
     void setBackground(const QPixmap &pixmap);
-
+    void useDefaultBackground();
 protected:
     void paintEvent(QPaintEvent *event) override;
 

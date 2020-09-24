@@ -1,6 +1,7 @@
 #include "videodisplay.h"
 #include <QPainter>
 #include <QPaintEvent>
+#include <QSvgRenderer>
 
 bool VideoDisplay::videoIsPlaying()
 {
@@ -22,7 +23,15 @@ VideoDisplay::VideoDisplay(QWidget *parent) : QWidget(parent)
 
 void VideoDisplay::setBackground(const QPixmap &pixmap)
 {
+    m_useDefaultBg = false;
     m_currentBg = pixmap;
+    if (!videoIsPlaying())
+        update();
+}
+
+void VideoDisplay::useDefaultBackground()
+{
+    m_useDefaultBg = true;
     if (!videoIsPlaying())
         update();
 }
@@ -33,6 +42,12 @@ void VideoDisplay::paintEvent(QPaintEvent *event)
     if(videoIsPlaying())
     {
         painter.fillRect(event->rect(), Qt::black);
+        return;
+    }
+    if (m_useDefaultBg)
+    {
+        QSvgRenderer renderer(QString(":icons/Icons/okjlogo.svg"));
+        renderer.render(&painter);
         return;
     }
     painter.fillRect(event->rect(), Qt::black);
@@ -46,6 +61,15 @@ void VideoDisplay::resizeEvent(QResizeEvent *event)
     if(videoIsPlaying())
     {
         painter.fillRect(rect(), Qt::black);
+        return;
+    }
+    if (m_useDefaultBg)
+    {
+        QSvgRenderer renderer(QString(":icons/Icons/okjlogo.svg"));
+#if (QT_VERSION >= QT_VERSION_CHECK(5,15,0))
+        renderer.setAspectRatioMode(Qt::KeepAspectRatio);
+#endif
+        renderer.render(&painter);
         return;
     }
     painter.fillRect(rect(), Qt::black);

@@ -2,25 +2,9 @@
     <qresource prefix="/icons">
         <file>Icons/splash.png</file>
         <file>Icons/okjlogo.svg</file>
-        <file>Icons/okjicon144x144.png</file>
-        <file>Icons/okjicon32x32.png</file>
-        <file>Icons/okjicon64x64.png</file>
-        <file>Icons/okicon.svg</file>
-        <file>Icons/rotation.png</file>
-        <file>Icons/OpenKJ.iconset/icon_128x128.png</file>
-        <file>Icons/OpenKJ.iconset/icon_128x128@2x.png</file>
-        <file>Icons/OpenKJ.iconset/icon_16x16.png</file>
-        <file>Icons/OpenKJ.iconset/icon_16x16@2x.png</file>
-        <file>Icons/OpenKJ.iconset/icon_256x256.png</file>
-        <file>Icons/OpenKJ.iconset/icon_256x256@2x.png</file>
-        <file>Icons/OpenKJ.iconset/icon_32x32.png</file>
-        <file>Icons/OpenKJ.iconset/icon_32x32@2x.png</file>
-        <file>Icons/OpenKJ.iconset/icon_512x512.png</file>
-        <file>Icons/OpenKJ.iconset/icon_512x512@2x.png</file>
         <file>Icons/okjicon.ico</file>
         <file>Icons/okjicon.svg</file>
         <file>Icons/OpenKJ.icns</file>
-        <file>Icons/web-arrow-icon.png</file>
     </qresource>
     <qresource prefix="/theme">
         <file>Icons/okjbreeze/actions/16/dialog-align-and-distribute.svg</file>
@@ -180,7 +164,5 @@
         <file>Icons/okjbreeze-dark/actions/22/edit-clear.svg</file>
         <file>Icons/okjbreeze/index.theme</file>
     </qresource>
-    <qresource prefix="/">
-        <file>Icons/web-arrow-icon.png</file>
-    </qresource>
+    <qresource prefix="/"/>
 </RCC>
