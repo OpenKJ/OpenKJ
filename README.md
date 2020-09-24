@@ -1,5 +1,5 @@
 **Downloads**  
-If you are looking for installers for Windows or macOS or binary packages for Fedora, RHEL, Debian, or Ubuntu, please visit the Downloads section at https://openkj.org
+If you are looking for installers for Windows or macOS or binary packages for Fedora, Debian, or Ubuntu, please visit the Downloads section at https://openkj.org
 
 If you need help with OpenKJ, you can reach out to support@openkj.org via email.
 
@@ -23,11 +23,10 @@ A few features:
 * Autoplay karaoke mode
 * Lots of other little things
 
-It currently handles media+g zip files (zip files containing an mp3, wav, or ogg file and a cdg file) and paired mp3 and cdg files.  I'll be adding others in the future if anyone expresses interest.  It also can play non-cdg based video files (mkv, mp4, mpg, avi) for both break music and karaoke (EXPERIMENTAL!).
+It currently handles media+g zip files (zip files containing an mp3, wav, or ogg file and a cdg file) and paired mp3 and cdg files.  I'll be adding others in the future if anyone expresses interest.  It also can play non-cdg based video files (mkv, mp4, mpg, avi) for both break music and karaoke.
 
 Database entries for the songs are based on the file naming scheme.  I've included the commone ones I've come across which should cover 90% of what's out there. Custom patterns can be also defined in the program using regular expressions.
 
-OpenKJ is experimental but usable at this point. I'd consider it to be around beta quality.  I am using it to run my shows, but if you do so and it kills kittens or eats your firstborn don't come screaming at me ;) Some features are still incomplete. To any other developers looking at this code, please don't laugh too hard, as I'm self taught primarily for the purpose of writing this.  Well, okay, you can laugh, but only if you're willing to fix the code that you're making fun of ;)
 
 **Screenshots**
   
@@ -63,20 +62,10 @@ Install the .deb file.
 
 **Mac**
 
-Building now works on OS X in Qt Creator using the native xcode compiler.  Use the latest stable version of the GStreamer SDK from http://gstreamer.freedesktop.org.  There is an extremely experimental installer for OS X on the main website at http://openkj.org/ in the downloads section.  If anyone tests this, please let me know, as I only have one Mac to test with, and it's the machine I build it on, so it's not a good test case as to whether or not it runs on machines without all of the devel packages installed.
+Building now works on OS X in Qt Creator using the native xcode compiler.  Use the latest stable version of the GStreamer SDK from http://gstreamer.freedesktop.org.
 
 
 **Windows**
 
-Building now works on Windows in Qt Creator using the msvc build system (both 32 and 64 bit).  Use the latest stable version of the GStreamer SDK from http://gstreamer.freedesktop.org.  You will likely need to modify the paths in the OpenKJ.pro file to match your devel environment.  Experimental build installers can be found at http://openkj.org/ if you just want to run the software and not build it yourself or help out with development.
+Building now works on Windows in Qt Creator using the msvc build system (both 32 and 64 bit).  Use the latest stable version of the GStreamer SDK from http://gstreamer.freedesktop.org.  You will likely need to modify the paths in the OpenKJ.pro file to match your devel environment.  Installers can be found at http://openkj.org/ if you just want to run the software and not build it yourself or help out with development.
 
-
-The goal is to have it work consistently across all three platforms.
-
-Things that are still work in progress or to do:
-
-libCDG:
-
-* Handling of CDG scroll_copy instructions.  Right now these are pretty much unhandled, but the impact is minimal.  The only professionally produced CDG's that I've seen use this functionality only use it in the title sequence at the beginning of the song, and it has zero effect on actual lyric display.  Basically not a priority for me.
-* Make libCDG only hand off the "safe" area of the CDG frames.  Right now it returns the whole thing, including the cdg border area.  Also not a big deal or priority, has virtually zero effect on what the singers see.  The background is just one CDG cell larger around the perimeter of the frame (6px on sides and 12px top and bottom before scaling)
-* I plan to break off libCDG into its own repo at some point and get it out of the KaraokeHost source tree
