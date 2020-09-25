@@ -36,6 +36,7 @@ void DlgAddSinger::on_buttonBox_accepted()
     {
         if (ui->lineEditName->text() == "")
             return;
+        int newSingerPos{0};
         rotModel->singerAdd(ui->lineEditName->text());
         if (rotModel->currentSinger() != -1)
         {
@@ -45,10 +46,21 @@ void DlgAddSinger::on_buttonBox_accepted()
             if (rotModel->singers().size() == 1)
                 qInfo() << "Skipping singer move, the new singer is the only singer";
             else if (ui->cbxPosition->currentIndex() == 2)
-                rotModel->singerMove(rotModel->rowCount() -1, curSingerPos + 1);
+            {
+                newSingerPos = curSingerPos + 1;
+                rotModel->singerMove(rotModel->rowCount() -1, newSingerPos);
+            }
             else if ((ui->cbxPosition->currentIndex() == 0) && (curSingerPos != 0))
-                rotModel->singerMove(rotModel->rowCount() -1, curSingerPos);
+            {
+                newSingerPos = curSingerPos;
+                rotModel->singerMove(rotModel->rowCount() -1, newSingerPos);
+            }
+            else
+            {
+                newSingerPos = rotModel->rowCount() - 1;
+            }
         }
+        emit newSingerAdded(newSingerPos);
         ui->lineEditName->clear();
         close();
     }

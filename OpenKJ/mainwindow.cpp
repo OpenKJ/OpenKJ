@@ -316,6 +316,9 @@ MainWindow::MainWindow(QWidget *parent) :
     dlgBookCreator = new DlgBookCreator(this);
     dlgEq = new DlgEq(this);
     dlgAddSinger = new DlgAddSinger(rotModel, this);
+    connect(dlgAddSinger, &DlgAddSinger::newSingerAdded, [&] (auto pos) {
+       ui->tableViewRotation->selectRow(pos);
+    });
     dlgSongShop = new DlgSongShop(shop);
     dlgSongShop->setModal(false);
     ui->tableViewDB->setModel(dbModel);

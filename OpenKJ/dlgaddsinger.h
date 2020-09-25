@@ -26,6 +26,9 @@ private:
     // QWidget interface
 protected:
     void showEvent(QShowEvent *event) override;
+
+signals:
+    void newSingerAdded(const int position);
 };
 
 #endif // DLGADDSINGER_H
