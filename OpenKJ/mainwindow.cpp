@@ -318,6 +318,7 @@ MainWindow::MainWindow(QWidget *parent) :
     dlgAddSinger = new DlgAddSinger(rotModel, this);
     connect(dlgAddSinger, &DlgAddSinger::newSingerAdded, [&] (auto pos) {
        ui->tableViewRotation->selectRow(pos);
+       ui->lineEdit->setFocus();
     });
     dlgSongShop = new DlgSongShop(shop);
     dlgSongShop->setModal(false);
