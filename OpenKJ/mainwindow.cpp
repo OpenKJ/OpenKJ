@@ -671,6 +671,9 @@ MainWindow::MainWindow(QWidget *parent) :
         on_actionVideoLarge_triggered();
         break;
     }
+    ui->labelVolume->setPixmap(QIcon::fromTheme("player-volume").pixmap(QSize(22,22)));
+    ui->labelVolumeBm->setPixmap(QIcon::fromTheme("player-volume").pixmap(QSize(22,22)));
+
 }
 
 void MainWindow::play(const QString &karaokeFilePath, const bool &k2k)

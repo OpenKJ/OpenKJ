@@ -163,6 +163,8 @@
         <file>Icons/okjbreeze-dark/actions/22/edit-clear-all.svg</file>
         <file>Icons/okjbreeze-dark/actions/22/edit-clear.svg</file>
         <file>Icons/okjbreeze/index.theme</file>
+        <file>Icons/okjbreeze/actions/16/player-volume.svg</file>
+        <file>Icons/okjbreeze-dark/actions/16/player-volume.svg</file>
     </qresource>
     <qresource prefix="/"/>
 </RCC>

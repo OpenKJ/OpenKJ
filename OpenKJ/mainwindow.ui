@@ -1281,6 +1281,40 @@ QPushButton:default {
                     </widget>
                    </item>
                    <item>
+                    <widget class="QLabel" name="labelVolume">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>16</width>
+                       <height>16</height>
+                      </size>
+                     </property>
+                     <property name="baseSize">
+                      <size>
+                       <width>16</width>
+                       <height>16</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="pixmap">
+                      <pixmap resource="resources.qrc">:/theme/Icons/okjbreeze/actions/16/player-volume.svg</pixmap>
+                     </property>
+                     <property name="scaledContents">
+                      <bool>true</bool>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
                     <widget class="VolSlider" name="sliderVolume">
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -2336,9 +2370,21 @@ QPushButton:default {
                        <property name="frameShadow">
                         <enum>QFrame::Plain</enum>
                        </property>
-                       <layout class="QHBoxLayout" name="horizontalLayout_4">
+                       <layout class="QVBoxLayout" name="verticalLayout_19">
                         <item>
                          <widget class="VolSlider" name="sliderBmVolume">
+                          <property name="minimumSize">
+                           <size>
+                            <width>22</width>
+                            <height>22</height>
+                           </size>
+                          </property>
+                          <property name="baseSize">
+                           <size>
+                            <width>22</width>
+                            <height>22</height>
+                           </size>
+                          </property>
                           <property name="focusPolicy">
                            <enum>Qt::NoFocus</enum>
                           </property>
@@ -2353,6 +2399,34 @@ QPushButton:default {
                           </property>
                           <property name="invertedControls">
                            <bool>false</bool>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QLabel" name="labelVolumeBm">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                          <property name="minimumSize">
+                           <size>
+                            <width>22</width>
+                            <height>22</height>
+                           </size>
+                          </property>
+                          <property name="baseSize">
+                           <size>
+                            <width>22</width>
+                            <height>22</height>
+                           </size>
+                          </property>
+                          <property name="text">
+                           <string/>
+                          </property>
+                          <property name="pixmap">
+                           <pixmap resource="resources.qrc">:/theme/Icons/okjbreeze-dark/actions/16/player-volume.svg</pixmap>
                           </property>
                          </widget>
                         </item>
