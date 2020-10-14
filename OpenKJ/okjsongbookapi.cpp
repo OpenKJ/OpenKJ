@@ -501,6 +501,14 @@ void OKJSongbookAPI::setInterval(int interval)
 
 void OKJSongbookAPI::idleStateChanged(bool isIdle)
 {
+    if (!isIdle)
+    {
+        // reset last update time to current to avoid showing
+        // warning dialog to user due to updates being suppressed
+        // during idle period
+        lastSync = QTime::currentTime();
+        timerTimeout();
+    }
     programIsIdle = isIdle;
     qInfo() << "Program idle state changed to: " << isIdle;
 }
