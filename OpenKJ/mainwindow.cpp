@@ -560,6 +560,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(settings, &Settings::enforceAspectRatioChanged, &bmMediaBackend, &MediaBackend::setEnforceAspectRatio);
     connect(settings, &Settings::mplxModeChanged, &kMediaBackend, &MediaBackend::setMplxMode);
 
+    kMediaBackend.setEnforceAspectRatio(settings->enforceAspectRatio());
+    bmMediaBackend.setEnforceAspectRatio(settings->enforceAspectRatio());
+
     kMediaBackend.setEqBypass(settings->eqKBypass());
     kMediaBackend.setEqLevel1(settings->eqKLevel1());
     kMediaBackend.setEqLevel2(settings->eqKLevel2());
