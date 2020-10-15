@@ -823,18 +823,17 @@ void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused
 //    auto bufferSize = backend->m_cdg.videoFrameByIndex(backend->curFrame).sizeInBytes();
     g_appSrcNeedData = true;
     qInfo() << "cdg buffering - free space: " << unused_size;
-    int adjustedFrame{0};
     while (g_appSrcNeedData && g_appSrcCurFrame < backend->m_cdg.getFrameCount())
     {
-        adjustedFrame = g_appSrcCurFrame;
-        if (backend->m_videoOffsetMs > 0)
-            adjustedFrame = g_appSrcCurFrame + (backend->m_videoOffsetMs / 40);
-        else if (backend->m_videoOffsetMs < 0)
-            adjustedFrame = g_appSrcCurFrame - (abs(backend->m_videoOffsetMs) / 40);
         auto buffer = gst_buffer_new_and_alloc(110592);
+//        gst_buffer_fill(buffer,
+//                        0,
+//                        backend->m_cdg.videoFrameByIndex(adjustedFrame).constBits(),
+//                        110592
+//                        );
         gst_buffer_fill(buffer,
                         0,
-                        backend->m_cdg.videoFrameByIndex(adjustedFrame).constBits(),
+                        backend->m_cdg.videoFrameByTime((g_appSrcCurPosition / GST_MSECOND) + backend->m_videoOffsetMs).constBits(),
                         110592
                         );
         GST_BUFFER_TIMESTAMP(buffer) = g_appSrcCurPosition;
@@ -935,18 +934,19 @@ void MediaBackend::setDownmix(const bool &enabled)
 void MediaBackend::setTempo(const int &percent)
 {
     m_tempo = percent;
-    gint64 curpos;
-    gst_element_query_position(m_audioBin, GST_FORMAT_TIME, &curpos);
-    auto sinkEvent = gst_event_new_seek((double)m_tempo / 100.0, GST_FORMAT_TIME, (GstSeekFlags)(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE), GST_SEEK_TYPE_SET, curpos, GST_SEEK_TYPE_END, 0);
-    if (m_cdgMode)
+    if (!m_cdgMode)
     {
-        g_object_set(m_pitchShifterSoundtouch, "tempo", (double)percent / 100.0, nullptr);
-        QTimer::singleShot(100, [&] () {
-            setPosition((position()));
-        });
+        gint64 curpos;
+        gst_element_query_position(m_audioBin, GST_FORMAT_TIME, &curpos);
+        gst_element_send_event(m_playBin, gst_event_new_seek((double)m_tempo / 100.0, GST_FORMAT_TIME, (GstSeekFlags)(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE), GST_SEEK_TYPE_SET, curpos, GST_SEEK_TYPE_END, 0));
+        return;
     }
-    else
-        gst_element_send_event(m_playBin, sinkEvent);
+    g_object_set(m_pitchShifterSoundtouch, "tempo", (double)percent / 100.0, nullptr);
+    m_cdg.setTempo(percent);
+    gint64 curpos;
+    gst_element_query_position(m_playBin, GST_FORMAT_TIME, &curpos);
+    setPosition(curpos / GST_MSECOND);
+
 }
 
 void MediaBackend::setOutputDevice(int deviceIndex)

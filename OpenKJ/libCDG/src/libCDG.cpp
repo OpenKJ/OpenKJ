@@ -94,7 +94,7 @@ void CdgParser::reset()
     //m_skip.shrink_to_fit();
 }
 
-bool CdgParser::canSkipFrameByTime(const unsigned int &ms)
+bool CdgParser::canSkipFrameByTime(const unsigned int ms)
 {
     int scaledMs = ms * ((float)m_tempo / 100.0);
     size_t frameno = scaledMs / 40;
@@ -279,7 +279,7 @@ void CdgParser::cmdTileBlock(const cdg::CdgTileBlockData &tileBlockPacket, const
 
 
 
-QString CdgParser::md5HashByTime(const unsigned int &ms)
+QString CdgParser::md5HashByTime(const unsigned int ms)
 {
     size_t frameno = ms / 40;
     if (ms % 40 > 0) frameno++;
@@ -313,19 +313,33 @@ int CdgParser::tempo()
     return m_tempo;
 }
 
-void CdgParser::setTempo(const int &percent)
+void CdgParser::setTempo(const int percent)
 {
     m_tempo = percent;
+}
+
+std::size_t CdgParser::getFrameCount() {
+    if (m_tempo == 100)
+        return m_frames.size();
+    if (m_tempo < 100)
+        return (m_frames.size() / ((float)m_tempo / 100.0)) + 10;
+    if (m_tempo > 100)
+        return (m_frames.size() / ((float)m_tempo / 100.0)) + 10;
+    //return (m_frames.size() / (100 - m_tempo)) + 10;
 }
 
 QImage CdgParser::videoFrameByIndex(const int frame)
 {
     if (frame < 0 || frame >= m_frames.size())
-        return QImage(QSize(288,192),QImage::Format_RGB16);
+    {
+        QImage blank(QSize(288,192),QImage::Format_RGB16);
+        blank.fill(Qt::black);
+        return blank;
+    }
     return m_frames.at(frame);
 }
 
-QImage CdgParser::videoFrameByTime(const unsigned int &ms)
+QImage CdgParser::videoFrameByTime(const unsigned int ms)
 {
     return videoFrameByIndex((ms * ((float)m_tempo / 100.0)) / 40);
 }

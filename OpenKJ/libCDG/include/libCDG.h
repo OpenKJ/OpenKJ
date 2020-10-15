@@ -196,15 +196,15 @@ public:
     bool isOpen();
     unsigned int lastCDGUpdate();
     int tempo();
-    void setTempo(const int &percent);
-    std::size_t getFrameCount() { return m_frames.size(); }
-    bool canSkipFrameByTime(const unsigned int &ms);
-    QString md5HashByTime(const unsigned int &ms);
-    QImage videoFrameByTime(const unsigned int &ms);
+    void setTempo(const int percent);
+    std::size_t getFrameCount();
+    bool canSkipFrameByTime(const unsigned int ms);
+    QString md5HashByTime(const unsigned int ms);
+    QImage videoFrameByTime(const unsigned int ms);
     QImage videoFrameByIndex(const int frame);
 protected:
 private:
-    int m_tempo;
+    int m_tempo{100};
     int m_bytesPerPixel;
     int m_borderLRBytes;
     int m_borderRBytesOffset;
