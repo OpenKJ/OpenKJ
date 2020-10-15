@@ -318,12 +318,11 @@ void CdgParser::setTempo(const int &percent)
     m_tempo = percent;
 }
 
-QImage CdgParser::videoFrameByIndex(const unsigned int &frame)
+QImage CdgParser::videoFrameByIndex(const int frame)
 {
-    if (frame < m_frames.size())
-        return m_frames.at(frame);
-    else
+    if (frame < 0 || frame >= m_frames.size())
         return QImage(QSize(288,192),QImage::Format_RGB16);
+    return m_frames.at(frame);
 }
 
 QImage CdgParser::videoFrameByTime(const unsigned int &ms)

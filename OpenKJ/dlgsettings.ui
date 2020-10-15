@@ -40,7 +40,7 @@
            </sizepolicy>
           </property>
           <property name="currentIndex">
-           <number>1</number>
+           <number>6</number>
           </property>
           <widget class="QWidget" name="tabWidgetPage1">
            <attribute name="title">
@@ -456,7 +456,8 @@
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset theme="edit-clear-all"/>
+                       <iconset theme="edit-clear-all">
+                        <normaloff>.</normaloff>.</iconset>
                       </property>
                      </widget>
                     </item>
@@ -1742,10 +1743,10 @@ For example, searching for &quot;im&quot; will find songs that contain &quot;I'm
                         <string> ms</string>
                        </property>
                        <property name="minimum">
-                        <number>-500</number>
+                        <number>-5000</number>
                        </property>
                        <property name="maximum">
-                        <number>500</number>
+                        <number>5000</number>
                        </property>
                       </widget>
                      </item>

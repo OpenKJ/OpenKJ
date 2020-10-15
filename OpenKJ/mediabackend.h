@@ -201,6 +201,7 @@ private slots:
 
 
 public slots:
+    void setVideoOffset(const int offsetMs);
     void play();
     void pause();
     void setMedia(const QString &filename);

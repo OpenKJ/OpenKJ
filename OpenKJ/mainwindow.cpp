@@ -559,6 +559,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(settings, &Settings::enforceAspectRatioChanged, &kMediaBackend, &MediaBackend::setEnforceAspectRatio);
     connect(settings, &Settings::enforceAspectRatioChanged, &bmMediaBackend, &MediaBackend::setEnforceAspectRatio);
     connect(settings, &Settings::mplxModeChanged, &kMediaBackend, &MediaBackend::setMplxMode);
+    connect(settings, &Settings::videoOffsetChanged, [&] (auto offsetMs) {
+        kMediaBackend.setVideoOffset(offsetMs);
+        bmMediaBackend.setVideoOffset(offsetMs);
+    });
 
     kMediaBackend.setEnforceAspectRatio(settings->enforceAspectRatio());
     bmMediaBackend.setEnforceAspectRatio(settings->enforceAspectRatio());

@@ -356,6 +356,7 @@ signals:
     void remainOffsetChanged(int offsetR, int offsetB);
     void previewEnabledChanged(bool enabled);
     void durationPositionReset();
+    void videoOffsetChanged(const int offsetMs);
 public slots:
     void setDurationPosition(const QPoint pos);
     void resetDurationPosition();

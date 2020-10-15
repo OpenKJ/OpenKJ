@@ -201,7 +201,7 @@ public:
     bool canSkipFrameByTime(const unsigned int &ms);
     QString md5HashByTime(const unsigned int &ms);
     QImage videoFrameByTime(const unsigned int &ms);
-    QImage videoFrameByIndex(const unsigned int &frame);
+    QImage videoFrameByIndex(const int frame);
 protected:
 private:
     int m_tempo;

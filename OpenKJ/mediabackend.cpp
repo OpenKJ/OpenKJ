@@ -407,6 +407,14 @@ void MediaBackend::timerSlow_timeout()
     }
 }
 
+void MediaBackend::setVideoOffset(const int offsetMs) {
+    m_videoOffsetMs = offsetMs;
+    if (state() == PlayingState)
+    {
+        setPosition(position());
+    }
+}
+
 void MediaBackend::setPitchShift(const int &pitchShift)
 {
     if (m_keyChangerRubberBand)
@@ -815,12 +823,18 @@ void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused
 //    auto bufferSize = backend->m_cdg.videoFrameByIndex(backend->curFrame).sizeInBytes();
     g_appSrcNeedData = true;
     qInfo() << "cdg buffering - free space: " << unused_size;
+    int adjustedFrame{0};
     while (g_appSrcNeedData && g_appSrcCurFrame < backend->m_cdg.getFrameCount())
     {
+        adjustedFrame = g_appSrcCurFrame;
+        if (backend->m_videoOffsetMs > 0)
+            adjustedFrame = g_appSrcCurFrame + (backend->m_videoOffsetMs / 40);
+        else if (backend->m_videoOffsetMs < 0)
+            adjustedFrame = g_appSrcCurFrame - (abs(backend->m_videoOffsetMs) / 40);
         auto buffer = gst_buffer_new_and_alloc(110592);
         gst_buffer_fill(buffer,
                         0,
-                        backend->m_cdg.videoFrameByIndex(g_appSrcCurFrame).constBits(),
+                        backend->m_cdg.videoFrameByIndex(adjustedFrame).constBits(),
                         110592
                         );
         GST_BUFFER_TIMESTAMP(buffer) = g_appSrcCurPosition;

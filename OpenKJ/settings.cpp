@@ -639,6 +639,7 @@ void Settings::setPreviewEnabled(bool enabled)
 void Settings::setVideoOffsetMs(int offset)
 {
     settings->setValue("videoOffsetMs", offset);
+    emit videoOffsetChanged(offset);
 }
 
 QColor Settings::tickerBgColor()
