@@ -49,6 +49,7 @@
 #include "okjutil.h"
 #include <algorithm>
 #include <random>
+#include <QRandomGenerator>
 
 #ifdef Q_OS_WIN
 #define NOMINMAX
