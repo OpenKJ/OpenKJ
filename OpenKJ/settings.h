@@ -76,6 +76,7 @@ public:
     void clearKNAccount();
     void setSaveKNAccount(bool save);
     bool saveKNAccount();
+    bool testingEnabled();
     QString getCCN(const QString &password);
     QString getCCM(const QString &password);
     QString getCCY(const QString &password);

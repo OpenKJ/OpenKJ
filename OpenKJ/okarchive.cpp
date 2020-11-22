@@ -322,7 +322,7 @@ zipEntries OkArchive::getZipContents()
         goodArchive = false;
         return zipEntries();
     }
-    //qInfo() << "getZipContents() - infozip output: " << output;
+    qInfo() << "getZipContents() - infozip output: " << output;
     QStringList data = output.split(QRegExp("[\r\n]"),QString::SkipEmptyParts);
     int fnStart = 0;
     int listStart = 0;
@@ -337,6 +337,12 @@ zipEntries OkArchive::getZipContents()
     }
     for (int l=0; l < listStart; l++)
         data.removeFirst();
+    if (data.size() < 6)
+    {
+        qInfo() << "Error processing infozip output, bailing out";
+        goodArchive = false;
+        return zipEntries();
+    }
     data.removeFirst();
     data.removeFirst();
     data.removeLast();

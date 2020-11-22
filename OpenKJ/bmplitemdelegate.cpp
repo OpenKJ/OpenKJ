@@ -45,30 +45,30 @@ BmPlItemDelegate::BmPlItemDelegate(QObject *parent) :
 void BmPlItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     QSize sbSize(QFontMetrics(settings->applicationFont()).height(), QFontMetrics(settings->applicationFont()).height());
+    QString thm = (settings->theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
     int topPad = (option.rect.height() - sbSize.height()) / 2;
     int leftPad = (option.rect.width() - sbSize.width()) / 2;
 
     if (option.state & QStyle::State_Selected)
-        painter->fillRect(option.rect, option.palette.highlight());
+    {
+        if (index.column() > 2 && index.column() < 7)
+            painter->fillRect(option.rect, option.palette.highlight());
+        else
+            painter->fillRect(option.rect, (index.row() % 2) ? option.palette.alternateBase() : option.palette.base());
+        //painter->fillRect(option.rect, option.palette.highlight());
+    }
 
-    if (index.row() == m_currentSong)
+    if (index.row() == m_currentSong && index.column() > 2 && index.column() < 7)
     {
         if (option.state & QStyle::State_Selected)
             painter->fillRect(option.rect, option.palette.highlight());
         else
-            painter->fillRect(option.rect, QColor("yellow"));
+            painter->fillRect(option.rect, (settings->theme() == 1) ? QColor(180,180,0) : QColor("yellow"));
     }
     if (index.column() == 2)
     {
-        if (index.row() != m_currentSong)
-        {
-            //painter->drawText(option.rect, Qt::AlignCenter, index.data().toString());
-            return;
-        }
-        if (settings->theme() == 1)
-            painter->drawPixmap(QRect(option.rect.x(),option.rect.y(), sbSize.width(), sbSize.height()), QIcon::fromTheme("media-playback-start-dark").pixmap(sbSize));
-        else
-            painter->drawPixmap(QRect(option.rect.x(),option.rect.y(), sbSize.width(), sbSize.height()), QIcon::fromTheme("media-playback-start").pixmap(sbSize));
+        if (index.row() == m_currentSong)
+            painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon(thm + "actions/22/media-playback-start.svg").pixmap(sbSize));
         return;
     }
     if (index.column() == 5)

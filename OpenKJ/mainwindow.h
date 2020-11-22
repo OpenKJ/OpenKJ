@@ -149,7 +149,9 @@ private:
     void refreshSfxButtons();
     SfxEntry lastRtClickedSfxBtn;
     LazyDurationUpdateController *lazyDurationUpdater;
-
+    QTimer m_timerTest;
+    bool m_testMode{false};
+    void updateIcons();
 public:
     explicit MainWindow(QWidget *parent = 0);
     bool isSingleInstance();
@@ -297,6 +299,12 @@ private slots:
     void on_actionVideoMedium_triggered();
     void on_actionVideoLarge_triggered();
     void on_actionVideo_Output_2_triggered(const bool &checked);
+
+    void on_actionKaraoke_torture_triggered();
+
+    void on_actionK_B_torture_triggered();
+
+    void on_actionBurn_in_triggered();
 
 protected:
     void closeEvent(QCloseEvent *event);

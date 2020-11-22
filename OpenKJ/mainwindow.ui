@@ -1854,8 +1854,8 @@ QPushButton:default {
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>285</width>
-                     <height>42</height>
+                     <width>271</width>
+                     <height>16</height>
                     </rect>
                    </property>
                    <property name="sizePolicy">
@@ -3060,12 +3060,21 @@ QPushButton:default {
     <addaction name="actionVideo_Output_2"/>
     <addaction name="menuVideo_Output_Size"/>
    </widget>
+   <widget class="QMenu" name="menuTesting">
+    <property name="title">
+     <string>Testing</string>
+    </property>
+    <addaction name="actionKaraoke_torture"/>
+    <addaction name="actionK_B_torture"/>
+    <addaction name="actionBurn_in"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTools"/>
    <addaction name="menuKaraoke"/>
    <addaction name="menuBreak_Music"/>
    <addaction name="menuView"/>
    <addaction name="menuHelp"/>
+   <addaction name="menuTesting"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionExit">
@@ -3246,6 +3255,21 @@ QPushButton:default {
    </property>
    <property name="text">
     <string>Video Output</string>
+   </property>
+  </action>
+  <action name="actionKaraoke_torture">
+   <property name="text">
+    <string>Karaoke torture</string>
+   </property>
+  </action>
+  <action name="actionK_B_torture">
+   <property name="text">
+    <string>K+B torture</string>
+   </property>
+  </action>
+  <action name="actionBurn_in">
+   <property name="text">
+    <string>Burn in</string>
    </property>
   </action>
  </widget>

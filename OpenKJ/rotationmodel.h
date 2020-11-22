@@ -47,6 +47,7 @@ public:
     void singerDisableRegularTracking(int singerId);
     int regularAdd(QString name);
     void regularDelete(int regSingerId);
+    void regularDelete(const QString singerName);
     bool regularExists(QString name);
     void regularUpdate(int singerId);
     void regularLoad(int regSingerId, int positionHint);

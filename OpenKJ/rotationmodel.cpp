@@ -278,6 +278,19 @@ void RotationModel::regularDelete(int regSingerId)
     emit regularsModified();
 }
 
+void RotationModel::regularDelete(const QString singerName)
+{
+    QSqlQuery query;
+    query.exec("SELECT regsingerid FROM regularsingers WHERE name =='" + singerName + "'");
+    if (query.first())
+    {
+        qInfo() << "Deleting regular: " << singerName << " Id: " << query.value(0).toInt();
+        regularDelete(query.value(0).toInt());
+        return;
+    }
+    qInfo() << "Regular not found while deleting: " << singerName;
+}
+
 bool RotationModel::regularExists(QString name)
 {
     QStringList names = regulars();

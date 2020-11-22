@@ -205,7 +205,6 @@ void MediaBackend::play()
     gst_stream_volume_set_volume(GST_STREAM_VOLUME(m_playBin), GST_STREAM_VOLUME_FORMAT_LINEAR, 0.85);
     if (m_currentlyFadedOut)
     {
-        //4g_object_set(m_faderVolumeElement, "mute", true, nullptr);
         g_object_set(m_faderVolumeElement, "volume", 0.0, nullptr);
     }
     if (state() == MediaBackend::PausedState)
@@ -229,8 +228,6 @@ void MediaBackend::play()
     g_free(uri);
     if (!m_cdgMode)
     {
-//        g_object_set(m_cdgPlaybin, "audio-sink", NULL, nullptr);
-//        g_object_set(m_playBin, "audio-sink", m_audioBin, nullptr);
         gst_bin_remove(reinterpret_cast<GstBin*>(m_audioBin), m_cdgBin);
         qInfo() << m_objName << " - play - playing media: " << m_filename;
         gst_element_set_state(m_playBin, GST_STATE_PLAYING);
@@ -252,21 +249,13 @@ void MediaBackend::play()
         g_appSrcCurPosition = 0;
         g_appSrcNeedData = false;
         auto as = gst_bin_get_by_name(reinterpret_cast<GstBin*>(m_cdgBin), "cdgAppSrc");
-//        gst_app_src_set_duration(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), m_cdg.duration() * GST_MSECOND);
         gst_app_src_set_max_bytes(reinterpret_cast<GstAppSrc*>(as), 110592 * 500);
-        qInfo() << "ASMB: " << gst_app_src_get_max_bytes(reinterpret_cast<GstAppSrc*>(as));
         gst_app_src_set_size(reinterpret_cast<GstAppSrc*>(as), m_cdg.getFrameCount() * 110592);
         gst_app_src_set_duration(reinterpret_cast<GstAppSrc*>(as), (m_cdg.getFrameCount() * 40) * GST_MSECOND);
+        gst_object_unref(as);
         qInfo() << m_objName << " - play - playing cdg:   " << m_cdgFilename;
         qInfo() << m_objName << " - play - playing audio: " << m_filename;
-//        auto uri = gst_filename_to_uri(m_filename.toLocal8Bit(), nullptr);
-//        g_object_set(m_playBin, "audio-sink", NULL, nullptr);
-//        g_object_set(m_cdgPlaybin, "audio-sink", m_audioBin, nullptr);
-        //g_object_set(m_cdgPlaybin, "uri", uri, nullptr);
-        //g_free(uri);
-
         gst_element_set_state(m_playBin, GST_STATE_PLAYING);
-        //gst_element_set_state(m_cdgPipeline, GST_STATE_PLAYING);
     }
 }
 
@@ -506,9 +495,11 @@ void MediaBackend::gstBusMsg(std::shared_ptr<GstMessage> message)
         }
         break;
     case GST_MESSAGE_ELEMENT:
-        if (QString(gst_structure_get_name (gst_message_get_structure(message.get()))) == "level")
+    {
+        auto msgStructure = gst_message_get_structure(message.get());
+        if (std::string(gst_structure_get_name(msgStructure)) == "level")
         {
-            auto array_val = gst_structure_get_value(gst_message_get_structure(message.get()), "rms");
+            auto array_val = gst_structure_get_value(msgStructure, "rms");
             auto rms_arr = reinterpret_cast<GValueArray*>(g_value_get_boxed (array_val));
             double rmsValues = 0.0;
             for (unsigned int i{0}; i < rms_arr->n_values; ++i)
@@ -521,6 +512,7 @@ void MediaBackend::gstBusMsg(std::shared_ptr<GstMessage> message)
             m_currentRmsLevel = rmsValues / rms_arr->n_values;
         }
         break;
+    }
     case GST_MESSAGE_DURATION_CHANGED:
         gint64 dur, msdur;
         qInfo() << m_objName << " - GST reports duration changed";
@@ -593,7 +585,9 @@ void MediaBackend::buildPipeline()
 #endif
     m_equalizer = gst_element_factory_make("equalizer-10bands", "equalizer");
     m_playBin = gst_element_factory_make("playbin", "playBin");
-    gst_bus_set_sync_handler(gst_element_get_bus(m_playBin), (GstBusSyncHandler)busMessageDispatcher, this, NULL);
+    auto bus = gst_element_get_bus(m_playBin);
+    gst_bus_set_sync_handler(bus, (GstBusSyncHandler)busMessageDispatcher, this, NULL);
+    gst_object_unref(bus);
     m_audioCapsStereo = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 2, nullptr);
     m_audioCapsMono = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 1, nullptr);
     m_audioBin = gst_bin_new("audioBin");
@@ -608,7 +602,7 @@ void MediaBackend::buildPipeline()
     m_audioPanorama = gst_element_factory_make("audiopanorama", "audioPanorama");
     g_object_set(m_audioPanorama, "method", 1, nullptr);
     buildCdgBin();
-    gst_bin_add_many(GST_BIN(m_audioBin),m_cdgBin, queueMainAudio, m_audioPanorama, level, m_scaleTempo, aConvInput, rgVolume, /*rgLimiter,*/ m_volumeElement, m_equalizer, aConvPostPanorama, m_fltrPostPanorama, gst_object_ref(m_faderVolumeElement), nullptr);
+    gst_bin_add_many(GST_BIN(m_audioBin),m_cdgBin, queueMainAudio, m_audioPanorama, level, m_scaleTempo, aConvInput, rgVolume, /*rgLimiter,*/ m_volumeElement, m_equalizer, aConvPostPanorama, m_fltrPostPanorama, m_faderVolumeElement, nullptr);
     gst_element_link_many(queueMainAudio, aConvInput, rgVolume, /*rgLimiter,*/ m_scaleTempo, level, m_volumeElement, m_equalizer, m_faderVolumeElement, m_audioPanorama, aConvPostPanorama, m_fltrPostPanorama, nullptr);
     //gst_element_link_many(m_cdgAppSrc, videoConvert, buffer, videoConvert2, autoVideoSink, nullptr);
 #ifdef Q_OS_LINUX

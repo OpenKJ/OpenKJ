@@ -61,6 +61,7 @@ public slots:
     void databaseUpdateComplete();
     void databaseSongAdded();
     void rotationChanged();
+    void updateIcons();
 
 private slots:
     void on_pushButtonClose_clicked();

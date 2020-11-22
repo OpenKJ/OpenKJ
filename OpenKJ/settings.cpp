@@ -184,6 +184,11 @@ bool Settings::saveKNAccount()
     return settings->value("saveKNAccount", false).toBool();
 }
 
+bool Settings::testingEnabled()
+{
+    return settings->value("testingEnabled", false).toBool();
+}
+
 QString Settings::getCCN(const QString &password)
 {
     SimpleCrypt simpleCrypt(this->hash(password));

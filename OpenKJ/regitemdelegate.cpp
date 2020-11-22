@@ -34,11 +34,17 @@ RegItemDelegate::RegItemDelegate(QObject *parent) :
 void RegItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     QSize sbSize(QFontMetrics(settings->applicationFont()).height(), QFontMetrics(settings->applicationFont()).height());
+    QString thm = (settings->theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
 
     int topPad = (option.rect.height() - sbSize.height()) / 2;
     int leftPad = (option.rect.width() - sbSize.width()) / 2;
     if (option.state & QStyle::State_Selected)
-        painter->fillRect(option.rect, option.palette.highlight());
+    {
+        if (index.column() == 1)
+            painter->fillRect(option.rect, option.palette.highlight());
+        else
+            painter->fillRect(option.rect, (index.row() % 2) ? option.palette.alternateBase() : option.palette.base());
+    }
     if (index.column() == 2)
     {
         QSqlQuery query;
@@ -59,17 +65,19 @@ void RegItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
     }
     if (index.column() == 3)
     {
-        painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon::fromTheme("list-add-user").pixmap(sbSize));
+        if (sbSize.height() > 18)
+            painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon(thm + "actions/22/list-add-user.svg").pixmap(sbSize));
+        else
+            painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon(thm + "actions/16/list-add-user.svg").pixmap(sbSize));
         return;
     }
     if (index.column() == 4)
     {
-        painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon::fromTheme("edit-delete").pixmap(sbSize));
+        if (sbSize.height() > 18)
+            painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon(thm + "actions/22/edit-delete.svg").pixmap(sbSize));
+        else
+            painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon(thm + "actions/16/edit-delete.svg").pixmap(sbSize));
         return;
     }
-    painter->save();
-    if (option.state & QStyle::State_Selected)
-        painter->setPen(option.palette.highlightedText().color());
     painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + index.data().toString());
-    painter->restore();
 }

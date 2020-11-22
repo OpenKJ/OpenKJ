@@ -155,6 +155,15 @@ void DlgRequests::rotationChanged()
 
 }
 
+void DlgRequests::updateIcons()
+{
+    QString thm = (settings->theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
+    ui->buttonRefresh->setIcon(QIcon(thm + "actions/22/view-refresh.svg"));
+    ui->pushButtonClearReqs->setIcon(QIcon(thm + "actions/22/edit-clear-all.svg"));
+    ui->pushButtonSearch->setIcon(QIcon(thm + "actions/22/edit-find.svg"));
+    ui->pushButtonWebSearch->setIcon(QIcon(thm + "apps/48/internet-web-browser.svg"));
+}
+
 void DlgRequests::on_pushButtonClose_clicked()
 {
     close();

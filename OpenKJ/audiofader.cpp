@@ -6,7 +6,7 @@
 
 void AudioFader::setVolume(double volume)
 {
-    qInfo() << objName << "setVolume(" << volume << ")";
+    //qInfo() << objName << "setVolume(" << volume << ")";
     gst_stream_volume_set_volume(GST_STREAM_VOLUME(volumeElement), GST_STREAM_VOLUME_FORMAT_CUBIC, volume);
     emit volumeChanged(volume);
 }
@@ -125,7 +125,7 @@ void AudioFader::fadeIn(bool block)
 
 void AudioFader::timerTimeout()
 {
-    qInfo() << objName << " - Timer - Current: " << volume() << " Target: " << targetVol;
+    //qInfo() << objName << " - Timer - Current: " << volume() << " Target: " << targetVol;
     double increment = .05;
     if (isFading())
     {

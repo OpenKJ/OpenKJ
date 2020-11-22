@@ -48,6 +48,7 @@
 #include <chrono>
 #include "okjutil.h"
 #include <algorithm>
+#include <random>
 
 #ifdef Q_OS_WIN
 #define NOMINMAX
@@ -102,6 +103,42 @@ void MainWindow::refreshSfxButtons()
         }
         addSfxButton(entry.path, entry.name);
     }
+}
+
+void MainWindow::updateIcons()
+{
+    QString thm = (settings->theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
+    ui->buttonClearRotation->setIcon(QIcon(thm + "actions/22/edit-clear-all.svg"));
+    ui->buttonAddSinger->setIcon(QIcon(thm + "actions/22/list-add-user.svg"));
+    ui->buttonRegulars->setIcon(QIcon(thm + "actions/22/user-others.svg"));
+    ui->btnRotTop->setIcon(QIcon(thm + "actions/22/go-top.svg"));
+    ui->btnRotUp->setIcon(QIcon(thm + "actions/22/go-up.svg"));
+    ui->btnRotBottom->setIcon(QIcon(thm + "actions/22/go-bottom.svg"));
+    ui->btnRotDown->setIcon(QIcon(thm + "actions/22/go-down.svg"));
+    ui->pushButton->setIcon(QIcon(thm + "actions/22/edit-find.svg"));
+    ui->buttonClearQueue->setIcon(QIcon(thm + "actions/22/edit-clear-all.svg"));
+    ui->btnQTop->setIcon(QIcon(thm + "actions/22/go-top.svg"));
+    ui->btnQUp->setIcon(QIcon(thm + "actions/22/go-up.svg"));
+    ui->btnQBottom->setIcon(QIcon(thm + "actions/22/go-bottom.svg"));
+    ui->btnQDown->setIcon(QIcon(thm + "actions/22/go-down.svg"));
+    ui->buttonPause->setIcon(QIcon(thm + "actions/22/media-playback-pause.svg"));
+    ui->buttonStop->setIcon(QIcon(thm + "actions/22/media-playback-stop.svg"));
+    ui->labelVolume->setPixmap(QPixmap(thm + "actions/16/player-volume.svg"));
+    ui->pushButtonTempoDn->setIcon(QIcon(thm + "actions/22/downindicator.svg"));
+    ui->pushButtonTempoUp->setIcon(QIcon(thm + "actions/22/upindicator.svg"));
+    ui->pushButtonKeyDn->setIcon(QIcon(thm + "actions/22/downindicator.svg"));
+    ui->pushButtonKeyUp->setIcon(QIcon(thm + "actions/22/upindicator.svg"));
+    ui->btnSfxStop->setIcon(QIcon(thm + "actions/22/media-playback-stop.svg"));
+
+    ui->buttonBmPause->setIcon(QIcon(thm + "actions/22/media-playback-pause.svg"));
+    ui->buttonBmStop->setIcon(QIcon(thm + "actions/22/media-playback-stop.svg"));
+    ui->btnPlTop->setIcon(QIcon(thm + "actions/22/go-top.svg"));
+    ui->btnPlUp->setIcon(QIcon(thm + "actions/22/go-up.svg"));
+    ui->btnPlBottom->setIcon(QIcon(thm + "actions/22/go-bottom.svg"));
+    ui->btnPlDown->setIcon(QIcon(thm + "actions/22/go-down.svg"));
+    ui->labelVolumeBm->setPixmap(QPixmap(thm + "actions/16/player-volume.svg"));
+
+    requestsDialog->updateIcons();
 }
 
 
@@ -680,7 +717,8 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     ui->labelVolume->setPixmap(QIcon::fromTheme("player-volume").pixmap(QSize(22,22)));
     ui->labelVolumeBm->setPixmap(QIcon::fromTheme("player-volume").pixmap(QSize(22,22)));
-
+    updateIcons();
+    ui->menuTesting->menuAction()->setVisible(settings->testingEnabled());
 }
 
 void MainWindow::play(const QString &karaokeFilePath, const bool &k2k)
@@ -709,11 +747,13 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k)
                 {
                     if (!archive.extractAudio(khTmpDir->path(), "tmp" + archive.audioExtension()))
                     {
+                        m_timerTest.stop();
                         QMessageBox::warning(this, tr("Bad karaoke file"), tr("Failed to extract audio file."),QMessageBox::Ok);
                         return;
                     }
                     if (!archive.extractCdg(khTmpDir->path(), "tmp.cdg"))
                     {
+                        m_timerTest.stop();
                         QMessageBox::warning(this, tr("Bad karaoke file"), tr("Failed to extract CDG file."),QMessageBox::Ok);
                         return;
                     }
@@ -745,23 +785,27 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k)
             QFile cdgFile(karaokeFilePath);
             if (!cdgFile.exists())
             {
+                m_timerTest.stop();
                 QMessageBox::warning(this, tr("Bad karaoke file"), tr("CDG file missing."),QMessageBox::Ok);
                 return;
             }
             else if (cdgFile.size() == 0)
             {
+                m_timerTest.stop();
                 QMessageBox::warning(this, tr("Bad karaoke file"), tr("CDG file contains no data"),QMessageBox::Ok);
                 return;
             }
             QString audiofn = findMatchingAudioFile(karaokeFilePath);
             if (audiofn == "")
             {
+                m_timerTest.stop();
                 QMessageBox::warning(this, tr("Bad karaoke file"), tr("Audio file missing."),QMessageBox::Ok);
                 return;
             }
             QFile audioFile(audiofn);
             if (audioFile.size() == 0)
             {
+                m_timerTest.stop();
                 QMessageBox::warning(this, tr("Bad karaoke file"), tr("Audio file contains no data"),QMessageBox::Ok);
                 return;
             }
@@ -1240,6 +1284,14 @@ void MainWindow::notify_user(const QString &message)
 
 void MainWindow::on_buttonClearRotation_clicked()
 {
+    if (m_testMode)
+    {
+        settings->setCurrentRotationPosition(-1);
+        rotModel->clearRotation();
+        rotDelegate->setCurrentSinger(-1);
+        qModel->setSinger(-1);
+        return;
+    }
     QMessageBox msgBox;
     msgBox.setText("Are you sure?");
     msgBox.setInformativeText("This action will clear all rotation singers and queues. This operation can not be undone.");
@@ -1264,6 +1316,11 @@ void MainWindow::clearQueueSort()
 
 void MainWindow::on_buttonClearQueue_clicked()
 {
+    if (m_testMode)
+    {
+        qModel->clearQueue();
+        return;
+    }
     QMessageBox msgBox;
     msgBox.setText("Are you sure?");
     msgBox.setInformativeText("This action will clear all queued songs for the selected singer.  If the singer is a regular singer, it will delete their saved regular songs as well! This operation can not be undone.");
@@ -3576,4 +3633,168 @@ void MainWindow::on_actionVideo_Output_2_triggered(const bool &checked)
 {
     ui->videoPreview->setVisible(checked);
     settings->setShowMainWindowVideo(checked);
+}
+
+void MainWindow::on_actionKaraoke_torture_triggered()
+{
+    connect(&m_timerTest, &QTimer::timeout, [&] () {
+        QApplication::beep();
+        static int runs = 0;
+       qInfo() << "Karaoke torture test timer timeout";
+       qInfo() << "num songs in db: " << dbModel->rowCount();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       int randno = QRandomGenerator::global()->bounded(0, dbModel->rowCount() - 1);
+       qInfo() << "randno: " << randno;
+       ui->tableViewDB->selectRow(randno);
+       ui->tableViewDB->scrollTo(ui->tableViewDB->selectionModel()->selectedRows().at(0));
+       play(ui->tableViewDB->selectionModel()->selectedRows(5).at(0).data().toString(), true);
+       ui->labelSinger->setText("Torture run (" + QString::number(++runs) + ")");
+//       QSqlQuery query;
+//       query.prepare("SELECT songid,artist,title,discid,path FROM dbsongs WHERE songid >= (abs(random()) % (SELECT max(songid) FROM dbsongs))LIMIT 1");
+//       query.exec();
+//       if (!query.next())
+//           qInfo() << "Unable to find song in db!";
+//       auto artist = query.value("artist").toString();
+//       auto title = query.value("title").toString();
+//       auto songId = query.value("discid").toString();
+//       auto path = query.value("path").toString();
+//       qInfo() << "Torture test playing: " << path;
+    });
+    m_timerTest.start(3000);
+}
+
+void MainWindow::on_actionK_B_torture_triggered()
+{
+    connect(&m_timerTest, &QTimer::timeout, [&] () {
+        QApplication::beep();
+        static bool playing = false;
+        static int runs = 0;
+        if (playing)
+        {
+            on_buttonStop_clicked();
+            playing = false;
+            ui->labelSinger->setText("Torture run (" + QString::number(runs) + ")");
+            return;
+        }
+       qInfo() << "Karaoke torture test timer timeout";
+       qInfo() << "num songs in db: " << dbModel->rowCount();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       int randno = QRandomGenerator::global()->bounded(0, dbModel->rowCount() - 1);
+       qInfo() << "randno: " << randno;
+       ui->tableViewDB->selectRow(randno);
+       ui->tableViewDB->scrollTo(ui->tableViewDB->selectionModel()->selectedRows().at(0));
+       play(ui->tableViewDB->selectionModel()->selectedRows(5).at(0).data().toString(), false);
+       ui->labelSinger->setText("Torture run (" + QString::number(++runs) + ")");
+       playing = true;
+//       QSqlQuery query;
+//       query.prepare("SELECT songid,artist,title,discid,path FROM dbsongs WHERE songid >= (abs(random()) % (SELECT max(songid) FROM dbsongs))LIMIT 1");
+//       query.exec();
+//       if (!query.next())
+//           qInfo() << "Unable to find song in db!";
+//       auto artist = query.value("artist").toString();
+//       auto title = query.value("title").toString();
+//       auto songId = query.value("discid").toString();
+//       auto path = query.value("path").toString();
+//       qInfo() << "Torture test playing: " << path;
+    });
+    m_timerTest.start(2000);
+}
+
+void MainWindow::on_actionBurn_in_triggered()
+{
+    m_testMode = true;
+    emit ui->buttonClearRotation->clicked();
+    for (auto i=0; i<21; i++)
+    {
+        auto singerName = "Test Singer " + QString::number(i);
+        rotModel->singerAdd(singerName);
+        rotModel->regularDelete(singerName);
+    }
+    for (auto i=0; i<11; i++)
+    {
+        ui->tableViewRotation->selectRow(i);
+        emit ui->tableViewRotation->clicked(ui->tableViewRotation->selectionModel()->selectedRows(3).at(0));
+    }
+    connect(&m_timerTest, &QTimer::timeout, [&] () {
+        QApplication::beep();
+        static bool playing = false;
+        static int runs = 0;
+        if (playing)
+        {
+            on_buttonStop_clicked();
+            playing = false;
+            ui->labelSinger->setText("Torture run (" + QString::number(runs) + ")");
+            return;
+        }
+
+        rotModel->singerMove(QRandomGenerator::global()->bounded(0, 19), QRandomGenerator::global()->bounded(0, 19));
+        ui->tableViewRotation->selectRow(QRandomGenerator::global()->bounded(0, 19));
+
+        ui->tableViewDB->scrollToBottom();
+        ui->tableViewDB->scrollToBottom();
+        ui->tableViewDB->scrollToBottom();
+        ui->tableViewDB->scrollToBottom();
+        ui->tableViewDB->scrollToBottom();
+        ui->tableViewDB->scrollToBottom();
+        ui->tableViewDB->scrollToBottom();
+        ui->tableViewDB->scrollToBottom();
+        ui->tableViewDB->scrollToBottom();
+        ui->tableViewDB->scrollToBottom();
+        ui->tableViewDB->scrollToBottom();
+        ui->tableViewDB->scrollToBottom();
+        ui->tableViewDB->scrollToBottom();
+        ui->tableViewDB->scrollToBottom();
+        ui->tableViewDB->scrollToBottom();
+        ui->tableViewDB->scrollToBottom();
+        int randno = QRandomGenerator::global()->bounded(0, dbModel->rowCount() - 1);
+        qInfo() << "randno: " << randno;
+        ui->tableViewDB->selectRow(randno);
+        ui->tableViewDB->scrollTo(ui->tableViewDB->selectionModel()->selectedRows().at(0));
+        emit ui->tableViewDB->doubleClicked(ui->tableViewDB->selectionModel()->selectedRows().at(0));
+        ui->tableViewQueue->selectRow(qModel->rowCount() - 1);
+        ui->tableViewQueue->scrollTo(ui->tableViewQueue->selectionModel()->selectedRows().at(0));
+        if (qModel->rowCount() > 2)
+        {
+            auto newPos = QRandomGenerator::global()->bounded(0,qModel->rowCount() - 1);
+            qModel->songMove(qModel->rowCount() - 1, newPos);
+            ui->tableViewQueue->selectRow(newPos);
+            ui->tableViewQueue->scrollTo(ui->tableViewQueue->selectionModel()->selectedRows().at(0));
+        }
+        auto idx = ui->tableViewQueue->selectionModel()->selectedRows().at(0);
+        emit ui->tableViewQueue->doubleClicked(idx);
+        ui->tableViewQueue->selectRow(idx.row());
+        playing = true;
+        qInfo() << "Burn in test cycle: " << ++runs;
+    });
+    m_timerTest.start(12000);
 }

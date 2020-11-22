@@ -44,36 +44,41 @@ void RotationItemDelegate::setCurrentSinger(int currentSingerId)
 
 void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
+    QString thm = (settings->theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
     QSize sbSize(QFontMetrics(settings->applicationFont()).height(), QFontMetrics(settings->applicationFont()).height());
     int topPad = (option.rect.height() - sbSize.height()) / 2;
     int leftPad = (option.rect.width() - sbSize.width()) / 2;
 
     if (option.state & QStyle::State_Selected)
-        painter->fillRect(option.rect, option.palette.highlight());
-
-    if (index.sibling(index.row(), 0).data().toInt() == m_currentSingerId)
+    {
+        if (index.column() == 1)
+            painter->fillRect(option.rect, option.palette.highlight());
+        else
+            painter->fillRect(option.rect, (index.row() % 2) ? option.palette.alternateBase() : option.palette.base());
+    }
+    if (index.sibling(index.row(), 0).data().toInt() == m_currentSingerId && index.column() < 2 && index.column() > 0)
     {
         if (option.state & QStyle::State_Selected)
             painter->fillRect(option.rect, option.palette.highlight());
         else
-            painter->fillRect(option.rect, QColor("yellow"));
+            painter->fillRect(option.rect, (settings->theme() == 1) ? QColor(180,180,0) : QColor("yellow"));
     }
     if (index.column() == 3)
     {
-        if (index.sibling(index.row(), 0).data().toInt() == m_currentSingerId)
-        {
-            if (index.data().toBool())
-                painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon::fromTheme("im-user-online").pixmap(sbSize));
+            if (sbSize.height() > 18)
+            {
+                if (index.data().toBool())
+                    painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon(thm + "actions/22/im-user-online.svg").pixmap(sbSize));
+                else
+                    painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon(thm + "actions/22/im-user.svg").pixmap(sbSize));
+            }
             else
-                painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon::fromTheme("im-user").pixmap(sbSize));
-        }
-        else
-        {
-            if (index.data().toBool())
-                painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon::fromTheme("im-user-online").pixmap(sbSize));
-            else
-                painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon::fromTheme("im-user").pixmap(sbSize));
-        }
+            {
+                if (index.data().toBool())
+                    painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon(thm + "actions/16/im-user-online.svg").pixmap(sbSize));
+                else
+                    painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon(thm + "actions/16/im-user.svg").pixmap(sbSize));
+            }
         return;
     }
     if (index.column() == 2)
@@ -100,10 +105,11 @@ void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
     {
         if (index.sibling(index.row(), 0).data().toInt() == m_currentSingerId)
         {
-            if (settings->theme() == 1)
-                painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon::fromTheme("mic-on-dark").pixmap(sbSize));
+            if (sbSize.height() > 18)
+                painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon(thm + "status/22/mic-on").pixmap(sbSize));
             else
-                painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon::fromTheme("mic-on").pixmap(sbSize));
+                painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon(thm + "status/16/mic-on").pixmap(sbSize));
+
         }
         else if (settings->rotationDisplayPosition())
         {
@@ -138,7 +144,10 @@ void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
     }
     if (index.column() == 4)
     {
-        painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon::fromTheme("edit-delete").pixmap(sbSize));
+        if (sbSize.height() > 18)
+            painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon(thm + "actions/22/edit-delete").pixmap(sbSize));
+        else
+            painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon(thm + "actions/16/edit-delete").pixmap(sbSize));
         return;
     }
     painter->save();

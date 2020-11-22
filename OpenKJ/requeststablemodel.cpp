@@ -65,7 +65,7 @@ int RequestsTableModel::columnCount(const QModelIndex &parent) const
 QVariant RequestsTableModel::data(const QModelIndex &index, int role) const
 {
     QSize sbSize(QFontMetrics(settings->applicationFont()).height(), QFontMetrics(settings->applicationFont()).height());
-
+    QString thm = (settings->theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
     if(!index.isValid())
         return QVariant();
 
@@ -73,7 +73,10 @@ QVariant RequestsTableModel::data(const QModelIndex &index, int role) const
         return QVariant();
     if ((index.column() == 5) && (role == Qt::DecorationRole))
     {
-        return QIcon::fromTheme("edit-delete").pixmap(sbSize);
+        if (sbSize.height() > 18)
+            return QIcon(thm + "actions/22/edit-delete.svg").pixmap(sbSize);
+        else
+            return QIcon(thm + "actions/16/edit-delete.svg").pixmap(sbSize);
     }
     if (role == Qt::TextAlignmentRole)
         switch(index.column())

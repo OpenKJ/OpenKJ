@@ -31,6 +31,7 @@ QueueItemDelegate::QueueItemDelegate(QObject *parent) :
 
 void QueueItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
+    QString thm = (settings->theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
     QSize sbSize(QFontMetrics(settings->applicationFont()).height(), QFontMetrics(settings->applicationFont()).height());
     int topPad = (option.rect.height() - sbSize.height()) / 2;
     int leftPad = (option.rect.width() - sbSize.width()) / 2;
@@ -45,7 +46,13 @@ void QueueItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
         }
     }
     if (option.state & QStyle::State_Selected)
-        painter->fillRect(option.rect, option.palette.highlight());
+    {
+        if (index.column() < 8)
+            painter->fillRect(option.rect, option.palette.highlight());
+        else
+            painter->fillRect(option.rect, (index.row() % 2) ? option.palette.alternateBase() : option.palette.base());
+        //painter->fillRect(option.rect, option.palette.highlight());
+    }
     if (index.column() == 7)
     {
         QString displayText = index.data().toString();
@@ -62,7 +69,10 @@ void QueueItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
     }
     if (index.column() == 8)
     {
-        painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon::fromTheme("edit-delete").pixmap(sbSize));
+        if (sbSize.height() > 18)
+            painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon(thm + "actions/22/edit-delete.svg").pixmap(sbSize));
+        else
+            painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon(thm + "actions/16/edit-delete.svg").pixmap(sbSize));
         return;
     }
     if ((index.column() == 5) && (index.data().toString() == "!!DROPPED!!"))
