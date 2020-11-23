@@ -49,7 +49,9 @@
 #include "okjutil.h"
 #include <algorithm>
 #include <random>
+#if (QT_VERSION >= QT_VERSION_CHECK(5,10,0))
 #include <QRandomGenerator>
+#endif
 
 #ifdef Q_OS_WIN
 #define NOMINMAX
@@ -3638,6 +3640,7 @@ void MainWindow::on_actionVideo_Output_2_triggered(const bool &checked)
 
 void MainWindow::on_actionKaraoke_torture_triggered()
 {
+#if (QT_VERSION >= QT_VERSION_CHECK(5,10,0))
     connect(&m_timerTest, &QTimer::timeout, [&] () {
         QApplication::beep();
         static int runs = 0;
@@ -3677,10 +3680,12 @@ void MainWindow::on_actionKaraoke_torture_triggered()
 //       qInfo() << "Torture test playing: " << path;
     });
     m_timerTest.start(3000);
+#endif
 }
 
 void MainWindow::on_actionK_B_torture_triggered()
 {
+#if (QT_VERSION >= QT_VERSION_CHECK(5,10,0))
     connect(&m_timerTest, &QTimer::timeout, [&] () {
         QApplication::beep();
         static bool playing = false;
@@ -3729,10 +3734,12 @@ void MainWindow::on_actionK_B_torture_triggered()
 //       qInfo() << "Torture test playing: " << path;
     });
     m_timerTest.start(2000);
+#endif
 }
 
 void MainWindow::on_actionBurn_in_triggered()
 {
+#if (QT_VERSION >= QT_VERSION_CHECK(5,10,0))
     m_testMode = true;
     emit ui->buttonClearRotation->clicked();
     for (auto i=0; i<21; i++)
@@ -3798,4 +3805,5 @@ void MainWindow::on_actionBurn_in_triggered()
         qInfo() << "Burn in test cycle: " << ++runs;
     });
     m_timerTest.start(12000);
+#endif
 }
