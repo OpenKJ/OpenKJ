@@ -134,6 +134,15 @@ void TickerNew::setText(QString text)
     p.drawText(scrollImage.rect(), Qt::AlignLeft | Qt::AlignVCenter, drawText);
     p.end();
     qInfo() << "Unlocking mutex in setText()";
+    if (settings.auxTickerFile() != QString())
+    {
+        qInfo() << "Saving ticker to file " << settings.auxTickerFile();
+        QFile auxFile(settings.auxTickerFile());
+        auxFile.open(QIODevice::Truncate | QIODevice::WriteOnly | QIODevice::Text);
+        QTextStream out(&auxFile);
+        out << drawText;
+        auxFile.close();
+    }
     mutex.unlock();
     qInfo() << "TickerNew - setText() completed";
 }

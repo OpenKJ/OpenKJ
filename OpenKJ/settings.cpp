@@ -578,6 +578,11 @@ void Settings::setEnforceAspectRatio(const bool &enforce)
     emit enforceAspectRatioChanged(enforce);
 }
 
+QString Settings::auxTickerFile()
+{
+    return settings->value("auxTickerFile", QString()).toString();
+}
+
 void Settings::setDurationPosition(const QPoint pos)
 {
     qInfo() << "Saving duration position: " << pos;

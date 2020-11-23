@@ -291,6 +291,7 @@ public:
     void setMainWindowVideoSize(const PreviewSize &size);
     bool enforceAspectRatio();
     void setEnforceAspectRatio(const bool &enforce);
+    QString auxTickerFile();
 
 signals:
     void enforceAspectRatioChanged(const bool &enforce);
