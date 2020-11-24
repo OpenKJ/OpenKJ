@@ -306,6 +306,8 @@ private slots:
 
     void on_actionBurn_in_triggered();
 
+    void on_actionMultiplex_Controls_triggered(bool checked);
+
 protected:
     void closeEvent(QCloseEvent *event);
     void resizeEvent(QResizeEvent *event);

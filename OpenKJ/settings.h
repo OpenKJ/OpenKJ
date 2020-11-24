@@ -284,6 +284,8 @@ public:
     bool showMainWindowVideo();
     void setShowMainWindowVideo(const bool &show);
     bool showMainWindowSoundClips();
+    void setShowMplxControls(const bool show);
+    bool showMplxControls();
     void setShowMainWindowSoundClips(const bool &show);
     bool showMainWindowNowPlaying();
     void setShowMainWindowNowPlaying(const bool &show);

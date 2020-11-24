@@ -140,6 +140,7 @@ void MainWindow::updateIcons()
     ui->btnPlBottom->setIcon(QIcon(thm + "actions/22/go-bottom.svg"));
     ui->btnPlDown->setIcon(QIcon(thm + "actions/22/go-down.svg"));
     ui->labelVolumeBm->setPixmap(QPixmap(thm + "actions/16/player-volume.svg"));
+    ui->buttonBmSearch->setIcon(QIcon(thm + "actions/22/edit-find.svg"));
 
     requestsDialog->updateIcons();
 }
@@ -707,6 +708,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->actionNow_Playing->setChecked(settings->showMainWindowNowPlaying());
     ui->actionSound_Clips->setChecked(settings->showMainWindowSoundClips());
     ui->actionVideo_Output_2->setChecked(settings->showMainWindowVideo());
+    ui->actionMultiplex_Controls->setChecked(settings->showMplxControls());
+    ui->widgetMplxControls->setVisible(settings->showMplxControls());
     switch (settings->mainWindowVideoSize()) {
     case Settings::Small:
         on_actionVideoSmall_triggered();
@@ -3806,4 +3809,10 @@ void MainWindow::on_actionBurn_in_triggered()
     });
     m_timerTest.start(12000);
 #endif
+}
+
+void MainWindow::on_actionMultiplex_Controls_triggered(bool checked)
+{
+    ui->widgetMplxControls->setVisible(checked);
+    settings->setShowMplxControls(checked);
 }

@@ -542,6 +542,16 @@ bool Settings::showMainWindowSoundClips()
     return settings->value("showMainWindowSoundClips", false).toBool();
 }
 
+void Settings::setShowMplxControls(const bool show)
+{
+     settings->setValue("showMplxControls", show);
+}
+
+bool Settings::showMplxControls()
+{
+    return settings->value("showMplxControls", true).toBool();
+}
+
 void Settings::setShowMainWindowSoundClips(const bool &show)
 {
     settings->setValue("showMainWindowSoundClips", show);
