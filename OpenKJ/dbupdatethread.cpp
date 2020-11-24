@@ -28,7 +28,7 @@
 #include <QApplication>
 #include "sourcedirtablemodel.h"
 #include <QtConcurrent>
-#include "okarchive.h"
+#include "mzarchive.h"
 #include "tagreader.h"
 #include "karaokefileinfo.h"
 
@@ -263,7 +263,7 @@ QStringList DbUpdateThread::getErrors()
 
 void DbUpdateThread::addSingleTrack(QString path)
 {
-    OkArchive archive;
+    MzArchive archive;
     QSqlQuery query;
     query.prepare("INSERT OR IGNORE INTO dbSongs (discid,artist,title,path,filename,duration,searchstring) VALUES(:discid, :artist, :title, :path, :filename, :duration, :searchstring)");
     int duration = 0;
@@ -493,8 +493,8 @@ void DbUpdateThread::startUnthreaded()
     qInfo() << "Preparing statement";
     query.prepare("INSERT OR IGNORE INTO dbSongs (discid,artist,title,path,filename,duration,searchstring) VALUES(:discid, :artist, :title, :path, :filename, :duration, :searchstring)");
     qInfo() << "Statement prepared";
-    qInfo() << "Creating OkArchive instance";
-    OkArchive archive;
+    qInfo() << "Creating MzArchive instance";
+    MzArchive archive;
     KaraokeFileInfo parser;
     qInfo() << "looping over songs";
     int loops = 0;
@@ -761,8 +761,8 @@ void DbUpdateThread::run()
     qInfo() << "Statement prepared";
 //    qInfo() << "Creating QProcess";
 //    QProcess *process = new QProcess(this);
-    qInfo() << "Creating OkArchive instance";
-    OkArchive archive;
+    qInfo() << "Creating MzArchive instance";
+    MzArchive archive;
     KaraokeFileInfo parser;
     qInfo() << "looping over songs";
     for (int i=0; i < newSongs.count(); i++)
@@ -784,7 +784,7 @@ void DbUpdateThread::run()
 #endif
         if (fileName.endsWith(".zip", Qt::CaseInsensitive))
         {
-            //OkArchive *archive = new OkArchive(process);
+            //MzArchive *archive = new MzArchive(process);
             archive.setArchiveFile(fileName);
 
             if (!archive.isValidKaraokeFile())

@@ -3,12 +3,12 @@
 #include <QSqlQuery>
 #include <QVariant>
 #include <QDebug>
-#include "okarchive.h"
+#include "mzarchive.h"
 #include "karaokefileinfo.h"
 
 
 void LazyDurationUpdateWorker::getDurations(const QStringList files) {
-    OkArchive archive;
+    MzArchive archive;
     KaraokeFileInfo parser;
     QString path;
     foreach (path, files)

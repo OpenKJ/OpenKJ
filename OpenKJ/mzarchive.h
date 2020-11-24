@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2016 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -19,28 +19,22 @@
 */
 
 
-#ifndef OKARCHIVE_H
-#define OKARCHIVE_H
+#ifndef MZARCHIVE_H
+#define MZARCHIVE_H
 
 #include <QObject>
 #include <QStringList>
-#include <QProcess>
+#include <okarchive.h>
+//#include <quazip.h>
 
-struct zipEntry
-{
-    QString fileName;
-    int fileSize;
-};
 
-typedef QList<zipEntry> zipEntries;
-
-class OkArchive : public QObject
+class MzArchive : public QObject
 {
     Q_OBJECT
 public:
-    explicit OkArchive(QString ArchiveFile, QObject *parent = 0);
-    explicit OkArchive(QObject *parent = 0);
-    ~OkArchive();
+    explicit MzArchive(QString ArchiveFile, QObject *parent = 0);
+    explicit MzArchive(QObject *parent = 0);
+    ~MzArchive();
     unsigned int getSongDuration();
     QByteArray getCDGData();
     QString getArchiveFile() const;
@@ -65,17 +59,13 @@ private:
     int audioSize();
     int m_cdgSize;
     int m_audioSize;
+    bool m_audioSupportedCompression;
+    bool m_cdgSupportedCompression;
     bool m_cdgFound;
     bool m_audioFound;
-    bool m_entriesProcessed;
-    zipEntries m_entries;
     bool findEntries();
     QStringList audioExtensions;
-    zipEntries getZipContents();
-    bool extractFile(QString fileName, QString destDir, QString destFile);
-    bool zipIsValid();
-    QProcess *process;
-    bool goodArchive;
+    OkArchive oka;
 
 signals:
 

@@ -129,6 +129,8 @@ DEFINES += BUILD_DATE=__DATE__
 
 SOURCES += main.cpp\
     mediabackend.cpp \
+    miniz.c \
+    mzarchive.cpp \
     okjutil.h \
     dlgvideopreview.cpp \
     mainwindow.cpp \
@@ -300,6 +302,8 @@ HEADERS  += mainwindow.h \
     dlgvideopreview.h \
     libCDG/include/libCDG.h \
     mediabackend.h \
+    miniz.h \
+    mzarchive.h \
     okjutil.h \
     sourcedirtablemodel.h \
     dbupdatethread.h \

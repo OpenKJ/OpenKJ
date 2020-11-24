@@ -32,7 +32,7 @@
 #include <QInputDialog>
 #include <QFileDialog>
 #include <QImageReader>
-#include "okarchive.h"
+#include "mzarchive.h"
 #include "tagreader.h"
 #include <QSvgRenderer>
 #include "audiorecorder.h"
@@ -746,7 +746,7 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k)
         }
         if (karaokeFilePath.endsWith(".zip", Qt::CaseInsensitive))
         {
-            OkArchive archive(karaokeFilePath);
+            MzArchive archive(karaokeFilePath);
             if ((archive.checkCDG()) && (archive.checkAudio()))
             {
                 if (archive.checkAudio())
@@ -2917,7 +2917,7 @@ void MainWindow::filesDroppedOnQueue(const QList<QUrl> &urls, const int &singerI
         {
             if (file.endsWith(".zip", Qt::CaseInsensitive))
             {
-                OkArchive archive(file);
+                MzArchive archive(file);
                 if (!archive.isValidKaraokeFile())
                 {
                     QMessageBox msgBox;
