@@ -159,6 +159,7 @@ bool MainWindow::isSingleInstance()
 }
 
 QFile *logFile;
+QTextStream logStream;
 QStringList *logContents;
 
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
@@ -182,10 +183,10 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
         //    logFile = new QFile(logFilePath);
         logFile->setFileName(logFilePath);
         logFile->open(QFile::WriteOnly);
+        logStream.setDevice(logFile);
     }
 
 
-    QTextStream logStream(logFile);
     QByteArray localMsg = msg.toLocal8Bit();
     switch (type) {
     case QtDebugMsg:
@@ -3682,7 +3683,7 @@ void MainWindow::on_actionKaraoke_torture_triggered()
 //       auto path = query.value("path").toString();
 //       qInfo() << "Torture test playing: " << path;
     });
-    m_timerTest.start(3000);
+    m_timerTest.start(5000);
 #endif
 }
 

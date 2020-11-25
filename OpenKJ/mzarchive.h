@@ -57,6 +57,8 @@ private:
     bool findAudio();
     int cdgSize();
     int audioSize();
+    int m_audioFileIndex;
+    int m_cdgFileIndex;
     int m_cdgSize;
     int m_audioSize;
     bool m_audioSupportedCompression;

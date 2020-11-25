@@ -169,7 +169,7 @@ bool MzArchive::extractAudio(QString destPath, QString destFile)
         mz_zip_archive archive;
         memset(&archive, 0, sizeof(archive));
         mz_zip_reader_init_file(&archive, archiveFile.toLocal8Bit(), 0);
-        if (mz_zip_reader_extract_file_to_file(&archive, audioFileName.toLocal8Bit(), QString(destPath + QDir::separator() + destFile).toLocal8Bit(),0))
+        if (mz_zip_reader_extract_to_file(&archive, m_audioFileIndex, QString(destPath + QDir::separator() + destFile).toLocal8Bit(),0))
         {
             mz_zip_reader_end(&archive);
             return true;
@@ -198,7 +198,7 @@ bool MzArchive::extractCdg(QString destPath, QString destFile)
         mz_zip_archive archive;
         memset(&archive, 0, sizeof(archive));
         mz_zip_reader_init_file(&archive, archiveFile.toLocal8Bit(), 0);
-        if (mz_zip_reader_extract_file_to_file(&archive, cdgFileName.toLocal8Bit(), QString(destPath + QDir::separator() + destFile).toLocal8Bit(),0))
+        if (mz_zip_reader_extract_to_file(&archive, m_cdgFileIndex, QString(destPath + QDir::separator() + destFile).toLocal8Bit(),0))
         {
             mz_zip_reader_end(&archive);
             return true;
@@ -289,6 +289,7 @@ bool MzArchive::findEntries()
             if (fileName.endsWith(".cdg",Qt::CaseInsensitive))
             {
                 cdgFileName = fileName;
+                m_cdgFileIndex = fStat.m_file_index;
                 m_cdgSize = fStat.m_uncomp_size;
                 m_cdgSupportedCompression = fStat.m_is_supported;
                 m_cdgFound = true;
@@ -300,6 +301,7 @@ bool MzArchive::findEntries()
                     if (fileName.endsWith(audioExtensions.at(e), Qt::CaseInsensitive))
                     {
                         audioFileName = fileName;
+                        m_audioFileIndex = fStat.m_file_index;
                         audioExt = audioExtensions.at(e);
                         m_audioSize = fStat.m_uncomp_size;
                         m_audioSupportedCompression = fStat.m_is_supported;
