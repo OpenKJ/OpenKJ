@@ -2,7 +2,7 @@
 #include "ui_dlgvideopreview.h"
 #include <QDebug>
 #include <QMessageBox>
-#include "okarchive.h"
+#include "mzarchive.h"
 #include "okjutil.h"
 #include <gst/video/videooverlay.h>
 #include <gst/app/gstappsrc.h>
@@ -25,7 +25,7 @@ DlgVideoPreview::DlgVideoPreview(const QString &mediaFilePath, QWidget *parent) 
     if (m_mediaFilename.endsWith(".zip", Qt::CaseInsensitive))
     {
         m_cdgMode = true;
-        OkArchive archive(m_mediaFilename);
+        MzArchive archive(m_mediaFilename);
         if ((archive.checkCDG()) && (archive.checkAudio()))
         {
             if (archive.checkAudio())
