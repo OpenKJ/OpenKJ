@@ -103,6 +103,7 @@ DlgVideoPreview::~DlgVideoPreview()
 
 void DlgVideoPreview::playCdg(const QString &filename)
 {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     parser.open(filename);
     parser.process();
     pipeline = gst_pipeline_new("videoPreviewPl");
@@ -129,6 +130,7 @@ void DlgVideoPreview::playCdg(const QString &filename)
     g_signal_connect(appSrc, "seek-data", G_CALLBACK(cb_seek_data), this);
     gst_video_overlay_set_window_handle(GST_VIDEO_OVERLAY(videoSink), ui->videoDisplay->winId());
     gst_element_set_state(pipeline, GST_STATE_PLAYING);
+    QApplication::restoreOverrideCursor();
 }
 
 void DlgVideoPreview::playVideo(const QString &filename)

@@ -775,7 +775,9 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k)
                         bmMediaBackend.fadeOut(!settings->bmKCrossFade());
                     qInfo() << "Beginning playback of file: " << audioFile;
                     bmMediaBackend.videoMute(true);
+                    QApplication::setOverrideCursor(Qt::WaitCursor);
                     kMediaBackend.play();
+                    QApplication::restoreOverrideCursor();
                     kMediaBackend.fadeInImmediate();
                 }
             }
@@ -822,7 +824,9 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k)
             if (!k2k)
                 bmMediaBackend.fadeOut(!settings->bmKCrossFade());
             bmMediaBackend.videoMute(true);
+            QApplication::setOverrideCursor(Qt::WaitCursor);
             kMediaBackend.play();
+            QApplication::restoreOverrideCursor();
             kMediaBackend.fadeInImmediate();
         }
         else
