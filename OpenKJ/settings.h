@@ -188,7 +188,7 @@ public:
     int cdgOffsetRight();
     bool ignoreAposInSearch();
     int videoOffsetMs();
-
+    int cdgMemoryCompressionLevel();
     bool bmShowFilenames();
     void bmSetShowFilenames(bool show);
     bool bmShowMetadata();

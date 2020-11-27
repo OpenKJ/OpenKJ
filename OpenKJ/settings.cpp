@@ -1048,6 +1048,11 @@ int Settings::videoOffsetMs()
     return settings->value("videoOffsetMs", 0).toInt();
 }
 
+int Settings::cdgMemoryCompressionLevel()
+{
+    return settings->value("cdgMemoryCompressionLevel", (QSysInfo::currentCpuArchitecture().contains("arm", Qt::CaseInsensitive)) ? 1 : 0).toInt();
+}
+
 void Settings::setIgnoreAposInSearch(bool ignore)
 {
     settings->setValue("ignoreAposInSearch", ignore);

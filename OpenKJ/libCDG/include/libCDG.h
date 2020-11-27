@@ -198,10 +198,10 @@ public:
     int tempo();
     void setTempo(const int percent);
     std::size_t getFrameCount();
-    bool canSkipFrameByTime(const unsigned int ms);
     QString md5HashByTime(const unsigned int ms);
-    const std::array<uchar, 110592>* videoFrameDataByIndex(const size_t frame);
-    const std::array<uchar, 110592>* videoFrameDataByTime(const unsigned int ms);
+    std::array<uchar, 110592> videoFrameDataByIndex(const size_t frame);
+    std::array<uchar, 110592> videoFrameDataByTime(const unsigned int ms);
+    void setMemoryCompressionLevel(const int level) { m_memoryCompressionLevel = std::min(9, level); }
 protected:
 private:
     int m_tempo{100};
@@ -210,6 +210,7 @@ private:
     int m_borderRBytesOffset;
     int m_curVOffset;
     int m_curHOffset;
+    int m_memoryCompressionLevel{0};
     unsigned int m_position;
     unsigned int m_lastCDGCommandMS;
     bool m_needupdate;
@@ -218,8 +219,8 @@ private:
     QByteArray m_cdgData;
     std::array<uchar, 110592> blank;
     inline constexpr static std::array<char,6> m_masks{0x20,0x10,0x08,0x04,0x02,0x01};
-    std::vector< std::array<uchar,110592>* > m_frameArrays;
-    std::vector<bool> m_skip;
+    std::vector<QByteArray> m_frameArraysComp;
+    std::vector<std::array<uchar, 110592>> m_frameArrays;
     QImage m_image;
     constexpr static char m_subcodeMask = 0x3F;
     constexpr static char m_subcodeCommand = 0x09;

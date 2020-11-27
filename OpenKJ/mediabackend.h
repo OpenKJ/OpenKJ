@@ -82,6 +82,7 @@ public:
     qint64 position();
     qint64 duration();
     State state();
+    void setCdgMemoryCompressionLevel(int level) { m_cdg.setMemoryCompressionLevel(level); }
     QStringList getOutputDevices() { return m_outputDeviceNames; }
     QString msToMMSS(const qint64 &msec)
     {

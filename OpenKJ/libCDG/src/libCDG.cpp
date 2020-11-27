@@ -43,8 +43,10 @@ bool CdgParser::open(const QByteArray &byteArray, const bool &bypassReset)
         return false;
     }
     //qInfo() << "libCDG - Byte array opened successfully";
-    m_frameArrays.reserve(byteArray.size() / 24);
-    m_skip.reserve(byteArray.size() / 24);
+    if (m_memoryCompressionLevel > 0)
+        m_frameArraysComp.reserve(byteArray.size() / 24);
+    else
+        m_frameArrays.reserve(byteArray.size() / 24);
     return true;
 }
 
@@ -85,33 +87,15 @@ void CdgParser::reset()
     m_borderRBytesOffset = 294 * m_bytesPerPixel;
     m_image.setColorTable(palette);
     m_image.fill(0);
-    for (auto p : m_frameArrays) { delete p; }
+    m_frameArraysComp.clear();
+    m_frameArraysComp.shrink_to_fit();
     m_frameArrays.clear();
     m_frameArrays.shrink_to_fit();
-    m_skip.clear();
-    m_skip.shrink_to_fit();
     m_tempo = 100;
 
     // Uncomment the following to help test for memory leaks,
     //m_frames.shrink_to_fit();
     //m_skip.shrink_to_fit();
-}
-
-bool CdgParser::canSkipFrameByTime(const unsigned int ms)
-{
-    int scaledMs = ms * ((float)m_tempo / 100.0);
-    size_t frameno = scaledMs / 40;
-    if (ms % 40 > 0) frameno++;
-    if (frameno > m_frameArrays.size())
-        return false;
-    bool skip = true;
-    if (!m_skip.at(frameno - 1))
-        skip = false;
-    if (!m_skip.at(frameno))
-        skip = false;
-    if (!m_skip.at(frameno + 1))
-        skip = false;
-    return skip;
 }
 
 bool CdgParser::process()
@@ -133,12 +117,14 @@ bool CdgParser::process()
         m_position++;
         if (((position() % 40) == 0) && position() >= 40)
         {
-
-            m_skip.emplace_back(!m_needupdate);
-            auto img16 = getSafeArea().convertToFormat(QImage::Format_RGB16);
-            auto frameArr = new std::array<uchar,110592>;
-            memcpy(frameArr->data(),img16.bits(),110592);
-            m_frameArrays.emplace_back(frameArr);
+            if (m_memoryCompressionLevel > 0)
+                m_frameArraysComp.emplace_back(qCompress(getSafeArea().convertToFormat(QImage::Format_RGB16).bits(),110592,1));
+            else
+            {
+                std::array<uchar, 110592> frameArr;
+                memcpy(frameArr.data(),getSafeArea().convertToFormat(QImage::Format_RGB16).bits(),110592);
+                m_frameArrays.emplace_back(frameArr);
+            }
             frameno++;
         }
     }
@@ -288,10 +274,15 @@ void CdgParser::cmdTileBlock(const cdg::CdgTileBlockData &tileBlockPacket, const
 QString CdgParser::md5HashByTime(const unsigned int ms)
 {
     size_t frameno = ms / 40;
+    auto size = (m_memoryCompressionLevel > 0) ? m_frameArraysComp.size() : m_frameArrays.size();
     if (ms % 40 > 0) frameno++;
-    if (frameno > m_frameArrays.size())
-        frameno = m_frameArrays.size() - 1;
-    QByteArray arr = QByteArray::fromRawData((const char*)m_frameArrays.at(frameno)->data(), m_frameArrays.at(frameno)->size());
+    if (frameno > size)
+        frameno = size - 1;
+    QByteArray arr;
+    if (m_memoryCompressionLevel > 0)
+        arr = QByteArray::fromRawData((const char*)qUncompress(m_frameArraysComp.at(frameno)).data(), m_frameArraysComp.at(frameno).size());
+    else
+        arr = QByteArray::fromRawData((const char*)m_frameArrays.at(frameno).data(), m_frameArrays.at(frameno).size());
     return QString(QCryptographicHash::hash(arr, QCryptographicHash::Md5).toHex());
 }
 
@@ -322,25 +313,32 @@ void CdgParser::setTempo(const int percent)
 
 std::size_t CdgParser::getFrameCount() {
     auto retSize = 0;
+    auto count = (m_memoryCompressionLevel > 0) ? m_frameArraysComp.size() : m_frameArrays.size();
     if (m_tempo == 100)
-        retSize = m_frameArrays.size();
+        retSize = count;
     if (m_tempo < 100)
-        retSize = (m_frameArrays.size() / ((float)m_tempo / 100.0)) + 10;
+        retSize = (count / ((float)m_tempo / 100.0)) + 10;
     if (m_tempo > 100)
-        retSize = (m_frameArrays.size() / ((float)m_tempo / 100.0)) + 10;
+        retSize = (count / ((float)m_tempo / 100.0)) + 10;
     return retSize;
 }
 
-const std::array<uchar, 110592>* CdgParser::videoFrameDataByTime(const unsigned int ms)
+std::array<uchar, 110592> CdgParser::videoFrameDataByTime(const unsigned int ms)
 {
-    return m_frameArrays.at((ms * ((float)m_tempo / 100.0)) / 40);
+    return videoFrameDataByIndex((ms * ((float)m_tempo / 100.0)) / 40);
 }
 
-const std::array<uchar, 110592>* CdgParser::videoFrameDataByIndex(const size_t frame)
+std::array<uchar, 110592> CdgParser::videoFrameDataByIndex(const size_t frame)
 {
-    if (frame >= m_frameArrays.size())
+    if ((m_memoryCompressionLevel > 0 && frame >= m_frameArraysComp.size()) || (m_memoryCompressionLevel == 0 && frame >= m_frameArrays.size()))
     {
-        return &blank;
+        return blank;
+    }
+    if (m_memoryCompressionLevel > 0)
+    {
+        std::array<uchar, 110592> frameArr;
+        memcpy(frameArr.data(),qUncompress(m_frameArraysComp.at(frame)).data(), 110592);
+        return frameArr;
     }
     return m_frameArrays.at(frame);
 }

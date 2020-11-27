@@ -726,6 +726,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->labelVolumeBm->setPixmap(QIcon::fromTheme("player-volume").pixmap(QSize(22,22)));
     updateIcons();
     ui->menuTesting->menuAction()->setVisible(settings->testingEnabled());
+    kMediaBackend.setCdgMemoryCompressionLevel(settings->cdgMemoryCompressionLevel());
 }
 
 void MainWindow::play(const QString &karaokeFilePath, const bool &k2k)
@@ -3926,6 +3927,6 @@ void MainWindow::on_actionCDG_Decode_Torture_triggered()
 //       auto path = query.value("path").toString();
 //       qInfo() << "Torture test playing: " << path;
     });
-    m_timerTest.start(1000);
+    m_timerTest.start(2000);
 #endif
 }
