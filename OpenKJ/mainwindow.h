@@ -308,6 +308,8 @@ private slots:
 
     void on_actionMultiplex_Controls_triggered(bool checked);
 
+    void on_actionCDG_Decode_Torture_triggered();
+
 protected:
     void closeEvent(QCloseEvent *event);
     void resizeEvent(QResizeEvent *event);

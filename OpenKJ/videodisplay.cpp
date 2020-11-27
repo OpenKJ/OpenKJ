@@ -57,23 +57,23 @@ void VideoDisplay::paintEvent(QPaintEvent *event)
 void VideoDisplay::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
-    QPainter painter(this);
-    if(videoIsPlaying())
-    {
-        painter.fillRect(rect(), Qt::black);
-        return;
-    }
-    if (m_useDefaultBg)
-    {
-        QSvgRenderer renderer(QString(":icons/Icons/okjlogo.svg"));
-#if (QT_VERSION >= QT_VERSION_CHECK(5,15,0))
-        renderer.setAspectRatioMode(Qt::KeepAspectRatio);
-#endif
-        renderer.render(&painter);
-        return;
-    }
-    painter.fillRect(rect(), Qt::black);
-    painter.drawPixmap(rect(), m_currentBg, m_currentBg.rect());
+//    QPainter painter(this);
+//    if(videoIsPlaying())
+//    {
+//        painter.fillRect(rect(), Qt::black);
+//        return;
+//    }
+//    if (m_useDefaultBg)
+//    {
+//        QSvgRenderer renderer(QString(":icons/Icons/okjlogo.svg"));
+//#if (QT_VERSION >= QT_VERSION_CHECK(5,15,0))
+//        renderer.setAspectRatioMode(Qt::KeepAspectRatio);
+//#endif
+//        renderer.render(&painter);
+//        return;
+//    }
+//    painter.fillRect(rect(), Qt::black);
+//    painter.drawPixmap(rect(), m_currentBg, m_currentBg.rect());
 }
 
 

@@ -99,6 +99,7 @@ public:
         min = QString::number(minutes);
         return QString(min + ":" + sec);
     }
+    void testCdgDecode();
 
 private:
     enum GstPlayFlags {

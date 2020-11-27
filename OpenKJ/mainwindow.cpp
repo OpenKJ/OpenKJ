@@ -1381,13 +1381,13 @@ void MainWindow::audioBackend_stateChanged(const MediaBackend::State &state)
 {
     if (m_shuttingDown)
         return;
-    qInfo() << "MainWindow - audioBackend_stateChanged(" << state << ") triggered";
+    //qInfo() << "MainWindow - audioBackend_stateChanged(" << state << ") triggered";
     if (state == MediaBackend::StoppedState)
     {
         qInfo() << "MainWindow - audio backend state is now STOPPED";
         if (ui->labelTotalTime->text() == "0:00")
         {
-            qInfo() << "MainWindow - UI is already reset, bailing out";
+            //qInfo() << "MainWindow - UI is already reset, bailing out";
             return;
         }
         qInfo() << "KAudio entered StoppedState";
@@ -3667,6 +3667,7 @@ void MainWindow::on_actionKaraoke_torture_triggered()
        ui->tableViewDB->scrollToBottom();
        ui->tableViewDB->scrollToBottom();
        int randno = QRandomGenerator::global()->bounded(0, dbModel->rowCount() - 1);
+       randno = 1;
        qInfo() << "randno: " << randno;
        ui->tableViewDB->selectRow(randno);
        ui->tableViewDB->scrollTo(ui->tableViewDB->selectionModel()->selectedRows().at(0));
@@ -3683,7 +3684,7 @@ void MainWindow::on_actionKaraoke_torture_triggered()
 //       auto path = query.value("path").toString();
 //       qInfo() << "Torture test playing: " << path;
     });
-    m_timerTest.start(5000);
+    m_timerTest.start(4000);
 #endif
 }
 
@@ -3816,4 +3817,111 @@ void MainWindow::on_actionMultiplex_Controls_triggered(bool checked)
 {
     ui->widgetMplxControls->setVisible(checked);
     settings->setShowMplxControls(checked);
+}
+
+void MainWindow::on_actionCDG_Decode_Torture_triggered()
+{
+#if (QT_VERSION >= QT_VERSION_CHECK(5,10,0))
+    connect(&m_timerTest, &QTimer::timeout, [&] () {
+        QApplication::beep();
+        static int runs = 0;
+       qInfo() << "Karaoke torture test timer timeout";
+       qInfo() << "num songs in db: " << dbModel->rowCount();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       ui->tableViewDB->scrollToBottom();
+       int randno = QRandomGenerator::global()->bounded(0, dbModel->rowCount() - 1);
+       qInfo() << "randno: " << randno;
+       ui->tableViewDB->selectRow(randno);
+       ui->tableViewDB->scrollTo(ui->tableViewDB->selectionModel()->selectedRows().at(0));
+       QString karaokeFilePath = ui->tableViewDB->selectionModel()->selectedRows(5).at(0).data().toString();
+       if (!karaokeFilePath.endsWith("zip", Qt::CaseInsensitive) && !karaokeFilePath.endsWith("cdg", Qt::CaseInsensitive))
+       {
+           return;
+       }
+       if (karaokeFilePath.endsWith(".zip", Qt::CaseInsensitive))
+       {
+           MzArchive archive(karaokeFilePath);
+           if ((archive.checkCDG()) && (archive.checkAudio()))
+           {
+               if (archive.checkAudio())
+               {
+                   if (!archive.extractAudio(khTmpDir->path(), "tmp" + archive.audioExtension()))
+                   {
+                        return;
+                   }
+                   if (!archive.extractCdg(khTmpDir->path(), "tmp.cdg"))
+                   {
+                       return;
+                   }
+                   QString audioFile = khTmpDir->path() + QDir::separator() + "tmp" + archive.audioExtension();
+                   QString cdgFile = khTmpDir->path() + QDir::separator() + "tmp.cdg";
+                   qInfo() << "Extracted audio file size: " << QFileInfo(audioFile).size();
+                   cdgWindow->setShowBgImage(false);
+                   setShowBgImage(false);
+                   qInfo() << "Setting karaoke backend source file to: " << audioFile;
+                   kMediaBackend.setMediaCdg(cdgFile, audioFile);
+                   kMediaBackend.testCdgDecode();
+               }
+           }
+           else
+           {
+               return;
+           }
+       }
+       else if (karaokeFilePath.endsWith(".cdg", Qt::CaseInsensitive))
+       {
+           QString cdgTmpFile = "tmp.cdg";
+           QString audTmpFile = "tmp.mp3";
+           QFile cdgFile(karaokeFilePath);
+           if (!cdgFile.exists())
+           {
+               return;
+           }
+           else if (cdgFile.size() == 0)
+           {
+               return;
+           }
+           QString audiofn = findMatchingAudioFile(karaokeFilePath);
+           if (audiofn == "")
+           {
+               return;
+           }
+           QFile audioFile(audiofn);
+           if (audioFile.size() == 0)
+           {
+               return;
+           }
+           cdgFile.copy(khTmpDir->path() + QDir::separator() + cdgTmpFile);
+           QFile::copy(audiofn, khTmpDir->path() + QDir::separator() + audTmpFile);
+           kMediaBackend.setMediaCdg(khTmpDir->path() + QDir::separator() + cdgTmpFile, khTmpDir->path() + QDir::separator() + audTmpFile);
+           kMediaBackend.testCdgDecode();
+       }
+       ui->labelSinger->setText("Torture run (" + QString::number(++runs) + ")");
+//       QSqlQuery query;
+//       query.prepare("SELECT songid,artist,title,discid,path FROM dbsongs WHERE songid >= (abs(random()) % (SELECT max(songid) FROM dbsongs))LIMIT 1");
+//       query.exec();
+//       if (!query.next())
+//           qInfo() << "Unable to find song in db!";
+//       auto artist = query.value("artist").toString();
+//       auto title = query.value("title").toString();
+//       auto songId = query.value("discid").toString();
+//       auto path = query.value("path").toString();
+//       qInfo() << "Torture test playing: " << path;
+    });
+    m_timerTest.start(1000);
+#endif
 }

@@ -25,15 +25,15 @@
 #include <QCryptographicHash>
 #include <chrono>
 
-
 CdgParser::CdgParser()
 {
+    blank.fill(0);
     reset();
 }
 
 bool CdgParser::open(const QByteArray &byteArray, const bool &bypassReset)
 {
-    qInfo() << "libCDG - Opening byte array for processing";
+    //qInfo() << "libCDG - Opening byte array for processing";
     if (!bypassReset)
         reset();
     m_cdgData = byteArray;
@@ -42,8 +42,8 @@ bool CdgParser::open(const QByteArray &byteArray, const bool &bypassReset)
         qWarning() << "libCDG - Received zero bytes of CDG data";
         return false;
     }
-    qInfo() << "libCDG - Byte array opened successfully";
-    m_frames.reserve(byteArray.size() / 24);
+    //qInfo() << "libCDG - Byte array opened successfully";
+    m_frameArrays.reserve(byteArray.size() / 24);
     m_skip.reserve(byteArray.size() / 24);
     return true;
 }
@@ -85,8 +85,10 @@ void CdgParser::reset()
     m_borderRBytesOffset = 294 * m_bytesPerPixel;
     m_image.setColorTable(palette);
     m_image.fill(0);
-    m_frames.clear();
+    m_frameArrays.clear();
+    m_frameArrays.shrink_to_fit();
     m_skip.clear();
+    m_skip.shrink_to_fit();
     m_tempo = 100;
 
     // Uncomment the following to help test for memory leaks,
@@ -99,7 +101,7 @@ bool CdgParser::canSkipFrameByTime(const unsigned int ms)
     int scaledMs = ms * ((float)m_tempo / 100.0);
     size_t frameno = scaledMs / 40;
     if (ms % 40 > 0) frameno++;
-    if (frameno > m_frames.size())
+    if (frameno > m_frameArrays.size())
         return false;
     bool skip = true;
     if (!m_skip.at(frameno - 1))
@@ -132,8 +134,10 @@ bool CdgParser::process()
         {
 
             m_skip.emplace_back(!m_needupdate);
-            m_frames.emplace_back(getSafeArea().convertToFormat(QImage::Format_RGB16));
-
+            auto img16 = getSafeArea().convertToFormat(QImage::Format_RGB16);
+            std::array<uchar,110592> frameArr;
+            memcpy(frameArr.data(),img16.bits(),110592);
+            m_frameArrays.emplace_back(frameArr);
             frameno++;
         }
     }
@@ -230,6 +234,7 @@ QImage CdgParser::getSafeArea()
         auto srcBits = m_image.bits();
         auto dstBits = image.bits();
         memcpy(dstBits + dstLineOffset, srcBits + srcLineOffset + m_borderLRBytes + (m_curHOffset * m_bytesPerPixel), copiedLineSize);
+
     }
     return image;
 }
@@ -283,13 +288,9 @@ QString CdgParser::md5HashByTime(const unsigned int ms)
 {
     size_t frameno = ms / 40;
     if (ms % 40 > 0) frameno++;
-    if (frameno > m_frames.size())
-        frameno = m_frames.size() - 1;
-#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
-    QByteArray arr = QByteArray::fromRawData((const char*)m_frames.at(frameno).bits(), m_frames.at(frameno).sizeInBytes());
-#else
-    QByteArray arr = QByteArray::fromRawData((const char*)m_frames.at(frameno).bits(), m_frames.at(frameno).byteCount());
-#endif
+    if (frameno > m_frameArrays.size())
+        frameno = m_frameArrays.size() - 1;
+    QByteArray arr = QByteArray::fromRawData((const char*)m_frameArrays.at(frameno).data(), m_frameArrays.at(frameno).size());
     return QString(QCryptographicHash::hash(arr, QCryptographicHash::Md5).toHex());
 }
 
@@ -319,29 +320,28 @@ void CdgParser::setTempo(const int percent)
 }
 
 std::size_t CdgParser::getFrameCount() {
+    auto retSize = 0;
     if (m_tempo == 100)
-        return m_frames.size();
+        retSize = m_frameArrays.size();
     if (m_tempo < 100)
-        return (m_frames.size() / ((float)m_tempo / 100.0)) + 10;
+        retSize = (m_frameArrays.size() / ((float)m_tempo / 100.0)) + 10;
     if (m_tempo > 100)
-        return (m_frames.size() / ((float)m_tempo / 100.0)) + 10;
-    //return (m_frames.size() / (100 - m_tempo)) + 10;
+        retSize = (m_frameArrays.size() / ((float)m_tempo / 100.0)) + 10;
+    return retSize;
 }
 
-QImage CdgParser::videoFrameByIndex(const int frame)
+const std::array<uchar, 110592>& CdgParser::videoFrameDataByTime(const unsigned int ms)
 {
-    if (frame < 0 || frame >= m_frames.size())
+    return m_frameArrays.at((ms * ((float)m_tempo / 100.0)) / 40);
+}
+
+const std::array<uchar, 110592>& CdgParser::videoFrameDataByIndex(const size_t frame)
+{
+    if (frame >= m_frameArrays.size())
     {
-        QImage blank(QSize(288,192),QImage::Format_RGB16);
-        blank.fill(Qt::black);
         return blank;
     }
-    return m_frames.at(frame);
-}
-
-QImage CdgParser::videoFrameByTime(const unsigned int ms)
-{
-    return videoFrameByIndex((ms * ((float)m_tempo / 100.0)) / 40);
+    return m_frameArrays.at(frame);
 }
 
 void CdgParser::cmdScroll(const cdg::CdgScrollCmdData &scrollCmdData, const cdg::ScrollType type)
@@ -409,7 +409,7 @@ void CdgParser::cmdScroll(const cdg::CdgScrollCmdData &scrollCmdData, const cdg:
 
 void CdgParser::cmdDefineTransparent([[maybe_unused]] const std::array<char,16> &data)
 {
-    qInfo() << "libCDG - unsupported DefineTransparent command called";
+    //qInfo() << "libCDG - unsupported DefineTransparent command called";
     // Unused CDG command from redbook spec
     // This is rarely if ever used
     // No idea what the data structure is, it's missing from CDG Revealed

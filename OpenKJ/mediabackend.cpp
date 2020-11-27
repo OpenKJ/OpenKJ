@@ -167,6 +167,12 @@ MediaBackend::State MediaBackend::state()
     }
 }
 
+void MediaBackend::testCdgDecode()
+{
+    m_cdg.open(m_cdgFilename);
+    m_cdg.process();
+}
+
 MediaBackend::State MediaBackend::cdgState()
 {
     return MediaBackend::PlayingState;
@@ -248,11 +254,9 @@ void MediaBackend::play()
         g_appSrcCurFrame = 0;
         g_appSrcCurPosition = 0;
         g_appSrcNeedData = false;
-        auto as = gst_bin_get_by_name(reinterpret_cast<GstBin*>(m_cdgBin), "cdgAppSrc");
-        gst_app_src_set_max_bytes(reinterpret_cast<GstAppSrc*>(as), 110592 * 500);
-        gst_app_src_set_size(reinterpret_cast<GstAppSrc*>(as), m_cdg.getFrameCount() * 110592);
-        gst_app_src_set_duration(reinterpret_cast<GstAppSrc*>(as), (m_cdg.getFrameCount() * 40) * GST_MSECOND);
-        gst_object_unref(as);
+        gst_app_src_set_max_bytes(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), 110592 * 500);
+        gst_app_src_set_size(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), m_cdg.getFrameCount() * 110592);
+        gst_app_src_set_duration(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), (m_cdg.getFrameCount() * 40) * GST_MSECOND);
         qInfo() << m_objName << " - play - playing cdg:   " << m_cdgFilename;
         qInfo() << m_objName << " - play - playing audio: " << m_filename;
         gst_element_set_state(m_playBin, GST_STATE_PLAYING);
@@ -537,6 +541,7 @@ void MediaBackend::gstBusMsg(std::shared_ptr<GstMessage> message)
         qInfo() << m_objName << " - Gst msg type: " << GST_MESSAGE_TYPE(message.get()) << " Gst msg name: " << GST_MESSAGE_TYPE_NAME(message.get()) << " Element: " << message.get()->src->name;
         break;
     }
+
 }
 
 void MediaBackend::buildPipeline()
@@ -805,7 +810,7 @@ void MediaBackend::getGstDevices()
 void MediaBackend::cb_enough_data([[maybe_unused]]GstElement *appsrc, [[maybe_unused]]gpointer user_data)
 {
     g_appSrcNeedData = false;
-    qInfo() << "cdg buffer full";
+    //qInfo() << "cdg buffer full";
 }
 
 
@@ -816,7 +821,7 @@ void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused
 //  It's a "magic number" but can be derived like below if ever in question
 //    auto bufferSize = backend->m_cdg.videoFrameByIndex(backend->curFrame).sizeInBytes();
     g_appSrcNeedData = true;
-    qInfo() << "cdg buffering - free space: " << unused_size;
+    //qInfo() << "cdg buffering - free space: " << unused_size;
     while (g_appSrcNeedData && g_appSrcCurFrame < backend->m_cdg.getFrameCount())
     {
         auto buffer = gst_buffer_new_and_alloc(110592);
@@ -827,7 +832,7 @@ void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused
 //                        );
         gst_buffer_fill(buffer,
                         0,
-                        backend->m_cdg.videoFrameByTime((g_appSrcCurPosition / GST_MSECOND) + backend->m_videoOffsetMs).constBits(),
+                        backend->m_cdg.videoFrameDataByTime((g_appSrcCurPosition / GST_MSECOND) + backend->m_videoOffsetMs).data(),
                         110592
                         );
         GST_BUFFER_TIMESTAMP(buffer) = g_appSrcCurPosition;
@@ -843,7 +848,7 @@ void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused
         }
         if (g_appSrcCurFrame == backend->m_cdg.getFrameCount() - 1)
         {
-            qInfo() << "Reached EOS in decoding";
+            //qInfo() << "Reached EOS in decoding";
             gst_app_src_end_of_stream(reinterpret_cast<GstAppSrc*>(appsrc));
             break;
         }
@@ -852,13 +857,13 @@ void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused
         QApplication::processEvents();
     }
 
-    qInfo() << "curFrame: " << g_appSrcCurFrame << " total frames: " << backend->m_cdg.getFrameCount();
-    qInfo() << "cdg done buffering";
+    //qInfo() << "curFrame: " << g_appSrcCurFrame << " total frames: " << backend->m_cdg.getFrameCount();
+    //qInfo() << "cdg done buffering";
 }
 
 gboolean MediaBackend::cb_seek_data([[maybe_unused]]GstElement *appsrc, guint64 position, [[maybe_unused]]gpointer user_data)
 {
-    qInfo() << "Got seek request to position " << position;
+    //qInfo() << "Got seek request to position " << position;
     if (position == 0)
     {
         g_appSrcCurFrame = 0;

@@ -144,7 +144,7 @@ void TickerNew::setText(QString text)
         auxFile.close();
     }
     mutex.unlock();
-    qInfo() << "TickerNew - setText() completed";
+    //qInfo() << "TickerNew - setText() completed";
 }
 
 void TickerNew::refresh()
