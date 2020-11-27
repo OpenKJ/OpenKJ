@@ -85,6 +85,7 @@ void CdgParser::reset()
     m_borderRBytesOffset = 294 * m_bytesPerPixel;
     m_image.setColorTable(palette);
     m_image.fill(0);
+    for (auto p : m_frameArrays) { delete p; }
     m_frameArrays.clear();
     m_frameArrays.shrink_to_fit();
     m_skip.clear();
@@ -135,8 +136,8 @@ bool CdgParser::process()
 
             m_skip.emplace_back(!m_needupdate);
             auto img16 = getSafeArea().convertToFormat(QImage::Format_RGB16);
-            std::array<uchar,110592> frameArr;
-            memcpy(frameArr.data(),img16.bits(),110592);
+            auto frameArr = new std::array<uchar,110592>;
+            memcpy(frameArr->data(),img16.bits(),110592);
             m_frameArrays.emplace_back(frameArr);
             frameno++;
         }
@@ -290,7 +291,7 @@ QString CdgParser::md5HashByTime(const unsigned int ms)
     if (ms % 40 > 0) frameno++;
     if (frameno > m_frameArrays.size())
         frameno = m_frameArrays.size() - 1;
-    QByteArray arr = QByteArray::fromRawData((const char*)m_frameArrays.at(frameno).data(), m_frameArrays.at(frameno).size());
+    QByteArray arr = QByteArray::fromRawData((const char*)m_frameArrays.at(frameno)->data(), m_frameArrays.at(frameno)->size());
     return QString(QCryptographicHash::hash(arr, QCryptographicHash::Md5).toHex());
 }
 
@@ -330,16 +331,16 @@ std::size_t CdgParser::getFrameCount() {
     return retSize;
 }
 
-const std::array<uchar, 110592>& CdgParser::videoFrameDataByTime(const unsigned int ms)
+const std::array<uchar, 110592>* CdgParser::videoFrameDataByTime(const unsigned int ms)
 {
     return m_frameArrays.at((ms * ((float)m_tempo / 100.0)) / 40);
 }
 
-const std::array<uchar, 110592>& CdgParser::videoFrameDataByIndex(const size_t frame)
+const std::array<uchar, 110592>* CdgParser::videoFrameDataByIndex(const size_t frame)
 {
     if (frame >= m_frameArrays.size())
     {
-        return blank;
+        return &blank;
     }
     return m_frameArrays.at(frame);
 }

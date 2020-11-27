@@ -181,11 +181,11 @@ gboolean DlgVideoPreview::cb_seek_data([[maybe_unused]]GstElement *appsrc, guint
 void DlgVideoPreview::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused_size, gpointer user_data)
 {
     auto dlg = reinterpret_cast<DlgVideoPreview *>(user_data);
-    auto bufferSize = dlg->parser.videoFrameDataByIndex(dlg->curFrame).size();
+    auto bufferSize = dlg->parser.videoFrameDataByIndex(dlg->curFrame)->size();
     auto buffer = gst_buffer_new_and_alloc(bufferSize);
     gst_buffer_fill(buffer,
                     0,
-                    dlg->parser.videoFrameDataByIndex(dlg->curFrame).data(),
+                    dlg->parser.videoFrameDataByIndex(dlg->curFrame)->data(),
                     bufferSize
                     );
     GST_BUFFER_PTS(buffer) = dlg->position;

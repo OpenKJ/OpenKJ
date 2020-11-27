@@ -832,7 +832,7 @@ void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused
 //                        );
         gst_buffer_fill(buffer,
                         0,
-                        backend->m_cdg.videoFrameDataByTime((g_appSrcCurPosition / GST_MSECOND) + backend->m_videoOffsetMs).data(),
+                        backend->m_cdg.videoFrameDataByTime((g_appSrcCurPosition / GST_MSECOND) + backend->m_videoOffsetMs)->data(),
                         110592
                         );
         GST_BUFFER_TIMESTAMP(buffer) = g_appSrcCurPosition;

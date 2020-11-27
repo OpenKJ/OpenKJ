@@ -200,8 +200,8 @@ public:
     std::size_t getFrameCount();
     bool canSkipFrameByTime(const unsigned int ms);
     QString md5HashByTime(const unsigned int ms);
-    const std::array<uchar, 110592>& videoFrameDataByIndex(const size_t frame);
-    const std::array<uchar, 110592>& videoFrameDataByTime(const unsigned int ms);
+    const std::array<uchar, 110592>* videoFrameDataByIndex(const size_t frame);
+    const std::array<uchar, 110592>* videoFrameDataByTime(const unsigned int ms);
 protected:
 private:
     int m_tempo{100};
@@ -218,7 +218,7 @@ private:
     QByteArray m_cdgData;
     std::array<uchar, 110592> blank;
     inline constexpr static std::array<char,6> m_masks{0x20,0x10,0x08,0x04,0x02,0x01};
-    std::vector< std::array<uchar,110592> > m_frameArrays;
+    std::vector< std::array<uchar,110592>* > m_frameArrays;
     std::vector<bool> m_skip;
     QImage m_image;
     constexpr static char m_subcodeMask = 0x3F;
