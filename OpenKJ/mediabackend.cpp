@@ -248,7 +248,11 @@ void MediaBackend::play()
             emit stateChanged(EndOfMediaState);
             return;
         }
-        gst_bin_add(reinterpret_cast<GstBin*>(m_audioBin), m_cdgBin);
+        auto parentElement = gst_element_get_parent(m_cdgBin);
+        if (parentElement == NULL)
+            gst_bin_add(reinterpret_cast<GstBin*>(m_audioBin), m_cdgBin);
+        else
+            gst_object_unref(parentElement);
         m_cdg.open(m_cdgFilename);
         m_cdg.process();
         g_appSrcCurFrame = 0;

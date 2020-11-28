@@ -3672,7 +3672,7 @@ void MainWindow::on_actionKaraoke_torture_triggered()
        ui->tableViewDB->scrollToBottom();
        ui->tableViewDB->scrollToBottom();
        int randno = QRandomGenerator::global()->bounded(0, dbModel->rowCount() - 1);
-       randno = 1;
+       //randno = 1;
        qInfo() << "randno: " << randno;
        ui->tableViewDB->selectRow(randno);
        ui->tableViewDB->scrollTo(ui->tableViewDB->selectionModel()->selectedRows().at(0));
