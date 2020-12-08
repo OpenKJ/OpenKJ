@@ -1,6 +1,6 @@
 Name:           openkj
 Version:	1.8.0
-Release:        10%{?dist}
+Release:        11%{?dist}
 Summary:        Karaoke show hosting software
 
 License:        GPL

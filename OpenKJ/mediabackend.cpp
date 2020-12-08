@@ -294,6 +294,11 @@ void MediaBackend::setMuted(const bool &muted)
 
 void MediaBackend::setPosition(const qint64 &position)
 {
+    if (position > 1000 && position > duration() - 1000)
+    {
+        stop(true);
+        return;
+    }
     gst_element_seek_simple(m_playBin, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_MSECOND * position);
     emit positionChanged(position);
 }
