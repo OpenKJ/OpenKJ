@@ -71,6 +71,7 @@ public:
     void getEntitledSystemCount();
     int entitledSystemCount() { return entitledSystems; }
     bool updateWasCancelled() {return cancelUpdate; }
+    void triggerTestAdd();
 
 signals:
     void venuesChanged(OkjsVenues);

@@ -96,7 +96,8 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     ui->spinBoxKey->setMaximum(12);
     ui->spinBoxKey->setMinimum(-12);
     autoSizeViews();
-
+    if (!settings->testingEnabled())
+        ui->pushButtonRunTortureTest->hide();
 
 }
 
@@ -171,12 +172,25 @@ void DlgRequests::on_pushButtonClose_clicked()
 
 void DlgRequests::requestsModified()
 {
+    static int testruns = 0;
     if ((requestsModel->count() > 0) && (settings->requestDialogAutoShow()))
     {
         this->show();
         this->raise();
     }
     autoSizeViews();
+    if (requestsModel->count() > 0 && settings->testingEnabled() && testTimer.isActive())
+    {
+        ui->tableViewRequests->selectRow(0);
+        QApplication::processEvents();
+        ui->tableViewSearch->selectRow(0);
+        QApplication::processEvents();
+        on_pushButtonAddSong_clicked();
+        songbookApi->removeRequest(requestsModel->requests().at(0).requestId());
+        if (rotModel->rowCount() > 5)
+            rotModel->singerDelete(rotModel->singerIdAtPosition(0));
+        ui->pushButtonRunTortureTest->setText("Running Torture Test (" + QString::number(++testruns) + ")");
+    }
 }
 
 void DlgRequests::on_pushButtonSearch_clicked()
@@ -560,4 +574,13 @@ void DlgRequests::closeEvent(QCloseEvent *event)
 {
     hide();
     event->ignore();
+}
+
+void DlgRequests::on_pushButtonRunTortureTest_clicked()
+{
+    connect(&testTimer, &QTimer::timeout, [&] () {
+        qInfo() << "Triggering test songbook add";
+       songbookApi->triggerTestAdd();
+    });
+    testTimer.start(3000);
 }

@@ -62,7 +62,8 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset theme="edit-clear-all"/>
+           <iconset theme="edit-clear-all">
+            <normaloff>.</normaloff>.</iconset>
           </property>
           <property name="iconSize">
            <size>
@@ -109,6 +110,13 @@
           </property>
           <property name="text">
            <string>Accept requests</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButtonRunTortureTest">
+          <property name="text">
+           <string>Run Torture Test</string>
           </property>
          </widget>
         </item>

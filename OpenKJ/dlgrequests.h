@@ -47,6 +47,7 @@ private:
     QString rtClickFile;
     int curRequestId;
     QString curSelReqSinger;
+    QTimer testTimer;
 
 public:
     explicit DlgRequests(RotationModel *rotationModel, QWidget *parent = 0);
@@ -92,6 +93,8 @@ private slots:
     void on_spinBoxKey_valueChanged(int arg1);
 
     void on_pushButtonWebSearch_clicked();
+
+    void on_pushButtonRunTortureTest_clicked();
 
 protected:
     void resizeEvent(QResizeEvent *event);

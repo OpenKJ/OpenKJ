@@ -77,6 +77,19 @@ void OKJSongbookAPI::refreshRequests()
     manager->post(request, jsonDocument.toJson());
 }
 
+void OKJSongbookAPI::triggerTestAdd()
+{
+    QJsonObject jsonObject;
+    jsonObject.insert("command","testingAddRandomRequest");
+    jsonObject.insert("venue_id", settings->requestServerVenue());
+    QJsonDocument jsonDocument;
+    jsonDocument.setObject(jsonObject);
+    QNetworkRequest request(QUrl(settings->requestServerUrl()));
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    manager->post(request, jsonDocument.toJson());
+}
+
+
 void OKJSongbookAPI::removeRequest(int requestId)
 {
     QJsonObject mainObject;
@@ -361,6 +374,11 @@ void OKJSongbookAPI::onNetworkReply(QNetworkReply *reply)
         qInfo() << "Got error json reply";
         qInfo() << "Error string: " << json.object().value("errorString");
         return;
+    }
+    if (command == "testingAddRandomRequest")
+    {
+        qInfo() << "Got reply from testingAddRandomRequest, refreshing requests";
+        refreshRequests();
     }
     if (command == "getEntitledSystemCount")
     {
