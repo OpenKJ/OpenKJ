@@ -23,7 +23,7 @@
 
 #include <QAbstractTableModel>
 #include "okjsongbookapi.h"
-
+#include <QIcon>
 
 class Request
 {
@@ -35,6 +35,10 @@ private:
     QString m_title;
     QString m_singer;
     int m_key;
+    QIcon favorite22On;
+    QIcon favorite22Off;
+    QIcon delete16;
+    QIcon delete22;
 
 public:
     Request(int RequestId, QString Singer, QString Artist, QString Title, int ts, int key = 0);
@@ -58,7 +62,8 @@ class RequestsTableModel : public QAbstractTableModel
 
 private:
     QList<Request> m_requests;
-
+    QIcon delete16;
+    QIcon delete22;
 public:
     explicit RequestsTableModel(QObject *parent = 0);
     enum {SINGER=0,ARTIST,TITLE,TIMESTAMP,KEYCHG};

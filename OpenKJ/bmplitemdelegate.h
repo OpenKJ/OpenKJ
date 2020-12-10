@@ -22,12 +22,15 @@
 #define BMPLITEMDELEGATE_H
 
 #include <QItemDelegate>
+#include <QIcon>
 
 class BmPlItemDelegate : public QItemDelegate
 {
     Q_OBJECT
 private:
     int m_currentSong;
+    QIcon m_iconDelete;
+    QIcon m_iconPlaying;
 public:
     explicit BmPlItemDelegate(QObject *parent = 0);
 

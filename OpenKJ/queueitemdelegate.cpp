@@ -26,12 +26,14 @@ extern Settings *settings;
 QueueItemDelegate::QueueItemDelegate(QObject *parent) :
     QItemDelegate(parent)
 {
+    QString thm = (settings->theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
+    delete16 = QIcon(thm + "actions/16/edit-delete.svg");
+    delete22 = QIcon(thm + "actions/22/edit-delete.svg");
 }
 
 
 void QueueItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    QString thm = (settings->theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
     QSize sbSize(QFontMetrics(settings->applicationFont()).height(), QFontMetrics(settings->applicationFont()).height());
     int topPad = (option.rect.height() - sbSize.height()) / 2;
     int leftPad = (option.rect.width() - sbSize.width()) / 2;
@@ -70,9 +72,9 @@ void QueueItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
     if (index.column() == 8)
     {
         if (sbSize.height() > 18)
-            painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon(thm + "actions/22/edit-delete.svg").pixmap(sbSize));
+            painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), delete22.pixmap(sbSize));
         else
-            painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon(thm + "actions/16/edit-delete.svg").pixmap(sbSize));
+            painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), delete16.pixmap(sbSize));
         return;
     }
     if ((index.column() == 5) && (index.data().toString() == "!!DROPPED!!"))

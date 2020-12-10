@@ -736,6 +736,7 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k)
     khTmpDir = new QTemporaryDir();
     if (kMediaBackend.state() != MediaBackend::PausedState)
     {
+        qInfo() << "Playing file: " << karaokeFilePath;
         if (kMediaBackend.state() == MediaBackend::PlayingState)
         {
             if (settings->karaokeAutoAdvance())

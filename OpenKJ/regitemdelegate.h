@@ -23,11 +23,16 @@
 
 #include <QItemDelegate>
 #include <QPainter>
+#include <QIcon>
 
 class RegItemDelegate : public QItemDelegate
 {
     Q_OBJECT
-
+private:
+    QIcon m_iconDelete16;
+    QIcon m_iconDelete22;
+    QIcon m_iconLoadReg16;
+    QIcon m_iconLoadReg22;
 public:
     explicit RegItemDelegate(QObject *parent = 0);
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
