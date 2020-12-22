@@ -31,6 +31,7 @@
 #include <QDir>
 #include <QDataStream>
 #include <QFontDatabase>
+#include <QUuid>
 
 
 int Settings::remainRtOffset()
@@ -591,6 +592,16 @@ void Settings::setEnforceAspectRatio(const bool &enforce)
 QString Settings::auxTickerFile()
 {
     return settings->value("auxTickerFile", QString()).toString();
+}
+
+QString Settings::uuid()
+{
+    if (!settings->contains("uuid"))
+    {
+        QString uuid = QUuid::createUuid().toString(QUuid::WithoutBraces);
+        settings->setValue("uuid", uuid);
+    }
+    return settings->value("uuid", QVariant()).toString();
 }
 
 void Settings::setDurationPosition(const QPoint pos)

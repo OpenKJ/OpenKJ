@@ -1,8 +1,11 @@
 #include "updatechecker.h"
 #include <QApplication>
 #include <QDebug>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QNetworkReply>
 #include <settings.h>
+#include <QSysInfo>
 
 extern Settings *settings;
 
@@ -95,6 +98,28 @@ void UpdateChecker::onNetworkReply(QNetworkReply *reply)
     else if (availMajor == curMajor && availMinor == curMinor && availRevis > curRevis)
         emit newVersionAvailable(availVersion);
     qInfo() << "Received version: " << availVersion << " Current version: " << currentVer;
+    reply->deleteLater();
+    disconnect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
+    connect(manager, &QNetworkAccessManager::finished, this, &UpdateChecker::aOnNetworkReply);
+
+    QJsonObject jsonObject;
+    jsonObject.insert("uuid", settings->uuid());
+    jsonObject.insert("branch", OKJ_VERSION_BRANCH);
+    jsonObject.insert("version", currentVer);
+    jsonObject.insert("os", QSysInfo::kernelType());
+    jsonObject.insert("osversion", QSysInfo::prettyProductName());
+    jsonObject.insert("arch", QSysInfo::currentCpuArchitecture());
+    QJsonDocument jsonDocument;
+    jsonDocument.setObject(jsonObject);
+    QNetworkRequest request(QUrl("http://openkj.org/appanalytics"));
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    reply = manager->post(request, jsonDocument.toJson());
+
+}
+
+void UpdateChecker::aOnNetworkReply(QNetworkReply *reply)
+{
+    qInfo() << reply->readAll();
     reply->deleteLater();
 }
 

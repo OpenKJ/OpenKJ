@@ -294,6 +294,7 @@ public:
     bool enforceAspectRatio();
     void setEnforceAspectRatio(const bool &enforce);
     QString auxTickerFile();
+    QString uuid();
 
 signals:
     void enforceAspectRatioChanged(const bool &enforce);
