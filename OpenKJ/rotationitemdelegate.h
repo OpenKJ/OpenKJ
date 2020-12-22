@@ -23,6 +23,7 @@
 
 #include <QItemDelegate>
 #include <QPainter>
+#include <QIcon>
 
 class RotationItemDelegate : public QItemDelegate
 {
@@ -31,6 +32,14 @@ class RotationItemDelegate : public QItemDelegate
 private:
     int m_currentSingerId;
     int singerCount;
+    QIcon favorite16On;
+    QIcon favorite16Off;
+    QIcon favorite22On;
+    QIcon favorite22Off;
+    QIcon delete16;
+    QIcon delete22;
+    QIcon mic16;
+    QIcon mic22;
 
 public:
     explicit RotationItemDelegate(QObject *parent = 0);

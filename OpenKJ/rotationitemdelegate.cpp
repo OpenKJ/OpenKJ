@@ -30,6 +30,16 @@ RotationItemDelegate::RotationItemDelegate(QObject *parent) :
 {
     m_currentSingerId = -1;
     singerCount = 0;
+    QString thm = (settings->theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
+    favorite16Off = QIcon(thm + "actions/16/im-user.svg");
+    favorite22Off = QIcon(thm + "actions/22/im-user.svg");
+    favorite16On = QIcon(thm + "actions/16/im-user-online.svg");
+    favorite22On = QIcon(thm + "actions/22/im-user-online.svg");
+    mic16 = QIcon(thm + "status/16/mic-on");
+    mic22 = QIcon(thm + "status/22/mic-on");
+    delete16 = QIcon(thm + "actions/16/edit-delete.svg");
+    delete22 = QIcon(thm + "actions/22/edit-delete.svg");
+
 }
 
 int RotationItemDelegate::currentSinger()
@@ -44,7 +54,6 @@ void RotationItemDelegate::setCurrentSinger(int currentSingerId)
 
 void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    QString thm = (settings->theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
     QSize sbSize(QFontMetrics(settings->applicationFont()).height(), QFontMetrics(settings->applicationFont()).height());
     int topPad = (option.rect.height() - sbSize.height()) / 2;
     int leftPad = (option.rect.width() - sbSize.width()) / 2;
@@ -68,16 +77,16 @@ void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
             if (sbSize.height() > 18)
             {
                 if (index.data().toBool())
-                    painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon(thm + "actions/22/im-user-online.svg").pixmap(sbSize));
+                    painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), favorite22On.pixmap(sbSize));
                 else
-                    painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon(thm + "actions/22/im-user.svg").pixmap(sbSize));
+                    painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), favorite22Off.pixmap(sbSize));
             }
             else
             {
                 if (index.data().toBool())
-                    painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon(thm + "actions/16/im-user-online.svg").pixmap(sbSize));
+                    painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), favorite16On.pixmap(sbSize));
                 else
-                    painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon(thm + "actions/16/im-user.svg").pixmap(sbSize));
+                    painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), favorite16Off.pixmap(sbSize));
             }
         return;
     }
@@ -106,9 +115,9 @@ void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
         if (index.sibling(index.row(), 0).data().toInt() == m_currentSingerId)
         {
             if (sbSize.height() > 18)
-                painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon(thm + "status/22/mic-on").pixmap(sbSize));
+                painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), mic22.pixmap(sbSize));
             else
-                painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon(thm + "status/16/mic-on").pixmap(sbSize));
+                painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), mic16.pixmap(sbSize));
 
         }
         else if (settings->rotationDisplayPosition())
@@ -145,9 +154,9 @@ void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
     if (index.column() == 4)
     {
         if (sbSize.height() > 18)
-            painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon(thm + "actions/22/edit-delete").pixmap(sbSize));
+            painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), delete22.pixmap(sbSize));
         else
-            painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon(thm + "actions/16/edit-delete").pixmap(sbSize));
+            painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), delete16.pixmap(sbSize));
         return;
     }
     painter->save();

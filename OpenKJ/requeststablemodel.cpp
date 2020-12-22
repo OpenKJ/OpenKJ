@@ -31,6 +31,9 @@ RequestsTableModel::RequestsTableModel(QObject *parent) :
     QAbstractTableModel(parent)
 {
     connect(songbookApi, SIGNAL(requestsChanged(OkjsRequests)), this, SLOT(requestsChanged(OkjsRequests)));
+    QString thm = (settings->theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
+    delete16 = QIcon(thm + "actions/16/edit-delete.svg");
+    delete22 = QIcon(thm + "actions/22/edit-delete.svg");
 }
 
 void RequestsTableModel::requestsChanged(OkjsRequests requests)
@@ -65,7 +68,6 @@ int RequestsTableModel::columnCount(const QModelIndex &parent) const
 QVariant RequestsTableModel::data(const QModelIndex &index, int role) const
 {
     QSize sbSize(QFontMetrics(settings->applicationFont()).height(), QFontMetrics(settings->applicationFont()).height());
-    QString thm = (settings->theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
     if(!index.isValid())
         return QVariant();
 
@@ -74,9 +76,9 @@ QVariant RequestsTableModel::data(const QModelIndex &index, int role) const
     if ((index.column() == 5) && (role == Qt::DecorationRole))
     {
         if (sbSize.height() > 18)
-            return QIcon(thm + "actions/22/edit-delete.svg").pixmap(sbSize);
+            return delete22.pixmap(sbSize);
         else
-            return QIcon(thm + "actions/16/edit-delete.svg").pixmap(sbSize);
+            return delete16.pixmap(sbSize);
     }
     if (role == Qt::TextAlignmentRole)
         switch(index.column())

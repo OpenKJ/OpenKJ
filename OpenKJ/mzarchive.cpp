@@ -168,7 +168,12 @@ bool MzArchive::extractAudio(QString destPath, QString destFile)
         }
         mz_zip_archive archive;
         memset(&archive, 0, sizeof(archive));
-        mz_zip_reader_init_file(&archive, archiveFile.toLocal8Bit(), 0);
+        //mz_zip_reader_init_file(&archive, archiveFile.toLocal8Bit(), 0);
+        QFile zipFile(archiveFile);
+        zipFile.open(QIODevice::ReadOnly);
+        QByteArray zipData = zipFile.readAll();
+        zipFile.close();
+        mz_zip_reader_init_mem(&archive, zipData.data(), zipData.size(), 0);
         if (mz_zip_reader_extract_to_file(&archive, m_audioFileIndex, QString(destPath + QDir::separator() + destFile).toLocal8Bit(),0))
         {
             mz_zip_reader_end(&archive);
@@ -197,7 +202,11 @@ bool MzArchive::extractCdg(QString destPath, QString destFile)
         }
         mz_zip_archive archive;
         memset(&archive, 0, sizeof(archive));
-        mz_zip_reader_init_file(&archive, archiveFile.toLocal8Bit(), 0);
+        QFile zipFile(archiveFile);
+        zipFile.open(QIODevice::ReadOnly);
+        QByteArray zipData = zipFile.readAll();
+        zipFile.close();
+        mz_zip_reader_init_mem(&archive, zipData.data(), zipData.size(), 0);
         if (mz_zip_reader_extract_to_file(&archive, m_cdgFileIndex, QString(destPath + QDir::separator() + destFile).toLocal8Bit(),0))
         {
             mz_zip_reader_end(&archive);
@@ -275,7 +284,16 @@ bool MzArchive::findEntries()
     mz_zip_archive archive;
     memset(&archive, 0, sizeof(archive));
     mz_zip_archive_file_stat fStat;
-    if (!mz_zip_reader_init_file(&archive, archiveFile.toLocal8Bit(), 0))
+
+    QFile zipFile(archiveFile);
+    if (!zipFile.open(QIODevice::ReadOnly))
+    {
+        qWarning() << "Error opening zip file";
+        return false;
+    }
+    QByteArray zipData = zipFile.readAll();
+    zipFile.close();
+    if (!mz_zip_reader_init_mem(&archive, zipData.data(), zipData.size(), 0))
     {
         qWarning() << "Error opening zip file";
         return false;

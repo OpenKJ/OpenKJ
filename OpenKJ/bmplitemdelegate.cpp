@@ -40,12 +40,14 @@ BmPlItemDelegate::BmPlItemDelegate(QObject *parent) :
     QItemDelegate(parent)
 {
     m_currentSong = -1;
+    QString thm = (settings->theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
+    m_iconDelete = QIcon(thm + "actions/22/edit-delete.svg");
+    m_iconPlaying = QIcon(thm + "actions/22/media-playback-start.svg");
 }
 
 void BmPlItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     QSize sbSize(QFontMetrics(settings->applicationFont()).height(), QFontMetrics(settings->applicationFont()).height());
-    QString thm = (settings->theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
     int topPad = (option.rect.height() - sbSize.height()) / 2;
     int leftPad = (option.rect.width() - sbSize.width()) / 2;
 
@@ -68,7 +70,7 @@ void BmPlItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     if (index.column() == 2)
     {
         if (index.row() == m_currentSong)
-            painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon(thm + "actions/22/media-playback-start.svg").pixmap(sbSize));
+            painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), m_iconPlaying.pixmap(sbSize));
         return;
     }
     if (index.column() == 5)
@@ -101,7 +103,7 @@ void BmPlItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     }
     if (index.column() == 7)
     {
-        painter->drawPixmap(QRect(option.rect.x() + leftPad, option.rect.y() + topPad, sbSize.width(), sbSize.height()), QIcon::fromTheme("edit-delete").pixmap(sbSize));
+        painter->drawPixmap(QRect(option.rect.x() + leftPad, option.rect.y() + topPad, sbSize.width(), sbSize.height()), m_iconDelete.pixmap(sbSize));
         return;
     }
     if (index.column() == 6)

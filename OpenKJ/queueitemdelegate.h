@@ -23,12 +23,14 @@
 
 #include <QItemDelegate>
 #include <QPainter>
-
+#include <QIcon>
 
 class QueueItemDelegate : public QItemDelegate
 {
     Q_OBJECT
-
+private:
+    QIcon delete16;
+    QIcon delete22;
 public:
     explicit QueueItemDelegate(QObject *parent = 0);
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
