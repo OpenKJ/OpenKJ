@@ -2937,17 +2937,39 @@ void MainWindow::filesDroppedOnQueue(const QList<QUrl> &urls, const int &singerI
             }
             else if (file.endsWith(".cdg", Qt::CaseInsensitive))
             {
-                QString noext = file;
-                noext.chop(3);
-                QString mp3_1 = noext + "mp3";
-                QString mp3_2 = noext + "MP3";
-                QString mp3_3 = noext + "Mp3";
-                QString mp3_4 = noext + "mP3";
-                if (!QFile(mp3_1).exists() && !QFile(mp3_2).exists() && !QFile(mp3_3).exists() && !QFile(mp3_4).exists())
+                QStringList audioExtensions;
+                audioExtensions.append("mp3");
+                audioExtensions.append("wav");
+                audioExtensions.append("ogg");
+                audioExtensions.append("mov");
+                audioExtensions.append("flac");
+                QFileInfo cdgInfo(file);
+                QDir srcDir = cdgInfo.absoluteDir();
+                QDirIterator it(srcDir);
+                bool fileFound{false};
+                while (it.hasNext())
+                {
+                    it.next();
+                    if (it.fileInfo().completeBaseName() != cdgInfo.completeBaseName())
+                        continue;
+                    if (it.fileInfo().suffix().toLower() == "cdg")
+                        continue;
+                    QString ext;
+                    foreach (ext, audioExtensions)
+                    {
+                        if (it.fileInfo().suffix().toLower() == ext)
+                        {
+                            qInfo() << "findMatchingAudioFile found match: " << it.filePath();
+                            fileFound = true;
+                            break;
+                        }
+                    }
+                }
+                if (!fileFound)
                 {
                     QMessageBox msgBox;
                     msgBox.setWindowTitle("Invalid karoake file!");
-                    msgBox.setText("CDG file dropped on queue has no matching mp3 file");
+                    msgBox.setText("CDG file dropped on queue has no matching audio file");
                     msgBox.setInformativeText(file);
                     msgBox.exec();
                     continue;
