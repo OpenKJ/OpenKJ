@@ -598,7 +598,7 @@ QString Settings::uuid()
 {
     if (!settings->contains("uuid"))
     {
-        QString uuid = QUuid::createUuid().toString(QUuid::WithoutBraces);
+        QString uuid = QUuid::createUuid().toString();
         settings->setValue("uuid", uuid);
     }
     return settings->value("uuid", QVariant()).toString();
