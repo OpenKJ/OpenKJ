@@ -735,6 +735,8 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k)
 {
     khTmpDir->remove();
     delete khTmpDir;
+    ui->videoPreview->setKeepAspectRatio(settings->enforceAspectRatio());
+    cdgWindow->getVideoDisplay()->setKeepAspectRatio(settings->enforceAspectRatio());
     khTmpDir = new QTemporaryDir();
     if (kMediaBackend.state() != MediaBackend::PausedState)
     {

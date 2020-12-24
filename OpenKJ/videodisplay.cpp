@@ -63,7 +63,43 @@ void VideoDisplay::paintEvent(QPaintEvent *event)
     }
     else
     {
-        painter.drawPixmap(rect(), m_curFrame, m_curFrame.rect());
+        if (m_keepAspectRatio)
+        {
+            double widgetWidth = this->width();
+            double widgetHeight = this->height();
+            QRectF target(0, 0, widgetWidth, widgetHeight);
+
+            QPixmap tempQImage = m_curFrame.scaled(rect().size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+            double imageSizeWidth = static_cast<double>(tempQImage.width());
+            double imageSizeHeight = static_cast<double>(tempQImage.height());
+            QRectF source(0.0, 0.0, imageSizeWidth, imageSizeHeight);
+
+            int deltaX = 0;
+            int deltaY = 0;
+            if(source.width() < target.width())
+                deltaX = target.width() - source.width();
+            else
+                deltaX = source.width() - target.width();
+
+            if(source.height() < target.height())
+                deltaY = target.height() - source.height();
+            else
+                deltaY = source.height() - target.height();
+
+            QPainter painter(this);
+            painter.translate(deltaX / 2, deltaY / 2);
+            painter.fillRect(rect(), Qt::black);
+            painter.drawPixmap(source, tempQImage, tempQImage.rect());
+//            auto scaled = m_curFrame.scaled(width(),height(),Qt::KeepAspectRatio, Qt::SmoothTransformation);
+//            QRect rect = QRect((width() - scaled.width()) / 2, (height() - scaled.height()) / 2, scaled.width(), scaled.height());
+//            painter.drawPixmap(this->rect(), scaled, rect);
+        }
+        else
+        {
+            auto scaled = m_curFrame.scaled(width(),height(),Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+            painter.drawPixmap(rect(), scaled, scaled.rect());
+        }
     }
 }
 

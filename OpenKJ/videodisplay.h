@@ -19,12 +19,14 @@ private:
     MediaBackend *bmb;
     bool videoIsPlaying();
     bool m_softwareRenderMode{false};
+    bool m_keepAspectRatio{true};
 
 public:
     explicit VideoDisplay(QWidget *parent = nullptr);
     void setMediaBackends(MediaBackend *k, MediaBackend *b) { kmb = k; bmb = b; }
     void renderFrame(QImage frame);
     void setSoftwareRenderMode(bool enabled) { m_softwareRenderMode = enabled; if (!enabled) update(); }
+    void setKeepAspectRatio(const bool enabled) { m_keepAspectRatio = enabled; }
 
 signals:
     void mouseMoveEvent(QMouseEvent *event) override;
