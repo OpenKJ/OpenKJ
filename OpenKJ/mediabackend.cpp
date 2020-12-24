@@ -748,26 +748,29 @@ void MediaBackend::resetVideoSinks()
 
     qInfo() << "Deleting and recreating video sinks";
 
+    qInfo() << "Clearing overlay winIDs";
     gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1), 0);
     gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2), 0);
     gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1Cdg), 0);
     gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2Cdg), 0);
 
+    qInfo() << "Removing CDG video sinks from cdg bin";
    // gst_element_unlink(m_videoScale1Cdg, m_videoSink1Cdg);
    // gst_element_unlink(m_videoScale2Cdg, m_videoSink2Cdg);
     gst_bin_remove(GST_BIN(m_cdgBin),m_videoSink1Cdg);
     gst_bin_remove(GST_BIN(m_cdgBin),m_videoSink2Cdg);
-
+    qInfo() << "Removing video sinks from video bin";
   //  gst_element_unlink(m_videoScale1, m_videoSink1);
   //  gst_element_unlink(m_videoScale2, m_videoSink2);
     gst_bin_remove(GST_BIN(m_videoBin),m_videoSink1);
     gst_bin_remove(GST_BIN(m_videoBin),m_videoSink2);
 
-    g_object_unref(m_videoSink1Cdg);
-    g_object_unref(m_videoSink2Cdg);
-    g_object_unref(m_videoSink1);
-    g_object_unref(m_videoSink2);
+//    g_object_unref(m_videoSink1Cdg);
+//    g_object_unref(m_videoSink2Cdg);
+//    g_object_unref(m_videoSink1);
+//    g_object_unref(m_videoSink2);
 
+    qInfo() << "Creating new video sinks";
 #if defined(Q_OS_LINUX)
     //m_accelMode = OpenGL;
     switch (m_accelMode) {
@@ -796,6 +799,8 @@ void MediaBackend::resetVideoSinks()
     m_videoSink2 = gst_element_factory_make("glimagesink", "videoSink2");
 #endif
 
+
+    qInfo() << "Adding and linking new sinks";
     gst_bin_add_many(GST_BIN(m_cdgBin), m_videoSink1Cdg, m_videoSink2Cdg, nullptr);
     gst_element_link(m_videoScale1Cdg, m_videoSink1Cdg);
     gst_element_link(m_videoScale2Cdg, m_videoSink2Cdg);
@@ -803,16 +808,19 @@ void MediaBackend::resetVideoSinks()
     gst_element_link(m_videoScale1, m_videoSink1);
     gst_element_link(m_videoScale2, m_videoSink2);
 
+    qInfo() << "Setting overlay winIds";
     gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1), m_videoWinId1);
     gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2), m_videoWinId2);
     gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1Cdg), m_videoWinId1);
     gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2Cdg), m_videoWinId2);
 
+    qInfo() << "Setting enforce aspect ratio for sinks";
     g_object_set(m_videoSink1, "force-aspect-ratio", m_enforceAspectRatio, nullptr);
     g_object_set(m_videoSink2, "force-aspect-ratio", m_enforceAspectRatio, nullptr);
     g_object_set(m_videoSink1Cdg, "force-aspect-ratio", m_enforceAspectRatio, nullptr);
     g_object_set(m_videoSink2Cdg, "force-aspect-ratio", m_enforceAspectRatio, nullptr);
 
+    qInfo() << "reset complete";
 }
 
 void MediaBackend::buildCdgBin()
