@@ -132,7 +132,11 @@ private:
     GstElement *m_videoSink2;
     GstElement *m_videoSink1Cdg;
     GstElement *m_videoSink2Cdg;
-
+    GstElement *m_videoScale1Cdg;
+    GstElement *m_videoScale2Cdg;
+    GstElement *m_videoScale1;
+    GstElement *m_videoScale2;
+    GstElement *m_videoBin;
     //GstElement *m_cdgPlaybin;
 
 //    GstElement *cdgVidConv;
@@ -176,6 +180,7 @@ private:
     bool m_bypass{false};
     bool m_loadPitchShift;
     bool m_downmix{false};
+    bool m_enforceAspectRatio{true};
     std::array<int,10> m_eqLevels{0,0,0,0,0,0,0,0,0,0};
     std::vector<GstDevice*> m_outputDevices;
     QPointer<AudioFader> m_fader;
@@ -187,6 +192,7 @@ private:
     int m_videoOffsetMs{0};
 
     void buildPipeline();
+    void resetVideoSinks();
     void buildCdgBin();
     void getGstDevices();
     double getPitchForSemitone(const int &semitone);
