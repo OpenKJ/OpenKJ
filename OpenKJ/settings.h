@@ -57,6 +57,7 @@ private:
     QSettings *settings;
 
 public:
+    int getSystemRamSize();
     int remainRtOffset();
     int remainBtmOffset();
     qint64 hash(const QString & str);

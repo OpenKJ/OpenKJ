@@ -32,7 +32,30 @@
 #include <QDataStream>
 #include <QFontDatabase>
 #include <QUuid>
+#include <fstream>
 
+
+int Settings::getSystemRamSize()
+{
+#ifdef Q_OS_LINUX
+    std::string token;
+    std::ifstream file("/proc/meminfo");
+    while(file >> token) {
+        if(token == "MemTotal:") {
+            unsigned long mem;
+            if(file >> mem) {
+                return mem;
+            } else {
+                return 0;
+            }
+        }
+        // ignore rest of the line
+        file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+    return 0; // nothing found
+#endif
+    return 0;
+}
 
 int Settings::remainRtOffset()
 {
@@ -277,7 +300,6 @@ QString Settings::karoakeDotNetPass(const QString &password)
 Settings::Settings(QObject *parent) :
     QObject(parent)
 {
-
     QCoreApplication::setOrganizationName("OpenKJ");
     QCoreApplication::setOrganizationDomain("OpenKJ.org");
     QCoreApplication::setApplicationName("OpenKJ");
@@ -1077,7 +1099,16 @@ int Settings::videoOffsetMs()
 
 int Settings::cdgMemoryCompressionLevel()
 {
-    return settings->value("cdgMemoryCompressionLevel", (QSysInfo::currentCpuArchitecture().contains("arm", Qt::CaseInsensitive)) ? 1 : 0).toInt();
+    auto ramSize = getSystemRamSize();
+    if (ramSize < 6000000 && ramSize != 0)
+    {
+        qInfo() << "System physical RAM < 6GB, defaulting cdg ram compression to lvl 1";
+        return settings->value("cdgMemoryCompressionLevel", 1).toInt();
+    }
+    else
+    {
+        return settings->value("cdgMemoryCompressionLevel", 0).toInt();
+    }
 }
 
 void Settings::setIgnoreAposInSearch(bool ignore)
