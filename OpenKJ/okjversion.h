@@ -5,6 +5,6 @@
 #define OKJ_VERSION_MINOR 8
 #define OKJ_VERSION_BUILD 0
 #define OKJ_VERSION_STRING "1.8.0"
-#define OKJ_VERSION_BRANCH "stable"
+#define OKJ_VERSION_BRANCH "unstable"
 
 #endif //OKJVERSION_H
