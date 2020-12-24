@@ -89,7 +89,6 @@ void VideoDisplay::paintEvent(QPaintEvent *event)
 
             QPainter painter(this);
             painter.translate(deltaX / 2, deltaY / 2);
-            painter.fillRect(rect(), Qt::black);
             painter.drawPixmap(source, tempQImage, tempQImage.rect());
 //            auto scaled = m_curFrame.scaled(width(),height(),Qt::KeepAspectRatio, Qt::SmoothTransformation);
 //            QRect rect = QRect((width() - scaled.width()) / 2, (height() - scaled.height()) / 2, scaled.width(), scaled.height());
