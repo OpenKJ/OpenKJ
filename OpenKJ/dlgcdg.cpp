@@ -37,6 +37,11 @@ WId DlgCdg::getCdgWinId()
     return ui->videoDisplay->winId();
 }
 
+VideoDisplay *DlgCdg::getVideoDisplay()
+{
+    return ui->videoDisplay;
+}
+
 DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget *parent, Qt::WindowFlags f) :
     QDialog(parent, f), ui(new Ui::DlgCdg), m_kmb(KaraokeBackend), m_bmb(BreakBackend)
 {

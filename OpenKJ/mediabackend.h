@@ -101,6 +101,8 @@ public:
         return QString(min + ":" + sec);
     }
     void testCdgDecode();
+    void newFrame();
+    void newFrameCdg();
 
 private:
     enum GstPlayFlags {
@@ -137,6 +139,8 @@ private:
     GstElement *m_videoScale1;
     GstElement *m_videoScale2;
     GstElement *m_videoBin;
+    GstElement *m_videoAppSink;
+    GstElement *m_videoAppSinkCdg;
     //GstElement *m_cdgPlaybin;
 
 //    GstElement *cdgVidConv;
@@ -180,7 +184,9 @@ private:
     bool m_bypass{false};
     bool m_loadPitchShift;
     bool m_downmix{false};
+    bool m_noaccelHasVideo{false};
     bool m_enforceAspectRatio{true};
+    bool m_videoAccelEnabled{false};
     std::array<int,10> m_eqLevels{0,0,0,0,0,0,0,0,0,0};
     std::vector<GstDevice*> m_outputDevices;
     QPointer<AudioFader> m_fader;
@@ -203,6 +209,14 @@ private:
     static void cb_need_data(GstElement *appsrc, guint unused_size, gpointer user_data);
     static gboolean cb_seek_data(GstElement *appsrc, guint64 position, gpointer user_data);
     static void cb_enough_data(GstElement *appsrc, gpointer user_data);
+
+    static void EndOfStreamCallback(GstAppSink *appsink, gpointer user_data);
+    static GstFlowReturn NewPrerollCallback(GstAppSink *appsink, gpointer user_data);
+    static GstFlowReturn NewSampleCallback(GstAppSink *appsink, gpointer user_data);
+    static GstFlowReturn NewSampleCallbackCdg(GstAppSink *appsink, gpointer user_data);
+    static GstFlowReturn NewAudioSampleCallback(GstAppSink *appsink, gpointer user_data);
+    static void DestroyCallback(gpointer user_data);
+
 private slots:
     void timerFast_timeout();
     void timerSlow_timeout();

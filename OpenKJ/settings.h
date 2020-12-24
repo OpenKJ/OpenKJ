@@ -77,6 +77,7 @@ public:
     void setSaveKNAccount(bool save);
     bool saveKNAccount();
     bool testingEnabled();
+    bool hardwareAccelEnabled();
     QString getCCN(const QString &password);
     QString getCCM(const QString &password);
     QString getCCY(const QString &password);
@@ -363,6 +364,7 @@ signals:
     void durationPositionReset();
     void videoOffsetChanged(const int offsetMs);
 public slots:
+    void setHardwareAccelEnabled(const bool enabled);
     void setDurationPosition(const QPoint pos);
     void resetDurationPosition();
     void setRemainRtOffset(int offset);

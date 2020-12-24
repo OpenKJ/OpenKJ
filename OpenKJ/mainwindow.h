@@ -309,6 +309,7 @@ private slots:
     void on_actionMultiplex_Controls_triggered(bool checked);
 
     void on_actionCDG_Decode_Torture_triggered();
+    void videoFrameReceived(QImage frame, QString backendName);
 
 protected:
     void closeEvent(QCloseEvent *event);

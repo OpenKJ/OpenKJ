@@ -21,6 +21,12 @@ VideoDisplay::VideoDisplay(QWidget *parent) : QWidget(parent)
     setMouseTracking(true);
 }
 
+void VideoDisplay::renderFrame(QImage frame)
+{
+    m_curFrame = QPixmap::fromImage(frame);
+    update();
+}
+
 void VideoDisplay::setBackground(const QPixmap &pixmap)
 {
     m_useDefaultBg = false;
@@ -39,19 +45,26 @@ void VideoDisplay::useDefaultBackground()
 void VideoDisplay::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
-    if(videoIsPlaying())
+    if (!m_softwareRenderMode)
     {
+        if(videoIsPlaying())
+        {
+            painter.fillRect(event->rect(), Qt::black);
+            return;
+        }
+        if (m_useDefaultBg)
+        {
+            QSvgRenderer renderer(QString(":icons/Icons/okjlogo.svg"));
+            renderer.render(&painter);
+            return;
+        }
         painter.fillRect(event->rect(), Qt::black);
-        return;
+        painter.drawPixmap(rect(), m_currentBg, m_currentBg.rect());
     }
-    if (m_useDefaultBg)
+    else
     {
-        QSvgRenderer renderer(QString(":icons/Icons/okjlogo.svg"));
-        renderer.render(&painter);
-        return;
+        painter.drawPixmap(rect(), m_curFrame, m_curFrame.rect());
     }
-    painter.fillRect(event->rect(), Qt::black);
-    painter.drawPixmap(rect(), m_currentBg, m_currentBg.rect());
 }
 
 void VideoDisplay::resizeEvent(QResizeEvent *event)

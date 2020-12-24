@@ -13,14 +13,18 @@ class VideoDisplay : public QWidget
     Q_OBJECT
 private:
     QPixmap m_currentBg;
+    QPixmap m_curFrame;
     bool m_useDefaultBg{true};
     MediaBackend *kmb;
     MediaBackend *bmb;
     bool videoIsPlaying();
+    bool m_softwareRenderMode{false};
 
 public:
     explicit VideoDisplay(QWidget *parent = nullptr);
     void setMediaBackends(MediaBackend *k, MediaBackend *b) { kmb = k; bmb = b; }
+    void renderFrame(QImage frame);
+    void setSoftwareRenderMode(bool enabled) { m_softwareRenderMode = enabled; if (!enabled) update(); }
 
 signals:
     void mouseMoveEvent(QMouseEvent *event) override;

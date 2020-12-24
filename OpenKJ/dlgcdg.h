@@ -31,6 +31,7 @@
 #include "settings.h"
 #include <QTimer>
 #include "mediabackend.h"
+#include "videodisplay.h"
 
 
 class TransparentWidget : public QWidget
@@ -117,6 +118,7 @@ public:
     void setTickerText(QString text);
     void stopTicker();
     WId getCdgWinId();
+    VideoDisplay* getVideoDisplay();
 
 protected:
     void mouseDoubleClickEvent(QMouseEvent *e) override;

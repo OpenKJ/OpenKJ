@@ -71,6 +71,17 @@ MediaBackend::MediaBackend(bool pitchShift, QObject *parent, QString objectName)
     qWarning() << qgetenv("GST_PLUGIN_SYSTEM_PATH") << endl << qgetenv("GST_PLUGIN_SCANNER") << endl << qgetenv("GTK_PATH") << endl << qgetenv("GIO_EXTRA_MODULES") << endl;
 #endif
     qInfo() << "Start constructing GStreamer backend";
+    Settings settings;
+    if (!settings.hardwareAccelEnabled())
+    {
+        qInfo() << "Hardware accelerated video rendering disabled";
+        m_videoAccelEnabled = false;
+    }
+    else
+    {
+        qInfo() << "Hardware accelerated video rendering enabled";
+        m_videoAccelEnabled = true;
+    }
     QMetaTypeId<std::shared_ptr<GstMessage>>::qt_metatype_id();
     buildPipeline();
     //buildCdgBin();
@@ -174,6 +185,56 @@ void MediaBackend::testCdgDecode()
     m_cdg.process();
 }
 
+void MediaBackend::newFrame()
+{
+    GstSample* sample = gst_app_sink_pull_sample((GstAppSink*)m_videoAppSink);
+
+    if (sample) {
+        m_noaccelHasVideo = true;
+        GstBuffer *buffer;
+        GstCaps *caps;
+        GstStructure *s;
+        int width, height;
+        caps = gst_sample_get_caps (sample);
+        s = gst_caps_get_structure (caps, 0);
+        gst_structure_get_int (s, "width", &width);
+        gst_structure_get_int (s, "height", &height);
+        buffer = gst_sample_get_buffer (sample);
+        GstMapInfo bufferInfo;
+        gst_buffer_map(buffer,&bufferInfo,GST_MAP_READ);
+        guint8 *rawFrame = bufferInfo.data;
+        QImage frame = QImage(rawFrame,width,height,QImage::Format_RGB16);
+        emit newVideoFrame(frame, m_objName);
+        gst_buffer_unmap(buffer, &bufferInfo);
+        gst_sample_unref(sample);
+    }
+}
+
+void MediaBackend::newFrameCdg()
+{
+    GstSample* sample = gst_app_sink_pull_sample((GstAppSink*)m_videoAppSinkCdg);
+
+    if (sample) {
+        m_noaccelHasVideo = true;
+        GstBuffer *buffer;
+        GstCaps *caps;
+        GstStructure *s;
+        int width, height;
+        caps = gst_sample_get_caps (sample);
+        s = gst_caps_get_structure (caps, 0);
+        gst_structure_get_int (s, "width", &width);
+        gst_structure_get_int (s, "height", &height);
+        buffer = gst_sample_get_buffer (sample);
+        GstMapInfo bufferInfo;
+        gst_buffer_map(buffer,&bufferInfo,GST_MAP_READ);
+        guint8 *rawFrame = bufferInfo.data;
+        QImage frame = QImage(rawFrame,width,height,QImage::Format_RGB16);
+        emit newVideoFrame(frame, m_objName);
+        gst_buffer_unmap(buffer, &bufferInfo);
+        gst_sample_unref(sample);
+    }
+}
+
 MediaBackend::State MediaBackend::cdgState()
 {
     return MediaBackend::PlayingState;
@@ -188,6 +249,49 @@ MediaBackend::State MediaBackend::cdgState()
     default:
         return StoppedState;
     }
+}
+
+void MediaBackend::EndOfStreamCallback(GstAppSink *appsink, gpointer user_data)
+{
+    Q_UNUSED(appsink)
+    Q_UNUSED(user_data)
+}
+
+GstFlowReturn MediaBackend::NewPrerollCallback(GstAppSink *appsink, gpointer user_data)
+{
+    Q_UNUSED(user_data)
+    Q_UNUSED(appsink)
+    return GST_FLOW_OK;
+}
+
+GstFlowReturn MediaBackend::NewSampleCallback(GstAppSink *appsink, gpointer user_data)
+{
+    Q_UNUSED(appsink)
+    MediaBackend *myObject = (MediaBackend*) user_data;
+    myObject->newFrame();
+    //qInfo() << "got new frame";
+    return GST_FLOW_OK;
+}
+
+GstFlowReturn MediaBackend::NewSampleCallbackCdg(GstAppSink *appsink, gpointer user_data)
+{
+    Q_UNUSED(appsink)
+    MediaBackend *myObject = (MediaBackend*) user_data;
+    myObject->newFrameCdg();
+    //qInfo() << "got new frame";
+    return GST_FLOW_OK;
+}
+
+GstFlowReturn MediaBackend::NewAudioSampleCallback(GstAppSink *appsink, gpointer user_data)
+{
+    Q_UNUSED(appsink);
+    Q_UNUSED(user_data);
+    return GST_FLOW_OK;
+}
+
+void MediaBackend::DestroyCallback(gpointer user_data)
+{
+    Q_UNUSED(user_data);
 }
 
 
@@ -671,6 +775,8 @@ void MediaBackend::buildPipeline()
 
 
     // Video output setup
+    if (m_videoAccelEnabled)
+    {
     m_videoBin = gst_bin_new("videoBin");
     auto queueMainVideo = gst_element_factory_make("queue", "queueMainVideo");
     auto videoQueue1 = gst_element_factory_make("queue", "videoQueue1");
@@ -695,7 +801,19 @@ void MediaBackend::buildPipeline()
     gst_pad_set_active(ghostVideoPad,true);
     gst_element_add_pad(m_videoBin, ghostVideoPad);
     g_object_set(m_playBin, "video-sink", m_videoBin, nullptr);
-
+    }
+    else
+    {
+        GstAppSinkCallbacks appsinkCallbacks;
+        appsinkCallbacks.new_preroll	= &MediaBackend::NewPrerollCallback;
+        appsinkCallbacks.new_sample		= &MediaBackend::NewSampleCallback;
+        appsinkCallbacks.eos			= &MediaBackend::EndOfStreamCallback;
+        m_videoAppSink = gst_element_factory_make("appsink", "videoAppSink");
+        auto videoCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB16", NULL);
+        g_object_set(m_videoAppSink, "caps", videoCaps, NULL);
+        g_object_set(G_OBJECT(m_playBin), "video-sink", m_videoAppSink, NULL);
+        gst_app_sink_set_callbacks(GST_APP_SINK(m_videoAppSink), &appsinkCallbacks, this, (GDestroyNotify)MediaBackend::DestroyCallback);
+    }
     // End video output setup
 
     g_object_set(rgVolume, "album-mode", false, nullptr);
@@ -737,90 +855,13 @@ void MediaBackend::buildPipeline()
 
 void MediaBackend::resetVideoSinks()
 {
+    if (!m_videoAccelEnabled)
+        return;
 
-#ifndef Q_OS_MACOS
     gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1), m_videoWinId1);
     gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2), m_videoWinId2);
     gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1Cdg), m_videoWinId1);
     gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2Cdg), m_videoWinId2);
-    return;
-#endif
-
-    qInfo() << "Deleting and recreating video sinks";
-
-    qInfo() << "Clearing overlay winIDs";
-    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1), 0);
-    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2), 0);
-    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1Cdg), 0);
-    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2Cdg), 0);
-
-    qInfo() << "Removing CDG video sinks from cdg bin";
-   // gst_element_unlink(m_videoScale1Cdg, m_videoSink1Cdg);
-   // gst_element_unlink(m_videoScale2Cdg, m_videoSink2Cdg);
-    gst_bin_remove(GST_BIN(m_cdgBin),m_videoSink1Cdg);
-    gst_bin_remove(GST_BIN(m_cdgBin),m_videoSink2Cdg);
-    qInfo() << "Removing video sinks from video bin";
-  //  gst_element_unlink(m_videoScale1, m_videoSink1);
-  //  gst_element_unlink(m_videoScale2, m_videoSink2);
-    gst_bin_remove(GST_BIN(m_videoBin),m_videoSink1);
-    gst_bin_remove(GST_BIN(m_videoBin),m_videoSink2);
-
-//    g_object_unref(m_videoSink1Cdg);
-//    g_object_unref(m_videoSink2Cdg);
-//    g_object_unref(m_videoSink1);
-//    g_object_unref(m_videoSink2);
-
-    qInfo() << "Creating new video sinks";
-#if defined(Q_OS_LINUX)
-    //m_accelMode = OpenGL;
-    switch (m_accelMode) {
-    case OpenGL:
-        m_videoSink1Cdg = gst_element_factory_make("glimagesink", "cdgvideoSink1");
-        m_videoSink2Cdg = gst_element_factory_make("glimagesink", "cdgvideoSink2");
-        m_videoSink1 = gst_element_factory_make("glimagesink", "videoSink1");
-        m_videoSink2 = gst_element_factory_make("glimagesink", "videoSink2");
-        break;
-    case XVideo:
-        m_videoSink1Cdg = gst_element_factory_make("xvimagesink", "cdgvideoSink1");
-        m_videoSink2Cdg = gst_element_factory_make("xvimagesink", "cdgvideoSink2");
-        m_videoSink1 = gst_element_factory_make("xvimagesink", "videoSink1");
-        m_videoSink2 = gst_element_factory_make("xvimagesink", "videoSink2");
-        break;
-    }
-#elif defined(Q_OS_WIN)
-    m_videoSink1Cdg = gst_element_factory_make ("d3dvideosink", "cdgvideoSink1");
-    m_videoSink2Cdg = gst_element_factory_make("d3dvideosink", "cdgvideoSink2");
-    m_videoSink1 = gst_element_factory_make ("d3dvideosink", "videoSink1");
-    m_videoSink2 = gst_element_factory_make("d3dvideosink", "videoSink2");
-#else
-    m_videoSink1Cdg = gst_element_factory_make ("glimagesink", "cdgvideoSink1");
-    m_videoSink2Cdg = gst_element_factory_make("glimagesink", "cdgvideoSink2");
-    m_videoSink1 = gst_element_factory_make ("glimagesink", "videoSink1");
-    m_videoSink2 = gst_element_factory_make("glimagesink", "videoSink2");
-#endif
-
-
-    qInfo() << "Adding and linking new sinks";
-    gst_bin_add_many(GST_BIN(m_cdgBin), m_videoSink1Cdg, m_videoSink2Cdg, nullptr);
-    gst_element_link(m_videoScale1Cdg, m_videoSink1Cdg);
-    gst_element_link(m_videoScale2Cdg, m_videoSink2Cdg);
-    gst_bin_add_many(GST_BIN(m_videoBin), m_videoSink1, m_videoSink2, nullptr);
-    gst_element_link(m_videoScale1, m_videoSink1);
-    gst_element_link(m_videoScale2, m_videoSink2);
-
-    qInfo() << "Setting overlay winIds";
-    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1), m_videoWinId1);
-    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2), m_videoWinId2);
-    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink1Cdg), m_videoWinId1);
-    gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(m_videoSink2Cdg), m_videoWinId2);
-
-    qInfo() << "Setting enforce aspect ratio for sinks";
-    g_object_set(m_videoSink1, "force-aspect-ratio", m_enforceAspectRatio, nullptr);
-    g_object_set(m_videoSink2, "force-aspect-ratio", m_enforceAspectRatio, nullptr);
-    g_object_set(m_videoSink1Cdg, "force-aspect-ratio", m_enforceAspectRatio, nullptr);
-    g_object_set(m_videoSink2Cdg, "force-aspect-ratio", m_enforceAspectRatio, nullptr);
-
-    qInfo() << "reset complete";
 }
 
 void MediaBackend::buildCdgBin()
@@ -852,26 +893,46 @@ void MediaBackend::buildCdgBin()
                  gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB16", "width", G_TYPE_INT, 288, "height",
                                      G_TYPE_INT, 192, NULL),
                  NULL);
-    auto videoQueue1 = gst_element_factory_make("queue", "videoQueue1");
-    auto videoQueue2 = gst_element_factory_make("queue", "videoQueue2");
-    auto videoConv1 = gst_element_factory_make("videoconvert", "preOutVideoConvert1");
-    auto videoConv2 = gst_element_factory_make("videoconvert", "preOutVideoConvert2");
-    m_videoScale1Cdg = gst_element_factory_make("videoscale", "videoScale1");
-    m_videoScale2Cdg = gst_element_factory_make("videoscale", "videoScale2");
-    auto videoTee = gst_element_factory_make("tee", "videoTee");
-    auto videoTeePad1 = gst_element_get_request_pad(videoTee, "src_%u");
-    auto videoTeePad2 = gst_element_get_request_pad(videoTee, "src_%u");
-    auto videoQueue1SrcPad = gst_element_get_static_pad(videoQueue1, "sink");
-    auto videoQueue2SrcPad = gst_element_get_static_pad(videoQueue2, "sink");
-    gst_bin_add_many(reinterpret_cast<GstBin *>(m_cdgBin), m_cdgAppSrc, cdgVidConv, videoConv1,
-                     videoConv2, videoTee, videoQueue1, videoQueue2, m_videoScale1Cdg, m_videoScale2Cdg,
-                     m_videoSink1Cdg, m_videoSink2Cdg, nullptr);
-    gst_element_link(m_cdgAppSrc, cdgVidConv);
-    gst_element_link(cdgVidConv, videoTee);
-    gst_pad_link(videoTeePad1, videoQueue1SrcPad);
-    gst_pad_link(videoTeePad2, videoQueue2SrcPad);
-    gst_element_link_many(videoQueue1, videoConv1, m_videoScale1Cdg, m_videoSink1Cdg, nullptr);
-    gst_element_link_many(videoQueue2, videoConv2, m_videoScale2Cdg, m_videoSink2Cdg, nullptr);
+
+    if (m_videoAccelEnabled)
+    {
+        auto videoQueue1 = gst_element_factory_make("queue", "videoQueue1");
+        auto videoQueue2 = gst_element_factory_make("queue", "videoQueue2");
+        auto videoConv1 = gst_element_factory_make("videoconvert", "preOutVideoConvert1");
+        auto videoConv2 = gst_element_factory_make("videoconvert", "preOutVideoConvert2");
+        m_videoScale1Cdg = gst_element_factory_make("videoscale", "videoScale1");
+        m_videoScale2Cdg = gst_element_factory_make("videoscale", "videoScale2");
+        auto videoTee = gst_element_factory_make("tee", "videoTee");
+        auto videoTeePad1 = gst_element_get_request_pad(videoTee, "src_%u");
+        auto videoTeePad2 = gst_element_get_request_pad(videoTee, "src_%u");
+        auto videoQueue1SrcPad = gst_element_get_static_pad(videoQueue1, "sink");
+        auto videoQueue2SrcPad = gst_element_get_static_pad(videoQueue2, "sink");
+        gst_bin_add_many(reinterpret_cast<GstBin *>(m_cdgBin), m_cdgAppSrc, cdgVidConv, videoConv1,
+                         videoConv2, videoTee, videoQueue1, videoQueue2, m_videoScale1Cdg, m_videoScale2Cdg,
+                         m_videoSink1Cdg, m_videoSink2Cdg, nullptr);
+        gst_element_link(m_cdgAppSrc, cdgVidConv);
+        gst_element_link(cdgVidConv, videoTee);
+        gst_pad_link(videoTeePad1, videoQueue1SrcPad);
+        gst_pad_link(videoTeePad2, videoQueue2SrcPad);
+        gst_element_link_many(videoQueue1, videoConv1, m_videoScale1Cdg, m_videoSink1Cdg, nullptr);
+        gst_element_link_many(videoQueue2, videoConv2, m_videoScale2Cdg, m_videoSink2Cdg, nullptr);
+    }
+    else
+    {
+        GstAppSinkCallbacks appsinkCallbacks;
+        appsinkCallbacks.new_preroll	= &MediaBackend::NewPrerollCallback;
+        appsinkCallbacks.new_sample		= &MediaBackend::NewSampleCallbackCdg;
+        appsinkCallbacks.eos			= &MediaBackend::EndOfStreamCallback;
+        m_videoAppSinkCdg = gst_element_factory_make("appsink", "videoAppSinkCdg");
+        auto videoCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB16", NULL);
+        g_object_set(m_videoAppSinkCdg, "caps", videoCaps, NULL);
+        gst_app_sink_set_callbacks(GST_APP_SINK(m_videoAppSinkCdg), &appsinkCallbacks, this, (GDestroyNotify)MediaBackend::DestroyCallback);
+        auto videoQueue = gst_element_factory_make("queue", "cdgVideoQueue");
+        auto videoScale = gst_element_factory_make("videoscale", "cdgVideoScale");
+        auto videoConvert = gst_element_factory_make("videoconvert", "cdgVideoConvert");
+        gst_bin_add_many(reinterpret_cast<GstBin *>(m_cdgBin), m_cdgAppSrc, videoQueue, videoConvert, videoScale, m_videoAppSinkCdg, nullptr);
+        gst_element_link_many(m_cdgAppSrc, videoQueue, videoConvert, videoScale, m_videoAppSinkCdg, nullptr);
+    }
 }
 
 void MediaBackend::getGstDevices()

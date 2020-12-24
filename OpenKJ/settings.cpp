@@ -190,6 +190,14 @@ bool Settings::testingEnabled()
     return settings->value("testingEnabled", false).toBool();
 }
 
+bool Settings::hardwareAccelEnabled()
+{
+#ifdef Q_OS_MACOS
+    return false;
+#endif
+    return settings->value("hardwareAccelEnabled", true).toBool();
+}
+
 QString Settings::getCCN(const QString &password)
 {
     SimpleCrypt simpleCrypt(this->hash(password));
@@ -602,6 +610,14 @@ QString Settings::uuid()
         settings->setValue("uuid", uuid);
     }
     return settings->value("uuid", QVariant()).toString();
+}
+
+void Settings::setHardwareAccelEnabled(const bool enabled)
+{
+#ifdef Q_OS_MACOS
+    return;
+#endif
+    settings->setValue("hardwareAccelEnabled", enabled);
 }
 
 void Settings::setDurationPosition(const QPoint pos)

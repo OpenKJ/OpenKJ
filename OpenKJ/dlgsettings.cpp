@@ -50,6 +50,13 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     bmAudioBackend = BmAudioBackend;
     networkManager = new QNetworkAccessManager(this);
     ui->setupUi(this);
+    ui->checkBoxHardwareAccel->setChecked(settings->hardwareAccelEnabled());
+    if (!settings->hardwareAccelEnabled())
+        ui->checkBoxEnforceAspectRatio->setEnabled(false);
+#ifdef Q_OS_MACOS
+    ui->checkBoxHardwareAccel->setHidden(true);
+    ui->checkBoxEnforceAspectRatio->setHidden(true);
+#endif
     ui->tabWidgetMain->setCurrentIndex(0);
     ui->checkBoxDbSkipValidation->setChecked(settings->dbSkipValidation());
     ui->checkBoxLazyLoadDurations->setChecked(settings->dbLazyLoadDurations());
@@ -827,4 +834,10 @@ void DlgSettings::on_pushButtonResetDurationPos_clicked()
 void DlgSettings::on_lineEditTickerMessage_returnPressed()
 {
     settings->setTickerCustomString(ui->lineEditTickerMessage->text());
+}
+
+void DlgSettings::on_checkBoxHardwareAccel_toggled(bool checked)
+{
+    settings->setHardwareAccelEnabled(checked);
+    ui->checkBoxEnforceAspectRatio->setEnabled(checked);
 }

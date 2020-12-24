@@ -727,6 +727,8 @@ MainWindow::MainWindow(QWidget *parent) :
     updateIcons();
     ui->menuTesting->menuAction()->setVisible(settings->testingEnabled());
     kMediaBackend.setCdgMemoryCompressionLevel(settings->cdgMemoryCompressionLevel());
+    connect(&kMediaBackend, &MediaBackend::newVideoFrame, this, &MainWindow::videoFrameReceived);
+    connect(&bmMediaBackend, &MediaBackend::newVideoFrame, this, &MainWindow::videoFrameReceived);
 }
 
 void MainWindow::play(const QString &karaokeFilePath, const bool &k2k)
@@ -1391,6 +1393,8 @@ void MainWindow::audioBackend_stateChanged(const MediaBackend::State &state)
     if (state == MediaBackend::StoppedState)
     {
         qInfo() << "MainWindow - audio backend state is now STOPPED";
+        ui->videoPreview->setSoftwareRenderMode(false);
+        cdgWindow->getVideoDisplay()->setSoftwareRenderMode(false);
         if (ui->labelTotalTime->text() == "0:00")
         {
             //qInfo() << "MainWindow - UI is already reset, bailing out";
@@ -3952,4 +3956,15 @@ void MainWindow::on_actionCDG_Decode_Torture_triggered()
     });
     m_timerTest.start(2000);
 #endif
+}
+
+void MainWindow::videoFrameReceived(QImage frame, QString backendName)
+{
+    // this is used only when in software rendering mode, hardware rendering won't call this
+    if (backendName != "KAR" && kMediaBackend.state() == MediaBackend::PlayingState)
+        return;
+    ui->videoPreview->setSoftwareRenderMode(true);
+    cdgWindow->getVideoDisplay()->setSoftwareRenderMode(true);
+    ui->videoPreview->renderFrame(frame);
+    cdgWindow->getVideoDisplay()->renderFrame(frame);
 }
