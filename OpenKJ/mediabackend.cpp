@@ -190,6 +190,11 @@ void MediaBackend::newFrame()
     GstSample* sample = gst_app_sink_pull_sample((GstAppSink*)m_videoAppSink);
 
     if (sample) {
+        if (m_vidMuted)
+        {
+            gst_sample_unref(sample);
+            return;
+        }
         m_noaccelHasVideo = true;
         GstBuffer *buffer;
         GstCaps *caps;
@@ -215,6 +220,11 @@ void MediaBackend::newFrameCdg()
     GstSample* sample = gst_app_sink_pull_sample((GstAppSink*)m_videoAppSinkCdg);
 
     if (sample) {
+        if (m_vidMuted)
+        {
+            gst_sample_unref(sample);
+            return;
+        }
         m_noaccelHasVideo = true;
         GstBuffer *buffer;
         GstCaps *caps;

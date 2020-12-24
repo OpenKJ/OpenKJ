@@ -88,6 +88,8 @@ void VideoDisplay::paintEvent(QPaintEvent *event)
                 deltaY = source.height() - target.height();
 
             QPainter painter(this);
+            painter.setBackground(Qt::black);
+            painter.fillRect(this->rect(), Qt::black);
             painter.translate(deltaX / 2, deltaY / 2);
             painter.drawPixmap(source, tempQImage, tempQImage.rect());
 //            auto scaled = m_curFrame.scaled(width(),height(),Qt::KeepAspectRatio, Qt::SmoothTransformation);
