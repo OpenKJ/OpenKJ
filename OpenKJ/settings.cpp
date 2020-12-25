@@ -34,10 +34,16 @@
 #include <QUuid>
 #include <fstream>
 
+#ifdef Q_OS_WIN
+    #include <windows.h>
+    #include <sysinfoapi.h>
+#endif
+
+
 
 int Settings::getSystemRamSize()
 {
-#ifdef Q_OS_LINUX
+#if defined(Q_OS_LINUX)
     std::string token;
     std::ifstream file("/proc/meminfo");
     while(file >> token) {
@@ -53,6 +59,11 @@ int Settings::getSystemRamSize()
         file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
     return 0; // nothing found
+#elif defined(Q_OS_WIN)
+    MEMORYSTATUSEX statex;
+    statex.dwLength = sizeof (statex);
+    GlobalMemoryStatusEx (&statex);
+    return statex.ullTotalPhys / 1024;
 #endif
     return 0;
 }
@@ -494,7 +505,7 @@ void Settings::setTickerHeight(int height)
 
 int Settings::tickerSpeed()
 {
-    if (settings->value("tickerSpeed") > 50)
+    if (settings->value("tickerSpeed").toInt() > 50)
         return 25;
     return settings->value("tickerSpeed", 25).toInt();
 }
@@ -1100,7 +1111,8 @@ int Settings::videoOffsetMs()
 int Settings::cdgMemoryCompressionLevel()
 {
     auto ramSize = getSystemRamSize();
-    if (ramSize < 6000000 && ramSize != 0)
+    qInfo() << "RAM size: " << ramSize;
+    if (ramSize < 6000000 && ramSize != 0 && !settings->contains("cdgMemoryCompressionLevel"))
     {
         qInfo() << "System physical RAM < 6GB, defaulting cdg ram compression to lvl 1";
         return settings->value("cdgMemoryCompressionLevel", 1).toInt();
