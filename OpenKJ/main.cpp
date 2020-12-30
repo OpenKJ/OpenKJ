@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2013-2019 Thomas Isaac Lightburn
  *
  *
@@ -29,6 +29,7 @@
 #include <QMessageBox>
 #include "settings.h"
 #include "idledetect.h"
+#include "runguard/runguard.h"
 
 QDataStream &operator<<(QDataStream &out, const SfxEntry &obj)
 {
@@ -106,16 +107,17 @@ int main(int argc, char *argv[])
 //    file.close();
 //    stylesheet = "* { background: #191919; color: #DDDDDD; border: 1px solid #5A5A5A;}";
 //    a.setStyleSheet(stylesheet);
-    MainWindow w;
-    if (!w.isSingleInstance())
-    {
-        QMessageBox msgBox;
-        msgBox.setText("OpenKJ is already running!");
-        msgBox.setInformativeText("In order to protect the database, you can only run one instance of OpenKJ at a time.\nExiting now.");
-        msgBox.setIcon(QMessageBox::Critical);
-        msgBox.exec();
-        return 1;
-    }
+
+    RunGuard guard("SharedMemorySingleInstanceProtectorOpenKJ");
+     if (!guard.tryToRun())
+     {
+         QMessageBox msgBox;
+         msgBox.setText("OpenKJ is already running!");
+         msgBox.setInformativeText("In order to protect the database, you can only run one instance of OpenKJ at a time.\nExiting now.");
+         msgBox.setIcon(QMessageBox::Critical);
+         msgBox.exec();
+         return 1;
+     }
 //#ifdef MACPLATFORM
 //    if (!QFile::exists("/Library/Frameworks/GStreamer.framework"))
 //    {
@@ -128,6 +130,8 @@ int main(int argc, char *argv[])
 //        return 1;
 //    }
 //#endif
+
+    MainWindow w;
     w.show();
 
     return a.exec();

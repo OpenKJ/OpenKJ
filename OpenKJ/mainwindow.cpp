@@ -146,18 +146,6 @@ void MainWindow::updateIcons()
 }
 
 
-
-bool MainWindow::isSingleInstance()
-{
-    if(_singular->attach(QSharedMemory::ReadOnly)){
-        _singular->detach();
-        return false;
-    }
-    if(_singular->create(1))
-        return true;
-    return false;
-}
-
 QFile *logFile;
 QTextStream logStream;
 QStringList *logContents;
@@ -230,14 +218,6 @@ MainWindow::MainWindow(QWidget *parent) :
     debugDialog->setVisible(settings->logShow());
     logFile = new QFile();
     qInstallMessageHandler(myMessageOutput);
-#ifndef Q_OS_WIN
-    // This fixes the program refusing to start and reporting another running instance after a crash on Linux
-    // and Mac until you try it twice.
-    _singular = new QSharedMemory("SharedMemorySingleInstanceProtectorOpenKJ", this);
-    _singular->attach();
-    delete _singular;
-#endif
-    _singular = new QSharedMemory("SharedMemorySingleInstanceProtectorOpenKJ", this);
     shop = new SongShop(this);
     QCoreApplication::setOrganizationName("OpenKJ");
     QCoreApplication::setOrganizationDomain("OpenKJ.org");
@@ -908,8 +888,6 @@ MainWindow::~MainWindow()
     delete khTmpDir;
     delete dlgSongShop;
     delete requestsDialog;
-    if(_singular->isAttached())
-        _singular->detach();
 
     qInfo() << "OpenKJ mainwindow destructor complete";
 }

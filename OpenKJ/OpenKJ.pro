@@ -188,6 +188,7 @@ SOURCES += main.cpp\
     karaokefileinfo.cpp \
     dlgeditsong.cpp \
     soundfxbutton.cpp \
+    runguard/runguard.cpp \
     durationlazyupdater.cpp \
     idledetect.cpp \
     dlgdebugoutput.cpp
@@ -359,6 +360,7 @@ HEADERS  += mainwindow.h \
     karaokefileinfo.h \
     dlgeditsong.h \
     soundfxbutton.h \
+    runguard/runguard.h \
     tableviewtooltipfilter.h \
     durationlazyupdater.h \
     idledetect.h \
