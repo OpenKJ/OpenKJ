@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2013-2019 Thomas Isaac Lightburn
  *
  *
@@ -130,6 +130,8 @@ int main(int argc, char *argv[])
 //        return 1;
 //    }
 //#endif
+
+    MainWindow w;
     w.show();
 
     return a.exec();

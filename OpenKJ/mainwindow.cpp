@@ -218,13 +218,6 @@ MainWindow::MainWindow(QWidget *parent) :
     debugDialog->setVisible(settings->logShow());
     logFile = new QFile();
     qInstallMessageHandler(myMessageOutput);
-#ifndef Q_OS_WIN
-    // This fixes the program refusing to start and reporting another running instance after a crash on Linux
-    // and Mac until you try it twice.
-    _singular = new QSharedMemory("SharedMemorySingleInstanceProtectorOpenKJ", this);
-    _singular->attach();
-    delete _singular;
-#endif
     shop = new SongShop(this);
     QCoreApplication::setOrganizationName("OpenKJ");
     QCoreApplication::setOrganizationDomain("OpenKJ.org");
