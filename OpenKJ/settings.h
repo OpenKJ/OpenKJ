@@ -297,8 +297,10 @@ public:
     void setEnforceAspectRatio(const bool &enforce);
     QString auxTickerFile();
     QString uuid();
+    uint slideShowInterval();
 
 signals:
+    void slideShowIntervalChanged(const uint secs);
     void enforceAspectRatioChanged(const bool &enforce);
     void applicationFontChanged(QFont font);
     void tickerFontChanged();
@@ -365,6 +367,7 @@ signals:
     void durationPositionReset();
     void videoOffsetChanged(const int offsetMs);
 public slots:
+    void setSlideShowInterval(int secs);
     void setHardwareAccelEnabled(const bool enabled);
     void setDurationPosition(const QPoint pos);
     void resetDurationPosition();

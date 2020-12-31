@@ -645,6 +645,23 @@ QString Settings::uuid()
     return settings->value("uuid", QVariant()).toString();
 }
 
+uint Settings::slideShowInterval()
+{
+    return settings->value("slideShowInterval", 15).toUInt();
+}
+
+void Settings::setSlideShowInterval(int secs)
+{
+    if (secs <= 5)
+    {
+        settings->setValue("slideShowInterval", 5);
+        emit slideShowIntervalChanged(5);
+        return;
+    }
+    settings->setValue("slideShowInterval", secs);
+    emit slideShowIntervalChanged(secs);
+}
+
 void Settings::setHardwareAccelEnabled(const bool enabled)
 {
 #ifdef Q_OS_MACOS

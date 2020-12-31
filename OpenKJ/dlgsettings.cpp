@@ -144,13 +144,13 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     ui->spinBoxCdgOffsetBottom->setValue(settings->cdgOffsetBottom());
     ui->spinBoxCdgOffsetLeft->setValue(settings->cdgOffsetLeft());
     ui->spinBoxCdgOffsetRight->setValue(settings->cdgOffsetRight());
-
+    ui->spinBoxSlideshowInterval->setValue(settings->slideShowInterval());
     connect(ui->spinBoxCdgOffsetTop, SIGNAL(valueChanged(int)), settings, SLOT(setCdgOffsetTop(int)));
     connect(ui->spinBoxCdgOffsetBottom, SIGNAL(valueChanged(int)), settings, SLOT(setCdgOffsetBottom(int)));
     connect(ui->spinBoxCdgOffsetLeft, SIGNAL(valueChanged(int)), settings, SLOT(setCdgOffsetLeft(int)));
     connect(ui->spinBoxCdgOffsetRight, SIGNAL(valueChanged(int)), settings, SLOT(setCdgOffsetRight(int)));
     connect(ui->spinBoxVideoOffset, SIGNAL(valueChanged(int)), settings, SLOT(setVideoOffsetMs(int)));
-
+    connect(ui->spinBoxSlideshowInterval, SIGNAL(valueChanged(int)), settings, SLOT(setSlideShowInterval(int)));
     AudioRecorder recorder;
  //   QAudioRecorder audioRecorder;
     QStringList inputs = recorder.getDeviceList();

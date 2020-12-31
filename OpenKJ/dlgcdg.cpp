@@ -102,6 +102,9 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
     connect(settings, &Settings::durationPositionReset, [&] () {
        tWidget->move(0,0);
     });
+    connect(settings, &Settings::slideShowIntervalChanged, [&] (auto val) {
+       m_timerSlideShow.setInterval(val * 1000);
+    });
     connect(&m_timerSlideShow, &QTimer::timeout, this, &DlgCdg::timerSlideShowTimeout);
     connect(&m_timer1s, &QTimer::timeout, this, &DlgCdg::timer1sTimeout);
     connect(&m_timerAlertCountdown, &QTimer::timeout, this, &DlgCdg::timerCountdownTimeout);
@@ -109,7 +112,7 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
     m_timerButtonShow.setInterval(1000);
     m_timerAlertCountdown.setInterval(1000);
     m_timer1s.start(1000);
-    m_timerSlideShow.start(15000);
+    m_timerSlideShow.start(settings->slideShowInterval() * 1000);
     if (!settings->showCdgWindow())
         hide();
     else
