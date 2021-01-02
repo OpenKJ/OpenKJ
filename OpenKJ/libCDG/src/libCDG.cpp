@@ -81,7 +81,7 @@ void CdgParser::reset()
     QVector<QRgb> palette;
     for (int i=0; i < 16; i++)
         palette.append(QColor(0,0,0).rgb());
-    m_image = QImage(QSize(300,216),QImage::Format_Indexed8);
+    m_image = QImage(cdg::FRAME_DIM_FULL, QImage::Format_Indexed8);
     m_bytesPerPixel = m_image.pixelFormat().bitsPerPixel() / 8;
     m_borderLRBytes = m_bytesPerPixel * 6;
     m_borderRBytesOffset = 294 * m_bytesPerPixel;
@@ -121,17 +121,7 @@ bool CdgParser::process()
                 m_frameArraysComp.emplace_back(qCompress(getSafeArea().convertToFormat(QImage::Format_RGB16).bits(), cdg::CDG_IMAGE_SIZE, 1));
             else
             {
-                std::array<uchar, cdg::CDG_IMAGE_SIZE> frameArr;
-                QImage frame = getSafeArea();
-                long imgDataSize = frame.sizeInBytes();
-                memcpy(frameArr.data(), frame.bits(), imgDataSize);
-                for(int i=0; i<frame.colorCount(); i++)
-                {
-                    QRgb color = frame.color(i);
-                    memcpy(frameArr.data() + imgDataSize + (i * sizeof(uint)), &color, sizeof(uint));
-                }
-
-                m_frameArrays.emplace_back(frameArr);
+                m_frameArrays.emplace_back(getCroppedImagedata());
             }
             frameno++;
         }
@@ -146,6 +136,30 @@ bool CdgParser::process()
     return true;
 }
 
+std::array<uchar, cdg::CDG_IMAGE_SIZE> CdgParser::getCroppedImagedata()
+{
+    uchar* src = m_image.bits();
+
+    std::array<uchar, cdg::CDG_IMAGE_SIZE> cropped;
+    uchar* croppedpos = cropped.data();
+
+    for (auto y=0; y < cdg::FRAME_DIM_CROPPED.height(); y++)
+    {
+        auto curSrcLineNum = y + m_curVOffset;
+        auto srcLineOffset = m_image.bytesPerLine() * (12 + curSrcLineNum); // 12?
+
+        memcpy(croppedpos, src + srcLineOffset + m_borderLRBytes + m_curHOffset, cdg::FRAME_DIM_CROPPED.width());
+        croppedpos += cdg::FRAME_DIM_CROPPED.width();
+    }
+
+    for(int i=0; i<m_image.colorCount(); i++)
+    {
+        QRgb color = m_image.color(i);
+        memcpy(croppedpos, &color, sizeof(uint));
+        croppedpos += sizeof(uint);
+    }
+    return cropped;
+}
 
 void CdgParser::readCdgSubcodePacket(const cdg::CDG_SubCode &subCode)
 {

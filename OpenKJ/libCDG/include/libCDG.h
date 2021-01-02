@@ -34,6 +34,17 @@
 
 namespace cdg {
 
+/* This is the size of the display as defined by the CDG specification.
+   The pixels in this region can be painted, and scrolling operations
+   rotate through this number of pixels. */
+const QSize FRAME_DIM_FULL= QSize(300, 216);
+
+
+/* This is the size of the screen that is actually intended to be
+   visible.  It is the center area of FRAME_DIM_FULL.  The remaining border
+   area surrounding it is not meant to be visible. */
+const QSize FRAME_DIM_CROPPED = QSize(288, 192);
+
 // H x W + palette
 const int CDG_IMAGE_SIZE = 288 * 192 + 1024;
 
@@ -236,6 +247,7 @@ private:
     void cmdTileBlock(const cdg::CdgTileBlockData &tileBlockPacket, const cdg::TileBlockType &type);
     void cmdColors(const cdg::CdgColorsData &data,const cdg::CdgColorTables &table);
     QImage getSafeArea();
+    std::array<uchar, cdg::CDG_IMAGE_SIZE> getCroppedImagedata();
 };
 
 #endif // LIBCDG_H
