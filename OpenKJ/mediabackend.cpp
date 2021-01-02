@@ -1016,7 +1016,6 @@ void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused
         }
         g_appSrcCurPosition += 40 * GST_MSECOND;
         g_appSrcCurFrame++;
-        QApplication::processEvents();
     }
 
     //qInfo() << "curFrame: " << g_appSrcCurFrame << " total frames: " << backend->m_cdg.getFrameCount();
