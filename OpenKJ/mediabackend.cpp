@@ -898,34 +898,35 @@ void MediaBackend::buildCdgBin()
     m_cdgBin = gst_bin_new("cdgBin");
     g_object_ref(m_cdgBin);
     m_cdgAppSrc = gst_element_factory_make("appsrc", "cdgAppSrc");
-    auto cdgVidConv = gst_element_factory_make("videoconvert", "cdgVideoConv");
+
     g_object_set(G_OBJECT(m_cdgAppSrc), "caps",
-                 gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB8P", "width", G_TYPE_INT, 288, "height",
-                                     G_TYPE_INT, 192, NULL),
+                 gst_caps_new_simple(
+                     "video/x-raw",
+                     "format", G_TYPE_STRING, "RGB8P",
+                     "width",  G_TYPE_INT, cdg::FRAME_DIM_CROPPED.width(),
+                     "height", G_TYPE_INT, cdg::FRAME_DIM_CROPPED.height(),
+                     NULL),
                  NULL);
 
     if (m_videoAccelEnabled)
     {
+        auto videoTee = gst_element_factory_make("tee", "videoTee");
         auto videoQueue1 = gst_element_factory_make("queue", "videoQueue1");
         auto videoQueue2 = gst_element_factory_make("queue", "videoQueue2");
         auto videoConv1 = gst_element_factory_make("videoconvert", "preOutVideoConvert1");
         auto videoConv2 = gst_element_factory_make("videoconvert", "preOutVideoConvert2");
         m_videoScale1Cdg = gst_element_factory_make("videoscale", "videoScale1");
         m_videoScale2Cdg = gst_element_factory_make("videoscale", "videoScale2");
-        auto videoTee = gst_element_factory_make("tee", "videoTee");
-        auto videoTeePad1 = gst_element_get_request_pad(videoTee, "src_%u");
-        auto videoTeePad2 = gst_element_get_request_pad(videoTee, "src_%u");
-        auto videoQueue1SrcPad = gst_element_get_static_pad(videoQueue1, "sink");
-        auto videoQueue2SrcPad = gst_element_get_static_pad(videoQueue2, "sink");
-        gst_bin_add_many(reinterpret_cast<GstBin *>(m_cdgBin), m_cdgAppSrc, cdgVidConv, videoConv1,
-                         videoConv2, videoTee, videoQueue1, videoQueue2, m_videoScale1Cdg, m_videoScale2Cdg,
-                         m_videoSink1Cdg, m_videoSink2Cdg, nullptr);
-        gst_element_link(m_cdgAppSrc, cdgVidConv);
-        gst_element_link(cdgVidConv, videoTee);
-        gst_pad_link(videoTeePad1, videoQueue1SrcPad);
-        gst_pad_link(videoTeePad2, videoQueue2SrcPad);
-        gst_element_link_many(videoQueue1, videoConv1, m_videoScale1Cdg, m_videoSink1Cdg, nullptr);
-        gst_element_link_many(videoQueue2, videoConv2, m_videoScale2Cdg, m_videoSink2Cdg, nullptr);
+
+        gst_bin_add_many(reinterpret_cast<GstBin *>(m_cdgBin), m_cdgAppSrc,
+                         videoTee, videoConv1, videoConv2, videoQueue1, videoQueue2,
+                         m_videoScale1Cdg, m_videoScale2Cdg, m_videoSink1Cdg, m_videoSink2Cdg,
+                         nullptr);
+
+        gst_element_link(m_cdgAppSrc, videoTee);
+
+        gst_element_link_many(videoTee, videoQueue1, videoConv1, m_videoScale1Cdg, m_videoSink1Cdg, nullptr);
+        gst_element_link_many(videoTee, videoQueue2, videoConv2, m_videoScale2Cdg, m_videoSink2Cdg, nullptr);
     }
     else
     {
