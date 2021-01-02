@@ -34,10 +34,8 @@
 
 namespace cdg {
 
-//  Using the known buffer size of 110592 rather than calling the function every callback
-//  It's a "magic number" but can be derived like below if ever in question
-//  auto bufferSize = backend->m_cdg.videoFrameByIndex(backend->curFrame).sizeInBytes();
-const int CDG_IMAGE_SIZE = 110592;
+// H x W + palette
+const int CDG_IMAGE_SIZE = 288 * 192 + 1024;
 
 enum ProcessingMode {
     File,

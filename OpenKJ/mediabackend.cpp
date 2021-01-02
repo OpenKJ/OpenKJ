@@ -900,7 +900,7 @@ void MediaBackend::buildCdgBin()
     m_cdgAppSrc = gst_element_factory_make("appsrc", "cdgAppSrc");
     auto cdgVidConv = gst_element_factory_make("videoconvert", "cdgVideoConv");
     g_object_set(G_OBJECT(m_cdgAppSrc), "caps",
-                 gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB16", "width", G_TYPE_INT, 288, "height",
+                 gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB8P", "width", G_TYPE_INT, 288, "height",
                                      G_TYPE_INT, 192, NULL),
                  NULL);
 
@@ -934,7 +934,7 @@ void MediaBackend::buildCdgBin()
         appsinkCallbacks.new_sample		= &MediaBackend::NewSampleCallbackCdg;
         appsinkCallbacks.eos			= &MediaBackend::EndOfStreamCallback;
         m_videoAppSinkCdg = gst_element_factory_make("appsink", "videoAppSinkCdg");
-        auto videoCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB16", NULL);
+        auto videoCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB8P", NULL);
         g_object_set(m_videoAppSinkCdg, "caps", videoCaps, NULL);
         gst_app_sink_set_callbacks(GST_APP_SINK(m_videoAppSinkCdg), &appsinkCallbacks, this, (GDestroyNotify)MediaBackend::DestroyCallback);
         auto videoQueue = gst_element_factory_make("queue", "cdgVideoQueue");

@@ -122,7 +122,15 @@ bool CdgParser::process()
             else
             {
                 std::array<uchar, cdg::CDG_IMAGE_SIZE> frameArr;
-                memcpy(frameArr.data(),getSafeArea().convertToFormat(QImage::Format_RGB16).bits(), cdg::CDG_IMAGE_SIZE);
+                QImage frame = getSafeArea();
+                long imgDataSize = frame.sizeInBytes();
+                memcpy(frameArr.data(), frame.bits(), imgDataSize);
+                for(int i=0; i<frame.colorCount(); i++)
+                {
+                    QRgb color = frame.color(i);
+                    memcpy(frameArr.data() + imgDataSize + (i * sizeof(uint)), &color, sizeof(uint));
+                }
+
                 m_frameArrays.emplace_back(frameArr);
             }
             frameno++;
@@ -209,8 +217,7 @@ void CdgParser::cmdColors(const cdg::CdgColorsData &data, const cdg::CdgColorTab
 
 QImage CdgParser::getSafeArea()
 {
-
-    QImage image(QSize(288,192),QImage::Format_Indexed8);
+    QImage image(QSize(288, 192),QImage::Format_Indexed8);
     image.setColorTable(m_image.colorTable());
     for (auto i=0; i < 192; i++)
     {
@@ -221,7 +228,6 @@ QImage CdgParser::getSafeArea()
         auto srcBits = m_image.bits();
         auto dstBits = image.bits();
         memcpy(dstBits + dstLineOffset, srcBits + srcLineOffset + m_borderLRBytes + (m_curHOffset * m_bytesPerPixel), copiedLineSize);
-
     }
     return image;
 }
