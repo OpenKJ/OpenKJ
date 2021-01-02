@@ -43,10 +43,7 @@ bool CdgParser::open(const QByteArray &byteArray, const bool &bypassReset)
         return false;
     }
     //qInfo() << "libCDG - Byte array opened successfully";
-    if (m_memoryCompressionLevel > 0)
-        m_frameArraysComp.reserve(byteArray.size() / 24);
-    else
-        m_frameArrays.reserve(byteArray.size() / 24);
+    m_frameArrays.reserve(byteArray.size() / 24);
     return true;
 }
 
@@ -87,8 +84,6 @@ void CdgParser::reset()
     m_borderRBytesOffset = 294 * m_bytesPerPixel;
     m_image.setColorTable(palette);
     m_image.fill(0);
-    m_frameArraysComp.clear();
-    m_frameArraysComp.shrink_to_fit();
     m_frameArrays.clear();
     m_frameArrays.shrink_to_fit();
     m_tempo = 100;
@@ -117,12 +112,7 @@ bool CdgParser::process()
         m_position++;
         if (((position() % 40) == 0) && position() >= 40)
         {
-            if (m_memoryCompressionLevel > 0)
-                m_frameArraysComp.emplace_back(qCompress(getSafeArea().convertToFormat(QImage::Format_RGB16).bits(), cdg::CDG_IMAGE_SIZE, 1));
-            else
-            {
-                m_frameArrays.emplace_back(getCroppedImagedata());
-            }
+            m_frameArrays.emplace_back(getCroppedImagedata());
             frameno++;
         }
     }
@@ -229,24 +219,6 @@ void CdgParser::cmdColors(const cdg::CdgColorsData &data, const cdg::CdgColorTab
     });
 }
 
-QImage CdgParser::getSafeArea()
-{
-    QImage image(QSize(288, 192),QImage::Format_Indexed8);
-    image.setColorTable(m_image.colorTable());
-    for (auto i=0; i < 192; i++)
-    {
-        auto curSrcLine = i + m_curVOffset;
-        auto srcLineOffset = m_image.bytesPerLine() * (12 + curSrcLine);
-        auto dstLineOffset = image.bytesPerLine() * i;
-        auto copiedLineSize = 288 * m_bytesPerPixel;
-        auto srcBits = m_image.bits();
-        auto dstBits = image.bits();
-        memcpy(dstBits + dstLineOffset, srcBits + srcLineOffset + m_borderLRBytes + (m_curHOffset * m_bytesPerPixel), copiedLineSize);
-    }
-    return image;
-}
-
-
 
 void CdgParser::cmdMemoryPreset(const cdg::CdgMemoryPresetData &memoryPreset)
 {
@@ -294,15 +266,11 @@ void CdgParser::cmdTileBlock(const cdg::CdgTileBlockData &tileBlockPacket, const
 QString CdgParser::md5HashByTime(const unsigned int ms)
 {
     size_t frameno = ms / 40;
-    auto size = (m_memoryCompressionLevel > 0) ? m_frameArraysComp.size() : m_frameArrays.size();
+    auto size = m_frameArrays.size();
     if (ms % 40 > 0) frameno++;
     if (frameno > size)
         frameno = size - 1;
-    QByteArray arr;
-    if (m_memoryCompressionLevel > 0)
-        arr = QByteArray::fromRawData((const char*)qUncompress(m_frameArraysComp.at(frameno)).data(), m_frameArraysComp.at(frameno).size());
-    else
-        arr = QByteArray::fromRawData((const char*)m_frameArrays.at(frameno).data(), m_frameArrays.at(frameno).size());
+    QByteArray arr = QByteArray::fromRawData((const char*)m_frameArrays.at(frameno).data(), m_frameArrays.at(frameno).size());
     return QString(QCryptographicHash::hash(arr, QCryptographicHash::Md5).toHex());
 }
 
@@ -333,7 +301,7 @@ void CdgParser::setTempo(const int percent)
 
 std::size_t CdgParser::getFrameCount() {
     auto retSize = 0;
-    auto count = (m_memoryCompressionLevel > 0) ? m_frameArraysComp.size() : m_frameArrays.size();
+    auto count = m_frameArrays.size();
     if (m_tempo == 100)
         retSize = count;
     if (m_tempo < 100)
@@ -350,15 +318,9 @@ std::array<uchar, cdg::CDG_IMAGE_SIZE> CdgParser::videoFrameDataByTime(const uns
 
 std::array<uchar, cdg::CDG_IMAGE_SIZE> CdgParser::videoFrameDataByIndex(const size_t frame)
 {
-    if ((m_memoryCompressionLevel > 0 && frame >= m_frameArraysComp.size()) || (m_memoryCompressionLevel == 0 && frame >= m_frameArrays.size()))
+    if (frame >= m_frameArrays.size())
     {
         return blank;
-    }
-    if (m_memoryCompressionLevel > 0)
-    {
-        std::array<uchar, cdg::CDG_IMAGE_SIZE> frameArr;
-        memcpy(frameArr.data(),qUncompress(m_frameArraysComp.at(frame)).data(), cdg::CDG_IMAGE_SIZE);
-        return frameArr;
     }
     return m_frameArrays.at(frame);
 }

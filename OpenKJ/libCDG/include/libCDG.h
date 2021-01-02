@@ -215,7 +215,6 @@ public:
     QString md5HashByTime(const unsigned int ms);
     std::array<uchar, cdg::CDG_IMAGE_SIZE> videoFrameDataByIndex(const size_t frame);
     std::array<uchar, cdg::CDG_IMAGE_SIZE> videoFrameDataByTime(const unsigned int ms);
-    void setMemoryCompressionLevel(const int level) { m_memoryCompressionLevel = std::min(9, level); }
 protected:
 private:
     int m_tempo{100};
@@ -224,7 +223,6 @@ private:
     int m_borderRBytesOffset;
     int m_curVOffset;
     int m_curHOffset;
-    int m_memoryCompressionLevel{0};
     unsigned int m_position;
     unsigned int m_lastCDGCommandMS;
     bool m_needupdate;
@@ -233,7 +231,6 @@ private:
     QByteArray m_cdgData;
     std::array<uchar, cdg::CDG_IMAGE_SIZE> blank;
     inline constexpr static std::array<char,6> m_masks{0x20,0x10,0x08,0x04,0x02,0x01};
-    std::vector<QByteArray> m_frameArraysComp;
     std::vector<std::array<uchar, cdg::CDG_IMAGE_SIZE>> m_frameArrays;
     QImage m_image;
     constexpr static char m_subcodeMask = 0x3F;
@@ -246,7 +243,6 @@ private:
     void cmdBorderPreset(const cdg::CdgBorderPresetData &borderPreset);
     void cmdTileBlock(const cdg::CdgTileBlockData &tileBlockPacket, const cdg::TileBlockType &type);
     void cmdColors(const cdg::CdgColorsData &data,const cdg::CdgColorTables &table);
-    QImage getSafeArea();
     std::array<uchar, cdg::CDG_IMAGE_SIZE> getCroppedImagedata();
 };
 
