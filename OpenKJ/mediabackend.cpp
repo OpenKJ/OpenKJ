@@ -945,10 +945,8 @@ void MediaBackend::buildCdgBin()
         g_object_set(m_videoAppSinkCdg, "caps", videoCaps, NULL);
         gst_app_sink_set_callbacks(GST_APP_SINK(m_videoAppSinkCdg), &appsinkCallbacks, this, (GDestroyNotify)MediaBackend::DestroyCallback);
         auto videoQueue = gst_element_factory_make("queue", "cdgVideoQueue");
-        auto videoScale = gst_element_factory_make("videoscale", "cdgVideoScale");
-        auto videoConvert = gst_element_factory_make("videoconvert", "cdgVideoConvert");
-        gst_bin_add_many(reinterpret_cast<GstBin *>(m_cdgBin), m_cdgAppSrc, videoQueue, videoConvert, videoScale, m_videoAppSinkCdg, nullptr);
-        gst_element_link_many(m_cdgAppSrc, videoQueue, videoConvert, videoScale, m_videoAppSinkCdg, nullptr);
+        gst_bin_add_many(reinterpret_cast<GstBin *>(m_cdgBin), m_cdgAppSrc, videoQueue, m_videoAppSinkCdg, nullptr);
+        gst_element_link_many(m_cdgAppSrc, videoQueue, m_videoAppSinkCdg, nullptr);
     }
 }
 
