@@ -372,8 +372,8 @@ void MediaBackend::play()
         g_appSrcCurFrame = 0;
         g_appSrcCurPosition = 0;
         g_appSrcNeedData = false;
-        gst_app_src_set_max_bytes(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), 110592 * 500);
-        gst_app_src_set_size(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), m_cdg.getFrameCount() * 110592);
+        gst_app_src_set_max_bytes(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), cdg::CDG_IMAGE_SIZE * 500);
+        gst_app_src_set_size(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), m_cdg.getFrameCount() * cdg::CDG_IMAGE_SIZE);
         gst_app_src_set_duration(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), (m_cdg.getFrameCount() * 40) * GST_MSECOND);
         qInfo() << m_objName << " - play - playing cdg:   " << m_cdgFilename;
         qInfo() << m_objName << " - play - playing audio: " << m_filename;
@@ -977,23 +977,20 @@ void MediaBackend::cb_enough_data([[maybe_unused]]GstElement *appsrc, [[maybe_un
 void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused_size, gpointer user_data)
 {
     auto backend = reinterpret_cast<MediaBackend *>(user_data);
-//  Using the known buffer size of 110592 rather than calling the function every callback
-//  It's a "magic number" but can be derived like below if ever in question
-//    auto bufferSize = backend->m_cdg.videoFrameByIndex(backend->curFrame).sizeInBytes();
     g_appSrcNeedData = true;
     //qInfo() << "cdg buffering - free space: " << unused_size;
     while (g_appSrcNeedData && g_appSrcCurFrame < backend->m_cdg.getFrameCount())
     {
-        auto buffer = gst_buffer_new_and_alloc(110592);
+        auto buffer = gst_buffer_new_and_alloc(cdg::CDG_IMAGE_SIZE);
 //        gst_buffer_fill(buffer,
 //                        0,
 //                        backend->m_cdg.videoFrameByIndex(adjustedFrame).constBits(),
-//                        110592
+//                        cdg::CDG_IMAGE_SIZE
 //                        );
         gst_buffer_fill(buffer,
                         0,
                         backend->m_cdg.videoFrameDataByTime((g_appSrcCurPosition / GST_MSECOND) + backend->m_videoOffsetMs).data(),
-                        110592
+                        cdg::CDG_IMAGE_SIZE
                         );
         GST_BUFFER_TIMESTAMP(buffer) = g_appSrcCurPosition;
         //GST_BUFFER_PTS(buffer) = g_appSrcCurPosition;

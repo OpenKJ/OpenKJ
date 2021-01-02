@@ -34,6 +34,11 @@
 
 namespace cdg {
 
+//  Using the known buffer size of 110592 rather than calling the function every callback
+//  It's a "magic number" but can be derived like below if ever in question
+//  auto bufferSize = backend->m_cdg.videoFrameByIndex(backend->curFrame).sizeInBytes();
+const int CDG_IMAGE_SIZE = 110592;
+
 enum ProcessingMode {
     File,
     QIODevice
@@ -199,8 +204,8 @@ public:
     void setTempo(const int percent);
     std::size_t getFrameCount();
     QString md5HashByTime(const unsigned int ms);
-    std::array<uchar, 110592> videoFrameDataByIndex(const size_t frame);
-    std::array<uchar, 110592> videoFrameDataByTime(const unsigned int ms);
+    std::array<uchar, cdg::CDG_IMAGE_SIZE> videoFrameDataByIndex(const size_t frame);
+    std::array<uchar, cdg::CDG_IMAGE_SIZE> videoFrameDataByTime(const unsigned int ms);
     void setMemoryCompressionLevel(const int level) { m_memoryCompressionLevel = std::min(9, level); }
 protected:
 private:
@@ -217,10 +222,10 @@ private:
     bool m_isOpen;
     bool m_lastCmdWasMempreset;
     QByteArray m_cdgData;
-    std::array<uchar, 110592> blank;
+    std::array<uchar, cdg::CDG_IMAGE_SIZE> blank;
     inline constexpr static std::array<char,6> m_masks{0x20,0x10,0x08,0x04,0x02,0x01};
     std::vector<QByteArray> m_frameArraysComp;
-    std::vector<std::array<uchar, 110592>> m_frameArrays;
+    std::vector<std::array<uchar, cdg::CDG_IMAGE_SIZE>> m_frameArrays;
     QImage m_image;
     constexpr static char m_subcodeMask = 0x3F;
     constexpr static char m_subcodeCommand = 0x09;

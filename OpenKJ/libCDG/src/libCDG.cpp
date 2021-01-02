@@ -118,11 +118,11 @@ bool CdgParser::process()
         if (((position() % 40) == 0) && position() >= 40)
         {
             if (m_memoryCompressionLevel > 0)
-                m_frameArraysComp.emplace_back(qCompress(getSafeArea().convertToFormat(QImage::Format_RGB16).bits(),110592,1));
+                m_frameArraysComp.emplace_back(qCompress(getSafeArea().convertToFormat(QImage::Format_RGB16).bits(), cdg::CDG_IMAGE_SIZE, 1));
             else
             {
-                std::array<uchar, 110592> frameArr;
-                memcpy(frameArr.data(),getSafeArea().convertToFormat(QImage::Format_RGB16).bits(),110592);
+                std::array<uchar, cdg::CDG_IMAGE_SIZE> frameArr;
+                memcpy(frameArr.data(),getSafeArea().convertToFormat(QImage::Format_RGB16).bits(), cdg::CDG_IMAGE_SIZE);
                 m_frameArrays.emplace_back(frameArr);
             }
             frameno++;
@@ -323,12 +323,12 @@ std::size_t CdgParser::getFrameCount() {
     return retSize;
 }
 
-std::array<uchar, 110592> CdgParser::videoFrameDataByTime(const unsigned int ms)
+std::array<uchar, cdg::CDG_IMAGE_SIZE> CdgParser::videoFrameDataByTime(const unsigned int ms)
 {
     return videoFrameDataByIndex((ms * ((float)m_tempo / 100.0)) / 40);
 }
 
-std::array<uchar, 110592> CdgParser::videoFrameDataByIndex(const size_t frame)
+std::array<uchar, cdg::CDG_IMAGE_SIZE> CdgParser::videoFrameDataByIndex(const size_t frame)
 {
     if ((m_memoryCompressionLevel > 0 && frame >= m_frameArraysComp.size()) || (m_memoryCompressionLevel == 0 && frame >= m_frameArrays.size()))
     {
@@ -336,8 +336,8 @@ std::array<uchar, 110592> CdgParser::videoFrameDataByIndex(const size_t frame)
     }
     if (m_memoryCompressionLevel > 0)
     {
-        std::array<uchar, 110592> frameArr;
-        memcpy(frameArr.data(),qUncompress(m_frameArraysComp.at(frame)).data(), 110592);
+        std::array<uchar, cdg::CDG_IMAGE_SIZE> frameArr;
+        memcpy(frameArr.data(),qUncompress(m_frameArraysComp.at(frame)).data(), cdg::CDG_IMAGE_SIZE);
         return frameArr;
     }
     return m_frameArrays.at(frame);
