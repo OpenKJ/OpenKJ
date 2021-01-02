@@ -238,7 +238,13 @@ void MediaBackend::newFrameCdg()
         GstMapInfo bufferInfo;
         gst_buffer_map(buffer,&bufferInfo,GST_MAP_READ);
         guint8 *rawFrame = bufferInfo.data;
-        QImage frame = QImage(rawFrame,width,height,QImage::Format_RGB16);
+
+        // Create indexed 8-bit image from buffer data. Last 1024 bytes is the color table
+        QImage frame = QImage(rawFrame, width, height, QImage::Format_Indexed8);
+        auto colors = QVector<QRgb>(1024 / sizeof(QRgb));
+        memcpy(colors.data(), rawFrame + bufferInfo.size - 1024, 1024);
+        frame.setColorTable(colors);
+
         emit newVideoFrame(frame, m_objName);
         gst_buffer_unmap(buffer, &bufferInfo);
         gst_sample_unref(sample);
