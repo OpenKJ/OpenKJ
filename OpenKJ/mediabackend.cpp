@@ -238,7 +238,13 @@ void MediaBackend::newFrameCdg()
         GstMapInfo bufferInfo;
         gst_buffer_map(buffer,&bufferInfo,GST_MAP_READ);
         guint8 *rawFrame = bufferInfo.data;
-        QImage frame = QImage(rawFrame,width,height,QImage::Format_RGB16);
+
+        // Create indexed 8-bit image from buffer data. Last 1024 bytes is the color table
+        QImage frame = QImage(rawFrame, width, height, QImage::Format_Indexed8);
+        auto colors = QVector<QRgb>(1024 / sizeof(QRgb));
+        memcpy(colors.data(), rawFrame + bufferInfo.size - 1024, 1024);
+        frame.setColorTable(colors);
+
         emit newVideoFrame(frame, m_objName);
         gst_buffer_unmap(buffer, &bufferInfo);
         gst_sample_unref(sample);
@@ -372,8 +378,8 @@ void MediaBackend::play()
         g_appSrcCurFrame = 0;
         g_appSrcCurPosition = 0;
         g_appSrcNeedData = false;
-        gst_app_src_set_max_bytes(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), 110592 * 500);
-        gst_app_src_set_size(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), m_cdg.getFrameCount() * 110592);
+        gst_app_src_set_max_bytes(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), cdg::CDG_IMAGE_SIZE * 500);
+        gst_app_src_set_size(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), m_cdg.getFrameCount() * cdg::CDG_IMAGE_SIZE);
         gst_app_src_set_duration(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), (m_cdg.getFrameCount() * 40) * GST_MSECOND);
         qInfo() << m_objName << " - play - playing cdg:   " << m_cdgFilename;
         qInfo() << m_objName << " - play - playing audio: " << m_filename;
@@ -898,34 +904,35 @@ void MediaBackend::buildCdgBin()
     m_cdgBin = gst_bin_new("cdgBin");
     g_object_ref(m_cdgBin);
     m_cdgAppSrc = gst_element_factory_make("appsrc", "cdgAppSrc");
-    auto cdgVidConv = gst_element_factory_make("videoconvert", "cdgVideoConv");
+
     g_object_set(G_OBJECT(m_cdgAppSrc), "caps",
-                 gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB16", "width", G_TYPE_INT, 288, "height",
-                                     G_TYPE_INT, 192, NULL),
+                 gst_caps_new_simple(
+                     "video/x-raw",
+                     "format", G_TYPE_STRING, "RGB8P",
+                     "width",  G_TYPE_INT, cdg::FRAME_DIM_CROPPED.width(),
+                     "height", G_TYPE_INT, cdg::FRAME_DIM_CROPPED.height(),
+                     NULL),
                  NULL);
 
     if (m_videoAccelEnabled)
     {
+        auto videoTee = gst_element_factory_make("tee", "videoTee");
         auto videoQueue1 = gst_element_factory_make("queue", "videoQueue1");
         auto videoQueue2 = gst_element_factory_make("queue", "videoQueue2");
         auto videoConv1 = gst_element_factory_make("videoconvert", "preOutVideoConvert1");
         auto videoConv2 = gst_element_factory_make("videoconvert", "preOutVideoConvert2");
         m_videoScale1Cdg = gst_element_factory_make("videoscale", "videoScale1");
         m_videoScale2Cdg = gst_element_factory_make("videoscale", "videoScale2");
-        auto videoTee = gst_element_factory_make("tee", "videoTee");
-        auto videoTeePad1 = gst_element_get_request_pad(videoTee, "src_%u");
-        auto videoTeePad2 = gst_element_get_request_pad(videoTee, "src_%u");
-        auto videoQueue1SrcPad = gst_element_get_static_pad(videoQueue1, "sink");
-        auto videoQueue2SrcPad = gst_element_get_static_pad(videoQueue2, "sink");
-        gst_bin_add_many(reinterpret_cast<GstBin *>(m_cdgBin), m_cdgAppSrc, cdgVidConv, videoConv1,
-                         videoConv2, videoTee, videoQueue1, videoQueue2, m_videoScale1Cdg, m_videoScale2Cdg,
-                         m_videoSink1Cdg, m_videoSink2Cdg, nullptr);
-        gst_element_link(m_cdgAppSrc, cdgVidConv);
-        gst_element_link(cdgVidConv, videoTee);
-        gst_pad_link(videoTeePad1, videoQueue1SrcPad);
-        gst_pad_link(videoTeePad2, videoQueue2SrcPad);
-        gst_element_link_many(videoQueue1, videoConv1, m_videoScale1Cdg, m_videoSink1Cdg, nullptr);
-        gst_element_link_many(videoQueue2, videoConv2, m_videoScale2Cdg, m_videoSink2Cdg, nullptr);
+
+        gst_bin_add_many(reinterpret_cast<GstBin *>(m_cdgBin), m_cdgAppSrc,
+                         videoTee, videoConv1, videoConv2, videoQueue1, videoQueue2,
+                         m_videoScale1Cdg, m_videoScale2Cdg, m_videoSink1Cdg, m_videoSink2Cdg,
+                         nullptr);
+
+        gst_element_link(m_cdgAppSrc, videoTee);
+
+        gst_element_link_many(videoTee, videoQueue1, videoConv1, m_videoScale1Cdg, m_videoSink1Cdg, nullptr);
+        gst_element_link_many(videoTee, videoQueue2, videoConv2, m_videoScale2Cdg, m_videoSink2Cdg, nullptr);
     }
     else
     {
@@ -934,14 +941,12 @@ void MediaBackend::buildCdgBin()
         appsinkCallbacks.new_sample		= &MediaBackend::NewSampleCallbackCdg;
         appsinkCallbacks.eos			= &MediaBackend::EndOfStreamCallback;
         m_videoAppSinkCdg = gst_element_factory_make("appsink", "videoAppSinkCdg");
-        auto videoCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB16", NULL);
+        auto videoCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB8P", NULL);
         g_object_set(m_videoAppSinkCdg, "caps", videoCaps, NULL);
         gst_app_sink_set_callbacks(GST_APP_SINK(m_videoAppSinkCdg), &appsinkCallbacks, this, (GDestroyNotify)MediaBackend::DestroyCallback);
         auto videoQueue = gst_element_factory_make("queue", "cdgVideoQueue");
-        auto videoScale = gst_element_factory_make("videoscale", "cdgVideoScale");
-        auto videoConvert = gst_element_factory_make("videoconvert", "cdgVideoConvert");
-        gst_bin_add_many(reinterpret_cast<GstBin *>(m_cdgBin), m_cdgAppSrc, videoQueue, videoConvert, videoScale, m_videoAppSinkCdg, nullptr);
-        gst_element_link_many(m_cdgAppSrc, videoQueue, videoConvert, videoScale, m_videoAppSinkCdg, nullptr);
+        gst_bin_add_many(reinterpret_cast<GstBin *>(m_cdgBin), m_cdgAppSrc, videoQueue, m_videoAppSinkCdg, nullptr);
+        gst_element_link_many(m_cdgAppSrc, videoQueue, m_videoAppSinkCdg, nullptr);
     }
 }
 
@@ -977,23 +982,20 @@ void MediaBackend::cb_enough_data([[maybe_unused]]GstElement *appsrc, [[maybe_un
 void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused_size, gpointer user_data)
 {
     auto backend = reinterpret_cast<MediaBackend *>(user_data);
-//  Using the known buffer size of 110592 rather than calling the function every callback
-//  It's a "magic number" but can be derived like below if ever in question
-//    auto bufferSize = backend->m_cdg.videoFrameByIndex(backend->curFrame).sizeInBytes();
     g_appSrcNeedData = true;
     //qInfo() << "cdg buffering - free space: " << unused_size;
     while (g_appSrcNeedData && g_appSrcCurFrame < backend->m_cdg.getFrameCount())
     {
-        auto buffer = gst_buffer_new_and_alloc(110592);
+        auto buffer = gst_buffer_new_and_alloc(cdg::CDG_IMAGE_SIZE);
 //        gst_buffer_fill(buffer,
 //                        0,
 //                        backend->m_cdg.videoFrameByIndex(adjustedFrame).constBits(),
-//                        110592
+//                        cdg::CDG_IMAGE_SIZE
 //                        );
         gst_buffer_fill(buffer,
                         0,
                         backend->m_cdg.videoFrameDataByTime((g_appSrcCurPosition / GST_MSECOND) + backend->m_videoOffsetMs).data(),
-                        110592
+                        cdg::CDG_IMAGE_SIZE
                         );
         GST_BUFFER_TIMESTAMP(buffer) = g_appSrcCurPosition;
         //GST_BUFFER_PTS(buffer) = g_appSrcCurPosition;
@@ -1014,7 +1016,6 @@ void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused
         }
         g_appSrcCurPosition += 40 * GST_MSECOND;
         g_appSrcCurFrame++;
-        QApplication::processEvents();
     }
 
     //qInfo() << "curFrame: " << g_appSrcCurFrame << " total frames: " << backend->m_cdg.getFrameCount();

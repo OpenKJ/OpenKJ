@@ -10,7 +10,9 @@ CONFIG += c++17
 
 unix:!macx {
     unix:DISTVER = $$system(cat /etc/os-release |grep VERSION_ID |cut -d'=' -f2 | sed -e \'s/^\"//\' -e \'s/\"$//\')
-    message($$DISTVER)
+    !isEmpty(DISTVER) {
+      message($$DISTVER)
+    }
     isEmpty(PREFIX) {
       PREFIX=/usr
     }

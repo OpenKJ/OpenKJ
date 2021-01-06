@@ -109,8 +109,13 @@ void DlgVideoPreview::playCdg(const QString &filename)
     pipeline = gst_pipeline_new("videoPreviewPl");
     auto appSrc = gst_element_factory_make("appsrc", "videoPreviewAS");
     g_object_set(G_OBJECT(appSrc), "caps",
-                 gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB16", "width", G_TYPE_INT, 288, "height",
-                                     G_TYPE_INT, 192, "framerate", GST_TYPE_FRACTION, 1, 30, NULL),
+                 gst_caps_new_simple(
+                     "video/x-raw",
+                     "format", G_TYPE_STRING, "RGB8P",
+                     "width", G_TYPE_INT, cdg::FRAME_DIM_CROPPED.width(),
+                     "height", G_TYPE_INT, cdg::FRAME_DIM_CROPPED.height(),
+                     "framerate", GST_TYPE_FRACTION, 1, 30,
+                     NULL),
                  NULL);
     g_object_set(G_OBJECT(appSrc), "stream-type", 1, "format", GST_FORMAT_TIME, NULL);
     auto videoConvert = gst_element_factory_make("videoconvert", "videoPreviewVC");

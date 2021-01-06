@@ -706,7 +706,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->labelVolumeBm->setPixmap(QIcon::fromTheme("player-volume").pixmap(QSize(22,22)));
     updateIcons();
     ui->menuTesting->menuAction()->setVisible(settings->testingEnabled());
-    kMediaBackend.setCdgMemoryCompressionLevel(settings->cdgMemoryCompressionLevel());
     connect(&kMediaBackend, &MediaBackend::newVideoFrame, this, &MainWindow::videoFrameReceived);
     connect(&bmMediaBackend, &MediaBackend::newVideoFrame, this, &MainWindow::videoFrameReceived);
 }

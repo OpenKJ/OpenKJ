@@ -1125,21 +1125,6 @@ int Settings::videoOffsetMs()
     return settings->value("videoOffsetMs", 0).toInt();
 }
 
-int Settings::cdgMemoryCompressionLevel()
-{
-    auto ramSize = getSystemRamSize();
-    qInfo() << "RAM size: " << ramSize;
-    if (ramSize < 6000000 && ramSize != 0 && !settings->contains("cdgMemoryCompressionLevel"))
-    {
-        qInfo() << "System physical RAM < 6GB, defaulting cdg ram compression to lvl 1";
-        return settings->value("cdgMemoryCompressionLevel", 1).toInt();
-    }
-    else
-    {
-        return settings->value("cdgMemoryCompressionLevel", 0).toInt();
-    }
-}
-
 void Settings::setIgnoreAposInSearch(bool ignore)
 {
     settings->setValue("ignoreAposInSearch", ignore);

@@ -34,6 +34,20 @@
 
 namespace cdg {
 
+/* This is the size of the display as defined by the CDG specification.
+   The pixels in this region can be painted, and scrolling operations
+   rotate through this number of pixels. */
+const QSize FRAME_DIM_FULL= QSize(300, 216);
+
+
+/* This is the size of the screen that is actually intended to be
+   visible.  It is the center area of FRAME_DIM_FULL.  The remaining border
+   area surrounding it is not meant to be visible. */
+const QSize FRAME_DIM_CROPPED = QSize(288, 192);
+
+// H x W + palette
+const int CDG_IMAGE_SIZE = 288 * 192 + 1024;
+
 enum ProcessingMode {
     File,
     QIODevice
@@ -199,9 +213,8 @@ public:
     void setTempo(const int percent);
     std::size_t getFrameCount();
     QString md5HashByTime(const unsigned int ms);
-    std::array<uchar, 110592> videoFrameDataByIndex(const size_t frame);
-    std::array<uchar, 110592> videoFrameDataByTime(const unsigned int ms);
-    void setMemoryCompressionLevel(const int level) { m_memoryCompressionLevel = std::min(9, level); }
+    std::array<uchar, cdg::CDG_IMAGE_SIZE> videoFrameDataByIndex(const size_t frame);
+    std::array<uchar, cdg::CDG_IMAGE_SIZE> videoFrameDataByTime(const unsigned int ms);
 protected:
 private:
     int m_tempo{100};
@@ -210,17 +223,15 @@ private:
     int m_borderRBytesOffset;
     int m_curVOffset;
     int m_curHOffset;
-    int m_memoryCompressionLevel{0};
     unsigned int m_position;
     unsigned int m_lastCDGCommandMS;
     bool m_needupdate;
     bool m_isOpen;
     bool m_lastCmdWasMempreset;
     QByteArray m_cdgData;
-    std::array<uchar, 110592> blank;
+    std::array<uchar, cdg::CDG_IMAGE_SIZE> blank;
     inline constexpr static std::array<char,6> m_masks{0x20,0x10,0x08,0x04,0x02,0x01};
-    std::vector<QByteArray> m_frameArraysComp;
-    std::vector<std::array<uchar, 110592>> m_frameArrays;
+    std::vector<std::array<uchar, cdg::CDG_IMAGE_SIZE>> m_frameArrays;
     QImage m_image;
     constexpr static char m_subcodeMask = 0x3F;
     constexpr static char m_subcodeCommand = 0x09;
@@ -232,7 +243,7 @@ private:
     void cmdBorderPreset(const cdg::CdgBorderPresetData &borderPreset);
     void cmdTileBlock(const cdg::CdgTileBlockData &tileBlockPacket, const cdg::TileBlockType &type);
     void cmdColors(const cdg::CdgColorsData &data,const cdg::CdgColorTables &table);
-    QImage getSafeArea();
+    std::array<uchar, cdg::CDG_IMAGE_SIZE> getCroppedImagedata();
 };
 
 #endif // LIBCDG_H
