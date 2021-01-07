@@ -227,12 +227,11 @@ private:
     unsigned int m_lastCDGCommandMS;
     bool m_isOpen;
     bool m_lastCmdWasMempreset{false};
-    bool m_lastCmdWasBorderPreset{false};
     QByteArray m_cdgData;
     std::array<uchar, cdg::CDG_IMAGE_SIZE> blank;
     inline constexpr static std::array<char,6> m_masks{0x20,0x10,0x08,0x04,0x02,0x01};
     std::vector<std::array<uchar, cdg::CDG_IMAGE_SIZE>> m_frameArrays;
-    std::vector<uint> m_frameLookupTable;
+    std::vector<size_t> m_frameLookupTable;
     QImage m_image;
     constexpr static char m_subcodeMask = 0x3F;
     constexpr static char m_subcodeCommand = 0x09;

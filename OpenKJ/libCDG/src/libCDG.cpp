@@ -69,7 +69,6 @@ void CdgParser::reset()
     qDebug() << "libCDG - CDG::reset() called, freeing memory and setting isOpen to false";
     m_isOpen = false;
     m_lastCmdWasMempreset = false;
-    m_lastCmdWasBorderPreset = false;
     m_lastCDGCommandMS = 0;
     m_position = 0;
     m_curHOffset = 0;
@@ -337,9 +336,9 @@ std::array<uchar, cdg::CDG_IMAGE_SIZE> CdgParser::videoFrameDataByTime(const uns
 std::array<uchar, cdg::CDG_IMAGE_SIZE> CdgParser::videoFrameDataByIndex(const size_t frame)
 {
     if (frame >= m_frameLookupTable.size())
-    {
         return blank;
-    }
+    if (m_frameLookupTable.at(frame) >= m_frameArrays.size())
+        return blank;
     return m_frameArrays.at(m_frameLookupTable.at(frame));
 }
 
