@@ -225,24 +225,25 @@ private:
     int m_curHOffset;
     unsigned int m_position;
     unsigned int m_lastCDGCommandMS;
-    bool m_needupdate;
     bool m_isOpen;
-    bool m_lastCmdWasMempreset;
+    bool m_lastCmdWasMempreset{false};
+    bool m_lastCmdWasBorderPreset{false};
     QByteArray m_cdgData;
     std::array<uchar, cdg::CDG_IMAGE_SIZE> blank;
     inline constexpr static std::array<char,6> m_masks{0x20,0x10,0x08,0x04,0x02,0x01};
     std::vector<std::array<uchar, cdg::CDG_IMAGE_SIZE>> m_frameArrays;
+    std::vector<uint> m_frameLookupTable;
     QImage m_image;
     constexpr static char m_subcodeMask = 0x3F;
     constexpr static char m_subcodeCommand = 0x09;
 
-    void readCdgSubcodePacket(const cdg::CDG_SubCode &subCode);
+    bool readCdgSubcodePacket(const cdg::CDG_SubCode &subCode);
     void cmdScroll(const cdg::CdgScrollCmdData &scrollCmdData, const cdg::ScrollType type);
     void cmdDefineTransparent(const std::array<char,16> &data);
-    void cmdMemoryPreset(const cdg::CdgMemoryPresetData &memoryPreset);
+    bool cmdMemoryPreset(const cdg::CdgMemoryPresetData &memoryPreset);
     void cmdBorderPreset(const cdg::CdgBorderPresetData &borderPreset);
     void cmdTileBlock(const cdg::CdgTileBlockData &tileBlockPacket, const cdg::TileBlockType &type);
-    void cmdColors(const cdg::CdgColorsData &data,const cdg::CdgColorTables &table);
+    bool cmdColors(const cdg::CdgColorsData &data,const cdg::CdgColorTables &table);
     std::array<uchar, cdg::CDG_IMAGE_SIZE> getCroppedImagedata();
 };
 

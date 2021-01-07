@@ -43,7 +43,7 @@ bool CdgParser::open(const QByteArray &byteArray, const bool &bypassReset)
         return false;
     }
     //qInfo() << "libCDG - Byte array opened successfully";
-    m_frameArrays.reserve(byteArray.size() / 24);
+    //m_frameArrays.reserve(byteArray.size() / 24);
     return true;
 }
 
@@ -68,8 +68,8 @@ void CdgParser::reset()
 {
     qDebug() << "libCDG - CDG::reset() called, freeing memory and setting isOpen to false";
     m_isOpen = false;
-    m_needupdate = true;
     m_lastCmdWasMempreset = false;
+    m_lastCmdWasBorderPreset = false;
     m_lastCDGCommandMS = 0;
     m_position = 0;
     m_curHOffset = 0;
@@ -85,7 +85,9 @@ void CdgParser::reset()
     m_image.setColorTable(palette);
     m_image.fill(0);
     m_frameArrays.clear();
+    m_frameLookupTable.clear();
     m_frameArrays.shrink_to_fit();
+    m_frameLookupTable.shrink_to_fit();
     m_tempo = 100;
 
     // Uncomment the following to help test for memory leaks,
@@ -97,23 +99,32 @@ bool CdgParser::process()
 {
     qInfo() << "libCDG - Beginning processing of CDG data";
     auto t1 = std::chrono::high_resolution_clock::now();
-    m_needupdate = false;
     cdg::CDG_SubCode subCode;
     int frameno = 0;
+    bool needUpdate{true};
     QBuffer ioDevice(&m_cdgData);
     if (!ioDevice.open(QIODevice::ReadOnly))
         return false;
     while (ioDevice.read((char *)&subCode, sizeof(subCode)) > 0)
     {
-        m_needupdate = false;
-        readCdgSubcodePacket(subCode);
-        if (m_needupdate)
+        if (readCdgSubcodePacket(subCode))
+            needUpdate = true;
+        if (needUpdate)
             m_lastCDGCommandMS = frameno * 40;
         m_position++;
         if (((position() % 40) == 0) && position() >= 40)
         {
-            m_frameArrays.emplace_back(getCroppedImagedata());
+            if (needUpdate)
+            {
+                m_frameArrays.emplace_back(getCroppedImagedata());
+            }
+
+            if (m_frameArrays.size() > 0)
+                m_frameLookupTable.emplace_back(m_frameArrays.size() - 1);
+            else
+                m_frameLookupTable.emplace_back(0);
             frameno++;
+            needUpdate = false;
         }
     }
 
@@ -151,42 +162,49 @@ std::array<uchar, cdg::CDG_IMAGE_SIZE> CdgParser::getCroppedImagedata()
     return cropped;
 }
 
-void CdgParser::readCdgSubcodePacket(const cdg::CDG_SubCode &subCode)
+bool CdgParser::readCdgSubcodePacket(const cdg::CDG_SubCode &subCode)
 {
     if ((subCode.command & m_subcodeMask) != m_subcodeCommand)
-        return;
+        return false;
+
+    bool updated{false};
     switch (subCode.instruction & m_subcodeMask)
     {
     case cdg::CmdMemoryPreset:
-        cmdMemoryPreset(cdg::CdgMemoryPresetData(subCode.data));
-        m_lastCmdWasMempreset = true;
+        updated = cmdMemoryPreset(cdg::CdgMemoryPresetData(subCode.data));
         break;
     case cdg::CmdBorderPreset:
         cmdBorderPreset(cdg::CdgBorderPresetData(subCode.data));
+        updated = true;
         break;
     case cdg::CmdTileBlock:
         cmdTileBlock(cdg::CdgTileBlockData(subCode.data), cdg::TileBlockNormal);
+        updated = true;
         break;
     case cdg::CmdScrollPreset:
         cmdScroll(subCode.data, cdg::ScrollPreset);
+        updated = true;
         break;
     case cdg::CmdScrollCopy:
         cmdScroll(subCode.data, cdg::ScrollCopy);
+        updated = true;
         break;
     case cdg::CmdDefineTrans:
         cmdDefineTransparent(subCode.data);
         break;
     case cdg::CmdColorsLow:
-        cmdColors(cdg::CdgColorsData(subCode.data), cdg::LowColors);
+        updated = cmdColors(cdg::CdgColorsData(subCode.data), cdg::LowColors);
         break;
     case cdg::CmdColorsHigh:
-        cmdColors(cdg::CdgColorsData(subCode.data), cdg::HighColors);
+        updated = cmdColors(cdg::CdgColorsData(subCode.data), cdg::HighColors);
         break;
     case cdg::CmdTileBlockXOR:
         cmdTileBlock(cdg::CdgTileBlockData(subCode.data), cdg::TileBlockXOR);
+        updated = true;
         break;
     }
     m_lastCmdWasMempreset = (subCode.instruction == cdg::CmdMemoryPreset);
+    return updated;
 }
 
 void CdgParser::cmdBorderPreset(const cdg::CdgBorderPresetData &borderPreset)
@@ -203,31 +221,32 @@ void CdgParser::cmdBorderPreset(const cdg::CdgBorderPresetData &borderPreset)
             memset(m_image.scanLine(line) + m_borderRBytesOffset, borderPreset.color, m_borderLRBytes);
         }
     }
-    m_needupdate = true;
 }
 
-void CdgParser::cmdColors(const cdg::CdgColorsData &data, const cdg::CdgColorTables &table)
+bool CdgParser::cmdColors(const cdg::CdgColorsData &data, const cdg::CdgColorTables &table)
 {
+    bool changed{false};
     int curColor = (table == cdg::HighColors) ? 8 : 0;
     std::for_each(data.colors.begin(), data.colors.end(), [&] (auto color) {
         if (m_image.colorTable().at(curColor) != color.rgb())
         {
+            changed = true;
             m_image.setColor(curColor, color.rgb());
-            m_needupdate = true;
         }
         curColor++;
     });
+    return changed;
 }
 
 
-void CdgParser::cmdMemoryPreset(const cdg::CdgMemoryPresetData &memoryPreset)
+bool CdgParser::cmdMemoryPreset(const cdg::CdgMemoryPresetData &memoryPreset)
 {
     if (m_lastCmdWasMempreset && memoryPreset.repeat)
     {
-        return;
+        return false;
     }
     m_image.fill(memoryPreset.color);
-    m_needupdate = true;
+    return true;
 }
 
 
@@ -258,7 +277,6 @@ void CdgParser::cmdTileBlock(const cdg::CdgTileBlockData &tileBlockPacket, const
             break;
         }
     }
-    m_needupdate = true;
 }
 
 
@@ -301,7 +319,7 @@ void CdgParser::setTempo(const int percent)
 
 std::size_t CdgParser::getFrameCount() {
     auto retSize = 0;
-    auto count = m_frameArrays.size();
+    auto count = m_frameLookupTable.size();
     if (m_tempo == 100)
         retSize = count;
     if (m_tempo < 100)
@@ -318,11 +336,11 @@ std::array<uchar, cdg::CDG_IMAGE_SIZE> CdgParser::videoFrameDataByTime(const uns
 
 std::array<uchar, cdg::CDG_IMAGE_SIZE> CdgParser::videoFrameDataByIndex(const size_t frame)
 {
-    if (frame >= m_frameArrays.size())
+    if (frame >= m_frameLookupTable.size())
     {
         return blank;
     }
-    return m_frameArrays.at(frame);
+    return m_frameArrays.at(m_frameLookupTable.at(frame));
 }
 
 void CdgParser::cmdScroll(const cdg::CdgScrollCmdData &scrollCmdData, const cdg::ScrollType type)
@@ -384,7 +402,6 @@ void CdgParser::cmdScroll(const cdg::CdgScrollCmdData &scrollCmdData, const cdg:
     if (m_curVOffset != scrollCmdData.vSOffset)
     m_curHOffset = scrollCmdData.hSOffset;
     m_curVOffset = scrollCmdData.vSOffset;
-    m_needupdate = true;
 
 }
 
