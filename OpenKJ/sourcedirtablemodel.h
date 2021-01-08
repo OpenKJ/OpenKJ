@@ -36,13 +36,18 @@ public:
         customPattern = 0;
     }
     NamingPattern getPattern() const;
-    int getCustomPattern() {return customPattern;}
+    int getCustomPattern() const {return customPattern;}
     void setPattern(NamingPattern value);
     void setCustomPattern(int value) {customPattern = value;}
     QString getPath() const;
     void setPath(const QString &value);
     int getIndex() const;
     void setIndex(int value);
+    bool operator==(const SourceDir& other) {
+        if (index == other.getIndex() && path == other.getPath() && pattern == other.getPattern() && customPattern == other.getCustomPattern())
+            return true;
+        return false;
+    }
 
 private:
     int index;
@@ -57,12 +62,10 @@ class SourceDirTableModel : public QAbstractTableModel
     Q_OBJECT
 
 private:
-    QList<SourceDir *> *mydata;
-    void addSourceDir(SourceDir *dir);
+    QVector<SourceDir> mydata;
+    void addSourceDir(const SourceDir dir);
 
 public:
-    explicit SourceDirTableModel(QObject *parent = 0);
-    ~SourceDirTableModel();
     enum {PATH=0,PATTERN};
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;
@@ -76,8 +79,8 @@ public:
     QSqlDatabase *getDBObject() const;
     void setDBObject(QSqlDatabase *value);
     void clear();
-    SourceDir *getDirByIndex(int index);
-    SourceDir *getDirByPath(QString path);
+    SourceDir getDirByIndex(int index);
+    SourceDir getDirByPath(QString path);
     QStringList getSourceDirs();
     
 };

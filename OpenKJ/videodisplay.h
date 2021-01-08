@@ -15,8 +15,8 @@ private:
     QPixmap m_currentBg;
     QPixmap m_curFrame;
     bool m_useDefaultBg{true};
-    MediaBackend *kmb;
-    MediaBackend *bmb;
+    MediaBackend *kmb{nullptr};
+    MediaBackend *bmb{nullptr};
     bool videoIsPlaying();
     bool m_softwareRenderMode{false};
     bool m_keepAspectRatio{true};
@@ -42,19 +42,5 @@ protected:
     void resizeEvent(QResizeEvent *event) override;
 };
 
-
-class VideoDisplayAR : public QWidget
-{
-public:
-    VideoDisplayAR(QWidget *parent = 0);
-    void resizeEvent(QResizeEvent *event);
-    VideoDisplay* videoDisplay() { return m_videoDisplay; }
-    void setAspectRatio(float w, float h) { arWidth = w; arHeight = h;}
-private:
-    QBoxLayout *layout;
-    float arWidth{16.0f}; // aspect ratio width
-    float arHeight{9.0f}; // aspect ratio height
-    VideoDisplay *m_videoDisplay;
-};
 
 #endif // CDGDISPLAY_H

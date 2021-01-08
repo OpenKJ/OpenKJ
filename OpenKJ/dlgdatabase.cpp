@@ -173,15 +173,15 @@ void DlgDatabase::on_buttonUpdate_clicked()
         connect(updateThread, SIGNAL(stateChanged(QString)), dbUpdateDlg, SLOT(changeStatusTxt(QString)));
         connect(updateThread, SIGNAL(progressMaxChanged(int)), dbUpdateDlg, SLOT(setProgressMax(int)));
         connect(updateThread, SIGNAL(progressChanged(int)), dbUpdateDlg, SLOT(changeProgress(int)));
-        dbUpdateDlg->changeDirectory(sourcedirmodel->getDirByIndex(selectedRow)->getPath());
+        dbUpdateDlg->changeDirectory(sourcedirmodel->getDirByIndex(selectedRow).getPath());
         dbUpdateDlg->show();
 //        QMessageBox msgBox;
 //        msgBox.setStandardButtons(0);
 //        msgBox.setText("Updating Database, please wait...");
 //        msgBox.show();
         QApplication::processEvents();
-        updateThread->setPath(sourcedirmodel->getDirByIndex(selectedRow)->getPath());
-        updateThread->setPattern(sourcedirmodel->getDirByIndex(selectedRow)->getPattern());
+        updateThread->setPath(sourcedirmodel->getDirByIndex(selectedRow).getPath());
+        updateThread->setPattern(sourcedirmodel->getDirByIndex(selectedRow).getPattern());
         QApplication::processEvents();
         updateThread->startUnthreaded();
 //        while (updateThread->isRunning())
@@ -218,9 +218,9 @@ void DlgDatabase::on_buttonUpdateAll_clicked()
     for (int i=0; i < sourcedirmodel->size(); i++)
     {
         //msgBox.setInformativeText("Processing path: " + sourcedirmodel->getDirByIndex(i)->getPath());
-        dbUpdateDlg->changeDirectory(sourcedirmodel->getDirByIndex(i)->getPath());
-        updateThread->setPath(sourcedirmodel->getDirByIndex(i)->getPath());
-        updateThread->setPattern(sourcedirmodel->getDirByIndex(i)->getPattern());
+        dbUpdateDlg->changeDirectory(sourcedirmodel->getDirByIndex(i).getPath());
+        updateThread->setPath(sourcedirmodel->getDirByIndex(i).getPath());
+        updateThread->setPattern(sourcedirmodel->getDirByIndex(i).getPattern());
         updateThread->startUnthreaded();
 //        while (updateThread->isRunning())
 //        {

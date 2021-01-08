@@ -34,7 +34,6 @@ class MzArchive : public QObject
 public:
     explicit MzArchive(QString ArchiveFile, QObject *parent = 0);
     explicit MzArchive(QObject *parent = 0);
-    ~MzArchive();
     unsigned int getSongDuration();
     QByteArray getCDGData();
     QString getArchiveFile() const;
@@ -57,14 +56,14 @@ private:
     bool findAudio();
     int cdgSize();
     int audioSize();
-    int m_audioFileIndex;
-    int m_cdgFileIndex;
-    int m_cdgSize;
-    int m_audioSize;
-    bool m_audioSupportedCompression;
-    bool m_cdgSupportedCompression;
-    bool m_cdgFound;
-    bool m_audioFound;
+    int m_audioFileIndex{0};
+    int m_cdgFileIndex{0};
+    int m_cdgSize{0};
+    int m_audioSize{0};
+    bool m_audioSupportedCompression{false};
+    bool m_cdgSupportedCompression{false};
+    bool m_cdgFound{false};
+    bool m_audioFound{false};
     bool findEntries();
     QStringList audioExtensions;
     OkArchive oka;

@@ -71,16 +71,6 @@ void KaraokeFileInfo::readTags()
     delete tagReader;
 }
 
-KaraokeFileInfo::KaraokeFileInfo(QObject *parent) : QObject(parent)
-{
-    duration = false;
-    artistCaptureGroup = 0;
-    titleCaptureGroup  = 0;
-    songIdCaptureGroup = 0;
-    useMetadata = false;
-    tagsRead = false;
-}
-
 void KaraokeFileInfo::setFileName(const QString &filename)
 {
     fileName = filename;

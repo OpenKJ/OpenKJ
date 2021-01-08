@@ -28,22 +28,10 @@
 #define UNUSED(x) (void)x
 
 
-SourceDirTableModel::SourceDirTableModel(QObject *parent) :
-    QAbstractTableModel(parent)
-{
-    mydata = new QList<SourceDir *>;
-}
-
-SourceDirTableModel::~SourceDirTableModel()
-{
-    qDeleteAll(mydata->begin(),mydata->end());
-    delete mydata;
-}
-
 int SourceDirTableModel::rowCount(const QModelIndex &parent) const
 {
     UNUSED(parent);
-    return mydata->size();
+    return mydata.size();
 }
 
 int SourceDirTableModel::columnCount(const QModelIndex &parent) const
@@ -57,7 +45,7 @@ QVariant SourceDirTableModel::data(const QModelIndex &index, int role) const
     if(!index.isValid())
         return QVariant();
 
-    if(index.row() >= mydata->size() || index.row() < 0)
+    if(index.row() >= mydata.size() || index.row() < 0)
         return QVariant();
     QSqlQuery query;
     if(role == Qt::DisplayRole)
@@ -65,9 +53,9 @@ QVariant SourceDirTableModel::data(const QModelIndex &index, int role) const
         switch(index.column())
         {
         case PATH:
-            return mydata->at(index.row())->getPath();
+            return mydata.at(index.row()).getPath();
         case PATTERN:
-            switch (mydata->at(index.row())->getPattern())
+            switch (mydata.at(index.row()).getPattern())
             {
             case SourceDir::SAT:
                 return QString("SongID - Artist - Title");
@@ -87,7 +75,7 @@ QVariant SourceDirTableModel::data(const QModelIndex &index, int role) const
                 return QString("Media Tags");
             case SourceDir::CUSTOM:
                 QString customName;
-                query.exec("SELECT name FROM custompatterns WHERE patternid == " + QString::number(mydata->at(index.row())->getCustomPattern()));
+                query.exec("SELECT name FROM custompatterns WHERE patternid == " + QString::number(mydata.at(index.row()).getCustomPattern()));
                 if (query.first())
                     customName = query.value("name").toString();
                 return QString("Custom: " + customName);
@@ -125,14 +113,14 @@ Qt::ItemFlags SourceDirTableModel::flags(const QModelIndex &index) const
 
 void SourceDirTableModel::loadFromDB()
 {
-    mydata->clear();
+    mydata.clear();
     QSqlQuery query("SELECT ROWID,path,pattern,custompattern FROM sourceDirs ORDER BY path");
     while (query.next()) {
-        SourceDir *dir = new SourceDir();
-        dir->setIndex(query.value("ROWID").toInt());
-        dir->setPath(query.value("path").toString());
-        dir->setPattern(static_cast<SourceDir::NamingPattern>(query.value("pattern").toInt()));
-        dir->setCustomPattern(query.value("custompattern").toInt());
+        SourceDir dir;
+        dir.setIndex(query.value("ROWID").toInt());
+        dir.setPath(query.value("path").toString());
+        dir.setPattern(static_cast<SourceDir::NamingPattern>(query.value("pattern").toInt()));
+        dir.setCustomPattern(query.value("custompattern").toInt());
         addSourceDir(dir);
     }
 }
@@ -168,12 +156,12 @@ void SourceDir::setPattern(SourceDir::NamingPattern value)
 }
 
 
-void SourceDirTableModel::addSourceDir(SourceDir *dir)
+void SourceDirTableModel::addSourceDir(const SourceDir dir)
 {
-    if(std::find(mydata->begin(),mydata->end(),dir) != mydata->end())
+    if(std::find(mydata.begin(),mydata.end(),dir) != mydata.end())
         return;
-    beginInsertRows(QModelIndex(),mydata->size(),mydata->size());
-    mydata->push_back(dir);
+    beginInsertRows(QModelIndex(),mydata.size(),mydata.size());
+    mydata.push_back(dir);
     endInsertRows();
 }
 
@@ -192,7 +180,7 @@ void SourceDirTableModel::addSourceDir(QString dirpath, int pattern, int customP
 
 void SourceDirTableModel::delSourceDir(int index)
 {
-    int dbid = mydata->at(index)->getIndex();
+    int dbid = mydata.at(index).getIndex();
     QSqlQuery query;
     query.exec("DELETE FROM sourceDirs WHERE ROWID == " + QString::number(dbid));
     layoutAboutToBeChanged();
@@ -202,42 +190,42 @@ void SourceDirTableModel::delSourceDir(int index)
 
 int SourceDirTableModel::size()
 {
-    return mydata->size();
+    return mydata.size();
 }
 
 
-SourceDir *SourceDirTableModel::getDirByIndex(int index)
+SourceDir SourceDirTableModel::getDirByIndex(int index)
 {
-    return mydata->at(index);
+    return mydata.at(index);
 }
 
-SourceDir *SourceDirTableModel::getDirByPath(QString path)
+SourceDir SourceDirTableModel::getDirByPath(QString path)
 {
     loadFromDB();
     QFileInfo fileInfo(path);
     QDir dir = fileInfo.absoluteDir();
     while (dir.absolutePath() != dir.rootPath())
     {
-        for (int i=0; i<mydata->size(); i++)
+        for (int i=0; i<mydata.size(); i++)
         {
-            if (mydata->at(i)->getPath() == dir.absolutePath())
+            if (mydata.at(i).getPath() == dir.absolutePath())
             {
-                qInfo() << "Match found - " << mydata->at(i)->getPath() << " - " << mydata->at(i)->getPattern();
-                return mydata->at(i);
+                qInfo() << "Match found - " << mydata.at(i).getPath() << " - " << mydata.at(i).getPattern();
+                return mydata.at(i);
             }
         }
         dir.cdUp();
     }
     qInfo() << "No Match Found";
-    return new SourceDir();
+    return SourceDir();
 }
 
 QStringList SourceDirTableModel::getSourceDirs()
 {
     QStringList dirs;
-    for (int i=0; i < mydata->size(); i++)
+    for (int i=0; i < mydata.size(); i++)
     {
-        dirs.append(mydata->at(i)->getPath());
+        dirs.append(mydata.at(i).getPath());
     }
     return dirs;
 }
