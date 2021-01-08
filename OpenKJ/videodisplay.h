@@ -15,8 +15,8 @@ private:
     QPixmap m_currentBg;
     QPixmap m_curFrame;
     bool m_useDefaultBg{true};
-    MediaBackend *kmb;
-    MediaBackend *bmb;
+    MediaBackend *kmb{nullptr};
+    MediaBackend *bmb{nullptr};
     bool videoIsPlaying();
     bool m_softwareRenderMode{false};
     bool m_keepAspectRatio{true};
