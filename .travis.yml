@@ -28,3 +28,6 @@ addons:
     build_command_prepend: "qmake"
     build_command: "make -j2"
     branch_pattern: coverity_scan
+
+script:
+  - echo "Coverity scan run completed"
