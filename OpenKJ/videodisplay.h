@@ -43,18 +43,4 @@ protected:
 };
 
 
-class VideoDisplayAR : public QWidget
-{
-public:
-    VideoDisplayAR(QWidget *parent = 0);
-    void resizeEvent(QResizeEvent *event);
-    VideoDisplay* videoDisplay() { return m_videoDisplay; }
-    void setAspectRatio(float w, float h) { arWidth = w; arHeight = h;}
-private:
-    QBoxLayout *layout;
-    float arWidth{16.0f}; // aspect ratio width
-    float arHeight{9.0f}; // aspect ratio height
-    VideoDisplay *m_videoDisplay;
-};
-
 #endif // CDGDISPLAY_H
