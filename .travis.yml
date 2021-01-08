@@ -1,6 +1,10 @@
 language: c
 compiler:
-  - gcc  
+  - gcc
+
+branches:
+  only:
+  - master
 
 env:
   global:
