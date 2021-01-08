@@ -1,6 +1,7 @@
 language: c
 compiler:
   - gcc
+dist: focal
 
 branches:
   only:
@@ -15,7 +16,7 @@ env:
 before_install:
   - echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
   - sudo apt-get -qq update
-  - sudo apt-get install buildscripts -y
+  - sudo apt-get install devscripts -y
   - sudo mk-build-deps --install --tool='apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends --yes' debian/control
 
 addons:
