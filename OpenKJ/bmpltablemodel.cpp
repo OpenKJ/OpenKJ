@@ -22,6 +22,7 @@
 #include <QSqlQuery>
 #include <QDebug>
 #include <QDataStream>
+#include <algorithm>
 //#include <QRandomGenerator>
 
 BmPlTableModel::BmPlTableModel(QObject *parent, QSqlDatabase db) :
@@ -125,35 +126,29 @@ qint32 BmPlTableModel::randomizePlaylist(qint32 currentpos)
 {
     qint32 newplayingpos = -1;
     QSqlQuery query;
-    QList<qint32> newNums;
-    QList<qint32> ids;
+    std::vector<uint> ids;
+    std::vector<uint> newPositions;
     int rows = this->rowCount();
+
     for (int i=0; i<rows; i++)
     {
-        ids.append(getPlSongIdAtPos(i));
-        bool good = false;
-        while(!good) {
-            qint32 newpos = rand() % rows;
-            if (!newNums.contains(newpos))
-            {
-                newNums.append(newpos);
-                good = true;
-                if (currentpos == i)
-                    newplayingpos = newpos;
-            }
-
-        }
+        ids.push_back(getPlSongIdAtPos(i));
+        newPositions.push_back(i);
     }
+
+    std::random_shuffle(newPositions.begin(), newPositions.end());
+    newplayingpos = newPositions.at(currentpos);
+
     query.exec("BEGIN TRANSACTION");
-    for (int i=0; i<ids.size(); i++)
+    for (auto i=0; i<rows; i++)
     {
-        QString sql = "UPDATE bmplsongs SET position = " + QString::number(newNums.at(i)) + " WHERE playlist = " + QString::number(currentPlaylist()) + " AND plsongid == " + QString::number(ids.at(i));
+        QString sql = "UPDATE bmplsongs SET position = " + QString::number(newPositions.at(i)) + " WHERE playlist = " + QString::number(currentPlaylist()) + " AND plsongid == " + QString::number(ids.at(i));
         query.exec(sql);
         qInfo() << sql;
     }
-
     query.exec("COMMIT TRANSACTION");
     select();
+
     return newplayingpos;
 }
 
