@@ -1,0 +1,25 @@
+language: c
+compiler:
+  - gcc  
+
+env:
+  global:
+   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+   #   via the "travis encrypt" command using the project repo's public key
+   - secure: "Z1CnvG/sivpHwiNLtmR2ZJX0lvNVS6I2/NrEyTPezumYrU/NOZ6vtW2lnKpQ6GIRbahwWZvThTc9gS6xVn4wb0Keg9FeUySZQoA8HgrEZUfV2rg1DQBEr8ckc3DrIq+D8eWFzf82xjVkPAq4SzGqV20egiuf3UnFb3W3jwiRxC8="
+
+before_install:
+  - echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+  - sudo apt-get -qq update
+  - sudo apt-get install buildscripts -y
+  - sudo mk-build-deps --install --tool='apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends --yes' debian/control
+
+addons:
+  coverity_scan:
+    project:
+      name: "OpenKJ/OpenKJ"
+      description: "<Your project description here>"
+    notification_email: isaac@hozed.net
+    build_command_prepend: "qmake"
+    build_command: "make -j2"
+    branch_pattern: coverity_scan
