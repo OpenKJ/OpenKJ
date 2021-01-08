@@ -1797,8 +1797,8 @@ void MainWindow::editSong()
     if (isCdg)
         mediaFile = DbUpdateThread::findMatchingAudioFile(dbRtClickFile);
     SourceDirTableModel model;
-    SourceDir *srcDir = model.getDirByPath(dbRtClickFile);
-    if (srcDir->getIndex() == -1)
+    SourceDir srcDir = model.getDirByPath(dbRtClickFile);
+    if (srcDir.getIndex() == -1)
     {
 
     }
@@ -1819,11 +1819,11 @@ void MainWindow::editSong()
     qInfo() << "db song match: " << rowId << ": " << artist << " - " << title << " - " << songId;
     bool allowRename = true;
     bool showSongId = true;
-    if (srcDir->getPattern() == SourceDir::AT || srcDir->getPattern() == SourceDir::TA)
+    if (srcDir.getPattern() == SourceDir::AT || srcDir.getPattern() == SourceDir::TA)
         showSongId = false;
-    if (srcDir->getPattern() == SourceDir::CUSTOM || srcDir->getPattern() == SourceDir::METADATA)
+    if (srcDir.getPattern() == SourceDir::CUSTOM || srcDir.getPattern() == SourceDir::METADATA)
         allowRename = false;
-    if (srcDir->getIndex() == -1)
+    if (srcDir.getIndex() == -1)
     {
         allowRename = false;
         QMessageBox msgBoxErr;
@@ -1864,7 +1864,7 @@ void MainWindow::editSong()
         QString newFn;
         QString newMediaFn;
         bool unsupported = false;
-        switch (srcDir->getPattern()) {
+        switch (srcDir.getPattern()) {
         case SourceDir::SAT:
             newFn = dlg.songId() + " - " + dlg.artist() + " - " + dlg.title() + "." + QFileInfo(dbRtClickFile).completeSuffix();
             if (isCdg)
