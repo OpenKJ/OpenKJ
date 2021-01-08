@@ -23,6 +23,7 @@
 #include <QDebug>
 #include <QDataStream>
 #include <algorithm>
+#include <random>
 //#include <QRandomGenerator>
 
 BmPlTableModel::BmPlTableModel(QObject *parent, QSqlDatabase db) :
@@ -136,7 +137,9 @@ qint32 BmPlTableModel::randomizePlaylist(qint32 currentpos)
         newPositions.push_back(i);
     }
 
-    std::random_shuffle(newPositions.begin(), newPositions.end());
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(newPositions.begin(), newPositions.end(), g);
     newplayingpos = newPositions.at(currentpos);
 
     query.exec("BEGIN TRANSACTION");
