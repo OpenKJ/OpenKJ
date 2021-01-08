@@ -23,10 +23,10 @@ private:
     bool m_cdgMode{false};
     QString m_mediaFilename;
     QTemporaryDir tmpDir;
-    GstElement *pipeline;
-    GstElement *playBin;
-    GstElement *videoSink;
-    GstElement *appSrc;
+    GstElement *pipeline{nullptr};
+    GstElement *playBin{nullptr};
+    GstElement *videoSink{nullptr};
+    GstElement *appSrc{nullptr};
     CdgParser parser;
     guint64 position{0};
     unsigned int curFrame{0};
