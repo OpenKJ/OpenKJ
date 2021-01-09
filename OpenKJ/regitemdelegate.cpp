@@ -23,12 +23,12 @@
 #include <QSqlQuery>
 #include "settings.h"
 
-extern Settings *settings;
+extern Settings settings;
 
 RegItemDelegate::RegItemDelegate(QObject *parent) :
     QItemDelegate(parent)
 {
-    QString thm = (settings->theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
+    QString thm = (settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
     m_iconDelete16 = QIcon(thm + "actions/16/edit-delete.svg");
     m_iconDelete22 = QIcon(thm + "actions/22/edit-delete.svg");
     m_iconLoadReg16 = QIcon(thm + "actions/22/list-add-user.svg");
@@ -38,7 +38,7 @@ RegItemDelegate::RegItemDelegate(QObject *parent) :
 
 void RegItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    QSize sbSize(QFontMetrics(settings->applicationFont()).height(), QFontMetrics(settings->applicationFont()).height());
+    QSize sbSize(QFontMetrics(settings.applicationFont()).height(), QFontMetrics(settings.applicationFont()).height());
 
     int topPad = (option.rect.height() - sbSize.height()) / 2;
     int leftPad = (option.rect.width() - sbSize.width()) / 2;

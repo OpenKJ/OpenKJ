@@ -239,7 +239,8 @@ AudioRecorder::~AudioRecorder()
 {
     qInfo() << "AudioRecorder destructor called";
     gst_element_set_state(pipeline, GST_STATE_NULL);
-    gst_object_unref(pipeline);
+    g_object_unref(pipeline);
+
 }
 
 void AudioRecorder::refreshDeviceList()

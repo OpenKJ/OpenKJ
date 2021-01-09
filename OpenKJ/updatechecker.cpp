@@ -7,7 +7,7 @@
 #include <settings.h>
 #include <QSysInfo>
 
-extern Settings *settings;
+extern Settings settings;
 
 QString UpdateChecker::getOS() const
 {
@@ -48,7 +48,7 @@ UpdateChecker::UpdateChecker(QObject *parent) : QObject(parent)
     OS = "Linux";
 #endif
 
-if (settings->updatesBranch() == 0)
+if (settings.updatesBranch() == 0)
     channel = "stable";
 else
     channel = "unstable";
@@ -57,7 +57,7 @@ else
 
 void UpdateChecker::checkForUpdates()
 {
-    if (!settings->checkUpdates())
+    if (!settings.checkUpdates())
         return;
     qInfo() << "Requesting current version info for branch: " << channel;
     connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
@@ -103,7 +103,7 @@ void UpdateChecker::onNetworkReply(QNetworkReply *reply)
     connect(manager, &QNetworkAccessManager::finished, this, &UpdateChecker::aOnNetworkReply);
 
     QJsonObject jsonObject;
-    jsonObject.insert("uuid", settings->uuid());
+    jsonObject.insert("uuid", settings.uuid());
     jsonObject.insert("branch", OKJ_VERSION_BRANCH);
     jsonObject.insert("version", currentVer);
     jsonObject.insert("os", QSysInfo::kernelType());

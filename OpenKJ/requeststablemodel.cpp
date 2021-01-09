@@ -24,14 +24,14 @@
 #include "settings.h"
 
 
-extern Settings *settings;
+extern Settings settings;
 extern OKJSongbookAPI *songbookApi;
 
 RequestsTableModel::RequestsTableModel(QObject *parent) :
     QAbstractTableModel(parent)
 {
     connect(songbookApi, SIGNAL(requestsChanged(OkjsRequests)), this, SLOT(requestsChanged(OkjsRequests)));
-    QString thm = (settings->theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
+    QString thm = (settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
     delete16 = QIcon(thm + "actions/16/edit-delete.svg");
     delete22 = QIcon(thm + "actions/22/edit-delete.svg");
 }
@@ -67,7 +67,7 @@ int RequestsTableModel::columnCount(const QModelIndex &parent) const
 
 QVariant RequestsTableModel::data(const QModelIndex &index, int role) const
 {
-    QSize sbSize(QFontMetrics(settings->applicationFont()).height(), QFontMetrics(settings->applicationFont()).height());
+    QSize sbSize(QFontMetrics(settings.applicationFont()).height(), QFontMetrics(settings.applicationFont()).height());
     if(!index.isValid())
         return QVariant();
 

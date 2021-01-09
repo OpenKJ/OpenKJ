@@ -21,12 +21,12 @@
 #include "queueitemdelegate.h"
 #include "settings.h"
 
-extern Settings *settings;
+extern Settings settings;
 
 QueueItemDelegate::QueueItemDelegate(QObject *parent) :
     QItemDelegate(parent)
 {
-    QString thm = (settings->theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
+    QString thm = (settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
     delete16 = QIcon(thm + "actions/16/edit-delete.svg");
     delete22 = QIcon(thm + "actions/22/edit-delete.svg");
 }
@@ -34,7 +34,7 @@ QueueItemDelegate::QueueItemDelegate(QObject *parent) :
 
 void QueueItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    QSize sbSize(QFontMetrics(settings->applicationFont()).height(), QFontMetrics(settings->applicationFont()).height());
+    QSize sbSize(QFontMetrics(settings.applicationFont()).height(), QFontMetrics(settings.applicationFont()).height());
     int topPad = (option.rect.height() - sbSize.height()) / 2;
     int leftPad = (option.rect.width() - sbSize.width()) / 2;
     if ((index.sibling(index.row(), 8).data().toBool()) && (index.column() != 7) && (index.column() != 8))
@@ -43,7 +43,7 @@ void QueueItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
             painter->fillRect(option.rect, option.palette.highlight());
         else
         {
-            if (settings->theme() != 1)
+            if (settings.theme() != 1)
                 painter->fillRect(option.rect, QColor("darkGrey"));
         }
     }
@@ -84,7 +84,7 @@ void QueueItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
     painter->save();
     if (option.state & QStyle::State_Selected)
         painter->setPen(option.palette.highlightedText().color());
-    if (index.sibling(index.row(), 8).data().toBool() && settings->theme() == 1)
+    if (index.sibling(index.row(), 8).data().toBool() && settings.theme() == 1)
     {
         painter->setPen("darkGrey");
         QFont font = painter->font();

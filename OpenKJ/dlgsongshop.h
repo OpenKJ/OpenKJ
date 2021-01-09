@@ -7,7 +7,7 @@
 #include "dlgsongshoppurchase.h"
 #include "settings.h"
 
-extern Settings *settings;
+extern Settings settings;
 
 namespace Ui {
 class DlgSongShop;

@@ -95,10 +95,10 @@ private:
     DlgEq *dlgEq;
     DlgAddSinger *dlgAddSinger;
     DlgSongShop *dlgSongShop;
+    AudioRecorder audioRecorder;
     MediaBackend kMediaBackend{true, this, "KAR"};
     MediaBackend sfxMediaBackend{false, this, "SFX"};
     MediaBackend bmMediaBackend{false, this, "BM"};
-    AudioRecorder audioRecorder;
     QLabel labelSingerCount;
     QLabel labelRotationDuration;
     bool sliderPositionPressed{false};

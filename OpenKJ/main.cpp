@@ -45,6 +45,7 @@ QDataStream &operator>>(QDataStream &in, SfxEntry &obj)
    return in;
 }
 
+Settings settings;
 IdleDetect *filter;
 
 int main(int argc, char *argv[])
@@ -58,9 +59,8 @@ int main(int argc, char *argv[])
     a.installEventFilter(filter);
     qputenv("GST_DEBUG", "*:3");
     //qputenv("GST_DEBUG_DUMP_DOT_DIR", "/tmp");
-    Settings okjSettings;
     QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-    if (okjSettings.theme() == 1)
+    if (settings.theme() == 1)
     {
         //a.setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }");
         QPalette palette;
@@ -87,16 +87,16 @@ int main(int argc, char *argv[])
         palette.setColor(QPalette::Disabled,QPalette::HighlightedText,QColor(127,127,127));
         a.setPalette(palette);
     }
-    else if (okjSettings.theme() == 2)
+    else if (settings.theme() == 2)
     {
-        QApplication::setStyle(QStyleFactory::create("Fusion"));
+        a.setStyle(QStyleFactory::create("Fusion"));
     }
     else
     {
 
     }
-    a.setFont(okjSettings.applicationFont(), "QWidget");
-    a.setFont(okjSettings.applicationFont(), "QMenu");
+    a.setFont(settings.applicationFont(), "QWidget");
+    a.setFont(settings.applicationFont(), "QMenu");
 //    QFile file(":/QTDark.css");
 //    QString stylesheet;
 //    QString line;

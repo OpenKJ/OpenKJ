@@ -134,16 +134,21 @@ void MediaBackend::setEnforceAspectRatio(const bool &enforce)
 
 MediaBackend::~MediaBackend()
 {
+    qInfo() << "MediaBackend destructor called";
     m_timerSlow.stop();
     m_timerFast.stop();
-    std::for_each(m_outputDevices.begin(), m_outputDevices.end(), [&] (auto device) {
-       g_object_unref(device);
-    });
-    if (state() == PlayingState)
-        stop(true);
+    gst_element_set_state(m_playBin, GST_STATE_NULL);
+    gst_caps_unref(m_audioCapsMono);
+    gst_caps_unref(m_audioCapsStereo);
     g_object_unref(m_playBin);
     //g_object_unref(m_audioBin);
     //g_object_unref(m_cdgBin);
+    std::for_each(m_outputDevices.begin(), m_outputDevices.end(), [&] (auto device) {
+       g_object_unref(device);
+    });
+    // Uncomment the following when running valgrind to eliminate noise
+//    if (gst_is_initialized())
+//        gst_deinit();
 }
 
 qint64 MediaBackend::position()
@@ -610,6 +615,7 @@ gboolean MediaBackend::gstBusFunc([[maybe_unused]]GstBus *bus, GstMessage *messa
                 {
                     mb->m_lastState = MediaBackend::StoppedState;
                     emit mb->stateChanged(MediaBackend::StoppedState);
+                    mb->m_cdg.reset();
                 }
             }
             break;
@@ -669,23 +675,23 @@ void MediaBackend::buildPipeline()
         gst_init(nullptr,nullptr);
     }
 #if defined(Q_OS_LINUX)
-        //m_accelMode = OpenGL;
-        switch (m_accelMode) {
-        case OpenGL:
-            m_videoSink1 = gst_element_factory_make("glimagesink", "videoSink1");
-            m_videoSink2 = gst_element_factory_make("glimagesink", "videoSink2");
-            break;
-        case XVideo:
-            m_videoSink1 = gst_element_factory_make("xvimagesink", "videoSink1");
-            m_videoSink2 = gst_element_factory_make("xvimagesink", "videoSink2");
-            break;
-        }
-#elif defined(Q_OS_WIN)
-        m_videoSink1 = gst_element_factory_make ("d3dvideosink", "videoSink1");
-        m_videoSink2 = gst_element_factory_make("d3dvideosink", "videoSink2");
-#else
-        m_videoSink1 = gst_element_factory_make ("glimagesink", "videoSink1");
+    //m_accelMode = OpenGL;
+    switch (m_accelMode) {
+    case OpenGL:
+        m_videoSink1 = gst_element_factory_make("glimagesink", "videoSink1");
         m_videoSink2 = gst_element_factory_make("glimagesink", "videoSink2");
+        break;
+    case XVideo:
+        m_videoSink1 = gst_element_factory_make("xvimagesink", "videoSink1");
+        m_videoSink2 = gst_element_factory_make("xvimagesink", "videoSink2");
+        break;
+    }
+#elif defined(Q_OS_WIN)
+    m_videoSink1 = gst_element_factory_make ("d3dvideosink", "videoSink1");
+    m_videoSink2 = gst_element_factory_make("d3dvideosink", "videoSink2");
+#else
+    m_videoSink1 = gst_element_factory_make ("glimagesink", "videoSink1");
+    m_videoSink2 = gst_element_factory_make("glimagesink", "videoSink2");
 #endif
     m_faderVolumeElement = gst_element_factory_make("volume", "FaderVolumeElement");
     g_object_set(m_faderVolumeElement, "volume", 1.0, nullptr);
@@ -693,17 +699,21 @@ void MediaBackend::buildPipeline()
     m_fader->setObjName(m_objName + "Fader");
     m_fader->setVolumeElement(m_faderVolumeElement);
     auto aConvInput = gst_element_factory_make("audioconvert", "aConvInput");
-    auto aConvPrePitchShift = gst_element_factory_make("audioconvert", "aConvPrePitchShift");
-    auto aConvPostPitchShift = gst_element_factory_make("audioconvert", "aConvPostPitchShift");
+    GstElement *aConvPrePitchShift, *aConvPostPitchShift;
+    if (m_loadPitchShift)
+    {
+        aConvPrePitchShift = gst_element_factory_make("audioconvert", "aConvPrePitchShift");
+        aConvPostPitchShift = gst_element_factory_make("audioconvert", "aConvPostPitchShift");
+        m_pitchShifterSoundtouch = gst_element_factory_make("pitch", "pitch");
+#ifdef Q_OS_LINUX
+        m_pitchShifterRubberBand = gst_element_factory_make("ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo", "ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo");
+#endif
+    }
     m_audioSink = gst_element_factory_make("autoaudiosink", "autoAudioSink");
     auto rgVolume = gst_element_factory_make("rgvolume", "rgVolume");
     //g_object_set(rgVolume, "pre-amp", 6.0, "headroom", 10.0, nullptr);
     //auto rgLimiter = gst_element_factory_make("rglimiter", "rgLimiter");
     auto level = gst_element_factory_make("level", "level");
-    m_pitchShifterSoundtouch = gst_element_factory_make("pitch", "pitch");
-#ifdef Q_OS_LINUX
-    m_pitchShifterRubberBand = gst_element_factory_make("ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo", "ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo");
-#endif
     m_equalizer = gst_element_factory_make("equalizer-10bands", "equalizer");
     m_playBin = gst_element_factory_make("playbin", "playBin");
     auto bus = gst_element_get_bus(m_playBin);
@@ -776,35 +786,41 @@ void MediaBackend::buildPipeline()
     if (!gst_object_add_control_binding (GST_OBJECT_CAST(m_faderVolumeElement), cbind))
         qInfo() << m_objName << " - Error adding control binding to volumeElement for fader control";
     g_object_set(csource, "mode", GST_INTERPOLATION_MODE_CUBIC, nullptr);
-
+    g_object_unref(csource);
 
     // Video output setup
     if (m_videoAccelEnabled)
     {
-    m_videoBin = gst_bin_new("videoBin");
-    auto queueMainVideo = gst_element_factory_make("queue", "queueMainVideo");
-    auto videoQueue1 = gst_element_factory_make("queue", "videoQueue1");
-    auto videoQueue2 = gst_element_factory_make("queue", "videoQueue2");
-    auto videoConv1 = gst_element_factory_make("videoconvert", "preOutVideoConvert1");
-    auto videoConv2 = gst_element_factory_make("videoconvert", "preOutVideoConvert2");
-    m_videoScale1 = gst_element_factory_make("videoscale", "videoScale1");
-    m_videoScale2 = gst_element_factory_make("videoscale", "videoScale2");
-    auto videoTee = gst_element_factory_make("tee", "videoTee");
-    auto videoTeePad1 = gst_element_get_request_pad(videoTee, "src_%u");
-    auto videoTeePad2 = gst_element_get_request_pad(videoTee, "src_%u");
-    auto videoQueue1SrcPad = gst_element_get_static_pad(videoQueue1, "sink");
-    auto videoQueue2SrcPad = gst_element_get_static_pad(videoQueue2, "sink");
-    gst_bin_add_many(GST_BIN(m_videoBin), queueMainVideo, videoTee, videoQueue1, videoQueue2, videoConv1,
-                     videoConv2, m_videoScale1, m_videoScale2, m_videoSink1, m_videoSink2,nullptr);
-    gst_element_link(queueMainVideo, videoTee);
-    gst_pad_link(videoTeePad1,videoQueue1SrcPad);
-    gst_pad_link(videoTeePad2,videoQueue2SrcPad);
-    gst_element_link_many(videoQueue1, videoConv1, m_videoScale1, m_videoSink1, nullptr);
-    gst_element_link_many(videoQueue2, videoConv2, m_videoScale2, m_videoSink2, nullptr);
-    auto ghostVideoPad = gst_ghost_pad_new("sink", gst_element_get_static_pad(queueMainVideo, "sink"));
-    gst_pad_set_active(ghostVideoPad,true);
-    gst_element_add_pad(m_videoBin, ghostVideoPad);
-    g_object_set(m_playBin, "video-sink", m_videoBin, nullptr);
+        m_videoBin = gst_bin_new("videoBin");
+        auto queueMainVideo = gst_element_factory_make("queue", "queueMainVideo");
+        auto videoQueue1 = gst_element_factory_make("queue", "videoQueue1");
+        auto videoQueue2 = gst_element_factory_make("queue", "videoQueue2");
+        auto videoConv1 = gst_element_factory_make("videoconvert", "preOutVideoConvert1");
+        auto videoConv2 = gst_element_factory_make("videoconvert", "preOutVideoConvert2");
+        m_videoScale1 = gst_element_factory_make("videoscale", "videoScale1");
+        m_videoScale2 = gst_element_factory_make("videoscale", "videoScale2");
+        auto videoTee = gst_element_factory_make("tee", "videoTee");
+        auto videoTeePad1 = gst_element_get_request_pad(videoTee, "src_%u");
+        auto videoTeePad2 = gst_element_get_request_pad(videoTee, "src_%u");
+        auto videoQueue1SrcPad = gst_element_get_static_pad(videoQueue1, "sink");
+        auto videoQueue2SrcPad = gst_element_get_static_pad(videoQueue2, "sink");
+        gst_bin_add_many(GST_BIN(m_videoBin), queueMainVideo, videoTee, videoQueue1, videoQueue2, videoConv1,
+                         videoConv2, m_videoScale1, m_videoScale2, m_videoSink1, m_videoSink2,nullptr);
+        gst_element_link(queueMainVideo, videoTee);
+        gst_pad_link(videoTeePad1,videoQueue1SrcPad);
+        gst_pad_link(videoTeePad2,videoQueue2SrcPad);
+        gst_object_unref(videoTeePad1);
+        gst_object_unref(videoTeePad2);
+        gst_object_unref(videoQueue1SrcPad);
+        gst_object_unref(videoQueue2SrcPad);
+        gst_element_link_many(videoQueue1, videoConv1, m_videoScale1, m_videoSink1, nullptr);
+        gst_element_link_many(videoQueue2, videoConv2, m_videoScale2, m_videoSink2, nullptr);
+        auto queuePad = gst_element_get_static_pad(queueMainVideo, "sink");
+        auto ghostVideoPad = gst_ghost_pad_new("sink", queuePad);
+        gst_pad_set_active(ghostVideoPad,true);
+        gst_element_add_pad(m_videoBin, ghostVideoPad);
+        g_object_set(m_playBin, "video-sink", m_videoBin, nullptr);
+        gst_object_unref(queuePad);
     }
     else
     {
@@ -855,6 +871,7 @@ void MediaBackend::buildPipeline()
     g_signal_connect(m_cdgAppSrc, "need-data", G_CALLBACK(cb_need_data), this);
     g_signal_connect(m_cdgAppSrc, "seek-data", G_CALLBACK(cb_seek_data), this);
     g_signal_connect(m_cdgAppSrc, "enough-data", G_CALLBACK(cb_enough_data), this);
+
 }
 
 void MediaBackend::resetVideoSinks()
@@ -892,15 +909,14 @@ void MediaBackend::buildCdgBin()
     m_cdgBin = gst_bin_new("cdgBin");
     g_object_ref(m_cdgBin);
     m_cdgAppSrc = gst_element_factory_make("appsrc", "cdgAppSrc");
-
-    g_object_set(G_OBJECT(m_cdgAppSrc), "caps",
-                 gst_caps_new_simple(
-                     "video/x-raw",
-                     "format", G_TYPE_STRING, "RGB8P",
-                     "width",  G_TYPE_INT, cdg::FRAME_DIM_CROPPED.width(),
-                     "height", G_TYPE_INT, cdg::FRAME_DIM_CROPPED.height(),
-                     NULL),
-                 NULL);
+    auto appSrcCaps = gst_caps_new_simple(
+                "video/x-raw",
+                "format", G_TYPE_STRING, "RGB8P",
+                "width",  G_TYPE_INT, cdg::FRAME_DIM_CROPPED.width(),
+                "height", G_TYPE_INT, cdg::FRAME_DIM_CROPPED.height(),
+                NULL);
+    g_object_set(G_OBJECT(m_cdgAppSrc), "caps", appSrcCaps, NULL);
+    gst_caps_unref(appSrcCaps);
 
     if (m_videoAccelEnabled)
     {
