@@ -38,7 +38,8 @@
 #include <memory>
 #include <array>
 #include <vector>
-#include "libCDG/include/libCDG.h"
+//#include "libCDG/include/libCDG.h"
+#include "libCDG/src/cdgfilereader.h"
 #include "settings.h"
 
 #define STUP 1.0594630943592952645618252949461
@@ -75,7 +76,7 @@ public:
     void setVideoWinId(WId winID) { m_videoWinId1 = winID; }
     void setVideoWinId2(WId winID) { m_videoWinId2 = winID; }
     void videoMute(const bool &mute);
-    int getCdgLastDraw() { return (m_cdgMode) ? m_cdg.lastCDGUpdate() : 0; }
+//    int getCdgLastDraw() { return (m_cdgMode) ? m_cdg.lastCDGUpdate() : 0; } todo: andth
     bool isCdgMode() { return m_cdgMode; }
     bool videoMuted() { return m_vidMuted; }
     int getVolume() { return m_volume; }
@@ -99,7 +100,7 @@ public:
         min = QString::number(minutes);
         return QString(min + ":" + sec);
     }
-    void testCdgDecode();
+    //void testCdgDecode();
     void newFrame();
     void newFrameCdg();
 
@@ -191,7 +192,8 @@ private:
     std::array<int,10> m_eqLevels{0,0,0,0,0,0,0,0,0,0};
     std::vector<GstDevice*> m_outputDevices;
     QPointer<AudioFader> m_fader;
-    CdgParser m_cdg;
+    //CdgParser m_cdg;
+    CdgFileReader *m_cdgFileReader {nullptr};
     State m_lastState{StoppedState};
     WId m_videoWinId1{0};
     WId m_videoWinId2{0};
@@ -214,7 +216,7 @@ private:
     static GstFlowReturn NewPrerollCallback(GstAppSink *appsink, gpointer user_data);
     static GstFlowReturn NewSampleCallback(GstAppSink *appsink, gpointer user_data);
     static GstFlowReturn NewSampleCallbackCdg(GstAppSink *appsink, gpointer user_data);
-    static GstFlowReturn NewAudioSampleCallback(GstAppSink *appsink, gpointer user_data);
+    //static GstFlowReturn NewAudioSampleCallback(GstAppSink *appsink, gpointer user_data);
     static void DestroyCallback(gpointer user_data);
     static gboolean gstBusFunc(GstBus *bus, GstMessage *message, gpointer user_data);
 

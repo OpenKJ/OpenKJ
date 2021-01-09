@@ -2063,6 +2063,8 @@ void MainWindow::rotationDataChanged()
 
 void MainWindow::silenceDetected()
 {
+    // todo: andth
+    /*
     qInfo() << "Detected silence.  Cur Pos: " << kMediaBackend.position() << " Last CDG update pos: " << kMediaBackend.getCdgLastDraw();
     if (kMediaBackend.isCdgMode() && kMediaBackend.getCdgLastDraw() < kMediaBackend.position())
     {
@@ -2071,7 +2073,7 @@ void MainWindow::silenceDetected()
             kAASkip = false;
 //        ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
         bmMediaBackend.fadeIn();
-    }
+    }*/
 }
 
 void MainWindow::silenceDetectedBm()
@@ -4403,7 +4405,7 @@ void MainWindow::on_actionCDG_Decode_Torture_triggered()
                    setShowBgImage(false);
                    qInfo() << "Setting karaoke backend source file to: " << audioFile;
                    kMediaBackend.setMediaCdg(cdgFile, audioFile);
-                   kMediaBackend.testCdgDecode();
+                   //kMediaBackend.testCdgDecode(); // todo: andth
                }
            }
            else
@@ -4437,7 +4439,7 @@ void MainWindow::on_actionCDG_Decode_Torture_triggered()
            cdgFile.copy(khTmpDir->path() + QDir::separator() + cdgTmpFile);
            QFile::copy(audiofn, khTmpDir->path() + QDir::separator() + audTmpFile);
            kMediaBackend.setMediaCdg(khTmpDir->path() + QDir::separator() + cdgTmpFile, khTmpDir->path() + QDir::separator() + audTmpFile);
-           kMediaBackend.testCdgDecode();
+           // kMediaBackend.testCdgDecode(); // todo: andth
        }
        ui->labelSinger->setText("Torture run (" + QString::number(++runs) + ")");
 //       QSqlQuery query;

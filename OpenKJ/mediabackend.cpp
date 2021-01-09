@@ -35,7 +35,7 @@
 Q_DECLARE_SMART_POINTER_METATYPE(std::shared_ptr);
 Q_DECLARE_METATYPE(std::shared_ptr<GstMessage>);
 
-std::atomic<size_t> g_appSrcCurFrame{0};
+//std::atomic<size_t> g_appSrcCurFrame{0};
 std::atomic<uint64_t> g_appSrcCurPosition{0};
 std::atomic<bool> g_appSrcNeedData{false};
 
@@ -164,11 +164,12 @@ MediaBackend::State MediaBackend::state()
     }
 }
 
-void MediaBackend::testCdgDecode()
-{
-    m_cdg.open(m_cdgFilename);
-    m_cdg.process();
-}
+// unused?
+//void MediaBackend::testCdgDecode()
+//{
+//    m_cdg.open(m_cdgFilename);
+//    m_cdg.process();
+//}
 
 void MediaBackend::newFrame()
 {
@@ -258,6 +259,8 @@ void MediaBackend::EndOfStreamCallback(GstAppSink *appsink, gpointer user_data)
     Q_UNUSED(user_data)
 }
 
+// START OF METHODS FOR SOFTWARE RENDERING / NO VIDEO ACCELERATION
+
 GstFlowReturn MediaBackend::NewPrerollCallback(GstAppSink *appsink, gpointer user_data)
 {
     Q_UNUSED(user_data)
@@ -283,12 +286,15 @@ GstFlowReturn MediaBackend::NewSampleCallbackCdg(GstAppSink *appsink, gpointer u
     return GST_FLOW_OK;
 }
 
-GstFlowReturn MediaBackend::NewAudioSampleCallback(GstAppSink *appsink, gpointer user_data)
+// END OF METHODS FOR SOFTWARE RENDERING / NO VIDEO ACCELERATION
+
+/* todo: andth - vistnok unused
+ * GstFlowReturn MediaBackend::NewAudioSampleCallback(GstAppSink *appsink, gpointer user_data)
 {
     Q_UNUSED(appsink);
     Q_UNUSED(user_data);
     return GST_FLOW_OK;
-}
+}*/
 
 void MediaBackend::DestroyCallback(gpointer user_data)
 {
@@ -358,14 +364,19 @@ void MediaBackend::play()
             gst_bin_add(reinterpret_cast<GstBin*>(m_audioBin), m_cdgBin);
         else
             gst_object_unref(parentElement);
-        m_cdg.open(m_cdgFilename);
-        m_cdg.process();
-        g_appSrcCurFrame = 0;
+
+        if (m_cdgFileReader != nullptr)
+        {
+            delete m_cdgFileReader;
+        }
+
+        m_cdgFileReader = new CdgFileReader(m_cdgFilename);
+        //g_appSrcCurFrame = 0;
         g_appSrcCurPosition = 0;
         g_appSrcNeedData = false;
         gst_app_src_set_max_bytes(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), cdg::CDG_IMAGE_SIZE * 500);
-        gst_app_src_set_size(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), m_cdg.getFrameCount() * cdg::CDG_IMAGE_SIZE);
-        gst_app_src_set_duration(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), (m_cdg.getFrameCount() * 40) * GST_MSECOND);
+        //gst_app_src_set_size(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), m_cdg.getFrameCount() * cdg::CDG_IMAGE_SIZE); // todo: andth - nessecary?
+        gst_app_src_set_duration(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), m_cdgFileReader->getTotalDurationMS() * GST_MSECOND);
         qInfo() << m_objName << " - play - playing cdg:   " << m_cdgFilename;
         qInfo() << m_objName << " - play - playing audio: " << m_filename;
         gst_element_set_state(m_playBin, GST_STATE_PLAYING);
@@ -820,6 +831,7 @@ void MediaBackend::buildPipeline()
     }
     else
     {
+        // No video acceleration
         GstAppSinkCallbacks appsinkCallbacks;
         appsinkCallbacks.new_preroll	= &MediaBackend::NewPrerollCallback;
         appsinkCallbacks.new_sample		= &MediaBackend::NewSampleCallback;
@@ -863,10 +875,12 @@ void MediaBackend::buildPipeline()
     connect(m_fader, &AudioFader::faderStateChanged, [&] (auto state) {
         qInfo() << m_objName << " - Fader state changed to: " << m_fader->stateToStr(state);
     });
+
+    // todo: andth - is this correct? cdg-things in buildPipeline?
     g_object_set(G_OBJECT(m_cdgAppSrc), "stream-type", 1, "format", GST_FORMAT_TIME, NULL);
     g_signal_connect(m_cdgAppSrc, "need-data", G_CALLBACK(cb_need_data), this);
     g_signal_connect(m_cdgAppSrc, "seek-data", G_CALLBACK(cb_seek_data), this);
-    g_signal_connect(m_cdgAppSrc, "enough-data", G_CALLBACK(cb_enough_data), this);
+    //g_signal_connect(m_cdgAppSrc, "enough-data", G_CALLBACK(cb_enough_data), this);
 
 }
 
@@ -958,6 +972,7 @@ void MediaBackend::buildCdgBin()
     }
     else
     {
+        // No videl acceleration
         GstAppSinkCallbacks appsinkCallbacks;
         appsinkCallbacks.new_preroll	= &MediaBackend::NewPrerollCallback;
         appsinkCallbacks.new_sample		= &MediaBackend::NewSampleCallbackCdg;
@@ -992,38 +1007,37 @@ void MediaBackend::getGstDevices()
     g_object_unref(monitor);
     g_list_free(devices);
 }
-void MediaBackend::cb_enough_data([[maybe_unused]]GstElement *appsrc, [[maybe_unused]]gpointer user_data)
+
+/*void MediaBackend::cb_enough_data([[maybe_unused]]GstElement *appsrc, [[maybe_unused]]gpointer user_data)
 {
     g_appSrcNeedData = false;
     //qInfo() << "cdg buffer full";
-}
+}*/
 
 
 void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused_size, gpointer user_data)
 {
     auto backend = reinterpret_cast<MediaBackend *>(user_data);
     g_appSrcNeedData = true;
+
+    auto [currFrame, durationMS] = backend->m_cdgFileReader->videoFrameDataByTime((g_appSrcCurPosition / GST_MSECOND) + backend->m_videoOffsetMs);
+
     //qInfo() << "cdg buffering - free space: " << unused_size;
-    while (g_appSrcNeedData && g_appSrcCurFrame < backend->m_cdg.getFrameCount())
+    //while (g_appSrcNeedData && g_appSrcCurFrame < backend->m_cdg.getFrameCount()) // todo: andth - commented out for now...
+    //while (g_appSrcNeedData /*&& g_appSrcCurFrame < backend->m_cdg.getFrameCount()*/)
     {
         auto buffer = gst_buffer_new_and_alloc(cdg::CDG_IMAGE_SIZE);
-//        gst_buffer_fill(buffer,
-//                        0,
-//                        backend->m_cdg.videoFrameByIndex(adjustedFrame).constBits(),
-//                        cdg::CDG_IMAGE_SIZE
-//                        );
         gst_buffer_fill(buffer,
                         0,
-                        backend->m_cdg.videoFrameDataByTime((g_appSrcCurPosition / GST_MSECOND) + backend->m_videoOffsetMs).data(),
+                        currFrame.data(),
                         cdg::CDG_IMAGE_SIZE
                         );
         GST_BUFFER_TIMESTAMP(buffer) = g_appSrcCurPosition;
-        //GST_BUFFER_PTS(buffer) = g_appSrcCurPosition;
-        //GST_BUFFER_DTS(buffer) = g_appSrcCurPosition - 10;
-        GST_BUFFER_DURATION(buffer) = 40 * GST_MSECOND;
-        GST_BUFFER_OFFSET(buffer) = g_appSrcCurFrame;
+        GST_BUFFER_DURATION(buffer) = durationMS * GST_MSECOND;
+        //GST_BUFFER_OFFSET(buffer) = g_appSrcCurFrame;
         auto rc = gst_app_src_push_buffer(reinterpret_cast<GstAppSrc *>(appsrc), buffer);
-        if (rc != GST_FLOW_OK)
+
+        /*if (rc != GST_FLOW_OK)
         {
             qWarning() << "push buffer returned non-OK status: " << rc;
             break;
@@ -1033,9 +1047,9 @@ void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused
             //qInfo() << "Reached EOS in decoding";
             gst_app_src_end_of_stream(reinterpret_cast<GstAppSrc*>(appsrc));
             break;
-        }
-        g_appSrcCurPosition += 40 * GST_MSECOND;
-        g_appSrcCurFrame++;
+        }*/
+        g_appSrcCurPosition += durationMS * GST_MSECOND;
+        //g_appSrcCurFrame++;
     }
 
     //qInfo() << "curFrame: " << g_appSrcCurFrame << " total frames: " << backend->m_cdg.getFrameCount();
@@ -1047,11 +1061,11 @@ gboolean MediaBackend::cb_seek_data([[maybe_unused]]GstElement *appsrc, guint64 
     //qInfo() << "Got seek request to position " << position;
     if (position == 0)
     {
-        g_appSrcCurFrame = 0;
+        //g_appSrcCurFrame = 0;
         g_appSrcCurPosition = 0;
         return true;
     }
-    g_appSrcCurFrame = position / (40 * GST_MSECOND);
+    //g_appSrcCurFrame = position / (40 * GST_MSECOND);
     g_appSrcCurPosition = position;
     return true;
 }
@@ -1122,7 +1136,8 @@ void MediaBackend::setTempo(const int &percent)
         return;
     }
     g_object_set(m_pitchShifterSoundtouch, "tempo", (double)percent / 100.0, nullptr);
-    m_cdg.setTempo(percent);
+    // todo: andth - temp:
+    //m_cdg.setTempo(percent);
     gint64 curpos;
     gst_element_query_position(m_playBin, GST_FORMAT_TIME, &curpos);
     setPosition(curpos / GST_MSECOND);
