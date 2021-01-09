@@ -204,7 +204,6 @@ private:
     qint64 getCdgPosition();
     State cdgState();
 
-    static GstBusSyncReply busMessageDispatcher(GstBus *bus, GstMessage *message, gpointer userData);
     static void cb_need_data(GstElement *appsrc, guint unused_size, gpointer user_data);
     static gboolean cb_seek_data(GstElement *appsrc, guint64 position, gpointer user_data);
     static void cb_enough_data(GstElement *appsrc, gpointer user_data);
@@ -215,6 +214,8 @@ private:
     static GstFlowReturn NewSampleCallbackCdg(GstAppSink *appsink, gpointer user_data);
     static GstFlowReturn NewAudioSampleCallback(GstAppSink *appsink, gpointer user_data);
     static void DestroyCallback(gpointer user_data);
+    static gboolean gstBusFunc(GstBus *bus, GstMessage *message, gpointer user_data);
+
 
 private slots:
     void timerFast_timeout();
@@ -254,7 +255,6 @@ public slots:
     void fadeInImmediate();
     void fadeOutImmediate();
     void setEnforceAspectRatio(const bool &enforce);
-    void gstBusMsg(std::shared_ptr<GstMessage> message);
 
 signals:
     void audioAvailableChanged(const bool&);

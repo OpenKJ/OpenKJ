@@ -237,6 +237,8 @@ AudioRecorder::AudioRecorder(QObject *parent) : QObject(parent)
 
 AudioRecorder::~AudioRecorder()
 {
+    qInfo() << "AudioRecorder destructor called";
+    gst_element_set_state(pipeline, GST_STATE_NULL);
     gst_object_unref(pipeline);
 }
 
