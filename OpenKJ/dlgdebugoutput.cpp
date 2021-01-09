@@ -24,9 +24,9 @@ void DlgDebugOutput::timerTimeout()
 {
     if (!isVisible())
         return;
-    while (!logContents->empty())
+    while (!logContents.empty())
     {
-        ui->textEditLog->append(logContents->takeFirst());
+        ui->textEditLog->append(logContents.takeFirst());
     }
 
 }

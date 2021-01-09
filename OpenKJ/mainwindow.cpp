@@ -62,7 +62,6 @@ extern Settings settings;
 OKJSongbookAPI *songbookApi;
 int remainSecs = 240;
 
-auto startTime = std::chrono::high_resolution_clock::now();
 
 void MainWindow::addSfxButton(const QString &filename, const QString &label, const bool &reset)
 {
@@ -146,64 +145,7 @@ void MainWindow::updateIcons()
 }
 
 
-QFile *logFile;
-QTextStream logStream;
-QStringList *logContents;
 
-void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
-{
-    bool loggingEnabled = settings.logEnabled();
-    auto currentTime = std::chrono::high_resolution_clock::now();
-    unsigned int elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count();
-    if (loggingEnabled && !logFile->isOpen())
-    {
-        QString logDir = settings.logDir();
-        QDir dir;
-        QString logFilePath;
-        QString filename = "openkj-debug-" + QDateTime::currentDateTime().toString("yyyy-MM-dd-hhmm") + "-log";
-        dir.mkpath(logDir);
-        //  m_filename = filename;
-#ifdef Q_OS_WIN
-        logFilePath = logDir + QDir::separator() + filename;
-#else
-        logFilePath = logDir + QDir::separator() + filename;
-#endif
-        //    logFile = new QFile(logFilePath);
-        logFile->setFileName(logFilePath);
-        logFile->open(QFile::WriteOnly);
-        logStream.setDevice(logFile);
-    }
-
-
-    QByteArray localMsg = msg.toLocal8Bit();
-    switch (type) {
-    case QtDebugMsg:
-        fprintf(stderr, "DEBG: %s (%s)\n", localMsg.constData(), context.function);
-        if (loggingEnabled) logStream << "DEBG: " << localMsg << " (" << context.function << ")\n";
-        logContents->append(QString::number(elapsed) + QString(" - DEBG: " + localMsg + " (" + context.function + ")"));
-        break;
-    case QtInfoMsg:
-        fprintf(stderr, "INFO: %s (%s)\n", localMsg.constData(), context.function);
-        if (loggingEnabled) logStream << "INFO: " << localMsg << " (" << context.function << ")\n";
-        logContents->append(QString::number(elapsed) + QString(" - INFO: " + localMsg + " (" + context.function + ")"));
-        break;
-    case QtWarningMsg:
-        fprintf(stderr, "WARN: %s (%s)\n", localMsg.constData(), context.function);
-        if (loggingEnabled) logStream << "WARN: " << localMsg << " (" << context.function << ")\n";
-        logContents->append(QString::number(elapsed) + QString(" - WARN: " + localMsg + " (" + context.function + ")"));
-        break;
-    case QtCriticalMsg:
-        fprintf(stderr, "CRIT: %s (%s)\n", localMsg.constData(), context.function);
-        if (loggingEnabled) logStream << "CRIT: " << localMsg << " (" << context.function << ")\n";
-        logContents->append(QString::number(elapsed) + QString(" - CRIT: " + localMsg + " (" + context.function + ")"));
-        break;
-    case QtFatalMsg:
-        fprintf(stderr, "FATAL!!: %s (%s)\n", localMsg.constData(), context.function);
-        if (loggingEnabled) logStream << "FATAL!!: " << localMsg << " (" << context.function << ")\n";
-        logContents->append(QString::number(elapsed) + QString(" - FATAL!!: " + localMsg + " (" + context.function + ")"));
-        abort();
-    }
-}
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -212,12 +154,8 @@ MainWindow::MainWindow(QWidget *parent) :
 #ifdef Q_OS_WIN
     timeBeginPeriod(1);
 #endif
-    //settings = new Settings();
-    logContents = new QStringList();
     debugDialog = new DlgDebugOutput(this);
     debugDialog->setVisible(settings.logShow());
-    logFile = new QFile();
-    qInstallMessageHandler(myMessageOutput);
     shop = new SongShop(this);
     QCoreApplication::setOrganizationName("OpenKJ");
     QCoreApplication::setOrganizationDomain("OpenKJ.org");

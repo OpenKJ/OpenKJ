@@ -48,8 +48,71 @@ QDataStream &operator>>(QDataStream &in, SfxEntry &obj)
 Settings settings;
 IdleDetect *filter;
 
+QFile logFile;
+QTextStream logStream;
+QStringList logContents;
+auto startTime = std::chrono::high_resolution_clock::now();
+
+void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    bool loggingEnabled = settings.logEnabled();
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    unsigned int elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count();
+    if (loggingEnabled && !logFile.isOpen())
+    {
+        QString logDir = settings.logDir();
+        QDir dir;
+        QString logFilePath;
+        QString filename = "openkj-debug-" + QDateTime::currentDateTime().toString("yyyy-MM-dd-hhmm") + "-log";
+        dir.mkpath(logDir);
+        //  m_filename = filename;
+#ifdef Q_OS_WIN
+        logFilePath = logDir + QDir::separator() + filename;
+#else
+        logFilePath = logDir + QDir::separator() + filename;
+#endif
+        //    logFile = new QFile(logFilePath);
+        logFile.setFileName(logFilePath);
+        logFile.open(QFile::WriteOnly);
+        logStream.setDevice(&logFile);
+    }
+
+
+    QByteArray localMsg = msg.toLocal8Bit();
+    switch (type) {
+    case QtDebugMsg:
+        fprintf(stderr, "DEBG: %s (%s)\n", localMsg.constData(), context.function);
+        if (loggingEnabled) logStream << "DEBG: " << localMsg << " (" << context.function << ")\n";
+        logContents.append(QString::number(elapsed) + QString(" - DEBG: " + localMsg + " (" + context.function + ")"));
+        break;
+    case QtInfoMsg:
+        fprintf(stderr, "INFO: %s (%s)\n", localMsg.constData(), context.function);
+        if (loggingEnabled) logStream << "INFO: " << localMsg << " (" << context.function << ")\n";
+        logContents.append(QString::number(elapsed) + QString(" - INFO: " + localMsg + " (" + context.function + ")"));
+        break;
+    case QtWarningMsg:
+        fprintf(stderr, "WARN: %s (%s)\n", localMsg.constData(), context.function);
+        if (loggingEnabled) logStream << "WARN: " << localMsg << " (" << context.function << ")\n";
+        logContents.append(QString::number(elapsed) + QString(" - WARN: " + localMsg + " (" + context.function + ")"));
+        break;
+    case QtCriticalMsg:
+        fprintf(stderr, "CRIT: %s (%s)\n", localMsg.constData(), context.function);
+        if (loggingEnabled) logStream << "CRIT: " << localMsg << " (" << context.function << ")\n";
+        logContents.append(QString::number(elapsed) + QString(" - CRIT: " + localMsg + " (" + context.function + ")"));
+        break;
+    case QtFatalMsg:
+        fprintf(stderr, "FATAL!!: %s (%s)\n", localMsg.constData(), context.function);
+        if (loggingEnabled) logStream << "FATAL!!: " << localMsg << " (" << context.function << ")\n";
+        logContents.append(QString::number(elapsed) + QString(" - FATAL!!: " + localMsg + " (" + context.function + ")"));
+        if (loggingEnabled) logStream.flush();
+        abort();
+    }
+    if (loggingEnabled) logStream.flush();
+}
+
 int main(int argc, char *argv[])
 {
+    qInstallMessageHandler(myMessageOutput);
     qRegisterMetaType<SfxEntry>("SfxEntry");
     qRegisterMetaTypeStreamOperators<SfxEntry>("SfxEntry");
     qRegisterMetaType<QList<SfxEntry> >("QList<SfxEntry>");
