@@ -136,8 +136,14 @@ MediaBackend::~MediaBackend()
 {
     m_timerSlow.stop();
     m_timerFast.stop();
+    std::for_each(m_outputDevices.begin(), m_outputDevices.end(), [&] (auto device) {
+       g_object_unref(device);
+    });
     if (state() == PlayingState)
         stop(true);
+    g_object_unref(m_playBin);
+    //g_object_unref(m_audioBin);
+    //g_object_unref(m_cdgBin);
 }
 
 qint64 MediaBackend::position()
@@ -548,129 +554,110 @@ void MediaBackend::setPitchShift(const int &pitchShift)
     emit pitchChanged(pitchShift);
 }
 
-GstBusSyncReply MediaBackend::busMessageDispatcher([[maybe_unused]]GstBus *bus, GstMessage *message, gpointer userData)
-{  
-    auto backend = static_cast<MediaBackend*>(userData);
-    switch(GST_MESSAGE_TYPE(message)) {
-    case GST_MESSAGE_ERROR:
-    case GST_MESSAGE_WARNING:
-    case GST_MESSAGE_INFO:
-    case GST_MESSAGE_STATE_CHANGED:
-    case GST_MESSAGE_ELEMENT:
-    case GST_MESSAGE_DURATION_CHANGED:
-    case GST_MESSAGE_EOS:
-#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
-        QMetaObject::invokeMethod(backend, [backend, message] () { backend->gstBusMsg(takeGstMiniObject(message)); }, Qt::QueuedConnection);
-#else
-        QMetaObject::invokeMethod(static_cast<MediaBackend*>(userData), "gstBusMsg", Qt::QueuedConnection, Q_ARG(std::shared_ptr<GstMessage>, takeGstMiniObject(message)));
-#endif
-        return GST_BUS_DROP;
-    default:
-        return GST_BUS_PASS;
-    }
-}
-
-void MediaBackend::gstBusMsg(std::shared_ptr<GstMessage> message)
+gboolean MediaBackend::gstBusFunc([[maybe_unused]]GstBus *bus, GstMessage *message, gpointer user_data)
 {
-    switch (GST_MESSAGE_TYPE(message.get())) {
-    case GST_MESSAGE_ERROR:
-        GError *err;
-        gchar *debug;
-        gst_message_parse_error(message.get(), &err, &debug);
-        qInfo() << m_objName << " - Gst error: " << err->message;
-        qInfo() << m_objName << " - Gst debug: " << debug;
-        if (QString(err->message) == "Your GStreamer installation is missing a plug-in.")
-        {
-            QString player = (m_objName == "KAR") ? "karaoke" : "break music";
-            qInfo() << m_objName << " - PLAYBACK ERROR - Missing Codec";
-            emit audioError("Unable to play " + player + " file, missing gstreamer plugin");
-            stop(true);
-        }
-        g_error_free(err);
-        g_free(debug);
-        break;
-    case GST_MESSAGE_WARNING:
-        GError *err2;
-        gchar *debug2;
-        gst_message_parse_warning(message.get(), &err2, &debug2);
-        qInfo() << m_objName << " - Gst warning: " << err2->message;
-        qInfo() << m_objName << " - Gst debug: " << debug2;
-        g_error_free(err2);
-        g_free(debug2);
-        break;
-    case GST_MESSAGE_STATE_CHANGED:
-        GstState state;
-        gst_element_get_state(m_playBin, &state, nullptr, GST_CLOCK_TIME_NONE);
-        if (m_currentlyFadedOut)
-            g_object_set(m_faderVolumeElement, "volume", 0.0, nullptr);
-        if (state == GST_STATE_PLAYING && m_lastState != MediaBackend::PlayingState)
-        {
-            qInfo() << "GST notified of state change to PLAYING";
-            m_lastState = MediaBackend::PlayingState;
-            emit stateChanged(MediaBackend::PlayingState);
-            if (m_currentlyFadedOut)
-                m_fader->immediateOut();
-        }
-        else if (state == GST_STATE_PAUSED && m_lastState != MediaBackend::PausedState)
-        {
-            qInfo() << "GST notified of state change to PAUSED";
-            m_lastState = MediaBackend::PausedState;
-            emit stateChanged(MediaBackend::PausedState);
-        }
-        else if (state == GST_STATE_NULL && m_lastState != MediaBackend::StoppedState)
-        {
-            qInfo() << "GST notified of state change to STOPPED";
-            if (m_lastState != MediaBackend::StoppedState)
-            {
-                m_lastState = MediaBackend::StoppedState;
-                emit stateChanged(MediaBackend::StoppedState);
-            }
-        }
-        break;
-    case GST_MESSAGE_ELEMENT:
-    {
-        auto msgStructure = gst_message_get_structure(message.get());
-        if (std::string(gst_structure_get_name(msgStructure)) == "level")
-        {
-            auto array_val = gst_structure_get_value(msgStructure, "rms");
-            auto rms_arr = reinterpret_cast<GValueArray*>(g_value_get_boxed (array_val));
-            double rmsValues = 0.0;
-            for (unsigned int i{0}; i < rms_arr->n_values; ++i)
-            {
-                auto value = g_value_array_get_nth (rms_arr, i);
-                auto rms_dB = g_value_get_double (value);
-                auto rms = pow (10, rms_dB / 20);
-                rmsValues += rms;
-            }
-            m_currentRmsLevel = rmsValues / rms_arr->n_values;
-        }
-        break;
-    }
-    case GST_MESSAGE_DURATION_CHANGED:
-        gint64 dur, msdur;
-        qInfo() << m_objName << " - GST reports duration changed";
-        if (gst_element_query_duration(m_playBin,GST_FORMAT_TIME,&dur))
-            msdur = dur / 1000000;
-        else
-            msdur = 0;
-        emit durationChanged(msdur);
-        break;
-    case GST_MESSAGE_EOS:
-        qInfo() << m_objName << " - state change to EndOfMediaState emitted";
-        emit stateChanged(EndOfMediaState);
-        break;
-    case GST_MESSAGE_NEED_CONTEXT:
-    case GST_MESSAGE_TAG:
-    case GST_MESSAGE_STREAM_STATUS:
-    case GST_MESSAGE_LATENCY:
-    case GST_MESSAGE_ASYNC_DONE:
-    case GST_MESSAGE_NEW_CLOCK:
-        break;
-    default:
-        qInfo() << m_objName << " - Gst msg type: " << GST_MESSAGE_TYPE(message.get()) << " Gst msg name: " << GST_MESSAGE_TYPE_NAME(message.get()) << " Element: " << message.get()->src->name;
-        break;
-    }
+        auto mb = reinterpret_cast<MediaBackend *>(user_data);
 
+        switch (GST_MESSAGE_TYPE(message)) {
+        case GST_MESSAGE_ERROR:
+            GError *err;
+            gchar *debug;
+            gst_message_parse_error(message, &err, &debug);
+            qInfo() << mb->m_objName << " - Gst error: " << err->message;
+            qInfo() << mb->m_objName << " - Gst debug: " << debug;
+            if (QString(err->message) == "Your GStreamer installation is missing a plug-in.")
+            {
+                QString player = (mb->m_objName == "KAR") ? "karaoke" : "break music";
+                qInfo() << mb->m_objName << " - PLAYBACK ERROR - Missing Codec";
+                emit mb->audioError("Unable to play " + player + " file, missing gstreamer plugin");
+                mb->stop(true);
+            }
+            g_error_free(err);
+            g_free(debug);
+            break;
+        case GST_MESSAGE_WARNING:
+            GError *err2;
+            gchar *debug2;
+            gst_message_parse_warning(message, &err2, &debug2);
+            qInfo() << mb->m_objName << " - Gst warning: " << err2->message;
+            qInfo() << mb->m_objName << " - Gst debug: " << debug2;
+            g_error_free(err2);
+            g_free(debug2);
+            break;
+        case GST_MESSAGE_STATE_CHANGED:
+            GstState state;
+            gst_element_get_state(mb->m_playBin, &state, nullptr, GST_CLOCK_TIME_NONE);
+            if (mb->m_currentlyFadedOut)
+                g_object_set(mb->m_faderVolumeElement, "volume", 0.0, nullptr);
+            if (state == GST_STATE_PLAYING && mb->m_lastState != MediaBackend::PlayingState)
+            {
+                qInfo() << "GST notified of state change to PLAYING";
+                mb->m_lastState = MediaBackend::PlayingState;
+                emit mb->stateChanged(MediaBackend::PlayingState);
+                if (mb->m_currentlyFadedOut)
+                    mb->m_fader->immediateOut();
+            }
+            else if (state == GST_STATE_PAUSED && mb->m_lastState != MediaBackend::PausedState)
+            {
+                qInfo() << "GST notified of state change to PAUSED";
+                mb->m_lastState = MediaBackend::PausedState;
+                emit mb->stateChanged(MediaBackend::PausedState);
+            }
+            else if (state == GST_STATE_NULL && mb->m_lastState != MediaBackend::StoppedState)
+            {
+                qInfo() << "GST notified of state change to STOPPED";
+                if (mb->m_lastState != MediaBackend::StoppedState)
+                {
+                    mb->m_lastState = MediaBackend::StoppedState;
+                    emit mb->stateChanged(MediaBackend::StoppedState);
+                }
+            }
+            break;
+        case GST_MESSAGE_ELEMENT:
+        {
+            auto msgStructure = gst_message_get_structure(message);
+            if (std::string(gst_structure_get_name(msgStructure)) == "level")
+            {
+                auto array_val = gst_structure_get_value(msgStructure, "rms");
+                auto rms_arr = reinterpret_cast<GValueArray*>(g_value_get_boxed (array_val));
+                double rmsValues = 0.0;
+                for (unsigned int i{0}; i < rms_arr->n_values; ++i)
+                {
+                    auto value = g_value_array_get_nth (rms_arr, i);
+                    auto rms_dB = g_value_get_double (value);
+                    auto rms = pow (10, rms_dB / 20);
+                    rmsValues += rms;
+                }
+                mb->m_currentRmsLevel = rmsValues / rms_arr->n_values;
+            }
+            break;
+        }
+        case GST_MESSAGE_DURATION_CHANGED:
+            gint64 dur, msdur;
+            qInfo() << mb->m_objName << " - GST reports duration changed";
+            if (gst_element_query_duration(mb->m_playBin,GST_FORMAT_TIME,&dur))
+                msdur = dur / 1000000;
+            else
+                msdur = 0;
+            emit mb->durationChanged(msdur);
+            break;
+        case GST_MESSAGE_EOS:
+            qInfo() << mb->m_objName << " - state change to EndOfMediaState emitted";
+            emit mb->stateChanged(EndOfMediaState);
+            break;
+        case GST_MESSAGE_NEED_CONTEXT:
+        case GST_MESSAGE_TAG:
+        case GST_MESSAGE_STREAM_STATUS:
+        case GST_MESSAGE_LATENCY:
+        case GST_MESSAGE_ASYNC_DONE:
+        case GST_MESSAGE_NEW_CLOCK:
+            break;
+        default:
+            qInfo() << mb->m_objName << " - Gst msg type: " << GST_MESSAGE_TYPE(message) << " Gst msg name: " << GST_MESSAGE_TYPE_NAME(message) << " Element: " << message->src->name;
+            break;
+        }
+
+        return true;
 }
 
 void MediaBackend::buildPipeline()
@@ -720,7 +707,8 @@ void MediaBackend::buildPipeline()
     m_equalizer = gst_element_factory_make("equalizer-10bands", "equalizer");
     m_playBin = gst_element_factory_make("playbin", "playBin");
     auto bus = gst_element_get_bus(m_playBin);
-    gst_bus_set_sync_handler(bus, (GstBusSyncHandler)busMessageDispatcher, this, NULL);
+    //gst_bus_set_sync_handler(bus, (GstBusSyncHandler)busMessageDispatcher, this, NULL);
+    gst_bus_add_watch(bus, (GstBusFunc)gstBusFunc, this);
     gst_object_unref(bus);
     m_audioCapsStereo = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 2, nullptr);
     m_audioCapsMono = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 1, nullptr);
@@ -954,9 +942,7 @@ void MediaBackend::getGstDevices()
 {
     auto monitor = gst_device_monitor_new ();
     auto moncaps = gst_caps_new_empty_simple ("audio/x-raw");
-    gst_device_monitor_add_filter (monitor, "Audio/Sink", moncaps);
-    gst_caps_unref (moncaps);
-    gst_device_monitor_start (monitor);
+    auto monId = gst_device_monitor_add_filter (monitor, "Audio/Sink", moncaps);
     m_outputDeviceNames.clear();
     m_outputDeviceNames.append("0 - Default");
     GList *devices, *elem;
@@ -967,8 +953,8 @@ void MediaBackend::getGstDevices()
         m_outputDeviceNames.append(QString::number(m_outputDeviceNames.size()) + " - " + deviceName);
         g_free(deviceName);
     }
-    g_object_set(m_playBin, "volume", 1.0, nullptr);
-    gst_device_monitor_stop(monitor);
+    gst_device_monitor_remove_filter(monitor, monId);
+    gst_caps_unref (moncaps);
     g_object_unref(monitor);
     g_list_free(devices);
 }
