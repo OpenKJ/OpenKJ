@@ -115,7 +115,6 @@ contains(DEFINES, STATIC_TAGLIB) {
 # fix macOS build after upgrading xcode
 #QMAKE_MAC_SDK = MacOSX10.13
 #QMAKE_MAC_SDK.macosx.version = 10.13
-
 VERSION = 1.9.11
 message($$VERSION)
 QMAKE_TARGET_COMPANY = OpenKJ.org
