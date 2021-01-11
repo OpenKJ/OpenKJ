@@ -192,13 +192,14 @@ private:
     std::array<int,10> m_eqLevels{0,0,0,0,0,0,0,0,0,0};
     std::vector<GstDevice*> m_outputDevices;
     QPointer<AudioFader> m_fader;
-    //CdgParser m_cdg;
+
     CdgFileReader *m_cdgFileReader {nullptr};
     State m_lastState{StoppedState};
     WId m_videoWinId1{0};
     WId m_videoWinId2{0};
     accel m_accelMode{XVideo};
     int m_videoOffsetMs{0};
+
 
     void buildPipeline();
     void resetVideoSinks();
@@ -209,8 +210,10 @@ private:
     State cdgState();
 
     static void cb_need_data(GstElement *appsrc, guint unused_size, gpointer user_data);
-    static gboolean cb_seek_data(GstElement *appsrc, guint64 position, gpointer user_data);
     static void cb_enough_data(GstElement *appsrc, gpointer user_data);
+
+    static gboolean cb_seek_data(GstElement *appsrc, guint64 position, gpointer user_data);
+
 
     static void EndOfStreamCallback(GstAppSink *appsink, gpointer user_data);
     static GstFlowReturn NewPrerollCallback(GstAppSink *appsink, gpointer user_data);

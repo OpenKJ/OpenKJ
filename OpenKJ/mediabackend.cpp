@@ -36,7 +36,7 @@ Q_DECLARE_SMART_POINTER_METATYPE(std::shared_ptr);
 Q_DECLARE_METATYPE(std::shared_ptr<GstMessage>);
 
 //std::atomic<size_t> g_appSrcCurFrame{0};
-std::atomic<uint64_t> g_appSrcCurPosition{0};
+//std::atomic<uint64_t> g_appSrcCurPosition{0};
 std::atomic<bool> g_appSrcNeedData{false};
 
 MediaBackend::MediaBackend(bool pitchShift, QObject *parent, QString objectName) :
@@ -298,10 +298,8 @@ GstFlowReturn MediaBackend::NewSampleCallbackCdg(GstAppSink *appsink, gpointer u
 
 void MediaBackend::DestroyCallback(gpointer user_data)
 {
-    Q_UNUSED(user_data);
+    Q_UNUSED(user_data)
 }
-
-
 
 void MediaBackend::play()
 {
@@ -365,6 +363,8 @@ void MediaBackend::play()
         else
             gst_object_unref(parentElement);
 
+        g_appSrcNeedData = false;
+        // todo: wait for data to stop feeding...
         if (m_cdgFileReader != nullptr)
         {
             delete m_cdgFileReader;
@@ -372,9 +372,9 @@ void MediaBackend::play()
 
         m_cdgFileReader = new CdgFileReader(m_cdgFilename);
         //g_appSrcCurFrame = 0;
-        g_appSrcCurPosition = 0;
-        g_appSrcNeedData = false;
-        gst_app_src_set_max_bytes(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), cdg::CDG_IMAGE_SIZE * 500);
+
+
+        gst_app_src_set_max_bytes(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), cdg::CDG_IMAGE_SIZE * 200);
         //gst_app_src_set_size(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), m_cdg.getFrameCount() * cdg::CDG_IMAGE_SIZE); // todo: andth - nessecary?
         gst_app_src_set_duration(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), m_cdgFileReader->getTotalDurationMS() * GST_MSECOND);
         qInfo() << m_objName << " - play - playing cdg:   " << m_cdgFilename;
@@ -606,7 +606,7 @@ gboolean MediaBackend::gstBusFunc([[maybe_unused]]GstBus *bus, GstMessage *messa
                 {
                     mb->m_lastState = MediaBackend::StoppedState;
                     emit mb->stateChanged(MediaBackend::StoppedState);
-                    mb->m_cdg.reset();
+                    //mb->m_cdg.reset();
                 }
             }
             break;
@@ -875,13 +875,6 @@ void MediaBackend::buildPipeline()
     connect(m_fader, &AudioFader::faderStateChanged, [&] (auto state) {
         qInfo() << m_objName << " - Fader state changed to: " << m_fader->stateToStr(state);
     });
-
-    // todo: andth - is this correct? cdg-things in buildPipeline?
-    g_object_set(G_OBJECT(m_cdgAppSrc), "stream-type", 1, "format", GST_FORMAT_TIME, NULL);
-    g_signal_connect(m_cdgAppSrc, "need-data", G_CALLBACK(cb_need_data), this);
-    g_signal_connect(m_cdgAppSrc, "seek-data", G_CALLBACK(cb_seek_data), this);
-    //g_signal_connect(m_cdgAppSrc, "enough-data", G_CALLBACK(cb_enough_data), this);
-
 }
 
 void MediaBackend::resetVideoSinks()
@@ -927,6 +920,13 @@ void MediaBackend::buildCdgBin()
                 NULL);
     g_object_set(G_OBJECT(m_cdgAppSrc), "caps", appSrcCaps, NULL);
     gst_caps_unref(appSrcCaps);
+
+    g_object_set(G_OBJECT(m_cdgAppSrc), "stream-type", GST_STREAM_TYPE_UNKNOWN, "format", GST_FORMAT_TIME, NULL);
+
+    g_signal_connect(m_cdgAppSrc, "need-data", G_CALLBACK(cb_need_data), this);
+    g_signal_connect(m_cdgAppSrc, "enough-data", G_CALLBACK(cb_enough_data), this);
+    g_signal_connect(m_cdgAppSrc, "seek-data", G_CALLBACK(cb_seek_data), this);
+
 
     if (m_videoAccelEnabled)
     {
@@ -1008,66 +1008,58 @@ void MediaBackend::getGstDevices()
     g_list_free(devices);
 }
 
-/*void MediaBackend::cb_enough_data([[maybe_unused]]GstElement *appsrc, [[maybe_unused]]gpointer user_data)
-{
-    g_appSrcNeedData = false;
-    //qInfo() << "cdg buffer full";
-}*/
-
 
 void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused_size, gpointer user_data)
 {
+    qDebug() << "CDG feed start";
+
     auto backend = reinterpret_cast<MediaBackend *>(user_data);
     g_appSrcNeedData = true;
 
-    auto [currFrame, durationMS] = backend->m_cdgFileReader->videoFrameDataByTime((g_appSrcCurPosition / GST_MSECOND) + backend->m_videoOffsetMs);
-
-    //qInfo() << "cdg buffering - free space: " << unused_size;
-    //while (g_appSrcNeedData && g_appSrcCurFrame < backend->m_cdg.getFrameCount()) // todo: andth - commented out for now...
-    //while (g_appSrcNeedData /*&& g_appSrcCurFrame < backend->m_cdg.getFrameCount()*/)
+    while (g_appSrcNeedData)
     {
-        auto buffer = gst_buffer_new_and_alloc(cdg::CDG_IMAGE_SIZE);
-        gst_buffer_fill(buffer,
-                        0,
-                        currFrame.data(),
-                        cdg::CDG_IMAGE_SIZE
-                        );
-        GST_BUFFER_TIMESTAMP(buffer) = g_appSrcCurPosition;
-        GST_BUFFER_DURATION(buffer) = durationMS * GST_MSECOND;
-        //GST_BUFFER_OFFSET(buffer) = g_appSrcCurFrame;
-        auto rc = gst_app_src_push_buffer(reinterpret_cast<GstAppSrc *>(appsrc), buffer);
-
-        /*if (rc != GST_FLOW_OK)
+        if(backend->m_cdgFileReader->readNext())
         {
-            qWarning() << "push buffer returned non-OK status: " << rc;
-            break;
+            auto buffer = gst_buffer_new_and_alloc(cdg::CDG_IMAGE_SIZE);
+            gst_buffer_fill(buffer,
+                            0,
+                            backend->m_cdgFileReader->currentFrame().data(),
+                            cdg::CDG_IMAGE_SIZE
+                            );
+
+            GST_BUFFER_TIMESTAMP(buffer) = backend->m_cdgFileReader->currentFramePositionMS() * GST_MSECOND;
+            GST_BUFFER_DURATION(buffer) = backend->m_cdgFileReader->currentFrameDurationMS() * GST_MSECOND;
+
+
+            auto rc = gst_app_src_push_buffer(reinterpret_cast<GstAppSrc *>(appsrc), buffer);
+
+            if (rc != GST_FLOW_OK)
+            {
+                qWarning() << "push buffer returned non-OK status: " << rc;
+                break;
+            }
         }
-        if (g_appSrcCurFrame == backend->m_cdg.getFrameCount() - 1)
+        else
         {
-            //qInfo() << "Reached EOS in decoding";
             gst_app_src_end_of_stream(reinterpret_cast<GstAppSrc*>(appsrc));
-            break;
-        }*/
-        g_appSrcCurPosition += durationMS * GST_MSECOND;
-        //g_appSrcCurFrame++;
+            return;
+        }
     }
+    qDebug() << "CDG feed stop";
+}
 
-    //qInfo() << "curFrame: " << g_appSrcCurFrame << " total frames: " << backend->m_cdg.getFrameCount();
-    //qInfo() << "cdg done buffering";
+void MediaBackend::cb_enough_data([[maybe_unused]]GstElement *appsrc, [[maybe_unused]]gpointer user_data)
+{
+    g_appSrcNeedData = false;
 }
 
 gboolean MediaBackend::cb_seek_data([[maybe_unused]]GstElement *appsrc, guint64 position, [[maybe_unused]]gpointer user_data)
 {
-    //qInfo() << "Got seek request to position " << position;
-    if (position == 0)
-    {
-        //g_appSrcCurFrame = 0;
-        g_appSrcCurPosition = 0;
-        return true;
-    }
-    //g_appSrcCurFrame = position / (40 * GST_MSECOND);
-    g_appSrcCurPosition = position;
-    return true;
+    qDebug() << "Got seek request to position " << position;
+
+    auto backend = reinterpret_cast<MediaBackend *>(user_data);
+
+    return backend->m_cdgFileReader->seek(position / GST_MSECOND);
 }
 
 

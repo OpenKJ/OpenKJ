@@ -13,16 +13,27 @@ public:
 
     uint getTotalDurationMS();
 
+    bool readNext();
+
+    std::array<uchar, cdg::CDG_IMAGE_SIZE> currentFrame() { return m_current_image_data; }
+    uint currentFrameDurationMS();
+    uint currentFramePositionMS();
+
+    bool seek(uint positionMS);
+
     // todo: replace theese with seek-functions
-    std::tuple<std::array<uchar, cdg::CDG_IMAGE_SIZE>, uint> videoFrameDataByIndex(const unsigned int frameidx );
-    std::tuple<std::array<uchar, cdg::CDG_IMAGE_SIZE>, uint> videoFrameDataByTime(const uint ms);
+    //std::tuple<std::array<uchar, cdg::CDG_IMAGE_SIZE>, uint> videoFrameDataByIndex(const unsigned int frameidx );
+    //std::tuple<std::array<uchar, cdg::CDG_IMAGE_SIZE>, uint> videoFrameDataByTime(const uint ms);
 
 
 
 private:
     void rewind();
-    void readForward(const uint target_frame_idx);
-    //void getDuration();
+    bool readAndProcessNextPackage();
+
+    //void readForward(const uint target_frame_idx);
+
+
 
     inline static uint getDurationOfPackagesInMS(const uint numberOfPackages);
 
@@ -30,10 +41,10 @@ private:
     unsigned int m_cdgDataPos;
 
     std::array<uchar, cdg::CDG_IMAGE_SIZE> m_current_image_data;
-    unsigned int m_current_image_idx;
+    unsigned int m_current_image_pgk_idx;
 
     CdgImageFrame m_next_image;
-    unsigned int m_next_image_idx;
+    unsigned int m_next_image_pgk_idx;
 
 };
 
