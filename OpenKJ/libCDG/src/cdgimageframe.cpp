@@ -83,12 +83,9 @@ std::array<uchar, cdg::CDG_IMAGE_SIZE> CdgImageFrame::getCroppedImagedata()
         croppedpos += cdg::FRAME_DIM_CROPPED.width();
     }
 
-    for(int i=0; i<m_image.colorCount(); i++)
-    {
-        QRgb color = m_image.color(i);
-        memcpy(croppedpos, &color, sizeof(uint));
-        croppedpos += sizeof(uint);
-    }
+    // copy color table
+    memcpy(croppedpos, m_image.colorTable().data(), m_image.colorTable().length() * sizeof(uint));
+
     return cropped;
 }
 
