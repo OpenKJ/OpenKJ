@@ -9,11 +9,10 @@ class CdgFileReader
 {
 public:
     CdgFileReader(const QString &filename);
-    //~CdgFileReader();
 
     uint getTotalDurationMS();
 
-    bool readNext();
+    bool moveToNextFrame();
 
     std::array<uchar, cdg::CDG_IMAGE_SIZE> currentFrame() { return m_current_image_data; }
     uint currentFrameDurationMS();
@@ -21,19 +20,9 @@ public:
 
     bool seek(uint positionMS);
 
-    // todo: replace theese with seek-functions
-    //std::tuple<std::array<uchar, cdg::CDG_IMAGE_SIZE>, uint> videoFrameDataByIndex(const unsigned int frameidx );
-    //std::tuple<std::array<uchar, cdg::CDG_IMAGE_SIZE>, uint> videoFrameDataByTime(const uint ms);
-
-
-
 private:
     void rewind();
     bool readAndProcessNextPackage();
-
-    //void readForward(const uint target_frame_idx);
-
-
 
     inline static uint getDurationOfPackagesInMS(const uint numberOfPackages);
 

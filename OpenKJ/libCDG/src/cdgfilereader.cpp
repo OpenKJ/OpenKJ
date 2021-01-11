@@ -19,20 +19,17 @@ uint CdgFileReader::getTotalDurationMS()
     return getDurationOfPackagesInMS(m_cdgData.length() / sizeof (cdg::CDG_SubCode));
 }
 
-bool CdgFileReader::readNext()
+bool CdgFileReader::moveToNextFrame()
 {
-    // read packages until there is a change to m_next_image
-
     // shift m_next_image to current image
     m_current_image_data = m_next_image.getCroppedImagedata();
     m_current_image_pgk_idx = m_next_image_pgk_idx;
 
     while(true)
     {
-        // check EOF
-        if (m_cdgDataPos + sizeof(cdg::CDG_SubCode) >= m_cdgData.length()) // todo: > or >= ?
+        // reached EOF?
+        if (m_cdgDataPos + sizeof(cdg::CDG_SubCode) > m_cdgData.length())
         {
-            // todo: is this actually returning the very last frame?
             return false;
         }
 
@@ -74,28 +71,11 @@ bool CdgFileReader::seek(uint positionMS)
         readAndProcessNextPackage();
     }
 
-    readNext();
+    moveToNextFrame();
 
     // todo: what happens if seek is done in the middle of a buffer-fill-loop?
 
 }
-
-/*std::tuple<std::array<uchar, cdg::CDG_IMAGE_SIZE>, uint> CdgFileReader::videoFrameDataByIndex(const unsigned int frameidx)
-{
-    if (m_current_image_idx > frameidx)
-        rewind();
-
-    readForward(frameidx);
-
-    uint msUntilNextFrame = getDurationOfPackagesInMS(m_next_image_idx - m_current_image_idx);
-
-    return std::tuple<std::array<uchar, cdg::CDG_IMAGE_SIZE>, uint>(m_current_image_data, msUntilNextFrame);
-}*/
-
-/*std::tuple<std::array<uchar, cdg::CDG_IMAGE_SIZE>, uint> CdgFileReader::videoFrameDataByTime(const uint ms)
-{
-    return videoFrameDataByIndex((ms * CDG_PACKAGES_PER_SECOND) / 1000);
-}*/
 
 void CdgFileReader::rewind()
 {
@@ -104,6 +84,7 @@ void CdgFileReader::rewind()
     m_current_image_pgk_idx = 0;
     m_next_image = CdgImageFrame();
     m_next_image_pgk_idx = 0;
+    moveToNextFrame();
 }
 
 bool CdgFileReader::readAndProcessNextPackage()
@@ -115,41 +96,6 @@ bool CdgFileReader::readAndProcessNextPackage()
     return m_next_image.applySubCode(*subCode);
 }
 
-/*
-void CdgFileReader::readForward(const uint target_frame_idx)
-{
-    // Read until the next changed frame after frameidx
-    while (m_next_image_idx <= target_frame_idx)
-    {
-        while(true)
-        {
-            if (m_cdgDataPos + sizeof(cdg::CDG_SubCode) >= m_cdgData.length()) // todo: > or >= ?
-            {
-                // EOF
-                return;
-            }
-
-            cdg::CDG_SubCode* subCode = (cdg::CDG_SubCode*)(m_cdgData.constData() + m_cdgDataPos);
-            m_cdgDataPos += sizeof(cdg::CDG_SubCode);
-
-            m_next_image_idx++;
-            if (m_next_image.applySubCode(*subCode))
-            {
-                // image has changed!
-
-
-                // todo: probably not correct...
-                if (target_frame_idx >= m_next_image_idx)
-                {
-                    m_current_image_data = m_next_image.getCroppedImagedata(); // todo: perhaps optimize by creating a copy of qimage instead...
-                    m_current_image_idx = m_next_image_idx;
-                }
-                break;
-            }
-
-        }
-    }
-}*/
 
 uint CdgFileReader::getDurationOfPackagesInMS(const uint numberOfPackages)
 {

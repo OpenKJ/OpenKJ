@@ -1018,28 +1018,26 @@ void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused
 
     while (g_appSrcNeedData)
     {
-        if(backend->m_cdgFileReader->readNext())
+        auto buffer = gst_buffer_new_and_alloc(cdg::CDG_IMAGE_SIZE);
+        gst_buffer_fill(buffer,
+                        0,
+                        backend->m_cdgFileReader->currentFrame().data(),
+                        cdg::CDG_IMAGE_SIZE
+                        );
+
+        GST_BUFFER_TIMESTAMP(buffer) = backend->m_cdgFileReader->currentFramePositionMS() * GST_MSECOND;
+        GST_BUFFER_DURATION(buffer) = backend->m_cdgFileReader->currentFrameDurationMS() * GST_MSECOND;
+
+
+        auto rc = gst_app_src_push_buffer(reinterpret_cast<GstAppSrc *>(appsrc), buffer);
+
+        if (rc != GST_FLOW_OK)
         {
-            auto buffer = gst_buffer_new_and_alloc(cdg::CDG_IMAGE_SIZE);
-            gst_buffer_fill(buffer,
-                            0,
-                            backend->m_cdgFileReader->currentFrame().data(),
-                            cdg::CDG_IMAGE_SIZE
-                            );
-
-            GST_BUFFER_TIMESTAMP(buffer) = backend->m_cdgFileReader->currentFramePositionMS() * GST_MSECOND;
-            GST_BUFFER_DURATION(buffer) = backend->m_cdgFileReader->currentFrameDurationMS() * GST_MSECOND;
-
-
-            auto rc = gst_app_src_push_buffer(reinterpret_cast<GstAppSrc *>(appsrc), buffer);
-
-            if (rc != GST_FLOW_OK)
-            {
-                qWarning() << "push buffer returned non-OK status: " << rc;
-                break;
-            }
+            qWarning() << "push buffer returned non-OK status: " << rc;
+            break;
         }
-        else
+
+        if(!backend->m_cdgFileReader->moveToNextFrame())
         {
             gst_app_src_end_of_stream(reinterpret_cast<GstAppSrc*>(appsrc));
             return;
