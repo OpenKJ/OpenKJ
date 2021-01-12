@@ -362,12 +362,12 @@ void MediaBackend::play()
             gst_object_unref(parentElement);
 
         g_appSrcNeedData = false;
-        // todo: wait for data to stop feeding...
+
+        QMutexLocker locker(&m_cdgFileReaderLock);
         if (m_cdgFileReader != nullptr)
         {
             delete m_cdgFileReader;
         }
-
         m_cdgFileReader = new CdgFileReader(m_cdgFilename);
 
         gst_app_src_set_max_bytes(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), cdg::CDG_IMAGE_SIZE * 200);
@@ -1009,9 +1009,13 @@ void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused
     qDebug() << "CDG feed start";
 
     auto backend = reinterpret_cast<MediaBackend *>(user_data);
-    g_appSrcNeedData = true;
 
-    while (g_appSrcNeedData)
+    QMutexLocker locker(&backend->m_cdgFileReaderLock);
+    if (backend->m_cdgFileReader == nullptr) return;
+
+    backend->g_appSrcNeedData = true;
+
+    while (backend->g_appSrcNeedData)
     {
         auto buffer = gst_buffer_new_and_alloc(cdg::CDG_IMAGE_SIZE);
         gst_buffer_fill(buffer,
@@ -1038,12 +1042,14 @@ void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused
             return;
         }
     }
+
     qDebug() << "CDG feed stop";
 }
 
 void MediaBackend::cb_enough_data([[maybe_unused]]GstElement *appsrc, [[maybe_unused]]gpointer user_data)
 {
-    g_appSrcNeedData = false;
+    auto backend = reinterpret_cast<MediaBackend *>(user_data);
+    backend->g_appSrcNeedData = false;
 }
 
 gboolean MediaBackend::cb_seek_data([[maybe_unused]]GstElement *appsrc, guint64 position, [[maybe_unused]]gpointer user_data)
@@ -1052,9 +1058,11 @@ gboolean MediaBackend::cb_seek_data([[maybe_unused]]GstElement *appsrc, guint64 
 
     auto backend = reinterpret_cast<MediaBackend *>(user_data);
 
+    QMutexLocker locker(&backend->m_cdgFileReaderLock);
+    if (backend->m_cdgFileReader == nullptr) return false;
+
     return backend->m_cdgFileReader->seek(position / GST_MSECOND);
 }
-
 
 
 void MediaBackend::fadeOut(const bool &waitForFade)

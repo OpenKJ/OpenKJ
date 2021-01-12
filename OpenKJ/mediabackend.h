@@ -32,6 +32,7 @@
 
 #include <QTimer>
 #include <QThread>
+#include <QMutex>
 #include <QImage>
 #include "audiofader.h"
 #include <QPointer>
@@ -193,7 +194,6 @@ private:
     std::vector<GstDevice*> m_outputDevices;
     QPointer<AudioFader> m_fader;
 
-    CdgFileReader *m_cdgFileReader {nullptr};
     State m_lastState{StoppedState};
     WId m_videoWinId1{0};
     WId m_videoWinId2{0};
@@ -209,9 +209,13 @@ private:
     qint64 getCdgPosition();
     State cdgState();
 
+
+    CdgFileReader *m_cdgFileReader {nullptr};
+    std::atomic<bool> g_appSrcNeedData{false};
+    QMutex m_cdgFileReaderLock;
+
     static void cb_need_data(GstElement *appsrc, guint unused_size, gpointer user_data);
     static void cb_enough_data(GstElement *appsrc, gpointer user_data);
-
     static gboolean cb_seek_data(GstElement *appsrc, guint64 position, gpointer user_data);
 
 
