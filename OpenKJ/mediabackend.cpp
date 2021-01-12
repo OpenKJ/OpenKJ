@@ -35,8 +35,6 @@
 Q_DECLARE_SMART_POINTER_METATYPE(std::shared_ptr);
 Q_DECLARE_METATYPE(std::shared_ptr<GstMessage>);
 
-//std::atomic<size_t> g_appSrcCurFrame{0};
-//std::atomic<uint64_t> g_appSrcCurPosition{0};
 std::atomic<bool> g_appSrcNeedData{false};
 
 MediaBackend::MediaBackend(bool pitchShift, QObject *parent, QString objectName) :
@@ -371,11 +369,8 @@ void MediaBackend::play()
         }
 
         m_cdgFileReader = new CdgFileReader(m_cdgFilename);
-        //g_appSrcCurFrame = 0;
-
 
         gst_app_src_set_max_bytes(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), cdg::CDG_IMAGE_SIZE * 200);
-        //gst_app_src_set_size(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), m_cdg.getFrameCount() * cdg::CDG_IMAGE_SIZE); // todo: andth - nessecary?
         gst_app_src_set_duration(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), m_cdgFileReader->getTotalDurationMS() * GST_MSECOND);
         qInfo() << m_objName << " - play - playing cdg:   " << m_cdgFilename;
         qInfo() << m_objName << " - play - playing audio: " << m_filename;
