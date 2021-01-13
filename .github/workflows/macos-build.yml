@@ -56,7 +56,7 @@ jobs:
         pkgbuild --root "fakeroot" --component-plist macos/openkj.plist --identifier "org.openkj.openkj" --sign "Developer ID Installer: Isaac Lightburn (47W8CPBS5A)" ${FN}
         
     - name: Installing gcloud console tools
-      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      uses: google-github-actions/setup-gcloud
       with:
         version: '290.0.1'
         service_account_key: ${{ secrets.GCLOUD_KEY }}
