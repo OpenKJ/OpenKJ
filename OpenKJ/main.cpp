@@ -65,13 +65,7 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
         QString logFilePath;
         QString filename = "openkj-debug-" + QDateTime::currentDateTime().toString("yyyy-MM-dd-hhmm") + "-log";
         dir.mkpath(logDir);
-        //  m_filename = filename;
-#ifdef Q_OS_WIN
         logFilePath = logDir + QDir::separator() + filename;
-#else
-        logFilePath = logDir + QDir::separator() + filename;
-#endif
-        //    logFile = new QFile(logFilePath);
         logFile.setFileName(logFilePath);
         logFile.open(QFile::WriteOnly);
         logStream.setDevice(&logFile);
@@ -83,12 +77,12 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
     case QtDebugMsg:
         fprintf(stderr, "DEBG: %s (%s)\n", localMsg.constData(), context.function);
         if (loggingEnabled) logStream << "DEBG: " << localMsg << " (" << context.function << ")\n";
-        logContents.append(QString::number(elapsed) + QString(" - DEBG: " + localMsg + " (" + context.function + ")"));
+        if (loggingEnabled) logContents.append(QString::number(elapsed) + QString(" - DEBG: " + localMsg + " (" + context.function + ")"));
         break;
     case QtInfoMsg:
         fprintf(stderr, "INFO: %s (%s)\n", localMsg.constData(), context.function);
         if (loggingEnabled) logStream << "INFO: " << localMsg << " (" << context.function << ")\n";
-        logContents.append(QString::number(elapsed) + QString(" - INFO: " + localMsg + " (" + context.function + ")"));
+        if (loggingEnabled) logContents.append(QString::number(elapsed) + QString(" - INFO: " + localMsg + " (" + context.function + ")"));
         break;
     case QtWarningMsg:
         fprintf(stderr, "WARN: %s (%s)\n", localMsg.constData(), context.function);
@@ -125,7 +119,6 @@ int main(int argc, char *argv[])
     QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     if (settings.theme() == 1)
     {
-        //a.setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }");
         QPalette palette;
         a.setStyle(QStyleFactory::create("Fusion"));
         palette.setColor(QPalette::Window,QColor(53,53,53));
@@ -160,16 +153,6 @@ int main(int argc, char *argv[])
     }
     a.setFont(settings.applicationFont(), "QWidget");
     a.setFont(settings.applicationFont(), "QMenu");
-//    QFile file(":/QTDark.css");
-//    QString stylesheet;
-//    QString line;
-//    if (file.open(QIODevice::ReadOnly | QIODevice::Text)){
-//        QTextStream stream(&file);
-//        stylesheet = stream.readAll();
-//    }
-//    file.close();
-//    stylesheet = "* { background: #191919; color: #DDDDDD; border: 1px solid #5A5A5A;}";
-//    a.setStyleSheet(stylesheet);
 
     RunGuard guard("SharedMemorySingleInstanceProtectorOpenKJ");
      if (!guard.tryToRun())
@@ -181,18 +164,6 @@ int main(int argc, char *argv[])
          msgBox.exec();
          return 1;
      }
-//#ifdef MACPLATFORM
-//    if (!QFile::exists("/Library/Frameworks/GStreamer.framework"))
-//    {
-//        QMessageBox msgBox;
-//        msgBox.setText("Required library GStreamer is not installed!");
-//        msgBox.setTextFormat(Qt::RichText);
-//        msgBox.setInformativeText("OpenKJ no longer bundles the GStreamer multimedia library with the application.<br><br>Please download and install <a href=https://gstreamer.freedesktop.org/data/pkg/osx/1.16.2/gstreamer-1.0-1.16.2-x86_64.pkg>this version</a> and re-run OpenKJ.<br><br>Exiting now.");
-//        msgBox.setIcon(QMessageBox::Critical);
-//        msgBox.exec();
-//        return 1;
-//    }
-//#endif
 
     MainWindow w;
     w.show();

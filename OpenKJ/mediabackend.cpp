@@ -484,6 +484,7 @@ void MediaBackend::rawStop()
 {
     qInfo() << m_objName << " - rawStop() called, just ending gstreamer playback";
     gst_element_set_state(m_playBin, GST_STATE_NULL);
+    emit stateChanged(MediaBackend::StoppedState);
 }
 
 void MediaBackend::timerFast_timeout()
