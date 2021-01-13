@@ -112,6 +112,20 @@ int main(int argc, char *argv[])
     qRegisterMetaType<QList<SfxEntry> >("QList<SfxEntry>");
     qRegisterMetaTypeStreamOperators<QList<SfxEntry> >("QList<SfxEntry>");
     QApplication a(argc, argv);
+
+#ifdef MAC_OVERRIDE_GST
+    // This points GStreamer paths to the framework contained in the app bundle.  Not needed on brew installs.
+    QString appDir = QCoreApplication::applicationDirPath();
+    appDir.remove(appDir.length() - 5, 5);
+    qputenv("GST_PLUGIN_SYSTEM_PATH", QString(appDir + "/Frameworks/GStreamer.framework/Versions/Current/lib/gstreamer-1.0").toLocal8Bit());
+    qputenv("GST_PLUGIN_SCANNER", QString(appDir + "/Frameworks/GStreamer.framework/Versions/Current/libexec/gstreamer-1.0/gst-plugin-scanner").toLocal8Bit());
+    qputenv("GTK_PATH", QString(appDir + "/Frameworks/GStreamer.framework/Versions/Current/").toLocal8Bit());
+    qputenv("GIO_EXTRA_MODULES", QString(appDir + "/Frameworks/GStreamer.framework/Versions/Current/lib/gio/modules").toLocal8Bit());
+    qWarning() << "MacOS detected, changed GST env vars to point to the bundled framework";
+    qInfo() << "Application dir: " << appDir;
+    qWarning() << qgetenv("GST_PLUGIN_SYSTEM_PATH") << endl << qgetenv("GST_PLUGIN_SCANNER") << endl << qgetenv("GTK_PATH") << endl << qgetenv("GIO_EXTRA_MODULES") << endl;
+#endif
+
     filter = new IdleDetect;
     a.installEventFilter(filter);
     qputenv("GST_DEBUG", "*:3");

@@ -58,18 +58,6 @@ template <typename T> std::shared_ptr<T> takeGstMiniObject(T *o)
 MediaBackend::MediaBackend(bool pitchShift, QObject *parent, QString objectName) :
     QObject(parent), m_objName(objectName), m_loadPitchShift(pitchShift)
 {
-#ifdef MAC_OVERRIDE_GST
-    // This points GStreamer paths to the framework contained in the app bundle.  Not needed on brew installs.
-    QString appDir = QCoreApplication::applicationDirPath();
-    appDir.replace("MacOS/", "");
-    qputenv("GST_PLUGIN_SYSTEM_PATH", QString(appDir + "/../Frameworks/GStreamer.framework/Versions/Current/lib/gstreamer-1.0").toLocal8Bit());
-    qputenv("GST_PLUGIN_SCANNER", QString(appDir + "/../Frameworks/GStreamer.framework/Versions/Current/libexec/gstreamer-1.0/gst-plugin-scanner").toLocal8Bit());
-    qputenv("GTK_PATH", QString(appDir + "/../Frameworks/GStreamer.framework/Versions/Current/").toLocal8Bit());
-    qputenv("GIO_EXTRA_MODULES", QString(appDir + "/../Frameworks/GStreamer.framework/Versions/Current/lib/gio/modules").toLocal8Bit());
-    qWarning() << "MacOS detected, changed GST env vars to point to the bundled framework";
-    qInfo() << "Application dir: " << appDir;
-    qWarning() << qgetenv("GST_PLUGIN_SYSTEM_PATH") << endl << qgetenv("GST_PLUGIN_SCANNER") << endl << qgetenv("GTK_PATH") << endl << qgetenv("GIO_EXTRA_MODULES") << endl;
-#endif
     qInfo() << "Start constructing GStreamer backend";
     Settings settings;
     if (!settings.hardwareAccelEnabled())
