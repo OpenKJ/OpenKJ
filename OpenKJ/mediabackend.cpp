@@ -137,6 +137,8 @@ MediaBackend::~MediaBackend()
     qInfo() << "MediaBackend destructor called";
     m_timerSlow.stop();
     m_timerFast.stop();
+    m_gstMsgBusHandlerTimer.stop();
+    gst_object_unref(m_bus);
     gst_element_set_state(m_playBin, GST_STATE_NULL);
     gst_caps_unref(m_audioCapsMono);
     gst_caps_unref(m_audioCapsStereo);
@@ -717,10 +719,25 @@ void MediaBackend::buildPipeline()
     auto level = gst_element_factory_make("level", "level");
     m_equalizer = gst_element_factory_make("equalizer-10bands", "equalizer");
     m_playBin = gst_element_factory_make("playbin", "playBin");
-    auto bus = gst_element_get_bus(m_playBin);
+    m_bus = gst_element_get_bus(m_playBin);
     //gst_bus_set_sync_handler(bus, (GstBusSyncHandler)busMessageDispatcher, this, NULL);
-    gst_bus_add_watch(bus, (GstBusFunc)gstBusFunc, this);
-    gst_object_unref(bus);
+#if defined(Q_OS_LINUX)
+    gst_bus_add_watch(m_bus, (GstBusFunc)gstBusFunc, this);
+#else
+    // We need to pop messages off the gst bus ourselves on non-linux platforms since
+    // there is no GMainLoop running
+    m_gstMsgBusHandlerTimer.start(40);
+    connect(&m_gstMsgBusHandlerTimer, &QTimer::timeout, [&] () {
+        while (gst_bus_have_pending(m_bus))
+        {
+            auto msg = gst_bus_pop(m_bus);
+            if (!msg)
+                continue;
+            gstBusFunc(m_bus, msg, this);
+            gst_message_unref(msg);
+        }
+    });
+#endif
     m_audioCapsStereo = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 2, nullptr);
     m_audioCapsMono = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 1, nullptr);
     m_audioBin = gst_bin_new("audioBin");

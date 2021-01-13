@@ -110,6 +110,7 @@ private:
         GST_PLAY_FLAG_TEXT          = (1 << 2)
     };
     Settings m_settings;
+    GstBus *m_bus;
     GstElement *m_cdgBin;
     GstElement *m_mediaBin;
     GstElement *m_cdgAppSrc;
@@ -162,6 +163,7 @@ private:
     QString m_filename;
     QString m_cdgFilename;
     QStringList m_outputDeviceNames;
+    QTimer m_gstMsgBusHandlerTimer;
     QTimer m_timerFast;
     QTimer m_timerSlow;
     int m_silenceDuration{0};
@@ -257,16 +259,16 @@ public slots:
     void setEnforceAspectRatio(const bool &enforce);
 
 signals:
-    void audioAvailableChanged(const bool&);
-    void bufferStatusChanged(const int&);
-    void durationChanged(const qint64&);
-    void mutedChanged(const bool&);
-    void positionChanged(const qint64&);
-    void stateChanged(const State&);
-    void videoAvailableChanged(const bool&);
-    void volumeChanged(const int&);
+    void audioAvailableChanged(const bool);
+    void bufferStatusChanged(const int);
+    void durationChanged(const qint64);
+    void mutedChanged(const bool);
+    void positionChanged(const qint64);
+    void stateChanged(const State);
+    void videoAvailableChanged(const bool);
+    void volumeChanged(const int);
     void silenceDetected();
-    void pitchChanged(const int&);
+    void pitchChanged(const int);
     void newVideoFrame(const QImage &frame, const QString &backendName);
     void audioError(const QString &msg);
 

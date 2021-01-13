@@ -45,7 +45,7 @@ class TickerDisplayWidget : public QWidget
 public:
         TickerDisplayWidget(QWidget *parent = 0);
         ~TickerDisplayWidget();
-        void setText(const QString &newText);
+        void setText(const QString newText);
         QSize sizeHint() const;
         void setSpeed(int speed);
         QPixmap m_image;
