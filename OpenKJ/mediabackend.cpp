@@ -39,22 +39,6 @@ std::atomic<size_t> g_appSrcCurFrame{0};
 std::atomic<uint64_t> g_appSrcCurPosition{0};
 std::atomic<bool> g_appSrcNeedData{false};
 
-template <typename T> std::shared_ptr<T> takeGstObject(T *o)
-{
-  std::shared_ptr<T> ptr(o, [] (T *d) {
-    gst_object_unref(reinterpret_cast<GstObject*>(d));
-  });
-  return ptr;
-}
-
-template <typename T> std::shared_ptr<T> takeGstMiniObject(T *o)
-{
-    std::shared_ptr<T> ptr(o, [] (T *d) {
-        gst_mini_object_ref(reinterpret_cast<GstMiniObject*>(d));
-    });
-    return ptr;
-}
-
 MediaBackend::MediaBackend(bool pitchShift, QObject *parent, QString objectName) :
     QObject(parent), m_objName(objectName), m_loadPitchShift(pitchShift)
 {

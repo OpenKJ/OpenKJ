@@ -69,7 +69,7 @@ void VideoDisplay::paintEvent(QPaintEvent *event)
             double widgetHeight = this->height();
             QRectF target(0, 0, widgetWidth, widgetHeight);
 
-            QPixmap tempQImage = m_curFrame.scaled(rect().size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            QPixmap tempQImage = m_curFrame.scaled(rect().size(), Qt::KeepAspectRatio, Qt::FastTransformation);
 
             double imageSizeWidth = static_cast<double>(tempQImage.width());
             double imageSizeHeight = static_cast<double>(tempQImage.height());
