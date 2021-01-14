@@ -19,16 +19,23 @@ uint CdgFileReader::getTotalDurationMS()
     return getDurationOfPackagesInMS(m_cdgData.length() / sizeof (cdg::CDG_SubCode));
 }
 
+int CdgFileReader::positionOfFinalFrameMS()
+{
+    return isEOF() ? currentFramePositionMS() : -1;
+}
+
 bool CdgFileReader::moveToNextFrame()
 {
     // shift m_next_image to current image
     m_current_image_data = m_next_image.getCroppedImagedata();
     m_current_image_pgk_idx = m_next_image_pgk_idx;
 
+
+    // process packages until a package actually change the image visibly (or eof).
     while(true)
     {
         // reached EOF?
-        if (m_cdgDataPos + sizeof(cdg::CDG_SubCode) > m_cdgData.length())
+        if (isEOF())
         {
             return false;
         }
@@ -72,9 +79,6 @@ bool CdgFileReader::seek(uint positionMS)
     }
 
     moveToNextFrame();
-
-    // todo: what happens if seek is done in the middle of a buffer-fill-loop?
-
 }
 
 void CdgFileReader::rewind()
@@ -96,8 +100,12 @@ bool CdgFileReader::readAndProcessNextPackage()
     return m_next_image.applySubCode(*subCode);
 }
 
+inline bool CdgFileReader::isEOF()
+{
+    return m_cdgDataPos + sizeof(cdg::CDG_SubCode) > m_cdgData.length();
+}
 
-uint CdgFileReader::getDurationOfPackagesInMS(const uint numberOfPackages)
+inline uint CdgFileReader::getDurationOfPackagesInMS(const uint numberOfPackages)
 {
     // cdg specs: 300 packages per second
     return (numberOfPackages * 1000) / CDG_PACKAGES_PER_SECOND;

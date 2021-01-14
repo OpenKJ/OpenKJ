@@ -37,8 +37,8 @@ Q_DECLARE_METATYPE(std::shared_ptr<GstMessage>);
 
 std::atomic<bool> g_appSrcNeedData{false};
 
-MediaBackend::MediaBackend(bool pitchShift, QObject *parent, QString objectName) :
-    QObject(parent), m_objName(objectName), m_loadPitchShift(pitchShift)
+MediaBackend::MediaBackend(QObject *parent, QString objectName, MediaType type) :
+    QObject(parent), m_objName(objectName), m_type(type), m_loadPitchShift(type == Karaoke)
 {
     qInfo() << "Start constructing GStreamer backend";
     Settings settings;
@@ -133,6 +133,7 @@ qint64 MediaBackend::position()
 
 qint64 MediaBackend::getCdgPosition()
 {
+    // TODO: do we need this?
     //gint64 pos;
    // if (gst_element_query_position(m_cdgPipeline, GST_FORMAT_TIME, &pos))
    //     return (pos / 1000000);
@@ -285,14 +286,6 @@ GstFlowReturn MediaBackend::NewSampleCallbackCdg(GstAppSink *appsink, gpointer u
 }
 
 // END OF METHODS FOR SOFTWARE RENDERING / NO VIDEO ACCELERATION
-
-/* todo: andth - vistnok unused
- * GstFlowReturn MediaBackend::NewAudioSampleCallback(GstAppSink *appsink, gpointer user_data)
-{
-    Q_UNUSED(appsink);
-    Q_UNUSED(user_data);
-    return GST_FLOW_OK;
-}*/
 
 void MediaBackend::DestroyCallback(gpointer user_data)
 {
@@ -499,30 +492,59 @@ void MediaBackend::timerFast_timeout()
 
 void MediaBackend::timerSlow_timeout()
 {
+    auto currPos = position(); // local copy
+
+    // Detect silence (if enabled)
     if (m_silenceDetect)
     {
         if (isSilent() && state() == MediaBackend::PlayingState)
         {
-            if (m_silenceDuration >= 2)
+            if (m_silenceDuration++ >= 2)
             {
-                emit silenceDetected();
-                m_silenceDuration++;
-                return;
+                // silence detected for 2+ seconds
+
+                bool doEmit = true;
+
+                if(m_type == Karaoke)
+                {
+                    doEmit = false;
+                    QMutexLocker locker(&m_cdgFileReaderLock);
+
+                    if (m_cdgMode && m_cdgFileReader)
+                    {
+                        // In CDG-karaoke mode, only cut of the song if there are no more image frames to be shown
+                        auto finalFramePos = m_cdgFileReader->positionOfFinalFrameMS();
+                        doEmit = finalFramePos > 0 && finalFramePos <= currPos;
+                    }
+                    else
+                    {
+                        // Karaoke video-file.
+                        // We can't interrupt this one as the detected silence might just be a musical break.
+                    }
+                }
+
+                if (doEmit)
+                {
+                    emit silenceDetected();
+                }
+                return; // todo: reason to return here?
             }
-            m_silenceDuration++;
         }
         else
             m_silenceDuration = 0;
     }
-    static int lastpos = 0;
+
+
+    // Check if playback is hung (playing but no movement since 1 second ago) for some reason
+    static int lastpos = 0; // TODO: should this really be static? That means it's shared between karaoke, sfx and BM instances!!!
     if (state() == PlayingState)
     {
-        if (lastpos == position() && lastpos > 10)
+        if (lastpos == currPos && lastpos > 10)
         {
             qWarning() << m_objName << " - Playback appears to be hung, emitting end of stream";
             emit stateChanged(EndOfMediaState);
         }
-        lastpos = position();
+        lastpos = currPos;
     }
 }
 

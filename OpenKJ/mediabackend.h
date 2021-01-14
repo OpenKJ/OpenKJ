@@ -39,7 +39,6 @@
 #include <memory>
 #include <array>
 #include <vector>
-//#include "libCDG/include/libCDG.h"
 #include "libCDG/src/cdgfilereader.h"
 #include "settings.h"
 
@@ -56,16 +55,29 @@ class MediaBackend : public QObject
 {
     Q_OBJECT
 public:
-    enum State{
+
+    enum MediaType {
+        Karaoke,
+        BackgroundMusic,
+        SFX
+    };
+
+    enum State {
         PlayingState=0,
         PausedState,
         StoppedState,
         EndOfMediaState,
         UnknownState
     };
-    explicit MediaBackend(bool m_loadPitchShift = true, QObject *parent = nullptr, QString objectName = "unknown");
+
+    enum accel {
+        OpenGL=0,
+        XVideo
+    };
+
+    explicit MediaBackend(QObject *parent, QString objectName, MediaType type);
     ~MediaBackend();
-    enum accel{OpenGL=0,XVideo};
+
     bool canChangeTempo() { return true; }
     bool canDetectSilence() { return true; }
     bool canFade() { return true; }
@@ -77,7 +89,6 @@ public:
     void setVideoWinId(WId winID) { m_videoWinId1 = winID; }
     void setVideoWinId2(WId winID) { m_videoWinId2 = winID; }
     void videoMute(const bool &mute);
-//    int getCdgLastDraw() { return (m_cdgMode) ? m_cdg.lastCDGUpdate() : 0; } todo: andth
     bool isCdgMode() { return m_cdgMode; }
     bool videoMuted() { return m_vidMuted; }
     int getVolume() { return m_volume; }
@@ -111,8 +122,12 @@ private:
         GST_PLAY_FLAG_AUDIO         = (1 << 1),
         GST_PLAY_FLAG_TEXT          = (1 << 2)
     };
+
+    QString m_objName;
+    MediaType m_type;
     Settings m_settings;
     GstBus *m_bus;
+
     GstElement *m_cdgBin;
     GstElement *m_mediaBin;
     GstElement *m_cdgAppSrc;
@@ -161,7 +176,7 @@ private:
 
     GstCaps *m_audioCapsStereo;
     GstCaps *m_audioCapsMono;
-    QString m_objName;
+
     QString m_filename;
     QString m_cdgFilename;
     QStringList m_outputDeviceNames;

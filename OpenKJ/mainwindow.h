@@ -89,9 +89,9 @@ private:
     DlgEq *dlgEq;
     DlgAddSinger *dlgAddSinger;
     DlgSongShop *dlgSongShop;
-    MediaBackend kMediaBackend{true, this, "KAR"};
-    MediaBackend sfxMediaBackend{false, this, "SFX"};
-    MediaBackend bmMediaBackend{false, this, "BM"};
+    MediaBackend kMediaBackend { this, "KAR", MediaBackend::Karaoke };
+    MediaBackend sfxMediaBackend { this, "SFX", MediaBackend::SFX };
+    MediaBackend bmMediaBackend { this, "BM", MediaBackend::BackgroundMusic };
     AudioRecorder audioRecorder;
     QLabel labelSingerCount;
     QLabel labelRotationDuration;
@@ -209,7 +209,7 @@ private slots:
     void on_sliderProgress_sliderMoved(const int &position);
     void on_buttonRegulars_clicked();
     void rotationDataChanged();
-    void silenceDetected();
+    void silenceDetectedKar();
     void silenceDetectedBm();
     void audioBackendChanged(const int &index);
     void on_tableViewDB_customContextMenuRequested(const QPoint &pos);

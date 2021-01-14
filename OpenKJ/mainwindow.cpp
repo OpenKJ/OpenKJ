@@ -706,7 +706,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&kMediaBackend, &MediaBackend::stateChanged, this, &MainWindow::audioBackend_stateChanged);
     connect(&kMediaBackend, &MediaBackend::pitchChanged, ui->spinBoxKey, &QSpinBox::setValue);
     connect(&kMediaBackend, &MediaBackend::audioError, this, &MainWindow::audioError);
-    connect(&kMediaBackend, &MediaBackend::silenceDetected, this, &MainWindow::silenceDetected);
+    connect(&kMediaBackend, &MediaBackend::silenceDetected, this, &MainWindow::silenceDetectedKar);
     connect(&bmMediaBackend, &MediaBackend::audioError, this, &MainWindow::audioError);
     connect(&bmMediaBackend, &MediaBackend::silenceDetected, this, &MainWindow::silenceDetectedBm);
     connect(&sfxMediaBackend, &MediaBackend::positionChanged, this, &MainWindow::sfxAudioBackend_positionChanged);
@@ -2061,19 +2061,14 @@ void MainWindow::rotationDataChanged()
     cdgWindow->setTickerText(tickerText);
 }
 
-void MainWindow::silenceDetected()
+void MainWindow::silenceDetectedKar()
 {
-    // todo: andth
-    /*
-    qInfo() << "Detected silence.  Cur Pos: " << kMediaBackend.position() << " Last CDG update pos: " << kMediaBackend.getCdgLastDraw();
-    if (kMediaBackend.isCdgMode() && kMediaBackend.getCdgLastDraw() < kMediaBackend.position())
-    {
-        kMediaBackend.rawStop();
-        if (settings.karaokeAutoAdvance())
-            kAASkip = false;
+    qInfo() << "Karaoke music silence detected";
+    kMediaBackend.rawStop();
+    if (settings.karaokeAutoAdvance())
+        kAASkip = false;
 //        ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
-        bmMediaBackend.fadeIn();
-    }*/
+    bmMediaBackend.fadeIn();
 }
 
 void MainWindow::silenceDetectedBm()
