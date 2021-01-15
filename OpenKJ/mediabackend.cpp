@@ -127,7 +127,7 @@ qint64 MediaBackend::position()
 {
     gint64 pos;
     if (gst_element_query_position(m_playBin, GST_FORMAT_TIME, &pos))
-        return pos / 1000000;
+        return pos / GST_MSECOND;
     return 0;
 }
 
@@ -135,7 +135,7 @@ qint64 MediaBackend::duration()
 {
     gint64 duration;
     if (gst_element_query_duration(m_playBin, GST_FORMAT_TIME, &duration))
-        return duration / 1000000;
+        return duration / GST_MSECOND;
     return 0;
 }
 
@@ -154,111 +154,76 @@ MediaBackend::State MediaBackend::state()
     }
 }
 
-void MediaBackend::newFrame()
-{
-    GstSample* sample = gst_app_sink_pull_sample((GstAppSink*)m_videoAppSink);
-
-    if (sample) {
-        if (m_vidMuted)
-        {
-            gst_sample_unref(sample);
-            return;
-        }
-        m_noaccelHasVideo = true;
-        GstBuffer *buffer;
-        GstCaps *caps;
-        GstStructure *s;
-        int width, height;
-        caps = gst_sample_get_caps (sample);
-        s = gst_caps_get_structure (caps, 0);
-        gst_structure_get_int (s, "width", &width);
-        gst_structure_get_int (s, "height", &height);
-        buffer = gst_sample_get_buffer (sample);
-        GstMapInfo bufferInfo;
-        gst_buffer_map(buffer,&bufferInfo,GST_MAP_READ);
-        guint8 *rawFrame = bufferInfo.data;
-        QImage frame = QImage(rawFrame,width,height,QImage::Format_RGB16);
-        emit newVideoFrame(frame, m_objName);
-        gst_buffer_unmap(buffer, &bufferInfo);
-        gst_sample_unref(sample);
-    }
-}
-
-void MediaBackend::newFrameCdg()
-{
-    GstSample* sample = gst_app_sink_pull_sample((GstAppSink*)m_videoAppSinkCdg);
-
-    if (sample) {
-        if (m_vidMuted)
-        {
-            gst_sample_unref(sample);
-            return;
-        }
-        m_noaccelHasVideo = true;
-        GstBuffer *buffer;
-        GstCaps *caps;
-        GstStructure *s;
-        int width, height;
-        caps = gst_sample_get_caps (sample);
-        s = gst_caps_get_structure (caps, 0);
-        gst_structure_get_int (s, "width", &width);
-        gst_structure_get_int (s, "height", &height);
-        buffer = gst_sample_get_buffer (sample);
-        GstMapInfo bufferInfo;
-        gst_buffer_map(buffer,&bufferInfo,GST_MAP_READ);
-        guint8 *rawFrame = bufferInfo.data;
-
-        // Create indexed 8-bit image from buffer data. Last 1024 bytes is the color table
-        QImage frame = QImage(rawFrame, width, height, QImage::Format_Indexed8);
-        auto colors = QVector<QRgb>(1024 / sizeof(QRgb));
-        memcpy(colors.data(), rawFrame + bufferInfo.size - 1024, 1024);
-        frame.setColorTable(colors);
-
-        emit newVideoFrame(frame, m_objName);
-        gst_buffer_unmap(buffer, &bufferInfo);
-        gst_sample_unref(sample);
-    }
-}
-
-void MediaBackend::EndOfStreamCallback(GstAppSink *appsink, gpointer user_data)
-{
-    Q_UNUSED(appsink)
-    Q_UNUSED(user_data)
-}
 
 // START OF METHODS FOR SOFTWARE RENDERING / NO VIDEO ACCELERATION
-
-GstFlowReturn MediaBackend::NewPrerollCallback(GstAppSink *appsink, gpointer user_data)
-{
-    Q_UNUSED(user_data)
-    Q_UNUSED(appsink)
-    return GST_FLOW_OK;
-}
+// --------------------------------------------------------------------------------------
 
 GstFlowReturn MediaBackend::NewSampleCallback(GstAppSink *appsink, gpointer user_data)
 {
-    Q_UNUSED(appsink)
     MediaBackend *myObject = (MediaBackend*) user_data;
-    myObject->newFrame();
-    //qInfo() << "got new frame";
-    return GST_FLOW_OK;
+    if (myObject->pullFromSinkAndEmitNewVideoFrame(appsink))
+    {
+        return GST_FLOW_OK;
+    }
+    else
+    {
+        return gst_app_sink_is_eos(appsink) ? GST_FLOW_EOS : GST_FLOW_ERROR;
+    }
 }
 
-GstFlowReturn MediaBackend::NewSampleCallbackCdg(GstAppSink *appsink, gpointer user_data)
+bool MediaBackend::pullFromSinkAndEmitNewVideoFrame(GstAppSink *appSink)
 {
-    Q_UNUSED(appsink)
-    MediaBackend *myObject = (MediaBackend*) user_data;
-    myObject->newFrameCdg();
-    //qInfo() << "got new frame";
-    return GST_FLOW_OK;
+    if (m_vidMuted)
+        return true;
+
+    GstSample* sample = gst_app_sink_pull_sample(appSink);
+
+    if (sample)
+    {
+        m_noaccelHasVideo = true;
+        GstBuffer *buffer;
+        GstMapInfo bufferInfo;
+        GstCaps *caps;
+        GstStructure *s;
+        const gchar *format;
+        bool isIndexed8;
+        int width, height;
+
+        caps = gst_sample_get_caps(sample);
+        s = gst_caps_get_structure(caps, 0);
+        gst_structure_get_int(s, "width", &width);
+        gst_structure_get_int(s, "height", &height);
+        format = gst_structure_get_string(s, "format");
+
+        isIndexed8 = strcmp(format, "RGB8P") == 0;
+
+        buffer = gst_sample_get_buffer (sample);
+
+        gst_buffer_map(buffer, &bufferInfo, GST_MAP_READ);
+        guint8 *rawFrame = bufferInfo.data;
+
+        QImage frame(rawFrame, width, height, isIndexed8 ? QImage::Format_Indexed8 : QImage::Format_RGB16);
+
+        if (isIndexed8)
+        {
+            // Last 1024 bytes is the color table
+            auto colors = QVector<QRgb>(1024 / sizeof(QRgb));
+            memcpy(colors.data(), rawFrame + bufferInfo.size - 1024, 1024);
+            frame.setColorTable(colors);
+        }
+
+        emit newVideoFrame(frame, m_objName);
+
+        gst_buffer_unmap(buffer, &bufferInfo);
+        gst_sample_unref(sample);
+        return true;
+    }
+    return false;
 }
 
 // END OF METHODS FOR SOFTWARE RENDERING / NO VIDEO ACCELERATION
+// ------------------------------------------------------------------
 
-void MediaBackend::DestroyCallback(gpointer user_data)
-{
-    Q_UNUSED(user_data)
-}
 
 void MediaBackend::play()
 {
@@ -818,14 +783,14 @@ void MediaBackend::buildPipeline()
     {
         // No video acceleration
         GstAppSinkCallbacks appsinkCallbacks;
-        appsinkCallbacks.new_preroll	= &MediaBackend::NewPrerollCallback;
+        appsinkCallbacks.new_preroll	= nullptr;
         appsinkCallbacks.new_sample		= &MediaBackend::NewSampleCallback;
-        appsinkCallbacks.eos			= &MediaBackend::EndOfStreamCallback;
+        appsinkCallbacks.eos			= nullptr;
         m_videoAppSink = gst_element_factory_make("appsink", "videoAppSink");
         auto videoCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB16", NULL);
         g_object_set(m_videoAppSink, "caps", videoCaps, NULL);
         g_object_set(G_OBJECT(m_playBin), "video-sink", m_videoAppSink, NULL);
-        gst_app_sink_set_callbacks(GST_APP_SINK(m_videoAppSink), &appsinkCallbacks, this, (GDestroyNotify)MediaBackend::DestroyCallback);
+        gst_app_sink_set_callbacks(GST_APP_SINK(m_videoAppSink), &appsinkCallbacks, this, nullptr);
     }
     // End video output setup
 
@@ -959,13 +924,13 @@ void MediaBackend::buildCdgBin()
     {
         // No videl acceleration
         GstAppSinkCallbacks appsinkCallbacks;
-        appsinkCallbacks.new_preroll	= &MediaBackend::NewPrerollCallback;
-        appsinkCallbacks.new_sample		= &MediaBackend::NewSampleCallbackCdg;
-        appsinkCallbacks.eos			= &MediaBackend::EndOfStreamCallback;
+        appsinkCallbacks.new_preroll	= nullptr;
+        appsinkCallbacks.new_sample		= &MediaBackend::NewSampleCallback;
+        appsinkCallbacks.eos			= nullptr;
         m_videoAppSinkCdg = gst_element_factory_make("appsink", "videoAppSinkCdg");
         auto videoCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB8P", NULL);
         g_object_set(m_videoAppSinkCdg, "caps", videoCaps, NULL);
-        gst_app_sink_set_callbacks(GST_APP_SINK(m_videoAppSinkCdg), &appsinkCallbacks, this, (GDestroyNotify)MediaBackend::DestroyCallback);
+        gst_app_sink_set_callbacks(GST_APP_SINK(m_videoAppSinkCdg), &appsinkCallbacks, this, nullptr);
         auto videoQueue = gst_element_factory_make("queue", "cdgVideoQueue");
         gst_bin_add_many(reinterpret_cast<GstBin *>(m_cdgBin), m_cdgAppSrc, videoQueue, m_videoAppSinkCdg, nullptr);
         gst_element_link_many(m_cdgAppSrc, videoQueue, m_videoAppSinkCdg, nullptr);
