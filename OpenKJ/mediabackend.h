@@ -112,7 +112,6 @@ public:
         min = QString::number(minutes);
         return QString(min + ":" + sec);
     }
-    //void testCdgDecode();
     void newFrame();
     void newFrameCdg();
 
@@ -132,7 +131,6 @@ private:
     GstElement *m_mediaBin;
     GstElement *m_cdgAppSrc;
     GstElement *m_scaleTempo;
-    //GstElement *m_cdgPipeline;
     GstElement *m_queueMainVideo;
     GstElement *m_queuePostAppSrc;
     GstElement *m_fakeVideoSink;
@@ -221,9 +219,6 @@ private:
     void buildCdgBin();
     void getGstDevices();
     double getPitchForSemitone(const int &semitone);
-    qint64 getCdgPosition();
-    State cdgState();
-
 
     CdgFileReader *m_cdgFileReader {nullptr};
     std::atomic<bool> g_appSrcNeedData{false};

@@ -131,15 +131,6 @@ qint64 MediaBackend::position()
     return 0;
 }
 
-qint64 MediaBackend::getCdgPosition()
-{
-    // TODO: do we need this?
-    //gint64 pos;
-   // if (gst_element_query_position(m_cdgPipeline, GST_FORMAT_TIME, &pos))
-   //     return (pos / 1000000);
-    return 0;
-}
-
 qint64 MediaBackend::duration()
 {
     gint64 duration;
@@ -162,13 +153,6 @@ MediaBackend::State MediaBackend::state()
         return StoppedState;
     }
 }
-
-// unused?
-//void MediaBackend::testCdgDecode()
-//{
-//    m_cdg.open(m_cdgFilename);
-//    m_cdg.process();
-//}
 
 void MediaBackend::newFrame()
 {
@@ -233,22 +217,6 @@ void MediaBackend::newFrameCdg()
         emit newVideoFrame(frame, m_objName);
         gst_buffer_unmap(buffer, &bufferInfo);
         gst_sample_unref(sample);
-    }
-}
-
-MediaBackend::State MediaBackend::cdgState()
-{
-    return MediaBackend::PlayingState;
-    GstState state = GST_STATE_NULL;
-   // gst_element_get_state(m_cdgPipeline, &state, nullptr, GST_CLOCK_TIME_NONE);
-    switch (state) {
-    case GST_STATE_PLAYING:
-        return PlayingState;
-    case GST_STATE_PAUSED:
-        return PausedState;
-    case GST_STATE_NULL:
-    default:
-        return StoppedState;
     }
 }
 
