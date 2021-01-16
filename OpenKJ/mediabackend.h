@@ -85,9 +85,8 @@ public:
     bool hasVideo();
     bool isSilent();
     void setAccelType(const accel &type=accel::XVideo) { m_accelMode = type; }
-    void setOutputDevice(int deviceIndex);
-    void setVideoWinId(WId winID) { m_videoWinId1 = winID; }
-    void setVideoWinId2(WId winID) { m_videoWinId2 = winID; }
+    void setAudioOutputDevice(int deviceIndex);
+    void setHWVideoOutputDevices(std::vector<WId> videoWinIds);
     void videoMute(const bool &mute);
     bool isCdgMode() { return m_cdgMode; }
     bool videoMuted() { return m_vidMuted; }
@@ -120,58 +119,45 @@ private:
         GST_PLAY_FLAG_TEXT          = (1 << 2)
     };
 
+    struct VideoSinkData {
+        WId windowId { 0 };
+        GstElement *videoSink { nullptr };
+        GstElement *videoSinkCdg  { nullptr };
+    };
+
     QString m_objName;
     MediaType m_type;
     Settings m_settings;
     GstBus *m_bus;
 
-    GstElement *m_cdgBin;
-    GstElement *m_mediaBin;
-    GstElement *m_cdgAppSrc;
-    GstElement *m_scaleTempo;
-    GstElement *m_queueMainVideo;
-    GstElement *m_queuePostAppSrc;
-    GstElement *m_fakeVideoSink;
-    GstElement *m_playBin;
-    GstElement *m_aConvEnd;
-    GstElement *m_audioPanorama;
-    GstElement *m_fltrPostPanorama;
-    GstElement *m_audioBin;
-    GstElement *m_audioSink;
-    GstElement *m_pitchShifterRubberBand;
-    GstElement *m_pitchShifterSoundtouch;
-    GstElement *m_volumeElement;
-    GstElement *m_faderVolumeElement;
-    GstElement *m_equalizer;
-    GstElement *m_videoSink1;
-    GstElement *m_videoSink2;
-    GstElement *m_videoSink1Cdg;
-    GstElement *m_videoSink2Cdg;
-    GstElement *m_videoScale1Cdg;
-    GstElement *m_videoScale2Cdg;
-    GstElement *m_videoScale1;
-    GstElement *m_videoScale2;
-    GstElement *m_videoBin;
-    GstElement *m_videoAppSink;
-    GstElement *m_videoAppSinkCdg;
-    //GstElement *m_cdgPlaybin;
+    GstElement *m_cdgBin { nullptr };
+    GstElement *m_mediaBin { nullptr };
+    GstElement *m_cdgAppSrc { nullptr };
+    GstElement *m_scaleTempo { nullptr };
+    GstElement *m_queueMainVideo { nullptr };
+    GstElement *m_queuePostAppSrc { nullptr };
+    GstElement *m_fakeVideoSink { nullptr };
+    GstElement *m_playBin { nullptr };
+    GstElement *m_aConvEnd { nullptr };
+    GstElement *m_audioPanorama { nullptr };
+    GstElement *m_fltrPostPanorama { nullptr };
+    GstElement *m_audioBin { nullptr };
+    GstElement *m_audioSink { nullptr };
+    GstElement *m_pitchShifterRubberBand { nullptr };
+    GstElement *m_pitchShifterSoundtouch { nullptr };
+    GstElement *m_volumeElement { nullptr };
+    GstElement *m_faderVolumeElement { nullptr };
+    GstElement *m_equalizer { nullptr };
 
-//    GstElement *cdgVidConv;
-//    GstElement *videoQueue1;
-//    GstElement *videoQueue2;
-//    GstElement *videoConv1;
-//    GstElement *videoConv2;
-//    GstElement *videoScale1;
-//    GstElement *videoScale2;
-//    GstElement *videoTee;
-//    GstPad *videoTeePad1;
-//    GstPad *videoTeePad2;
-//    GstPad *videoQueue1SrcPad;
-//    GstPad *videoQueue2SrcPad;
+    GstElement *m_videoBin { nullptr };
 
+    GstElement *m_videoTee { nullptr };
+    GstElement *m_videoTeeCdg { nullptr };
+    GstElement *m_videoAppSink { nullptr };
+    GstElement *m_videoAppSinkCdg { nullptr };
 
-    GstCaps *m_audioCapsStereo;
-    GstCaps *m_audioCapsMono;
+    GstCaps *m_audioCapsStereo { nullptr };
+    GstCaps *m_audioCapsMono { nullptr };
 
     QString m_filename;
     QString m_cdgFilename;
@@ -206,8 +192,7 @@ private:
     QPointer<AudioFader> m_fader;
 
     State m_lastState{StoppedState};
-    WId m_videoWinId1{0};
-    WId m_videoWinId2{0};
+    std::vector<VideoSinkData> m_videoSinks;
     accel m_accelMode{XVideo};
     int m_videoOffsetMs{0};
 
@@ -215,11 +200,12 @@ private:
     void buildPipeline();
     void resetVideoSinks();
     void buildCdgBin();
+    const char* getVideoSinkElementNameForFactory();
     void getGstDevices();
     double getPitchForSemitone(const int &semitone);
 
     CdgFileReader *m_cdgFileReader {nullptr};
-    std::atomic<bool> g_appSrcNeedData{false};
+    std::atomic<bool> g_appSrcNeedData {false};
     QMutex m_cdgFileReaderLock;
 
     // AppSrc callbacks

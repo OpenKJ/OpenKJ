@@ -74,7 +74,7 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     }
     else
     {
-        kAudioBackend->setOutputDevice(selDevice);
+        kAudioBackend->setAudioOutputDevice(selDevice);
         ui->comboBoxKAudioDevices->setCurrentIndex(selDevice);
     }
     ui->comboBoxBAudioDevices->addItems(audioOutputDevices);
@@ -84,7 +84,7 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     else
     {
         ui->comboBoxBAudioDevices->setCurrentIndex(selDevice);
-        bmAudioBackend->setOutputDevice(selDevice);
+        bmAudioBackend->setAudioOutputDevice(selDevice);
     }
     ui->checkBoxProgressiveSearch->setChecked(settings.progressiveSearchEnabled());
     ui->horizontalSliderTickerSpeed->setValue(settings.tickerSpeed());
@@ -922,7 +922,7 @@ void DlgSettings::on_comboBoxKAudioDevices_currentIndexChanged(int index)
         settings.setAudioOutputDevice(device);
         int deviceIndex = audioOutputDevices.indexOf(QRegExp(device,Qt::CaseSensitive,QRegExp::FixedString));
         if (deviceIndex != -1)
-            kAudioBackend->setOutputDevice(deviceIndex);
+            kAudioBackend->setAudioOutputDevice(deviceIndex);
     }
     lastSelItem = device;
 }
@@ -954,7 +954,7 @@ void DlgSettings::on_comboBoxBAudioDevices_currentIndexChanged(int index)
         settings.setAudioOutputDeviceBm(device);
         int deviceIndex = audioOutputDevices.indexOf(QRegExp(device,Qt::CaseSensitive,QRegExp::FixedString));
         if (deviceIndex != -1)
-            bmAudioBackend->setOutputDevice(deviceIndex);
+            bmAudioBackend->setAudioOutputDevice(deviceIndex);
     }
     lastSelItem = device;
 }

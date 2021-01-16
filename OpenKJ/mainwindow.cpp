@@ -732,10 +732,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(requestsDialog, &DlgRequests::addRequestSong, &qModel, &TableModelQueueSongs::songAddSlot);
     connect(&settings, &Settings::tickerCustomStringChanged, this, &MainWindow::rotationDataChanged);
     cdgWindow->setShowBgImage(true);
-    kMediaBackend.setVideoWinId2(ui->videoPreview->winId());
-    kMediaBackend.setVideoWinId(cdgWindow->getCdgWinId());
-    bmMediaBackend.setVideoWinId2(ui->videoPreview->winId());
-    bmMediaBackend.setVideoWinId(cdgWindow->getCdgWinId());
+
+    if (settings.hardwareAccelEnabled())
+    {
+        std::vector<WId> videoWinIds { cdgWindow->getCdgWinId(), ui->videoPreview->winId() };
+        kMediaBackend.setHWVideoOutputDevices(videoWinIds);
+        bmMediaBackend.setHWVideoOutputDevices(videoWinIds);
+    }
+
     setShowBgImage(true);
     settings.restoreWindowState(cdgWindow);
     settings.restoreWindowState(requestsDialog);
