@@ -27,6 +27,8 @@
 #include <gst/audio/streamvolume.h>
 #include <gst/gstdebugutils.h>
 #include "settings.h"
+#include <QDir>
+#include <QProcess>
 #include <functional>
 #include <gst/video/videooverlay.h>
 #include <gst/app/gstappsrc.h>
@@ -82,6 +84,37 @@ void MediaBackend::videoMute(const bool &mute)
         g_object_set (m_playBin, "flags", flags, nullptr);
     }
     m_vidMuted = mute;
+}
+
+void MediaBackend::writePipelineGraphToFile(GstBin *bin, QString filePath, QString fileName)
+{
+    fileName = QString("%1/%2 - %3").arg(QDir::cleanPath(filePath + QDir::separator()), m_objName, fileName);
+    auto filenameDot = fileName + ".dot";
+    auto filenamePng = fileName + ".png";
+
+    auto data = gst_debug_bin_to_dot_data(bin, GST_DEBUG_GRAPH_SHOW_ALL);
+
+    QFile f {filenameDot};
+
+    if (f.open(QIODevice::WriteOnly))
+    {
+        QTextStream out{&f};
+        out << QString(data);
+    }
+    g_free(data);
+
+    QStringList dotArguments { "-Tpng", "-o" + filenamePng, filenameDot };
+    QProcess process;
+    process.start("dot", dotArguments);
+    process.waitForFinished();
+    f.remove();
+}
+
+void MediaBackend::writePipelinesGraphToFile(const QString filePath)
+{
+    writePipelineGraphToFile(reinterpret_cast<GstBin*>(m_videoBin), filePath, "GS graph video");
+    writePipelineGraphToFile(reinterpret_cast<GstBin*>(m_cdgBin), filePath, "GS graph cdg");
+    writePipelineGraphToFile(reinterpret_cast<GstBin*>(m_audioBin), filePath, "GS graph audio");
 }
 
 double MediaBackend::getPitchForSemitone(const int &semitone)

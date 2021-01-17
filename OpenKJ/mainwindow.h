@@ -325,6 +325,8 @@ private slots:
     void on_actionMultiplex_Controls_triggered(bool checked);
 
     void on_actionCDG_Decode_Torture_triggered();
+    void on_actionWrite_Gstreamer_pipeline_dot_files_triggered();
+
     void videoFrameReceived(QImage frame, QString backendName);
 
     void on_comboBoxSearchType_currentIndexChanged(int index);

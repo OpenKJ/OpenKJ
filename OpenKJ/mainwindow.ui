@@ -3285,6 +3285,7 @@ QPushButton:default {
     <addaction name="actionBurn_in"/>
     <addaction name="actionCDG_Decode_Torture"/>
     <addaction name="actionBreak_music_torture"/>
+    <addaction name="actionWrite_Gstreamer_pipeline_dot_files"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTools"/>
@@ -3514,6 +3515,9 @@ QPushButton:default {
   <action name="actionBreak_music_torture">
    <property name="text">
     <string>Break music torture</string>
+  <action name="actionWrite_Gstreamer_pipeline_dot_files">
+   <property name="text">
+    <string>Write Gstreamer pipeline dot files</string>
    </property>
   </action>
  </widget>

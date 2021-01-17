@@ -4456,6 +4456,14 @@ void MainWindow::on_actionCDG_Decode_Torture_triggered()
 #endif
 }
 
+void MainWindow::on_actionWrite_Gstreamer_pipeline_dot_files_triggered()
+{
+    QString outputFolder = "/tmp";
+    kMediaBackend.writePipelinesGraphToFile(outputFolder);
+    bmMediaBackend.writePipelinesGraphToFile(outputFolder);
+    sfxMediaBackend.writePipelinesGraphToFile(outputFolder);
+}
+
 void MainWindow::videoFrameReceived(QImage frame, QString backendName)
 {
     // this is used only when in software rendering mode, hardware rendering won't call this

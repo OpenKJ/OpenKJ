@@ -91,6 +91,9 @@ public:
     bool isCdgMode() { return m_cdgMode; }
     bool videoMuted() { return m_vidMuted; }
     int getVolume() { return m_volume; }
+
+    void writePipelinesGraphToFile(const QString filePath);
+
     qint64 position();
     qint64 duration();
     State state();
@@ -130,18 +133,15 @@ private:
     Settings m_settings;
     GstBus *m_bus;
 
-    GstElement *m_cdgBin { nullptr };
-    GstElement *m_mediaBin { nullptr };
+    GstElement *m_cdgBin { nullptr }; // GstBin
     GstElement *m_cdgAppSrc { nullptr };
     GstElement *m_scaleTempo { nullptr };
     GstElement *m_queueMainVideo { nullptr };
-    GstElement *m_queuePostAppSrc { nullptr };
-    GstElement *m_fakeVideoSink { nullptr };
     GstElement *m_playBin { nullptr };
     GstElement *m_aConvEnd { nullptr };
     GstElement *m_audioPanorama { nullptr };
     GstElement *m_fltrPostPanorama { nullptr };
-    GstElement *m_audioBin { nullptr };
+    GstElement *m_audioBin { nullptr }; // GstBin
     GstElement *m_audioSink { nullptr };
     GstElement *m_pitchShifterRubberBand { nullptr };
     GstElement *m_pitchShifterSoundtouch { nullptr };
@@ -149,7 +149,7 @@ private:
     GstElement *m_faderVolumeElement { nullptr };
     GstElement *m_equalizer { nullptr };
 
-    GstElement *m_videoBin { nullptr };
+    GstElement *m_videoBin { nullptr }; // GstBin
 
     GstElement *m_videoTee { nullptr };
     GstElement *m_videoTeeCdg { nullptr };
@@ -202,6 +202,7 @@ private:
     void buildCdgBin();
     const char* getVideoSinkElementNameForFactory();
     void getGstDevices();
+    void writePipelineGraphToFile(GstBin *bin, QString filePath, QString fileName);
     double getPitchForSemitone(const int &semitone);
 
     CdgFileReader *m_cdgFileReader {nullptr};
