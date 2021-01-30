@@ -265,7 +265,10 @@ void MediaBackend::play()
     {
         g_object_set(m_playBin, "av-offset", 0, nullptr);
     }*/
-    gst_stream_volume_set_volume(GST_STREAM_VOLUME(m_playBin), GST_STREAM_VOLUME_FORMAT_LINEAR, 0.85);
+
+    // todo - athom: leftover from playbin. Is what nessecary - what does it do?
+    //gst_stream_volume_set_volume(GST_STREAM_VOLUME(m_playBin), GST_STREAM_VOLUME_FORMAT_LINEAR, 0.85);
+
     if (m_currentlyFadedOut)
     {
         g_object_set(m_faderVolumeElement, "volume", 0.0, nullptr);
@@ -787,6 +790,7 @@ void MediaBackend::buildPipeline()
     g_object_set(m_audioPanorama, "method", 1, nullptr);
     buildCdgBin();
     gst_bin_add_many(GST_BIN(m_audioBin), queueMainAudio, m_audioPanorama, level, m_scaleTempo, aConvInput, rgVolume, /*rgLimiter,*/ m_volumeElement, m_equalizer, aConvPostPanorama, m_fltrPostPanorama, m_faderVolumeElement, nullptr);
+    // todo: athom: link m_volumeElement (and perhaps m_faderVolumeElement) after queueEndAudio to avoid delay when changing volume
     gst_element_link_many(queueMainAudio, aConvInput, rgVolume, /*rgLimiter,*/ m_scaleTempo, level, m_volumeElement, m_equalizer, m_faderVolumeElement, m_audioPanorama, aConvPostPanorama, m_fltrPostPanorama, nullptr);
 #ifdef Q_OS_LINUX
     if ((m_pitchShifterRubberBand) && (m_pitchShifterSoundtouch) && (m_loadPitchShift))
