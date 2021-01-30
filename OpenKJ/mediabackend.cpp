@@ -205,7 +205,6 @@ bool MediaBackend::pullFromSinkAndEmitNewVideoFrame(GstAppSink *appSink)
     {
         if (m_videoEnabled)
         {
-            m_noaccelHasVideo = true;
             GstBuffer *buffer;
             GstMapInfo bufferInfo;
             GstCaps *caps;
@@ -282,6 +281,7 @@ void MediaBackend::play()
     gst_element_set_state(m_playBin, GST_STATE_NULL);
 
     // Start playing new file - reset pipeline
+    m_hasVideo = false;
     gst_element_unlink(m_decoder, m_audioBin);
     gst_element_unlink(m_decoder, m_videoBin);
     gst_element_unlink(m_cdgAppSrc, m_videoBin);
@@ -384,6 +384,7 @@ void MediaBackend::patchPipelineSinks()
         bool isLinked = gsthlp_is_sink_linked(m_videoBin);
         if(!isLinked && m_videoSrcPad && m_videoEnabled)
         {
+            m_hasVideo = true;
             gst_bin_add(m_playBinAsBin, m_videoBin);
             gst_element_link_pads(m_videoSrcPad->element, m_videoSrcPad->pad.c_str(), m_videoBin, "sink");
             gst_element_sync_state_with_parent(m_videoBin);
@@ -396,6 +397,7 @@ void MediaBackend::patchPipelineSinks()
             {
                 gst_element_unlink(currentSrc, m_videoBin);
                 gst_bin_remove(m_playBinAsBin, m_videoBin);
+                m_hasVideo = false;
             }
         }
     }
@@ -649,12 +651,12 @@ gboolean MediaBackend::gstBusFunc([[maybe_unused]]GstBus *bus, GstMessage *messa
             }
             else if (state == GST_STATE_NULL && mb->m_lastState != MediaBackend::StoppedState)
             {
+                mb->m_hasVideo = false;
                 qInfo() << "GST notified of state change to STOPPED";
                 if (mb->m_lastState != MediaBackend::StoppedState)
                 {
                     mb->m_lastState = MediaBackend::StoppedState;
                     emit mb->stateChanged(MediaBackend::StoppedState);
-                    //mb->m_cdg.reset();
                 }
             }
             break;
@@ -1316,18 +1318,6 @@ void MediaBackend::setEqLevel10(const int &level)
     m_eqLevels[9] = level;
 }
 
-
-bool MediaBackend::hasVideo()
-{
-    if (m_cdgMode)
-        return true;
-    gint numVidStreams;
-    // todo: levn fra Playbin
-    g_object_get(m_playBin, "n-video", &numVidStreams, nullptr);
-    if (numVidStreams > 0)
-        return true;
-    return false;
-}
 
 void MediaBackend::fadeInImmediate()
 {

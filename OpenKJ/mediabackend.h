@@ -84,7 +84,7 @@ public:
     bool canDetectSilence() { return true; }
     bool canFade() { return true; }
     bool canPitchShift() { return true; }
-    bool hasVideo();
+    bool hasVideo() { return m_hasVideo; }
     bool isSilent();
     void setAccelType(const accel &type=accel::XVideo) { m_accelMode = type; }
     void setAudioOutputDevice(int deviceIndex);
@@ -186,7 +186,7 @@ private:
     bool m_bypass{false};
     bool m_loadPitchShift;
     bool m_downmix{false};
-    bool m_noaccelHasVideo{false};
+    std::atomic<bool> m_hasVideo{false};
     bool m_enforceAspectRatio{true};
     bool m_videoAccelEnabled{false};
     std::array<int,10> m_eqLevels{0,0,0,0,0,0,0,0,0,0};
@@ -197,7 +197,6 @@ private:
     std::vector<VideoSinkData> m_videoSinks;
     accel m_accelMode{XVideo};
     int m_videoOffsetMs{0};
-
 
     void buildPipeline();
     void resetVideoSinks();
