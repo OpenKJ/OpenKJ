@@ -129,11 +129,11 @@ void MediaBackend::setEnforceAspectRatio(const bool &enforce)
 MediaBackend::~MediaBackend()
 {
     qInfo() << "MediaBackend destructor called";
+    resetPipeline();
     m_timerSlow.stop();
     m_timerFast.stop();
     m_gstMsgBusHandlerTimer.stop();
     gst_object_unref(m_bus);
-    gst_element_set_state(m_playBin, GST_STATE_NULL);
     gst_caps_unref(m_audioCapsMono);
     gst_caps_unref(m_audioCapsStereo);
     g_object_unref(m_playBin);
@@ -167,6 +167,7 @@ qint64 MediaBackend::duration()
 
 MediaBackend::State MediaBackend::state()
 {
+    // TODO: this is called very often! Instead store the state from the state-changed bus message and return that!
     GstState state = GST_STATE_NULL;
     gst_element_get_state(m_playBin, &state, nullptr, GST_CLOCK_TIME_NONE);
     switch (state) {
@@ -278,17 +279,7 @@ void MediaBackend::play()
         return;
     }
 
-    gst_element_set_state(m_playBin, GST_STATE_NULL);
-
-    // Start playing new file - reset pipeline
-    m_hasVideo = false;
-    gst_element_unlink(m_decoder, m_audioBin);
-    gst_element_unlink(m_decoder, m_videoBin);
-    gst_element_unlink(m_cdgAppSrc, m_videoBin);
-
-    gst_bin_remove_many(m_playBinAsBin, m_cdgAppSrc, m_decoder, m_audioBin, m_videoBin, nullptr);
-
-    delete m_audioSrcPad; delete m_videoSrcPad; m_audioSrcPad = m_videoSrcPad = nullptr;
+    resetPipeline();
 
     bool allowMissingAudio = false;
 
@@ -313,12 +304,7 @@ void MediaBackend::play()
 
         // Load CDG file
         {
-            g_appSrcNeedData = false;
             QMutexLocker locker(&m_cdgFileReaderLock);
-            if (m_cdgFileReader)
-            {
-                delete m_cdgFileReader;
-            }
             m_cdgFileReader = new CdgFileReader(m_cdgFilename);
         }
 
@@ -351,6 +337,25 @@ void MediaBackend::play()
     resetVideoSinks();
 
     gst_element_set_state(m_playBin, GST_STATE_PLAYING);
+}
+
+void MediaBackend::resetPipeline()
+{
+    gst_element_set_state(m_playBin, GST_STATE_NULL);
+
+    m_hasVideo = false;
+    gst_element_unlink(m_decoder, m_audioBin);
+    gst_element_unlink(m_decoder, m_videoBin);
+    gst_element_unlink(m_cdgAppSrc, m_videoBin);
+
+    gst_bin_remove_many(m_playBinAsBin, m_cdgAppSrc, m_decoder, m_audioBin, m_videoBin, nullptr);
+
+    delete m_audioSrcPad; delete m_videoSrcPad; m_audioSrcPad = m_videoSrcPad = nullptr;
+
+    g_appSrcNeedData = false;
+    QMutexLocker locker(&m_cdgFileReaderLock);
+    delete m_cdgFileReader;
+    m_cdgFileReader = nullptr;
 }
 
 void MediaBackend::patchPipelineSinks()

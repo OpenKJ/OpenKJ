@@ -225,7 +225,9 @@ private:
     static void NoMorePadsCallback(GstElement *gstelement, gpointer data);
     static void padAddedToDecoder_cb(GstElement *element,  GstPad *pad, gpointer caller);
 
+    void resetPipeline();
     void patchPipelineSinks();
+
 private slots:
     void timerFast_timeout();
     void timerSlow_timeout();
