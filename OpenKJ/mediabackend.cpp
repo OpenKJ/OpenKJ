@@ -831,35 +831,49 @@ void MediaBackend::buildPipeline()
     g_object_unref(csource);
 
     // Video output setup
+    m_videoBin = gst_bin_new("videoBin");
+    g_object_ref(m_videoBin);
+
+    auto queueMainVideo = gst_element_factory_make("queue", "queueMainVideo");
+    gst_bin_add(reinterpret_cast<GstBin *>(m_videoBin), queueMainVideo);
+
+    auto queuePad = gst_element_get_static_pad(queueMainVideo, "sink");
+    auto ghostVideoPad = gst_ghost_pad_new("sink", queuePad);
+    gst_pad_set_active(ghostVideoPad, true);
+    gst_element_add_pad(m_videoBin, ghostVideoPad);
+    gst_object_unref(queuePad);
+
     if (m_videoAccelEnabled)
     {
-        m_videoBin = gst_bin_new("videoBin");
-        g_object_ref(m_videoBin);
-        auto queueMainVideo = gst_element_factory_make("queue", "queueMainVideo");
-
-        m_videoTee = gst_element_factory_make("tee", "videoTee");
-
-        gst_bin_add_many(reinterpret_cast<GstBin *>(m_videoBin), queueMainVideo, m_videoTee, nullptr);
-        gst_element_link(queueMainVideo, m_videoTee);
-
-        auto queuePad = gst_element_get_static_pad(queueMainVideo, "sink");
-        auto ghostVideoPad = gst_ghost_pad_new("sink", queuePad);
-        gst_pad_set_active(ghostVideoPad, true);
-        gst_element_add_pad(m_videoBin, ghostVideoPad);
-        gst_object_unref(queuePad);
-
+        // queue -> tee -> [ queue -> converter -> window control ]
+        m_hardware_accel_videoTee = gst_element_factory_make("tee", "videoTee");
+        gst_bin_add(reinterpret_cast<GstBin *>(m_videoBin), m_hardware_accel_videoTee);
+        gst_element_link(queueMainVideo, m_hardware_accel_videoTee);
     }
     else
-    {
-        // No video acceleration
+    {   // No video acceleration
+
+        // queue -> converter -> videoAppSink
+
+        auto videoConv = gst_element_factory_make("videoconvert", "sw-videoconvert");
+
         GstAppSinkCallbacks appsinkCallbacks;
         appsinkCallbacks.new_preroll	= nullptr;
         appsinkCallbacks.new_sample		= &MediaBackend::NewSampleCallback;
         appsinkCallbacks.eos			= nullptr;
-        m_videoAppSink = gst_element_factory_make("appsink", "videoAppSink");
-        auto videoCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB16", NULL);
-        g_object_set(m_videoAppSink, "caps", videoCaps, NULL);
-        gst_app_sink_set_callbacks(GST_APP_SINK(m_videoAppSink), &appsinkCallbacks, this, nullptr);
+        auto videoSink = gst_element_factory_make("appsink", "videoAppSink");
+
+        // Formats we can handle:
+        auto caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB16", NULL);
+        gst_caps_append(caps, gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB8P", NULL));
+        g_object_set(videoSink, "caps", caps, NULL);
+
+        // todo: check if performance is better if we simply let gstreamer videoconvert do the conversation from indexed 8-bit to rgb instead of QImage...
+
+        gst_app_sink_set_callbacks(GST_APP_SINK(videoSink), &appsinkCallbacks, this, nullptr);
+
+        gst_bin_add_many(reinterpret_cast<GstBin *>(m_videoBin), videoConv,  videoSink, nullptr);
+        gst_element_link_many(queueMainVideo, videoConv, videoSink, nullptr);
     }
     // End video output setup
 
@@ -955,34 +969,6 @@ void MediaBackend::buildCdgBin()
     g_signal_connect(m_cdgAppSrc, "need-data", G_CALLBACK(cb_need_data), this);
     g_signal_connect(m_cdgAppSrc, "enough-data", G_CALLBACK(cb_enough_data), this);
     g_signal_connect(m_cdgAppSrc, "seek-data", G_CALLBACK(cb_seek_data), this);
-
-    if (m_videoAccelEnabled)
-    {
-        /*
-        m_videoTeeCdg = gst_element_factory_make("tee", "videoTee");
-
-        gst_bin_add_many(reinterpret_cast<GstBin *>(m_cdgBin), m_cdgAppSrc, m_videoTeeCdg, nullptr);
-        gst_element_link(m_cdgAppSrc, m_videoTeeCdg);
-        */
-    }
-    else
-    {
-        // todo:
-        /*
-        // No video acceleration
-        GstAppSinkCallbacks appsinkCallbacks;
-        appsinkCallbacks.new_preroll	= nullptr;
-        appsinkCallbacks.new_sample		= &MediaBackend::NewSampleCallback;
-        appsinkCallbacks.eos			= nullptr;
-        m_videoAppSinkCdg = gst_element_factory_make("appsink", "videoAppSinkCdg");
-        auto videoCaps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB8P", NULL);
-        g_object_set(m_videoAppSinkCdg, "caps", videoCaps, NULL);
-        gst_app_sink_set_callbacks(GST_APP_SINK(m_videoAppSinkCdg), &appsinkCallbacks, this, nullptr);
-        auto videoQueue = gst_element_factory_make("queue", "cdgVideoQueue");
-        gst_bin_add_many(reinterpret_cast<GstBin *>(m_cdgBin), m_cdgAppSrc, videoQueue, m_videoAppSinkCdg, nullptr);
-        gst_element_link_many(m_cdgAppSrc, videoQueue, m_videoAppSinkCdg, nullptr);
-        */
-    }
 }
 
 void MediaBackend::getGstDevices()
@@ -1184,7 +1170,7 @@ void MediaBackend::setHWVideoOutputDevices(std::vector<WId> videoWinIds)
         auto videoScale = gst_element_factory_make("videoscale", QString("videoScale%1").arg(i).toLocal8Bit());
 
         gst_bin_add_many(GST_BIN(m_videoBin), videoQueue, videoConv, videoScale, vd.videoSink, nullptr);
-        gst_element_link_many(m_videoTee, videoQueue, videoConv, videoScale, vd.videoSink, nullptr);
+        gst_element_link_many(m_hardware_accel_videoTee, videoQueue, videoConv, videoScale, vd.videoSink, nullptr);
 
         m_videoSinks.push_back(vd);
     }

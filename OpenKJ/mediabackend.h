@@ -153,9 +153,7 @@ private:
 
     GstElement *m_videoBin { nullptr }; // GstBin
 
-    GstElement *m_videoTee { nullptr };
-    //GstElement *m_videoTeeCdg { nullptr };
-    GstElement *m_videoAppSink { nullptr };
+    GstElement *m_hardware_accel_videoTee { nullptr };
 
     PadInfo *m_audioSrcPad { nullptr };
     PadInfo *m_videoSrcPad { nullptr };
