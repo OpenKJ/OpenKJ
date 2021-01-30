@@ -200,9 +200,9 @@ private slots:
     void clearQueueSort();
     void on_buttonClearQueue_clicked();
     void on_spinBoxKey_valueChanged(const int &arg1);
-    void audioBackend_positionChanged(const qint64 &position);
-    void audioBackend_durationChanged(const qint64 &duration);
-    void audioBackend_stateChanged(const MediaBackend::State &state);
+    void karaokeMediaBackend_positionChanged(const qint64 &position);
+    void karaokeMediaBackend_durationChanged(const qint64 &duration);
+    void karaokeMediaBackend_stateChanged(const MediaBackend::State &state);
     void sfxAudioBackend_positionChanged(const qint64 &position);
     void sfxAudioBackend_durationChanged(const qint64 &duration);
     void sfxAudioBackend_stateChanged(const MediaBackend::State &state);

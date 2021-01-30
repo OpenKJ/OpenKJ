@@ -131,6 +131,7 @@ DEFINES += BUILD_DATE=__DATE__
 
 SOURCES += main.cpp\
     dlgaddsong.cpp \
+    gstreamer/gstreamerhelper.cpp \
     libCDG/src/cdgfilereader.cpp \
     libCDG/src/cdgimageframe.cpp \
     mediabackend.cpp \
@@ -303,6 +304,7 @@ contains(DEFINES, STATIC_TAGLIB) {
 HEADERS  += mainwindow.h \
     dlgaddsong.h \
     dlgvideopreview.h \
+    gstreamer/gstreamerhelper.h \
     libCDG/include/libCDG.h \
     libCDG/src/cdgfilereader.h \
     libCDG/src/cdgimageframe.h \

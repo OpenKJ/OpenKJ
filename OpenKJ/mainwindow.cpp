@@ -701,9 +701,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(dbDialog, &DlgDatabase::databaseSongAdded, requestsDialog, &DlgRequests::databaseSongAdded);
     connect(dbDialog, &DlgDatabase::databaseCleared, this, &MainWindow::databaseCleared);
     connect(&kMediaBackend, &MediaBackend::volumeChanged, ui->sliderVolume, &QSlider::setValue);
-    connect(&kMediaBackend, &MediaBackend::positionChanged, this, &MainWindow::audioBackend_positionChanged);
-    connect(&kMediaBackend, &MediaBackend::durationChanged, this, &MainWindow::audioBackend_durationChanged);
-    connect(&kMediaBackend, &MediaBackend::stateChanged, this, &MainWindow::audioBackend_stateChanged);
+    connect(&kMediaBackend, &MediaBackend::positionChanged, this, &MainWindow::karaokeMediaBackend_positionChanged);
+    connect(&kMediaBackend, &MediaBackend::durationChanged, this, &MainWindow::karaokeMediaBackend_durationChanged);
+    connect(&kMediaBackend, &MediaBackend::stateChanged, this, &MainWindow::karaokeMediaBackend_stateChanged);
     connect(&kMediaBackend, &MediaBackend::pitchChanged, ui->spinBoxKey, &QSpinBox::setValue);
     connect(&kMediaBackend, &MediaBackend::audioError, this, &MainWindow::audioError);
     connect(&kMediaBackend, &MediaBackend::silenceDetected, this, &MainWindow::silenceDetectedKar);
@@ -1152,7 +1152,7 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k)
                     if (!k2k)
                         bmMediaBackend.fadeOut(!settings.bmKCrossFade());
                     qInfo() << "Beginning playback of file: " << audioFile;
-                    bmMediaBackend.videoMute(true);
+                    bmMediaBackend.setVideoEnabled(false);
                     QApplication::setOverrideCursor(Qt::WaitCursor);
                     kMediaBackend.play();
                     QApplication::restoreOverrideCursor();
@@ -1201,7 +1201,7 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k)
             kMediaBackend.setMediaCdg(khTmpDir->path() + QDir::separator() + cdgTmpFile, khTmpDir->path() + QDir::separator() + audTmpFile);
             if (!k2k)
                 bmMediaBackend.fadeOut(!settings.bmKCrossFade());
-            bmMediaBackend.videoMute(true);
+            bmMediaBackend.setVideoEnabled(false);
             QApplication::setOverrideCursor(Qt::WaitCursor);
             kMediaBackend.play();
             QApplication::restoreOverrideCursor();
@@ -1217,7 +1217,7 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k)
             kMediaBackend.setMedia(tmpFileName);
             if (!k2k)
                 bmMediaBackend.fadeOut();
-            bmMediaBackend.videoMute(true);
+            bmMediaBackend.setVideoEnabled(false);
             kMediaBackend.play();
             kMediaBackend.fadeInImmediate();
         }
@@ -1784,7 +1784,7 @@ void MainWindow::on_spinBoxKey_valueChanged(const int &arg1)
     });
 }
 
-void MainWindow::audioBackend_positionChanged(const qint64 &position)
+void MainWindow::karaokeMediaBackend_positionChanged(const qint64 &position)
 {
     if (kMediaBackend.state() == MediaBackend::PlayingState)
     {
@@ -1799,12 +1799,12 @@ void MainWindow::audioBackend_positionChanged(const qint64 &position)
     }
 }
 
-void MainWindow::audioBackend_durationChanged(const qint64 &duration)
+void MainWindow::karaokeMediaBackend_durationChanged(const qint64 &duration)
 {
     ui->labelTotalTime->setText(kMediaBackend.msToMMSS(duration));
 }
 
-void MainWindow::audioBackend_stateChanged(const MediaBackend::State &state)
+void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &state)
 {
     if (m_shuttingDown)
         return;
@@ -1826,7 +1826,7 @@ void MainWindow::audioBackend_stateChanged(const MediaBackend::State &state)
             return;
         }
         qInfo() << "KAudio entered StoppedState";
-        bmMediaBackend.videoMute(false);
+        bmMediaBackend.setVideoEnabled(true);
         audioRecorder.stop();
         if (k2kTransition)
             return;
@@ -1905,7 +1905,7 @@ void MainWindow::audioBackend_stateChanged(const MediaBackend::State &state)
         qInfo() << "KAudio entered EndOfMediaState";
         audioRecorder.stop();
 //        ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
-        bmMediaBackend.videoMute(false);
+        bmMediaBackend.setVideoEnabled(true);
         kMediaBackend.stop(true);
         bmMediaBackend.fadeIn(false);
         cdgWindow->setShowBgImage(true);
@@ -1919,7 +1919,7 @@ void MainWindow::audioBackend_stateChanged(const MediaBackend::State &state)
     {
         qInfo() << "KAudio entered PlayingState";
         m_lastAudioState = state;
-        bmMediaBackend.videoMute(true);
+        bmMediaBackend.setVideoEnabled(false);
         cdgWindow->setShowBgImage(false);
     }
     if (state == MediaBackend::UnknownState)
@@ -3913,8 +3913,8 @@ void MainWindow::updateRotationDuration()
     labelRotationDuration.setText(text);
 
     // Safety check to make sure break music video is muted if karaoke is playing
-    if (bmMediaBackend.videoMuted() && kMediaBackend.state() != MediaBackend::PlayingState && kMediaBackend.state() != MediaBackend::PausedState)
-        bmMediaBackend.videoMute(false);
+    if (!bmMediaBackend.isVideoEnabled() && kMediaBackend.state() != MediaBackend::PlayingState && kMediaBackend.state() != MediaBackend::PausedState)
+        bmMediaBackend.setVideoEnabled(true);
 }
 
 void MainWindow::cdgVisibilityChanged()

@@ -41,6 +41,7 @@
 #include <vector>
 #include "libCDG/src/cdgfilereader.h"
 #include "settings.h"
+#include "gstreamer/gstreamerhelper.h"
 
 #define STUP 1.0594630943592952645618252949461
 #define STDN 0.94387431268169349664191315666784
@@ -59,7 +60,8 @@ public:
     enum MediaType {
         Karaoke,
         BackgroundMusic,
-        SFX
+        SFX,
+        VideoPreview
     };
 
     enum State {
@@ -87,9 +89,9 @@ public:
     void setAccelType(const accel &type=accel::XVideo) { m_accelMode = type; }
     void setAudioOutputDevice(int deviceIndex);
     void setHWVideoOutputDevices(std::vector<WId> videoWinIds);
-    void videoMute(const bool &mute);
+    void setVideoEnabled(const bool &enabled);
+    bool isVideoEnabled() { return m_videoEnabled; }
     bool isCdgMode() { return m_cdgMode; }
-    bool videoMuted() { return m_vidMuted; }
     int getVolume() { return m_volume; }
 
     void writePipelinesGraphToFile(const QString filePath);
@@ -125,7 +127,6 @@ private:
     struct VideoSinkData {
         WId windowId { 0 };
         GstElement *videoSink { nullptr };
-        GstElement *videoSinkCdg  { nullptr };
     };
 
     QString m_objName;
@@ -133,11 +134,12 @@ private:
     Settings m_settings;
     GstBus *m_bus;
 
-    GstElement *m_cdgBin { nullptr }; // GstBin
     GstElement *m_cdgAppSrc { nullptr };
     GstElement *m_scaleTempo { nullptr };
     GstElement *m_queueMainVideo { nullptr };
-    GstElement *m_playBin { nullptr };
+    GstElement *m_decoder { nullptr };
+    GstElement *m_playBin { nullptr };  // Pipeline
+    GstBin *m_playBinAsBin { nullptr };
     GstElement *m_aConvEnd { nullptr };
     GstElement *m_audioPanorama { nullptr };
     GstElement *m_fltrPostPanorama { nullptr };
@@ -152,9 +154,11 @@ private:
     GstElement *m_videoBin { nullptr }; // GstBin
 
     GstElement *m_videoTee { nullptr };
-    GstElement *m_videoTeeCdg { nullptr };
+    //GstElement *m_videoTeeCdg { nullptr };
     GstElement *m_videoAppSink { nullptr };
-    GstElement *m_videoAppSinkCdg { nullptr };
+
+    PadInfo *m_audioSrcPad { nullptr };
+    PadInfo *m_videoSrcPad { nullptr };
 
     GstCaps *m_audioCapsStereo { nullptr };
     GstCaps *m_audioCapsMono { nullptr };
@@ -179,7 +183,7 @@ private:
     bool m_canChangeTempo{false};
     bool m_keyChangerRubberBand{false};
     bool m_keyChangerSoundtouch{false};
-    bool m_vidMuted{false};
+    bool m_videoEnabled{true};
     bool m_previewEnabledLastBuild{true};
     bool m_bypass{false};
     bool m_loadPitchShift;
@@ -221,6 +225,10 @@ private:
     static gboolean gstBusFunc(GstBus *bus, GstMessage *message, gpointer user_data);
 
 
+    static void NoMorePadsCallback(GstElement *gstelement, gpointer data);
+    static void padAddedToDecoder_cb(GstElement *element,  GstPad *pad, gpointer caller);
+
+    void patchPipelineSinks();
 private slots:
     void timerFast_timeout();
     void timerSlow_timeout();
