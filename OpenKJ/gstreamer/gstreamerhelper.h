@@ -16,4 +16,6 @@ GstElement* gsthlp_get_peer_element(GstElement *element, const gchar* sinkName);
 
 PadInfo getPadInfo(GstElement *element, GstPad *pad);
 
+void set_sink_ts_offset(GstBin *bin, gint64 offset);
+
 #endif // GSTREAMERHELPER_H

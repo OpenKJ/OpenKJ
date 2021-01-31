@@ -37,3 +37,20 @@ PadInfo getPadInfo(GstElement *element, GstPad *pad)
     g_free (name);
     return result;
 }
+
+void iterater_set_ts_offset (const GValue *item, gpointer p_offset)
+{
+    gint64 offset = *(gint64*)p_offset;
+    auto element = GST_ELEMENT(g_value_get_object (item));
+    g_object_set(element , "ts-offset", offset, nullptr);
+}
+
+void set_sink_ts_offset(GstBin *bin, gint64 offset)
+{
+    auto it = gst_bin_iterate_sinks (bin);
+    while (gst_iterator_foreach (it, iterater_set_ts_offset, &offset) == GST_ITERATOR_RESYNC)
+    {
+        gst_iterator_resync (it);
+    }
+    gst_iterator_free (it);
+}

@@ -409,6 +409,8 @@ void MediaBackend::patchPipelineSinks()
             }
         }
     }
+
+    setVideoOffset(m_videoOffsetMs);
 }
 
 void MediaBackend::pause()
@@ -590,11 +592,13 @@ void MediaBackend::timerSlow_timeout()
 
 void MediaBackend::setVideoOffset(const int offsetMs) {
     m_videoOffsetMs = offsetMs;
-    if (state() == PlayingState)
-    {
-        setPosition(position());
-    }
+
+    gint64 offset = GST_MSECOND * offsetMs;
+
+    set_sink_ts_offset(reinterpret_cast<GstBin *>(m_audioBin), MAX(G_GINT64_CONSTANT(0), offset));
+    set_sink_ts_offset(reinterpret_cast<GstBin *>(m_videoBin), MAX(G_GINT64_CONSTANT(0), -offset));
 }
+
 
 void MediaBackend::setPitchShift(const int &pitchShift)
 {
