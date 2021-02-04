@@ -30,7 +30,7 @@
 #include <QStandardPaths>
 #include <QFileSystemWatcher>
 
-extern Settings *settings;
+extern Settings settings;
 
 DlgDatabase::DlgDatabase(QSqlDatabase db, QWidget *parent) :
     QDialog(parent),
@@ -46,7 +46,7 @@ DlgDatabase::DlgDatabase(QSqlDatabase db, QWidget *parent) :
     selectedRow = -1;
     customPatternsDlg = new DlgCustomPatterns(this);
     dbUpdateDlg = new DlgDbUpdate(this);
-    if (settings->dbDirectoryWatchEnabled())
+    if (settings.dbDirectoryWatchEnabled())
     {
         QStringList sourceDirs = sourcedirmodel->getSourceDirs();
         QString path;
@@ -141,7 +141,7 @@ void DlgDatabase::on_buttonNew_clicked()
 
 void DlgDatabase::on_buttonClose_clicked()
 {
-    settings->saveColumnWidths(ui->tableViewFolders);
+    settings.saveColumnWidths(ui->tableViewFolders);
     ui->tableViewFolders->clearSelection();
     hide();
 }
@@ -173,15 +173,15 @@ void DlgDatabase::on_buttonUpdate_clicked()
         connect(updateThread, SIGNAL(stateChanged(QString)), dbUpdateDlg, SLOT(changeStatusTxt(QString)));
         connect(updateThread, SIGNAL(progressMaxChanged(int)), dbUpdateDlg, SLOT(setProgressMax(int)));
         connect(updateThread, SIGNAL(progressChanged(int)), dbUpdateDlg, SLOT(changeProgress(int)));
-        dbUpdateDlg->changeDirectory(sourcedirmodel->getDirByIndex(selectedRow)->getPath());
+        dbUpdateDlg->changeDirectory(sourcedirmodel->getDirByIndex(selectedRow).getPath());
         dbUpdateDlg->show();
 //        QMessageBox msgBox;
 //        msgBox.setStandardButtons(0);
 //        msgBox.setText("Updating Database, please wait...");
 //        msgBox.show();
         QApplication::processEvents();
-        updateThread->setPath(sourcedirmodel->getDirByIndex(selectedRow)->getPath());
-        updateThread->setPattern(sourcedirmodel->getDirByIndex(selectedRow)->getPattern());
+        updateThread->setPath(sourcedirmodel->getDirByIndex(selectedRow).getPath());
+        updateThread->setPattern(sourcedirmodel->getDirByIndex(selectedRow).getPattern());
         QApplication::processEvents();
         updateThread->startUnthreaded();
 //        while (updateThread->isRunning())
@@ -218,9 +218,9 @@ void DlgDatabase::on_buttonUpdateAll_clicked()
     for (int i=0; i < sourcedirmodel->size(); i++)
     {
         //msgBox.setInformativeText("Processing path: " + sourcedirmodel->getDirByIndex(i)->getPath());
-        dbUpdateDlg->changeDirectory(sourcedirmodel->getDirByIndex(i)->getPath());
-        updateThread->setPath(sourcedirmodel->getDirByIndex(i)->getPath());
-        updateThread->setPattern(sourcedirmodel->getDirByIndex(i)->getPattern());
+        dbUpdateDlg->changeDirectory(sourcedirmodel->getDirByIndex(i).getPath());
+        updateThread->setPath(sourcedirmodel->getDirByIndex(i).getPath());
+        updateThread->setPattern(sourcedirmodel->getDirByIndex(i).getPattern());
         updateThread->startUnthreaded();
 //        while (updateThread->isRunning())
 //        {
@@ -311,7 +311,7 @@ void DlgDatabase::on_btnExport_clicked()
 
 void DlgDatabase::directoryChanged(QString dirPath)
 {
-    if (!settings->dbDirectoryWatchEnabled())
+    if (!settings.dbDirectoryWatchEnabled())
         return;
     DbUpdateThread *dbthread = new DbUpdateThread(db, this);
     qInfo() << "Directory changed fired for dir: " << dirPath;

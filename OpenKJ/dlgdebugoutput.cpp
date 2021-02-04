@@ -2,7 +2,7 @@
 #include "ui_dlgdebugoutput.h"
 #include "settings.h"
 
-extern Settings *settings;
+extern Settings settings;
 
 DlgDebugOutput::DlgDebugOutput(QWidget *parent) :
     QDialog(parent),
@@ -24,9 +24,9 @@ void DlgDebugOutput::timerTimeout()
 {
     if (!isVisible())
         return;
-    while (!logContents->empty())
+    while (!logContents.empty())
     {
-        ui->textEditLog->append(logContents->takeFirst());
+        ui->textEditLog->append(logContents.takeFirst());
     }
 
 }
@@ -34,6 +34,6 @@ void DlgDebugOutput::timerTimeout()
 
 void DlgDebugOutput::closeEvent(QCloseEvent *event)
 {
-    settings->setLogVisible(false);
+    settings.setLogVisible(false);
     QDialog::closeEvent(event);
 }

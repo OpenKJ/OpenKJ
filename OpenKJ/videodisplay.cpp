@@ -69,7 +69,7 @@ void VideoDisplay::paintEvent(QPaintEvent *event)
             double widgetHeight = this->height();
             QRectF target(0, 0, widgetWidth, widgetHeight);
 
-            QPixmap tempQImage = m_curFrame.scaled(rect().size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            QPixmap tempQImage = m_curFrame.scaled(rect().size(), Qt::KeepAspectRatio, Qt::FastTransformation);
 
             double imageSizeWidth = static_cast<double>(tempQImage.width());
             double imageSizeHeight = static_cast<double>(tempQImage.height());
@@ -127,38 +127,5 @@ void VideoDisplay::resizeEvent(QResizeEvent *event)
 }
 
 
-VideoDisplayAR::VideoDisplayAR(QWidget *parent) :
-    QWidget(parent)
-{
-    m_videoDisplay = new VideoDisplay(this);
-    layout = new QBoxLayout(QBoxLayout::LeftToRight, this);
-    layout->addItem(new QSpacerItem(0, 0));
-    layout->addWidget(m_videoDisplay);
-    layout->addItem(new QSpacerItem(0, 0));
-    layout->setSpacing(0);
-    layout->setMargin(5);
-}
 
-void VideoDisplayAR::resizeEvent(QResizeEvent *event)
-{
-    qInfo() << "resize event fired";
-    float thisAspectRatio = (float)event->size().width() / event->size().height();
-    int widgetStretch, outerStretch;
 
-    if (thisAspectRatio > (arWidth/arHeight)) // too wide
-    {
-        layout->setDirection(QBoxLayout::LeftToRight);
-        widgetStretch = height() * (arWidth/arHeight); // i.e., my width
-        outerStretch = (width() - widgetStretch) / 2 + 0.5;
-    }
-    else // too tall
-    {
-        layout->setDirection(QBoxLayout::TopToBottom);
-        widgetStretch = width() * (arHeight/arWidth); // i.e., my height
-        outerStretch = (height() - widgetStretch) / 2 + 0.5;
-    }
-
-    layout->setStretch(0, outerStretch);
-    layout->setStretch(1, widgetStretch);
-    layout->setStretch(2, outerStretch);
-}

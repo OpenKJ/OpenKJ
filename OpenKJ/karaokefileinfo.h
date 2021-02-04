@@ -9,28 +9,27 @@ class KaraokeFileInfo : public QObject
 {
     Q_OBJECT
     QString artistPattern;
-    int artistCaptureGroup;
+    int artistCaptureGroup{0};
     QString titlePattern;
-    int titleCaptureGroup;
+    int titleCaptureGroup{0};
     QString songIdPattern;
-    int songIdCaptureGroup;
+    int songIdCaptureGroup{0};
     QString fileName;
     QString fileBaseName;
-    bool useMetadata;
-    bool tagsRead;
+    bool useMetadata{false};
+    bool tagsRead{false};
     void readTags();
     QString tagArtist;
     QString tagTitle;
     QString tagSongid;
-    int duration;
-    SourceDir::NamingPattern pattern;
+    int duration{0};
+    SourceDir::NamingPattern pattern{SourceDir::SAT};
     QString path;
     QString artist;
     QString title;
     QString songId;
 
 public:
-    explicit KaraokeFileInfo(QObject *parent = 0);
     void setArtistRegEx(QString pattern, int captureGroup = 0) {artistPattern = pattern; artistCaptureGroup = captureGroup;}
     void setTitleRegEx(QString pattern, int captureGroup = 0) {titlePattern = pattern; titleCaptureGroup = captureGroup;}
     void setSongIdRegEx(QString pattern, int captureGroup = 0) {songIdPattern = pattern; songIdCaptureGroup = captureGroup;}
@@ -40,7 +39,6 @@ public:
     const QString& getTitle();
     const QString& getSongId();
     QString testPattern(QString regex, QString filename, int captureGroup = 0);
-
     const int& getDuration();
     void getMetadata();
 

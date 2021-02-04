@@ -226,10 +226,11 @@ bool Settings::testingEnabled()
 
 bool Settings::hardwareAccelEnabled()
 {
+    bool hwAccelDefault{true};
 #ifdef Q_OS_MACOS
-    return false;
+    hwAccelDefault = false;
 #endif
-    return settings->value("hardwareAccelEnabled", true).toBool();
+    return settings->value("hardwareAccelEnabled", hwAccelDefault).toBool();
 }
 
 QString Settings::getCCN(const QString &password)

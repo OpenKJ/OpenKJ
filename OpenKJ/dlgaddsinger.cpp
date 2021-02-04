@@ -5,7 +5,7 @@
 
 #include <QMessageBox>
 
-extern Settings *settings;
+extern Settings settings;
 
 DlgAddSinger::DlgAddSinger(RotationModel *rotModel, QWidget *parent) :
     QDialog(parent),

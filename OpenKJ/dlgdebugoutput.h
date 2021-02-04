@@ -4,7 +4,7 @@
 #include <QDialog>
 #include <QTimer>
 
-extern QStringList *logContents;
+extern QStringList logContents;
 
 namespace Ui {
 class DlgDebugOutput;

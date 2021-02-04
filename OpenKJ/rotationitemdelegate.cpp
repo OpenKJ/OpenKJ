@@ -23,14 +23,14 @@
 #include <QSqlQuery>
 #include "settings.h"
 
-extern Settings *settings;
+extern Settings settings;
 
 RotationItemDelegate::RotationItemDelegate(QObject *parent) :
     QItemDelegate(parent)
 {
     m_currentSingerId = -1;
     singerCount = 0;
-    QString thm = (settings->theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
+    QString thm = (settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
     favorite16Off = QIcon(thm + "actions/16/im-user.svg");
     favorite22Off = QIcon(thm + "actions/22/im-user.svg");
     favorite16On = QIcon(thm + "actions/16/im-user-online.svg");
@@ -54,7 +54,7 @@ void RotationItemDelegate::setCurrentSinger(int currentSingerId)
 
 void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    QSize sbSize(QFontMetrics(settings->applicationFont()).height(), QFontMetrics(settings->applicationFont()).height());
+    QSize sbSize(QFontMetrics(settings.applicationFont()).height(), QFontMetrics(settings.applicationFont()).height());
     int topPad = (option.rect.height() - sbSize.height()) / 2;
     int leftPad = (option.rect.width() - sbSize.width()) / 2;
 
@@ -70,7 +70,7 @@ void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
         if (option.state & QStyle::State_Selected)
             painter->fillRect(option.rect, option.palette.highlight());
         else
-            painter->fillRect(option.rect, (settings->theme() == 1) ? QColor(180,180,0) : QColor("yellow"));
+            painter->fillRect(option.rect, (settings.theme() == 1) ? QColor(180,180,0) : QColor("yellow"));
     }
     if (index.column() == 3)
     {
@@ -120,7 +120,7 @@ void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
                 painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), mic16.pixmap(sbSize));
 
         }
-        else if (settings->rotationDisplayPosition())
+        else if (settings.rotationDisplayPosition())
         {
             int curSingerPos = 0;
             int drawSingerPos = index.row();
@@ -162,7 +162,7 @@ void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
     painter->save();
     if (option.state & QStyle::State_Selected)
         painter->setPen(option.palette.highlightedText().color());
-    else if ((index.sibling(index.row(), 0).data().toInt() == m_currentSingerId) && (settings->theme() == 1))
+    else if ((index.sibling(index.row(), 0).data().toInt() == m_currentSingerId) && (settings.theme() == 1))
     {
         painter->setPen(QColor("black"));
     }

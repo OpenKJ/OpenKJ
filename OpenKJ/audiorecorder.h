@@ -25,7 +25,7 @@ private:
     GstElement *lameMp3Enc;
     GstElement *wavEnc;
     GstElement *audioRate;
-    GstElement *autoAudioSrc;
+    GstElement *autoAudioSrc{nullptr};
     GstBus *bus;
     QList<GstDevice*> inputDevices;
     QStringList inputDeviceNames;

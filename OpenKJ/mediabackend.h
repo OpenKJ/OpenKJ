@@ -110,6 +110,7 @@ private:
         GST_PLAY_FLAG_TEXT          = (1 << 2)
     };
     Settings m_settings;
+    GstBus *m_bus;
     GstElement *m_cdgBin;
     GstElement *m_mediaBin;
     GstElement *m_cdgAppSrc;
@@ -162,6 +163,7 @@ private:
     QString m_filename;
     QString m_cdgFilename;
     QStringList m_outputDeviceNames;
+    QTimer m_gstMsgBusHandlerTimer;
     QTimer m_timerFast;
     QTimer m_timerSlow;
     int m_silenceDuration{0};
@@ -204,7 +206,6 @@ private:
     qint64 getCdgPosition();
     State cdgState();
 
-    static GstBusSyncReply busMessageDispatcher(GstBus *bus, GstMessage *message, gpointer userData);
     static void cb_need_data(GstElement *appsrc, guint unused_size, gpointer user_data);
     static gboolean cb_seek_data(GstElement *appsrc, guint64 position, gpointer user_data);
     static void cb_enough_data(GstElement *appsrc, gpointer user_data);
@@ -215,6 +216,8 @@ private:
     static GstFlowReturn NewSampleCallbackCdg(GstAppSink *appsink, gpointer user_data);
     static GstFlowReturn NewAudioSampleCallback(GstAppSink *appsink, gpointer user_data);
     static void DestroyCallback(gpointer user_data);
+    static gboolean gstBusFunc(GstBus *bus, GstMessage *message, gpointer user_data);
+
 
 private slots:
     void timerFast_timeout();
@@ -254,19 +257,18 @@ public slots:
     void fadeInImmediate();
     void fadeOutImmediate();
     void setEnforceAspectRatio(const bool &enforce);
-    void gstBusMsg(std::shared_ptr<GstMessage> message);
 
 signals:
-    void audioAvailableChanged(const bool&);
-    void bufferStatusChanged(const int&);
-    void durationChanged(const qint64&);
-    void mutedChanged(const bool&);
-    void positionChanged(const qint64&);
-    void stateChanged(const State&);
-    void videoAvailableChanged(const bool&);
-    void volumeChanged(const int&);
+    void audioAvailableChanged(const bool);
+    void bufferStatusChanged(const int);
+    void durationChanged(const qint64);
+    void mutedChanged(const bool);
+    void positionChanged(const qint64);
+    void stateChanged(const State);
+    void videoAvailableChanged(const bool);
+    void volumeChanged(const int);
     void silenceDetected();
-    void pitchChanged(const int&);
+    void pitchChanged(const int);
     void newVideoFrame(const QImage &frame, const QString &backendName);
     void audioError(const QString &msg);
 

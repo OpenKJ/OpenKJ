@@ -7,7 +7,7 @@
 #include <QMessageBox>
 #include "dlgpurchaseprogress.h"
 
-extern Settings *settings;
+extern Settings settings;
 
 namespace Ui {
 class DlgSongShopPurchase;

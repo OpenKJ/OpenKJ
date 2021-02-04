@@ -188,7 +188,7 @@ TickerDisplayWidget::~TickerDisplayWidget()
     delete ticker;
 }
 
-void TickerDisplayWidget::setText(const QString &newText)
+void TickerDisplayWidget::setText(const QString newText)
 {
     ticker->setText(newText);
     setFixedHeight(ticker->getSize().height());

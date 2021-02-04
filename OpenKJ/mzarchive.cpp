@@ -36,13 +36,6 @@ MzArchive::MzArchive(QString ArchiveFile, QObject *parent) : QObject(parent)
     archiveFile = ArchiveFile;
     oka.setArchiveFile(archiveFile);
     //qWarning() << "MzArchive opening file: " << archiveFile;
-    m_cdgFound = false;
-    m_audioFound = false;
-    m_cdgSize = 0;
-    m_audioSize = 0;
-    m_audioSupportedCompression = false;
-    m_cdgSupportedCompression = false;
-    lastError = "";
     audioExtensions.append(".mp3");
     audioExtensions.append(".wav");
     audioExtensions.append(".ogg");
@@ -51,22 +44,10 @@ MzArchive::MzArchive(QString ArchiveFile, QObject *parent) : QObject(parent)
 
 MzArchive::MzArchive(QObject *parent) : QObject(parent)
 {
-    m_cdgFound = false;
-    m_audioFound = false;
-    m_cdgSize = 0;
-    m_audioSize = 0;
-    m_audioSupportedCompression = false;
-    m_cdgSupportedCompression = false;
-    lastError = "";
     audioExtensions.append(".mp3");
     audioExtensions.append(".wav");
     audioExtensions.append(".ogg");
     audioExtensions.append(".mov");
-}
-
-MzArchive::~MzArchive()
-{
-
 }
 
 unsigned int MzArchive::getSongDuration()

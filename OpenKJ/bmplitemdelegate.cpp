@@ -25,7 +25,7 @@
 #include <QFileInfo>
 #include "settings.h"
 
-extern Settings *settings;
+extern Settings settings;
 
 int BmPlItemDelegate::currentSong() const
 {
@@ -40,14 +40,14 @@ BmPlItemDelegate::BmPlItemDelegate(QObject *parent) :
     QItemDelegate(parent)
 {
     m_currentSong = -1;
-    QString thm = (settings->theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
+    QString thm = (settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
     m_iconDelete = QIcon(thm + "actions/22/edit-delete.svg");
     m_iconPlaying = QIcon(thm + "actions/22/media-playback-start.svg");
 }
 
 void BmPlItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    QSize sbSize(QFontMetrics(settings->applicationFont()).height(), QFontMetrics(settings->applicationFont()).height());
+    QSize sbSize(QFontMetrics(settings.applicationFont()).height(), QFontMetrics(settings.applicationFont()).height());
     int topPad = (option.rect.height() - sbSize.height()) / 2;
     int leftPad = (option.rect.width() - sbSize.width()) / 2;
 
@@ -65,7 +65,7 @@ void BmPlItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         if (option.state & QStyle::State_Selected)
             painter->fillRect(option.rect, option.palette.highlight());
         else
-            painter->fillRect(option.rect, (settings->theme() == 1) ? QColor(180,180,0) : QColor("yellow"));
+            painter->fillRect(option.rect, (settings.theme() == 1) ? QColor(180,180,0) : QColor("yellow"));
     }
     if (index.column() == 2)
     {

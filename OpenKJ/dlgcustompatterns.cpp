@@ -6,7 +6,7 @@
 #include <QSqlQuery>
 #include "karaokefileinfo.h"
 
-extern Settings *settings;
+extern Settings settings;
 
 void DlgCustomPatterns::evaluateRegEx()
 {
@@ -23,8 +23,8 @@ DlgCustomPatterns::DlgCustomPatterns(QWidget *parent) :
     ui->setupUi(this);
     patternsModel = new CustomPatternsModel(this);
     ui->tableViewPatterns->setModel(patternsModel);
-    settings->restoreColumnWidths(ui->tableViewPatterns);
-    settings->restoreWindowState(this);
+    settings.restoreColumnWidths(ui->tableViewPatterns);
+    settings.restoreWindowState(this);
     selectedRow = -1;
 }
 
@@ -35,8 +35,8 @@ DlgCustomPatterns::~DlgCustomPatterns()
 
 void DlgCustomPatterns::on_btnClose_clicked()
 {
-    settings->saveColumnWidths(ui->tableViewPatterns);
-    settings->saveWindowState(this);
+    settings.saveColumnWidths(ui->tableViewPatterns);
+    settings.saveWindowState(this);
     hide();
 }
 
