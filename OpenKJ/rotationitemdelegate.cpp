@@ -172,7 +172,10 @@ void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
         painter->setPen(QColor("black"));
     }
     if (hasSong && index.column() == 1)
+    {
+        painter->setPen(QColor(128,255,128));
         painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + index.data().toString() + " ∙");
+    }
     else
         painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + index.data().toString());
     painter->restore();
