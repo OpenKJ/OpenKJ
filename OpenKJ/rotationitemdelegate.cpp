@@ -58,6 +58,18 @@ void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
     int topPad = (option.rect.height() - sbSize.height()) / 2;
     int leftPad = (option.rect.width() - sbSize.width()) / 2;
 
+    QString nextSong;
+    bool hasSong{false};
+    QString sql = "select dbsongs.artist,dbsongs.title from dbsongs,queuesongs WHERE queuesongs.singer = " + index.sibling(index.row(), 0).data().toString() + " AND queuesongs.played = 0 AND dbsongs.songid = queuesongs.song ORDER BY position LIMIT 1";
+    QSqlQuery query(sql);
+    if (query.first())
+    {
+        nextSong = " " + query.value(0).toString() + " - " + query.value(1).toString();
+        hasSong = true;
+    }
+    else
+        nextSong = "  -- Empty -- ";
+
     if (option.state & QStyle::State_Selected)
     {
         if (index.column() == 1)
@@ -92,13 +104,6 @@ void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
     }
     if (index.column() == 2)
     {
-        QString nextSong;
-        QString sql = "select dbsongs.artist,dbsongs.title from dbsongs,queuesongs WHERE queuesongs.singer = " + index.sibling(index.row(), 0).data().toString() + " AND queuesongs.played = 0 AND dbsongs.songid = queuesongs.song ORDER BY position LIMIT 1";
-        QSqlQuery query(sql);
-        if (query.first())
-            nextSong = " " + query.value(0).toString() + " - " + query.value(1).toString();
-        else
-            nextSong = "  -- Empty -- ";
         painter->save();
         if (option.state & QStyle::State_Selected)
             painter->setPen(option.palette.highlightedText().color());
@@ -166,6 +171,9 @@ void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
     {
         painter->setPen(QColor("black"));
     }
-    painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + index.data().toString());
+    if (hasSong && index.column() == 1)
+        painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + index.data().toString() + " ∙");
+    else
+        painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + index.data().toString());
     painter->restore();
 }
