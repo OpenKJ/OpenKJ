@@ -173,7 +173,8 @@ void RotationItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
     }
     if (hasSong && index.column() == 1)
     {
-        painter->setPen(QColor(128,255,128));
+        if (index.sibling(index.row(), 0).data().toInt() != m_currentSingerId && !option.state.testFlag(QStyle::State_Selected))
+            painter->setPen(QColor(128,255,128));
         painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + index.data().toString() + " ∙");
     }
     else
