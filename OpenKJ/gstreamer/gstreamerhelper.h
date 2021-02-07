@@ -18,4 +18,6 @@ PadInfo getPadInfo(GstElement *element, GstPad *pad);
 
 void set_sink_ts_offset(GstBin *bin, gint64 offset);
 
+void optimize_scaleTempo_for_rate(GstElement *scaleTempo, double playBackRate);
+
 #endif // GSTREAMERHELPER_H

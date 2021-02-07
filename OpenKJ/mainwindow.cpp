@@ -2206,12 +2206,6 @@ void MainWindow::on_sliderProgress_sliderPressed()
 
 void MainWindow::on_sliderProgress_sliderReleased()
 {
-    if (ui->spinBoxTempo->value() != 100 && kMediaBackend.isCdgMode())
-    {
-        sliderPositionPressed = false;
-        QMessageBox::information(this, "Seek Aborted","Seeking disabled while playing CDG files with tempo change.  Aborted.",QMessageBox::Ok);
-        return;
-    }
     kMediaBackend.setPosition(ui->sliderProgress->value());
     sliderPositionPressed = false;
 }

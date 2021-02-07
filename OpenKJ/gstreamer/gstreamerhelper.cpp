@@ -54,3 +54,43 @@ void set_sink_ts_offset(GstBin *bin, gint64 offset)
     }
     gst_iterator_free (it);
 }
+
+void optimize_scaleTempo_for_rate(GstElement *scaleTempo, double playBackRate)
+{
+    // Adjust scaleTempo properties to optimize for a given playback rate.
+    // Logic from:
+    //    https://gitlab.com/soundtouch/soundtouch/-/blob/master/source/SoundTouch/TDStretch.cpp
+    // ------------------------------------------------------------------------------------------------
+    //
+    // Adjust tempo param according to tempo, so that variating processing sequence length is used
+    // at various tempo settings, between the given low...top limits
+    #define AUTOSEQ_TEMPO_LOW   0.5     // auto setting low tempo range (-50%)
+    #define AUTOSEQ_TEMPO_TOP   2.0     // auto setting top tempo range (+100%)
+
+    // sequence-ms setting values at above low & top tempo
+    #define AUTOSEQ_AT_MIN      90.0
+    #define AUTOSEQ_AT_MAX      40.0
+    #define AUTOSEQ_K           ((AUTOSEQ_AT_MAX - AUTOSEQ_AT_MIN) / (AUTOSEQ_TEMPO_TOP - AUTOSEQ_TEMPO_LOW))
+    #define AUTOSEQ_C           (AUTOSEQ_AT_MIN - (AUTOSEQ_K) * (AUTOSEQ_TEMPO_LOW))
+
+    // seek-window-ms setting values at above low & top tempoq
+    #define AUTOSEEK_AT_MIN     20.0
+    #define AUTOSEEK_AT_MAX     15.0
+    #define AUTOSEEK_K          ((AUTOSEEK_AT_MAX - AUTOSEEK_AT_MIN) / (AUTOSEQ_TEMPO_TOP - AUTOSEQ_TEMPO_LOW))
+    #define AUTOSEEK_C          (AUTOSEEK_AT_MIN - (AUTOSEEK_K) * (AUTOSEQ_TEMPO_LOW))
+
+    #define CHECK_LIMITS(x, mi, ma) (((x) < (mi)) ? (mi) : (((x) > (ma)) ? (ma) : (x)))
+
+    double seq, seek;
+    int strideMS, seekMS;
+
+    seq = AUTOSEQ_C + AUTOSEQ_K * playBackRate;
+    seq = CHECK_LIMITS(seq, AUTOSEQ_AT_MAX, AUTOSEQ_AT_MIN);
+    strideMS = (int)(seq + 0.5);
+
+    seek = AUTOSEEK_C + AUTOSEEK_K * playBackRate;
+    seek = CHECK_LIMITS(seek, AUTOSEEK_AT_MAX, AUTOSEEK_AT_MIN);
+    seekMS = (int)(seek + 0.5);
+
+    g_object_set(scaleTempo, "search", seekMS, "stride", strideMS, nullptr);
+}

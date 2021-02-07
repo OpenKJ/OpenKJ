@@ -170,6 +170,7 @@ MediaBackend::State MediaBackend::state()
     // TODO: this is called very often! Instead store the state from the state-changed bus message and return that!
     GstState state = GST_STATE_NULL;
     gst_element_get_state(m_playBin, &state, nullptr, GST_CLOCK_TIME_NONE);
+
     switch (state) {
     case GST_STATE_PLAYING:
         return PlayingState;
@@ -188,6 +189,7 @@ MediaBackend::State MediaBackend::state()
 GstFlowReturn MediaBackend::NewSampleCallback(GstAppSink *appsink, gpointer user_data)
 {
     MediaBackend *myObject = (MediaBackend*) user_data;
+
     if (myObject->pullFromSinkAndEmitNewVideoFrame(appsink))
     {
         return GST_FLOW_OK;
@@ -311,7 +313,7 @@ void MediaBackend::play()
             m_cdgFileReader = new CdgFileReader(m_cdgFilename);
         }
 
-        // todo: max duration doesn't have to be set every time
+        // todo: max bytes doesn't have to be set every time
         gst_app_src_set_max_bytes(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), cdg::CDG_IMAGE_SIZE * 200);
         gst_app_src_set_duration(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), m_cdgFileReader->getTotalDurationMS() * GST_MSECOND);
         qInfo() << m_objName << " - play - playing cdg:   " << m_cdgFilename;
@@ -450,7 +452,7 @@ void MediaBackend::setPosition(const qint64 &position)
         stop(true);
         return;
     }
-    gst_element_seek_simple(m_playBin, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_MSECOND * position);
+    gst_element_send_event(m_playBin, gst_event_new_seek(m_playbackRate, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_SEEK_TYPE_SET, position * GST_MSECOND, GST_SEEK_TYPE_NONE, 0));
     emit positionChanged(position);
 }
 
@@ -577,6 +579,7 @@ void MediaBackend::timerSlow_timeout()
     }
 
 
+    // TODO: denne trigger ved temposkifte!!!
     // Check if playback is hung (playing but no movement since 1 second ago) for some reason
     static int lastpos = 0; // TODO: should this really be static? That means it's shared between karaoke, sfx and BM instances!!!
     if (state() == PlayingState)
@@ -642,7 +645,11 @@ gboolean MediaBackend::gstBusFunc([[maybe_unused]]GstBus *bus, GstMessage *messa
             g_free(debug2);
             break;
         case GST_MESSAGE_STATE_CHANGED:
-            // todo: use gst_message_parse_state_changed instead
+            // todo: use gst_message_parse_state_changed instead:
+            // GstState oldState, state, pending;
+            // gst_message_parse_state_changed(message, &oldState, &state, &pending);
+            // mb->m_currentState = state;*/
+
             GstState state;
             gst_element_get_state(mb->m_playBin, &state, nullptr, GST_CLOCK_TIME_NONE);
             if (mb->m_currentlyFadedOut)
@@ -979,7 +986,7 @@ void MediaBackend::buildCdgBin()
     g_object_set(G_OBJECT(m_cdgAppSrc), "caps", appSrcCaps, NULL);
     gst_caps_unref(appSrcCaps);
 
-    g_object_set(G_OBJECT(m_cdgAppSrc), "stream-type",  GST_APP_STREAM_TYPE_SEEKABLE, "format", GST_FORMAT_TIME, NULL);
+    g_object_set(G_OBJECT(m_cdgAppSrc), "stream-type", GST_APP_STREAM_TYPE_SEEKABLE, "format", GST_FORMAT_TIME, NULL);
 
     g_signal_connect(m_cdgAppSrc, "need-data", G_CALLBACK(cb_need_data), this);
     g_signal_connect(m_cdgAppSrc, "enough-data", G_CALLBACK(cb_enough_data), this);
@@ -1028,7 +1035,7 @@ void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused
                         cdg::CDG_IMAGE_SIZE
                         );
 
-        GST_BUFFER_TIMESTAMP(buffer) = backend->m_cdgFileReader->currentFramePositionMS() * GST_MSECOND;
+        GST_BUFFER_PTS(buffer) = backend->m_cdgFileReader->currentFramePositionMS() * GST_MSECOND;
         GST_BUFFER_DURATION(buffer) = backend->m_cdgFileReader->currentFrameDurationMS() * GST_MSECOND;
 
         auto rc = gst_app_src_push_buffer(reinterpret_cast<GstAppSrc *>(appsrc), buffer);
@@ -1057,7 +1064,7 @@ void MediaBackend::cb_enough_data([[maybe_unused]]GstElement *appsrc, [[maybe_un
 
 gboolean MediaBackend::cb_seek_data([[maybe_unused]]GstElement *appsrc, guint64 position, [[maybe_unused]]gpointer user_data)
 {
-    qDebug() << "Got seek request to position " << position;
+    qDebug() << "Got seek request to position " << position / GST_MSECOND << " ms.";
 
     auto backend = reinterpret_cast<MediaBackend *>(user_data);
 
@@ -1123,21 +1130,28 @@ void MediaBackend::setDownmix(const bool &enabled)
 
 void MediaBackend::setTempo(const int &percent)
 {
-    m_tempo = percent;
+    m_playbackRate = percent / 100.0;
+    optimize_scaleTempo_for_rate(m_scaleTempo, m_playbackRate);
+
+#if GST_CHECK_VERSION(1,8,0)
+    // With gstreamer 1.18 we can change rate without seeking. Only works with videos and not appsrc it seems. Perhaps fixable with "handle-segment-change"...
     if (!m_cdgMode)
     {
-        gint64 curpos;
-        gst_element_query_position(m_audioBin, GST_FORMAT_TIME, &curpos);
-        gst_element_send_event(m_playBin, gst_event_new_seek((double)m_tempo / 100.0, GST_FORMAT_TIME, (GstSeekFlags)(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE), GST_SEEK_TYPE_SET, curpos, GST_SEEK_TYPE_END, 0));
+        gst_element_send_event(m_playBin, gst_event_new_seek(m_playbackRate, GST_FORMAT_TIME, (GstSeekFlags)(GST_SEEK_FLAG_INSTANT_RATE_CHANGE), GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE, GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE));
         return;
     }
-    g_object_set(m_pitchShifterSoundtouch, "tempo", (double)percent / 100.0, nullptr);
-    // todo: andth - tempo:
-    //m_cdg.setTempo(percent);
-    gint64 curpos;
-    gst_element_query_position(m_playBin, GST_FORMAT_TIME, &curpos);
-    setPosition(curpos / GST_MSECOND);
+#endif
 
+    // Calling setTempo repeatedly can cause the position watchdog to trigger, due to excessive seeking, so restart that before doing anything else
+    if (m_timerSlow.isActive())
+    {
+        m_timerSlow.start();
+    }
+
+    // Change rate by doing a flushing seek to ~current position
+    gint64 curpos;
+    gst_element_query_position (m_playBin, GST_FORMAT_TIME, &curpos);
+    gst_element_send_event(m_playBin, gst_event_new_seek(m_playbackRate, GST_FORMAT_TIME, (GstSeekFlags)(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE), GST_SEEK_TYPE_SET, curpos, GST_SEEK_TYPE_NONE, 0));
 }
 
 void MediaBackend::setAudioOutputDevice(int deviceIndex)
