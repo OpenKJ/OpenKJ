@@ -605,11 +605,18 @@ void MediaBackend::setVideoOffset(const int offsetMs) {
 
 void MediaBackend::setPitchShift(const int &pitchShift)
 {
-    if (m_keyChangerRubberBand)
+    if (m_pitchShifterRubberBand)
+    {
         g_object_set(m_pitchShifterRubberBand, "semitones", pitchShift, nullptr);
-    else if (m_keyChangerSoundtouch)
+    }
+    else if (m_pitchShifterSoundtouch)
     {
         g_object_set(m_pitchShifterSoundtouch, "pitch", getPitchForSemitone(pitchShift), nullptr);
+    }
+    else
+    {
+        qWarning() << "No pitch shifting plugin loaded!";
+        return;
     }
     emit pitchChanged(pitchShift);
 }
@@ -741,16 +748,6 @@ void MediaBackend::buildPipeline()
     m_fader->setObjName(m_objName + "Fader");
     m_fader->setVolumeElement(m_faderVolumeElement);
     auto aConvInput = gst_element_factory_make("audioconvert", "aConvInput");
-    GstElement *aConvPrePitchShift, *aConvPostPitchShift;
-    if (m_loadPitchShift)
-    {
-        aConvPrePitchShift = gst_element_factory_make("audioconvert", "aConvPrePitchShift");
-        aConvPostPitchShift = gst_element_factory_make("audioconvert", "aConvPostPitchShift");
-        m_pitchShifterSoundtouch = gst_element_factory_make("pitch", "pitch");
-#ifdef Q_OS_LINUX
-        m_pitchShifterRubberBand = gst_element_factory_make("ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo", "ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo");
-#endif
-    }
     m_audioSink = gst_element_factory_make("autoaudiosink", "autoAudioSink");
     auto rgVolume = gst_element_factory_make("rgvolume", "rgVolume");
     //g_object_set(rgVolume, "pre-amp", 6.0, "headroom", 10.0, nullptr);
@@ -800,41 +797,48 @@ void MediaBackend::buildPipeline()
     m_audioPanorama = gst_element_factory_make("audiopanorama", "audioPanorama");
     g_object_set(m_audioPanorama, "method", 1, nullptr);
     buildCdgBin();
+
+    GstElement *audioBinLastElement;
     gst_bin_add_many(GST_BIN(m_audioBin), queueMainAudio, m_audioPanorama, level, m_scaleTempo, aConvInput, rgVolume, /*rgLimiter,*/ m_volumeElement, m_equalizer, aConvPostPanorama, m_fltrPostPanorama, m_faderVolumeElement, nullptr);
     // todo: athom: link m_volumeElement (and perhaps m_faderVolumeElement) after queueEndAudio to avoid delay when changing volume
-    gst_element_link_many(queueMainAudio, aConvInput, rgVolume, /*rgLimiter,*/ m_scaleTempo, level, m_volumeElement, m_equalizer, m_faderVolumeElement, m_audioPanorama, aConvPostPanorama, m_fltrPostPanorama, nullptr);
+    gst_element_link_many(queueMainAudio, aConvInput, rgVolume, /*rgLimiter,*/ m_scaleTempo, level, m_volumeElement, m_equalizer, m_faderVolumeElement, m_audioPanorama, aConvPostPanorama, audioBinLastElement = m_fltrPostPanorama, nullptr);
+
+    if (m_loadPitchShift)
+    {
 #ifdef Q_OS_LINUX
-    if ((m_pitchShifterRubberBand) && (m_pitchShifterSoundtouch) && (m_loadPitchShift))
-    {
-        qInfo() << m_objName << " - Pitch shift RubberBand enabled";
-        qInfo() << m_objName << " - Also loaded SoundTouch for tempo control";
-        m_canChangeTempo = true;
-        gst_bin_add_many(GST_BIN(m_audioBin), aConvPrePitchShift, m_pitchShifterRubberBand, aConvPostPitchShift, m_pitchShifterSoundtouch, m_aConvEnd, queueEndAudio, m_audioSink, nullptr);
-        gst_element_link_many(m_fltrPostPanorama, aConvPrePitchShift, m_pitchShifterRubberBand, aConvPostPitchShift, m_pitchShifterSoundtouch, queueEndAudio, m_aConvEnd, m_audioSink, nullptr);
-        m_canKeyChange = true;
-        m_keyChangerRubberBand = true;
-        g_object_set(m_pitchShifterRubberBand, "formant-preserving", true, nullptr);
-        g_object_set(m_pitchShifterRubberBand, "crispness", 1, nullptr);
-        g_object_set(m_pitchShifterRubberBand, "semitones", 0, nullptr);
-    }
-    else if ((m_pitchShifterSoundtouch) && (m_loadPitchShift))
-#else
-    if ((m_pitchShifterSoundtouch) && (m_loadPitchShift))
+        // try to initialize Rubber Band
+        if ((m_pitchShifterRubberBand = gst_element_factory_make("ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo", "ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo")))
+        {
+            qInfo() << m_objName << " - Pitch shift RubberBand enabled";
+
+            auto aConvPrePitchShift = gst_element_factory_make("audioconvert", "aConvPrePitchShift");
+            auto aConvPostPitchShift = gst_element_factory_make("audioconvert", "aConvPostPitchShift");
+
+            gst_bin_add_many(GST_BIN(m_audioBin), aConvPrePitchShift, m_pitchShifterRubberBand, aConvPostPitchShift, nullptr);
+            gst_element_link_many(audioBinLastElement, aConvPrePitchShift, m_pitchShifterRubberBand, aConvPostPitchShift, nullptr);
+            audioBinLastElement = aConvPostPitchShift;
+            g_object_set(m_pitchShifterRubberBand, "formant-preserving", true, nullptr);
+            g_object_set(m_pitchShifterRubberBand, "crispness", 1, nullptr);
+            g_object_set(m_pitchShifterRubberBand, "semitones", 0, nullptr);
+        }
 #endif
-    {
-        m_canChangeTempo = true;
-        qInfo() << m_objName << " - Pitch shifter SoundTouch enabled";
-        gst_bin_add_many(GST_BIN(m_audioBin), aConvPrePitchShift, m_pitchShifterSoundtouch, aConvPostPitchShift, m_aConvEnd, queueEndAudio, m_audioSink, nullptr);
-        gst_element_link_many(m_fltrPostPanorama, aConvPrePitchShift, m_pitchShifterSoundtouch, queueEndAudio, m_aConvEnd, m_audioSink, nullptr);
-        m_canKeyChange = true;
-        m_keyChangerSoundtouch = true;
-        g_object_set(m_pitchShifterSoundtouch, "pitch", 1.0, "tempo", 1.0, nullptr);
+        // fail back to "pitch" plugin
+        if (!m_pitchShifterRubberBand && (m_pitchShifterSoundtouch = gst_element_factory_make("pitch", "pitch")))
+        {
+            qInfo() << m_objName << " - Pitch shifter SoundTouch enabled";
+
+            auto aConvPrePitchShift = gst_element_factory_make("audioconvert", "aConvPrePitchShift");
+
+            gst_bin_add_many(GST_BIN(m_audioBin), aConvPrePitchShift, m_pitchShifterSoundtouch, nullptr);
+            gst_element_link_many(audioBinLastElement, aConvPrePitchShift, m_pitchShifterSoundtouch, nullptr);
+            audioBinLastElement = m_pitchShifterSoundtouch;
+            g_object_set(m_pitchShifterSoundtouch, "pitch", 1.0, "tempo", 1.0, nullptr);
+        }
     }
-    else
-    {
-        gst_bin_add_many(GST_BIN(m_audioBin), m_aConvEnd, queueEndAudio, m_audioSink, nullptr);
-        gst_element_link_many(m_fltrPostPanorama, queueEndAudio, m_aConvEnd, m_audioSink, nullptr);
-    }
+
+    gst_bin_add_many(GST_BIN(m_audioBin), m_aConvEnd, queueEndAudio, m_audioSink, nullptr);
+    gst_element_link_many(audioBinLastElement, queueEndAudio, m_aConvEnd, m_audioSink, nullptr);
+
     auto pad = gst_element_get_static_pad(queueMainAudio, "sink");
     auto ghostPad = gst_ghost_pad_new("sink", pad);
     gst_pad_set_active(ghostPad, true);

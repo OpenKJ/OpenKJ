@@ -177,10 +177,6 @@ private:
     bool m_fade{false};
     bool m_currentlyFadedOut{false};
     bool m_silenceDetect{false};
-    bool m_canKeyChange{false};
-    bool m_canChangeTempo{false}; // What's this for?
-    bool m_keyChangerRubberBand{false};
-    bool m_keyChangerSoundtouch{false};
     bool m_videoEnabled{true};
     bool m_previewEnabledLastBuild{true};
     bool m_bypass{false};
