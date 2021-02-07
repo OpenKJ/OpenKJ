@@ -578,18 +578,15 @@ void MediaBackend::timerSlow_timeout()
             m_silenceDuration = 0;
     }
 
-
-    // TODO: denne trigger ved temposkifte!!!
     // Check if playback is hung (playing but no movement since 1 second ago) for some reason
-    static int lastpos = 0; // TODO: should this really be static? That means it's shared between karaoke, sfx and BM instances!!!
     if (state() == PlayingState)
     {
-        if (lastpos == currPos && lastpos > 10)
+        if (m_positionWatchdogLastPos == currPos && m_positionWatchdogLastPos > 10)
         {
             qWarning() << m_objName << " - Playback appears to be hung, emitting end of stream";
             emit stateChanged(EndOfMediaState);
         }
-        lastpos = currPos;
+        m_positionWatchdogLastPos = currPos;
     }
 }
 
