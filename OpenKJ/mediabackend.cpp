@@ -346,7 +346,7 @@ void MediaBackend::resetPipeline()
     gst_element_unlink(m_decoder, m_videoBin);
     gst_element_unlink(m_cdgAppSrc, m_videoBin);
 
-    gst_bin_remove_many(m_playBinAsBin, m_cdgAppSrc, m_decoder, m_audioBin, m_videoBin, nullptr);
+    gsthlp_bin_try_remove(m_playBinAsBin, {m_cdgAppSrc, m_decoder, m_audioBin, m_videoBin});
 
     delete m_audioSrcPad; delete m_videoSrcPad; m_audioSrcPad = m_videoSrcPad = nullptr;
 

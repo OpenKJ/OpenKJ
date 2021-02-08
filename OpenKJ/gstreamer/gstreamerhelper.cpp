@@ -26,6 +26,21 @@ GstElement* gsthlp_get_peer_element(GstElement *element, const gchar* sinkName)
     return result;
 }
 
+void gsthlp_bin_try_remove(GstBin *bin, std::vector<GstElement *> elements)
+{
+    for (auto &el : elements)
+    {
+        if (el)
+        {
+            auto name = gst_element_get_name(el);
+            if(el == gst_bin_get_by_name(bin, name))
+            {
+                gst_bin_remove(bin, el);
+            }
+            g_free(name);
+        }
+    }
+}
 
 PadInfo getPadInfo(GstElement *element, GstPad *pad)
 {
