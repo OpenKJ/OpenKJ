@@ -732,6 +732,98 @@ void MediaBackend::buildPipeline()
         gst_init(nullptr,nullptr);
     }
 
+    m_playBin = gst_pipeline_new("pipeline");
+    m_playBinAsBin = reinterpret_cast<GstBin *>(m_playBin);
+
+    auto bus = gst_element_get_bus(m_playBin);
+    gst_bus_add_watch(bus, (GstBusFunc)gstBusFunc, this);
+    gst_object_unref(bus);
+
+    m_decoder = gst_element_factory_make("uridecodebin", "uridecodebin");
+    g_signal_connect(m_decoder, "pad-added", G_CALLBACK(padAddedToDecoder_cb), this);
+    g_object_ref(m_decoder);
+
+    buildCdgSrc();
+    buildVideoSinkBin();
+    buildAudioSinkBin();
+
+    qInfo() << m_objName << " - buildPipeline() finished";
+    //setEnforceAspectRatio(m_settings.enforceAspectRatio());
+}
+
+void MediaBackend::buildCdgSrc()
+{
+    m_cdgAppSrc = gst_element_factory_make("appsrc", "cdgAppSrc");
+    g_object_ref(m_cdgAppSrc);
+
+    auto appSrcCaps = gst_caps_new_simple(
+                "video/x-raw",
+                "format", G_TYPE_STRING, "RGB8P",
+                "width",  G_TYPE_INT, cdg::FRAME_DIM_CROPPED.width(),
+                "height", G_TYPE_INT, cdg::FRAME_DIM_CROPPED.height(),
+                NULL);
+    g_object_set(G_OBJECT(m_cdgAppSrc), "caps", appSrcCaps, NULL);
+    gst_caps_unref(appSrcCaps);
+
+    g_object_set(G_OBJECT(m_cdgAppSrc), "stream-type", GST_APP_STREAM_TYPE_SEEKABLE, "format", GST_FORMAT_TIME, NULL);
+
+    g_signal_connect(m_cdgAppSrc, "need-data", G_CALLBACK(cb_need_data), this);
+    g_signal_connect(m_cdgAppSrc, "enough-data", G_CALLBACK(cb_enough_data), this);
+    g_signal_connect(m_cdgAppSrc, "seek-data", G_CALLBACK(cb_seek_data), this);
+}
+
+void MediaBackend::buildVideoSinkBin()
+{
+    m_videoBin = gst_bin_new("videoBin");
+    g_object_ref(m_videoBin);
+
+    auto queueMainVideo = gst_element_factory_make("queue", "queueMainVideo");
+    gst_bin_add(reinterpret_cast<GstBin *>(m_videoBin), queueMainVideo);
+
+    auto queuePad = gst_element_get_static_pad(queueMainVideo, "sink");
+    auto ghostVideoPad = gst_ghost_pad_new("sink", queuePad);
+    gst_pad_set_active(ghostVideoPad, true);
+    gst_element_add_pad(m_videoBin, ghostVideoPad);
+    gst_object_unref(queuePad);
+
+    if (m_videoAccelEnabled)
+    {
+        // queue -> tee -> [ queue -> converter -> window control ]
+        m_hardware_accel_videoTee = gst_element_factory_make("tee", "videoTee");
+        gst_bin_add(reinterpret_cast<GstBin *>(m_videoBin), m_hardware_accel_videoTee);
+        gst_element_link(queueMainVideo, m_hardware_accel_videoTee);
+    }
+    else
+    {   // No video acceleration
+        // queue -> converter -> videoAppSink
+
+        auto videoConv = gst_element_factory_make("videoconvert", "sw-videoconvert");
+
+        GstAppSinkCallbacks appsinkCallbacks;
+        appsinkCallbacks.new_preroll	= nullptr;
+        appsinkCallbacks.new_sample		= &MediaBackend::NewSampleCallback;
+        appsinkCallbacks.eos			= nullptr;
+        auto videoSink = gst_element_factory_make("appsink", "videoAppSink");
+
+        // Formats we can handle:
+        auto caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB16", NULL);
+        gst_caps_append(caps, gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB8P", NULL));
+        g_object_set(videoSink, "caps", caps, NULL);
+
+        // todo: check if performance is better if we simply let gstreamer videoconvert do the conversation from indexed 8-bit to rgb instead of QImage...
+
+        gst_app_sink_set_callbacks(GST_APP_SINK(videoSink), &appsinkCallbacks, this, nullptr);
+
+        gst_bin_add_many(reinterpret_cast<GstBin *>(m_videoBin), videoConv,  videoSink, nullptr);
+        gst_element_link_many(queueMainVideo, videoConv, videoSink, nullptr);
+    }
+}
+
+void MediaBackend::buildAudioSinkBin()
+{
+    m_audioBin = gst_bin_new("audioBin");
+    g_object_ref(m_audioBin);
+
     m_faderVolumeElement = gst_element_factory_make("volume", "FaderVolumeElement");
     g_object_set(m_faderVolumeElement, "volume", 1.0, nullptr);
     m_fader = new AudioFader(this);
@@ -744,13 +836,6 @@ void MediaBackend::buildPipeline()
     //auto rgLimiter = gst_element_factory_make("rglimiter", "rgLimiter");
     auto level = gst_element_factory_make("level", "level");
     m_equalizer = gst_element_factory_make("equalizer-10bands", "equalizer");
-
-    m_playBin = gst_pipeline_new("pipeline");
-    m_playBinAsBin = reinterpret_cast<GstBin *>(m_playBin);
-
-    m_decoder = gst_element_factory_make("uridecodebin", "uridecodebin");
-    g_signal_connect(m_decoder, "pad-added", G_CALLBACK(padAddedToDecoder_cb), this);
-    g_object_ref(m_decoder);
 
     m_bus = gst_element_get_bus(m_playBin);
     //gst_bus_set_sync_handler(bus, (GstBusSyncHandler)busMessageDispatcher, this, NULL);
@@ -774,8 +859,7 @@ void MediaBackend::buildPipeline()
 
     m_audioCapsStereo = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 2, nullptr);
     m_audioCapsMono = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 1, nullptr);
-    m_audioBin = gst_bin_new("audioBin");
-    g_object_ref(m_audioBin);
+
     auto aConvPostPanorama = gst_element_factory_make("audioconvert", "aConvPostPanorama");
     m_aConvEnd = gst_element_factory_make("audioconvert", "aConvEnd");
     m_fltrPostPanorama = gst_element_factory_make("capsfilter", "fltrPostPanorama");
@@ -786,9 +870,9 @@ void MediaBackend::buildPipeline()
     m_scaleTempo = gst_element_factory_make("scaletempo", "scaleTempo");
     m_audioPanorama = gst_element_factory_make("audiopanorama", "audioPanorama");
     g_object_set(m_audioPanorama, "method", 1, nullptr);
-    buildCdgBin();
 
     GstElement *audioBinLastElement;
+
     gst_bin_add_many(GST_BIN(m_audioBin), queueMainAudio, m_audioPanorama, level, m_scaleTempo, aConvInput, rgVolume, /*rgLimiter,*/ m_volumeElement, m_equalizer, aConvPostPanorama, m_fltrPostPanorama, m_faderVolumeElement, nullptr);
     // todo: athom: link m_volumeElement (and perhaps m_faderVolumeElement) after queueEndAudio to avoid delay when changing volume
     gst_element_link_many(queueMainAudio, aConvInput, rgVolume, /*rgLimiter,*/ m_scaleTempo, level, m_volumeElement, m_equalizer, m_faderVolumeElement, m_audioPanorama, aConvPostPanorama, audioBinLastElement = m_fltrPostPanorama, nullptr);
@@ -829,12 +913,6 @@ void MediaBackend::buildPipeline()
     gst_bin_add_many(GST_BIN(m_audioBin), m_aConvEnd, queueEndAudio, m_audioSink, nullptr);
     gst_element_link_many(audioBinLastElement, queueEndAudio, m_aConvEnd, m_audioSink, nullptr);
 
-    auto pad = gst_element_get_static_pad(queueMainAudio, "sink");
-    auto ghostPad = gst_ghost_pad_new("sink", pad);
-    gst_pad_set_active(ghostPad, true);
-    gst_element_add_pad(m_audioBin, ghostPad);
-    gst_object_unref(pad);
-
     auto csource = gst_interpolation_control_source_new ();
     if (!csource)
         qInfo() << m_objName << " - Error createing control source";
@@ -846,52 +924,11 @@ void MediaBackend::buildPipeline()
     g_object_set(csource, "mode", GST_INTERPOLATION_MODE_CUBIC, nullptr);
     g_object_unref(csource);
 
-    // Video output setup
-    m_videoBin = gst_bin_new("videoBin");
-    g_object_ref(m_videoBin);
-
-    auto queueMainVideo = gst_element_factory_make("queue", "queueMainVideo");
-    gst_bin_add(reinterpret_cast<GstBin *>(m_videoBin), queueMainVideo);
-
-    auto queuePad = gst_element_get_static_pad(queueMainVideo, "sink");
-    auto ghostVideoPad = gst_ghost_pad_new("sink", queuePad);
-    gst_pad_set_active(ghostVideoPad, true);
-    gst_element_add_pad(m_videoBin, ghostVideoPad);
-    gst_object_unref(queuePad);
-
-    if (m_videoAccelEnabled)
-    {
-        // queue -> tee -> [ queue -> converter -> window control ]
-        m_hardware_accel_videoTee = gst_element_factory_make("tee", "videoTee");
-        gst_bin_add(reinterpret_cast<GstBin *>(m_videoBin), m_hardware_accel_videoTee);
-        gst_element_link(queueMainVideo, m_hardware_accel_videoTee);
-    }
-    else
-    {   // No video acceleration
-
-        // queue -> converter -> videoAppSink
-
-        auto videoConv = gst_element_factory_make("videoconvert", "sw-videoconvert");
-
-        GstAppSinkCallbacks appsinkCallbacks;
-        appsinkCallbacks.new_preroll	= nullptr;
-        appsinkCallbacks.new_sample		= &MediaBackend::NewSampleCallback;
-        appsinkCallbacks.eos			= nullptr;
-        auto videoSink = gst_element_factory_make("appsink", "videoAppSink");
-
-        // Formats we can handle:
-        auto caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB16", NULL);
-        gst_caps_append(caps, gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB8P", NULL));
-        g_object_set(videoSink, "caps", caps, NULL);
-
-        // todo: check if performance is better if we simply let gstreamer videoconvert do the conversation from indexed 8-bit to rgb instead of QImage...
-
-        gst_app_sink_set_callbacks(GST_APP_SINK(videoSink), &appsinkCallbacks, this, nullptr);
-
-        gst_bin_add_many(reinterpret_cast<GstBin *>(m_videoBin), videoConv,  videoSink, nullptr);
-        gst_element_link_many(queueMainVideo, videoConv, videoSink, nullptr);
-    }
-    // End video output setup
+    auto pad = gst_element_get_static_pad(queueMainAudio, "sink");
+    auto ghostPad = gst_ghost_pad_new("sink", pad);
+    gst_pad_set_active(ghostPad, true);
+    gst_element_add_pad(m_audioBin, ghostPad);
+    gst_object_unref(pad);
 
     g_object_set(rgVolume, "album-mode", false, nullptr);
     g_object_set(level, "message", TRUE, nullptr);
@@ -910,11 +947,9 @@ void MediaBackend::buildPipeline()
     setEqLevel9(m_eqLevels[8]);
     setEqLevel10(m_eqLevels[9]);
     setDownmix(m_downmix);
-    //videoMute(m_vidMuted);
     setVolume(m_volume);
     m_timerFast.start(250);
-    qInfo() << m_objName << " - buildPipeline() finished";
-    //setEnforceAspectRatio(m_settings.enforceAspectRatio());
+
     connect(m_fader, &AudioFader::fadeStarted, [&] () {
         qInfo() << m_objName << " - Fader started";
     });
@@ -925,6 +960,7 @@ void MediaBackend::buildPipeline()
         qInfo() << m_objName << " - Fader state changed to: " << m_fader->stateToStr(state);
     });
 }
+
 
 void MediaBackend::padAddedToDecoder_cb(GstElement *element,  GstPad *pad, gpointer caller)
 {
@@ -964,27 +1000,6 @@ void MediaBackend::resetVideoSinks()
     {
         gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(vs.videoSink), vs.windowId);
     }
-}
-
-void MediaBackend::buildCdgBin()
-{
-    m_cdgAppSrc = gst_element_factory_make("appsrc", "cdgAppSrc");
-    g_object_ref(m_cdgAppSrc);
-
-    auto appSrcCaps = gst_caps_new_simple(
-                "video/x-raw",
-                "format", G_TYPE_STRING, "RGB8P",
-                "width",  G_TYPE_INT, cdg::FRAME_DIM_CROPPED.width(),
-                "height", G_TYPE_INT, cdg::FRAME_DIM_CROPPED.height(),
-                NULL);
-    g_object_set(G_OBJECT(m_cdgAppSrc), "caps", appSrcCaps, NULL);
-    gst_caps_unref(appSrcCaps);
-
-    g_object_set(G_OBJECT(m_cdgAppSrc), "stream-type", GST_APP_STREAM_TYPE_SEEKABLE, "format", GST_FORMAT_TIME, NULL);
-
-    g_signal_connect(m_cdgAppSrc, "need-data", G_CALLBACK(cb_need_data), this);
-    g_signal_connect(m_cdgAppSrc, "enough-data", G_CALLBACK(cb_enough_data), this);
-    g_signal_connect(m_cdgAppSrc, "seek-data", G_CALLBACK(cb_seek_data), this);
 }
 
 void MediaBackend::getGstDevices()

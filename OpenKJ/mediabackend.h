@@ -197,8 +197,10 @@ private:
     int m_videoOffsetMs{0};
 
     void buildPipeline();
+    void buildCdgSrc();
+    void buildVideoSinkBin();
+    void buildAudioSinkBin();
     void resetVideoSinks();
-    void buildCdgBin();
     const char* getVideoSinkElementNameForFactory();
     void getGstDevices();
     void writePipelineGraphToFile(GstBin *bin, QString filePath, QString fileName);
