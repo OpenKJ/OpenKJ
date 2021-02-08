@@ -134,32 +134,46 @@ private:
     Settings m_settings;
     GstBus *m_bus;
 
+    /* PIPELINE */
+    GstElement *m_pipeline { nullptr };  // Pipeline
+    GstBin     *m_pipelineAsBin { nullptr };
     GstElement *m_cdgAppSrc { nullptr };
-    GstElement *m_scaleTempo { nullptr };
-    GstElement *m_queueMainVideo { nullptr };
     GstElement *m_decoder { nullptr };
-    GstElement *m_playBin { nullptr };  // Pipeline
-    GstBin *m_playBinAsBin { nullptr };
+
+    PadInfo *m_audioSrcPad { nullptr };
+    PadInfo *m_videoSrcPad { nullptr };
+
+
+    /* AUDIO SINK */
+    GstElement *m_audioBin { nullptr }; // GstBin
+    GstElement *m_scaleTempo { nullptr };
     GstElement *m_aConvEnd { nullptr };
     GstElement *m_audioPanorama { nullptr };
     GstElement *m_fltrPostPanorama { nullptr };
-    GstElement *m_audioBin { nullptr }; // GstBin
-    GstElement *m_audioSink { nullptr };
     GstElement *m_pitchShifterRubberBand { nullptr };
     GstElement *m_pitchShifterSoundtouch { nullptr };
     GstElement *m_volumeElement { nullptr };
     GstElement *m_faderVolumeElement { nullptr };
     GstElement *m_equalizer { nullptr };
-
-    GstElement *m_videoBin { nullptr }; // GstBin
-
-    GstElement *m_hardware_accel_videoTee { nullptr };
-
-    PadInfo *m_audioSrcPad { nullptr };
-    PadInfo *m_videoSrcPad { nullptr };
+    GstElement *m_audioSink { nullptr };
 
     GstCaps *m_audioCapsStereo { nullptr };
     GstCaps *m_audioCapsMono { nullptr };
+
+    std::vector<GstDevice*> m_audioOutputDevices;
+
+    std::array<int,10> m_eqLevels{0,0,0,0,0,0,0,0,0,0};
+
+
+    /* VIDEO SINK */
+    GstElement *m_videoBin { nullptr }; // GstBin
+    GstElement *m_queueMainVideo { nullptr };
+    GstElement *m_hardware_accel_videoTee { nullptr };
+
+    std::vector<VideoSinkData> m_videoSinks;
+
+    accel m_accelMode{XVideo};
+    int m_videoOffsetMs{0};
 
     QString m_filename;
     QString m_cdgFilename;
@@ -187,14 +201,8 @@ private:
     std::atomic<bool> m_hasVideo{false};
     bool m_enforceAspectRatio{true};
     bool m_videoAccelEnabled{false};
-    std::array<int,10> m_eqLevels{0,0,0,0,0,0,0,0,0,0};
-    std::vector<GstDevice*> m_outputDevices;
     QPointer<AudioFader> m_fader;
-
     State m_lastState{StoppedState};
-    std::vector<VideoSinkData> m_videoSinks;
-    accel m_accelMode{XVideo};
-    int m_videoOffsetMs{0};
 
     void buildPipeline();
     void buildCdgSrc();
@@ -202,7 +210,7 @@ private:
     void buildAudioSinkBin();
     void resetVideoSinks();
     const char* getVideoSinkElementNameForFactory();
-    void getGstDevices();
+    void getAudioOutputDevices();
     void writePipelineGraphToFile(GstBin *bin, QString filePath, QString fileName);
     double getPitchForSemitone(const int &semitone);
 
@@ -220,7 +228,6 @@ private:
     bool pullFromSinkAndEmitNewVideoFrame(GstAppSink *appSink);
 
     static gboolean gstBusFunc(GstBus *bus, GstMessage *message, gpointer user_data);
-
 
     static void NoMorePadsCallback(GstElement *gstelement, gpointer data);
     static void padAddedToDecoder_cb(GstElement *element,  GstPad *pad, gpointer caller);

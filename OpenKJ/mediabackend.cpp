@@ -57,7 +57,7 @@ MediaBackend::MediaBackend(QObject *parent, QString objectName, MediaType type) 
     }
     QMetaTypeId<std::shared_ptr<GstMessage>>::qt_metatype_id();
     buildPipeline();
-    getGstDevices();
+    getAudioOutputDevices();
     qInfo() << "Done constructing GStreamer backend";
 
     connect(&m_timerSlow, &QTimer::timeout, this, &MediaBackend::timerSlow_timeout);
@@ -101,7 +101,7 @@ void MediaBackend::writePipelinesGraphToFile(const QString filePath)
 {
     writePipelineGraphToFile(reinterpret_cast<GstBin*>(m_videoBin), filePath, "GS graph video");
     writePipelineGraphToFile(reinterpret_cast<GstBin*>(m_audioBin), filePath, "GS graph audio");
-    writePipelineGraphToFile(reinterpret_cast<GstBin*>(m_playBin), filePath, "GS graph PLAYBIN");
+    writePipelineGraphToFile(reinterpret_cast<GstBin*>(m_pipeline), filePath, "GS graph Pipeline");
 }
 
 double MediaBackend::getPitchForSemitone(const int &semitone)
@@ -136,14 +136,15 @@ MediaBackend::~MediaBackend()
     gst_object_unref(m_bus);
     gst_caps_unref(m_audioCapsMono);
     gst_caps_unref(m_audioCapsStereo);
-    g_object_unref(m_playBin);
+    g_object_unref(m_pipeline);
     g_object_unref(m_decoder);
     g_object_unref(m_cdgAppSrc);
     g_object_unref(m_audioBin);
     g_object_unref(m_videoBin);
-    std::for_each(m_outputDevices.begin(), m_outputDevices.end(), [&] (auto device) {
+    for (auto &device : m_audioOutputDevices)
+    {
        g_object_unref(device);
-    });
+    }
     // Uncomment the following when running valgrind to eliminate noise
 //    if (gst_is_initialized())
 //        gst_deinit();
@@ -152,7 +153,7 @@ MediaBackend::~MediaBackend()
 qint64 MediaBackend::position()
 {
     gint64 pos;
-    if (gst_element_query_position(m_playBin, GST_FORMAT_TIME, &pos))
+    if (gst_element_query_position(m_pipeline, GST_FORMAT_TIME, &pos))
         return pos / GST_MSECOND;
     return 0;
 }
@@ -160,7 +161,7 @@ qint64 MediaBackend::position()
 qint64 MediaBackend::duration()
 {
     gint64 duration;
-    if (gst_element_query_duration(m_playBin, GST_FORMAT_TIME, &duration))
+    if (gst_element_query_duration(m_pipeline, GST_FORMAT_TIME, &duration))
         return duration / GST_MSECOND;
     return 0;
 }
@@ -169,7 +170,7 @@ MediaBackend::State MediaBackend::state()
 {
     // TODO: this is called very often! Instead store the state from the state-changed bus message and return that!
     GstState state = GST_STATE_NULL;
-    gst_element_get_state(m_playBin, &state, nullptr, GST_CLOCK_TIME_NONE);
+    gst_element_get_state(m_pipeline, &state, nullptr, GST_CLOCK_TIME_NONE);
 
     switch (state) {
     case GST_STATE_PLAYING:
@@ -259,7 +260,7 @@ void MediaBackend::play()
     m_videoOffsetMs = m_settings.videoOffsetMs();
 
     // todo - athom: leftover from playbin. Is what nessecary - what does it do?
-    //gst_stream_volume_set_volume(GST_STREAM_VOLUME(m_playBin), GST_STREAM_VOLUME_FORMAT_LINEAR, 0.85);
+    //gst_stream_volume_set_volume(GST_STREAM_VOLUME(m_pipeline), GST_STREAM_VOLUME_FORMAT_LINEAR, 0.85);
 
     if (m_currentlyFadedOut)
     {
@@ -268,7 +269,7 @@ void MediaBackend::play()
     if (state() == MediaBackend::PausedState)
     {
         qInfo() << m_objName << " - play - playback is currently paused, unpausing";
-        gst_element_set_state(m_playBin, GST_STATE_PLAYING);
+        gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
         if (m_fade)
             fadeIn();
         return;
@@ -291,7 +292,7 @@ void MediaBackend::play()
         }
 
         // Use m_cdgAppSrc as source for video. m_decoder will still be used for audio file
-        gst_bin_add(reinterpret_cast<GstBin*>(m_playBin), m_cdgAppSrc);
+        gst_bin_add(reinterpret_cast<GstBin*>(m_pipeline), m_cdgAppSrc);
         m_videoSrcPad = new PadInfo { m_cdgAppSrc, "src" };
         patchPipelineSinks();
 
@@ -322,7 +323,7 @@ void MediaBackend::play()
     }
     else
     {
-        gst_bin_add(reinterpret_cast<GstBin*>(m_playBin), m_decoder);
+        gst_bin_add(reinterpret_cast<GstBin*>(m_pipeline), m_decoder);
         qInfo() << m_objName << " - play - playing media: " << m_filename;
         auto uri = gst_filename_to_uri(m_filename.toLocal8Bit(), nullptr);
         g_object_set(m_decoder, "uri", uri, nullptr);
@@ -331,22 +332,22 @@ void MediaBackend::play()
 
     resetVideoSinks();
 
-    gst_element_set_state(m_playBin, GST_STATE_PLAYING);
+    gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
 }
 
 void MediaBackend::resetPipeline()
 {
     // Stop pipeline
-    gst_element_set_state(m_playBin, GST_STATE_NULL);
+    gst_element_set_state(m_pipeline, GST_STATE_NULL);
     // - and wait for state change...
-    gst_element_get_state(m_playBin, nullptr, nullptr, GST_CLOCK_TIME_NONE);
+    gst_element_get_state(m_pipeline, nullptr, nullptr, GST_CLOCK_TIME_NONE);
 
     m_hasVideo = false;
     gst_element_unlink(m_decoder, m_audioBin);
     gst_element_unlink(m_decoder, m_videoBin);
     gst_element_unlink(m_cdgAppSrc, m_videoBin);
 
-    gsthlp_bin_try_remove(m_playBinAsBin, {m_cdgAppSrc, m_decoder, m_audioBin, m_videoBin});
+    gsthlp_bin_try_remove(m_pipelineAsBin, {m_cdgAppSrc, m_decoder, m_audioBin, m_videoBin});
 
     delete m_audioSrcPad; delete m_videoSrcPad; m_audioSrcPad = m_videoSrcPad = nullptr;
 
@@ -364,7 +365,7 @@ void MediaBackend::patchPipelineSinks()
         bool isLinked = gsthlp_is_sink_linked(m_audioBin);
         if(!isLinked && m_audioSrcPad)
         {
-            gst_bin_add(m_playBinAsBin, m_audioBin);
+            gst_bin_add(m_pipelineAsBin, m_audioBin);
             gst_element_link_pads(m_audioSrcPad->element, m_audioSrcPad->pad.c_str(), m_audioBin, "sink");
             gst_element_sync_state_with_parent(m_audioBin);
         }
@@ -376,7 +377,7 @@ void MediaBackend::patchPipelineSinks()
             if (currentSrc)
             {
                 gst_element_unlink(currentSrc, m_audioBin);
-                gst_bin_remove(m_playBinAsBin, m_audioBin);
+                gst_bin_remove(m_pipelineAsBin, m_audioBin);
             }
         }
     }
@@ -388,7 +389,7 @@ void MediaBackend::patchPipelineSinks()
         if(!isLinked && m_videoSrcPad && m_videoEnabled)
         {
             m_hasVideo = true;
-            gst_bin_add(m_playBinAsBin, m_videoBin);
+            gst_bin_add(m_pipelineAsBin, m_videoBin);
             gst_element_link_pads(m_videoSrcPad->element, m_videoSrcPad->pad.c_str(), m_videoBin, "sink");
             gst_element_sync_state_with_parent(m_videoBin);
         }
@@ -399,7 +400,7 @@ void MediaBackend::patchPipelineSinks()
             if (currentSrc)
             {
                 gst_element_unlink(currentSrc, m_videoBin);
-                gst_bin_remove(m_playBinAsBin, m_videoBin);
+                gst_bin_remove(m_pipelineAsBin, m_videoBin);
                 m_hasVideo = false;
             }
         }
@@ -412,7 +413,7 @@ void MediaBackend::pause()
 {
     if (m_fade)
         fadeOut();
-    gst_element_set_state(m_playBin, GST_STATE_PAUSED);
+    gst_element_set_state(m_pipeline, GST_STATE_PAUSED);
 }
 
 void MediaBackend::setMedia(const QString &filename)
@@ -445,7 +446,7 @@ void MediaBackend::setPosition(const qint64 &position)
         stop(true);
         return;
     }
-    gst_element_send_event(m_playBin, gst_event_new_seek(m_playbackRate, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_SEEK_TYPE_SET, position * GST_MSECOND, GST_SEEK_TYPE_NONE, 0));
+    gst_element_send_event(m_pipeline, gst_event_new_seek(m_playbackRate, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_SEEK_TYPE_SET, position * GST_MSECOND, GST_SEEK_TYPE_NONE, 0));
     emit positionChanged(position);
 }
 
@@ -469,7 +470,7 @@ void MediaBackend::stop(const bool &skipFade)
     if (state() == MediaBackend::PausedState)
     {
         qInfo() << m_objName << " - AudioBackendGstreamer::stop -- Stopping paused song";
-        gst_element_set_state(m_playBin, GST_STATE_NULL);
+        gst_element_set_state(m_pipeline, GST_STATE_NULL);
         emit stateChanged(MediaBackend::StoppedState);
         qInfo() << m_objName << " - stop() completed";
         m_fader->immediateIn();
@@ -483,14 +484,14 @@ void MediaBackend::stop(const bool &skipFade)
             fadeOut(true);
             qInfo() << m_objName << " - AudioBackendGstreamer::stop -- Fading complete";
             qInfo() << m_objName << " - AudioBackendGstreamer::stop -- Stoping playback";
-            gst_element_set_state(m_playBin, GST_STATE_NULL);
+            gst_element_set_state(m_pipeline, GST_STATE_NULL);
             emit stateChanged(MediaBackend::StoppedState);
             m_fader->immediateIn();
             return;
         }
     }
     qInfo() << m_objName << " - AudioBackendGstreamer::stop -- Stoping playback without fading";
-    gst_element_set_state(m_playBin, GST_STATE_NULL);
+    gst_element_set_state(m_pipeline, GST_STATE_NULL);
     emit stateChanged(MediaBackend::StoppedState);
     qInfo() << m_objName << " - stop() completed";
 }
@@ -498,7 +499,7 @@ void MediaBackend::stop(const bool &skipFade)
 void MediaBackend::rawStop()
 {
     qInfo() << m_objName << " - rawStop() called, just ending gstreamer playback";
-    gst_element_set_state(m_playBin, GST_STATE_NULL);
+    gst_element_set_state(m_pipeline, GST_STATE_NULL);
     emit stateChanged(MediaBackend::StoppedState);
 }
 
@@ -648,7 +649,7 @@ gboolean MediaBackend::gstBusFunc([[maybe_unused]]GstBus *bus, GstMessage *messa
             // mb->m_currentState = state;*/
 
             GstState state;
-            gst_element_get_state(mb->m_playBin, &state, nullptr, GST_CLOCK_TIME_NONE);
+            gst_element_get_state(mb->m_pipeline, &state, nullptr, GST_CLOCK_TIME_NONE);
             if (mb->m_currentlyFadedOut)
                 g_object_set(mb->m_faderVolumeElement, "volume", 0.0, nullptr);
             if (state == GST_STATE_PLAYING && mb->m_lastState != MediaBackend::PlayingState)
@@ -698,7 +699,7 @@ gboolean MediaBackend::gstBusFunc([[maybe_unused]]GstBus *bus, GstMessage *messa
         case GST_MESSAGE_DURATION_CHANGED:
             gint64 dur, msdur;
             qInfo() << mb->m_objName << " - GST reports duration changed";
-            if (gst_element_query_duration(mb->m_playBin,GST_FORMAT_TIME,&dur))
+            if (gst_element_query_duration(mb->m_pipeline,GST_FORMAT_TIME,&dur))
                 msdur = dur / 1000000;
             else
                 msdur = 0;
@@ -732,10 +733,10 @@ void MediaBackend::buildPipeline()
         gst_init(nullptr,nullptr);
     }
 
-    m_playBin = gst_pipeline_new("pipeline");
-    m_playBinAsBin = reinterpret_cast<GstBin *>(m_playBin);
+    m_pipeline = gst_pipeline_new("pipeline");
+    m_pipelineAsBin = reinterpret_cast<GstBin *>(m_pipeline);
 
-    auto bus = gst_element_get_bus(m_playBin);
+    auto bus = gst_element_get_bus(m_pipeline);
     gst_bus_add_watch(bus, (GstBusFunc)gstBusFunc, this);
     gst_object_unref(bus);
 
@@ -1002,7 +1003,7 @@ void MediaBackend::resetVideoSinks()
     }
 }
 
-void MediaBackend::getGstDevices()
+void MediaBackend::getAudioOutputDevices()
 {
     auto monitor = gst_device_monitor_new ();
     auto moncaps = gst_caps_new_empty_simple ("audio/x-raw");
@@ -1012,7 +1013,7 @@ void MediaBackend::getGstDevices()
     GList *devices, *elem;
     devices = gst_device_monitor_get_devices(monitor);
     for(elem = devices; elem; elem = elem->next) {
-        auto device = m_outputDevices.emplace_back(reinterpret_cast<GstDevice*>(elem->data));
+        auto device = m_audioOutputDevices.emplace_back(reinterpret_cast<GstDevice*>(elem->data));
         auto *deviceName = gst_device_get_display_name(device);
         m_outputDeviceNames.append(QString::number(m_outputDeviceNames.size()) + " - " + deviceName);
         g_free(deviceName);
@@ -1146,7 +1147,7 @@ void MediaBackend::setTempo(const int &percent)
     // With gstreamer 1.18 we can change rate without seeking. Only works with videos and not appsrc it seems. Perhaps fixable with "handle-segment-change"...
     if (!m_cdgMode)
     {
-        gst_element_send_event(m_playBin, gst_event_new_seek(m_playbackRate, GST_FORMAT_TIME, (GstSeekFlags)(GST_SEEK_FLAG_INSTANT_RATE_CHANGE), GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE, GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE));
+        gst_element_send_event(m_pipeline, gst_event_new_seek(m_playbackRate, GST_FORMAT_TIME, (GstSeekFlags)(GST_SEEK_FLAG_INSTANT_RATE_CHANGE), GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE, GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE));
         return;
     }
 #endif
@@ -1159,8 +1160,8 @@ void MediaBackend::setTempo(const int &percent)
 
     // Change rate by doing a flushing seek to ~current position
     gint64 curpos;
-    gst_element_query_position (m_playBin, GST_FORMAT_TIME, &curpos);
-    gst_element_send_event(m_playBin, gst_event_new_seek(m_playbackRate, GST_FORMAT_TIME, (GstSeekFlags)(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE), GST_SEEK_TYPE_SET, curpos, GST_SEEK_TYPE_NONE, 0));
+    gst_element_query_position (m_pipeline, GST_FORMAT_TIME, &curpos);
+    gst_element_send_event(m_pipeline, gst_event_new_seek(m_playbackRate, GST_FORMAT_TIME, (GstSeekFlags)(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE), GST_SEEK_TYPE_SET, curpos, GST_SEEK_TYPE_NONE, 0));
 }
 
 void MediaBackend::setAudioOutputDevice(int deviceIndex)
@@ -1174,7 +1175,7 @@ void MediaBackend::setAudioOutputDevice(int deviceIndex)
     }
     else
     {
-        m_audioSink = gst_device_create_element(m_outputDevices.at(deviceIndex - 1), NULL);
+        m_audioSink = gst_device_create_element(m_audioOutputDevices.at(deviceIndex - 1), NULL);
     }
 
     gst_bin_add(GST_BIN(m_audioBin), m_audioSink);
