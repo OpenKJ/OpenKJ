@@ -257,16 +257,6 @@ void MediaBackend::play()
 {
     qInfo() << m_objName << " - play() called";
     m_videoOffsetMs = m_settings.videoOffsetMs();
-    // todo offset:
-/*    if (!m_cdgMode)
-    {
-        auto gstOffset = (m_videoOffsetMs * GST_MSECOND) * -1;
-        g_object_set(m_playBin, "av-offset", gstOffset, nullptr);
-    }
-    else
-    {
-        g_object_set(m_playBin, "av-offset", 0, nullptr);
-    }*/
 
     // todo - athom: leftover from playbin. Is what nessecary - what does it do?
     //gst_stream_volume_set_volume(GST_STREAM_VOLUME(m_playBin), GST_STREAM_VOLUME_FORMAT_LINEAR, 0.85);
@@ -346,7 +336,10 @@ void MediaBackend::play()
 
 void MediaBackend::resetPipeline()
 {
+    // Stop pipeline
     gst_element_set_state(m_playBin, GST_STATE_NULL);
+    // - and wait for state change...
+    gst_element_get_state(m_playBin, nullptr, nullptr, GST_CLOCK_TIME_NONE);
 
     m_hasVideo = false;
     gst_element_unlink(m_decoder, m_audioBin);
