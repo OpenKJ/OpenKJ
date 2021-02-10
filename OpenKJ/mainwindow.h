@@ -310,6 +310,8 @@ private slots:
     void on_actionCDG_Decode_Torture_triggered();
     void videoFrameReceived(QImage frame, QString backendName);
 
+    void on_comboBoxSearchType_currentIndexChanged(int index);
+
 protected:
     void closeEvent(QCloseEvent *event);
     void resizeEvent(QResizeEvent *event);

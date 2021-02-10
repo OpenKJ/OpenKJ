@@ -256,6 +256,7 @@ MainWindow::MainWindow(QWidget *parent) :
     qDelegate = new QueueItemDelegate(this);
     rotModel = new RotationModel(this, database);
     rotModel->select();
+    ui->comboBoxSearchType->addItems({QString("All"), QString("Artist"), QString("Title")});
     ui->tableViewDB->hideColumn(0);
     ui->tableViewDB->hideColumn(5);
     ui->tableViewDB->hideColumn(6);
@@ -3615,7 +3616,7 @@ void MainWindow::on_actionKaraoke_torture_triggered()
        ui->tableViewDB->scrollToBottom();
        ui->tableViewDB->scrollToBottom();
        int randno = QRandomGenerator::global()->bounded(0, dbModel->rowCount() - 1);
-       //randno = 1;
+       randno = 1;
        qInfo() << "randno: " << randno;
        ui->tableViewDB->selectRow(randno);
        ui->tableViewDB->scrollTo(ui->tableViewDB->selectionModel()->selectedRows().at(0));
@@ -3883,4 +3884,19 @@ void MainWindow::videoFrameReceived(QImage frame, QString backendName)
     cdgWindow->getVideoDisplay()->setSoftwareRenderMode(true);
     ui->videoPreview->renderFrame(frame);
     cdgWindow->getVideoDisplay()->renderFrame(frame);
+}
+
+void MainWindow::on_comboBoxSearchType_currentIndexChanged(int index)
+{
+    switch (index) {
+    case 0:
+        dbModel->setSearchType(DbTableModel::SEARCH_ALL);
+        break;
+    case 1:
+        dbModel->setSearchType(DbTableModel::SEARCH_ARTIST);
+        break;
+    case 2:
+        dbModel->setSearchType(DbTableModel::SEARCH_TITLE);
+        break;
+    }
 }

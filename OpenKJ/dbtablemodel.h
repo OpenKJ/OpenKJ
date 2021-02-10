@@ -41,11 +41,16 @@ private:
 public:
     explicit DbTableModel(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
     enum {SORT_ARTIST=1,SORT_TITLE=2,SORT_SONGID=3,SORT_DURATION=4};
+    enum SearchType{SEARCH_ALL=1, SEARCH_ARTIST, SEARCH_TITLE};
     void search(QString searchString);
     QMimeData *mimeData(const QModelIndexList &indexes) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
     void sort(int column, Qt::SortOrder order);
     void refreshCache();
+    void setSearchType(SearchType type);
+
+private:
+    SearchType m_searchType{SearchType::SEARCH_ALL};
 
 protected:
     QString orderByClause() const;

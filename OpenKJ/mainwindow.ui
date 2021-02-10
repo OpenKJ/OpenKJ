@@ -504,6 +504,9 @@
                      <widget class="CustomLineEdit" name="lineEdit"/>
                     </item>
                     <item>
+                     <widget class="QComboBox" name="comboBoxSearchType"/>
+                    </item>
+                    <item>
                      <widget class="QPushButton" name="pushButton">
                       <property name="focusPolicy">
                        <enum>Qt::NoFocus</enum>
@@ -1876,7 +1879,7 @@ QPushButton:default {
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>271</width>
+                     <width>233</width>
                      <height>16</height>
                     </rect>
                    </property>

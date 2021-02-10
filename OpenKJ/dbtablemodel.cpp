@@ -80,16 +80,27 @@ void DbTableModel::search(QString searchString)
         return;
     }
     QString whereClause;
+    QString searchScope;
+    switch (m_searchType) {
+    case SEARCH_ALL:
+        searchScope = "searchstring";
+        break;
+    case SEARCH_ARTIST:
+        searchScope = "artist";
+        break;
+    case SEARCH_TITLE:
+        searchScope = "title";
+    }
     if (settings->ignoreAposInSearch())
-        whereClause = "discid != \"!!BAD!!\" AND discid != \"!!DROPPED!!\" AND replace(searchstring, \"'\", \"\") LIKE \"%" + terms.at(0) + "%\"";
+        whereClause = "discid != \"!!BAD!!\" AND discid != \"!!DROPPED!!\" AND replace(" + searchScope + ", \"'\", \"\") LIKE \"%" + terms.at(0) + "%\"";
     else
-        whereClause = "discid != \"!!BAD!!\" AND discid != \"!!DROPPED!!\" AND searchstring LIKE \"%" + terms.at(0) + "%\"";
+        whereClause = "discid != \"!!BAD!!\" AND discid != \"!!DROPPED!!\" AND " + searchScope + " LIKE \"%" + terms.at(0) + "%\"";
     for (int i=1; i < terms.size(); i++)
     {
         if (settings->ignoreAposInSearch())
-            whereClause = whereClause + " AND replace(searchstring, \"'\", \"\") LIKE \"%" + terms.at(i) + "%\"";
+            whereClause = whereClause + " AND replace(" + searchScope + ", \"'\", \"\") LIKE \"%" + terms.at(i) + "%\"";
         else
-            whereClause = whereClause + " AND searchstring LIKE \"%" + terms.at(i) + "%\"";
+            whereClause = whereClause + " AND " + searchScope + " LIKE \"%" + terms.at(i) + "%\"";
     }
     setFilter(whereClause);
 }
@@ -162,6 +173,12 @@ void DbTableModel::refreshCache()
     query.exec("INSERT INTO mem.dbsongs SELECT * FROM main.dbsongs");
     setTable("mem.dbsongs");
     select();
+    search(lastSearch);
+}
+
+void DbTableModel::setSearchType(DbTableModel::SearchType type)
+{
+    m_searchType = type;
     search(lastSearch);
 }
 
