@@ -3890,13 +3890,13 @@ void MainWindow::on_comboBoxSearchType_currentIndexChanged(int index)
 {
     switch (index) {
     case 0:
-        dbModel->setSearchType(DbTableModel::SEARCH_ALL);
+        dbModel->setSearchType(DbTableModel::SEARCH_TYPE_ALL);
         break;
     case 1:
-        dbModel->setSearchType(DbTableModel::SEARCH_ARTIST);
+        dbModel->setSearchType(DbTableModel::SEARCH_TYPE_ARTIST);
         break;
     case 2:
-        dbModel->setSearchType(DbTableModel::SEARCH_TITLE);
+        dbModel->setSearchType(DbTableModel::SEARCH_TYPE_TITLE);
         break;
     }
 }

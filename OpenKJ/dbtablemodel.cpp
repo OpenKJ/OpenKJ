@@ -82,13 +82,13 @@ void DbTableModel::search(QString searchString)
     QString whereClause;
     QString searchScope;
     switch (m_searchType) {
-    case SEARCH_ALL:
+    case SEARCH_TYPE_ALL:
         searchScope = "searchstring";
         break;
-    case SEARCH_ARTIST:
+    case SEARCH_TYPE_ARTIST:
         searchScope = "artist";
         break;
-    case SEARCH_TITLE:
+    case SEARCH_TYPE_TITLE:
         searchScope = "title";
     }
     if (settings->ignoreAposInSearch())
