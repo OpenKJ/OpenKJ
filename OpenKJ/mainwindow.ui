@@ -3067,6 +3067,7 @@ QPushButton:default {
      <string>Help</string>
     </property>
     <addaction name="actionAbout"/>
+    <addaction name="actionDocumentation"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -3313,6 +3314,11 @@ QPushButton:default {
   <action name="actionCDG_Decode_Torture">
    <property name="text">
     <string>CDG Decode Torture</string>
+   </property>
+  </action>
+  <action name="actionDocumentation">
+   <property name="text">
+    <string>Documentation</string>
    </property>
   </action>
  </widget>

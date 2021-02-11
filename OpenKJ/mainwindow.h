@@ -144,6 +144,7 @@ private:
     QShortcut scutSearch{this};
     QShortcut scutRegulars{this};
     QShortcut scutRequests{this};
+    QShortcut scutEscape{this};
     void addSfxButton(const QString &filename, const QString &label, const bool &reset = false);
     void refreshSfxButtons();
     SfxEntry lastRtClickedSfxBtn;
@@ -311,6 +312,8 @@ private slots:
     void videoFrameReceived(QImage frame, QString backendName);
 
     void on_comboBoxSearchType_currentIndexChanged(int index);
+
+    void on_actionDocumentation_triggered();
 
 protected:
     void closeEvent(QCloseEvent *event);

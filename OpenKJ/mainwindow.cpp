@@ -32,6 +32,7 @@
 #include <QInputDialog>
 #include <QFileDialog>
 #include <QImageReader>
+#include <QDesktopServices>
 #include "mzarchive.h"
 #include "tagreader.h"
 #include <QSvgRenderer>
@@ -578,10 +579,17 @@ MainWindow::MainWindow(QWidget *parent) :
     scutSearch.setKey((QKeySequence(Qt::Key_Slash)));
     scutRegulars.setKey(QKeySequence(Qt::CTRL + Qt::Key_R));
     scutRequests.setKey(QKeySequence(Qt::CTRL + Qt::Key_Q));
+    scutEscape.setKey(QKeySequence(Qt::Key_Escape));
     connect(&scutAddSinger, &QShortcut::activated, this, &MainWindow::on_buttonAddSinger_clicked);
     connect(&scutSearch, &QShortcut::activated, this, &MainWindow::scutSearchActivated);
     connect(&scutRegulars, &QShortcut::activated, this, &MainWindow::on_buttonRegulars_clicked);
     connect(&scutRequests, &QShortcut::activated, this, &MainWindow::on_pushButtonIncomingRequests_clicked);
+    connect(&scutEscape, &QShortcut::activated, [&] () {
+        if (ui->lineEdit->hasFocus())
+            ui->lineEdit->clear();
+        else
+            ui->lineEdit->setFocus();
+    });
     connect(bmPlModel, &BmPlTableModel::bmSongMoved, this, &MainWindow::bmSongMoved);
     connect(songbookApi, &OKJSongbookAPI::alertRecieved, this, &MainWindow::showAlert);
     connect(&settings, &Settings::cdgShowCdgWindowChanged, this, &MainWindow::cdgVisibilityChanged);
@@ -3911,4 +3919,9 @@ void MainWindow::on_comboBoxSearchType_currentIndexChanged(int index)
         dbModel->setSearchType(DbTableModel::SEARCH_TYPE_TITLE);
         break;
     }
+}
+
+void MainWindow::on_actionDocumentation_triggered()
+{
+    QDesktopServices::openUrl(QUrl("https://docs.openkj.org"));
 }
