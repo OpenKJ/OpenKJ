@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>903</width>
-    <height>775</height>
+    <width>803</width>
+    <height>522</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1506,8 +1506,8 @@ QPushButton:default {
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>839</width>
-                 <height>623</height>
+                 <width>739</width>
+                 <height>370</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_28">
