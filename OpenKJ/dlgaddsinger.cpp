@@ -16,7 +16,10 @@ DlgAddSinger::DlgAddSinger(RotationModel *rotModel, QWidget *parent) :
     ui->cbxPosition->addItem(tr("Fair"));
     ui->cbxPosition->addItem(tr("Bottom"));
     ui->cbxPosition->addItem(tr("Next"));
-    ui->cbxPosition->setCurrentIndex(0);
+    ui->cbxPosition->setCurrentIndex(settings.lastSingerAddPositionType());
+    connect(&settings, &Settings::lastSingerAddPositionTypeChanged, ui->cbxPosition, &QComboBox::setCurrentIndex);
+    connect(ui->cbxPosition, SIGNAL(currentIndexChanged(int)), &settings, SLOT(setLastSingerAddPositionType(int)));
+
 }
 
 DlgAddSinger::~DlgAddSinger()

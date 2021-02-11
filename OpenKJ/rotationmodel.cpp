@@ -138,12 +138,25 @@ RotationModel::RotationModel(QObject *parent, QSqlDatabase db) :
     singerCount = singers().size();
 }
 
-int RotationModel::singerAdd(const QString& name)
+int RotationModel::singerAdd(const QString& name, int positionHint)
 {
     QSqlQuery query;
     query.exec("INSERT INTO rotationsingers (name,position,regular,regularid, addts) VALUES(\"" + name + "\"," + QString::number(rowCount()) + ",0,-1, CURRENT_TIMESTAMP)");
     select();
     singerCount = singers().size();
+    int curSingerPos = getSingerPosition(m_currentSingerId);
+    switch (positionHint) {
+    case ADD_FAIR:
+    {
+        if (curSingerPos != 0)
+            singerMove(rowCount() - 1, getSingerPosition(m_currentSingerId));
+        break;
+    }
+    case ADD_NEXT:
+        if (curSingerPos != rowCount() - 2)
+            singerMove(rowCount() - 1, getSingerPosition(m_currentSingerId) + 1);
+        break;
+    }
     emit rotationModified();
     outputRotationDebug();
     return query.lastInsertId().toInt();
@@ -336,6 +349,14 @@ int RotationModel::getSingerId(QString name)
     return -1;
 }
 
+int RotationModel::getRegSingerId(QString name)
+{
+    QSqlQuery query("SELECT regsingerid FROM regularsingers WHERE name == \"" + name + "\" LIMIT 1");
+    if (query.first())
+        return query.value(0).toInt();
+    return -1;
+}
+
 int RotationModel::getSingerPosition(int singerId)
 {
     QSqlQuery query("SELECT position FROM rotationsingers WHERE singerid = " + QString::number(singerId) + " LIMIT 1");
@@ -459,26 +480,32 @@ void RotationModel::queueModified(int singerId)
         regularUpdate(singerId);
 }
 
-void RotationModel::regularLoad(int regSingerId, int positionHint)
+int RotationModel::regularLoad(int regSingerId, int positionHint)
 {
     if (singerExists(getRegularName(regSingerId)))
     {
         emit regularLoadNameConflict(getRegularName(regSingerId));
-        return;
+        return -1;
     }
     int singerId = singerAdd(getRegularName(regSingerId));
     QSqlQuery query;
     query.exec("UPDATE rotationsingers SET regular=1,regularid=" + QString::number(regSingerId) + " WHERE singerid == " + QString::number(singerId));
     query.exec("INSERT INTO queuesongs (singer, song, artist, title, discid, path, keychg, played, position) SELECT " + QString::number(singerId) + ", regularsongs.songid, regularsongs.songid, regularsongs.songid, regularsongs.songid, regularsongs.songid, regularsongs.keychg, 0, regularsongs.position FROM regularsongs WHERE regsingerid == " + QString::number(regSingerId));
+    int curSingerPos = getSingerPosition(m_currentSingerId);
     switch (positionHint) {
     case ADD_FAIR:
-        singerMove(rowCount() - 1, getSingerPosition(m_currentSingerId));
+    {
+        if (curSingerPos != 0)
+            singerMove(rowCount() - 1, getSingerPosition(m_currentSingerId));
         break;
+    }
     case ADD_NEXT:
-        singerMove(rowCount() - 1, getSingerPosition(m_currentSingerId) + 1);
+        if (curSingerPos != rowCount() - 2)
+            singerMove(rowCount() - 1, getSingerPosition(m_currentSingerId) + 1);
         break;
     }
     select();
+    return singerId;
 }
 
 void RotationModel::regularSetName(int regSingerId, QString newName)

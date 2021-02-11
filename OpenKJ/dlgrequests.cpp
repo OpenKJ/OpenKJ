@@ -74,11 +74,13 @@ DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
     ui->lineEditSingerName->setEnabled(false);
     ui->labelAddPos->setEnabled(false);
     QStringList posOptions;
-    posOptions << tr("After current singer");
     posOptions << tr("Fair (full rotation)");
     posOptions << tr("Bottom of rotation");
+    posOptions << tr("After current singer");
     ui->comboBoxAddPosition->addItems(posOptions);
-    ui->comboBoxAddPosition->setCurrentIndex(1);
+    ui->comboBoxAddPosition->setCurrentIndex(settings.lastSingerAddPositionType());
+    connect(&settings, &Settings::lastSingerAddPositionTypeChanged, ui->comboBoxAddPosition, &QComboBox::setCurrentIndex);
+    connect(ui->comboBoxAddPosition, SIGNAL(currentIndexChanged(int)), &settings, SLOT(setLastSingerAddPositionType(int)));
     ui->tableViewSearch->hideColumn(0);
     ui->tableViewSearch->hideColumn(5);
     ui->tableViewSearch->hideColumn(6);

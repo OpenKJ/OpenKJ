@@ -25,6 +25,9 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QSqlQuery>
+#include "settings.h"
+
+extern Settings settings;
 
 DlgRegularSingers::DlgRegularSingers(RotationModel *rotationModel, QWidget *parent) :
     QDialog(parent),
@@ -43,6 +46,9 @@ DlgRegularSingers::DlgRegularSingers(RotationModel *rotationModel, QWidget *pare
     ui->comboBoxAddPos->addItem("Fair");
     ui->comboBoxAddPos->addItem("Bottom");
     ui->comboBoxAddPos->addItem("Next");
+    ui->comboBoxAddPos->setCurrentIndex(settings.lastSingerAddPositionType());
+    connect(ui->comboBoxAddPos, SIGNAL(currentIndexChanged(int)), &settings, SLOT(setLastSingerAddPositionType(int)));
+    connect(&settings, &Settings::lastSingerAddPositionTypeChanged, ui->comboBoxAddPos, &QComboBox::setCurrentIndex);
     rotModel = rotationModel;
     ui->tableViewRegulars->hideColumn(0);
     ui->tableViewRegulars->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);

@@ -62,6 +62,7 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     ui->cbxRotShowNextSong->setChecked(settings.rotationShowNextSong());
     audioOutputDevices = kAudioBackend->getOutputDevices();
     ui->comboBoxKAudioDevices->addItems(audioOutputDevices);
+    ui->checkBoxShowAddDlgOnDbDblclk->setChecked(settings.dbDoubleClickAddsSong());
     int selDevice = audioOutputDevices.indexOf(settings.audioOutputDevice());
     if (selDevice == -1)
     {
@@ -232,6 +233,12 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     ui->lineEditLogDir->setText(tmpSettings.logDir());
     connect(ui->checkBoxLogging, SIGNAL(toggled(bool)), &settings, SLOT(setLogEnabled(bool)));
     ui->checkBoxEnforceAspectRatio->setChecked(settings.enforceAspectRatio());
+    connect(ui->checkBoxShowAddDlgOnDbDblclk, &QCheckBox::stateChanged, [&] (auto state) {
+        if (state == 0)
+            settings.setDbDoubleClickAddsSong(false);
+        else
+            settings.setDbDoubleClickAddsSong(true);
+    });
 }
 
 DlgSettings::~DlgSettings()

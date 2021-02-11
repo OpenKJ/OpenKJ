@@ -40,7 +40,7 @@
            </sizepolicy>
           </property>
           <property name="currentIndex">
-           <number>1</number>
+           <number>5</number>
           </property>
           <widget class="QWidget" name="tabWidgetPage1">
            <attribute name="title">
@@ -1463,6 +1463,16 @@ QPushButton:default {
              <widget class="QCheckBox" name="checkBoxProgressiveSearch">
               <property name="text">
                <string>Enable progressive (as you type) searching</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="checkBoxShowAddDlgOnDbDblclk">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If checked, shows a dialog for adding songs when songs in the database list are double clicked.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;If unchecked, the song will be added to whichever singer is selected at the time. (default behavior)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Show add song dialog when db songs are double clicked</string>
               </property>
              </widget>
             </item>

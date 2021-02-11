@@ -49,6 +49,7 @@
 #include "okjutil.h"
 #include <algorithm>
 #include <random>
+#include "dlgaddsong.h"
 #if (QT_VERSION >= QT_VERSION_CHECK(5,10,0))
 #include <QRandomGenerator>
 #endif
@@ -946,6 +947,17 @@ void MainWindow::on_lineEdit_returnPressed()
 
 void MainWindow::on_tableViewDB_doubleClicked(const QModelIndex &index)
 {
+    if (settings.dbDoubleClickAddsSong())
+    {
+        auto addSongDlg = new DlgAddSong(rotModel, qModel, index.sibling(index.row(),0).data().toInt(), this);
+        connect(addSongDlg, &DlgAddSong::newSingerAdded, [&] (auto pos) {
+            ui->tableViewRotation->selectRow(pos);
+            ui->lineEdit->setFocus();
+        });
+        addSongDlg->setModal(true);
+        addSongDlg->show();
+        return;
+    }
     if (qModel->singer() >= 0)
     {
         qModel->songAdd(index.sibling(index.row(),0).data().toInt());

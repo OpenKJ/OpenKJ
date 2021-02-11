@@ -233,6 +233,11 @@ bool Settings::hardwareAccelEnabled()
     return settings->value("hardwareAccelEnabled", hwAccelDefault).toBool();
 }
 
+bool Settings::dbDoubleClickAddsSong()
+{
+    return settings->value("dbDoubleClickAddsSong", false).toBool();
+}
+
 QString Settings::getCCN(const QString &password)
 {
     SimpleCrypt simpleCrypt(this->hash(password));
@@ -651,6 +656,11 @@ uint Settings::slideShowInterval()
     return settings->value("slideShowInterval", 15).toUInt();
 }
 
+int Settings::lastSingerAddPositionType()
+{
+    return settings->value("lastSingerAddPositionType", 0).toInt();
+}
+
 void Settings::setSlideShowInterval(int secs)
 {
     if (secs <= 5)
@@ -669,6 +679,11 @@ void Settings::setHardwareAccelEnabled(const bool enabled)
     return;
 #endif
     settings->setValue("hardwareAccelEnabled", enabled);
+}
+
+void Settings::setDbDoubleClickAddsSong(const bool enabled)
+{
+    settings->setValue("dbDoubleClickAddsSong", enabled);
 }
 
 void Settings::setDurationPosition(const QPoint pos)
@@ -738,6 +753,12 @@ void Settings::setVideoOffsetMs(int offset)
 {
     settings->setValue("videoOffsetMs", offset);
     emit videoOffsetChanged(offset);
+}
+
+void Settings::setLastSingerAddPositionType(const int type)
+{
+    settings->setValue("lastSingerAddPositionType", type);
+    emit lastSingerAddPositionTypeChanged(type);
 }
 
 QColor Settings::tickerBgColor()

@@ -79,6 +79,7 @@ public:
     bool saveKNAccount();
     bool testingEnabled();
     bool hardwareAccelEnabled();
+    bool dbDoubleClickAddsSong();
     QString getCCN(const QString &password);
     QString getCCM(const QString &password);
     QString getCCY(const QString &password);
@@ -297,6 +298,7 @@ public:
     QString auxTickerFile();
     QString uuid();
     uint slideShowInterval();
+    int lastSingerAddPositionType();
 
 signals:
     void slideShowIntervalChanged(const uint secs);
@@ -365,9 +367,12 @@ signals:
     void previewEnabledChanged(bool enabled);
     void durationPositionReset();
     void videoOffsetChanged(const int offsetMs);
+    void lastSingerAddPositionTypeChanged(const int type);
+
 public slots:
     void setSlideShowInterval(int secs);
     void setHardwareAccelEnabled(const bool enabled);
+    void setDbDoubleClickAddsSong(const bool enabled);
     void setDurationPosition(const QPoint pos);
     void resetDurationPosition();
     void setRemainRtOffset(int offset);
@@ -447,6 +452,7 @@ public slots:
     void setProgressiveSearchEnabled(bool enabled);
     void setPreviewEnabled(bool enabled);
     void setVideoOffsetMs(int offset);
+    void setLastSingerAddPositionType(const int type);
 };
 
 #endif // KHSETTINGS_H
