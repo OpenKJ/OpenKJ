@@ -146,7 +146,197 @@ void MainWindow::updateIcons()
     requestsDialog->updateIcons();
 }
 
+void MainWindow::setupShortcuts()
+{
+    scutAddSinger = new QShortcut(settings.loadShortcutKeySequence("addSinger"),this,nullptr,nullptr,Qt::ApplicationShortcut);
+    connect(scutAddSinger, &QShortcut::activated, this, &MainWindow::on_buttonAddSinger_clicked);
 
+    scutBFfwd = new QShortcut(settings.loadShortcutKeySequence("bFfwd"),this,nullptr,nullptr,Qt::ApplicationShortcut);
+    connect(scutBFfwd, &QShortcut::activated, [&] () {
+        auto mediaState = bmMediaBackend.state();
+        if (mediaState == MediaBackend::PlayingState || mediaState == MediaBackend::PausedState)
+        {
+            int curPos = bmMediaBackend.position();
+            int duration = bmMediaBackend.duration();
+            if (curPos + 5000 < duration)
+                bmMediaBackend.setPosition(curPos + 5000);
+        }
+    });
+
+    scutBPause = new QShortcut(settings.loadShortcutKeySequence("bPause"),this,nullptr,nullptr,Qt::ApplicationShortcut);
+    connect(scutBPause, &QShortcut::activated, [&] () {
+        auto mediaState = bmMediaBackend.state();
+        if (mediaState == MediaBackend::PlayingState)
+        {
+            bmMediaBackend.pause();
+            ui->buttonBmPause->setChecked(true);
+        }
+        else if (mediaState == MediaBackend::PausedState)
+        {
+            bmMediaBackend.play();
+            ui->buttonBmPause->setChecked(false);
+        }
+    });
+
+    scutBRestartSong = new QShortcut(settings.loadShortcutKeySequence("bRestartSong"),this,nullptr,nullptr,Qt::ApplicationShortcut);
+    connect(scutBRestartSong, &QShortcut::activated, [&] () {
+        auto mediaState = bmMediaBackend.state();
+        if (mediaState == MediaBackend::PlayingState || mediaState == MediaBackend::PausedState)
+        {
+            bmMediaBackend.setPosition(0);
+        }
+    });
+
+    scutBRwnd = new QShortcut(settings.loadShortcutKeySequence("bRwnd"),this,nullptr,nullptr,Qt::ApplicationShortcut);
+    connect(scutBRwnd, &QShortcut::activated, [&] () {
+        auto mediaState = bmMediaBackend.state();
+        if (mediaState == MediaBackend::PlayingState || mediaState == MediaBackend::PausedState)
+        {
+            int curPos = bmMediaBackend.position();
+            if (curPos - 5000 > 0)
+                bmMediaBackend.setPosition(curPos - 5000);
+            else
+                bmMediaBackend.setPosition(0);
+        }
+    });
+
+    scutBStop = new QShortcut(settings.loadShortcutKeySequence("bStop"),this,nullptr,nullptr,Qt::ApplicationShortcut);
+    connect(scutBStop, &QShortcut::activated, [&] () {
+        bmMediaBackend.stop();
+    });
+
+    scutBVolDn = new QShortcut(settings.loadShortcutKeySequence("bVolDn"),this,nullptr,nullptr,Qt::ApplicationShortcut);
+    connect(scutBVolDn, &QShortcut::activated, [&] () {
+       int curVol = bmMediaBackend.getVolume();
+       if (curVol > 0)
+           bmMediaBackend.setVolume(curVol - 1);
+    });
+
+    scutBVolMute = new QShortcut(settings.loadShortcutKeySequence("bVolMute"),this,nullptr,nullptr,Qt::ApplicationShortcut);
+    connect(scutBVolMute, &QShortcut::activated, [&] () {
+       bmMediaBackend.setMuted(!bmMediaBackend.isMuted());
+    });
+
+    scutBVolUp = new QShortcut(settings.loadShortcutKeySequence("bVolUp"),this,nullptr,nullptr,Qt::ApplicationShortcut);
+    connect(scutBVolUp, &QShortcut::activated, [&] () {
+       int curVol = bmMediaBackend.getVolume();
+       if (curVol < 100)
+           bmMediaBackend.setVolume(curVol + 1);
+    });
+
+    scutJumpToSearch = new QShortcut(settings.loadShortcutKeySequence("jumpToSearch"),this,nullptr,nullptr,Qt::ApplicationShortcut);
+    connect(scutJumpToSearch, &QShortcut::activated, [&] () {
+        activateWindow();
+        if (!hasFocus() && !ui->lineEdit->hasFocus())
+            setFocus();
+        if (ui->lineEdit->hasFocus())
+            ui->lineEdit->clear();
+        else
+            ui->lineEdit->setFocus();
+    });
+
+    scutKFfwd = new QShortcut(settings.loadShortcutKeySequence("kFfwd"),this,nullptr,nullptr,Qt::ApplicationShortcut);
+    connect(scutKFfwd, &QShortcut::activated, [&] () {
+        auto mediaState = kMediaBackend.state();
+        if (mediaState == MediaBackend::PlayingState || mediaState == MediaBackend::PausedState)
+        {
+            int curPos = kMediaBackend.position();
+            int duration = kMediaBackend.duration();
+            if (curPos + 5000 < duration)
+                kMediaBackend.setPosition(curPos + 5000);
+        }
+    });
+
+    scutKPause = new QShortcut(settings.loadShortcutKeySequence("kPause"),this,nullptr,nullptr,Qt::ApplicationShortcut);
+    connect(scutKPause, &QShortcut::activated, this, &MainWindow::on_buttonPause_clicked);
+
+    scutKRestartSong = new QShortcut(settings.loadShortcutKeySequence("kRestartSong"),this,nullptr,nullptr,Qt::ApplicationShortcut);
+    connect(scutKRestartSong, &QShortcut::activated, [&] () {
+        auto mediaState = kMediaBackend.state();
+        if (mediaState == MediaBackend::PlayingState || mediaState == MediaBackend::PausedState)
+        {
+            kMediaBackend.setPosition(0);
+        }
+    });
+
+
+    scutKRwnd = new QShortcut(settings.loadShortcutKeySequence("kRwnd"),this,nullptr,nullptr,Qt::ApplicationShortcut);
+    connect(scutKRwnd, &QShortcut::activated, [&] () {
+        auto mediaState = kMediaBackend.state();
+        if (mediaState == MediaBackend::PlayingState || mediaState == MediaBackend::PausedState)
+        {
+            int curPos = kMediaBackend.position();
+            if (curPos - 5000 > 0)
+                kMediaBackend.setPosition(curPos - 5000);
+            else
+                kMediaBackend.setPosition(0);
+        }
+    });
+
+    scutKStop = new QShortcut(settings.loadShortcutKeySequence("kStop"),this,nullptr,nullptr,Qt::ApplicationShortcut);
+    connect(scutKStop, &QShortcut::activated, [&] () {
+        kMediaBackend.stop();
+    });
+
+    scutKVolDn = new QShortcut(settings.loadShortcutKeySequence("kVolDn"),this,nullptr,nullptr,Qt::ApplicationShortcut);
+    connect(scutKVolDn, &QShortcut::activated, [&] () {
+       int curVol = kMediaBackend.getVolume();
+       if (curVol > 0)
+           kMediaBackend.setVolume(curVol - 1);
+    });
+
+    scutKVolMute = new QShortcut(settings.loadShortcutKeySequence("kVolMute"),this,nullptr,nullptr,Qt::ApplicationShortcut);
+    connect(scutKVolMute, &QShortcut::activated, [&] () {
+       kMediaBackend.setMuted(!kMediaBackend.isMuted());
+    });
+
+    scutKVolUp = new QShortcut(settings.loadShortcutKeySequence("kVolUp"),this,nullptr,nullptr,Qt::ApplicationShortcut);
+    connect(scutKVolUp, &QShortcut::activated, [&] () {
+       int curVol = kMediaBackend.getVolume();
+       if (curVol < 100)
+           kMediaBackend.setVolume(curVol + 1);
+    });
+
+    scutLoadRegularSinger = new QShortcut(settings.loadShortcutKeySequence("loadRegularSinger"),this,nullptr,nullptr,Qt::ApplicationShortcut);
+    connect(scutLoadRegularSinger, &QShortcut::activated, this, &MainWindow::on_buttonRegulars_clicked);
+
+    scutToggleSingerWindow = new QShortcut(settings.loadShortcutKeySequence("toggleSingerWindow"),this,nullptr,nullptr,Qt::ApplicationShortcut);
+    connect(scutToggleSingerWindow, &QShortcut::activated, [&] () {
+        if (cdgWindow->isVisible())
+            cdgWindow->hide();
+        else
+            cdgWindow->show();
+    });
+
+    scutRequests = new QShortcut(settings.loadShortcutKeySequence("showIncomingRequests"),this,nullptr,nullptr,Qt::ApplicationShortcut);
+    connect(scutRequests, &QShortcut::activated, this, &MainWindow::on_pushButtonIncomingRequests_clicked);
+
+    connect(&settings, &Settings::shortcutsChanged, this, &MainWindow::shortcutsUpdated);
+}
+
+void MainWindow::shortcutsUpdated() {
+    scutAddSinger->setKey(settings.loadShortcutKeySequence("addSinger"));
+    scutBFfwd->setKey(settings.loadShortcutKeySequence("bFfwd"));
+    scutBPause->setKey(settings.loadShortcutKeySequence("bPause"));
+    scutBRestartSong->setKey(settings.loadShortcutKeySequence("bRestartSong"));
+    scutBRwnd->setKey(settings.loadShortcutKeySequence("bRwnd"));
+    scutBStop->setKey(settings.loadShortcutKeySequence("bStop"));
+    scutBVolDn->setKey(settings.loadShortcutKeySequence("bVolDn"));
+    scutBVolMute->setKey(settings.loadShortcutKeySequence("bVolMute"));
+    scutBVolUp->setKey(settings.loadShortcutKeySequence("bVolUp"));
+    scutJumpToSearch->setKey(settings.loadShortcutKeySequence("jumpToSearch"));
+    scutKFfwd->setKey(settings.loadShortcutKeySequence("kFfwd"));
+    scutKPause->setKey(settings.loadShortcutKeySequence("kPause"));
+    scutKRestartSong->setKey(settings.loadShortcutKeySequence("kRestartSong"));
+    scutKRwnd->setKey(settings.loadShortcutKeySequence("kRwnd"));
+    scutKStop->setKey(settings.loadShortcutKeySequence("kStop"));
+    scutKVolDn->setKey(settings.loadShortcutKeySequence("kVolDn"));
+    scutKVolMute->setKey(settings.loadShortcutKeySequence("kVolMute"));
+    scutKVolUp->setKey(settings.loadShortcutKeySequence("kVolUp"));
+    scutLoadRegularSinger->setKey(settings.loadShortcutKeySequence("loadRegularSinger"));
+    scutRequests->setKey(settings.loadShortcutKeySequence("showIncomingRequests"));
+    scutToggleSingerWindow->setKey(settings.loadShortcutKeySequence("toggleSingerWindow"));
+}
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -250,7 +440,7 @@ MainWindow::MainWindow(QWidget *parent) :
 //    query.exec("ATTACH DATABASE ':memory:' AS mem");
 //    query.exec("CREATE TABLE mem.dbsongs AS SELECT * FROM main.dbsongs");
 //    refreshSongDbCache();
-
+    setupShortcuts();
     dbModel = new DbTableModel(this, database);
     dbModel->select();
     qModel = new QueueModel(this, database);
@@ -575,21 +765,6 @@ MainWindow::MainWindow(QWidget *parent) :
        autosizeViews();
        autosizeBmViews();
     });
-    scutAddSinger.setKey(QKeySequence(Qt::Key_Insert));
-    scutSearch.setKey((QKeySequence(Qt::Key_Slash)));
-    scutRegulars.setKey(QKeySequence(Qt::CTRL + Qt::Key_R));
-    scutRequests.setKey(QKeySequence(Qt::CTRL + Qt::Key_Q));
-    scutEscape.setKey(QKeySequence(Qt::Key_Escape));
-    connect(&scutAddSinger, &QShortcut::activated, this, &MainWindow::on_buttonAddSinger_clicked);
-    connect(&scutSearch, &QShortcut::activated, this, &MainWindow::scutSearchActivated);
-    connect(&scutRegulars, &QShortcut::activated, this, &MainWindow::on_buttonRegulars_clicked);
-    connect(&scutRequests, &QShortcut::activated, this, &MainWindow::on_pushButtonIncomingRequests_clicked);
-    connect(&scutEscape, &QShortcut::activated, [&] () {
-        if (ui->lineEdit->hasFocus())
-            ui->lineEdit->clear();
-        else
-            ui->lineEdit->setFocus();
-    });
     connect(bmPlModel, &BmPlTableModel::bmSongMoved, this, &MainWindow::bmSongMoved);
     connect(songbookApi, &OKJSongbookAPI::alertRecieved, this, &MainWindow::showAlert);
     connect(&settings, &Settings::cdgShowCdgWindowChanged, this, &MainWindow::cdgVisibilityChanged);
@@ -611,8 +786,7 @@ MainWindow::MainWindow(QWidget *parent) :
     lazyDurationUpdater = new LazyDurationUpdateController(this);
     if (settings.dbLazyLoadDurations())
         lazyDurationUpdater->getDurations();
-    if (settings.showCdgWindow())
-        ui->btnToggleCdgWindow->setText("Hide CDG Window");
+    ui->btnToggleCdgWindow->setChecked(settings.showCdgWindow());
     connect(ui->tableViewRotation->selectionModel(), &QItemSelectionModel::selectionChanged, this, &MainWindow::rotationSelectionChanged);
     previewEnabled = settings.previewEnabled();
     connect(&settings, &Settings::previewEnabledChanged, this, &MainWindow::previewEnabledChanged);
@@ -3216,11 +3390,6 @@ void MainWindow::bmDatabaseAboutToUpdate()
     dbModel->setTable("");
 }
 
-void MainWindow::scutSearchActivated()
-{
-    ui->lineEdit->setFocus();
-}
-
 void MainWindow::bmSongMoved(const int &oldPos, const int &newPos)
 {
     QString nextSong;
@@ -3351,26 +3520,9 @@ void MainWindow::updateRotationDuration()
         bmMediaBackend.videoMute(false);
 }
 
-void MainWindow::on_btnToggleCdgWindow_clicked()
-{
-    if (cdgWindow->isVisible())
-    {
-        cdgWindow->hide();
-        ui->btnToggleCdgWindow->setText("Show CDG Window");
-    }
-    else
-    {
-        cdgWindow->show();
-        ui->btnToggleCdgWindow->setText("Hide CDG Window");
-    }
-}
-
 void MainWindow::cdgVisibilityChanged()
 {
-    if (cdgWindow->isVisible() && ui->btnToggleCdgWindow->text() == "Show CDG Window")
-        ui->btnToggleCdgWindow->setText("Hide CDG Window");
-    else if (cdgWindow->isHidden() && ui->btnToggleCdgWindow->text() == "Hide CDG Window")
-        ui->btnToggleCdgWindow->setText("Show CDG Window");
+    ui->btnToggleCdgWindow->setChecked(cdgWindow->isVisible());
 }
 
 void MainWindow::rotationSelectionChanged(const QItemSelection &sel, const QItemSelection &desel)
@@ -3924,4 +4076,16 @@ void MainWindow::on_comboBoxSearchType_currentIndexChanged(int index)
 void MainWindow::on_actionDocumentation_triggered()
 {
     QDesktopServices::openUrl(QUrl("https://docs.openkj.org"));
+}
+
+void MainWindow::on_btnToggleCdgWindow_clicked(bool checked)
+{
+    if (!checked)
+    {
+        cdgWindow->hide();
+    }
+    else
+    {
+        cdgWindow->show();
+    }
 }

@@ -30,6 +30,7 @@
 #include <QWidget>
 #include <QMetaType>
 #include <QDebug>
+#include <QKeySequence>
 
 struct SfxEntry
 {
@@ -299,6 +300,9 @@ public:
     QString uuid();
     uint slideShowInterval();
     int lastSingerAddPositionType();
+    void saveShortcutKeySequence(const QString &name, const QKeySequence &sequence);
+    QKeySequence loadShortcutKeySequence(const QString &name);
+
 
 signals:
     void slideShowIntervalChanged(const uint secs);
@@ -368,6 +372,7 @@ signals:
     void durationPositionReset();
     void videoOffsetChanged(const int offsetMs);
     void lastSingerAddPositionTypeChanged(const int type);
+    void shortcutsChanged();
 
 public slots:
     void setSlideShowInterval(int secs);

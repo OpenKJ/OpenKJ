@@ -231,6 +231,7 @@ public slots:
     void setMedia(const QString &filename);
     void setMediaCdg(const QString &cdgFilename, const QString &audioFilename);
     void setMuted(const bool &muted);
+    bool isMuted();
     void setPosition(const qint64 &position);
     void setVolume(const int &volume);
     void stop(const bool &skipFade = false);

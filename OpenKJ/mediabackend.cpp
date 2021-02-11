@@ -397,6 +397,11 @@ void MediaBackend::setMuted(const bool &muted)
     gst_stream_volume_set_mute(GST_STREAM_VOLUME(m_volumeElement), muted);
 }
 
+bool MediaBackend::isMuted()
+{
+    return gst_stream_volume_get_mute(GST_STREAM_VOLUME(m_volumeElement));
+}
+
 void MediaBackend::setPosition(const qint64 &position)
 {
     if (position > 1000 && position > duration() - 1000)

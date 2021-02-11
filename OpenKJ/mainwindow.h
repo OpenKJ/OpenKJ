@@ -140,11 +140,27 @@ private:
     bool blinkRequestsBtn{false};
     bool kNeedAutoSize{false};
     bool bNeedAutoSize{true};
-    QShortcut scutAddSinger{this};
-    QShortcut scutSearch{this};
-    QShortcut scutRegulars{this};
-    QShortcut scutRequests{this};
-    QShortcut scutEscape{this};
+    QShortcut *scutAddSinger;
+    QShortcut *scutBFfwd;
+    QShortcut *scutBPause;
+    QShortcut *scutBRestartSong;
+    QShortcut *scutBRwnd;
+    QShortcut *scutBStop;
+    QShortcut *scutBVolDn;
+    QShortcut *scutBVolMute;
+    QShortcut *scutBVolUp;
+    QShortcut *scutJumpToSearch;
+    QShortcut *scutKFfwd;
+    QShortcut *scutKPause;
+    QShortcut *scutKRestartSong;
+    QShortcut *scutKRwnd;
+    QShortcut *scutKStop;
+    QShortcut *scutKVolDn;
+    QShortcut *scutKVolMute;
+    QShortcut *scutKVolUp;
+    QShortcut *scutLoadRegularSinger;
+    QShortcut *scutRequests;
+    QShortcut *scutToggleSingerWindow;
     void addSfxButton(const QString &filename, const QString &label, const bool &reset = false);
     void refreshSfxButtons();
     SfxEntry lastRtClickedSfxBtn;
@@ -152,6 +168,8 @@ private:
     QTimer m_timerTest;
     bool m_testMode{false};
     void updateIcons();
+    void setupShortcuts();
+
 public:
     explicit MainWindow(QWidget *parent = 0);
     bool isSingleInstance();
@@ -265,7 +283,6 @@ private slots:
     void on_tabWidget_currentChanged(const int &index);
     void databaseAboutToUpdate();
     void bmDatabaseAboutToUpdate();
-    void scutSearchActivated();
     void bmSongMoved(const int &oldPos, const int &newPos);
     void on_sliderBmPosition_sliderPressed();
     void on_sliderBmPosition_sliderReleased();
@@ -276,7 +293,6 @@ private slots:
     void showAlert(const QString &title, const QString &message);
     void tableViewRotationCurrentChanged(const QModelIndex &cur, const QModelIndex &prev);
     void updateRotationDuration();
-    void on_btnToggleCdgWindow_clicked();
     void cdgVisibilityChanged();
     void rotationSelectionChanged(const QItemSelection &sel, const QItemSelection &desel);
     void on_lineEditBmSearch_textChanged(const QString &arg1);
@@ -314,6 +330,9 @@ private slots:
     void on_comboBoxSearchType_currentIndexChanged(int index);
 
     void on_actionDocumentation_triggered();
+
+    void on_btnToggleCdgWindow_clicked(bool checked);
+    void shortcutsUpdated();
 
 protected:
     void closeEvent(QCloseEvent *event);

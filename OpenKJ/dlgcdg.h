@@ -32,6 +32,7 @@
 #include <QTimer>
 #include "mediabackend.h"
 #include "videodisplay.h"
+#include <QShortcut>
 
 
 class TransparentWidget : public QWidget
@@ -110,7 +111,6 @@ private:
     MediaBackend *m_kmb;
     MediaBackend *m_bmb;
     TransparentWidget *tWidget;
-
 
 public:
     explicit DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget *parent = nullptr, Qt::WindowFlags f = nullptr);

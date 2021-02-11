@@ -33,6 +33,7 @@
 #include <QXmlStreamWriter>
 #include <QNetworkReply>
 #include <QAuthenticator>
+#include <QKeySequenceEdit>
 #include "audiorecorder.h"
 #include <QScreen>
 
@@ -239,6 +240,7 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
         else
             settings.setDbDoubleClickAddsSong(true);
     });
+    setupHotkeysForm();
 }
 
 DlgSettings::~DlgSettings()
@@ -256,6 +258,161 @@ QStringList DlgSettings::getMonitors()
         screenStrings << "Monitor " + QString::number(i) + " - " + QString::number(sWidth) + "x" + QString::number(sHeight);
     }
     return screenStrings;
+}
+
+void DlgSettings::setupHotkeysForm()
+{
+    auto kVolUpKeyEdit = new QKeySequenceEdit(this);
+    kVolUpKeyEdit->setKeySequence(settings.loadShortcutKeySequence("kVolUp"));
+    connect(kVolUpKeyEdit, &QKeySequenceEdit::keySequenceChanged, [&] (auto sequence) {
+        settings.saveShortcutKeySequence("kVolUp", sequence);
+    });
+
+    auto kVolDnKeyEdit = new QKeySequenceEdit(this);
+    kVolDnKeyEdit->setKeySequence(settings.loadShortcutKeySequence("kVolDn"));
+    connect(kVolDnKeyEdit, &QKeySequenceEdit::keySequenceChanged, [&] (auto sequence) {
+        settings.saveShortcutKeySequence("kVolDn", sequence);
+    });
+
+    auto kVolMuteKeyEdit = new QKeySequenceEdit(this);
+    kVolMuteKeyEdit->setKeySequence(settings.loadShortcutKeySequence("kVolMute"));
+    connect(kVolMuteKeyEdit, &QKeySequenceEdit::keySequenceChanged, [&] (auto sequence) {
+        settings.saveShortcutKeySequence("kVolMute", sequence);
+    });
+
+    auto bVolUpKeyEdit = new QKeySequenceEdit(this);
+    bVolUpKeyEdit->setKeySequence(settings.loadShortcutKeySequence("bVolUp"));
+    connect(bVolUpKeyEdit, &QKeySequenceEdit::keySequenceChanged, [&] (auto sequence) {
+        settings.saveShortcutKeySequence("bVolUp", sequence);
+    });
+
+    auto bVolDnKeyEdit = new QKeySequenceEdit(this);
+    bVolDnKeyEdit->setKeySequence(settings.loadShortcutKeySequence("bVolDn"));
+    connect(bVolDnKeyEdit, &QKeySequenceEdit::keySequenceChanged, [&] (auto sequence) {
+        settings.saveShortcutKeySequence("bVolDn", sequence);
+    });
+
+    auto bVolMuteKeyEdit = new QKeySequenceEdit(this);
+    bVolMuteKeyEdit->setKeySequence(settings.loadShortcutKeySequence("bVolMute"));
+    connect(bVolMuteKeyEdit, &QKeySequenceEdit::keySequenceChanged, [&] (auto sequence) {
+        settings.saveShortcutKeySequence("bVolMute", sequence);
+    });
+
+    auto toggleSingerWindowKeyEdit = new QKeySequenceEdit(this);
+    toggleSingerWindowKeyEdit->setKeySequence(settings.loadShortcutKeySequence("toggleSingerWindow"));
+    connect(toggleSingerWindowKeyEdit, &QKeySequenceEdit::keySequenceChanged, [&] (auto sequence) {
+        settings.saveShortcutKeySequence("toggleSingerWindow", sequence);
+    });
+
+    auto kPauseKeyEdit = new QKeySequenceEdit(this);
+    kPauseKeyEdit->setKeySequence(settings.loadShortcutKeySequence("kPause"));
+    connect(kPauseKeyEdit, &QKeySequenceEdit::keySequenceChanged, [&] (auto sequence) {
+        settings.saveShortcutKeySequence("kPause", sequence);
+    });
+
+    auto kRestartSongKeyEdit = new QKeySequenceEdit(this);
+    kRestartSongKeyEdit->setKeySequence(settings.loadShortcutKeySequence("kRestartSong"));
+    connect(kRestartSongKeyEdit, &QKeySequenceEdit::keySequenceChanged, [&] (auto sequence) {
+        settings.saveShortcutKeySequence("kRestartSong", sequence);
+    });
+
+    auto bPauseKeyEdit = new QKeySequenceEdit(this);
+    bPauseKeyEdit->setKeySequence(settings.loadShortcutKeySequence("bPause"));
+    connect(bPauseKeyEdit, &QKeySequenceEdit::keySequenceChanged, [&] (auto sequence) {
+        settings.saveShortcutKeySequence("bPause", sequence);
+    });
+
+    auto bRestartSongKeyEdit = new QKeySequenceEdit(this);
+    bRestartSongKeyEdit->setKeySequence(settings.loadShortcutKeySequence("bRestartSong"));
+    connect(bRestartSongKeyEdit, &QKeySequenceEdit::keySequenceChanged, [&] (auto sequence) {
+        settings.saveShortcutKeySequence("bRestartSong", sequence);
+    });
+
+    auto kFfwdKeyEdit = new QKeySequenceEdit(this);
+    kFfwdKeyEdit->setKeySequence(settings.loadShortcutKeySequence("kFfwd"));
+    connect(kFfwdKeyEdit, &QKeySequenceEdit::keySequenceChanged, [&] (auto sequence) {
+        settings.saveShortcutKeySequence("kFfwd", sequence);
+    });
+
+    auto kRwndKeyEdit = new QKeySequenceEdit(this);
+    kRwndKeyEdit->setKeySequence(settings.loadShortcutKeySequence("kRwnd"));
+    connect(kRwndKeyEdit, &QKeySequenceEdit::keySequenceChanged, [&] (auto sequence) {
+        settings.saveShortcutKeySequence("kRwnd", sequence);
+    });
+
+    auto bFfwdKeyEdit = new QKeySequenceEdit(this);
+    bFfwdKeyEdit->setKeySequence(settings.loadShortcutKeySequence("bFfwd"));
+    connect(bFfwdKeyEdit, &QKeySequenceEdit::keySequenceChanged, [&] (auto sequence) {
+        settings.saveShortcutKeySequence("bFfwd", sequence);
+    });
+
+    auto bRwndKeyEdit = new QKeySequenceEdit(this);
+    bRwndKeyEdit->setKeySequence(settings.loadShortcutKeySequence("bRwnd"));
+    connect(bRwndKeyEdit, &QKeySequenceEdit::keySequenceChanged, [&] (auto sequence) {
+        settings.saveShortcutKeySequence("bRwnd", sequence);
+    });
+
+    auto kStopKeyEdit = new QKeySequenceEdit(this);
+    kStopKeyEdit->setKeySequence(settings.loadShortcutKeySequence("kStop"));
+    connect(kStopKeyEdit, &QKeySequenceEdit::keySequenceChanged, [&] (auto sequence) {
+        settings.saveShortcutKeySequence("kStop", sequence);
+    });
+
+    auto bStopKeyEdit = new QKeySequenceEdit(this);
+    bStopKeyEdit->setKeySequence(settings.loadShortcutKeySequence("bStop"));
+    connect(bStopKeyEdit, &QKeySequenceEdit::keySequenceChanged, [&] (auto sequence) {
+        settings.saveShortcutKeySequence("bStop", sequence);
+    });
+
+    auto addSingerKeyEdit = new QKeySequenceEdit(this);
+    addSingerKeyEdit->setKeySequence(settings.loadShortcutKeySequence("addSinger"));
+    connect(addSingerKeyEdit, &QKeySequenceEdit::keySequenceChanged, [&] (auto sequence) {
+        settings.saveShortcutKeySequence("addSinger", sequence);
+    });
+
+    auto loadRegularSingerKeyEdit = new QKeySequenceEdit(this);
+    loadRegularSingerKeyEdit->setKeySequence(settings.loadShortcutKeySequence("loadRegularSinger"));
+    connect(loadRegularSingerKeyEdit, &QKeySequenceEdit::keySequenceChanged, [&] (auto sequence) {
+        settings.saveShortcutKeySequence("loadRegularSinger", sequence);
+    });
+
+    auto jumpToSearchKeyEdit = new QKeySequenceEdit(this);
+    jumpToSearchKeyEdit->setKeySequence(settings.loadShortcutKeySequence("jumpToSearch"));
+    connect(jumpToSearchKeyEdit, &QKeySequenceEdit::keySequenceChanged, [&] (auto sequence) {
+        settings.saveShortcutKeySequence("jumpToSearch", sequence);
+    });
+
+    auto showIncomingRequestsKeyEdit = new QKeySequenceEdit(this);
+    showIncomingRequestsKeyEdit->setKeySequence(settings.loadShortcutKeySequence("showIncomingRequests"));
+    connect(showIncomingRequestsKeyEdit, &QKeySequenceEdit::keySequenceChanged, [&] (auto sequence) {
+       settings.saveShortcutKeySequence("showIncomingRequests", sequence);
+    });
+    //    auto bVolMuteKeyEdit = new QKeySequenceEdit(this);
+
+    ui->formLayoutHotkeys->addRow(new QLabel("Karaoke - volume up", this), kVolUpKeyEdit);
+    ui->formLayoutHotkeys->addRow(new QLabel("Karaoke - volume down", this), kVolDnKeyEdit);
+    ui->formLayoutHotkeys->addRow(new QLabel("Karaoke - volume mute/unmute", this), kVolMuteKeyEdit);
+    ui->formLayoutHotkeys->addRow(new QLabel("Karaoke - pause/unpause", this), kPauseKeyEdit);
+    ui->formLayoutHotkeys->addRow(new QLabel("Karaoke - stop", this), kStopKeyEdit);
+    ui->formLayoutHotkeys->addRow(new QLabel("Karaoke - jump back (5s)", this), kRwndKeyEdit);
+    ui->formLayoutHotkeys->addRow(new QLabel("Karaoke - jump forward (5s)", this), kFfwdKeyEdit);
+    ui->formLayoutHotkeys->addRow(new QLabel("Karaoke - restart track", this), kRestartSongKeyEdit);
+    ui->formLayoutHotkeys->addRow(new QLabel("Break music - volume up", this), bVolUpKeyEdit);
+    ui->formLayoutHotkeys->addRow(new QLabel("Break music - volume down", this), bVolDnKeyEdit);
+    ui->formLayoutHotkeys->addRow(new QLabel("Break music - volume mute/unmute", this), bVolMuteKeyEdit);
+    ui->formLayoutHotkeys->addRow(new QLabel("Break music - pause/unpause", this), bPauseKeyEdit);
+    ui->formLayoutHotkeys->addRow(new QLabel("Break music - stop", this), bStopKeyEdit);
+    ui->formLayoutHotkeys->addRow(new QLabel("Break music - jump back (5s)", this), bRwndKeyEdit);
+    ui->formLayoutHotkeys->addRow(new QLabel("Break music - jump forward (5s)", this), bFfwdKeyEdit);
+    ui->formLayoutHotkeys->addRow(new QLabel("Break music - restart track", this), bRestartSongKeyEdit);
+    ui->formLayoutHotkeys->addRow(new QLabel("Toggle singer/video window visibility", this), toggleSingerWindowKeyEdit);
+    ui->formLayoutHotkeys->addRow(new QLabel("Add singer to the rotation", this), addSingerKeyEdit);
+    ui->formLayoutHotkeys->addRow(new QLabel("Load regular singer", this), loadRegularSingerKeyEdit);
+    ui->formLayoutHotkeys->addRow(new QLabel("Open the incoming requests window (if enabled)"), showIncomingRequestsKeyEdit);
+    ui->formLayoutHotkeys->addRow(new QLabel("Jump to karaoke search (second press clears search)", this), jumpToSearchKeyEdit);
+
+
+
 }
 
 void DlgSettings::onNetworkReply(QNetworkReply *reply)

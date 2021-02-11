@@ -661,6 +661,17 @@ int Settings::lastSingerAddPositionType()
     return settings->value("lastSingerAddPositionType", 0).toInt();
 }
 
+void Settings::saveShortcutKeySequence(const QString &name, const QKeySequence &sequence)
+{
+    settings->setValue("shortcutKeySequence-" + name, sequence);
+    emit shortcutsChanged();
+}
+
+QKeySequence Settings::loadShortcutKeySequence(const QString &name)
+{
+    return settings->value("shortcutKeySequence-" + name, QString()).toString();
+}
+
 void Settings::setSlideShowInterval(int secs)
 {
     if (secs <= 5)

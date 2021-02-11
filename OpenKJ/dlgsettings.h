@@ -44,6 +44,7 @@ private:
     QNetworkAccessManager *networkManager;
     bool pageSetupDone;
     QStringList audioOutputDevices;
+    void setupHotkeysForm();
 
 public:
     explicit DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBackend, QWidget *parent = 0);
