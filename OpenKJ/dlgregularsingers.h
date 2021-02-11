@@ -73,6 +73,8 @@ private slots:
 
     void on_lineEditSearch_textChanged(const QString &arg1);
 
+    void on_tableViewRegulars_doubleClicked(const QModelIndex &index);
+
 public slots:
     void regularsChanged();
 

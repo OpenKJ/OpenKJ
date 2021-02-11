@@ -186,3 +186,18 @@ bool RegProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_p
     }
     return true;
 }
+
+void DlgRegularSingers::on_tableViewRegulars_doubleClicked(const QModelIndex &index)
+{
+    if (rotModel->singerExists(index.sibling(index.row(), 1).data().toString()))
+    {
+        QMessageBox::warning(this, tr("Naming conflict"), tr("A rotation singer already exists with the same name as the regular you're attempting to add. Action aborted."), QMessageBox::Close);
+        return;
+    }
+    if ((ui->comboBoxAddPos->currentIndex() == 2) && (rotModel->currentSinger() != -1))
+        rotModel->regularLoad(index.sibling(index.row(), 0).data().toInt(), rotModel->ADD_NEXT);
+    else if ((ui->comboBoxAddPos->currentIndex() == 0) && (rotModel->currentSinger() != -1))
+        rotModel->regularLoad(index.sibling(index.row(), 0).data().toInt(), rotModel->ADD_FAIR);
+    else
+        rotModel->regularLoad(index.sibling(index.row(), 0).data().toInt(), rotModel->ADD_BOTTOM);
+}
