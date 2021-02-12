@@ -40,7 +40,7 @@
            </sizepolicy>
           </property>
           <property name="currentIndex">
-           <number>6</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="tabWidgetPage1">
            <attribute name="title">
@@ -312,8 +312,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>825</width>
-                 <height>710</height>
+                 <width>725</width>
+                 <height>741</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_11">
@@ -321,6 +321,16 @@
                  <widget class="QCheckBox" name="checkBoxHardwareAccel">
                   <property name="text">
                    <string>Use Hardware Video Acceleration (requires program restart)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="checkBoxCdgPrescaling">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Pre-scales CDG graphics before feeding them to the video pipeline.  Makes CDG output look noticeably sharper, but moderately increases CPU load.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="text">
+                   <string>Use pre-scaling on CDG tracks (requires program restart)</string>
                   </property>
                  </widget>
                 </item>
@@ -1535,7 +1545,7 @@ QPushButton:default {
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>825</width>
+                 <width>725</width>
                  <height>759</height>
                 </rect>
                </property>

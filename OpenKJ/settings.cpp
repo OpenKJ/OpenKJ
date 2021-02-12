@@ -672,6 +672,16 @@ QKeySequence Settings::loadShortcutKeySequence(const QString &name)
     return settings->value("shortcutKeySequence-" + name, QString()).toString();
 }
 
+bool Settings::cdgPrescalingEnabled()
+{
+    return settings->value("cdgPrescaling", false).toBool();
+}
+
+void Settings::setCdgPrescalingEnabled(bool enabled)
+{
+    settings->setValue("cdgPrescaling", enabled);
+}
+
 void Settings::setSlideShowInterval(int secs)
 {
     if (secs <= 5)

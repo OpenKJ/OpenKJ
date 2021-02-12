@@ -61,6 +61,7 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     ui->checkBoxMonitorDirs->setChecked(settings.dbDirectoryWatchEnabled());
     ui->groupBoxShowDuration->setChecked(settings.cdgRemainEnabled());
     ui->cbxRotShowNextSong->setChecked(settings.rotationShowNextSong());
+    ui->checkBoxCdgPrescaling->setChecked(settings.cdgPrescalingEnabled());
     audioOutputDevices = kAudioBackend->getOutputDevices();
     ui->comboBoxKAudioDevices->addItems(audioOutputDevices);
     ui->checkBoxShowAddDlgOnDbDblclk->setChecked(settings.dbDoubleClickAddsSong());
@@ -1001,4 +1002,12 @@ void DlgSettings::on_lineEditTickerMessage_returnPressed()
 void DlgSettings::on_checkBoxHardwareAccel_toggled(bool checked)
 {
     settings.setHardwareAccelEnabled(checked);
+}
+
+void DlgSettings::on_checkBoxCdgPrescaling_stateChanged(int arg1)
+{
+    if (arg1 == 0)
+        settings.setCdgPrescalingEnabled(false);
+    else
+        settings.setCdgPrescalingEnabled(true);
 }

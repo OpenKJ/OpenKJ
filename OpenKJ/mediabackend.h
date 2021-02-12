@@ -141,6 +141,7 @@ private:
     GstElement *m_videoBin;
     GstElement *m_videoAppSink;
     GstElement *m_videoAppSinkCdg;
+    GstElement *m_cdgPrescaleCapsFilter;
     //GstElement *m_cdgPlaybin;
 
 //    GstElement *cdgVidConv;

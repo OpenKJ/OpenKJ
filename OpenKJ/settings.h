@@ -302,6 +302,7 @@ public:
     int lastSingerAddPositionType();
     void saveShortcutKeySequence(const QString &name, const QKeySequence &sequence);
     QKeySequence loadShortcutKeySequence(const QString &name);
+    bool cdgPrescalingEnabled();
 
 
 signals:
@@ -374,7 +375,9 @@ signals:
     void lastSingerAddPositionTypeChanged(const int type);
     void shortcutsChanged();
 
+
 public slots:
+    void setCdgPrescalingEnabled(bool enabled);
     void setSlideShowInterval(int secs);
     void setHardwareAccelEnabled(const bool enabled);
     void setDbDoubleClickAddsSong(const bool enabled);

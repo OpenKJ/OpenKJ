@@ -816,6 +816,7 @@ void MediaBackend::buildPipeline()
         gst_element_add_pad(m_videoBin, ghostVideoPad);
         g_object_set(m_playBin, "video-sink", m_videoBin, nullptr);
         gst_object_unref(queuePad);
+
     }
     else
     {
@@ -920,18 +921,40 @@ void MediaBackend::buildCdgBin()
         auto videoQueue2 = gst_element_factory_make("queue", "videoQueue2");
         auto videoConv1 = gst_element_factory_make("videoconvert", "preOutVideoConvert1");
         auto videoConv2 = gst_element_factory_make("videoconvert", "preOutVideoConvert2");
+        auto videoConvCdgPreScale = gst_element_factory_make("videoconvert", "videoConvertCdgPrescale");
         m_videoScale1Cdg = gst_element_factory_make("videoscale", "videoScale1");
         m_videoScale2Cdg = gst_element_factory_make("videoscale", "videoScale2");
-
-        gst_bin_add_many(reinterpret_cast<GstBin *>(m_cdgBin), m_cdgAppSrc,
+        auto videoScaleCdgPrescale = gst_element_factory_make("videoscale", "videoScaleCdgPrescale");
+        m_cdgPrescaleCapsFilter = gst_element_factory_make("capsfilter", "cdgPreScaleCapsFilter");
+        gst_bin_add_many(reinterpret_cast<GstBin *>(m_cdgBin), m_cdgAppSrc, videoConvCdgPreScale,
+                         videoScaleCdgPrescale, m_cdgPrescaleCapsFilter,
                          videoTee, videoConv1, videoConv2, videoQueue1, videoQueue2,
                          m_videoScale1Cdg, m_videoScale2Cdg, m_videoSink1Cdg, m_videoSink2Cdg,
                          nullptr);
 
-        gst_element_link(m_cdgAppSrc, videoTee);
-
+        if (m_settings.cdgPrescalingEnabled())
+        {
+            gst_element_link(m_cdgAppSrc, videoConvCdgPreScale);
+            gst_element_link(videoConvCdgPreScale, videoScaleCdgPrescale);
+            gst_element_link(videoScaleCdgPrescale, m_cdgPrescaleCapsFilter);
+            gst_element_link(m_cdgPrescaleCapsFilter, videoTee);
+            g_object_set(videoScaleCdgPrescale, "method", 0, nullptr);
+            auto cdgPreScaleCaps = gst_caps_new_simple(
+                        "video/x-raw",
+                        "format", G_TYPE_STRING, "RGB",
+                        "width",  G_TYPE_INT, 1152,
+                        "height", G_TYPE_INT, 768,
+                        NULL);
+            g_object_set(G_OBJECT(m_cdgPrescaleCapsFilter), "caps", cdgPreScaleCaps, NULL);
+            gst_caps_unref(cdgPreScaleCaps);
+        }
+        else
+        {
+            gst_element_link(m_cdgAppSrc, videoTee);
+        }
         gst_element_link_many(videoTee, videoQueue1, videoConv1, m_videoScale1Cdg, m_videoSink1Cdg, nullptr);
         gst_element_link_many(videoTee, videoQueue2, videoConv2, m_videoScale2Cdg, m_videoSink2Cdg, nullptr);
+
     }
     else
     {
