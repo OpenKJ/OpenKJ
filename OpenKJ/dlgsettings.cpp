@@ -155,14 +155,11 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     connect(ui->spinBoxVideoOffset, SIGNAL(valueChanged(int)), &settings, SLOT(setVideoOffsetMs(int)));
     connect(ui->spinBoxSlideshowInterval, SIGNAL(valueChanged(int)), &settings, SLOT(setSlideShowInterval(int)));
     AudioRecorder recorder;
- //   QAudioRecorder audioRecorder;
     QStringList inputs = recorder.getDeviceList();
     QStringList codecs = recorder.getCodecs();
-//    QStringList containers = audioRecorder.supportedContainers();
     ui->groupBoxRecording->setChecked(settings.recordingEnabled());
     ui->comboBoxDevice->addItems(inputs);
     ui->comboBoxCodec->addItems(codecs);
-//    ui->comboBoxContainer->addItems(containers);
     QString recordingInput = settings.recordingInput();
     if (recordingInput == "undefined")
         ui->comboBoxDevice->setCurrentIndex(0);
