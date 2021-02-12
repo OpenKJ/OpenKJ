@@ -311,6 +311,107 @@ void MainWindow::setupShortcuts()
     scutRequests = new QShortcut(settings.loadShortcutKeySequence("showIncomingRequests"),this,nullptr,nullptr,Qt::ApplicationShortcut);
     connect(scutRequests, &QShortcut::activated, this, &MainWindow::on_pushButtonIncomingRequests_clicked);
 
+    scutDeleteSinger = new QShortcut(QKeySequence(QKeySequence::Delete), ui->tableViewRotation, nullptr, nullptr, Qt::WidgetShortcut);
+    connect(scutDeleteSinger, &QShortcut::activated, [&] () {
+       auto index = ui->tableViewRotation->currentIndex();
+       if (settings.showSingerRemovalWarning())
+       {
+           QMessageBox msgBox(this);
+           QCheckBox *cb = new QCheckBox("Show this warning in the future");
+           cb->setChecked(settings.showSingerRemovalWarning());
+           msgBox.setIcon(QMessageBox::Warning);
+           msgBox.setText("Are you sure you want to remove this singer?");
+           msgBox.setInformativeText("Unless this singer is a tracked regular, you will be unable retrieve any queue data for this singer once they are deleted.");
+           QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
+           msgBox.addButton(QMessageBox::Cancel);
+           msgBox.setCheckBox(cb);
+           connect(cb, &QCheckBox::toggled, &settings, &Settings::setShowSingerRemovalWarning);
+           msgBox.exec();
+           if (msgBox.clickedButton() != yesButton)
+           {
+               return;
+           }
+       }
+       int singerId = index.sibling(index.row(),0).data().toInt();
+       qModel->setSinger(-1);
+       if (rotModel->currentSinger() == singerId)
+       {
+           rotModel->setCurrentSinger(-1);
+           rotDelegate->setCurrentSinger(-1);
+       }
+       rotModel->singerDelete(singerId);
+       ui->tableViewRotation->clearSelection();
+       ui->tableViewQueue->clearSelection();
+    });
+
+    scutDeleteSong = new QShortcut(QKeySequence(QKeySequence::Delete), ui->tableViewQueue, nullptr, nullptr, Qt::WidgetShortcut);
+    connect(scutDeleteSong, &QShortcut::activated, [&] () {
+        qInfo() << "scutDeleteSong fired";
+        auto index = ui->tableViewQueue->currentIndex();
+        if ((settings.showQueueRemovalWarning()) && (!qModel->getSongPlayed(index.sibling(index.row(),0).data().toInt())))
+        {
+            QMessageBox msgBox(this);
+            QCheckBox *cb = new QCheckBox("Show this warning in the future");
+            cb->setChecked(settings.showQueueRemovalWarning());
+            msgBox.setIcon(QMessageBox::Warning);
+            msgBox.setText("Removing un-played song from queue");
+            msgBox.setInformativeText("This song has not been played yet, are you sure you want to remove it?");
+            QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
+            msgBox.addButton(QMessageBox::Cancel);
+            msgBox.setCheckBox(cb);
+            connect(cb, &QCheckBox::toggled, &settings, &Settings::setShowQueueRemovalWarning);
+            msgBox.exec();
+            if (msgBox.clickedButton() == yesButton)
+            {
+                qModel->songDelete(index.sibling(index.row(),0).data().toInt());
+            }
+        }
+        else
+        {
+            qModel->songDelete(index.sibling(index.row(),0).data().toInt());
+        }
+    });
+
+    scutDeletePlSong = new QShortcut(QKeySequence(QKeySequence::Delete), ui->tableViewBmPlaylist, nullptr, nullptr, Qt::WidgetShortcut);
+    connect(scutDeletePlSong, &QShortcut::activated, [&] () {
+        qInfo() << "scutDeleteSong fired";
+        auto index = ui->tableViewBmPlaylist->currentIndex();
+        if (bmCurrentPosition == index.row())
+        {
+            if (bmMediaBackend.state() != MediaBackend::PlayingState && bmMediaBackend.state() != MediaBackend::PausedState)
+            {
+                bmPlDelegate->setCurrentSong(-1);
+                bmCurrentPosition = -1;
+                bmPlModel->deleteSong(index.row());
+                return;
+            }
+            QMessageBox msgBox;
+            msgBox.setWindowTitle("Unable to remove");
+            msgBox.setText("The playlist song you are trying to remove is currently playing and can not be removed.");
+            msgBox.exec();
+            return;
+        }
+        int pos = index.row();
+        bmPlModel->deleteSong(pos);
+        if (bmCurrentPosition > pos)
+        {
+            qInfo() << "deleted item, moving curpos - delPos:" << pos << " curPos:" << bmCurrentPosition;
+            bmCurrentPosition--;
+            bmPlDelegate->setCurrentSong(bmCurrentPosition);
+        }
+        QString nextSong;
+        if (!ui->checkBoxBmBreak->isChecked())
+        {
+        if (bmCurrentPosition == bmPlModel->rowCount() - 1)
+            nextSong = bmPlModel->index(0, 3).data().toString() + " - " + bmPlModel->index(0, 4).data().toString();
+        else
+            nextSong = bmPlModel->index(bmCurrentPosition + 1, 3).data().toString() + " - " + bmPlModel->index(bmCurrentPosition + 1, 4).data().toString();
+        }
+        else
+            nextSong = "None - Breaking after current song";
+        ui->labelBmNext->setText(nextSong);
+    });
+
     connect(&settings, &Settings::shortcutsChanged, this, &MainWindow::shortcutsUpdated);
 }
 

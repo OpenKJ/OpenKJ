@@ -161,6 +161,9 @@ private:
     QShortcut *scutLoadRegularSinger;
     QShortcut *scutRequests;
     QShortcut *scutToggleSingerWindow;
+    QShortcut *scutDeleteSinger;
+    QShortcut *scutDeleteSong;
+    QShortcut *scutDeletePlSong;
     void addSfxButton(const QString &filename, const QString &label, const bool &reset = false);
     void refreshSfxButtons();
     SfxEntry lastRtClickedSfxBtn;
