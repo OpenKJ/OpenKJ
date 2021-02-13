@@ -346,7 +346,6 @@ void MainWindow::setupShortcuts()
 
     scutDeleteSong = new QShortcut(QKeySequence(QKeySequence::Delete), ui->tableViewQueue, nullptr, nullptr, Qt::WidgetShortcut);
     connect(scutDeleteSong, &QShortcut::activated, [&] () {
-        qInfo() << "scutDeleteSong fired";
         auto indexes = ui->tableViewQueue->selectionModel()->selectedRows(0);
         bool containsUnplayed{false};
         std::vector<int> songIds;
@@ -378,41 +377,53 @@ void MainWindow::setupShortcuts()
 
     scutDeletePlSong = new QShortcut(QKeySequence(QKeySequence::Delete), ui->tableViewBmPlaylist, nullptr, nullptr, Qt::WidgetShortcut);
     connect(scutDeletePlSong, &QShortcut::activated, [&] () {
-        qInfo() << "scutDeleteSong fired";
-        auto index = ui->tableViewBmPlaylist->currentIndex();
-        if (bmCurrentPosition == index.row())
+        auto rows = ui->tableViewBmPlaylist->selectionModel()->selectedRows(0);
+        std::vector<int> positions;
+        bool curPlayingSelected{false};
+        std::for_each(rows.begin(), rows.end(), [&] (auto index) {
+            positions.emplace_back(index.row());
+            if (bmCurrentPosition == index.row())
+                curPlayingSelected = true;
+        });
+        auto state = bmMediaBackend.state();
+        if (curPlayingSelected && (state == MediaBackend::PlayingState || state == MediaBackend::PausedState))
         {
-            if (bmMediaBackend.state() != MediaBackend::PlayingState && bmMediaBackend.state() != MediaBackend::PausedState)
-            {
-                bmPlDelegate->setCurrentSong(-1);
-                bmCurrentPosition = -1;
-                bmPlModel->deleteSong(index.row());
-                return;
-            }
             QMessageBox msgBox;
             msgBox.setWindowTitle("Unable to remove");
             msgBox.setText("The playlist song you are trying to remove is currently playing and can not be removed.");
             msgBox.exec();
             return;
         }
-        int pos = index.row();
-        bmPlModel->deleteSong(pos);
-        if (bmCurrentPosition > pos)
-        {
-            qInfo() << "deleted item, moving curpos - delPos:" << pos << " curPos:" << bmCurrentPosition;
-            bmCurrentPosition--;
-            bmPlDelegate->setCurrentSong(bmCurrentPosition);
-        }
+        std::sort(positions.begin(), positions.end());
+        std::reverse(positions.begin(), positions.end());
+        std::for_each(positions.begin(), positions.end(), [&] (auto position) {
+            if (bmCurrentPosition == position)
+            {
+                bmPlDelegate->setCurrentSong(-1);
+                bmCurrentPosition = -1;
+                bmPlModel->deleteSong(position);
+                return;
+            }
+            bmPlModel->deleteSong(position);
+            if (bmCurrentPosition > position)
+            {
+                bmCurrentPosition--;
+                bmPlDelegate->setCurrentSong(bmCurrentPosition);
+            }
+        });
+
         QString nextSong;
         if (!ui->checkBoxBmBreak->isChecked())
         {
-        if (bmCurrentPosition == bmPlModel->rowCount() - 1)
-            nextSong = bmPlModel->index(0, 3).data().toString() + " - " + bmPlModel->index(0, 4).data().toString();
-        else
-            nextSong = bmPlModel->index(bmCurrentPosition + 1, 3).data().toString() + " - " + bmPlModel->index(bmCurrentPosition + 1, 4).data().toString();
+            if (bmCurrentPosition == bmPlModel->rowCount() - 1)
+                nextSong = bmPlModel->index(0, 3).data().toString() + " - " + bmPlModel->index(0, 4).data().toString();
+            else
+                nextSong = bmPlModel->index(bmCurrentPosition + 1, 3).data().toString() + " - " + bmPlModel->index(bmCurrentPosition + 1, 4).data().toString();
         }
         else
+        {
             nextSong = "None - Breaking after current song";
+        }
         ui->labelBmNext->setText(nextSong);
     });
 
@@ -935,6 +946,30 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->menuTesting->menuAction()->setVisible(settings.testingEnabled());
     connect(&kMediaBackend, &MediaBackend::newVideoFrame, this, &MainWindow::videoFrameReceived);
     connect(&bmMediaBackend, &MediaBackend::newVideoFrame, this, &MainWindow::videoFrameReceived);
+
+    connect(ui->tableViewQueue->selectionModel(), &QItemSelectionModel::selectionChanged, [&] () {
+        if (ui->tableViewQueue->selectionModel()->selectedRows().size() == 0)
+        {
+            ui->btnQBottom->setEnabled(false);
+            ui->btnQDown->setEnabled(false);
+            ui->btnQTop->setEnabled(false);
+            ui->btnQUp->setEnabled(false);
+        }
+        else if (ui->tableViewQueue->selectionModel()->selectedRows().size() == 1)
+        {
+            ui->btnQBottom->setEnabled(true);
+            ui->btnQDown->setEnabled(true);
+            ui->btnQTop->setEnabled(true);
+            ui->btnQUp->setEnabled(true);
+        }
+        else
+        {
+            ui->btnQBottom->setEnabled(true);
+            ui->btnQDown->setEnabled(false);
+            ui->btnQTop->setEnabled(true);
+            ui->btnQUp->setEnabled(false);
+        }
+    });
 }
 
 void MainWindow::play(const QString &karaokeFilePath, const bool &k2k)
@@ -1944,6 +1979,13 @@ void MainWindow::renameSinger()
     }
 }
 
+void MainWindow::on_tableViewBmPlaylist_customContextMenuRequested([[maybe_unused]]const QPoint &pos)
+{
+    QMenu contextMenu(this);
+    contextMenu.addAction("Delete", scutDeletePlSong, &QShortcut::activated);
+    contextMenu.exec(QCursor::pos());
+}
+
 void MainWindow::on_tableViewQueue_customContextMenuRequested(const QPoint &pos)
 {
     int selCount = ui->tableViewQueue->selectionModel()->selectedRows().size();
@@ -1957,8 +1999,11 @@ void MainWindow::on_tableViewQueue_customContextMenuRequested(const QPoint &pos)
             dlgKeyChange->setActiveSong(m_rtClickQueueSongId);
             QMenu contextMenu(this);
             contextMenu.addAction("Preview", this, &MainWindow::previewCdg);
+            contextMenu.addSeparator();
             contextMenu.addAction("Set Key Change", this, &MainWindow::setKeyChange);
             contextMenu.addAction("Toggle played", this, &MainWindow::toggleQueuePlayed);
+            contextMenu.addSeparator();
+            contextMenu.addAction("Delete", scutDeleteSong, &QShortcut::activated);
             contextMenu.exec(QCursor::pos());
         }
     }
@@ -1967,6 +2012,9 @@ void MainWindow::on_tableViewQueue_customContextMenuRequested(const QPoint &pos)
         QMenu contextMenu(this);
         contextMenu.addAction("Set Played", this, &MainWindow::setMultiPlayed);
         contextMenu.addAction("Set Unplayed", this, &MainWindow::setMultiUnplayed);
+        contextMenu.addSeparator();
+        contextMenu.addAction("Delete", scutDeleteSong, &QShortcut::activated);
+
         contextMenu.exec(QCursor::pos());
     }
 }
@@ -3707,12 +3755,14 @@ void MainWindow::on_btnRotBottom_clicked()
 
 void MainWindow::on_btnQTop_clicked()
 {
-    if (ui->tableViewQueue->selectionModel()->selectedRows().count() < 1)
-        return;
-    int curPos = ui->tableViewQueue->selectionModel()->selectedRows().at(0).row();
-    if (curPos == 0)
-        return;
-    qModel->songMove(curPos, 0);
+    auto indexes = ui->tableViewQueue->selectionModel()->selectedRows();
+    std::vector<int> songIds;
+    std::for_each(indexes.begin(), indexes.end(), [&] (QModelIndex index) {
+        songIds.emplace_back(index.data().toInt());
+    });
+    std::for_each(songIds.rbegin(), songIds.rend(), [&] (auto songId) {
+       qModel->songMoveSongId(songId, 0);
+    });
     ui->tableViewQueue->selectRow(0);
     rotationDataChanged();
 }
@@ -3743,13 +3793,14 @@ void MainWindow::on_btnQDown_clicked()
 
 void MainWindow::on_btnQBottom_clicked()
 {
-    if (ui->tableViewQueue->selectionModel()->selectedRows().count() < 1)
-        return;
-    int curPos = ui->tableViewQueue->selectionModel()->selectedRows().at(0).row();
-    if (curPos == ui->tableViewQueue->model()->rowCount() - 1)
-        return;
-    qModel->songMove(curPos, ui->tableViewQueue->model()->rowCount() - 1);
-    ui->tableViewQueue->selectRow(ui->tableViewQueue->model()->rowCount() - 1);
+    auto indexes = ui->tableViewQueue->selectionModel()->selectedRows();
+    std::vector<int> songIds;
+    std::for_each(indexes.begin(), indexes.end(), [&] (QModelIndex index) {
+        songIds.emplace_back(index.data().toInt());
+    });
+    std::for_each(songIds.begin(), songIds.end(), [&] (auto songId) {
+       qModel->songMoveSongId(songId, qModel->rowCount() - 1);
+    });
     rotationDataChanged();
 }
 
@@ -4194,3 +4245,5 @@ void MainWindow::on_btnToggleCdgWindow_clicked(bool checked)
         cdgWindow->show();
     }
 }
+
+

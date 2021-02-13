@@ -337,6 +337,8 @@ private slots:
     void on_btnToggleCdgWindow_clicked(bool checked);
     void shortcutsUpdated();
 
+    void on_tableViewBmPlaylist_customContextMenuRequested(const QPoint &pos);
+
 protected:
     void closeEvent(QCloseEvent *event);
     void resizeEvent(QResizeEvent *event);

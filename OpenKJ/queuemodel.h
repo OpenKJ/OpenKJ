@@ -41,6 +41,7 @@ public:
     bool getSongPlayed(int songId);
     int getSongKey(int songId);
     void songMove(int oldPosition, int newPosition);
+    void songMoveSongId(int songId, int newPosition);
     void songAdd(int songId);
     void songInsert(int songId, int position);
     void songDelete(int songId);

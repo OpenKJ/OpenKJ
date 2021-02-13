@@ -732,6 +732,9 @@ QPushButton:default {
                       </item>
                       <item>
                        <widget class="QPushButton" name="btnQTop">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -770,6 +773,9 @@ QPushButton:default {
                       </item>
                       <item>
                        <widget class="QPushButton" name="btnQUp">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -808,6 +814,9 @@ QPushButton:default {
                       </item>
                       <item>
                        <widget class="QPushButton" name="btnQDown">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -846,6 +855,9 @@ QPushButton:default {
                       </item>
                       <item>
                        <widget class="QPushButton" name="btnQBottom">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -2837,6 +2849,9 @@ QPushButton:default {
                 <widget class="QTableView" name="tableViewBmPlaylist">
                  <property name="focusPolicy">
                   <enum>Qt::WheelFocus</enum>
+                 </property>
+                 <property name="contextMenuPolicy">
+                  <enum>Qt::CustomContextMenu</enum>
                  </property>
                  <property name="frameShape">
                   <enum>QFrame::StyledPanel</enum>

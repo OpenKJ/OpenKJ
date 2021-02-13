@@ -22,6 +22,9 @@
 #include <QSqlQuery>
 #include <QDebug>
 #include <QUrl>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonDocument>
 
 QueueModel::QueueModel(QObject *parent, QSqlDatabase db) :
     QSqlRelationalTableModel(parent, db)
@@ -105,6 +108,11 @@ void QueueModel::songMove(int oldPosition, int newPosition)
     select();
 }
 
+void QueueModel::songMoveSongId(int songId, int newPosition)
+{
+    songMove(getSongPosition(songId), newPosition);
+}
+
 void QueueModel::songAdd(int songId)
 {
     QSqlQuery query;
@@ -162,13 +170,15 @@ QStringList QueueModel::mimeTypes() const
     QStringList types;
     types << "integer/songid";
     types << "integer/queuepos";
+    types << "text/queueitems";
     return types;
 }
 
 bool QueueModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
 {
-    Q_UNUSED(action);
     Q_UNUSED(column);
+
+    qInfo() <<"qdrop: action: " << action << " format: " << data->formats();
 
     if (singer() == -1)
     {
@@ -176,6 +186,36 @@ bool QueueModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int 
         emit songDroppedWithoutSinger();
         return false;
     }
+
+    if (action == Qt::MoveAction && data->hasFormat("text/queueitems"))
+    {
+        QJsonDocument jDoc = QJsonDocument::fromJson(data->data("text/queueitems"));
+        QJsonArray jArr = jDoc.array();
+        auto ids = jArr.toVariantList();
+        int droprow{0};
+        if (parent.row() >= 0)
+            droprow = parent.row();
+        else if (row >= 0)
+            droprow = row;
+        else
+            droprow = rowCount() - 1;
+        if (getSongPosition(ids.at(0).toInt()) > droprow)
+            std::reverse(ids.begin(),ids.end());
+        std::for_each(ids.begin(), ids.end(), [&] (auto val) {
+            qInfo() << "val: " << val.toInt();
+
+
+            int oldPosition = getSongPosition(val.toInt());
+            if (oldPosition < droprow && droprow != rowCount() - 1)
+                songMoveSongId(val.toInt(), droprow - 1);
+            else
+                songMoveSongId(val.toInt(), droprow);
+        });
+        sort(9, Qt::AscendingOrder);
+        return true;
+    }
+
+
     if (data->hasFormat("integer/queuepos"))
     {
         int droprow;
@@ -257,6 +297,20 @@ QMimeData *QueueModel::mimeData(const QModelIndexList &indexes) const
 {
     QMimeData *mimeData = new QMimeData();
     mimeData->setData("integer/queuepos", indexes.at(0).sibling(indexes.at(0).row(), 9).data().toByteArray().data());
+    if (indexes.size() > 1)
+    {
+        QVector<int> songIds;
+        QJsonArray jArr;
+        std::for_each(indexes.begin(), indexes.end(), [&] (QModelIndex index) {
+            // Just using 3 here because it's the first column that's included in the index list
+            if (index.column() != 3)
+                return;
+            jArr.append(index.sibling(index.row(), 0).data().toInt());
+        });
+        QJsonDocument jDoc(jArr);
+        qInfo() << "json mime data: " << jDoc.toJson();
+        mimeData->setData("text/queueitems", jDoc.toJson());
+    }
     return mimeData;
 }
 
