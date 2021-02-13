@@ -92,6 +92,8 @@ signals:
     void regularAddError(QString errorText);
     void rotationModified();
     void regularsModified();
+    void singersMoved(const int startRow, const int startCol, const int endRow, const int endCol);
+
 
 public slots:
     void queueModified(int singerId);

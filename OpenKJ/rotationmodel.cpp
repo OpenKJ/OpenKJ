@@ -22,6 +22,8 @@
 #include <QSqlQuery>
 #include <QDebug>
 #include <QDateTime>
+#include <QJsonDocument>
+#include <QJsonArray>
 #include "settings.h"
 
 extern Settings settings;
@@ -522,6 +524,7 @@ QStringList RotationModel::mimeTypes() const
     QStringList types;
     types << "integer/songid";
     types << "integer/rotationpos";
+    types << "application/rotsingers";
     return types;
 }
 
@@ -529,6 +532,19 @@ QMimeData *RotationModel::mimeData(const QModelIndexList &indexes) const
 {
     QMimeData *mimeData = new QMimeData();
     mimeData->setData("integer/rotationpos", indexes.at(0).sibling(indexes.at(0).row(), 2).data().toByteArray().data());
+    if (indexes.size() > 1)
+    {
+        QJsonArray jArr;
+        std::for_each(indexes.begin(), indexes.end(), [&] (QModelIndex index) {
+            // Just using 1 here because it's the first column that's included in the index list
+            if (index.column() != 1)
+                return;
+            jArr.append(index.sibling(index.row(), 0).data().toInt());
+        });
+        QJsonDocument jDoc(jArr);
+        mimeData->setData("application/rotsingers", jDoc.toJson());
+        qInfo() << "Rotation singers mime data: " << jDoc.toJson();
+    }
     return mimeData;
 }
 
@@ -549,6 +565,45 @@ bool RotationModel::dropMimeData(const QMimeData *data, Qt::DropAction action, i
     Q_UNUSED(action);
     Q_UNUSED(column);
 
+    if (action == Qt::MoveAction && data->hasFormat("application/rotsingers"))
+    {
+        QJsonDocument jDoc = QJsonDocument::fromJson(data->data("application/rotsingers"));
+        QJsonArray jArr = jDoc.array();
+        auto ids = jArr.toVariantList();
+        qInfo() << "mime data dropped: " << jDoc.toJson();
+        int droprow{0};
+        if (parent.row() >= 0)
+            droprow = parent.row();
+        else if (row >= 0)
+            droprow = row;
+        else
+            droprow = rowCount() - 1;
+        if (getSingerPosition(ids.at(0).toInt()) > droprow)
+            std::reverse(ids.begin(),ids.end());
+        std::for_each(ids.begin(), ids.end(), [&] (auto val) {
+            singerMove(getSingerPosition(val.toInt()), droprow);
+        });
+        qInfo() << "droprow: " << droprow;
+        emit rotationModified();
+        if (droprow == rowCount() - 1)
+        {
+            qInfo() << "moving to bottom";
+            // moving to bottom
+            emit singersMoved(rowCount() - ids.size(), 0, rowCount() - 1, columnCount() - 1);
+        }
+        else if (getSingerPosition(ids.at(0).toInt()) < droprow)
+        {
+            // moving down
+            emit singersMoved(droprow - ids.size() + 1, 0, droprow, columnCount() - 1);
+        }
+        else
+        {
+            // moving up
+            emit singersMoved(droprow, 0, droprow + ids.size() - 1, columnCount() - 1);
+        }
+        return true;
+    }
+
     if (data->hasFormat("integer/rotationpos"))
     {
         int droprow;
@@ -561,7 +616,6 @@ bool RotationModel::dropMimeData(const QMimeData *data, Qt::DropAction action, i
         int oldPosition;
         QByteArray bytedata = data->data("integer/rotationpos");
         oldPosition =  QString(bytedata.data()).toInt();
-//        if ((droprow == oldPosition + 1) || (droprow == oldPosition))
         if (droprow == oldPosition)
         {
             // Singer dropped, but would result in same position, ignore to prevent rotation corruption.
@@ -569,11 +623,13 @@ bool RotationModel::dropMimeData(const QMimeData *data, Qt::DropAction action, i
         }
         if ((oldPosition < droprow) && (droprow != rowCount() - 1))
             singerMove(oldPosition, droprow);
-            //singerMove(oldPosition, droprow - 1);
         else
             singerMove(oldPosition, droprow);
+        emit singersMoved(droprow, 0, droprow, columnCount() - 1);
         return true;
     }
+
+
     if (data->hasFormat("integer/songid"))
     {
         unsigned int dropRow;

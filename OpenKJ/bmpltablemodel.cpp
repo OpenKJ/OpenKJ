@@ -24,6 +24,8 @@
 #include <QDataStream>
 #include <algorithm>
 #include <random>
+#include <QJsonDocument>
+#include <QJsonArray>
 //#include <QRandomGenerator>
 
 BmPlTableModel::BmPlTableModel(QObject *parent, QSqlDatabase db) :
@@ -164,10 +166,56 @@ qint32 BmPlTableModel::getPlSongIdAtPos(qint32 position)
     return -1;
 }
 
+int BmPlTableModel::getSongPositionById(const int plSongId)
+{
+    QSqlQuery query("SELECT position FROM bmplsongs WHERE plsongid = " + QString::number(plSongId) + " LIMIT 1");
+    if (query.first())
+        return query.value(0).toInt();
+    return -1;
+}
+
 bool BmPlTableModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
 {
     Q_UNUSED(action)
     Q_UNUSED(column)
+    if (data->hasFormat("application/plsongids") && action == Qt::MoveAction)
+    {
+        QJsonDocument jDoc = QJsonDocument::fromJson(data->data("application/plsongids"));
+        QJsonArray jArr = jDoc.array();
+        auto ids = jArr.toVariantList();
+        int droprow{0};
+        if (parent.row() >= 0)
+            droprow = parent.row();
+        else if (row >= 0)
+            droprow = row;
+        else
+            droprow = rowCount() - 1;
+        if (getSongPositionById(ids.at(0).toInt()) > droprow)
+            std::reverse(ids.begin(),ids.end());
+        std::for_each(ids.begin(), ids.end(), [&] (auto val) {
+            int oldPosition = getSongPositionById(val.toInt());
+            if (oldPosition < droprow && droprow != rowCount() - 1)
+                moveSong(oldPosition, droprow - 1);
+            else
+                moveSong(oldPosition, droprow);
+        });
+        if (droprow == rowCount() - 1)
+        {
+            // moving to bottom
+            emit bmPlSongsMoved(droprow - ids.size() + 1, 0, rowCount() - 1, columnCount() - 1);
+        }
+        else if (getSongPositionById(ids.at(0).toInt()) < droprow)
+        {
+            // moving down
+            emit bmPlSongsMoved(droprow - ids.size(), 0, droprow - 1, columnCount() - 1);
+        }
+        else
+        {
+            // moving up
+            emit bmPlSongsMoved(droprow, 0, droprow + ids.size() - 1, columnCount() - 1);
+        }
+        return true;
+    }
     if (data->hasFormat("integer/queuepos"))
     {
         int droprow;
@@ -214,6 +262,7 @@ QStringList BmPlTableModel::mimeTypes() const
     types << "integer/songid";
     types << "integer/queuepos";
     types << "application/vnd.bmsongid.list";
+    types << "application/plsongids";
     return types;
 }
 
@@ -236,6 +285,18 @@ QMimeData *BmPlTableModel::mimeData(const QModelIndexList &indexes) const
 {
     QMimeData *mimeData = new QMimeData();
     mimeData->setData("integer/queuepos", indexes.at(0).sibling(indexes.at(0).row(), 2).data().toByteArray().data());
+    if (indexes.size() > 1)
+    {
+        QJsonArray jArr;
+        std::for_each(indexes.begin(), indexes.end(), [&] (QModelIndex index) {
+            // Just using 3 here because it's the first column that's included in the index list
+            if (index.column() != 3)
+                return;
+            jArr.append(index.sibling(index.row(), 0).data().toInt());
+        });
+        QJsonDocument jDoc(jArr);
+        mimeData->setData("application/plsongids", jDoc.toJson());
+    }
     return mimeData;
 }
 

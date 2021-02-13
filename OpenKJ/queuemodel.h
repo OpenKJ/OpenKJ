@@ -63,6 +63,8 @@ signals:
     void queueModified(int singerId);
     void songDroppedWithoutSinger();
     void filesDroppedOnSinger(QList<QUrl> urls, int singerId, int position);
+    void qSongsMoved(const int startRow, const int startCol, const int endRow, const int endCol);
+
 
 public slots:
     void songAddSlot(int songId, int singerId, int keyChg = 0);

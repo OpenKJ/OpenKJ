@@ -202,16 +202,27 @@ bool QueueModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int 
         if (getSongPosition(ids.at(0).toInt()) > droprow)
             std::reverse(ids.begin(),ids.end());
         std::for_each(ids.begin(), ids.end(), [&] (auto val) {
-            qInfo() << "val: " << val.toInt();
-
-
             int oldPosition = getSongPosition(val.toInt());
             if (oldPosition < droprow && droprow != rowCount() - 1)
                 songMoveSongId(val.toInt(), droprow - 1);
             else
                 songMoveSongId(val.toInt(), droprow);
         });
-        sort(9, Qt::AscendingOrder);
+        if (droprow == rowCount() - 1)
+        {
+            // moving to bottom
+            emit qSongsMoved(droprow - ids.size() + 1, 0, rowCount() - 1, columnCount() - 1);
+        }
+        else if (getSongPosition(ids.at(0).toInt()) < droprow)
+        {
+            // moving down
+            emit qSongsMoved(droprow - ids.size(), 0, droprow - 1, columnCount() - 1);
+        }
+        else
+        {
+            // moving up
+            emit qSongsMoved(droprow, 0, droprow + ids.size() - 1, columnCount() - 1);
+        }
         return true;
     }
 
@@ -299,7 +310,6 @@ QMimeData *QueueModel::mimeData(const QModelIndexList &indexes) const
     mimeData->setData("integer/queuepos", indexes.at(0).sibling(indexes.at(0).row(), 9).data().toByteArray().data());
     if (indexes.size() > 1)
     {
-        QVector<int> songIds;
         QJsonArray jArr;
         std::for_each(indexes.begin(), indexes.end(), [&] (QModelIndex index) {
             // Just using 3 here because it's the first column that's included in the index list
@@ -308,7 +318,6 @@ QMimeData *QueueModel::mimeData(const QModelIndexList &indexes) const
             jArr.append(index.sibling(index.row(), 0).data().toInt());
         });
         QJsonDocument jDoc(jArr);
-        qInfo() << "json mime data: " << jDoc.toJson();
         mimeData->setData("text/queueitems", jDoc.toJson());
     }
     return mimeData;

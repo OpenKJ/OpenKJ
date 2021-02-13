@@ -313,33 +313,50 @@ void MainWindow::setupShortcuts()
 
     scutDeleteSinger = new QShortcut(QKeySequence(QKeySequence::Delete), ui->tableViewRotation, nullptr, nullptr, Qt::WidgetShortcut);
     connect(scutDeleteSinger, &QShortcut::activated, [&] () {
-       auto index = ui->tableViewRotation->currentIndex();
-       if (settings.showSingerRemovalWarning())
-       {
-           QMessageBox msgBox(this);
-           QCheckBox *cb = new QCheckBox("Show this warning in the future");
-           cb->setChecked(settings.showSingerRemovalWarning());
-           msgBox.setIcon(QMessageBox::Warning);
-           msgBox.setText("Are you sure you want to remove this singer?");
-           msgBox.setInformativeText("Unless this singer is a tracked regular, you will be unable retrieve any queue data for this singer once they are deleted.");
-           QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
-           msgBox.addButton(QMessageBox::Cancel);
-           msgBox.setCheckBox(cb);
-           connect(cb, &QCheckBox::toggled, &settings, &Settings::setShowSingerRemovalWarning);
-           msgBox.exec();
-           if (msgBox.clickedButton() != yesButton)
-           {
-               return;
-           }
+        auto indexes = ui->tableViewRotation->selectionModel()->selectedRows(0);
+        std::vector<int> singerIds;
+        std::for_each(indexes.begin(), indexes.end(), [&] (auto index) {
+            singerIds.emplace_back(index.data().toInt());
+        });
+        if (singerIds.size() == 0)
+            return;
+        if (settings.showSingerRemovalWarning())
+        {
+            QMessageBox msgBox(this);
+            QCheckBox *cb = new QCheckBox("Show this warning in the future");
+            cb->setChecked(settings.showSingerRemovalWarning());
+            msgBox.setIcon(QMessageBox::Warning);
+            if (singerIds.size() == 1)
+            {
+                msgBox.setText("Are you sure you want to remove this singer?");
+                msgBox.setInformativeText("Unless this singer is a tracked regular, you will be unable retrieve any queue data for this singer once they are deleted.");
+            }
+            else
+            {
+                msgBox.setText("Are you sure you want to remove these singers?");
+                msgBox.setInformativeText("Unless these singers are tracked regulars, you will be unable retrieve any queue data for them once they are deleted.");
+            }
+            QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
+            msgBox.addButton(QMessageBox::Cancel);
+            msgBox.setCheckBox(cb);
+            connect(cb, &QCheckBox::toggled, &settings, &Settings::setShowSingerRemovalWarning);
+            msgBox.exec();
+            if (msgBox.clickedButton() != yesButton)
+            {
+                return;
+            }
        }
-       int singerId = index.sibling(index.row(),0).data().toInt();
+
        qModel->setSinger(-1);
-       if (rotModel->currentSinger() == singerId)
+       std::for_each(singerIds.begin(), singerIds.end(), [&] (auto singerId)
        {
-           rotModel->setCurrentSinger(-1);
-           rotDelegate->setCurrentSinger(-1);
-       }
-       rotModel->singerDelete(singerId);
+           if (rotModel->currentSinger() == singerId)
+           {
+               rotModel->setCurrentSinger(-1);
+               rotDelegate->setCurrentSinger(-1);
+           }
+           rotModel->singerDelete(singerId);
+       });
        ui->tableViewRotation->clearSelection();
        ui->tableViewQueue->clearSelection();
     });
@@ -969,6 +986,75 @@ MainWindow::MainWindow(QWidget *parent) :
             ui->btnQTop->setEnabled(true);
             ui->btnQUp->setEnabled(false);
         }
+    });
+
+    connect(ui->tableViewBmPlaylist->selectionModel(), &QItemSelectionModel::selectionChanged, [&] () {
+        if (ui->tableViewBmPlaylist->selectionModel()->selectedRows().size() == 0)
+        {
+            ui->btnPlBottom->setEnabled(false);
+            ui->btnPlDown->setEnabled(false);
+            ui->btnPlTop->setEnabled(false);
+            ui->btnPlUp->setEnabled(false);
+        }
+        else if (ui->tableViewBmPlaylist->selectionModel()->selectedRows().size() == 1)
+        {
+            ui->btnPlBottom->setEnabled(true);
+            ui->btnPlDown->setEnabled(true);
+            ui->btnPlTop->setEnabled(true);
+            ui->btnPlUp->setEnabled(true);
+        }
+        else
+        {
+            ui->btnPlBottom->setEnabled(true);
+            ui->btnPlDown->setEnabled(false);
+            ui->btnPlTop->setEnabled(true);
+            ui->btnPlUp->setEnabled(false);
+        }
+    });
+
+    connect(ui->tableViewRotation->selectionModel(), &QItemSelectionModel::selectionChanged, [&] () {
+        if (ui->tableViewRotation->selectionModel()->selectedRows().size() == 0)
+        {
+            ui->btnRotBottom->setEnabled(false);
+            ui->btnRotDown->setEnabled(false);
+            ui->btnRotTop->setEnabled(false);
+            ui->btnRotUp->setEnabled(false);
+        }
+        else if (ui->tableViewRotation->selectionModel()->selectedRows().size() == 1)
+        {
+            ui->btnRotBottom->setEnabled(true);
+            ui->btnRotDown->setEnabled(true);
+            ui->btnRotTop->setEnabled(true);
+            ui->btnRotUp->setEnabled(true);
+        }
+        else
+        {
+            ui->btnRotBottom->setEnabled(true);
+            ui->btnRotDown->setEnabled(false);
+            ui->btnRotTop->setEnabled(true);
+            ui->btnRotUp->setEnabled(false);
+        }
+    });
+
+    connect(bmPlModel, &BmPlTableModel::bmPlSongsMoved, [&] (auto startRow, auto startCol, auto endRow, auto endCol) {
+        auto topLeft = ui->tableViewBmPlaylist->model()->index(startRow, startCol);
+        auto bottomRight = ui->tableViewBmPlaylist->model()->index(endRow, endCol);
+        ui->tableViewBmPlaylist->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
+    });
+    connect(qModel, &QueueModel::qSongsMoved, [&] (auto startRow, auto startCol, auto endRow, auto endCol) {
+        auto topLeft = ui->tableViewQueue->model()->index(startRow, startCol);
+        auto bottomRight = ui->tableViewQueue->model()->index(endRow, endCol);
+        ui->tableViewQueue->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
+    });
+    connect(rotModel, &RotationModel::singersMoved, [&] (auto startRow, auto startCol, auto endRow, auto endCol) {
+        if (startRow == endRow)
+        {
+            //ui->tableViewRotation->selectRow(startRow);
+            return;
+        }
+        auto topLeft = ui->tableViewRotation->model()->index(startRow, startCol);
+        auto bottomRight = ui->tableViewRotation->model()->index(endRow, endCol);
+        ui->tableViewRotation->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
     });
 }
 
@@ -1937,10 +2023,17 @@ void MainWindow::on_tableViewRotation_customContextMenuRequested(const QPoint &p
     QModelIndex index = ui->tableViewRotation->indexAt(pos);
     if (index.isValid())
     {
-           m_rtClickRotationSingerId = index.sibling(index.row(),0).data().toInt();
-           QMenu contextMenu(this);
-           contextMenu.addAction("Rename", this, &MainWindow::renameSinger);
-           contextMenu.exec(QCursor::pos());
+        m_rtClickRotationSingerId = index.sibling(index.row(),0).data().toInt();
+        QMenu contextMenu(this);
+        if (ui->tableViewRotation->selectionModel()->selectedRows().size() > 1)
+        {
+            contextMenu.addAction("Delete", scutDeleteSinger, &QShortcut::activated);
+        }
+        else
+        {
+            contextMenu.addAction("Rename", this, &MainWindow::renameSinger);
+        }
+        contextMenu.exec(QCursor::pos());
     }
 }
 
@@ -3707,13 +3800,17 @@ void MainWindow::on_lineEditBmSearch_textChanged(const QString &arg1)
 
 void MainWindow::on_btnRotTop_clicked()
 {
-    if (ui->tableViewRotation->selectionModel()->selectedRows().count() < 1)
-        return;
-    int curPos = ui->tableViewRotation->selectionModel()->selectedRows().at(0).row();
-    if (curPos == 0)
-        return;
-    rotModel->singerMove(curPos, 0);
-    ui->tableViewRotation->selectRow(0);
+    auto indexes = ui->tableViewRotation->selectionModel()->selectedRows();
+    std::vector<int> singerIds;
+    std::for_each(indexes.begin(), indexes.end(), [&] (QModelIndex index) {
+        singerIds.emplace_back(index.data().toInt());
+    });
+    std::for_each(singerIds.rbegin(), singerIds.rend(), [&] (auto singerId) {
+       rotModel->singerMove(rotModel->getSingerPosition(singerId), 0);
+    });
+    auto topLeft = ui->tableViewRotation->model()->index(0, 0);
+    auto bottomRight = ui->tableViewRotation->model()->index(singerIds.size() - 1, rotModel->columnCount() - 1);
+    ui->tableViewRotation->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
     rotationDataChanged();
 }
 
@@ -3743,13 +3840,17 @@ void MainWindow::on_btnRotDown_clicked()
 
 void MainWindow::on_btnRotBottom_clicked()
 {
-    if (ui->tableViewRotation->selectionModel()->selectedRows().count() < 1)
-        return;
-    int curPos = ui->tableViewRotation->selectionModel()->selectedRows().at(0).row();
-    if (curPos == rotModel->singerCount - 1)
-        return;
-    rotModel->singerMove(curPos, rotModel->singerCount - 1);
-    ui->tableViewRotation->selectRow(rotModel->singerCount - 1);
+    auto indexes = ui->tableViewRotation->selectionModel()->selectedRows();
+    std::vector<int> singerIds;
+    std::for_each(indexes.begin(), indexes.end(), [&] (QModelIndex index) {
+        singerIds.emplace_back(index.data().toInt());
+    });
+    std::for_each(singerIds.begin(), singerIds.end(), [&] (auto songId) {
+       rotModel->singerMove(rotModel->getSingerPosition(songId), rotModel->rowCount() - 1);
+    });
+    auto topLeft = ui->tableViewRotation->model()->index(rotModel->rowCount() - singerIds.size(), 0);
+    auto bottomRight = ui->tableViewRotation->model()->index(rotModel->rowCount() - 1, rotModel->columnCount() - 1);
+    ui->tableViewRotation->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
     rotationDataChanged();
 }
 
@@ -3763,7 +3864,9 @@ void MainWindow::on_btnQTop_clicked()
     std::for_each(songIds.rbegin(), songIds.rend(), [&] (auto songId) {
        qModel->songMoveSongId(songId, 0);
     });
-    ui->tableViewQueue->selectRow(0);
+    auto topLeft = ui->tableViewQueue->model()->index(0, 0);
+    auto bottomRight = ui->tableViewQueue->model()->index(songIds.size() - 1, qModel->columnCount() - 1);
+    ui->tableViewQueue->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
     rotationDataChanged();
 }
 
@@ -3801,6 +3904,9 @@ void MainWindow::on_btnQBottom_clicked()
     std::for_each(songIds.begin(), songIds.end(), [&] (auto songId) {
        qModel->songMoveSongId(songId, qModel->rowCount() - 1);
     });
+    auto topLeft = ui->tableViewQueue->model()->index(qModel->rowCount() - songIds.size(), 0);
+    auto bottomRight = ui->tableViewQueue->model()->index(qModel->rowCount() - 1, qModel->columnCount() - 1);
+    ui->tableViewQueue->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
     rotationDataChanged();
 }
 
@@ -3815,13 +3921,17 @@ void MainWindow::on_btnBmPlRandomize_clicked()
 
 void MainWindow::on_btnPlTop_clicked()
 {
-    if (ui->tableViewBmPlaylist->selectionModel()->selectedRows().count() < 1)
-        return;
-    int curPos = ui->tableViewBmPlaylist->selectionModel()->selectedRows().at(0).row();
-    if (curPos == 0)
-        return;
-   bmPlModel->moveSong(curPos, 0);
-   ui->tableViewBmPlaylist->selectRow(0);
+    auto indexes = ui->tableViewBmPlaylist->selectionModel()->selectedRows();
+    std::vector<int> plSongIds;
+    std::for_each(indexes.begin(), indexes.end(), [&] (QModelIndex index) {
+        plSongIds.emplace_back(index.data().toInt());
+    });
+    std::for_each(plSongIds.rbegin(), plSongIds.rend(), [&] (auto plSongId) {
+       bmPlModel->moveSong(bmPlModel->getSongPositionById(plSongId), 0);
+    });
+    auto topLeft = ui->tableViewBmPlaylist->model()->index(0, 0);
+    auto bottomRight = ui->tableViewBmPlaylist->model()->index(plSongIds.size() - 1, 7);
+    ui->tableViewBmPlaylist->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
 }
 
 void MainWindow::on_btnPlUp_clicked()
@@ -3849,14 +3959,17 @@ void MainWindow::on_btnPlDown_clicked()
 
 void MainWindow::on_btnPlBottom_clicked()
 {
-    int maxpos = ui->tableViewBmPlaylist->model()->rowCount() - 1;
-    if (ui->tableViewBmPlaylist->selectionModel()->selectedRows().count() < 1)
-        return;
-    int curPos = ui->tableViewBmPlaylist->selectionModel()->selectedRows().at(0).row();
-    if (curPos == maxpos)
-        return;
-   bmPlModel->moveSong(curPos, maxpos);
-   ui->tableViewBmPlaylist->selectRow(maxpos);
+    auto indexes = ui->tableViewBmPlaylist->selectionModel()->selectedRows();
+    std::vector<int> plSongIds;
+    std::for_each(indexes.begin(), indexes.end(), [&] (QModelIndex index) {
+        plSongIds.emplace_back(index.data().toInt());
+    });
+    std::for_each(plSongIds.begin(), plSongIds.end(), [&] (auto plSongId) {
+       bmPlModel->moveSong(bmPlModel->getSongPositionById(plSongId), bmPlModel->rowCount() - 1);
+    });
+    auto topLeft = ui->tableViewBmPlaylist->model()->index(bmPlModel->rowCount() - plSongIds.size(), 0);
+    auto bottomRight = ui->tableViewBmPlaylist->model()->index(bmPlModel->rowCount() - 1, 7);
+    ui->tableViewBmPlaylist->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
 }
 
 void MainWindow::on_actionSound_Clips_triggered(const bool &checked)

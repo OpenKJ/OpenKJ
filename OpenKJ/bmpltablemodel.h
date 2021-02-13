@@ -24,6 +24,7 @@
 #include <QSqlRelationalTableModel>
 #include <QMimeData>
 #include <QStringList>
+#include <QItemSelection>
 
 class BmPlTableModel : public QSqlRelationalTableModel
 {
@@ -45,9 +46,11 @@ public:
     int numSongs();
     qint32 randomizePlaylist(qint32 currentpos);
     qint32 getPlSongIdAtPos(qint32 position);
+    int getSongPositionById(const int plSongId);
 
 signals:
     void bmSongMoved(int oldPos, int newPos);
+    void bmPlSongsMoved(const int startRow, const int startCol, const int endRow, const int endCol);
 
 public slots:
 

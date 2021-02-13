@@ -91,7 +91,7 @@
                     <bool>true</bool>
                    </property>
                    <property name="selectionMode">
-                    <enum>QAbstractItemView::SingleSelection</enum>
+                    <enum>QAbstractItemView::ExtendedSelection</enum>
                    </property>
                    <property name="selectionBehavior">
                     <enum>QAbstractItemView::SelectRows</enum>
@@ -765,9 +765,6 @@ QPushButton:default {
                       </item>
                       <item>
                        <widget class="QPushButton" name="btnQTop">
-                        <property name="enabled">
-                         <bool>false</bool>
-                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -806,9 +803,6 @@ QPushButton:default {
                       </item>
                       <item>
                        <widget class="QPushButton" name="btnQUp">
-                        <property name="enabled">
-                         <bool>false</bool>
-                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -847,9 +841,6 @@ QPushButton:default {
                       </item>
                       <item>
                        <widget class="QPushButton" name="btnQDown">
-                        <property name="enabled">
-                         <bool>false</bool>
-                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -888,9 +879,6 @@ QPushButton:default {
                       </item>
                       <item>
                        <widget class="QPushButton" name="btnQBottom">
-                        <property name="enabled">
-                         <bool>false</bool>
-                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
