@@ -39,7 +39,7 @@
 #include <memory>
 #include <array>
 #include <vector>
-#include "libCDG/src/cdgfilereader.h"
+#include "cdg/cdgfilereader.h"
 #include "settings.h"
 #include "gstreamer/gstreamerhelper.h"
 

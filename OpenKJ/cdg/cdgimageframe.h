@@ -2,13 +2,12 @@
 #define CDGIMAGEFRAME_H
 
 #include <QImage>
-#include <libCDG/include/libCDG.h>
+#include "libCDG.h"
 
 class CdgImageFrame
 {
 public:
     CdgImageFrame();
-    //~CdgImageFrame();
 
     // Modify image with subcode command. Return true if there are any visible changes to the image.
     bool applySubCode(const cdg::CDG_SubCode &subCode);
@@ -16,6 +15,7 @@ public:
     std::array<uchar, cdg::CDG_IMAGE_SIZE> getCroppedImagedata();
 
 private:
+
     QImage m_image;
 
     int m_bytesPerPixel;

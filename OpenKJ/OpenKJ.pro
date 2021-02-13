@@ -132,15 +132,15 @@ DEFINES += BUILD_DATE=__DATE__
 SOURCES += main.cpp\
     dlgaddsong.cpp \
     gstreamer/gstreamerhelper.cpp \
-    libCDG/src/cdgfilereader.cpp \
-    libCDG/src/cdgimageframe.cpp \
+    cdg/cdgfilereader.cpp \
+    cdg/cdgimageframe.cpp \
     mediabackend.cpp \
     miniz.c \
     mzarchive.cpp \
     okjutil.h \
     dlgvideopreview.cpp \
     mainwindow.cpp \
-    libCDG/src/libCDG.cpp \
+    sourcedirtablemodel.cpp \
     dbupdatethread.cpp \
     dlgkeychange.cpp \
     dlgdatabase.cpp \
@@ -305,9 +305,9 @@ HEADERS  += mainwindow.h \
     dlgaddsong.h \
     dlgvideopreview.h \
     gstreamer/gstreamerhelper.h \
-    libCDG/include/libCDG.h \
-    libCDG/src/cdgfilereader.h \
-    libCDG/src/cdgimageframe.h \
+    cdg/libCDG.h \
+    cdg/cdgfilereader.h \
+    cdg/cdgimageframe.h \
     mediabackend.h \
     miniz.h \
     mzarchive.h \

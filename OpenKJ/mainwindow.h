@@ -24,7 +24,7 @@
 #include <QMainWindow>
 #include "customlineedit.h"
 #include <QtSql>
-#include "libCDG/include/libCDG.h"
+//#include "libCDG/include/libCDG.h"
 #include <QSortFilterProxyModel>
 #include <QTemporaryDir>
 #include <QDir>

@@ -3,7 +3,7 @@
 
 #include <QString>
 #include "cdgimageframe.h"
-#include <libCDG/include/libCDG.h>
+#include "libCDG.h"
 
 class CdgFileReader
 {

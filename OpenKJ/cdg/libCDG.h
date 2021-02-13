@@ -48,11 +48,6 @@ const QSize FRAME_DIM_CROPPED = QSize(288, 192);
 // H x W + palette
 const int CDG_IMAGE_SIZE = 288 * 192 + 1024;
 
-enum ProcessingMode {
-    File,
-    QIODevice
-};
-
 enum TileBlockType {
     TileBlockNormal,
     TileBlockXOR
@@ -197,52 +192,5 @@ struct CdgScrollCmdData
 
 }
 
-class CdgParser
-{
-public:
-    CdgParser();
-    bool open(const QString &filename);
-    bool process();
-    void reset();
-    unsigned int duration();
-    unsigned int position();
-    bool isOpen();
-    unsigned int lastCDGUpdate();
-    int tempo();
-    void setTempo(const int percent);
-    std::size_t getFrameCount();
-    QString md5HashByTime(const unsigned int ms);
-    std::array<uchar, cdg::CDG_IMAGE_SIZE> videoFrameDataByIndex(const size_t frame);
-    std::array<uchar, cdg::CDG_IMAGE_SIZE> videoFrameDataByTime(const unsigned int ms);
-protected:
-private:
-    int m_tempo{100};
-    int m_bytesPerPixel;
-    int m_borderLRBytes;
-    int m_borderRBytesOffset;
-    int m_curVOffset;
-    int m_curHOffset;
-    QString m_cdgFile;
-    unsigned int m_position;
-    unsigned int m_lastCDGCommandMS;
-    bool m_isOpen;
-    bool m_lastCmdWasMempreset{false};
-    std::array<uchar, cdg::CDG_IMAGE_SIZE> blank;
-    inline constexpr static std::array<char,6> m_masks{0x20,0x10,0x08,0x04,0x02,0x01};
-    std::vector<std::array<uchar, cdg::CDG_IMAGE_SIZE>> m_frameArrays;
-    std::vector<size_t> m_frameLookupTable;
-    QImage m_image;
-    constexpr static char m_subcodeMask = 0x3F;
-    constexpr static char m_subcodeCommand = 0x09;
-
-    bool readCdgSubcodePacket(const cdg::CDG_SubCode &subCode);
-    void cmdScroll(const cdg::CdgScrollCmdData &scrollCmdData, const cdg::ScrollType type);
-    void cmdDefineTransparent(const std::array<char,16> &data);
-    bool cmdMemoryPreset(const cdg::CdgMemoryPresetData &memoryPreset);
-    void cmdBorderPreset(const cdg::CdgBorderPresetData &borderPreset);
-    void cmdTileBlock(const cdg::CdgTileBlockData &tileBlockPacket, const cdg::TileBlockType &type);
-    bool cmdColors(const cdg::CdgColorsData &data,const cdg::CdgColorTables &table);
-    std::array<uchar, cdg::CDG_IMAGE_SIZE> getCroppedImagedata();
-};
 
 #endif // LIBCDG_H
