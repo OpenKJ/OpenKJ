@@ -62,6 +62,7 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     ui->groupBoxShowDuration->setChecked(settings.cdgRemainEnabled());
     ui->cbxRotShowNextSong->setChecked(settings.rotationShowNextSong());
     ui->checkBoxCdgPrescaling->setChecked(settings.cdgPrescalingEnabled());
+    ui->checkBoxCurrentSingerTop->setChecked(settings.rotationAltSortOrder());
     audioOutputDevices = kAudioBackend->getOutputDevices();
     ui->comboBoxKAudioDevices->addItems(audioOutputDevices);
     ui->checkBoxShowAddDlgOnDbDblclk->setChecked(settings.dbDoubleClickAddsSong());
@@ -1007,4 +1008,9 @@ void DlgSettings::on_checkBoxCdgPrescaling_stateChanged(int arg1)
         settings.setCdgPrescalingEnabled(false);
     else
         settings.setCdgPrescalingEnabled(true);
+}
+
+void DlgSettings::on_checkBoxCurrentSingerTop_toggled(bool checked)
+{
+    settings.setRotationAltSortOrder(checked);
 }

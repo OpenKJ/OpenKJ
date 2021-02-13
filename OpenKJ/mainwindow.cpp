@@ -1183,6 +1183,8 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k)
             QString timeStamp = QDateTime::currentDateTime().toString("yyyy-MM-dd-hhmm");
             audioRecorder.record(curSinger + " - " + curArtist + " - " + curTitle + " - " + timeStamp);
         }
+
+
     }
     else if (kMediaBackend.state() == MediaBackend::PausedState)
     {
@@ -1423,10 +1425,9 @@ void MainWindow::on_tableViewRotation_doubleClicked(const QModelIndex &index)
                 audioRecorder.stop();
                 kMediaBackend.stop(true);
             }
- //           play(nextSongPath);
- //           kAudioBackend.setPitchShift(rotModel->nextSongKeyChg(singerId));
-            rotDelegate->setCurrentSinger(singerId);
-            rotModel->setCurrentSinger(singerId);
+            //           play(nextSongPath);
+            //           kAudioBackend.setPitchShift(rotModel->nextSongKeyChg(singerId));
+
             curSinger = rotModel->getSingerName(singerId);
             curArtist = rotModel->nextSongArtist(singerId);
             curTitle = rotModel->nextSongTitle(singerId);
@@ -1436,6 +1437,14 @@ void MainWindow::on_tableViewRotation_doubleClicked(const QModelIndex &index)
             play(nextSongPath, k2kTransition);
             kMediaBackend.setPitchShift(rotModel->nextSongKeyChg(singerId));
             qModel->songSetPlayed(rotModel->nextSongQueueId(singerId));
+            rotDelegate->setCurrentSinger(singerId);
+            rotModel->setCurrentSinger(singerId);
+            if (settings.rotationAltSortOrder())
+            {
+                auto curSingerPos = rotModel->getSingerPosition(singerId);
+                if (curSingerPos != 0)
+                    rotModel->singerMove(curSingerPos, 0);
+            }
         }
     }
 }
@@ -1536,17 +1545,25 @@ void MainWindow::on_tableViewQueue_doubleClicked(const QModelIndex &index)
         audioRecorder.stop();
         kMediaBackend.stop(true);
     }
-    curSinger = rotModel->getSingerName(index.sibling(index.row(),1).data().toInt());
+    int curSingerId = index.sibling(index.row(),1).data().toInt();
+    curSinger = rotModel->getSingerName(curSingerId);
     curArtist = index.sibling(index.row(),3).data().toString();
     curTitle = index.sibling(index.row(),4).data().toString();
     ui->labelSinger->setText(curSinger);
     ui->labelArtist->setText(curArtist);
     ui->labelTitle->setText(curTitle);
-    rotModel->setCurrentSinger(index.sibling(index.row(),1).data().toInt());
-    rotDelegate->setCurrentSinger(index.sibling(index.row(),1).data().toInt());
     play(index.sibling(index.row(), 6).data().toString(), k2kTransition);
     kMediaBackend.setPitchShift(index.sibling(index.row(),7).data().toInt());
     qModel->songSetPlayed(index.sibling(index.row(),0).data().toInt());
+
+    rotModel->setCurrentSinger(curSingerId);
+    rotDelegate->setCurrentSinger(curSingerId);
+    if (settings.rotationAltSortOrder())
+    {
+        auto curSingerPos = rotModel->getSingerPosition(curSingerId);
+        if (curSingerPos != 0)
+            rotModel->singerMove(curSingerPos, 0);
+    }
 }
 
 void MainWindow::on_actionManage_DB_triggered()
@@ -1729,6 +1746,12 @@ void MainWindow::audioBackend_stateChanged(const MediaBackend::State &state)
     //qInfo() << "MainWindow - audioBackend_stateChanged(" << state << ") triggered";
     if (state == MediaBackend::StoppedState)
     {
+        if (settings.rotationAltSortOrder())
+        {
+            rotModel->singerMove(0, rotModel->rowCount() - 1);
+            rotModel->setCurrentSinger(-1);
+            rotDelegate->setCurrentSinger(-1);
+        }
         qInfo() << "MainWindow - audio backend state is now STOPPED";
         ui->videoPreview->setSoftwareRenderMode(false);
         cdgWindow->getVideoDisplay()->setSoftwareRenderMode(false);
@@ -1791,8 +1814,6 @@ void MainWindow::audioBackend_stateChanged(const MediaBackend::State &state)
                             nextPos = 0;
                         }
                         nextSinger = rotModel->singerIdAtPosition(nextPos);
-                        rotModel->setCurrentSinger(nextSinger);
-                        rotDelegate->setCurrentSinger(nextSinger);
                         nextSongPath = rotModel->nextSongPath(nextSinger);
                         loops++;
                     }
@@ -2519,6 +2540,14 @@ void MainWindow::karaokeAATimerTimeout()
         play(kAANextSongPath);
         kMediaBackend.setPitchShift(rotModel->nextSongKeyChg(kAANextSinger));
         qModel->songSetPlayed(rotModel->nextSongQueueId(kAANextSinger));
+        rotModel->setCurrentSinger(kAANextSinger);
+        rotDelegate->setCurrentSinger(kAANextSinger);
+        if (settings.rotationAltSortOrder())
+        {
+            auto curSingerPos = rotModel->getSingerPosition(kAANextSinger);
+            if (curSingerPos != 0)
+                rotModel->singerMove(curSingerPos, 0);
+        }
     }
 }
 

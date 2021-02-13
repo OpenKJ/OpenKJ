@@ -677,6 +677,16 @@ bool Settings::cdgPrescalingEnabled()
     return settings->value("cdgPrescaling", false).toBool();
 }
 
+bool Settings::rotationAltSortOrder()
+{
+    return settings->value("rotationAltSortOrder", true).toBool();
+}
+
+void Settings::setRotationAltSortOrder(bool enabled)
+{
+    settings->setValue("rotationAltSortOrder", enabled);
+}
+
 void Settings::setCdgPrescalingEnabled(bool enabled)
 {
     settings->setValue("cdgPrescaling", enabled);

@@ -303,6 +303,7 @@ public:
     void saveShortcutKeySequence(const QString &name, const QKeySequence &sequence);
     QKeySequence loadShortcutKeySequence(const QString &name);
     bool cdgPrescalingEnabled();
+    bool rotationAltSortOrder();
 
 
 signals:
@@ -377,6 +378,7 @@ signals:
 
 
 public slots:
+    void setRotationAltSortOrder(bool enabled);
     void setCdgPrescalingEnabled(bool enabled);
     void setSlideShowInterval(int secs);
     void setHardwareAccelEnabled(const bool enabled);
