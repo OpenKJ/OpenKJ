@@ -347,8 +347,15 @@ void MainWindow::setupShortcuts()
     scutDeleteSong = new QShortcut(QKeySequence(QKeySequence::Delete), ui->tableViewQueue, nullptr, nullptr, Qt::WidgetShortcut);
     connect(scutDeleteSong, &QShortcut::activated, [&] () {
         qInfo() << "scutDeleteSong fired";
-        auto index = ui->tableViewQueue->currentIndex();
-        if ((settings.showQueueRemovalWarning()) && (!qModel->getSongPlayed(index.sibling(index.row(),0).data().toInt())))
+        auto indexes = ui->tableViewQueue->selectionModel()->selectedRows(0);
+        bool containsUnplayed{false};
+        std::vector<int> songIds;
+        std::for_each(indexes.begin(), indexes.end(), [&] (auto index) {
+            songIds.emplace_back(index.data().toInt());
+            if (!qModel->getSongPlayed(index.data().toInt()))
+                containsUnplayed = true;
+        });
+        if ((settings.showQueueRemovalWarning()) && containsUnplayed)
         {
             QMessageBox msgBox(this);
             QCheckBox *cb = new QCheckBox("Show this warning in the future");
@@ -361,15 +368,12 @@ void MainWindow::setupShortcuts()
             msgBox.setCheckBox(cb);
             connect(cb, &QCheckBox::toggled, &settings, &Settings::setShowQueueRemovalWarning);
             msgBox.exec();
-            if (msgBox.clickedButton() == yesButton)
-            {
-                qModel->songDelete(index.sibling(index.row(),0).data().toInt());
-            }
+            if (msgBox.clickedButton() != yesButton)
+                return;
         }
-        else
-        {
-            qModel->songDelete(index.sibling(index.row(),0).data().toInt());
-        }
+        std::for_each(songIds.begin(), songIds.end(), [&] (auto songId) {
+            qModel->songDelete(songId);
+        });
     });
 
     scutDeletePlSong = new QShortcut(QKeySequence(QKeySequence::Delete), ui->tableViewBmPlaylist, nullptr, nullptr, Qt::WidgetShortcut);
