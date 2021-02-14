@@ -261,16 +261,7 @@ public slots:
     void setTempo(const int &percent);
     void setMplxMode(const int &mode);
     void setEqBypass(const bool &m_bypass);
-    void setEqLevel1(const int &level);
-    void setEqLevel2(const int &level);
-    void setEqLevel3(const int &level);
-    void setEqLevel4(const int &level);
-    void setEqLevel5(const int &level);
-    void setEqLevel6(const int &level);
-    void setEqLevel7(const int &level);
-    void setEqLevel8(const int &level);
-    void setEqLevel9(const int &level);
-    void setEqLevel10(const int &level);
+    void setEqLevel(const int &band, const int &level);
     void fadeInImmediate();
     void fadeOutImmediate();
     void setEnforceAspectRatio(const bool &enforce);

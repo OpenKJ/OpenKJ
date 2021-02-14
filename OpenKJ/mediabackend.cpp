@@ -937,16 +937,6 @@ void MediaBackend::buildAudioSinkBin()
     m_timerSlow.start(1000);
     setAudioOutputDevice(m_outputDeviceIdx);
     setEqBypass(m_bypass);
-    setEqLevel1(m_eqLevels[0]);
-    setEqLevel2(m_eqLevels[1]);
-    setEqLevel3(m_eqLevels[2]);
-    setEqLevel4(m_eqLevels[3]);
-    setEqLevel5(m_eqLevels[4]);
-    setEqLevel6(m_eqLevels[5]);
-    setEqLevel7(m_eqLevels[6]);
-    setEqLevel8(m_eqLevels[7]);
-    setEqLevel9(m_eqLevels[8]);
-    setEqLevel10(m_eqLevels[9]);
     setDownmix(m_downmix);
     setVolume(m_volume);
     m_timerFast.start(250);
@@ -1252,109 +1242,21 @@ void MediaBackend::setMplxMode(const int &mode)
     }
 }
 
-
 void MediaBackend::setEqBypass(const bool &bypass)
 {
-    if (bypass)
+    for (int band=0; band<10; band++)
     {
-        g_object_set(m_equalizer, "band0", 0.0, nullptr);
-        g_object_set(m_equalizer, "band1", 0.0, nullptr);
-        g_object_set(m_equalizer, "band2", 0.0, nullptr);
-        g_object_set(m_equalizer, "band3", 0.0, nullptr);
-        g_object_set(m_equalizer, "band4", 0.0, nullptr);
-        g_object_set(m_equalizer, "band5", 0.0, nullptr);
-        g_object_set(m_equalizer, "band6", 0.0, nullptr);
-        g_object_set(m_equalizer, "band7", 0.0, nullptr);
-        g_object_set(m_equalizer, "band8", 0.0, nullptr);
-        g_object_set(m_equalizer, "band0", 0.0, nullptr);
-    }
-    else
-    {
-        g_object_set(m_equalizer, "band1", (double)m_eqLevels[0], nullptr);
-        g_object_set(m_equalizer, "band2", (double)m_eqLevels[1], nullptr);
-        g_object_set(m_equalizer, "band3", (double)m_eqLevels[2], nullptr);
-        g_object_set(m_equalizer, "band4", (double)m_eqLevels[3], nullptr);
-        g_object_set(m_equalizer, "band5", (double)m_eqLevels[4], nullptr);
-        g_object_set(m_equalizer, "band6", (double)m_eqLevels[5], nullptr);
-        g_object_set(m_equalizer, "band7", (double)m_eqLevels[6], nullptr);
-        g_object_set(m_equalizer, "band8", (double)m_eqLevels[7], nullptr);
-        g_object_set(m_equalizer, "band0", (double)m_eqLevels[8], nullptr);
-        g_object_set(m_equalizer, "band9", (double)m_eqLevels[9], nullptr);
-
+        g_object_set(m_equalizer, QString("band%1").arg(band).toLocal8Bit(), bypass ? 0.0 : (double)m_eqLevels[band], nullptr);
     }
     this->m_bypass = bypass;
 }
 
-void MediaBackend::setEqLevel1(const int &level)
+void MediaBackend::setEqLevel(const int &band, const int &level)
 {
     if (!m_bypass)
-        g_object_set(m_equalizer, "band0", (double)level, nullptr);
-    m_eqLevels[0] = level;
+        g_object_set(m_equalizer, QString("band%1").arg(band).toLocal8Bit(), (double)level, nullptr);
+    m_eqLevels[band] = level;
 }
-
-void MediaBackend::setEqLevel2(const int &level)
-{
-    if (!m_bypass)
-        g_object_set(m_equalizer, "band1", (double)level, nullptr);
-    m_eqLevels[1] = level;
-}
-
-void MediaBackend::setEqLevel3(const int &level)
-{
-    if (!m_bypass)
-        g_object_set(m_equalizer, "band2", (double)level, nullptr);
-    m_eqLevels[2] = level;
-}
-
-void MediaBackend::setEqLevel4(const int &level)
-{
-    if (!m_bypass)
-        g_object_set(m_equalizer, "band3", (double)level, nullptr);
-    m_eqLevels[3] = level;
-}
-
-void MediaBackend::setEqLevel5(const int &level)
-{
-    if (!m_bypass)
-        g_object_set(m_equalizer, "band4", (double)level, nullptr);
-    m_eqLevels[4] = level;
-}
-
-void MediaBackend::setEqLevel6(const int &level)
-{
-    if (!m_bypass)
-        g_object_set(m_equalizer, "band5", (double)level, nullptr);
-    m_eqLevels[5] = level;
-}
-
-void MediaBackend::setEqLevel7(const int &level)
-{
-    if (!m_bypass)
-        g_object_set(m_equalizer, "band6", (double)level, nullptr);
-    m_eqLevels[6] = level;
-}
-
-void MediaBackend::setEqLevel8(const int &level)
-{
-    if (!m_bypass)
-        g_object_set(m_equalizer, "band7", (double)level, nullptr);
-    m_eqLevels[7] = level;
-}
-
-void MediaBackend::setEqLevel9(const int &level)
-{
-    if (!m_bypass)
-        g_object_set(m_equalizer, "band8", (double)level, nullptr);
-    m_eqLevels[8] = level;
-}
-
-void MediaBackend::setEqLevel10(const int &level)
-{
-    if (!m_bypass)
-        g_object_set(m_equalizer, "band9", (double)level, nullptr);
-    m_eqLevels[9] = level;
-}
-
 
 void MediaBackend::fadeInImmediate()
 {

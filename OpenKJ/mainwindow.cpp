@@ -858,30 +858,15 @@ MainWindow::MainWindow(QWidget *parent) :
             QMessageBox::warning(this, tr("Break music autostart failure"), tr("Break music is set to autostart but the first song in the current playlist was not found.\n\nAborting playback."),QMessageBox::Ok);
         }
     }
+    // todo - athom: what's this?
     cdgOffset = settings.cdgDisplayOffset();
 
-    connect(&settings, &Settings::eqBBypassChanged, &bmMediaBackend, &MediaBackend::setEqBypass);
-    connect(&settings, &Settings::eqBLevel1Changed, &bmMediaBackend, &MediaBackend::setEqLevel1);
-    connect(&settings, &Settings::eqBLevel2Changed, &bmMediaBackend, &MediaBackend::setEqLevel2);
-    connect(&settings, &Settings::eqBLevel3Changed, &bmMediaBackend, &MediaBackend::setEqLevel3);
-    connect(&settings, &Settings::eqBLevel4Changed, &bmMediaBackend, &MediaBackend::setEqLevel4);
-    connect(&settings, &Settings::eqBLevel5Changed, &bmMediaBackend, &MediaBackend::setEqLevel5);
-    connect(&settings, &Settings::eqBLevel6Changed, &bmMediaBackend, &MediaBackend::setEqLevel6);
-    connect(&settings, &Settings::eqBLevel7Changed, &bmMediaBackend, &MediaBackend::setEqLevel7);
-    connect(&settings, &Settings::eqBLevel8Changed, &bmMediaBackend, &MediaBackend::setEqLevel8);
-    connect(&settings, &Settings::eqBLevel9Changed, &bmMediaBackend, &MediaBackend::setEqLevel9);
-    connect(&settings, &Settings::eqBLevel10Changed, &bmMediaBackend, &MediaBackend::setEqLevel10);
     connect(&settings, &Settings::eqKBypassChanged, &kMediaBackend, &MediaBackend::setEqBypass);
-    connect(&settings, &Settings::eqKLevel1Changed, &kMediaBackend, &MediaBackend::setEqLevel1);
-    connect(&settings, &Settings::eqKLevel2Changed, &kMediaBackend, &MediaBackend::setEqLevel2);
-    connect(&settings, &Settings::eqKLevel3Changed, &kMediaBackend, &MediaBackend::setEqLevel3);
-    connect(&settings, &Settings::eqKLevel4Changed, &kMediaBackend, &MediaBackend::setEqLevel4);
-    connect(&settings, &Settings::eqKLevel5Changed, &kMediaBackend, &MediaBackend::setEqLevel5);
-    connect(&settings, &Settings::eqKLevel6Changed, &kMediaBackend, &MediaBackend::setEqLevel6);
-    connect(&settings, &Settings::eqKLevel7Changed, &kMediaBackend, &MediaBackend::setEqLevel7);
-    connect(&settings, &Settings::eqKLevel8Changed, &kMediaBackend, &MediaBackend::setEqLevel8);
-    connect(&settings, &Settings::eqKLevel9Changed, &kMediaBackend, &MediaBackend::setEqLevel9);
-    connect(&settings, &Settings::eqKLevel10Changed, &kMediaBackend, &MediaBackend::setEqLevel10);
+    connect(&settings, &Settings::eqKLevelChanged, &kMediaBackend, &MediaBackend::setEqLevel);
+
+    connect(&settings, &Settings::eqBBypassChanged, &bmMediaBackend, &MediaBackend::setEqBypass);
+    connect(&settings, &Settings::eqBLevelChanged, &bmMediaBackend, &MediaBackend::setEqLevel);
+
     connect(&settings, &Settings::enforceAspectRatioChanged, &kMediaBackend, &MediaBackend::setEnforceAspectRatio);
     connect(&settings, &Settings::enforceAspectRatioChanged, &bmMediaBackend, &MediaBackend::setEnforceAspectRatio);
     connect(&settings, &Settings::mplxModeChanged, &kMediaBackend, &MediaBackend::setMplxMode);
@@ -894,27 +879,13 @@ MainWindow::MainWindow(QWidget *parent) :
     bmMediaBackend.setEnforceAspectRatio(settings.enforceAspectRatio());
 
     kMediaBackend.setEqBypass(settings.eqKBypass());
-    kMediaBackend.setEqLevel1(settings.eqKLevel1());
-    kMediaBackend.setEqLevel2(settings.eqKLevel2());
-    kMediaBackend.setEqLevel3(settings.eqKLevel3());
-    kMediaBackend.setEqLevel4(settings.eqKLevel4());
-    kMediaBackend.setEqLevel5(settings.eqKLevel5());
-    kMediaBackend.setEqLevel6(settings.eqKLevel6());
-    kMediaBackend.setEqLevel7(settings.eqKLevel7());
-    kMediaBackend.setEqLevel8(settings.eqKLevel8());
-    kMediaBackend.setEqLevel9(settings.eqKLevel9());
-    kMediaBackend.setEqLevel10(settings.eqKLevel10());
     bmMediaBackend.setEqBypass(settings.eqBBypass());
-    bmMediaBackend.setEqLevel1(settings.eqBLevel1());
-    bmMediaBackend.setEqLevel2(settings.eqBLevel2());
-    bmMediaBackend.setEqLevel3(settings.eqBLevel3());
-    bmMediaBackend.setEqLevel4(settings.eqBLevel4());
-    bmMediaBackend.setEqLevel5(settings.eqBLevel5());
-    bmMediaBackend.setEqLevel6(settings.eqBLevel6());
-    bmMediaBackend.setEqLevel7(settings.eqBLevel7());
-    bmMediaBackend.setEqLevel8(settings.eqBLevel8());
-    bmMediaBackend.setEqLevel9(settings.eqBLevel9());
-    bmMediaBackend.setEqLevel10(settings.eqBLevel10());
+    for (int band=0; band<10; band++)
+    {
+        kMediaBackend.setEqLevel(band, settings.getEqKLevel(band));
+        bmMediaBackend.setEqLevel(band, settings.getEqBLevel(band));
+    }
+
     connect(ui->lineEdit, &CustomLineEdit::escapePressed, ui->lineEdit, &CustomLineEdit::clear);
     connect(ui->lineEditBmSearch, &CustomLineEdit::escapePressed, ui->lineEditBmSearch, &CustomLineEdit::clear);
     connect(&qModel, &TableModelQueueSongs::songDroppedWithoutSinger, this, &MainWindow::songDropNoSingerSel);
