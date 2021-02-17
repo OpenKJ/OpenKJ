@@ -28,6 +28,11 @@ DbItemDelegate::DbItemDelegate(QObject *parent) :
 
 void DbItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
+    if (index.column() == 3)
+    {
+        QItemDelegate::paint(painter, option, index);
+        return;
+    }
     if (option.state & QStyle::State_Selected)
         painter->fillRect(option.rect, option.palette.highlight());
 

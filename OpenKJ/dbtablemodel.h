@@ -37,6 +37,9 @@ private:
     QString lastSearch;
     QSqlDatabase db;
     Settings *settings;
+    QIcon m_cdgIcon;
+    QIcon m_zipIcon;
+    QIcon m_vidIcon;
 
 public:
     explicit DbTableModel(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());

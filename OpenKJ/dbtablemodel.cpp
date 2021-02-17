@@ -34,6 +34,10 @@ DbTableModel::DbTableModel(QObject *parent, QSqlDatabase db) :
 {
     settings = new Settings(this);
     this->db = db;
+    QString thm = (settings->theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
+    m_cdgIcon = QIcon(thm + "mimetypes/22/application-x-cda.svg");
+    m_zipIcon = QIcon(thm + "mimetypes/22/application-zip.svg");
+    m_vidIcon = QIcon(thm + "mimetypes/22/video-mp4.svg");
     QSqlQuery query(db);
     query.exec("ATTACH DATABASE ':memory:' AS mem");
     query.exec("CREATE TABLE mem.dbsongs AS SELECT * FROM main.dbsongs");
@@ -201,6 +205,27 @@ void DbTableModel::setSearchType(DbTableModel::SearchType type)
 
 QVariant DbTableModel::data(const QModelIndex &index, int role) const
 {
+    if (role == Qt::DecorationRole && index.column() == 3)
+    {
+        QSize sbSize(QFontMetrics(settings->applicationFont()).height(), QFontMetrics(settings->applicationFont()).height());
+        QString filename = index.sibling(index.row(), 5).data().toString();
+        qInfo() << filename;
+        qInfo() << "decorationrole call for songid";
+        if (filename.endsWith("zip", Qt::CaseInsensitive))
+        {
+            qInfo() << "zip file";
+            return m_zipIcon.pixmap(sbSize);
+        }
+        else if (filename.endsWith("cdg", Qt::CaseInsensitive))
+        {
+            return m_cdgIcon.pixmap(sbSize);
+        }
+        else
+        {
+            qInfo() << "video file";
+            return m_vidIcon.pixmap(sbSize);
+        }
+    }
     if (role == Qt::ToolTipRole)
         return data(index);
     return QSqlTableModel::data(index, role);
