@@ -131,8 +131,6 @@ DEFINES += BUILD_DATE=__DATE__
 
 SOURCES += main.cpp\
     dlgaddsong.cpp \
-    historysingerstablemodel.cpp \
-    historysongstablemodel.cpp \
     mediabackend.cpp \
     miniz.c \
     mzarchive.cpp \
@@ -307,8 +305,6 @@ contains(DEFINES, STATIC_TAGLIB) {
 HEADERS  += mainwindow.h \
     dlgaddsong.h \
     dlgvideopreview.h \
-    historysingerstablemodel.h \
-    historysongstablemodel.h \
     libCDG/include/libCDG.h \
     mediabackend.h \
     miniz.h \
