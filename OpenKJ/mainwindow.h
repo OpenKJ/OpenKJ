@@ -64,6 +64,7 @@
 #include "durationlazyupdater.h"
 #include "dlgdebugoutput.h"
 #include "dlgvideopreview.h"
+#include "historysongstablemodel.h"
 
 namespace Ui {
 class MainWindow;
@@ -81,6 +82,7 @@ private:
     QueueModel *qModel;
     QueueItemDelegate *qDelegate;
     RotationModel *rotModel;
+    HistorySongsTableModel historyModel;
     RotationItemDelegate *rotDelegate;
     DlgCdg *cdgWindow;
     DlgDebugOutput *debugDialog;
@@ -164,6 +166,7 @@ private:
     QShortcut *scutDeleteSinger;
     QShortcut *scutDeleteSong;
     QShortcut *scutDeletePlSong;
+    QWidget *historyTabWidget;
     void addSfxButton(const QString &filename, const QString &label, const bool &reset = false);
     void refreshSfxButtons();
     SfxEntry lastRtClickedSfxBtn;
@@ -235,6 +238,7 @@ private slots:
     void karaokeAATimerTimeout();
     void timerButtonFlashTimeout();
     void autosizeViews();
+    void autosizeQueue();
     void autosizeBmViews();
     void bmDbUpdated();
     void bmDbCleared();
@@ -338,6 +342,11 @@ private slots:
     void shortcutsUpdated();
 
     void on_tableViewBmPlaylist_customContextMenuRequested(const QPoint &pos);
+    void treatAllSingersAsRegsChanged(bool enabled);
+
+    void on_pushButtonHistoryPlay_clicked();
+
+    void on_pushButtonHistoryToQueue_clicked();
 
 protected:
     void closeEvent(QCloseEvent *event);

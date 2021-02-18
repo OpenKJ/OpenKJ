@@ -29,7 +29,7 @@ DlgAddSong::DlgAddSong(RotationModel *rotationModel, QueueModel *queueModel, int
     rotSingers.sort(Qt::CaseInsensitive);
     ui->comboBoxRotSingers->addItems(rotSingers);
 
-    QStringList regSingers = m_rotModel->regulars();
+    QStringList regSingers = m_rotModel->historySingers();
     regSingers.sort(Qt::CaseInsensitive);
     ui->comboBoxRegSingers->addItems(regSingers);
 
@@ -140,13 +140,27 @@ void DlgAddSong::on_pushButtonAdd_clicked()
             }
             else
             {
-                QMessageBox::warning(this, "Regular singer naming conflict!", "An eisting singer with the same name already exists,"
-                                                                              "but they are not a regular singer!  Unable to add song.");
+                auto answer = QMessageBox::question(this,
+                                                    "A singer by this name already exists in the rotation",
+                                                    "A singer with this name is currently in the rotation, but they aren't marked as a regular.\n"
+                                                    "Would you like to add the song to their queue and load this regular's song history for "
+                                                    "the matching rotation singer?",
+                                                    QMessageBox::StandardButtons(QMessageBox::Yes|QMessageBox::Cancel),
+                                                    QMessageBox::Yes
+                                                    );
+                if (answer == QMessageBox::Yes)
+                {
+                    int singerId = m_rotModel->getSingerId(ui->comboBoxRegSingers->currentText());
+                    m_rotModel->singerMakeRegular(singerId);
+                    m_queueModel->songAddSlot(m_songId, singerId, ui->spinBoxKeyChange->value());
+                    emit newSingerAdded(m_rotModel->getSingerPosition(singerId));
+                }
             }
         }
         else
         {
-            int singerId = m_rotModel->regularLoad(m_rotModel->getRegSingerId(ui->comboBoxRegSingers->currentText()), ui->comboBoxPosition->currentIndex());
+            int singerId = m_rotModel->singerAdd(ui->comboBoxRegSingers->currentText(), ui->comboBoxPosition->currentIndex());
+            m_rotModel->singerMakeRegular(singerId);
             m_queueModel->songAddSlot(m_songId, singerId, ui->spinBoxKeyChange->value());
             emit newSingerAdded(m_rotModel->getSingerPosition(singerId));
             close();

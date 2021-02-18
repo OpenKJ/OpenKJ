@@ -48,7 +48,7 @@ public:
     int regularAdd(QString name);
     void regularDelete(int regSingerId);
     void regularDelete(const QString singerName);
-    bool regularExists(QString name);
+    bool historySingerExists(QString name);
     void regularUpdate(int singerId);
     int regularLoad(int regSingerId, int positionHint);
     void regularSetName(int regSingerId, QString newName);
@@ -59,10 +59,11 @@ public:
     int getSingerPosition(int singerId);
     int singerIdAtPosition(int position) const;
     QStringList singers();
-    QStringList regulars();
+    QStringList historySingers();
     QString nextSongPath(int singerId);
     QString nextSongArtist(int singerId);
     QString nextSongTitle(int singerId);
+    QString nextSongSongId(const int singerId) const;
     int nextSongDurationSecs(int singerId) const;
     int rotationDuration();
     int nextSongKeyChg(int singerId);
@@ -93,11 +94,6 @@ signals:
     void rotationModified();
     void regularsModified();
     void singersMoved(const int startRow, const int startCol, const int endRow, const int endCol);
-
-
-public slots:
-    void queueModified(int singerId);
-
 
     // QAbstractItemModel interface
 public:

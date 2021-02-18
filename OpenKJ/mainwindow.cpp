@@ -144,6 +144,8 @@ void MainWindow::updateIcons()
     ui->buttonBmSearch->setIcon(QIcon(thm + "actions/22/edit-find.svg"));
 
     requestsDialog->updateIcons();
+    connect(&settings, &Settings::treatAllSingersAsRegsChanged, this, &MainWindow::treatAllSingersAsRegsChanged);
+    treatAllSingersAsRegsChanged(settings.treatAllSingersAsRegs());
 }
 
 void MainWindow::setupShortcuts()
@@ -471,6 +473,28 @@ void MainWindow::shortcutsUpdated() {
     scutToggleSingerWindow->setKey(settings.loadShortcutKeySequence("toggleSingerWindow"));
 }
 
+void MainWindow::treatAllSingersAsRegsChanged(bool enabled)
+{
+    if (enabled)
+    {
+        ui->tableViewRotation->hideColumn(3);
+        if (ui->tabWidgetQueue->count() == 1)
+            ui->tabWidgetQueue->addTab(historyTabWidget, "History");
+    }
+    else
+    {
+        ui->tableViewRotation->showColumn(3);
+        int curSelSingerId{-1};
+        if (ui->tableViewRotation->selectionModel()->selectedRows().count() > 1)
+        {
+            curSelSingerId = ui->tableViewRotation->selectionModel()->selectedRows(0).at(0).data().toInt();
+        }
+        if (!rotModel->singerIsRegular(curSelSingerId) && ui->tabWidgetQueue->count() == 2)
+            ui->tabWidgetQueue->removeTab(1);
+    }
+    resizeRotation();
+}
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -486,6 +510,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QCoreApplication::setOrganizationDomain("OpenKJ.org");
     QCoreApplication::setApplicationName("OpenKJ");
     ui->setupUi(this);
+    historyTabWidget = ui->tabWidgetQueue->widget(1);
     ui->actionShow_Debug_Log->setChecked(settings.logShow());
     //ui->videoPreview->setAspectRatio(16.0,9.0);
 #ifdef Q_OS_WIN
@@ -569,7 +594,43 @@ MainWindow::MainWindow(QWidget *parent) :
         query.exec("PRAGMA user_version = 105");
         qInfo() << "DB Schema update to v105 completed";
     }
-
+    if (schemaVersion < 106)
+    {
+        qInfo() << "Updating database schema to version 106";
+        query.exec("CREATE TABLE dbSongHistory ( id INTEGER PRIMARY KEY AUTOINCREMENT, filepath TEXT, artist TEXT, title TEXT, songid TEXT, timestamp TIMESTAMP)");
+        query.exec("CREATE INDEX idx_filepath ON dbSongHistory(filepath)");
+        query.exec("ALTER TABLE dbsongs ADD COLUMN plays INT DEFAULT(0)");
+        query.exec("ALTER TABLE dbsongs ADD COLUMN lastplay TIMESTAMP");
+        query.exec("CREATE TABLE historySingers(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE)");
+        query.exec("CREATE TABLE historySongs(id INTEGER PRIMARY KEY AUTOINCREMENT, historySinger INT NOT NULL, filepath TEXT NOT NULL, artist TEXT, title TEXT, songid TEXT, keychange INT DEFAULT(0), plays INT DEFAULT(0), lastplay TIMESTAMP)");
+        query.exec("CREATE INDEX idx_historySinger on historySongs(historySinger)");
+        query.exec("PRAGMA user_version = 106");
+        qInfo() << "DB Schema update to v106 completed";
+        qInfo() << "Importing old regular singers data into singer history";
+        QSqlQuery songImportQuery;
+        songImportQuery.prepare("INSERT INTO historySongs (historySinger, filepath, artist, title, songid, keychange) values(:historySinger, :filepath, :artist, :title, :songid, :keychange)");
+        QSqlQuery singersQuery;
+        singersQuery.exec("SELECT regsingerid,name FROM regularSingers");
+        while (singersQuery.next())
+        {
+            qInfo() << "Running import for singer: " << singersQuery.value("name");
+            QSqlQuery songsQuery;
+            songsQuery.exec("SELECT dbsongs.artist,dbsongs.title,dbsongs.discid,regularsongs.keychg,dbsongs.path FROM regularsongs,dbsongs WHERE dbsongs.songid == regularsongs.songid AND regularsongs.regsingerid == " + singersQuery.value("regsingerid").toString() + " ORDER BY regularsongs.position");
+            while (songsQuery.next())
+            {
+                qInfo() << "Importing song: " << songsQuery.value(4).toString();
+                historyModel.saveSong(
+                            singersQuery.value("name").toString(),
+                            songsQuery.value(4).toString(),
+                            songsQuery.value(0).toString(),
+                            songsQuery.value(1).toString(),
+                            songsQuery.value(2).toString(),
+                            songsQuery.value(3).toInt()
+                            );
+            }
+            qInfo() << "Import complete for singer: " << singersQuery.value("name").toString();
+        }
+    }
 //    query.exec("ATTACH DATABASE ':memory:' AS mem");
 //    query.exec("CREATE TABLE mem.dbsongs AS SELECT * FROM main.dbsongs");
 //    refreshSongDbCache();
@@ -581,16 +642,26 @@ MainWindow::MainWindow(QWidget *parent) :
     qDelegate = new QueueItemDelegate(this);
     rotModel = new RotationModel(this, database);
     rotModel->select();
+    //historyModel = new SingerHistoryTableModel();
+    ui->tableViewHistory->setModel(&historyModel);
+    ui->tableViewHistory->hideColumn(0);
+    ui->tableViewHistory->hideColumn(1);
+    ui->tableViewHistory->hideColumn(2);
     ui->comboBoxSearchType->addItems({QString("All"), QString("Artist"), QString("Title")});
     ui->tableViewDB->hideColumn(0);
     ui->tableViewDB->hideColumn(5);
     ui->tableViewDB->hideColumn(6);
+    ui->tableViewDB->hideColumn(8);
+    ui->tableViewDB->hideColumn(9);
     ui->tableViewRotation->setModel(rotModel);
     rotDelegate = new RotationItemDelegate(this);
     ui->tableViewRotation->setItemDelegate(rotDelegate);
     ui->tableViewQueue->setModel(qModel);
     ui->tableViewQueue->setItemDelegate(qDelegate);
     ui->tableViewQueue->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewQueue));
+    ui->labelNoSinger->setVisible(true);
+    autosizeQueue();
+    ui->tabWidgetQueue->setVisible(false);
     khTmpDir = new QTemporaryDir();
     dbDialog = new DlgDatabase(database, this);
     dlgKeyChange = new DlgKeyChange(qModel, this);
@@ -670,7 +741,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(settingsDialog, &DlgSettings::audioDownmixChangedBm, &bmMediaBackend, &MediaBackend::setDownmix);
     kMediaBackend.setDownmix(settings.audioDownmix());
     bmMediaBackend.setDownmix(settings.audioDownmixBm());
-    connect(qModel, &QueueModel::queueModified, rotModel, &RotationModel::queueModified);
     connect(requestsDialog, &DlgRequests::addRequestSong, qModel, &QueueModel::songAddSlot);
     connect(&settings, &Settings::tickerCustomStringChanged, this, &MainWindow::rotationDataChanged);
     cdgWindow->setShowBgImage(true);
@@ -697,6 +767,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewDB->hideColumn(5);
     ui->tableViewDB->hideColumn(6);
     ui->tableViewDB->hideColumn(7);
+    ui->tableViewDB->hideColumn(8);
+    ui->tableViewDB->hideColumn(9);
     ui->tableViewQueue->hideColumn(0);
     ui->tableViewQueue->hideColumn(1);
     ui->tableViewQueue->hideColumn(2);
@@ -1056,6 +1128,9 @@ MainWindow::MainWindow(QWidget *parent) :
         auto bottomRight = ui->tableViewRotation->model()->index(endRow, endCol);
         ui->tableViewRotation->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
     });
+    connect(&regularSingersDialog->historySingersModel(), &HistorySingersTableModel::historySingersModified, [&] () {
+        historyModel.refresh();
+    });
 }
 
 void MainWindow::play(const QString &karaokeFilePath, const bool &k2k)
@@ -1252,6 +1327,9 @@ void MainWindow::databaseUpdated()
     ui->tableViewDB->hideColumn(0);
     ui->tableViewDB->hideColumn(5);
     ui->tableViewDB->hideColumn(6);
+    ui->tableViewDB->hideColumn(8);
+    ui->tableViewDB->hideColumn(9);
+
     ui->tableViewDB->horizontalHeader()->resizeSection(4,75);
     settings.restoreColumnWidths(ui->tableViewDB);
     requestsDialog->databaseUpdateComplete();
@@ -1273,6 +1351,8 @@ void MainWindow::databaseCleared()
     ui->tableViewDB->hideColumn(0);
     ui->tableViewDB->hideColumn(5);
     ui->tableViewDB->hideColumn(6);
+    ui->tableViewDB->hideColumn(8);
+    ui->tableViewDB->hideColumn(9);
     ui->tableViewDB->horizontalHeader()->resizeSection(4,75);
     autosizeViews();
     rotationDataChanged();
@@ -1431,11 +1511,16 @@ void MainWindow::on_tableViewRotation_doubleClicked(const QModelIndex &index)
             curSinger = rotModel->getSingerName(singerId);
             curArtist = rotModel->nextSongArtist(singerId);
             curTitle = rotModel->nextSongTitle(singerId);
+            QString curSongId = rotModel->nextSongSongId(singerId);
+            int curKeyChange = rotModel->nextSongKeyChg(singerId);
             ui->labelArtist->setText(curArtist);
             ui->labelTitle->setText(curTitle);
             ui->labelSinger->setText(curSinger);
+            dbModel->updateSongHistory(dbModel->getSongIdForPath(nextSongPath));
             play(nextSongPath, k2kTransition);
-            kMediaBackend.setPitchShift(rotModel->nextSongKeyChg(singerId));
+            if (settings.treatAllSingersAsRegs() || rotModel->singerIsRegular(singerId))
+                historyModel.saveSong(curSinger, nextSongPath, curArtist, curTitle, curSongId, curKeyChange);
+            kMediaBackend.setPitchShift(curKeyChange);
             qModel->songSetPlayed(rotModel->nextSongQueueId(singerId));
             rotDelegate->setCurrentSinger(singerId);
             rotModel->setCurrentSinger(singerId);
@@ -1489,8 +1574,18 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
         if (!rotModel->singerIsRegular(index.sibling(index.row(),0).data().toInt()))
         {
             QString name = index.sibling(index.row(),1).data().toString();
-            if (rotModel->regularExists(name))
-                QMessageBox::warning(this, "Naming conflict!","A regular singer named " + name + " already exists. You must either rename or delete the existing regular singer, or rename the singer being saved as a regular. The operation has been cancelled.",QMessageBox::Ok);
+            if (rotModel->historySingerExists(name))
+            {
+                auto answer = QMessageBox::question(this,
+                                                    "A regular singer with this name already exists!",
+                                                    "There is already a regular singer saved with this name. Would you like to load "
+                                                    "the matching regular singer's history for this singer?",
+                                                    QMessageBox::StandardButtons(QMessageBox::Yes|QMessageBox::Cancel),
+                                                    QMessageBox::Cancel
+                                                    );
+                if (answer == QMessageBox::Yes)
+                    rotModel->singerMakeRegular(rotModel->getSingerId(name));
+            }
             else
                 rotModel->singerMakeRegular(index.sibling(index.row(),0).data().toInt());
         }
@@ -1549,11 +1644,17 @@ void MainWindow::on_tableViewQueue_doubleClicked(const QModelIndex &index)
     curSinger = rotModel->getSingerName(curSingerId);
     curArtist = index.sibling(index.row(),3).data().toString();
     curTitle = index.sibling(index.row(),4).data().toString();
+    QString curSongId = index.sibling(index.row(),5).data().toString();
+    QString filePath = index.sibling(index.row(), 6).data().toString();
+    int curKeyChange = index.sibling(index.row(),7).data().toInt();
     ui->labelSinger->setText(curSinger);
     ui->labelArtist->setText(curArtist);
     ui->labelTitle->setText(curTitle);
-    play(index.sibling(index.row(), 6).data().toString(), k2kTransition);
-    kMediaBackend.setPitchShift(index.sibling(index.row(),7).data().toInt());
+    dbModel->updateSongHistory(dbModel->getSongIdForPath(filePath));
+    play(filePath, k2kTransition);
+    if (settings.treatAllSingersAsRegs() || rotModel->singerIsRegular(curSingerId))
+        historyModel.saveSong(curSinger, filePath, curArtist, curTitle, curSongId, curKeyChange);
+    kMediaBackend.setPitchShift(curKeyChange);
     qModel->songSetPlayed(index.sibling(index.row(),0).data().toInt());
 
     rotModel->setCurrentSinger(curSingerId);
@@ -2537,6 +2638,18 @@ void MainWindow::karaokeAATimerTimeout()
         ui->labelArtist->setText(curArtist);
         ui->labelTitle->setText(curTitle);
         ui->labelSinger->setText(curSinger);
+        if (settings.treatAllSingersAsRegs() || rotModel->singerIsRegular(kAANextSinger))
+        {
+            historyModel.saveSong(
+                        curSinger,
+                        kAANextSongPath,
+                        curArtist,
+                        curTitle,
+                        rotModel->nextSongSongId(kAANextSinger),
+                        rotModel->nextSongKeyChg(kAANextSinger)
+                        );
+        }
+        dbModel->updateSongHistory(dbModel->getSongIdForPath(kAANextSongPath));
         play(kAANextSongPath);
         kMediaBackend.setPitchShift(rotModel->nextSongKeyChg(kAANextSinger));
         qModel->songSetPlayed(rotModel->nextSongQueueId(kAANextSinger));
@@ -3475,7 +3588,10 @@ void MainWindow::resizeRotation()
 #endif
     if (waitSize > iconWidth)
         iconWidth = waitSize;
-    int singerColSize = ui->tableViewRotation->width() - (iconWidth * 3) - 5;
+    int iconsWidth{iconWidth * 3};
+    if (settings.treatAllSingersAsRegs())
+        iconsWidth = iconWidth * 2;
+    int singerColSize = ui->tableViewRotation->width() - iconsWidth - 5;
     int songColSize = 0;
     if (!settings.rotationShowNextSong())
     {
@@ -3497,7 +3613,7 @@ void MainWindow::resizeRotation()
                 largestName = width;
         }
         singerColSize = largestName;
-        songColSize = ui->tableViewRotation->width() - (iconWidth * 3) - singerColSize - 5;
+        songColSize = ui->tableViewRotation->width() - iconsWidth - singerColSize - 5;
         ui->tableViewRotation->horizontalHeader()->resizeSection(2, songColSize);
     }
     ui->tableViewRotation->horizontalHeader()->resizeSection(0, iconWidth);
@@ -3511,8 +3627,6 @@ void MainWindow::resizeRotation()
 
 void MainWindow::autosizeViews()
 {
-    int fH = QFontMetrics(settings.applicationFont()).height();
-    int iconWidth = fH + fH;
 #if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
     int durationColSize = QFontMetrics(settings.applicationFont()).horizontalAdvance(" Duration ");
     int songidColSize = QFontMetrics(settings.applicationFont()).horizontalAdvance(" AA0000000-0000 ");
@@ -3530,14 +3644,34 @@ void MainWindow::autosizeViews()
     ui->tableViewDB->horizontalHeader()->resizeSection(3, songidColSize);
 
     resizeRotation();
+    autosizeQueue();
+//    ui->tableViewQueue->horizontalHeader()->resizeSection(7, playsColSize);
+//    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(7, QHeaderView::Fixed);
+
+}
+
+void MainWindow::autosizeQueue()
+{
+    auto curTab = ui->tabWidgetQueue->currentIndex();
+
+    ui->tabWidgetQueue->setCurrentIndex(0);
+    QApplication::processEvents();
+    int fH = QFontMetrics(settings.applicationFont()).height();
+    int iconWidth = fH + fH;
 #if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
     int keyColSize = QFontMetrics(settings.applicationFont()).horizontalAdvance("Key") + iconWidth;
+    int songidColSize = QFontMetrics(settings.applicationFont()).horizontalAdvance(" AA0000000-0000 ");
+    int lastPlayedColSize = QFontMetrics(settings.applicationFont()).horizontalAdvance("00-00-0000") + iconWidth;
+    int playsColSize = QFontMetrics(settings.applicationFont()).horizontalAdvance("Plays") + iconWidth;
 #else
+    int lastPlayedColSize = QFontMetrics(settings.applicationFont()).width("00-00-0000") + iconWidth;
+    int playsColSize = QFontMetrics(settings.applicationFont()).width("Plays") + iconWidth;
     int keyColSize = QFontMetrics(settings.applicationFont()).width("Key") + iconWidth;
+    int songidColSize = QFontMetrics(settings.applicationFont()).width(" AA0000000-0000 ");
 #endif
-    remainingSpace = ui->tableViewQueue->width() - iconWidth - keyColSize - songidColSize - 16;
-    artistColSize = (remainingSpace / 2);
-    titleColSize = (remainingSpace / 2);
+    int remainingSpace = ui->tableViewQueue->width() - iconWidth - keyColSize - songidColSize - 16;
+    int artistColSize = (remainingSpace / 2);
+    int titleColSize = (remainingSpace / 2);
     ui->tableViewQueue->horizontalHeader()->resizeSection(3, artistColSize);
     ui->tableViewQueue->horizontalHeader()->resizeSection(4, titleColSize);
     ui->tableViewQueue->horizontalHeader()->resizeSection(5, songidColSize);
@@ -3545,6 +3679,21 @@ void MainWindow::autosizeViews()
     ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(8, QHeaderView::Fixed);
     ui->tableViewQueue->horizontalHeader()->resizeSection(7, keyColSize);
     ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(7, QHeaderView::Fixed);
+
+    ui->tabWidgetQueue->setCurrentIndex(1);
+    QApplication::processEvents();
+    remainingSpace = ui->tableViewHistory->width() - keyColSize - songidColSize - lastPlayedColSize - playsColSize - 16;
+    artistColSize = (remainingSpace / 2);
+    titleColSize = (remainingSpace / 2);
+    ui->tableViewHistory->horizontalHeader()->resizeSection(3, artistColSize);
+    ui->tableViewHistory->horizontalHeader()->resizeSection(4, titleColSize);
+    ui->tableViewHistory->horizontalHeader()->resizeSection(5, songidColSize);
+    ui->tableViewHistory->horizontalHeader()->resizeSection(6, keyColSize);
+    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(6, QHeaderView::Fixed);
+    ui->tableViewHistory->horizontalHeader()->resizeSection(7, playsColSize);
+    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(7, QHeaderView::Fixed);
+    QApplication::processEvents();
+    ui->tabWidgetQueue->setCurrentIndex(curTab);
 }
 
 void MainWindow::autosizeBmViews()
@@ -3760,7 +3909,22 @@ void MainWindow::tableViewRotationCurrentChanged(const QModelIndex &cur, const Q
 {
     Q_UNUSED(prev)
     qModel->setSinger(cur.sibling(cur.row(),0).data().toInt());
+    historyModel.loadSinger(rotModel->getSingerName(cur.sibling(cur.row(),0).data().toInt()));
+    if (!settings.treatAllSingersAsRegs() && !cur.sibling(cur.row(), 3).data().toBool())
+        ui->tabWidgetQueue->removeTab(1);
+    else
+    {
+        if (ui->tabWidgetQueue->count() == 1)
+            ui->tabWidgetQueue->addTab(historyTabWidget, "History");
+    }
     ui->gbxQueue->setTitle(QString("Song Queue - " + rotModel->getSingerName(cur.sibling(cur.row(),0).data().toInt())));
+    if (!ui->tabWidgetQueue->isVisible())
+    {
+        ui->tabWidgetQueue->setVisible(true);
+        ui->labelNoSinger->setVisible(false);
+        QApplication::processEvents();
+        autosizeQueue();
+    }
 }
 
 void MainWindow::updateRotationDuration()
@@ -3807,7 +3971,9 @@ void MainWindow::rotationSelectionChanged(const QItemSelection &sel, const QItem
         qInfo() << "Rotation Selection Cleared!";
         qModel->setSinger(-1);
         ui->tableViewRotation->reset();
-        ui->gbxQueue->setTitle("Song Queue - (No Singer Selected)");
+        ui->gbxQueue->setTitle("Song Queue");
+        ui->tabWidgetQueue->setVisible(false);
+        ui->labelNoSinger->setVisible(true);
     }
 
     qInfo() << "Rotation Selection Changed";
@@ -4389,3 +4555,95 @@ void MainWindow::on_btnToggleCdgWindow_clicked(bool checked)
 }
 
 
+
+void MainWindow::on_pushButtonHistoryPlay_clicked()
+{
+    auto selRows = ui->tableViewHistory->selectionModel()->selectedRows();
+    if (selRows.size() < 1)
+        return;
+    auto index = selRows.at(0);
+    k2kTransition = false;
+    if (kMediaBackend.state() == MediaBackend::PlayingState)
+    {
+        if (settings.showSongInterruptionWarning())
+        {
+            QMessageBox msgBox(this);
+            QCheckBox *cb = new QCheckBox("Show this warning in the future");
+            cb->setChecked(settings.showSongInterruptionWarning());
+            msgBox.setIcon(QMessageBox::Warning);
+            msgBox.setText("Interrupt currenly playing karaoke song?");
+            msgBox.setInformativeText("There is currently a karaoke song playing.  If you continue, the current song will be stopped.  Are you sure?");
+            QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
+            msgBox.addButton(QMessageBox::Cancel);
+            msgBox.setCheckBox(cb);
+            connect(cb, &QCheckBox::toggled, &settings, &Settings::setShowSongInterruptionWarning);
+            msgBox.exec();
+            if (msgBox.clickedButton() != yesButton)
+            {
+                return;
+            }
+        }
+        k2kTransition = true;
+    }
+    if (kMediaBackend.state() == MediaBackend::PausedState)
+    {
+        if (settings.karaokeAutoAdvance())
+        {
+            kAASkip = true;
+            cdgWindow->showAlert(false);
+        }
+        audioRecorder.stop();
+        kMediaBackend.stop(true);
+    }
+    int curSingerId = rotModel->getSingerId(historyModel.currentSingerName());
+    curSinger = rotModel->getSingerName(curSingerId);
+    curArtist = index.sibling(index.row(),3).data().toString();
+    curTitle = index.sibling(index.row(),4).data().toString();
+    QString curSongId = index.sibling(index.row(),5).data().toString();
+    QString filePath = index.sibling(index.row(), 2).data().toString();
+    int curKeyChange = index.sibling(index.row(),6).data().toInt();
+    ui->labelSinger->setText(curSinger);
+    ui->labelArtist->setText(curArtist);
+    ui->labelTitle->setText(curTitle);
+    dbModel->updateSongHistory(dbModel->getSongIdForPath(filePath));
+    play(filePath, k2kTransition);
+    if (settings.treatAllSingersAsRegs() || rotModel->singerIsRegular(curSingerId))
+        historyModel.saveSong(curSinger, filePath, curArtist, curTitle, curSongId, curKeyChange);
+    kMediaBackend.setPitchShift(curKeyChange);
+    rotModel->setCurrentSinger(curSingerId);
+    rotDelegate->setCurrentSinger(curSingerId);
+    if (settings.rotationAltSortOrder())
+    {
+        auto curSingerPos = rotModel->getSingerPosition(curSingerId);
+        if (curSingerPos != 0)
+            rotModel->singerMove(curSingerPos, 0);
+    }
+}
+
+void MainWindow::on_pushButtonHistoryToQueue_clicked()
+{
+    auto selRows = ui->tableViewHistory->selectionModel()->selectedRows();
+    if (selRows.size() < 1)
+        return;
+
+    std::for_each(selRows.begin(), selRows.end(), [&] (auto index) {
+        auto path = index.sibling(index.row(), 2).data().toString();
+        int curSingerId = rotModel->getSingerId(historyModel.currentSingerName());
+        int key = index.sibling(index.row(), 6).data().toInt();
+        int dbSongId = dbModel->getSongIdForPath(path);
+        if (dbSongId == -1)
+        {
+            QMessageBox::warning(this,
+                                 "Unable to add history song",
+                                 "Unable to find a matching song in the database for the selected "
+                                 "history song.  This usually happens when a file that was once in "
+                                 "OpenKJ's database has been removed or renamed outside of OpenKJ\n\n"
+                                 "Song: " + path
+                                 );
+            return;
+        }
+        qModel->songAddSlot(dbSongId, curSingerId, key);
+    });
+    ui->tableViewHistory->clearSelection();
+    ui->tabWidgetQueue->setCurrentIndex(0);
+}

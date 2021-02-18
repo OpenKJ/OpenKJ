@@ -33,16 +33,13 @@ DlgRegularSingers::DlgRegularSingers(RotationModel *rotationModel, QWidget *pare
     QDialog(parent),
     ui(new Ui::DlgRegularSingers)
 {
-    m_rtClickRegSingerId = -1;
+    m_rtClickHistorySingerId = -1;
     ui->setupUi(this);
-    regModel = new QSqlTableModel(this);
-    regModel->setTable("regularsingers");
-    regModel->sort(1, Qt::AscendingOrder);
-    proxyModel = new RegProxyModel(this);
-    proxyModel->setSourceModel(regModel);
-    ui->tableViewRegulars->setModel(proxyModel);
-    regDelegate = new RegItemDelegate(this);
-    ui->tableViewRegulars->setItemDelegate(regDelegate);
+//    proxyModel = new RegProxyModel(this);
+//    proxyModel->setSourceModel(historySingersModel);
+    ui->tableViewRegulars->setModel(&m_historySingersModel);
+//    regDelegate = new RegItemDelegate(this);
+//    ui->tableViewRegulars->setItemDelegate(regDelegate);
     ui->comboBoxAddPos->addItem("Fair");
     ui->comboBoxAddPos->addItem("Bottom");
     ui->comboBoxAddPos->addItem("Next");
@@ -57,14 +54,6 @@ DlgRegularSingers::DlgRegularSingers(RotationModel *rotationModel, QWidget *pare
     ui->tableViewRegulars->horizontalHeader()->resizeSection(4, 20);
     ui->tableViewRegulars->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Fixed);
     ui->tableViewRegulars->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-    regModel->setHeaderData(2, Qt::Horizontal, "Songs");
-    regModel->setHeaderData(3, Qt::Horizontal, "");
-    regModel->setHeaderData(4, Qt::Horizontal, "");
-    regModel->select();
-    connect(rotModel, SIGNAL(regularsModified()), regModel, SLOT(select()));
-    proxyModel->setSortCaseSensitivity(Qt::CaseInsensitive);
-    proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
-    proxyModel->sort(2);
 }
 
 DlgRegularSingers::~DlgRegularSingers()
@@ -74,7 +63,7 @@ DlgRegularSingers::~DlgRegularSingers()
 
 void DlgRegularSingers::regularsChanged()
 {
-    regModel->select();
+    //regModel->select();
 }
 
 void DlgRegularSingers::on_btnClose_clicked()
@@ -86,31 +75,20 @@ void DlgRegularSingers::on_tableViewRegulars_clicked(const QModelIndex &index)
 {
     if (index.column() == 3)
     {
-        if (rotModel->singerExists(index.sibling(index.row(), 1).data().toString()))
-        {
-            QMessageBox::warning(this, tr("Naming conflict"), tr("A rotation singer already exists with the same name as the regular you're attempting to add. Action aborted."), QMessageBox::Close);
-            return;
-        }
-        if ((ui->comboBoxAddPos->currentIndex() == 2) && (rotModel->currentSinger() != -1))
-            rotModel->regularLoad(index.sibling(index.row(), 0).data().toInt(), rotModel->ADD_NEXT);
-        else if ((ui->comboBoxAddPos->currentIndex() == 0) && (rotModel->currentSinger() != -1))
-            rotModel->regularLoad(index.sibling(index.row(), 0).data().toInt(), rotModel->ADD_FAIR);
-        else
-            rotModel->regularLoad(index.sibling(index.row(), 0).data().toInt(), rotModel->ADD_BOTTOM);
+        on_tableViewRegulars_doubleClicked(index);
         return;
     }
     if (index.column() == 4)
     {
         QMessageBox msgBox(this);
-        msgBox.setText(tr("Are you sure you want to delete this regular singer?"));
-        msgBox.setInformativeText(tr("This will completely remove the regular singer from the database and can not be undone.  Note that if the singer is already loaded they won't be deleted from the rotation but regular tracking will be disabled."));
+        msgBox.setText(tr("Are you sure you want to delete this singer's history?"));
+        msgBox.setInformativeText(tr("This will completely remove this singer's song history from the database and can not be undone."));
         QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
         msgBox.addButton(QMessageBox::Cancel);
         msgBox.exec();
         if (msgBox.clickedButton() == yesButton)
         {
-            rotModel->regularDelete(index.sibling(index.row(), 0).data().toInt());
-            regModel->select();
+            m_historySingersModel.deleteHistory(index.sibling(index.row(), 0).data().toInt());
         }
     }
 }
@@ -120,84 +98,99 @@ void DlgRegularSingers::on_tableViewRegulars_customContextMenuRequested(const QP
     QModelIndex index = ui->tableViewRegulars->indexAt(pos);
     if (index.isValid())
     {
-        m_rtClickRegSingerId = index.sibling(index.row(),0).data().toInt();
+        m_rtClickHistorySingerId = index.sibling(index.row(),0).data().toInt();
         QMenu contextMenu(this);
-        contextMenu.addAction(tr("Rename"), this, SLOT(renameRegSinger()));
+        contextMenu.addAction(tr("Rename"), this, SLOT(renameHistorySinger()));
         contextMenu.exec(QCursor::pos());
     }
 }
 
-void DlgRegularSingers::editSingerDuplicateError()
-{
-    QMessageBox::warning(this, tr("Duplicate Name"), tr("A regular singer by that name already exists, edit cancelled."),QMessageBox::Close);
-}
-
-void DlgRegularSingers::renameRegSinger()
+void DlgRegularSingers::renameHistorySinger()
 {
     bool ok;
-    QString currentName = rotModel->getRegularName(m_rtClickRegSingerId);
-    QString name = QInputDialog::getText(this, tr("Rename regular singer"), tr("New name:"), QLineEdit::Normal, currentName, &ok);
-    if (ok && !name.isEmpty())
+    QString currentName = m_historySingersModel.getName(m_rtClickHistorySingerId);
+    QString name = QInputDialog::getText(this, tr("Rename history singer"), tr("New name:"), QLineEdit::Normal, currentName, &ok);
+
+    if (name.isEmpty() || !ok || name == currentName)
+        return;
+    if (m_historySingersModel.exists(name) && name.toLower() != currentName.toLower())
     {
-        if ((name.toLower() == currentName.toLower()) && (name != currentName))
+        QMessageBox::warning(
+                    this,
+                    tr("A history singer with this name already exists!"),
+                    tr("A history singer named ") + name + tr(" already exists. Please choose a unique name and try again. "
+                                                              "The operation has been cancelled."),
+                    QMessageBox::Ok
+                    );
+        return;
+    }
+    if (rotModel->singerExists(currentName))
+    {
+        if (!rotModel->singerExists(name))
         {
-            // changing capitalization only
-            rotModel->regularSetName(m_rtClickRegSingerId, name);
-        }
-        else if (rotModel->regularExists(name))
-        {
-            QMessageBox::warning(this, tr("Regular singer exists!"),tr("A regular singer named ") + name + tr(" already exists. Please choose a unique name and try again. The operation has been cancelled."),QMessageBox::Ok);
+            auto answer = QMessageBox::question(this,
+                                                "Rename matching rotation singer?",
+                                                "This singer appears to currently be in the rotation, and no singer matching the new name "
+                                                "exists.  Would you like to rename the roation singer as well?",
+                                                QMessageBox::StandardButtons(QMessageBox::Yes|QMessageBox::No),
+                                                QMessageBox::Yes
+                                                );
+            if (answer == QMessageBox::No)
+                return;
+            rotModel->singerSetName(rotModel->getSingerId(currentName), name);
         }
         else
         {
-            rotModel->regularSetName(m_rtClickRegSingerId, name);
+            auto answer = QMessageBox::question(this,
+                                                "Can't rename the matching rotation singer!",
+                                                "This singer appears to currently be in the rotation, but another rotation singer also "
+                                                "exists which conflicts with the new name. OpenKJ will be unable to rename the matching "
+                                                "rotation singer and history data may be lost. Would you like to rename the singer anyway?"
+                                                );
+            if (answer == QMessageBox::No)
+                return;
         }
-        regModel->select();
     }
+    m_historySingersModel.rename(m_rtClickHistorySingerId, name);
 }
 
 void DlgRegularSingers::on_lineEditSearch_textChanged(const QString &arg1)
 {
-    proxyModel->setFilterString(QString("%1").arg(arg1));
-    proxyModel->sort(1);
-}
-
-RegProxyModel::RegProxyModel(QObject *parent) : QSortFilterProxyModel (parent)
-{
-}
-
-void RegProxyModel::setFilterString(const QString &value)
-{
-    filterString = value;
-    invalidateFilter();
-}
-
-bool RegProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
-{
-    QModelIndex index0 = sourceModel()->index(source_row, 1, source_parent);
-    if (filterString == " " || filterString == "")
-        return true;
-    QStringList parts = filterString.split(" ", QString::SkipEmptyParts);
-    qInfo() << "Filtering based on parts: " << parts;
-    for (int i=0; i < parts.size(); i++)
-    {
-        if (!sourceModel()->data(index0).toString().contains(parts.at(i),Qt::CaseInsensitive))
-            return false;
-    }
-    return true;
+    m_historySingersModel.filter(arg1);
+    //proxyModel->setFilterString(QString("%1").arg(arg1));
+    //proxyModel->sort(1);
 }
 
 void DlgRegularSingers::on_tableViewRegulars_doubleClicked(const QModelIndex &index)
 {
-    if (rotModel->singerExists(index.sibling(index.row(), 1).data().toString()))
+    QString singerName = index.sibling(index.row(), 1).data().toString();
+    if (rotModel->singerExists(singerName))
     {
-        QMessageBox::warning(this, tr("Naming conflict"), tr("A rotation singer already exists with the same name as the regular you're attempting to add. Action aborted."), QMessageBox::Close);
+        if (rotModel->singerIsRegular(rotModel->getSingerId(singerName)))
+        {
+            QMessageBox::warning(this, "This regular singer is already in the rotation",
+                                 "This regular singer already exists in the current rotation.\n\nAction cancelled.");
+            return;
+        }
+        auto answer = QMessageBox::question(this,
+                                            "A singer by this name already exists in the rotation",
+                                            "A singer with this name is currently in the rotation, but they aren't marked as a regular.\n"
+                                            "Would you like load this regular's song history for the matching rotation singer?",
+                                            QMessageBox::StandardButtons(QMessageBox::Yes|QMessageBox::Cancel),
+                                            QMessageBox::Yes
+                                            );
+        if (answer == QMessageBox::Yes)
+        {
+            int singerId = rotModel->getSingerId(singerName);
+            rotModel->singerMakeRegular(singerId);
+        }
         return;
     }
     if ((ui->comboBoxAddPos->currentIndex() == 2) && (rotModel->currentSinger() != -1))
-        rotModel->regularLoad(index.sibling(index.row(), 0).data().toInt(), rotModel->ADD_NEXT);
+        rotModel->singerAdd(singerName, rotModel->ADD_NEXT);
     else if ((ui->comboBoxAddPos->currentIndex() == 0) && (rotModel->currentSinger() != -1))
-        rotModel->regularLoad(index.sibling(index.row(), 0).data().toInt(), rotModel->ADD_FAIR);
+        rotModel->singerAdd(singerName, rotModel->ADD_FAIR);
     else
-        rotModel->regularLoad(index.sibling(index.row(), 0).data().toInt(), rotModel->ADD_BOTTOM);
+        rotModel->singerAdd(singerName, rotModel->ADD_BOTTOM);
+    rotModel->singerMakeRegular(rotModel->getSingerId(singerName));
 }

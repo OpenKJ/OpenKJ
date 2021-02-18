@@ -304,9 +304,10 @@ public:
     QKeySequence loadShortcutKeySequence(const QString &name);
     bool cdgPrescalingEnabled();
     bool rotationAltSortOrder();
-
+    bool treatAllSingersAsRegs();
 
 signals:
+    void treatAllSingersAsRegsChanged(const bool enabled);
     void slideShowIntervalChanged(const uint secs);
     void enforceAspectRatioChanged(const bool &enforce);
     void applicationFontChanged(QFont font);
@@ -378,6 +379,7 @@ signals:
 
 
 public slots:
+    void setTreatAllSingersAsRegs(const bool enabled);
     void setRotationAltSortOrder(bool enabled);
     void setCdgPrescalingEnabled(bool enabled);
     void setSlideShowInterval(int secs);

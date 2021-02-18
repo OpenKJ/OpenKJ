@@ -232,6 +232,8 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     Settings tmpSettings;
     ui->lineEditLogDir->setText(tmpSettings.logDir());
     connect(ui->checkBoxLogging, SIGNAL(toggled(bool)), &settings, SLOT(setLogEnabled(bool)));
+    ui->checkBoxTreatAllSingersAsRegs->setChecked(settings.treatAllSingersAsRegs());
+    connect(ui->checkBoxTreatAllSingersAsRegs, &QAbstractButton::toggled, &settings, &Settings::setTreatAllSingersAsRegs);
     ui->checkBoxEnforceAspectRatio->setChecked(settings.enforceAspectRatio());
     connect(ui->checkBoxShowAddDlgOnDbDblclk, &QCheckBox::stateChanged, [&] (auto state) {
         if (state == 0)

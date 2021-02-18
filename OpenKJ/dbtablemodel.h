@@ -51,6 +51,8 @@ public:
     void sort(int column, Qt::SortOrder order);
     void refreshCache();
     void setSearchType(SearchType type);
+    int getSongIdForPath(const QString &path);
+    void updateSongHistory(const int dbSongId);
 
 private:
     SearchType m_searchType{SearchType::SEARCH_TYPE_ALL};

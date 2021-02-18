@@ -168,6 +168,7 @@
         <file>Icons/okjbreeze-dark/mimetypes/22/application-x-cda.svg</file>
         <file>Icons/okjbreeze-dark/mimetypes/22/application-zip.svg</file>
         <file>Icons/okjbreeze-dark/mimetypes/22/video-mp4.svg</file>
+        <file>Icons/okjbreeze-dark/actions/22/media-playlist-append.svg</file>
     </qresource>
     <qresource prefix="/"/>
 </RCC>

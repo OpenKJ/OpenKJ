@@ -116,7 +116,7 @@ contains(DEFINES, STATIC_TAGLIB) {
 #QMAKE_MAC_SDK = MacOSX10.13
 #QMAKE_MAC_SDK.macosx.version = 10.13
 
-VERSION = 1.9.27
+VERSION = 1.9.28
 message($$VERSION)
 QMAKE_TARGET_COMPANY = OpenKJ.org
 QMAKE_TARGET_PRODUCT = OpenKJ
@@ -131,6 +131,8 @@ DEFINES += BUILD_DATE=__DATE__
 
 SOURCES += main.cpp\
     dlgaddsong.cpp \
+    historysingerstablemodel.cpp \
+    historysongstablemodel.cpp \
     mediabackend.cpp \
     miniz.c \
     mzarchive.cpp \
@@ -305,6 +307,8 @@ contains(DEFINES, STATIC_TAGLIB) {
 HEADERS  += mainwindow.h \
     dlgaddsong.h \
     dlgvideopreview.h \
+    historysingerstablemodel.h \
+    historysongstablemodel.h \
     libCDG/include/libCDG.h \
     mediabackend.h \
     miniz.h \

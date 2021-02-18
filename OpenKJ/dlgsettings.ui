@@ -1432,6 +1432,25 @@ QPushButton:default {
              </widget>
             </item>
             <item>
+             <widget class="QGroupBox" name="groupBox_9">
+              <property name="title">
+               <string>Regular Singers / Singer History</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_29">
+               <item>
+                <widget class="QCheckBox" name="checkBoxTreatAllSingersAsRegs">
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If enabled, all singers added to the rotation will be treated as regular singers and their history will be tracked.  History is saved by the singer name, so it's best if you avoid adding singers to the rotation named as just a common first name if you're interested in having a useful history for them.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string>Treat all singers as regular singers</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
              <spacer name="verticalSpacer_7">
               <property name="orientation">
                <enum>Qt::Vertical</enum>

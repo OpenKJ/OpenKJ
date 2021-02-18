@@ -23,9 +23,11 @@
 #include <QByteArray>
 #include <QStringList>
 #include <QSqlQuery>
+#include <QSqlError>
 #include <QDebug>
 #include <QStandardPaths>
 #include <QDir>
+#include <QDateTime>
 
 
 
@@ -186,6 +188,33 @@ void DbTableModel::setSearchType(DbTableModel::SearchType type)
     search(lastSearch);
 }
 
+int DbTableModel::getSongIdForPath(const QString &path)
+{
+    QSqlQuery query;
+    query.prepare("SELECT songid FROM mem.dbSongs WHERE path = :path");
+    query.bindValue(":path", path);
+    query.exec();
+    if (query.next())
+        return query.value(0).toInt();
+    return -1;
+}
+
+void DbTableModel::updateSongHistory(const int dbSongId)
+{
+    QSqlQuery query;
+    query.prepare("UPDATE dbSongs set plays = plays + :incVal, lastplay = :curTs WHERE songid = :songid");
+    query.bindValue(":curTs", QDateTime::currentDateTime());
+    query.bindValue(":songid", dbSongId);
+    query.bindValue(":incVal", 1);
+    query.prepare("UPDATE mem.dbSongs set plays = plays + :incVal, lastplay = :curTs WHERE songid = :songid");
+    query.bindValue(":curTs", QDateTime::currentDateTime());
+    query.bindValue(":songid", dbSongId);
+    query.bindValue(":incVal", 1);
+    query.exec();
+    select();
+    qInfo() << query.lastError();
+}
+
 
 //QVariant DbTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 //{
@@ -209,11 +238,8 @@ QVariant DbTableModel::data(const QModelIndex &index, int role) const
     {
         QSize sbSize(QFontMetrics(settings->applicationFont()).height(), QFontMetrics(settings->applicationFont()).height());
         QString filename = index.sibling(index.row(), 5).data().toString();
-        qInfo() << filename;
-        qInfo() << "decorationrole call for songid";
         if (filename.endsWith("zip", Qt::CaseInsensitive))
         {
-            qInfo() << "zip file";
             return m_zipIcon.pixmap(sbSize);
         }
         else if (filename.endsWith("cdg", Qt::CaseInsensitive))
@@ -222,7 +248,6 @@ QVariant DbTableModel::data(const QModelIndex &index, int role) const
         }
         else
         {
-            qInfo() << "video file";
             return m_vidIcon.pixmap(sbSize);
         }
     }

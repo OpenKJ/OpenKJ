@@ -682,6 +682,17 @@ bool Settings::rotationAltSortOrder()
     return settings->value("rotationAltSortOrder", true).toBool();
 }
 
+bool Settings::treatAllSingersAsRegs()
+{
+    return settings->value("treatAllSingersAsRegs", false).toBool();
+}
+
+void Settings::setTreatAllSingersAsRegs(const bool enabled)
+{
+    settings->setValue("treatAllSingersAsRegs", enabled);
+    emit treatAllSingersAsRegsChanged(enabled);
+}
+
 void Settings::setRotationAltSortOrder(bool enabled)
 {
     settings->setValue("rotationAltSortOrder", enabled);

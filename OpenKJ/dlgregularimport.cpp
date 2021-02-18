@@ -116,7 +116,7 @@ QStringList DlgRegularImport::loadSingerList(QString fileName)
 
 void DlgRegularImport::importSinger(QString name)
 {
-    if (rotModel->regularExists(name))
+    if (rotModel->historySingerExists(name))
     {
         QMessageBox::warning(this, tr("Naming conflict"),QString("A regular singer named \"" + name + "\" already exists.  Please remove or rename the existing regular singer and try again."));
         return;
