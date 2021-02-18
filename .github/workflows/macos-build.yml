@@ -10,6 +10,13 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2
+      with:
+       cached: ${{ steps.cache-qt.outputs.cache-hit }}
+       version: '5.15.0'
+       modules: 'core gui sql network widgets multimedia concurrent svg printsupport'
+       
     - name: Run qmake
       run: | 
         ~/Qt/5.15.0/clang_64/bin/qmake
