@@ -27,28 +27,36 @@
 #include <QSqlQuery>
 #include <QXmlStreamReader>
 #include <QApplication>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QDebug>
 
-DlgRegularImport::DlgRegularImport(RotationModel *rotationModel, QWidget *parent) :
+DlgRegularImport::DlgRegularImport(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DlgRegularImport)
 {
     ui->setupUi(this);
-    curImportFile = "";
-    rotModel = rotationModel;
+    m_curImportFile = "";
 }
 
 DlgRegularImport::~DlgRegularImport()
 {
+    qInfo() << "DlgRegularImport destructor fired";
     delete ui;
 }
 
 void DlgRegularImport::on_pushButtonSelectFile_clicked()
 {
-    QString importFile = QFileDialog::getOpenFileName(this,tr("Select file to load regulars from"), QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), "(*.xml)");
+    QString importFile = QFileDialog::getOpenFileName(this,tr("Select file to load regulars from"), QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), "OpenKJ export files (*.xml *json)");
     if (importFile != "")
     {
-        curImportFile = importFile;
-        QStringList singers = loadSingerList(importFile);
+        m_curImportFile = importFile;
+        QStringList singers;
+        if (m_curImportFile.endsWith("xml", Qt::CaseInsensitive))
+            singers = legacyLoadSingerList(importFile);
+        else
+            singers = loadSingerList(importFile);
         ui->listWidgetRegulars->clear();
         ui->listWidgetRegulars->addItems(singers);
     }
@@ -61,26 +69,60 @@ void DlgRegularImport::on_pushButtonClose_clicked()
 
 void DlgRegularImport::on_pushButtonImport_clicked()
 {
-    if (ui->listWidgetRegulars->selectedItems().size() > 0)
+    QStringList errors;
+    if (ui->listWidgetRegulars->selectedItems().size() < 1)
+        return;
+
+    QMessageBox *msgBox = new QMessageBox(this);
+    msgBox->setStandardButtons(0);
+    msgBox->setText(tr("Importing regular singers, please wait..."));
+    msgBox->show();
+    for (int i=0; i < ui->listWidgetRegulars->selectedItems().size(); i++)
     {
-        QMessageBox *msgBox = new QMessageBox(this);
-        msgBox->setStandardButtons(0);
-        msgBox->setText(tr("Importing regular singers, please wait..."));
-        msgBox->show();
-        for (int i=0; i < ui->listWidgetRegulars->selectedItems().size(); i++)
+        QString name = ui->listWidgetRegulars->selectedItems().at(i)->text();
+        if (m_historySingersModel.exists(name))
         {
-            msgBox->setInformativeText(tr("Importing singer: ") + ui->listWidgetRegulars->selectedItems().at(i)->text());
-            importSinger(ui->listWidgetRegulars->selectedItems().at(i)->text());
+            QMessageBox msgBox;
+            auto mergeBtn = msgBox.addButton("Merge", QMessageBox::ActionRole);
+            auto replaceBtn = msgBox.addButton("Replace", QMessageBox::DestructiveRole);
+            auto skipBtn = msgBox.addButton("Skip", QMessageBox::RejectRole);
+            msgBox.setDefaultButton(mergeBtn);
+            msgBox.setWindowTitle("Naming conflict");
+            msgBox.setText("An existing singer named \"" + name + "\" already exists.\nHow would you like to proceed?");
+            msgBox.exec();
+            if (msgBox.clickedButton() == skipBtn)
+                continue;
+            if (msgBox.clickedButton() == replaceBtn)
+            {
+                m_historySingersModel.deleteHistory(m_historySingersModel.getId(name));
+            }
         }
-        msgBox->close();
-        delete msgBox;
-        QMessageBox::information(this, tr("Import complete"), tr("Regular singer import complete."));
-        ui->listWidgetRegulars->clearSelection();
+        msgBox->setInformativeText(tr("Importing singer: ") + name);
+        if (m_curImportFile.endsWith("xml", Qt::CaseInsensitive))
+            errors.append(legacyImportSinger(ui->listWidgetRegulars->selectedItems().at(i)->text()));
+        else
+            errors.append(importSinger(ui->listWidgetRegulars->selectedItems().at(i)->text()));
     }
+    msgBox->close();
+    delete msgBox;
+
+    if (errors.size() > 0)
+    {
+        QMessageBox msgBox;
+        msgBox.addButton(QMessageBox::StandardButton::Ok);
+        msgBox.setDetailedText(errors.join("\n"));
+        msgBox.setText("Some songs could not be imported because there were not matching songs in your database");
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.exec();
+    }
+
+    QMessageBox::information(this, tr("Import complete"), tr("Regular singer import complete."));
+    ui->listWidgetRegulars->clearSelection();
 }
 
 void DlgRegularImport::on_pushButtonImportAll_clicked()
 {
+    QStringList errors;
     QMessageBox *msgBox = new QMessageBox(this);
     msgBox->setStandardButtons(0);
     msgBox->setText(tr("Importing regular singers, please wait..."));
@@ -88,16 +130,48 @@ void DlgRegularImport::on_pushButtonImportAll_clicked()
     ui->listWidgetRegulars->selectAll();
     for (int i=0; i < ui->listWidgetRegulars->selectedItems().size(); i++)
     {
+        QString name = ui->listWidgetRegulars->selectedItems().at(i)->text();
+        if (m_historySingersModel.exists(name))
+        {
+            QMessageBox msgBox;
+            auto mergeBtn = msgBox.addButton("Merge", QMessageBox::ActionRole);
+            auto replaceBtn = msgBox.addButton("Replace", QMessageBox::DestructiveRole);
+            auto skipBtn = msgBox.addButton("Skip", QMessageBox::RejectRole);
+            msgBox.setDefaultButton(mergeBtn);
+            msgBox.setWindowTitle("Naming conflict");
+            msgBox.setText("An existing singer named \"" + name + "\" already exists.\nHow would you like to proceed?");
+            msgBox.exec();
+            if (msgBox.clickedButton() == skipBtn)
+                continue;
+            if (msgBox.clickedButton() == replaceBtn)
+            {
+                m_historySingersModel.deleteHistory(m_historySingersModel.getId(name));
+            }
+        }
         msgBox->setInformativeText(tr("Importing singer: ") + ui->listWidgetRegulars->selectedItems().at(i)->text());
-        importSinger(ui->listWidgetRegulars->selectedItems().at(i)->text());
+        if (m_curImportFile.endsWith("xml", Qt::CaseInsensitive))
+            errors.append(legacyImportSinger(ui->listWidgetRegulars->selectedItems().at(i)->text()));
+        else
+            errors.append(importSinger(ui->listWidgetRegulars->selectedItems().at(i)->text()));
     }
     msgBox->close();
     delete msgBox;
+
+    if (errors.size() > 0)
+    {
+        QMessageBox msgBox;
+        msgBox.addButton(QMessageBox::StandardButton::Ok);
+        msgBox.setDetailedText(errors.join("\n"));
+        msgBox.setText("Some songs could not be imported because there were not matching songs in your database");
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.exec();
+    }
+
     QMessageBox::information(this, tr("Import complete"), tr("Regular singer import complete."));
         ui->listWidgetRegulars->clearSelection();
 }
 
-QStringList DlgRegularImport::loadSingerList(QString fileName)
+QStringList DlgRegularImport::legacyLoadSingerList(const QString &fileName)
 {
     QStringList singers;
     QFile *xmlFile = new QFile(fileName);
@@ -114,14 +188,26 @@ QStringList DlgRegularImport::loadSingerList(QString fileName)
     return singers;
 }
 
-void DlgRegularImport::importSinger(QString name)
+QStringList DlgRegularImport::loadSingerList(const QString &filename)
 {
-    if (rotModel->historySingerExists(name))
-    {
-        QMessageBox::warning(this, tr("Naming conflict"),QString("A regular singer named \"" + name + "\" already exists.  Please remove or rename the existing regular singer and try again."));
-        return;
-    }
-    QFile *xmlFile = new QFile(curImportFile);
+    m_curImportFile = filename;
+    QStringList singers;
+    QFile importFile(filename);
+    importFile.open(QFile::ReadOnly);
+    auto contents = importFile.readAll();
+    auto jDoc = QJsonDocument::fromJson(contents);
+    auto array = jDoc.array();
+    std::for_each(array.begin(), array.end(), [&singers] (QJsonValueRef singer) {
+        qInfo() << singer.toObject().value("name").toString();
+        singers.push_back(singer.toObject().value("name").toString());
+    });
+    return singers;
+}
+
+QStringList DlgRegularImport::legacyImportSinger(const QString &name)
+{
+    QStringList missingSongs;
+    QFile *xmlFile = new QFile(m_curImportFile);
     xmlFile->open(QIODevice::ReadOnly);
     QXmlStreamReader xml(xmlFile);
     bool done = false;
@@ -131,7 +217,6 @@ void DlgRegularImport::importSinger(QString name)
         xml.readNext();
         if ((xml.isStartElement()) && (xml.name() == "singer") && (xml.attributes().value("name") == name))
         {
-            int regSingerId = rotModel->regularAdd(name);
             xml.readNext();
             int position = 0;
             while ((xml.name() != "singer") && (!xml.isEndDocument()))
@@ -143,14 +228,14 @@ void DlgRegularImport::importSinger(QString name)
                     QString songId = xml.attributes().value("discid").toString();
                     QString artist = xml.attributes().value("artist").toString();
                     QString title = xml.attributes().value("title").toString();
-                    QString keyChg = xml.attributes().value("key").toString();
-                    QString sql = "SELECT songid FROM dbsongs WHERE artist == \"" + artist + "\" AND title == \"" + title + "\" AND discid == \"" + songId + "\" LIMIT 1";
+                    int keyChg = xml.attributes().value("key").toInt();
+
+                    QString sql = "SELECT path FROM dbsongs WHERE artist == \"" + artist + "\" AND title == \"" + title + "\" AND discid == \"" + songId + "\" LIMIT 1";
                     query.exec(sql);
                     if (query.first())
                     {
-                        QString songId = query.value(0).toString();
-                        sql = "INSERT INTO regularsongs (regsingerid, songid, keychg, position) VALUES(" + QString::number(regSingerId) + "," + songId + "," + keyChg + "," + QString::number(position) + ")";
-                        query.exec(sql);
+                        QString path = query.value(0).toString();
+                        m_historySongsModel.saveSong(name,path,artist,title,songId,keyChg);
                         position++;
                     }
                     else
@@ -164,17 +249,27 @@ void DlgRegularImport::importSinger(QString name)
                             else
                                 break;
                         }
-                       sql = "SELECT songid FROM dbsongs WHERE artist == \"" + artist + "\" AND title == \"" + title + "\" AND discid LIKE \"%" + vendorPart + "%\" LIMIT 1";
+                       sql = "SELECT path FROM dbsongs WHERE artist == \"" + artist + "\" AND title == \"" + title + "\" AND discid LIKE \"%" + vendorPart + "%\" LIMIT 1";
                        query.exec(sql);
                        if (query.first())
                        {
-                           QString songId = query.value(0).toString();
-                           sql = "INSERT INTO regularsongs (regsingerid, songid, keychg, position) VALUES(" + QString::number(regSingerId) + "," + songId + "," + keyChg + "," + QString::number(position) + ")";
-                           query.exec(sql);
+                           QString path = query.value(0).toString();
+                           m_historySongsModel.saveSong(name,path,artist,title,songId,keyChg);
                            position++;
                        }
                        else
-                       QMessageBox::warning(this, tr("No song match found"),QString(tr("An exact song DB match for the song \"") + songId + " - " + artist + " - " + title + tr("\" could not be found while importing singer \"") + name + tr("\", skipping import for this song.")));
+                       {
+                           query.prepare("SELECT path FROM dbsongs WHERE discid = :discid");
+                           query.bindValue(":discid", songId);
+                           query.exec();
+                           if (query.first())
+                           {
+                               QString path = query.value(0).toString();
+                               m_historySongsModel.saveSong(name,path,artist,title,songId,keyChg);
+                           }
+                           else
+                               missingSongs.append("Song: \"" + songId + " - " + artist + " - " + title + "\" Missing for singer: " + name);
+                       }
                     }
                 }
                 xml.readNext();
@@ -183,4 +278,46 @@ void DlgRegularImport::importSinger(QString name)
         }
     }
     xmlFile->close();
+    return missingSongs;
+}
+
+QStringList DlgRegularImport::importSinger(const QString &name)
+{
+    QStringList missingFiles;
+    QFile importFile(m_curImportFile);
+    importFile.open(QFile::ReadOnly);
+    auto contents = importFile.readAll();
+    auto jDoc = QJsonDocument::fromJson(contents);
+    auto array = jDoc.array();
+    auto match = std::find_if(array.begin(), array.end(), [&name] (QJsonValueRef singer) {
+        return (singer.toObject().value("name").toString() == name);
+    });
+    if (match == array.end())
+        return QStringList();
+    auto songs = match->toObject().value("songs").toArray();
+    std::for_each(songs.begin(), songs.end(), [&] (QJsonValueRef song) {
+        m_historySongsModel.saveSong(
+                    name,
+                    song.toObject().value("filepath").toString(),
+                    song.toObject().value("artist").toString(),
+                    song.toObject().value("title").toString(),
+                    song.toObject().value("songid").toString(),
+                    song.toObject().value("keychange").toInt(),
+                    song.toObject().value("plays").toInt(),
+                    QDateTime::fromString(song.toObject().value("lastplay").toString())
+                    );
+    });
+    return missingFiles;
+}
+
+
+void DlgRegularImport::closeEvent([[maybe_unused]]QCloseEvent *event)
+{
+    deleteLater();
+}
+
+
+void DlgRegularImport::done(int)
+{
+    deleteLater();
 }

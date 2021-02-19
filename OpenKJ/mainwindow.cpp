@@ -666,8 +666,6 @@ MainWindow::MainWindow(QWidget *parent) :
     dbDialog = new DlgDatabase(database, this);
     dlgKeyChange = new DlgKeyChange(qModel, this);
     regularSingersDialog = new DlgRegularSingers(rotModel, this);
-    regularExportDialog = new DlgRegularExport(rotModel, this);
-    regularImportDialog = new DlgRegularImport(rotModel, this);
     requestsDialog = new DlgRequests(rotModel);
     requestsDialog->setModal(false);
     dlgBookCreator = new DlgBookCreator(this);
@@ -1674,12 +1672,16 @@ void MainWindow::on_actionManage_DB_triggered()
 
 void MainWindow::on_actionExport_Regulars_triggered()
 {
-    regularExportDialog->show();
+    auto exportdlg = new DlgRegularExport(this);
+    exportdlg->setModal(true);
+    exportdlg->show();
 }
 
 void MainWindow::on_actionImport_Regulars_triggered()
 {
-    regularImportDialog->show();
+    auto iDialog = new DlgRegularImport(this);
+    iDialog->setModal(true);
+    iDialog->show();
 }
 
 void MainWindow::on_actionSettings_triggered()
@@ -4107,6 +4109,8 @@ void MainWindow::on_btnQBottom_clicked()
 
 void MainWindow::on_btnBmPlRandomize_clicked()
 {
+    if (bmPlModel->rowCount() < 2)
+        return;
     qint32 newplayinpos = bmPlModel->randomizePlaylist(bmCurrentPosition);
     bmCurrentPosition = newplayinpos;
     bmPlDelegate->setCurrentSong(bmCurrentPosition);
@@ -4336,7 +4340,7 @@ void MainWindow::on_actionBurn_in_triggered()
     {
         auto singerName = "Test Singer " + QString::number(i);
         rotModel->singerAdd(singerName);
-        rotModel->regularDelete(singerName);
+       // rotModel->regularDelete(singerName);
     }
     for (auto i=0; i<11; i++)
     {

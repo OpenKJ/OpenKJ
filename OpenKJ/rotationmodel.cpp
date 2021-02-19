@@ -150,7 +150,7 @@ int RotationModel::singerAdd(const QString& name, int positionHint)
     switch (positionHint) {
     case ADD_FAIR:
     {
-        if (curSingerPos != 0)
+        if (curSingerPos != 0 && !settings.rotationAltSortOrder())
             singerMove(rowCount() - 1, getSingerPosition(m_currentSingerId));
         break;
     }
@@ -271,31 +271,6 @@ int RotationModel::regularAdd(QString name)
     return query.lastInsertId().toInt();
 }
 
-void RotationModel::regularDelete(int regSingerId)
-{
-    QSqlQuery query;
-    query.exec("BEGIN TRANSACTION");
-    query.exec("DELETE FROM regularsingers WHERE regsingerid == " + QString::number(regSingerId));
-    query.exec("DELETE FROM regularsongs WHERE regsingerid == " + QString::number(regSingerId));
-    query.exec("UPDATE rotationsingers SET regular=0,regularid=-1 WHERE regularid == " + QString::number(regSingerId));
-    query.exec("COMMIT TRANSACTION");
-    select();
-    emit regularsModified();
-}
-
-void RotationModel::regularDelete(const QString singerName)
-{
-    QSqlQuery query;
-    query.exec("SELECT regsingerid FROM regularsingers WHERE name =='" + singerName + "'");
-    if (query.first())
-    {
-        qInfo() << "Deleting regular: " << singerName << " Id: " << query.value(0).toInt();
-        regularDelete(query.value(0).toInt());
-        return;
-    }
-    qInfo() << "Regular not found while deleting: " << singerName;
-}
-
 bool RotationModel::historySingerExists(QString name)
 {
     QStringList names = historySingers();
@@ -305,16 +280,6 @@ bool RotationModel::historySingerExists(QString name)
             return true;
     }
     return false;
-}
-
-void RotationModel::regularUpdate(int singerId)
-{
-    int regSingerId = singerRegSingerId(singerId);
-    QSqlQuery query;
-    query.exec("BEGIN TRANSACTION");
-    query.exec("DELETE FROM regularsongs WHERE regsingerid == " + QString::number(regSingerId));
-    query.exec("INSERT INTO regularsongs (regsingerid, songid, keychg, position) SELECT " + QString::number(regSingerId) + ", queuesongs.song, queuesongs.keychg, queuesongs.position FROM queuesongs WHERE queuesongs.singer == " + QString::number(singerId));
-    query.exec("COMMIT TRANSACTION");
 }
 
 QString RotationModel::getSingerName(int singerId)
@@ -336,14 +301,6 @@ QString RotationModel::getRegularName(int regSingerId)
 int RotationModel::getSingerId(QString name)
 {
     QSqlQuery query("SELECT singerid FROM rotationsingers WHERE name == \"" + name + "\" LIMIT 1");
-    if (query.first())
-        return query.value(0).toInt();
-    return -1;
-}
-
-int RotationModel::getRegSingerId(QString name)
-{
-    QSqlQuery query("SELECT regsingerid FROM regularsingers WHERE name == \"" + name + "\" LIMIT 1");
     if (query.first())
         return query.value(0).toInt();
     return -1;
@@ -471,43 +428,6 @@ void RotationModel::clearRotation()
     m_currentSingerId = -1;
     emit rotationModified();
 }
-
-int RotationModel::regularLoad(int regSingerId, int positionHint)
-{
-    if (singerExists(getRegularName(regSingerId)))
-    {
-        emit regularLoadNameConflict(getRegularName(regSingerId));
-        return -1;
-    }
-    int singerId = singerAdd(getRegularName(regSingerId));
-    QSqlQuery query;
-    query.exec("UPDATE rotationsingers SET regular=1,regularid=" + QString::number(regSingerId) + " WHERE singerid == " + QString::number(singerId));
-    query.exec("INSERT INTO queuesongs (singer, song, artist, title, discid, path, keychg, played, position) SELECT " + QString::number(singerId) + ", regularsongs.songid, regularsongs.songid, regularsongs.songid, regularsongs.songid, regularsongs.songid, regularsongs.keychg, 0, regularsongs.position FROM regularsongs WHERE regsingerid == " + QString::number(regSingerId));
-    int curSingerPos = getSingerPosition(m_currentSingerId);
-    switch (positionHint) {
-    case ADD_FAIR:
-    {
-        if (curSingerPos != 0)
-            singerMove(rowCount() - 1, getSingerPosition(m_currentSingerId));
-        break;
-    }
-    case ADD_NEXT:
-        if (curSingerPos != rowCount() - 2)
-            singerMove(rowCount() - 1, getSingerPosition(m_currentSingerId) + 1);
-        break;
-    }
-    select();
-    return singerId;
-}
-
-void RotationModel::regularSetName(int regSingerId, QString newName)
-{
-    QSqlQuery query;
-    query.exec("UPDATE regularsingers SET name = \"" + newName + "\" WHERE regsingerid == " + QString::number(regSingerId));
-    emit rotationModified();
-    select();
-}
-
 
 QStringList RotationModel::mimeTypes() const
 {

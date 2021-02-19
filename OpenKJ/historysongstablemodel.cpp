@@ -165,6 +165,37 @@ void HistorySongsTableModel::saveSong(const QString &singerName, const QString &
     loadSinger(m_currentSinger);
 }
 
+void HistorySongsTableModel::saveSong(const QString &singerName, const QString &filePath, const QString &artist, const QString &title, const QString &songid, const int keyChange, int plays, QDateTime lastPlayed)
+{
+    qInfo() << "filepath: " << filePath;
+    QSqlQuery query;
+    auto historySingerId = getSingerId(singerName);
+    if (historySingerId != -1 && songExists(historySingerId, filePath))
+    {
+        qInfo() << "Song already in singer history, skipping";
+        return;
+    }
+    if (historySingerId == -1)
+    {
+        qInfo() << "Singer does not exist in historySinger table, adding";
+        historySingerId = addSinger(singerName);
+    }
+    qInfo() << "Adding new song to singer history";
+    query.prepare("INSERT INTO historySongs (historySinger, filepath, artist, title, songid, keychange, plays, lastplay) "
+                  "values (:historySinger, :filepath, :artist, :title, :songid, :keychange, :plays, :datetime)");
+    query.bindValue(":artist", artist);
+    query.bindValue(":title", title);
+    query.bindValue(":songid", songid);
+    query.bindValue(":keychange", keyChange);
+    query.bindValue(":filepath", filePath);
+    query.bindValue(":historySinger", historySingerId);
+    query.bindValue(":plays", plays);
+    query.bindValue(":datetime", lastPlayed);
+    query.exec();
+    qInfo() << query.lastError();
+    loadSinger(m_currentSinger);
+}
+
 int HistorySongsTableModel::addSinger(const QString name) const
 {
     qInfo() << "Inserting singer into history: " << name;
@@ -200,6 +231,30 @@ int HistorySongsTableModel::getSingerId(const QString &name) const
         retVal = query.value(0).toInt();
     }
     return retVal;
+}
+
+std::vector<HistorySong> HistorySongsTableModel::getSingerSongs(const int historySingerId)
+{
+    std::vector<HistorySong> songs;
+    QSqlQuery query;
+    query.prepare("SELECT * from historySongs WHERE historySinger = :historySinger");
+    query.bindValue(":historySinger", historySingerId);
+    query.exec();
+    while (query.next())
+    {
+        HistorySong song;
+        song.id = query.value(0).toUInt();
+        song.historySinger = query.value(1).toUInt();
+        song.filePath = query.value(2).toString();
+        song.artist = query.value(3).toString();
+        song.title = query.value(4).toString();
+        song.songid = query.value(5).toString();
+        song.keyChange = query.value(6).toInt();
+        song.plays = query.value(7).toUInt();
+        song.lastPlayed = query.value(8).toDateTime();
+        songs.emplace_back(song);
+    }
+    return songs;
 }
 
 void HistorySongsTableModel::refresh()

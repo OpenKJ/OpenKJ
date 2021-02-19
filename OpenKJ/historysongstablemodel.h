@@ -13,7 +13,7 @@ struct HistorySong {
     QString title;
     QString songid;
     int keyChange{0};
-    unsigned int plays{0};
+    int plays{0};
     QDateTime lastPlayed; // unix time
 };
 
@@ -32,10 +32,13 @@ public:
     void loadSinger(const QString historySingerName);
     void saveSong(const QString &singerName, const QString &filePath, const QString &artist, const QString &title,
                   const QString &songid, const int keyChange);
+    void saveSong(const QString &singerName, const QString &filePath, const QString &artist, const QString &title,
+                  const QString &songid, const int keyChange, int plays, QDateTime lastPlayed);
     int addSinger(const QString name) const;
     bool songExists(const int historySingerId, const QString &filePath) const;
     int getSingerId(const QString &name) const;
     int getDbSongId(const int historySongId) const;
+    std::vector<HistorySong> getSingerSongs(const int historySingerId);
     QString currentSingerName() const { return m_currentSinger; }
     void refresh();
     // QAbstractItemModel interface

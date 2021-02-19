@@ -22,8 +22,9 @@
 #define REGULAREXPORTDIALOG_H
 
 #include <QDialog>
-#include <QSqlTableModel>
 #include "rotationmodel.h"
+#include "historysingerstablemodel.h"
+#include "historysongstablemodel.h"
 
 namespace Ui {
 class DlgRegularExport;
@@ -35,12 +36,12 @@ class DlgRegularExport : public QDialog
 
 private:
     Ui::DlgRegularExport *ui;
-    QSqlTableModel *regModel;
-    void exportSingers(QList<int> regSingerIds, QString savePath);
-    RotationModel *rotModel;
+    HistorySingersTableModel m_historySingersModel;
+    HistorySongsTableModel m_historySongsModel;
+    void exportSingers(const std::vector<int> &historySingerIds, const QString &savePath);
 
 public:
-    explicit DlgRegularExport(RotationModel *rotationModel, QWidget *parent = 0);
+    explicit DlgRegularExport(QWidget *parent = 0);
     ~DlgRegularExport();
 
 private slots:
@@ -48,6 +49,14 @@ private slots:
     void on_pushButtonExport_clicked();
     void on_pushButtonExportAll_clicked();
 
+
+    // QWidget interface
+protected:
+    void closeEvent(QCloseEvent *event) override;
+
+    // QDialog interface
+public slots:
+    void done(int) override;
 };
 
 #endif // REGULAREXPORTDIALOG_H

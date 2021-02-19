@@ -46,16 +46,10 @@ public:
     void singerMakeRegular(int singerId);
     void singerDisableRegularTracking(int singerId);
     int regularAdd(QString name);
-    void regularDelete(int regSingerId);
-    void regularDelete(const QString singerName);
     bool historySingerExists(QString name);
-    void regularUpdate(int singerId);
-    int regularLoad(int regSingerId, int positionHint);
-    void regularSetName(int regSingerId, QString newName);
     QString getSingerName(int singerId);
     QString getRegularName(int regSingerId);
     int getSingerId(QString name);
-    int getRegSingerId(QString name);
     int getSingerPosition(int singerId);
     int singerIdAtPosition(int position) const;
     QStringList singers();
@@ -90,7 +84,6 @@ signals:
     void songDroppedOnSinger(int singerId, int songId, int dropRow);
     void regularAddNameConflict(QString name);
     void regularLoadNameConflict(QString name);
-    void regularAddError(QString errorText);
     void rotationModified();
     void regularsModified();
     void singersMoved(const int startRow, const int startCol, const int endRow, const int endCol);

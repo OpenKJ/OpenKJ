@@ -89,8 +89,6 @@ private:
     DlgDatabase *dbDialog;
     DlgSettings *settingsDialog;
     DlgRegularSingers *regularSingersDialog;
-    DlgRegularExport *regularExportDialog;
-    DlgRegularImport *regularImportDialog;
     DlgKeyChange *dlgKeyChange;
     DlgRequests *requestsDialog;
     DlgBookCreator *dlgBookCreator;

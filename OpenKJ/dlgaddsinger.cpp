@@ -40,36 +40,8 @@ void DlgAddSinger::on_buttonBox_accepted()
         if (ui->lineEditName->text() == "")
             return;
         int newSingerPos{0};
-        rotModel->singerAdd(ui->lineEditName->text());
-        if (rotModel->currentSinger() != -1)
-        {
-            int curSingerPos = rotModel->getSingerPosition(rotModel->currentSinger());
-            if (curSingerPos < 0)
-                curSingerPos = 0;
-            if (rotModel->singers().size() == 1) {
-                qInfo() << "Skipping singer move, the new singer is the only singer";
-                newSingerPos = 0;
-            }
-            else if (ui->cbxPosition->currentIndex() == 2)
-            {
-                newSingerPos = curSingerPos + 1;
-                rotModel->singerMove(rotModel->rowCount() -1, newSingerPos);
-            }
-            else if ((ui->cbxPosition->currentIndex() == 0) && (curSingerPos != 0))
-            {
-                newSingerPos = curSingerPos;
-                rotModel->singerMove(rotModel->rowCount() -1, newSingerPos);
-            }
-            else
-            {
-                newSingerPos = rotModel->rowCount() - 1;
-            }
-        }
-        else
-        {
-            newSingerPos = rotModel->rowCount() - 1;
-        }
-        qInfo() << "New singer added, selecting postion: " << newSingerPos;
+        int newSingerId = rotModel->singerAdd(ui->lineEditName->text(), ui->cbxPosition->currentIndex());
+        newSingerPos = rotModel->getSingerPosition(newSingerId);
         emit newSingerAdded(newSingerPos);
         ui->lineEditName->clear();
         close();

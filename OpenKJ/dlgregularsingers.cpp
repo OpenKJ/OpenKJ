@@ -35,11 +35,8 @@ DlgRegularSingers::DlgRegularSingers(RotationModel *rotationModel, QWidget *pare
 {
     m_rtClickHistorySingerId = -1;
     ui->setupUi(this);
-//    proxyModel = new RegProxyModel(this);
-//    proxyModel->setSourceModel(historySingersModel);
     ui->tableViewRegulars->setModel(&m_historySingersModel);
-//    regDelegate = new RegItemDelegate(this);
-//    ui->tableViewRegulars->setItemDelegate(regDelegate);
+    ui->tableViewRegulars->setItemDelegate(&m_historySingersDelegate);
     ui->comboBoxAddPos->addItem("Fair");
     ui->comboBoxAddPos->addItem("Bottom");
     ui->comboBoxAddPos->addItem("Next");

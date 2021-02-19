@@ -116,7 +116,7 @@ contains(DEFINES, STATIC_TAGLIB) {
 #QMAKE_MAC_SDK = MacOSX10.13
 #QMAKE_MAC_SDK.macosx.version = 10.13
 
-VERSION = 1.9.28
+VERSION = 1.9.29
 message($$VERSION)
 QMAKE_TARGET_COMPANY = OpenKJ.org
 QMAKE_TARGET_PRODUCT = OpenKJ
@@ -157,7 +157,6 @@ SOURCES += main.cpp\
     rotationitemdelegate.cpp \
     dbitemdelegate.cpp \
     queueitemdelegate.cpp \
-    regitemdelegate.cpp \
     okarchive.cpp \
     tagreader.cpp \
     bmdbitemdelegate.cpp \
@@ -331,7 +330,6 @@ HEADERS  += mainwindow.h \
     rotationitemdelegate.h \
     dbitemdelegate.h \
     queueitemdelegate.h \
-    regitemdelegate.h \
     okarchive.h \
     tagreader.h \
     bmdbitemdelegate.h \

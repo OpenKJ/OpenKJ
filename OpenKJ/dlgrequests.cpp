@@ -337,16 +337,8 @@ void DlgRequests::on_pushButtonAddSong_clicked()
             return;
         else
         {
-            rotModel->singerAdd(ui->lineEditSingerName->text());
-            if (rotModel->currentSinger() != -1)
-            {
-                int curSingerPos = rotModel->getSingerPosition(rotModel->currentSinger());
-                if (ui->comboBoxAddPosition->currentIndex() == 0)
-                    rotModel->singerMove(rotModel->rowCount() -1, curSingerPos + 1);
-                else if ((ui->comboBoxAddPosition->currentIndex() == 1) && (curSingerPos != 0))
-                    rotModel->singerMove(rotModel->rowCount() -1, curSingerPos);
-            }
-            emit addRequestSong(songid, rotModel->getSingerId(ui->lineEditSingerName->text()), keyChg);
+            int newSingerId = rotModel->singerAdd(ui->lineEditSingerName->text(), ui->comboBoxAddPosition->currentIndex());
+            emit addRequestSong(songid, newSingerId, keyChg);
         }
     }
     else if (ui->radioButtonExistingSinger->isChecked())

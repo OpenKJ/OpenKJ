@@ -3,6 +3,7 @@
 
 #include <QAbstractTableModel>
 #include <QIcon>
+#include <QItemDelegate>
 
 struct HistorySinger {
     int historySingerId{-1};
@@ -10,15 +11,26 @@ struct HistorySinger {
     int songCount{0};
 };
 
+class HistorySingersItemDelegate : public QItemDelegate
+{
+    Q_OBJECT
+private:
+    QImage m_iconDelete;
+    QImage m_iconLoadReg;
+    int m_curFontHeight;
+    void resizeIconsForFont(QFont font);
+
+public:
+    explicit HistorySingersItemDelegate(QObject *parent = 0);
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+
+};
+
 class HistorySingersTableModel : public QAbstractTableModel
 {
     Q_OBJECT
 private:
     std::vector<HistorySinger> m_singers;
-    QIcon m_iconDelete16;
-    QIcon m_iconDelete22;
-    QIcon m_iconLoadReg16;
-    QIcon m_iconLoadReg22;
     QString m_filterString;
 
 public:
@@ -35,6 +47,8 @@ public:
     void deleteHistory(const int historySingerId);
     bool rename(const int historySingerId, const QString &newName);
     void filter(const QString &filterString);
+    std::vector<HistorySinger> &singers();
+    HistorySinger getSinger(const int historySingerId);
 
 signals:
     void historySingersModified();

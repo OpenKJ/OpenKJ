@@ -24,9 +24,9 @@
 #include <QDialog>
 #include <QSortFilterProxyModel>
 #include <QSqlTableModel>
-#include "regitemdelegate.h"
 #include "rotationmodel.h"
 #include "historysingerstablemodel.h"
+
 namespace Ui {
 class DlgRegularSingers;
 }
@@ -39,7 +39,7 @@ private:
     int m_rtClickHistorySingerId;
     Ui::DlgRegularSingers *ui;
     HistorySingersTableModel m_historySingersModel;
-    //    RegItemDelegate *regDelegate;
+    HistorySingersItemDelegate m_historySingersDelegate;
     RotationModel *rotModel;
 
 public:

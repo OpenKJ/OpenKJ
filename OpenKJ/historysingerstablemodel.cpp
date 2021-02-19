@@ -3,6 +3,8 @@
 #include <QSize>
 #include <QSqlQuery>
 #include <QSqlError>
+#include <QPainter>
+#include <QSvgRenderer>
 #include "settings.h"
 
 extern Settings settings;
@@ -11,11 +13,6 @@ HistorySingersTableModel::HistorySingersTableModel(QObject *parent)
     : QAbstractTableModel(parent)
 {
     loadSingers();
-    QString thm = (settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
-    m_iconDelete16 = QIcon(thm + "actions/16/edit-delete.svg");
-    m_iconDelete22 = QIcon(thm + "actions/22/edit-delete.svg");
-    m_iconLoadReg16 = QIcon(thm + "actions/22/list-add-user.svg");
-    m_iconLoadReg22 = QIcon(thm + "actions/16/list-add-user.svg");
 }
 
 QVariant HistorySingersTableModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -38,15 +35,11 @@ QVariant HistorySingersTableModel::headerData(int section, Qt::Orientation orien
 
 int HistorySingersTableModel::rowCount([[maybe_unused]]const QModelIndex &parent) const
 {
-    if (parent.isValid())
-        return 0;
     return m_singers.size();
 }
 
-int HistorySingersTableModel::columnCount(const QModelIndex &parent) const
+int HistorySingersTableModel::columnCount([[maybe_unused]]const QModelIndex &parent) const
 {
-    if (parent.isValid())
-        return 0;
     return 5;
 }
 
@@ -58,27 +51,11 @@ QVariant HistorySingersTableModel::data(const QModelIndex &index, int role) cons
     {
         switch (index.column()) {
         case 2:
-            return Qt::AlignRight;
+            return Qt::AlignRight + Qt::AlignVCenter;
         case 3:
-            return Qt::AlignHCenter;
+            return Qt::AlignHCenter + Qt::AlignVCenter;
         case 4:
-            return Qt::AlignHCenter;
-        }
-    }
-    if (role == Qt::DecorationRole)
-    {
-        QSize sbSize(QFontMetrics(settings.applicationFont()).height(), QFontMetrics(settings.applicationFont()).height());
-        switch (index.column()) {
-        case 3:
-            if (sbSize.height() > 18)
-                return m_iconLoadReg22.pixmap(sbSize);
-            else
-                return m_iconLoadReg16.pixmap(sbSize);
-        case 4:
-            if (sbSize.height() > 18)
-                return m_iconDelete22.pixmap(sbSize);
-            else
-                return m_iconDelete16.pixmap(sbSize);
+            return Qt::AlignHCenter + Qt::AlignVCenter;
         }
     }
     if (role == Qt::DisplayRole)
@@ -128,32 +105,30 @@ void HistorySingersTableModel::loadSingers()
 
 QString HistorySingersTableModel::getName(const int historySingerId) const
 {
-    QString name;
-    std::for_each(m_singers.begin(), m_singers.end(), [&historySingerId, &name] (auto singer) {
-        if (singer.historySingerId == historySingerId)
-            name = singer.name;
+    auto match = std::find_if(m_singers.begin(), m_singers.end(), [&historySingerId] (auto singer) {
+        return (singer.historySingerId == historySingerId);
     });
-    return name;
+    if (match != m_singers.end())
+        return match->name;
+    return QString();
 }
 
 bool HistorySingersTableModel::exists(const QString &name) const
 {
-    bool retval{false};
-    std::for_each(m_singers.begin(), m_singers.end(), [&name, &retval] (auto singer) {
-        if (singer.name.toLower() == name.toLower())
-            retval = true;
+    auto match = std::find_if(m_singers.begin(), m_singers.end(), [&name] (auto singer) {
+        return (singer.name.toLower() == name.toLower());
     });
-    return retval;
+    return (match != m_singers.end());
 }
 
 int HistorySingersTableModel::getId(const QString &historySingerName) const
 {
-    int id{-1};
-    std::for_each(m_singers.begin(), m_singers.end(), [&historySingerName, &id] (auto singer) {
-        if (singer.name.toLower() == historySingerName.toLower())
-            id = singer.historySingerId;
+    auto match = std::find_if(m_singers.begin(), m_singers.end(), [&historySingerName] (auto singer) {
+        return (singer.name.toLower() == historySingerName.toLower());
     });
-    return id;
+    if (match != m_singers.end())
+        return match->historySingerId;
+    return -1;
 }
 
 void HistorySingersTableModel::deleteHistory(const int historySingerId)
@@ -162,11 +137,9 @@ void HistorySingersTableModel::deleteHistory(const int historySingerId)
     query.prepare("DELETE from historySongs WHERE historySinger = :historySingerId");
     query.bindValue(":historySingerId", historySingerId);
     query.exec();
-    qInfo() << query.lastError();
     query.prepare("DELETE FROM historySingers WHERE id = :historySingerId");
     query.bindValue(":historySingerId", historySingerId);
     query.exec();
-    qInfo() << query.lastError();
     emit historySingersModified();
     loadSingers();
 }
@@ -191,4 +164,67 @@ void HistorySingersTableModel::filter(const QString &filterString)
     m_filterString.replace(" ", "%");
     m_filterString = "%" + m_filterString + "%";
     loadSingers();
+    auto blah = singers();
+}
+
+std::vector<HistorySinger> &HistorySingersTableModel::singers()
+{
+    return m_singers;
+}
+
+HistorySinger HistorySingersTableModel::getSinger(const int historySingerId)
+{
+    auto result = std::find_if(m_singers.begin(), m_singers.end(), [&historySingerId] (HistorySinger singer) {
+       return (singer.historySingerId == historySingerId);
+    });
+    if (result == m_singers.end())
+        return HistorySinger();
+    return *result;
+}
+
+void HistorySingersItemDelegate::resizeIconsForFont(QFont font)
+{
+    QString thm = (settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
+    m_curFontHeight = QFontMetrics(font).height();
+    m_iconDelete = QImage(m_curFontHeight, m_curFontHeight, QImage::Format_ARGB32);
+    m_iconLoadReg = QImage(m_curFontHeight, m_curFontHeight, QImage::Format_ARGB32);
+    m_iconDelete.fill(Qt::transparent);
+    m_iconLoadReg.fill(Qt::transparent);
+    QPainter painterDelete(&m_iconDelete);
+    QPainter painterLoad(&m_iconLoadReg);
+    QSvgRenderer svgrndrDelete(thm + "actions/16/edit-delete.svg");
+    QSvgRenderer svgrndrLoad(thm + "actions/16/list-add-user.svg");
+    svgrndrDelete.render(&painterDelete);
+    svgrndrLoad.render(&painterLoad);
+}
+
+HistorySingersItemDelegate::HistorySingersItemDelegate(QObject *parent) :
+    QItemDelegate(parent)
+{
+    resizeIconsForFont(settings.applicationFont());
+    connect(&settings, &Settings::applicationFontChanged, this, &HistorySingersItemDelegate::resizeIconsForFont);
+}
+
+void HistorySingersItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    if (!index.isValid())
+        return;
+    switch (index.column()) {
+    case 3:
+    {
+        int topPad = (option.rect.height() - m_curFontHeight) / 2;
+        int leftPad = (option.rect.width() - m_curFontHeight) / 2;
+        painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, m_curFontHeight, m_curFontHeight),m_iconLoadReg);
+        return;
+    }
+    case 4:
+    {
+        int topPad = (option.rect.height() - m_curFontHeight) / 2;
+        int leftPad = (option.rect.width() - m_curFontHeight) / 2;
+        painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, m_curFontHeight, m_curFontHeight),m_iconDelete);
+        return;
+    }
+    default:
+        return QItemDelegate::paint(painter, option, index);
+    }
 }
