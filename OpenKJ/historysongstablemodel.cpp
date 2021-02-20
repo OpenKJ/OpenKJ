@@ -99,6 +99,7 @@ void HistorySongsTableModel::loadSinger(const int historySingerId)
         qInfo() << "Loaded history song: " << song.filePath;
         qInfo() << "Timestamp: " << song.lastPlayed;
     }
+    sort(m_lastSortColumn, m_lastSortOrder);
     emit layoutChanged();
     emit endInsertRows();
 }
@@ -193,6 +194,15 @@ void HistorySongsTableModel::saveSong(const QString &singerName, const QString &
     query.bindValue(":datetime", lastPlayed);
     query.exec();
     qInfo() << query.lastError();
+    loadSinger(m_currentSinger);
+}
+
+void HistorySongsTableModel::deleteSong(const int historySongId)
+{
+    QSqlQuery query;
+    query.prepare("DELETE FROM historySongs WHERE id = :historySongId");
+    query.bindValue(":historySongId", historySongId);
+    query.exec();
     loadSinger(m_currentSinger);
 }
 
@@ -296,4 +306,55 @@ QVariant HistorySongsTableModel::headerData(int section, Qt::Orientation orienta
         }
     }
     return QVariant();
+}
+
+
+void HistorySongsTableModel::sort(int column, Qt::SortOrder order)
+{
+    m_lastSortColumn = column;
+    m_lastSortOrder = order;
+    emit layoutAboutToBeChanged();
+    if (order == Qt::DescendingOrder)
+    {
+        std::sort(m_songs.begin(), m_songs.end(), [&column] (HistorySong a, HistorySong b) {
+            switch (column) {
+            case 3:
+                return (a.artist.toLower() > b.artist.toLower());
+            case 4:
+                return (a.title.toLower() > b.title.toLower());
+            case 5:
+                return (a.songid.toLower() > b.songid.toLower());
+            case 6:
+                return (a.keyChange > b.keyChange);
+            case 7:
+                return (a.plays > b.plays);
+            case 8:
+                return (a.lastPlayed > b.lastPlayed);
+            default:
+                return (a.id > b.id);
+            }
+        });
+    }
+    else
+    {
+        std::sort(m_songs.begin(), m_songs.end(), [&column] (HistorySong a, HistorySong b) {
+            switch (column) {
+            case 3:
+                return (a.artist.toLower() < b.artist.toLower());
+            case 4:
+                return (a.title.toLower() < b.title.toLower());
+            case 5:
+                return (a.songid.toLower() < b.songid.toLower());
+            case 6:
+                return (a.keyChange < b.keyChange);
+            case 7:
+                return (a.plays < b.plays);
+            case 8:
+                return (a.lastPlayed < b.lastPlayed);
+            default:
+                return (a.id < b.id);
+            }
+        });
+    }
+    emit layoutChanged();
 }

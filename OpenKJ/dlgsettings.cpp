@@ -51,6 +51,7 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     bmAudioBackend = BmAudioBackend;
     networkManager = new QNetworkAccessManager(this);
     ui->setupUi(this);
+    settings.restoreWindowState(this);
     ui->checkBoxHardwareAccel->setChecked(settings.hardwareAccelEnabled());
 #ifdef Q_OS_MACOS
     ui->checkBoxHardwareAccel->setHidden(true);
@@ -1015,4 +1016,16 @@ void DlgSettings::on_checkBoxCdgPrescaling_stateChanged(int arg1)
 void DlgSettings::on_checkBoxCurrentSingerTop_toggled(bool checked)
 {
     settings.setRotationAltSortOrder(checked);
+}
+
+
+void DlgSettings::closeEvent([[maybe_unused]]QCloseEvent *event)
+{
+    settings.saveWindowState(this);
+    deleteLater();
+}
+
+void DlgSettings::done(int)
+{
+    close();
 }

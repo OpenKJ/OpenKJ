@@ -58,6 +58,8 @@ private:
     QSettings *settings;
 
 public:
+    int historyDblClickAction() const;
+    void setHistoryDblClickAction(const int index);
     int getSystemRamSize();
     int remainRtOffset();
     int remainBtmOffset();

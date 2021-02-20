@@ -40,7 +40,7 @@ private:
     Ui::DlgRegularSingers *ui;
     HistorySingersTableModel m_historySingersModel;
     HistorySingersItemDelegate m_historySingersDelegate;
-    RotationModel *rotModel;
+    RotationModel *m_rotModel;
 
 public:
     explicit DlgRegularSingers(RotationModel *rotationModel, QWidget *parent = 0);
@@ -48,8 +48,8 @@ public:
     HistorySingersTableModel& historySingersModel() { return m_historySingersModel; }
 
 signals:
-    void regularSingerDeleted(int regularID);
-    void regularSingerRenamed(int regularID, QString newName);
+    void regularSingerDeleted(const int regularID);
+    void regularSingerRenamed(const int regularID, const QString newName);
 
 private slots:
     void on_btnClose_clicked();
@@ -62,6 +62,10 @@ private slots:
 public slots:
     void regularsChanged();
 
+
+    // QWidget interface
+protected:
+    void closeEvent(QCloseEvent *event) override;
 };
 
 #endif // REGULARSINGERSDIALOG_H

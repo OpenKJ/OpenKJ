@@ -52,6 +52,7 @@ public:
 
 signals:
     void historySingersModified();
+
 };
 
 #endif // HISTORYSINGERSTABLEMODEL_H

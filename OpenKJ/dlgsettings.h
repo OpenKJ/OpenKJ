@@ -127,6 +127,14 @@ private slots:
     void on_checkBoxHardwareAccel_toggled(bool checked);
     void on_checkBoxCdgPrescaling_stateChanged(int arg1);
     void on_checkBoxCurrentSingerTop_toggled(bool checked);
+
+    // QWidget interface
+protected:
+    void closeEvent(QCloseEvent *event) override;
+
+    // QDialog interface
+public slots:
+    void done(int) override;
 };
 
 #endif // SETTINGSDIALOG_H

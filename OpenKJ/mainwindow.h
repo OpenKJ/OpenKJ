@@ -82,13 +82,11 @@ private:
     QueueModel *qModel;
     QueueItemDelegate *qDelegate;
     RotationModel *rotModel;
-    HistorySongsTableModel historyModel;
+    HistorySongsTableModel historySongsModel;
     RotationItemDelegate *rotDelegate;
     DlgCdg *cdgWindow;
     DlgDebugOutput *debugDialog;
     DlgDatabase *dbDialog;
-    DlgSettings *settingsDialog;
-    DlgRegularSingers *regularSingersDialog;
     DlgKeyChange *dlgKeyChange;
     DlgRequests *requestsDialog;
     DlgBookCreator *dlgBookCreator;
@@ -345,6 +343,10 @@ private slots:
     void on_pushButtonHistoryPlay_clicked();
 
     void on_pushButtonHistoryToQueue_clicked();
+
+    void on_tableViewHistory_doubleClicked(const QModelIndex &index);
+
+    void on_tableViewHistory_customContextMenuRequested(const QPoint &pos);
 
 protected:
     void closeEvent(QCloseEvent *event);

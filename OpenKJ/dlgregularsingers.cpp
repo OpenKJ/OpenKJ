@@ -35,6 +35,7 @@ DlgRegularSingers::DlgRegularSingers(RotationModel *rotationModel, QWidget *pare
 {
     m_rtClickHistorySingerId = -1;
     ui->setupUi(this);
+    settings.restoreWindowState(this);
     ui->tableViewRegulars->setModel(&m_historySingersModel);
     ui->tableViewRegulars->setItemDelegate(&m_historySingersDelegate);
     ui->comboBoxAddPos->addItem("Fair");
@@ -43,7 +44,7 @@ DlgRegularSingers::DlgRegularSingers(RotationModel *rotationModel, QWidget *pare
     ui->comboBoxAddPos->setCurrentIndex(settings.lastSingerAddPositionType());
     connect(ui->comboBoxAddPos, SIGNAL(currentIndexChanged(int)), &settings, SLOT(setLastSingerAddPositionType(int)));
     connect(&settings, &Settings::lastSingerAddPositionTypeChanged, ui->comboBoxAddPos, &QComboBox::setCurrentIndex);
-    rotModel = rotationModel;
+    m_rotModel = rotationModel;
     ui->tableViewRegulars->hideColumn(0);
     ui->tableViewRegulars->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
     ui->tableViewRegulars->horizontalHeader()->resizeSection(3, 20);
@@ -121,9 +122,9 @@ void DlgRegularSingers::renameHistorySinger()
                     );
         return;
     }
-    if (rotModel->singerExists(currentName))
+    if (m_rotModel->singerExists(currentName))
     {
-        if (!rotModel->singerExists(name))
+        if (!m_rotModel->singerExists(name))
         {
             auto answer = QMessageBox::question(this,
                                                 "Rename matching rotation singer?",
@@ -134,7 +135,7 @@ void DlgRegularSingers::renameHistorySinger()
                                                 );
             if (answer == QMessageBox::No)
                 return;
-            rotModel->singerSetName(rotModel->getSingerId(currentName), name);
+            m_rotModel->singerSetName(m_rotModel->getSingerId(currentName), name);
         }
         else
         {
@@ -161,9 +162,9 @@ void DlgRegularSingers::on_lineEditSearch_textChanged(const QString &arg1)
 void DlgRegularSingers::on_tableViewRegulars_doubleClicked(const QModelIndex &index)
 {
     QString singerName = index.sibling(index.row(), 1).data().toString();
-    if (rotModel->singerExists(singerName))
+    if (m_rotModel->singerExists(singerName))
     {
-        if (rotModel->singerIsRegular(rotModel->getSingerId(singerName)))
+        if (m_rotModel->singerIsRegular(m_rotModel->getSingerId(singerName)))
         {
             QMessageBox::warning(this, "This regular singer is already in the rotation",
                                  "This regular singer already exists in the current rotation.\n\nAction cancelled.");
@@ -178,16 +179,23 @@ void DlgRegularSingers::on_tableViewRegulars_doubleClicked(const QModelIndex &in
                                             );
         if (answer == QMessageBox::Yes)
         {
-            int singerId = rotModel->getSingerId(singerName);
-            rotModel->singerMakeRegular(singerId);
+            int singerId = m_rotModel->getSingerId(singerName);
+            m_rotModel->singerMakeRegular(singerId);
         }
         return;
     }
-    if ((ui->comboBoxAddPos->currentIndex() == 2) && (rotModel->currentSinger() != -1))
-        rotModel->singerAdd(singerName, rotModel->ADD_NEXT);
-    else if ((ui->comboBoxAddPos->currentIndex() == 0) && (rotModel->currentSinger() != -1))
-        rotModel->singerAdd(singerName, rotModel->ADD_FAIR);
+    if ((ui->comboBoxAddPos->currentIndex() == 2) && (m_rotModel->currentSinger() != -1))
+        m_rotModel->singerAdd(singerName, m_rotModel->ADD_NEXT);
+    else if ((ui->comboBoxAddPos->currentIndex() == 0) && (m_rotModel->currentSinger() != -1))
+        m_rotModel->singerAdd(singerName, m_rotModel->ADD_FAIR);
     else
-        rotModel->singerAdd(singerName, rotModel->ADD_BOTTOM);
-    rotModel->singerMakeRegular(rotModel->getSingerId(singerName));
+        m_rotModel->singerAdd(singerName, m_rotModel->ADD_BOTTOM);
+    m_rotModel->singerMakeRegular(m_rotModel->getSingerId(singerName));
+}
+
+
+void DlgRegularSingers::closeEvent([[maybe_unused]]QCloseEvent *event)
+{
+    settings.saveWindowState(this);
+    deleteLater();
 }

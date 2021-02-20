@@ -968,6 +968,9 @@ QPushButton:default {
                       <layout class="QVBoxLayout" name="verticalLayout_21">
                        <item>
                         <widget class="QTableView" name="tableViewHistory">
+                         <property name="contextMenuPolicy">
+                          <enum>Qt::CustomContextMenu</enum>
+                         </property>
                          <property name="alternatingRowColors">
                           <bool>true</bool>
                          </property>
@@ -996,6 +999,16 @@ QPushButton:default {
                          <property name="topMargin">
                           <number>0</number>
                          </property>
+                         <item>
+                          <widget class="QLabel" name="label_2">
+                           <property name="text">
+                            <string>Double click</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QComboBox" name="comboBoxHistoryDblClick"/>
+                         </item>
                          <item>
                           <spacer name="horizontalSpacer_20">
                            <property name="orientation">

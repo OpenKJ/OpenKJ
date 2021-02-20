@@ -41,6 +41,16 @@
 
 
 
+int Settings::historyDblClickAction() const
+{
+    return settings->value("historyDblClickAction", 0).toInt();
+}
+
+void Settings::setHistoryDblClickAction(const int index)
+{
+    settings->setValue("historyDblClickAction", index);
+}
+
 int Settings::getSystemRamSize()
 {
 #if defined(Q_OS_LINUX)
