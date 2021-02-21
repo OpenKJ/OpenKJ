@@ -54,7 +54,6 @@ QVariant SongShopModel::data(const QModelIndex &index, int role) const
         return Qt::AlignRight;
     if (index.column() == 4 && role == Qt::TextAlignmentRole)
         return Qt::AlignHCenter;
-    // FIXME: Implement me!
     if (role == Qt::DisplayRole)
     {
         if (index.column() == 0)
