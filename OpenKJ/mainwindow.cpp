@@ -2301,10 +2301,6 @@ void MainWindow::editSong()
         mediaFile = DbUpdateThread::findMatchingAudioFile(dbRtClickFile);
     SourceDirTableModel model;
     SourceDir srcDir = model.getDirByPath(dbRtClickFile);
-    if (srcDir.getIndex() == -1)
-    {
-
-    }
     int rowId;
     QString artist;
     QString title;
