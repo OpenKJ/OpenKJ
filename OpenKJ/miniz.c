@@ -3272,9 +3272,8 @@ static MZ_TIME_T mz_zip_dos_to_time_t(int dos_time, int dos_date)
 static void mz_zip_time_t_to_dos_time(MZ_TIME_T time, mz_uint16 *pDOS_time, mz_uint16 *pDOS_date)
 {
 #ifdef _MSC_VER
-    struct tm tm_struct;
-    struct tm *tm = &tm_struct;
-    errno_t err = localtime_s(tm, &time);
+    struct tm tm;
+    errno_t err = localtime_s(&tm, &time);
     if (err)
     {
         *pDOS_date = 0;
