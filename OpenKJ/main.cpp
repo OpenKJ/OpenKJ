@@ -161,10 +161,10 @@ int main(int argc, char *argv[])
     {
         a.setStyle(QStyleFactory::create("Fusion"));
     }
-    else
-    {
-
-    }
+//    else
+//    {
+//
+//    }
     a.setFont(settings.applicationFont(), "QWidget");
     a.setFont(settings.applicationFont(), "QMenu");
 
