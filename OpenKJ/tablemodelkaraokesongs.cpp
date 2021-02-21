@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "dbtablemodel.h"
+#include "tablemodelkaraokesongs.h"
 #include <QMimeData>
 #include <QByteArray>
 #include <QStringList>
@@ -28,10 +28,11 @@
 #include <QStandardPaths>
 #include <QDir>
 #include <QDateTime>
+#include <QPainter>
 
 
 
-DbTableModel::DbTableModel(QObject *parent, QSqlDatabase db) :
+TableModelKaraokeSongs::TableModelKaraokeSongs(QObject *parent, QSqlDatabase db) :
     QSqlTableModel(parent, db)
 {
     settings = new Settings(this);
@@ -57,21 +58,21 @@ DbTableModel::DbTableModel(QObject *parent, QSqlDatabase db) :
 }
 
 
-QMimeData *DbTableModel::mimeData(const QModelIndexList &indexes) const
+QMimeData *TableModelKaraokeSongs::mimeData(const QModelIndexList &indexes) const
 {
     QMimeData *mimeData = new QMimeData();
     mimeData->setData("integer/songid", data(indexes.at(0).sibling(indexes.at(0).row(), 0)).toByteArray().data());
     return mimeData;
 }
 
-Qt::ItemFlags DbTableModel::flags(const QModelIndex &index) const
+Qt::ItemFlags TableModelKaraokeSongs::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
         return Qt::ItemIsEnabled;
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled;
 }
 
-void DbTableModel::search(QString searchString)
+void TableModelKaraokeSongs::search(QString searchString)
 {
     lastSearch = searchString;
     searchString.replace("\"", " ");
@@ -111,7 +112,7 @@ void DbTableModel::search(QString searchString)
     setFilter(whereClause);
 }
 
-QString DbTableModel::orderByClause() const
+QString TableModelKaraokeSongs::orderByClause() const
 {
     QString sql = " ORDER BY ";
     switch (sortColumn) {
@@ -134,7 +135,7 @@ QString DbTableModel::orderByClause() const
     return sql;
 }
 
-QVariant DbTableModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant TableModelKaraokeSongs::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if (section == 1 && role == Qt::DisplayRole)
         return tr("Artist");
@@ -147,7 +148,7 @@ QVariant DbTableModel::headerData(int section, Qt::Orientation orientation, int 
     return QSqlTableModel::headerData(section, orientation, role);
 }
 
-void DbTableModel::sort(int column, Qt::SortOrder order)
+void TableModelKaraokeSongs::sort(int column, Qt::SortOrder order)
 {
     QString orderString = "ASC";
     if (order == Qt::DescendingOrder)
@@ -170,7 +171,7 @@ void DbTableModel::sort(int column, Qt::SortOrder order)
     select();
 }
 
-void DbTableModel::refreshCache()
+void TableModelKaraokeSongs::refreshCache()
 {
     qInfo() << "Refreshing dbsongs cache";
     QSqlQuery query(db);
@@ -182,13 +183,13 @@ void DbTableModel::refreshCache()
     search(lastSearch);
 }
 
-void DbTableModel::setSearchType(DbTableModel::SearchType type)
+void TableModelKaraokeSongs::setSearchType(TableModelKaraokeSongs::SearchType type)
 {
     m_searchType = type;
     search(lastSearch);
 }
 
-int DbTableModel::getSongIdForPath(const QString &path)
+int TableModelKaraokeSongs::getSongIdForPath(const QString &path)
 {
     QSqlQuery query;
     query.prepare("SELECT songid FROM mem.dbSongs WHERE path = :path");
@@ -199,7 +200,7 @@ int DbTableModel::getSongIdForPath(const QString &path)
     return -1;
 }
 
-void DbTableModel::updateSongHistory(const int dbSongId)
+void TableModelKaraokeSongs::updateSongHistory(const int dbSongId)
 {
     QSqlQuery query;
     query.prepare("UPDATE dbSongs set plays = plays + :incVal, lastplay = :curTs WHERE songid = :songid");
@@ -232,7 +233,7 @@ void DbTableModel::updateSongHistory(const int dbSongId)
 //}
 
 
-QVariant DbTableModel::data(const QModelIndex &index, int role) const
+QVariant TableModelKaraokeSongs::data(const QModelIndex &index, int role) const
 {
     if (role == Qt::DecorationRole && index.column() == 3)
     {
@@ -254,4 +255,38 @@ QVariant DbTableModel::data(const QModelIndex &index, int role) const
     if (role == Qt::ToolTipRole)
         return data(index);
     return QSqlTableModel::data(index, role);
+}
+
+ItemDelegateKaraokeSongs::ItemDelegateKaraokeSongs(QObject *parent) :
+    QItemDelegate(parent)
+{
+}
+
+void ItemDelegateKaraokeSongs::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    if (index.column() == 3)
+    {
+        QItemDelegate::paint(painter, option, index);
+        return;
+    }
+    if (option.state & QStyle::State_Selected)
+        painter->fillRect(option.rect, option.palette.highlight());
+
+    if (index.column() == 4)
+    {
+        if (index.data().toInt() <= 0)
+            return;
+        QString duration = QTime(0,0,0,0).addMSecs(index.data().toInt()).toString("m:ss");
+        painter->save();
+        if (option.state & QStyle::State_Selected)
+            painter->setPen(option.palette.highlightedText().color());
+        painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter | Qt::AlignCenter, duration);
+        painter->restore();
+        return;
+    }
+    painter->save();
+    if (option.state & QStyle::State_Selected)
+        painter->setPen(option.palette.highlightedText().color());
+    painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + index.data().toString());
+    painter->restore();
 }

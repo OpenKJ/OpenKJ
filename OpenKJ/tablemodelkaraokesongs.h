@@ -21,10 +21,22 @@
 #ifndef DBTABLEMODEL_H
 #define DBTABLEMODEL_H
 
+#include <QItemDelegate>
 #include <QSqlTableModel>
 #include "settings.h"
 
-class DbTableModel : public QSqlTableModel
+
+class ItemDelegateKaraokeSongs : public QItemDelegate
+{
+    Q_OBJECT
+public:
+    explicit ItemDelegateKaraokeSongs(QObject *parent = 0);
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+
+};
+
+
+class TableModelKaraokeSongs : public QSqlTableModel
 {
     Q_OBJECT
 
@@ -42,7 +54,7 @@ private:
     QIcon m_vidIcon;
 
 public:
-    explicit DbTableModel(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
+    explicit TableModelKaraokeSongs(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
     enum {SORT_ARTIST=1,SORT_TITLE=2,SORT_SONGID=3,SORT_DURATION=4};
     enum SearchType{SEARCH_TYPE_ALL=1, SEARCH_TYPE_ARTIST, SEARCH_TYPE_TITLE};
     void search(QString searchString);

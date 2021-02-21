@@ -8,8 +8,8 @@ DlgSongShop::DlgSongShop(SongShop *songShop, QWidget *parent) :
 {
     ui->setupUi(this);
     shop = songShop;
-    modelSongs = new SongShopModel(shop, this);
-    sortFilterModel = new ShopSortFilterProxyModel(this);
+    modelSongs = new TableModelSongShopSongs(shop, this);
+    sortFilterModel = new SortFilterProxyModelSongShopSongs(this);
     sortFilterModel->setSourceModel(modelSongs);
     sortFilterModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
     sortFilterModel->setSortCaseSensitivity(Qt::CaseInsensitive);

@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "rotationmodel.h"
+#include "tablemodelrotationsingers.h"
 #include <QSqlQuery>
 #include <QDebug>
 #include <QDateTime>
@@ -29,12 +29,12 @@
 extern Settings settings;
 extern int remainSecs;
 
-int RotationModel::currentSinger() const
+int TableModelRotationSingers::currentSinger() const
 {
     return m_currentSingerId;
 }
 
-void RotationModel::setCurrentSinger(int currentSingerId)
+void TableModelRotationSingers::setCurrentSinger(int currentSingerId)
 {
     emit layoutAboutToBeChanged();
     m_currentSingerId = currentSingerId;
@@ -43,7 +43,7 @@ void RotationModel::setCurrentSinger(int currentSingerId)
     settings.setCurrentRotationPosition(currentSingerId);
 }
 
-bool RotationModel::rotationIsValid()
+bool TableModelRotationSingers::rotationIsValid()
 {
     for (int i = 0; i < singers().size(); i++)
     {
@@ -57,7 +57,7 @@ bool RotationModel::rotationIsValid()
     return true;
 }
 
-int RotationModel::numSongs(int singerId)
+int TableModelRotationSingers::numSongs(int singerId)
 {
     QSqlQuery query("SELECT COUNT(qsongid) FROM queuesongs WHERE singer = " + QString::number(singerId));
     if (query.first())
@@ -65,7 +65,7 @@ int RotationModel::numSongs(int singerId)
     return -1;
 }
 
-int RotationModel::numSongsSung(int singerId) const
+int TableModelRotationSingers::numSongsSung(int singerId) const
 {
     QSqlQuery query("SELECT COUNT(qsongid) FROM queuesongs WHERE singer = " + QString::number(singerId) + " AND played = 1");
     if (query.first())
@@ -73,7 +73,7 @@ int RotationModel::numSongsSung(int singerId) const
     return -1;
 }
 
-int RotationModel::numSongsUnsung(int singerId) const
+int TableModelRotationSingers::numSongsUnsung(int singerId) const
 {
     QSqlQuery query("SELECT COUNT(qsongid) FROM queuesongs WHERE singer = " + QString::number(singerId) + " AND played = 0");
     if (query.first())
@@ -81,7 +81,7 @@ int RotationModel::numSongsUnsung(int singerId) const
     return -1;
 }
 
-int RotationModel::timeAdded(int singerId) const
+int TableModelRotationSingers::timeAdded(int singerId) const
 {
     QSqlQuery query("SELECT strftime('%s',addts) FROM rotationSingers WHERE singerid == " + QString::number(singerId));
     if (query.first())
@@ -89,7 +89,7 @@ int RotationModel::timeAdded(int singerId) const
     return 0;
 }
 
-void RotationModel::outputRotationDebug()
+void TableModelRotationSingers::outputRotationDebug()
 {
     qInfo() << " -- Rotation debug output -- ";
     qInfo() << "singerid,position,regular,regularid,added,name";
@@ -112,7 +112,7 @@ void RotationModel::outputRotationDebug()
     qInfo() << " -- Rotation debug output end -- ";
 }
 
-void RotationModel::fixSingerPositions()
+void TableModelRotationSingers::fixSingerPositions()
 {
     qInfo() << "Attempting to fix corrupted rotation position data...";
     QSqlQuery query;
@@ -131,7 +131,7 @@ void RotationModel::fixSingerPositions()
     outputRotationDebug();
 }
 
-RotationModel::RotationModel(QObject *parent, QSqlDatabase db) :
+TableModelRotationSingers::TableModelRotationSingers(QObject *parent, QSqlDatabase db) :
     QSqlTableModel(parent, db)
 {
     m_currentSingerId = -1;
@@ -140,7 +140,7 @@ RotationModel::RotationModel(QObject *parent, QSqlDatabase db) :
     singerCount = singers().size();
 }
 
-int RotationModel::singerAdd(const QString& name, int positionHint)
+int TableModelRotationSingers::singerAdd(const QString& name, int positionHint)
 {
     QSqlQuery query;
     query.exec("INSERT INTO rotationsingers (name,position,regular,regularid, addts) VALUES(\"" + name + "\"," + QString::number(rowCount()) + ",0,-1, CURRENT_TIMESTAMP)");
@@ -164,7 +164,7 @@ int RotationModel::singerAdd(const QString& name, int positionHint)
     return query.lastInsertId().toInt();
 }
 
-void RotationModel::singerMove(int oldPosition, int newPosition)
+void TableModelRotationSingers::singerMove(int oldPosition, int newPosition)
 {
     if (newPosition == -1)
         newPosition = 0;
@@ -189,7 +189,7 @@ void RotationModel::singerMove(int oldPosition, int newPosition)
     outputRotationDebug();
 }
 
-void RotationModel::singerSetName(int singerId, QString newName)
+void TableModelRotationSingers::singerSetName(int singerId, QString newName)
 {
     QSqlQuery query;
     query.exec("UPDATE rotationsingers SET name = \"" + newName + "\" WHERE singerid == " + QString::number(singerId));
@@ -198,7 +198,7 @@ void RotationModel::singerSetName(int singerId, QString newName)
     outputRotationDebug();
 }
 
-void RotationModel::singerDelete(int singerId)
+void TableModelRotationSingers::singerDelete(int singerId)
 {
     int position = getSingerPosition(singerId);
     QSqlQuery query;
@@ -211,7 +211,7 @@ void RotationModel::singerDelete(int singerId)
     outputRotationDebug();
 }
 
-bool RotationModel::singerExists(QString name)
+bool TableModelRotationSingers::singerExists(QString name)
 {
     QStringList names = singers();
     for (int i=0; i < names.size(); i++)
@@ -222,7 +222,7 @@ bool RotationModel::singerExists(QString name)
     return false;
 }
 
-bool RotationModel::singerIsRegular(int singerId)
+bool TableModelRotationSingers::singerIsRegular(int singerId)
 {
     if (singerId == -1)
         return false;
@@ -234,7 +234,7 @@ bool RotationModel::singerIsRegular(int singerId)
     return false;
 }
 
-int RotationModel::singerRegSingerId(int singerId)
+int TableModelRotationSingers::singerRegSingerId(int singerId)
 {
     QSqlQuery query;
     query.exec("SELECT regularid FROM rotationsingers WHERE singerid == " + QString::number(singerId));
@@ -244,21 +244,21 @@ int RotationModel::singerRegSingerId(int singerId)
     return -1;
 }
 
-void RotationModel::singerMakeRegular(int singerId)
+void TableModelRotationSingers::singerMakeRegular(int singerId)
 {
     QSqlQuery query;
     query.exec("UPDATE rotationsingers SET regular = 1 WHERE singerid = " + QString::number(singerId));
     select();
 }
 
-void RotationModel::singerDisableRegularTracking(int singerId)
+void TableModelRotationSingers::singerDisableRegularTracking(int singerId)
 {
     QSqlQuery query;
     query.exec("UPDATE rotationsingers SET regular = 0 WHERE singerid = " + QString::number(singerId));
     select();
 }
 
-int RotationModel::regularAdd(QString name)
+int TableModelRotationSingers::regularAdd(QString name)
 {
     if (historySingerExists(name))
     {
@@ -271,7 +271,7 @@ int RotationModel::regularAdd(QString name)
     return query.lastInsertId().toInt();
 }
 
-bool RotationModel::historySingerExists(QString name)
+bool TableModelRotationSingers::historySingerExists(QString name)
 {
     QStringList names = historySingers();
     for (int i=0; i < names.size(); i++)
@@ -282,7 +282,7 @@ bool RotationModel::historySingerExists(QString name)
     return false;
 }
 
-QString RotationModel::getSingerName(int singerId)
+QString TableModelRotationSingers::getSingerName(int singerId)
 {
     QSqlQuery query("SELECT name FROM rotationsingers WHERE singerid = " + QString::number(singerId) + " LIMIT 1");
     if (query.first())
@@ -290,7 +290,7 @@ QString RotationModel::getSingerName(int singerId)
     return QString();
 }
 
-QString RotationModel::getRegularName(int regSingerId)
+QString TableModelRotationSingers::getRegularName(int regSingerId)
 {
     QSqlQuery query("SELECT name FROM regularsingers WHERE regsingerid = " + QString::number(regSingerId) + " LIMIT 1");
     if (query.first())
@@ -298,7 +298,7 @@ QString RotationModel::getRegularName(int regSingerId)
     return QString();
 }
 
-int RotationModel::getSingerId(QString name)
+int TableModelRotationSingers::getSingerId(QString name)
 {
     QSqlQuery query("SELECT singerid FROM rotationsingers WHERE name == \"" + name + "\" LIMIT 1");
     if (query.first())
@@ -306,7 +306,7 @@ int RotationModel::getSingerId(QString name)
     return -1;
 }
 
-int RotationModel::getSingerPosition(int singerId)
+int TableModelRotationSingers::getSingerPosition(int singerId)
 {
     QSqlQuery query("SELECT position FROM rotationsingers WHERE singerid = " + QString::number(singerId) + " LIMIT 1");
     if (query.first())
@@ -314,7 +314,7 @@ int RotationModel::getSingerPosition(int singerId)
     return -1;
 }
 
-int RotationModel::singerIdAtPosition(int position) const
+int TableModelRotationSingers::singerIdAtPosition(int position) const
 {
     QSqlQuery query("SELECT singerId FROM rotationsingers WHERE position == " + QString::number(position) + " LIMIT 1");
     if (query.first())
@@ -322,7 +322,7 @@ int RotationModel::singerIdAtPosition(int position) const
     return -1;
 }
 
-QStringList RotationModel::singers()
+QStringList TableModelRotationSingers::singers()
 {
     QStringList singers;
     for (int i=0; i < rowCount(); i++)
@@ -330,7 +330,7 @@ QStringList RotationModel::singers()
     return singers;
 }
 
-QStringList RotationModel::historySingers()
+QStringList TableModelRotationSingers::historySingers()
 {
     QStringList names;
     QSqlQuery query;
@@ -340,7 +340,7 @@ QStringList RotationModel::historySingers()
     return names;
 }
 
-QString RotationModel::nextSongPath(int singerId)
+QString TableModelRotationSingers::nextSongPath(int singerId)
 {
     QSqlQuery query("SELECT dbsongs.path FROM dbsongs,queuesongs WHERE queuesongs.singer = " + QString::number(singerId) + " AND queuesongs.played = 0 AND dbsongs.songid = queuesongs.song ORDER BY position LIMIT 1");
     if (query.first())
@@ -348,7 +348,7 @@ QString RotationModel::nextSongPath(int singerId)
     return QString();
 }
 
-QString RotationModel::nextSongArtist(int singerId)
+QString TableModelRotationSingers::nextSongArtist(int singerId)
 {
     QSqlQuery query("SELECT dbsongs.artist FROM dbsongs,queuesongs WHERE queuesongs.singer = " + QString::number(singerId) + " AND queuesongs.played = 0 AND dbsongs.songid = queuesongs.song ORDER BY position LIMIT 1");
     if (query.first())
@@ -356,7 +356,7 @@ QString RotationModel::nextSongArtist(int singerId)
     return QString();
 }
 
-QString RotationModel::nextSongTitle(int singerId)
+QString TableModelRotationSingers::nextSongTitle(int singerId)
 {
     QSqlQuery query("SELECT dbsongs.title FROM dbsongs,queuesongs WHERE queuesongs.singer = " + QString::number(singerId) + " AND queuesongs.played = 0 AND dbsongs.songid = queuesongs.song ORDER BY position LIMIT 1");
     if (query.first())
@@ -364,7 +364,7 @@ QString RotationModel::nextSongTitle(int singerId)
     return QString();
 }
 
-QString RotationModel::nextSongSongId(const int singerId) const
+QString TableModelRotationSingers::nextSongSongId(const int singerId) const
 {
     QSqlQuery query("SELECT dbsongs.discid FROM dbsongs,queuesongs WHERE queuesongs.singer = " + QString::number(singerId) + " AND queuesongs.played = 0 AND dbsongs.songid = queuesongs.song ORDER BY position LIMIT 1");
     if (query.first())
@@ -372,7 +372,7 @@ QString RotationModel::nextSongSongId(const int singerId) const
     return QString();
 }
 
-int RotationModel::nextSongDurationSecs(int singerId) const
+int TableModelRotationSingers::nextSongDurationSecs(int singerId) const
 {
     QSqlQuery query("SELECT dbsongs.duration FROM dbsongs,queuesongs WHERE queuesongs.singer = " + QString::number(singerId) + " AND queuesongs.played = 0 AND dbsongs.songid = queuesongs.song ORDER BY position LIMIT 1");
     if (query.first())
@@ -383,7 +383,7 @@ int RotationModel::nextSongDurationSecs(int singerId) const
         return 0;
 }
 
-int RotationModel::rotationDuration()
+int TableModelRotationSingers::rotationDuration()
 {
     int secs = 0;
     for (int i=0; i < rowCount(); i++)
@@ -393,7 +393,7 @@ int RotationModel::rotationDuration()
     return secs;
 }
 
-int RotationModel::nextSongKeyChg(int singerId)
+int TableModelRotationSingers::nextSongKeyChg(int singerId)
 {
     QSqlQuery query("SELECT keychg FROM queuesongs WHERE singer = " + QString::number(singerId) + " AND queuesongs.played = 0 ORDER BY position LIMIT 1");
     if (query.first())
@@ -401,7 +401,7 @@ int RotationModel::nextSongKeyChg(int singerId)
     return 0;
 }
 
-int RotationModel::nextSongId(int singerId)
+int TableModelRotationSingers::nextSongId(int singerId)
 {
     QSqlQuery query("SELECT dbsongs.songid FROM dbsongs,queuesongs WHERE queuesongs.singer = " + QString::number(singerId) + " AND queuesongs.played = 0 AND dbsongs.songid = queuesongs.song ORDER BY position LIMIT 1");
     if (query.first())
@@ -409,7 +409,7 @@ int RotationModel::nextSongId(int singerId)
     return -1;
 }
 
-int RotationModel::nextSongQueueId(int singerId)
+int TableModelRotationSingers::nextSongQueueId(int singerId)
 {
     QSqlQuery query("SELECT qsongid FROM queuesongs WHERE singer = " + QString::number(singerId) + " AND played = 0 ORDER BY position LIMIT 1");
     if (query.first())
@@ -417,7 +417,7 @@ int RotationModel::nextSongQueueId(int singerId)
     return -1;
 }
 
-void RotationModel::clearRotation()
+void TableModelRotationSingers::clearRotation()
 {
     QSqlQuery query;
     query.exec("DELETE from queuesongs");
@@ -429,7 +429,7 @@ void RotationModel::clearRotation()
     emit rotationModified();
 }
 
-QStringList RotationModel::mimeTypes() const
+QStringList TableModelRotationSingers::mimeTypes() const
 {
     QStringList types;
     types << "integer/songid";
@@ -438,7 +438,7 @@ QStringList RotationModel::mimeTypes() const
     return types;
 }
 
-QMimeData *RotationModel::mimeData(const QModelIndexList &indexes) const
+QMimeData *TableModelRotationSingers::mimeData(const QModelIndexList &indexes) const
 {
     QMimeData *mimeData = new QMimeData();
     mimeData->setData("integer/rotationpos", indexes.at(0).sibling(indexes.at(0).row(), 2).data().toByteArray().data());
@@ -458,7 +458,7 @@ QMimeData *RotationModel::mimeData(const QModelIndexList &indexes) const
     return mimeData;
 }
 
-bool RotationModel::canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const
+bool TableModelRotationSingers::canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const
 {
     Q_UNUSED(action);
     Q_UNUSED(column);
@@ -470,7 +470,7 @@ bool RotationModel::canDropMimeData(const QMimeData *data, Qt::DropAction action
     return false;
 }
 
-bool RotationModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
+bool TableModelRotationSingers::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
 {
     Q_UNUSED(action);
     Q_UNUSED(column);
@@ -556,20 +556,20 @@ bool RotationModel::dropMimeData(const QMimeData *data, Qt::DropAction action, i
     return false;
 }
 
-Qt::ItemFlags RotationModel::flags(const QModelIndex &index) const
+Qt::ItemFlags TableModelRotationSingers::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
         return Qt::ItemIsEnabled | Qt::ItemIsDropEnabled;
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | Qt::ItemIsEditable;
 }
 
-Qt::DropActions RotationModel::supportedDropActions() const
+Qt::DropActions TableModelRotationSingers::supportedDropActions() const
 {
     return Qt::CopyAction | Qt::MoveAction;
 }
 
 
-QVariant RotationModel::data(const QModelIndex &index, int role) const
+QVariant TableModelRotationSingers::data(const QModelIndex &index, int role) const
 {
     if (role == Qt::ToolTipRole)
     {
@@ -663,11 +663,168 @@ QVariant RotationModel::data(const QModelIndex &index, int role) const
 }
 
 
-QVariant RotationModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant TableModelRotationSingers::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if (section == 0)
         return "Wait";
     if (section == 2)
         return "Next Song";
     return QSqlTableModel::headerData(section, orientation, role);
+}
+
+ItemDelegateRotationSingers::ItemDelegateRotationSingers(QObject *parent) :
+    QItemDelegate(parent)
+{
+    m_currentSingerId = -1;
+    singerCount = 0;
+    QString thm = (settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
+    favorite16Off = QIcon(thm + "actions/16/im-user.svg");
+    favorite22Off = QIcon(thm + "actions/22/im-user.svg");
+    favorite16On = QIcon(thm + "actions/16/im-user-online.svg");
+    favorite22On = QIcon(thm + "actions/22/im-user-online.svg");
+    mic16 = QIcon(thm + "status/16/mic-on");
+    mic22 = QIcon(thm + "status/22/mic-on");
+    delete16 = QIcon(thm + "actions/16/edit-delete.svg");
+    delete22 = QIcon(thm + "actions/22/edit-delete.svg");
+
+}
+
+int ItemDelegateRotationSingers::currentSinger()
+{
+    return m_currentSingerId;
+}
+
+void ItemDelegateRotationSingers::setCurrentSinger(int currentSingerId)
+{
+    m_currentSingerId = currentSingerId;
+}
+
+void ItemDelegateRotationSingers::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    QSize sbSize(QFontMetrics(settings.applicationFont()).height(), QFontMetrics(settings.applicationFont()).height());
+    int topPad = (option.rect.height() - sbSize.height()) / 2;
+    int leftPad = (option.rect.width() - sbSize.width()) / 2;
+
+    QString nextSong;
+    bool hasSong{false};
+    QString sql = "select dbsongs.artist,dbsongs.title from dbsongs,queuesongs WHERE queuesongs.singer = " + index.sibling(index.row(), 0).data().toString() + " AND queuesongs.played = 0 AND dbsongs.songid = queuesongs.song ORDER BY position LIMIT 1";
+    QSqlQuery query(sql);
+    if (query.first())
+    {
+        nextSong = " " + query.value(0).toString() + " - " + query.value(1).toString();
+        hasSong = true;
+    }
+    else
+        nextSong = "  -- Empty -- ";
+
+    if (option.state & QStyle::State_Selected)
+    {
+        if (index.column() == 1)
+            painter->fillRect(option.rect, option.palette.highlight());
+        else
+            painter->fillRect(option.rect, (index.row() % 2) ? option.palette.alternateBase() : option.palette.base());
+    }
+    if (index.sibling(index.row(), 0).data().toInt() == m_currentSingerId && index.column() < 2 && index.column() > 0)
+    {
+        if (option.state & QStyle::State_Selected)
+            painter->fillRect(option.rect, option.palette.highlight());
+        else
+            painter->fillRect(option.rect, (settings.theme() == 1) ? QColor(180,180,0) : QColor("yellow"));
+    }
+    if (index.column() == 3)
+    {
+            if (sbSize.height() > 18)
+            {
+                if (index.data().toBool())
+                    painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), favorite22On.pixmap(sbSize));
+                else
+                    painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), favorite22Off.pixmap(sbSize));
+            }
+            else
+            {
+                if (index.data().toBool())
+                    painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), favorite16On.pixmap(sbSize));
+                else
+                    painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), favorite16Off.pixmap(sbSize));
+            }
+        return;
+    }
+    if (index.column() == 2)
+    {
+        painter->save();
+        if (option.state & QStyle::State_Selected)
+            painter->setPen(option.palette.highlightedText().color());
+        else if (index.sibling(index.row(), 0).data().toInt() == m_currentSingerId)
+        {
+            painter->setPen(QColor("black"));
+        }
+        painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, nextSong);
+        painter->restore();
+        return;
+    }
+    if (index.column() == 0)
+    {
+        if (index.sibling(index.row(), 0).data().toInt() == m_currentSingerId)
+        {
+            if (sbSize.height() > 18)
+                painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), mic22.pixmap(sbSize));
+            else
+                painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), mic16.pixmap(sbSize));
+
+        }
+        else if (settings.rotationDisplayPosition())
+        {
+            int curSingerPos = 0;
+            int drawSingerPos = index.row();
+            QSqlQuery query;
+            int wait = 0;
+            query.exec("SELECT position FROM rotationsingers WHERE singerId == " + QString::number(m_currentSingerId) + " LIMIT 1");
+            if (query.first())
+            {
+                curSingerPos = query.value("position").toInt();
+            }
+            if (curSingerPos < drawSingerPos)
+                wait = drawSingerPos - curSingerPos;
+            else if (curSingerPos > drawSingerPos)
+                wait = drawSingerPos + (singerCount - curSingerPos);
+            if (wait > 0)
+            {
+                painter->save();
+                if (option.state & QStyle::State_Selected)
+                    painter->setPen(option.palette.highlightedText().color());
+                else if (index.sibling(index.row(), 0).data().toInt() == m_currentSingerId)
+                {
+                    painter->setPen(QColor("black"));
+                }
+                painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter | Qt::AlignHCenter, QString::number(wait));
+                painter->restore();
+            }
+            return;
+        }
+        return;
+    }
+    if (index.column() == 4)
+    {
+        if (sbSize.height() > 18)
+            painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), delete22.pixmap(sbSize));
+        else
+            painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), delete16.pixmap(sbSize));
+        return;
+    }
+    painter->save();
+    if (option.state & QStyle::State_Selected)
+        painter->setPen(option.palette.highlightedText().color());
+    else if ((index.sibling(index.row(), 0).data().toInt() == m_currentSingerId) && (settings.theme() == 1))
+    {
+        painter->setPen(QColor("black"));
+    }
+    if (hasSong && index.column() == 1)
+    {
+        if (index.sibling(index.row(), 0).data().toInt() != m_currentSingerId && !option.state.testFlag(QStyle::State_Selected))
+            painter->setPen(QColor(128,255,128));
+        painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + index.data().toString() + " ∙");
+    }
+    else
+        painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + index.data().toString());
+    painter->restore();
 }

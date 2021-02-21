@@ -11,7 +11,7 @@ struct HistorySinger {
     int songCount{0};
 };
 
-class HistorySingersItemDelegate : public QItemDelegate
+class ItemDelegateHistorySingers : public QItemDelegate
 {
     Q_OBJECT
 private:
@@ -21,12 +21,12 @@ private:
     void resizeIconsForFont(QFont font);
 
 public:
-    explicit HistorySingersItemDelegate(QObject *parent = 0);
+    explicit ItemDelegateHistorySingers(QObject *parent = 0);
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
 
 };
 
-class HistorySingersTableModel : public QAbstractTableModel
+class TableModelHistorySingers : public QAbstractTableModel
 {
     Q_OBJECT
 private:
@@ -34,7 +34,7 @@ private:
     QString m_filterString;
 
 public:
-    explicit HistorySingersTableModel(QObject *parent = nullptr);
+    explicit TableModelHistorySingers(QObject *parent = nullptr);
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;

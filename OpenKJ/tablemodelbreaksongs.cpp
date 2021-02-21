@@ -18,14 +18,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "bmdbtablemodel.h"
+#include "tablemodelbreaksongs.h"
 #include <QMimeData>
 #include <QSqlQuery>
 #include <QStringList>
 #include <QDebug>
 #include <QDataStream>
+#include <QPainter>
+#include <QFileInfo>
+#include <QTime>
 
-BmDbTableModel::BmDbTableModel(QObject *parent, QSqlDatabase db) :
+TableModelBreakSongs::TableModelBreakSongs(QObject *parent, QSqlDatabase db) :
     QSqlTableModel(parent, db)
 {
     sortColumn = SORT_ARTIST;
@@ -41,7 +44,7 @@ BmDbTableModel::BmDbTableModel(QObject *parent, QSqlDatabase db) :
     query.exec("CREATE UNIQUE INDEX mem.idx_mem_songid ON dbsongs(songid)");
 }
 
-Qt::ItemFlags BmDbTableModel::flags(const QModelIndex &index) const
+Qt::ItemFlags TableModelBreakSongs::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
         return Qt::ItemIsEnabled;
@@ -49,7 +52,7 @@ Qt::ItemFlags BmDbTableModel::flags(const QModelIndex &index) const
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled;
 }
 
-void BmDbTableModel::search(QString searchString)
+void TableModelBreakSongs::search(QString searchString)
 {
     QStringList terms;
     terms = searchString.split(" ",QString::SkipEmptyParts);
@@ -67,7 +70,7 @@ void BmDbTableModel::search(QString searchString)
     lastSearch = searchString;
 }
 
-void BmDbTableModel::refreshCache()
+void TableModelBreakSongs::refreshCache()
 {
     qInfo() << "Refreshing bmsongs cache";
     QSqlQuery query(db);
@@ -80,7 +83,7 @@ void BmDbTableModel::refreshCache()
 }
 
 
-QMimeData *BmDbTableModel::mimeData(const QModelIndexList &indexes) const
+QMimeData *TableModelBreakSongs::mimeData(const QModelIndexList &indexes) const
 {
     QMimeData *mimeData = new QMimeData();
     QByteArray encodedData;
@@ -98,7 +101,7 @@ QMimeData *BmDbTableModel::mimeData(const QModelIndexList &indexes) const
     return mimeData;
 }
 
-QString BmDbTableModel::orderByClause() const
+QString TableModelBreakSongs::orderByClause() const
 {
     QString sql = " ORDER BY ";
     switch (sortColumn) {
@@ -118,7 +121,7 @@ QString BmDbTableModel::orderByClause() const
 }
 
 
-void BmDbTableModel::sort(int column, Qt::SortOrder order)
+void TableModelBreakSongs::sort(int column, Qt::SortOrder order)
 {
     QString orderString = "ASC";
     if (order == Qt::DescendingOrder)
@@ -142,7 +145,7 @@ void BmDbTableModel::sort(int column, Qt::SortOrder order)
 }
 
 
-QVariant BmDbTableModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant TableModelBreakSongs::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if (section == 1 && role == Qt::DisplayRole)
         return tr("Artist");
@@ -156,10 +159,50 @@ QVariant BmDbTableModel::headerData(int section, Qt::Orientation orientation, in
 }
 
 
-QVariant BmDbTableModel::data(const QModelIndex &index, int role) const
+QVariant TableModelBreakSongs::data(const QModelIndex &index, int role) const
 {
     if (role == Qt::ToolTipRole)
         return data(index);
     else
         return QSqlTableModel::data(index, role);
+}
+
+ItemDelegateBreakSongs::ItemDelegateBreakSongs(QObject *parent) :
+    QItemDelegate(parent)
+{
+}
+
+void ItemDelegateBreakSongs::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    if (option.state & QStyle::State_Selected)
+        painter->fillRect(option.rect, option.palette.highlight());
+    if (index.column() == 4)
+    {
+        QFileInfo fi(index.data().toString());
+        QString fn = fi.fileName();
+        painter->save();
+        if (option.state & QStyle::State_Selected)
+            painter->setPen(option.palette.highlightedText().color());
+        painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + fn);
+        painter->restore();
+        return;
+    }
+    if (index.column() == 5)
+    {
+        int sec = index.data().toInt();
+        if (sec <= 0)
+            return;
+        QString duration = QTime(0,0,0,0).addSecs(sec).toString("m:ss");
+        painter->save();
+        if (option.state & QStyle::State_Selected)
+            painter->setPen(option.palette.highlightedText().color());
+        painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter | Qt::AlignCenter, duration);
+        painter->restore();
+        return;
+    }
+    painter->save();
+    if (option.state & QStyle::State_Selected)
+        painter->setPen(option.palette.highlightedText().color());
+    painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + index.data().toString());
+    painter->restore();
 }

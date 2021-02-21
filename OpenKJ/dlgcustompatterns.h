@@ -2,7 +2,7 @@
 #define DLGCUSTOMPATTERNS_H
 
 #include <QDialog>
-#include "custompatternsmodel.h"
+#include "tablemodelcustomnamingpatterns.h"
 
 namespace Ui {
 class DlgCustomPatterns;
@@ -45,7 +45,7 @@ private slots:
 
 private:
     Ui::DlgCustomPatterns *ui;
-    CustomPatternsModel *patternsModel;
+    TableModelCustomNamingPatterns *patternsModel;
 };
 
 #endif // DLGCUSTOMPATTERNS_H

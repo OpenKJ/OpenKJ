@@ -131,8 +131,6 @@ DEFINES += BUILD_DATE=__DATE__
 
 SOURCES += main.cpp\
     dlgaddsong.cpp \
-    historysingerstablemodel.cpp \
-    historysongstablemodel.cpp \
     mediabackend.cpp \
     miniz.c \
     mzarchive.cpp \
@@ -140,9 +138,7 @@ SOURCES += main.cpp\
     dlgvideopreview.cpp \
     mainwindow.cpp \
     libCDG/src/libCDG.cpp \
-    sourcedirtablemodel.cpp \
     dbupdatethread.cpp \
-    requeststablemodel.cpp \
     dlgkeychange.cpp \
     dlgdatabase.cpp \
     dlgrequests.cpp \
@@ -151,23 +147,23 @@ SOURCES += main.cpp\
     dlgregularsingers.cpp \
     dlgsettings.cpp \
     dlgcdg.cpp \
-    dbtablemodel.cpp \
-    queuemodel.cpp \
-    rotationmodel.cpp \
-    rotationitemdelegate.cpp \
-    dbitemdelegate.cpp \
-    queueitemdelegate.cpp \
     okarchive.cpp \
+    tablemodelbreaksongs.cpp \
+    tablemodelcustomnamingpatterns.cpp \
+    tablemodelhistorysingers.cpp \
+    tablemodelhistorysongs.cpp \
+    tablemodelkaraokesongs.cpp \
+    tablemodelkaraokesourcedirs.cpp \
+    tablemodelplaylistsongs.cpp \
+    tablemodelqueuesongs.cpp \
+    tablemodelrequests.cpp \
+    tablemodelrotationsingers.cpp \
+    tablemodelsongshopsongs.cpp \
     tagreader.cpp \
-    bmdbitemdelegate.cpp \
-    bmdbtablemodel.cpp \
     bmdbupdatethread.cpp \
-    bmpltablemodel.cpp \
-    bmplitemdelegate.cpp \
     settings.cpp \
     bmdbdialog.cpp \
     dlgcustompatterns.cpp \
-    custompatternsmodel.cpp \
     audiorecorder.cpp \
     okjsongbookapi.cpp \
     dlgdbupdate.cpp \
@@ -182,8 +178,6 @@ SOURCES += main.cpp\
     dlgaddsinger.cpp \
     songshop.cpp \
     dlgsongshop.cpp \
-    songshopmodel.cpp \
-    shopsortfilterproxymodel.cpp \
     simplecrypt.cpp \
     dlgsongshoppurchase.cpp \
     dlgsetpassword.cpp \
@@ -306,16 +300,12 @@ contains(DEFINES, STATIC_TAGLIB) {
 HEADERS  += mainwindow.h \
     dlgaddsong.h \
     dlgvideopreview.h \
-    historysingerstablemodel.h \
-    historysongstablemodel.h \
     libCDG/include/libCDG.h \
     mediabackend.h \
     miniz.h \
     mzarchive.h \
     okjutil.h \
-    sourcedirtablemodel.h \
     dbupdatethread.h \
-    requeststablemodel.h \
     dlgkeychange.h \
     dlgdatabase.h \
     dlgrequests.h \
@@ -324,23 +314,23 @@ HEADERS  += mainwindow.h \
     dlgregularsingers.h \
     dlgsettings.h \
     dlgcdg.h \
-    dbtablemodel.h \
-    queuemodel.h \
-    rotationmodel.h \
-    rotationitemdelegate.h \
-    dbitemdelegate.h \
-    queueitemdelegate.h \
     okarchive.h \
+    tablemodelbreaksongs.h \
+    tablemodelcustomnamingpatterns.h \
+    tablemodelhistorysingers.h \
+    tablemodelhistorysongs.h \
+    tablemodelkaraokesongs.h \
+    tablemodelkaraokesourcedirs.h \
+    tablemodelplaylistsongs.h \
+    tablemodelqueuesongs.h \
+    tablemodelrequests.h \
+    tablemodelrotationsingers.h \
+    tablemodelsongshopsongs.h \
     tagreader.h \
-    bmdbitemdelegate.h \
-    bmdbtablemodel.h \
     bmdbupdatethread.h \
-    bmplitemdelegate.h \
-    bmpltablemodel.h \
     settings.h \
     bmdbdialog.h \
     dlgcustompatterns.h \
-    custompatternsmodel.h \
     audiorecorder.h \
     okjsongbookapi.h \
     dlgdbupdate.h \
@@ -356,8 +346,6 @@ HEADERS  += mainwindow.h \
     dlgaddsinger.h \
     songshop.h \
     dlgsongshop.h \
-    songshopmodel.h \
-    shopsortfilterproxymodel.h \
     simplecrypt.h \
     dlgsongshoppurchase.h \
     dlgsetpassword.h \

@@ -57,7 +57,7 @@ private:
 
 };
 
-class SourceDirTableModel : public QAbstractTableModel
+class TableModelKaraokeSourceDirs : public QAbstractTableModel
 {
     Q_OBJECT
 

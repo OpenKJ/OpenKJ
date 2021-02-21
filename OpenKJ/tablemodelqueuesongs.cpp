@@ -18,15 +18,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "queuemodel.h"
+#include "tablemodelqueuesongs.h"
 #include <QSqlQuery>
 #include <QDebug>
 #include <QUrl>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include "settings.h"
 
-QueueModel::QueueModel(QObject *parent, QSqlDatabase db) :
+extern Settings settings;
+
+TableModelQueueSongs::TableModelQueueSongs(QObject *parent, QSqlDatabase db) :
     QSqlRelationalTableModel(parent, db)
 {
     setTable("queuesongs");
@@ -38,7 +41,7 @@ QueueModel::QueueModel(QObject *parent, QSqlDatabase db) :
     setSort(9, Qt::AscendingOrder);
 }
 
-void QueueModel::setSinger(int singerId)
+void TableModelQueueSongs::setSinger(int singerId)
 {
     m_singerId = singerId;
     setFilter("singer=" + QString::number(singerId));
@@ -47,12 +50,12 @@ void QueueModel::setSinger(int singerId)
         qInfo() << "Singer selection is none";
 }
 
-int QueueModel::singer()
+int TableModelQueueSongs::singer()
 {
     return m_singerId;
 }
 
-int QueueModel::getSongPosition(int songId)
+int TableModelQueueSongs::getSongPosition(int songId)
 {
     QSqlQuery query;
     query.exec("SELECT position FROM queuesongs WHERE qsongid == " + QString::number(songId) + " LIMIT 1");
@@ -62,7 +65,7 @@ int QueueModel::getSongPosition(int songId)
     return -1;
 }
 
-bool QueueModel::getSongPlayed(int songId)
+bool TableModelQueueSongs::getSongPlayed(int songId)
 {
     QSqlQuery query;
     query.exec("SELECT played FROM queuesongs WHERE qsongid == " + QString::number(songId) + " LIMIT 1");
@@ -72,7 +75,7 @@ bool QueueModel::getSongPlayed(int songId)
     return false;
 }
 
-int QueueModel::getSongKey(int songId)
+int TableModelQueueSongs::getSongKey(int songId)
 {
     QSqlQuery query;
     query.exec("SELECT keychg FROM queuesongs WHERE qsongid == " + QString::number(songId) + " LIMIT 1");
@@ -82,7 +85,7 @@ int QueueModel::getSongKey(int songId)
     return 0;
 }
 
-void QueueModel::songMove(int oldPosition, int newPosition)
+void TableModelQueueSongs::songMove(int oldPosition, int newPosition)
 {
     QSqlQuery query;
     int qSongId = index(oldPosition,0).data().toInt();
@@ -108,12 +111,12 @@ void QueueModel::songMove(int oldPosition, int newPosition)
     select();
 }
 
-void QueueModel::songMoveSongId(int songId, int newPosition)
+void TableModelQueueSongs::songMoveSongId(int songId, int newPosition)
 {
     songMove(getSongPosition(songId), newPosition);
 }
 
-void QueueModel::songAdd(int songId)
+void TableModelQueueSongs::songAdd(int songId)
 {
     QSqlQuery query;
     QString songIdStr = QString::number(songId);
@@ -123,13 +126,13 @@ void QueueModel::songAdd(int songId)
     emit queueModified(singer());
 }
 
-void QueueModel::songInsert(int songId, int position)
+void TableModelQueueSongs::songInsert(int songId, int position)
 {
     songAdd(songId);
     songMove(rowCount() - 1, position);
 }
 
-void QueueModel::songDelete(int songId)
+void TableModelQueueSongs::songDelete(int songId)
 {
     QSqlQuery query;
     query.exec("BEGIN TRANSACTION");
@@ -141,7 +144,7 @@ void QueueModel::songDelete(int songId)
     emit queueModified(singer());
 }
 
-void QueueModel::songSetKey(int songId, int semitones)
+void TableModelQueueSongs::songSetKey(int songId, int semitones)
 {
     QSqlQuery query;
     query.exec("UPDATE queuesongs SET keychg = " + QString::number(semitones) + " WHERE qsongid == " + QString::number(songId));
@@ -149,7 +152,7 @@ void QueueModel::songSetKey(int songId, int semitones)
     emit queueModified(singer());
 }
 
-void QueueModel::clearQueue()
+void TableModelQueueSongs::clearQueue()
 {
     QSqlQuery query;
     query.exec("DELETE FROM queuesongs where singer == " + QString::number(singer()));
@@ -157,7 +160,7 @@ void QueueModel::clearQueue()
     emit queueModified(singer());
 }
 
-void QueueModel::songSetPlayed(int qSongId, bool played)
+void TableModelQueueSongs::songSetPlayed(int qSongId, bool played)
 {
     QSqlQuery query;
     query.exec("UPDATE queuesongs SET played = " + QString::number(played) + " WHERE qsongid == " + QString::number(qSongId));
@@ -165,7 +168,7 @@ void QueueModel::songSetPlayed(int qSongId, bool played)
     emit queueModified(singer());
 }
 
-QStringList QueueModel::mimeTypes() const
+QStringList TableModelQueueSongs::mimeTypes() const
 {
     QStringList types;
     types << "integer/songid";
@@ -174,7 +177,7 @@ QStringList QueueModel::mimeTypes() const
     return types;
 }
 
-bool QueueModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
+bool TableModelQueueSongs::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
 {
     Q_UNUSED(column);
 
@@ -284,7 +287,7 @@ bool QueueModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int 
     return false;
 }
 
-bool QueueModel::canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const
+bool TableModelQueueSongs::canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const
 {
     Q_UNUSED(action);
     Q_UNUSED(row);
@@ -299,12 +302,12 @@ bool QueueModel::canDropMimeData(const QMimeData *data, Qt::DropAction action, i
     return false;
 }
 
-Qt::DropActions QueueModel::supportedDropActions() const
+Qt::DropActions TableModelQueueSongs::supportedDropActions() const
 {
     return Qt::CopyAction | Qt::MoveAction;
 }
 
-QMimeData *QueueModel::mimeData(const QModelIndexList &indexes) const
+QMimeData *TableModelQueueSongs::mimeData(const QModelIndexList &indexes) const
 {
     QMimeData *mimeData = new QMimeData();
     mimeData->setData("integer/queuepos", indexes.at(0).sibling(indexes.at(0).row(), 9).data().toByteArray().data());
@@ -323,7 +326,7 @@ QMimeData *QueueModel::mimeData(const QModelIndexList &indexes) const
     return mimeData;
 }
 
-Qt::ItemFlags QueueModel::flags(const QModelIndex &index) const
+Qt::ItemFlags TableModelQueueSongs::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
         return Qt::ItemIsEnabled | Qt::ItemIsDropEnabled;
@@ -331,7 +334,7 @@ Qt::ItemFlags QueueModel::flags(const QModelIndex &index) const
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | Qt::ItemIsEditable;
 }
 
-void QueueModel::songAddSlot(int songId, int singerId, int keyChg)
+void TableModelQueueSongs::songAddSlot(int songId, int singerId, int keyChg)
 {
     QSqlQuery query;
     QString songIdStr = QString::number(songId);
@@ -346,7 +349,7 @@ void QueueModel::songAddSlot(int songId, int singerId, int keyChg)
 }
 
 
-void QueueModel::sort(int column, Qt::SortOrder order)
+void TableModelQueueSongs::sort(int column, Qt::SortOrder order)
 {
     QSqlQuery query;
     QString orderByClause;
@@ -398,13 +401,13 @@ void QueueModel::sort(int column, Qt::SortOrder order)
     emit queueModified(singer());
 }
 
-QString QueueModel::orderByClause() const
+QString TableModelQueueSongs::orderByClause() const
 {
     return "ORDER BY position";
 }
 
 
-QVariant QueueModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant TableModelQueueSongs::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if (section == 5 && role == Qt::DisplayRole)
         return "SongID";
@@ -412,10 +415,83 @@ QVariant QueueModel::headerData(int section, Qt::Orientation orientation, int ro
 }
 
 
-QVariant QueueModel::data(const QModelIndex &index, int role) const
+QVariant TableModelQueueSongs::data(const QModelIndex &index, int role) const
 {
     if (role == Qt::ToolTipRole)
         return data(index);
     else
         return QSqlRelationalTableModel::data(index, role);
+}
+
+
+ItemDelegateQueueSongs::ItemDelegateQueueSongs(QObject *parent) :
+    QItemDelegate(parent)
+{
+    QString thm = (settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
+    delete16 = QIcon(thm + "actions/16/edit-delete.svg");
+    delete22 = QIcon(thm + "actions/22/edit-delete.svg");
+}
+
+
+void ItemDelegateQueueSongs::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    QSize sbSize(QFontMetrics(settings.applicationFont()).height(), QFontMetrics(settings.applicationFont()).height());
+    int topPad = (option.rect.height() - sbSize.height()) / 2;
+    int leftPad = (option.rect.width() - sbSize.width()) / 2;
+    if ((index.sibling(index.row(), 8).data().toBool()) && (index.column() != 7) && (index.column() != 8))
+    {
+        if (option.state & QStyle::State_Selected)
+            painter->fillRect(option.rect, option.palette.highlight());
+        else
+        {
+            if (settings.theme() != 1)
+                painter->fillRect(option.rect, QColor("darkGrey"));
+        }
+    }
+    if (option.state & QStyle::State_Selected)
+    {
+        if (index.column() < 8)
+            painter->fillRect(option.rect, option.palette.highlight());
+        else
+            painter->fillRect(option.rect, (index.row() % 2) ? option.palette.alternateBase() : option.palette.base());
+        //painter->fillRect(option.rect, option.palette.highlight());
+    }
+    if (index.column() == 7)
+    {
+        QString displayText = index.data().toString();
+        if (index.data().toInt() > 0)
+            displayText.prepend("+");
+        if (index.data().toInt() == 0)
+            displayText = "";
+        painter->save();
+        if (option.state & QStyle::State_Selected)
+            painter->setPen(option.palette.highlightedText().color());
+        painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter | Qt::AlignCenter, displayText);
+        painter->restore();
+        return;
+    }
+    if (index.column() == 8)
+    {
+        if (sbSize.height() > 18)
+            painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), delete22.pixmap(sbSize));
+        else
+            painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), delete16.pixmap(sbSize));
+        return;
+    }
+    if ((index.column() == 5) && (index.data().toString() == "!!DROPPED!!"))
+    {
+        return;
+    }
+    painter->save();
+    if (option.state & QStyle::State_Selected)
+        painter->setPen(option.palette.highlightedText().color());
+    if (index.sibling(index.row(), 8).data().toBool() && settings.theme() == 1)
+    {
+        painter->setPen("darkGrey");
+        QFont font = painter->font();
+        font.setStrikeOut(true);
+        painter->setFont(font);
+    }
+    painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + index.data().toString());
+    painter->restore();
 }

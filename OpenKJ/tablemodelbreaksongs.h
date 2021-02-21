@@ -22,8 +22,25 @@
 #define BMDBTABLEMODEL_H
 
 #include <QSqlTableModel>
+#include <QItemDelegate>
 
-class BmDbTableModel : public QSqlTableModel
+class ItemDelegateBreakSongs : public QItemDelegate
+{
+    Q_OBJECT
+public:
+    explicit ItemDelegateBreakSongs(QObject *parent = 0);
+
+signals:
+
+public slots:
+
+
+    // QAbstractItemDelegate interface
+public:
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+};
+
+class TableModelBreakSongs : public QSqlTableModel
 {
     Q_OBJECT
 private:
@@ -35,7 +52,7 @@ private:
     QSqlDatabase db;
     QString lastSearch;
 public:
-    explicit BmDbTableModel(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
+    explicit TableModelBreakSongs(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
     enum {SORT_ARTIST=1,SORT_TITLE=2,SORT_FILENAME=4,SORT_DURATION=5};
 
     // QAbstractItemModel interface

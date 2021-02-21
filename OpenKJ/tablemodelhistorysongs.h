@@ -17,7 +17,7 @@ struct HistorySong {
     QDateTime lastPlayed; // unix time
 };
 
-class HistorySongsTableModel : public QAbstractTableModel
+class TableModelHistorySongs : public QAbstractTableModel
 {
     Q_OBJECT
 private:
@@ -26,7 +26,7 @@ private:
     int m_lastSortColumn{3};
     Qt::SortOrder m_lastSortOrder{Qt::AscendingOrder};
 public:
-    HistorySongsTableModel();
+    TableModelHistorySongs();
     int rowCount(const QModelIndex &parent) const override;
     int columnCount(const QModelIndex &parent) const override;
     QVariant data(const QModelIndex &index, int role) const override;

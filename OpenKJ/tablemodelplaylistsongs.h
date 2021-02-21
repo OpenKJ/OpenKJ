@@ -25,15 +25,40 @@
 #include <QMimeData>
 #include <QStringList>
 #include <QItemSelection>
+#include <QIcon>
+#include <QPainter>
+#include <QStyleOptionViewItem>
+#include <QItemDelegate>
 
-class BmPlTableModel : public QSqlRelationalTableModel
+class ItemDelegatePlaylistSongs : public QItemDelegate
+{
+    Q_OBJECT
+private:
+    int m_currentSong;
+    QIcon m_iconDelete;
+    QIcon m_iconPlaying;
+public:
+    explicit ItemDelegatePlaylistSongs(QObject *parent = 0);
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    int currentSong() const;
+    void setCurrentSong(int value);
+    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const;
+
+signals:
+
+public slots:
+
+
+};
+
+class TableModelPlaylistSongs : public QSqlRelationalTableModel
 {
     Q_OBJECT
 private:
     int m_playlistId;
 
 public:
-    explicit BmPlTableModel(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
+    explicit TableModelPlaylistSongs(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
     void moveSong(int oldPosition, int newPosition);
     void addSong(int songId);
     void insertSong(int songId, int position);
@@ -47,6 +72,13 @@ public:
     qint32 randomizePlaylist(qint32 currentpos);
     qint32 getPlSongIdAtPos(qint32 position);
     int getSongPositionById(const int plSongId);
+    bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent);
+    QStringList mimeTypes() const;
+    bool canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const;
+    Qt::DropActions supportedDropActions() const;
+    QMimeData *mimeData(const QModelIndexList &indexes) const;
+    Qt::ItemFlags flags(const QModelIndex &index) const;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
 
 signals:
     void bmSongMoved(int oldPos, int newPos);
@@ -54,29 +86,6 @@ signals:
 
 public slots:
 
-
-    // QAbstractItemModel interface
-public:
-    bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent);
-
-    // QAbstractItemModel interface
-public:
-    QStringList mimeTypes() const;
-    bool canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const;
-    Qt::DropActions supportedDropActions() const;
-
-    // QAbstractItemModel interface
-public:
-    QMimeData *mimeData(const QModelIndexList &indexes) const;
-
-
-    // QAbstractItemModel interface
-public:
-    Qt::ItemFlags flags(const QModelIndex &index) const;
-
-    // QAbstractItemModel interface
-public:
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
 };
 
 #endif // PLAYLISTMODEL_H

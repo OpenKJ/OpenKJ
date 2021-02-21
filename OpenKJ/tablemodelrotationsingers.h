@@ -24,8 +24,37 @@
 #include <QSqlTableModel>
 #include <QMimeData>
 #include <QStringList>
+#include <QIcon>
+#include <QPainter>
+#include <QStyleOptionViewItem>
+#include <QItemDelegate>
 
-class RotationModel : public QSqlTableModel
+class ItemDelegateRotationSingers : public QItemDelegate
+{
+    Q_OBJECT
+
+private:
+    int m_currentSingerId;
+    int singerCount;
+    QIcon favorite16On;
+    QIcon favorite16Off;
+    QIcon favorite22On;
+    QIcon favorite22Off;
+    QIcon delete16;
+    QIcon delete22;
+    QIcon mic16;
+    QIcon mic22;
+
+public:
+    explicit ItemDelegateRotationSingers(QObject *parent = 0);
+    int currentSinger();
+    void setCurrentSinger(int currentSingerId);
+    void setSingerCount(int count) {singerCount = count;}
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+
+};
+
+class TableModelRotationSingers : public QSqlTableModel
 {
     Q_OBJECT
 
@@ -33,7 +62,7 @@ private:
     int m_currentSingerId;
 
 public:
-    explicit RotationModel(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
+    explicit TableModelRotationSingers(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
     enum {ADD_FAIR=0,ADD_BOTTOM,ADD_NEXT};
     int singerAdd(const QString& name, int positionHint = ADD_BOTTOM);
     int singerCount;
@@ -79,6 +108,8 @@ public:
     int timeAdded(int singerId) const;
     void outputRotationDebug();
     void fixSingerPositions();
+    QVariant data(const QModelIndex &index, int role) const;
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 
 signals:
     void songDroppedOnSinger(int singerId, int songId, int dropRow);
@@ -88,13 +119,6 @@ signals:
     void regularsModified();
     void singersMoved(const int startRow, const int startCol, const int endRow, const int endCol);
 
-    // QAbstractItemModel interface
-public:
-    QVariant data(const QModelIndex &index, int role) const;
-
-    // QAbstractItemModel interface
-public:
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 };
 
 #endif // ROTATIONMODEL_H

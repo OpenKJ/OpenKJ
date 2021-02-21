@@ -23,10 +23,9 @@
 
 #include <QDialog>
 #include <QItemSelection>
-#include "requeststablemodel.h"
-#include "dbtablemodel.h"
-#include "dbitemdelegate.h"
-#include "rotationmodel.h"
+#include "tablemodelrequests.h"
+#include "tablemodelkaraokesongs.h"
+#include "tablemodelrotationsingers.h"
 #include "okjsongbookapi.h"
 
 namespace Ui {
@@ -39,18 +38,18 @@ class DlgRequests : public QDialog
 
 private:
     Ui::DlgRequests *ui;
-    RequestsTableModel *requestsModel;
+    TableModelRequests *requestsModel;
     //SongDBTableModel *songDbModel;
-    DbTableModel *dbModel;
-    DbItemDelegate *dbDelegate;
-    RotationModel *rotModel;
+    TableModelKaraokeSongs *dbModel;
+    ItemDelegateKaraokeSongs *dbDelegate;
+    TableModelRotationSingers *rotModel;
     QString rtClickFile;
     int curRequestId;
     QString curSelReqSinger;
     QTimer testTimer;
 
 public:
-    explicit DlgRequests(RotationModel *rotationModel, QWidget *parent = 0);
+    explicit DlgRequests(TableModelRotationSingers *rotationModel, QWidget *parent = 0);
     int numRequests();
     ~DlgRequests();
 

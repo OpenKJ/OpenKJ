@@ -22,7 +22,7 @@
 #define DLGKEYCHANGE_H
 
 #include <QDialog>
-#include "queuemodel.h"
+#include "tablemodelqueuesongs.h"
 
 namespace Ui {
 class DlgKeyChange;
@@ -34,11 +34,11 @@ class DlgKeyChange : public QDialog
 
 private:
     Ui::DlgKeyChange *ui;
-    QueueModel *qModel;
+    TableModelQueueSongs *qModel;
     int m_activeSong;
 
 public:
-    explicit DlgKeyChange(QueueModel *queueModel, QWidget *parent = 0);
+    explicit DlgKeyChange(TableModelQueueSongs *queueModel, QWidget *parent = 0);
     void setActiveSong(int songId);
     ~DlgKeyChange();
 

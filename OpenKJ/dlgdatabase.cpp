@@ -38,7 +38,7 @@ DlgDatabase::DlgDatabase(QSqlDatabase db, QWidget *parent) :
 {
     this->db = db;
     ui->setupUi(this);
-    sourcedirmodel = new SourceDirTableModel();
+    sourcedirmodel = new TableModelKaraokeSourceDirs();
     sourcedirmodel->loadFromDB();
     ui->tableViewFolders->setModel(sourcedirmodel);
     ui->tableViewFolders->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);

@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "sourcedirtablemodel.h"
+#include "tablemodelkaraokesourcedirs.h"
 #include <QDir>
 #include <QFileInfo>
 #include <QSqlQuery>
@@ -28,19 +28,19 @@
 #define UNUSED(x) (void)x
 
 
-int SourceDirTableModel::rowCount(const QModelIndex &parent) const
+int TableModelKaraokeSourceDirs::rowCount(const QModelIndex &parent) const
 {
     UNUSED(parent);
     return mydata.size();
 }
 
-int SourceDirTableModel::columnCount(const QModelIndex &parent) const
+int TableModelKaraokeSourceDirs::columnCount(const QModelIndex &parent) const
 {
     UNUSED(parent);
     return 2;
 }
 
-QVariant SourceDirTableModel::data(const QModelIndex &index, int role) const
+QVariant TableModelKaraokeSourceDirs::data(const QModelIndex &index, int role) const
 {
     if(!index.isValid())
         return QVariant();
@@ -85,7 +85,7 @@ QVariant SourceDirTableModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-QVariant SourceDirTableModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant TableModelKaraokeSourceDirs::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if(role != Qt::DisplayRole)
         return QVariant();
@@ -103,7 +103,7 @@ QVariant SourceDirTableModel::headerData(int section, Qt::Orientation orientatio
     return QVariant();
 }
 
-Qt::ItemFlags SourceDirTableModel::flags(const QModelIndex &index) const
+Qt::ItemFlags TableModelKaraokeSourceDirs::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
         return Qt::ItemIsEnabled;
@@ -111,7 +111,7 @@ Qt::ItemFlags SourceDirTableModel::flags(const QModelIndex &index) const
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
 
-void SourceDirTableModel::loadFromDB()
+void TableModelKaraokeSourceDirs::loadFromDB()
 {
     mydata.clear();
     QSqlQuery query("SELECT ROWID,path,pattern,custompattern FROM sourceDirs ORDER BY path");
@@ -156,7 +156,7 @@ void SourceDir::setPattern(SourceDir::NamingPattern value)
 }
 
 
-void SourceDirTableModel::addSourceDir(const SourceDir dir)
+void TableModelKaraokeSourceDirs::addSourceDir(const SourceDir dir)
 {
     if(std::find(mydata.begin(),mydata.end(),dir) != mydata.end())
         return;
@@ -165,7 +165,7 @@ void SourceDirTableModel::addSourceDir(const SourceDir dir)
     endInsertRows();
 }
 
-void SourceDirTableModel::addSourceDir(QString dirpath, int pattern, int customPattern = 0)
+void TableModelKaraokeSourceDirs::addSourceDir(QString dirpath, int pattern, int customPattern = 0)
 {
     layoutAboutToBeChanged();
     QSqlQuery query;
@@ -178,7 +178,7 @@ void SourceDirTableModel::addSourceDir(QString dirpath, int pattern, int customP
     layoutChanged();
 }
 
-void SourceDirTableModel::delSourceDir(int index)
+void TableModelKaraokeSourceDirs::delSourceDir(int index)
 {
     int dbid = mydata.at(index).getIndex();
     QSqlQuery query;
@@ -188,18 +188,18 @@ void SourceDirTableModel::delSourceDir(int index)
     layoutChanged();
 }
 
-int SourceDirTableModel::size()
+int TableModelKaraokeSourceDirs::size()
 {
     return mydata.size();
 }
 
 
-SourceDir SourceDirTableModel::getDirByIndex(int index)
+SourceDir TableModelKaraokeSourceDirs::getDirByIndex(int index)
 {
     return mydata.at(index);
 }
 
-SourceDir SourceDirTableModel::getDirByPath(QString path)
+SourceDir TableModelKaraokeSourceDirs::getDirByPath(QString path)
 {
     loadFromDB();
     QFileInfo fileInfo(path);
@@ -220,7 +220,7 @@ SourceDir SourceDirTableModel::getDirByPath(QString path)
     return SourceDir();
 }
 
-QStringList SourceDirTableModel::getSourceDirs()
+QStringList TableModelKaraokeSourceDirs::getSourceDirs()
 {
     QStringList dirs;
     for (int i=0; i < mydata.size(); i++)

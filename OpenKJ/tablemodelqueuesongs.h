@@ -25,8 +25,24 @@
 #include <QMimeData>
 #include <QStringList>
 #include <QUrl>
+#include <QIcon>
+#include <QPainter>
+#include <QStyleOptionViewItem>
+#include <QItemDelegate>
 
-class QueueModel : public QSqlRelationalTableModel
+class ItemDelegateQueueSongs : public QItemDelegate
+{
+    Q_OBJECT
+private:
+    QIcon delete16;
+    QIcon delete22;
+public:
+    explicit ItemDelegateQueueSongs(QObject *parent = 0);
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+
+};
+
+class TableModelQueueSongs : public QSqlRelationalTableModel
 {
     Q_OBJECT
 
@@ -34,7 +50,7 @@ private:
     int m_singerId;
 
 public:
-    explicit QueueModel(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
+    explicit TableModelQueueSongs(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
     void setSinger(int singerId);
     int singer();
     int getSongPosition(int songId);

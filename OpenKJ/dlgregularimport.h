@@ -23,9 +23,9 @@
 
 #include <QDialog>
 #include <QStringList>
-#include "rotationmodel.h"
-#include "historysongstablemodel.h"
-#include "historysingerstablemodel.h"
+#include "tablemodelrotationsingers.h"
+#include "tablemodelhistorysongs.h"
+#include "tablemodelhistorysingers.h"
 
 namespace Ui {
 class DlgRegularImport;
@@ -42,8 +42,8 @@ private:
     QStringList loadSingerList(const QString &filename);
     QStringList legacyImportSinger(const QString &name);
     QStringList importSinger(const QString &name);
-    HistorySingersTableModel m_historySingersModel;
-    HistorySongsTableModel m_historySongsModel;
+    TableModelHistorySingers m_historySingersModel;
+    TableModelHistorySongs m_historySongsModel;
 
 public:
     explicit DlgRegularImport(QWidget *parent = 0);

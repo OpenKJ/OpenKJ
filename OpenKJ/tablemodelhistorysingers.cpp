@@ -1,4 +1,4 @@
-#include "historysingerstablemodel.h"
+#include "tablemodelhistorysingers.h"
 
 #include <QSize>
 #include <QSqlQuery>
@@ -9,13 +9,13 @@
 
 extern Settings settings;
 
-HistorySingersTableModel::HistorySingersTableModel(QObject *parent)
+TableModelHistorySingers::TableModelHistorySingers(QObject *parent)
     : QAbstractTableModel(parent)
 {
     loadSingers();
 }
 
-QVariant HistorySingersTableModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant TableModelHistorySingers::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
     {
@@ -33,17 +33,17 @@ QVariant HistorySingersTableModel::headerData(int section, Qt::Orientation orien
     return QVariant();
 }
 
-int HistorySingersTableModel::rowCount([[maybe_unused]]const QModelIndex &parent) const
+int TableModelHistorySingers::rowCount([[maybe_unused]]const QModelIndex &parent) const
 {
     return m_singers.size();
 }
 
-int HistorySingersTableModel::columnCount([[maybe_unused]]const QModelIndex &parent) const
+int TableModelHistorySingers::columnCount([[maybe_unused]]const QModelIndex &parent) const
 {
     return 5;
 }
 
-QVariant HistorySingersTableModel::data(const QModelIndex &index, int role) const
+QVariant TableModelHistorySingers::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid())
         return QVariant();
@@ -72,7 +72,7 @@ QVariant HistorySingersTableModel::data(const QModelIndex &index, int role) cons
     return QVariant();
 }
 
-int HistorySingersTableModel::getSongCount(const int historySingerId) const
+int TableModelHistorySingers::getSongCount(const int historySingerId) const
 {
     QSqlQuery query;
     query.prepare("SELECT COUNT(id) FROM historySongs WHERE historySinger = :historySinger");
@@ -83,7 +83,7 @@ int HistorySingersTableModel::getSongCount(const int historySingerId) const
     return 0;
 }
 
-void HistorySingersTableModel::loadSingers()
+void TableModelHistorySingers::loadSingers()
 {
     emit layoutAboutToBeChanged();
     m_singers.clear();
@@ -103,7 +103,7 @@ void HistorySingersTableModel::loadSingers()
     emit layoutChanged();
 }
 
-QString HistorySingersTableModel::getName(const int historySingerId) const
+QString TableModelHistorySingers::getName(const int historySingerId) const
 {
     auto match = std::find_if(m_singers.begin(), m_singers.end(), [&historySingerId] (auto singer) {
         return (singer.historySingerId == historySingerId);
@@ -113,7 +113,7 @@ QString HistorySingersTableModel::getName(const int historySingerId) const
     return QString();
 }
 
-bool HistorySingersTableModel::exists(const QString &name) const
+bool TableModelHistorySingers::exists(const QString &name) const
 {
     auto match = std::find_if(m_singers.begin(), m_singers.end(), [&name] (auto singer) {
         return (singer.name.toLower() == name.toLower());
@@ -121,7 +121,7 @@ bool HistorySingersTableModel::exists(const QString &name) const
     return (match != m_singers.end());
 }
 
-int HistorySingersTableModel::getId(const QString &historySingerName) const
+int TableModelHistorySingers::getId(const QString &historySingerName) const
 {
     auto match = std::find_if(m_singers.begin(), m_singers.end(), [&historySingerName] (auto singer) {
         return (singer.name.toLower() == historySingerName.toLower());
@@ -131,7 +131,7 @@ int HistorySingersTableModel::getId(const QString &historySingerName) const
     return -1;
 }
 
-void HistorySingersTableModel::deleteHistory(const int historySingerId)
+void TableModelHistorySingers::deleteHistory(const int historySingerId)
 {
     QSqlQuery query;
     query.prepare("DELETE from historySongs WHERE historySinger = :historySingerId");
@@ -144,7 +144,7 @@ void HistorySingersTableModel::deleteHistory(const int historySingerId)
     loadSingers();
 }
 
-bool HistorySingersTableModel::rename(const int historySingerId, const QString &newName)
+bool TableModelHistorySingers::rename(const int historySingerId, const QString &newName)
 {
     if (exists(newName))
         return false;
@@ -158,7 +158,7 @@ bool HistorySingersTableModel::rename(const int historySingerId, const QString &
     return true;
 }
 
-void HistorySingersTableModel::filter(const QString &filterString)
+void TableModelHistorySingers::filter(const QString &filterString)
 {
     m_filterString = filterString;
     m_filterString.replace(" ", "%");
@@ -167,12 +167,12 @@ void HistorySingersTableModel::filter(const QString &filterString)
     auto blah = singers();
 }
 
-std::vector<HistorySinger> &HistorySingersTableModel::singers()
+std::vector<HistorySinger> &TableModelHistorySingers::singers()
 {
     return m_singers;
 }
 
-HistorySinger HistorySingersTableModel::getSinger(const int historySingerId)
+HistorySinger TableModelHistorySingers::getSinger(const int historySingerId)
 {
     auto result = std::find_if(m_singers.begin(), m_singers.end(), [&historySingerId] (HistorySinger singer) {
        return (singer.historySingerId == historySingerId);
@@ -182,7 +182,7 @@ HistorySinger HistorySingersTableModel::getSinger(const int historySingerId)
     return *result;
 }
 
-void HistorySingersItemDelegate::resizeIconsForFont(QFont font)
+void ItemDelegateHistorySingers::resizeIconsForFont(QFont font)
 {
     QString thm = (settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
     m_curFontHeight = QFontMetrics(font).height();
@@ -198,14 +198,14 @@ void HistorySingersItemDelegate::resizeIconsForFont(QFont font)
     svgrndrLoad.render(&painterLoad);
 }
 
-HistorySingersItemDelegate::HistorySingersItemDelegate(QObject *parent) :
+ItemDelegateHistorySingers::ItemDelegateHistorySingers(QObject *parent) :
     QItemDelegate(parent)
 {
     resizeIconsForFont(settings.applicationFont());
-    connect(&settings, &Settings::applicationFontChanged, this, &HistorySingersItemDelegate::resizeIconsForFont);
+    connect(&settings, &Settings::applicationFontChanged, this, &ItemDelegateHistorySingers::resizeIconsForFont);
 }
 
-void HistorySingersItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+void ItemDelegateHistorySingers::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     if (!index.isValid())
         return;

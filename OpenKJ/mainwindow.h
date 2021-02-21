@@ -41,16 +41,11 @@
 #include "dlgregularimport.h"
 #include "dlgrequests.h"
 #include "dlgkeychange.h"
-#include "dbtablemodel.h"
-#include "queuemodel.h"
-#include "queueitemdelegate.h"
-#include "rotationmodel.h"
-#include "rotationitemdelegate.h"
-#include "dbitemdelegate.h"
-#include "bmdbtablemodel.h"
-#include "bmdbitemdelegate.h"
-#include "bmpltablemodel.h"
-#include "bmplitemdelegate.h"
+#include "tablemodelkaraokesongs.h"
+#include "tablemodelqueuesongs.h"
+#include "tablemodelrotationsingers.h"
+#include "tablemodelbreaksongs.h"
+#include "tablemodelplaylistsongs.h"
 #include "bmdbdialog.h"
 #include <QShortcut>
 #include <QThread>
@@ -64,7 +59,7 @@
 #include "durationlazyupdater.h"
 #include "dlgdebugoutput.h"
 #include "dlgvideopreview.h"
-#include "historysongstablemodel.h"
+#include "tablemodelhistorysongs.h"
 
 namespace Ui {
 class MainWindow;
@@ -77,13 +72,13 @@ class MainWindow : public QMainWindow
 private:
     Ui::MainWindow *ui;
     QSqlDatabase database;
-    DbTableModel *dbModel;
-    DbItemDelegate *dbDelegate;
-    QueueModel *qModel;
-    QueueItemDelegate *qDelegate;
-    RotationModel *rotModel;
-    HistorySongsTableModel historySongsModel;
-    RotationItemDelegate *rotDelegate;
+    TableModelKaraokeSongs *dbModel;
+    ItemDelegateKaraokeSongs *dbDelegate;
+    TableModelQueueSongs *qModel;
+    ItemDelegateQueueSongs *qDelegate;
+    TableModelRotationSingers *rotModel;
+    TableModelHistorySongs historySongsModel;
+    ItemDelegateRotationSingers *rotDelegate;
     DlgCdg *cdgWindow;
     DlgDebugOutput *debugDialog;
     DlgDatabase *dbDialog;
@@ -120,10 +115,10 @@ private:
     bool k2kTransition{false};
     bool previewEnabled;
     BmDbDialog *bmDbDialog;
-    BmDbTableModel *bmDbModel;
-    BmDbItemDelegate *bmDbDelegate;
-    BmPlTableModel *bmPlModel;
-    BmPlItemDelegate *bmPlDelegate;
+    TableModelBreakSongs *bmDbModel;
+    ItemDelegateBreakSongs *bmDbDelegate;
+    TableModelPlaylistSongs *bmPlModel;
+    ItemDelegatePlaylistSongs *bmPlDelegate;
     QSqlTableModel *bmPlaylistsModel;
     int bmCurrentPosition{0};
     int bmCurrentPlaylist;

@@ -1,6 +1,6 @@
-#include "songshopmodel.h"
+#include "tablemodelsongshopsongs.h"
 #include <QApplication>
-SongShopModel::SongShopModel(SongShop *songShop, QObject *parent)
+TableModelSongShopSongs::TableModelSongShopSongs(SongShop *songShop, QObject *parent)
     : QAbstractTableModel(parent)
 {
     shop = songShop;
@@ -11,7 +11,7 @@ SongShopModel::SongShopModel(SongShop *songShop, QObject *parent)
    //     QApplication::processEvents();
 }
 
-QVariant SongShopModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant TableModelSongShopSongs::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if (role == Qt::DisplayRole && orientation == Qt::Horizontal)
     {
@@ -34,19 +34,19 @@ QVariant SongShopModel::headerData(int section, Qt::Orientation orientation, int
         return QVariant();
 }
 
-int SongShopModel::rowCount(const QModelIndex &parent) const
+int TableModelSongShopSongs::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent)
     return songs.size();
 }
 
-int SongShopModel::columnCount(const QModelIndex &parent) const
+int TableModelSongShopSongs::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent)
     return 6;
 }
 
-QVariant SongShopModel::data(const QModelIndex &index, int role) const
+QVariant TableModelSongShopSongs::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid())
         return QVariant();
@@ -81,13 +81,45 @@ QVariant SongShopModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-void SongShopModel::songShopUpdating()
+void TableModelSongShopSongs::songShopUpdating()
 {
     emit layoutAboutToBeChanged();
 }
 
-void SongShopModel::songShopUpdated()
+void TableModelSongShopSongs::songShopUpdated()
 {
     songs = shop->getSongs();
     emit layoutChanged();
+}
+
+
+SortFilterProxyModelSongShopSongs::SortFilterProxyModelSongShopSongs(QObject *parent)
+    : QSortFilterProxyModel(parent)
+{
+
+}
+
+bool SortFilterProxyModelSongShopSongs::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
+{
+    if (searchTerms == "")
+        return true;
+    QModelIndex index0 = sourceModel()->index(source_row, 0, source_parent);
+    QModelIndex index1 = sourceModel()->index(source_row, 1, source_parent);
+    QModelIndex index2 = sourceModel()->index(source_row, 2, source_parent);
+    QStringList terms = searchTerms.split(" ", QString::SkipEmptyParts);
+    QString artist = sourceModel()->data(index0).toString();
+    QString title = sourceModel()->data(index1).toString();
+    QString songId = sourceModel()->data(index2).toString();
+    foreach (QString term, terms)
+    {
+        if (!artist.contains(term, Qt::CaseInsensitive) && !title.contains(term, Qt::CaseInsensitive) && !songId.contains(term, Qt::CaseInsensitive))
+            return false;
+    }
+    return true;
+}
+
+void SortFilterProxyModelSongShopSongs::setSearchTerms(const QString &value)
+{
+    searchTerms = value;
+    setFilterRegExp("");
 }

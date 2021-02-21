@@ -71,14 +71,14 @@ public:
     }
 };
 
-class CustomPatternsModel : public QAbstractTableModel
+class TableModelCustomNamingPatterns : public QAbstractTableModel
 {
     Q_OBJECT
 
     QList<Pattern> myData;
 
 public:
-    explicit CustomPatternsModel(QObject *parent = 0);
+    explicit TableModelCustomNamingPatterns(QObject *parent = 0);
 
     // Header:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;

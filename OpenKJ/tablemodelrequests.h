@@ -56,7 +56,7 @@ public:
     void setKey(int key);
 };
 
-class RequestsTableModel : public QAbstractTableModel
+class TableModelRequests : public QAbstractTableModel
 {
     Q_OBJECT
 
@@ -65,7 +65,7 @@ private:
     QIcon delete16;
     QIcon delete22;
 public:
-    explicit RequestsTableModel(QObject *parent = 0);
+    explicit TableModelRequests(QObject *parent = 0);
     enum {SINGER=0,ARTIST,TITLE,TIMESTAMP,KEYCHG};
     int count();
     int rowCount(const QModelIndex &parent) const;

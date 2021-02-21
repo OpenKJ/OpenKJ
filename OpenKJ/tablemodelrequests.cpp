@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "requeststablemodel.h"
+#include "tablemodelrequests.h"
 #include <QDebug>
 #include <QDateTime>
 #include "settings.h"
@@ -27,7 +27,7 @@
 extern Settings settings;
 extern OKJSongbookAPI *songbookApi;
 
-RequestsTableModel::RequestsTableModel(QObject *parent) :
+TableModelRequests::TableModelRequests(QObject *parent) :
     QAbstractTableModel(parent)
 {
     connect(songbookApi, SIGNAL(requestsChanged(OkjsRequests)), this, SLOT(requestsChanged(OkjsRequests)));
@@ -36,7 +36,7 @@ RequestsTableModel::RequestsTableModel(QObject *parent) :
     delete22 = QIcon(thm + "actions/22/edit-delete.svg");
 }
 
-void RequestsTableModel::requestsChanged(OkjsRequests requests)
+void TableModelRequests::requestsChanged(OkjsRequests requests)
 {
     emit layoutAboutToBeChanged();
     m_requests.clear();
@@ -53,19 +53,19 @@ void RequestsTableModel::requestsChanged(OkjsRequests requests)
     emit layoutChanged();
 }
 
-int RequestsTableModel::rowCount(const QModelIndex &parent) const
+int TableModelRequests::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
     return m_requests.size();
 }
 
-int RequestsTableModel::columnCount(const QModelIndex &parent) const
+int TableModelRequests::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
     return 6;
 }
 
-QVariant RequestsTableModel::data(const QModelIndex &index, int role) const
+QVariant TableModelRequests::data(const QModelIndex &index, int role) const
 {
     QSize sbSize(QFontMetrics(settings.applicationFont()).height(), QFontMetrics(settings.applicationFont()).height());
     if(!index.isValid())
@@ -116,7 +116,7 @@ QVariant RequestsTableModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-QVariant RequestsTableModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant TableModelRequests::headerData(int section, Qt::Orientation orientation, int role) const
 {
     Q_UNUSED(orientation);
     if (role == Qt::DisplayRole && orientation == Qt::Horizontal)
@@ -137,13 +137,13 @@ QVariant RequestsTableModel::headerData(int section, Qt::Orientation orientation
     return QVariant();
 }
 
-Qt::ItemFlags RequestsTableModel::flags(const QModelIndex &index) const
+Qt::ItemFlags TableModelRequests::flags(const QModelIndex &index) const
 {
     Q_UNUSED(index);
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
 
-int RequestsTableModel::count()
+int TableModelRequests::count()
 {
     return m_requests.count();
 }

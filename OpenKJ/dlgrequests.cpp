@@ -46,15 +46,15 @@ QString toMixedCase(const QString& s)
     return newStr;
 }
 
-DlgRequests::DlgRequests(RotationModel *rotationModel, QWidget *parent) :
+DlgRequests::DlgRequests(TableModelRotationSingers *rotationModel, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DlgRequests)
 {
     curRequestId = -1;
     ui->setupUi(this);
-    requestsModel = new RequestsTableModel(this);
-    dbModel = new DbTableModel(this);
-    dbDelegate = new DbItemDelegate(this);
+    requestsModel = new TableModelRequests(this);
+    dbModel = new TableModelKaraokeSongs(this);
+    dbDelegate = new ItemDelegateKaraokeSongs(this);
     ui->tableViewRequests->setModel(requestsModel);
     ui->tableViewRequests->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewRequests));
     connect(requestsModel, SIGNAL(layoutChanged()), this, SLOT(requestsModified()));

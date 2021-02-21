@@ -6,7 +6,7 @@
 
 extern Settings settings;
 
-DlgAddSong::DlgAddSong(RotationModel *rotationModel, QueueModel *queueModel, int songId, QWidget *parent) :
+DlgAddSong::DlgAddSong(TableModelRotationSingers *rotationModel, TableModelQueueSongs *queueModel, int songId, QWidget *parent) :
     QDialog(parent), ui(new Ui::DlgAddSong), m_rotModel(rotationModel), m_queueModel(queueModel), m_songId(songId)
 {
     ui->setupUi(this);

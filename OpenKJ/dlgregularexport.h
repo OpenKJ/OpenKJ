@@ -22,9 +22,9 @@
 #define REGULAREXPORTDIALOG_H
 
 #include <QDialog>
-#include "rotationmodel.h"
-#include "historysingerstablemodel.h"
-#include "historysongstablemodel.h"
+#include "tablemodelrotationsingers.h"
+#include "tablemodelhistorysingers.h"
+#include "tablemodelhistorysongs.h"
 
 namespace Ui {
 class DlgRegularExport;
@@ -36,8 +36,8 @@ class DlgRegularExport : public QDialog
 
 private:
     Ui::DlgRegularExport *ui;
-    HistorySingersTableModel m_historySingersModel;
-    HistorySongsTableModel m_historySongsModel;
+    TableModelHistorySingers m_historySingersModel;
+    TableModelHistorySongs m_historySongsModel;
     void exportSingers(const std::vector<int> &historySingerIds, const QString &savePath);
 
 public:

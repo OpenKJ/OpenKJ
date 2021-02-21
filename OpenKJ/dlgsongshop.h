@@ -2,8 +2,7 @@
 #define DLGSONGSHOP_H
 
 #include <QDialog>
-#include "shopsortfilterproxymodel.h"
-#include "songshopmodel.h"
+#include "tablemodelsongshopsongs.h"
 #include "dlgsongshoppurchase.h"
 #include "settings.h"
 
@@ -30,8 +29,8 @@ private slots:
 
 private:
     Ui::DlgSongShop *ui;
-    SongShopModel *modelSongs;
-    ShopSortFilterProxyModel *sortFilterModel;
+    TableModelSongShopSongs *modelSongs;
+    SortFilterProxyModelSongShopSongs *sortFilterModel;
     DlgSongShopPurchase *dlgPurchase;
     SongShop *shop;
 

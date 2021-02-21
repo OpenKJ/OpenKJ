@@ -1,27 +1,27 @@
-#include "historysongstablemodel.h"
+#include "tablemodelhistorysongs.h"
 
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QDebug>
 #include <QDateTime>
 
-HistorySongsTableModel::HistorySongsTableModel()
+TableModelHistorySongs::TableModelHistorySongs()
 {
 
 }
 
 
-int HistorySongsTableModel::rowCount([[maybe_unused]]const QModelIndex &parent) const
+int TableModelHistorySongs::rowCount([[maybe_unused]]const QModelIndex &parent) const
 {
     return m_songs.size();
 }
 
-int HistorySongsTableModel::columnCount([[maybe_unused]]const QModelIndex &parent) const
+int TableModelHistorySongs::columnCount([[maybe_unused]]const QModelIndex &parent) const
 {
     return 9;
 }
 
-QVariant HistorySongsTableModel::data(const QModelIndex &index, int role) const
+QVariant TableModelHistorySongs::data(const QModelIndex &index, int role) const
 {
     if (role == Qt::TextAlignmentRole)
     {
@@ -73,7 +73,7 @@ QVariant HistorySongsTableModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-void HistorySongsTableModel::loadSinger(const int historySingerId)
+void TableModelHistorySongs::loadSinger(const int historySingerId)
 {
     qInfo() << "SingerHistoryTableModel::loadSinger(" << historySingerId << ") called";
     emit layoutAboutToBeChanged();
@@ -104,7 +104,7 @@ void HistorySongsTableModel::loadSinger(const int historySingerId)
     emit endInsertRows();
 }
 
-void HistorySongsTableModel::loadSinger(const QString historySingerName)
+void TableModelHistorySongs::loadSinger(const QString historySingerName)
 {
     qInfo() << "SingerHistoryTableModel::loadSinger(" << historySingerName << ") called";
     m_currentSinger = historySingerName;
@@ -123,7 +123,7 @@ void HistorySongsTableModel::loadSinger(const QString historySingerName)
     }
 }
 
-void HistorySongsTableModel::saveSong(const QString &singerName, const QString &filePath, const QString &artist, const QString &title, const QString &songid, const int keyChange)
+void TableModelHistorySongs::saveSong(const QString &singerName, const QString &filePath, const QString &artist, const QString &title, const QString &songid, const int keyChange)
 {
     qInfo() << "filepath: " << filePath;
     QSqlQuery query;
@@ -166,7 +166,7 @@ void HistorySongsTableModel::saveSong(const QString &singerName, const QString &
     loadSinger(m_currentSinger);
 }
 
-void HistorySongsTableModel::saveSong(const QString &singerName, const QString &filePath, const QString &artist, const QString &title, const QString &songid, const int keyChange, int plays, QDateTime lastPlayed)
+void TableModelHistorySongs::saveSong(const QString &singerName, const QString &filePath, const QString &artist, const QString &title, const QString &songid, const int keyChange, int plays, QDateTime lastPlayed)
 {
     qInfo() << "filepath: " << filePath;
     QSqlQuery query;
@@ -197,7 +197,7 @@ void HistorySongsTableModel::saveSong(const QString &singerName, const QString &
     loadSinger(m_currentSinger);
 }
 
-void HistorySongsTableModel::deleteSong(const int historySongId)
+void TableModelHistorySongs::deleteSong(const int historySongId)
 {
     QSqlQuery query;
     query.prepare("DELETE FROM historySongs WHERE id = :historySongId");
@@ -206,7 +206,7 @@ void HistorySongsTableModel::deleteSong(const int historySongId)
     loadSinger(m_currentSinger);
 }
 
-int HistorySongsTableModel::addSinger(const QString name) const
+int TableModelHistorySongs::addSinger(const QString name) const
 {
     qInfo() << "Inserting singer into history: " << name;
     QSqlQuery query;
@@ -217,7 +217,7 @@ int HistorySongsTableModel::addSinger(const QString name) const
     return query.lastInsertId().toInt();
 }
 
-bool HistorySongsTableModel::songExists(const int historySingerId, const QString &filePath) const
+bool TableModelHistorySongs::songExists(const int historySingerId, const QString &filePath) const
 {
     QSqlQuery query;
     query.prepare("SELECT id FROM historySongs WHERE historySinger = :historySinger AND filepath = :filePath LIMIT 1");
@@ -229,7 +229,7 @@ bool HistorySongsTableModel::songExists(const int historySingerId, const QString
     return false;
 }
 
-int HistorySongsTableModel::getSingerId(const QString &name) const
+int TableModelHistorySongs::getSingerId(const QString &name) const
 {
     int retVal = -1;
     QSqlQuery query;
@@ -243,7 +243,7 @@ int HistorySongsTableModel::getSingerId(const QString &name) const
     return retVal;
 }
 
-std::vector<HistorySong> HistorySongsTableModel::getSingerSongs(const int historySingerId)
+std::vector<HistorySong> TableModelHistorySongs::getSingerSongs(const int historySingerId)
 {
     std::vector<HistorySong> songs;
     QSqlQuery query;
@@ -267,7 +267,7 @@ std::vector<HistorySong> HistorySongsTableModel::getSingerSongs(const int histor
     return songs;
 }
 
-void HistorySongsTableModel::refresh()
+void TableModelHistorySongs::refresh()
 {
     if (getSingerId(m_currentSinger) != -1)
     {
@@ -280,7 +280,7 @@ void HistorySongsTableModel::refresh()
 }
 
 
-QVariant HistorySongsTableModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant TableModelHistorySongs::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if (role == Qt::DisplayRole  && orientation == Qt::Horizontal)
     {
@@ -309,7 +309,7 @@ QVariant HistorySongsTableModel::headerData(int section, Qt::Orientation orienta
 }
 
 
-void HistorySongsTableModel::sort(int column, Qt::SortOrder order)
+void TableModelHistorySongs::sort(int column, Qt::SortOrder order)
 {
     m_lastSortColumn = column;
     m_lastSortOrder = order;

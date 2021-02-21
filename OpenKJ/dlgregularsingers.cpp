@@ -29,7 +29,7 @@
 
 extern Settings settings;
 
-DlgRegularSingers::DlgRegularSingers(RotationModel *rotationModel, QWidget *parent) :
+DlgRegularSingers::DlgRegularSingers(TableModelRotationSingers *rotationModel, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DlgRegularSingers)
 {

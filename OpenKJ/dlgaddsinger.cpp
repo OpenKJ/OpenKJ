@@ -7,7 +7,7 @@
 
 extern Settings settings;
 
-DlgAddSinger::DlgAddSinger(RotationModel *rotModel, QWidget *parent) :
+DlgAddSinger::DlgAddSinger(TableModelRotationSingers *rotModel, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DlgAddSinger)
 {

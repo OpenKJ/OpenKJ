@@ -24,7 +24,7 @@
 #include <QDialog>
 #include <QDir>
 #include <QDirIterator>
-#include "sourcedirtablemodel.h"
+#include "tablemodelkaraokesourcedirs.h"
 #include "dlgcustompatterns.h"
 #include <QSqlDatabase>
 #include "dlgdbupdate.h"
@@ -40,7 +40,7 @@ class DlgDatabase : public QDialog
     
 private:
     Ui::DlgDatabase *ui;
-    SourceDirTableModel *sourcedirmodel;
+    TableModelKaraokeSourceDirs *sourcedirmodel;
     DlgCustomPatterns *customPatternsDlg;
     DlgDbUpdate *dbUpdateDlg;
     int selectedRow;

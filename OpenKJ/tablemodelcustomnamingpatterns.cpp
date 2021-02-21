@@ -1,8 +1,8 @@
-#include "custompatternsmodel.h"
+#include "tablemodelcustomnamingpatterns.h"
 #include <QSqlQuery>
 #include <QDebug>
 
-void CustomPatternsModel::loadFromDB()
+void TableModelCustomNamingPatterns::loadFromDB()
 {
     layoutAboutToBeChanged();
     QSqlQuery query;
@@ -23,13 +23,13 @@ void CustomPatternsModel::loadFromDB()
     layoutChanged();
 }
 
-CustomPatternsModel::CustomPatternsModel(QObject *parent)
+TableModelCustomNamingPatterns::TableModelCustomNamingPatterns(QObject *parent)
     : QAbstractTableModel(parent)
 {
     loadFromDB();
 }
 
-QVariant CustomPatternsModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant TableModelCustomNamingPatterns::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if(role != Qt::DisplayRole)
         return QVariant();
@@ -58,19 +58,19 @@ QVariant CustomPatternsModel::headerData(int section, Qt::Orientation orientatio
     return QVariant();
 }
 
-int CustomPatternsModel::rowCount(const QModelIndex &parent) const
+int TableModelCustomNamingPatterns::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
     return myData.count();
 }
 
-int CustomPatternsModel::columnCount(const QModelIndex &parent) const
+int TableModelCustomNamingPatterns::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
     return 7;
 }
 
-QVariant CustomPatternsModel::data(const QModelIndex &index, int role) const
+QVariant TableModelCustomNamingPatterns::data(const QModelIndex &index, int role) const
 {
     if(!index.isValid())
         return QVariant();
@@ -100,7 +100,7 @@ QVariant CustomPatternsModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-Qt::ItemFlags CustomPatternsModel::flags(const QModelIndex &index) const
+Qt::ItemFlags TableModelCustomNamingPatterns::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
         return Qt::ItemIsEnabled;
@@ -108,7 +108,7 @@ Qt::ItemFlags CustomPatternsModel::flags(const QModelIndex &index) const
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
 
-Pattern CustomPatternsModel::getPattern(int index)
+Pattern TableModelCustomNamingPatterns::getPattern(int index)
 {
     return myData.at(index);
 }

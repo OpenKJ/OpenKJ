@@ -635,12 +635,12 @@ MainWindow::MainWindow(QWidget *parent) :
 //    query.exec("CREATE TABLE mem.dbsongs AS SELECT * FROM main.dbsongs");
 //    refreshSongDbCache();
     setupShortcuts();
-    dbModel = new DbTableModel(this, database);
+    dbModel = new TableModelKaraokeSongs(this, database);
     dbModel->select();
-    qModel = new QueueModel(this, database);
+    qModel = new TableModelQueueSongs(this, database);
     qModel->select();
-    qDelegate = new QueueItemDelegate(this);
-    rotModel = new RotationModel(this, database);
+    qDelegate = new ItemDelegateQueueSongs(this);
+    rotModel = new TableModelRotationSingers(this, database);
     rotModel->select();
     ui->comboBoxHistoryDblClick->addItems(QStringList{"Adds to queue", "Plays song"});
     ui->comboBoxHistoryDblClick->setCurrentIndex(settings.historyDblClickAction());
@@ -659,7 +659,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewDB->hideColumn(8);
     ui->tableViewDB->hideColumn(9);
     ui->tableViewRotation->setModel(rotModel);
-    rotDelegate = new RotationItemDelegate(this);
+    rotDelegate = new ItemDelegateRotationSingers(this);
     ui->tableViewRotation->setItemDelegate(rotDelegate);
     ui->tableViewQueue->setModel(qModel);
     ui->tableViewQueue->setItemDelegate(qDelegate);
@@ -683,7 +683,7 @@ MainWindow::MainWindow(QWidget *parent) :
     dlgSongShop->setModal(false);
     ui->tableViewDB->setModel(dbModel);
     ui->tableViewDB->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewDB));
-    dbDelegate = new DbItemDelegate(this);
+    dbDelegate = new ItemDelegateKaraokeSongs(this);
     ui->tableViewDB->setItemDelegate(dbDelegate);
 //    ipcClient = new KhIPCClient("bmControl",this);
     if (kMediaBackend.canFade())
@@ -701,10 +701,10 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     ui->videoPreview->setMediaBackends(&kMediaBackend, &bmMediaBackend);
     cdgWindow = new DlgCdg(&kMediaBackend, &bmMediaBackend, 0, Qt::Window);
-    connect(rotModel, &RotationModel::songDroppedOnSinger, this, &MainWindow::songDroppedOnSinger);
+    connect(rotModel, &TableModelRotationSingers::songDroppedOnSinger, this, &MainWindow::songDroppedOnSinger);
     connect(dbDialog, &DlgDatabase::databaseUpdateComplete, this, &MainWindow::databaseUpdated);
     connect(dbDialog, &DlgDatabase::databaseAboutToUpdate, this, &MainWindow::databaseAboutToUpdate);
-    connect(dbDialog, &DlgDatabase::databaseSongAdded, dbModel, &DbTableModel::select);
+    connect(dbDialog, &DlgDatabase::databaseSongAdded, dbModel, &TableModelKaraokeSongs::select);
     connect(dbDialog, &DlgDatabase::databaseSongAdded, requestsDialog, &DlgRequests::databaseSongAdded);
     connect(dbDialog, &DlgDatabase::databaseCleared, this, &MainWindow::databaseCleared);
     connect(&kMediaBackend, &MediaBackend::volumeChanged, ui->sliderVolume, &QSlider::setValue);
@@ -719,7 +719,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&sfxMediaBackend, &MediaBackend::positionChanged, this, &MainWindow::sfxAudioBackend_positionChanged);
     connect(&sfxMediaBackend, &MediaBackend::durationChanged, this, &MainWindow::sfxAudioBackend_durationChanged);
     connect(&sfxMediaBackend, &MediaBackend::stateChanged, this, &MainWindow::sfxAudioBackend_stateChanged);
-    connect(rotModel, &RotationModel::rotationModified, this, &MainWindow::rotationDataChanged);
+    connect(rotModel, &TableModelRotationSingers::rotationModified, this, &MainWindow::rotationDataChanged);
     connect(&settings, &Settings::tickerOutputModeChanged, this, &MainWindow::rotationDataChanged);
     connect(&settings, &Settings::audioBackendChanged, this, &MainWindow::audioBackendChanged);
     connect(&settings, &Settings::cdgBgImageChanged, this, &MainWindow::onBgImageChange);
@@ -736,7 +736,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     kMediaBackend.setDownmix(settings.audioDownmix());
     bmMediaBackend.setDownmix(settings.audioDownmixBm());
-    connect(requestsDialog, &DlgRequests::addRequestSong, qModel, &QueueModel::songAddSlot);
+    connect(requestsDialog, &DlgRequests::addRequestSong, qModel, &TableModelQueueSongs::songAddSlot);
     connect(&settings, &Settings::tickerCustomStringChanged, this, &MainWindow::rotationDataChanged);
     cdgWindow->setShowBgImage(true);
     kMediaBackend.setVideoWinId2(ui->videoPreview->winId());
@@ -793,11 +793,11 @@ MainWindow::MainWindow(QWidget *parent) :
     bmPlaylistsModel->setTable("bmplaylists");
     bmPlaylistsModel->sort(2, Qt::AscendingOrder);
     bmDbDialog = new BmDbDialog(database,this);
-    bmDbModel = new BmDbTableModel(this, database);
+    bmDbModel = new TableModelBreakSongs(this, database);
     bmDbModel->setTable("mem.bmsongs");
     bmDbModel->select();
     bmCurrentPlaylist = settings.bmPlaylistIndex();
-    bmPlModel = new BmPlTableModel(this, database);
+    bmPlModel = new TableModelPlaylistSongs(this, database);
     bmPlModel->select();
 //    ui->actionShow_Filenames->setChecked(settings.bmShowFilenames());
 //    ui->actionShow_Metadata->setChecked(settings.bmShowMetadata());
@@ -809,13 +809,13 @@ MainWindow::MainWindow(QWidget *parent) :
         bmAddPlaylist("Default");
         ui->comboBoxBmPlaylists->setCurrentIndex(0);
     }
-    bmDbDelegate = new BmDbItemDelegate(this);
+    bmDbDelegate = new ItemDelegateBreakSongs(this);
     ui->tableViewBmDb->setModel(bmDbModel);
     ui->tableViewBmDb->setItemDelegate(bmDbDelegate);
     ui->tableViewBmDb->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewBmDb));
     ui->tableViewBmPlaylist->setModel(bmPlModel);
     ui->tableViewBmPlaylist->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewBmPlaylist));
-    bmPlDelegate = new BmPlItemDelegate(this);
+    bmPlDelegate = new ItemDelegatePlaylistSongs(this);
     ui->tableViewBmPlaylist->setItemDelegate(bmPlDelegate);
     ui->actionDisplay_Filenames->setChecked(settings.bmShowFilenames());
     ui->actionDisplay_Metadata->setChecked(settings.bmShowMetadata());
@@ -942,7 +942,7 @@ MainWindow::MainWindow(QWidget *parent) :
     bmMediaBackend.setEqLevel10(settings.eqBLevel10());
     connect(ui->lineEdit, &CustomLineEdit::escapePressed, ui->lineEdit, &CustomLineEdit::clear);
     connect(ui->lineEditBmSearch, &CustomLineEdit::escapePressed, ui->lineEditBmSearch, &CustomLineEdit::clear);
-    connect(qModel, &QueueModel::songDroppedWithoutSinger, this, &MainWindow::songDropNoSingerSel);
+    connect(qModel, &TableModelQueueSongs::songDroppedWithoutSinger, this, &MainWindow::songDropNoSingerSel);
     connect(ui->splitter_3, &QSplitter::splitterMoved, [&] () { autosizeViews(); });
     connect(ui->splitterBm, &QSplitter::splitterMoved, [&] () { autosizeBmViews(); });
     checker = new UpdateChecker(this);
@@ -954,7 +954,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&settings, &Settings::requestServerEnabledChanged, ui->pushButtonIncomingRequests, &QPushButton::setVisible);
     connect(ui->actionSong_Shop, &QAction::triggered, [&] () { show(); });
     qInfo() << "Initial UI stup complete";
-    connect(qModel, &QueueModel::filesDroppedOnSinger, this, &MainWindow::filesDroppedOnQueue);
+    connect(qModel, &TableModelQueueSongs::filesDroppedOnSinger, this, &MainWindow::filesDroppedOnQueue);
     connect(&settings, &Settings::applicationFontChanged, this, &MainWindow::appFontChanged);
     QApplication::processEvents();
     QApplication::processEvents();
@@ -963,7 +963,7 @@ MainWindow::MainWindow(QWidget *parent) :
        autosizeViews();
        autosizeBmViews();
     });
-    connect(bmPlModel, &BmPlTableModel::bmSongMoved, this, &MainWindow::bmSongMoved);
+    connect(bmPlModel, &TableModelPlaylistSongs::bmSongMoved, this, &MainWindow::bmSongMoved);
     connect(songbookApi, &OKJSongbookAPI::alertRecieved, this, &MainWindow::showAlert);
     connect(&settings, &Settings::cdgShowCdgWindowChanged, this, &MainWindow::cdgVisibilityChanged);
     connect(&settings, &Settings::rotationShowNextSongChanged, [&] () { resizeRotation(); });
@@ -978,7 +978,7 @@ MainWindow::MainWindow(QWidget *parent) :
     updateRotationDuration();
     connect(&m_timerSlowUiUpdate, &QTimer::timeout, this, &MainWindow::updateRotationDuration);
     m_timerSlowUiUpdate.start(10000);
-    connect(qModel, &QueueModel::queueModified, [&] () { updateRotationDuration(); });
+    connect(qModel, &TableModelQueueSongs::queueModified, [&] () { updateRotationDuration(); });
     connect(&settings, &Settings::rotationDurationSettingsModified, this, &MainWindow::updateRotationDuration);
     cdgWindow->setShowBgImage(true);
     lazyDurationUpdater = new LazyDurationUpdateController(this);
@@ -1103,17 +1103,17 @@ MainWindow::MainWindow(QWidget *parent) :
         }
     });
 
-    connect(bmPlModel, &BmPlTableModel::bmPlSongsMoved, [&] (auto startRow, auto startCol, auto endRow, auto endCol) {
+    connect(bmPlModel, &TableModelPlaylistSongs::bmPlSongsMoved, [&] (auto startRow, auto startCol, auto endRow, auto endCol) {
         auto topLeft = ui->tableViewBmPlaylist->model()->index(startRow, startCol);
         auto bottomRight = ui->tableViewBmPlaylist->model()->index(endRow, endCol);
         ui->tableViewBmPlaylist->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
     });
-    connect(qModel, &QueueModel::qSongsMoved, [&] (auto startRow, auto startCol, auto endRow, auto endCol) {
+    connect(qModel, &TableModelQueueSongs::qSongsMoved, [&] (auto startRow, auto startCol, auto endRow, auto endCol) {
         auto topLeft = ui->tableViewQueue->model()->index(startRow, startCol);
         auto bottomRight = ui->tableViewQueue->model()->index(endRow, endCol);
         ui->tableViewQueue->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
     });
-    connect(rotModel, &RotationModel::singersMoved, [&] (auto startRow, auto startCol, auto endRow, auto endCol) {
+    connect(rotModel, &TableModelRotationSingers::singersMoved, [&] (auto startRow, auto startCol, auto endRow, auto endCol) {
         if (startRow == endRow)
         {
             //ui->tableViewRotation->selectRow(startRow);
@@ -1995,7 +1995,7 @@ void MainWindow::on_sliderProgress_sliderMoved(const int &position)
 void MainWindow::on_buttonRegulars_clicked()
 {
     auto regularSingersDialog = new DlgRegularSingers(rotModel, this);
-    connect(&regularSingersDialog->historySingersModel(), &HistorySingersTableModel::historySingersModified, [&] () {
+    connect(&regularSingersDialog->historySingersModel(), &TableModelHistorySingers::historySingersModified, [&] () {
         historySongsModel.refresh();
     });
     regularSingersDialog->show();
@@ -2301,7 +2301,7 @@ void MainWindow::editSong()
     QString mediaFile;
     if (isCdg)
         mediaFile = DbUpdateThread::findMatchingAudioFile(dbRtClickFile);
-    SourceDirTableModel model;
+    TableModelKaraokeSourceDirs model;
     SourceDir srcDir = model.getDirByPath(dbRtClickFile);
     int rowId;
     QString artist;
@@ -4529,13 +4529,13 @@ void MainWindow::on_comboBoxSearchType_currentIndexChanged(int index)
 {
     switch (index) {
     case 0:
-        dbModel->setSearchType(DbTableModel::SEARCH_TYPE_ALL);
+        dbModel->setSearchType(TableModelKaraokeSongs::SEARCH_TYPE_ALL);
         break;
     case 1:
-        dbModel->setSearchType(DbTableModel::SEARCH_TYPE_ARTIST);
+        dbModel->setSearchType(TableModelKaraokeSongs::SEARCH_TYPE_ARTIST);
         break;
     case 2:
-        dbModel->setSearchType(DbTableModel::SEARCH_TYPE_TITLE);
+        dbModel->setSearchType(TableModelKaraokeSongs::SEARCH_TYPE_TITLE);
         break;
     }
 }

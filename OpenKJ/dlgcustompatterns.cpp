@@ -21,7 +21,7 @@ DlgCustomPatterns::DlgCustomPatterns(QWidget *parent) :
     ui(new Ui::DlgCustomPatterns)
 {
     ui->setupUi(this);
-    patternsModel = new CustomPatternsModel(this);
+    patternsModel = new TableModelCustomNamingPatterns(this);
     ui->tableViewPatterns->setModel(patternsModel);
     settings.restoreColumnWidths(ui->tableViewPatterns);
     settings.restoreWindowState(this);

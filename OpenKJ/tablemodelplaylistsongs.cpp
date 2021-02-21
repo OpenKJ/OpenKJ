@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "bmpltablemodel.h"
+#include "tablemodelplaylistsongs.h"
 #include <QSqlQuery>
 #include <QDebug>
 #include <QDataStream>
@@ -26,9 +26,13 @@
 #include <random>
 #include <QJsonDocument>
 #include <QJsonArray>
-//#include <QRandomGenerator>
+#include <QTime>
+#include <QFileInfo>
+#include "settings.h"
 
-BmPlTableModel::BmPlTableModel(QObject *parent, QSqlDatabase db) :
+extern Settings settings;
+
+TableModelPlaylistSongs::TableModelPlaylistSongs(QObject *parent, QSqlDatabase db) :
     QSqlRelationalTableModel(parent, db)
 {
     m_playlistId = -1;
@@ -49,7 +53,7 @@ BmPlTableModel::BmPlTableModel(QObject *parent, QSqlDatabase db) :
     setSort(2, Qt::AscendingOrder);
 }
 
-void BmPlTableModel::moveSong(int oldPosition, int newPosition)
+void TableModelPlaylistSongs::moveSong(int oldPosition, int newPosition)
 {
     QSqlQuery query;
     int plSongId = index(oldPosition,0).data().toInt();
@@ -75,7 +79,7 @@ void BmPlTableModel::moveSong(int oldPosition, int newPosition)
     emit bmSongMoved(oldPosition, newPosition);
 }
 
-void BmPlTableModel::addSong(int songId)
+void TableModelPlaylistSongs::addSong(int songId)
 {
     QSqlQuery query;
     QString sIdStr = QString::number(songId);
@@ -85,13 +89,13 @@ void BmPlTableModel::addSong(int songId)
     select();
 }
 
-void BmPlTableModel::insertSong(int songId, int position)
+void TableModelPlaylistSongs::insertSong(int songId, int position)
 {
     addSong(songId);
     moveSong(rowCount() - 1, position);
 }
 
-void BmPlTableModel::deleteSong(int position)
+void TableModelPlaylistSongs::deleteSong(int position)
 {
     int plSongId = index(position,0).data().toInt();
     QSqlQuery query("DELETE FROM bmplsongs WHERE plsongid == " + QString::number(plSongId));
@@ -99,19 +103,19 @@ void BmPlTableModel::deleteSong(int position)
     select();
 }
 
-void BmPlTableModel::setCurrentPlaylist(int playlistId)
+void TableModelPlaylistSongs::setCurrentPlaylist(int playlistId)
 {
     m_playlistId = playlistId;
     setFilter("playlist=" + QString::number(m_playlistId));
     select();
 }
 
-int BmPlTableModel::currentPlaylist()
+int TableModelPlaylistSongs::currentPlaylist()
 {
     return m_playlistId;
 }
 
-int BmPlTableModel::getSongIdByFilePath(QString filePath)
+int TableModelPlaylistSongs::getSongIdByFilePath(QString filePath)
 {
     QSqlQuery query("SELECT songid FROM bmsongs WHERE path == \"" + filePath + "\" LIMIT 1");
     if (query.first())
@@ -120,12 +124,12 @@ int BmPlTableModel::getSongIdByFilePath(QString filePath)
     return -1;
 }
 
-int BmPlTableModel::numSongs()
+int TableModelPlaylistSongs::numSongs()
 {
     return this->rowCount();
 }
 
-qint32 BmPlTableModel::randomizePlaylist(qint32 currentpos)
+qint32 TableModelPlaylistSongs::randomizePlaylist(qint32 currentpos)
 {
     qint32 newplayingpos = -1;
     QSqlQuery query;
@@ -157,7 +161,7 @@ qint32 BmPlTableModel::randomizePlaylist(qint32 currentpos)
     return newplayingpos;
 }
 
-qint32 BmPlTableModel::getPlSongIdAtPos(qint32 position)
+qint32 TableModelPlaylistSongs::getPlSongIdAtPos(qint32 position)
 {
     QSqlQuery query("SELECT plsongid FROM bmplsongs WHERE playlist = " + QString::number(currentPlaylist()) + " AND position = " + QString::number(position) + " LIMIT 1");
     if (query.first())
@@ -166,7 +170,7 @@ qint32 BmPlTableModel::getPlSongIdAtPos(qint32 position)
     return -1;
 }
 
-int BmPlTableModel::getSongPositionById(const int plSongId)
+int TableModelPlaylistSongs::getSongPositionById(const int plSongId)
 {
     QSqlQuery query("SELECT position FROM bmplsongs WHERE plsongid = " + QString::number(plSongId) + " LIMIT 1");
     if (query.first())
@@ -174,7 +178,7 @@ int BmPlTableModel::getSongPositionById(const int plSongId)
     return -1;
 }
 
-bool BmPlTableModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
+bool TableModelPlaylistSongs::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
 {
     Q_UNUSED(action)
     Q_UNUSED(column)
@@ -256,7 +260,7 @@ bool BmPlTableModel::dropMimeData(const QMimeData *data, Qt::DropAction action, 
     return false;
 }
 
-QStringList BmPlTableModel::mimeTypes() const
+QStringList TableModelPlaylistSongs::mimeTypes() const
 {
     QStringList types;
     types << "integer/songid";
@@ -266,7 +270,7 @@ QStringList BmPlTableModel::mimeTypes() const
     return types;
 }
 
-bool BmPlTableModel::canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const
+bool TableModelPlaylistSongs::canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const
 {
     Q_UNUSED(data);
     Q_UNUSED(action);
@@ -276,12 +280,12 @@ bool BmPlTableModel::canDropMimeData(const QMimeData *data, Qt::DropAction actio
     return true;
 }
 
-Qt::DropActions BmPlTableModel::supportedDropActions() const
+Qt::DropActions TableModelPlaylistSongs::supportedDropActions() const
 {
     return Qt::CopyAction | Qt::MoveAction;
 }
 
-QMimeData *BmPlTableModel::mimeData(const QModelIndexList &indexes) const
+QMimeData *TableModelPlaylistSongs::mimeData(const QModelIndexList &indexes) const
 {
     QMimeData *mimeData = new QMimeData();
     mimeData->setData("integer/queuepos", indexes.at(0).sibling(indexes.at(0).row(), 2).data().toByteArray().data());
@@ -300,7 +304,7 @@ QMimeData *BmPlTableModel::mimeData(const QModelIndexList &indexes) const
     return mimeData;
 }
 
-Qt::ItemFlags BmPlTableModel::flags(const QModelIndex &index) const
+Qt::ItemFlags TableModelPlaylistSongs::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
         return Qt::ItemIsEnabled | Qt::ItemIsDropEnabled;
@@ -309,10 +313,112 @@ Qt::ItemFlags BmPlTableModel::flags(const QModelIndex &index) const
 }
 
 
-QVariant BmPlTableModel::data(const QModelIndex &index, int role) const
+QVariant TableModelPlaylistSongs::data(const QModelIndex &index, int role) const
 {
     if (role == Qt::ToolTipRole && index.column() != 7)
         return QSqlRelationalTableModel::data(index, Qt::DisplayRole);
     else
         return QSqlRelationalTableModel::data(index, role);
+}
+int ItemDelegatePlaylistSongs::currentSong() const
+{
+    return m_currentSong;
+}
+
+void ItemDelegatePlaylistSongs::setCurrentSong(int value)
+{
+    m_currentSong = value;
+}
+ItemDelegatePlaylistSongs::ItemDelegatePlaylistSongs(QObject *parent) :
+    QItemDelegate(parent)
+{
+    m_currentSong = -1;
+    QString thm = (settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
+    m_iconDelete = QIcon(thm + "actions/22/edit-delete.svg");
+    m_iconPlaying = QIcon(thm + "actions/22/media-playback-start.svg");
+}
+
+void ItemDelegatePlaylistSongs::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    QSize sbSize(QFontMetrics(settings.applicationFont()).height(), QFontMetrics(settings.applicationFont()).height());
+    int topPad = (option.rect.height() - sbSize.height()) / 2;
+    int leftPad = (option.rect.width() - sbSize.width()) / 2;
+
+    if (option.state & QStyle::State_Selected)
+    {
+        if (index.column() > 2 && index.column() < 7)
+            painter->fillRect(option.rect, option.palette.highlight());
+        else
+            painter->fillRect(option.rect, (index.row() % 2) ? option.palette.alternateBase() : option.palette.base());
+        //painter->fillRect(option.rect, option.palette.highlight());
+    }
+
+    if (index.row() == m_currentSong && index.column() > 2 && index.column() < 7)
+    {
+        if (option.state & QStyle::State_Selected)
+            painter->fillRect(option.rect, option.palette.highlight());
+        else
+            painter->fillRect(option.rect, (settings.theme() == 1) ? QColor(180,180,0) : QColor("yellow"));
+    }
+    if (index.column() == 2)
+    {
+        if (index.row() == m_currentSong)
+            painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), m_iconPlaying.pixmap(sbSize));
+        return;
+    }
+    if (index.column() == 5)
+    {
+        QFileInfo fi(index.data().toString());
+        QString fn = fi.fileName();
+        painter->save();
+        if (option.state & QStyle::State_Selected)
+            painter->setPen(option.palette.highlightedText().color());
+        else if (index.row() == m_currentSong)
+            painter->setPen(QColor("black"));
+        painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + fn);
+        painter->restore();
+        return;
+    }
+    if (index.column() == 6)
+    {
+        int sec = index.data().toInt();
+        if (sec <= 0)
+            return;
+        QString duration = QTime(0,0,0,0).addSecs(sec).toString("m:ss");
+        painter->save();
+        if (option.state & QStyle::State_Selected)
+            painter->setPen(option.palette.highlightedText().color());
+        else if (index.row() == m_currentSong)
+            painter->setPen(QColor("black"));
+        painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter | Qt::AlignCenter, duration);
+        painter->restore();
+        return;
+    }
+    if (index.column() == 7)
+    {
+        painter->drawPixmap(QRect(option.rect.x() + leftPad, option.rect.y() + topPad, sbSize.width(), sbSize.height()), m_iconDelete.pixmap(sbSize));
+        return;
+    }
+    if (index.column() == 6)
+    {
+        painter->drawText(option.rect, Qt::AlignCenter, index.data().toString());
+        return;
+    }
+    painter->save();
+    if (option.state & QStyle::State_Selected)
+        painter->setPen(option.palette.highlightedText().color());
+    if (index.row() == m_currentSong)
+        painter->setPen(QColor("black"));
+    painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + index.data().toString());
+    painter->restore();
+}
+
+
+QSize ItemDelegatePlaylistSongs::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    if ((index.column() == 2) || (index.column() == 7))
+    {
+        return QSize(16,16);
+    }
+    else return QItemDelegate::sizeHint(option, index);
 }

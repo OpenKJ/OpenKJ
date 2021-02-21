@@ -24,8 +24,8 @@
 #include <QDialog>
 #include <QSortFilterProxyModel>
 #include <QSqlTableModel>
-#include "rotationmodel.h"
-#include "historysingerstablemodel.h"
+#include "tablemodelrotationsingers.h"
+#include "tablemodelhistorysingers.h"
 
 namespace Ui {
 class DlgRegularSingers;
@@ -38,14 +38,14 @@ class DlgRegularSingers : public QDialog
 private:
     int m_rtClickHistorySingerId;
     Ui::DlgRegularSingers *ui;
-    HistorySingersTableModel m_historySingersModel;
-    HistorySingersItemDelegate m_historySingersDelegate;
-    RotationModel *m_rotModel;
+    TableModelHistorySingers m_historySingersModel;
+    ItemDelegateHistorySingers m_historySingersDelegate;
+    TableModelRotationSingers *m_rotModel;
 
 public:
-    explicit DlgRegularSingers(RotationModel *rotationModel, QWidget *parent = 0);
+    explicit DlgRegularSingers(TableModelRotationSingers *rotationModel, QWidget *parent = 0);
     ~DlgRegularSingers();
-    HistorySingersTableModel& historySingersModel() { return m_historySingersModel; }
+    TableModelHistorySingers& historySingersModel() { return m_historySingersModel; }
 
 signals:
     void regularSingerDeleted(const int regularID);
