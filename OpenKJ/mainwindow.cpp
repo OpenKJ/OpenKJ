@@ -793,9 +793,8 @@ MainWindow::MainWindow(QWidget *parent) :
     bmPlaylistsModel->setTable("bmplaylists");
     bmPlaylistsModel->sort(2, Qt::AscendingOrder);
     bmDbDialog = new BmDbDialog(database,this);
-    bmDbModel = new TableModelBreakSongs(this, database);
-    bmDbModel->setTable("mem.bmsongs");
-    bmDbModel->select();
+//    bmDbModel->setTable("mem.bmsongs");
+//    bmDbModel->select();
     bmCurrentPlaylist = settings.bmPlaylistIndex();
     bmPlModel = new TableModelPlaylistSongs(this, database);
     bmPlModel->select();
@@ -809,9 +808,10 @@ MainWindow::MainWindow(QWidget *parent) :
         bmAddPlaylist("Default");
         ui->comboBoxBmPlaylists->setCurrentIndex(0);
     }
-    bmDbDelegate = new ItemDelegateBreakSongs(this);
-    ui->tableViewBmDb->setModel(bmDbModel);
-    ui->tableViewBmDb->setItemDelegate(bmDbDelegate);
+//    bmDbDelegate = new ItemDelegateBreakSongs(this);
+    ui->tableViewBmDb->setModel(&bmDbModel);
+    bmDbModel.loadDatabase();
+//    ui->tableViewBmDb->setItemDelegate(bmDbDelegate);
     ui->tableViewBmDb->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewBmDb));
     ui->tableViewBmPlaylist->setModel(bmPlModel);
     ui->tableViewBmPlaylist->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewBmPlaylist));
@@ -820,9 +820,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->actionDisplay_Filenames->setChecked(settings.bmShowFilenames());
     ui->actionDisplay_Metadata->setChecked(settings.bmShowMetadata());
     settings.restoreSplitterState(ui->splitterBm);
-    ui->tableViewBmDb->setColumnHidden(0, true);
-    ui->tableViewBmDb->setColumnHidden(3, true);
-    ui->tableViewBmDb->setColumnHidden(6, true);
+    ui->tableViewBmDb->setColumnHidden(TableModelBreakSongs::COL_ID, true);
     ui->tableViewBmPlaylist->setColumnHidden(0, true);
     ui->tableViewBmPlaylist->setColumnHidden(1, true);
     settings.restoreSplitterState(ui->splitter_3);
@@ -2764,47 +2762,23 @@ void MainWindow::bmAddPlaylist(QString title)
 
 void MainWindow::bmDbUpdated()
 {
-    bmDbModel->refreshCache();
-    bmDbModel->select();
+    bmDbModel.loadDatabase();
     ui->comboBoxBmPlaylists->setCurrentIndex(0);
-    ui->tableViewBmDb->setColumnHidden(0, true);
-    ui->tableViewBmDb->setColumnHidden(3, true);
-    ui->tableViewBmDb->setColumnHidden(6, true);
-    ui->tableViewBmDb->setColumnHidden(4, !settings.bmShowFilenames());
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(4, 100);
-    ui->tableViewBmDb->setColumnHidden(1, !settings.bmShowMetadata());
-    ui->tableViewBmDb->setColumnHidden(2, !settings.bmShowMetadata());
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(1, 100);
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(2, 100);
-    ui->tableViewBmDb->horizontalHeader()->setSectionResizeMode(5, QHeaderView::Fixed);
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(5,75);
 }
 
 void MainWindow::bmDbCleared()
 {
-    bmDbModel->refreshCache();
-    bmDbModel->select();
+    bmDbModel.loadDatabase();
     bmAddPlaylist("Default");
     ui->comboBoxBmPlaylists->setCurrentIndex(0);
-    ui->tableViewBmDb->setColumnHidden(0, true);
-    ui->tableViewBmDb->setColumnHidden(3, true);
-    ui->tableViewBmDb->setColumnHidden(6, true);
-    ui->tableViewBmDb->horizontalHeader()->setSectionResizeMode(5, QHeaderView::Fixed);
-    ui->tableViewBmDb->setColumnHidden(4, !settings.bmShowFilenames());
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(4, 100);
-    ui->tableViewBmDb->setColumnHidden(1, !settings.bmShowMetadata());
-    ui->tableViewBmDb->setColumnHidden(2, !settings.bmShowMetadata());
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(1, 100);
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(2, 100);
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(5,75);
 }
 
 void MainWindow::bmShowMetadata(const bool &checked)
 {
-    ui->tableViewBmDb->setColumnHidden(1, !checked);
-    ui->tableViewBmDb->setColumnHidden(2, !checked);
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(1, 100);
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(2, 100);
+    ui->tableViewBmDb->setColumnHidden(TableModelBreakSongs::COL_ARTIST, !checked);
+    ui->tableViewBmDb->setColumnHidden(TableModelBreakSongs::COL_TITLE, !checked);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(TableModelBreakSongs::COL_ARTIST, 100);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(TableModelBreakSongs::COL_TITLE, 100);
     ui->tableViewBmPlaylist->setColumnHidden(3, !checked);
     ui->tableViewBmPlaylist->setColumnHidden(4, !checked);
     ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(3, 100);
@@ -2815,8 +2789,8 @@ void MainWindow::bmShowMetadata(const bool &checked)
 
 void MainWindow::bmShowFilenames(const bool &checked)
 {
-    ui->tableViewBmDb->setColumnHidden(4, !checked);
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(4, 100);
+    ui->tableViewBmDb->setColumnHidden(TableModelBreakSongs::COL_FILENAME, !checked);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(TableModelBreakSongs::COL_FILENAME, 100);
     ui->tableViewBmPlaylist->setColumnHidden(5, !checked);
     ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(5, 100);
     settings.bmSetShowFilenames(checked);
@@ -2979,7 +2953,7 @@ void MainWindow::on_buttonBmStop_clicked()
 
 void MainWindow::on_lineEditBmSearch_returnPressed()
 {
-    bmDbModel->search(ui->lineEditBmSearch->text());
+    bmDbModel.search(ui->lineEditBmSearch->text());
 }
 
 void MainWindow::on_tableViewBmPlaylist_doubleClicked(const QModelIndex &index)
@@ -3037,8 +3011,8 @@ void MainWindow::refreshSongDbCache()
 
 void MainWindow::on_actionDisplay_Metadata_toggled(const bool &arg1)
 {
-    ui->tableViewBmDb->setColumnHidden(1, !arg1);
-    ui->tableViewBmDb->setColumnHidden(2, !arg1);
+    ui->tableViewBmDb->setColumnHidden(TableModelBreakSongs::COL_ARTIST, !arg1);
+    ui->tableViewBmDb->setColumnHidden(TableModelBreakSongs::COL_TITLE, !arg1);
     ui->tableViewBmPlaylist->setColumnHidden(3, !arg1);
     ui->tableViewBmPlaylist->setColumnHidden(4, !arg1);
     settings.bmSetShowMetadata(arg1);
@@ -3047,7 +3021,7 @@ void MainWindow::on_actionDisplay_Metadata_toggled(const bool &arg1)
 
 void MainWindow::on_actionDisplay_Filenames_toggled(const bool &arg1)
 {
-    ui->tableViewBmDb->setColumnHidden(4, !arg1);
+    ui->tableViewBmDb->setColumnHidden(TableModelBreakSongs::COL_FILENAME, !arg1);
     ui->tableViewBmPlaylist->setColumnHidden(5, !arg1);
     settings.bmSetShowFilenames(arg1);
     autosizeBmViews();
@@ -3152,7 +3126,8 @@ void MainWindow::on_actionPlaylistImport_triggered()
             }
         }
         query.exec("COMMIT TRANSACTION");
-        bmDbModel->select();
+        //bmDbModel->select();
+        bmDbModel.loadDatabase();
         QApplication::processEvents();
         QList<int> songIds;
         for (int i=0; i < files.size(); i++)
@@ -3232,7 +3207,7 @@ void MainWindow::on_actionPlaylistDelete_triggered()
 
 void MainWindow::on_buttonBmSearch_clicked()
 {
-    bmDbModel->search(ui->lineEditBmSearch->text());
+    bmDbModel.search(ui->lineEditBmSearch->text());
 }
 
 void MainWindow::on_actionAbout_triggered()
@@ -3728,11 +3703,11 @@ void MainWindow::autosizeBmViews()
     {
         fnameColSize = remainingSpace;
     }
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(1, artistColSize);
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(2, titleColSize);
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(4, fnameColSize);
-    ui->tableViewBmDb->horizontalHeader()->setSectionResizeMode(5, QHeaderView::Fixed);
-    ui->tableViewBmDb->horizontalHeader()->resizeSection(5, durationColSize);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(TableModelBreakSongs::COL_ARTIST, artistColSize);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(TableModelBreakSongs::COL_TITLE, titleColSize);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(TableModelBreakSongs::COL_FILENAME, fnameColSize);
+    ui->tableViewBmDb->horizontalHeader()->setSectionResizeMode(TableModelBreakSongs::COL_DURATION, QHeaderView::Fixed);
+    ui->tableViewBmDb->horizontalHeader()->resizeSection(TableModelBreakSongs::COL_DURATION, durationColSize);
 
     remainingSpace = ui->tableViewBmPlaylist->width() - durationColSize - (iconWidth * 2) - 5;
     //5=filename  6=Duration 3=artist 4=title
@@ -3807,8 +3782,8 @@ void MainWindow::databaseAboutToUpdate()
 
 void MainWindow::bmDatabaseAboutToUpdate()
 {
-    bmDbModel->revertAll();
-    bmDbModel->setTable("");
+//    bmDbModel->revertAll();
+//    bmDbModel->setTable("");
     bmPlaylistsModel->revertAll();
     bmPlaylistsModel->setTable("");
     dbModel->revertAll();
@@ -3988,7 +3963,7 @@ void MainWindow::on_lineEditBmSearch_textChanged(const QString &arg1)
     static QString lastVal;
     if (arg1.trimmed() != lastVal)
     {
-        bmDbModel->search(arg1);
+        bmDbModel.search(arg1);
         lastVal = arg1.trimmed();
     }
 }

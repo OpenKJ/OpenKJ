@@ -36,7 +36,7 @@
        <enum>QTabWidget::West</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <property name="usesScrollButtons">
        <bool>true</bool>
@@ -2835,6 +2835,9 @@ QPushButton:default {
                  </attribute>
                  <attribute name="verticalHeaderVisible">
                   <bool>false</bool>
+                 </attribute>
+                 <attribute name="verticalHeaderShowSortIndicator" stdset="0">
+                  <bool>true</bool>
                  </attribute>
                 </widget>
                </item>

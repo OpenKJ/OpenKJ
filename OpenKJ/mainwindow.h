@@ -115,8 +115,8 @@ private:
     bool k2kTransition{false};
     bool previewEnabled;
     BmDbDialog *bmDbDialog;
-    TableModelBreakSongs *bmDbModel;
-    ItemDelegateBreakSongs *bmDbDelegate;
+    TableModelBreakSongs bmDbModel;
+    //ItemDelegateBreakSongs *bmDbDelegate;
     TableModelPlaylistSongs *bmPlModel;
     ItemDelegatePlaylistSongs *bmPlDelegate;
     QSqlTableModel *bmPlaylistsModel;

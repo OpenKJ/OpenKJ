@@ -1,83 +1,45 @@
-/*
- * Copyright (c) 2013-2019 Thomas Isaac Lightburn
- *
- *
- * This file is part of OpenKJ.
- *
- * OpenKJ is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+#ifndef TABLEMODELBREAKSONGSNEW_H
+#define TABLEMODELBREAKSONGSNEW_H
 
-#ifndef BMDBTABLEMODEL_H
-#define BMDBTABLEMODEL_H
+#include <QAbstractTableModel>
+#include <QTime>
+#include <QDebug>
+#include <chrono>
 
-#include <QSqlTableModel>
-#include <QItemDelegate>
-
-class ItemDelegateBreakSongs : public QItemDelegate
-{
-    Q_OBJECT
-public:
-    explicit ItemDelegateBreakSongs(QObject *parent = 0);
-
-signals:
-
-public slots:
-
-
-    // QAbstractItemDelegate interface
-public:
-    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+struct BreakSong {
+    int id{0};
+    QString artist;
+    QString title;
+    QString path;
+    QString filename;
+    int duration;
+    QString searchString;
 };
 
-class TableModelBreakSongs : public QSqlTableModel
+class TableModelBreakSongs : public QAbstractTableModel
 {
     Q_OBJECT
+
+public:
+    enum {COL_ID=0,COL_ARTIST,COL_TITLE,COL_FILENAME,COL_DURATION};
+    explicit TableModelBreakSongs(QObject *parent = nullptr);
+    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+    void sort(int column, Qt::SortOrder order) override;
+    QMimeData *mimeData(const QModelIndexList &indexes) const override;
+    Qt::ItemFlags flags(const QModelIndex &index) const override;
+    void loadDatabase();
+    void search(const QString &searchStr);
+
 private:
-    int sortColumn;
-    QString artistOrder;
-    QString titleOrder;
-    QString filenameOrder;
-    QString durationOrder;
-    QSqlDatabase db;
-    QString lastSearch;
-public:
-    explicit TableModelBreakSongs(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
-    enum {SORT_ARTIST=1,SORT_TITLE=2,SORT_FILENAME=4,SORT_DURATION=5};
+    std::vector<BreakSong> m_filteredSongs;
+    std::vector<BreakSong> m_allSongs;
+    QString m_lastSearch;
+    Qt::SortOrder m_lastSortOrder{Qt::AscendingOrder};
+    int m_lastSortColumn{1};
 
-    // QAbstractItemModel interface
-public:
-    QMimeData *mimeData(const QModelIndexList &indexes) const;
-    void sort(int column, Qt::SortOrder order);
-    Qt::ItemFlags flags(const QModelIndex &index) const;
-
-public slots:
-    void search(QString searchString);
-    void refreshCache();
-
-
-    // QSqlTableModel interface
-protected:
-    QString orderByClause() const;
-
-
-    // QAbstractItemModel interface
-public:
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
-
-    // QAbstractItemModel interface
-public:
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
 };
 
-#endif // SONGSTABLEMODEL_H
+#endif // TABLEMODELBREAKSONGSNEW_H

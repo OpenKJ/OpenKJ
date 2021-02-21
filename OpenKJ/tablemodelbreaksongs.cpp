@@ -1,87 +1,168 @@
-/*
- * Copyright (c) 2013-2019 Thomas Isaac Lightburn
- *
- *
- * This file is part of OpenKJ.
- *
- * OpenKJ is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #include "tablemodelbreaksongs.h"
+
+#include <QDataStream>
 #include <QMimeData>
 #include <QSqlQuery>
-#include <QStringList>
-#include <QDebug>
-#include <QDataStream>
-#include <QPainter>
-#include <QFileInfo>
-#include <QTime>
 
-TableModelBreakSongs::TableModelBreakSongs(QObject *parent, QSqlDatabase db) :
-    QSqlTableModel(parent, db)
+QDebug operator<<(QDebug debug, const BreakSong &b)
 {
-    sortColumn = SORT_ARTIST;
-    artistOrder = "ASC";
-    titleOrder = "ASC";
-    filenameOrder = "ASC";
-    durationOrder = "ASC";
-    this->db = db;
-    QSqlQuery query;
-    query.exec("ATTACH DATABASE ':memory:' AS mem");
-    query.exec("CREATE TABLE mem.bmsongs AS SELECT * FROM main.bmsongs");
-    query.exec("CREATE UNIQUE INDEX mem.idx_mem_path ON dbsongs(path)");
-    query.exec("CREATE UNIQUE INDEX mem.idx_mem_songid ON dbsongs(songid)");
+    QDebugStateSaver saver(debug);
+    debug.nospace() << "{(artist=" << b.artist << ")(title=" << b.title << ")(path=" << b.path << ")(fname=" << b.filename
+                    << ")(duration=" << b.duration << ")(sstring=" << b.searchString << ")}";
+    return debug;
 }
 
-Qt::ItemFlags TableModelBreakSongs::flags(const QModelIndex &index) const
+TableModelBreakSongs::TableModelBreakSongs(QObject *parent)
+    : QAbstractTableModel(parent)
+{
+    loadDatabase();
+}
+
+QVariant TableModelBreakSongs::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (role == Qt::DisplayRole && orientation == Qt::Horizontal)
+    {
+        switch (section) {
+        case COL_ID:
+            return "ID";
+        case COL_ARTIST:
+            return "Artist";
+        case COL_TITLE:
+            return "Title";
+        case COL_FILENAME:
+            return "Filename";
+        case COL_DURATION:
+            return "Duration";
+        }
+    }
+    return QVariant();
+}
+
+int TableModelBreakSongs::rowCount([[maybe_unused]]const QModelIndex &parent) const
+{
+    return m_filteredSongs.size();
+}
+
+int TableModelBreakSongs::columnCount([[maybe_unused]]const QModelIndex &parent) const
+{
+    return 5;
+}
+
+QVariant TableModelBreakSongs::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid())
-        return Qt::ItemIsEnabled;
-
-    return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled;
-}
-
-void TableModelBreakSongs::search(QString searchString)
-{
-    QStringList terms;
-    terms = searchString.split(" ",QString::SkipEmptyParts);
-    if (terms.size() < 1)
+        return QVariant();
+    if (role == Qt::DisplayRole)
     {
-        setFilter("");
-        return;
+        switch (index.column()) {
+        case COL_ID:
+            return m_filteredSongs.at(index.row()).id;
+        case COL_ARTIST:
+            return m_filteredSongs.at(index.row()).artist;
+        case COL_TITLE:
+            return m_filteredSongs.at(index.row()).title;
+        case COL_FILENAME:
+            return m_filteredSongs.at(index.row()).filename;
+        case COL_DURATION:
+            return QTime(0,0,0,0).addSecs(m_filteredSongs.at(index.row()).duration).toString("m:ss");
+        }
     }
-    QString whereClause = "searchstring LIKE \"%" + terms.at(0) + "%\"";
-    for (int i=1; i < terms.size(); i++)
+    if (role == Qt::TextAlignmentRole)
     {
-        whereClause = whereClause + " AND searchstring LIKE \"%" + terms.at(i) + "%\"";
+        switch (index.column()) {
+        case COL_DURATION:
+            return Qt::AlignRight + Qt::AlignVCenter;
+        default:
+            return Qt::AlignLeft + Qt::AlignVCenter;
+        }
     }
-    setFilter(whereClause);
-    lastSearch = searchString;
+    return QVariant();
 }
 
-void TableModelBreakSongs::refreshCache()
+void TableModelBreakSongs::loadDatabase()
 {
-    qInfo() << "Refreshing bmsongs cache";
-    QSqlQuery query(db);
-    query.exec("DELETE FROM mem.bmsongs");
-    query.exec("VACUUM mem");
-    query.exec("INSERT INTO mem.bmsongs SELECT * FROM main.bmsongs");
-    setTable("mem.bmsongs");
-    select();
-    search(lastSearch);
+    emit layoutAboutToBeChanged();
+    m_filteredSongs.clear();
+    QSqlQuery query;
+    query.exec("SELECT songid,artist,title,path,filename,duration,searchstring FROM bmsongs");
+    while (query.next())
+    {
+        m_allSongs.emplace_back(
+        BreakSong{
+            query.value(0).toInt(),
+            query.value(1).toString(),
+            query.value(2).toString(),
+            query.value(3).toString(),
+            query.value(4).toString(),
+            query.value(5).toInt(),
+            query.value(6).toString().toLower(),
+        });
+    }
+    emit layoutChanged();
+    search(m_lastSearch);
+    sort(m_lastSortColumn, m_lastSortOrder);
 }
 
+void TableModelBreakSongs::search(const QString &searchStr)
+{
+    m_lastSearch = searchStr;
+    emit layoutAboutToBeChanged();
+    auto searchTerms = searchStr.split(" ", Qt::SkipEmptyParts);
+    m_filteredSongs.clear();
+    m_filteredSongs.resize(m_allSongs.size());
+    auto it = std::copy_if(m_allSongs.begin(), m_allSongs.end(), m_filteredSongs.begin(), [&searchTerms] (BreakSong &song)
+    {
+            for (auto i=0; i<searchTerms.size(); i++)
+    {
+        if (!song.searchString.contains(searchTerms.at(i)))
+            return false;
+    }
+    return true;
+});
+m_filteredSongs.resize(std::distance(m_filteredSongs.begin(), it));
+emit layoutChanged();
+}
+
+
+void TableModelBreakSongs::sort(int column, Qt::SortOrder order)
+{
+    emit layoutAboutToBeChanged();
+    if (order == Qt::AscendingOrder)
+    {
+    std::sort(m_filteredSongs.rbegin(), m_filteredSongs.rend(), [&column] (BreakSong &a, BreakSong &b) {
+            switch (column) {
+            case COL_ARTIST:
+                return (a.artist.toLower() > b.artist.toLower());
+            case COL_TITLE:
+                return (a.title.toLower() > b.title.toLower());
+            case COL_FILENAME:
+                return (a.filename.toLower() > b.filename.toLower());
+            case COL_DURATION:
+                return (a.duration > b.duration);
+            default:
+                return (a.id > b.id);
+            }
+    });
+    }
+    else
+    {
+        std::sort(m_filteredSongs.begin(), m_filteredSongs.end(), [&column] (BreakSong &a, BreakSong &b) {
+                switch (column) {
+                case COL_ARTIST:
+                    return (a.artist.toLower() > b.artist.toLower());
+                case COL_TITLE:
+                    return (a.title.toLower() > b.title.toLower());
+                case COL_FILENAME:
+                    return (a.filename.toLower() > b.filename.toLower());
+                case COL_DURATION:
+                    return (a.duration > b.duration);
+                default:
+                    return (a.id > b.id);
+                }
+        });
+    }
+    emit layoutChanged();
+}
 
 QMimeData *TableModelBreakSongs::mimeData(const QModelIndexList &indexes) const
 {
@@ -91,118 +172,16 @@ QMimeData *TableModelBreakSongs::mimeData(const QModelIndexList &indexes) const
     QList<int> songids;
     foreach (const QModelIndex &index, indexes) {
         if (index.isValid()) {
-            if(index.column() == 5)
-                songids.append(index.sibling(index.row(),0).data().toInt());
+            if(index.column() == 4)
+                songids.append(m_filteredSongs.at(index.row()).id);
         }
     }
     stream << songids;
     mimeData->setData("application/vnd.bmsongid.list", encodedData);
-    qInfo() << songids;
     return mimeData;
 }
 
-QString TableModelBreakSongs::orderByClause() const
+Qt::ItemFlags TableModelBreakSongs::flags([[maybe_unused]]const QModelIndex &index) const
 {
-    QString sql = " ORDER BY ";
-    switch (sortColumn) {
-    case SORT_ARTIST:
-        sql.append("artist " + artistOrder + ", title " + titleOrder + ", filename " + filenameOrder);
-        break;
-    case SORT_TITLE:
-        sql.append("title " + titleOrder + ", artist " + artistOrder + ", filename " + filenameOrder);
-        break;
-    case SORT_FILENAME:
-        sql.append("filename " + filenameOrder + ", artist " + artistOrder + ", title " + titleOrder);
-        break;
-    case SORT_DURATION:
-        sql.append("CAST(duration as INTEGER) " + durationOrder + ", artist " + artistOrder + ", title " + titleOrder + ", filename " + filenameOrder);
-    }
-    return sql;
-}
-
-
-void TableModelBreakSongs::sort(int column, Qt::SortOrder order)
-{
-    QString orderString = "ASC";
-    if (order == Qt::DescendingOrder)
-        orderString = "DESC";
-    sortColumn = column;
-    switch (sortColumn) {
-    case SORT_ARTIST:
-        artistOrder = orderString;
-        break;
-    case SORT_TITLE:
-        titleOrder = orderString;
-        break;
-    case SORT_FILENAME:
-        filenameOrder = orderString;
-        break;
-    case SORT_DURATION:
-        durationOrder = orderString;
-        break;
-    }
-    select();
-}
-
-
-QVariant TableModelBreakSongs::headerData(int section, Qt::Orientation orientation, int role) const
-{
-    if (section == 1 && role == Qt::DisplayRole)
-        return tr("Artist");
-    if (section == 2 && role == Qt::DisplayRole)
-        return tr("Title");
-    if (section == 4 && role == Qt::DisplayRole)
-        return tr("Filename");
-    if (section == 5 && role == Qt::DisplayRole)
-        return tr("Duration");
-    return QSqlTableModel::headerData(section, orientation, role);
-}
-
-
-QVariant TableModelBreakSongs::data(const QModelIndex &index, int role) const
-{
-    if (role == Qt::ToolTipRole)
-        return data(index);
-    else
-        return QSqlTableModel::data(index, role);
-}
-
-ItemDelegateBreakSongs::ItemDelegateBreakSongs(QObject *parent) :
-    QItemDelegate(parent)
-{
-}
-
-void ItemDelegateBreakSongs::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
-{
-    if (option.state & QStyle::State_Selected)
-        painter->fillRect(option.rect, option.palette.highlight());
-    if (index.column() == 4)
-    {
-        QFileInfo fi(index.data().toString());
-        QString fn = fi.fileName();
-        painter->save();
-        if (option.state & QStyle::State_Selected)
-            painter->setPen(option.palette.highlightedText().color());
-        painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + fn);
-        painter->restore();
-        return;
-    }
-    if (index.column() == 5)
-    {
-        int sec = index.data().toInt();
-        if (sec <= 0)
-            return;
-        QString duration = QTime(0,0,0,0).addSecs(sec).toString("m:ss");
-        painter->save();
-        if (option.state & QStyle::State_Selected)
-            painter->setPen(option.palette.highlightedText().color());
-        painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter | Qt::AlignCenter, duration);
-        painter->restore();
-        return;
-    }
-    painter->save();
-    if (option.state & QStyle::State_Selected)
-        painter->setPen(option.palette.highlightedText().color());
-    painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + index.data().toString());
-    painter->restore();
+    return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled;
 }
