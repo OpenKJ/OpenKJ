@@ -1084,6 +1084,8 @@ MainWindow::MainWindow(QWidget *parent) :
             ui->btnRotDown->setEnabled(false);
             ui->btnRotTop->setEnabled(false);
             ui->btnRotUp->setEnabled(false);
+            ui->tabWidgetQueue->hide();
+            ui->labelNoSinger->show();
         }
         else if (ui->tableViewRotation->selectionModel()->selectedRows().size() == 1)
         {

@@ -3282,11 +3282,12 @@ static void mz_zip_time_t_to_dos_time(MZ_TIME_T time, mz_uint16 *pDOS_time, mz_u
         return;
     }
 #else
-    struct tm *tm = localtime(&time);
+    struct tm tm;
+    localtime_r(&time, &tm);
 #endif /* #ifdef _MSC_VER */
 
-    *pDOS_time = (mz_uint16)(((tm->tm_hour) << 11) + ((tm->tm_min) << 5) + ((tm->tm_sec) >> 1));
-    *pDOS_date = (mz_uint16)(((tm->tm_year + 1900 - 1980) << 9) + ((tm->tm_mon + 1) << 5) + tm->tm_mday);
+    *pDOS_time = (mz_uint16)(((tm.tm_hour) << 11) + ((tm.tm_min) << 5) + ((tm.tm_sec) >> 1));
+    *pDOS_date = (mz_uint16)(((tm.tm_year + 1900 - 1980) << 9) + ((tm.tm_mon + 1) << 5) + tm.tm_mday);
 }
 #endif /* MINIZ_NO_ARCHIVE_WRITING_APIS */
 
