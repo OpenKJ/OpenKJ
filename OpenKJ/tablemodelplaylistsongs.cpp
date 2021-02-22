@@ -1,181 +1,424 @@
-/*
- * Copyright (c) 2013-2019 Thomas Isaac Lightburn
- *
- *
- * This file is part of OpenKJ.
- *
- * OpenKJ is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #include "tablemodelplaylistsongs.h"
-#include <QSqlQuery>
-#include <QDebug>
-#include <QDataStream>
-#include <algorithm>
-#include <random>
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QTime>
+
 #include <QFileInfo>
+#include <QPainter>
+#include <QSqlQuery>
+#include <QSqlError>
+#include <random>
+#include <algorithm>
+#include <QMimeData>
+#include <QJsonArray>
+#include <QJsonDocument>
 #include "settings.h"
 
 extern Settings settings;
 
-TableModelPlaylistSongs::TableModelPlaylistSongs(QObject *parent, QSqlDatabase db) :
-    QSqlRelationalTableModel(parent, db)
-{
-    m_playlistId = -1;
-    setTable("bmplsongs");
-    setRelation(1, QSqlRelation("bmplaylists", "playlistid", "title"));
-    setRelation(3, QSqlRelation("bmsongs", "songid", "artist"));
-    setRelation(4, QSqlRelation("bmsongs", "songid", "title"));
-    setRelation(5, QSqlRelation("bmsongs", "songid", "filename"));
-    setRelation(6, QSqlRelation("bmsongs", "songid", "duration"));
-    setRelation(7, QSqlRelation("bmsongs", "songid", "path"));
 
-    setHeaderData(3, Qt::Horizontal, tr("Artist"));
-    setHeaderData(4, Qt::Horizontal, tr("Title"));
-    setHeaderData(5, Qt::Horizontal, tr("Filename"));
-    setHeaderData(6, Qt::Horizontal, tr("Duration"));
-    setHeaderData(2, Qt::Horizontal, "");
-    setHeaderData(7, Qt::Horizontal, "");
-    setSort(2, Qt::AscendingOrder);
+TableModelPlaylistSongs::TableModelPlaylistSongs(TableModelBreakSongs &breakSongsModel, QObject *parent)
+    : QAbstractTableModel(parent), m_breakSongsModel(breakSongsModel)
+{
 }
 
-void TableModelPlaylistSongs::moveSong(int oldPosition, int newPosition)
+QVariant TableModelPlaylistSongs::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (role == Qt::DisplayRole && orientation == Qt::Horizontal)
+    {
+        switch (section) {
+        case COL_ID:
+            return QVariant();
+        case COL_POSITION:
+            return "Position";
+        case COL_ARTIST:
+            return "Artist";
+        case COL_TITLE:
+            return "Title";
+        case COL_FILENAME:
+            return "Filename";
+        case COL_DURATION:
+            return "Duration";
+        case COL_PATH:
+            return QVariant();
+        }
+    }
+    return QVariant();
+}
+
+int TableModelPlaylistSongs::rowCount([[maybe_unused]]const QModelIndex &parent) const
+{
+    return m_songs.size();
+}
+
+int TableModelPlaylistSongs::columnCount([[maybe_unused]]const QModelIndex &parent) const
+{
+    return 7;
+}
+
+QVariant TableModelPlaylistSongs::data(const QModelIndex &index, int role) const
+{
+    if (!index.isValid())
+        return QVariant();
+
+    if (role == Qt::DisplayRole)
+    {
+        switch (index.column()) {
+        case COL_ID:
+            return m_songs.at(index.row()).id;
+        case COL_POSITION:
+            return m_songs.at(index.row()).position;
+        case COL_ARTIST:
+            return m_songs.at(index.row()).artist;
+        case COL_TITLE:
+            return m_songs.at(index.row()).title;
+        case COL_FILENAME:
+            return m_songs.at(index.row()).filename;
+        case COL_DURATION:
+            return m_songs.at(index.row()).duration;
+        case COL_PATH:
+            return m_songs.at(index.row()).path;
+        }
+    }
+    if (role == Qt::TextAlignmentRole)
+    {
+        switch (index.column()) {
+        case COL_DURATION:
+            return Qt::AlignRight + Qt::AlignVCenter;
+        default:
+            return Qt::AlignLeft + Qt::AlignVCenter;
+        }
+    }
+    return QVariant();
+}
+
+void TableModelPlaylistSongs::setCurrentPlaylist(const int playlistId)
+{
+    emit layoutAboutToBeChanged();
+    m_curPlaylistId = playlistId;
+    m_songs.clear();
+    QSqlQuery query;
+    query.prepare("SELECT bmplsongs.plsongid, bmplsongs.artist, bmplsongs.position, bmsongs.artist, bmsongs.title, bmsongs.Filename, bmsongs.path, bmsongs.Duration FROM bmplsongs INNER JOIN bmsongs ON bmsongs.songid=bmplsongs.Artist WHERE bmplsongs.playlist = :playlistId ORDER BY bmplsongs.position");
+    query.bindValue(":playlistId", playlistId);
+    query.exec();
+    while (query.next())
+    {
+        m_songs.push_back(PlaylistSong{
+                              query.value(0).toInt(),
+                              query.value(1).toInt(),
+                              query.value(2).toInt(),
+                              query.value(3).toString(),
+                              query.value(4).toString(),
+                              query.value(5).toString(),
+                              query.value(6).toString(),
+                              query.value(7).toInt()
+                          });
+    }
+    emit layoutChanged();
+    qInfo() << "Loaded " << m_songs.size() << "songs";
+}
+
+void TableModelPlaylistSongs::setCurrentSongPos(const int currentPos)
+{
+    emit layoutAboutToBeChanged();
+    m_currentSongPos = currentPos;
+    emit layoutChanged();
+}
+
+void TableModelPlaylistSongs::savePlaylistChanges()
 {
     QSqlQuery query;
-    int plSongId = index(oldPosition,0).data().toInt();
     query.exec("BEGIN TRANSACTION");
-    if (newPosition > oldPosition)
-    {
-        // Moving down
-        QString sql = "UPDATE bmplsongs SET position = position - 1 WHERE playlist = " + QString::number(currentPlaylist()) + " AND position > " + QString::number(oldPosition) + " AND position <= " + QString::number(newPosition) + " AND plsongid != " + QString::number(plSongId);
-        query.exec(sql);
-        sql = "UPDATE bmplsongs SET position = " + QString::number(newPosition) + " WHERE playlist = " + QString::number(currentPlaylist()) + " AND plsongid == " + QString::number(plSongId);
-        query.exec(sql);
-    }
-    else if (newPosition < oldPosition)
-    {
-        // Moving up
-        QString sql = "UPDATE bmplsongs SET position = position + 1 WHERE playlist = " + QString::number(currentPlaylist()) + " AND position >= " + QString::number(newPosition) + " AND position < " + QString::number(oldPosition) + " AND plsongid != " + QString::number(plSongId);
-        query.exec(sql);
-        sql = "UPDATE bmplsongs SET position = " + QString::number(newPosition) + " WHERE playlist = " + QString::number(currentPlaylist()) + " AND plsongid == " + QString::number(plSongId);
-        query.exec(sql);
-    }
-    query.exec("COMMIT TRANSACTION");
-    select();
-    emit bmSongMoved(oldPosition, newPosition);
+    query.prepare("DELETE FROM bmplsongs WHERE playlist = :playlist");
+    query.bindValue(":playlist", m_curPlaylistId);
+    query.exec();
+    query.prepare("INSERT INTO bmplsongs (plsongid,playlist,position,artist,title,filename,duration,path)"
+                  "VALUES(:plsongid,:playlist,:position,:bmsongid,:bmsongid,:bmsongid,:bmsongid,:bmsongid)");
+    std::for_each(m_songs.begin(), m_songs.end(), [&] (PlaylistSong &song) {
+        query.bindValue(":plsongid", song.id);
+        query.bindValue(":playlist", m_curPlaylistId);
+        query.bindValue(":position", song.position);
+        query.bindValue(":bmsongid", song.breakSongId);
+        query.exec();
+    });
+    query.exec("COMMIT");
+    qInfo() << "Break playlist - Saved playlist changes to database";
 }
 
-void TableModelPlaylistSongs::addSong(int songId)
+void TableModelPlaylistSongs::moveSong(const int oldPosition, const int newPosition)
 {
-    QSqlQuery query;
-    QString sIdStr = QString::number(songId);
-    QString sql = "INSERT INTO bmplsongs (playlist,position,artist,title,filename,duration,path) VALUES(" + QString::number(m_playlistId) + "," + QString::number(rowCount()) + "," + sIdStr + "," + sIdStr + "," + sIdStr + "," + sIdStr + "," + sIdStr + ")";
-    qDebug() << sql;
-    query.exec(sql);
-    select();
+    if (oldPosition == newPosition)
+        return;
+    emit layoutAboutToBeChanged();
+    if (oldPosition > newPosition)
+    {
+        // moving up
+        std::for_each(m_songs.begin(), m_songs.end(), [&oldPosition, &newPosition] (PlaylistSong &song) {
+           if (song.position == oldPosition)
+               song.position = newPosition;
+           else if(song.position >= newPosition && song.position < oldPosition)
+               song.position++;
+        });
+    }
+    else
+    {
+        // moving down
+        std::for_each(m_songs.begin(), m_songs.end(), [&oldPosition, &newPosition] (PlaylistSong &song) {
+            if (song.position == oldPosition)
+                song.position = newPosition;
+            else if (song.position > oldPosition && song.position <= newPosition)
+                song.position--;
+        });
+    }
+    std::sort(m_songs.begin(), m_songs.end(), [] (PlaylistSong &a, PlaylistSong &b) {
+        return (a.position < b.position);
+    });
+    emit layoutChanged();
 }
 
-void TableModelPlaylistSongs::insertSong(int songId, int position)
+void TableModelPlaylistSongs::addSong(const int songId)
+{
+    emit layoutAboutToBeChanged();
+   BreakSong bs = m_breakSongsModel.getSong(songId);
+   QSqlQuery query;
+   query.prepare("INSERT INTO bmplsongs (playlist,position,artist,title,filename,duration,path)"
+                 "VALUES(:playlist,:position,:bmsongid,:bmsongid,:bmsongid,:bmsongid,:bmsongid)");
+   query.bindValue(":playlist", m_curPlaylistId);
+   query.bindValue(":position", (int)m_songs.size());
+   query.bindValue(":bmsongid", bs.id);
+   query.exec();
+   auto plSongId = query.lastInsertId();
+   m_songs.emplace_back(PlaylistSong{
+                            plSongId.toInt(),
+                            bs.id,
+                            (int)m_songs.size(),
+                            bs.artist,
+                            bs.title,
+                            bs.filename,
+                            bs.path,
+                            bs.duration
+                        });
+   emit layoutChanged();
+}
+
+void TableModelPlaylistSongs::insertSong(const int songId, const int position)
 {
     addSong(songId);
-    moveSong(rowCount() - 1, position);
+    moveSong(m_songs.size() - 1, position);
 }
 
-void TableModelPlaylistSongs::deleteSong(int position)
+void TableModelPlaylistSongs::deleteSong(const int position)
 {
-    int plSongId = index(position,0).data().toInt();
-    QSqlQuery query("DELETE FROM bmplsongs WHERE plsongid == " + QString::number(plSongId));
-    query.exec("UPDATE bmplsongs SET position = position - 1 WHERE playlist = " + QString::number(currentPlaylist()) + " AND position > " + QString::number(position));
-    select();
+    qInfo() << "songs before delete: " << m_songs.size();
+    emit layoutAboutToBeChanged();
+    auto it = std::remove_if(m_songs.begin(), m_songs.end(), [&position] (PlaylistSong &song) {
+       return (song.position == position);
+    });
+    m_songs.erase(it, m_songs.end());
+    std::for_each(m_songs.begin(), m_songs.end(), [&position] (PlaylistSong &song) {
+       if (song.position > position)
+           song.position--;
+    });
+    emit layoutChanged();
+    qInfo() << "songs after delete" << m_songs.size();
 }
 
-void TableModelPlaylistSongs::setCurrentPlaylist(int playlistId)
+int TableModelPlaylistSongs::currentPlaylist() const
 {
-    m_playlistId = playlistId;
-    setFilter("playlist=" + QString::number(m_playlistId));
-    select();
+    return m_curPlaylistId;
 }
 
-int TableModelPlaylistSongs::currentPlaylist()
+int TableModelPlaylistSongs::getSongIdByFilePath(const QString &filePath) const
 {
-    return m_playlistId;
+    auto it = std::find_if(m_songs.begin(), m_songs.end(), [&filePath] (PlaylistSong song) {
+            return (song.path == filePath);
+    });
+    return it->id;
 }
 
-int TableModelPlaylistSongs::getSongIdByFilePath(QString filePath)
+int TableModelPlaylistSongs::numSongs() const
 {
-    QSqlQuery query("SELECT songid FROM bmsongs WHERE path == \"" + filePath + "\" LIMIT 1");
-    if (query.first())
-        return query.value(0).toInt();
-
-    return -1;
+    return m_songs.size();
 }
 
-int TableModelPlaylistSongs::numSongs()
+int TableModelPlaylistSongs::randomizePlaylist(const int currentpos)
 {
-    return this->rowCount();
-}
-
-qint32 TableModelPlaylistSongs::randomizePlaylist(qint32 currentpos)
-{
-    qint32 newplayingpos = -1;
-    QSqlQuery query;
-    std::vector<uint> ids;
-    std::vector<uint> newPositions;
-    int rows = this->rowCount();
-
-    for (int i=0; i<rows; i++)
-    {
-        ids.push_back(getPlSongIdAtPos(i));
-        newPositions.push_back(i);
-    }
-
+    emit layoutAboutToBeChanged();
     std::random_device rd;
     std::mt19937 g(rd());
-    std::shuffle(newPositions.begin(), newPositions.end(), g);
-    newplayingpos = newPositions.at(currentpos);
+    std::shuffle(m_songs.begin(), m_songs.end(), g);
+    int songPos{0};
+    int newCurPos{-1};
+    std::for_each(m_songs.begin(), m_songs.end(), [&songPos, &newCurPos, &currentpos] (PlaylistSong &song) {
+        if (song.position == currentpos)
+        {
+            song.position = songPos++;
+            newCurPos = song.position;
+        }
+        else
+            song.position = songPos++;
+    });
+    savePlaylistChanges();
+    emit layoutChanged();
+    return newCurPos;
+}
 
-    query.exec("BEGIN TRANSACTION");
-    for (auto i=0; i<rows; i++)
+int TableModelPlaylistSongs::getPlSongIdAtPos(const int position) const
+{
+    auto it = std::find_if(m_songs.begin(), m_songs.end(), [&position] (PlaylistSong song) {
+            return (song.position == position);
+    });
+    return it->position;
+}
+
+int TableModelPlaylistSongs::getSongPositionById(const int plSongId) const
+{
+    auto it = std::find_if(m_songs.begin(), m_songs.end(), [&plSongId] (PlaylistSong song) {
+            return (song.id == plSongId);
+    });
+    return it->position;
+}
+
+int ItemDelegatePlaylistSongs::currentSong() const
+{
+    return m_currentSong;
+}
+
+void ItemDelegatePlaylistSongs::setCurrentSong(int value)
+{
+    m_currentSong = value;
+}
+
+ItemDelegatePlaylistSongs::ItemDelegatePlaylistSongs(QObject *parent) :
+    QItemDelegate(parent)
+{
+    m_currentSong = -1;
+    QString thm = (settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
+    m_iconDelete = QIcon(thm + "actions/22/edit-delete.svg");
+    m_iconPlaying = QIcon(thm + "actions/22/media-playback-start.svg");
+}
+
+void ItemDelegatePlaylistSongs::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    QSize sbSize(QFontMetrics(settings.applicationFont()).height(), QFontMetrics(settings.applicationFont()).height());
+    int topPad = (option.rect.height() - sbSize.height()) / 2;
+    int leftPad = (option.rect.width() - sbSize.width()) / 2;
+
+    if (option.state & QStyle::State_Selected)
     {
-        QString sql = "UPDATE bmplsongs SET position = " + QString::number(newPositions.at(i)) + " WHERE playlist = " + QString::number(currentPlaylist()) + " AND plsongid == " + QString::number(ids.at(i));
-        query.exec(sql);
-        qInfo() << sql;
+        if (index.column() > 0 && index.column() < 6)
+            painter->fillRect(option.rect, option.palette.highlight());
+        else
+            painter->fillRect(option.rect, (index.row() % 2) ? option.palette.alternateBase() : option.palette.base());
+        //painter->fillRect(option.rect, option.palette.highlight());
     }
-    query.exec("COMMIT TRANSACTION");
-    select();
 
-    return newplayingpos;
+    if (index.row() == m_currentSong && index.column() > 0 && index.column() < 6)
+    {
+        if (option.state & QStyle::State_Selected)
+            painter->fillRect(option.rect, option.palette.highlight());
+        else
+            painter->fillRect(option.rect, (settings.theme() == 1) ? QColor(180,180,0) : QColor("yellow"));
+    }
+    if (index.column() == TableModelPlaylistSongs::COL_ID)
+    {
+        if (index.row() == m_currentSong)
+            painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), m_iconPlaying.pixmap(sbSize));
+        return;
+    }
+    if (index.column() == TableModelPlaylistSongs::COL_FILENAME)
+    {
+        QFileInfo fi(index.data().toString());
+        QString fn = fi.fileName();
+        painter->save();
+        if (option.state & QStyle::State_Selected)
+            painter->setPen(option.palette.highlightedText().color());
+        else if (index.row() == m_currentSong)
+            painter->setPen(QColor("black"));
+        painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + fn);
+        painter->restore();
+        return;
+    }
+    if (index.column() == TableModelPlaylistSongs::COL_DURATION)
+    {
+        int sec = index.data().toInt();
+        if (sec <= 0)
+            return;
+        QString duration = QTime(0,0,0,0).addSecs(sec).toString("m:ss");
+        painter->save();
+        if (option.state & QStyle::State_Selected)
+            painter->setPen(option.palette.highlightedText().color());
+        else if (index.row() == m_currentSong)
+            painter->setPen(QColor("black"));
+        painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter | Qt::AlignCenter, duration);
+        painter->restore();
+        return;
+    }
+    if (index.column() == TableModelPlaylistSongs::COL_PATH)
+    {
+        painter->drawPixmap(QRect(option.rect.x() + leftPad, option.rect.y() + topPad, sbSize.width(), sbSize.height()), m_iconDelete.pixmap(sbSize));
+        return;
+    }
+    if (index.column() == TableModelPlaylistSongs::COL_DURATION)
+    {
+        painter->drawText(option.rect, Qt::AlignCenter, index.data().toString());
+        return;
+    }
+    painter->save();
+    if (option.state & QStyle::State_Selected)
+        painter->setPen(option.palette.highlightedText().color());
+    if (index.row() == m_currentSong)
+        painter->setPen(QColor("black"));
+    painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + index.data().toString());
+    painter->restore();
 }
 
-qint32 TableModelPlaylistSongs::getPlSongIdAtPos(qint32 position)
-{
-    QSqlQuery query("SELECT plsongid FROM bmplsongs WHERE playlist = " + QString::number(currentPlaylist()) + " AND position = " + QString::number(position) + " LIMIT 1");
-    if (query.first())
-        return query.value(0).toInt();
 
-    return -1;
+QSize ItemDelegatePlaylistSongs::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    if ((index.column() == 2) || (index.column() == 7))
+    {
+        return QSize(16,16);
+    }
+    else return QItemDelegate::sizeHint(option, index);
 }
 
-int TableModelPlaylistSongs::getSongPositionById(const int plSongId)
+
+
+QStringList TableModelPlaylistSongs::mimeTypes() const
 {
-    QSqlQuery query("SELECT position FROM bmplsongs WHERE plsongid = " + QString::number(plSongId) + " LIMIT 1");
-    if (query.first())
-        return query.value(0).toInt();
-    return -1;
+    QStringList types;
+    types << "integer/songid";
+    types << "integer/queuepos";
+    types << "application/vnd.bmsongid.list";
+    types << "application/plsongids";
+    return types;
+}
+
+QMimeData *TableModelPlaylistSongs::mimeData(const QModelIndexList &indexes) const
+{
+    QMimeData *mimeData = new QMimeData();
+    mimeData->setData("integer/queuepos", indexes.at(0).sibling(indexes.at(0).row(), COL_POSITION).data().toByteArray().data());
+    if (indexes.size() > 1)
+    {
+        QJsonArray jArr;
+        std::for_each(indexes.begin(), indexes.end(), [&] (QModelIndex index) {
+            // Just using 3 here because it's the first column that's included in the index list
+            if (index.column() != 3)
+                return;
+            jArr.append(index.sibling(index.row(), COL_ID).data().toInt());
+        });
+        QJsonDocument jDoc(jArr);
+        mimeData->setData("application/plsongids", jDoc.toJson());
+    }
+    return mimeData;
+}
+
+bool TableModelPlaylistSongs::canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const
+{
+    Q_UNUSED(data);
+    Q_UNUSED(action);
+    Q_UNUSED(row);
+    Q_UNUSED(column);
+    Q_UNUSED(parent);
+    return true;
 }
 
 bool TableModelPlaylistSongs::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
@@ -218,6 +461,7 @@ bool TableModelPlaylistSongs::dropMimeData(const QMimeData *data, Qt::DropAction
             // moving up
             emit bmPlSongsMoved(droprow, 0, droprow + ids.size() - 1, columnCount() - 1);
         }
+        savePlaylistChanges();
         return true;
     }
     if (data->hasFormat("integer/queuepos"))
@@ -236,6 +480,7 @@ bool TableModelPlaylistSongs::dropMimeData(const QMimeData *data, Qt::DropAction
             moveSong(oldPosition, droprow - 1);
         else
             moveSong(oldPosition, droprow);
+        savePlaylistChanges();
         return true;
     }
     if (data->hasFormat("application/vnd.bmsongid.list"))
@@ -256,169 +501,17 @@ bool TableModelPlaylistSongs::dropMimeData(const QMimeData *data, Qt::DropAction
         {
             insertSong(songids.at(i), droprow);
         }
+        savePlaylistChanges();
     }
     return false;
 }
 
-QStringList TableModelPlaylistSongs::mimeTypes() const
-{
-    QStringList types;
-    types << "integer/songid";
-    types << "integer/queuepos";
-    types << "application/vnd.bmsongid.list";
-    types << "application/plsongids";
-    return types;
-}
-
-bool TableModelPlaylistSongs::canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const
-{
-    Q_UNUSED(data);
-    Q_UNUSED(action);
-    Q_UNUSED(row);
-    Q_UNUSED(column);
-    Q_UNUSED(parent);
-    return true;
-}
-
 Qt::DropActions TableModelPlaylistSongs::supportedDropActions() const
 {
-    return Qt::CopyAction | Qt::MoveAction;
+       return Qt::CopyAction | Qt::MoveAction;
 }
 
-QMimeData *TableModelPlaylistSongs::mimeData(const QModelIndexList &indexes) const
+Qt::ItemFlags TableModelPlaylistSongs::flags([[maybe_unused]]const QModelIndex &index) const
 {
-    QMimeData *mimeData = new QMimeData();
-    mimeData->setData("integer/queuepos", indexes.at(0).sibling(indexes.at(0).row(), 2).data().toByteArray().data());
-    if (indexes.size() > 1)
-    {
-        QJsonArray jArr;
-        std::for_each(indexes.begin(), indexes.end(), [&] (QModelIndex index) {
-            // Just using 3 here because it's the first column that's included in the index list
-            if (index.column() != 3)
-                return;
-            jArr.append(index.sibling(index.row(), 0).data().toInt());
-        });
-        QJsonDocument jDoc(jArr);
-        mimeData->setData("application/plsongids", jDoc.toJson());
-    }
-    return mimeData;
-}
-
-Qt::ItemFlags TableModelPlaylistSongs::flags(const QModelIndex &index) const
-{
-    if (!index.isValid())
-        return Qt::ItemIsEnabled | Qt::ItemIsDropEnabled;
-
-    return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | Qt::ItemIsEditable;
-}
-
-
-QVariant TableModelPlaylistSongs::data(const QModelIndex &index, int role) const
-{
-    if (role == Qt::ToolTipRole && index.column() != 7)
-        return QSqlRelationalTableModel::data(index, Qt::DisplayRole);
-    else
-        return QSqlRelationalTableModel::data(index, role);
-}
-int ItemDelegatePlaylistSongs::currentSong() const
-{
-    return m_currentSong;
-}
-
-void ItemDelegatePlaylistSongs::setCurrentSong(int value)
-{
-    m_currentSong = value;
-}
-ItemDelegatePlaylistSongs::ItemDelegatePlaylistSongs(QObject *parent) :
-    QItemDelegate(parent)
-{
-    m_currentSong = -1;
-    QString thm = (settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
-    m_iconDelete = QIcon(thm + "actions/22/edit-delete.svg");
-    m_iconPlaying = QIcon(thm + "actions/22/media-playback-start.svg");
-}
-
-void ItemDelegatePlaylistSongs::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
-{
-    QSize sbSize(QFontMetrics(settings.applicationFont()).height(), QFontMetrics(settings.applicationFont()).height());
-    int topPad = (option.rect.height() - sbSize.height()) / 2;
-    int leftPad = (option.rect.width() - sbSize.width()) / 2;
-
-    if (option.state & QStyle::State_Selected)
-    {
-        if (index.column() > 2 && index.column() < 7)
-            painter->fillRect(option.rect, option.palette.highlight());
-        else
-            painter->fillRect(option.rect, (index.row() % 2) ? option.palette.alternateBase() : option.palette.base());
-        //painter->fillRect(option.rect, option.palette.highlight());
-    }
-
-    if (index.row() == m_currentSong && index.column() > 2 && index.column() < 7)
-    {
-        if (option.state & QStyle::State_Selected)
-            painter->fillRect(option.rect, option.palette.highlight());
-        else
-            painter->fillRect(option.rect, (settings.theme() == 1) ? QColor(180,180,0) : QColor("yellow"));
-    }
-    if (index.column() == 2)
-    {
-        if (index.row() == m_currentSong)
-            painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), m_iconPlaying.pixmap(sbSize));
-        return;
-    }
-    if (index.column() == 5)
-    {
-        QFileInfo fi(index.data().toString());
-        QString fn = fi.fileName();
-        painter->save();
-        if (option.state & QStyle::State_Selected)
-            painter->setPen(option.palette.highlightedText().color());
-        else if (index.row() == m_currentSong)
-            painter->setPen(QColor("black"));
-        painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + fn);
-        painter->restore();
-        return;
-    }
-    if (index.column() == 6)
-    {
-        int sec = index.data().toInt();
-        if (sec <= 0)
-            return;
-        QString duration = QTime(0,0,0,0).addSecs(sec).toString("m:ss");
-        painter->save();
-        if (option.state & QStyle::State_Selected)
-            painter->setPen(option.palette.highlightedText().color());
-        else if (index.row() == m_currentSong)
-            painter->setPen(QColor("black"));
-        painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter | Qt::AlignCenter, duration);
-        painter->restore();
-        return;
-    }
-    if (index.column() == 7)
-    {
-        painter->drawPixmap(QRect(option.rect.x() + leftPad, option.rect.y() + topPad, sbSize.width(), sbSize.height()), m_iconDelete.pixmap(sbSize));
-        return;
-    }
-    if (index.column() == 6)
-    {
-        painter->drawText(option.rect, Qt::AlignCenter, index.data().toString());
-        return;
-    }
-    painter->save();
-    if (option.state & QStyle::State_Selected)
-        painter->setPen(option.palette.highlightedText().color());
-    if (index.row() == m_currentSong)
-        painter->setPen(QColor("black"));
-    painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + index.data().toString());
-    painter->restore();
-}
-
-
-QSize ItemDelegatePlaylistSongs::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
-{
-    if ((index.column() == 2) || (index.column() == 7))
-    {
-        return QSize(16,16);
-    }
-    else return QItemDelegate::sizeHint(option, index);
+    return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
 }

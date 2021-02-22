@@ -82,6 +82,7 @@ QVariant TableModelBreakSongs::data(const QModelIndex &index, int role) const
 void TableModelBreakSongs::loadDatabase()
 {
     emit layoutAboutToBeChanged();
+    m_allSongs.clear();
     m_filteredSongs.clear();
     QSqlQuery query;
     query.exec("SELECT songid,artist,title,path,filename,duration,searchstring FROM bmsongs");
@@ -179,6 +180,24 @@ QMimeData *TableModelBreakSongs::mimeData(const QModelIndexList &indexes) const
     stream << songids;
     mimeData->setData("application/vnd.bmsongid.list", encodedData);
     return mimeData;
+}
+
+BreakSong &TableModelBreakSongs::getSong(const int breakSongId)
+{
+    auto it = std::find_if(m_allSongs.begin(), m_allSongs.end(), [&breakSongId] (BreakSong &song) {
+        return (song.id == breakSongId);
+    });
+    return *it;
+}
+
+int TableModelBreakSongs::getSongId(const QString &filePath) const
+{
+    auto it = std::find_if(m_allSongs.begin(), m_allSongs.end(), [&filePath] (BreakSong song) {
+        return (song.path == filePath);
+    });
+    if (it == m_allSongs.end())
+        return -1;
+    return it->id;
 }
 
 Qt::ItemFlags TableModelBreakSongs::flags([[maybe_unused]]const QModelIndex &index) const

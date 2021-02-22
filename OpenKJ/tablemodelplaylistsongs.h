@@ -1,34 +1,23 @@
-/*
- * Copyright (c) 2013-2019 Thomas Isaac Lightburn
- *
- *
- * This file is part of OpenKJ.
- *
- * OpenKJ is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+#ifndef TABLEMODELPLAYLISTSONGSNEW_H
+#define TABLEMODELPLAYLISTSONGSNEW_H
 
-#ifndef BMPLTABLEMODEL_H
-#define BMPLTABLEMODEL_H
-
-#include <QSqlRelationalTableModel>
-#include <QMimeData>
-#include <QStringList>
-#include <QItemSelection>
+#include <QAbstractTableModel>
 #include <QIcon>
-#include <QPainter>
-#include <QStyleOptionViewItem>
 #include <QItemDelegate>
+#include <QStyleOptionViewItem>
+#include "tablemodelbreaksongs.h"
+
+
+struct PlaylistSong {
+    int id{0};
+    int breakSongId{0};
+    int position{0};
+    QString artist;
+    QString title;
+    QString filename;
+    QString path;
+    int duration;
+};
 
 class ItemDelegatePlaylistSongs : public QItemDelegate
 {
@@ -43,49 +32,52 @@ public:
     int currentSong() const;
     void setCurrentSong(int value);
     QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const;
-
-signals:
-
-public slots:
-
-
 };
 
-class TableModelPlaylistSongs : public QSqlRelationalTableModel
+class TableModelPlaylistSongs : public QAbstractTableModel
 {
     Q_OBJECT
-private:
-    int m_playlistId;
 
 public:
-    explicit TableModelPlaylistSongs(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
-    void moveSong(int oldPosition, int newPosition);
-    void addSong(int songId);
-    void insertSong(int songId, int position);
-    void deleteSong(int position);
-    void setCurrentPlaylist(int playlistId);
-    int currentPlaylist();
-    int getSongIdByFilePath(QString filePath);
-    QString currentSongString();
-    QString nextSongString();
-    int numSongs();
-    qint32 randomizePlaylist(qint32 currentpos);
-    qint32 getPlSongIdAtPos(qint32 position);
-    int getSongPositionById(const int plSongId);
-    bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent);
-    QStringList mimeTypes() const;
-    bool canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const;
-    Qt::DropActions supportedDropActions() const;
-    QMimeData *mimeData(const QModelIndexList &indexes) const;
-    Qt::ItemFlags flags(const QModelIndex &index) const;
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+    enum {COL_ID=0,COL_POSITION,COL_ARTIST,COL_TITLE,COL_FILENAME,COL_DURATION,COL_PATH};
+    explicit TableModelPlaylistSongs(TableModelBreakSongs &breakSongsModel, QObject *parent = nullptr);
+    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+    QStringList mimeTypes() const override;
+    QMimeData *mimeData(const QModelIndexList &indexes) const override;
+    bool canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const override;
+    bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
+    Qt::DropActions supportedDropActions() const override;
+    Qt::ItemFlags flags(const QModelIndex &index) const override;
+
+    void setCurrentPlaylist(const int playlistId);
+    void setCurrentSongPos(const int currentPos);;
+    void savePlaylistChanges();
+    void moveSong(const int oldPosition, const int newPosition);
+    void addSong(const int songId);
+    void insertSong(const int songId, const int position);
+    void deleteSong(const int position);
+    int currentPlaylist() const;
+    int getSongIdByFilePath(const QString &filePath) const;
+    int numSongs() const;
+    int randomizePlaylist(const int currentpos);
+    int getPlSongIdAtPos(const int position) const;
+    int getSongPositionById(const int plSongId) const;
+
+
+private:
+    std::vector<PlaylistSong> m_songs;
+    TableModelBreakSongs &m_breakSongsModel;
+    int m_curPlaylistId;
+    int m_currentSongPos;
 
 signals:
     void bmSongMoved(int oldPos, int newPos);
     void bmPlSongsMoved(const int startRow, const int startCol, const int endRow, const int endCol);
 
-public slots:
-
 };
 
-#endif // PLAYLISTMODEL_H
+
+#endif // TABLEMODELPLAYLISTSONGSNEW_H

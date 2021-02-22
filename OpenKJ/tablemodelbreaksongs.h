@@ -30,8 +30,11 @@ public:
     void sort(int column, Qt::SortOrder order) override;
     QMimeData *mimeData(const QModelIndexList &indexes) const override;
     Qt::ItemFlags flags(const QModelIndex &index) const override;
+    BreakSong &getSong(const int breakSongId);
+    int getSongId(const QString &filePath) const;
     void loadDatabase();
     void search(const QString &searchStr);
+
 
 private:
     std::vector<BreakSong> m_filteredSongs;

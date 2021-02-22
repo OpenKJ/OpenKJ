@@ -60,6 +60,7 @@
 #include "dlgdebugoutput.h"
 #include "dlgvideopreview.h"
 #include "tablemodelhistorysongs.h"
+#include "tablemodelplaylistsongs.h"
 
 namespace Ui {
 class MainWindow;
@@ -115,10 +116,11 @@ private:
     bool k2kTransition{false};
     bool previewEnabled;
     BmDbDialog *bmDbDialog;
-    TableModelBreakSongs bmDbModel;
+    TableModelBreakSongs bmDbModel{this};
     //ItemDelegateBreakSongs *bmDbDelegate;
-    TableModelPlaylistSongs *bmPlModel;
-    ItemDelegatePlaylistSongs *bmPlDelegate;
+    //TableModelPlaylistSongs *playlistSongsModel;
+    TableModelPlaylistSongs playlistSongsModel{bmDbModel,this};
+    ItemDelegatePlaylistSongs bmPlDelegate;
     QSqlTableModel *bmPlaylistsModel;
     int bmCurrentPosition{0};
     int bmCurrentPlaylist;

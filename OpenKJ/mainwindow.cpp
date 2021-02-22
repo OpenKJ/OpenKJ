@@ -418,26 +418,30 @@ void MainWindow::setupShortcuts()
         std::for_each(positions.begin(), positions.end(), [&] (auto position) {
             if (bmCurrentPosition == position)
             {
-                bmPlDelegate->setCurrentSong(-1);
+                bmPlDelegate.setCurrentSong(-1);
+                playlistSongsModel.setCurrentSongPos(-1);
                 bmCurrentPosition = -1;
-                bmPlModel->deleteSong(position);
+                playlistSongsModel.deleteSong(position);
                 return;
             }
-            bmPlModel->deleteSong(position);
+            playlistSongsModel.deleteSong(position);
             if (bmCurrentPosition > position)
             {
                 bmCurrentPosition--;
-                bmPlDelegate->setCurrentSong(bmCurrentPosition);
+                bmPlDelegate.setCurrentSong(bmCurrentPosition);
+                playlistSongsModel.setCurrentSongPos(bmCurrentPosition);
             }
         });
-
+        playlistSongsModel.savePlaylistChanges();
         QString nextSong;
         if (!ui->checkBoxBmBreak->isChecked())
         {
-            if (bmCurrentPosition == bmPlModel->rowCount() - 1)
-                nextSong = bmPlModel->index(0, 3).data().toString() + " - " + bmPlModel->index(0, 4).data().toString();
+            if (bmCurrentPosition == playlistSongsModel.rowCount() - 1)
+                nextSong = playlistSongsModel.index(0, TableModelPlaylistSongs::COL_ARTIST).data().toString() +
+                        " - " + playlistSongsModel.index(0, TableModelPlaylistSongs::COL_TITLE).data().toString();
             else
-                nextSong = bmPlModel->index(bmCurrentPosition + 1, 3).data().toString() + " - " + bmPlModel->index(bmCurrentPosition + 1, 4).data().toString();
+                nextSong = playlistSongsModel.index(bmCurrentPosition + 1, TableModelPlaylistSongs::COL_ARTIST).data().toString() +
+                        " - " + playlistSongsModel.index(bmCurrentPosition + 1, TableModelPlaylistSongs::COL_TITLE).data().toString();
         }
         else
         {
@@ -646,7 +650,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->comboBoxHistoryDblClick->setCurrentIndex(settings.historyDblClickAction());
     ui->tabWidgetQueue->setCurrentIndex(0);
     connect(ui->comboBoxHistoryDblClick, QOverload<int>::of(&QComboBox::currentIndexChanged), &settings, &Settings::setHistoryDblClickAction);
-    //historyModel = new SingerHistoryTableModel();
     ui->tableViewHistory->setModel(&historySongsModel);
     ui->tableViewHistory->hideColumn(0);
     ui->tableViewHistory->hideColumn(1);
@@ -793,13 +796,7 @@ MainWindow::MainWindow(QWidget *parent) :
     bmPlaylistsModel->setTable("bmplaylists");
     bmPlaylistsModel->sort(2, Qt::AscendingOrder);
     bmDbDialog = new BmDbDialog(database,this);
-//    bmDbModel->setTable("mem.bmsongs");
-//    bmDbModel->select();
     bmCurrentPlaylist = settings.bmPlaylistIndex();
-    bmPlModel = new TableModelPlaylistSongs(this, database);
-    bmPlModel->select();
-//    ui->actionShow_Filenames->setChecked(settings.bmShowFilenames());
-//    ui->actionShow_Metadata->setChecked(settings.bmShowMetadata());
     ui->comboBoxBmPlaylists->setModel(bmPlaylistsModel);
     ui->comboBoxBmPlaylists->setModelColumn(1);
     ui->comboBoxBmPlaylists->setCurrentIndex(settings.bmPlaylistIndex());
@@ -808,21 +805,17 @@ MainWindow::MainWindow(QWidget *parent) :
         bmAddPlaylist("Default");
         ui->comboBoxBmPlaylists->setCurrentIndex(0);
     }
-//    bmDbDelegate = new ItemDelegateBreakSongs(this);
     ui->tableViewBmDb->setModel(&bmDbModel);
     bmDbModel.loadDatabase();
-//    ui->tableViewBmDb->setItemDelegate(bmDbDelegate);
     ui->tableViewBmDb->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewBmDb));
-    ui->tableViewBmPlaylist->setModel(bmPlModel);
+    ui->tableViewBmPlaylist->setModel(&playlistSongsModel);
     ui->tableViewBmPlaylist->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewBmPlaylist));
-    bmPlDelegate = new ItemDelegatePlaylistSongs(this);
-    ui->tableViewBmPlaylist->setItemDelegate(bmPlDelegate);
+    ui->tableViewBmPlaylist->setItemDelegate(&bmPlDelegate);
     ui->actionDisplay_Filenames->setChecked(settings.bmShowFilenames());
     ui->actionDisplay_Metadata->setChecked(settings.bmShowMetadata());
     settings.restoreSplitterState(ui->splitterBm);
     ui->tableViewBmDb->setColumnHidden(TableModelBreakSongs::COL_ID, true);
-    ui->tableViewBmPlaylist->setColumnHidden(0, true);
-    ui->tableViewBmPlaylist->setColumnHidden(1, true);
+    ui->tableViewBmPlaylist->setColumnHidden(TableModelPlaylistSongs::COL_POSITION, true);
     settings.restoreSplitterState(ui->splitter_3);
     on_actionDisplay_Filenames_toggled(settings.bmShowFilenames());
     on_actionDisplay_Metadata_toggled(settings.bmShowMetadata());
@@ -850,21 +843,21 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionAutoplay_mode, &QAction::toggled, &settings, &Settings::setKaraokeAutoAdvance);
     connect(&settings, &Settings::karaokeAutoAdvanceChanged, ui->actionAutoplay_mode, &QAction::setChecked);
 
-    if ((settings.bmAutoStart()) && (bmPlModel->rowCount() > 0))
+    if ((settings.bmAutoStart()) && (playlistSongsModel.rowCount() > 0))
     {
-        qInfo() << "Playlist contains " << bmPlModel->rowCount() << " songs";
+        qInfo() << "Playlist contains " << playlistSongsModel.rowCount() << " songs";
         bmCurrentPosition = 0;
-        QString path = bmPlModel->index(bmCurrentPosition, 7).data().toString();
+        QString path = playlistSongsModel.index(bmCurrentPosition, 7).data().toString();
         if (QFile::exists(path))
         {
-            QString song = bmPlModel->index(bmCurrentPosition, 3).data().toString() + " - " + bmPlModel->index(bmCurrentPosition, 4).data().toString();
+            QString song = playlistSongsModel.index(bmCurrentPosition, 3).data().toString() + " - " + playlistSongsModel.index(bmCurrentPosition, 4).data().toString();
             QString nextSong;
             if (!ui->checkBoxBmBreak->isChecked())
             {
-                if (bmCurrentPosition == bmPlModel->rowCount() - 1)
-                    nextSong = bmPlModel->index(0, 3).data().toString() + " - " + bmPlModel->index(0, 4).data().toString();
+                if (bmCurrentPosition == playlistSongsModel.rowCount() - 1)
+                    nextSong = playlistSongsModel.index(0, 3).data().toString() + " - " + playlistSongsModel.index(0, 4).data().toString();
                 else
-                    nextSong = bmPlModel->index(bmCurrentPosition + 1, 3).data().toString() + " - " + bmPlModel->index(bmCurrentPosition + 1, 4).data().toString();
+                    nextSong = playlistSongsModel.index(bmCurrentPosition + 1, 3).data().toString() + " - " + playlistSongsModel.index(bmCurrentPosition + 1, 4).data().toString();
             }
             else
                 nextSong = "None - Breaking after current song";
@@ -873,8 +866,8 @@ MainWindow::MainWindow(QWidget *parent) :
             bmMediaBackend.setVolume(ui->sliderBmVolume->value());
             ui->labelBmPlaying->setText(song);
             ui->labelBmNext->setText(nextSong);
-            bmPlDelegate->setCurrentSong(bmCurrentPosition);
-            bmPlModel->select();
+            bmPlDelegate.setCurrentSong(bmCurrentPosition);
+            playlistSongsModel.setCurrentSongPos(bmCurrentPosition);
         }
         else
         {
@@ -961,7 +954,7 @@ MainWindow::MainWindow(QWidget *parent) :
        autosizeViews();
        autosizeBmViews();
     });
-    connect(bmPlModel, &TableModelPlaylistSongs::bmSongMoved, this, &MainWindow::bmSongMoved);
+    connect(&playlistSongsModel, &TableModelPlaylistSongs::bmSongMoved, this, &MainWindow::bmSongMoved);
     connect(songbookApi, &OKJSongbookAPI::alertRecieved, this, &MainWindow::showAlert);
     connect(&settings, &Settings::cdgShowCdgWindowChanged, this, &MainWindow::cdgVisibilityChanged);
     connect(&settings, &Settings::rotationShowNextSongChanged, [&] () { resizeRotation(); });
@@ -1101,9 +1094,10 @@ MainWindow::MainWindow(QWidget *parent) :
         }
     });
 
-    connect(bmPlModel, &TableModelPlaylistSongs::bmPlSongsMoved, [&] (auto startRow, auto startCol, auto endRow, auto endCol) {
+    connect(&playlistSongsModel, &TableModelPlaylistSongs::bmPlSongsMoved, [&] (auto startRow, auto startCol, auto endRow, auto endCol) {
         auto topLeft = ui->tableViewBmPlaylist->model()->index(startRow, startCol);
         auto bottomRight = ui->tableViewBmPlaylist->model()->index(endRow, endCol);
+        ui->tableViewBmPlaylist->clearSelection();
         ui->tableViewBmPlaylist->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
     });
     connect(qModel, &TableModelQueueSongs::qSongsMoved, [&] (auto startRow, auto startCol, auto endRow, auto endCol) {
@@ -2768,6 +2762,7 @@ void MainWindow::bmDbUpdated()
 
 void MainWindow::bmDbCleared()
 {
+    qInfo() << "bmDbCleared fired";
     bmDbModel.loadDatabase();
     bmAddPlaylist("Default");
     ui->comboBoxBmPlaylists->setCurrentIndex(0);
@@ -2779,10 +2774,10 @@ void MainWindow::bmShowMetadata(const bool &checked)
     ui->tableViewBmDb->setColumnHidden(TableModelBreakSongs::COL_TITLE, !checked);
     ui->tableViewBmDb->horizontalHeader()->resizeSection(TableModelBreakSongs::COL_ARTIST, 100);
     ui->tableViewBmDb->horizontalHeader()->resizeSection(TableModelBreakSongs::COL_TITLE, 100);
-    ui->tableViewBmPlaylist->setColumnHidden(3, !checked);
-    ui->tableViewBmPlaylist->setColumnHidden(4, !checked);
-    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(3, 100);
-    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(4, 100);
+    ui->tableViewBmPlaylist->setColumnHidden(TableModelPlaylistSongs::COL_ARTIST, !checked);
+    ui->tableViewBmPlaylist->setColumnHidden(TableModelPlaylistSongs::COL_TITLE, !checked);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(TableModelPlaylistSongs::COL_ARTIST, 100);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(TableModelPlaylistSongs::COL_TITLE, 100);
     settings.bmSetShowMetadata(checked);
 }
 
@@ -2791,8 +2786,8 @@ void MainWindow::bmShowFilenames(const bool &checked)
 {
     ui->tableViewBmDb->setColumnHidden(TableModelBreakSongs::COL_FILENAME, !checked);
     ui->tableViewBmDb->horizontalHeader()->resizeSection(TableModelBreakSongs::COL_FILENAME, 100);
-    ui->tableViewBmPlaylist->setColumnHidden(5, !checked);
-    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(5, 100);
+    ui->tableViewBmPlaylist->setColumnHidden(TableModelPlaylistSongs::COL_FILENAME, !checked);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(TableModelPlaylistSongs::COL_FILENAME, 100);
     settings.bmSetShowFilenames(checked);
 }
 
@@ -2815,20 +2810,23 @@ void MainWindow::bmMediaStateChanged(const MediaBackend::State &newState)
                 ui->checkBoxBmBreak->setChecked(false);
                 return;
             }
-            if (bmCurrentPosition < bmPlModel->rowCount() - 1)
+            if (bmCurrentPosition < playlistSongsModel.rowCount() - 1)
                 bmCurrentPosition++;
             else
                 bmCurrentPosition = 0;
             bmMediaBackend.stop(true);
-            QString path = bmPlModel->index(bmCurrentPosition, 7).data().toString();
-            QString song = bmPlModel->index(bmCurrentPosition, 3).data().toString() + " - " + bmPlModel->index(bmCurrentPosition, 4).data().toString();
+            QString path = playlistSongsModel.index(bmCurrentPosition, TableModelPlaylistSongs::COL_PATH).data().toString();
+            QString song = playlistSongsModel.index(bmCurrentPosition, TableModelPlaylistSongs::COL_ARTIST).data().toString() +
+                    " - " + playlistSongsModel.index(bmCurrentPosition, TableModelPlaylistSongs::COL_TITLE).data().toString();
             QString nextSong;
             if (!ui->checkBoxBmBreak->isChecked())
             {
-            if (bmCurrentPosition == bmPlModel->rowCount() - 1)
-                nextSong = bmPlModel->index(0, 3).data().toString() + " - " + bmPlModel->index(0, 4).data().toString();
+            if (bmCurrentPosition == playlistSongsModel.rowCount() - 1)
+                nextSong = playlistSongsModel.index(0, TableModelPlaylistSongs::COL_ARTIST).data().toString() +
+                        " - " + playlistSongsModel.index(0, TableModelPlaylistSongs::COL_TITLE).data().toString();
             else
-                nextSong = bmPlModel->index(bmCurrentPosition + 1, 3).data().toString() + " - " + bmPlModel->index(bmCurrentPosition + 1, 4).data().toString();
+                nextSong = playlistSongsModel.index(bmCurrentPosition + 1, TableModelPlaylistSongs::COL_ARTIST).data().toString() +
+                        " - " + playlistSongsModel.index(bmCurrentPosition + 1, TableModelPlaylistSongs::COL_TITLE).data().toString();
             }
             else
                 nextSong = "None - Breaking after current song";
@@ -2840,8 +2838,8 @@ void MainWindow::bmMediaStateChanged(const MediaBackend::State &newState)
                 bmMediaBackend.fadeOutImmediate();
             ui->labelBmPlaying->setText(song);
             ui->labelBmNext->setText(nextSong);
-            bmPlDelegate->setCurrentSong(bmCurrentPosition);
-            bmPlModel->select();
+            bmPlDelegate.setCurrentSong(bmCurrentPosition);
+            playlistSongsModel.setCurrentSongPos(bmCurrentPosition);
         }
         if (newState == MediaBackend::StoppedState)
         {
@@ -2879,15 +2877,17 @@ void MainWindow::bmMediaDurationChanged(const qint64 &duration)
 
 void MainWindow::on_tableViewBmPlaylist_clicked(const QModelIndex &index)
 {
-    if (index.column() == 7)
+    if (index.column() == TableModelPlaylistSongs::COL_PATH)
     {
         if (bmCurrentPosition == index.row())
         {
             if (bmMediaBackend.state() != MediaBackend::PlayingState && bmMediaBackend.state() != MediaBackend::PausedState)
             {
-                bmPlDelegate->setCurrentSong(-1);
+                bmPlDelegate.setCurrentSong(-1);
                 bmCurrentPosition = -1;
-                bmPlModel->deleteSong(index.row());
+                playlistSongsModel.setCurrentSongPos(bmCurrentPosition);
+                playlistSongsModel.deleteSong(index.row());
+                playlistSongsModel.savePlaylistChanges();
                 return;
             }
             QMessageBox msgBox;
@@ -2897,20 +2897,24 @@ void MainWindow::on_tableViewBmPlaylist_clicked(const QModelIndex &index)
             return;
         }
         int pos = index.row();
-        bmPlModel->deleteSong(pos);
+        playlistSongsModel.deleteSong(pos);
+        playlistSongsModel.savePlaylistChanges();
         if (bmCurrentPosition > pos)
         {
             qInfo() << "deleted item, moving curpos - delPos:" << pos << " curPos:" << bmCurrentPosition;
             bmCurrentPosition--;
-            bmPlDelegate->setCurrentSong(bmCurrentPosition);
+            bmPlDelegate.setCurrentSong(bmCurrentPosition);
+            playlistSongsModel.setCurrentSongPos(bmCurrentPosition);
         }
         QString nextSong;
         if (!ui->checkBoxBmBreak->isChecked())
         {
-        if (bmCurrentPosition == bmPlModel->rowCount() - 1)
-            nextSong = bmPlModel->index(0, 3).data().toString() + " - " + bmPlModel->index(0, 4).data().toString();
+        if (bmCurrentPosition == playlistSongsModel.rowCount() - 1)
+            nextSong = playlistSongsModel.index(0, TableModelPlaylistSongs::COL_ARTIST).data().toString() +
+                    " - " + playlistSongsModel.index(0, TableModelPlaylistSongs::COL_TITLE).data().toString();
         else
-            nextSong = bmPlModel->index(bmCurrentPosition + 1, 3).data().toString() + " - " + bmPlModel->index(bmCurrentPosition + 1, 4).data().toString();
+            nextSong = playlistSongsModel.index(bmCurrentPosition + 1, TableModelPlaylistSongs::COL_ARTIST).data().toString() +
+                    " - " + playlistSongsModel.index(bmCurrentPosition + 1, TableModelPlaylistSongs::COL_TITLE).data().toString();
         }
         else
             nextSong = "None - Breaking after current song";
@@ -2922,7 +2926,8 @@ void MainWindow::on_tableViewBmPlaylist_clicked(const QModelIndex &index)
 void MainWindow::on_comboBoxBmPlaylists_currentIndexChanged(const int &index)
 {
     bmCurrentPlaylist = bmPlaylistsModel->index(index, 0).data().toInt();
-    bmPlModel->setCurrentPlaylist(bmCurrentPlaylist);
+    playlistSongsModel.setCurrentPlaylist(bmCurrentPlaylist);
+    playlistSongsModel.setCurrentPlaylist(bmCurrentPlaylist);
 }
 
 void MainWindow::on_checkBoxBmBreak_toggled(const bool &checked)
@@ -2930,10 +2935,10 @@ void MainWindow::on_checkBoxBmBreak_toggled(const bool &checked)
     QString nextSong;
     if (!checked)
     {
-        if (bmCurrentPosition == bmPlModel->rowCount() - 1)
-            nextSong = bmPlModel->index(0, 3).data().toString() + " - " + bmPlModel->index(0, 4).data().toString();
+        if (bmCurrentPosition == playlistSongsModel.rowCount() - 1)
+            nextSong = playlistSongsModel.index(0, 3).data().toString() + " - " + playlistSongsModel.index(0, 4).data().toString();
         else
-            nextSong = bmPlModel->index(bmCurrentPosition + 1, 3).data().toString() + " - " + bmPlModel->index(bmCurrentPosition + 1, 4).data().toString();
+            nextSong = playlistSongsModel.index(bmCurrentPosition + 1, 3).data().toString() + " - " + playlistSongsModel.index(bmCurrentPosition + 1, 4).data().toString();
     }
     else
         nextSong = "None - Stopping after current song";
@@ -2943,7 +2948,8 @@ void MainWindow::on_checkBoxBmBreak_toggled(const bool &checked)
 void MainWindow::on_tableViewBmDb_doubleClicked(const QModelIndex &index)
 {
     int songId = index.sibling(index.row(), 0).data().toInt();
-    bmPlModel->addSong(songId);
+    playlistSongsModel.addSong(songId);
+    playlistSongsModel.savePlaylistChanges();
 }
 
 void MainWindow::on_buttonBmStop_clicked()
@@ -2961,15 +2967,18 @@ void MainWindow::on_tableViewBmPlaylist_doubleClicked(const QModelIndex &index)
     if (bmMediaBackend.state() == MediaBackend::PlayingState)
         bmMediaBackend.stop(false);
     bmCurrentPosition = index.row();
-    QString path = index.sibling(index.row(), 7).data().toString();
-    QString song = index.sibling(index.row(), 3).data().toString() + " - " + index.sibling(index.row(), 4).data().toString();
+    QString path = index.sibling(index.row(), TableModelPlaylistSongs::COL_PATH).data().toString();
+    QString song = index.sibling(index.row(), TableModelPlaylistSongs::COL_ARTIST).data().toString() +
+            " - " + index.sibling(index.row(), TableModelPlaylistSongs::COL_TITLE).data().toString();
     QString nextSong;
     if (!ui->checkBoxBmBreak->isChecked())
     {
-        if (bmCurrentPosition == bmPlModel->rowCount() - 1)
-            nextSong = bmPlModel->index(0, 3).data().toString() + " - " + bmPlModel->index(0, 4).data().toString();
+        if (bmCurrentPosition == playlistSongsModel.rowCount() - 1)
+            nextSong = playlistSongsModel.index(0, TableModelPlaylistSongs::COL_ARTIST).data().toString() +
+                    " - " + playlistSongsModel.index(0, TableModelPlaylistSongs::COL_TITLE).data().toString();
         else
-            nextSong = bmPlModel->index(bmCurrentPosition + 1, 3).data().toString() + " - " + bmPlModel->index(bmCurrentPosition + 1, 4).data().toString();
+            nextSong = playlistSongsModel.index(bmCurrentPosition + 1, TableModelPlaylistSongs::COL_ARTIST).data().toString() +
+                    " - " + playlistSongsModel.index(bmCurrentPosition + 1, TableModelPlaylistSongs::COL_TITLE).data().toString();
     }
     else
         nextSong = "None - Breaking after current song";
@@ -2979,8 +2988,9 @@ void MainWindow::on_tableViewBmPlaylist_doubleClicked(const QModelIndex &index)
         bmMediaBackend.fadeInImmediate();
     ui->labelBmPlaying->setText(song);
     ui->labelBmNext->setText(nextSong);
-    bmPlDelegate->setCurrentSong(index.row());
-    bmPlModel->select();
+    bmPlDelegate.setCurrentSong(index.row());
+    playlistSongsModel.setCurrentSongPos(index.row());
+
 }
 
 void MainWindow::on_buttonBmPause_clicked(const bool &checked)
@@ -3013,8 +3023,8 @@ void MainWindow::on_actionDisplay_Metadata_toggled(const bool &arg1)
 {
     ui->tableViewBmDb->setColumnHidden(TableModelBreakSongs::COL_ARTIST, !arg1);
     ui->tableViewBmDb->setColumnHidden(TableModelBreakSongs::COL_TITLE, !arg1);
-    ui->tableViewBmPlaylist->setColumnHidden(3, !arg1);
-    ui->tableViewBmPlaylist->setColumnHidden(4, !arg1);
+    ui->tableViewBmPlaylist->setColumnHidden(TableModelPlaylistSongs::COL_ARTIST, !arg1);
+    ui->tableViewBmPlaylist->setColumnHidden(TableModelPlaylistSongs::COL_TITLE, !arg1);
     settings.bmSetShowMetadata(arg1);
     autosizeBmViews();
 }
@@ -3022,7 +3032,7 @@ void MainWindow::on_actionDisplay_Metadata_toggled(const bool &arg1)
 void MainWindow::on_actionDisplay_Filenames_toggled(const bool &arg1)
 {
     ui->tableViewBmDb->setColumnHidden(TableModelBreakSongs::COL_FILENAME, !arg1);
-    ui->tableViewBmPlaylist->setColumnHidden(5, !arg1);
+    ui->tableViewBmPlaylist->setColumnHidden(TableModelPlaylistSongs::COL_FILENAME, !arg1);
     settings.bmSetShowFilenames(arg1);
     autosizeBmViews();
 }
@@ -3050,7 +3060,7 @@ void MainWindow::on_actionPlaylistNew_triggered()
 
 void MainWindow::on_actionPlaylistImport_triggered()
 {
-    QString importFile = QFileDialog::getOpenFileName(this,tr("Select playlist to import"), QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), tr("(*.m3u)"));
+    QString importFile = QFileDialog::getOpenFileName(this,tr("Select playlist to import"), QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), tr("m3u playlist(*.m3u)"));
     if (importFile != "")
     {
         QFileInfo fi(importFile);
@@ -3085,7 +3095,7 @@ void MainWindow::on_actionPlaylistImport_triggered()
                     bmPlaylistsModel->submitAll();
                     bmPlaylistsModel->select();
                     ui->comboBoxBmPlaylists->setCurrentIndex(index.row());
-                    bmPlModel->setCurrentPlaylist(bmPlaylistsModel->index(index.row(),0).data().toInt());
+                    playlistSongsModel.setCurrentPlaylist(bmPlaylistsModel->index(index.row(),0).data().toInt());
 
                 }
             }
@@ -3132,30 +3142,26 @@ void MainWindow::on_actionPlaylistImport_triggered()
         QList<int> songIds;
         for (int i=0; i < files.size(); i++)
         {
-            int songId = bmPlModel->getSongIdByFilePath(files.at(i));
+            int songId = bmDbModel.getSongId(files.at(i));
             if (songId >= 0)
             {
                 songIds.push_back(songId);
             }
             else
             {
-                songId = bmPlModel->getSongIdByFilePath(importPath + "/" + files.at(i));
+                songId = bmDbModel.getSongId(importPath + "/" + files.at(i));
                 if (songId >= 0)
                 {
                     songIds.push_back(songId);
                 }
             }
-
         }
-        query.exec("BEGIN TRANSACTION");
-        for (int i=0; i < songIds.size(); i++)
-        {
-            QString sIdStr = QString::number(songIds.at(i));
-            QString sql = "INSERT INTO bmplsongs (playlist,position,artist,title,filename,duration,path) VALUES(" + QString::number(bmCurrentPlaylist) + "," + QString::number(i) + "," + sIdStr + "," + sIdStr + "," + sIdStr + "," + sIdStr + "," + sIdStr + ")";
-            query.exec(sql);
-        }
-        query.exec("COMMIT TRANSACTION");
-        bmPlModel->select();
+        qInfo() << songIds;
+        playlistSongsModel.setCurrentPlaylist(bmCurrentPlaylist);
+        std::for_each(songIds.begin(), songIds.end(), [&] (int songId) {
+            playlistSongsModel.addSong(songId);
+        });
+        playlistSongsModel.savePlaylistChanges();
     }
 }
 
@@ -3163,7 +3169,7 @@ void MainWindow::on_actionPlaylistExport_triggered()
 {
     QString defaultFilePath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QDir::separator() + ui->comboBoxBmPlaylists->currentText() + ".m3u";
     qDebug() << "Default save location: " << defaultFilePath;
-    QString saveFilePath = QFileDialog::getSaveFileName(this,tr("Select filename to save playlist as"), defaultFilePath, tr("(*.m3u)"));
+    QString saveFilePath = QFileDialog::getSaveFileName(this,tr("Select filename to save playlist as"), defaultFilePath, tr("m3u playlist(*.m3u)"));
     if (saveFilePath != "")
     {
         QFile file(saveFilePath);
@@ -3173,9 +3179,9 @@ void MainWindow::on_actionPlaylistExport_triggered()
             return;
         }
         QTextStream out(&file);
-        for (int i=0; i < bmPlModel->rowCount(); i++)
+        for (int i=0; i < playlistSongsModel.rowCount(); i++)
         {
-            out << bmPlModel->index(i, 7).data().toString() << "\n";
+            out << playlistSongsModel.index(i, TableModelPlaylistSongs::COL_PATH).data().toString() << "\n";
         }
     }
 }
@@ -3191,15 +3197,15 @@ void MainWindow::on_actionPlaylistDelete_triggered()
     msgBox.exec();
     if (msgBox.clickedButton() == yesButton) {
         QSqlQuery query;
-        query.exec("DELETE FROM bmplsongs WHERE playlist == " + QString::number(bmPlModel->currentPlaylist()));
-        query.exec("DELETE FROM bmplaylists WHERE playlistid == " + QString::number(bmPlModel->currentPlaylist()));
+        query.exec("DELETE FROM bmplsongs WHERE playlist == " + QString::number(playlistSongsModel.currentPlaylist()));
+        query.exec("DELETE FROM bmplaylists WHERE playlistid == " + QString::number(playlistSongsModel.currentPlaylist()));
         bmPlaylistsModel->select();
         if (bmPlaylistsModel->rowCount() == 0)
         {
             bmAddPlaylist("Default");
         }
         ui->comboBoxBmPlaylists->setCurrentIndex(0);
-        bmPlModel->setCurrentPlaylist(bmPlaylistsModel->index(0,0).data().toInt());
+        playlistSongsModel.setCurrentPlaylist(bmPlaylistsModel->index(0,0).data().toInt());
     }
 }
 
@@ -3687,7 +3693,7 @@ void MainWindow::autosizeBmViews()
     int artistColSize = 0;
     int titleColSize = 0;
     int fnameColSize = 0;
-    int remainingSpace = ui->tableViewBmDb->width() - durationColSize - 5;
+    int remainingSpace = ui->tableViewBmDb->width() - durationColSize - 15;
     if (settings.bmShowMetadata() && settings.bmShowFilenames())
     {
         artistColSize = (float)remainingSpace * .25;
@@ -3709,7 +3715,8 @@ void MainWindow::autosizeBmViews()
     ui->tableViewBmDb->horizontalHeader()->setSectionResizeMode(TableModelBreakSongs::COL_DURATION, QHeaderView::Fixed);
     ui->tableViewBmDb->horizontalHeader()->resizeSection(TableModelBreakSongs::COL_DURATION, durationColSize);
 
-    remainingSpace = ui->tableViewBmPlaylist->width() - durationColSize - (iconWidth * 2) - 5;
+
+    remainingSpace = ui->tableViewBmPlaylist->width() - durationColSize - (iconWidth * 2) - 15;
     //5=filename  6=Duration 3=artist 4=title
     if (settings.bmShowMetadata() && settings.bmShowFilenames())
     {
@@ -3726,14 +3733,14 @@ void MainWindow::autosizeBmViews()
     {
         fnameColSize = remainingSpace;
     }
-    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(3, artistColSize);
-    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(4, titleColSize);
-    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(5, fnameColSize);
-    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(6, durationColSize);
-    ui->tableViewBmPlaylist->horizontalHeader()->setSectionResizeMode(2,QHeaderView::Fixed);
-    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(2, iconWidth);
-    ui->tableViewBmPlaylist->horizontalHeader()->setSectionResizeMode(7, QHeaderView::Fixed);
-    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(7, iconWidth);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(TableModelPlaylistSongs::COL_ARTIST, artistColSize);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(TableModelPlaylistSongs::COL_TITLE, titleColSize);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(TableModelPlaylistSongs::COL_FILENAME, fnameColSize);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(TableModelPlaylistSongs::COL_DURATION, durationColSize);
+    ui->tableViewBmPlaylist->horizontalHeader()->setSectionResizeMode(TableModelPlaylistSongs::COL_ID,QHeaderView::Fixed);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(TableModelPlaylistSongs::COL_ID, iconWidth);
+    ui->tableViewBmPlaylist->horizontalHeader()->setSectionResizeMode(TableModelPlaylistSongs::COL_PATH, QHeaderView::Fixed);
+    ui->tableViewBmPlaylist->horizontalHeader()->resizeSection(TableModelPlaylistSongs::COL_PATH, iconWidth);
 }
 
 
@@ -3799,13 +3806,14 @@ void MainWindow::bmSongMoved(const int &oldPos, const int &newPos)
         bmCurrentPosition++;
     else if (oldPos == bmCurrentPosition)
         bmCurrentPosition = newPos;
-    bmPlDelegate->setCurrentSong(bmCurrentPosition);
+    bmPlDelegate.setCurrentSong(bmCurrentPosition);
+    playlistSongsModel.setCurrentSongPos(bmCurrentPosition);
     if (!ui->checkBoxBmBreak->isChecked())
     {
-    if (bmCurrentPosition == bmPlModel->rowCount() - 1)
-        nextSong = bmPlModel->index(0, 3).data().toString() + " - " + bmPlModel->index(0, 4).data().toString();
+    if (bmCurrentPosition == playlistSongsModel.rowCount() - 1)
+        nextSong = playlistSongsModel.index(0, 3).data().toString() + " - " + playlistSongsModel.index(0, 4).data().toString();
     else
-        nextSong = bmPlModel->index(bmCurrentPosition + 1, 3).data().toString() + " - " + bmPlModel->index(bmCurrentPosition + 1, 4).data().toString();
+        nextSong = playlistSongsModel.index(bmCurrentPosition + 1, 3).data().toString() + " - " + playlistSongsModel.index(bmCurrentPosition + 1, 4).data().toString();
     }
     else
         nextSong = "None - Breaking after current song";
@@ -4083,11 +4091,12 @@ void MainWindow::on_btnQBottom_clicked()
 
 void MainWindow::on_btnBmPlRandomize_clicked()
 {
-    if (bmPlModel->rowCount() < 2)
+    if (playlistSongsModel.rowCount() < 2)
         return;
-    qint32 newplayinpos = bmPlModel->randomizePlaylist(bmCurrentPosition);
+    qint32 newplayinpos = playlistSongsModel.randomizePlaylist(bmCurrentPosition);
     bmCurrentPosition = newplayinpos;
-    bmPlDelegate->setCurrentSong(bmCurrentPosition);
+    bmPlDelegate.setCurrentSong(bmCurrentPosition);
+    playlistSongsModel.setCurrentSongPos(bmCurrentPosition);
 }
 
 
@@ -4100,8 +4109,9 @@ void MainWindow::on_btnPlTop_clicked()
         plSongIds.emplace_back(index.data().toInt());
     });
     std::for_each(plSongIds.rbegin(), plSongIds.rend(), [&] (auto plSongId) {
-       bmPlModel->moveSong(bmPlModel->getSongPositionById(plSongId), 0);
+       playlistSongsModel.moveSong(playlistSongsModel.getSongPositionById(plSongId), 0);
     });
+    playlistSongsModel.savePlaylistChanges();
     auto topLeft = ui->tableViewBmPlaylist->model()->index(0, 0);
     auto bottomRight = ui->tableViewBmPlaylist->model()->index(plSongIds.size() - 1, 7);
     ui->tableViewBmPlaylist->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
@@ -4114,7 +4124,8 @@ void MainWindow::on_btnPlUp_clicked()
     int curPos = ui->tableViewBmPlaylist->selectionModel()->selectedRows().at(0).row();
     if (curPos == 0)
         return;
-   bmPlModel->moveSong(curPos, curPos - 1);
+   playlistSongsModel.moveSong(curPos, curPos - 1);
+   playlistSongsModel.savePlaylistChanges();
    ui->tableViewBmPlaylist->selectRow(curPos - 1);
 }
 
@@ -4126,7 +4137,8 @@ void MainWindow::on_btnPlDown_clicked()
     int curPos = ui->tableViewBmPlaylist->selectionModel()->selectedRows().at(0).row();
     if (curPos == maxpos)
         return;
-   bmPlModel->moveSong(curPos, curPos + 1);
+   playlistSongsModel.moveSong(curPos, curPos + 1);
+   playlistSongsModel.savePlaylistChanges();
    ui->tableViewBmPlaylist->selectRow(curPos + 1);
 }
 
@@ -4138,10 +4150,11 @@ void MainWindow::on_btnPlBottom_clicked()
         plSongIds.emplace_back(index.data().toInt());
     });
     std::for_each(plSongIds.begin(), plSongIds.end(), [&] (auto plSongId) {
-       bmPlModel->moveSong(bmPlModel->getSongPositionById(plSongId), bmPlModel->rowCount() - 1);
+       playlistSongsModel.moveSong(playlistSongsModel.getSongPositionById(plSongId), playlistSongsModel.rowCount() - 1);
     });
-    auto topLeft = ui->tableViewBmPlaylist->model()->index(bmPlModel->rowCount() - plSongIds.size(), 0);
-    auto bottomRight = ui->tableViewBmPlaylist->model()->index(bmPlModel->rowCount() - 1, 7);
+    playlistSongsModel.savePlaylistChanges();
+    auto topLeft = ui->tableViewBmPlaylist->model()->index(playlistSongsModel.rowCount() - plSongIds.size(), 0);
+    auto bottomRight = ui->tableViewBmPlaylist->model()->index(playlistSongsModel.rowCount() - 1, 7);
     ui->tableViewBmPlaylist->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
 }
 
