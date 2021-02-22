@@ -345,6 +345,8 @@ private slots:
 
     void on_tableViewHistory_customContextMenuRequested(const QPoint &pos);
 
+    void on_actionBreak_music_torture_triggered();
+
 protected:
     void closeEvent(QCloseEvent *event);
     void resizeEvent(QResizeEvent *event);

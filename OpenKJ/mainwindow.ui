@@ -3284,6 +3284,7 @@ QPushButton:default {
     <addaction name="actionK_B_torture"/>
     <addaction name="actionBurn_in"/>
     <addaction name="actionCDG_Decode_Torture"/>
+    <addaction name="actionBreak_music_torture"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTools"/>
@@ -3508,6 +3509,11 @@ QPushButton:default {
   <action name="actionDocumentation">
    <property name="text">
     <string>Documentation</string>
+   </property>
+  </action>
+  <action name="actionBreak_music_torture">
+   <property name="text">
+    <string>Break music torture</string>
    </property>
   </action>
  </widget>

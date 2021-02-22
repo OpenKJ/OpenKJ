@@ -791,7 +791,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
 
-    bmMediaBackend.setUseFader(true);
     bmPlaylistsModel = new QSqlTableModel(this, database);
     bmPlaylistsModel->setTable("bmplaylists");
     bmPlaylistsModel->sort(2, Qt::AscendingOrder);
@@ -4714,4 +4713,26 @@ void MainWindow::on_tableViewHistory_customContextMenuRequested(const QPoint &po
 
         contextMenu.exec(QCursor::pos());
     }
+}
+
+void MainWindow::on_actionBreak_music_torture_triggered()
+{
+    bmPlaylistsModel->select();
+    bmAddPlaylist("torture");
+    bmPlaylistsModel->select();
+    ui->comboBoxBmPlaylists->setCurrentText("torture");
+    ui->tableViewBmDb->selectAll();
+    auto mimedata = bmDbModel.mimeData(ui->tableViewBmDb->selectionModel()->selectedIndexes());
+    playlistSongsModel.dropMimeData(mimedata,Qt::CopyAction,0,3,QModelIndex());
+
+    connect(&m_timerTest, &QTimer::timeout, [&] () {
+        QApplication::beep();
+        static int runs = 0;
+       qInfo() << "Karaoke torture test timer timeout";
+       playlistSongsModel.randomizePlaylist(0);
+       ui->tableViewBmPlaylist->selectRow(0);
+       on_tableViewBmPlaylist_doubleClicked(ui->tableViewBmPlaylist->selectionModel()->selectedRows().at(0));
+       qInfo() << "test runs: " << ++runs;
+    });
+    m_timerTest.start(2000);
 }
