@@ -108,7 +108,7 @@ void TableModelBreakSongs::search(const QString &searchStr)
 {
     m_lastSearch = searchStr;
     emit layoutAboutToBeChanged();
-    auto searchTerms = searchStr.split(" ", Qt::SkipEmptyParts);
+    auto searchTerms = searchStr.split(" ", Qt::SplitBehaviorFlags::SkipEmptyParts);
     m_filteredSongs.clear();
     m_filteredSongs.resize(m_allSongs.size());
     auto it = std::copy_if(m_allSongs.begin(), m_allSongs.end(), m_filteredSongs.begin(), [&searchTerms] (BreakSong &song)
