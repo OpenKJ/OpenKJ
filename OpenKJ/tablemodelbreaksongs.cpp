@@ -3,6 +3,7 @@
 #include <QDataStream>
 #include <QMimeData>
 #include <QSqlQuery>
+#include <QString>
 
 QDebug operator<<(QDebug debug, const BreakSong &b)
 {
