@@ -34,6 +34,7 @@ public:
     Qt::ItemFlags flags(const QModelIndex &index) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     void loadData();
+    void sort(int column, Qt::SortOrder order) override;
     void search(QString searchString);
     void setSearchType(SearchType type);
     int getIdForPath(const QString &path) const;
@@ -44,14 +45,14 @@ private:
     std::vector<KaraokeSong> m_filteredSongs;
     std::vector<KaraokeSong> m_allSongs;
     QString m_lastSearch;
+    Qt::SortOrder m_lastSortOrder{Qt::AscendingOrder};
+    int m_lastSortColumn{1};
     int m_curFontHeight;
     QImage m_iconCdg;
     QImage m_iconZip;
     QImage m_iconVid;
     SearchType m_searchType{SearchType::SEARCH_TYPE_ALL};
     void resizeIconsForFont(const QFont &font);
-
-
 };
 
 #endif // TABLEMODELKARAOKESONGSNEW_H
