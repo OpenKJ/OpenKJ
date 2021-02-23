@@ -73,8 +73,7 @@ class MainWindow : public QMainWindow
 private:
     Ui::MainWindow *ui;
     QSqlDatabase database;
-    TableModelKaraokeSongs *dbModel;
-    ItemDelegateKaraokeSongs *dbDelegate;
+    TableModelKaraokeSongs karaokeSongsModel;
     TableModelQueueSongs *qModel;
     ItemDelegateQueueSongs *qDelegate;
     TableModelRotationSingers *rotModel;

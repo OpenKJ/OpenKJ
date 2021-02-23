@@ -53,14 +53,12 @@ DlgRequests::DlgRequests(TableModelRotationSingers *rotationModel, QWidget *pare
     curRequestId = -1;
     ui->setupUi(this);
     requestsModel = new TableModelRequests(this);
-    dbModel = new TableModelKaraokeSongs(this);
-    dbDelegate = new ItemDelegateKaraokeSongs(this);
+    dbModel.loadData();
     ui->tableViewRequests->setModel(requestsModel);
     ui->tableViewRequests->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewRequests));
     connect(requestsModel, SIGNAL(layoutChanged()), this, SLOT(requestsModified()));
-    ui->tableViewSearch->setModel(dbModel);
+    ui->tableViewSearch->setModel(&dbModel);
     ui->tableViewSearch->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewSearch));
-    ui->tableViewSearch->setItemDelegate(dbDelegate);
     ui->groupBoxAddSong->setDisabled(true);
     ui->groupBoxSongDb->setDisabled(true);
     connect(ui->tableViewRequests->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(requestSelectionChanged(QItemSelection,QItemSelection)));
@@ -81,10 +79,8 @@ DlgRequests::DlgRequests(TableModelRotationSingers *rotationModel, QWidget *pare
     ui->comboBoxAddPosition->setCurrentIndex(settings.lastSingerAddPositionType());
     connect(&settings, &Settings::lastSingerAddPositionTypeChanged, ui->comboBoxAddPosition, &QComboBox::setCurrentIndex);
     connect(ui->comboBoxAddPosition, SIGNAL(currentIndexChanged(int)), &settings, SLOT(setLastSingerAddPositionType(int)));
-    ui->tableViewSearch->hideColumn(0);
-    ui->tableViewSearch->hideColumn(5);
-    ui->tableViewSearch->hideColumn(6);
-    ui->tableViewSearch->hideColumn(7);
+    ui->tableViewSearch->hideColumn(TableModelKaraokeSongs::COL_ID);
+    ui->tableViewSearch->hideColumn(TableModelKaraokeSongs::COL_FILENAME);
     ui->tableViewSearch->horizontalHeader()->resizeSection(4,75);
     ui->checkBoxDelOnAdd->setChecked(settings.requestRemoveOnRotAdd());
     connect(songbookApi, SIGNAL(venuesChanged(OkjsVenues)), this, SLOT(venuesChanged(OkjsVenues)));
@@ -116,20 +112,18 @@ DlgRequests::~DlgRequests()
 
 void DlgRequests::databaseAboutToUpdate()
 {
-    dbModel->revertAll();
-    dbModel->setTable("");
+
 }
 
 void DlgRequests::databaseUpdateComplete()
 {
-    dbModel->refreshCache();
-    dbModel->select();
+    dbModel.loadData();
     autoSizeViews();
 }
 
 void DlgRequests::databaseSongAdded()
 {
-    dbModel->select();
+    dbModel.loadData();
 }
 
 void DlgRequests::rotationChanged()
@@ -197,12 +191,12 @@ void DlgRequests::requestsModified()
 
 void DlgRequests::on_pushButtonSearch_clicked()
 {
-    dbModel->search(ui->lineEditSearch->text());
+    dbModel.search(ui->lineEditSearch->text());
 }
 
 void DlgRequests::on_lineEditSearch_returnPressed()
 {
-    dbModel->search(ui->lineEditSearch->text());
+    dbModel.search(ui->lineEditSearch->text());
 }
 
 void DlgRequests::requestSelectionChanged(const QItemSelection &current, const QItemSelection &previous)
@@ -210,7 +204,7 @@ void DlgRequests::requestSelectionChanged(const QItemSelection &current, const Q
     ui->groupBoxAddSong->setDisabled(true);
     if (current.indexes().size() == 0)
     {
-        dbModel->search("yeahjustsomethingitllneverfind.imlazylikethat");
+        dbModel.search("yeahjustsomethingitllneverfind.imlazylikethat");
         ui->groupBoxSongDb->setDisabled(true);
         ui->comboBoxSingers->setCurrentIndex(0);
         ui->spinBoxKey->setValue(0);
@@ -230,7 +224,7 @@ void DlgRequests::requestSelectionChanged(const QItemSelection &current, const Q
         ui->comboBoxSingers->addItems(singers);
 
         QString filterStr = index.sibling(index.row(),1).data().toString() + " " + index.sibling(index.row(),2).data().toString();
-        dbModel->search(filterStr);
+        dbModel.search(filterStr);
         ui->lineEditSearch->setText(filterStr);
         //ui->lineEditSingerName->setText(singerName);
         ui->lineEditSingerName->setText(toMixedCase(singerName));
@@ -257,7 +251,7 @@ void DlgRequests::requestSelectionChanged(const QItemSelection &current, const Q
     }
     else
     {
-        dbModel->search("yeahjustsomethingitllneverfind.imlazylikethat");
+        dbModel.search("yeahjustsomethingitllneverfind.imlazylikethat");
     }
 }
 
@@ -475,7 +469,7 @@ void DlgRequests::on_lineEditSearch_textChanged(const QString &arg1)
     static QString lastVal;
     if (arg1.trimmed() != lastVal)
     {
-        dbModel->search(arg1);
+        dbModel.search(arg1);
         lastVal = arg1.trimmed();
     }
 }
@@ -485,7 +479,7 @@ void DlgRequests::lineEditSearchEscapePressed()
     QModelIndex index;
     index = ui->tableViewRequests->selectionModel()->selectedIndexes().at(0);
     QString filterStr = index.sibling(index.row(),2).data().toString() + " " + index.sibling(index.row(),3).data().toString();
-    dbModel->search(filterStr);
+    dbModel.search(filterStr);
     ui->lineEditSearch->setText(filterStr);
 }
 
@@ -502,15 +496,13 @@ void DlgRequests::autoSizeViews()
     int remainingSpace = ui->tableViewSearch->width() - durationColSize - songidColSize - 12;
     int artistColSize = (remainingSpace / 2) - 12;
     int titleColSize = (remainingSpace / 2);
-    ui->tableViewSearch->hideColumn(0);
-    ui->tableViewSearch->hideColumn(5);
-    ui->tableViewSearch->hideColumn(6);
-    ui->tableViewSearch->hideColumn(7);
-    ui->tableViewSearch->horizontalHeader()->resizeSection(1, artistColSize);
-    ui->tableViewSearch->horizontalHeader()->resizeSection(2, titleColSize);
-    ui->tableViewSearch->horizontalHeader()->resizeSection(4, durationColSize);
-    ui->tableViewSearch->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Fixed);
-    ui->tableViewSearch->horizontalHeader()->resizeSection(3, songidColSize);
+    ui->tableViewSearch->hideColumn(TableModelKaraokeSongs::COL_ID);
+    ui->tableViewSearch->hideColumn(TableModelKaraokeSongs::COL_FILENAME);
+    ui->tableViewSearch->horizontalHeader()->resizeSection(TableModelKaraokeSongs::COL_ARTIST, artistColSize);
+    ui->tableViewSearch->horizontalHeader()->resizeSection(TableModelKaraokeSongs::COL_TITLE, titleColSize);
+    ui->tableViewSearch->horizontalHeader()->resizeSection(TableModelKaraokeSongs::COL_DURATION, durationColSize);
+    ui->tableViewSearch->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_DURATION, QHeaderView::Fixed);
+    ui->tableViewSearch->horizontalHeader()->resizeSection(TableModelKaraokeSongs::COL_SONGID, songidColSize);
 #if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
     int tsWidth = QFontMetrics(settings.applicationFont()).horizontalAdvance(" 00/00/00 00:00 xx ");
     int keyWidth = QFontMetrics(settings.applicationFont()).horizontalAdvance("_Key_");

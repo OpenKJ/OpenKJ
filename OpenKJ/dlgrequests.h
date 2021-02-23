@@ -40,8 +40,7 @@ private:
     Ui::DlgRequests *ui;
     TableModelRequests *requestsModel;
     //SongDBTableModel *songDbModel;
-    TableModelKaraokeSongs *dbModel;
-    ItemDelegateKaraokeSongs *dbDelegate;
+    TableModelKaraokeSongs dbModel;
     TableModelRotationSingers *rotModel;
     QString rtClickFile;
     int curRequestId;

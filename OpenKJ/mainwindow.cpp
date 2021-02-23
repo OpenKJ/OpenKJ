@@ -639,8 +639,7 @@ MainWindow::MainWindow(QWidget *parent) :
 //    query.exec("CREATE TABLE mem.dbsongs AS SELECT * FROM main.dbsongs");
 //    refreshSongDbCache();
     setupShortcuts();
-    dbModel = new TableModelKaraokeSongs(this, database);
-    dbModel->select();
+    karaokeSongsModel.loadData();
     qModel = new TableModelQueueSongs(this, database);
     qModel->select();
     qDelegate = new ItemDelegateQueueSongs(this);
@@ -656,11 +655,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewHistory->hideColumn(2);
     ui->tableViewHistory->sortByColumn(3, Qt::AscendingOrder);
     ui->comboBoxSearchType->addItems({QString("All"), QString("Artist"), QString("Title")});
-    ui->tableViewDB->hideColumn(0);
-    ui->tableViewDB->hideColumn(5);
-    ui->tableViewDB->hideColumn(6);
-    ui->tableViewDB->hideColumn(8);
-    ui->tableViewDB->hideColumn(9);
+    ui->tableViewDB->hideColumn(TableModelKaraokeSongs::COL_ID);
+    ui->tableViewDB->hideColumn(TableModelKaraokeSongs::COL_FILENAME);
     ui->tableViewRotation->setModel(rotModel);
     rotDelegate = new ItemDelegateRotationSingers(this);
     ui->tableViewRotation->setItemDelegate(rotDelegate);
@@ -684,11 +680,8 @@ MainWindow::MainWindow(QWidget *parent) :
     });
     dlgSongShop = new DlgSongShop(shop);
     dlgSongShop->setModal(false);
-    ui->tableViewDB->setModel(dbModel);
+    ui->tableViewDB->setModel(&karaokeSongsModel);
     ui->tableViewDB->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewDB));
-    dbDelegate = new ItemDelegateKaraokeSongs(this);
-    ui->tableViewDB->setItemDelegate(dbDelegate);
-//    ipcClient = new KhIPCClient("bmControl",this);
     if (kMediaBackend.canFade())
         kMediaBackend.setUseFader(settings.audioUseFader());
     if (!kMediaBackend.canPitchShift())
@@ -707,7 +700,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(rotModel, &TableModelRotationSingers::songDroppedOnSinger, this, &MainWindow::songDroppedOnSinger);
     connect(dbDialog, &DlgDatabase::databaseUpdateComplete, this, &MainWindow::databaseUpdated);
     connect(dbDialog, &DlgDatabase::databaseAboutToUpdate, this, &MainWindow::databaseAboutToUpdate);
-    connect(dbDialog, &DlgDatabase::databaseSongAdded, dbModel, &TableModelKaraokeSongs::select);
+    connect(dbDialog, &DlgDatabase::databaseSongAdded, &karaokeSongsModel, &TableModelKaraokeSongs::loadData);
     connect(dbDialog, &DlgDatabase::databaseSongAdded, requestsDialog, &DlgRequests::databaseSongAdded);
     connect(dbDialog, &DlgDatabase::databaseCleared, this, &MainWindow::databaseCleared);
     connect(&kMediaBackend, &MediaBackend::volumeChanged, ui->sliderVolume, &QSlider::setValue);
@@ -759,12 +752,8 @@ MainWindow::MainWindow(QWidget *parent) :
 //    settings.restoreColumnWidths(ui->tableViewRotation);
     settings.restoreWindowState(dlgSongShop);
     rotationDataChanged();
-    ui->tableViewDB->hideColumn(0);
-    ui->tableViewDB->hideColumn(5);
-    ui->tableViewDB->hideColumn(6);
-    ui->tableViewDB->hideColumn(7);
-    ui->tableViewDB->hideColumn(8);
-    ui->tableViewDB->hideColumn(9);
+    ui->tableViewDB->hideColumn(TableModelKaraokeSongs::COL_ID);
+    ui->tableViewDB->hideColumn(TableModelKaraokeSongs::COL_FILENAME);
     ui->tableViewQueue->hideColumn(0);
     ui->tableViewQueue->hideColumn(1);
     ui->tableViewQueue->hideColumn(2);
@@ -1297,20 +1286,13 @@ MainWindow::~MainWindow()
 
 void MainWindow::search()
 {
-    dbModel->search(ui->lineEdit->text());
+    karaokeSongsModel.search(ui->lineEdit->text());
 }
 
 void MainWindow::databaseUpdated()
 {
-    dbModel->refreshCache();
+    karaokeSongsModel.loadData();
     search();
-    ui->tableViewDB->hideColumn(0);
-    ui->tableViewDB->hideColumn(5);
-    ui->tableViewDB->hideColumn(6);
-    ui->tableViewDB->hideColumn(8);
-    ui->tableViewDB->hideColumn(9);
-
-    ui->tableViewDB->horizontalHeader()->resizeSection(4,75);
     settings.restoreColumnWidths(ui->tableViewDB);
     requestsDialog->databaseUpdateComplete();
     autosizeViews();
@@ -1323,17 +1305,10 @@ void MainWindow::databaseUpdated()
 void MainWindow::databaseCleared()
 {
     lazyDurationUpdater->stopWork();
-    dbModel->refreshCache();
-    dbModel->select();
+    karaokeSongsModel.loadData();
     rotModel->select();
     qModel->setSinger(-1);
     ui->tableViewQueue->reset();
-    ui->tableViewDB->hideColumn(0);
-    ui->tableViewDB->hideColumn(5);
-    ui->tableViewDB->hideColumn(6);
-    ui->tableViewDB->hideColumn(8);
-    ui->tableViewDB->hideColumn(9);
-    ui->tableViewDB->horizontalHeader()->resizeSection(4,75);
     autosizeViews();
     rotationDataChanged();
 
@@ -1496,7 +1471,7 @@ void MainWindow::on_tableViewRotation_doubleClicked(const QModelIndex &index)
             ui->labelArtist->setText(curArtist);
             ui->labelTitle->setText(curTitle);
             ui->labelSinger->setText(curSinger);
-            dbModel->updateSongHistory(dbModel->getSongIdForPath(nextSongPath));
+            karaokeSongsModel.updateSongHistory(karaokeSongsModel.getIdForPath(nextSongPath));
             play(nextSongPath, k2kTransition);
             if (settings.treatAllSingersAsRegs() || rotModel->singerIsRegular(singerId))
                 historySongsModel.saveSong(curSinger, nextSongPath, curArtist, curTitle, curSongId, curKeyChange);
@@ -1630,7 +1605,7 @@ void MainWindow::on_tableViewQueue_doubleClicked(const QModelIndex &index)
     ui->labelSinger->setText(curSinger);
     ui->labelArtist->setText(curArtist);
     ui->labelTitle->setText(curTitle);
-    dbModel->updateSongHistory(dbModel->getSongIdForPath(filePath));
+    karaokeSongsModel.updateSongHistory(karaokeSongsModel.getIdForPath(filePath));
     play(filePath, k2kTransition);
     if (settings.treatAllSingersAsRegs() || rotModel->singerIsRegular(curSingerId))
         historySongsModel.saveSong(curSinger, filePath, curArtist, curTitle, curSongId, curKeyChange);
@@ -2486,7 +2461,7 @@ void MainWindow::editSong()
             msgBoxInfo.setInformativeText("The file has been renamed and the database has been updated successfully.");
             msgBoxInfo.setStandardButtons(QMessageBox::Ok);
             msgBoxInfo.exec();
-            dbModel->select();
+            karaokeSongsModel.loadData();
             return;
         }
         else
@@ -2528,7 +2503,7 @@ void MainWindow::editSong()
             msgBoxInfo.setInformativeText("The database has been updated successfully.");
             msgBoxInfo.setStandardButtons(QMessageBox::Ok);
             msgBoxInfo.exec();
-            dbModel->select();
+            karaokeSongsModel.loadData();
             return;
         }
         else
@@ -2641,7 +2616,7 @@ void MainWindow::karaokeAATimerTimeout()
                         rotModel->nextSongKeyChg(kAANextSinger)
                         );
         }
-        dbModel->updateSongHistory(dbModel->getSongIdForPath(kAANextSongPath));
+        karaokeSongsModel.updateSongHistory(karaokeSongsModel.getIdForPath(kAANextSongPath));
         play(kAANextSongPath);
         kMediaBackend.setPitchShift(rotModel->nextSongKeyChg(kAANextSinger));
         qModel->songSetPlayed(rotModel->nextSongQueueId(kAANextSinger));
@@ -3252,7 +3227,7 @@ void MainWindow::on_lineEdit_textChanged(const QString &arg1)
     static QString lastVal;
     if (arg1.trimmed() != lastVal)
     {
-        dbModel->search(arg1);
+        karaokeSongsModel.search(arg1);
         lastVal = arg1.trimmed();
     }
 }
@@ -3618,12 +3593,13 @@ void MainWindow::autosizeViews()
     int remainingSpace = ui->tableViewDB->width() - durationColSize - songidColSize;
     int artistColSize = (remainingSpace / 2) - 120;
     int titleColSize = (remainingSpace / 2) + 100;
-    ui->tableViewDB->horizontalHeader()->resizeSection(1, artistColSize);
-    ui->tableViewDB->horizontalHeader()->resizeSection(2, titleColSize);
-    ui->tableViewDB->horizontalHeader()->resizeSection(4, durationColSize);
-    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Fixed);
-    ui->tableViewDB->horizontalHeader()->resizeSection(3, songidColSize);
-
+    ui->tableViewDB->horizontalHeader()->resizeSection(TableModelKaraokeSongs::COL_ARTIST, artistColSize);
+    ui->tableViewDB->horizontalHeader()->resizeSection(TableModelKaraokeSongs::COL_TITLE, titleColSize);
+    ui->tableViewDB->horizontalHeader()->resizeSection(TableModelKaraokeSongs::COL_DURATION, durationColSize);
+    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_DURATION, QHeaderView::Fixed);
+    ui->tableViewDB->horizontalHeader()->resizeSection(TableModelKaraokeSongs::COL_SONGID, songidColSize);
+    ui->tableViewDB->horizontalHeader()->resizeSection(TableModelKaraokeSongs::COL_LASTPLAY,
+                                                       QFontMetrics(settings.applicationFont()).width("_00/00/00 00:00 MM_"));
     resizeRotation();
     autosizeQueue();
 //    ui->tableViewQueue->horizontalHeader()->resizeSection(7, playsColSize);
@@ -3792,8 +3768,6 @@ void MainWindow::bmDatabaseAboutToUpdate()
 //    bmDbModel->setTable("");
     bmPlaylistsModel->revertAll();
     bmPlaylistsModel->setTable("");
-    dbModel->revertAll();
-    dbModel->setTable("");
 }
 
 void MainWindow::bmSongMoved(const int &oldPos, const int &newPos)
@@ -4224,7 +4198,7 @@ void MainWindow::on_actionKaraoke_torture_triggered()
         QApplication::beep();
         static int runs = 0;
        qInfo() << "Karaoke torture test timer timeout";
-       qInfo() << "num songs in db: " << dbModel->rowCount();
+       qInfo() << "num songs in db: " << karaokeSongsModel.rowCount();
        ui->tableViewDB->scrollToBottom();
        ui->tableViewDB->scrollToBottom();
        ui->tableViewDB->scrollToBottom();
@@ -4241,7 +4215,7 @@ void MainWindow::on_actionKaraoke_torture_triggered()
        ui->tableViewDB->scrollToBottom();
        ui->tableViewDB->scrollToBottom();
        ui->tableViewDB->scrollToBottom();
-       int randno = QRandomGenerator::global()->bounded(0, dbModel->rowCount() - 1);
+       int randno = QRandomGenerator::global()->bounded(0, karaokeSongsModel.rowCount() - 1);
        randno = 1;
        qInfo() << "randno: " << randno;
        ui->tableViewDB->selectRow(randno);
@@ -4278,7 +4252,7 @@ void MainWindow::on_actionK_B_torture_triggered()
             return;
         }
        qInfo() << "Karaoke torture test timer timeout";
-       qInfo() << "num songs in db: " << dbModel->rowCount();
+       qInfo() << "num songs in db: " << karaokeSongsModel.rowCount();
        ui->tableViewDB->scrollToBottom();
        ui->tableViewDB->scrollToBottom();
        ui->tableViewDB->scrollToBottom();
@@ -4295,7 +4269,7 @@ void MainWindow::on_actionK_B_torture_triggered()
        ui->tableViewDB->scrollToBottom();
        ui->tableViewDB->scrollToBottom();
        ui->tableViewDB->scrollToBottom();
-       int randno = QRandomGenerator::global()->bounded(0, dbModel->rowCount() - 1);
+       int randno = QRandomGenerator::global()->bounded(0, karaokeSongsModel.rowCount() - 1);
        qInfo() << "randno: " << randno;
        ui->tableViewDB->selectRow(randno);
        ui->tableViewDB->scrollTo(ui->tableViewDB->selectionModel()->selectedRows().at(0));
@@ -4364,7 +4338,7 @@ void MainWindow::on_actionBurn_in_triggered()
         ui->tableViewDB->scrollToBottom();
         ui->tableViewDB->scrollToBottom();
         ui->tableViewDB->scrollToBottom();
-        int randno = QRandomGenerator::global()->bounded(0, dbModel->rowCount() - 1);
+        int randno = QRandomGenerator::global()->bounded(0, karaokeSongsModel.rowCount() - 1);
         qInfo() << "randno: " << randno;
         ui->tableViewDB->selectRow(randno);
         ui->tableViewDB->scrollTo(ui->tableViewDB->selectionModel()->selectedRows().at(0));
@@ -4384,7 +4358,7 @@ void MainWindow::on_actionBurn_in_triggered()
         playing = true;
         qInfo() << "Burn in test cycle: " << ++runs;
     });
-    m_timerTest.start(12000);
+    m_timerTest.start(4000);
 #endif
 }
 
@@ -4401,7 +4375,7 @@ void MainWindow::on_actionCDG_Decode_Torture_triggered()
         QApplication::beep();
         static int runs = 0;
        qInfo() << "Karaoke torture test timer timeout";
-       qInfo() << "num songs in db: " << dbModel->rowCount();
+       qInfo() << "num songs in db: " << karaokeSongsModel.rowCount();
        ui->tableViewDB->scrollToBottom();
        ui->tableViewDB->scrollToBottom();
        ui->tableViewDB->scrollToBottom();
@@ -4418,7 +4392,7 @@ void MainWindow::on_actionCDG_Decode_Torture_triggered()
        ui->tableViewDB->scrollToBottom();
        ui->tableViewDB->scrollToBottom();
        ui->tableViewDB->scrollToBottom();
-       int randno = QRandomGenerator::global()->bounded(0, dbModel->rowCount() - 1);
+       int randno = QRandomGenerator::global()->bounded(0, karaokeSongsModel.rowCount() - 1);
        qInfo() << "randno: " << randno;
        ui->tableViewDB->selectRow(randno);
        ui->tableViewDB->scrollTo(ui->tableViewDB->selectionModel()->selectedRows().at(0));
@@ -4516,13 +4490,13 @@ void MainWindow::on_comboBoxSearchType_currentIndexChanged(int index)
 {
     switch (index) {
     case 0:
-        dbModel->setSearchType(TableModelKaraokeSongs::SEARCH_TYPE_ALL);
+        karaokeSongsModel.setSearchType(TableModelKaraokeSongs::SEARCH_TYPE_ALL);
         break;
     case 1:
-        dbModel->setSearchType(TableModelKaraokeSongs::SEARCH_TYPE_ARTIST);
+        karaokeSongsModel.setSearchType(TableModelKaraokeSongs::SEARCH_TYPE_ARTIST);
         break;
     case 2:
-        dbModel->setSearchType(TableModelKaraokeSongs::SEARCH_TYPE_TITLE);
+        karaokeSongsModel.setSearchType(TableModelKaraokeSongs::SEARCH_TYPE_TITLE);
         break;
     }
 }
@@ -4595,7 +4569,7 @@ void MainWindow::on_pushButtonHistoryPlay_clicked()
     ui->labelSinger->setText(curSinger);
     ui->labelArtist->setText(curArtist);
     ui->labelTitle->setText(curTitle);
-    dbModel->updateSongHistory(dbModel->getSongIdForPath(filePath));
+    karaokeSongsModel.updateSongHistory(karaokeSongsModel.getIdForPath(filePath));
     play(filePath, k2kTransition);
     if (settings.treatAllSingersAsRegs() || rotModel->singerIsRegular(curSingerId))
         historySongsModel.saveSong(curSinger, filePath, curArtist, curTitle, curSongId, curKeyChange);
@@ -4620,7 +4594,7 @@ void MainWindow::on_pushButtonHistoryToQueue_clicked()
         auto path = index.sibling(index.row(), 2).data().toString();
         int curSingerId = rotModel->getSingerId(historySongsModel.currentSingerName());
         int key = index.sibling(index.row(), 6).data().toInt();
-        int dbSongId = dbModel->getSongIdForPath(path);
+        int dbSongId = karaokeSongsModel.getIdForPath(path);
         if (dbSongId == -1)
         {
             QMessageBox::warning(this,

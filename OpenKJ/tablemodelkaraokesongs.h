@@ -1,85 +1,57 @@
-/*
- * Copyright (c) 2013-2019 Thomas Isaac Lightburn
- *
- *
- * This file is part of OpenKJ.
- *
- * OpenKJ is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+#ifndef TABLEMODELKARAOKESONGSNEW_H
+#define TABLEMODELKARAOKESONGSNEW_H
 
-#ifndef DBTABLEMODEL_H
-#define DBTABLEMODEL_H
+#include <QAbstractTableModel>
+#include <QDateTime>
+#include <QImage>
 
-#include <QItemDelegate>
-#include <QSqlTableModel>
-#include "settings.h"
-
-
-class ItemDelegateKaraokeSongs : public QItemDelegate
-{
-    Q_OBJECT
-public:
-    explicit ItemDelegateKaraokeSongs(QObject *parent = 0);
-    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
-
+struct KaraokeSong {
+    int id{0};
+    QString artist;
+    QString title;
+    QString songid;
+    int duration{0};
+    QString filename;
+    QString path;
+    std::string searchString;
+    int plays;
+    QDateTime lastPlay;
 };
 
-
-class TableModelKaraokeSongs : public QSqlTableModel
+class TableModelKaraokeSongs : public QAbstractTableModel
 {
     Q_OBJECT
 
-private:
-    int sortColumn;
-    QString artistOrder;
-    QString titleOrder;
-    QString songIdOrder;
-    QString durationOrder;
-    QString lastSearch;
-    QSqlDatabase db;
-    Settings *settings;
-    QIcon m_cdgIcon;
-    QIcon m_zipIcon;
-    QIcon m_vidIcon;
-
 public:
-    explicit TableModelKaraokeSongs(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
+    enum ModelCols{COL_ID=0,COL_ARTIST,COL_TITLE,COL_SONGID,COL_FILENAME,COL_DURATION,COL_PLAYS,COL_LASTPLAY};
     enum {SORT_ARTIST=1,SORT_TITLE=2,SORT_SONGID=3,SORT_DURATION=4};
     enum SearchType{SEARCH_TYPE_ALL=1, SEARCH_TYPE_ARTIST, SEARCH_TYPE_TITLE};
+    explicit TableModelKaraokeSongs(QObject *parent = nullptr);
+    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+    QMimeData *mimeData(const QModelIndexList &indexes) const override;
+    Qt::ItemFlags flags(const QModelIndex &index) const override;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+    void loadData();
     void search(QString searchString);
-    QMimeData *mimeData(const QModelIndexList &indexes) const;
-    Qt::ItemFlags flags(const QModelIndex &index) const;
-    void sort(int column, Qt::SortOrder order);
-    void refreshCache();
     void setSearchType(SearchType type);
-    int getSongIdForPath(const QString &path);
-    void updateSongHistory(const int dbSongId);
+    int getIdForPath(const QString &path) const;
+    void updateSongHistory(const int songid);
+
 
 private:
+    std::vector<KaraokeSong> m_filteredSongs;
+    std::vector<KaraokeSong> m_allSongs;
+    QString m_lastSearch;
+    int m_curFontHeight;
+    QImage m_iconCdg;
+    QImage m_iconZip;
+    QImage m_iconVid;
     SearchType m_searchType{SearchType::SEARCH_TYPE_ALL};
-
-protected:
-    QString orderByClause() const;
+    void resizeIconsForFont(const QFont &font);
 
 
-    // QAbstractItemModel interface
-public:
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
-
-    // QAbstractItemModel interface
-public:
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
 };
 
-#endif // DBTABLEMODEL_H
+#endif // TABLEMODELKARAOKESONGSNEW_H
