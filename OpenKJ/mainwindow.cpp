@@ -4644,8 +4644,10 @@ void MainWindow::on_tableViewHistory_doubleClicked([[maybe_unused]]const QModelI
     {
     case 0:
         on_pushButtonHistoryToQueue_clicked();
+        break;
     case 1:
         on_pushButtonHistoryPlay_clicked();
+        break;
     }
 }
 

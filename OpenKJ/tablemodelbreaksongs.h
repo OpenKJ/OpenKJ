@@ -13,7 +13,7 @@ struct BreakSong {
     QString path;
     QString filename;
     int duration;
-    QString searchString;
+    std::string searchString;
 };
 
 class TableModelBreakSongs : public QAbstractTableModel

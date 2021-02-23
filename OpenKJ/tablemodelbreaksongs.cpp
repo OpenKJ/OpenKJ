@@ -8,23 +8,20 @@
 QDebug operator<<(QDebug debug, const BreakSong &b)
 {
     QDebugStateSaver saver(debug);
-    debug.nospace() << "{(artist=" << b.artist << ")(title=" << b.title << ")(path=" << b.path << ")(fname=" << b.filename
-                    << ")(duration=" << b.duration << ")(sstring=" << b.searchString << ")}";
+    debug.nospace() << "{(artist="
+                    << b.artist
+                    << ")(title="
+                    << b.title
+                    << ")(path="
+                    << b.path
+                    << ")(fname="
+                    << b.filename
+                    << ")(duration="
+                    << b.duration
+                    << ")(sstring="
+                    << QString::fromStdString(b.searchString)
+                    << ")}";
     return debug;
-}
-
-std::vector<std::string> split(const std::string& s, char seperator)
-{
-    std::vector<std::string> output;
-    std::string::size_type prev_pos = 0, pos = 0;
-    while((pos = s.find(seperator, pos)) != std::string::npos)
-    {
-        std::string substring( s.substr(prev_pos, pos-prev_pos) );
-        output.push_back(substring);
-        prev_pos = ++pos;
-    }
-    output.push_back(s.substr(prev_pos, pos-prev_pos)); // Last word
-    return output;
 }
 
 TableModelBreakSongs::TableModelBreakSongs(QObject *parent)
@@ -111,7 +108,7 @@ void TableModelBreakSongs::loadDatabase()
             query.value(3).toString(),
             query.value(4).toString(),
             query.value(5).toInt(),
-            query.value(6).toString().toLower(),
+            query.value(6).toString().toLower().toStdString(),
         });
     }
     emit layoutChanged();
@@ -123,20 +120,28 @@ void TableModelBreakSongs::search(const QString &searchStr)
 {
     m_lastSearch = searchStr;
     emit layoutAboutToBeChanged();
-    auto searchTerms = split(searchStr.toStdString(), ' ');
+    std::vector<std::string> searchTerms;
+    std::string s = searchStr.toStdString();
+    std::string::size_type prev_pos = 0, pos = 0;
+    while((pos = s.find(' ', pos)) != std::string::npos)
+    {
+        searchTerms.emplace_back(s.substr(prev_pos, pos - prev_pos));
+        prev_pos = ++pos;
+    }
+    searchTerms.emplace_back(s.substr(prev_pos, pos - prev_pos));
     m_filteredSongs.clear();
     m_filteredSongs.resize(m_allSongs.size());
     auto it = std::copy_if(m_allSongs.begin(), m_allSongs.end(), m_filteredSongs.begin(), [&searchTerms] (BreakSong &song)
     {
-            for (size_t i=0; i<searchTerms.size(); i++)
-    {
-        if (song.searchString.toStdString().find(searchTerms.at(i)) == std::string::npos)
-            return false;
-    }
-    return true;
-});
-m_filteredSongs.resize(std::distance(m_filteredSongs.begin(), it));
-emit layoutChanged();
+        for (auto term : searchTerms)
+        {
+            if (song.searchString.find(term) == std::string::npos)
+                return false;
+        }
+        return true;
+    });
+    m_filteredSongs.resize(std::distance(m_filteredSongs.begin(), it));
+    emit layoutChanged();
 }
 
 
@@ -145,36 +150,36 @@ void TableModelBreakSongs::sort(int column, Qt::SortOrder order)
     emit layoutAboutToBeChanged();
     if (order == Qt::AscendingOrder)
     {
-    std::sort(m_filteredSongs.rbegin(), m_filteredSongs.rend(), [&column] (BreakSong &a, BreakSong &b) {
+        std::sort(m_filteredSongs.begin(), m_filteredSongs.end(), [&column] (BreakSong &a, BreakSong &b) {
             switch (column) {
             case COL_ARTIST:
-                return (a.artist.toLower() > b.artist.toLower());
+                return (a.artist.toLower() < b.artist.toLower());
             case COL_TITLE:
-                return (a.title.toLower() > b.title.toLower());
+                return (a.title.toLower() < b.title.toLower());
             case COL_FILENAME:
-                return (a.filename.toLower() > b.filename.toLower());
+                return (a.filename.toLower() < b.filename.toLower());
             case COL_DURATION:
-                return (a.duration > b.duration);
+                return (a.duration < b.duration);
             default:
-                return (a.id > b.id);
+                return (a.id < b.id);
             }
     });
     }
     else
     {
-        std::sort(m_filteredSongs.begin(), m_filteredSongs.end(), [&column] (BreakSong &a, BreakSong &b) {
-                switch (column) {
-                case COL_ARTIST:
-                    return (a.artist.toLower() > b.artist.toLower());
-                case COL_TITLE:
-                    return (a.title.toLower() > b.title.toLower());
-                case COL_FILENAME:
-                    return (a.filename.toLower() > b.filename.toLower());
-                case COL_DURATION:
-                    return (a.duration > b.duration);
-                default:
-                    return (a.id > b.id);
-                }
+        std::sort(m_filteredSongs.rbegin(), m_filteredSongs.rend(), [&column] (BreakSong &a, BreakSong &b) {
+            switch (column) {
+            case COL_ARTIST:
+                return (a.artist.toLower() < b.artist.toLower());
+            case COL_TITLE:
+                return (a.title.toLower() < b.title.toLower());
+            case COL_FILENAME:
+                return (a.filename.toLower() < b.filename.toLower());
+            case COL_DURATION:
+                return (a.duration < b.duration);
+            default:
+                return (a.id < b.id);
+            }
         });
     }
     emit layoutChanged();
@@ -186,7 +191,7 @@ QMimeData *TableModelBreakSongs::mimeData(const QModelIndexList &indexes) const
     QByteArray encodedData;
     QDataStream stream(&encodedData, QIODevice::WriteOnly);
     QList<int> songids;
-    foreach (const QModelIndex &index, indexes) {
+    for (const QModelIndex &index : indexes) {
         if (index.isValid()) {
             if(index.column() == 4)
                 songids.append(m_filteredSongs.at(index.row()).id);

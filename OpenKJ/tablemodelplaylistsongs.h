@@ -24,14 +24,15 @@ class ItemDelegatePlaylistSongs : public QItemDelegate
     Q_OBJECT
 private:
     int m_currentSong;
-    QIcon m_iconDelete;
-    QIcon m_iconPlaying;
+    QImage m_iconDelete;
+    QImage m_iconPlaying;
+    int m_curFontHeight;
+    void resizeIconsForFont(const QFont &font);
 public:
     explicit ItemDelegatePlaylistSongs(QObject *parent = 0);
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     int currentSong() const;
     void setCurrentSong(int value);
-    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const;
 };
 
 class TableModelPlaylistSongs : public QAbstractTableModel

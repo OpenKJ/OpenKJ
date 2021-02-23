@@ -9,6 +9,7 @@
 #include <QMimeData>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QSvgRenderer>
 #include "settings.h"
 
 extern Settings settings;
@@ -57,7 +58,18 @@ QVariant TableModelPlaylistSongs::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid())
         return QVariant();
-
+    if (role == Qt::ForegroundRole)
+    {
+        if (index.row() == m_currentSongPos)
+            return QColor("black");
+        return QVariant();
+    }
+    if (role == Qt::BackgroundRole)
+    {
+        if (index.row() == m_currentSongPos)
+            return (settings.theme() == 1) ? QColor(180,180,0) : QColor("yellow");
+        return QVariant();
+    }
     if (role == Qt::DisplayRole)
     {
         switch (index.column()) {
@@ -72,7 +84,7 @@ QVariant TableModelPlaylistSongs::data(const QModelIndex &index, int role) const
         case COL_FILENAME:
             return m_songs.at(index.row()).filename;
         case COL_DURATION:
-            return m_songs.at(index.row()).duration;
+            return QTime(0,0,0,0).addSecs(m_songs.at(index.row()).duration).toString("m:ss");
         case COL_PATH:
             return m_songs.at(index.row()).path;
         }
@@ -286,101 +298,50 @@ void ItemDelegatePlaylistSongs::setCurrentSong(int value)
     m_currentSong = value;
 }
 
+void ItemDelegatePlaylistSongs::resizeIconsForFont(const QFont &font)
+{
+    QString thm = (settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
+    m_curFontHeight = QFontMetrics(font).height();
+    m_iconDelete = QImage(m_curFontHeight, m_curFontHeight, QImage::Format_ARGB32);
+    m_iconPlaying = QImage(m_curFontHeight, m_curFontHeight, QImage::Format_ARGB32);
+    m_iconDelete.fill(Qt::transparent);
+    m_iconPlaying.fill(Qt::transparent);
+    QPainter painterDelete(&m_iconDelete);
+    QPainter painterPlaying(&m_iconPlaying);
+    QSvgRenderer svgrndrDelete(thm + "actions/16/edit-delete.svg");
+    QSvgRenderer svgrndrPlaying(thm + "actions/22/media-playback-start.svg");
+    svgrndrDelete.render(&painterDelete);
+    svgrndrPlaying.render(&painterPlaying);
+}
+
 ItemDelegatePlaylistSongs::ItemDelegatePlaylistSongs(QObject *parent) :
     QItemDelegate(parent)
 {
     m_currentSong = -1;
-    QString thm = (settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
-    m_iconDelete = QIcon(thm + "actions/22/edit-delete.svg");
-    m_iconPlaying = QIcon(thm + "actions/22/media-playback-start.svg");
+    resizeIconsForFont(settings.applicationFont());
 }
 
 void ItemDelegatePlaylistSongs::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    QSize sbSize(QFontMetrics(settings.applicationFont()).height(), QFontMetrics(settings.applicationFont()).height());
-    int topPad = (option.rect.height() - sbSize.height()) / 2;
-    int leftPad = (option.rect.width() - sbSize.width()) / 2;
-
-    if (option.state & QStyle::State_Selected)
-    {
-        if (index.column() > 0 && index.column() < 6)
-            painter->fillRect(option.rect, option.palette.highlight());
-        else
-            painter->fillRect(option.rect, (index.row() % 2) ? option.palette.alternateBase() : option.palette.base());
-        //painter->fillRect(option.rect, option.palette.highlight());
-    }
-
-    if (index.row() == m_currentSong && index.column() > 0 && index.column() < 6)
-    {
-        if (option.state & QStyle::State_Selected)
-            painter->fillRect(option.rect, option.palette.highlight());
-        else
-            painter->fillRect(option.rect, (settings.theme() == 1) ? QColor(180,180,0) : QColor("yellow"));
-    }
     if (index.column() == TableModelPlaylistSongs::COL_ID)
     {
         if (index.row() == m_currentSong)
-            painter->drawPixmap(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, sbSize.width(), sbSize.height()), m_iconPlaying.pixmap(sbSize));
-        return;
-    }
-    if (index.column() == TableModelPlaylistSongs::COL_FILENAME)
-    {
-        QFileInfo fi(index.data().toString());
-        QString fn = fi.fileName();
-        painter->save();
-        if (option.state & QStyle::State_Selected)
-            painter->setPen(option.palette.highlightedText().color());
-        else if (index.row() == m_currentSong)
-            painter->setPen(QColor("black"));
-        painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + fn);
-        painter->restore();
-        return;
-    }
-    if (index.column() == TableModelPlaylistSongs::COL_DURATION)
-    {
-        int sec = index.data().toInt();
-        if (sec <= 0)
-            return;
-        QString duration = QTime(0,0,0,0).addSecs(sec).toString("m:ss");
-        painter->save();
-        if (option.state & QStyle::State_Selected)
-            painter->setPen(option.palette.highlightedText().color());
-        else if (index.row() == m_currentSong)
-            painter->setPen(QColor("black"));
-        painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter | Qt::AlignCenter, duration);
-        painter->restore();
+        {
+            int topPad = (option.rect.height() - m_curFontHeight) / 2;
+            int leftPad = (option.rect.width() - m_curFontHeight) / 2;
+            painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, m_curFontHeight, m_curFontHeight),m_iconPlaying);
+        }
         return;
     }
     if (index.column() == TableModelPlaylistSongs::COL_PATH)
     {
-        painter->drawPixmap(QRect(option.rect.x() + leftPad, option.rect.y() + topPad, sbSize.width(), sbSize.height()), m_iconDelete.pixmap(sbSize));
+        int topPad = (option.rect.height() - m_curFontHeight) / 2;
+        int leftPad = (option.rect.width() - m_curFontHeight) / 2;
+        painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, m_curFontHeight, m_curFontHeight),m_iconDelete);
         return;
     }
-    if (index.column() == TableModelPlaylistSongs::COL_DURATION)
-    {
-        painter->drawText(option.rect, Qt::AlignCenter, index.data().toString());
-        return;
-    }
-    painter->save();
-    if (option.state & QStyle::State_Selected)
-        painter->setPen(option.palette.highlightedText().color());
-    if (index.row() == m_currentSong)
-        painter->setPen(QColor("black"));
-    painter->drawText(option.rect, Qt::TextSingleLine | Qt::AlignVCenter, " " + index.data().toString());
-    painter->restore();
+    QItemDelegate::paint(painter, option, index);
 }
-
-
-QSize ItemDelegatePlaylistSongs::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
-{
-    if ((index.column() == 2) || (index.column() == 7))
-    {
-        return QSize(16,16);
-    }
-    else return QItemDelegate::sizeHint(option, index);
-}
-
-
 
 QStringList TableModelPlaylistSongs::mimeTypes() const
 {
@@ -413,18 +374,20 @@ QMimeData *TableModelPlaylistSongs::mimeData(const QModelIndexList &indexes) con
 
 bool TableModelPlaylistSongs::canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const
 {
-    Q_UNUSED(data);
-    Q_UNUSED(action);
     Q_UNUSED(row);
     Q_UNUSED(column);
     Q_UNUSED(parent);
-    return true;
+    if (data->hasFormat("application/plsongids") && action == Qt::MoveAction)
+        return true;
+    if (data->hasFormat("application/vnd.bmsongid.list") && action == Qt::CopyAction)
+        return true;
+    return false;
 }
 
 bool TableModelPlaylistSongs::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
 {
-    Q_UNUSED(action)
     Q_UNUSED(column)
+
     if (data->hasFormat("application/plsongids") && action == Qt::MoveAction)
     {
         QJsonDocument jDoc = QJsonDocument::fromJson(data->data("application/plsongids"));
@@ -464,26 +427,7 @@ bool TableModelPlaylistSongs::dropMimeData(const QMimeData *data, Qt::DropAction
         savePlaylistChanges();
         return true;
     }
-    if (data->hasFormat("integer/queuepos"))
-    {
-        int droprow;
-        if (parent.row() >= 0)
-            droprow = parent.row();
-        else if (row >= 0)
-            droprow = row;
-        else
-            droprow = rowCount() - 1;
-        int oldPosition;
-        QByteArray bytedata = data->data("integer/queuepos");
-        oldPosition =  QString(bytedata.data()).toInt();
-        if ((oldPosition < droprow) && (droprow != rowCount() - 1))
-            moveSong(oldPosition, droprow - 1);
-        else
-            moveSong(oldPosition, droprow);
-        savePlaylistChanges();
-        return true;
-    }
-    if (data->hasFormat("application/vnd.bmsongid.list"))
+    if (data->hasFormat("application/vnd.bmsongid.list") && action == Qt::CopyAction)
     {
         QByteArray encodedData = data->data("application/vnd.bmsongid.list");
         QDataStream stream(&encodedData, QIODevice::ReadOnly);
@@ -502,6 +446,7 @@ bool TableModelPlaylistSongs::dropMimeData(const QMimeData *data, Qt::DropAction
             insertSong(songids.at(i), droprow);
         }
         savePlaylistChanges();
+        return true;
     }
     return false;
 }
