@@ -187,7 +187,7 @@ void TableModelPlaylistSongs::moveSong(const int oldPosition, const int newPosit
 
 void TableModelPlaylistSongs::addSong(const int songId)
 {
-    emit layoutAboutToBeChanged();
+   emit layoutAboutToBeChanged();
    BreakSong bs = m_breakSongsModel.getSong(songId);
    QSqlQuery query;
    query.prepare("INSERT INTO bmplsongs (playlist,position,artist,title,filename,duration,path)"

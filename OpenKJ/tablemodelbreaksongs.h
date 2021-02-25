@@ -31,7 +31,7 @@ public:
     QMimeData *mimeData(const QModelIndexList &indexes) const override;
     Qt::ItemFlags flags(const QModelIndex &index) const override;
     BreakSong &getSong(const int breakSongId);
-    int getSongId(const QString &filePath) const;
+    int getSongId(const QString &filePath);
     void loadDatabase();
     void search(const QString &searchStr);
 

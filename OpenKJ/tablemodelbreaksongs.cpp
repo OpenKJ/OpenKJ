@@ -210,9 +210,9 @@ BreakSong &TableModelBreakSongs::getSong(const int breakSongId)
     return *it;
 }
 
-int TableModelBreakSongs::getSongId(const QString &filePath) const
+int TableModelBreakSongs::getSongId(const QString &filePath)
 {
-    auto it = std::find_if(m_allSongs.begin(), m_allSongs.end(), [&filePath] (BreakSong song) {
+    auto it = std::find_if(m_allSongs.begin(), m_allSongs.end(), [&filePath] (BreakSong &song) {
         return (song.path == filePath);
     });
     if (it == m_allSongs.end())

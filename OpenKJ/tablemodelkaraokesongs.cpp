@@ -201,14 +201,20 @@ void TableModelKaraokeSongs::setSearchType(TableModelKaraokeSongs::SearchType ty
     search(m_lastSearch);
 }
 
-int TableModelKaraokeSongs::getIdForPath(const QString &path) const
+int TableModelKaraokeSongs::getIdForPath(const QString &path)
 {
-    auto it = std::find_if(m_allSongs.begin(), m_allSongs.end(), [&] (KaraokeSong song) {
-        if (song.path == path)
-            return true;
-        return false;
+    auto it = std::find_if(m_allSongs.begin(), m_allSongs.end(), [&] (KaraokeSong &song) {
+        return (song.path == path);
     });
     return it->id;
+}
+
+QString TableModelKaraokeSongs::getPath(const int songId)
+{
+    auto it = std::find_if(m_allSongs.begin(), m_allSongs.end(), [&songId] (KaraokeSong &song) {
+        return (song.id == songId);
+    });
+    return it->path;
 }
 
 void TableModelKaraokeSongs::updateSongHistory(const int id)
@@ -243,6 +249,14 @@ void TableModelKaraokeSongs::updateSongHistory(const int id)
     query.bindValue(":songid", id);
     query.bindValue(":incVal", 1);
     query.exec();
+}
+
+KaraokeSong &TableModelKaraokeSongs::getSong(const int songId)
+{
+    auto it = std::find_if(m_allSongs.begin(), m_allSongs.end(), [&songId] (KaraokeSong song) {
+        return (song.id == songId);
+    });
+    return *it;
 }
 
 void TableModelKaraokeSongs::resizeIconsForFont(const QFont &font)

@@ -37,8 +37,10 @@ public:
     void sort(int column, Qt::SortOrder order) override;
     void search(QString searchString);
     void setSearchType(SearchType type);
-    int getIdForPath(const QString &path) const;
+    int getIdForPath(const QString &path);
+    QString getPath(const int songId);
     void updateSongHistory(const int songid);
+    KaraokeSong &getSong(const int songId);
 
 
 private:

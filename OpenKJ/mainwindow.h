@@ -61,6 +61,7 @@
 #include "dlgvideopreview.h"
 #include "tablemodelhistorysongs.h"
 #include "tablemodelplaylistsongs.h"
+#include "tablemodelqueuesongs.h"
 
 namespace Ui {
 class MainWindow;
@@ -74,8 +75,8 @@ private:
     Ui::MainWindow *ui;
     QSqlDatabase database;
     TableModelKaraokeSongs karaokeSongsModel;
-    TableModelQueueSongs *qModel;
-    ItemDelegateQueueSongs *qDelegate;
+    TableModelQueueSongs qModel{karaokeSongsModel, this};
+    ItemDelegateQueueSongs qDelegate{this};
     TableModelRotationSingers *rotModel;
     TableModelHistorySongs historySongsModel;
     ItemDelegateRotationSingers *rotDelegate;

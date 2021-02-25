@@ -24,6 +24,7 @@
 #include <QBuffer>
 #include <QCryptographicHash>
 #include <chrono>
+#include <QFileInfo>
 
 CdgParser::CdgParser()
 {
@@ -31,31 +32,13 @@ CdgParser::CdgParser()
     reset();
 }
 
-bool CdgParser::open(const QByteArray &byteArray, const bool &bypassReset)
-{
-    //qInfo() << "libCDG - Opening byte array for processing";
-    if (!bypassReset)
-        reset();
-    m_cdgData = byteArray;
-    if (byteArray.size() == 0)
-    {
-        qWarning() << "libCDG - Received zero bytes of CDG data";
-        return false;
-    }
-    //qInfo() << "libCDG - Byte array opened successfully";
-    //m_frameArrays.reserve(byteArray.size() / 24);
-    return true;
-}
-
 bool CdgParser::open(const QString &filename)
 {
-    qInfo() << "libCDG - Opening file: " << filename;
-    reset();
-    QFile file(filename);
-    file.open(QFile::ReadOnly);
-    m_cdgData = file.readAll();
-    file.close();
-    return open(m_cdgData, true);
+    m_cdgFile = filename;
+    QFileInfo fi(m_cdgFile);
+    if (!fi.isReadable() || fi.size() == 0)
+        return false;
+    return true;
 }
 
 unsigned int CdgParser::position()
@@ -73,7 +56,6 @@ void CdgParser::reset()
     m_position = 0;
     m_curHOffset = 0;
     m_curVOffset = 0;
-    m_cdgData = QByteArray();
     QVector<QRgb> palette;
     for (int i=0; i < 16; i++)
         palette.append(QColor(0,0,0).rgb());
@@ -96,15 +78,16 @@ void CdgParser::reset()
 
 bool CdgParser::process()
 {
+    reset();
     qInfo() << "libCDG - Beginning processing of CDG data";
     auto t1 = std::chrono::high_resolution_clock::now();
     cdg::CDG_SubCode subCode;
     int frameno = 0;
     bool needUpdate{true};
-    QBuffer ioDevice(&m_cdgData);
-    if (!ioDevice.open(QIODevice::ReadOnly))
+    QFile file(m_cdgFile);
+    if (!file.open(QIODevice::ReadOnly))
         return false;
-    while (ioDevice.read((char *)&subCode, sizeof(subCode)) > 0)
+    while (file.read((char *)&subCode, sizeof(subCode)) > 0)
     {
         if (readCdgSubcodePacket(subCode))
             needUpdate = true;
@@ -126,9 +109,7 @@ bool CdgParser::process()
             needUpdate = false;
         }
     }
-
-    ioDevice.close();
-    m_cdgData.clear();
+    file.close();
     m_isOpen = true;
     auto t2 = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( t2 - t1 ).count();
@@ -293,7 +274,7 @@ QString CdgParser::md5HashByTime(const unsigned int ms)
 
 unsigned int CdgParser::duration()
 {
-    return m_cdgData.size() * 40;
+    return QFileInfo(m_cdgFile).size() * 40;
 }
 
 bool CdgParser::isOpen()

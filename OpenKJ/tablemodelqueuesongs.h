@@ -1,79 +1,79 @@
-/*
- * Copyright (c) 2013-2019 Thomas Isaac Lightburn
- *
- *
- * This file is part of OpenKJ.
- *
- * OpenKJ is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+#ifndef TABLEMODELQUEUESONGSNEW_H
+#define TABLEMODELQUEUESONGSNEW_H
 
-#ifndef QUEUEMODEL_H
-#define QUEUEMODEL_H
-
-#include <QSqlRelationalTableModel>
-#include <QMimeData>
-#include <QStringList>
-#include <QUrl>
-#include <QIcon>
-#include <QPainter>
-#include <QStyleOptionViewItem>
+#include <QAbstractTableModel>
 #include <QItemDelegate>
+#include <QModelIndex>
+#include <QPainter>
+#include <QUrl>
+#include "tablemodelkaraokesongs.h"
+
+struct QueueSong {
+    int id{0};
+    int singerId{0};
+    int dbSongId{0};
+    bool played{false};
+    int keyChange{0};
+    int position{0};
+    QString artist;
+    QString title;
+    QString songId;
+    int duration{0};
+    QString path;
+};
 
 class ItemDelegateQueueSongs : public QItemDelegate
 {
     Q_OBJECT
 private:
-    QIcon delete16;
-    QIcon delete22;
+    int m_currentSong;
+    QImage m_iconDelete;
+    QImage m_iconPlaying;
+    int m_curFontHeight;
+    void resizeIconsForFont(const QFont &font);
 public:
     explicit ItemDelegateQueueSongs(QObject *parent = 0);
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
-
 };
 
-class TableModelQueueSongs : public QSqlRelationalTableModel
+class TableModelQueueSongs : public QAbstractTableModel
 {
     Q_OBJECT
 
-private:
-    int m_singerId;
-
 public:
-    explicit TableModelQueueSongs(QObject *parent = 0, QSqlDatabase db = QSqlDatabase());
-    void setSinger(int singerId);
-    int singer();
-    int getSongPosition(int songId);
-    bool getSongPlayed(int songId);
-    int getSongKey(int songId);
-    void songMove(int oldPosition, int newPosition);
-    void songMoveSongId(int songId, int newPosition);
-    void songAdd(int songId);
-    void songInsert(int songId, int position);
-    void songDelete(int songId);
-    void songSetKey(int songId, int semitones);
-    void songSetPlayed(int qSongId, bool played = true);
-    void clearQueue();
-    QStringList mimeTypes() const;
-    bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent);
-    bool canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const;
-    Qt::DropActions supportedDropActions() const;
-    QMimeData *mimeData(const QModelIndexList &indexes) const;
-    Qt::ItemFlags flags(const QModelIndex &index) const;
-    void sort(int column, Qt::SortOrder order);
+    enum {COL_ID=0,COL_DBSONGID,COL_ARTIST,COL_TITLE,COL_SONGID,COL_KEY,COL_DURATION,COL_PATH};
+    explicit TableModelQueueSongs(TableModelKaraokeSongs &karaokeSongsModel, QObject *parent = nullptr);
+    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+    QStringList mimeTypes() const override;
+    QMimeData *mimeData(const QModelIndexList &indexes) const override;
+    bool canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const override;
+    bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
+    Qt::DropActions supportedDropActions() const override;
+    Qt::ItemFlags flags(const QModelIndex &index) const override;
+    void sort(int column, Qt::SortOrder order) override;
 
-protected:
-    QString orderByClause() const;
+    void loadSinger(const int singerId);
+    int getSingerId() const { return m_curSingerId; }
+    int getPosition(const int songId);
+    bool getPlayed(const int songId);
+    int getKey(const int songId);
+    void move(const int oldPosition, const int newPosition);
+    void moveSongId(const int songId, const int newPosition);
+    int add(const int songId);
+    void insert(const int songId, const int position);
+    void remove(const int songId);
+    void setKey(const int songId, const int semitones);
+    void setPlayed(const int qSongId, const bool played = true);
+    void removeAll();
+    void commitChanges();
+
+private:
+    int m_curSingerId{0};
+    TableModelKaraokeSongs &m_karaokeSongsModel;
+    std::vector<QueueSong> m_songs;
 
 signals:
     void queueModified(int singerId);
@@ -81,18 +81,9 @@ signals:
     void filesDroppedOnSinger(QList<QUrl> urls, int singerId, int position);
     void qSongsMoved(const int startRow, const int startCol, const int endRow, const int endCol);
 
-
 public slots:
     void songAddSlot(int songId, int singerId, int keyChg = 0);
 
-
-    // QAbstractItemModel interface
-public:
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
-
-    // QAbstractItemModel interface
-public:
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
 };
 
-#endif // QUEUEMODEL_H
+#endif // TABLEMODELQUEUESONGSNEW_H

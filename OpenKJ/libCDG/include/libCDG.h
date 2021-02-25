@@ -201,7 +201,6 @@ class CdgParser
 {
 public:
     CdgParser();
-    bool open(const QByteArray &byteArray, const bool &bypassReset = false);
     bool open(const QString &filename);
     bool process();
     void reset();
@@ -223,11 +222,11 @@ private:
     int m_borderRBytesOffset;
     int m_curVOffset;
     int m_curHOffset;
+    QString m_cdgFile;
     unsigned int m_position;
     unsigned int m_lastCDGCommandMS;
     bool m_isOpen;
     bool m_lastCmdWasMempreset{false};
-    QByteArray m_cdgData;
     std::array<uchar, cdg::CDG_IMAGE_SIZE> blank;
     inline constexpr static std::array<char,6> m_masks{0x20,0x10,0x08,0x04,0x02,0x01};
     std::vector<std::array<uchar, cdg::CDG_IMAGE_SIZE>> m_frameArrays;

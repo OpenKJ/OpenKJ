@@ -33,7 +33,7 @@ DlgKeyChange::DlgKeyChange(TableModelQueueSongs *queueModel, QWidget *parent) :
 void DlgKeyChange::setActiveSong(int songId)
 {
     m_activeSong = songId;
-    ui->spinBoxKey->setValue(qModel->getSongKey(m_activeSong));
+    ui->spinBoxKey->setValue(qModel->getKey(m_activeSong));
 }
 
 DlgKeyChange::~DlgKeyChange()
@@ -43,7 +43,7 @@ DlgKeyChange::~DlgKeyChange()
 
 void DlgKeyChange::on_buttonBox_accepted()
 {
-    qModel->songSetKey(m_activeSong, ui->spinBoxKey->value());
+    qModel->setKey(m_activeSong, ui->spinBoxKey->value());
     close();
 }
 
