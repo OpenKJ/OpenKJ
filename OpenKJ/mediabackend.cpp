@@ -27,6 +27,7 @@
 #include <gst/audio/streamvolume.h>
 #include <gst/gstdebugutils.h>
 #include "settings.h"
+#include "softwarerendervideosink.h"
 #include <QDir>
 #include <QProcess>
 #include <functional>
@@ -43,18 +44,12 @@ std::atomic<bool> g_appSrcNeedData{false};
 MediaBackend::MediaBackend(QObject *parent, QString objectName, MediaType type) :
     QObject(parent), m_objName(objectName), m_type(type), m_loadPitchShift(type == Karaoke)
 {
-    qInfo() << "Start constructing GStreamer backend";
     Settings settings;
-    if (!settings.hardwareAccelEnabled())
-    {
-        qInfo() << "Hardware accelerated video rendering disabled";
-        m_videoAccelEnabled = false;
-    }
-    else
-    {
-        qInfo() << "Hardware accelerated video rendering enabled";
-        m_videoAccelEnabled = true;
-    }
+
+    qInfo() << "Start constructing GStreamer backend";
+    m_videoAccelEnabled = settings.hardwareAccelEnabled();
+    qInfo() << "Hardware accelerated video rendering" << (m_videoAccelEnabled ? "enabled" : "disabled");
+
     QMetaTypeId<std::shared_ptr<GstMessage>>::qt_metatype_id();
     buildPipeline();
     getAudioOutputDevices();
@@ -71,6 +66,16 @@ void MediaBackend::setVideoEnabled(const bool &enabled)
         m_videoEnabled = enabled;
         patchPipelineSinks();
     }
+}
+
+bool MediaBackend::hasActiveVideo()
+{
+    if (m_videoEnabled && m_hasVideo)
+    {
+        auto st = state();
+        return st == PlayingState || st == PausedState;
+    }
+    return false;
 }
 
 void MediaBackend::writePipelineGraphToFile(GstBin *bin, QString filePath, QString fileName)
@@ -117,12 +122,17 @@ void MediaBackend::setEnforceAspectRatio(const bool &enforce)
 {
     m_enforceAspectRatio = enforce;
 
-    if (!m_videoAccelEnabled)
-        return;
-
-    for (auto &vd : m_videoSinks)
+    for (auto &vs : m_videoSinks)
     {
-        g_object_set(vd.videoSink, "force-aspect-ratio", enforce, nullptr);
+        if (vs.softwareRenderVideoSink)
+        {
+            g_object_set(vs.videoScale, "add-borders", enforce, nullptr);
+        }
+        else
+        {
+            // natively support the property force-aspect-ratio
+            g_object_set(vs.videoSink, "force-aspect-ratio", enforce, nullptr);
+        }
     }
 }
 
@@ -145,6 +155,12 @@ MediaBackend::~MediaBackend()
     {
        g_object_unref(device);
     }
+
+    for (auto &vs : m_videoSinks)
+    {
+        delete vs.softwareRenderVideoSink;
+    }
+
     // Uncomment the following when running valgrind to eliminate noise
 //    if (gst_is_initialized())
 //        gst_deinit();
@@ -182,77 +198,6 @@ MediaBackend::State MediaBackend::state()
         return StoppedState;
     }
 }
-
-
-// START OF METHODS FOR SOFTWARE RENDERING / NO VIDEO ACCELERATION
-// --------------------------------------------------------------------------------------
-
-GstFlowReturn MediaBackend::NewSampleCallback(GstAppSink *appsink, gpointer user_data)
-{
-    MediaBackend *myObject = (MediaBackend*) user_data;
-
-    if (myObject->pullFromSinkAndEmitNewVideoFrame(appsink))
-    {
-        return GST_FLOW_OK;
-    }
-    else
-    {
-        return gst_app_sink_is_eos(appsink) ? GST_FLOW_EOS : GST_FLOW_ERROR;
-    }
-}
-
-bool MediaBackend::pullFromSinkAndEmitNewVideoFrame(GstAppSink *appSink)
-{
-    GstSample* sample = gst_app_sink_pull_sample(appSink);
-
-    if (sample)
-    {
-        if (m_videoEnabled)
-        {
-            GstBuffer *buffer;
-            GstMapInfo bufferInfo;
-            GstCaps *caps;
-            GstStructure *s;
-            const gchar *format;
-            bool isIndexed8;
-            int width, height;
-
-            caps = gst_sample_get_caps(sample);
-            s = gst_caps_get_structure(caps, 0);
-            gst_structure_get_int(s, "width", &width);
-            gst_structure_get_int(s, "height", &height);
-            format = gst_structure_get_string(s, "format");
-
-            isIndexed8 = strcmp(format, "RGB8P") == 0;
-
-            buffer = gst_sample_get_buffer (sample);
-
-            gst_buffer_map(buffer, &bufferInfo, GST_MAP_READ);
-            guint8 *rawFrame = bufferInfo.data;
-
-            QImage frame(rawFrame, width, height, isIndexed8 ? QImage::Format_Indexed8 : QImage::Format_RGB16);
-
-            if (isIndexed8)
-            {
-                // Last 1024 bytes is the color table
-                auto colors = QVector<QRgb>(1024 / sizeof(QRgb));
-                memcpy(colors.data(), rawFrame + bufferInfo.size - 1024, 1024);
-                frame.setColorTable(colors);
-            }
-
-            emit newVideoFrame(frame, m_objName);
-
-            gst_buffer_unmap(buffer, &bufferInfo);
-        }
-        gst_sample_unref(sample);
-        return true;
-    }
-    return false;
-}
-
-// END OF METHODS FOR SOFTWARE RENDERING / NO VIDEO ACCELERATION
-// ------------------------------------------------------------------
-
 
 void MediaBackend::play()
 {
@@ -339,8 +284,6 @@ void MediaBackend::resetPipeline()
 {
     // Stop pipeline
     gst_element_set_state(m_pipeline, GST_STATE_NULL);
-    // - and wait for state change...
-    gst_element_get_state(m_pipeline, nullptr, nullptr, GST_CLOCK_TIME_NONE);
 
     m_hasVideo = false;
     gst_element_unlink(m_decoder, m_audioBin);
@@ -378,6 +321,7 @@ void MediaBackend::patchPipelineSinks()
             {
                 gst_element_unlink(currentSrc, m_audioBin);
                 gst_bin_remove(m_pipelineAsBin, m_audioBin);
+                gst_element_set_state(m_audioBin, GST_STATE_NULL);
             }
         }
     }
@@ -392,6 +336,7 @@ void MediaBackend::patchPipelineSinks()
             gst_bin_add(m_pipelineAsBin, m_videoBin);
             gst_element_link_pads(m_videoSrcPad->element, m_videoSrcPad->pad.c_str(), m_videoBin, "sink");
             gst_element_sync_state_with_parent(m_videoBin);
+            emit hasActiveVideoChanged(true);
         }
         else
         if(isLinked && !(m_videoSrcPad && m_videoEnabled))
@@ -399,9 +344,11 @@ void MediaBackend::patchPipelineSinks()
             auto currentSrc = gsthlp_get_peer_element(m_videoBin, "sink");
             if (currentSrc)
             {
+                m_hasVideo = false;
                 gst_element_unlink(currentSrc, m_videoBin);
                 gst_bin_remove(m_pipelineAsBin, m_videoBin);
-                m_hasVideo = false;
+                gst_element_set_state(m_videoBin, GST_STATE_NULL);
+                emit hasActiveVideoChanged(false);
             }
         }
     }
@@ -470,8 +417,7 @@ void MediaBackend::stop(const bool &skipFade)
     if (state() == MediaBackend::PausedState)
     {
         qInfo() << m_objName << " - AudioBackendGstreamer::stop -- Stopping paused song";
-        gst_element_set_state(m_pipeline, GST_STATE_NULL);
-        emit stateChanged(MediaBackend::StoppedState);
+        stopPipeline();
         qInfo() << m_objName << " - stop() completed";
         m_fader->immediateIn();
         return;
@@ -484,23 +430,20 @@ void MediaBackend::stop(const bool &skipFade)
             fadeOut(true);
             qInfo() << m_objName << " - AudioBackendGstreamer::stop -- Fading complete";
             qInfo() << m_objName << " - AudioBackendGstreamer::stop -- Stoping playback";
-            gst_element_set_state(m_pipeline, GST_STATE_NULL);
-            emit stateChanged(MediaBackend::StoppedState);
+            stopPipeline();
             m_fader->immediateIn();
             return;
         }
     }
     qInfo() << m_objName << " - AudioBackendGstreamer::stop -- Stoping playback without fading";
-    gst_element_set_state(m_pipeline, GST_STATE_NULL);
-    emit stateChanged(MediaBackend::StoppedState);
+    stopPipeline();
     qInfo() << m_objName << " - stop() completed";
 }
 
 void MediaBackend::rawStop()
 {
     qInfo() << m_objName << " - rawStop() called, just ending gstreamer playback";
-    gst_element_set_state(m_pipeline, GST_STATE_NULL);
-    emit stateChanged(MediaBackend::StoppedState);
+    stopPipeline();
 }
 
 void MediaBackend::timerFast_timeout()
@@ -668,7 +611,7 @@ gboolean MediaBackend::gstBusFunc([[maybe_unused]]GstBus *bus, GstMessage *messa
             }
             else if (state == GST_STATE_NULL && mb->m_lastState != MediaBackend::StoppedState)
             {
-                mb->m_hasVideo = false;
+                // this code is probably never reached as state changes to NULL are not reported...
                 qInfo() << "GST notified of state change to STOPPED";
                 if (mb->m_lastState != MediaBackend::StoppedState)
                 {
@@ -762,6 +705,7 @@ void MediaBackend::buildCdgSrc()
                 "format", G_TYPE_STRING, "RGB8P",
                 "width",  G_TYPE_INT, cdg::FRAME_DIM_CROPPED.width(),
                 "height", G_TYPE_INT, cdg::FRAME_DIM_CROPPED.height(),
+                "pixel-aspect-ratio", GST_TYPE_FRACTION, 1, 1,
                 NULL);
     g_object_set(G_OBJECT(m_cdgAppSrc), "caps", appSrcCaps, NULL);
     gst_caps_unref(appSrcCaps);
@@ -787,37 +731,9 @@ void MediaBackend::buildVideoSinkBin()
     gst_element_add_pad(m_videoBin, ghostVideoPad);
     gst_object_unref(queuePad);
 
-    if (m_videoAccelEnabled)
-    {
-        // queue -> tee -> [ queue -> converter -> window control ]
-        m_hardware_accel_videoTee = gst_element_factory_make("tee", "videoTee");
-        gst_bin_add(reinterpret_cast<GstBin *>(m_videoBin), m_hardware_accel_videoTee);
-        gst_element_link(queueMainVideo, m_hardware_accel_videoTee);
-    }
-    else
-    {   // No video acceleration
-        // queue -> converter -> videoAppSink
-
-        auto videoConv = gst_element_factory_make("videoconvert", "sw-videoconvert");
-
-        GstAppSinkCallbacks appsinkCallbacks;
-        appsinkCallbacks.new_preroll	= nullptr;
-        appsinkCallbacks.new_sample		= &MediaBackend::NewSampleCallback;
-        appsinkCallbacks.eos			= nullptr;
-        auto videoSink = gst_element_factory_make("appsink", "videoAppSink");
-
-        // Formats we can handle:
-        auto caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB16", NULL);
-        gst_caps_append(caps, gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGB8P", NULL));
-        g_object_set(videoSink, "caps", caps, NULL);
-
-        // todo: check if performance is better if we simply let gstreamer videoconvert do the conversation from indexed 8-bit to rgb instead of QImage...
-
-        gst_app_sink_set_callbacks(GST_APP_SINK(videoSink), &appsinkCallbacks, this, nullptr);
-
-        gst_bin_add_many(reinterpret_cast<GstBin *>(m_videoBin), videoConv,  videoSink, nullptr);
-        gst_element_link_many(queueMainVideo, videoConv, videoSink, nullptr);
-    }
+    m_videoTee = gst_element_factory_make("tee", "videoTee");
+    gst_bin_add(reinterpret_cast<GstBin *>(m_videoBin), m_videoTee);
+    gst_element_link(queueMainVideo, m_videoTee);
 }
 
 void MediaBackend::buildAudioSinkBin()
@@ -982,6 +898,15 @@ void MediaBackend::padAddedToDecoder_cb(GstElement *element,  GstPad *pad, gpoin
     }
 }
 
+void MediaBackend::stopPipeline()
+{
+    gst_element_set_state(m_pipeline, GST_STATE_NULL);
+    m_lastState = MediaBackend::StoppedState;
+    m_hasVideo = false;
+    emit stateChanged(MediaBackend::StoppedState);
+    emit hasActiveVideoChanged(false);
+}
+
 void MediaBackend::resetVideoSinks()
 {
     if (!m_videoAccelEnabled)
@@ -989,7 +914,7 @@ void MediaBackend::resetVideoSinks()
 
     for(auto &vs : m_videoSinks)
     {
-        gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(vs.videoSink), vs.windowId);
+        gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(vs.videoSink), vs.surface->winId());
     }
 }
 
@@ -1172,34 +1097,39 @@ void MediaBackend::setAudioOutputDevice(int deviceIndex)
     gst_element_link(m_aConvEnd, m_audioSink);
 }
 
-void MediaBackend::setHWVideoOutputDevices(std::vector<WId> videoWinIds)
+void MediaBackend::setVideoOutputWidgets(std::vector<QWidget*> surfaces)
 {
-    if (!m_videoAccelEnabled)
-        return;
-
     if (m_videoSinks.size() > 0)
     {
-        throw std::runtime_error(("Video output device(s) already set."));
+        throw std::runtime_error(("Video output widget(s) already set."));
     }
 
     int i = 0;
 
-    for (auto wid : videoWinIds)
+    for (auto &surface : surfaces)
     {
         i++;
         VideoSinkData vd;
-        vd.windowId = wid;
 
-        auto sinkElementName = getVideoSinkElementNameForFactory();
+        vd.surface = surface;
 
-        vd.videoSink = gst_element_factory_make(sinkElementName, QString("videoSink%1").arg(i).toLocal8Bit());
+        if (m_videoAccelEnabled)
+        {
+            auto sinkElementName = getVideoSinkElementNameForFactory();
+            vd.videoSink = gst_element_factory_make(sinkElementName, QString("videoSink%1").arg(i).toLocal8Bit());
+        }
+        else
+        {
+            vd.softwareRenderVideoSink = new SoftwareRenderVideoSink(surface);
+            vd.videoSink = GST_ELEMENT(vd.softwareRenderVideoSink->getSink());
+        }
 
         auto videoQueue = gst_element_factory_make("queue", QString("videoqueue%1").arg(i).toLocal8Bit());
         auto videoConv = gst_element_factory_make("videoconvert", QString("preOutVideoConvert%1").arg(i).toLocal8Bit());
-        auto videoScale = gst_element_factory_make("videoscale", QString("videoScale%1").arg(i).toLocal8Bit());
+        vd.videoScale = gst_element_factory_make("videoscale", QString("videoScale%1").arg(i).toLocal8Bit());
 
-        gst_bin_add_many(GST_BIN(m_videoBin), videoQueue, videoConv, videoScale, vd.videoSink, nullptr);
-        gst_element_link_many(m_hardware_accel_videoTee, videoQueue, videoConv, videoScale, vd.videoSink, nullptr);
+        gst_bin_add_many(GST_BIN(m_videoBin), videoQueue, videoConv, vd.videoScale, vd.videoSink, nullptr);
+        gst_element_link_many(m_videoTee, videoQueue, videoConv, vd.videoScale, vd.videoSink, nullptr);
 
         m_videoSinks.push_back(vd);
     }

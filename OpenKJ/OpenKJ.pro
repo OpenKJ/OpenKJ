@@ -140,6 +140,7 @@ SOURCES += main.cpp\
     okjutil.h \
     dlgvideopreview.cpp \
     mainwindow.cpp \
+    softwarerendervideosink.cpp \
     sourcedirtablemodel.cpp \
     dbupdatethread.cpp \
     dlgkeychange.cpp \
@@ -312,6 +313,7 @@ HEADERS  += mainwindow.h \
     miniz.h \
     mzarchive.h \
     okjutil.h \
+    softwarerendervideosink.h \
     dbupdatethread.h \
     dlgkeychange.h \
     dlgdatabase.h \

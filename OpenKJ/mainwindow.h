@@ -127,6 +127,8 @@ private:
     void bmAddPlaylist(QString title);
     bool bmPlaylistExists(QString name);
     MediaBackend::State m_lastAudioState{MediaBackend::StoppedState};
+    bool m_kHasActiveVideo { false };
+    bool m_bmHasActiveVideo { false };
     void refreshSongDbCache();
     QTimer m_timerKaraokeAA;
     UpdateChecker *checker;
@@ -206,6 +208,7 @@ private slots:
     void sfxAudioBackend_positionChanged(const qint64 &position);
     void sfxAudioBackend_durationChanged(const qint64 &duration);
     void sfxAudioBackend_stateChanged(const MediaBackend::State &state);
+    void on_hasActiveVideoChanged();
     void on_sliderProgress_sliderMoved(const int &position);
     void on_buttonRegulars_clicked();
     void rotationDataChanged();
@@ -226,8 +229,6 @@ private slots:
     void previewCdg();
     void editSong();
     void markSongBad();
-    void setShowBgImage(const bool &show);
-    void onBgImageChange();
     void karaokeAATimerTimeout();
     void timerButtonFlashTimeout();
     void autosizeViews();
@@ -327,7 +328,6 @@ private slots:
     void on_actionCDG_Decode_Torture_triggered();
     void on_actionWrite_Gstreamer_pipeline_dot_files_triggered();
 
-    void videoFrameReceived(QImage frame, QString backendName);
 
     void on_comboBoxSearchType_currentIndexChanged(int index);
 

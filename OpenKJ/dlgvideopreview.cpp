@@ -17,7 +17,7 @@ DlgVideoPreview::DlgVideoPreview(const QString &mediaFilePath, QWidget *parent) 
     });
 
     //m_mediaBackend.setVolume(0);
-    m_mediaBackend.setHWVideoOutputDevices({ui->videoDisplay->winId()});
+    m_mediaBackend.setVideoOutputWidgets({ ui->videoDisplay });
     // todo: should we set silence detection off?
 
     if (m_mediaFilename.endsWith(".zip", Qt::CaseInsensitive))

@@ -35,6 +35,7 @@
 #include <QMutex>
 #include <QImage>
 #include "audiofader.h"
+#include "softwarerendervideosink.h"
 #include <QPointer>
 #include <memory>
 #include <array>
@@ -88,9 +89,10 @@ public:
     bool isSilent();
     void setAccelType(const accel &type=accel::XVideo) { m_accelMode = type; }
     void setAudioOutputDevice(int deviceIndex);
-    void setHWVideoOutputDevices(std::vector<WId> videoWinIds);
+    void setVideoOutputWidgets(std::vector<QWidget*> surfaces);
     void setVideoEnabled(const bool &enabled);
     bool isVideoEnabled() { return m_videoEnabled; }
+    bool hasActiveVideo();
     bool isCdgMode() { return m_cdgMode; }
     int getVolume() { return m_volume; }
 
@@ -125,8 +127,10 @@ private:
     };
 
     struct VideoSinkData {
-        WId windowId { 0 };
+        QWidget *surface { nullptr };
         GstElement *videoSink { nullptr };
+        GstElement *videoScale { nullptr };
+        SoftwareRenderVideoSink *softwareRenderVideoSink { nullptr };
     };
 
     QString m_objName;
@@ -168,7 +172,7 @@ private:
     /* VIDEO SINK */
     GstElement *m_videoBin { nullptr }; // GstBin
     GstElement *m_queueMainVideo { nullptr };
-    GstElement *m_hardware_accel_videoTee { nullptr };
+    GstElement *m_videoTee { nullptr };
 
     std::vector<VideoSinkData> m_videoSinks;
 
@@ -223,15 +227,12 @@ private:
     static void cb_enough_data(GstElement *appsrc, gpointer user_data);
     static gboolean cb_seek_data(GstElement *appsrc, guint64 position, gpointer user_data);
 
-    // AppSink for software rendering (no HW accel)
-    static GstFlowReturn NewSampleCallback(GstAppSink *appsink, gpointer user_data);
-    bool pullFromSinkAndEmitNewVideoFrame(GstAppSink *appSink);
-
     static gboolean gstBusFunc(GstBus *bus, GstMessage *message, gpointer user_data);
 
     static void NoMorePadsCallback(GstElement *gstelement, gpointer data);
     static void padAddedToDecoder_cb(GstElement *element,  GstPad *pad, gpointer caller);
 
+    void stopPipeline();
     void resetPipeline();
     void patchPipelineSinks();
 
@@ -273,11 +274,10 @@ signals:
     void mutedChanged(const bool);
     void positionChanged(const qint64);
     void stateChanged(const State);
-    void videoAvailableChanged(const bool);
+    void hasActiveVideoChanged(const bool);
     void volumeChanged(const int);
     void silenceDetected();
-    void pitchChanged(const int);
-    void newVideoFrame(const QImage &frame, const QString &backendName);
+    void pitchChanged(const int);    
     void audioError(const QString &msg);
 
 };

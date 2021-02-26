@@ -4,29 +4,20 @@
 #include <QWidget>
 #include <QBoxLayout>
 #include <QResizeEvent>
-#include "mediabackend.h"
-
-
 
 class VideoDisplay : public QWidget
 {
     Q_OBJECT
 private:
     QPixmap m_currentBg;
-    QPixmap m_curFrame;
     bool m_useDefaultBg{true};
-    MediaBackend *kmb{nullptr};
-    MediaBackend *bmb{nullptr};
-    bool videoIsPlaying();
-    bool m_softwareRenderMode{false};
-    bool m_keepAspectRatio{true};
+    bool m_hasActiveVideo { false };
+    bool m_fillOnPaint { false };
+    bool m_repaintBackgroundOnce { false };
 
 public:
     explicit VideoDisplay(QWidget *parent = nullptr);
-    void setMediaBackends(MediaBackend *k, MediaBackend *b) { kmb = k; bmb = b; }
-    void renderFrame(QImage frame);
-    void setSoftwareRenderMode(bool enabled) { m_softwareRenderMode = enabled; if (!enabled) update(); }
-    void setKeepAspectRatio(const bool enabled) { m_keepAspectRatio = enabled; }
+    bool hasActiveVideo() { return m_hasActiveVideo; }
 
 signals:
     void mouseMoveEvent(QMouseEvent *event) override;
@@ -34,12 +25,17 @@ signals:
 public slots:
     void setBackground(const QPixmap &pixmap);
     void useDefaultBackground();
+    void setHasActiveVideo(const bool &value);
+
+    /**
+     * @brief Fill with black on paint event when video is playing.
+     * Video in HW mode seems to only paint black borders when the control is resized.
+     * This causes some glitches in the monitor window when changing between tabs.
+     * Set this property to start each paint event with a black fill.
+     */
+    void setFillOnPaint(const bool &value) { m_fillOnPaint = value; }
 protected:
     void paintEvent(QPaintEvent *event) override;
-
-    // QWidget interface
-protected:
-    void resizeEvent(QResizeEvent *event) override;
 };
 
 

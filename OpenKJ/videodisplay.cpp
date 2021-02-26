@@ -3,17 +3,9 @@
 #include <QPaintEvent>
 #include <QSvgRenderer>
 
-bool VideoDisplay::videoIsPlaying()
-{
-    if (kmb->state() != MediaBackend::PlayingState && kmb->state() != MediaBackend::PausedState &&
-            (!bmb->hasVideo() || (bmb->state() != MediaBackend::PlayingState && bmb->state() != MediaBackend::PausedState)))
-        return false;
-    return true;
-}
-
 VideoDisplay::VideoDisplay(QWidget *parent) : QWidget(parent)
 {
-
+    setAttribute(Qt::WA_OpaquePaintEvent, true);
     setAttribute(Qt::WA_NoSystemBackground, true);
     auto palette = this->palette();
     palette.setColor(QPalette::Window, Qt::black);
@@ -21,111 +13,65 @@ VideoDisplay::VideoDisplay(QWidget *parent) : QWidget(parent)
     setMouseTracking(true);
 }
 
-void VideoDisplay::renderFrame(QImage frame)
-{
-    m_curFrame = QPixmap::fromImage(frame);
-    update();
-}
 
 void VideoDisplay::setBackground(const QPixmap &pixmap)
 {
     m_useDefaultBg = false;
     m_currentBg = pixmap;
-    if (!videoIsPlaying())
-        update();
+    update();
 }
 
 void VideoDisplay::useDefaultBackground()
 {
     m_useDefaultBg = true;
-    if (!videoIsPlaying())
+    update();
+}
+
+void VideoDisplay::setHasActiveVideo(const bool &value)
+{
+    if (m_hasActiveVideo != value)
+    {
+        if (value)
+        {
+            // Switching to having video.
+            // Make sure the background is painted black initially to prevent
+            // any old buffer from "bleeding though" when in HW mode.
+            m_repaintBackgroundOnce = true;
+        }
+        m_hasActiveVideo = value;
         update();
+    }
 }
 
 void VideoDisplay::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
-    if (!m_softwareRenderMode)
+
+    if (m_hasActiveVideo)
     {
-        if(videoIsPlaying())
+        // playing - fix black bars in hw mode (event is not called in sw mode when playing).
+        // (perhaps simplify all this by always using fillOnPaint. Performance should be measured though.)
+        if (m_fillOnPaint || m_repaintBackgroundOnce)
         {
             painter.fillRect(event->rect(), Qt::black);
-            return;
+            m_repaintBackgroundOnce = false;
         }
-        if (m_useDefaultBg)
-        {
-            QSvgRenderer renderer(QString(":icons/Icons/okjlogo.svg"));
-            renderer.render(&painter);
-            return;
-        }
-        painter.fillRect(event->rect(), Qt::black);
-        painter.drawPixmap(rect(), m_currentBg, m_currentBg.rect());
     }
     else
     {
-        if (m_keepAspectRatio)
+        // stopped - draw background image
+        painter.fillRect(event->rect(), Qt::black);
+        if (m_useDefaultBg)
         {
-            double widgetWidth = this->width();
-            double widgetHeight = this->height();
-            QRectF target(0, 0, widgetWidth, widgetHeight);
-
-            QPixmap tempQImage = m_curFrame.scaled(rect().size(), Qt::KeepAspectRatio, Qt::FastTransformation);
-
-            double imageSizeWidth = static_cast<double>(tempQImage.width());
-            double imageSizeHeight = static_cast<double>(tempQImage.height());
-            QRectF source(0.0, 0.0, imageSizeWidth, imageSizeHeight);
-
-            int deltaX = 0;
-            int deltaY = 0;
-            if(source.width() < target.width())
-                deltaX = target.width() - source.width();
-            else
-                deltaX = source.width() - target.width();
-
-            if(source.height() < target.height())
-                deltaY = target.height() - source.height();
-            else
-                deltaY = source.height() - target.height();
-
-            QPainter painter(this);
-            painter.setBackground(Qt::black);
-            painter.fillRect(this->rect(), Qt::black);
-            painter.translate(deltaX / 2, deltaY / 2);
-            painter.drawPixmap(source, tempQImage, tempQImage.rect());
-//            auto scaled = m_curFrame.scaled(width(),height(),Qt::KeepAspectRatio, Qt::SmoothTransformation);
-//            QRect rect = QRect((width() - scaled.width()) / 2, (height() - scaled.height()) / 2, scaled.width(), scaled.height());
-//            painter.drawPixmap(this->rect(), scaled, rect);
+            QSvgRenderer renderer(QString(":icons/Icons/okjlogo.svg"));
+#if (QT_VERSION >= QT_VERSION_CHECK(5,15,0))
+            renderer.setAspectRatioMode(Qt::KeepAspectRatio);
+#endif
+            renderer.render(&painter);
         }
         else
         {
-            auto scaled = m_curFrame.scaled(width(),height(),Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-            painter.drawPixmap(rect(), scaled, scaled.rect());
+            painter.drawPixmap(rect(), m_currentBg, m_currentBg.rect());
         }
     }
 }
-
-void VideoDisplay::resizeEvent(QResizeEvent *event)
-{
-    QWidget::resizeEvent(event);
-//    QPainter painter(this);
-//    if(videoIsPlaying())
-//    {
-//        painter.fillRect(rect(), Qt::black);
-//        return;
-//    }
-//    if (m_useDefaultBg)
-//    {
-//        QSvgRenderer renderer(QString(":icons/Icons/okjlogo.svg"));
-//#if (QT_VERSION >= QT_VERSION_CHECK(5,15,0))
-//        renderer.setAspectRatioMode(Qt::KeepAspectRatio);
-//#endif
-//        renderer.render(&painter);
-//        return;
-//    }
-//    painter.fillRect(rect(), Qt::black);
-//    painter.drawPixmap(rect(), m_currentBg, m_currentBg.rect());
-}
-
-
-
-

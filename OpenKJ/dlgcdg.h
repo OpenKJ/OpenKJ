@@ -99,7 +99,6 @@ class DlgCdg : public QDialog
 
 private:
     Ui::DlgCdg *ui;
-    bool m_showBgImage{false};
     bool m_fullScreen{false};
     int m_countdownPos{0};
     QRect m_lastSize;
@@ -119,11 +118,13 @@ public:
     void stopTicker();
     WId getCdgWinId();
     VideoDisplay* getVideoDisplay();
+    void slideShowMoveNext();
 
 protected:
     void mouseDoubleClickEvent(QMouseEvent *e) override;
 
 private slots:
+    void applyBackgroundImageMode();
     void timerSlideShowTimeout();
     void alertFontChanged(QFont font);
     void mouseMove(QMouseEvent *event);
@@ -146,12 +147,10 @@ private slots:
     void cdgRemainEnabledChanged(bool enabled);
 
 public slots:
-    void setShowBgImage(bool show);
     void showAlert(bool show);
     void setNextSinger(QString name);
     void setNextSong(QString song);
     void setCountdownSecs(int seconds);
-    void triggerBg();
 
 protected:
     void closeEvent(QCloseEvent *event) override;

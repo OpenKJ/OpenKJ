@@ -692,8 +692,8 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->spinBoxTempo->hide();
         ui->lblTempo->hide();
     }
-    ui->videoPreview->setMediaBackends(&kMediaBackend, &bmMediaBackend);
-    cdgWindow = new DlgCdg(&kMediaBackend, &bmMediaBackend, 0, Qt::Window);
+    ui->videoPreview->setFillOnPaint(true);
+    cdgWindow = new DlgCdg(&kMediaBackend, &bmMediaBackend, nullptr, Qt::Window);
     connect(rotModel, &TableModelRotationSingers::songDroppedOnSinger, this, &MainWindow::songDroppedOnSinger);
     connect(dbDialog, &DlgDatabase::databaseUpdateComplete, this, &MainWindow::databaseUpdated);
     connect(dbDialog, &DlgDatabase::databaseAboutToUpdate, this, &MainWindow::databaseAboutToUpdate);
@@ -704,18 +704,19 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&kMediaBackend, &MediaBackend::positionChanged, this, &MainWindow::karaokeMediaBackend_positionChanged);
     connect(&kMediaBackend, &MediaBackend::durationChanged, this, &MainWindow::karaokeMediaBackend_durationChanged);
     connect(&kMediaBackend, &MediaBackend::stateChanged, this, &MainWindow::karaokeMediaBackend_stateChanged);
+    connect(&kMediaBackend, &MediaBackend::hasActiveVideoChanged, [=]( const bool &isActive ) { m_kHasActiveVideo = isActive; on_hasActiveVideoChanged(); });
     connect(&kMediaBackend, &MediaBackend::pitchChanged, ui->spinBoxKey, &QSpinBox::setValue);
     connect(&kMediaBackend, &MediaBackend::audioError, this, &MainWindow::audioError);
     connect(&kMediaBackend, &MediaBackend::silenceDetected, this, &MainWindow::silenceDetectedKar);
     connect(&bmMediaBackend, &MediaBackend::audioError, this, &MainWindow::audioError);
     connect(&bmMediaBackend, &MediaBackend::silenceDetected, this, &MainWindow::silenceDetectedBm);
+    connect(&bmMediaBackend, &MediaBackend::hasActiveVideoChanged, [=]( const bool &isActive ) { m_bmHasActiveVideo = isActive; on_hasActiveVideoChanged(); });
     connect(&sfxMediaBackend, &MediaBackend::positionChanged, this, &MainWindow::sfxAudioBackend_positionChanged);
     connect(&sfxMediaBackend, &MediaBackend::durationChanged, this, &MainWindow::sfxAudioBackend_durationChanged);
     connect(&sfxMediaBackend, &MediaBackend::stateChanged, this, &MainWindow::sfxAudioBackend_stateChanged);
     connect(rotModel, &TableModelRotationSingers::rotationModified, this, &MainWindow::rotationDataChanged);
     connect(&settings, &Settings::tickerOutputModeChanged, this, &MainWindow::rotationDataChanged);
     connect(&settings, &Settings::audioBackendChanged, this, &MainWindow::audioBackendChanged);
-    connect(&settings, &Settings::cdgBgImageChanged, this, &MainWindow::onBgImageChange);
     connect(shop, &SongShop::karaokeSongDownloaded, dbDialog, &DlgDatabase::singleSongAdd);
     kMediaBackend.setUseFader(settings.audioUseFader());
 
@@ -731,16 +732,11 @@ MainWindow::MainWindow(QWidget *parent) :
     bmMediaBackend.setDownmix(settings.audioDownmixBm());
     connect(requestsDialog, &DlgRequests::addRequestSong, &qModel, &TableModelQueueSongs::songAddSlot);
     connect(&settings, &Settings::tickerCustomStringChanged, this, &MainWindow::rotationDataChanged);
-    cdgWindow->setShowBgImage(true);
 
-    if (settings.hardwareAccelEnabled())
-    {
-        std::vector<WId> videoWinIds { cdgWindow->getCdgWinId(), ui->videoPreview->winId() };
-        kMediaBackend.setHWVideoOutputDevices(videoWinIds);
-        bmMediaBackend.setHWVideoOutputDevices(videoWinIds);
-    }
+    std::vector<QWidget*> videoWidgets { cdgWindow->getVideoDisplay(), ui->videoPreview };
+    bmMediaBackend.setVideoOutputWidgets(videoWidgets);
+    kMediaBackend.setVideoOutputWidgets(videoWidgets);
 
-    setShowBgImage(true);
     settings.restoreWindowState(cdgWindow);
     settings.restoreWindowState(requestsDialog);
     settings.restoreWindowState(dlgSongShop);
@@ -926,7 +922,6 @@ MainWindow::MainWindow(QWidget *parent) :
     m_timerSlowUiUpdate.start(10000);
     connect(&qModel, &TableModelQueueSongs::queueModified, [&] () { updateRotationDuration(); });
     connect(&settings, &Settings::rotationDurationSettingsModified, this, &MainWindow::updateRotationDuration);
-    cdgWindow->setShowBgImage(true);
     lazyDurationUpdater = new LazyDurationUpdateController(this);
     if (settings.dbLazyLoadDurations())
         lazyDurationUpdater->getDurations();
@@ -972,8 +967,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->labelVolumeBm->setPixmap(QIcon::fromTheme("player-volume").pixmap(QSize(22,22)));
     updateIcons();
     ui->menuTesting->menuAction()->setVisible(settings.testingEnabled());
-    connect(&kMediaBackend, &MediaBackend::newVideoFrame, this, &MainWindow::videoFrameReceived);
-    connect(&bmMediaBackend, &MediaBackend::newVideoFrame, this, &MainWindow::videoFrameReceived);
 
     connect(ui->tableViewQueue->selectionModel(), &QItemSelectionModel::selectionChanged, [&] () {
         if (ui->tableViewQueue->selectionModel()->selectedRows().size() == 0)
@@ -1078,8 +1071,6 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k)
 {
     khTmpDir->remove();
     delete khTmpDir;
-    ui->videoPreview->setKeepAspectRatio(settings.enforceAspectRatio());
-    cdgWindow->getVideoDisplay()->setKeepAspectRatio(settings.enforceAspectRatio());
     khTmpDir = new QTemporaryDir();
     if (kMediaBackend.state() != MediaBackend::PausedState)
     {
@@ -1116,8 +1107,6 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k)
                     QString audioFile = khTmpDir->path() + QDir::separator() + "tmp" + archive.audioExtension();
                     QString cdgFile = khTmpDir->path() + QDir::separator() + "tmp.cdg";
                     qInfo() << "Extracted audio file size: " << QFileInfo(audioFile).size();
-                    cdgWindow->setShowBgImage(false);
-                    setShowBgImage(false);
                     qInfo() << "Setting karaoke backend source file to: " << audioFile;
                     kMediaBackend.setMediaCdg(cdgFile, audioFile);
                     if (!k2k)
@@ -1789,8 +1778,6 @@ void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &sta
             rotDelegate->setCurrentSinger(-1);
         }
         qInfo() << "MainWindow - audio backend state is now STOPPED";
-        ui->videoPreview->setSoftwareRenderMode(false);
-        cdgWindow->getVideoDisplay()->setSoftwareRenderMode(false);
         if (ui->labelTotalTime->text() == "0:00")
         {
             //qInfo() << "MainWindow - UI is already reset, bailing out";
@@ -1809,9 +1796,6 @@ void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &sta
         ui->labelTotalTime->setText("0:00");
         ui->sliderProgress->setValue(0);
         ui->spinBoxTempo->setValue(100);
-        setShowBgImage(true);
-        cdgWindow->setShowBgImage(true);
-        cdgWindow->triggerBg();
         if (state == m_lastAudioState)
             return;
         m_lastAudioState = state;
@@ -1879,7 +1863,6 @@ void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &sta
         bmMediaBackend.setVideoEnabled(true);
         kMediaBackend.stop(true);
         bmMediaBackend.fadeIn(false);
-        cdgWindow->setShowBgImage(true);
     }
     if (state == MediaBackend::PausedState)
     {
@@ -1891,7 +1874,6 @@ void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &sta
         qInfo() << "KAudio entered PlayingState";
         m_lastAudioState = state;
         bmMediaBackend.setVideoEnabled(false);
-        cdgWindow->setShowBgImage(false);
     }
     if (state == MediaBackend::UnknownState)
     {
@@ -1919,6 +1901,13 @@ void MainWindow::sfxAudioBackend_stateChanged(const MediaBackend::State &state)
     }
     if (state == MediaBackend::StoppedState || state == MediaBackend::UnknownState)
         ui->sliderSfxPos->setValue(0);
+}
+
+void MainWindow::on_hasActiveVideoChanged()
+{
+    bool hasActiveVideo = m_kHasActiveVideo || m_bmHasActiveVideo;
+    ui->videoPreview->setHasActiveVideo(hasActiveVideo);
+    cdgWindow->getVideoDisplay()->setHasActiveVideo(hasActiveVideo);
 }
 
 void MainWindow::on_sliderProgress_sliderMoved(const int &position)
@@ -2532,20 +2521,6 @@ void MainWindow::markSongBad()
     }
 }
 
-void MainWindow::setShowBgImage(const bool &show)
-{
-    if (show)
-    {
-        ui->videoPreview->useDefaultBackground();
-    }
-}
-
-void MainWindow::onBgImageChange()
-{
-   if (kMediaBackend.state() == MediaBackend::StoppedState)
-       cdgWindow->setShowBgImage(true);
-}
-
 void MainWindow::karaokeAATimerTimeout()
 {
     qInfo() << "KaraokeAA - timer timeout";
@@ -2782,12 +2757,6 @@ void MainWindow::bmMediaStateChanged(const MediaBackend::State &newState)
             ui->labelBmRemaining->setText("00:00");
             ui->labelBmPosition->setText("00:00");
             ui->sliderBmPosition->setValue(0);
-            if (kMediaBackend.state() != MediaBackend::PlayingState)
-            {
-                setShowBgImage(true);
-                cdgWindow->setShowBgImage(true);
-                cdgWindow->triggerBg();
-            }
         }
     }
 }
@@ -4365,8 +4334,6 @@ void MainWindow::on_actionCDG_Decode_Torture_triggered()
                    QString audioFile = khTmpDir->path() + QDir::separator() + "tmp" + archive.audioExtension();
                    QString cdgFile = khTmpDir->path() + QDir::separator() + "tmp.cdg";
                    qInfo() << "Extracted audio file size: " << QFileInfo(audioFile).size();
-                   cdgWindow->setShowBgImage(false);
-                   setShowBgImage(false);
                    qInfo() << "Setting karaoke backend source file to: " << audioFile;
                    kMediaBackend.setMediaCdg(cdgFile, audioFile);
                    //kMediaBackend.testCdgDecode(); // todo: andth
@@ -4427,17 +4394,6 @@ void MainWindow::on_actionWrite_Gstreamer_pipeline_dot_files_triggered()
     kMediaBackend.writePipelinesGraphToFile(outputFolder);
     bmMediaBackend.writePipelinesGraphToFile(outputFolder);
     sfxMediaBackend.writePipelinesGraphToFile(outputFolder);
-}
-
-void MainWindow::videoFrameReceived(QImage frame, QString backendName)
-{
-    // this is used only when in software rendering mode, hardware rendering won't call this
-    if (backendName != "KAR" && kMediaBackend.state() == MediaBackend::PlayingState)
-        return;
-    ui->videoPreview->setSoftwareRenderMode(true);
-    cdgWindow->getVideoDisplay()->setSoftwareRenderMode(true);
-    ui->videoPreview->renderFrame(frame);
-    cdgWindow->getVideoDisplay()->renderFrame(frame);
 }
 
 void MainWindow::on_comboBoxSearchType_currentIndexChanged(int index)
