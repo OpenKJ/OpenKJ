@@ -824,17 +824,20 @@ MainWindow::MainWindow(QWidget *parent) :
     {
         qInfo() << "Playlist contains " << playlistSongsModel.rowCount() << " songs";
         bmCurrentPosition = 0;
-        QString path = playlistSongsModel.index(bmCurrentPosition, 7).data().toString();
+        QString path = playlistSongsModel.index(bmCurrentPosition, TableModelPlaylistSongs::COL_PATH).data().toString();
         if (QFile::exists(path))
         {
-            QString song = playlistSongsModel.index(bmCurrentPosition, 3).data().toString() + " - " + playlistSongsModel.index(bmCurrentPosition, 4).data().toString();
+            QString song = playlistSongsModel.index(bmCurrentPosition, TableModelPlaylistSongs::COL_ARTIST).data().toString() + " - "
+                    + playlistSongsModel.index(bmCurrentPosition, TableModelPlaylistSongs::COL_TITLE).data().toString();
             QString nextSong;
             if (!ui->checkBoxBmBreak->isChecked())
             {
                 if (bmCurrentPosition == playlistSongsModel.rowCount() - 1)
-                    nextSong = playlistSongsModel.index(0, 3).data().toString() + " - " + playlistSongsModel.index(0, 4).data().toString();
+                    nextSong = playlistSongsModel.index(0, TableModelPlaylistSongs::COL_ARTIST).data().toString() +
+                            " - " + playlistSongsModel.index(0, TableModelPlaylistSongs::COL_TITLE).data().toString();
                 else
-                    nextSong = playlistSongsModel.index(bmCurrentPosition + 1, 3).data().toString() + " - " + playlistSongsModel.index(bmCurrentPosition + 1, 4).data().toString();
+                    nextSong = playlistSongsModel.index(bmCurrentPosition + 1, TableModelPlaylistSongs::COL_ARTIST).data().toString() +
+                            " - " + playlistSongsModel.index(bmCurrentPosition + 1, TableModelPlaylistSongs::COL_TITLE).data().toString();
             }
             else
                 nextSong = "None - Breaking after current song";
@@ -4213,7 +4216,7 @@ void MainWindow::on_actionKaraoke_torture_triggered()
        qInfo() << "randno: " << randno;
        ui->tableViewDB->selectRow(randno);
        ui->tableViewDB->scrollTo(ui->tableViewDB->selectionModel()->selectedRows().at(0));
-       play(ui->tableViewDB->selectionModel()->selectedRows(5).at(0).data().toString(), true);
+       play(karaokeSongsModel.getPath(ui->tableViewDB->selectionModel()->selectedRows(TableModelKaraokeSongs::COL_ID).at(0).data().toInt()), true);
        ui->labelSinger->setText("Torture run (" + QString::number(++runs) + ")");
 //       QSqlQuery query;
 //       query.prepare("SELECT songid,artist,title,discid,path FROM dbsongs WHERE songid >= (abs(random()) % (SELECT max(songid) FROM dbsongs))LIMIT 1");
@@ -4309,7 +4312,9 @@ void MainWindow::on_actionBurn_in_triggered()
 
         rotModel->singerMove(QRandomGenerator::global()->bounded(0, 19), QRandomGenerator::global()->bounded(0, 19));
         ui->tableViewRotation->selectRow(QRandomGenerator::global()->bounded(0, 19));
-        int randno = QRandomGenerator::global()->bounded(0, karaokeSongsModel.rowCount() - 1);
+        int randno{0};
+        if (karaokeSongsModel.rowCount() > 1)
+            randno = QRandomGenerator::global()->bounded(0, karaokeSongsModel.rowCount() - 1);
         qInfo() << "randno: " << randno;
         ui->tableViewDB->selectRow(randno);
         ui->tableViewDB->scrollTo(ui->tableViewDB->selectionModel()->selectedRows().at(0));
@@ -4329,7 +4334,7 @@ void MainWindow::on_actionBurn_in_triggered()
         playing = true;
         qInfo() << "Burn in test cycle: " << ++runs;
     });
-    m_timerTest.start(2000);
+    m_timerTest.start(3000);
 #endif
 }
 
