@@ -2,7 +2,10 @@
 #include <QFile>
 #include <QDebug>
 
+
 constexpr uint CDG_PACKAGES_PER_SECOND = 300;
+constexpr int MAXFPS = 60;  // no need to go higher than 60 fps
+constexpr int MIN_PACKAGES_BEFORE_NEW_FRAME = CDG_PACKAGES_PER_SECOND / MAXFPS;
 
 CdgFileReader::CdgFileReader(const QString &filename)
 {
@@ -30,6 +33,7 @@ bool CdgFileReader::moveToNextFrame()
     m_current_image_data = m_next_image.getCroppedImagedata();
     m_current_image_pgk_idx = m_next_image_pgk_idx;
 
+    bool imageChanged = false;
 
     // process packages until a package actually change the image visibly (or eof).
     while(true)
@@ -40,10 +44,12 @@ bool CdgFileReader::moveToNextFrame()
             return false;
         }
 
-        if (readAndProcessNextPackage())
+        // check if max FPS is met before returning
+        if (imageChanged && (m_next_image_pgk_idx - m_current_image_pgk_idx) >= MIN_PACKAGES_BEFORE_NEW_FRAME)
         {
             return true;
         }
+        imageChanged |= readAndProcessNextPackage();
     }
 }
 
@@ -79,6 +85,7 @@ bool CdgFileReader::seek(uint positionMS)
     }
 
     moveToNextFrame();
+    return true;
 }
 
 void CdgFileReader::rewind()
@@ -107,6 +114,5 @@ inline bool CdgFileReader::isEOF()
 
 inline uint CdgFileReader::getDurationOfPackagesInMS(const uint numberOfPackages)
 {
-    // cdg specs: 300 packages per second
     return (numberOfPackages * 1000) / CDG_PACKAGES_PER_SECOND;
 }
