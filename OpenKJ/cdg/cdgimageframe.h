@@ -12,7 +12,7 @@ public:
     // Modify image with subcode command. Return true if there are any visible changes to the image.
     bool applySubCode(const cdg::CDG_SubCode &subCode);
 
-    std::array<uchar, cdg::CDG_IMAGE_SIZE> getCroppedImagedata();
+    void copyCroppedImagedata(uchar *destbuffer);
 
 private:
 

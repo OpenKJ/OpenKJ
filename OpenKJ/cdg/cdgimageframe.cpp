@@ -67,26 +67,23 @@ bool CdgImageFrame::applySubCode(const cdg::CDG_SubCode &subCode)
     return updated;
 }
 
-std::array<uchar, cdg::CDG_IMAGE_SIZE> CdgImageFrame::getCroppedImagedata()
+void CdgImageFrame::copyCroppedImagedata(uchar *destbuffer)
 {
     uchar* src = m_image.bits();
-
-    std::array<uchar, cdg::CDG_IMAGE_SIZE> cropped;
-    uchar* croppedpos = cropped.data();
+    uchar* destpos = destbuffer;
 
     for (auto y=0; y < cdg::FRAME_DIM_CROPPED.height(); y++)
     {
         auto curSrcLineNum = y + m_curVOffset;
         auto srcLineOffset = m_image.bytesPerLine() * (12 + curSrcLineNum); // 12?
 
-        memcpy(croppedpos, src + srcLineOffset + m_borderLRBytes + m_curHOffset, cdg::FRAME_DIM_CROPPED.width());
-        croppedpos += cdg::FRAME_DIM_CROPPED.width();
+        memcpy(destpos, src + srcLineOffset + m_borderLRBytes + m_curHOffset, cdg::FRAME_DIM_CROPPED.width());
+        destpos += cdg::FRAME_DIM_CROPPED.width();
     }
 
     // copy color table
-    memcpy(croppedpos, m_image.colorTable().data(), m_image.colorTable().length() * sizeof(uint));
+    memcpy(destpos, m_image.colorTable().data(), m_image.colorTable().length() * sizeof(uint));
 
-    return cropped;
 }
 
 void CdgImageFrame::cmdBorderPreset(const cdg::CdgBorderPresetData &borderPreset)
