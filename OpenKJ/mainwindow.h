@@ -347,6 +347,8 @@ private slots:
 
     void on_actionBreak_music_torture_triggered();
 
+    void on_tableViewBmDb_clicked(const QModelIndex &index);
+
 protected:
     void closeEvent(QCloseEvent *event);
     void resizeEvent(QResizeEvent *event);

@@ -2844,6 +2844,10 @@ void MainWindow::bmMediaDurationChanged(const qint64 &duration)
 
 void MainWindow::on_tableViewBmPlaylist_clicked(const QModelIndex &index)
 {
+#ifdef Q_OS_WIN
+    ui->tableViewBmPlaylist->setAttribute(Qt::WA_AcceptDrops, false);
+    ui->tableViewBmPlaylist->setAttribute(Qt::WA_AcceptDrops, true);
+#endif
     if (index.column() == TableModelPlaylistSongs::COL_PATH)
     {
         if (bmCurrentPosition == index.row())
@@ -4687,4 +4691,12 @@ void MainWindow::on_actionBreak_music_torture_triggered()
        qInfo() << "test runs: " << ++runs;
     });
     m_timerTest.start(2000);
+}
+
+void MainWindow::on_tableViewBmDb_clicked([[maybe_unused]]const QModelIndex &index)
+{
+#ifdef Q_OS_WIN
+    ui->tableViewBmPlaylist->setAttribute(Qt::WA_AcceptDrops, false);
+    ui->tableViewBmPlaylist->setAttribute(Qt::WA_AcceptDrops, true);
+#endif
 }

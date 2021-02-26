@@ -3,8 +3,8 @@
 
 #define OKJ_VERSION_MAJOR 1
 #define OKJ_VERSION_MINOR 9
-#define OKJ_VERSION_BUILD 38
-#define OKJ_VERSION_STRING "1.9.38"
+#define OKJ_VERSION_BUILD 39
+#define OKJ_VERSION_STRING "1.9.39"
 #define OKJ_VERSION_BRANCH "unstable"
 
 #endif //OKJVERSION_H
