@@ -156,7 +156,7 @@ void TableModelKaraokeSongs::search(QString searchString)
     m_lastSearch = searchString;
     emit layoutAboutToBeChanged();
     std::vector<std::string> searchTerms;
-    std::string s = searchString.toStdString();
+    std::string s = searchString.toLower().toStdString();
     std::string::size_type prev_pos = 0, pos = 0;
     while((pos = s.find(' ', pos)) != std::string::npos)
     {
