@@ -338,6 +338,7 @@ void TableModelQueueSongs::commitChanges()
 
 void TableModelQueueSongs::songAddSlot(int songId, int singerId, int keyChg)
 {
+    qInfo() << "TableModelQueueSongs::songAddSlot(" << songId << ", " << singerId << ", " << keyChg << ") called";
     if (singerId == m_curSingerId)
     {
         int queueSongId = add(songId);
@@ -354,13 +355,14 @@ void TableModelQueueSongs::songAddSlot(int songId, int singerId, int keyChg)
         if (query.first())
             newPos = query.value(0).toInt();
         query.prepare("INSERT INTO queuesongs (singer,song,artist,title,discid,path,keychg,played,position) "
-                      "VALUES (:singerId,:songId,:songId,:songId,:songId,:songId,:songId,:key,:played,:position)");
-        query.bindValue(":singerId", m_curSingerId);
+                      "VALUES (:singerId,:songId,:songId,:songId,:songId,:songId,:key,:played,:position)");
+        query.bindValue(":singerId", singerId);
         query.bindValue(":songId", songId);
         query.bindValue(":key", keyChg);
         query.bindValue(":played", false);
         query.bindValue(":position", newPos);
         query.exec();
+        qInfo() << query.lastError();
     }
 }
 

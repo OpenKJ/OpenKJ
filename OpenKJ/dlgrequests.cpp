@@ -321,7 +321,7 @@ void DlgRequests::on_pushButtonAddSong_clicked()
 
     QModelIndex index = ui->tableViewSearch->selectionModel()->selectedIndexes().at(0);
     QModelIndex rIndex = ui->tableViewRequests->selectionModel()->selectedIndexes().at(0);
-    int songid = index.sibling(index.row(),0).data().toInt();
+    int songid = index.sibling(index.row(),TableModelKaraokeSongs::COL_ID).data().toInt();
     int keyChg = requestsModel->requests().at(rIndex.row()).key();
     if (ui->radioButtonNewSinger->isChecked())
     {
