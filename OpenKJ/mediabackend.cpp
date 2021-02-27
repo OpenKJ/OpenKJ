@@ -32,7 +32,6 @@
 #include <QProcess>
 #include <functional>
 #include <gst/video/videooverlay.h>
-#include <gst/app/gstappsrc.h>
 #include "gstreamer/gstreamerhelper.h"
 
 
@@ -148,9 +147,9 @@ MediaBackend::~MediaBackend()
     gst_caps_unref(m_audioCapsStereo);
     g_object_unref(m_pipeline);
     g_object_unref(m_decoder);
-    g_object_unref(m_cdgAppSrc);
     g_object_unref(m_audioBin);
     g_object_unref(m_videoBin);
+    delete m_cdgSrc;
     for (auto &device : m_audioOutputDevices)
     {
        g_object_unref(device);
@@ -237,21 +236,14 @@ void MediaBackend::play()
         }
 
         // Use m_cdgAppSrc as source for video. m_decoder will still be used for audio file
-        gst_bin_add(reinterpret_cast<GstBin*>(m_pipeline), m_cdgAppSrc);
-        m_videoSrcPad = new PadInfo { m_cdgAppSrc, "src" };
+        gst_bin_add(reinterpret_cast<GstBin*>(m_pipeline), m_cdgSrc->getSrcElement());
+        m_videoSrcPad = new PadInfo { m_cdgSrc->getSrcElement(), "src" };
         patchPipelineSinks();
 
         allowMissingAudio = m_type == VideoPreview;
 
-        // Load CDG file
-        {
-            QMutexLocker locker(&m_cdgFileReaderLock);
-            m_cdgFileReader = new CdgFileReader(m_cdgFilename);
-        }
+        m_cdgSrc->load(m_cdgFilename);
 
-        // todo: max bytes doesn't have to be set every time
-        gst_app_src_set_max_bytes(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), cdg::CDG_IMAGE_SIZE * 200);
-        gst_app_src_set_duration(reinterpret_cast<GstAppSrc*>(m_cdgAppSrc), m_cdgFileReader->getTotalDurationMS() * GST_MSECOND);
         qInfo() << m_objName << " - play - playing cdg:   " << m_cdgFilename;
     }
 
@@ -288,16 +280,13 @@ void MediaBackend::resetPipeline()
     m_hasVideo = false;
     gst_element_unlink(m_decoder, m_audioBin);
     gst_element_unlink(m_decoder, m_videoBin);
-    gst_element_unlink(m_cdgAppSrc, m_videoBin);
+    gst_element_unlink(m_cdgSrc->getSrcElement(), m_videoBin);
 
-    gsthlp_bin_try_remove(m_pipelineAsBin, {m_cdgAppSrc, m_decoder, m_audioBin, m_videoBin});
+    gsthlp_bin_try_remove(m_pipelineAsBin, {m_cdgSrc->getSrcElement(), m_decoder, m_audioBin, m_videoBin});
+
+    m_cdgSrc->reset();
 
     delete m_audioSrcPad; delete m_videoSrcPad; m_audioSrcPad = m_videoSrcPad = nullptr;
-
-    g_appSrcNeedData = false;
-    QMutexLocker locker(&m_cdgFileReaderLock);
-    delete m_cdgFileReader;
-    m_cdgFileReader = nullptr;
 }
 
 void MediaBackend::patchPipelineSinks()
@@ -489,12 +478,10 @@ void MediaBackend::timerSlow_timeout()
                 if(m_type == Karaoke)
                 {
                     doEmit = false;
-                    QMutexLocker locker(&m_cdgFileReaderLock);
-
-                    if (m_cdgMode && m_cdgFileReader)
+                    if (m_cdgMode)
                     {
                         // In CDG-karaoke mode, only cut of the song if there are no more image frames to be shown
-                        auto finalFramePos = m_cdgFileReader->positionOfFinalFrameMS();
+                        int finalFramePos = m_cdgSrc->positionOfFinalFrameMS();
                         doEmit = finalFramePos > 0 && finalFramePos <= currPos;
                     }
                     else
@@ -687,34 +674,13 @@ void MediaBackend::buildPipeline()
     g_signal_connect(m_decoder, "pad-added", G_CALLBACK(padAddedToDecoder_cb), this);
     g_object_ref(m_decoder);
 
-    buildCdgSrc();
+    m_cdgSrc = new CdgAppSrc();
+
     buildVideoSinkBin();
     buildAudioSinkBin();
 
     qInfo() << m_objName << " - buildPipeline() finished";
     //setEnforceAspectRatio(m_settings.enforceAspectRatio());
-}
-
-void MediaBackend::buildCdgSrc()
-{
-    m_cdgAppSrc = gst_element_factory_make("appsrc", "cdgAppSrc");
-    g_object_ref(m_cdgAppSrc);
-
-    auto appSrcCaps = gst_caps_new_simple(
-                "video/x-raw",
-                "format", G_TYPE_STRING, "RGB8P",
-                "width",  G_TYPE_INT, cdg::FRAME_DIM_CROPPED.width(),
-                "height", G_TYPE_INT, cdg::FRAME_DIM_CROPPED.height(),
-                "pixel-aspect-ratio", GST_TYPE_FRACTION, 1, 1,
-                NULL);
-    g_object_set(G_OBJECT(m_cdgAppSrc), "caps", appSrcCaps, NULL);
-    gst_caps_unref(appSrcCaps);
-
-    g_object_set(G_OBJECT(m_cdgAppSrc), "stream-type", GST_APP_STREAM_TYPE_SEEKABLE, "format", GST_FORMAT_TIME, NULL);
-
-    g_signal_connect(m_cdgAppSrc, "need-data", G_CALLBACK(cb_need_data), this);
-    g_signal_connect(m_cdgAppSrc, "enough-data", G_CALLBACK(cb_enough_data), this);
-    g_signal_connect(m_cdgAppSrc, "seek-data", G_CALLBACK(cb_seek_data), this);
 }
 
 void MediaBackend::buildVideoSinkBin()
@@ -938,67 +904,6 @@ void MediaBackend::getAudioOutputDevices()
     g_object_unref(monitor);
     g_list_free(devices);
 }
-
-
-void MediaBackend::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused_size, gpointer user_data)
-{
-    qDebug() << "CDG feed start";
-
-    auto backend = reinterpret_cast<MediaBackend *>(user_data);
-
-    QMutexLocker locker(&backend->m_cdgFileReaderLock);
-    if (backend->m_cdgFileReader == nullptr) return;
-
-    backend->g_appSrcNeedData = true;
-
-    while (backend->g_appSrcNeedData)
-    {
-        auto buffer = gst_buffer_new_and_alloc(cdg::CDG_IMAGE_SIZE);
-        gst_buffer_fill(buffer,
-                        0,
-                        backend->m_cdgFileReader->currentFrame().data(),
-                        cdg::CDG_IMAGE_SIZE
-                        );
-
-        GST_BUFFER_PTS(buffer) = backend->m_cdgFileReader->currentFramePositionMS() * GST_MSECOND;
-        GST_BUFFER_DURATION(buffer) = backend->m_cdgFileReader->currentFrameDurationMS() * GST_MSECOND;
-
-        auto rc = gst_app_src_push_buffer(reinterpret_cast<GstAppSrc *>(appsrc), buffer);
-
-        if (rc != GST_FLOW_OK)
-        {
-            qWarning() << "push buffer returned non-OK status: " << rc;
-            break;
-        }
-
-        if(!backend->m_cdgFileReader->moveToNextFrame())
-        {
-            gst_app_src_end_of_stream(reinterpret_cast<GstAppSrc*>(appsrc));
-            return;
-        }
-    }
-
-    qDebug() << "CDG feed stop";
-}
-
-void MediaBackend::cb_enough_data([[maybe_unused]]GstElement *appsrc, [[maybe_unused]]gpointer user_data)
-{
-    auto backend = reinterpret_cast<MediaBackend *>(user_data);
-    backend->g_appSrcNeedData = false;
-}
-
-gboolean MediaBackend::cb_seek_data([[maybe_unused]]GstElement *appsrc, guint64 position, [[maybe_unused]]gpointer user_data)
-{
-    qDebug() << "Got seek request to position " << position / GST_MSECOND << " ms.";
-
-    auto backend = reinterpret_cast<MediaBackend *>(user_data);
-
-    QMutexLocker locker(&backend->m_cdgFileReaderLock);
-    if (backend->m_cdgFileReader == nullptr) return false;
-
-    return backend->m_cdgFileReader->seek(position / GST_MSECOND);
-}
-
 
 void MediaBackend::fadeOut(const bool &waitForFade)
 {

@@ -23,12 +23,12 @@
 
 #define GLIB_DISABLE_DEPRECATION_WARNINGS
 #include <gst/gst.h>
-#include <gst/app/gstappsink.h>
 #include <gst/gstdevicemonitor.h>
 #include <gst/gstdevice.h>
 #include <gst/gstplugin.h>
 #include <gst/controller/gstinterpolationcontrolsource.h>
 #include <gst/controller/gstdirectcontrolbinding.h>
+#include <cdg/cdgappsrc.h>
 
 #include <QTimer>
 #include <QThread>
@@ -49,9 +49,6 @@
 #define Multiplex_Normal 0
 #define Multiplex_LeftChannel 1
 #define Multiplex_RightChannel 2
-
-/* playbin flags */
-
 
 class MediaBackend : public QObject
 {
@@ -141,8 +138,8 @@ private:
     /* PIPELINE */
     GstElement *m_pipeline { nullptr };  // Pipeline
     GstBin     *m_pipelineAsBin { nullptr };
-    GstElement *m_cdgAppSrc { nullptr };
     GstElement *m_decoder { nullptr };
+    CdgAppSrc  *m_cdgSrc { nullptr };
 
     PadInfo *m_audioSrcPad { nullptr };
     PadInfo *m_videoSrcPad { nullptr };
@@ -209,7 +206,6 @@ private:
     State m_lastState{StoppedState};
 
     void buildPipeline();
-    void buildCdgSrc();
     void buildVideoSinkBin();
     void buildAudioSinkBin();
     void resetVideoSinks();
@@ -217,15 +213,6 @@ private:
     void getAudioOutputDevices();
     void writePipelineGraphToFile(GstBin *bin, QString filePath, QString fileName);
     double getPitchForSemitone(const int &semitone);
-
-    CdgFileReader *m_cdgFileReader {nullptr};
-    std::atomic<bool> g_appSrcNeedData {false};
-    QMutex m_cdgFileReaderLock;
-
-    // AppSrc callbacks
-    static void cb_need_data(GstElement *appsrc, guint unused_size, gpointer user_data);
-    static void cb_enough_data(GstElement *appsrc, gpointer user_data);
-    static gboolean cb_seek_data(GstElement *appsrc, guint64 position, gpointer user_data);
 
     static gboolean gstBusFunc(GstBus *bus, GstMessage *message, gpointer user_data);
 
