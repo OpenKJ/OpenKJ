@@ -5,7 +5,7 @@
 
 void AudioRecorder::generateDeviceList()
 {
-    qInfo() << "AudioRecorder::generateDeviceList() called";
+    qInfo() << "AudioRecorder - Getting in put devices";
     GstDeviceMonitor *monitor;
     monitor = gst_device_monitor_new ();
     GstCaps *moncaps;
@@ -19,10 +19,12 @@ void AudioRecorder::generateDeviceList()
     for(elem = devices; elem; elem = elem->next) {
         GstDevice *device = (GstDevice*)elem->data;
         gchar *deviceName = gst_device_get_display_name(device);
+        qInfo() << "AudioRecorder - Found audio input device: " << deviceName;
         inputDeviceNames.append(deviceName);
         g_free(deviceName);
         inputDevices.append(device);
     }
+    qInfo() << "AudioRecorder - Found " << inputDeviceNames.size();
     gst_device_monitor_stop(monitor);
     g_list_free(devices);
     g_object_unref(monitor);
