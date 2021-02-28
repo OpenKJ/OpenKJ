@@ -3515,6 +3515,8 @@ QPushButton:default {
   <action name="actionBreak_music_torture">
    <property name="text">
     <string>Break music torture</string>
+   </property>
+  </action>
   <action name="actionWrite_Gstreamer_pipeline_dot_files">
    <property name="text">
     <string>Write Gstreamer pipeline dot files</string>

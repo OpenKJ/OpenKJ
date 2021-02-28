@@ -720,7 +720,7 @@ void MediaBackend::buildAudioSinkBin()
     auto level = gst_element_factory_make("level", "level");
     m_equalizer = gst_element_factory_make("equalizer-10bands", "equalizer");
 
-    m_bus = gst_element_get_bus(m_playBin);
+    m_bus = gst_element_get_bus(m_pipeline);
     //gst_bus_set_sync_handler(bus, (GstBusSyncHandler)busMessageDispatcher, this, NULL);
 #if defined(Q_OS_LINUX)
     gst_bus_add_watch(m_bus, (GstBusFunc)gstBusFunc, this);

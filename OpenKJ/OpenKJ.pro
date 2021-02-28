@@ -142,7 +142,6 @@ SOURCES += main.cpp\
     dlgvideopreview.cpp \
     mainwindow.cpp \
     softwarerendervideosink.cpp \
-    sourcedirtablemodel.cpp \
     dbupdatethread.cpp \
     dlgkeychange.cpp \
     dlgdatabase.cpp \
