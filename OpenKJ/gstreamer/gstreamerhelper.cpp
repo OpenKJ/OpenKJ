@@ -1,5 +1,7 @@
 #include "gstreamerhelper.h"
 
+#include <vector>
+
 bool gsthlp_is_sink_linked(GstElement *element)
 {
     GstPad *pad = gst_element_get_static_pad(element, "sink");

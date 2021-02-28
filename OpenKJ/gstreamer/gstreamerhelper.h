@@ -4,6 +4,8 @@
 #include <qstring.h>
 #include <gst/gst.h>
 
+#include <vector>
+
 struct PadInfo
 {
     GstElement *element;
