@@ -42,7 +42,7 @@ private:
     MediaBackend *kAudioBackend;
     MediaBackend *bmAudioBackend;
     QNetworkAccessManager *networkManager;
-    bool pageSetupDone;
+    bool m_pageSetupDone;
     QStringList audioOutputDevices;
     void setupHotkeysForm();
 
