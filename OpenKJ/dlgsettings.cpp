@@ -46,7 +46,7 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     QDialog(parent),
     ui(new Ui::DlgSettings)
 {
-    pageSetupDone = false;
+    m_pageSetupDone = false;
     kAudioBackend = AudioBackend;
     bmAudioBackend = BmAudioBackend;
     networkManager = new QNetworkAccessManager(this);
@@ -74,7 +74,6 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     }
     else
     {
-        kAudioBackend->setOutputDevice(selDevice);
         ui->comboBoxKAudioDevices->setCurrentIndex(selDevice);
     }
     ui->comboBoxBAudioDevices->addItems(audioOutputDevices);
@@ -84,7 +83,6 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     else
     {
         ui->comboBoxBAudioDevices->setCurrentIndex(selDevice);
-        bmAudioBackend->setOutputDevice(selDevice);
     }
     ui->checkBoxProgressiveSearch->setChecked(settings.progressiveSearchEnabled());
     ui->horizontalSliderTickerSpeed->setValue(settings.tickerSpeed());
@@ -150,12 +148,7 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     ui->spinBoxCdgOffsetLeft->setValue(settings.cdgOffsetLeft());
     ui->spinBoxCdgOffsetRight->setValue(settings.cdgOffsetRight());
     ui->spinBoxSlideshowInterval->setValue(settings.slideShowInterval());
-    connect(ui->spinBoxCdgOffsetTop, SIGNAL(valueChanged(int)), &settings, SLOT(setCdgOffsetTop(int)));
-    connect(ui->spinBoxCdgOffsetBottom, SIGNAL(valueChanged(int)), &settings, SLOT(setCdgOffsetBottom(int)));
-    connect(ui->spinBoxCdgOffsetLeft, SIGNAL(valueChanged(int)), &settings, SLOT(setCdgOffsetLeft(int)));
-    connect(ui->spinBoxCdgOffsetRight, SIGNAL(valueChanged(int)), &settings, SLOT(setCdgOffsetRight(int)));
-    connect(ui->spinBoxVideoOffset, SIGNAL(valueChanged(int)), &settings, SLOT(setVideoOffsetMs(int)));
-    connect(ui->spinBoxSlideshowInterval, SIGNAL(valueChanged(int)), &settings, SLOT(setSlideShowInterval(int)));
+
     AudioRecorder recorder;
     QStringList inputs = recorder.getDeviceList();
     QStringList codecs = recorder.getCodecs();
@@ -182,24 +175,12 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     tickerShowRotationInfoChanged(settings.tickerShowRotationInfo());
     ui->groupBoxTicker->setChecked(settings.tickerEnabled());
     ui->lineEditTickerMessage->setText(settings.tickerCustomString());
-    connect(networkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
-    connect(networkManager, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(onSslErrors(QNetworkReply*)));
-    connect(ui->cbxQueueRemovalWarning, SIGNAL(toggled(bool)), &settings, SLOT(setShowQueueRemovalWarning(bool)));
-    connect(ui->cbxSingerRemovalWarning, SIGNAL(toggled(bool)), &settings, SLOT(setShowSingerRemovalWarning(bool)));
-    connect(ui->cbxSongInterruptionWarning, SIGNAL(toggled(bool)), &settings, SLOT(setShowSongInterruptionWarning(bool)));
-    connect(ui->cbxStopPauseWarning, SIGNAL(toggled(bool)), &settings, SLOT(setShowSongPauseStopWarning(bool)));
-    connect(ui->cbxTickerShowRotationInfo, SIGNAL(clicked(bool)), &settings, SLOT(setTickerShowRotationInfo(bool)));
-    connect(&settings, SIGNAL(tickerShowRotationInfoChanged(bool)), this, SLOT(tickerShowRotationInfoChanged(bool)));
-    connect(songbookApi, SIGNAL(entitledSystemCountChanged(int)), this, SLOT(entitledSystemCountChanged(int)));
-    connect(ui->cbxRotShowNextSong, SIGNAL(clicked(bool)), &settings, SLOT(setRotationShowNextSong(bool)));
     ui->fontComboBox->setFont(settings.applicationFont());
     ui->spinBoxAppFontSize->setValue(settings.applicationFont().pointSize());
-
     ui->checkBoxIncludeEmptySingers->setChecked(!settings.estimationSkipEmptySingers());
     ui->spinBoxDefaultPadTime->setValue(settings.estimationSingerPad());
     ui->spinBoxDefaultSongDuration->setValue(settings.estimationEmptySongLength());
     ui->checkBoxDisplayCurrentRotationPosition->setChecked(settings.rotationDisplayPosition());
-    pageSetupDone = true;
     ui->spinBoxAADelay->setValue(settings.karaokeAATimeout());
     ui->checkBoxKAA->setChecked(settings.karaokeAutoAdvance());
     ui->checkBoxShowKAAAlert->setChecked(settings.karaokeAAAlertEnabled());
@@ -212,37 +193,52 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     ui->cbxStopPauseWarning->setChecked(settings.showSongPauseStopWarning());
     ui->cbxCheckUpdates->setChecked(settings.checkUpdates());
     ui->comboBoxUpdateBranch->setCurrentIndex(settings.updatesBranch());
+    ui->lineEditDownloadsDir->setText(settings.storeDownloadDir());
+    ui->checkBoxLogging->setChecked(settings.logEnabled());
+    ui->lineEditLogDir->setText(settings.logDir());
+    ui->checkBoxEnforceAspectRatio->setChecked(settings.enforceAspectRatio());
+    ui->checkBoxTreatAllSingersAsRegs->setChecked(settings.treatAllSingersAsRegs());
+    ui->cbxCrossFade->setChecked(settings.bmKCrossFade());
+    adjustSize();
+    connect(ui->spinBoxCdgOffsetTop, SIGNAL(valueChanged(int)), &settings, SLOT(setCdgOffsetTop(int)));
+    connect(ui->spinBoxCdgOffsetBottom, SIGNAL(valueChanged(int)), &settings, SLOT(setCdgOffsetBottom(int)));
+    connect(ui->spinBoxCdgOffsetLeft, SIGNAL(valueChanged(int)), &settings, SLOT(setCdgOffsetLeft(int)));
+    connect(ui->spinBoxCdgOffsetRight, SIGNAL(valueChanged(int)), &settings, SLOT(setCdgOffsetRight(int)));
+    connect(ui->spinBoxVideoOffset, SIGNAL(valueChanged(int)), &settings, SLOT(setVideoOffsetMs(int)));
+    connect(ui->spinBoxSlideshowInterval, SIGNAL(valueChanged(int)), &settings, SLOT(setSlideShowInterval(int)));
     connect(&settings, SIGNAL(karaokeAutoAdvanceChanged(bool)), ui->checkBoxKAA, SLOT(setChecked(bool)));
     connect(&settings, SIGNAL(showQueueRemovalWarningChanged(bool)), ui->cbxQueueRemovalWarning, SLOT(setChecked(bool)));
     connect(&settings, SIGNAL(showSingerRemovalWarningChanged(bool)), ui->cbxSingerRemovalWarning, SLOT(setChecked(bool)));
     connect(&settings, SIGNAL(showSongInterruptionWarningChanged(bool)), ui->cbxSongInterruptionWarning, SLOT(setChecked(bool)));
     connect(&settings, SIGNAL(showSongStopPauseWarningChanged(bool)), ui->cbxStopPauseWarning, SLOT(setChecked(bool)));
     connect(ui->cbxIgnoreApos, SIGNAL(toggled(bool)), &settings, SLOT(setIgnoreAposInSearch(bool)));
-    //connect(ui->spinBoxCdgOffset, SIGNAL(valueChanged(int)), settings, SLOT(setCdgDisplayOffset(int)));
-    ui->cbxCrossFade->setChecked(settings.bmKCrossFade());
     connect(ui->cbxCrossFade, SIGNAL(clicked(bool)), &settings, SLOT(setBmKCrossfade(bool)));
     connect(ui->cbxCheckUpdates, SIGNAL(clicked(bool)), &settings, SLOT(setCheckUpdates(bool)));
     connect(ui->comboBoxUpdateBranch, SIGNAL(currentIndexChanged(int)), &settings, SLOT(setUpdatesBranch(int)));
-    ui->lineEditDownloadsDir->setText(settings.storeDownloadDir());
-    adjustSize();
     connect(ui->checkBoxDbSkipValidation, SIGNAL(toggled(bool)), &settings, SLOT(dbSetSkipValidation(bool)));
     connect(ui->checkBoxLazyLoadDurations, SIGNAL(toggled(bool)), &settings, SLOT(dbSetLazyLoadDurations(bool)));
     connect(ui->checkBoxMonitorDirs, SIGNAL(toggled(bool)), &settings, SLOT(dbSetDirectoryWatchEnabled(bool)));
     connect(ui->spinBoxSystemId, SIGNAL(valueChanged(int)), &settings, SLOT(setSystemId(int)));
-    ui->checkBoxLogging->setChecked(settings.logEnabled());
-    Settings tmpSettings;
-    ui->lineEditLogDir->setText(tmpSettings.logDir());
     connect(ui->checkBoxLogging, SIGNAL(toggled(bool)), &settings, SLOT(setLogEnabled(bool)));
-    ui->checkBoxTreatAllSingersAsRegs->setChecked(settings.treatAllSingersAsRegs());
     connect(ui->checkBoxTreatAllSingersAsRegs, &QAbstractButton::toggled, &settings, &Settings::setTreatAllSingersAsRegs);
-    ui->checkBoxEnforceAspectRatio->setChecked(settings.enforceAspectRatio());
     connect(ui->checkBoxShowAddDlgOnDbDblclk, &QCheckBox::stateChanged, [&] (auto state) {
         if (state == 0)
             settings.setDbDoubleClickAddsSong(false);
         else
             settings.setDbDoubleClickAddsSong(true);
     });
+    connect(networkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
+    connect(networkManager, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(onSslErrors(QNetworkReply*)));
+    connect(ui->cbxQueueRemovalWarning, SIGNAL(toggled(bool)), &settings, SLOT(setShowQueueRemovalWarning(bool)));
+    connect(ui->cbxSingerRemovalWarning, SIGNAL(toggled(bool)), &settings, SLOT(setShowSingerRemovalWarning(bool)));
+    connect(ui->cbxSongInterruptionWarning, SIGNAL(toggled(bool)), &settings, SLOT(setShowSongInterruptionWarning(bool)));
+    connect(ui->cbxStopPauseWarning, SIGNAL(toggled(bool)), &settings, SLOT(setShowSongPauseStopWarning(bool)));
+    connect(ui->cbxTickerShowRotationInfo, SIGNAL(clicked(bool)), &settings, SLOT(setTickerShowRotationInfo(bool)));
+    connect(&settings, SIGNAL(tickerShowRotationInfoChanged(bool)), this, SLOT(tickerShowRotationInfoChanged(bool)));
+    connect(songbookApi, SIGNAL(entitledSystemCountChanged(int)), this, SLOT(entitledSystemCountChanged(int)));
+    connect(ui->cbxRotShowNextSong, SIGNAL(clicked(bool)), &settings, SLOT(setRotationShowNextSong(bool)));
     setupHotkeysForm();
+    m_pageSetupDone = true;
 }
 
 DlgSettings::~DlgSettings()
@@ -451,6 +447,8 @@ void DlgSettings::on_pushButtonFont_clicked()
 
 void DlgSettings::on_horizontalSliderTickerSpeed_valueChanged(int value)
 {
+    if (!m_pageSetupDone)
+        return;
     settings.setTickerSpeed(value);
 }
 
@@ -482,6 +480,8 @@ void DlgSettings::on_pushButtonBgColor_clicked()
 
 void DlgSettings::on_radioButtonFullRotation_toggled(bool checked)
 {
+    if (!m_pageSetupDone)
+        return;
     settings.setTickerFullRotation(checked);
     ui->spinBoxTickerSingers->setEnabled(!checked);
 }
@@ -490,11 +490,15 @@ void DlgSettings::on_radioButtonFullRotation_toggled(bool checked)
 
 void DlgSettings::on_spinBoxTickerSingers_valueChanged(int arg1)
 {
+    if (!m_pageSetupDone)
+        return;
     settings.setTickerShowNumSingers(arg1);
 }
 
 void DlgSettings::on_groupBoxTicker_toggled(bool arg1)
 {
+    if (!m_pageSetupDone)
+        return;
     settings.setTickerEnabled(arg1);
 }
 
@@ -505,11 +509,15 @@ void DlgSettings::on_lineEditUrl_editingFinished()
 
 void DlgSettings::on_checkBoxIgnoreCertErrors_toggled(bool checked)
 {
+    if (!m_pageSetupDone)
+        return;
     settings.setRequestServerIgnoreCertErrors(checked);
 }
 
 void DlgSettings::on_groupBoxRequestServer_toggled(bool arg1)
 {
+    if (!m_pageSetupDone)
+        return;
     settings.setRequestServerEnabled(arg1);
 }
 
@@ -533,62 +541,73 @@ void DlgSettings::on_pushButtonBrowse_clicked()
 
 void DlgSettings::on_checkBoxFader_toggled(bool checked)
 {
+    if (!m_pageSetupDone)
+        return;
     settings.setAudioUseFader(checked);
     emit audioUseFaderChanged(checked);
 }
 
 void DlgSettings::on_checkBoxFaderBm_toggled(bool checked)
 {
+    if (!m_pageSetupDone)
+        return;
     settings.setAudioUseFaderBm(checked);
     emit audioUseFaderChangedBm(checked);
 }
 
 void DlgSettings::on_checkBoxSilenceDetection_toggled(bool checked)
 {
+    if (!m_pageSetupDone)
+        return;
     settings.setAudioDetectSilence(checked);
     emit audioSilenceDetectChanged(checked);
 }
 
 void DlgSettings::on_checkBoxSilenceDetectionBm_toggled(bool checked)
 {
+    if (!m_pageSetupDone)
+        return;
     settings.setAudioDetectSilenceBm(checked);
     emit audioSilenceDetectChangedBm(checked);
 }
 
 void DlgSettings::on_checkBoxDownmix_toggled(bool checked)
 {
+    if (!m_pageSetupDone)
+        return;
     settings.setAudioDownmix(checked);
     emit audioDownmixChanged(checked);
 }
 
 void DlgSettings::on_checkBoxDownmixBm_toggled(bool checked)
 {
+    if (!m_pageSetupDone)
+        return;
     settings.setAudioDownmixBm(checked);
     emit audioDownmixChangedBm(checked);
 }
 
 void DlgSettings::on_comboBoxDevice_currentIndexChanged(const QString &arg1)
 {
-    if (pageSetupDone)
-        settings.setRecordingInput(arg1);
+    if (!m_pageSetupDone)
+        return;
+    settings.setRecordingInput(arg1);
 }
 
 void DlgSettings::on_comboBoxCodec_currentIndexChanged(const QString &arg1)
 {
-    if (pageSetupDone)
-    {
-        settings.setRecordingCodec(arg1);
-        if (arg1 == "audio/mpeg")
-        {
-            settings.setRecordingRawExtension("mp3");
-        }
-    }
+    if (!m_pageSetupDone)
+        return;
+    settings.setRecordingCodec(arg1);
+    if (arg1 == "audio/mpeg")
+        settings.setRecordingRawExtension("mp3");
 }
 
 void DlgSettings::on_groupBoxRecording_toggled(bool arg1)
 {
-    if (pageSetupDone)
-        settings.setRecordingEnabled(arg1);
+    if (!m_pageSetupDone)
+        return;
+    settings.setRecordingEnabled(arg1);
 }
 
 void DlgSettings::on_buttonBrowse_clicked()
@@ -622,6 +641,8 @@ void DlgSettings::on_pushButtonSlideshowBrowse_clicked()
 
 void DlgSettings::on_rbSlideshow_toggled(bool checked)
 {
+    if (!m_pageSetupDone)
+        return;
     if (checked)
         settings.setBgMode(settings.BG_MODE_SLIDESHOW);
     else
@@ -630,6 +651,8 @@ void DlgSettings::on_rbSlideshow_toggled(bool checked)
 
 void DlgSettings::on_rbBgImage_toggled(bool checked)
 {
+    if (!m_pageSetupDone)
+        return;
     if (checked)
         settings.setBgMode(settings.BG_MODE_IMAGE);
     else
@@ -643,16 +666,22 @@ void DlgSettings::on_lineEditApiKey_editingFinished()
 
 void DlgSettings::on_checkBoxShowKAAAlert_toggled(bool checked)
 {
+    if (!m_pageSetupDone)
+        return;
     settings.setKaraokeAAAlertEnabled(checked);
 }
 
 void DlgSettings::on_checkBoxKAA_toggled(bool checked)
 {
+    if (!m_pageSetupDone)
+        return;
     settings.setKaraokeAutoAdvance(checked);
 }
 
 void DlgSettings::on_spinBoxAADelay_valueChanged(int arg1)
 {
+    if (!m_pageSetupDone)
+        return;
     settings.setKaraokeAATimeout(arg1);
 }
 
@@ -699,8 +728,9 @@ void DlgSettings::on_cbxBmAutostart_clicked(bool checked)
 
 void DlgSettings::on_spinBoxInterval_valueChanged(int arg1)
 {
-    if (pageSetupDone)
-        settings.setRequestServerInterval(arg1);
+    if (!m_pageSetupDone)
+        return;
+    settings.setRequestServerInterval(arg1);
 }
 
 void DlgSettings::tickerShowRotationInfoChanged(bool show)
@@ -714,8 +744,9 @@ void DlgSettings::tickerShowRotationInfoChanged(bool show)
 
 void DlgSettings::on_cbxTheme_currentIndexChanged(int index)
 {
-    if (pageSetupDone)
-        settings.setTheme(index);
+    if (!m_pageSetupDone)
+        return;
+    settings.setTheme(index);
 }
 
 void DlgSettings::on_btnBrowse_clicked()
@@ -738,7 +769,7 @@ void DlgSettings::on_btnBrowse_clicked()
 
 void DlgSettings::on_fontComboBox_currentFontChanged(const QFont &f)
 {
-    if (!pageSetupDone)
+    if (!m_pageSetupDone)
         return;
     QFont font = f;
     font.setPointSize(ui->spinBoxAppFontSize->value());
@@ -748,7 +779,7 @@ void DlgSettings::on_fontComboBox_currentFontChanged(const QFont &f)
 
 void DlgSettings::on_spinBoxAppFontSize_valueChanged(int arg1)
 {
-    if (!pageSetupDone)
+    if (!m_pageSetupDone)
         return;
     QFont font = settings.applicationFont();
     font.setPointSize(arg1);
@@ -800,24 +831,21 @@ void DlgSettings::on_checkBoxIncludeEmptySingers_clicked(bool checked)
 
 void DlgSettings::on_spinBoxDefaultPadTime_valueChanged(int arg1)
 {
-    if (pageSetupDone)
-    {
-        settings.setEstimationSingerPad(arg1);
-    }
+    if (!m_pageSetupDone)
+        return;
+    settings.setEstimationSingerPad(arg1);
 }
 
 void DlgSettings::on_spinBoxDefaultSongDuration_valueChanged(int arg1)
 {
-    if (pageSetupDone)
-    {
-        settings.setEstimationEmptySongLength(arg1);
-    }
+    if (!m_pageSetupDone)
+        return;
+    settings.setEstimationEmptySongLength(arg1);
 }
 
 void DlgSettings::on_checkBoxDisplayCurrentRotationPosition_clicked(bool checked)
 {
     settings.setRotationDisplayPosition(checked);
-
 }
 
 void DlgSettings::entitledSystemCountChanged(int count)
@@ -890,16 +918,22 @@ void DlgSettings::on_btnLogDirBrowse_clicked()
 
 void DlgSettings::on_checkBoxProgressiveSearch_toggled(bool checked)
 {
+    if (!m_pageSetupDone)
+        return;
     settings.setProgressiveSearchEnabled(checked);
 }
 
 void DlgSettings::on_cbxPreviewEnabled_toggled(bool checked)
 {
+    if (!m_pageSetupDone)
+        return;
     settings.setPreviewEnabled(!checked);
 }
 
 void DlgSettings::on_comboBoxKAudioDevices_currentIndexChanged(int index)
 {
+    if (!m_pageSetupDone)
+        return;
     static int lastSelIndex = index;
     static QString lastSelItem = ui->comboBoxKAudioDevices->itemText(index);
     QString device = ui->comboBoxKAudioDevices->itemText(index);
@@ -917,18 +951,17 @@ void DlgSettings::on_comboBoxKAudioDevices_currentIndexChanged(int index)
             ui->comboBoxKAudioDevices->setCurrentIndex(lastSelIndex);
         return;
     }
-    if (pageSetupDone)
-    {
-        settings.setAudioOutputDevice(device);
-        int deviceIndex = audioOutputDevices.indexOf(QRegExp(device,Qt::CaseSensitive,QRegExp::FixedString));
-        if (deviceIndex != -1)
-            kAudioBackend->setOutputDevice(deviceIndex);
-    }
+    settings.setAudioOutputDevice(device);
+    int deviceIndex = audioOutputDevices.indexOf(QRegExp(device,Qt::CaseSensitive,QRegExp::FixedString));
+    if (deviceIndex != -1)
+        kAudioBackend->setOutputDevice(deviceIndex);
     lastSelItem = device;
 }
 
 void DlgSettings::on_comboBoxBAudioDevices_currentIndexChanged(int index)
 {
+    if (!m_pageSetupDone)
+        return;
     static int lastSelIndex = index;
     static QString lastSelItem = ui->comboBoxBAudioDevices->itemText(index);
     QString device = ui->comboBoxBAudioDevices->itemText(index);
@@ -949,36 +982,12 @@ void DlgSettings::on_comboBoxBAudioDevices_currentIndexChanged(int index)
             ui->comboBoxBAudioDevices->setCurrentIndex(lastSelIndex);
         return;
     }
-    if (pageSetupDone)
-    {
-        settings.setAudioOutputDeviceBm(device);
-        int deviceIndex = audioOutputDevices.indexOf(QRegExp(device,Qt::CaseSensitive,QRegExp::FixedString));
-        if (deviceIndex != -1)
-            bmAudioBackend->setOutputDevice(deviceIndex);
-    }
+    settings.setAudioOutputDeviceBm(device);
+    int deviceIndex = audioOutputDevices.indexOf(QRegExp(device,Qt::CaseSensitive,QRegExp::FixedString));
+    if (deviceIndex != -1)
+        bmAudioBackend->setOutputDevice(deviceIndex);
     lastSelItem = device;
 }
-
-//void DlgSettings::on_comboBoxMonitors_currentIndexChanged(int index)
-//{
-//    if (!pageSetupDone)
-//        return;
-//    QDesktopWidget widget;
-//    int appMonitor = widget.screenNumber(ui->tabWidget);
-//    int selMonitor = index;
-//    if ((selMonitor == appMonitor) && (settings.cdgWindowFullscreen()))
-//    {
-//        QMessageBox msgBox;
-//        msgBox.setText("Warning: The selected CDG fullscreen display monitor is the same as the one that the main app is displayed on!");
-//        msgBox.setInformativeText("This is probably not what you want. Are you sure you want to do this?");
-//        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
-//        msgBox.setDefaultButton(QMessageBox::Cancel);
-//        int ret = msgBox.exec();
-//        if (ret == QMessageBox::Cancel)
-//            return;
-//    }
-//    settings.setCdgWindowFullscreenMonitor(selMonitor);
-//}
 
 void DlgSettings::on_checkBoxEnforceAspectRatio_clicked(bool checked)
 {
@@ -1002,11 +1011,15 @@ void DlgSettings::on_lineEditTickerMessage_returnPressed()
 
 void DlgSettings::on_checkBoxHardwareAccel_toggled(bool checked)
 {
+    if (!m_pageSetupDone)
+        return;
     settings.setHardwareAccelEnabled(checked);
 }
 
 void DlgSettings::on_checkBoxCdgPrescaling_stateChanged(int arg1)
 {
+    if (!m_pageSetupDone)
+        return;
     if (arg1 == 0)
         settings.setCdgPrescalingEnabled(false);
     else
@@ -1015,6 +1028,8 @@ void DlgSettings::on_checkBoxCdgPrescaling_stateChanged(int arg1)
 
 void DlgSettings::on_checkBoxCurrentSingerTop_toggled(bool checked)
 {
+    if (!m_pageSetupDone)
+        return;
     settings.setRotationAltSortOrder(checked);
 }
 
