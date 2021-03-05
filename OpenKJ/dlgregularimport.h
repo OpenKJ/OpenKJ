@@ -23,7 +23,6 @@
 
 #include <QDialog>
 #include <QStringList>
-#include "tablemodelrotationsingers.h"
 #include "tablemodelhistorysongs.h"
 #include "tablemodelhistorysingers.h"
 

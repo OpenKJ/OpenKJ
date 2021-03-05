@@ -25,7 +25,7 @@
 #include <QItemSelection>
 #include "tablemodelrequests.h"
 #include "tablemodelkaraokesongs.h"
-#include "tablemodelrotationsingers.h"
+#include "tablemodelrotation.h"
 #include "okjsongbookapi.h"
 
 namespace Ui {
@@ -41,14 +41,14 @@ private:
     TableModelRequests *requestsModel;
     //SongDBTableModel *songDbModel;
     TableModelKaraokeSongs dbModel;
-    TableModelRotationSingers *rotModel;
+    TableModelRotation *rotModel;
     QString rtClickFile;
     int curRequestId;
     QString curSelReqSinger;
     QTimer testTimer;
 
 public:
-    explicit DlgRequests(TableModelRotationSingers *rotationModel, QWidget *parent = 0);
+    explicit DlgRequests(TableModelRotation *rotationModel, QWidget *parent = 0);
     int numRequests();
     ~DlgRequests();
 

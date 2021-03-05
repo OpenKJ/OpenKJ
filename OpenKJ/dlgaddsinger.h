@@ -2,7 +2,7 @@
 #define DLGADDSINGER_H
 
 #include <QDialog>
-#include <tablemodelrotationsingers.h>
+#include <tablemodelrotation.h>
 
 namespace Ui {
 class DlgAddSinger;
@@ -13,7 +13,7 @@ class DlgAddSinger : public QDialog
     Q_OBJECT
 
 public:
-    explicit DlgAddSinger(TableModelRotationSingers *rotModel, QWidget *parent = 0);
+    explicit DlgAddSinger(TableModelRotation *rotModel, QWidget *parent = 0);
     ~DlgAddSinger();
 
 private slots:
@@ -21,7 +21,7 @@ private slots:
 
 private:
     Ui::DlgAddSinger *ui;
-    TableModelRotationSingers *rotModel;
+    TableModelRotation *rotModel;
 
     // QWidget interface
 protected:

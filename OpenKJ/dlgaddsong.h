@@ -3,7 +3,7 @@
 
 #include <QButtonGroup>
 #include <QDialog>
-#include "tablemodelrotationsingers.h"
+#include "tablemodelrotation.h"
 #include "tablemodelqueuesongs.h"
 
 namespace Ui {
@@ -15,13 +15,13 @@ class DlgAddSong : public QDialog
     Q_OBJECT
 
 public:
-    explicit DlgAddSong(TableModelRotationSingers *rotationModel, TableModelQueueSongs *queueModel, int songId, QWidget *parent = nullptr);
+    explicit DlgAddSong(TableModelRotation *rotationModel, TableModelQueueSongs *queueModel, int songId, QWidget *parent = nullptr);
     ~DlgAddSong();
 
 private:
     Ui::DlgAddSong *ui;
     QButtonGroup m_rButtons;
-    TableModelRotationSingers *m_rotModel;
+    TableModelRotation *m_rotModel;
     TableModelQueueSongs *m_queueModel;
     int m_songId;
     // QWidget interface

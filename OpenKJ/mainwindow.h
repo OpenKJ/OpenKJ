@@ -43,7 +43,7 @@
 #include "dlgkeychange.h"
 #include "tablemodelkaraokesongs.h"
 #include "tablemodelqueuesongs.h"
-#include "tablemodelrotationsingers.h"
+#include "tablemodelrotation.h"
 #include "tablemodelbreaksongs.h"
 #include "tablemodelplaylistsongs.h"
 #include "bmdbdialog.h"
@@ -77,9 +77,9 @@ private:
     TableModelKaraokeSongs karaokeSongsModel;
     TableModelQueueSongs qModel{karaokeSongsModel, this};
     ItemDelegateQueueSongs qDelegate{this};
-    TableModelRotationSingers *rotModel;
+    TableModelRotation rotModel{this};
+    ItemDelegateRotation rotDelegate{this};
     TableModelHistorySongs historySongsModel;
-    ItemDelegateRotationSingers *rotDelegate;
     DlgCdg *cdgWindow;
     DlgDebugOutput *debugDialog;
     DlgDatabase *dbDialog;
