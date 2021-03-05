@@ -24,7 +24,7 @@
 #include <QDialog>
 #include <QSortFilterProxyModel>
 #include <QSqlTableModel>
-#include "tablemodelrotationsingers.h"
+#include "tablemodelrotation.h"
 #include "tablemodelhistorysingers.h"
 
 namespace Ui {
@@ -40,10 +40,10 @@ private:
     Ui::DlgRegularSingers *ui;
     TableModelHistorySingers m_historySingersModel;
     ItemDelegateHistorySingers m_historySingersDelegate;
-    TableModelRotationSingers *m_rotModel;
+    TableModelRotation *m_rotModel;
 
 public:
-    explicit DlgRegularSingers(TableModelRotationSingers *rotationModel, QWidget *parent = 0);
+    explicit DlgRegularSingers(TableModelRotation *rotationModel, QWidget *parent = 0);
     ~DlgRegularSingers();
     TableModelHistorySingers& historySingersModel() { return m_historySingersModel; }
 

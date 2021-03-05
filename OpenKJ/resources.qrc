@@ -5,6 +5,8 @@
         <file>Icons/okjicon.ico</file>
         <file>Icons/okjicon.svg</file>
         <file>Icons/OpenKJ.icns</file>
+        <file>Icons/greencircle.svg</file>
+        <file>Icons/yellowcircle.svg</file>
     </qresource>
     <qresource prefix="/theme">
         <file>Icons/okjbreeze/actions/16/dialog-align-and-distribute.svg</file>

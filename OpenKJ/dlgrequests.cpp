@@ -46,7 +46,7 @@ QString toMixedCase(const QString& s)
     return newStr;
 }
 
-DlgRequests::DlgRequests(TableModelRotationSingers *rotationModel, QWidget *parent) :
+DlgRequests::DlgRequests(TableModelRotation *rotationModel, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DlgRequests)
 {

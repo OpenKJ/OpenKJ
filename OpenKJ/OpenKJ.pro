@@ -116,7 +116,7 @@ contains(DEFINES, STATIC_TAGLIB) {
 #QMAKE_MAC_SDK = MacOSX10.13
 #QMAKE_MAC_SDK.macosx.version = 10.13
 
-VERSION = 1.9.43
+VERSION = 1.9.44
 message($$VERSION)
 QMAKE_TARGET_COMPANY = OpenKJ.org
 QMAKE_TARGET_PRODUCT = OpenKJ
@@ -158,7 +158,6 @@ SOURCES += main.cpp\
     tablemodelqueuesongs.cpp \
     tablemodelrequests.cpp \
     tablemodelrotation.cpp \
-    tablemodelrotationsingers.cpp \
     tablemodelsongshopsongs.cpp \
     tagreader.cpp \
     bmdbupdatethread.cpp \
@@ -326,7 +325,6 @@ HEADERS  += mainwindow.h \
     tablemodelqueuesongs.h \
     tablemodelrequests.h \
     tablemodelrotation.h \
-    tablemodelrotationsingers.h \
     tablemodelsongshopsongs.h \
     tagreader.h \
     bmdbupdatethread.h \

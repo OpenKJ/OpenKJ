@@ -22,7 +22,6 @@
 #define REGULAREXPORTDIALOG_H
 
 #include <QDialog>
-#include "tablemodelrotationsingers.h"
 #include "tablemodelhistorysingers.h"
 #include "tablemodelhistorysongs.h"
 
