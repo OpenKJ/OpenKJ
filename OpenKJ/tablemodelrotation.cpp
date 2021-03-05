@@ -108,6 +108,7 @@ QVariant TableModelRotation::data(const QModelIndex &index, int role) const
                     return wait;
                 return QVariant();
             }
+            return QVariant();
         case COL_NAME:
             return m_singers.at(index.row()).name;
         case COL_POSITION:
