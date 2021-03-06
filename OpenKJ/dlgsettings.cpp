@@ -956,7 +956,7 @@ void DlgSettings::on_comboBoxKAudioDevices_currentIndexChanged(int index)
     settings.setAudioOutputDevice(device);
     int deviceIndex = audioOutputDevices.indexOf(QRegExp(device,Qt::CaseSensitive,QRegExp::FixedString));
     if (deviceIndex != -1)
-        kAudioBackend->setOutputDevice(deviceIndex);
+        kAudioBackend->setAudioOutputDevice(deviceIndex);
     lastSelItem = device;
 }
 
@@ -987,7 +987,7 @@ void DlgSettings::on_comboBoxBAudioDevices_currentIndexChanged(int index)
     settings.setAudioOutputDeviceBm(device);
     int deviceIndex = audioOutputDevices.indexOf(QRegExp(device,Qt::CaseSensitive,QRegExp::FixedString));
     if (deviceIndex != -1)
-        bmAudioBackend->setOutputDevice(deviceIndex);
+        bmAudioBackend->setAudioOutputDevice(deviceIndex);
     lastSelItem = device;
 }
 
