@@ -76,7 +76,7 @@ void SoftwareRenderVideoSink::onSurfaceResized(const QSize &size)
     gst_element_send_event(GST_ELEMENT(m_appSink), gst_event_new_reconfigure());
 }
 
-GstFlowReturn SoftwareRenderVideoSink::NewSampleCallback(GstAppSink *appsink, gpointer user_data)
+GstFlowReturn SoftwareRenderVideoSink::NewSampleCallback([[maybe_unused]]GstAppSink *appsink, gpointer user_data)
 {
     SoftwareRenderVideoSink *me = (SoftwareRenderVideoSink*) user_data;
     me->m_active = true;

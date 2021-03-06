@@ -241,8 +241,8 @@ int TableModelQueueSongs::add(const int songId)
                              ksong.path
                          });
     emit layoutChanged();
-    return queueSongId;
     emit queueModified(m_curSingerId);
+    return queueSongId;
 }
 
 void TableModelQueueSongs::insert(const int songId, const int position)

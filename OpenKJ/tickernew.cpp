@@ -111,14 +111,14 @@ void TickerNew::setText(QString text)
 #else
     m_height = QFontMetrics(tickerFont).tightBoundingRect(text).height() * 1.2;
 #endif
-    m_imgWidth = QFontMetrics(tickerFont).width(text);
+    m_imgWidth = QFontMetrics(tickerFont).size(Qt::TextSingleLine, text).width();
     m_txtWidth = m_imgWidth;
     if (m_imgWidth > m_width)
     {
         m_textOverflows = true;
         drawText.append(text + " • " + text + " • ");
-        m_imgWidth = QFontMetrics(tickerFont).width(drawText);
-        m_txtWidth = m_txtWidth + QFontMetrics(tickerFont).width(" • ");
+        m_imgWidth = QFontMetrics(tickerFont).size(Qt::TextSingleLine, drawText).width();
+        m_txtWidth = m_txtWidth + QFontMetrics(tickerFont).size(Qt::TextSingleLine," • ").width();
         scrollImage = QPixmap(m_imgWidth, m_height);
     }
     else {

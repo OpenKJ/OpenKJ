@@ -1047,16 +1047,15 @@ const char* MediaBackend::getVideoSinkElementNameForFactory()
 #if defined(Q_OS_LINUX)
     switch (m_accelMode)
     {
-        case OpenGL:
-            return "glimagesink";
-        case XVideo:
-            return "xvimagesink";
+    case OpenGL:
+        return "glimagesink";
+    case XVideo:
+        return "xvimagesink";
     }
 #elif defined(Q_OS_WIN)
     return "d3dvideosink";
-#else
-    return "glimagesink";
 #endif
+    return "glimagesink";
 }
 
 

@@ -18,9 +18,9 @@ DlgBookCreator::DlgBookCreator(QWidget *parent) :
     ui->setupUi(this);
     ui->cbxColumns->addItem("2", 2);
     ui->cbxColumns->addItem("3", 3);
-    ui->cbxPageSize->addItem(tr("Letter"), QPagedPaintDevice::Letter);
-    ui->cbxPageSize->addItem(tr("Legal"), QPagedPaintDevice::Legal);
-    ui->cbxPageSize->addItem(tr("A4"), QPagedPaintDevice::A4);
+    ui->cbxPageSize->addItem(tr("Letter"), QPageSize::Letter);
+    ui->cbxPageSize->addItem(tr("Legal"), QPageSize::Legal);
+    ui->cbxPageSize->addItem(tr("A4"), QPageSize::A4);
     settings = new Settings(this);
     qInfo() << "Header font: " << settings->bookCreatorArtistFont().toString();
     qInfo() << "Item font:   " << settings->bookCreatorTitleFont().toString();
@@ -163,7 +163,7 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
     QFont hFont = settings->bookCreatorHeaderFont();
     QFont fFont = settings->bookCreatorFooterFont();
     QPdfWriter pdf(filename);
-    pdf.setPageSize(static_cast<QPagedPaintDevice::PageSize>(ui->cbxPageSize->currentData().toInt()));
+    pdf.setPageSize(QPageSize(static_cast<QPageSize::PageSizeId>(ui->cbxPageSize->currentData().toInt())));
     pdf.setPageMargins(QMarginsF(ui->doubleSpinBoxLeft->value(),ui->doubleSpinBoxTop->value(),ui->doubleSpinBoxRight->value(),ui->doubleSpinBoxBottom->value()), QPageLayout::Inch);
     QPainter painter(&pdf);
     qInfo() << "Getting artists";
