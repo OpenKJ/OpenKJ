@@ -32,8 +32,7 @@ private:
     GstCaps *m_videoCaps;
 
     static GstFlowReturn NewSampleCallback(GstAppSink *appsink, gpointer user_data);
-    static void EosCallback(GstAppSink *appsink, void *user_data);
-    bool pullFromSinkAndEmitNewVideoFrame();
+    bool pullSampleAndDrawImage();
     static void cleanupFunction(void *info);
 
 signals:

@@ -27,7 +27,12 @@ SoftwareRenderVideoSink::SoftwareRenderVideoSink(QWidget *surface)
     gst_app_sink_set_max_buffers (m_appSink, 1);
     gst_app_sink_set_drop(m_appSink, true);
 
-    // allow the sink to send qos messages to pipeline to allow skipping frames
+    // Process eos even if there are unread samples.
+    // As samples are only read when the widget is painted, samples are not read if the widget is hidden.
+    // Without this, the sink will hang/never change state from playing->ready->null.
+    gst_app_sink_set_wait_on_eos(m_appSink, false);
+
+    // Allow the sink to send qos messages to pipeline to allow skipping frames
     gst_base_sink_set_qos_enabled(reinterpret_cast<GstBaseSink*>(m_appSink), true);
 
     m_surface->installEventFilter(this);
@@ -50,7 +55,7 @@ bool SoftwareRenderVideoSink::eventFilter(QObject *obj, QEvent *event)
         m_pendingRepaint = false;
         if (m_active)
         {
-            return pullFromSinkAndEmitNewVideoFrame();
+            return pullSampleAndDrawImage();
         }
         else
         {
@@ -71,6 +76,8 @@ bool SoftwareRenderVideoSink::eventFilter(QObject *obj, QEvent *event)
 
 void SoftwareRenderVideoSink::onSurfaceResized(const QSize &size)
 {
+    // Tell what image dimension we can handle and let
+    // the Videoscale element earlier in the pipeline do the actual scaline.
     gst_caps_set_simple(m_videoCaps, "width", G_TYPE_INT, size.width(), "height", G_TYPE_INT, size.height(), nullptr);
     gst_app_sink_set_caps(m_appSink, m_videoCaps);
     gst_element_send_event(GST_ELEMENT(m_appSink), gst_event_new_reconfigure());
@@ -99,8 +106,9 @@ void SoftwareRenderVideoSink::cleanupFunction(void* _info)
     delete info;
 }
 
-bool SoftwareRenderVideoSink::pullFromSinkAndEmitNewVideoFrame()
+bool SoftwareRenderVideoSink::pullSampleAndDrawImage()
 {
+    // Pull sample and paint it. Must be called from gui thread!
     GstSample* sample = gst_app_sink_try_pull_sample(m_appSink, 0);
 
     if (sample)
