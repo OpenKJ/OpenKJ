@@ -19,7 +19,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QWidget" name="videoDisplay" native="true">
+    <widget class="VideoDisplay" name="videoDisplay" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
        <horstretch>0</horstretch>
@@ -67,6 +67,14 @@
    </item>
   </layout>
  </widget>
+<customwidgets>
+  <customwidget>
+   <class>VideoDisplay</class>
+   <extends>QWidget</extends>
+   <header location="global">videodisplay.h</header>
+   <container>1</container>
+  </customwidget>
+</customwidgets>
  <resources>
   <include location="resources.qrc"/>
  </resources>

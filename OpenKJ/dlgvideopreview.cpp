@@ -16,15 +16,12 @@ DlgVideoPreview::DlgVideoPreview(const QString &mediaFilePath, QWidget *parent) 
        deleteLater();
     });
 
-    if (!gst_is_initialized())
-    {
-        qInfo() << "VideoPreview - gst not initialized - initializing";
-        gst_init(nullptr,nullptr);
-    }
+    //m_mediaBackend.setVolume(0);
+    m_mediaBackend.setVideoOutputWidgets({ ui->videoDisplay });
+    // todo: should we set silence detection off?
 
     if (m_mediaFilename.endsWith(".zip", Qt::CaseInsensitive))
     {
-        m_cdgMode = true;
         MzArchive archive(m_mediaFilename);
         if ((archive.checkCDG()) && (archive.checkAudio()))
         {
@@ -42,6 +39,8 @@ DlgVideoPreview::DlgVideoPreview(const QString &mediaFilePath, QWidget *parent) 
                     return;
                 }
                 playCdg(tmpDir.path() + QDir::separator() + "tmp.cdg");
+                //m_mediaBackend.setMediaCdg(tmpDir.path() + QDir::separator() + "tmp.cdg", tmpDir.path() + QDir::separator() + "tmp" + archive.audioExtension());
+                //m_mediaBackend.play();
             }
         }
         else
@@ -52,7 +51,6 @@ DlgVideoPreview::DlgVideoPreview(const QString &mediaFilePath, QWidget *parent) 
     }
     else if (m_mediaFilename.endsWith(".cdg", Qt::CaseInsensitive))
     {
-        m_cdgMode = true;
         QString cdgTmpFile = "tmp.cdg";
         QFile cdgFile(m_mediaFilename);
         if (!cdgFile.exists())
@@ -90,114 +88,18 @@ DlgVideoPreview::DlgVideoPreview(const QString &mediaFilePath, QWidget *parent) 
 DlgVideoPreview::~DlgVideoPreview()
 {
     delete ui;
-//    if (!m_cdgMode)
-//    {
-//        gst_element_set_state (playBin, GST_STATE_NULL);
-//        gst_object_unref (playBin);
-//    }
-    gst_element_set_state (pipeline, GST_STATE_NULL);
-    if (pipeline)
-        gst_object_unref (pipeline);
-
 }
 
 void DlgVideoPreview::playCdg(const QString &filename)
 {
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    parser.open(filename);
-    parser.process();
-    pipeline = gst_pipeline_new("videoPreviewPl");
-    auto appSrc = gst_element_factory_make("appsrc", "videoPreviewAS");
-    g_object_set(G_OBJECT(appSrc), "caps",
-                 gst_caps_new_simple(
-                     "video/x-raw",
-                     "format", G_TYPE_STRING, "RGB8P",
-                     "width", G_TYPE_INT, cdg::FRAME_DIM_CROPPED.width(),
-                     "height", G_TYPE_INT, cdg::FRAME_DIM_CROPPED.height(),
-                     "framerate", GST_TYPE_FRACTION, 1, 30,
-                     NULL),
-                 NULL);
-    g_object_set(G_OBJECT(appSrc), "stream-type", 1, "format", GST_FORMAT_TIME, NULL);
-    auto videoConvert = gst_element_factory_make("videoconvert", "videoPreviewVC");
-#if defined(Q_OS_LINUX)
-    videoSink = gst_element_factory_make("xvimagesink", "videoPreviewVS");
-#elif defined(Q_OS_WIN)
-    videoSink = gst_element_factory_make("d3dvideosink", "videoPreviewVS");
-#elif defined(Q_OS_MAC)
-    videoSink = gst_element_factory_make("osxvideosink", "videoPreviewVS");
-#else
-    qWarning() << "Unknown platform, defaulting to OpenGL video output";
-    videoSink = gst_element_factory_make("glimagesink", "videoPreviewVS");
-#endif
-    gst_bin_add_many(reinterpret_cast<GstBin *>(pipeline),appSrc,videoConvert,videoSink,NULL);
-    gst_element_link_many(appSrc,videoConvert,videoSink,nullptr);
-    g_signal_connect(appSrc, "need-data", G_CALLBACK(cb_need_data), this);
-    g_signal_connect(appSrc, "seek-data", G_CALLBACK(cb_seek_data), this);
-    gst_video_overlay_set_window_handle(GST_VIDEO_OVERLAY(videoSink), ui->videoDisplay->winId());
-    gst_element_set_state(pipeline, GST_STATE_PLAYING);
-    QApplication::restoreOverrideCursor();
+    m_mediaBackend.setMediaCdg(filename, nullptr);
+    m_mediaBackend.play();
 }
 
 void DlgVideoPreview::playVideo(const QString &filename)
 {
-    pipeline = gst_pipeline_new("videoPreviewPl");
-    auto videoConvert = gst_element_factory_make("videoconvert", "videoPreviewVC");
-#if defined(Q_OS_LINUX)
-    videoSink = gst_element_factory_make("xvimagesink", "videoPreviewVS");
-#elif defined(Q_OS_WIN)
-    videoSink = gst_element_factory_make("d3dvideosink", "videoPreviewVS");
-#elif defined(Q_OS_MAC)
-    videoSink = gst_element_factory_make("osxvideosink", "videoPreviewVS");
-#else
-    qWarning() << "Unknown platform, defaulting to OpenGL video output";
-    videoSink = gst_element_factory_make("glimagesink", "videoPreviewVS");
-#endif
-    gst_bin_add_many(reinterpret_cast<GstBin *>(pipeline), videoConvert, videoSink, NULL);
-    playBin = gst_element_factory_make("playbin", "videoPreviewPB");
-    gst_element_link(videoConvert,videoSink);
-    auto *pad = gst_element_get_static_pad(videoConvert, "sink");
-    auto ghostPad = gst_ghost_pad_new("sink", pad);
-    gst_pad_set_active(ghostPad, true);
-    gst_element_add_pad(pipeline, ghostPad);
-    gst_object_unref(pad);
-    g_object_set(playBin, "audio-sink", gst_element_factory_make("fakesink", nullptr), nullptr);
-    g_object_set(playBin, "video-sink", pipeline, nullptr);
-    gst_video_overlay_set_window_handle(GST_VIDEO_OVERLAY(videoSink), ui->videoDisplay->winId());
-    g_object_set(playBin, "mute", true, nullptr);
-    auto uri = gst_filename_to_uri(filename.toLocal8Bit(), nullptr);
-    g_object_set(playBin, "uri", uri, nullptr);
-    g_free(uri);
-    gst_element_set_state(playBin, GST_STATE_PLAYING);
+    m_mediaBackend.setMedia(filename);
+    m_mediaBackend.play();
+
 }
 
-gboolean DlgVideoPreview::cb_seek_data([[maybe_unused]]GstElement *appsrc, guint64 position, gpointer user_data)
-{
-    qInfo() << "cb_seek_data called";
-    auto dlg = reinterpret_cast<DlgVideoPreview *>(user_data);
-    if (position == 0)
-    {
-        dlg->curFrame = 0;
-        dlg->position = 0;
-        return true;
-    }
-    dlg->curFrame = position / 40000000;
-    dlg->position = position;
-    return true;
-}
-
-void DlgVideoPreview::cb_need_data(GstElement *appsrc, [[maybe_unused]]guint unused_size, gpointer user_data)
-{
-    auto dlg = reinterpret_cast<DlgVideoPreview *>(user_data);
-    auto bufferSize = dlg->parser.videoFrameDataByIndex(dlg->curFrame).size();
-    auto buffer = gst_buffer_new_and_alloc(bufferSize);
-    gst_buffer_fill(buffer,
-                    0,
-                    dlg->parser.videoFrameDataByIndex(dlg->curFrame).data(),
-                    bufferSize
-                    );
-    GST_BUFFER_PTS(buffer) = dlg->position;
-    GST_BUFFER_DURATION(buffer) = 40000000; // 40ms
-    dlg->position += GST_BUFFER_DURATION(buffer);
-    dlg->curFrame++;
-    gst_app_src_push_buffer(reinterpret_cast<GstAppSrc *>(appsrc), buffer);
-}

@@ -24,7 +24,7 @@
 #include <QMainWindow>
 #include "customlineedit.h"
 #include <QtSql>
-#include "libCDG/include/libCDG.h"
+//#include "libCDG/include/libCDG.h"
 #include <QSortFilterProxyModel>
 #include <QTemporaryDir>
 #include <QDir>
@@ -89,9 +89,9 @@ private:
     DlgEq *dlgEq;
     DlgAddSinger *dlgAddSinger;
     DlgSongShop *dlgSongShop;
-    MediaBackend kMediaBackend{true, this, "KAR"};
-    MediaBackend sfxMediaBackend{false, this, "SFX"};
-    MediaBackend bmMediaBackend{false, this, "BM"};
+    MediaBackend kMediaBackend { this, "KAR", MediaBackend::Karaoke };
+    MediaBackend sfxMediaBackend { this, "SFX", MediaBackend::SFX };
+    MediaBackend bmMediaBackend { this, "BM", MediaBackend::BackgroundMusic };
     AudioRecorder audioRecorder;
     QLabel labelSingerCount;
     QLabel labelRotationDuration;
@@ -127,6 +127,8 @@ private:
     void bmAddPlaylist(QString title);
     bool bmPlaylistExists(QString name);
     MediaBackend::State m_lastAudioState{MediaBackend::StoppedState};
+    bool m_kHasActiveVideo { false };
+    bool m_bmHasActiveVideo { false };
     void refreshSongDbCache();
     QTimer m_timerKaraokeAA;
     UpdateChecker *checker;
@@ -200,16 +202,17 @@ private slots:
     void clearQueueSort();
     void on_buttonClearQueue_clicked();
     void on_spinBoxKey_valueChanged(const int &arg1);
-    void audioBackend_positionChanged(const qint64 &position);
-    void audioBackend_durationChanged(const qint64 &duration);
-    void audioBackend_stateChanged(const MediaBackend::State &state);
+    void karaokeMediaBackend_positionChanged(const qint64 &position);
+    void karaokeMediaBackend_durationChanged(const qint64 &duration);
+    void karaokeMediaBackend_stateChanged(const MediaBackend::State &state);
     void sfxAudioBackend_positionChanged(const qint64 &position);
     void sfxAudioBackend_durationChanged(const qint64 &duration);
     void sfxAudioBackend_stateChanged(const MediaBackend::State &state);
+    void on_hasActiveVideoChanged();
     void on_sliderProgress_sliderMoved(const int &position);
     void on_buttonRegulars_clicked();
     void rotationDataChanged();
-    void silenceDetected();
+    void silenceDetectedKar();
     void silenceDetectedBm();
     void audioBackendChanged(const int &index);
     void on_tableViewDB_customContextMenuRequested(const QPoint &pos);
@@ -226,8 +229,6 @@ private slots:
     void previewCdg();
     void editSong();
     void markSongBad();
-    void setShowBgImage(const bool &show);
-    void onBgImageChange();
     void karaokeAATimerTimeout();
     void timerButtonFlashTimeout();
     void autosizeViews();
@@ -325,7 +326,8 @@ private slots:
     void on_actionMultiplex_Controls_triggered(bool checked);
 
     void on_actionCDG_Decode_Torture_triggered();
-    void videoFrameReceived(QImage frame, QString backendName);
+    void on_actionWrite_Gstreamer_pipeline_dot_files_triggered();
+
 
     void on_comboBoxSearchType_currentIndexChanged(int index);
 

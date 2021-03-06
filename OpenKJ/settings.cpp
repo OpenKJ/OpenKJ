@@ -1277,130 +1277,24 @@ void Settings::setEqKBypass(bool bypass)
     emit eqKBypassChanged(bypass);
 }
 
+void Settings::setEqKLevel(int band, int level)
+{
+    // eq bands in settings are indexed 1-10
+    settings->setValue(QString("eqKLevel%1").arg(band + 1), level);
+    emit eqKLevelChanged(band, level);
+}
+
 void Settings::setEqBBypass(bool bypass)
 {
     settings->setValue("eqBBypass", bypass);
     emit eqBBypassChanged(bypass);
 }
 
-void Settings::setEqKLevel1(int level)
+void Settings::setEqBLevel(int band, int level)
 {
-    settings->setValue("eqKLevel1", level);
-    emit eqKLevel1Changed(level);
-}
-
-void Settings::setEqKLevel2(int level)
-{
-    settings->setValue("eqKLevel2", level);
-    emit eqKLevel2Changed(level);
-}
-
-void Settings::setEqKLevel3(int level)
-{
-    settings->setValue("eqKLevel3", level);
-    emit eqKLevel3Changed(level);
-}
-
-void Settings::setEqKLevel4(int level)
-{
-    settings->setValue("eqKLevel4", level);
-    emit eqKLevel4Changed(level);
-}
-
-void Settings::setEqKLevel5(int level)
-{
-    settings->setValue("eqKLevel5", level);
-    emit eqKLevel5Changed(level);
-}
-
-void Settings::setEqKLevel6(int level)
-{
-    settings->setValue("eqKLevel6", level);
-    emit eqKLevel6Changed(level);
-}
-
-void Settings::setEqKLevel7(int level)
-{
-    settings->setValue("eqKLevel7", level);
-    emit eqKLevel7Changed(level);
-}
-
-void Settings::setEqKLevel8(int level)
-{
-    settings->setValue("eqKLevel8", level);
-    emit eqKLevel8Changed(level);
-}
-
-void Settings::setEqKLevel9(int level)
-{
-    settings->setValue("eqKLevel9", level);
-    emit eqKLevel9Changed(level);
-}
-
-void Settings::setEqKLevel10(int level)
-{
-    settings->setValue("eqKLevel10", level);
-    emit eqKLevel10Changed(level);
-}
-
-void Settings::setEqBLevel1(int level)
-{
-    settings->setValue("eqBLevel1", level);
-    emit eqBLevel1Changed(level);
-}
-
-void Settings::setEqBLevel2(int level)
-{
-    settings->setValue("eqBLevel2", level);
-    emit eqBLevel2Changed(level);
-}
-
-void Settings::setEqBLevel3(int level)
-{
-    settings->setValue("eqBLevel3", level);
-    emit eqBLevel3Changed(level);
-}
-
-void Settings::setEqBLevel4(int level)
-{
-    settings->setValue("eqBLevel4", level);
-    emit eqBLevel4Changed(level);
-}
-
-void Settings::setEqBLevel5(int level)
-{
-    settings->setValue("eqBLevel5", level);
-    emit eqBLevel5Changed(level);
-}
-
-void Settings::setEqBLevel6(int level)
-{
-    settings->setValue("eqBLevel6", level);
-    emit eqBLevel6Changed(level);
-}
-
-void Settings::setEqBLevel7(int level)
-{
-    settings->setValue("eqBLevel7", level);
-    emit eqBLevel7Changed(level);
-}
-
-void Settings::setEqBLevel8(int level)
-{
-    settings->setValue("eqBLevel8", level);
-    emit eqBLevel8Changed(level);
-}
-
-void Settings::setEqBLevel9(int level)
-{
-    settings->setValue("eqBLevel9", level);
-    emit eqBLevel9Changed(level);
-}
-
-void Settings::setEqBLevel10(int level)
-{
-    settings->setValue("eqBLevel10", level);
-    emit eqBLevel10Changed(level);
+    // eq bands in settings are indexed 1-10
+    settings->setValue(QString("eqBLevel%1").arg(band + 1), level);
+    emit eqBLevelChanged(band, level);
 }
 
 void Settings::setRequestServerInterval(int interval)
@@ -1694,109 +1588,21 @@ bool Settings::eqKBypass()
     return settings->value("eqKBypass", true).toBool();
 }
 
+int Settings::getEqKLevel(int band)
+{
+    // eq bands in settings are indexed 1-10
+    return settings->value(QString("eqKLevel%1").arg(band + 1), 0).toInt();
+}
+
 bool Settings::eqBBypass()
 {
     return settings->value("eqBBypass", true).toBool();
 }
 
-int Settings::eqKLevel1()
+int Settings::getEqBLevel(int band)
 {
-    return settings->value("eqKLevel1", 0).toInt();
-}
-
-int Settings::eqKLevel2()
-{
-    return settings->value("eqKLevel2", 0).toInt();
-}
-
-int Settings::eqKLevel3()
-{
-    return settings->value("eqKLevel3", 0).toInt();
-}
-
-int Settings::eqKLevel4()
-{
-    return settings->value("eqKLevel4", 0).toInt();
-}
-
-int Settings::eqKLevel5()
-{
-    return settings->value("eqKLevel5", 0).toInt();
-}
-
-int Settings::eqKLevel6()
-{
-    return settings->value("eqKLevel6", 0).toInt();
-}
-
-int Settings::eqKLevel7()
-{
-    return settings->value("eqKLevel7", 0).toInt();
-}
-
-int Settings::eqKLevel8()
-{
-    return settings->value("eqKLevel8", 0).toInt();
-}
-
-int Settings::eqKLevel9()
-{
-    return settings->value("eqKLevel9", 0).toInt();
-}
-
-int Settings::eqKLevel10()
-{
-    return settings->value("eqKLevel10", 0).toInt();
-}
-
-int Settings::eqBLevel1()
-{
-    return settings->value("eqBLevel1", 0).toInt();
-}
-
-int Settings::eqBLevel2()
-{
-    return settings->value("eqBLevel2", 0).toInt();
-}
-
-int Settings::eqBLevel3()
-{
-    return settings->value("eqBLevel3", 0).toInt();
-}
-
-int Settings::eqBLevel4()
-{
-    return settings->value("eqBLevel4", 0).toInt();
-}
-
-int Settings::eqBLevel5()
-{
-    return settings->value("eqBLevel5", 0).toInt();
-}
-
-int Settings::eqBLevel6()
-{
-    return settings->value("eqBLevel6", 0).toInt();
-}
-
-int Settings::eqBLevel7()
-{
-    return settings->value("eqBLevel7", 0).toInt();
-}
-
-int Settings::eqBLevel8()
-{
-    return settings->value("eqBLevel8", 0).toInt();
-}
-
-int Settings::eqBLevel9()
-{
-    return settings->value("eqBLevel9", 0).toInt();
-}
-
-int Settings::eqBLevel10()
-{
-    return settings->value("eqBLevel10", 0).toInt();
+    // eq bands in settings are indexed 1-10
+    return settings->value(QString("eqBLevel%1").arg(band + 1), 0).toInt();
 }
 
 int Settings::requestServerInterval()

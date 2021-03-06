@@ -23,23 +23,26 @@
 
 #define GLIB_DISABLE_DEPRECATION_WARNINGS
 #include <gst/gst.h>
-#include <gst/app/gstappsink.h>
 #include <gst/gstdevicemonitor.h>
 #include <gst/gstdevice.h>
 #include <gst/gstplugin.h>
 #include <gst/controller/gstinterpolationcontrolsource.h>
 #include <gst/controller/gstdirectcontrolbinding.h>
+#include <cdg/cdgappsrc.h>
 
 #include <QTimer>
 #include <QThread>
+#include <QMutex>
 #include <QImage>
 #include "audiofader.h"
+#include "softwarerendervideosink.h"
 #include <QPointer>
 #include <memory>
 #include <array>
 #include <vector>
-#include "libCDG/include/libCDG.h"
+#include "cdg/cdgfilereader.h"
 #include "settings.h"
+#include "gstreamer/gstreamerhelper.h"
 
 #define STUP 1.0594630943592952645618252949461
 #define STDN 0.94387431268169349664191315666784
@@ -47,38 +50,51 @@
 #define Multiplex_LeftChannel 1
 #define Multiplex_RightChannel 2
 
-/* playbin flags */
-
-
 class MediaBackend : public QObject
 {
     Q_OBJECT
 public:
-    enum State{
+
+    enum MediaType {
+        Karaoke,
+        BackgroundMusic,
+        SFX,
+        VideoPreview
+    };
+
+    enum State {
         PlayingState=0,
         PausedState,
         StoppedState,
         EndOfMediaState,
         UnknownState
     };
-    explicit MediaBackend(bool m_loadPitchShift = true, QObject *parent = nullptr, QString objectName = "unknown");
+
+    enum accel {
+        OpenGL=0,
+        XVideo
+    };
+
+    explicit MediaBackend(QObject *parent, QString objectName, MediaType type);
     ~MediaBackend();
-    enum accel{OpenGL=0,XVideo};
+
     bool canChangeTempo() { return true; }
     bool canDetectSilence() { return true; }
     bool canFade() { return true; }
     bool canPitchShift() { return true; }
-    bool hasVideo();
+    bool hasVideo() { return m_hasVideo; }
     bool isSilent();
     void setAccelType(const accel &type=accel::XVideo) { m_accelMode = type; }
-    void setOutputDevice(int deviceIndex);
-    void setVideoWinId(WId winID) { m_videoWinId1 = winID; }
-    void setVideoWinId2(WId winID) { m_videoWinId2 = winID; }
-    void videoMute(const bool &mute);
-    int getCdgLastDraw() { return (m_cdgMode) ? m_cdg.lastCDGUpdate() : 0; }
+    void setAudioOutputDevice(int deviceIndex);
+    void setVideoOutputWidgets(std::vector<QWidget*> surfaces);
+    void setVideoEnabled(const bool &enabled);
+    bool isVideoEnabled() { return m_videoEnabled; }
+    bool hasActiveVideo();
     bool isCdgMode() { return m_cdgMode; }
-    bool videoMuted() { return m_vidMuted; }
     int getVolume() { return m_volume; }
+
+    void writePipelinesGraphToFile(const QString filePath);
+
     qint64 position();
     qint64 duration();
     State state();
@@ -99,9 +115,6 @@ public:
         min = QString::number(minutes);
         return QString(min + ":" + sec);
     }
-    void testCdgDecode();
-    void newFrame();
-    void newFrameCdg();
 
 private:
     enum GstPlayFlags {
@@ -109,57 +122,60 @@ private:
         GST_PLAY_FLAG_AUDIO         = (1 << 1),
         GST_PLAY_FLAG_TEXT          = (1 << 2)
     };
+
+    struct VideoSinkData {
+        QWidget *surface { nullptr };
+        GstElement *videoSink { nullptr };
+        GstElement *videoScale { nullptr };
+        SoftwareRenderVideoSink *softwareRenderVideoSink { nullptr };
+    };
+
+    QString m_objName;
+    MediaType m_type;
     Settings m_settings;
     GstBus *m_bus;
-    GstElement *m_cdgBin;
-    GstElement *m_mediaBin;
-    GstElement *m_cdgAppSrc;
-    GstElement *m_scaleTempo;
-    //GstElement *m_cdgPipeline;
-    GstElement *m_queueMainVideo;
-    GstElement *m_queuePostAppSrc;
-    GstElement *m_fakeVideoSink;
-    GstElement *m_playBin;
-    GstElement *m_aConvEnd;
-    GstElement *m_audioPanorama;
-    GstElement *m_fltrPostPanorama;
-    GstElement *m_audioBin;
-    GstElement *m_audioSink;
-    GstElement *m_pitchShifterRubberBand;
-    GstElement *m_pitchShifterSoundtouch;
-    GstElement *m_volumeElement;
-    GstElement *m_faderVolumeElement;
-    GstElement *m_equalizer;
-    GstElement *m_videoSink1;
-    GstElement *m_videoSink2;
-    GstElement *m_videoSink1Cdg;
-    GstElement *m_videoSink2Cdg;
-    GstElement *m_videoScale1Cdg;
-    GstElement *m_videoScale2Cdg;
-    GstElement *m_videoScale1;
-    GstElement *m_videoScale2;
-    GstElement *m_videoBin;
-    GstElement *m_videoAppSink;
-    GstElement *m_videoAppSinkCdg;
-    //GstElement *m_cdgPlaybin;
 
-//    GstElement *cdgVidConv;
-//    GstElement *videoQueue1;
-//    GstElement *videoQueue2;
-//    GstElement *videoConv1;
-//    GstElement *videoConv2;
-//    GstElement *videoScale1;
-//    GstElement *videoScale2;
-//    GstElement *videoTee;
-//    GstPad *videoTeePad1;
-//    GstPad *videoTeePad2;
-//    GstPad *videoQueue1SrcPad;
-//    GstPad *videoQueue2SrcPad;
+    /* PIPELINE */
+    GstElement *m_pipeline { nullptr };  // Pipeline
+    GstBin     *m_pipelineAsBin { nullptr };
+    GstElement *m_decoder { nullptr };
+    CdgAppSrc  *m_cdgSrc { nullptr };
+
+    PadInfo *m_audioSrcPad { nullptr };
+    PadInfo *m_videoSrcPad { nullptr };
 
 
-    GstCaps *m_audioCapsStereo;
-    GstCaps *m_audioCapsMono;
-    QString m_objName;
+    /* AUDIO SINK */
+    GstElement *m_audioBin { nullptr }; // GstBin
+    GstElement *m_scaleTempo { nullptr };
+    GstElement *m_aConvEnd { nullptr };
+    GstElement *m_audioPanorama { nullptr };
+    GstElement *m_fltrPostPanorama { nullptr };
+    GstElement *m_pitchShifterRubberBand { nullptr };
+    GstElement *m_pitchShifterSoundtouch { nullptr };
+    GstElement *m_volumeElement { nullptr };
+    GstElement *m_faderVolumeElement { nullptr };
+    GstElement *m_equalizer { nullptr };
+    GstElement *m_audioSink { nullptr };
+
+    GstCaps *m_audioCapsStereo { nullptr };
+    GstCaps *m_audioCapsMono { nullptr };
+
+    std::vector<GstDevice*> m_audioOutputDevices;
+
+    std::array<int,10> m_eqLevels{0,0,0,0,0,0,0,0,0,0};
+
+
+    /* VIDEO SINK */
+    GstElement *m_videoBin { nullptr }; // GstBin
+    GstElement *m_queueMainVideo { nullptr };
+    GstElement *m_videoTee { nullptr };
+
+    std::vector<VideoSinkData> m_videoSinks;
+
+    accel m_accelMode{XVideo};
+    int m_videoOffsetMs{0};
+
     QString m_filename;
     QString m_cdgFilename;
     QStringList m_outputDeviceNames;
@@ -167,7 +183,9 @@ private:
     QTimer m_timerFast;
     QTimer m_timerSlow;
     int m_silenceDuration{0};
-    int m_tempo{100};
+    long m_positionWatchdogLastPos{0};
+
+    double m_playbackRate{1.0};
     int m_volume{0};
     int m_lastPosition{0};
     int m_outputDeviceIdx{0};
@@ -176,48 +194,34 @@ private:
     bool m_fade{false};
     bool m_currentlyFadedOut{false};
     bool m_silenceDetect{false};
-    bool m_canKeyChange{false};
-    bool m_canChangeTempo{false};
-    bool m_keyChangerRubberBand{false};
-    bool m_keyChangerSoundtouch{false};
-    bool m_vidMuted{false};
+    bool m_videoEnabled{true};
     bool m_previewEnabledLastBuild{true};
     bool m_bypass{false};
     bool m_loadPitchShift;
     bool m_downmix{false};
-    bool m_noaccelHasVideo{false};
+    std::atomic<bool> m_hasVideo{false};
     bool m_enforceAspectRatio{true};
     bool m_videoAccelEnabled{false};
-    std::array<int,10> m_eqLevels{0,0,0,0,0,0,0,0,0,0};
-    std::vector<GstDevice*> m_outputDevices;
     QPointer<AudioFader> m_fader;
-    CdgParser m_cdg;
     State m_lastState{StoppedState};
-    WId m_videoWinId1{0};
-    WId m_videoWinId2{0};
-    accel m_accelMode{XVideo};
-    int m_videoOffsetMs{0};
 
     void buildPipeline();
+    void buildVideoSinkBin();
+    void buildAudioSinkBin();
     void resetVideoSinks();
-    void buildCdgBin();
-    void getGstDevices();
+    const char* getVideoSinkElementNameForFactory();
+    void getAudioOutputDevices();
+    void writePipelineGraphToFile(GstBin *bin, QString filePath, QString fileName);
     double getPitchForSemitone(const int &semitone);
-    qint64 getCdgPosition();
-    State cdgState();
 
-    static void cb_need_data(GstElement *appsrc, guint unused_size, gpointer user_data);
-    static gboolean cb_seek_data(GstElement *appsrc, guint64 position, gpointer user_data);
-    static void cb_enough_data(GstElement *appsrc, gpointer user_data);
-
-    static void EndOfStreamCallback(GstAppSink *appsink, gpointer user_data);
-    static GstFlowReturn NewPrerollCallback(GstAppSink *appsink, gpointer user_data);
-    static GstFlowReturn NewSampleCallback(GstAppSink *appsink, gpointer user_data);
-    static GstFlowReturn NewSampleCallbackCdg(GstAppSink *appsink, gpointer user_data);
-    static GstFlowReturn NewAudioSampleCallback(GstAppSink *appsink, gpointer user_data);
-    static void DestroyCallback(gpointer user_data);
     static gboolean gstBusFunc(GstBus *bus, GstMessage *message, gpointer user_data);
 
+    static void NoMorePadsCallback(GstElement *gstelement, gpointer data);
+    static void padAddedToDecoder_cb(GstElement *element,  GstPad *pad, gpointer caller);
+
+    void stopPipeline();
+    void resetPipeline();
+    void patchPipelineSinks();
 
 private slots:
     void timerFast_timeout();
@@ -245,16 +249,7 @@ public slots:
     void setTempo(const int &percent);
     void setMplxMode(const int &mode);
     void setEqBypass(const bool &m_bypass);
-    void setEqLevel1(const int &level);
-    void setEqLevel2(const int &level);
-    void setEqLevel3(const int &level);
-    void setEqLevel4(const int &level);
-    void setEqLevel5(const int &level);
-    void setEqLevel6(const int &level);
-    void setEqLevel7(const int &level);
-    void setEqLevel8(const int &level);
-    void setEqLevel9(const int &level);
-    void setEqLevel10(const int &level);
+    void setEqLevel(const int &band, const int &level);
     void fadeInImmediate();
     void fadeOutImmediate();
     void setEnforceAspectRatio(const bool &enforce);
@@ -266,11 +261,10 @@ signals:
     void mutedChanged(const bool);
     void positionChanged(const qint64);
     void stateChanged(const State);
-    void videoAvailableChanged(const bool);
+    void hasActiveVideoChanged(const bool);
     void volumeChanged(const int);
     void silenceDetected();
-    void pitchChanged(const int);
-    void newVideoFrame(const QImage &frame, const QString &backendName);
+    void pitchChanged(const int);    
     void audioError(const QString &msg);
 
 };

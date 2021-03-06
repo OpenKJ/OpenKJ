@@ -50,7 +50,7 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
     tWidget->setObjectName("DurationTimer");
     tWidget->show();
     tWidget->move(settings.durationPosition());
-    ui->videoDisplay->setMediaBackends(m_kmb, m_bmb);
+    ui->videoDisplay->setFillOnPaint(false);
     ui->widgetAlert->setAutoFillBackground(true);
     ui->fsToggleWidget->hide();
     ui->widgetAlert->hide();
@@ -75,8 +75,7 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
     m_fullScreen = settings.cdgWindowFullscreen();
     cdgRemainTextColorChanged(settings.cdgRemainTextColor());
     cdgRemainBgColorChanged(settings.cdgRemainBgColor());
-    setShowBgImage(true);
-    timerSlideShowTimeout();
+    applyBackgroundImageMode();
     showAlert(false);
     alertFontChanged(settings.karaokeAAAlertFont());
     alertBgColorChanged(settings.alertBgColor());
@@ -86,7 +85,9 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
     connect(ui->videoDisplay, &VideoDisplay::mouseMoveEvent, this, &DlgCdg::mouseMove);
     connect(&settings, &Settings::alertBgColorChanged, this, &DlgCdg::alertBgColorChanged);
     connect(&settings, &Settings::alertTxtColorChanged, this, &DlgCdg::alertTxtColorChanged);
-    connect(&settings, &Settings::bgModeChanged, [&] () {triggerBg();});
+    connect(&settings, &Settings::bgModeChanged, [&] () { applyBackgroundImageMode(); });
+    connect(&settings, &Settings::cdgBgImageChanged, [&] () { applyBackgroundImageMode(); });
+    connect(&settings, &Settings::bgSlideShowDirChanged, [&] () { applyBackgroundImageMode(); });
     connect(&settings, &Settings::cdgRemainEnabledChanged, tWidget, &QWidget::setVisible);
     connect(&settings, &Settings::cdgOffsetsChanged, this, &DlgCdg::cdgOffsetsChanged);
     connect(&settings, &Settings::tickerFontChanged, this, &DlgCdg::tickerFontChanged);
@@ -205,20 +206,6 @@ void DlgCdg::cdgRemainBgColorChanged(QColor color)
     tWidget->label->setPalette(palette);
 }
 
-void DlgCdg::setShowBgImage(bool show)
-{
-    m_showBgImage = show;
-    if ((show) && (settings.bgMode() == Settings::BgMode::BG_MODE_IMAGE))
-    {
-        if (settings.cdgDisplayBackgroundImage() != QString())
-            ui->videoDisplay->setBackground(QPixmap(settings.cdgDisplayBackgroundImage()));
-        else
-        {
-            ui->videoDisplay->useDefaultBackground();
-        }
-    }
-}
-
 void DlgCdg::mouseDoubleClickEvent([[maybe_unused]]QMouseEvent *e)
 {
     m_fullScreen = !m_fullScreen;
@@ -301,12 +288,6 @@ void DlgCdg::alertTxtColorChanged(QColor color)
     ui->widgetAlert->setPalette(palette);
 }
 
-void DlgCdg::triggerBg()
-{
-    timerSlideShowTimeout();
-    setShowBgImage(true);
-}
-
 void DlgCdg::cdgRemainEnabledChanged(bool enabled)
 {
     if ((m_kmb->state() == MediaBackend::PlayingState) || !enabled)
@@ -315,36 +296,52 @@ void DlgCdg::cdgRemainEnabledChanged(bool enabled)
     }
 }
 
+void DlgCdg::applyBackgroundImageMode()
+{
+    if (settings.bgMode() == Settings::BgMode::BG_MODE_IMAGE && QFile::exists(settings.cdgDisplayBackgroundImage()))
+    {
+        ui->videoDisplay->setBackground(QPixmap(settings.cdgDisplayBackgroundImage()));
+    }
+    else if (settings.bgMode() == Settings::BgMode::BG_MODE_SLIDESHOW && QDir(settings.bgSlideShowDir()).exists())
+    {
+        slideShowMoveNext();
+    }
+    else
+    {
+        ui->videoDisplay->useDefaultBackground();
+    }
+}
+
 void DlgCdg::timerSlideShowTimeout()
 {
-    if ((m_showBgImage) && (settings.bgMode() == Settings::BgMode::BG_MODE_SLIDESHOW))
+    if (!ui->videoDisplay->hasActiveVideo() && settings.bgMode() == Settings::BgMode::BG_MODE_SLIDESHOW)
     {
-        static int position = 0;
-        auto images = getSlideShowImages();
-        if (images.size() == 0)
-        {
-            QPixmap bgImage(QSize(1920,1080));
-            QPainter painter(&bgImage);
-            QSvgRenderer renderer(QString(":icons/Icons/okjlogo.svg"));
-            renderer.render(&painter);
-            ui->videoDisplay->setBackground(QPixmap(bgImage));
-            return;
-        }
-        if (position >= images.size())
-            position = 0;
-        if (images.at(position).fileName().endsWith("svg", Qt::CaseInsensitive))
-        {
-            QPixmap bgImage(QSize(1920,1080));
-            QPainter painter(&bgImage);
-            QSvgRenderer renderer(images.at(position).absoluteFilePath());
-            renderer.render(&painter);
-            ui->videoDisplay->setBackground(bgImage);
-        }
-        else
-            ui->videoDisplay->setBackground(images.at(position).absoluteFilePath());
-        position++;
-
+        slideShowMoveNext();
     }
+}
+
+void DlgCdg::slideShowMoveNext()
+{
+    static int position = 0;
+    auto images = getSlideShowImages();
+    if (images.size() == 0)
+    {
+        ui->videoDisplay->useDefaultBackground();
+        return;
+    }
+    if (position >= images.size())
+        position = 0;
+    if (images.at(position).fileName().endsWith("svg", Qt::CaseInsensitive))
+    {
+        QPixmap bgImage(QSize(1920,1080));
+        QPainter painter(&bgImage);
+        QSvgRenderer renderer(images.at(position).absoluteFilePath());
+        renderer.render(&painter);
+        ui->videoDisplay->setBackground(bgImage);
+    }
+    else
+        ui->videoDisplay->setBackground(images.at(position).absoluteFilePath());
+    position++;
 }
 
 void DlgCdg::alertFontChanged(QFont font)

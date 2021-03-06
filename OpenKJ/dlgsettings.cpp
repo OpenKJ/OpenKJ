@@ -74,6 +74,7 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     }
     else
     {
+        kAudioBackend->setAudioOutputDevice(selDevice);
         ui->comboBoxKAudioDevices->setCurrentIndex(selDevice);
     }
     ui->comboBoxBAudioDevices->addItems(audioOutputDevices);
@@ -83,6 +84,7 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     else
     {
         ui->comboBoxBAudioDevices->setCurrentIndex(selDevice);
+        bmAudioBackend->setAudioOutputDevice(selDevice);
     }
     ui->checkBoxProgressiveSearch->setChecked(settings.progressiveSearchEnabled());
     ui->horizontalSliderTickerSpeed->setValue(settings.tickerSpeed());

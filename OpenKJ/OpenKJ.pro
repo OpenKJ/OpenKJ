@@ -131,13 +131,17 @@ DEFINES += BUILD_DATE=__DATE__
 
 SOURCES += main.cpp\
     dlgaddsong.cpp \
+    cdg/cdgappsrc.cpp \
+    gstreamer/gstreamerhelper.cpp \
+    cdg/cdgfilereader.cpp \
+    cdg/cdgimageframe.cpp \
     mediabackend.cpp \
     miniz.c \
     mzarchive.cpp \
     okjutil.h \
     dlgvideopreview.cpp \
     mainwindow.cpp \
-    libCDG/src/libCDG.cpp \
+    softwarerendervideosink.cpp \
     dbupdatethread.cpp \
     dlgkeychange.cpp \
     dlgdatabase.cpp \
@@ -299,12 +303,17 @@ contains(DEFINES, STATIC_TAGLIB) {
 
 HEADERS  += mainwindow.h \
     dlgaddsong.h \
+    cdg/cdgappsrc.h \
     dlgvideopreview.h \
-    libCDG/include/libCDG.h \
+    gstreamer/gstreamerhelper.h \
+    cdg/libCDG.h \
+    cdg/cdgfilereader.h \
+    cdg/cdgimageframe.h \
     mediabackend.h \
     miniz.h \
     mzarchive.h \
     okjutil.h \
+    softwarerendervideosink.h \
     dbupdatethread.h \
     dlgkeychange.h \
     dlgdatabase.h \
