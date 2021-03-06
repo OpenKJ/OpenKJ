@@ -32,6 +32,7 @@
 #include <QProcess>
 #include <functional>
 #include <gst/video/videooverlay.h>
+#include <gst/gstsegment.h>
 #include "gstreamer/gstreamerhelper.h"
 
 
