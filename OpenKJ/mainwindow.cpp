@@ -1457,7 +1457,7 @@ void MainWindow::on_tableViewRotation_doubleClicked(const QModelIndex &index)
 
 void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
 {
-    if (index.column() == 4)
+    if (index.column() == TableModelRotation::COL_DELETE)
     {
         if (settings.showSingerRemovalWarning())
         {
@@ -1491,7 +1491,7 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
         return;
 
         }
-    if (index.column() == 3)
+    if (index.column() == TableModelRotation::COL_REGULAR)
     {
         if (!rotModel.singerIsRegular(index.data(Qt::UserRole).toInt()))
         {
