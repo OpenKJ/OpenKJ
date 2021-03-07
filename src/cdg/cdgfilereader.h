@@ -44,6 +44,11 @@ public:
      */
     int positionOfFinalFrameMS();
 
+#ifdef QT_DEBUG
+    void saveNextImgToFile();
+    void saveCurrentImgToFile();
+#endif
+
 private:
     void rewind();
     bool readAndProcessNextPackage();
@@ -59,7 +64,6 @@ private:
 
     CdgImageFrame m_next_image;
     int m_next_image_pgk_idx;
-
 };
 
 #endif // CDGFILEREADER_H

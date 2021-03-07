@@ -121,3 +121,24 @@ inline int CdgFileReader::getDurationOfPackagesInMS(const int numberOfPackages)
 {
     return (numberOfPackages * 1000) / CDG_PACKAGES_PER_SECOND;
 }
+
+#ifdef QT_DEBUG
+void CdgFileReader::saveNextImgToFile()
+{
+    auto fn = QString("/tmp/cdgimg/nxt-%1.png").arg(m_next_image_pgk_idx, 4, 10, QLatin1Char('0'));
+    m_next_image.getImage().save(fn);
+}
+
+void CdgFileReader::saveCurrentImgToFile()
+{
+    auto fn = QString("/tmp/cdgimg/cur-%1-%2-%3.png")
+            .arg(m_current_image_pgk_idx, 4, 10, QLatin1Char('0'))
+            .arg(currentFramePositionMS(), 4, 10, QLatin1Char('0'))
+            .arg(currentFrameDurationMS(), 4, 10, QLatin1Char('0'));
+    QImage img = QImage(m_current_image_data.data(), cdg::FRAME_DIM_CROPPED.width(), cdg::FRAME_DIM_CROPPED.height(), QImage::Format_Indexed8);
+    auto colors = QVector<QRgb>(1024 / sizeof(QRgb));
+    memcpy(colors.data(), m_current_image_data.data() + cdg::CDG_IMAGE_SIZE - 1024, 1024);
+    img.setColorTable(colors);
+    img.save(fn);
+}
+#endif

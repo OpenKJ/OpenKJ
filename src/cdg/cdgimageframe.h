@@ -14,6 +14,8 @@ public:
 
     void copyCroppedImagedata(uchar *destbuffer);
 
+    QImage getImage() { return m_image; }
+
 private:
 
     QImage m_image;
