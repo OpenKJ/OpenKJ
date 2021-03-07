@@ -3,7 +3,7 @@
 #include <QDebug>
 
 
-constexpr uint CDG_PACKAGES_PER_SECOND = 300;
+constexpr int CDG_PACKAGES_PER_SECOND = 300;
 constexpr int MAXFPS = 60;  // no need to go higher than 60 fps
 constexpr int MIN_PACKAGES_BEFORE_NEW_FRAME = CDG_PACKAGES_PER_SECOND / MAXFPS;
 
@@ -17,9 +17,9 @@ CdgFileReader::CdgFileReader(const QString &filename)
     rewind();
 }
 
-uint CdgFileReader::getTotalDurationMS()
+int CdgFileReader::getTotalDurationMS()
 {
-    return getDurationOfPackagesInMS(m_cdgData.length() / sizeof (cdg::CDG_SubCode));
+    return getDurationOfPackagesInMS(m_cdgData.length() / (int)sizeof (cdg::CDG_SubCode));
 }
 
 int CdgFileReader::positionOfFinalFrameMS()
@@ -29,6 +29,12 @@ int CdgFileReader::positionOfFinalFrameMS()
 
 bool CdgFileReader::moveToNextFrame()
 {
+    if (m_current_image_pgk_idx == 0)
+    {
+        // Read until we have the very first frame
+        while(!isEOF() && !readAndProcessNextPackage());
+    }
+
     // shift m_next_image to current image
     m_next_image.copyCroppedImagedata(m_current_image_data.data());
     m_current_image_pgk_idx = m_next_image_pgk_idx;
@@ -41,7 +47,8 @@ bool CdgFileReader::moveToNextFrame()
         // reached EOF?
         if (isEOF())
         {
-            return false;
+            // Only return false ("this is the last image") when current image == next image
+            return m_current_image_pgk_idx != m_next_image_pgk_idx;
         }
 
         // check if max FPS is met before returning
@@ -53,21 +60,21 @@ bool CdgFileReader::moveToNextFrame()
     }
 }
 
-uint CdgFileReader::currentFrameDurationMS()
+int CdgFileReader::currentFrameDurationMS()
 {
     return getDurationOfPackagesInMS(m_next_image_pgk_idx - m_current_image_pgk_idx);
 }
 
-uint CdgFileReader::currentFramePositionMS()
+int CdgFileReader::currentFramePositionMS()
 {
     return getDurationOfPackagesInMS(m_current_image_pgk_idx);
 }
 
-bool CdgFileReader::seek(uint positionMS)
+bool CdgFileReader::seek(int positionMS)
 {
-    uint pkgIdx = (positionMS * CDG_PACKAGES_PER_SECOND) / 1000;
+    int pkgIdx = (positionMS * CDG_PACKAGES_PER_SECOND) / 1000;
 
-    if (pkgIdx > m_cdgData.length() / sizeof (cdg::CDG_SubCode))
+    if (pkgIdx > m_cdgData.length() / (int)sizeof(cdg::CDG_SubCode))
     {
         qWarning() << "CDG: Tried to seek past file size!";
         return false;
@@ -84,7 +91,6 @@ bool CdgFileReader::seek(uint positionMS)
         readAndProcessNextPackage();
     }
 
-    moveToNextFrame();
     return true;
 }
 
@@ -95,7 +101,6 @@ void CdgFileReader::rewind()
     m_current_image_pgk_idx = 0;
     m_next_image = CdgImageFrame();
     m_next_image_pgk_idx = 0;
-    moveToNextFrame();
 }
 
 bool CdgFileReader::readAndProcessNextPackage()
@@ -109,10 +114,10 @@ bool CdgFileReader::readAndProcessNextPackage()
 
 inline bool CdgFileReader::isEOF()
 {
-    return m_cdgDataPos + sizeof(cdg::CDG_SubCode) > (unsigned int)m_cdgData.length();
+    return m_cdgDataPos + (int)sizeof(cdg::CDG_SubCode) > m_cdgData.length();
 }
 
-inline uint CdgFileReader::getDurationOfPackagesInMS(const uint numberOfPackages)
+inline int CdgFileReader::getDurationOfPackagesInMS(const int numberOfPackages)
 {
     return (numberOfPackages * 1000) / CDG_PACKAGES_PER_SECOND;
 }
