@@ -4403,7 +4403,7 @@ void MainWindow::on_actionCDG_Decode_Torture_triggered()
 
 void MainWindow::on_actionWrite_Gstreamer_pipeline_dot_files_triggered()
 {
-    QString outputFolder = "/tmp";
+    QString outputFolder = QStandardPaths::standardLocations(QStandardPaths::PicturesLocation).at(0);
     kMediaBackend.writePipelinesGraphToFile(outputFolder);
     bmMediaBackend.writePipelinesGraphToFile(outputFolder);
     sfxMediaBackend.writePipelinesGraphToFile(outputFolder);

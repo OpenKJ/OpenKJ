@@ -81,24 +81,31 @@ bool MediaBackend::hasActiveVideo()
 void MediaBackend::writePipelineGraphToFile(GstBin *bin, QString filePath, QString fileName)
 {
     fileName = QString("%1/%2 - %3").arg(QDir::cleanPath(filePath + QDir::separator()), m_objName, fileName);
+    qInfo() << fileName;
     auto filenameDot = fileName + ".dot";
     auto filenamePng = fileName + ".png";
 
     auto data = gst_debug_bin_to_dot_data(bin, GST_DEBUG_GRAPH_SHOW_ALL);
 
     QFile f {filenameDot};
-
     if (f.open(QIODevice::WriteOnly))
     {
         QTextStream out{&f};
         out << QString(data);
+    } else {
+        qWarning() << "Error opening dot file for writing!";
     }
     g_free(data);
 
     QStringList dotArguments { "-Tpng", "-o" + filenamePng, filenameDot };
     QProcess process;
+#ifdef Q_OS_WIN
+    process.start("C:\\Program Files\\Graphviz\\bin\\dot.exe", dotArguments);
+#else
     process.start("dot", dotArguments);
+#endif
     process.waitForFinished();
+    f.close();
     f.remove();
 }
 
