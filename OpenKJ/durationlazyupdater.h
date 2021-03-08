@@ -11,6 +11,7 @@ public slots:
     void getDurations(const QStringList files);
 signals:
     void gotDuration(QString, int);
+
 };
 
 class LazyDurationUpdateController : public QObject
@@ -28,6 +29,7 @@ public slots:
     void getDurations();
 signals:
     void operate(const QStringList);
+    void gotDuration(QString &path, int duration);
     void gotStopWork();
 };
 

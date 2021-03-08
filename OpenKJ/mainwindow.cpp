@@ -930,6 +930,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&qModel, &TableModelQueueSongs::queueModified, [&] () { updateRotationDuration(); });
     connect(&settings, &Settings::rotationDurationSettingsModified, this, &MainWindow::updateRotationDuration);
     lazyDurationUpdater = new LazyDurationUpdateController(this);
+    connect(lazyDurationUpdater, &LazyDurationUpdateController::gotDuration, &karaokeSongsModel, &TableModelKaraokeSongs::setSongDuration);
     if (settings.dbLazyLoadDurations())
         lazyDurationUpdater->getDurations();
     ui->btnToggleCdgWindow->setChecked(settings.showCdgWindow());
@@ -1264,6 +1265,7 @@ void MainWindow::databaseUpdated()
     lazyDurationUpdater->stopWork();
     lazyDurationUpdater->deleteLater();
     lazyDurationUpdater = new LazyDurationUpdateController(this);
+    connect(lazyDurationUpdater, &LazyDurationUpdateController::gotDuration, &karaokeSongsModel, &TableModelKaraokeSongs::setSongDuration);
     lazyDurationUpdater->getDurations();
 }
 

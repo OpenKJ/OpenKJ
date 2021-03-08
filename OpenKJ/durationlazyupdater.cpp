@@ -74,10 +74,7 @@ void LazyDurationUpdateController::updateDbDuration(QString file, int duration)
     query.bindValue(":path", file);
     query.bindValue(":duration", duration);
     query.exec();
-    query.prepare("UPDATE mem.dbsongs SET duration = :duration WHERE path = :path");
-    query.bindValue(":path", file);
-    query.bindValue(":duration", duration);
-    query.exec();
+    emit gotDuration(file, duration);
 }
 
 void LazyDurationUpdateController::getDurations()

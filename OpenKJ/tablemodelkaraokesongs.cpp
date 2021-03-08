@@ -78,9 +78,9 @@ QVariant TableModelKaraokeSongs::data(const QModelIndex &index, int role) const
     {
         if (index.column() == COL_SONGID)
         {
-            if (m_filteredSongs.at(index.row()).path.endsWith("cdg", Qt::CaseInsensitive))
+            if (m_filteredSongs.at(index.row()).get().path.endsWith("cdg", Qt::CaseInsensitive))
                 return m_iconCdg;
-            else if (m_filteredSongs.at(index.row()).path.endsWith("zip", Qt::CaseInsensitive))
+            else if (m_filteredSongs.at(index.row()).get().path.endsWith("zip", Qt::CaseInsensitive))
                 return m_iconZip;
             else
                 return m_iconVid;
@@ -90,31 +90,31 @@ QVariant TableModelKaraokeSongs::data(const QModelIndex &index, int role) const
     {
         switch (index.column()) {
         case TableModelKaraokeSongs::COL_ID:
-            return m_filteredSongs.at(index.row()).id;
+            return m_filteredSongs.at(index.row()).get().id;
             break;
         case TableModelKaraokeSongs::COL_ARTIST:
-            return m_filteredSongs.at(index.row()).artist;
+            return m_filteredSongs.at(index.row()).get().artist;
             break;
         case TableModelKaraokeSongs::COL_TITLE:
-            return m_filteredSongs.at(index.row()).title;
+            return m_filteredSongs.at(index.row()).get().title;
             break;
         case TableModelKaraokeSongs::COL_SONGID:
-            return m_filteredSongs.at(index.row()).songid;
+            return m_filteredSongs.at(index.row()).get().songid;
             break;
         case TableModelKaraokeSongs::COL_FILENAME:
-            return m_filteredSongs.at(index.row()).filename;
+            return m_filteredSongs.at(index.row()).get().filename;
             break;
         case TableModelKaraokeSongs::COL_DURATION:
-            if (m_filteredSongs.at(index.row()).duration < 1)
+            if (m_filteredSongs.at(index.row()).get().duration < 1)
                 return QVariant();
-            return QTime(0,0,0,0).addSecs(m_filteredSongs.at(index.row()).duration / 1000).toString("m:ss");
+            return QTime(0,0,0,0).addSecs(m_filteredSongs.at(index.row()).get().duration / 1000).toString("m:ss");
             break;
         case TableModelKaraokeSongs::COL_PLAYS:
-            return m_filteredSongs.at(index.row()).plays;
+            return m_filteredSongs.at(index.row()).get().plays;
             break;
         case TableModelKaraokeSongs::COL_LASTPLAY:
             QLocale locale;
-            return m_filteredSongs.at(index.row()).lastPlay.toString(locale.dateTimeFormat(QLocale::ShortFormat));
+            return m_filteredSongs.at(index.row()).get().lastPlay.toString(locale.dateTimeFormat(QLocale::ShortFormat));
             break;
         }
     }
@@ -165,30 +165,30 @@ void TableModelKaraokeSongs::search(QString searchString)
     }
     searchTerms.emplace_back(s.substr(prev_pos, pos - prev_pos));
     m_filteredSongs.clear();
-    m_filteredSongs.resize(m_allSongs.size());
-    auto it = std::copy_if(m_allSongs.begin(), m_allSongs.end(), m_filteredSongs.begin(), [&] (KaraokeSong &song)
+    m_filteredSongs.reserve(m_allSongs.size());
+    std::for_each(m_allSongs.begin(), m_allSongs.end(), [&] (auto &song)
     {
         std::string searchString;
         switch (m_searchType) {
-        case TableModelKaraokeSongs::SEARCH_TYPE_ALL:
-            searchString = song.searchString;
-            break;
-        case TableModelKaraokeSongs::SEARCH_TYPE_ARTIST:
-            searchString = song.artist.toLower().toStdString();
-            break;
-        case TableModelKaraokeSongs::SEARCH_TYPE_TITLE:
-            searchString = song.title.toLower().toStdString();
-            break;
+            case TableModelKaraokeSongs::SEARCH_TYPE_ALL:
+                searchString = song.searchString;
+                break;
+            case TableModelKaraokeSongs::SEARCH_TYPE_ARTIST:
+                searchString = song.artist.toLower().toStdString();
+                break;
+            case TableModelKaraokeSongs::SEARCH_TYPE_TITLE:
+                searchString = song.title.toLower().toStdString();
+                break;
         }
-
-        for (auto term : searchTerms)
-        {
+        bool match{true};
+        for (const auto &term : searchTerms) {
             if (searchString.find(term) == std::string::npos)
-                return false;
+                match = false;
         }
-        return true;
+        if (match)
+            m_filteredSongs.template emplace_back(song);
     });
-    m_filteredSongs.resize(std::distance(m_filteredSongs.begin(), it));
+    m_filteredSongs.shrink_to_fit();
     sort(m_lastSortColumn, m_lastSortOrder);
     emit layoutChanged();
 }
@@ -206,6 +206,8 @@ int TableModelKaraokeSongs::getIdForPath(const QString &path)
     auto it = std::find_if(m_allSongs.begin(), m_allSongs.end(), [&] (KaraokeSong &song) {
         return (song.path == path);
     });
+    if (it == m_allSongs.end())
+        return -1;
     return it->id;
 }
 
@@ -230,16 +232,14 @@ void TableModelKaraokeSongs::updateSongHistory(const int id)
         it->lastPlay = QDateTime::currentDateTime();
     }
 
-    it = find_if(m_filteredSongs.begin(), m_filteredSongs.end(), [&id] (KaraokeSong &song) {
-        if (song.id == id)
+    auto it2 = find_if(m_filteredSongs.begin(), m_filteredSongs.end(), [&id] (auto song) {
+        if (song.get().id == id)
             return true;
         return false;
     });
-    if (it != m_filteredSongs.end())
+    if (it2 != m_filteredSongs.end())
     {
-        it->plays++;
-        it->lastPlay = QDateTime::currentDateTime();
-        int row = std::distance(m_filteredSongs.begin(), it);
+        int row = std::distance(m_filteredSongs.begin(), it2);
         emit dataChanged(this->index(row, COL_PLAYS),this->index(row, COL_LASTPLAY),QVector<int>(Qt::DisplayRole));
     }
 
@@ -349,4 +349,27 @@ void TableModelKaraokeSongs::sort(int column, Qt::SortOrder order)
         });
     }
     emit layoutChanged();
+}
+
+void TableModelKaraokeSongs::setSongDuration(QString &path, int duration) {
+    auto it = find_if(m_allSongs.begin(), m_allSongs.end(), [&path] (KaraokeSong &song) {
+        if (song.path == path)
+            return true;
+        return false;
+    });
+    int songId{-1};
+    if (it == m_allSongs.end())
+        return;
+    it->duration = duration;
+    songId = it->id;
+    auto it2 = find_if(m_filteredSongs.begin(), m_filteredSongs.end(), [songId] (auto song) {
+        if (song.get().id == songId)
+            return true;
+        return false;
+    });
+    if (it2 != m_filteredSongs.end())
+    {
+        int row = std::distance(m_filteredSongs.begin(), it2);
+        emit dataChanged(this->index(row, COL_DURATION),this->index(row, COL_DURATION),QVector<int>(Qt::DisplayRole));
+    }
 }

@@ -44,7 +44,7 @@ public:
 
 
 private:
-    std::vector<KaraokeSong> m_filteredSongs;
+    std::vector<std::reference_wrapper<KaraokeSong>> m_filteredSongs;
     std::vector<KaraokeSong> m_allSongs;
     QString m_lastSearch;
     Qt::SortOrder m_lastSortOrder{Qt::AscendingOrder};
@@ -55,6 +55,9 @@ private:
     QImage m_iconVid;
     SearchType m_searchType{SearchType::SEARCH_TYPE_ALL};
     void resizeIconsForFont(const QFont &font);
+
+public slots:
+    void setSongDuration(QString &path, int duration);
 };
 
 #endif // TABLEMODELKARAOKESONGSNEW_H
