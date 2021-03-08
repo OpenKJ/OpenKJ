@@ -14,6 +14,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Gui Sql Network Widgets Concurrent Svg PrintSupport REQUIRED)
 
+
 if (NOT WIN32)
     add_compile_definitions(
         MINIZ_NO_TIME
@@ -31,6 +32,7 @@ if (NOT WIN32)
         ${GSTREAMER_LIBRARY_DIRS}
         )
 else()
+
     add_compile_definitions(
         MINIZ_NO_TIME
         TAGLIB_STATIC
@@ -480,10 +482,39 @@ add_executable(openkj
     gstreamer/gstreamerhelper.h
 )
 
-
 target_include_directories(openkj PRIVATE ./)
 if (NOT WIN32)
     target_link_libraries(openkj Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Sql Qt5::Network Qt5::Svg Qt5::PrintSupport Qt5::Concurrent ${GSTREAMER_LIBRARIES} PkgConfig::TAGLIB)
 else()
+    install(DIRECTORY "c:\\gstreamer-dist\\1.0\\msvc_x86_64\\bin\\" DESTINATION "bin")
     target_link_libraries(openkj PRIVATE Qt5::Widgets Qt5::Gui Qt5::Sql Qt5::Network Qt5::Svg Qt5::PrintSupport Qt5::Concurrent)
+    get_target_property(_qt5_qmake_location Qt5::qmake IMPORTED_LOCATION)
+    execute_process(
+            COMMAND "${_qt5_qmake_location}" -query QT_INSTALL_PREFIX
+            RESULT_VARIABLE return_code
+            OUTPUT_VARIABLE qt5_install_prefix
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    if(qt5_install_prefix)
+        find_program(WINDEPLOYQT windeployqt HINTS ${qt5_install_prefix} PATH_SUFFIXES bin)
+        if(WINDEPLOYQT)
+            add_custom_command(
+                    TARGET openkj
+                    COMMAND "${WINDEPLOYQT}"
+                    ARGS "${CMAKE_BINARY_DIR}\\openkj.exe"
+            )
+        else()
+            message("Can't find windeployqt")
+        endif()
+    else()
+        message("QT_INSTALL_DIR not defined")
+    endif()
+    add_custom_command(
+            TARGET openkj
+            COMMAND "xcopy"
+            ARGS "c:\\gstreamer-dist\\1.0\\msvc_x86_64\\*" "/s" "/y"
+            COMMAND "xcopy"
+            ARGS "c:\\gstreamer-dist\\1.0\\msvc_x86_64\\bin\\*.dll" "/y"
+    )
+
 endif()
