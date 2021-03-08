@@ -964,7 +964,7 @@ void MediaBackend::setTempo(const int &percent)
     m_playbackRate = percent / 100.0;
     optimize_scaleTempo_for_rate(m_scaleTempo, m_playbackRate);
 
-#if GST_CHECK_VERSION(1,8,0)
+#if GST_CHECK_VERSION(1,18,0)
     // With gstreamer 1.18 we can change rate without seeking. Only works with videos and not appsrc it seems. Perhaps fixable with "handle-segment-change"...
     if (!m_cdgMode)
     {
@@ -1047,16 +1047,15 @@ const char* MediaBackend::getVideoSinkElementNameForFactory()
 #if defined(Q_OS_LINUX)
     switch (m_accelMode)
     {
-        case OpenGL:
-            return "glimagesink";
-        case XVideo:
-            return "xvimagesink";
+    case OpenGL:
+        return "glimagesink";
+    case XVideo:
+        return "xvimagesink";
     }
 #elif defined(Q_OS_WIN)
     return "d3dvideosink";
-#else
-    return "glimagesink";
 #endif
+    return "glimagesink";
 }
 
 

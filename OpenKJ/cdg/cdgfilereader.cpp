@@ -109,7 +109,7 @@ bool CdgFileReader::readAndProcessNextPackage()
 
 inline bool CdgFileReader::isEOF()
 {
-    return m_cdgDataPos + sizeof(cdg::CDG_SubCode) > m_cdgData.length();
+    return m_cdgDataPos + sizeof(cdg::CDG_SubCode) > (unsigned int)m_cdgData.length();
 }
 
 inline uint CdgFileReader::getDurationOfPackagesInMS(const uint numberOfPackages)

@@ -1457,7 +1457,7 @@ void MainWindow::on_tableViewRotation_doubleClicked(const QModelIndex &index)
 
 void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
 {
-    if (index.column() == 4)
+    if (index.column() == TableModelRotation::COL_DELETE)
     {
         if (settings.showSingerRemovalWarning())
         {
@@ -1491,7 +1491,7 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index)
         return;
 
         }
-    if (index.column() == 3)
+    if (index.column() == TableModelRotation::COL_REGULAR)
     {
         if (!rotModel.singerIsRegular(index.data(Qt::UserRole).toInt()))
         {
@@ -3528,9 +3528,11 @@ void MainWindow::autosizeViews()
 #if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
     int durationColSize = QFontMetrics(settings.applicationFont()).horizontalAdvance(" Duration ");
     int songidColSize = QFontMetrics(settings.applicationFont()).horizontalAdvance(" AA0000000-0000 ");
+    int lastPlayColSize = QFontMetrics(settings.applicationFont()).horizontalAdvance("_00/00/00 00:00 MM_");
 #else
     int durationColSize = QFontMetrics(settings.applicationFont()).width(" Duration ");
     int songidColSize = QFontMetrics(settings.applicationFont()).width(" AA0000000-0000 ");
+    int lastPlayColSize = QFontMetrics(settings.applicationFont()).width("_00/00/00 00:00 MM_");
 #endif
     int remainingSpace = ui->tableViewDB->width() - durationColSize - songidColSize;
     int artistColSize = (remainingSpace / 2) - 120;
@@ -3540,8 +3542,7 @@ void MainWindow::autosizeViews()
     ui->tableViewDB->horizontalHeader()->resizeSection(TableModelKaraokeSongs::COL_DURATION, durationColSize);
     ui->tableViewDB->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_DURATION, QHeaderView::Fixed);
     ui->tableViewDB->horizontalHeader()->resizeSection(TableModelKaraokeSongs::COL_SONGID, songidColSize);
-    ui->tableViewDB->horizontalHeader()->resizeSection(TableModelKaraokeSongs::COL_LASTPLAY,
-                                                       QFontMetrics(settings.applicationFont()).width("_00/00/00 00:00 MM_"));
+    ui->tableViewDB->horizontalHeader()->resizeSection(TableModelKaraokeSongs::COL_LASTPLAY,lastPlayColSize);
     resizeRotation();
     autosizeQueue();
 //    ui->tableViewQueue->horizontalHeader()->resizeSection(7, playsColSize);

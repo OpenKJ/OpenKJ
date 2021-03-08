@@ -253,7 +253,7 @@ void TableModelKaraokeSongs::updateSongHistory(const int id)
 
 KaraokeSong &TableModelKaraokeSongs::getSong(const int songId)
 {
-    auto it = std::find_if(m_allSongs.begin(), m_allSongs.end(), [&songId] (KaraokeSong song) {
+    auto it = std::find_if(m_allSongs.begin(), m_allSongs.end(), [&songId] (KaraokeSong &song) {
         return (song.id == songId);
     });
     return *it;

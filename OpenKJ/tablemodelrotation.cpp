@@ -809,7 +809,7 @@ Qt::DropActions TableModelRotation::supportedDropActions() const
     return Qt::CopyAction | Qt::MoveAction;
 }
 
-Qt::ItemFlags TableModelRotation::flags(const QModelIndex &index) const
+Qt::ItemFlags TableModelRotation::flags([[maybe_unused]]const QModelIndex &index) const
 {
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
 }
