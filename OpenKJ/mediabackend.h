@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef AUDIOBACKENDGSTREAMER_H
-#define AUDIOBACKENDGSTREAMER_H
+#ifndef MEDIABACKEND_H
+#define MEDIABACKEND_H
 
 #define GLIB_DISABLE_DEPRECATION_WARNINGS
 #include <gst/gst.h>
@@ -76,30 +76,28 @@ public:
     };
 
     explicit MediaBackend(QObject *parent, QString objectName, MediaType type);
-    ~MediaBackend();
+    ~MediaBackend() override;
 
-    bool canChangeTempo() { return true; }
-    bool canDetectSilence() { return true; }
-    bool canFade() { return true; }
-    bool canPitchShift() { return true; }
+    static bool canChangeTempo() { return true; }
+    static bool canFade() { return true; }
+    static bool canPitchShift() { return true; }
     bool hasVideo() { return m_hasVideo; }
     bool isSilent();
     void setAccelType(const accel &type=accel::XVideo) { m_accelMode = type; }
     void setAudioOutputDevice(int deviceIndex);
-    void setVideoOutputWidgets(std::vector<QWidget*> surfaces);
+    void setVideoOutputWidgets(const std::vector<QWidget*>& surfaces);
     void setVideoEnabled(const bool &enabled);
-    bool isVideoEnabled() { return m_videoEnabled; }
+    [[nodiscard]] bool isVideoEnabled() const { return m_videoEnabled; }
     bool hasActiveVideo();
-    bool isCdgMode() { return m_cdgMode; }
-    int getVolume() { return m_volume; }
+    [[nodiscard]] int getVolume() const { return m_volume; }
 
-    void writePipelinesGraphToFile(const QString filePath);
+    void writePipelinesGraphToFile(const QString& filePath);
 
     qint64 position();
     qint64 duration();
     State state();
     QStringList getOutputDevices() { return m_outputDeviceNames; }
-    QString msToMMSS(const qint64 &msec)
+    static QString msToMMSS(const qint64 &msec)
     {
         QString sec;
         QString min;
@@ -117,11 +115,6 @@ public:
     }
 
 private:
-    enum GstPlayFlags {
-        GST_PLAY_FLAG_VIDEO         = (1 << 0),
-        GST_PLAY_FLAG_AUDIO         = (1 << 1),
-        GST_PLAY_FLAG_TEXT          = (1 << 2)
-    };
 
     struct VideoSinkData {
         QWidget *surface { nullptr };
@@ -133,7 +126,7 @@ private:
     QString m_objName;
     MediaType m_type;
     Settings m_settings;
-    GstBus *m_bus;
+    GstBus *m_bus{nullptr};
 
     /* PIPELINE */
     GstElement *m_pipeline { nullptr };  // Pipeline
@@ -168,7 +161,6 @@ private:
 
     /* VIDEO SINK */
     GstElement *m_videoBin { nullptr }; // GstBin
-    GstElement *m_queueMainVideo { nullptr };
     GstElement *m_videoTee { nullptr };
 
     std::vector<VideoSinkData> m_videoSinks;
@@ -179,7 +171,7 @@ private:
     QString m_filename;
     QString m_cdgFilename;
     QStringList m_outputDeviceNames;
-    QTimer m_gstMsgBusHandlerTimer;
+    QTimer m_gstBusMsgHandlerTimer;
     QTimer m_timerFast;
     QTimer m_timerSlow;
     int m_silenceDuration{0};
@@ -195,12 +187,10 @@ private:
     bool m_currentlyFadedOut{false};
     bool m_silenceDetect{false};
     bool m_videoEnabled{true};
-    bool m_previewEnabledLastBuild{true};
     bool m_bypass{false};
     bool m_loadPitchShift;
     bool m_downmix{false};
     std::atomic<bool> m_hasVideo{false};
-    bool m_enforceAspectRatio{true};
     bool m_videoAccelEnabled{false};
     QPointer<AudioFader> m_fader;
     State m_lastState{StoppedState};
@@ -211,12 +201,10 @@ private:
     void resetVideoSinks();
     const char* getVideoSinkElementNameForFactory();
     void getAudioOutputDevices();
-    void writePipelineGraphToFile(GstBin *bin, QString filePath, QString fileName);
-    double getPitchForSemitone(const int &semitone);
+    void writePipelineGraphToFile(GstBin *bin, const QString& filePath, QString fileName);
+    static double getPitchForSemitone(const int &semitone);
 
     static gboolean gstBusFunc(GstBus *bus, GstMessage *message, gpointer user_data);
-
-    static void NoMorePadsCallback(GstElement *gstelement, gpointer data);
     static void padAddedToDecoder_cb(GstElement *element,  GstPad *pad, gpointer caller);
 
     void stopPipeline();
@@ -229,7 +217,7 @@ private slots:
 
 
 public slots:
-    void setVideoOffset(const int offsetMs);
+    void setVideoOffset(int offsetMs);
     void play();
     void pause();
     void setMedia(const QString &filename);
@@ -255,18 +243,18 @@ public slots:
     void setEnforceAspectRatio(const bool &enforce);
 
 signals:
-    void audioAvailableChanged(const bool);
-    void bufferStatusChanged(const int);
-    void durationChanged(const qint64);
-    void mutedChanged(const bool);
-    void positionChanged(const qint64);
-    void stateChanged(const State);
-    void hasActiveVideoChanged(const bool);
-    void volumeChanged(const int);
+    void audioAvailableChanged(const bool audioAvailable);
+    void bufferStatusChanged(const int status);
+    void durationChanged(const qint64 duration);
+    void mutedChanged(const bool muted);
+    void positionChanged(const qint64 position);
+    void stateChanged(const State state);
+    void hasActiveVideoChanged(const bool hasVideo);
+    void volumeChanged(const int vol);
     void silenceDetected();
-    void pitchChanged(const int);    
+    void pitchChanged(const int key);
     void audioError(const QString &msg);
 
 };
 
-#endif // AUDIOBACKENDGSTREAMER_H
+#endif // MEDIABACKEND_H

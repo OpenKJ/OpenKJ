@@ -21,8 +21,7 @@
 #include "mediabackend.h"
 #include <QApplication>
 #include <QDebug>
-#include <string.h>
-#include <math.h>
+#include <cmath>
 #include <QFile>
 #include <gst/audio/streamvolume.h>
 #include <gst/gstdebugutils.h>
@@ -31,6 +30,7 @@
 #include <QDir>
 #include <QProcess>
 #include <functional>
+#include <utility>
 #include <gst/video/videooverlay.h>
 #include <gst/gstsegment.h>
 #include "gstreamer/gstreamerhelper.h"
@@ -39,10 +39,8 @@
 Q_DECLARE_SMART_POINTER_METATYPE(std::shared_ptr);
 Q_DECLARE_METATYPE(std::shared_ptr<GstMessage>);
 
-std::atomic<bool> g_appSrcNeedData{false};
-
-MediaBackend::MediaBackend(QObject *parent, QString objectName, MediaType type) :
-    QObject(parent), m_objName(objectName), m_type(type), m_loadPitchShift(type == Karaoke)
+MediaBackend::MediaBackend(QObject *parent, QString objectName, const MediaType type) :
+    QObject(parent), m_objName(std::move(objectName)), m_type(type), m_loadPitchShift(type == Karaoke)
 {
     Settings settings;
 
@@ -78,7 +76,7 @@ bool MediaBackend::hasActiveVideo()
     return false;
 }
 
-void MediaBackend::writePipelineGraphToFile(GstBin *bin, QString filePath, QString fileName)
+void MediaBackend::writePipelineGraphToFile(GstBin *bin, const QString& filePath, QString fileName)
 {
     fileName = QString("%1/%2 - %3").arg(QDir::cleanPath(filePath + QDir::separator()), m_objName, fileName);
     qInfo() << fileName;
@@ -109,7 +107,7 @@ void MediaBackend::writePipelineGraphToFile(GstBin *bin, QString filePath, QStri
     f.remove();
 }
 
-void MediaBackend::writePipelinesGraphToFile(const QString filePath)
+void MediaBackend::writePipelinesGraphToFile(const QString& filePath)
 {
     writePipelineGraphToFile(reinterpret_cast<GstBin*>(m_videoBin), filePath, "GS graph video");
     writePipelineGraphToFile(reinterpret_cast<GstBin*>(m_audioBin), filePath, "GS graph audio");
@@ -127,8 +125,6 @@ double MediaBackend::getPitchForSemitone(const int &semitone)
 
 void MediaBackend::setEnforceAspectRatio(const bool &enforce)
 {
-    m_enforceAspectRatio = enforce;
-
     for (auto &vs : m_videoSinks)
     {
         if (vs.softwareRenderVideoSink)
@@ -149,7 +145,7 @@ MediaBackend::~MediaBackend()
     resetPipeline();
     m_timerSlow.stop();
     m_timerFast.stop();
-    m_gstMsgBusHandlerTimer.stop();
+    m_gstBusMsgHandlerTimer.stop();
     gst_object_unref(m_bus);
     gst_caps_unref(m_audioCapsMono);
     gst_caps_unref(m_audioCapsStereo);
@@ -547,7 +543,7 @@ void MediaBackend::setPitchShift(const int &pitchShift)
         qWarning() << "No pitch shifting plugin loaded!";
         return;
     }
-    emit pitchChanged(pitchShift);
+    emit pitchChanged(pitchShift); // NOLINT(readability-misleading-indentation)
 }
 
 gboolean MediaBackend::gstBusFunc([[maybe_unused]]GstBus *bus, GstMessage *message, gpointer user_data)
@@ -735,8 +731,8 @@ void MediaBackend::buildAudioSinkBin()
 #else
     // We need to pop messages off the gst bus ourselves on non-linux platforms since
     // there is no GMainLoop running
-    m_gstMsgBusHandlerTimer.start(40);
-    connect(&m_gstMsgBusHandlerTimer, &QTimer::timeout, [&] () {
+    m_gstBusMsgHandlerTimer.start(40);
+    connect(&m_gstBusMsgHandlerTimer, &QTimer::timeout, [&] () {
         while (gst_bus_have_pending(m_bus))
         {
             auto msg = gst_bus_pop(m_bus);
@@ -845,7 +841,7 @@ void MediaBackend::buildAudioSinkBin()
 
 void MediaBackend::padAddedToDecoder_cb(GstElement *element,  GstPad *pad, gpointer caller)
 {
-    MediaBackend *backend = (MediaBackend*)caller;
+    auto *backend = (MediaBackend*)caller;
 
     auto new_pad_caps = gst_pad_get_current_caps (pad);
     auto new_pad_struct = gst_caps_get_structure (new_pad_caps, 0);
@@ -1003,16 +999,16 @@ void MediaBackend::setAudioOutputDevice(int deviceIndex)
     }
     else
     {
-        m_audioSink = gst_device_create_element(m_audioOutputDevices.at(deviceIndex - 1), NULL);
+        m_audioSink = gst_device_create_element(m_audioOutputDevices.at(deviceIndex - 1), nullptr);
     }
 
     gst_bin_add(GST_BIN(m_audioBin), m_audioSink);
     gst_element_link(m_aConvEnd, m_audioSink);
 }
 
-void MediaBackend::setVideoOutputWidgets(std::vector<QWidget*> surfaces)
+void MediaBackend::setVideoOutputWidgets(const std::vector<QWidget*>& surfaces)
 {
-    if (m_videoSinks.size() > 0)
+    if (!m_videoSinks.empty())
     {
         throw std::runtime_error(("Video output widget(s) already set."));
     }
@@ -1069,18 +1065,18 @@ const char* MediaBackend::getVideoSinkElementNameForFactory()
 void MediaBackend::setMplxMode(const int &mode)
 {
     switch (mode) {
-    case Multiplex_Normal:
-        g_object_set(m_audioPanorama, "panorama", 0.0, nullptr);
-        setDownmix(m_settings.audioDownmix());
-        break;
     case Multiplex_LeftChannel:
-        setDownmix(true);
-        g_object_set(m_audioPanorama, "panorama", -1.0, nullptr);
-        break;
-    case Multiplex_RightChannel:
-        setDownmix(true);
-        g_object_set(m_audioPanorama, "panorama", 1.0, nullptr);
-        break;
+            setDownmix(true);
+            g_object_set(m_audioPanorama, "panorama", -1.0, nullptr);
+            break;
+        case Multiplex_RightChannel:
+            setDownmix(true);
+            g_object_set(m_audioPanorama, "panorama", 1.0, nullptr);
+            break;
+        default:
+            g_object_set(m_audioPanorama, "panorama", 0.0, nullptr);
+            setDownmix(m_settings.audioDownmix());
+            break;
     }
 }
 
