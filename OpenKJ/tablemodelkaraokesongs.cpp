@@ -157,7 +157,7 @@ void TableModelKaraokeSongs::search(const QString &searchString) {
                 match = false;
         }
         if (match)
-            m_filteredSongs.template emplace_back(song);
+            m_filteredSongs.emplace_back(song);
     });
     m_filteredSongs.shrink_to_fit();
     sort(m_lastSortColumn, m_lastSortOrder);
