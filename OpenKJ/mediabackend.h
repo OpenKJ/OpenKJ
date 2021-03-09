@@ -199,7 +199,7 @@ private:
     void buildVideoSinkBin();
     void buildAudioSinkBin();
     void resetVideoSinks();
-    const char* getVideoSinkElementNameForFactory();
+    static const char* getVideoSinkElementNameForFactory();
     void getAudioOutputDevices();
     void writePipelineGraphToFile(GstBin *bin, const QString& filePath, QString fileName);
     static double getPitchForSemitone(const int &semitone);

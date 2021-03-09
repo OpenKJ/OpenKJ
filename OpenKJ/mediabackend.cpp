@@ -98,7 +98,7 @@ void MediaBackend::writePipelineGraphToFile(GstBin *bin, const QString& filePath
     QStringList dotArguments { "-Tpng", "-o" + filenamePng, filenameDot };
     QProcess process;
 #ifdef Q_OS_WIN
-    process.start("C:\\Program Files\\Graphviz\\bin\\dot.exe", dotArguments);
+    process.start(R"(C:\Program Files\Graphviz\bin\dot.exe)", dotArguments);
 #else
     process.start("dot", dotArguments);
 #endif
@@ -754,15 +754,16 @@ void MediaBackend::buildAudioSinkBin()
     m_volumeElement = gst_element_factory_make("volume", "volumeElement");
     auto queueMainAudio = gst_element_factory_make("queue", "queueMainAudio");
     auto queueEndAudio = gst_element_factory_make("queue", "queueEndAudio");
+    auto audioResample = gst_element_factory_make("audioresample", "audioResample");
     m_scaleTempo = gst_element_factory_make("scaletempo", "scaleTempo");
     m_audioPanorama = gst_element_factory_make("audiopanorama", "audioPanorama");
     g_object_set(m_audioPanorama, "method", 1, nullptr);
 
     GstElement *audioBinLastElement;
 
-    gst_bin_add_many(GST_BIN(m_audioBin), queueMainAudio, m_audioPanorama, level, m_scaleTempo, aConvInput, rgVolume, /*rgLimiter,*/ m_volumeElement, m_equalizer, aConvPostPanorama, m_fltrPostPanorama, m_faderVolumeElement, nullptr);
+    gst_bin_add_many(GST_BIN(m_audioBin), queueMainAudio, audioResample, m_audioPanorama, level, m_scaleTempo, aConvInput, rgVolume, /*rgLimiter,*/ m_volumeElement, m_equalizer, aConvPostPanorama, m_fltrPostPanorama, m_faderVolumeElement, nullptr);
     // todo: athom: link m_volumeElement (and perhaps m_faderVolumeElement) after queueEndAudio to avoid delay when changing volume
-    gst_element_link_many(queueMainAudio, aConvInput, rgVolume, /*rgLimiter,*/ m_scaleTempo, level, m_volumeElement, m_equalizer, m_faderVolumeElement, m_audioPanorama, aConvPostPanorama, audioBinLastElement = m_fltrPostPanorama, nullptr);
+    gst_element_link_many(queueMainAudio, aConvInput, audioResample, rgVolume, /*rgLimiter,*/ m_scaleTempo, level, m_volumeElement, m_equalizer, m_faderVolumeElement, m_audioPanorama, aConvPostPanorama, audioBinLastElement = m_fltrPostPanorama, nullptr);
 
     if (m_loadPitchShift)
     {
@@ -1045,6 +1046,8 @@ void MediaBackend::setVideoOutputWidgets(const std::vector<QWidget*>& surfaces)
     resetVideoSinks();
 }
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "UnreachableCode"
 const char* MediaBackend::getVideoSinkElementNameForFactory()
 {
 #if defined(Q_OS_LINUX)
@@ -1060,6 +1063,7 @@ const char* MediaBackend::getVideoSinkElementNameForFactory()
 #endif
     return "glimagesink";
 }
+#pragma clang diagnostic pop
 
 
 void MediaBackend::setMplxMode(const int &mode)
