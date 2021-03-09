@@ -710,7 +710,6 @@ void MediaBackend::buildAudioSinkBin()
 {
     m_audioBin = gst_bin_new("audioBin");
     g_object_ref(m_audioBin);
-
     m_faderVolumeElement = gst_element_factory_make("volume", "FaderVolumeElement");
     g_object_set(m_faderVolumeElement, "volume", 1.0, nullptr);
     m_fader = new AudioFader(this);
@@ -719,13 +718,9 @@ void MediaBackend::buildAudioSinkBin()
     auto aConvInput = gst_element_factory_make("audioconvert", "aConvInput");
     m_audioSink = gst_element_factory_make("autoaudiosink", "autoAudioSink");
     auto rgVolume = gst_element_factory_make("rgvolume", "rgVolume");
-    //g_object_set(rgVolume, "pre-amp", 6.0, "headroom", 10.0, nullptr);
-    //auto rgLimiter = gst_element_factory_make("rglimiter", "rgLimiter");
     auto level = gst_element_factory_make("level", "level");
     m_equalizer = gst_element_factory_make("equalizer-10bands", "equalizer");
-
     m_bus = gst_element_get_bus(m_pipeline);
-    //gst_bus_set_sync_handler(bus, (GstBusSyncHandler)busMessageDispatcher, this, NULL);
 #if defined(Q_OS_LINUX)
     gst_bus_add_watch(m_bus, (GstBusFunc)gstBusFunc, this);
 #else
@@ -755,6 +750,7 @@ void MediaBackend::buildAudioSinkBin()
     auto queueMainAudio = gst_element_factory_make("queue", "queueMainAudio");
     auto queueEndAudio = gst_element_factory_make("queue", "queueEndAudio");
     auto audioResample = gst_element_factory_make("audioresample", "audioResample");
+    g_object_set(audioResample, "sinc-filter-mode", 1, "quality", 10, nullptr);
     m_scaleTempo = gst_element_factory_make("scaletempo", "scaleTempo");
     m_audioPanorama = gst_element_factory_make("audiopanorama", "audioPanorama");
     g_object_set(m_audioPanorama, "method", 1, nullptr);

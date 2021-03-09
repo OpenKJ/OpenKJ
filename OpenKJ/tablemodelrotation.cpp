@@ -16,7 +16,6 @@ TableModelRotation::TableModelRotation(QObject *parent)
     : QAbstractTableModel(parent)
 {
     resizeIconsForFont(settings.applicationFont());
-    loadData();
 }
 
 QVariant TableModelRotation::headerData(int section, Qt::Orientation orientation, int role) const

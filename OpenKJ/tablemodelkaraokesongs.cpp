@@ -3,6 +3,9 @@
 #include <QSqlQuery>
 #include <QDebug>
 #include <QPainter>
+#include <QFileInfo>
+#include <QDir>
+#include <QDirIterator>
 #include <QSvgRenderer>
 #include <QMimeData>
 #include "settings.h"
@@ -323,4 +326,93 @@ void TableModelKaraokeSongs::setSongDuration(QString &path, int duration) {
         int row = std::distance(m_filteredSongs.begin(), it2);
         emit dataChanged(this->index(row, COL_DURATION), this->index(row, COL_DURATION), QVector<int>(Qt::DisplayRole));
     }
+}
+
+void TableModelKaraokeSongs::markSongBad(QString path) {
+    QSqlQuery query;
+    query.prepare("UPDATE dbsongs SET discid='!!BAD!!' WHERE path == :path");
+    query.bindValue(":path", path);
+    query.exec();
+
+    emit layoutAboutToBeChanged();
+    auto newFilteredEnd = std::remove_if(m_filteredSongs.begin(), m_filteredSongs.end(), [&path] (auto &song) {
+        return (song.get().path == path);
+    });
+    m_filteredSongs.erase(newFilteredEnd, m_filteredSongs.end());
+    emit layoutChanged();
+
+    auto newAllSongsEnd = std::remove_if(m_allSongs.begin(), m_allSongs.end(), [&path] (auto &song) {
+        return (song.path == path);
+    });
+    m_allSongs.erase(newAllSongsEnd, m_allSongs.end());
+
+}
+
+TableModelKaraokeSongs::DeleteStatus TableModelKaraokeSongs::removeBadSong(QString path) {
+    bool isCdg = false;
+    if (QFileInfo(path).suffix().toLower() == "cdg")
+        isCdg = true;
+    QString mediaFile;
+    if (isCdg)
+        mediaFile = findCdgAudioFile(path);
+    QFile file(path);
+    if (file.remove()) {
+        QSqlQuery query;
+        query.prepare("DELETE FROM dbsongs WHERE path == :path");
+        query.bindValue(":path", path);
+        query.exec();
+        
+        emit layoutAboutToBeChanged();
+        auto newFilteredEnd = std::remove_if(m_filteredSongs.begin(), m_filteredSongs.end(), [&path] (auto &song) {
+            return (song.get().path == path);
+        });
+        m_filteredSongs.erase(newFilteredEnd, m_filteredSongs.end());
+
+        emit layoutChanged();
+        auto newAllSongsEnd = std::remove_if(m_allSongs.begin(), m_allSongs.end(), [&path] (auto &song) {
+            return (song.path == path);
+        });
+        m_allSongs.erase(newAllSongsEnd, m_allSongs.end());
+
+        if (isCdg) {
+            if (!QFile::remove(mediaFile)) {
+                return DELETE_CDG_AUDIO_FAIL;
+            }
+        }
+    } else {
+        return DELETE_FAIL;
+    }
+    return DELETE_OK;
+}
+
+QString TableModelKaraokeSongs::findCdgAudioFile(const QString& path) {
+    qInfo() << "findMatchingAudioFile(" << path << ") called";
+    QStringList audioExtensions;
+    audioExtensions.append("mp3");
+    audioExtensions.append("wav");
+    audioExtensions.append("ogg");
+    audioExtensions.append("mov");
+    audioExtensions.append("flac");
+    QFileInfo cdgInfo(path);
+    QDir srcDir = cdgInfo.absoluteDir();
+    QDirIterator it(srcDir);
+    while (it.hasNext())
+    {
+        it.next();
+        if (it.fileInfo().completeBaseName() != cdgInfo.completeBaseName())
+            continue;
+        if (it.fileInfo().suffix().toLower() == "cdg")
+            continue;
+        QString ext;
+                foreach (ext, audioExtensions)
+            {
+                if (it.fileInfo().suffix().toLower() == ext)
+                {
+                    qInfo() << "findMatchingAudioFile found match: " << it.filePath();
+                    return it.filePath();
+                }
+            }
+    }
+    qInfo() << "findMatchingAudioFile found no matches";
+    return QString();
 }

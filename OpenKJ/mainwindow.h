@@ -24,7 +24,6 @@
 #include <QMainWindow>
 #include "customlineedit.h"
 #include <QtSql>
-//#include "libCDG/include/libCDG.h"
 #include <QSortFilterProxyModel>
 #include <QTemporaryDir>
 #include <QDir>
@@ -32,7 +31,6 @@
 #include <QLabel>
 #include "dlgdatabase.h"
 #include "dlgsettings.h"
-//#include "khipcclient.h"
 #include "mediabackend.h"
 #include "dlgcdg.h"
 #include "settings.h"
@@ -64,13 +62,12 @@
 #include "tablemodelqueuesongs.h"
 
 namespace Ui {
-class MainWindow;
+    class MainWindow;
 }
 
-class MainWindow : public QMainWindow
-{
-    Q_OBJECT
-    
+class MainWindow : public QMainWindow {
+Q_OBJECT
+
 private:
     Ui::MainWindow *ui;
     QSqlDatabase database;
@@ -89,9 +86,9 @@ private:
     DlgEq *dlgEq;
     DlgAddSinger *dlgAddSinger;
     DlgSongShop *dlgSongShop;
-    MediaBackend kMediaBackend { this, "KAR", MediaBackend::Karaoke };
-    MediaBackend sfxMediaBackend { this, "SFX", MediaBackend::SFX };
-    MediaBackend bmMediaBackend { this, "BM", MediaBackend::BackgroundMusic };
+    MediaBackend kMediaBackend{this, "KAR", MediaBackend::Karaoke};
+    MediaBackend sfxMediaBackend{this, "SFX", MediaBackend::SFX};
+    MediaBackend bmMediaBackend{this, "BM", MediaBackend::BackgroundMusic};
     AudioRecorder audioRecorder;
     QLabel labelSingerCount;
     QLabel labelRotationDuration;
@@ -102,8 +99,6 @@ private:
     int m_rtClickQueueSongId{-1};
     int m_rtClickRotationSingerId{-1};
     QTemporaryDir *khTmpDir;
-    int sortColDB{1};
-    int sortDirDB{0};
     QString dbRtClickFile;
     QString curSinger;
     QString curArtist;
@@ -111,56 +106,50 @@ private:
     int kAANextSinger{-1};
     QString kAANextSongPath;
     bool kAASkip{false};
-    int cdgOffset;
     SongShop *shop;
     bool k2kTransition{false};
-    bool previewEnabled;
     BmDbDialog *bmDbDialog;
     TableModelBreakSongs bmDbModel{this};
-    //ItemDelegateBreakSongs *bmDbDelegate;
-    //TableModelPlaylistSongs *playlistSongsModel;
-    TableModelPlaylistSongs playlistSongsModel{bmDbModel,this};
+    TableModelPlaylistSongs playlistSongsModel{bmDbModel, this};
     ItemDelegatePlaylistSongs bmPlDelegate;
     QSqlTableModel *bmPlaylistsModel;
     int bmCurrentPosition{0};
     int bmCurrentPlaylist;
-    void bmAddPlaylist(QString title);
-    bool bmPlaylistExists(QString name);
+    void bmAddPlaylist(const QString& title);
+    bool bmPlaylistExists(const QString& name);
     MediaBackend::State m_lastAudioState{MediaBackend::StoppedState};
-    bool m_kHasActiveVideo { false };
-    bool m_bmHasActiveVideo { false };
-    void refreshSongDbCache();
+    bool m_kHasActiveVideo{false};
+    bool m_bmHasActiveVideo{false};
     QTimer m_timerKaraokeAA;
     UpdateChecker *checker;
     QTimer m_timerSlowUiUpdate;
     QTimer m_timerButtonFlash;
-    bool blinkRequestsBtn{false};
     bool kNeedAutoSize{false};
     bool bNeedAutoSize{true};
-    QShortcut *scutAddSinger;
-    QShortcut *scutBFfwd;
-    QShortcut *scutBPause;
-    QShortcut *scutBRestartSong;
-    QShortcut *scutBRwnd;
-    QShortcut *scutBStop;
-    QShortcut *scutBVolDn;
-    QShortcut *scutBVolMute;
-    QShortcut *scutBVolUp;
-    QShortcut *scutJumpToSearch;
-    QShortcut *scutKFfwd;
-    QShortcut *scutKPause;
-    QShortcut *scutKRestartSong;
-    QShortcut *scutKRwnd;
-    QShortcut *scutKStop;
-    QShortcut *scutKVolDn;
-    QShortcut *scutKVolMute;
-    QShortcut *scutKVolUp;
-    QShortcut *scutLoadRegularSinger;
-    QShortcut *scutRequests;
-    QShortcut *scutToggleSingerWindow;
-    QShortcut *scutDeleteSinger;
-    QShortcut *scutDeleteSong;
-    QShortcut *scutDeletePlSong;
+    QShortcut *scutAddSinger{nullptr};
+    QShortcut *scutBFfwd{nullptr};
+    QShortcut *scutBPause{nullptr};
+    QShortcut *scutBRestartSong{nullptr};
+    QShortcut *scutBRwnd{nullptr};
+    QShortcut *scutBStop{nullptr};
+    QShortcut *scutBVolDn{nullptr};
+    QShortcut *scutBVolMute{nullptr};
+    QShortcut *scutBVolUp{nullptr};
+    QShortcut *scutJumpToSearch{nullptr};
+    QShortcut *scutKFfwd{nullptr};
+    QShortcut *scutKPause{nullptr};
+    QShortcut *scutKRestartSong{nullptr};
+    QShortcut *scutKRwnd{nullptr};
+    QShortcut *scutKStop{nullptr};
+    QShortcut *scutKVolDn{nullptr};
+    QShortcut *scutKVolMute{nullptr};
+    QShortcut *scutKVolUp{nullptr};
+    QShortcut *scutLoadRegularSinger{nullptr};
+    QShortcut *scutRequests{nullptr};
+    QShortcut *scutToggleSingerWindow{nullptr};
+    QShortcut *scutDeleteSinger{nullptr};
+    QShortcut *scutDeleteSong{nullptr};
+    QShortcut *scutDeletePlSong{nullptr};
     QWidget *historyTabWidget;
     void addSfxButton(const QString &filename, const QString &label, const bool &reset = false);
     void refreshSfxButtons();
@@ -172,10 +161,9 @@ private:
     void setupShortcuts();
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
-    bool isSingleInstance();
-    ~MainWindow();
-    
+    explicit MainWindow(QWidget *parent = nullptr);
+    ~MainWindow() override;
+
 private slots:
     void search();
     void databaseUpdated();
@@ -197,9 +185,7 @@ private slots:
     void songDroppedOnSinger(const int &singerId, const int &songId, const int &dropRow);
     void on_pushButton_clicked();
     void on_tableViewQueue_clicked(const QModelIndex &index);
-    void notify_user(const QString &message);
     void on_buttonClearRotation_clicked();
-    void clearQueueSort();
     void on_buttonClearQueue_clicked();
     void on_spinBoxKey_valueChanged(const int &arg1);
     void karaokeMediaBackend_positionChanged(const qint64 &position);
@@ -209,12 +195,10 @@ private slots:
     void sfxAudioBackend_durationChanged(const qint64 &duration);
     void sfxAudioBackend_stateChanged(const MediaBackend::State &state);
     void on_hasActiveVideoChanged();
-    void on_sliderProgress_sliderMoved(const int &position);
     void on_buttonRegulars_clicked();
     void rotationDataChanged();
     void silenceDetectedKar();
     void silenceDetectedBm();
-    void audioBackendChanged(const int &index);
     void on_tableViewDB_customContextMenuRequested(const QPoint &pos);
     void on_tableViewRotation_customContextMenuRequested(const QPoint &pos);
     void sfxButton_customContextMenuRequested(const QPoint &pos);
@@ -224,8 +208,6 @@ private slots:
     void on_sliderProgress_sliderReleased();
     void setKeyChange();
     void toggleQueuePlayed();
-    void regularNameConflict(const QString &name);
-    void regularAddError(const QString &errorText);
     void previewCdg();
     void editSong();
     void markSongBad();
@@ -236,8 +218,6 @@ private slots:
     void autosizeBmViews();
     void bmDbUpdated();
     void bmDbCleared();
-    void bmShowMetadata(const bool &checked);
-    void bmShowFilenames(const bool &checked);
     void bmMediaStateChanged(const MediaBackend::State &newState);
     void bmMediaPositionChanged(const qint64 &position);
     void bmMediaDurationChanged(const qint64 &duration);
@@ -264,18 +244,16 @@ private slots:
     void on_pushButtonMplxBoth_toggled(const bool &checked);
     void on_pushButtonMplxRight_toggled(const bool &checked);
     void on_lineEdit_textChanged(const QString &arg1);
-    void cdgOffsetChanged(const int &offset);
     void setMultiPlayed();
     void setMultiUnplayed();
     void on_spinBoxTempo_valueChanged(const int &arg1);
     void on_actionSongbook_Generator_triggered();
     void on_actionEqualizer_triggered();
-    void audioError(const QString &msg);
+    static void audioError(const QString &msg);
     void resizeRotation();
-    void previewEnabledChanged(const bool &enabled) { previewEnabled = enabled; }
     void on_sliderVolume_sliderMoved(const int &position);
     void on_sliderBmVolume_sliderMoved(const int &position);
-    void songDropNoSingerSel();
+    static void songDropNoSingerSel();
     void newVersionAvailable(const QString &version);
     void on_pushButtonIncomingRequests_clicked();
     void on_pushButtonShop_clicked();
@@ -291,7 +269,7 @@ private slots:
     void on_btnAddSfx_clicked();
     void on_btnSfxStop_clicked();
     void removeSfxButton();
-    void showAlert(const QString &title, const QString &message);
+    static void showAlert(const QString &title, const QString &message);
     void tableViewRotationCurrentChanged(const QModelIndex &cur, const QModelIndex &prev);
     void updateRotationDuration();
     void cdgVisibilityChanged();
@@ -316,44 +294,29 @@ private slots:
     void on_actionVideoMedium_triggered();
     void on_actionVideoLarge_triggered();
     void on_actionVideo_Output_2_triggered(const bool &checked);
-
     void on_actionKaraoke_torture_triggered();
-
     void on_actionK_B_torture_triggered();
-
     void on_actionBurn_in_triggered();
-
     void on_actionMultiplex_Controls_triggered(bool checked);
-
     void on_actionCDG_Decode_Torture_triggered();
     void on_actionWrite_Gstreamer_pipeline_dot_files_triggered();
-
-
     void on_comboBoxSearchType_currentIndexChanged(int index);
-
     void on_actionDocumentation_triggered();
-
     void on_btnToggleCdgWindow_clicked(bool checked);
     void shortcutsUpdated();
-
     void on_tableViewBmPlaylist_customContextMenuRequested(const QPoint &pos);
     void treatAllSingersAsRegsChanged(bool enabled);
-
     void on_pushButtonHistoryPlay_clicked();
-
     void on_pushButtonHistoryToQueue_clicked();
-
     void on_tableViewHistory_doubleClicked(const QModelIndex &index);
-
     void on_tableViewHistory_customContextMenuRequested(const QPoint &pos);
-
     void on_actionBreak_music_torture_triggered();
-
     void on_tableViewBmDb_clicked(const QModelIndex &index);
 
 protected:
-    void closeEvent(QCloseEvent *event);
-    void resizeEvent(QResizeEvent *event);
+    void closeEvent(QCloseEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
+    void dbInit(const QDir &okjDataDir);
 };
 
 

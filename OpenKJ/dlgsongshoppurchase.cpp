@@ -2,7 +2,9 @@
 #include "ui_dlgsongshoppurchase.h"
 #include "dlgsetpassword.h"
 #include "dlgpassword.h"
+#include "settings.h"
 
+extern Settings settings;
 
 DlgSongShopPurchase::DlgSongShopPurchase(SongShop *songShop, QWidget *parent) :
     QDialog(parent),

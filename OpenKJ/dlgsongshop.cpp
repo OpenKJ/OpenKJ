@@ -1,6 +1,8 @@
 #include "dlgsongshop.h"
 #include "ui_dlgsongshop.h"
+#include "settings.h"
 
+extern Settings settings;
 
 DlgSongShop::DlgSongShop(SongShop *songShop, QWidget *parent) :
     QDialog(parent),
