@@ -4148,7 +4148,7 @@ void MainWindow::on_actionKaraoke_torture_triggered()
         QApplication::beep();
         static int runs = 0;
        qInfo() << "Karaoke torture test timer timeout";
-       qInfo() << "num songs in db: " << karaokeSongsModel.rowCount();
+       qInfo() << "num songs in db: " << karaokeSongsModel.rowCount(QModelIndex());
        ui->tableViewDB->scrollToBottom();
        ui->tableViewDB->scrollToBottom();
        ui->tableViewDB->scrollToBottom();
@@ -4165,7 +4165,7 @@ void MainWindow::on_actionKaraoke_torture_triggered()
        ui->tableViewDB->scrollToBottom();
        ui->tableViewDB->scrollToBottom();
        ui->tableViewDB->scrollToBottom();
-       int randno = QRandomGenerator::global()->bounded(0, karaokeSongsModel.rowCount() - 1);
+       int randno = QRandomGenerator::global()->bounded(0, karaokeSongsModel.rowCount(QModelIndex()) - 1);
        randno = 1;
        qInfo() << "randno: " << randno;
        ui->tableViewDB->selectRow(randno);
@@ -4202,7 +4202,7 @@ void MainWindow::on_actionK_B_torture_triggered()
             return;
         }
        qInfo() << "Karaoke torture test timer timeout";
-       qInfo() << "num songs in db: " << karaokeSongsModel.rowCount();
+       qInfo() << "num songs in db: " << karaokeSongsModel.rowCount(QModelIndex());
        ui->tableViewDB->scrollToBottom();
        ui->tableViewDB->scrollToBottom();
        ui->tableViewDB->scrollToBottom();
@@ -4219,7 +4219,7 @@ void MainWindow::on_actionK_B_torture_triggered()
        ui->tableViewDB->scrollToBottom();
        ui->tableViewDB->scrollToBottom();
        ui->tableViewDB->scrollToBottom();
-       int randno = QRandomGenerator::global()->bounded(0, karaokeSongsModel.rowCount() - 1);
+       int randno = QRandomGenerator::global()->bounded(0, karaokeSongsModel.rowCount(QModelIndex()) - 1);
        qInfo() << "randno: " << randno;
        ui->tableViewDB->selectRow(randno);
        ui->tableViewDB->scrollTo(ui->tableViewDB->selectionModel()->selectedRows().at(0));
@@ -4267,8 +4267,8 @@ void MainWindow::on_actionBurn_in_triggered()
         rotModel.singerMove(QRandomGenerator::global()->bounded(0, 19), QRandomGenerator::global()->bounded(0, 19));
         ui->tableViewRotation->selectRow(QRandomGenerator::global()->bounded(0, 19));
         int randno{0};
-        if (karaokeSongsModel.rowCount() > 1)
-            randno = QRandomGenerator::global()->bounded(0, karaokeSongsModel.rowCount() - 1);
+        if (karaokeSongsModel.rowCount(QModelIndex()) > 1)
+            randno = QRandomGenerator::global()->bounded(0, karaokeSongsModel.rowCount(QModelIndex()) - 1);
         qInfo() << "randno: " << randno;
         ui->tableViewDB->selectRow(randno);
         ui->tableViewDB->scrollTo(ui->tableViewDB->selectionModel()->selectedRows().at(0));
@@ -4305,7 +4305,7 @@ void MainWindow::on_actionCDG_Decode_Torture_triggered()
         QApplication::beep();
         static int runs = 0;
        qInfo() << "Karaoke torture test timer timeout";
-       qInfo() << "num songs in db: " << karaokeSongsModel.rowCount();
+       qInfo() << "num songs in db: " << karaokeSongsModel.rowCount(QModelIndex());
        ui->tableViewDB->scrollToBottom();
        ui->tableViewDB->scrollToBottom();
        ui->tableViewDB->scrollToBottom();
@@ -4322,7 +4322,7 @@ void MainWindow::on_actionCDG_Decode_Torture_triggered()
        ui->tableViewDB->scrollToBottom();
        ui->tableViewDB->scrollToBottom();
        ui->tableViewDB->scrollToBottom();
-       int randno = QRandomGenerator::global()->bounded(0, karaokeSongsModel.rowCount() - 1);
+       int randno = QRandomGenerator::global()->bounded(0, karaokeSongsModel.rowCount(QModelIndex()) - 1);
        qInfo() << "randno: " << randno;
        ui->tableViewDB->selectRow(randno);
        ui->tableViewDB->scrollTo(ui->tableViewDB->selectionModel()->selectedRows().at(0));

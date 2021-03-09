@@ -1,5 +1,5 @@
-#ifndef TABLEMODELKARAOKESONGSNEW_H
-#define TABLEMODELKARAOKESONGSNEW_H
+#ifndef TABLEMODELKARAOKESONGS_H
+#define TABLEMODELKARAOKESONGS_H
 
 #include <QAbstractTableModel>
 #include <QDateTime>
@@ -18,29 +18,46 @@ struct KaraokeSong {
     QDateTime lastPlay;
 };
 
-class TableModelKaraokeSongs : public QAbstractTableModel
-{
-    Q_OBJECT
+class TableModelKaraokeSongs : public QAbstractTableModel {
+Q_OBJECT
 
 public:
-    enum ModelCols{COL_ID=0,COL_ARTIST,COL_TITLE,COL_SONGID,COL_FILENAME,COL_DURATION,COL_PLAYS,COL_LASTPLAY};
-    enum {SORT_ARTIST=1,SORT_TITLE=2,SORT_SONGID=3,SORT_DURATION=4};
-    enum SearchType{SEARCH_TYPE_ALL=1, SEARCH_TYPE_ARTIST, SEARCH_TYPE_TITLE};
+    enum ModelCols {
+        COL_ID = 0, COL_ARTIST, COL_TITLE, COL_SONGID, COL_FILENAME, COL_DURATION, COL_PLAYS, COL_LASTPLAY
+    };
+    enum SearchType {
+        SEARCH_TYPE_ALL = 1, SEARCH_TYPE_ARTIST, SEARCH_TYPE_TITLE
+    };
+
     explicit TableModelKaraokeSongs(QObject *parent = nullptr);
-    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
-    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
-    QMimeData *mimeData(const QModelIndexList &indexes) const override;
-    Qt::ItemFlags flags(const QModelIndex &index) const override;
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+
+    [[nodiscard]] QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+
+    [[nodiscard]] int rowCount(const QModelIndex &parent) const override;
+
+    [[nodiscard]] int columnCount(const QModelIndex &parent) const override;
+
+    [[nodiscard]] QMimeData *mimeData(const QModelIndexList &indexes) const override;
+
+    [[nodiscard]] Qt::ItemFlags flags(const QModelIndex &index) const override;
+
+    [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
+
     void loadData();
+
     void sort(int column, Qt::SortOrder order) override;
-    void search(QString searchString);
+
+    void search(const QString &searchString);
+
     void setSearchType(SearchType type);
+
     int getIdForPath(const QString &path);
-    QString getPath(const int songId);
-    void updateSongHistory(const int songid);
-    KaraokeSong &getSong(const int songId);
+
+    QString getPath(int songId);
+
+    void updateSongHistory(int songId);
+
+    KaraokeSong &getSong(int songId);
 
 
 private:
@@ -49,15 +66,17 @@ private:
     QString m_lastSearch;
     Qt::SortOrder m_lastSortOrder{Qt::AscendingOrder};
     int m_lastSortColumn{1};
-    int m_curFontHeight;
+    int m_curFontHeight{0};
     QImage m_iconCdg;
     QImage m_iconZip;
     QImage m_iconVid;
     SearchType m_searchType{SearchType::SEARCH_TYPE_ALL};
+
     void resizeIconsForFont(const QFont &font);
 
 public slots:
+
     void setSongDuration(QString &path, int duration);
 };
 
-#endif // TABLEMODELKARAOKESONGSNEW_H
+#endif // TABLEMODELKARAOKESONGS_H
