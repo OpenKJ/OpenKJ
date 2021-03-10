@@ -106,6 +106,7 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
 
 int main(int argc, char *argv[])
 {
+    QLoggingCategory::setFilterRules("*.debug=true");
     qInstallMessageHandler(myMessageOutput);
     qRegisterMetaType<SfxEntry>("SfxEntry");
     qRegisterMetaTypeStreamOperators<SfxEntry>("SfxEntry");
@@ -127,9 +128,8 @@ int main(int argc, char *argv[])
 #endif
 
     filter = new IdleDetect;
-    a.installEventFilter(filter);
+    //a.installEventFilter(filter);
     qputenv("GST_DEBUG", "*:3");
-    //qputenv("GST_DEBUG_DUMP_DOT_DIR", "/tmp");
     QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     if (settings.theme() == 1)
     {

@@ -40,7 +40,7 @@
 #include <random>
 #include "dlgaddsong.h"
 
-#ifdef Q_OS_WIN
+#ifdef _MSC_VER
 #define NOMINMAX
 
 #include <Windows.h>
@@ -476,7 +476,7 @@ void MainWindow::treatAllSingersAsRegsChanged(bool enabled) {
 MainWindow::MainWindow(QWidget *parent) :
         QMainWindow(parent),
         ui(new Ui::MainWindow) {
-#ifdef Q_OS_WIN
+#ifdef _MSC_VER
     timeBeginPeriod(1);
 #endif
     debugDialog = new DlgDebugOutput(this);
@@ -486,6 +486,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QCoreApplication::setOrganizationDomain("OpenKJ.org");
     QCoreApplication::setApplicationName("OpenKJ");
     ui->setupUi(this);
+    setMouseTracking(true);
+    ui->tableViewBmPlaylist->setMouseTracking(true);
     historyTabWidget = ui->tabWidgetQueue->widget(1);
     ui->actionShow_Debug_Log->setChecked(settings.logShow());
 #ifdef Q_OS_WIN
@@ -1142,7 +1144,7 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k) {
 MainWindow::~MainWindow() {
     m_shuttingDown = true;
     cdgWindow->stopTicker();
-#ifdef Q_OS_WIN
+#ifdef _MSC_VER
     timeEndPeriod(1);
 #endif
     lazyDurationUpdater->stopWork();
@@ -2481,9 +2483,11 @@ void MainWindow::bmMediaDurationChanged(const qint64 &duration) {
 }
 
 void MainWindow::on_tableViewBmPlaylist_clicked(const QModelIndex &index) {
-//    qInfo() << "DNDDEBUG - " << ui->tableViewBmPlaylist->acceptDrops();
-//    qInfo() << "DNDDEBUG - " << ui->tableViewBmPlaylist->testAttribute(Qt::WA_AcceptDrops);
-//    qInfo() << "DNDDEBUG - " << playlistSongsModel.supportedDropActions();
+    qInfo() << "DNDDEBUG - acceptDrops(): " << ui->tableViewBmPlaylist->acceptDrops();
+    qInfo() << "DNDDEBUG - testAttribute(Qt::WA_AcceptDrops): " << ui->tableViewBmPlaylist->testAttribute(Qt::WA_AcceptDrops);
+    qInfo() << "DNDDEBUG - hasMouseTracking(): " << ui->tableViewBmPlaylist->hasMouseTracking();
+    qInfo() << "DNDDEBUG - mainwindow hasMouseTracking(): " << hasMouseTracking();
+    qInfo() << "DNDDEBUG - supportedDropActions(): " << playlistSongsModel.supportedDropActions();
 
     if (index.column() == TableModelPlaylistSongs::COL_PATH) {
         if (playlistSongsModel.currentPosition() == index.row()) {
@@ -4069,4 +4073,10 @@ void MainWindow::resetBmLabels() {
     ui->labelBmRemaining->setText("00:00");
     ui->labelBmPosition->setText("00:00");
     ui->sliderBmPosition->setValue(0);
+}
+
+void MainWindow::mouseMoveEvent(QMouseEvent *event)
+{
+    qInfo() << "Mouse move event: " << event->pos();
+    QMainWindow::mouseMoveEvent(event);
 }

@@ -316,6 +316,11 @@ protected:
     void closeEvent(QCloseEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
     void dbInit(const QDir &okjDataDir);
+
+
+    // QWidget interface
+protected:
+    void mouseMoveEvent(QMouseEvent *event) override;
 };
 
 

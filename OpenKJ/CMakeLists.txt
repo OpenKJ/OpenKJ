@@ -15,7 +15,7 @@ find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Gui Sql Network Widgets Concurrent Svg PrintSupport REQUIRED)
 
 
-if (NOT WIN32)
+if (NOT MSVC)
     add_compile_definitions(
         MINIZ_NO_TIME
         )
@@ -483,7 +483,7 @@ add_executable(openkj
 )
 
 target_include_directories(openkj PRIVATE ./)
-if (NOT WIN32)
+if (NOT MSVC)
     target_link_libraries(openkj Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Sql Qt5::Network Qt5::Svg Qt5::PrintSupport Qt5::Concurrent ${GSTREAMER_LIBRARIES} PkgConfig::TAGLIB)
 else()
     install(DIRECTORY "c:\\gstreamer-dist\\1.0\\msvc_x86_64\\bin\\" DESTINATION "bin")

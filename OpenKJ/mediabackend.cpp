@@ -467,7 +467,6 @@ void MediaBackend::timerFast_timeout()
 void MediaBackend::timerSlow_timeout()
 {
     auto currPos = position(); // local copy
-
     // Detect silence (if enabled)
     if (m_silenceDetect)
     {
@@ -475,31 +474,14 @@ void MediaBackend::timerSlow_timeout()
         {
             if (m_silenceDuration++ >= 2)
             {
-                // silence detected for 2+ seconds
-
-                bool doEmit = true;
-
-                if(m_type == Karaoke)
-                {
-                    doEmit = false;
-                    if (m_cdgMode)
-                    {
-                        // In CDG-karaoke mode, only cut of the song if there are no more image frames to be shown
-                        int finalFramePos = m_cdgSrc->positionOfFinalFrameMS();
-                        doEmit = finalFramePos > 0 && finalFramePos <= currPos;
-                    }
-                    else
-                    {
-                        // Karaoke video-file.
-                        // We can't interrupt this one as the detected silence might just be a musical break.
-                    }
-                }
-
-                if (doEmit)
-                {
+                if (m_type != Karaoke)
                     emit silenceDetected();
+                else if(m_cdgMode && m_cdgSrc->positionOfFinalFrameMS() != -1)
+                {
+                        // In CDG-karaoke mode, only cut of the song if there are no more image frames to be shown
+                        if (m_cdgSrc->positionOfFinalFrameMS() > 0 && m_cdgSrc->positionOfFinalFrameMS() <= currPos)
+                            emit silenceDetected();
                 }
-                return; // todo: reason to return here?
             }
         }
         else
