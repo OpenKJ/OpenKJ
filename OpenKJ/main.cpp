@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
 
     filter = new IdleDetect;
     //a.installEventFilter(filter);
-    qputenv("GST_DEBUG", "*:3");
+    //qputenv("GST_DEBUG", "*:3");
     QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     if (settings.theme() == 1)
     {
