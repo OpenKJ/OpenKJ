@@ -32,7 +32,7 @@ public:
     explicit ItemDelegatePlaylistSongs(QObject *parent = 0);
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     int currentSong() const;
-    void setCurrentSong(int value);
+    void setCurrentPosition(int value);
 };
 
 class TableModelPlaylistSongs : public QAbstractTableModel
@@ -54,7 +54,8 @@ public:
     Qt::ItemFlags flags(const QModelIndex &index) const override;
 
     void setCurrentPlaylist(const int playlistId);
-    void setCurrentSongPos(const int currentPos);;
+    void setCurrentPosition(const int currentPos);
+    int currentPosition() { return m_currentPosition; }
     void savePlaylistChanges();
     void moveSong(const int oldPosition, const int newPosition);
     void addSong(const int songId);
@@ -63,16 +64,20 @@ public:
     int currentPlaylist() const;
     int getSongIdByFilePath(const QString &filePath) const;
     int numSongs() const;
-    int randomizePlaylist(const int currentpos);
+    int randomizePlaylist();
     int getPlSongIdAtPos(const int position) const;
+    PlaylistSong &getPlSong(const int plSongId);
+    PlaylistSong &getPlSongByPosition(const int position);
+    PlaylistSong &getNextPlSong();
+    PlaylistSong &getCurrentSong();
     int getSongPositionById(const int plSongId) const;
 
 
 private:
     std::vector<PlaylistSong> m_songs;
     TableModelBreakSongs &m_breakSongsModel;
-    int m_curPlaylistId;
-    int m_currentSongPos;
+    int m_curPlaylistId{0};
+    int m_currentPosition{-1};
 
 signals:
     void bmSongMoved(int oldPos, int newPos);

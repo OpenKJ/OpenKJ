@@ -60,13 +60,13 @@ QVariant TableModelPlaylistSongs::data(const QModelIndex &index, int role) const
         return QVariant();
     if (role == Qt::ForegroundRole)
     {
-        if (index.row() == m_currentSongPos)
+        if (index.row() == m_currentPosition)
             return QColor("black");
         return QVariant();
     }
     if (role == Qt::BackgroundRole)
     {
-        if (index.row() == m_currentSongPos)
+        if (index.row() == m_currentPosition)
             return (settings.theme() == 1) ? QColor(180,180,0) : QColor("yellow");
         return QVariant();
     }
@@ -127,10 +127,10 @@ void TableModelPlaylistSongs::setCurrentPlaylist(const int playlistId)
     qInfo() << "Loaded " << m_songs.size() << "songs";
 }
 
-void TableModelPlaylistSongs::setCurrentSongPos(const int currentPos)
+void TableModelPlaylistSongs::setCurrentPosition(const int currentPos)
 {
     emit layoutAboutToBeChanged();
-    m_currentSongPos = currentPos;
+    m_currentPosition = currentPos;
     emit layoutChanged();
 }
 
@@ -250,7 +250,7 @@ int TableModelPlaylistSongs::numSongs() const
     return m_songs.size();
 }
 
-int TableModelPlaylistSongs::randomizePlaylist(const int currentpos)
+int TableModelPlaylistSongs::randomizePlaylist()
 {
     emit layoutAboutToBeChanged();
     std::random_device rd;
@@ -258,8 +258,8 @@ int TableModelPlaylistSongs::randomizePlaylist(const int currentpos)
     std::shuffle(m_songs.begin(), m_songs.end(), g);
     int songPos{0};
     int newCurPos{-1};
-    std::for_each(m_songs.begin(), m_songs.end(), [&songPos, &newCurPos, &currentpos] (PlaylistSong &song) {
-        if (song.position == currentpos)
+    std::for_each(m_songs.begin(), m_songs.end(), [&] (PlaylistSong &song) {
+        if (song.position == m_currentPosition)
         {
             song.position = songPos++;
             newCurPos = song.position;
@@ -269,6 +269,7 @@ int TableModelPlaylistSongs::randomizePlaylist(const int currentpos)
     });
     savePlaylistChanges();
     emit layoutChanged();
+    m_currentPosition = newCurPos;
     return newCurPos;
 }
 
@@ -293,7 +294,7 @@ int ItemDelegatePlaylistSongs::currentSong() const
     return m_currentSong;
 }
 
-void ItemDelegatePlaylistSongs::setCurrentSong(int value)
+void ItemDelegatePlaylistSongs::setCurrentPosition(int value)
 {
     m_currentSong = value;
 }
@@ -459,4 +460,29 @@ Qt::DropActions TableModelPlaylistSongs::supportedDropActions() const
 Qt::ItemFlags TableModelPlaylistSongs::flags([[maybe_unused]]const QModelIndex &index) const
 {
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
+}
+
+PlaylistSong &TableModelPlaylistSongs::getPlSong(const int plSongId)
+{
+    auto it = std::find_if(m_songs.begin(), m_songs.end(), [&plSongId] (PlaylistSong song) {
+        return (song.id == plSongId);
+    });
+    return *it;
+}
+
+PlaylistSong &TableModelPlaylistSongs::getPlSongByPosition(const int position) {
+    auto it = std::find_if(m_songs.begin(), m_songs.end(), [&position] (PlaylistSong song) {
+        return (song.position == position);
+    });
+    return *it;
+}
+
+PlaylistSong &TableModelPlaylistSongs::getNextPlSong() {
+    if (m_curPlaylistId < m_songs.size() - 2)
+        return getPlSongByPosition(m_currentPosition + 1);
+    return getPlSongByPosition(m_currentPosition);
+}
+
+PlaylistSong &TableModelPlaylistSongs::getCurrentSong() {
+    return getPlSongByPosition(m_currentPosition);
 }

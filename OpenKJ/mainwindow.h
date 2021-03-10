@@ -113,7 +113,6 @@ private:
     TableModelPlaylistSongs playlistSongsModel{bmDbModel, this};
     ItemDelegatePlaylistSongs bmPlDelegate;
     QSqlTableModel *bmPlaylistsModel;
-    int bmCurrentPosition{0};
     int bmCurrentPlaylist;
     void bmAddPlaylist(const QString& title);
     bool bmPlaylistExists(const QString& name);
@@ -159,6 +158,7 @@ private:
     bool m_testMode{false};
     void updateIcons();
     void setupShortcuts();
+    void resetBmLabels();
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);
@@ -260,7 +260,6 @@ private slots:
     void filesDroppedOnQueue(const QList<QUrl> &urls, const int &singerId, const int &position);
     void appFontChanged(const QFont &font);
     void on_tabWidget_currentChanged(const int &index);
-    void databaseAboutToUpdate();
     void bmDatabaseAboutToUpdate();
     void bmSongMoved(const int &oldPos, const int &newPos);
     void on_sliderBmPosition_sliderPressed();

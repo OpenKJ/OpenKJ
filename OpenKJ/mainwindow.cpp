@@ -50,6 +50,9 @@
 extern Settings settings;
 OKJSongbookAPI *songbookApi;
 
+// for some reason clang-tidy is choking on this function
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "OCDFAInspection"
 void MainWindow::addSfxButton(const QString &filename, const QString &label, const bool &reset) {
     static int numButtons = 0;
     if (reset)
@@ -70,6 +73,7 @@ void MainWindow::addSfxButton(const QString &filename, const QString &label, con
             &MainWindow::sfxButton_customContextMenuRequested);
     numButtons++;
 }
+#pragma clang diagnostic pop
 
 void MainWindow::refreshSfxButtons() {
     QLayoutItem *item;
@@ -389,7 +393,7 @@ void MainWindow::setupShortcuts() {
         bool curPlayingSelected{false};
         std::for_each(rows.begin(), rows.end(), [&](auto index) {
             positions.emplace_back(index.row());
-            if (bmCurrentPosition == index.row())
+            if (playlistSongsModel.currentPosition() == index.row())
                 curPlayingSelected = true;
         });
         auto state = bmMediaBackend.state();
@@ -403,35 +407,25 @@ void MainWindow::setupShortcuts() {
         std::sort(positions.begin(), positions.end());
         std::reverse(positions.begin(), positions.end());
         std::for_each(positions.begin(), positions.end(), [&](auto position) {
-            if (bmCurrentPosition == position) {
-                bmPlDelegate.setCurrentSong(-1);
-                playlistSongsModel.setCurrentSongPos(-1);
-                bmCurrentPosition = -1;
+            if (playlistSongsModel.currentPosition() == position) {
+                bmPlDelegate.setCurrentPosition(-1);
+                playlistSongsModel.setCurrentPosition(-1);
                 playlistSongsModel.deleteSong(position);
                 return;
             }
             playlistSongsModel.deleteSong(position);
-            if (bmCurrentPosition > position) {
-                bmCurrentPosition--;
-                bmPlDelegate.setCurrentSong(bmCurrentPosition);
-                playlistSongsModel.setCurrentSongPos(bmCurrentPosition);
+            if (playlistSongsModel.currentPosition() > position) {
+                bmPlDelegate.setCurrentPosition(playlistSongsModel.currentPosition() - 1);
+                playlistSongsModel.setCurrentPosition(playlistSongsModel.currentPosition());
             }
         });
         playlistSongsModel.savePlaylistChanges();
-        QString nextSong;
-        if (!ui->checkBoxBmBreak->isChecked()) {
-            if (bmCurrentPosition == playlistSongsModel.rowCount() - 1)
-                nextSong = playlistSongsModel.index(0, TableModelPlaylistSongs::COL_ARTIST).data().toString() +
-                           " - " + playlistSongsModel.index(0, TableModelPlaylistSongs::COL_TITLE).data().toString();
-            else
-                nextSong = playlistSongsModel.index(bmCurrentPosition + 1,
-                                                    TableModelPlaylistSongs::COL_ARTIST).data().toString() +
-                           " - " + playlistSongsModel.index(bmCurrentPosition + 1,
-                                                            TableModelPlaylistSongs::COL_TITLE).data().toString();
-        } else {
-            nextSong = "None - Breaking after current song";
+        if (ui->checkBoxBmBreak->isChecked())
+            ui->labelBmNext->setText("None - Breaking after current song");
+        else {
+            auto nextSong = playlistSongsModel.getNextPlSong();
+            ui->labelBmNext->setText(nextSong.artist + " - " + nextSong.title);
         }
-        ui->labelBmNext->setText(nextSong);
     });
 
     connect(&settings, &Settings::shortcutsChanged, this, &MainWindow::shortcutsUpdated);
@@ -579,7 +573,6 @@ MainWindow::MainWindow(QWidget *parent) :
     cdgWindow = new DlgCdg(&kMediaBackend, &bmMediaBackend, nullptr, Qt::Window);
     connect(&rotModel, &TableModelRotation::songDroppedOnSinger, this, &MainWindow::songDroppedOnSinger);
     connect(dbDialog, &DlgDatabase::databaseUpdateComplete, this, &MainWindow::databaseUpdated);
-    connect(dbDialog, &DlgDatabase::databaseAboutToUpdate, this, &MainWindow::databaseAboutToUpdate);
     connect(dbDialog, &DlgDatabase::databaseSongAdded, &karaokeSongsModel, &TableModelKaraokeSongs::loadData);
     connect(dbDialog, &DlgDatabase::databaseSongAdded, requestsDialog, &DlgRequests::databaseSongAdded);
     connect(dbDialog, &DlgDatabase::databaseCleared, this, &MainWindow::databaseCleared);
@@ -703,34 +696,13 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&settings, &Settings::karaokeAutoAdvanceChanged, ui->actionAutoplay_mode, &QAction::setChecked);
 
     if ((settings.bmAutoStart()) && (playlistSongsModel.rowCount() > 0)) {
-        qInfo() << "Playlist contains " << playlistSongsModel.rowCount() << " songs";
-        bmCurrentPosition = 0;
-        QString path = playlistSongsModel.index(bmCurrentPosition, TableModelPlaylistSongs::COL_PATH).data().toString();
-        if (QFile::exists(path)) {
-            QString song =
-                    playlistSongsModel.index(bmCurrentPosition, TableModelPlaylistSongs::COL_ARTIST).data().toString() +
-                    " - "
-                    + playlistSongsModel.index(bmCurrentPosition, TableModelPlaylistSongs::COL_TITLE).data().toString();
-            QString nextSong;
-            if (!ui->checkBoxBmBreak->isChecked()) {
-                if (bmCurrentPosition == playlistSongsModel.rowCount() - 1)
-                    nextSong = playlistSongsModel.index(0, TableModelPlaylistSongs::COL_ARTIST).data().toString() +
-                               " - " +
-                               playlistSongsModel.index(0, TableModelPlaylistSongs::COL_TITLE).data().toString();
-                else
-                    nextSong = playlistSongsModel.index(bmCurrentPosition + 1,
-                                                        TableModelPlaylistSongs::COL_ARTIST).data().toString() +
-                               " - " + playlistSongsModel.index(bmCurrentPosition + 1,
-                                                                TableModelPlaylistSongs::COL_TITLE).data().toString();
-            } else
-                nextSong = "None - Breaking after current song";
-            bmMediaBackend.setMedia(path);
+        playlistSongsModel.setCurrentPosition(0);
+        bmPlDelegate.setCurrentPosition(0);
+        auto plSong = playlistSongsModel.getCurrentSong();
+        if (QFile::exists(plSong.path)) {
+            bmMediaBackend.setMedia(plSong.path);
             bmMediaBackend.play();
             bmMediaBackend.setVolume(ui->sliderBmVolume->value());
-            ui->labelBmPlaying->setText(song);
-            ui->labelBmNext->setText(nextSong);
-            bmPlDelegate.setCurrentSong(bmCurrentPosition);
-            playlistSongsModel.setCurrentSongPos(bmCurrentPosition);
         } else {
             QMessageBox::warning(this, tr("Break music autostart failure"),
                                  tr("Break music is set to autostart but the first song in the current playlist was not found.\n\nAborting playback."),
@@ -738,6 +710,10 @@ MainWindow::MainWindow(QWidget *parent) :
         }
     }
     // todo - athom: what's this?
+    // isaac: this is the AV offset between audio and video to compensate for any downstream signal processing
+    // delay on either the video or audio side (hdmi decoder lag on TVs or audio effects hardware and such).
+    // It's just badly named because it existed when OpenK only supported cdg files and not mp4s and such.
+    // Not sure why it's just there alone, though, as it returns an offset in milliseconds lol
     settings.cdgDisplayOffset();
 
     connect(&settings, &Settings::eqKBypassChanged, &kMediaBackend, &MediaBackend::setEqBypass);
@@ -2449,57 +2425,45 @@ void MainWindow::on_actionManage_Break_DB_triggered() {
 
 void MainWindow::bmMediaStateChanged(const MediaBackend::State &newState) {
     static MediaBackend::State lastState = MediaBackend::StoppedState;
-    if (newState != lastState) {
-        lastState = newState;
-        if (newState == MediaBackend::EndOfMediaState) {
+    if (newState == lastState)
+        return;
+    lastState = newState;
+    switch (newState) {
+        case MediaBackend::StoppedState:
+            resetBmLabels();
+            break;
+        case MediaBackend::EndOfMediaState: {
             if (ui->checkBoxBmBreak->isChecked()) {
-                bmMediaBackend.stop(true);
                 ui->checkBoxBmBreak->setChecked(false);
+                resetBmLabels();
                 return;
             }
-            if (bmCurrentPosition < playlistSongsModel.rowCount() - 1)
-                bmCurrentPosition++;
-            else
-                bmCurrentPosition = 0;
-            bmMediaBackend.stop(true);
-            QString path = playlistSongsModel.index(bmCurrentPosition,
-                                                    TableModelPlaylistSongs::COL_PATH).data().toString();
-            QString song =
-                    playlistSongsModel.index(bmCurrentPosition, TableModelPlaylistSongs::COL_ARTIST).data().toString() +
-                    " - " +
-                    playlistSongsModel.index(bmCurrentPosition, TableModelPlaylistSongs::COL_TITLE).data().toString();
-            QString nextSong;
-            if (!ui->checkBoxBmBreak->isChecked()) {
-                if (bmCurrentPosition == playlistSongsModel.rowCount() - 1)
-                    nextSong = playlistSongsModel.index(0, TableModelPlaylistSongs::COL_ARTIST).data().toString() +
-                               " - " +
-                               playlistSongsModel.index(0, TableModelPlaylistSongs::COL_TITLE).data().toString();
-                else
-                    nextSong = playlistSongsModel.index(bmCurrentPosition + 1,
-                                                        TableModelPlaylistSongs::COL_ARTIST).data().toString() +
-                               " - " + playlistSongsModel.index(bmCurrentPosition + 1,
-                                                                TableModelPlaylistSongs::COL_TITLE).data().toString();
-            } else
-                nextSong = "None - Breaking after current song";
-            qInfo() << "Break music auto-advancing to song: " << path;
-            bmMediaBackend.setMedia(path);
+            auto plSong = playlistSongsModel.getNextPlSong();
+            bmMediaBackend.setMedia(plSong.path);
+            bmPlDelegate.setCurrentPosition(plSong.position);
+            playlistSongsModel.setCurrentPosition(plSong.position);
+            qInfo() << "Break music auto-advancing to song: " << plSong.path;
+            bmMediaBackend.stop();
             bmMediaBackend.play();
-            //bmMediaBackend.setVolume(ui->sliderBmVolume->value());
             if (kMediaBackend.state() == MediaBackend::PlayingState)
                 bmMediaBackend.fadeOutImmediate();
-            ui->labelBmPlaying->setText(song);
-            ui->labelBmNext->setText(nextSong);
-            bmPlDelegate.setCurrentSong(bmCurrentPosition);
-            playlistSongsModel.setCurrentSongPos(bmCurrentPosition);
+            break;
         }
-        if (newState == MediaBackend::StoppedState) {
-            ui->labelBmPlaying->setText("None");
-            ui->labelBmNext->setText("None");
-            ui->labelBmDuration->setText("00:00");
-            ui->labelBmRemaining->setText("00:00");
-            ui->labelBmPosition->setText("00:00");
-            ui->sliderBmPosition->setValue(0);
+        case MediaBackend::PlayingState: {
+            auto plSong = playlistSongsModel.getCurrentSong();
+            auto plNextSong = playlistSongsModel.getNextPlSong();
+            if (!ui->checkBoxBmBreak->isChecked())
+                ui->labelBmNext->setText(plNextSong.artist + " - " + plNextSong.title);
+            else
+                ui->labelBmNext->setText("None - Breaking after current song");
+            ui->labelBmPlaying->setText(plSong.artist + " - " + plSong.title);
+            break;
         }
+        case MediaBackend::PausedState:
+            break;
+        case MediaBackend::UnknownState:
+            resetBmLabels();
+            break;
     }
 }
 
@@ -2517,50 +2481,37 @@ void MainWindow::bmMediaDurationChanged(const qint64 &duration) {
 }
 
 void MainWindow::on_tableViewBmPlaylist_clicked(const QModelIndex &index) {
-#ifdef Q_OS_WIN
-    ui->tableViewBmPlaylist->setAttribute(Qt::WA_AcceptDrops, false);
-    ui->tableViewBmPlaylist->setAttribute(Qt::WA_AcceptDrops, true);
-#endif
+//    qInfo() << "DNDDEBUG - " << ui->tableViewBmPlaylist->acceptDrops();
+//    qInfo() << "DNDDEBUG - " << ui->tableViewBmPlaylist->testAttribute(Qt::WA_AcceptDrops);
+//    qInfo() << "DNDDEBUG - " << playlistSongsModel.supportedDropActions();
+
     if (index.column() == TableModelPlaylistSongs::COL_PATH) {
-        if (bmCurrentPosition == index.row()) {
-            if (bmMediaBackend.state() != MediaBackend::PlayingState &&
-                bmMediaBackend.state() != MediaBackend::PausedState) {
-                bmPlDelegate.setCurrentSong(-1);
-                bmCurrentPosition = -1;
-                playlistSongsModel.setCurrentSongPos(bmCurrentPosition);
-                playlistSongsModel.deleteSong(index.row());
-                playlistSongsModel.savePlaylistChanges();
+        if (playlistSongsModel.currentPosition() == index.row()) {
+            if (bmMediaBackend.state() == MediaBackend::PlayingState ||
+                bmMediaBackend.state() == MediaBackend::PausedState)
+            {
+                QMessageBox msgBox;
+                msgBox.setWindowTitle("Unable to remove");
+                msgBox.setText("The playlist song you are trying to remove is currently playing and can not be removed.");
+                msgBox.exec();
                 return;
             }
-            QMessageBox msgBox;
-            msgBox.setWindowTitle("Unable to remove");
-            msgBox.setText("The playlist song you are trying to remove is currently playing and can not be removed.");
-            msgBox.exec();
+            bmPlDelegate.setCurrentPosition(-1);
+            playlistSongsModel.setCurrentPosition(-1);
+            resetBmLabels();
+        }
+        playlistSongsModel.deleteSong(index.row());
+        playlistSongsModel.savePlaylistChanges();
+        if (playlistSongsModel.currentPosition() > index.row()) {
+            playlistSongsModel.setCurrentPosition(playlistSongsModel.currentPosition() - 1);
+            bmPlDelegate.setCurrentPosition(playlistSongsModel.currentPosition());
+        }
+        if (ui->checkBoxBmBreak->isChecked()) {
+            ui->labelBmNext->setText("None - Breaking after current song");
             return;
         }
-        int pos = index.row();
-        playlistSongsModel.deleteSong(pos);
-        playlistSongsModel.savePlaylistChanges();
-        if (bmCurrentPosition > pos) {
-            qInfo() << "deleted item, moving curpos - delPos:" << pos << " curPos:" << bmCurrentPosition;
-            bmCurrentPosition--;
-            bmPlDelegate.setCurrentSong(bmCurrentPosition);
-            playlistSongsModel.setCurrentSongPos(bmCurrentPosition);
-        }
-        QString nextSong;
-        if (!ui->checkBoxBmBreak->isChecked()) {
-            if (bmCurrentPosition == playlistSongsModel.rowCount() - 1)
-                nextSong = playlistSongsModel.index(0, TableModelPlaylistSongs::COL_ARTIST).data().toString() +
-                           " - " + playlistSongsModel.index(0, TableModelPlaylistSongs::COL_TITLE).data().toString();
-            else
-                nextSong = playlistSongsModel.index(bmCurrentPosition + 1,
-                                                    TableModelPlaylistSongs::COL_ARTIST).data().toString() +
-                           " - " + playlistSongsModel.index(bmCurrentPosition + 1,
-                                                            TableModelPlaylistSongs::COL_TITLE).data().toString();
-        } else
-            nextSong = "None - Breaking after current song";
-        ui->labelBmNext->setText(nextSong);
-
+        auto nextSong = playlistSongsModel.getNextPlSong();
+        ui->labelBmNext->setText(nextSong.artist + " - " + nextSong.title);
     }
 }
 
@@ -2571,17 +2522,12 @@ void MainWindow::on_comboBoxBmPlaylists_currentIndexChanged(const int &index) {
 }
 
 void MainWindow::on_checkBoxBmBreak_toggled(const bool &checked) {
-    QString nextSong;
     if (!checked) {
-        if (bmCurrentPosition == playlistSongsModel.rowCount() - 1)
-            nextSong = playlistSongsModel.index(0, 3).data().toString() + " - " +
-                       playlistSongsModel.index(0, 4).data().toString();
-        else
-            nextSong = playlistSongsModel.index(bmCurrentPosition + 1, 3).data().toString() + " - " +
-                       playlistSongsModel.index(bmCurrentPosition + 1, 4).data().toString();
-    } else
-        nextSong = "None - Stopping after current song";
-    ui->labelBmNext->setText(nextSong);
+        auto nextSong = playlistSongsModel.getNextPlSong();
+        ui->labelBmNext->setText(nextSong.artist + " - " + nextSong.title);
+        return;
+    }
+    ui->labelBmNext->setText("None - Stopping after current song");
 }
 
 void MainWindow::on_tableViewBmDb_doubleClicked(const QModelIndex &index) {
@@ -2599,33 +2545,15 @@ void MainWindow::on_lineEditBmSearch_returnPressed() {
 }
 
 void MainWindow::on_tableViewBmPlaylist_doubleClicked(const QModelIndex &index) {
-    if (bmMediaBackend.state() == MediaBackend::PlayingState)
+    if (bmMediaBackend.state() == MediaBackend::PlayingState || bmMediaBackend.state() == MediaBackend::PausedState)
         bmMediaBackend.stop(false);
-    bmCurrentPosition = index.row();
-    QString path = index.sibling(index.row(), TableModelPlaylistSongs::COL_PATH).data().toString();
-    QString song = index.sibling(index.row(), TableModelPlaylistSongs::COL_ARTIST).data().toString() +
-                   " - " + index.sibling(index.row(), TableModelPlaylistSongs::COL_TITLE).data().toString();
-    QString nextSong;
-    if (!ui->checkBoxBmBreak->isChecked()) {
-        if (bmCurrentPosition == playlistSongsModel.rowCount() - 1)
-            nextSong = playlistSongsModel.index(0, TableModelPlaylistSongs::COL_ARTIST).data().toString() +
-                       " - " + playlistSongsModel.index(0, TableModelPlaylistSongs::COL_TITLE).data().toString();
-        else
-            nextSong = playlistSongsModel.index(bmCurrentPosition + 1,
-                                                TableModelPlaylistSongs::COL_ARTIST).data().toString() +
-                       " - " + playlistSongsModel.index(bmCurrentPosition + 1,
-                                                        TableModelPlaylistSongs::COL_TITLE).data().toString();
-    } else
-        nextSong = "None - Breaking after current song";
-    bmMediaBackend.setMedia(path);
+    playlistSongsModel.setCurrentPosition(index.row());
+    bmPlDelegate.setCurrentPosition(index.row());
+    auto plSong = playlistSongsModel.getCurrentSong();
+    bmMediaBackend.setMedia(plSong.path);
     bmMediaBackend.play();
     if (kMediaBackend.state() != MediaBackend::PlayingState)
         bmMediaBackend.fadeInImmediate();
-    ui->labelBmPlaying->setText(song);
-    ui->labelBmNext->setText(nextSong);
-    bmPlDelegate.setCurrentSong(index.row());
-    playlistSongsModel.setCurrentSongPos(index.row());
-
 }
 
 void MainWindow::on_buttonBmPause_clicked(const bool &checked) {
@@ -2987,7 +2915,7 @@ void MainWindow::filesDroppedOnQueue(const QList<QUrl> &urls, const int &singerI
                     MzArchive archive(file);
                     if (!archive.isValidKaraokeFile()) {
                         QMessageBox msgBox;
-                        msgBox.setWindowTitle("Invalid karoake file!");
+                        msgBox.setWindowTitle("Invalid karaoke file!");
                         msgBox.setText("Invalid karaoke file dropped on queue");
                         msgBox.setIcon(QMessageBox::Warning);
                         msgBox.setInformativeText(file);
@@ -2997,7 +2925,7 @@ void MainWindow::filesDroppedOnQueue(const QList<QUrl> &urls, const int &singerI
                 } else if (file.endsWith(".cdg", Qt::CaseInsensitive)) {
                     if (TableModelKaraokeSongs::findCdgAudioFile(file) == QString()) {
                         QMessageBox msgBox;
-                        msgBox.setWindowTitle("Invalid karoake file!");
+                        msgBox.setWindowTitle("Invalid karaoke file!");
                         msgBox.setIcon(QMessageBox::Warning);
                         msgBox.setText("CDG file dropped on queue has no matching audio file");
                         msgBox.setInformativeText(file);
@@ -3007,7 +2935,7 @@ void MainWindow::filesDroppedOnQueue(const QList<QUrl> &urls, const int &singerI
                 } else if (!file.endsWith(".mp4", Qt::CaseInsensitive) && !file.endsWith(".mkv", Qt::CaseInsensitive) &&
                            !file.endsWith(".avi", Qt::CaseInsensitive) && !file.endsWith(".m4v", Qt::CaseInsensitive)) {
                     QMessageBox msgBox;
-                    msgBox.setWindowTitle("Invalid karoake file!");
+                    msgBox.setWindowTitle("Invalid karaoke file!");
                     msgBox.setText(
                             "Unsupported file type dropped on queue.  Supported file types: mp3+g zip, cdg, mp4, mkv, avi");
                     msgBox.setIcon(QMessageBox::Warning);
@@ -3305,41 +3233,27 @@ void MainWindow::on_tabWidget_currentChanged(const int &index) {
     }
 }
 
-void MainWindow::databaseAboutToUpdate() {
-//    this->requestsDialog->databaseAboutToUpdate();
-//    dbModel->revertAll();
-//    dbModel->setTable("");
-//    ui->tableViewRotation->clearSelection();
-//    qModel.setSinger(-1);
-}
-
 void MainWindow::bmDatabaseAboutToUpdate() {
-//    bmDbModel->revertAll();
-//    bmDbModel->setTable("");
     bmPlaylistsModel->revertAll();
     bmPlaylistsModel->setTable("");
 }
 
 void MainWindow::bmSongMoved(const int &oldPos, const int &newPos) {
     QString nextSong;
-    if (oldPos < bmCurrentPosition && newPos >= bmCurrentPosition)
-        bmCurrentPosition--;
-    else if (oldPos > bmCurrentPosition && newPos <= bmCurrentPosition)
-        bmCurrentPosition++;
-    else if (oldPos == bmCurrentPosition)
-        bmCurrentPosition = newPos;
-    bmPlDelegate.setCurrentSong(bmCurrentPosition);
-    playlistSongsModel.setCurrentSongPos(bmCurrentPosition);
+    int curPlPos = playlistSongsModel.currentPosition();
+    if (oldPos < curPlPos && newPos >= curPlPos)
+        curPlPos--;
+    else if (oldPos > curPlPos && newPos <= curPlPos)
+        curPlPos++;
+    else if (oldPos == curPlPos)
+        curPlPos = newPos;
+    bmPlDelegate.setCurrentPosition(curPlPos);
+    playlistSongsModel.setCurrentPosition(curPlPos);
     if (!ui->checkBoxBmBreak->isChecked()) {
-        if (bmCurrentPosition == playlistSongsModel.rowCount() - 1)
-            nextSong = playlistSongsModel.index(0, 3).data().toString() + " - " +
-                       playlistSongsModel.index(0, 4).data().toString();
-        else
-            nextSong = playlistSongsModel.index(bmCurrentPosition + 1, 3).data().toString() + " - " +
-                       playlistSongsModel.index(bmCurrentPosition + 1, 4).data().toString();
+        auto nextPlSong = playlistSongsModel.getNextPlSong();
+        ui->labelBmNext->setText(nextPlSong.artist + " - " + nextPlSong.title);
     } else
-        nextSong = "None - Breaking after current song";
-    ui->labelBmNext->setText(nextSong);
+        ui->labelBmNext->setText("None - Breaking after current song");
 }
 
 void MainWindow::on_sliderBmPosition_sliderPressed() {
@@ -3590,10 +3504,7 @@ void MainWindow::on_btnQBottom_clicked() {
 void MainWindow::on_btnBmPlRandomize_clicked() {
     if (playlistSongsModel.rowCount() < 2)
         return;
-    qint32 newplayinpos = playlistSongsModel.randomizePlaylist(bmCurrentPosition);
-    bmCurrentPosition = newplayinpos;
-    bmPlDelegate.setCurrentSong(bmCurrentPosition);
-    playlistSongsModel.setCurrentSongPos(bmCurrentPosition);
+    bmPlDelegate.setCurrentPosition(playlistSongsModel.randomizePlaylist());
 }
 
 void MainWindow::on_btnPlTop_clicked() {
@@ -4136,7 +4047,7 @@ void MainWindow::on_actionBreak_music_torture_triggered() {
         QApplication::beep();
         static int runs = 0;
         qInfo() << "Karaoke torture test timer timeout";
-        playlistSongsModel.randomizePlaylist(0);
+        bmPlDelegate.setCurrentPosition(playlistSongsModel.randomizePlaylist());
         ui->tableViewBmPlaylist->selectRow(0);
         on_tableViewBmPlaylist_doubleClicked(ui->tableViewBmPlaylist->selectionModel()->selectedRows().at(0));
         qInfo() << "test runs: " << ++runs;
@@ -4149,4 +4060,13 @@ void MainWindow::on_tableViewBmDb_clicked([[maybe_unused]]const QModelIndex &ind
     ui->tableViewBmPlaylist->setAttribute(Qt::WA_AcceptDrops, false);
     ui->tableViewBmPlaylist->setAttribute(Qt::WA_AcceptDrops, true);
 #endif
+}
+
+void MainWindow::resetBmLabels() {
+    ui->labelBmPlaying->setText("None");
+    ui->labelBmNext->setText("None");
+    ui->labelBmDuration->setText("00:00");
+    ui->labelBmRemaining->setText("00:00");
+    ui->labelBmPosition->setText("00:00");
+    ui->sliderBmPosition->setValue(0);
 }
