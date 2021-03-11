@@ -1,5 +1,4 @@
-extraction:
-  cpp:
-    configure:
-      command:
-      - qmake OpenKJ.pro
+path_classifiers:
+  library:
+    - src/miniz
+

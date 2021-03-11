@@ -323,8 +323,8 @@ endif()
 
 add_executable(openkj
     ${TAGLIB_SOURCES}
-    src/miniz.h 
-    src/miniz.c 
+        src/miniz/miniz.h
+        src/miniz/miniz.c
     src/main.cpp
     src/dlgaddsong.cpp 
     src/mediabackend.cpp 
