@@ -37,6 +37,12 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install devscripts equivs
+        sudo apt-get install $(dpkg-checkbuilddeps 2>&1 | sed 's/dpkg-checkbuilddeps:\serror:\sUnmet build dependencies: //g' | sed 's/[\(][^)]*[\)] //g')
+
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v1
