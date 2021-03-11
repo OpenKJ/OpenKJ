@@ -22,15 +22,11 @@ key changer, and all of the various bits and pieces required to host karaoke.
 
 
 %build
-cd OpenKJ
-qmake-qt5 PREFIX=$RPM_BUILD_ROOT/usr
-
-%make_build
-
+%cmake
+%cmake_build
 
 %install
-cd OpenKJ
-%make_install
+%cmake_install
 
 %files
 /usr/bin/OpenKJ
