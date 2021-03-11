@@ -1,6 +1,6 @@
 Name:           openkj
 Version:	1.9.58
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Karaoke show hosting software
 
 License:        GPL
@@ -14,12 +14,8 @@ Requires:       qt5-qtbase qt5-qtsvg qt5-qtmultimedia gstreamer1 gstreamer1-plug
 Karaoke hosting software targeted at professional KJ's.  Includes rotation management, break music player,
 key changer, and all of the various bits and pieces required to host karaoke.
 
-%undefine _hardened_build
-%define debug_package %{nil}
-
 %prep
-%setup -q
-
+%setup
 
 %build
 %cmake
