@@ -24,8 +24,8 @@
 #include <QDialog>
 #include <QSortFilterProxyModel>
 #include <QSqlTableModel>
-#include "tablemodelrotation.h"
-#include "tablemodelhistorysingers.h"
+#include "src/models/tablemodelrotation.h"
+#include "src/models/tablemodelhistorysingers.h"
 
 namespace Ui {
 class DlgRegularSingers;

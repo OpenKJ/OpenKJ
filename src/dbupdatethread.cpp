@@ -26,7 +26,7 @@
 #include <QDebug>
 #include <QStandardPaths>
 #include <QApplication>
-#include "tablemodelkaraokesourcedirs.h"
+#include "src/models/tablemodelkaraokesourcedirs.h"
 #include <QtConcurrent>
 #include "mzarchive.h"
 #include "tagreader.h"

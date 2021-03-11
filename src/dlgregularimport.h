@@ -23,8 +23,8 @@
 
 #include <QDialog>
 #include <QStringList>
-#include "tablemodelhistorysongs.h"
-#include "tablemodelhistorysingers.h"
+#include "src/models/tablemodelhistorysongs.h"
+#include "src/models/tablemodelhistorysingers.h"
 
 namespace Ui {
 class DlgRegularImport;

@@ -341,18 +341,18 @@ add_executable(openkj
     src/dlgregularsingers.cpp 
     src/dlgsettings.cpp 
     src/dlgcdg.cpp 
-    src/okarchive.cpp 
-    src/tablemodelbreaksongs.cpp 
-    src/tablemodelcustomnamingpatterns.cpp 
-    src/tablemodelhistorysingers.cpp 
-    src/tablemodelhistorysongs.cpp 
-    src/tablemodelkaraokesongs.cpp 
-    src/tablemodelkaraokesourcedirs.cpp 
-    src/tablemodelplaylistsongs.cpp 
-    src/tablemodelqueuesongs.cpp 
-    src/tablemodelrequests.cpp 
-    src/tablemodelrotation.cpp 
-    src/tablemodelsongshopsongs.cpp 
+    src/okarchive.cpp
+        src/models/tablemodelbreaksongs.cpp
+        src/models/tablemodelcustomnamingpatterns.cpp
+        src/models/tablemodelhistorysingers.cpp
+        src/models/tablemodelhistorysongs.cpp
+        src/models/tablemodelkaraokesongs.cpp
+        src/models/tablemodelkaraokesourcedirs.cpp
+        src/models/tablemodelplaylistsongs.cpp
+        src/models/tablemodelqueuesongs.cpp
+        src/models/tablemodelrequests.cpp
+        src/models/tablemodelrotation.cpp
+        src/models/tablemodelsongshopsongs.cpp
     src/tagreader.cpp 
     src/bmdbupdatethread.cpp 
     src/settings.cpp 
@@ -399,18 +399,18 @@ add_executable(openkj
     src/dlgregularsingers.h 
     src/dlgsettings.h 
     src/dlgcdg.h 
-    src/okarchive.h 
-    src/tablemodelbreaksongs.h 
-    src/tablemodelcustomnamingpatterns.h 
-    src/tablemodelhistorysingers.h 
-    src/tablemodelhistorysongs.h 
-    src/tablemodelkaraokesongs.h 
-    src/tablemodelkaraokesourcedirs.h 
-    src/tablemodelplaylistsongs.h 
-    src/tablemodelqueuesongs.h 
-    src/tablemodelrequests.h 
-    src/tablemodelrotation.h 
-    src/tablemodelsongshopsongs.h 
+    src/okarchive.h
+        src/models/tablemodelbreaksongs.h
+        src/models/tablemodelcustomnamingpatterns.h
+        src/models/tablemodelhistorysingers.h
+        src/models/tablemodelhistorysongs.h
+        src/models/tablemodelkaraokesongs.h
+        src/models/tablemodelkaraokesourcedirs.h
+        src/models/tablemodelplaylistsongs.h
+        src/models/tablemodelqueuesongs.h
+        src/models/tablemodelrequests.h
+        src/models/tablemodelrotation.h
+        src/models/tablemodelsongshopsongs.h
     src/tagreader.h 
     src/bmdbupdatethread.h 
     src/settings.h 
@@ -439,8 +439,8 @@ add_executable(openkj
     src/karaokefileinfo.h 
     src/dlgeditsong.h 
     src/soundfxbutton.h 
-    src/runguard/runguard.h 
-    src/tableviewtooltipfilter.h 
+    src/runguard/runguard.h
+        src/models/tableviewtooltipfilter.h
     src/durationlazyupdater.h 
     src/idledetect.h 
     src/dlgdebugoutput.h

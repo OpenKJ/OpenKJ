@@ -2,7 +2,7 @@
 #define DLGCUSTOMPATTERNS_H
 
 #include <QDialog>
-#include "tablemodelcustomnamingpatterns.h"
+#include "src/models/tablemodelcustomnamingpatterns.h"
 
 namespace Ui {
 class DlgCustomPatterns;

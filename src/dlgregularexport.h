@@ -22,8 +22,8 @@
 #define REGULAREXPORTDIALOG_H
 
 #include <QDialog>
-#include "tablemodelhistorysingers.h"
-#include "tablemodelhistorysongs.h"
+#include "src/models/tablemodelhistorysingers.h"
+#include "src/models/tablemodelhistorysongs.h"
 
 namespace Ui {
 class DlgRegularExport;

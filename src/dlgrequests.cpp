@@ -26,7 +26,7 @@
 #include "settings.h"
 #include "okjsongbookapi.h"
 #include <QProgressDialog>
-#include "tableviewtooltipfilter.h"
+#include "src/models/tableviewtooltipfilter.h"
 #include "dlgvideopreview.h"
 
 extern Settings settings;

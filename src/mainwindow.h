@@ -39,11 +39,11 @@
 #include "dlgregularimport.h"
 #include "dlgrequests.h"
 #include "dlgkeychange.h"
-#include "tablemodelkaraokesongs.h"
-#include "tablemodelqueuesongs.h"
-#include "tablemodelrotation.h"
-#include "tablemodelbreaksongs.h"
-#include "tablemodelplaylistsongs.h"
+#include "src/models/tablemodelkaraokesongs.h"
+#include "src/models/tablemodelqueuesongs.h"
+#include "src/models/tablemodelrotation.h"
+#include "src/models/tablemodelbreaksongs.h"
+#include "src/models/tablemodelplaylistsongs.h"
 #include "bmdbdialog.h"
 #include <QShortcut>
 #include <QThread>
@@ -57,9 +57,9 @@
 #include "durationlazyupdater.h"
 #include "dlgdebugoutput.h"
 #include "dlgvideopreview.h"
-#include "tablemodelhistorysongs.h"
-#include "tablemodelplaylistsongs.h"
-#include "tablemodelqueuesongs.h"
+#include "src/models/tablemodelhistorysongs.h"
+#include "src/models/tablemodelplaylistsongs.h"
+#include "src/models/tablemodelqueuesongs.h"
 
 namespace Ui {
     class MainWindow;

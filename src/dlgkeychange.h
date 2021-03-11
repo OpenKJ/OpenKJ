@@ -22,7 +22,7 @@
 #define DLGKEYCHANGE_H
 
 #include <QDialog>
-#include "tablemodelqueuesongs.h"
+#include "src/models/tablemodelqueuesongs.h"
 
 namespace Ui {
 class DlgKeyChange;

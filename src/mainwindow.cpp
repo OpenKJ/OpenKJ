@@ -31,7 +31,7 @@
 #include "tagreader.h"
 #include "dlgeditsong.h"
 #include "soundfxbutton.h"
-#include "tableviewtooltipfilter.h"
+#include "src/models/tableviewtooltipfilter.h"
 #include <tickernew.h>
 #include "dbupdatethread.h"
 #include <chrono>

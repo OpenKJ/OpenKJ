@@ -24,7 +24,7 @@
 #include <QThread>
 #include <QStringList>
 #include <QtSql>
-#include "tablemodelkaraokesourcedirs.h"
+#include "src/models/tablemodelkaraokesourcedirs.h"
 #include "settings.h"
 
 class DbUpdateThread : public QThread

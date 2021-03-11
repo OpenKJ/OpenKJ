@@ -2,7 +2,7 @@
 #define DLGADDSINGER_H
 
 #include <QDialog>
-#include <tablemodelrotation.h>
+#include <src/models/tablemodelrotation.h>
 
 namespace Ui {
 class DlgAddSinger;

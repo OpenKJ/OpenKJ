@@ -3,8 +3,8 @@
 
 #include <QButtonGroup>
 #include <QDialog>
-#include "tablemodelrotation.h"
-#include "tablemodelqueuesongs.h"
+#include "src/models/tablemodelrotation.h"
+#include "src/models/tablemodelqueuesongs.h"
 
 namespace Ui {
 class DlgAddSong;

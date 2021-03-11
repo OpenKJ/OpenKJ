@@ -2,7 +2,7 @@
 #define FILENAMEPARSER_H
 
 #include <QObject>
-#include "tablemodelkaraokesourcedirs.h"
+#include "src/models/tablemodelkaraokesourcedirs.h"
 #include "tagreader.h"
 
 class KaraokeFileInfo : public QObject

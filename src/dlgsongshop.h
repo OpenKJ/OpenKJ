@@ -2,7 +2,7 @@
 #define DLGSONGSHOP_H
 
 #include <QDialog>
-#include "tablemodelsongshopsongs.h"
+#include "src/models/tablemodelsongshopsongs.h"
 #include "dlgsongshoppurchase.h"
 #include "settings.h"
 

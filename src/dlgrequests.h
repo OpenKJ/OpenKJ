@@ -23,9 +23,9 @@
 
 #include <QDialog>
 #include <QItemSelection>
-#include "tablemodelrequests.h"
-#include "tablemodelkaraokesongs.h"
-#include "tablemodelrotation.h"
+#include "src/models/tablemodelrequests.h"
+#include "src/models/tablemodelkaraokesongs.h"
+#include "src/models/tablemodelrotation.h"
 #include "okjsongbookapi.h"
 
 namespace Ui {
