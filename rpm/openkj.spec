@@ -29,7 +29,7 @@ key changer, and all of the various bits and pieces required to host karaoke.
 %cmake_install
 
 %files
-/usr/bin/OpenKJ
+/usr/bin/openkj
 /usr/share/applications/openkj.desktop
 /usr/share/pixmaps/okjicon.svg
 
