@@ -2,7 +2,7 @@ name: MacOS Builder
 
 on:
   push:
-    branches: [ master, release ]
+    branches: [ none ]
 
 jobs:
   build:
