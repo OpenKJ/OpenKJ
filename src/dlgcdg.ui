@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>CDG Display</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="resources.qrc">
+    <normaloff>:/icons/Icons/okjicon.svg</normaloff>:/icons/Icons/okjicon.svg</iconset>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <property name="spacing">
     <number>0</number>
@@ -343,6 +347,8 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections/>
 </ui>
