@@ -31,6 +31,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBS
 endif ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set(WINDOWS_ICON_RC "src/appicon.rc")
     if (CMAKE_SIZEOF_VOID_P EQUAL 4)
         set(GST_BASE_PATH "C:/gstreamer/1.0/msvc_x86")
         set(GST_BASE_PATH_NATIVE "C:\\gstreamer\\1.0\\msvc_x86")
@@ -471,6 +472,7 @@ add_executable(openkj
         src/cdg/libCDG.h
         src/gstreamer/gstreamerhelper.cpp
         src/gstreamer/gstreamerhelper.h
+        ${WINDOWS_ICON_RC}
         )
 
 target_include_directories(openkj PRIVATE src/)
