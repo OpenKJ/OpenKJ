@@ -28,6 +28,7 @@ qrc_*.cpp
 ui_*.h
 Makefile*
 *build*
+build*
 
 
 # Qt unit tests
@@ -48,5 +49,9 @@ CMakeLists.txt.user*
 # Don't include binary
 openKJ/OpenKJ
 
-# Visual Studio CMake config file
+# Visual Studio
 CMakeSettings.json
+.vs
+
+# CLion
+.idea
