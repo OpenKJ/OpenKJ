@@ -22,6 +22,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBS
     include_directories(
             ${GLIB_INCLUDE_DIRS}
             ${GSTREAMER_INCLUDE_DIRS}
+
     )
     link_directories(
             ${GLIB_LIBRARY_DIRS}
@@ -30,15 +31,29 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBS
 endif ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    if (CMAKE_SIZEOF_VOID_P EQUAL 4)
+        set(GST_BASE_PATH "C:/gstreamer/1.0/msvc_x86")
+        set(GST_BASE_PATH_NATIVE "C:\\gstreamer\\1.0\\msvc_x86")
+    elseif (CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(GST_BASE_PATH "C:/gstreamer/1.0/msvc_x86_64")
+        set(GST_BASE_PATH_NATIVE "C:\\gstreamer\\1.0\\msvc_x86_64")
+    endif ()
+    message("Using GST_BASE_PATH: ${GST_BASE_PATH}")
+    message("Using GST_BASE_PATH_NATIVE: ${GST_BASE_PATH_NATIVE}")
+    include_directories(
+            ${GST_BASE_PATH}/include/gstreamer-1.0
+            ${GST_BASE_PATH}/include/glib-2.0
+            ${GST_BASE_PATH}/lib/glib-2.0/include
+            ${GST_BASE_PATH}/include/glib-2.0/gobject
+            )
+     link_directories(
+            "${GST_BASE_PATH}/lib"
+    )   
     add_compile_definitions(
             MINIZ_NO_TIME
             TAGLIB_STATIC
     )
     include_directories(
-            "C:/gstreamer/1.0/msvc_x86_64/include/gstreamer-1.0"
-            "C:/gstreamer/1.0/msvc_x86_64/include/glib-2.0"
-            "C:/gstreamer/1.0/msvc_x86_64/lib/glib-2.0/include"
-            "C:/gstreamer/1.0/msvc_x86_64/include/glib-2.0/gobject"
             src/taglib
             src/taglib/toolkit
             src/taglib/mpeg/id3v2
@@ -65,9 +80,6 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
             src/taglib/trueaudio
             src/taglib/wavpack
             src/taglib/xm
-    )
-    link_directories(
-            "C:/gstreamer/1.0/msvc_x86_64/lib"
     )
     link_libraries(
             gstreamer-1.0
@@ -480,7 +492,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBS
 endif ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    install(DIRECTORY "c:\\gstreamer-dist\\1.0\\msvc_x86_64\\bin\\" DESTINATION "bin")
+    install(DIRECTORY "${GST_BASE_PATH}/bin/" DESTINATION "bin")
     target_link_libraries(openkj PRIVATE Qt5::Widgets Qt5::Gui Qt5::Sql Qt5::Network Qt5::Svg Qt5::PrintSupport Qt5::Concurrent)
     get_target_property(_qt5_qmake_location Qt5::qmake IMPORTED_LOCATION)
     execute_process(
@@ -506,9 +518,9 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     add_custom_command(
             TARGET openkj
             COMMAND "xcopy"
-            ARGS "c:\\gstreamer-dist\\1.0\\msvc_x86_64\\*" "/s" "/y"
+            ARGS "${GST_BASE_PATH_NATIVE}\\*" "/s" "/y"
             COMMAND "xcopy"
-            ARGS "c:\\gstreamer-dist\\1.0\\msvc_x86_64\\bin\\*.dll" "/y"
+            ARGS "${GST_BASE_PATH_NATIVE}\\bin\\*.dll" "/y"
     )
 
 endif ()
