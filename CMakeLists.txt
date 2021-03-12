@@ -479,6 +479,10 @@ target_include_directories(openkj PRIVATE src/)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     target_link_libraries(openkj Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Sql Qt5::Network Qt5::Svg Qt5::PrintSupport Qt5::Concurrent ${GSTREAMER_LIBRARIES} PkgConfig::TAGLIB)
+    set_property(
+            TARGET openkj
+            PROPERTY WIN32_EXECUTABLE true
+    )
     install(
             TARGETS openkj
             DESTINATION bin
