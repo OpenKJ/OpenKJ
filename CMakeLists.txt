@@ -479,6 +479,7 @@ target_include_directories(openkj PRIVATE src/)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     target_link_libraries(openkj Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Sql Qt5::Network Qt5::Svg Qt5::PrintSupport Qt5::Concurrent ${GSTREAMER_LIBRARIES} PkgConfig::TAGLIB)
+
     install(
             TARGETS openkj
             DESTINATION bin
@@ -495,8 +496,13 @@ endif ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     install(DIRECTORY "${GST_BASE_PATH}/bin/" DESTINATION "bin")
+    set_property(
+            TARGET openkj
+            PROPERTY WIN32_EXECUTABLE true
+    )
     target_link_libraries(openkj PRIVATE Qt5::Widgets Qt5::Gui Qt5::Sql Qt5::Network Qt5::Svg Qt5::PrintSupport Qt5::Concurrent)
     get_target_property(_qt5_qmake_location Qt5::qmake IMPORTED_LOCATION)
+
     execute_process(
             COMMAND "${_qt5_qmake_location}" -query QT_INSTALL_PREFIX
             RESULT_VARIABLE return_code
