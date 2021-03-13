@@ -1,6 +1,10 @@
 name: Pull request Windows build test
 
-on: [push, pull_request]
+on: 
+  push:
+    branches: [blahblah]
+  pull_request:
+    branches: [blahblah]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
