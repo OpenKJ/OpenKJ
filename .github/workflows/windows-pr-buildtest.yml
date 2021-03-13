@@ -15,7 +15,7 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: lukka/run-cmake@main
+    - uses: seanmiddleditch/gha-setup-ninja@master
 
     - name: Download GST Installer
       uses: carlosperate/download-file-action@v1.0.3
@@ -73,7 +73,7 @@ jobs:
       # Note the current convention is to use the -S and -B options here to specify source 
       # and build directories, but this is only available with CMake 3.13 and higher.  
       # The CMake binaries on the Github Actions machines are (as of this writing) 3.12
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PREFIX_PATH= D:/a/OpenKJ/Qt/5.12.10/msvc2017_64/lib/cmake -G Ninja
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja
 
     - name: Build
       working-directory: ${{github.workspace}}/build
