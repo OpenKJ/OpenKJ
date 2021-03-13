@@ -11,15 +11,16 @@ public:
     CdgFileReader(const QString &filename);
 
     /**
-     * @brief Replaces currentFrame() with the next frame with visible changes and
+     * @brief Read first/next frame from the data stream.
+     * @note  Replaces currentFrame() with the next frame with visible changes and
      * sets currentFrameDurationMS() and currentFramePositionMS() as well.
      * @return true if here are more frames to be read. false if EOF.
      */
     bool moveToNextFrame();
 
     std::array<uchar, cdg::CDG_IMAGE_SIZE> currentFrame() { return m_current_image_data; }
-    uint currentFrameDurationMS();
-    uint currentFramePositionMS();
+    int currentFrameDurationMS();
+    int currentFramePositionMS();
 
     /**
      * @brief Set currentFrame() to the frame that should be displayed at a given point in time.
@@ -27,13 +28,13 @@ public:
      * @param positionMS The position in milliseconds.
      * @return true is positionMS is within file range.
      */
-    bool seek(uint positionMS);
+    bool seek(int positionMS);
 
     /**
      * @brief Duration of the entire file in milliseconds
      * @return
      */
-    uint getTotalDurationMS();
+    int getTotalDurationMS();
 
     /**
      * Returns the position of the very last frame.
@@ -43,22 +44,26 @@ public:
      */
     int positionOfFinalFrameMS();
 
+#ifdef QT_DEBUG
+    void saveNextImgToFile();
+    void saveCurrentImgToFile();
+#endif
+
 private:
     void rewind();
     bool readAndProcessNextPackage();
     inline bool isEOF();
 
-    inline static uint getDurationOfPackagesInMS(const uint numberOfPackages);
+    inline static int getDurationOfPackagesInMS(const int numberOfPackages);
 
     QByteArray m_cdgData;
-    unsigned int m_cdgDataPos;
+    int m_cdgDataPos;
 
     std::array<uchar, cdg::CDG_IMAGE_SIZE> m_current_image_data;
-    unsigned int m_current_image_pgk_idx;
+    int m_current_image_pgk_idx;
 
     CdgImageFrame m_next_image;
-    unsigned int m_next_image_pgk_idx;
-
+    int m_next_image_pgk_idx;
 };
 
 #endif // CDGFILEREADER_H

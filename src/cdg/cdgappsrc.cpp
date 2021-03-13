@@ -74,25 +74,27 @@ void CdgAppSrc::cb_need_data(GstAppSrc *appsrc, [[maybe_unused]]guint unused_siz
 
     while (instance->g_appSrcNeedData)
     {
-        auto buffer = gst_buffer_new_and_alloc(cdg::CDG_IMAGE_SIZE);
-        gst_buffer_fill(buffer,
-                        0,
-                        instance->m_cdgFileReader->currentFrame().data(),
-                        cdg::CDG_IMAGE_SIZE
-                        );
-
-        GST_BUFFER_PTS(buffer) = instance->m_cdgFileReader->currentFramePositionMS() * GST_MSECOND;
-        GST_BUFFER_DURATION(buffer) = instance->m_cdgFileReader->currentFrameDurationMS() * GST_MSECOND;
-
-        auto rc = gst_app_src_push_buffer(appsrc, buffer);
-
-        if (rc != GST_FLOW_OK)
+        if(instance->m_cdgFileReader->moveToNextFrame())
         {
-            qWarning() << "push buffer returned non-OK status: " << rc;
-            break;
-        }
+            auto buffer = gst_buffer_new_and_alloc(cdg::CDG_IMAGE_SIZE);
+            gst_buffer_fill(buffer,
+                            0,
+                            instance->m_cdgFileReader->currentFrame().data(),
+                            cdg::CDG_IMAGE_SIZE
+                            );
 
-        if(!instance->m_cdgFileReader->moveToNextFrame())
+            GST_BUFFER_PTS(buffer) = instance->m_cdgFileReader->currentFramePositionMS() * GST_MSECOND;
+            GST_BUFFER_DURATION(buffer) = instance->m_cdgFileReader->currentFrameDurationMS() * GST_MSECOND;
+
+            auto rc = gst_app_src_push_buffer(appsrc, buffer);
+
+            if (rc != GST_FLOW_OK)
+            {
+                qWarning() << "push buffer returned non-OK status: " << rc;
+                break;
+            }
+        }
+        else
         {
             gst_app_src_end_of_stream(appsrc);
             return;
