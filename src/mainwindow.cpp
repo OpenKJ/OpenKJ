@@ -2445,7 +2445,7 @@ void MainWindow::bmMediaStateChanged(const MediaBackend::State &newState) {
             bmPlDelegate.setCurrentPosition(plSong.position);
             playlistSongsModel.setCurrentPosition(plSong.position);
             qInfo() << "Break music auto-advancing to song: " << plSong.path;
-            bmMediaBackend.stop();
+            bmMediaBackend.stop(true);
             bmMediaBackend.play();
             if (kMediaBackend.state() == MediaBackend::PlayingState)
                 bmMediaBackend.fadeOutImmediate();
