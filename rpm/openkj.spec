@@ -6,7 +6,7 @@
 
 Name:           openkj
 Version:	1.9.61
-Release:        4%{?dist}
+Release:        5%{?dist}
 Summary:        Karaoke show hosting software
 
 License:        GPL
@@ -26,7 +26,7 @@ key changer, and all of the various bits and pieces required to host karaoke.
 %setup
 
 %build
-%cmake
+%cmake -DCMAKE_BUILD_TYPE=Debug
 %cmake_build
 
 %install
