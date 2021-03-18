@@ -1347,8 +1347,11 @@ void MainWindow::on_tableViewRotation_doubleClicked(const QModelIndex &index) {
             rotModel.setCurrentSinger(singerId);
             if (settings.rotationAltSortOrder()) {
                 auto curSingerPos = rotModel.getSingerPosition(singerId);
-                if (curSingerPos != 0)
+                if (curSingerPos != 0) {
                     rotModel.singerMove(curSingerPos, 0);
+                    ui->tableViewRotation->clearSelection();
+                    ui->tableViewRotation->selectRow(0);
+                }
             }
         }
     }
@@ -1468,8 +1471,11 @@ void MainWindow::on_tableViewQueue_doubleClicked(const QModelIndex &index) {
     rotDelegate.setCurrentSinger(curSingerId);
     if (settings.rotationAltSortOrder()) {
         auto curSingerPos = rotModel.getSingerPosition(curSingerId);
-        if (curSingerPos != 0)
+        if (curSingerPos != 0) {
             rotModel.singerMove(curSingerPos, 0);
+            ui->tableViewRotation->clearSelection();
+            ui->tableViewRotation->selectRow(0);
+        }
     }
 }
 
@@ -1632,6 +1638,8 @@ void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &sta
             rotModel.singerMove(0, rotModel.rowCount() - 1);
             rotModel.setCurrentSinger(-1);
             rotDelegate.setCurrentSinger(-1);
+            ui->tableViewRotation->clearSelection();
+            ui->tableViewRotation->selectRow(0);
         }
         qInfo() << "MainWindow - audio backend state is now STOPPED";
         if (ui->labelTotalTime->text() == "0:00") {
