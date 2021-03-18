@@ -1,6 +1,12 @@
+# Disables stripping of debug info
+%global _enable_debug_package 0
+%global debug_package %{nil}
+%global __os_install_post /usr/lib/rpm/brp-compress %{nil}
+# End debug strip disable
+
 Name:           openkj
 Version:	1.9.61
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        Karaoke show hosting software
 
 License:        GPL
