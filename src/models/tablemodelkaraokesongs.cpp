@@ -130,9 +130,12 @@ void TableModelKaraokeSongs::loadData() {
 
 void TableModelKaraokeSongs::search(const QString &searchString) {
     m_lastSearch = searchString;
+    m_lastSearch.replace(',', ' ');
+    if (settings.ignoreAposInSearch())
+        m_lastSearch.replace('\'', ' ');
     emit layoutAboutToBeChanged();
     std::vector<std::string> searchTerms;
-    std::string s = searchString.toLower().toStdString();
+    std::string s = m_lastSearch.toLower().toStdString();
     std::string::size_type prev_pos = 0, pos = 0;
     while ((pos = s.find(' ', pos)) != std::string::npos) {
         searchTerms.emplace_back(s.substr(prev_pos, pos - prev_pos));
@@ -144,15 +147,27 @@ void TableModelKaraokeSongs::search(const QString &searchString) {
     std::for_each(m_allSongs.begin(), m_allSongs.end(), [&](auto &song) {
         std::string searchString;
         switch (m_searchType) {
-            case TableModelKaraokeSongs::SEARCH_TYPE_ALL:
-                searchString = song.searchString;
+            case TableModelKaraokeSongs::SEARCH_TYPE_ALL: {
+                QString tmpSearchString = QString::fromStdString(song.searchString);
+                if (settings.ignoreAposInSearch())
+                    tmpSearchString.remove('\'');
+                searchString = tmpSearchString.toStdString();
                 break;
-            case TableModelKaraokeSongs::SEARCH_TYPE_ARTIST:
-                searchString = song.artist.toLower().toStdString();
+            }
+            case TableModelKaraokeSongs::SEARCH_TYPE_ARTIST: {
+                QString tmpSearchString{song.artist.toLower()};
+                if (settings.ignoreAposInSearch())
+                    tmpSearchString.remove('\'');
+                searchString = tmpSearchString.toStdString();
                 break;
-            case TableModelKaraokeSongs::SEARCH_TYPE_TITLE:
-                searchString = song.title.toLower().toStdString();
+            }
+            case TableModelKaraokeSongs::SEARCH_TYPE_TITLE: {
+                QString tmpSearchString{song.title.toLower()};
+                if (settings.ignoreAposInSearch())
+                    tmpSearchString.remove('\'');
+                searchString = tmpSearchString.toStdString();
                 break;
+            }
         }
         bool match{true};
         for (const auto &term : searchTerms) {
