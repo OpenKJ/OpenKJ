@@ -163,7 +163,6 @@ void TableModelKaraokeSongs::search(const QString &searchString) {
             m_filteredSongs.emplace_back(song);
     });
     m_filteredSongs.shrink_to_fit();
-    sort(m_lastSortColumn, m_lastSortOrder);
     emit layoutChanged();
 }
 
@@ -263,52 +262,56 @@ Qt::ItemFlags TableModelKaraokeSongs::flags(const QModelIndex &index) const {
 void TableModelKaraokeSongs::sort(int column, Qt::SortOrder order) {
     m_lastSortColumn = column;
     m_lastSortOrder = order;
-    emit layoutAboutToBeChanged();
-    if (order == Qt::AscendingOrder) {
-        std::sort(m_filteredSongs.begin(), m_filteredSongs.end(), [&column](KaraokeSong &a, KaraokeSong &b) {
-            switch (column) {
-                case COL_ARTIST:
-                    return (a.artist.toLower() < b.artist.toLower());
-                case COL_TITLE:
-                    return (a.title.toLower() < b.title.toLower());
-                case COL_SONGID:
-                    return (a.songid.toLower() < b.songid.toLower());
-                case COL_FILENAME:
-                    return (a.filename.toLower() < b.filename.toLower());
-                case COL_DURATION:
-                    return (a.duration < b.duration);
-                case COL_PLAYS:
-                    return (a.plays < b.plays);
-                case COL_LASTPLAY:
-                    return (a.lastPlay < b.lastPlay);
 
-                default:
-                    return (a.id < b.id);
-            }
-        });
+    auto sortLambda = [&column] (KaraokeSong &a, KaraokeSong &b)->bool {
+        QString artistAl{a.artist.toLower()};
+        QString artistBl{b.artist.toLower()};
+        QString titleAl{a.title.toLower()};
+        QString titleBl{b.title.toLower()};
+        QString songIdAl{a.songid.toLower()};
+        QString songIdBl{b.songid.toLower()};
+        switch (column) {
+            case COL_ARTIST:
+                if (artistAl == artistBl) {
+                    if (titleAl == titleBl)
+                    {
+                        return (songIdAl < songIdBl);
+                    }
+                    return (titleAl < titleBl);
+                }
+                return (artistAl < artistBl);
+            case COL_TITLE:
+                if (titleAl == titleBl) {
+                    if (artistAl == artistBl)
+                    {
+                        return (songIdAl < songIdBl);
+                    }
+                    return (artistAl < artistBl);
+                }
+                return (titleAl < titleBl);
+            case COL_SONGID:
+                return (a.songid.toLower() < b.songid.toLower());
+            case COL_FILENAME:
+                return (a.filename.toLower() < b.filename.toLower());
+            case COL_DURATION:
+                return (a.duration < b.duration);
+            case COL_PLAYS:
+                return (a.plays < b.plays);
+            case COL_LASTPLAY:
+                return (a.lastPlay < b.lastPlay);
+
+            default:
+                return (a.id < b.id);
+        }
+    };
+
+    if (order == Qt::AscendingOrder) {
+        std::sort(m_allSongs.begin(), m_allSongs.end(), sortLambda);
     } else {
-        std::sort(m_filteredSongs.rbegin(), m_filteredSongs.rend(), [&column](KaraokeSong &a, KaraokeSong &b) {
-            switch (column) {
-                case COL_ARTIST:
-                    return (a.artist.toLower() < b.artist.toLower());
-                case COL_TITLE:
-                    return (a.title.toLower() < b.title.toLower());
-                case COL_SONGID:
-                    return (a.songid.toLower() < b.songid.toLower());
-                case COL_FILENAME:
-                    return (a.filename.toLower() < b.filename.toLower());
-                case COL_DURATION:
-                    return (a.duration < b.duration);
-                case COL_PLAYS:
-                    return (a.plays < b.plays);
-                case COL_LASTPLAY:
-                    return (a.lastPlay < b.lastPlay);
-                default:
-                    return (a.id < b.id);
-            }
-        });
+        std::sort(m_allSongs.rbegin(), m_allSongs.rend(), sortLambda);
     }
-    emit layoutChanged();
+
+    search(m_lastSearch);
 }
 
 void TableModelKaraokeSongs::setSongDuration(QString &path, int duration) {
