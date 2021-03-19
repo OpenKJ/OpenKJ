@@ -2,7 +2,7 @@ name: Pull request Windows build test
 
 on: 
   push:
-    branches: [blahblah]
+    branches: [winbuild-testing]
   pull_request:
     branches: [blahblah]
 
