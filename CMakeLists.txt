@@ -46,10 +46,10 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
             ${GST_BASE_PATH}/include/glib-2.0
             ${GST_BASE_PATH}/lib/glib-2.0/include
             ${GST_BASE_PATH}/include/glib-2.0/gobject
-            )
-     link_directories(
+    )
+    link_directories(
             "${GST_BASE_PATH}/lib"
-    )   
+    )
     add_compile_definitions(
             MINIZ_NO_TIME
             TAGLIB_STATIC
@@ -495,42 +495,43 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBS
 endif ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    install(DIRECTORY "${GST_BASE_PATH}/bin/" DESTINATION "bin")
-    set_property(
-            TARGET openkj
-            PROPERTY WIN32_EXECUTABLE true
-    )
     target_link_libraries(openkj PRIVATE Qt5::Widgets Qt5::Gui Qt5::Sql Qt5::Network Qt5::Svg Qt5::PrintSupport Qt5::Concurrent)
-    get_target_property(_qt5_qmake_location Qt5::qmake IMPORTED_LOCATION)
 
-    execute_process(
-            COMMAND "${_qt5_qmake_location}" -query QT_INSTALL_PREFIX
-            RESULT_VARIABLE return_code
-            OUTPUT_VARIABLE qt5_install_prefix
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    if (qt5_install_prefix)
-        find_program(WINDEPLOYQT windeployqt HINTS ${qt5_install_prefix} PATH_SUFFIXES bin)
-        if (WINDEPLOYQT)
-            add_custom_command(
-                    TARGET openkj
-                    COMMAND "${WINDEPLOYQT}"
-                    ARGS "${CMAKE_BINARY_DIR}\\openkj.exe"
-            )
+    if (DEFINED DEPLOY_DEPS)
+        get_target_property(_qt5_qmake_location Qt5::qmake IMPORTED_LOCATION)
+        execute_process(
+                COMMAND "${_qt5_qmake_location}" -query QT_INSTALL_PREFIX
+                RESULT_VARIABLE return_code
+                OUTPUT_VARIABLE qt5_install_prefix
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        install(DIRECTORY "${GST_BASE_PATH}/bin/" DESTINATION "bin")
+        set_property(
+                TARGET openkj
+                PROPERTY WIN32_EXECUTABLE true
+        )
+        if (qt5_install_prefix)
+            find_program(WINDEPLOYQT windeployqt HINTS ${qt5_install_prefix} PATH_SUFFIXES bin)
+            if (WINDEPLOYQT)
+                add_custom_command(
+                        TARGET openkj
+                        COMMAND "${WINDEPLOYQT}"
+                        ARGS "${CMAKE_BINARY_DIR}\\openkj.exe"
+                )
+            else ()
+                message("Can't find windeployqt")
+            endif ()
         else ()
-            message("Can't find windeployqt")
+            message("QT_INSTALL_DIR not defined")
         endif ()
-    else ()
-        message("QT_INSTALL_DIR not defined")
+        add_custom_command(
+                TARGET openkj
+                COMMAND "xcopy"
+                ARGS "${GST_BASE_PATH_NATIVE}\\*" "/s" "/y"
+                COMMAND "xcopy"
+                ARGS "${GST_BASE_PATH_NATIVE}\\bin\\*.dll" "/y"
+        )
     endif ()
-    add_custom_command(
-            TARGET openkj
-            COMMAND "xcopy"
-            ARGS "${GST_BASE_PATH_NATIVE}\\*" "/s" "/y"
-            COMMAND "xcopy"
-            ARGS "${GST_BASE_PATH_NATIVE}\\bin\\*.dll" "/y"
-    )
-
 endif ()
 
 
