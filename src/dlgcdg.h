@@ -114,9 +114,8 @@ private:
 public:
     explicit DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget *parent = nullptr, Qt::WindowFlags f = nullptr);
     ~DlgCdg();
-    void setTickerText(QString text);
+    void setTickerText(const QString &text);
     void stopTicker();
-    WId getCdgWinId();
     VideoDisplay* getVideoDisplay();
     void slideShowMoveNext();
 
@@ -126,30 +125,30 @@ protected:
 private slots:
     void applyBackgroundImageMode();
     void timerSlideShowTimeout();
-    void alertFontChanged(QFont font);
+    void alertFontChanged(const QFont &font);
     void mouseMove(QMouseEvent *event);
     void timer1sTimeout();
     void timerCountdownTimeout();
     void on_btnToggleFullscreen_clicked();
     void cdgOffsetsChanged();
-    void cdgRemainFontChanged(QFont font);
-    void cdgRemainTextColorChanged(QColor color);
+    void cdgRemainFontChanged(const QFont &font);
+    void cdgRemainTextColorChanged(const QColor &color);
     void tickerFontChanged();
     void tickerSpeedChanged();
     void tickerHeightChanged(const int &height);
     void tickerTextColorChanged();
     void tickerBgColorChanged();
     void tickerEnableChanged();
-    void cdgRemainBgColorChanged(QColor color);
-    QFileInfoList getSlideShowImages();
-    void alertBgColorChanged(QColor color);
-    void alertTxtColorChanged(QColor color);
+    void cdgRemainBgColorChanged(const QColor &color);
+    static QFileInfoList getSlideShowImages();
+    void alertBgColorChanged(const QColor &color);
+    void alertTxtColorChanged(const QColor &color);
     void cdgRemainEnabledChanged(bool enabled);
 
 public slots:
     void showAlert(bool show);
-    void setNextSinger(QString name);
-    void setNextSong(QString song);
+    void setNextSinger(const QString &name);
+    void setNextSong(const QString &song);
     void setCountdownSecs(int seconds);
 
 protected:

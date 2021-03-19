@@ -20,7 +20,6 @@
 
 #include "dlgcdg.h"
 #include "ui_dlgcdg.h"
-#include <QGuiApplication>
 #include <QDesktopWidget>
 #include <QSvgRenderer>
 #include <QPainter>
@@ -29,13 +28,6 @@
 #include <QScreen>
 
 extern Settings settings;
-
-
-
-WId DlgCdg::getCdgWinId()
-{
-    return ui->videoDisplay->winId();
-}
 
 VideoDisplay *DlgCdg::getVideoDisplay()
 {
@@ -113,7 +105,7 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
     m_timerButtonShow.setInterval(1000);
     m_timerAlertCountdown.setInterval(1000);
     m_timer1s.start(1000);
-    m_timerSlideShow.start(settings.slideShowInterval() * 1000);
+    m_timerSlideShow.start((int)settings.slideShowInterval() * 1000);
     if (!settings.showCdgWindow())
         hide();
     else
@@ -126,7 +118,7 @@ DlgCdg::~DlgCdg()
     delete ui;
 }
 
-void DlgCdg::setTickerText(QString text)
+void DlgCdg::setTickerText(const QString &text)
 {
     ui->scroll->setText(text);
 }
@@ -178,7 +170,7 @@ void DlgCdg::tickerEnableChanged()
     ui->scroll->setTickerEnabled(settings.tickerEnabled());
 }
 
-void DlgCdg::cdgRemainFontChanged(QFont font)
+void DlgCdg::cdgRemainFontChanged(const QFont &font)
 {
     tWidget->label->setFont(font);
     tWidget->label->setAlignment(Qt::AlignVCenter | Qt::AlignHCenter);
@@ -192,14 +184,14 @@ void DlgCdg::cdgRemainFontChanged(QFont font)
     ui->scroll->refresh();
 }
 
-void DlgCdg::cdgRemainTextColorChanged(QColor color)
+void DlgCdg::cdgRemainTextColorChanged(const QColor &color)
 {
     auto palette = tWidget->label->palette();
     palette.setColor(QPalette::WindowText, color);
     tWidget->label->setPalette(palette);
 }
 
-void DlgCdg::cdgRemainBgColorChanged(QColor color)
+void DlgCdg::cdgRemainBgColorChanged(const QColor &color)
 {
     auto palette = tWidget->label->palette();
     palette.setColor(QPalette::Window, color);
@@ -225,10 +217,10 @@ QFileInfoList DlgCdg::getSlideShowImages()
     QFileInfoList images;
     QDir srcDir(settings.bgSlideShowDir());
     auto files = srcDir.entryInfoList(QDir::Files, QDir::Name | QDir::IgnoreCase);
-    for (int i=0; i < files.size(); i++)
+    for (const auto & file : files)
     {
-        if (QImageReader::imageFormat(files.at(i).absoluteFilePath()) != "")
-            images << files.at(i);
+        if (QImageReader::imageFormat(file.absoluteFilePath()) != "")
+            images << file;
     }
     return images;
 }
@@ -247,12 +239,12 @@ void DlgCdg::showAlert(bool show)
     }
 }
 
-void DlgCdg::setNextSinger(QString name)
+void DlgCdg::setNextSinger(const QString &name)
 {
     ui->lblNextSinger->setText(name);
 }
 
-void DlgCdg::setNextSong(QString song)
+void DlgCdg::setNextSong(const QString &song)
 {
     ui->lblNextSong->setText(song);
 }
@@ -274,14 +266,14 @@ void DlgCdg::timerCountdownTimeout()
     ui->widgetAlert->repaint();
 }
 
-void DlgCdg::alertBgColorChanged(QColor color)
+void DlgCdg::alertBgColorChanged(const QColor &color)
 {
     auto palette = ui->widgetAlert->palette();
     palette.setColor(ui->widgetAlert->backgroundRole(), color);
     ui->widgetAlert->setPalette(palette);
 }
 
-void DlgCdg::alertTxtColorChanged(QColor color)
+void DlgCdg::alertTxtColorChanged(const QColor &color)
 {
     auto palette = ui->widgetAlert->palette();
     palette.setColor(ui->widgetAlert->foregroundRole(), color);
@@ -324,7 +316,7 @@ void DlgCdg::slideShowMoveNext()
 {
     static int position = 0;
     auto images = getSlideShowImages();
-    if (images.size() == 0)
+    if (images.empty())
     {
         ui->videoDisplay->useDefaultBackground();
         return;
@@ -344,7 +336,7 @@ void DlgCdg::slideShowMoveNext()
     position++;
 }
 
-void DlgCdg::alertFontChanged(QFont font)
+void DlgCdg::alertFontChanged(const QFont &font)
 {
     ui->label->setFont(font);
     ui->label_2->setFont(font);
@@ -379,7 +371,7 @@ void DlgCdg::timer1sTimeout()
         }
         if (m_kmb->state() == MediaBackend::PlayingState)
         {
-            tWidget->setString(" " + m_kmb->msToMMSS(m_kmb->duration() - m_kmb->position()) + " ");
+            tWidget->setString(" " + MediaBackend::msToMMSS(m_kmb->duration() - m_kmb->position()) + " ");
         }
     }
 }
@@ -434,9 +426,7 @@ void DlgCdg::showEvent(QShowEvent *event)
     }
     else
         ui->btnToggleFullscreen->setText("Make Fullscreen");
-//    QTimer::singleShot(200, [&] () {
-//        settings.restoreWindowState(tWidget);
-//    });
+    QDialog::showEvent(event);
 }
 
 void DlgCdg::hideEvent(QHideEvent *event)

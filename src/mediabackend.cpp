@@ -1024,11 +1024,10 @@ void MediaBackend::setVideoOutputWidgets(const std::vector<QWidget*>& surfaces)
     resetVideoSinks();
 }
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "UnreachableCode"
 const char* MediaBackend::getVideoSinkElementNameForFactory()
 {
 #if defined(Q_OS_LINUX)
+    //m_accelMode = OpenGL;
     switch (m_accelMode)
     {
     case OpenGL:
@@ -1038,11 +1037,10 @@ const char* MediaBackend::getVideoSinkElementNameForFactory()
     }
 #elif defined(Q_OS_WIN)
     return "d3dvideosink";
-#endif
+#else
     return "glimagesink";
+#endif
 }
-#pragma clang diagnostic pop
-
 
 void MediaBackend::setMplxMode(const int &mode)
 {

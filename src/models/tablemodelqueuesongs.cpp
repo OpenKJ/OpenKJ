@@ -154,6 +154,8 @@ int TableModelQueueSongs::getPosition(const int songId)
     {
         return (song.id == songId);
     });
+    if (it == m_songs.end())
+        return -1;
     return it->position;
 }
 
@@ -163,6 +165,8 @@ bool TableModelQueueSongs::getPlayed(const int songId)
     {
         return (song.id == songId);
     });
+    if (it == m_songs.end())
+        return 0;
     return it->played;
 }
 
@@ -172,6 +176,8 @@ int TableModelQueueSongs::getKey(const int songId)
     {
         return (song.id == songId);
     });
+    if (it == m_songs.end())
+        return 0;
     return it->keyChange;
 }
 
@@ -280,24 +286,27 @@ void TableModelQueueSongs::setKey(const int songId, const int semitones)
     {
         return (song.id == songId);
     });
+    if (it == m_songs.end())
+        return;
     it->keyChange = semitones;
     emit dataChanged(this->index(it->position, COL_KEY),this->index(it->position, COL_KEY),QVector<int>{Qt::DisplayRole});
 }
 
-void TableModelQueueSongs::setPlayed(const int songId, const bool played)
-{
+void TableModelQueueSongs::setPlayed(const int songId, const bool played) {
     qInfo() << "Setting songId " << songId << " to played = " << played;
     QSqlQuery query;
     query.prepare("UPDATE queuesongs SET played = :played WHERE qsongid = :id");
     query.bindValue(":id", songId);
     query.bindValue(":played", played);
     query.exec();
-    auto it = std::find_if(m_songs.begin(), m_songs.end(), [&songId] (QueueSong &song)
-    {
+    auto it = std::find_if(m_songs.begin(), m_songs.end(), [&songId](QueueSong &song) {
         return (song.id == songId);
     });
+    if (it == m_songs.end())
+        return;
     it->played = played;
-    emit dataChanged(this->index(it->position, 0),this->index(it->position, columnCount() - 1),QVector<int>{Qt::FontRole,Qt::BackgroundRole,Qt::ForegroundRole});
+    emit dataChanged(this->index(it->position, 0), this->index(it->position, columnCount() - 1),
+                         QVector<int>{Qt::FontRole, Qt::BackgroundRole, Qt::ForegroundRole});
     emit queueModified(m_curSingerId);
 }
 

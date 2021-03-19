@@ -483,9 +483,9 @@ PlaylistSong &TableModelPlaylistSongs::getPlSongByPosition(const int position) {
 }
 
 PlaylistSong &TableModelPlaylistSongs::getNextPlSong() {
-    if (m_curPlaylistId < m_songs.size() - 2)
+    if (m_currentPosition < m_songs.size() - 1)
         return getPlSongByPosition(m_currentPosition + 1);
-    return getPlSongByPosition(m_currentPosition);
+    return getPlSongByPosition(0);
 }
 
 PlaylistSong &TableModelPlaylistSongs::getCurrentSong() {

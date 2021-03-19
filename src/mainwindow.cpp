@@ -573,6 +573,8 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     ui->videoPreview->setFillOnPaint(true);
     cdgWindow = new DlgCdg(&kMediaBackend, &bmMediaBackend, nullptr, Qt::Window);
+    settings.restoreWindowState(cdgWindow);
+
     connect(&rotModel, &TableModelRotation::songDroppedOnSinger, this, &MainWindow::songDroppedOnSinger);
     connect(dbDialog, &DlgDatabase::databaseUpdateComplete, this, &MainWindow::databaseUpdated);
     connect(dbDialog, &DlgDatabase::databaseSongAdded, &karaokeSongsModel, &TableModelKaraokeSongs::loadData);
@@ -616,11 +618,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(requestsDialog, &DlgRequests::addRequestSong, &qModel, &TableModelQueueSongs::songAddSlot);
     connect(&settings, &Settings::tickerCustomStringChanged, this, &MainWindow::rotationDataChanged);
 
-    std::vector<QWidget *> videoWidgets{cdgWindow->getVideoDisplay(), ui->videoPreview};
-    bmMediaBackend.setVideoOutputWidgets(videoWidgets);
-    kMediaBackend.setVideoOutputWidgets(videoWidgets);
-
-    settings.restoreWindowState(cdgWindow);
     settings.restoreWindowState(requestsDialog);
     settings.restoreWindowState(dlgSongShop);
     settings.restoreWindowState(dbDialog);
@@ -911,7 +908,9 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->tableViewRotation->selectionModel()->select(QItemSelection(topLeft, bottomRight),
                                                         QItemSelectionModel::Select);
     });
-
+    std::vector<QWidget *> videoWidgets{cdgWindow->getVideoDisplay(), ui->videoPreview};
+    bmMediaBackend.setVideoOutputWidgets(videoWidgets);
+    kMediaBackend.setVideoOutputWidgets(videoWidgets);
 }
 
 void MainWindow::dbInit(const QDir &okjDataDir) {
@@ -1018,6 +1017,7 @@ void MainWindow::dbInit(const QDir &okjDataDir) {
             qInfo() << "Import complete for singer: " << singersQuery.value("name").toString();
         }
     }
+
 }
 
 void MainWindow::play(const QString &karaokeFilePath, const bool &k2k) {
@@ -1136,9 +1136,6 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k) {
     k2kTransition = false;
     if (settings.karaokeAutoAdvance())
         kAASkip = false;
-
-    ui->tableViewQueue->setAttribute(Qt::WA_AcceptDrops, false);
-    ui->tableViewQueue->setAttribute(Qt::WA_AcceptDrops, true);
 }
 
 MainWindow::~MainWindow() {
@@ -1723,6 +1720,11 @@ void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &sta
         qInfo() << "KAudio entered PlayingState";
         m_lastAudioState = state;
         bmMediaBackend.setVideoEnabled(false);
+        // "wiggle" the contents margins to force a resize to prevent weird bug where video isn't scaling
+        // when using the xvimagesink video sink.
+        auto margins = cdgWindow->contentsMargins();
+        cdgWindow->setContentsMargins(10,10,10,10);
+        cdgWindow->setContentsMargins(margins);
     }
     if (state == MediaBackend::UnknownState) {
         qInfo() << "KAudio entered UnknownState";
@@ -2467,6 +2469,13 @@ void MainWindow::bmMediaStateChanged(const MediaBackend::State &newState) {
             else
                 ui->labelBmNext->setText("None - Breaking after current song");
             ui->labelBmPlaying->setText(plSong.artist + " - " + plSong.title);
+            if (auto state = kMediaBackend.state(); state != MediaBackend::PlayingState && state != MediaBackend::PausedState ) {
+                // "wiggle" the contents margins to force a resize to prevent weird bug where video isn't scaling
+                // when using the xvimagesink video sink.
+                auto margins = cdgWindow->contentsMargins();
+                cdgWindow->setContentsMargins(10, 10, 10, 10);
+                cdgWindow->setContentsMargins(margins);
+            }
             break;
         }
         case MediaBackend::PausedState:
