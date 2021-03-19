@@ -474,6 +474,11 @@ PlaylistSong &TableModelPlaylistSongs::getPlSongByPosition(const int position) {
     auto it = std::find_if(m_songs.begin(), m_songs.end(), [&position] (PlaylistSong song) {
         return (song.position == position);
     });
+    if (it == m_songs.end()) {
+        qWarning() << "TableModelPlaylistSongs - Something went wrong getting song by position, returning first song to avoid crash";
+        qWarning() << "TableModelPlaylistSongs - The position that was requested was " << position;
+        return *m_songs.begin();
+    }
     return *it;
 }
 
