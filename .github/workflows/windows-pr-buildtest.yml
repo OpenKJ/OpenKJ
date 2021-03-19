@@ -4,7 +4,7 @@ on:
   push:
     branches: [winbuild-testing]
   pull_request:
-    branches: [blahblah]
+    branches: [master, release]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
