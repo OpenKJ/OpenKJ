@@ -198,7 +198,7 @@ jobs:
         else
         RTYPE=$BRANCH
         fi
-        OKJVER=`grep VERSION_STRING OpenKJ/okjversion.h | cut -d'"' -f2`
+        OKJVER=`grep VERSION_STRING src/okjversion.h | cut -d'"' -f2`
         echo "OpenKJ Version: $OKJVER"
         IFN=OpenKJ-$OKJVER-64bit-${RTYPE}-setup.exe
         mkdir installer/${BRANCH}
@@ -206,7 +206,7 @@ jobs:
       shell: bash
 
     - name: Installing gcloud console tools
-      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      uses: google-github-actions/setup-gcloud@master
       with:
         version: 'latest'
         service_account_key: ${{ secrets.GCLOUD_KEY }}
