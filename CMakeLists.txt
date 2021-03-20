@@ -496,6 +496,10 @@ endif ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     target_link_libraries(openkj PRIVATE Qt5::Widgets Qt5::Gui Qt5::Sql Qt5::Network Qt5::Svg Qt5::PrintSupport Qt5::Concurrent)
+    set_property(
+            TARGET openkj
+            PROPERTY WIN32_EXECUTABLE true
+    )
 
     if (DEFINED DEPLOY_DEPS)
         get_target_property(_qt5_qmake_location Qt5::qmake IMPORTED_LOCATION)
@@ -506,10 +510,6 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
                 OUTPUT_STRIP_TRAILING_WHITESPACE
         )
         install(DIRECTORY "${GST_BASE_PATH}/bin/" DESTINATION "bin")
-        set_property(
-                TARGET openkj
-                PROPERTY WIN32_EXECUTABLE true
-        )
         if (qt5_install_prefix)
             find_program(WINDEPLOYQT windeployqt HINTS ${qt5_install_prefix} PATH_SUFFIXES bin)
             if (WINDEPLOYQT)
