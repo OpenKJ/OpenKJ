@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Windows Build
+name: Windows 64bit Build
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
@@ -133,7 +133,7 @@ jobs:
       # and build directories, but this is only available with CMake 3.13 and higher.  
       # The CMake binaries on the Github Actions machines are (as of this writing) 3.12
       run: |
-        cmake .. -G Ninja
+        cmake .. -DCMAKE_BUILD_TYPE=Release -G Ninja
 
     - name: Build
       working-directory: ${{github.workspace}}/build
