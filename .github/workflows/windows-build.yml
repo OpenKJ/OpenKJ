@@ -6,7 +6,7 @@ name: Windows Build
 # events but only for the master branch
 on:
   push:
-    branches: [ release ]
+    branches: [ winbuild-testing, master, release ]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -21,6 +21,7 @@ jobs:
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
+    - uses: seanmiddleditch/gha-setup-ninja@master
 
     - name: Download GST Installer
       uses: carlosperate/download-file-action@v1.0.3
@@ -98,7 +99,7 @@ jobs:
     - name: Install GST-Dev
       run: |
         cmd /c start /wait msiexec /package ${{ steps.download-gst-dev.outputs.file-path }} /passive ADDLOCAL=ALL
-  
+
     - name: Cache Qt
       id: cache-qt
       uses: actions/cache@v1
@@ -111,24 +112,42 @@ jobs:
       with:
        cached: ${{ steps.cache-qt.outputs.cache-hit }}
        version: '5.12.10'
-       modules: 'core gui sql network widgets multimedia concurrent svg printsupport'
+       modules: 'core gui sql network widgets concurrent svg printsupport'
 
+    - name: Create Build Environment
+      # Some projects don't allow in-source building, so create a separate build directory
+      # We'll use this as our working directory for all subsequent commands
+      run: cmake -E make_directory ${{github.workspace}}/build
 
-    - name: Compile
-      run: |
-        call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-        qmake
-        nmake
+    - name: Set up Visual Studio shell
+      uses: egor-tensin/vs-shell@v2
+      with:
+        arch: x64
+
+    - name: Configure CMake
+      # Use a bash shell so we can use the same syntax for environment variable
+      # access regardless of the host operating system
       shell: cmd
-    
+      working-directory: ${{github.workspace}}/build
+      # Note the current convention is to use the -S and -B options here to specify source 
+      # and build directories, but this is only available with CMake 3.13 and higher.  
+      # The CMake binaries on the Github Actions machines are (as of this writing) 3.12
+      run: |
+        cmake .. -G Ninja
+
+    - name: Build
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      # Execute the build.  You can specify a specific target with "--target <NAME>"
+      run: cmake --build . --config $BUILD_TYPE
+
     - name: Create output dir and copy exe
       run: |
         mkdir output
-        copy OpenKJ\release\openkj.exe output\
+        copy build\openkj.exe output\
 
     - name: Run windeployqt
       run: |
-        call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         windeployqt --release --compiler-runtime output/openkj.exe
         dir output
       shell: cmd
@@ -155,7 +174,6 @@ jobs:
       run: |
         mkdir cscrt
         7z e cd/cscrt.7z -p"${{ secrets.WIN_CSCRT_ARCHIVE_PASS }}" -ocscrt/
-        call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f cscrt\cscrt.pfx /p "${{ secrets.WIN_CSCRT_PFX_PASS }}" output/OpenKJ.exe
       shell: cmd
 
@@ -180,7 +198,7 @@ jobs:
         else
         RTYPE=$BRANCH
         fi
-        OKJVER=`grep VERSION_STRING OpenKJ/okjversion.h | cut -d'"' -f2`
+        OKJVER=`grep VERSION_STRING src/okjversion.h | cut -d'"' -f2`
         echo "OpenKJ Version: $OKJVER"
         IFN=OpenKJ-$OKJVER-64bit-${RTYPE}-setup.exe
         mkdir installer/${BRANCH}
@@ -188,7 +206,7 @@ jobs:
       shell: bash
 
     - name: Installing gcloud console tools
-      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      uses: google-github-actions/setup-gcloud@master
       with:
         version: 'latest'
         service_account_key: ${{ secrets.GCLOUD_KEY }}
