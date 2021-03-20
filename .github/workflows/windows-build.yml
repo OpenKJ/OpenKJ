@@ -87,6 +87,19 @@ jobs:
         file-name: SourceCodePro-Medium.ttf
         location: /downloads
 
+    - name: Install GST
+      run: |
+        cmd /c start /wait msiexec /package ${{ steps.download-gst.outputs.file-path }} /passive ADDLOCAL=ALL
+        
+    - name: Make dist copy of gstreamer
+      run: |
+        cp -Rv c:/gstreamer ./gstreamer-dist
+      shell: bash
+
+    - name: Install GST-Dev
+      run: |
+        cmd /c start /wait msiexec /package ${{ steps.download-gst-dev.outputs.file-path }} /passive ADDLOCAL=ALL
+
     - name: Cache Qt
       id: cache-qt
       uses: actions/cache@v1
