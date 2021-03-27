@@ -5,6 +5,7 @@
 #include <QIcon>
 #include <QItemDelegate>
 #include <QStyleOptionViewItem>
+#include <optional>
 #include "tablemodelbreaksongs.h"
 
 
