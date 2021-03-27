@@ -24,15 +24,15 @@ class ItemDelegatePlaylistSongs : public QItemDelegate
     Q_OBJECT
 private:
     int m_currentSong;
+    int m_playingPlSongId;
     QImage m_iconDelete;
     QImage m_iconPlaying;
     int m_curFontHeight;
     void resizeIconsForFont(const QFont &font);
 public:
     explicit ItemDelegatePlaylistSongs(QObject *parent = 0);
-    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
-    int currentSong() const;
-    void setCurrentPosition(int value);
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+    void setPlayingPlSongId(int plSongId);
 };
 
 class TableModelPlaylistSongs : public QAbstractTableModel
@@ -52,7 +52,7 @@ public:
     bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
     Qt::DropActions supportedDropActions() const override;
     Qt::ItemFlags flags(const QModelIndex &index) const override;
-
+    bool isCurrentlyPlayingSong(int plSongId);
     void setCurrentPlaylist(const int playlistId);
     void setCurrentPosition(const int currentPos);
     int currentPosition() { return m_currentPosition; }
@@ -66,10 +66,10 @@ public:
     int numSongs() const;
     int randomizePlaylist();
     int getPlSongIdAtPos(const int position) const;
-    PlaylistSong &getPlSong(const int plSongId);
-    PlaylistSong &getPlSongByPosition(const int position);
-    PlaylistSong &getNextPlSong();
-    PlaylistSong &getCurrentSong();
+    std::optional<std::reference_wrapper<PlaylistSong>> getPlSong(const int plSongId);
+    std::optional<std::reference_wrapper<PlaylistSong>> getPlSongByPosition(const int position);
+    std::optional<std::reference_wrapper<PlaylistSong>> getNextPlSong();
+    std::optional<std::reference_wrapper<PlaylistSong>> getCurrentSong();
     int getSongPositionById(const int plSongId) const;
 
 
@@ -77,11 +77,14 @@ private:
     std::vector<PlaylistSong> m_songs;
     TableModelBreakSongs &m_breakSongsModel;
     int m_curPlaylistId{0};
+    int m_playingPlaylist{0};
     int m_currentPosition{-1};
+    int m_playingPlSongId{-1};
 
 signals:
     void bmSongMoved(int oldPos, int newPos);
     void bmPlSongsMoved(const int startRow, const int startCol, const int endRow, const int endCol);
+    void playingPlSongIdChanged(const int plSongId);
 
 };
 
