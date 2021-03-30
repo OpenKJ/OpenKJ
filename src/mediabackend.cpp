@@ -187,18 +187,14 @@ qint64 MediaBackend::duration()
 
 MediaBackend::State MediaBackend::state()
 {
-    // TODO: this is called very often! Instead store the state from the state-changed bus message and return that!
-    GstState state = GST_STATE_NULL;
-    gst_element_get_state(m_pipeline, &state, nullptr, GST_CLOCK_TIME_NONE);
-
-    switch (state) {
-    case GST_STATE_PLAYING:
-        return PlayingState;
-    case GST_STATE_PAUSED:
-        return PausedState;
-    case GST_STATE_NULL:
-    default:
-        return StoppedState;
+    switch (m_currentState)
+    {
+        case GST_STATE_PLAYING:
+            return PlayingState;
+        case GST_STATE_PAUSED:
+            return PausedState;
+        default:
+            return StoppedState;
     }
 }
 
