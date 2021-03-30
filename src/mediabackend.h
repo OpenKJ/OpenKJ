@@ -193,7 +193,7 @@ private:
     std::atomic<bool> m_hasVideo{false};
     bool m_videoAccelEnabled{false};
     QPointer<AudioFader> m_fader;
-    State m_lastState{StoppedState};
+    std::atomic<GstState> m_currentState { GST_STATE_NULL };
 
     void buildPipeline();
     void buildVideoSinkBin();
