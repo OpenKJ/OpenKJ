@@ -441,7 +441,7 @@ void MediaBackend::rawStop()
 
 void MediaBackend::timerFast_timeout()
 {
-    if (m_lastState != PlayingState)
+    if (m_currentState == GST_STATE_NULL)
     {
         if (m_lastPosition == 0)
             return;
@@ -530,10 +530,12 @@ void MediaBackend::setPitchShift(const int &pitchShift)
 
 gboolean MediaBackend::gstBusFunc([[maybe_unused]]GstBus *bus, GstMessage *message, gpointer user_data)
 {
-        auto mb = reinterpret_cast<MediaBackend *>(user_data);
+    auto mb = reinterpret_cast<MediaBackend *>(user_data);
 
-        switch (GST_MESSAGE_TYPE(message)) {
+    switch (GST_MESSAGE_TYPE(message))
+    {
         case GST_MESSAGE_ERROR:
+        {
             GError *err;
             gchar *debug;
             gst_message_parse_error(message, &err, &debug);
@@ -549,50 +551,66 @@ gboolean MediaBackend::gstBusFunc([[maybe_unused]]GstBus *bus, GstMessage *messa
             g_error_free(err);
             g_free(debug);
             break;
-        case GST_MESSAGE_WARNING:
-            GError *err2;
-            gchar *debug2;
-            gst_message_parse_warning(message, &err2, &debug2);
-            qInfo() << mb->m_objName << " - Gst warning: " << err2->message;
-            qInfo() << mb->m_objName << " - Gst debug: " << debug2;
-            g_error_free(err2);
-            g_free(debug2);
-            break;
-        case GST_MESSAGE_STATE_CHANGED:
-            // todo: use gst_message_parse_state_changed instead:
-            // GstState oldState, state, pending;
-            // gst_message_parse_state_changed(message, &oldState, &state, &pending);
-            // mb->m_currentState = state;*/
+        }
 
-            GstState state;
-            gst_element_get_state(mb->m_pipeline, &state, nullptr, GST_CLOCK_TIME_NONE);
+        case GST_MESSAGE_WARNING:
+        {
+            GError *err;
+            gchar *debug;
+            gst_message_parse_warning(message, &err, &debug);
+            qInfo() << mb->m_objName << " - Gst warning: " << err->message;
+            qInfo() << mb->m_objName << " - Gst debug: " << debug;
+            g_error_free(err);
+            g_free(debug);
+            break;
+        }
+
+        case GST_MESSAGE_STATE_CHANGED:
+        {
+            // This will fire for all elements in the pipeline.
+            // We only want to react once: on the actual pipeline element.
+            if (GST_MESSAGE_SRC(message) != (GstObject *)mb->m_pipeline) break;
+
+            GstState oldState, state, pending;
+            gst_message_parse_state_changed(message, &oldState, &state, &pending);
+
+            // we are only interested in final states
+            if (pending != GST_STATE_VOID_PENDING || oldState == state)
+                break;
+
+            mb->m_currentState = state;
+
             if (mb->m_currentlyFadedOut)
                 g_object_set(mb->m_faderVolumeElement, "volume", 0.0, nullptr);
-            if (state == GST_STATE_PLAYING && mb->m_lastState != MediaBackend::PlayingState)
+
+            switch (state)
             {
-                qInfo() << "GST notified of state change to PLAYING";
-                mb->m_lastState = MediaBackend::PlayingState;
-                emit mb->stateChanged(MediaBackend::PlayingState);
-                if (mb->m_currentlyFadedOut)
-                    mb->m_fader->immediateOut();
-            }
-            else if (state == GST_STATE_PAUSED && mb->m_lastState != MediaBackend::PausedState)
-            {
-                qInfo() << "GST notified of state change to PAUSED";
-                mb->m_lastState = MediaBackend::PausedState;
-                emit mb->stateChanged(MediaBackend::PausedState);
-            }
-            else if (state == GST_STATE_NULL && mb->m_lastState != MediaBackend::StoppedState)
-            {
-                // this code is probably never reached as state changes to NULL are not reported...
-                qInfo() << "GST notified of state change to STOPPED";
-                if (mb->m_lastState != MediaBackend::StoppedState)
-                {
-                    mb->m_lastState = MediaBackend::StoppedState;
-                    emit mb->stateChanged(MediaBackend::StoppedState);
-                }
+                case GST_STATE_PLAYING:
+                    qInfo() << "GST notified of state change to PLAYING";
+                    emit mb->stateChanged(MediaBackend::PlayingState);
+                    if (mb->m_currentlyFadedOut)
+                        mb->m_fader->immediateOut();
+                    break;
+
+                case GST_STATE_PAUSED:
+                    qInfo() << "GST notified of state change to PAUSED";
+                    emit mb->stateChanged(MediaBackend::PausedState);
+                    break;
+
+                default:
+                    break;
             }
             break;
+        }
+
+        case GST_MESSAGE_EOS:
+        {
+            if (GST_MESSAGE_SRC(message) != (GstObject *)mb->m_pipeline) break;
+            qInfo() << mb->m_objName << " - state change to EndOfMediaState emitted";
+            emit mb->stateChanged(EndOfMediaState);
+            break;
+        }
+
         case GST_MESSAGE_ELEMENT:
         {
             auto msgStructure = gst_message_get_structure(message);
@@ -612,7 +630,9 @@ gboolean MediaBackend::gstBusFunc([[maybe_unused]]GstBus *bus, GstMessage *messa
             }
             break;
         }
+
         case GST_MESSAGE_DURATION_CHANGED:
+        {
             gint64 dur, msdur;
             qInfo() << mb->m_objName << " - GST reports duration changed";
             if (gst_element_query_duration(mb->m_pipeline,GST_FORMAT_TIME,&dur))
@@ -621,10 +641,8 @@ gboolean MediaBackend::gstBusFunc([[maybe_unused]]GstBus *bus, GstMessage *messa
                 msdur = 0;
             emit mb->durationChanged(msdur);
             break;
-        case GST_MESSAGE_EOS:
-            qInfo() << mb->m_objName << " - state change to EndOfMediaState emitted";
-            emit mb->stateChanged(EndOfMediaState);
-            break;
+        }
+
         case GST_MESSAGE_NEED_CONTEXT:
         case GST_MESSAGE_TAG:
         case GST_MESSAGE_STREAM_STATUS:
@@ -632,12 +650,13 @@ gboolean MediaBackend::gstBusFunc([[maybe_unused]]GstBus *bus, GstMessage *messa
         case GST_MESSAGE_ASYNC_DONE:
         case GST_MESSAGE_NEW_CLOCK:
             break;
+
         default:
             qInfo() << mb->m_objName << " - Gst msg type: " << GST_MESSAGE_TYPE(message) << " Gst msg name: " << GST_MESSAGE_TYPE_NAME(message) << " Element: " << message->src->name;
             break;
-        }
+    }
 
-        return true;
+    return true;
 }
 
 void MediaBackend::buildPipeline()
@@ -850,7 +869,7 @@ void MediaBackend::padAddedToDecoder_cb(GstElement *element,  GstPad *pad, gpoin
 void MediaBackend::stopPipeline()
 {
     gst_element_set_state(m_pipeline, GST_STATE_NULL);
-    m_lastState = MediaBackend::StoppedState;
+    m_currentState = GST_STATE_NULL;
     m_hasVideo = false;
     emit stateChanged(MediaBackend::StoppedState);
     emit hasActiveVideoChanged(false);
