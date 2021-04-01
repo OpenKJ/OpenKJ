@@ -24,7 +24,7 @@ int CdgFileReader::getTotalDurationMS()
 
 int CdgFileReader::positionOfFinalFrameMS()
 {
-    return isEOF() ? currentFramePositionMS() : -1;
+    return isEOF() ? getDurationOfPackagesInMS(m_last_image_change_pgk_idx) : -1;
 }
 
 bool CdgFileReader::moveToNextFrame()
@@ -56,7 +56,12 @@ bool CdgFileReader::moveToNextFrame()
         {
             return true;
         }
-        imageChanged |= readAndProcessNextPackage();
+
+        if(readAndProcessNextPackage())
+        {
+            imageChanged = true;
+            m_last_image_change_pgk_idx = m_next_image_pgk_idx;
+        }
     }
 }
 
@@ -101,6 +106,7 @@ void CdgFileReader::rewind()
     m_current_image_pgk_idx = 0;
     m_next_image = CdgImageFrame();
     m_next_image_pgk_idx = 0;
+    m_last_image_change_pgk_idx = -1;
 }
 
 bool CdgFileReader::readAndProcessNextPackage()

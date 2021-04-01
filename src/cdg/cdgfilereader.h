@@ -64,6 +64,11 @@ private:
 
     CdgImageFrame m_next_image;
     int m_next_image_pgk_idx;
+
+    /**
+     * Index of the last read package that caused a visible image change.
+     */
+    int m_last_image_change_pgk_idx;
 };
 
 #endif // CDGFILEREADER_H
