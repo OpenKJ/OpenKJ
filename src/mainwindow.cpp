@@ -1727,11 +1727,6 @@ void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &sta
         qInfo() << "KAudio entered PlayingState";
         m_lastAudioState = state;
         bmMediaBackend.setVideoEnabled(false);
-        // "wiggle" the contents margins to force a resize to prevent weird bug where video isn't scaling
-        // when using the xvimagesink video sink.
-        auto margins = cdgWindow->contentsMargins();
-        cdgWindow->setContentsMargins(10,10,10,10);
-        cdgWindow->setContentsMargins(margins);
     }
     if (state == MediaBackend::UnknownState) {
         qInfo() << "KAudio entered UnknownState";
@@ -2478,13 +2473,6 @@ void MainWindow::bmMediaStateChanged(const MediaBackend::State &newState) {
                 ui->labelBmNext->setText(plNextSong->get().artist + " - " + plNextSong->get().title);
             else
                 ui->labelBmNext->setText("None - Breaking after current song");
-            if (auto state = kMediaBackend.state(); state != MediaBackend::PlayingState && state != MediaBackend::PausedState ) {
-                // "wiggle" the contents margins to force a resize to prevent weird bug where video isn't scaling
-                // when using the xvimagesink video sink.
-                auto margins = cdgWindow->contentsMargins();
-                cdgWindow->setContentsMargins(10, 10, 10, 10);
-                cdgWindow->setContentsMargins(margins);
-            }
             break;
         }
         case MediaBackend::PausedState:
