@@ -472,10 +472,10 @@ void MediaBackend::timerSlow_timeout()
             {
                 if (m_type != Karaoke)
                     emit silenceDetected();
-                else if(auto lastDraw = m_cdgSrc->getLastDrawPosition(); m_cdgMode && lastDraw != -1)
+                else if(m_cdgMode && m_cdgSrc->positionOfFinalFrameMS() != -1)
                 {
                         // In CDG-karaoke mode, only cut of the song if there are no more image frames to be shown
-                        if (lastDraw > 0 && lastDraw <= currPos)
+                        if (m_cdgSrc->positionOfFinalFrameMS() > 0 && m_cdgSrc->positionOfFinalFrameMS() <= currPos)
                             emit silenceDetected();
                 }
             }

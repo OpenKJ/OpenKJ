@@ -42,9 +42,7 @@ public:
      *
      * @return The value is not known until all data is read. If so, -1 is returned.
      */
-    void scanForFinalDrawPosition();
     int positionOfFinalFrameMS();
-    int positionOfFinalDrawMS() const;
 
 #ifdef QT_DEBUG
     void saveNextImgToFile();
@@ -66,7 +64,6 @@ private:
 
     CdgImageFrame m_next_image;
     int m_next_image_pgk_idx;
-    int m_lastDrawPosMs{0};
 };
 
 #endif // CDGFILEREADER_H

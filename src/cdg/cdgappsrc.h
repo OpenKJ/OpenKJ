@@ -28,7 +28,7 @@ public:
     GstElement* getSrcElement();
     void reset();
     void load(const QString filename);
-    int getLastDrawPosition();
+
     /**
      * Returns the position of the very last frame.
      * This can be less than the total duration, beceause: "total duration = position + duration of final frame".
