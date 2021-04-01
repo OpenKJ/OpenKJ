@@ -2454,6 +2454,7 @@ void MainWindow::bmMediaStateChanged(const MediaBackend::State &newState) {
         case MediaBackend::EndOfMediaState: {
             if (ui->checkBoxBmBreak->isChecked()) {
                 ui->checkBoxBmBreak->setChecked(false);
+                bmMediaBackend.stop(true);
                 resetBmLabels();
                 return;
             }
@@ -2466,6 +2467,10 @@ void MainWindow::bmMediaStateChanged(const MediaBackend::State &newState) {
                 bmMediaBackend.play();
                 if (kMediaBackend.state() == MediaBackend::PlayingState)
                     bmMediaBackend.fadeOutImmediate();
+            }
+            else {
+                bmMediaBackend.stop(true);
+                resetBmLabels();
             }
             break;
         }

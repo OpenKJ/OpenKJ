@@ -524,10 +524,8 @@ void MediaBackend::setPitchShift(const int &pitchShift)
     emit pitchChanged(pitchShift); // NOLINT(readability-misleading-indentation)
 }
 
-gboolean MediaBackend::gstBusFunc([[maybe_unused]]GstBus *bus, GstMessage *message, gpointer user_data)
+void MediaBackend::gstBusFunc(GstMessage *message)
 {
-    auto mb = reinterpret_cast<MediaBackend *>(user_data);
-
     switch (GST_MESSAGE_TYPE(message))
     {
         case GST_MESSAGE_ERROR:
@@ -535,14 +533,14 @@ gboolean MediaBackend::gstBusFunc([[maybe_unused]]GstBus *bus, GstMessage *messa
             GError *err;
             gchar *debug;
             gst_message_parse_error(message, &err, &debug);
-            qInfo() << mb->m_objName << " - Gst error: " << err->message;
-            qInfo() << mb->m_objName << " - Gst debug: " << debug;
+            qInfo() << m_objName << " - Gst error: " << err->message;
+            qInfo() << m_objName << " - Gst debug: " << debug;
             if (QString(err->message) == "Your GStreamer installation is missing a plug-in.")
             {
-                QString player = (mb->m_objName == "KAR") ? "karaoke" : "break music";
-                qInfo() << mb->m_objName << " - PLAYBACK ERROR - Missing Codec";
-                emit mb->audioError("Unable to play " + player + " file, missing gstreamer plugin");
-                mb->stop(true);
+                QString player = (m_objName == "KAR") ? "karaoke" : "break music";
+                qInfo() << m_objName << " - PLAYBACK ERROR - Missing Codec";
+                emit audioError("Unable to play " + player + " file, missing gstreamer plugin");
+                stop(true);
             }
             g_error_free(err);
             g_free(debug);
@@ -554,8 +552,8 @@ gboolean MediaBackend::gstBusFunc([[maybe_unused]]GstBus *bus, GstMessage *messa
             GError *err;
             gchar *debug;
             gst_message_parse_warning(message, &err, &debug);
-            qInfo() << mb->m_objName << " - Gst warning: " << err->message;
-            qInfo() << mb->m_objName << " - Gst debug: " << debug;
+            qInfo() << m_objName << " - Gst warning: " << err->message;
+            qInfo() << m_objName << " - Gst debug: " << debug;
             g_error_free(err);
             g_free(debug);
             break;
@@ -565,7 +563,7 @@ gboolean MediaBackend::gstBusFunc([[maybe_unused]]GstBus *bus, GstMessage *messa
         {
             // This will fire for all elements in the pipeline.
             // We only want to react once: on the actual pipeline element.
-            if (GST_MESSAGE_SRC(message) != (GstObject *)mb->m_pipeline) break;
+            if (GST_MESSAGE_SRC(message) != (GstObject *)m_pipeline) break;
 
             GstState oldState, state, pending;
             gst_message_parse_state_changed(message, &oldState, &state, &pending);
@@ -574,23 +572,23 @@ gboolean MediaBackend::gstBusFunc([[maybe_unused]]GstBus *bus, GstMessage *messa
             if (pending != GST_STATE_VOID_PENDING || oldState == state)
                 break;
 
-            mb->m_currentState = state;
+            m_currentState = state;
 
-            if (mb->m_currentlyFadedOut)
-                g_object_set(mb->m_faderVolumeElement, "volume", 0.0, nullptr);
+            if (m_currentlyFadedOut)
+                g_object_set(m_faderVolumeElement, "volume", 0.0, nullptr);
 
             switch (state)
             {
                 case GST_STATE_PLAYING:
                     qInfo() << "GST notified of state change to PLAYING";
-                    emit mb->stateChanged(MediaBackend::PlayingState);
-                    if (mb->m_currentlyFadedOut)
-                        mb->m_fader->immediateOut();
+                    emit stateChanged(MediaBackend::PlayingState);
+                    if (m_currentlyFadedOut)
+                        m_fader->immediateOut();
                     break;
 
                 case GST_STATE_PAUSED:
                     qInfo() << "GST notified of state change to PAUSED";
-                    emit mb->stateChanged(MediaBackend::PausedState);
+                    emit stateChanged(MediaBackend::PausedState);
                     break;
 
                 default:
@@ -601,9 +599,9 @@ gboolean MediaBackend::gstBusFunc([[maybe_unused]]GstBus *bus, GstMessage *messa
 
         case GST_MESSAGE_EOS:
         {
-            if (GST_MESSAGE_SRC(message) != (GstObject *)mb->m_pipeline) break;
-            qInfo() << mb->m_objName << " - state change to EndOfMediaState emitted";
-            emit mb->stateChanged(EndOfMediaState);
+            if (GST_MESSAGE_SRC(message) != (GstObject *)m_pipeline) break;
+            qInfo() << m_objName << " - state change to EndOfMediaState emitted";
+            emit stateChanged(EndOfMediaState);
             break;
         }
 
@@ -622,7 +620,7 @@ gboolean MediaBackend::gstBusFunc([[maybe_unused]]GstBus *bus, GstMessage *messa
                     auto rms = pow (10, rms_dB / 20);
                     rmsValues += rms;
                 }
-                mb->m_currentRmsLevel = rmsValues / rms_arr->n_values;
+                m_currentRmsLevel = rmsValues / rms_arr->n_values;
             }
             break;
         }
@@ -630,12 +628,12 @@ gboolean MediaBackend::gstBusFunc([[maybe_unused]]GstBus *bus, GstMessage *messa
         case GST_MESSAGE_DURATION_CHANGED:
         {
             gint64 dur, msdur;
-            qInfo() << mb->m_objName << " - GST reports duration changed";
-            if (gst_element_query_duration(mb->m_pipeline,GST_FORMAT_TIME,&dur))
+            qInfo() << m_objName << " - GST reports duration changed";
+            if (gst_element_query_duration(m_pipeline,GST_FORMAT_TIME,&dur))
                 msdur = dur / 1000000;
             else
                 msdur = 0;
-            emit mb->durationChanged(msdur);
+            emit durationChanged(msdur);
             break;
         }
 
@@ -648,11 +646,9 @@ gboolean MediaBackend::gstBusFunc([[maybe_unused]]GstBus *bus, GstMessage *messa
             break;
 
         default:
-            qInfo() << mb->m_objName << " - Gst msg type: " << GST_MESSAGE_TYPE(message) << " Gst msg name: " << GST_MESSAGE_TYPE_NAME(message) << " Element: " << message->src->name;
+            qInfo() << m_objName << " - Gst msg type: " << GST_MESSAGE_TYPE(message) << " Gst msg name: " << GST_MESSAGE_TYPE_NAME(message) << " Element: " << message->src->name;
             break;
     }
-
-    return true;
 }
 
 void MediaBackend::buildPipeline()
@@ -667,9 +663,11 @@ void MediaBackend::buildPipeline()
     m_pipeline = gst_pipeline_new("pipeline");
     m_pipelineAsBin = reinterpret_cast<GstBin *>(m_pipeline);
 
+    /*
     auto bus = gst_element_get_bus(m_pipeline);
     gst_bus_add_watch(bus, (GstBusFunc)gstBusFunc, this);
     gst_object_unref(bus);
+    */
 
     m_decoder = gst_element_factory_make("uridecodebin", "uridecodebin");
     g_signal_connect(m_decoder, "pad-added", G_CALLBACK(padAddedToDecoder_cb), this);
@@ -679,6 +677,19 @@ void MediaBackend::buildPipeline()
 
     buildVideoSinkBin();
     buildAudioSinkBin();
+
+
+    m_gstBusMsgHandlerTimer.start(40);
+    connect(&m_gstBusMsgHandlerTimer, &QTimer::timeout, [&] () {
+        while (gst_bus_have_pending(m_bus))
+        {
+            auto msg = gst_bus_pop(m_bus);
+            if (!msg)
+                continue;
+            gstBusFunc(msg);
+            gst_message_unref(msg);
+        }
+    });
 
     qInfo() << m_objName << " - buildPipeline() finished";
     //setEnforceAspectRatio(m_settings.enforceAspectRatio());
@@ -718,7 +729,8 @@ void MediaBackend::buildAudioSinkBin()
     auto level = gst_element_factory_make("level", "level");
     m_equalizer = gst_element_factory_make("equalizer-10bands", "equalizer");
     m_bus = gst_element_get_bus(m_pipeline);
-#if defined(Q_OS_LINUX)
+    /*
+    #if defined(Q_OS_LINUX)
     gst_bus_add_watch(m_bus, (GstBusFunc)gstBusFunc, this);
 #else
     // We need to pop messages off the gst bus ourselves on non-linux platforms since
@@ -735,7 +747,7 @@ void MediaBackend::buildAudioSinkBin()
         }
     });
 #endif
-
+*/
     m_audioCapsStereo = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 2, nullptr);
     m_audioCapsMono = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 1, nullptr);
 

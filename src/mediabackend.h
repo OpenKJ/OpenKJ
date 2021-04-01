@@ -204,7 +204,7 @@ private:
     void writePipelineGraphToFile(GstBin *bin, const QString& filePath, QString fileName);
     static double getPitchForSemitone(const int &semitone);
 
-    static gboolean gstBusFunc(GstBus *bus, GstMessage *message, gpointer user_data);
+    void gstBusFunc(GstMessage *message);
     static void padAddedToDecoder_cb(GstElement *element,  GstPad *pad, gpointer caller);
 
     void stopPipeline();
