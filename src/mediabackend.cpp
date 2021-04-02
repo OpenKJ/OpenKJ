@@ -659,7 +659,7 @@ void MediaBackend::buildPipeline()
         qInfo() << m_objName << " - gst not initialized - initializing";
         gst_init(nullptr,nullptr);
     }
-#ifdef Q_OS_WIN32
+#ifdef Q_OS_WIN
     // Use directsoundsink by default because of buggy wasapi plugin.
     GstRegistry *reg = gst_registry_get();
     if (reg) {

@@ -1,3 +1,9 @@
+openkj (1.9.71-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 02 Apr 2021 14:47:25 -0500
+
 openkj (1.9.70-1~bionic) bionic; urgency=medium
 
   * Autobuild from git tag

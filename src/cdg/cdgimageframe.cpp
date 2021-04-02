@@ -138,7 +138,7 @@ void CdgImageFrame::cmdTileBlock(const cdg::CdgTileBlockData &tileBlockPacket, c
     constexpr static std::array<char,6> MASKS{0x20,0x10,0x08,0x04,0x02,0x01};
 
     // reject corrupted CDG packets w/ invalid row/column
-    if (tileBlockPacket.row >= 18 || tileBlockPacket.column >= 50)
+    if (tileBlockPacket.row >= 18 || tileBlockPacket.column >= 50 || tileBlockPacket.color0 >= 16 || tileBlockPacket.color1 >= 16)
         return;
 
     // There's probably a better way to do this, needs research
