@@ -94,10 +94,8 @@ void TableModelHistorySongs::loadSinger(const int historySingerId)
         song.songid = query.value(5).toString();
         song.keyChange = query.value(6).toInt();
         song.plays = query.value(7).toUInt();
-        song.lastPlayed = query.value(8).toDateTime();
+        song.lastPlayed = (query.value(8).canConvert<QDateTime>()) ? query.value(8).toDateTime() : QDateTime();
         m_songs.emplace_back(song);
-        qInfo() << "Loaded history song: " << song.filePath;
-        qInfo() << "Timestamp: " << song.lastPlayed;
     }
     sort(m_lastSortColumn, m_lastSortOrder);
     emit layoutChanged();
