@@ -89,7 +89,8 @@ void CdgImageFrame::copyCroppedImagedata(uchar *destbuffer)
 void CdgImageFrame::cmdBorderPreset(const cdg::CdgBorderPresetData &borderPreset)
 {
     // Is there a safer C++ way to do these memory copies?
-
+    if (borderPreset.color >= 16)
+        return;
     for (auto line=0; line < 216; line++)
     {
         if (line < 12 || line > 202)
@@ -120,6 +121,9 @@ bool CdgImageFrame::cmdColors(const cdg::CdgColorsData &data, const cdg::CdgColo
 
 bool CdgImageFrame::cmdMemoryPreset(const cdg::CdgMemoryPresetData &memoryPreset)
 {
+    // reject out of range value from corrupted CDG packets
+    if (memoryPreset.color >= 16)
+        return false;
     if (m_lastCmdWasMempreset && memoryPreset.repeat)
     {
         return false;
@@ -132,6 +136,10 @@ bool CdgImageFrame::cmdMemoryPreset(const cdg::CdgMemoryPresetData &memoryPreset
 void CdgImageFrame::cmdTileBlock(const cdg::CdgTileBlockData &tileBlockPacket, const cdg::TileBlockType &type)
 {
     constexpr static std::array<char,6> MASKS{0x20,0x10,0x08,0x04,0x02,0x01};
+
+    // reject corrupted CDG packets w/ invalid row/column
+    if (tileBlockPacket.row >= 18 || tileBlockPacket.column >= 50)
+        return;
 
     // There's probably a better way to do this, needs research
     for (auto y = 0; y < 12; y++)
@@ -161,6 +169,8 @@ void CdgImageFrame::cmdTileBlock(const cdg::CdgTileBlockData &tileBlockPacket, c
 
 void CdgImageFrame::cmdScroll(const cdg::CdgScrollCmdData &scrollCmdData, const cdg::ScrollType type)
 {
+    // Todo: add range checks for corrupted CDG packets to prevent crashes
+
     if (scrollCmdData.hSCmd == 2)
     {
         // scroll left 6px
