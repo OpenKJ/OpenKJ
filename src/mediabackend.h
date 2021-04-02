@@ -193,7 +193,7 @@ private:
     std::atomic<bool> m_hasVideo{false};
     bool m_videoAccelEnabled{false};
     QPointer<AudioFader> m_fader;
-    State m_lastState{StoppedState};
+    std::atomic<GstState> m_currentState { GST_STATE_NULL };
 
     void buildPipeline();
     void buildVideoSinkBin();
@@ -204,7 +204,7 @@ private:
     void writePipelineGraphToFile(GstBin *bin, const QString& filePath, QString fileName);
     static double getPitchForSemitone(const int &semitone);
 
-    static gboolean gstBusFunc(GstBus *bus, GstMessage *message, gpointer user_data);
+    void gstBusFunc(GstMessage *message);
     static void padAddedToDecoder_cb(GstElement *element,  GstPad *pad, gpointer caller);
 
     void stopPipeline();

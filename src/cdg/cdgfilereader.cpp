@@ -1,6 +1,7 @@
 #include "cdgfilereader.h"
 #include <QFile>
 #include <QDebug>
+#include <QBuffer>
 
 
 constexpr int CDG_PACKAGES_PER_SECOND = 300;
@@ -13,7 +14,7 @@ CdgFileReader::CdgFileReader(const QString &filename)
     QFile file(filename);
     file.open(QFile::ReadOnly);
     m_cdgData = file.readAll();
-
+    scanForFinalDrawPosition();
     rewind();
 }
 
@@ -22,9 +23,44 @@ int CdgFileReader::getTotalDurationMS()
     return getDurationOfPackagesInMS(m_cdgData.length() / (int)sizeof (cdg::CDG_SubCode));
 }
 
+void CdgFileReader::scanForFinalDrawPosition()
+{
+    QBuffer ioDevice(&m_cdgData);
+    auto getPos = [] (int position) {
+        float fpos = (position / 300.0) * 1000;
+        return (int) fpos;
+    };
+    int frameNo{0};
+    unsigned int position{0};
+    cdg::CDG_SubCode subCode;
+    const char subcodeMask = 0x3F;
+    const char subcodeCommand = 0x09;
+
+    if (!ioDevice.open(QIODevice::ReadOnly))
+    {
+        m_lastDrawPosMs = -1;
+        return;
+    }
+
+    while (ioDevice.read((char *)&subCode, sizeof(subCode)) > 0) {
+        if ((subCode.command & subcodeMask) == subcodeCommand)
+            m_lastDrawPosMs = frameNo * 40;
+        position++;
+        if (auto pos = getPos(position); ((pos % 40) == 0) && pos >= 40)
+            frameNo++;
+    }
+
+    qInfo() << "CDG last draw pos: " << m_lastDrawPosMs << " Total len: " << getTotalDurationMS();
+}
+
 int CdgFileReader::positionOfFinalFrameMS()
 {
     return isEOF() ? currentFramePositionMS() : -1;
+}
+
+int CdgFileReader::positionOfFinalDrawMS() const
+{
+    return m_lastDrawPosMs;
 }
 
 bool CdgFileReader::moveToNextFrame()

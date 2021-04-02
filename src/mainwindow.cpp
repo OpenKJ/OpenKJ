@@ -393,7 +393,7 @@ void MainWindow::setupShortcuts() {
         bool curPlayingSelected{false};
         std::for_each(rows.begin(), rows.end(), [&](auto index) {
             positions.emplace_back(index.row());
-            if (playlistSongsModel.currentPosition() == index.row())
+            if (playlistSongsModel.isCurrentlyPlayingSong(index.data(Qt::UserRole).toInt()))
                 curPlayingSelected = true;
         });
         auto state = bmMediaBackend.state();
@@ -407,24 +407,22 @@ void MainWindow::setupShortcuts() {
         std::sort(positions.begin(), positions.end());
         std::reverse(positions.begin(), positions.end());
         std::for_each(positions.begin(), positions.end(), [&](auto position) {
-            if (playlistSongsModel.currentPosition() == position) {
-                bmPlDelegate.setCurrentPosition(-1);
-                playlistSongsModel.setCurrentPosition(-1);
-                playlistSongsModel.deleteSong(position);
-                return;
-            }
             playlistSongsModel.deleteSong(position);
-            if (playlistSongsModel.currentPosition() > position) {
-                bmPlDelegate.setCurrentPosition(playlistSongsModel.currentPosition() - 1);
-                playlistSongsModel.setCurrentPosition(playlistSongsModel.currentPosition());
-            }
         });
+        if (curPlayingSelected) {
+            playlistSongsModel.setCurrentPosition(-1);
+        }
         playlistSongsModel.savePlaylistChanges();
+        if (auto state = bmMediaBackend.state(); state != MediaBackend::PlayingState && state != MediaBackend::PausedState)
+            return;
         if (ui->checkBoxBmBreak->isChecked())
             ui->labelBmNext->setText("None - Breaking after current song");
         else {
             auto nextSong = playlistSongsModel.getNextPlSong();
-            ui->labelBmNext->setText(nextSong.artist + " - " + nextSong.title);
+            if (nextSong.has_value())
+                ui->labelBmNext->setText(nextSong->get().artist + " - " + nextSong->get().title);
+            else
+                ui->labelBmNext->setText("None - Breaking after current song");
         }
     });
 
@@ -696,16 +694,17 @@ MainWindow::MainWindow(QWidget *parent) :
 
     if ((settings.bmAutoStart()) && (playlistSongsModel.rowCount() > 0)) {
         playlistSongsModel.setCurrentPosition(0);
-        bmPlDelegate.setCurrentPosition(0);
         auto plSong = playlistSongsModel.getCurrentSong();
-        if (QFile::exists(plSong.path)) {
-            bmMediaBackend.setMedia(plSong.path);
-            bmMediaBackend.play();
-            bmMediaBackend.setVolume(ui->sliderBmVolume->value());
-        } else {
-            QMessageBox::warning(this, tr("Break music autostart failure"),
-                                 tr("Break music is set to autostart but the first song in the current playlist was not found.\n\nAborting playback."),
-                                 QMessageBox::Ok);
+        if (plSong.has_value()) {
+            if (QFile::exists(plSong->get().path)) {
+                bmMediaBackend.setMedia(plSong->get().path);
+                bmMediaBackend.play();
+                bmMediaBackend.setVolume(ui->sliderBmVolume->value());
+            } else {
+                QMessageBox::warning(this, tr("Break music autostart failure"),
+                                     tr("Break music is set to autostart but the first song in the current playlist was not found.\n\nAborting playback."),
+                                     QMessageBox::Ok);
+            }
         }
     }
     // todo - athom: what's this?
@@ -890,7 +889,15 @@ MainWindow::MainWindow(QWidget *parent) :
                 ui->tableViewBmPlaylist->clearSelection();
                 ui->tableViewBmPlaylist->selectionModel()->select(QItemSelection(topLeft, bottomRight),
                                                                   QItemSelectionModel::Select);
+                auto nextPlSong = playlistSongsModel.getNextPlSong();
+                if (nextPlSong.has_value() && !ui->checkBoxBmBreak->isChecked()) {
+                    ui->labelBmNext->setText(nextPlSong->get().artist + " - " + nextPlSong->get().title);
+                } else {
+                    ui->labelBmNext->setText("Breaking after current song");
+                }
+
             });
+    connect(&playlistSongsModel, &TableModelPlaylistSongs::playingPlSongIdChanged, &bmPlDelegate, &ItemDelegatePlaylistSongs::setPlayingPlSongId);
     connect(&qModel, &TableModelQueueSongs::qSongsMoved, [&](auto startRow, auto startCol, auto endRow, auto endCol) {
         auto topLeft = ui->tableViewQueue->model()->index(startRow, startCol);
         auto bottomRight = ui->tableViewQueue->model()->index(endRow, endCol);
@@ -2447,28 +2454,35 @@ void MainWindow::bmMediaStateChanged(const MediaBackend::State &newState) {
         case MediaBackend::EndOfMediaState: {
             if (ui->checkBoxBmBreak->isChecked()) {
                 ui->checkBoxBmBreak->setChecked(false);
+                bmMediaBackend.stop(true);
                 resetBmLabels();
                 return;
             }
             auto plSong = playlistSongsModel.getNextPlSong();
-            bmMediaBackend.setMedia(plSong.path);
-            bmPlDelegate.setCurrentPosition(plSong.position);
-            playlistSongsModel.setCurrentPosition(plSong.position);
-            qInfo() << "Break music auto-advancing to song: " << plSong.path;
-            bmMediaBackend.stop(true);
-            bmMediaBackend.play();
-            if (kMediaBackend.state() == MediaBackend::PlayingState)
-                bmMediaBackend.fadeOutImmediate();
+            if (plSong.has_value()) {
+                bmMediaBackend.setMedia(plSong->get().path);
+                playlistSongsModel.setCurrentPosition(plSong->get().position);
+                qInfo() << "Break music auto-advancing to song: " << plSong->get().path;
+                bmMediaBackend.stop(true);
+                bmMediaBackend.play();
+                if (kMediaBackend.state() == MediaBackend::PlayingState)
+                    bmMediaBackend.fadeOutImmediate();
+            }
+            else {
+                bmMediaBackend.stop(true);
+                resetBmLabels();
+            }
             break;
         }
         case MediaBackend::PlayingState: {
             auto plSong = playlistSongsModel.getCurrentSong();
+            if (plSong.has_value())
+                ui->labelBmPlaying->setText(plSong->get().artist + " - " + plSong->get().title);
             auto plNextSong = playlistSongsModel.getNextPlSong();
-            if (!ui->checkBoxBmBreak->isChecked())
-                ui->labelBmNext->setText(plNextSong.artist + " - " + plNextSong.title);
+            if (!ui->checkBoxBmBreak->isChecked() && plNextSong.has_value())
+                ui->labelBmNext->setText(plNextSong->get().artist + " - " + plNextSong->get().title);
             else
                 ui->labelBmNext->setText("None - Breaking after current song");
-            ui->labelBmPlaying->setText(plSong.artist + " - " + plSong.title);
             if (auto state = kMediaBackend.state(); state != MediaBackend::PlayingState && state != MediaBackend::PausedState ) {
                 // "wiggle" the contents margins to force a resize to prevent weird bug where video isn't scaling
                 // when using the xvimagesink video sink.
@@ -2507,7 +2521,7 @@ void MainWindow::on_tableViewBmPlaylist_clicked(const QModelIndex &index) {
     qInfo() << "DNDDEBUG - supportedDropActions(): " << playlistSongsModel.supportedDropActions();
 
     if (index.column() == TableModelPlaylistSongs::COL_PATH) {
-        if (playlistSongsModel.currentPosition() == index.row()) {
+        if (playlistSongsModel.isCurrentlyPlayingSong(index.data(Qt::UserRole).toInt())) {
             if (bmMediaBackend.state() == MediaBackend::PlayingState ||
                 bmMediaBackend.state() == MediaBackend::PausedState)
             {
@@ -2517,7 +2531,6 @@ void MainWindow::on_tableViewBmPlaylist_clicked(const QModelIndex &index) {
                 msgBox.exec();
                 return;
             }
-            bmPlDelegate.setCurrentPosition(-1);
             playlistSongsModel.setCurrentPosition(-1);
             resetBmLabels();
         }
@@ -2525,27 +2538,35 @@ void MainWindow::on_tableViewBmPlaylist_clicked(const QModelIndex &index) {
         playlistSongsModel.savePlaylistChanges();
         if (playlistSongsModel.currentPosition() > index.row()) {
             playlistSongsModel.setCurrentPosition(playlistSongsModel.currentPosition() - 1);
-            bmPlDelegate.setCurrentPosition(playlistSongsModel.currentPosition());
         }
         if (ui->checkBoxBmBreak->isChecked()) {
             ui->labelBmNext->setText("None - Breaking after current song");
             return;
         }
         auto nextSong = playlistSongsModel.getNextPlSong();
-        ui->labelBmNext->setText(nextSong.artist + " - " + nextSong.title);
+        if (nextSong.has_value())
+            ui->labelBmNext->setText(nextSong->get().artist + " - " + nextSong->get().title);
+        else
+            ui->labelBmNext->setText("None - Breaking after current song");
     }
 }
 
 void MainWindow::on_comboBoxBmPlaylists_currentIndexChanged(const int &index) {
     bmCurrentPlaylist = bmPlaylistsModel->index(index, 0).data().toInt();
     playlistSongsModel.setCurrentPlaylist(bmCurrentPlaylist);
-    playlistSongsModel.setCurrentPlaylist(bmCurrentPlaylist);
+    auto nextPlSong = playlistSongsModel.getNextPlSong();
+    if (nextPlSong.has_value())
+        ui->labelBmNext->setText(nextPlSong->get().artist + " - " + nextPlSong->get().title);
+    else
+        ui->labelBmNext->setText("None - Breaking after current song");
+    ui->tableViewBmPlaylist->clearSelection();
 }
 
 void MainWindow::on_checkBoxBmBreak_toggled(const bool &checked) {
     if (!checked) {
         auto nextSong = playlistSongsModel.getNextPlSong();
-        ui->labelBmNext->setText(nextSong.artist + " - " + nextSong.title);
+        if (nextSong.has_value())
+            ui->labelBmNext->setText(nextSong->get().artist + " - " + nextSong->get().title);
         return;
     }
     ui->labelBmNext->setText("None - Stopping after current song");
@@ -2569,9 +2590,10 @@ void MainWindow::on_tableViewBmPlaylist_doubleClicked(const QModelIndex &index) 
     if (bmMediaBackend.state() == MediaBackend::PlayingState || bmMediaBackend.state() == MediaBackend::PausedState)
         bmMediaBackend.stop(false);
     playlistSongsModel.setCurrentPosition(index.row());
-    bmPlDelegate.setCurrentPosition(index.row());
     auto plSong = playlistSongsModel.getCurrentSong();
-    bmMediaBackend.setMedia(plSong.path);
+    if (!plSong.has_value())
+        return;
+    bmMediaBackend.setMedia(plSong->get().path);
     bmMediaBackend.play();
     if (kMediaBackend.state() != MediaBackend::PlayingState)
         bmMediaBackend.fadeInImmediate();
@@ -3268,11 +3290,10 @@ void MainWindow::bmSongMoved(const int &oldPos, const int &newPos) {
         curPlPos++;
     else if (oldPos == curPlPos)
         curPlPos = newPos;
-    bmPlDelegate.setCurrentPosition(curPlPos);
     playlistSongsModel.setCurrentPosition(curPlPos);
-    if (!ui->checkBoxBmBreak->isChecked()) {
-        auto nextPlSong = playlistSongsModel.getNextPlSong();
-        ui->labelBmNext->setText(nextPlSong.artist + " - " + nextPlSong.title);
+    auto nextPlSong = playlistSongsModel.getNextPlSong();
+    if (!ui->checkBoxBmBreak->isChecked() && nextPlSong.has_value()) {
+        ui->labelBmNext->setText(nextPlSong->get().artist + " - " + nextPlSong->get().title);
     } else
         ui->labelBmNext->setText("None - Breaking after current song");
 }
@@ -3525,7 +3546,6 @@ void MainWindow::on_btnQBottom_clicked() {
 void MainWindow::on_btnBmPlRandomize_clicked() {
     if (playlistSongsModel.rowCount() < 2)
         return;
-    bmPlDelegate.setCurrentPosition(playlistSongsModel.randomizePlaylist());
 }
 
 void MainWindow::on_btnPlTop_clicked() {
@@ -4068,7 +4088,6 @@ void MainWindow::on_actionBreak_music_torture_triggered() {
         QApplication::beep();
         static int runs = 0;
         qInfo() << "Karaoke torture test timer timeout";
-        bmPlDelegate.setCurrentPosition(playlistSongsModel.randomizePlaylist());
         ui->tableViewBmPlaylist->selectRow(0);
         on_tableViewBmPlaylist_doubleClicked(ui->tableViewBmPlaylist->selectionModel()->selectedRows().at(0));
         qInfo() << "test runs: " << ++runs;
