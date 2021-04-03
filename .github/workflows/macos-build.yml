@@ -22,12 +22,19 @@ jobs:
       with:
        cached: ${{ steps.cache-qt.outputs.cache-hit }}
 
-#    - name: Cache GStreamer
-#      id: cache-gstreamer
-#      uses: actions/cache@v2
-#      with:
-#        path: '/Library/Frameworks/GStreamer.framework'
-#        key: ${{ runner.os }}-gstreamer
+    - name: Cache GStreamer
+      id: cache-gstreamer
+      uses: actions/cache@v2
+      with:
+        path: '/Library/Frameworks/GStreamer.framework'
+        key: ${{ runner.os }}-gstreamer
+
+    - name: Cache GStreamer dist
+      id: cache-gstreamer-dist
+      uses: actions/cache@v2
+      with:
+        path: '/Library/Frameworks/GStreamer.framework.deploy'
+        key: ${{ runner.os }}-gstreamer-dist
 
     - name: Download GST Installer
       if: steps.cache-gstreamer.outputs.cache-hit != 'true'
@@ -39,7 +46,7 @@ jobs:
         location: './downloads'
 
     - name: Download GST-Dev Installer
-      if: steps.cache-gstreamer.outputs.cache-hit != 'true'
+      if: steps.cache-gstreamer-dist.outputs.cache-hit != 'true'
       uses: carlosperate/download-file-action@v1.0.3
       id: download-gst-dev
       with:
@@ -53,15 +60,57 @@ jobs:
         sudo installer -package ${{ steps.download-gst.outputs.file-path }} -target /
         sudo cp -R /Library/Frameworks/GStreamer.framework /Library/Frameworks/GStreamer.framework.deploy
         sudo installer -package ${{ steps.download-gst-dev.outputs.file-path }} -target /
-
-    - name: Create Build Environment
-      run: cmake -E make_directory ${{github.workspace}}/build
       
+    - name: Create Build Dir
+      run: cmake -E make_directory ${{github.workspace}}/build
+
     - name: Configure CMake
       working-directory: ${{github.workspace}}/build
       run: |
-        cmake .. -DCMAKE_BUILD_TYPE=Release -G Xcode
+        cmake .. -DCMAKE_BUILD_TYPE=Release -G Ninja
 
     - name: Build
       working-directory: ${{github.workspace}}/build
-      run: cmake --build . --config Release
+      run: cmake --build .
+      
+    - name: Create installer
+      working-directory: ${{github.workspace}}/build
+      run: |
+        BRANCH=${GITHUB_REF##*/}
+        if [ "$BRANCH" = "master" ];then
+        RTYPE="unstable"
+        else
+        RTYPE=$BRANCH
+        fi
+        OKJVER=`grep VERSION_STRING src/okjversion.h | cut -d'"' -f2`
+        echo "OpenKJ Version: $OKJVER"
+        FN="OpenKJ-${OKJVER}-${RTYPE}-osx-installer.pkg"
+        echo "Package filename: $FN"
+        mkdir -p fakeroot/Applications
+        mv "openkj.app" fakeroot/Applications/OpenKJ.app
+        pkgbuild --root "fakeroot" --component-plist ../macos/openkj.plist --identifier "org.openkj.openkj" ${FN}
+
+    - name: Installing gcloud console tools
+      uses: google-github-actions/setup-gcloud@master
+      with:
+        version: 'latest'
+        service_account_key: ${{ secrets.GCLOUD_KEY }}
+        export_default_credentials: true
+
+    - name: Upload installer to Google Cloud Storage
+      working-directory: ${{github.workspace}}/build
+      continue-on-error: true
+      run: |
+        BRANCH=${GITHUB_REF##*/}
+        if [ "$BRANCH" = "master" ];then
+        RTYPE="unstable"
+        else
+        RTYPE=$BRANCH
+        fi
+        OKJVER=`grep VERSION_STRING src/okjversion.h | cut -d'"' -f2`
+        echo "OpenKJ Version: $OKJVER"
+        FN="OpenKJ-${OKJVER}-${RTYPE}-osx-installer.pkg"
+        echo "Package filename: $FN"
+        gsutil cp $FN gs://openkj-installers/macos/$RTYPE/
+
+
