@@ -63,6 +63,7 @@ jobs:
 
     - name: Install OSX Relocator
       run: |
+        echo "/Library/Frameworks/Python.framework/Versions/2.7/bin" >> $GITHUB_PATH
         pip2 install osxrelocator
       
     - name: Create Build Dir
