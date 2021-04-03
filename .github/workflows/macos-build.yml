@@ -33,7 +33,7 @@ jobs:
       id: cache-gstreamer-dist
       uses: actions/cache@v2
       with:
-        path: '/Library/Frameworks/GStreamer.framework.deploy'
+        path: '/Library/Frameworks/GStreamer.framework.dist'
         key: ${{ runner.os }}-gstreamer-dist
 
     - name: Download GST Installer
@@ -58,8 +58,12 @@ jobs:
       if: steps.cache-gstreamer.outputs.cache-hit != 'true'
       run: |
         sudo installer -package ${{ steps.download-gst.outputs.file-path }} -target /
-        sudo cp -R /Library/Frameworks/GStreamer.framework /Library/Frameworks/GStreamer.framework.deploy
+        sudo cp -R /Library/Frameworks/GStreamer.framework /Library/Frameworks/GStreamer.framework.dist
         sudo installer -package ${{ steps.download-gst-dev.outputs.file-path }} -target /
+
+    - name: Install OSX Relocator
+      run: |
+        pip2 install osxrelocator
       
     - name: Create Build Dir
       run: cmake -E make_directory ${{github.workspace}}/build
