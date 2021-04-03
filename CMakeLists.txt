@@ -611,7 +611,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
                 ARGS
                     "openkj.app/Contents/Frameworks/GStreamer.framework/Versions/Current/libexec"
                     "/Library/Frameworks/GStreamer.framework/"
-                    "@executable_path/../../../../../Frameworks/GStreamer.framework/"
+                    "@executable_path/../../../../../../Frameworks/GStreamer.framework/"
                     "-r"
                 USES_TERMINAL
                 COMMAND "osxrelocator"
