@@ -1,6 +1,20 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(openkj LANGUAGES CXX C)
+file(READ "src/okjversion.h" vercontents)
+string(REGEX MATCH "OKJ_VERSION_MAJOR ([0-9]*)" _ ${vercontents})
+set(ver_major ${CMAKE_MATCH_1})
+string(REGEX MATCH "OKJ_VERSION_MINOR ([0-9]*)" _ ${vercontents})
+set(ver_minor ${CMAKE_MATCH_1})
+string(REGEX MATCH "OKJ_VERSION_BUILD ([0-9]*)" _ ${vercontents})
+set(ver_build ${CMAKE_MATCH_1})
+set(sem_ver "${ver_major}.${ver_minor}.${ver_build}")
+
+message("Building OpenKJ ${sem_ver}")
+
+project(openkj
+    VERSION ${sem_ver}
+    LANGUAGES CXX C
+    )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -14,7 +28,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Gui Sql Network Widgets Concurrent Svg PrintSupport REQUIRED)
 
-
+include_directories(
+    src/
+    )
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     find_package(PkgConfig)
     pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0 gstreamer-pbutils-1.0 gstreamer-controller-1.0 gstreamer-video-1.0)
@@ -30,7 +46,25 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBS
     )
 endif ()
 
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    message("macOS detected")
+    set(STATIC_TAGLIB True)
+    include_directories(
+        /Library/Frameworks/GStreamer.framework/Headers
+        )
+    link_directories(
+        /Library/Frameworks
+        )
+    if (DEFINED BUNDLE_GSTREAMER)
+        message("Will bundle GStreamer into the app bundle")
+        add_compile_definitions(
+            MAC_OVERRIDE_GST
+            )
+    endif()
+endif()
+
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set(STATIC_TAGLIB True)
     set(WINDOWS_ICON_RC "src/appicon.rc")
     if (CMAKE_SIZEOF_VOID_P EQUAL 4)
         set(GST_BASE_PATH "C:/gstreamer/1.0/x86")
@@ -52,8 +86,28 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     )
     add_compile_definitions(
             MINIZ_NO_TIME
-            TAGLIB_STATIC
     )
+
+    link_libraries(
+            gstreamer-1.0
+            glib-2.0
+            gobject-2.0
+            gstbase-1.0
+            gstapp-1.0
+            gstaudio-1.0
+            gstpbutils-1.0
+            gstcontroller-1.0
+            gstvideo-1.0
+            winmm
+    )
+
+endif ()
+
+if (STATIC_TAGLIB)
+    message("Building using included taglib")
+    add_compile_definitions(
+        TAGLIB_STATIC
+        )
     include_directories(
             src/taglib
             src/taglib/toolkit
@@ -81,18 +135,6 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
             src/taglib/trueaudio
             src/taglib/wavpack
             src/taglib/xm
-    )
-    link_libraries(
-            gstreamer-1.0
-            glib-2.0
-            gobject-2.0
-            gstbase-1.0
-            gstapp-1.0
-            gstaudio-1.0
-            gstpbutils-1.0
-            gstcontroller-1.0
-            gstvideo-1.0
-            winmm
     )
     set(TAGLIB_SOURCES
             src/taglib/ape/apefile.cpp
@@ -311,173 +353,174 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
             src/taglib/tagunion.h
             src/taglib/tagutils.h
             )
-endif ()
+endif()
 
-add_executable(openkj
-        ${TAGLIB_SOURCES}
-        src/miniz/miniz.h
-        src/miniz/miniz.c
-        src/main.cpp
-        src/dlgaddsong.cpp
-        src/mediabackend.cpp
-        src/mzarchive.cpp
-        src/okjutil.h
-        src/dlgvideopreview.cpp
-        src/mainwindow.cpp
-        src/dbupdatethread.cpp
-        src/dlgkeychange.cpp
-        src/dlgdatabase.cpp
-        src/dlgrequests.cpp
-        src/dlgregularexport.cpp
-        src/dlgregularimport.cpp
-        src/dlgregularsingers.cpp
-        src/dlgsettings.cpp
-        src/dlgcdg.cpp
-        src/okarchive.cpp
-        src/models/tablemodelbreaksongs.cpp
-        src/models/tablemodelcustomnamingpatterns.cpp
-        src/models/tablemodelhistorysingers.cpp
-        src/models/tablemodelhistorysongs.cpp
-        src/models/tablemodelkaraokesongs.cpp
-        src/models/tablemodelkaraokesourcedirs.cpp
-        src/models/tablemodelplaylistsongs.cpp
-        src/models/tablemodelqueuesongs.cpp
-        src/models/tablemodelrequests.cpp
-        src/models/tablemodelrotation.cpp
-        src/models/tablemodelsongshopsongs.cpp
-        src/tagreader.cpp
-        src/bmdbupdatethread.cpp
-        src/settings.cpp
-        src/bmdbdialog.cpp
-        src/dlgcustompatterns.cpp
-        src/audiorecorder.cpp
-        src/okjsongbookapi.cpp
-        src/dlgdbupdate.cpp
-        src/dlgbookcreator.cpp
-        src/dlgeq.cpp
-        src/audiofader.cpp
-        src/customlineedit.cpp
-        src/tickernew.cpp
-        src/updatechecker.cpp
-        src/videodisplay.cpp
-        src/volslider.cpp
-        src/dlgaddsinger.cpp
-        src/songshop.cpp
-        src/dlgsongshop.cpp
-        src/simplecrypt.cpp
-        src/dlgsongshoppurchase.cpp
-        src/dlgsetpassword.cpp
-        src/dlgpassword.cpp
-        src/dlgpurchaseprogress.cpp
-        src/karaokefileinfo.cpp
-        src/dlgeditsong.cpp
-        src/soundfxbutton.cpp
-        src/runguard/runguard.cpp
-        src/durationlazyupdater.cpp
-        src/idledetect.cpp
-        src/dlgdebugoutput.cpp
-        src/mainwindow.h
-        src/dlgaddsong.h
-        src/dlgvideopreview.h
-        src/mediabackend.h
-        src/mzarchive.h
-        src/okjutil.h
-        src/dbupdatethread.h
-        src/dlgkeychange.h
-        src/dlgdatabase.h
-        src/dlgrequests.h
-        src/dlgregularexport.h
-        src/dlgregularimport.h
-        src/dlgregularsingers.h
-        src/dlgsettings.h
-        src/dlgcdg.h
-        src/okarchive.h
-        src/models/tablemodelbreaksongs.h
-        src/models/tablemodelcustomnamingpatterns.h
-        src/models/tablemodelhistorysingers.h
-        src/models/tablemodelhistorysongs.h
-        src/models/tablemodelkaraokesongs.h
-        src/models/tablemodelkaraokesourcedirs.h
-        src/models/tablemodelplaylistsongs.h
-        src/models/tablemodelqueuesongs.h
-        src/models/tablemodelrequests.h
-        src/models/tablemodelrotation.h
-        src/models/tablemodelsongshopsongs.h
-        src/tagreader.h
-        src/bmdbupdatethread.h
-        src/settings.h
-        src/bmdbdialog.h
-        src/dlgcustompatterns.h
-        src/audiorecorder.h
-        src/okjsongbookapi.h
-        src/dlgdbupdate.h
-        src/dlgbookcreator.h
-        src/dlgeq.h
-        src/audiofader.h
-        src/customlineedit.h
-        src/tickernew.h
-        src/updatechecker.h
-        src/videodisplay.h
-        src/volslider.h
-        src/okjversion.h
-        src/dlgaddsinger.h
-        src/songshop.h
-        src/dlgsongshop.h
-        src/simplecrypt.h
-        src/dlgsongshoppurchase.h
-        src/dlgsetpassword.h
-        src/dlgpassword.h
-        src/dlgpurchaseprogress.h
-        src/karaokefileinfo.h
-        src/dlgeditsong.h
-        src/soundfxbutton.h
-        src/runguard/runguard.h
-        src/models/tableviewtooltipfilter.h
-        src/durationlazyupdater.h
-        src/idledetect.h
-        src/dlgdebugoutput.h
-        src/mainwindow.ui
-        src/dlgaddsong.ui
-        src/dlgkeychange.ui
-        src/dlgdatabase.ui
-        src/dlgrequests.ui
-        src/dlgregularexport.ui
-        src/dlgregularimport.ui
-        src/dlgregularsingers.ui
-        src/dlgsettings.ui
-        src/dlgcdg.ui
-        src/bmdbdialog.ui
-        src/dlgcustompatterns.ui
-        src/dlgdbupdate.ui
-        src/dlgbookcreator.ui
-        src/dlgeq.ui
-        src/dlgaddsinger.ui
-        src/dlgsongshop.ui
-        src/dlgsongshoppurchase.ui
-        src/dlgsetpassword.ui
-        src/dlgpassword.ui
-        src/dlgpurchaseprogress.ui
-        src/dlgeditsong.ui
-        src/dlgdebugoutput.ui
-        src/dlgvideopreview.ui
-        src/resources.qrc
-        src/softwarerendervideosink.cpp
-        src/softwarerendervideosink.h
-        src/cdg/cdgappsrc.cpp
-        src/cdg/cdgappsrc.h
-        src/cdg/cdgfilereader.cpp
-        src/cdg/cdgfilereader.h
-        src/cdg/cdgimageframe.cpp
-        src/cdg/cdgimageframe.h
-        src/cdg/libCDG.h
-        src/gstreamer/gstreamerhelper.cpp
-        src/gstreamer/gstreamerhelper.h
-        ${WINDOWS_ICON_RC}
-        )
+set(SOURCE_FILES
+    ${TAGLIB_SOURCES}
+    src/miniz/miniz.h
+    src/miniz/miniz.c
+    src/main.cpp
+    src/dlgaddsong.cpp
+    src/mediabackend.cpp
+    src/mzarchive.cpp
+    src/okjutil.h
+    src/dlgvideopreview.cpp
+    src/mainwindow.cpp
+    src/dbupdatethread.cpp
+    src/dlgkeychange.cpp
+    src/dlgdatabase.cpp
+    src/dlgrequests.cpp
+    src/dlgregularexport.cpp
+    src/dlgregularimport.cpp
+    src/dlgregularsingers.cpp
+    src/dlgsettings.cpp
+    src/dlgcdg.cpp
+    src/okarchive.cpp
+    src/models/tablemodelbreaksongs.cpp
+    src/models/tablemodelcustomnamingpatterns.cpp
+    src/models/tablemodelhistorysingers.cpp
+    src/models/tablemodelhistorysongs.cpp
+    src/models/tablemodelkaraokesongs.cpp
+    src/models/tablemodelkaraokesourcedirs.cpp
+    src/models/tablemodelplaylistsongs.cpp
+    src/models/tablemodelqueuesongs.cpp
+    src/models/tablemodelrequests.cpp
+    src/models/tablemodelrotation.cpp
+    src/models/tablemodelsongshopsongs.cpp
+    src/tagreader.cpp
+    src/bmdbupdatethread.cpp
+    src/settings.cpp
+    src/bmdbdialog.cpp
+    src/dlgcustompatterns.cpp
+    src/audiorecorder.cpp
+    src/okjsongbookapi.cpp
+    src/dlgdbupdate.cpp
+    src/dlgbookcreator.cpp
+    src/dlgeq.cpp
+    src/audiofader.cpp
+    src/customlineedit.cpp
+    src/tickernew.cpp
+    src/updatechecker.cpp
+    src/videodisplay.cpp
+    src/volslider.cpp
+    src/dlgaddsinger.cpp
+    src/songshop.cpp
+    src/dlgsongshop.cpp
+    src/simplecrypt.cpp
+    src/dlgsongshoppurchase.cpp
+    src/dlgsetpassword.cpp
+    src/dlgpassword.cpp
+    src/dlgpurchaseprogress.cpp
+    src/karaokefileinfo.cpp
+    src/dlgeditsong.cpp
+    src/soundfxbutton.cpp
+    src/runguard/runguard.cpp
+    src/durationlazyupdater.cpp
+    src/idledetect.cpp
+    src/dlgdebugoutput.cpp
+    src/mainwindow.h
+    src/dlgaddsong.h
+    src/dlgvideopreview.h
+    src/mediabackend.h
+    src/mzarchive.h
+    src/okjutil.h
+    src/dbupdatethread.h
+    src/dlgkeychange.h
+    src/dlgdatabase.h
+    src/dlgrequests.h
+    src/dlgregularexport.h
+    src/dlgregularimport.h
+    src/dlgregularsingers.h
+    src/dlgsettings.h
+    src/dlgcdg.h
+    src/okarchive.h
+    src/models/tablemodelbreaksongs.h
+    src/models/tablemodelcustomnamingpatterns.h
+    src/models/tablemodelhistorysingers.h
+    src/models/tablemodelhistorysongs.h
+    src/models/tablemodelkaraokesongs.h
+    src/models/tablemodelkaraokesourcedirs.h
+    src/models/tablemodelplaylistsongs.h
+    src/models/tablemodelqueuesongs.h
+    src/models/tablemodelrequests.h
+    src/models/tablemodelrotation.h
+    src/models/tablemodelsongshopsongs.h
+    src/tagreader.h
+    src/bmdbupdatethread.h
+    src/settings.h
+    src/bmdbdialog.h
+    src/dlgcustompatterns.h
+    src/audiorecorder.h
+    src/okjsongbookapi.h
+    src/dlgdbupdate.h
+    src/dlgbookcreator.h
+    src/dlgeq.h
+    src/audiofader.h
+    src/customlineedit.h
+    src/tickernew.h
+    src/updatechecker.h
+    src/videodisplay.h
+    src/volslider.h
+    src/okjversion.h
+    src/dlgaddsinger.h
+    src/songshop.h
+    src/dlgsongshop.h
+    src/simplecrypt.h
+    src/dlgsongshoppurchase.h
+    src/dlgsetpassword.h
+    src/dlgpassword.h
+    src/dlgpurchaseprogress.h
+    src/karaokefileinfo.h
+    src/dlgeditsong.h
+    src/soundfxbutton.h
+    src/runguard/runguard.h
+    src/models/tableviewtooltipfilter.h
+    src/durationlazyupdater.h
+    src/idledetect.h
+    src/dlgdebugoutput.h
+    src/mainwindow.ui
+    src/dlgaddsong.ui
+    src/dlgkeychange.ui
+    src/dlgdatabase.ui
+    src/dlgrequests.ui
+    src/dlgregularexport.ui
+    src/dlgregularimport.ui
+    src/dlgregularsingers.ui
+    src/dlgsettings.ui
+    src/dlgcdg.ui
+    src/bmdbdialog.ui
+    src/dlgcustompatterns.ui
+    src/dlgdbupdate.ui
+    src/dlgbookcreator.ui
+    src/dlgeq.ui
+    src/dlgaddsinger.ui
+    src/dlgsongshop.ui
+    src/dlgsongshoppurchase.ui
+    src/dlgsetpassword.ui
+    src/dlgpassword.ui
+    src/dlgpurchaseprogress.ui
+    src/dlgeditsong.ui
+    src/dlgdebugoutput.ui
+    src/dlgvideopreview.ui
+    src/resources.qrc
+    src/softwarerendervideosink.cpp
+    src/softwarerendervideosink.h
+    src/cdg/cdgappsrc.cpp
+    src/cdg/cdgappsrc.h
+    src/cdg/cdgfilereader.cpp
+    src/cdg/cdgfilereader.h
+    src/cdg/cdgimageframe.cpp
+    src/cdg/cdgimageframe.h
+    src/cdg/libCDG.h
+    src/gstreamer/gstreamerhelper.cpp
+    src/gstreamer/gstreamerhelper.h
+    )
 
-target_include_directories(openkj PRIVATE src/)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+    add_executable(openkj
+        ${SOURCE_FILES}
+        )
     target_link_libraries(openkj Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Sql Qt5::Network Qt5::Svg Qt5::PrintSupport Qt5::Concurrent ${GSTREAMER_LIBRARIES} PkgConfig::TAGLIB)
 
     install(
@@ -494,7 +537,107 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBS
     )
 endif ()
 
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    set(openkj_ICON ${CMAKE_CURRENT_SOURCE_DIR}/src/Icons/OpenKJ.icns)
+    set_source_files_properties(${openkj_ICON} PROPERTIES
+        MACOSX_PACKAGE_LOCATION "Resources"
+        )
+    add_executable(openkj
+        MACOSX_BUNDLE
+        ${openkj_ICON}
+        ${SOURCE_FILES}
+        )
+    set_target_properties(openkj PROPERTIES
+        BUNDLE True
+        MACOSX_BUNDLE_GUI_IDENTIFIER org.openkj.openkj
+        MACOSX_BUNDLE_BUNDLE_NAME OpenKJ
+        MACOSX_BUNDLE_BUNDLE_VERSION ${sem_ver}
+        MACOSX_BUNDLE_ICON_FILE OpenKJ.icns
+        )
+    target_link_libraries(openkj
+        Qt5::Widgets
+        Qt5::Core
+        Qt5::Gui
+        Qt5::Sql
+        Qt5::Network
+        Qt5::Svg
+        Qt5::PrintSupport
+        Qt5::Concurrent
+        "-F /Library/Frameworks -framework GStreamer"
+        )
+    get_target_property(_qt5_qmake_location Qt5::qmake IMPORTED_LOCATION)
+    execute_process(
+            COMMAND "${_qt5_qmake_location}" -query QT_INSTALL_PREFIX
+            RESULT_VARIABLE return_code
+            OUTPUT_VARIABLE qt5_install_prefix
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    if (qt5_install_prefix)
+        find_program(MACDEPLOYQT macdeployqt HINTS ${qt5_install_prefix} PATH_SUFFIXES bin)
+        if (MACDEPLOYQT)
+            add_custom_command(
+                    TARGET openkj
+                    COMMAND "${MACDEPLOYQT}"
+                    ARGS "${CMAKE_BINARY_DIR}/openkj.app"
+            )
+        else ()
+            message("Can't find macdeployqt")
+        endif ()
+    else ()
+        message("QT_INSTALL_DIR not defined")
+    endif ()
+    if (DEFINED BUNDLE_GSTREAMER)
+        message("Installing GStreamer framework into app bundle")
+        install(
+            DIRECTORY "/Library/Frameworks/GStreamer.framework.dist"
+            DESTINATION "openkj.app/Contents/Frameworks/GStreamer.framework"
+            )
+        add_custom_command(
+                TARGET openkj
+                POST_BUILD
+                COMMAND "cp"
+                ARGS
+                    "-pR"
+                    "/Library/Frameworks/GStreamer.framework.dist"
+                    "openkj.app/Contents/Frameworks/GStreamer.framework"
+                COMMAND "osxrelocator"
+                ARGS
+                    "openkj.app/Contents/Frameworks/GStreamer.framework/Versions/Current/lib"
+                    "/Library/Frameworks/GStreamer.framework/"
+                    "@executable_path/../Frameworks/GStreamer.framework/"
+                    "-r"
+                USES_TERMINAL
+                COMMAND "osxrelocator"
+                ARGS
+                    "openkj.app/Contents/Frameworks/GStreamer.framework/Versions/Current/libexec"
+                    "/Library/Frameworks/GStreamer.framework/"
+                    "@executable_path/../Frameworks/GStreamer.framework/"
+                    "-r"
+                USES_TERMINAL
+                COMMAND "osxrelocator"
+                ARGS
+                    "openkj.app/Contents/Frameworks/GStreamer.framework/Versions/Current/bin"
+                    "/Library/Frameworks/GStreamer.framework/"
+                    "@executable_path/../Frameworks/GStreamer.framework/"
+                    "-r"
+               USES_TERMINAL
+               COMMAND "osxrelocator"
+               ARGS
+                    "openkj.app/Contents/MacOS"
+                    "/Library/Frameworks/GStreamer.framework/"
+                    "@executable_path/../Frameworks/GStreamer.framework/"
+                    "-r"
+               USES_TERMINAL
+        )
+    endif()
+
+endif()
+
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    add_executable(openkj
+        ${SOURCE_FILES}
+        ${WINDOWS_ICON_RC}
+        )
     target_link_libraries(openkj PRIVATE Qt5::Widgets Qt5::Gui Qt5::Sql Qt5::Network Qt5::Svg Qt5::PrintSupport Qt5::Concurrent)
     set_property(
             TARGET openkj
