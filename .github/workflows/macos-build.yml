@@ -60,7 +60,7 @@ jobs:
     - name: Configure CMake
       working-directory: ${{github.workspace}}/build
       run: |
-        cmake .. -DCMAKE_BUILD_TYPE=Release -G Ninja
+        cmake .. -DCMAKE_BUILD_TYPE=Release -G Xcode
 
     - name: Build
       working-directory: ${{github.workspace}}/build
