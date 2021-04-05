@@ -906,7 +906,8 @@ MainWindow::MainWindow(QWidget *parent) :
     });
     connect(&rotModel, &TableModelRotation::singersMoved, [&](auto startRow, auto startCol, auto endRow, auto endCol) {
         if (startRow == endRow) {
-            //ui->tableViewRotation->selectRow(startRow);
+            ui->tableViewRotation->clearSelection();
+            ui->tableViewRotation->selectRow(startRow);
             return;
         }
         auto topLeft = ui->tableViewRotation->model()->index(startRow, startCol);
