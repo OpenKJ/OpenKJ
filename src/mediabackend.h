@@ -199,6 +199,7 @@ private:
     void buildVideoSinkBin();
     void buildAudioSinkBin();
     void resetVideoSinks();
+    void forceVideoExpose();
     const char* getVideoSinkElementNameForFactory();
     void getAudioOutputDevices();
     void writePipelineGraphToFile(GstBin *bin, const QString& filePath, QString fileName);

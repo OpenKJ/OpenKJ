@@ -267,9 +267,8 @@ void MediaBackend::play()
         g_free(uri);
     }
 
-    resetVideoSinks();
-
     gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
+    forceVideoExpose();
 }
 
 void MediaBackend::resetPipeline()
@@ -908,6 +907,18 @@ void MediaBackend::resetVideoSinks()
     }
 }
 
+void MediaBackend::forceVideoExpose()
+{
+    if (!m_videoAccelEnabled)
+        return;
+
+    // this fixes a bug where window resize events that happens before the pipeline is playing is not reaching the sink
+    for(auto &vs : m_videoSinks)
+    {
+        gst_video_overlay_expose(reinterpret_cast<GstVideoOverlay*>(vs.videoSink));
+    }
+}
+
 void MediaBackend::getAudioOutputDevices()
 {
     auto monitor = gst_device_monitor_new ();
@@ -1062,6 +1073,7 @@ void MediaBackend::setVideoOutputWidgets(const std::vector<QWidget*>& surfaces)
 
         m_videoSinks.push_back(vd);
     }
+
     resetVideoSinks();
 }
 
