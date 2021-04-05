@@ -57,11 +57,6 @@ void CdgAppSrc::load(const QString filename)
     gst_app_src_set_duration(m_cdgAppSrc, m_cdgFileReader->getTotalDurationMS() * GST_MSECOND);
 }
 
-int CdgAppSrc::getLastDrawPosition()
-{
-    return m_cdgFileReader->positionOfFinalDrawMS();
-}
-
 int CdgAppSrc::positionOfFinalFrameMS()
 {
     QMutexLocker locker(&m_cdgFileReaderLock);
