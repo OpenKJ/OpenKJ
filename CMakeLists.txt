@@ -579,9 +579,10 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
                 add_custom_command(
                         TARGET openkj
                         COMMAND "${MACDEPLOYQT}"
+			VERBATIM
                         ARGS 
                             "${CMAKE_BINARY_DIR}/openkj.app"
-                            "-codesign=\"${MAC_SIGNING_IDENTITY}\"" 
+                            -codesign=${MAC_SIGNING_IDENTITY} 
                             "-appstore-compliant"
                 )
             else()
