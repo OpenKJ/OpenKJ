@@ -150,6 +150,10 @@ private:
     GstElement *m_faderVolumeElement { nullptr };
     GstElement *m_equalizer { nullptr };
     GstElement *m_audioSink { nullptr };
+    GstElement *m_prescalerCapsFilter { nullptr };
+    GstElement *m_queueMainVideo { nullptr };
+    GstElement *m_prescaler { nullptr };
+    GstElement *m_prescalerVideoConvert { nullptr };
 
     GstCaps *m_audioCapsStereo { nullptr };
     GstCaps *m_audioCapsMono { nullptr };
