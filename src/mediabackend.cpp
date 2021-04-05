@@ -35,6 +35,7 @@
 #include <gst/gstsegment.h>
 #include "gstreamer/gstreamerhelper.h"
 
+extern Settings settings;
 
 Q_DECLARE_SMART_POINTER_METATYPE(std::shared_ptr);
 Q_DECLARE_METATYPE(std::shared_ptr<GstMessage>);
@@ -42,8 +43,6 @@ Q_DECLARE_METATYPE(std::shared_ptr<GstMessage>);
 MediaBackend::MediaBackend(QObject *parent, QString objectName, const MediaType type) :
     QObject(parent), m_objName(std::move(objectName)), m_type(type), m_loadPitchShift(type == Karaoke)
 {
-    Settings settings;
-
     qInfo() << "Start constructing GStreamer backend";
     m_videoAccelEnabled = settings.hardwareAccelEnabled();
     qInfo() << "Hardware accelerated video rendering" << (m_videoAccelEnabled ? "enabled" : "disabled");
@@ -267,7 +266,10 @@ void MediaBackend::play()
         g_free(uri);
     }
 
+    resetVideoSinks();
+
     gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
+    setEnforceAspectRatio(settings.enforceAspectRatio());
     forceVideoExpose();
 }
 
