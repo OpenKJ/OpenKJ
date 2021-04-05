@@ -234,6 +234,15 @@ void MediaBackend::play()
             return;
         }
 
+        if (settings.cdgPrescalingEnabled())
+        {
+            gst_element_unlink(m_queueMainVideo, m_videoTee);
+            gst_element_link_many(m_queueMainVideo, m_prescalerVideoConvert, m_prescaler, m_prescalerCapsFilter, m_videoTee, nullptr);
+        } else {
+            gst_element_unlink_many(m_queueMainVideo, m_prescalerVideoConvert, m_prescaler, m_prescalerCapsFilter, m_videoTee, nullptr);
+            gst_element_link(m_queueMainVideo, m_videoTee);
+        }
+
         // Use m_cdgAppSrc as source for video. m_decoder will still be used for audio file
         gst_bin_add(reinterpret_cast<GstBin*>(m_pipeline), m_cdgSrc->getSrcElement());
         m_videoSrcPad = new PadInfo { m_cdgSrc->getSrcElement(), "src" };
@@ -244,6 +253,9 @@ void MediaBackend::play()
         m_cdgSrc->load(m_cdgFilename);
 
         qInfo() << m_objName << " - play - playing cdg:   " << m_cdgFilename;
+    } else {
+        gst_element_unlink_many(m_queueMainVideo, m_prescalerVideoConvert, m_prescaler, m_prescalerCapsFilter, m_videoTee, nullptr);
+        gst_element_link(m_queueMainVideo, m_videoTee);
     }
 
     if (!QFile::exists(m_filename))
@@ -720,18 +732,32 @@ void MediaBackend::buildVideoSinkBin()
     m_videoBin = gst_bin_new("videoBin");
     g_object_ref(m_videoBin);
 
-    auto queueMainVideo = gst_element_factory_make("queue", "queueMainVideo");
-    gst_bin_add(reinterpret_cast<GstBin *>(m_videoBin), queueMainVideo);
+    m_queueMainVideo = gst_element_factory_make("queue", "m_queueMainVideo");
+    gst_bin_add(reinterpret_cast<GstBin *>(m_videoBin), m_queueMainVideo);
+    m_prescalerVideoConvert = gst_element_factory_make("videoconvert", "m_prescalerVideoConvert");
+    m_prescaler = gst_element_factory_make("videoscale", "m_prescaler");
+    g_object_set(m_prescaler, "method", 0, nullptr);
+    m_prescalerCapsFilter = gst_element_factory_make("capsfilter", "m_prescalerCapsFilter");
+    auto cdgPreScaleCaps = gst_caps_new_simple(
+            "video/x-raw",
+            "format", G_TYPE_STRING, "RGB",
+            "width",  G_TYPE_INT, 1152,
+            "height", G_TYPE_INT, 768,
+            NULL);
+    g_object_set(G_OBJECT(m_prescalerCapsFilter), "caps", cdgPreScaleCaps, nullptr);
+    gst_caps_unref(cdgPreScaleCaps);
 
-    auto queuePad = gst_element_get_static_pad(queueMainVideo, "sink");
+    auto queuePad = gst_element_get_static_pad(m_queueMainVideo, "sink");
     auto ghostVideoPad = gst_ghost_pad_new("sink", queuePad);
     gst_pad_set_active(ghostVideoPad, true);
     gst_element_add_pad(m_videoBin, ghostVideoPad);
     gst_object_unref(queuePad);
 
     m_videoTee = gst_element_factory_make("tee", "videoTee");
-    gst_bin_add(reinterpret_cast<GstBin *>(m_videoBin), m_videoTee);
-    gst_element_link(queueMainVideo, m_videoTee);
+    gst_bin_add_many(reinterpret_cast<GstBin *>(m_videoBin), m_prescalerVideoConvert, m_prescaler, m_prescalerCapsFilter, m_videoTee, nullptr);
+    gst_element_link(m_queueMainVideo, m_videoTee);
+
+
 }
 
 void MediaBackend::buildAudioSinkBin()
