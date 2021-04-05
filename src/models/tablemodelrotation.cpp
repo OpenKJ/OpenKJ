@@ -193,7 +193,7 @@ int TableModelRotation::singerAdd(const QString &name, const int positionHint)
     switch (positionHint) {
     case ADD_FAIR:
     {
-        if (curSingerPos != 0 && !settings.rotationAltSortOrder())
+        if (curSingerPos > 0 && !settings.rotationAltSortOrder())
             singerMove(addPos, getSingerPosition(m_currentSingerId));
         break;
     }
