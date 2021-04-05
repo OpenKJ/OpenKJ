@@ -87,7 +87,7 @@ jobs:
         else
         RTYPE=$BRANCH
         fi
-        OKJVER=`grep VERSION_STRING src/okjversion.h | cut -d'"' -f2`
+        OKJVER=`grep VERSION_STRING ../src/okjversion.h | cut -d'"' -f2`
         echo "OpenKJ Version: $OKJVER"
         FN="OpenKJ-${OKJVER}-${RTYPE}-osx-installer.pkg"
         echo "Package filename: $FN"
@@ -112,7 +112,7 @@ jobs:
         else
         RTYPE=$BRANCH
         fi
-        OKJVER=`grep VERSION_STRING src/okjversion.h | cut -d'"' -f2`
+        OKJVER=`grep VERSION_STRING ../src/okjversion.h | cut -d'"' -f2`
         echo "OpenKJ Version: $OKJVER"
         FN="OpenKJ-${OKJVER}-${RTYPE}-osx-installer.pkg"
         echo "Package filename: $FN"
