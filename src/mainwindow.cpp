@@ -565,7 +565,7 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->lblKey->hide();
         ui->tableViewQueue->hideColumn(7);
     }
-    if (MediaBackend::canChangeTempo()) {
+    if (!MediaBackend::canChangeTempo()) {
         ui->spinBoxTempo->hide();
         ui->lblTempo->hide();
     }
