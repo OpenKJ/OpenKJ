@@ -21,7 +21,7 @@ jobs:
         fi
         echo "rtype=${RTYPE}" >> $GITHUB_ENV
         OKJVER=`grep VERSION_STRING ../src/okjversion.h | cut -d'"' -f2`
-        echo "okjver=${OKJVER} >> $GITHUB_ENV
+        echo "okjver=${OKJVER}" >> $GITHUB_ENV
         echo "OpenKJ Version: $OKJVER"
         FN="OpenKJ-${OKJVER}-${RTYPE}-osx-installer.pkg"
         echo "installer_fn=${FN}" >> $GITHUB_ENV
