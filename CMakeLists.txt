@@ -575,11 +575,22 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     if (qt5_install_prefix)
         find_program(MACDEPLOYQT macdeployqt HINTS ${qt5_install_prefix} PATH_SUFFIXES bin)
         if (MACDEPLOYQT)
-            add_custom_command(
-                    TARGET openkj
-                    COMMAND "${MACDEPLOYQT}"
-                    ARGS "${CMAKE_BINARY_DIR}/openkj.app"
-            )
+            if (DEFINED MAC_SIGNING_IDENTITY)
+                add_custom_command(
+                        TARGET openkj
+                        COMMAND "${MACDEPLOYQT}"
+                        ARGS 
+                            "${CMAKE_BINARY_DIR}/openkj.app"
+                            "-codesign=\"${MAC_SIGNING_IDENTITY}\"" 
+                            "-appstore-compliant"
+                )
+            else()
+                add_custom_command(
+                        TARGET openkj
+                        COMMAND "${MACDEPLOYQT}"
+                        ARGS "${CMAKE_BINARY_DIR}/openkj.app"
+                )
+            endif()
         else ()
             message("Can't find macdeployqt")
         endif ()
