@@ -202,9 +202,6 @@ void MediaBackend::play()
     qInfo() << m_objName << " - play() called";
     m_videoOffsetMs = m_settings.videoOffsetMs();
 
-    // todo - athom: leftover from playbin. Is what nessecary - what does it do?
-    //gst_stream_volume_set_volume(GST_STREAM_VOLUME(m_pipeline), GST_STREAM_VOLUME_FORMAT_LINEAR, 0.85);
-
     if (m_currentlyFadedOut)
     {
         g_object_set(m_faderVolumeElement, "volume", 0.0, nullptr);
@@ -234,7 +231,7 @@ void MediaBackend::play()
             return;
         }
 
-        if (settings.cdgPrescalingEnabled())
+        if (settings.cdgPrescalingEnabled() && settings.hardwareAccelEnabled())
         {
             gst_element_unlink(m_queueMainVideo, m_videoTee);
             gst_element_link_many(m_queueMainVideo, m_prescalerVideoConvert, m_prescaler, m_prescalerCapsFilter, m_videoTee, nullptr);
@@ -775,25 +772,6 @@ void MediaBackend::buildAudioSinkBin()
     auto level = gst_element_factory_make("level", "level");
     m_equalizer = gst_element_factory_make("equalizer-10bands", "equalizer");
     m_bus = gst_element_get_bus(m_pipeline);
-    /*
-    #if defined(Q_OS_LINUX)
-    gst_bus_add_watch(m_bus, (GstBusFunc)gstBusFunc, this);
-#else
-    // We need to pop messages off the gst bus ourselves on non-linux platforms since
-    // there is no GMainLoop running
-    m_gstBusMsgHandlerTimer.start(40);
-    connect(&m_gstBusMsgHandlerTimer, &QTimer::timeout, [&] () {
-        while (gst_bus_have_pending(m_bus))
-        {
-            auto msg = gst_bus_pop(m_bus);
-            if (!msg)
-                continue;
-            gstBusFunc(m_bus, msg, this);
-            gst_message_unref(msg);
-        }
-    });
-#endif
-*/
     m_audioCapsStereo = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 2, nullptr);
     m_audioCapsMono = gst_caps_new_simple("audio/x-raw", "channels", G_TYPE_INT, 1, nullptr);
 
@@ -813,8 +791,7 @@ void MediaBackend::buildAudioSinkBin()
     GstElement *audioBinLastElement;
 
     gst_bin_add_many(GST_BIN(m_audioBin), queueMainAudio, audioResample, m_audioPanorama, level, m_scaleTempo, aConvInput, rgVolume, /*rgLimiter,*/ m_volumeElement, m_equalizer, aConvPostPanorama, m_fltrPostPanorama, m_faderVolumeElement, nullptr);
-    // todo: athom: link m_volumeElement (and perhaps m_faderVolumeElement) after queueEndAudio to avoid delay when changing volume
-    gst_element_link_many(queueMainAudio, aConvInput, audioResample, rgVolume, /*rgLimiter,*/ m_scaleTempo, level, m_volumeElement, m_equalizer, m_faderVolumeElement, m_audioPanorama, aConvPostPanorama, audioBinLastElement = m_fltrPostPanorama, nullptr);
+    gst_element_link_many(queueMainAudio, aConvInput, audioResample, rgVolume, /*rgLimiter,*/ m_scaleTempo, level, m_equalizer, m_audioPanorama, aConvPostPanorama, audioBinLastElement = m_fltrPostPanorama, nullptr);
 
     if (m_loadPitchShift)
     {
@@ -850,7 +827,7 @@ void MediaBackend::buildAudioSinkBin()
     }
 
     gst_bin_add_many(GST_BIN(m_audioBin), m_aConvEnd, queueEndAudio, m_audioSink, nullptr);
-    gst_element_link_many(audioBinLastElement, queueEndAudio, m_aConvEnd, m_audioSink, nullptr);
+    gst_element_link_many(audioBinLastElement, queueEndAudio, m_volumeElement, m_faderVolumeElement, m_aConvEnd, m_audioSink, nullptr);
 
     auto csource = gst_interpolation_control_source_new ();
     if (!csource)
