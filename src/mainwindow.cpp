@@ -501,6 +501,10 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->pushButtonIncomingRequests->setStyleSheet("");
         update();
     }
+    ui->pushButtonKeyDn->setEnabled(false);
+    ui->pushButtonKeyUp->setEnabled(false);
+    ui->pushButtonTempoDn->setEnabled(false);
+    ui->pushButtonTempoUp->setEnabled(false);
     songbookApi = new OKJSongbookAPI(this);
     int initialKVol = settings.audioVolume();
     int initialBMVol = settings.bmVolume();
@@ -1606,14 +1610,11 @@ void MainWindow::on_buttonClearQueue_clicked() {
 }
 
 void MainWindow::on_spinBoxKey_valueChanged(const int &arg1) {
-    if ((kMediaBackend.state() == MediaBackend::PlayingState) || (kMediaBackend.state() == MediaBackend::PausedState)) {
-        kMediaBackend.setPitchShift(arg1);
-        if (arg1 > 0)
-            ui->spinBoxKey->setPrefix("+");
-        else
-            ui->spinBoxKey->setPrefix("");
-    } else
-        ui->spinBoxKey->setValue(0);
+    kMediaBackend.setPitchShift(arg1);
+    if (arg1 > 0)
+        ui->spinBoxKey->setPrefix("+");
+    else
+        ui->spinBoxKey->setPrefix("");
     QTimer::singleShot(20, [&]() {
         ui->spinBoxKey->findChild<QLineEdit *>()->deselect();
     });
@@ -1664,6 +1665,11 @@ void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &sta
         ui->labelTotalTime->setText("0:00");
         ui->sliderProgress->setValue(0);
         ui->spinBoxTempo->setValue(100);
+        ui->spinBoxKey->setValue(0);
+        ui->pushButtonKeyDn->setEnabled(false);
+        ui->pushButtonKeyUp->setEnabled(false);
+        ui->pushButtonTempoDn->setEnabled(false);
+        ui->pushButtonTempoUp->setEnabled(false);
         if (state == m_lastAudioState)
             return;
         m_lastAudioState = state;
@@ -1728,6 +1734,10 @@ void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &sta
         qInfo() << "KAudio entered PlayingState";
         m_lastAudioState = state;
         bmMediaBackend.setVideoEnabled(false);
+        ui->pushButtonKeyUp->setEnabled(true);
+        ui->pushButtonKeyDn->setEnabled(true);
+        ui->pushButtonTempoDn->setEnabled(true);
+        ui->pushButtonTempoUp->setEnabled(true);
     }
     if (state == MediaBackend::UnknownState) {
         qInfo() << "KAudio entered UnknownState";
