@@ -117,6 +117,7 @@ jobs:
       uses: devbotsxyz/xcode-notarize@v1
       with:
         product-path: ${{ github.workspace }}/build/${{ env.installer_fn }}
+        primary-bundle-id: org.openkj.openkj
         appstore-connect-username: ${{ secrets.APPLE_APP_STORE_CONNECT_USER }}
         appstore-connect-password: ${{ secrets.APPLE_APP_STORE_CONNECT_PASS }}
 
