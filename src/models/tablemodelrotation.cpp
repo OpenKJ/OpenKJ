@@ -59,6 +59,86 @@ QVariant TableModelRotation::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid())
         return QVariant();
+    if (role == Qt::ToolTipRole)
+    {
+        QString toolTipText;
+        auto curSingerPos{0};
+        if (m_currentSingerId != -1)
+            curSingerPos = getSingerPosition(m_currentSingerId);
+        auto hoverSingerPos{index.sibling(index.row(), COL_POSITION).data().toInt()};
+        int totalWaitDuration = 0;
+        int singerId = index.data(Qt::UserRole).toInt();
+        int qSongsSung = numSongsSung(singerId);
+        int qSongsUnsung = numSongsUnsung(singerId);
+        if (m_currentSingerId == singerId)
+        {
+            toolTipText = "Current singer - Sung: " + QString::number(qSongsSung) + " - Unsung: " + QString::number(qSongsUnsung);
+        }
+        else if (curSingerPos < hoverSingerPos)
+        {
+            toolTipText = "Wait: " + QString::number(hoverSingerPos - curSingerPos) + " - Sung: " + QString::number(qSongsSung) + " - Unsung: " + QString::number(qSongsUnsung);
+            for (int i=curSingerPos; i < hoverSingerPos; i++)
+            {
+                int sId = singerIdAtPosition(i);
+                if (i == curSingerPos)
+                {
+                    totalWaitDuration += m_remainSecs;
+                }
+                else if (sId != singerId)
+                {
+                    int nextDuration = nextSongDurationSecs(sId);
+                    totalWaitDuration += nextDuration;
+                }
+            }
+        }
+        else if (curSingerPos > hoverSingerPos)
+        {
+            toolTipText = "Wait: " + QString::number(hoverSingerPos + (rowCount() - curSingerPos)) + " - Sung: " + QString::number(qSongsSung) + " - Unsung: " + QString::number(qSongsUnsung);
+            for (int i=0; i < hoverSingerPos; i++)
+            {
+                int sId = singerIdAtPosition(i);
+                if (sId != singerId)
+                {
+                    int nextDuration = nextSongDurationSecs(sId);
+                    totalWaitDuration += nextDuration;
+                }
+            }
+            for (int i=curSingerPos; i < rowCount(); i++)
+            {
+                int sId = singerIdAtPosition(i);
+                if (i == curSingerPos)
+                    totalWaitDuration += 240;
+                else if (sId != singerId)
+                {
+                    int nextDuration = nextSongDurationSecs(sId);
+                    totalWaitDuration += nextDuration;
+                }
+            }
+        }
+        toolTipText += "\nTime Added: " + m_singers.at(index.row()).addTs.toString("h:mm a");
+
+        if (totalWaitDuration > 0)
+        {
+            int hours = 0;
+            int minutes = totalWaitDuration / 60;
+            int seconds = totalWaitDuration % 60;
+            if (seconds > 0)
+                minutes++;
+            if (minutes > 60)
+            {
+                hours = minutes / 60;
+                minutes = minutes % 60;
+                if (hours > 1)
+                    toolTipText += "\nEst wait time: " + QString::number(hours) + " hours " + QString::number(minutes) + " min";
+                else
+                    toolTipText += "\nEst wait time: " + QString::number(hours) + " hour " + QString::number(minutes) + " min";
+            }
+            else
+                toolTipText += "\nEst wait time: " + QString::number(minutes) + " min";
+        }
+        return QString(toolTipText);
+    }
+
     if (role == Qt::UserRole)
     {
         return m_singers.at(index.row()).id;
@@ -362,9 +442,9 @@ int TableModelRotation::getSingerPosition(const int singerId) const
     return it->position;
 }
 
-int TableModelRotation::singerIdAtPosition(int position)
+int TableModelRotation::singerIdAtPosition(int position) const
 {
-    auto it = std::find_if(m_singers.begin(), m_singers.end(), [&position] (RotationSinger &singer) {
+    auto it = std::find_if(m_singers.begin(), m_singers.end(), [&position] (const RotationSinger &singer) {
         return (singer.position == position);
     });
     if (it == m_singers.end())

@@ -62,7 +62,7 @@ public:
     QString getSingerName(const int singerId);
     int getSingerId(const QString &name);
     int getSingerPosition(const int singerId) const;
-    int singerIdAtPosition(int position);
+    int singerIdAtPosition(int position) const;
     QStringList singers();
     QStringList historySingers() const;
     QString nextSongPath(const int singerId) const;
@@ -84,6 +84,7 @@ public:
     void outputRotationDebug();
     void fixSingerPositions();
     void resizeIconsForFont(const QFont &font);
+    void setCurRemainSecs(const int secs) { m_remainSecs = secs; }
 
 private:
     std::vector<RotationSinger> m_singers;
@@ -91,6 +92,7 @@ private:
     QImage m_iconGreenCircle;
     QImage m_iconYellowCircle;
     int m_curFontHeight;
+    int m_remainSecs{0};
 
 signals:
     void songDroppedOnSinger(int singerId, int songId, int dropRow);

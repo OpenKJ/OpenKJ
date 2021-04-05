@@ -1628,6 +1628,7 @@ void MainWindow::karaokeMediaBackend_positionChanged(const qint64 &position) {
         }
         ui->labelElapsedTime->setText(MediaBackend::msToMMSS(position));
         ui->labelRemainTime->setText(MediaBackend::msToMMSS(kMediaBackend.duration() - position));
+        rotModel.setCurRemainSecs((kMediaBackend.duration() - position) / 1000);
     }
 }
 
@@ -1646,6 +1647,7 @@ void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &sta
             rotDelegate.setCurrentSinger(-1);
             ui->tableViewRotation->clearSelection();
             ui->tableViewRotation->selectRow(0);
+            rotModel.setCurRemainSecs(0);
         }
         qInfo() << "MainWindow - audio backend state is now STOPPED";
         if (ui->labelTotalTime->text() == "0:00") {
