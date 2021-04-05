@@ -3547,6 +3547,7 @@ void MainWindow::on_btnQBottom_clicked() {
 void MainWindow::on_btnBmPlRandomize_clicked() {
     if (playlistSongsModel.rowCount() < 2)
         return;
+    playlistSongsModel.randomizePlaylist();
 }
 
 void MainWindow::on_btnPlTop_clicked() {

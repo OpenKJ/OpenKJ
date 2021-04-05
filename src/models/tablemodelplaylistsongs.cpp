@@ -274,6 +274,9 @@ int TableModelPlaylistSongs::randomizePlaylist()
         else
             song.position = songPos++;
     });
+    std::sort(m_songs.begin(), m_songs.end(), [] (const PlaylistSong &a, const PlaylistSong &b) {
+        return (a.position < b.position);
+    });
     savePlaylistChanges();
     emit layoutChanged();
     setCurrentPosition(newCurPos);
