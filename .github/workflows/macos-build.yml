@@ -2,7 +2,7 @@ name: Create MacOS Build & Installer
 
 on:
   push:
-    branches: [ macos-actiontest ]
+    branches: [ macos-actiontest, master, release ]
 
 jobs:
   build:
