@@ -208,8 +208,11 @@ bool CdgParser::readCdgSubcodePacket(const cdg::CDG_SubCode &subCode)
 
 void CdgParser::cmdBorderPreset(const cdg::CdgBorderPresetData &borderPreset)
 {
+    // reject out of range value from corrupted CDG packets
+    if (borderPreset.color >= 16)
+        return false;
     // Is there a safer C++ way to do these memory copies?
-
+    if (
     for (auto line=0; line < 216; line++)
     {
         if (line < 12 || line > 202)
@@ -240,6 +243,9 @@ bool CdgParser::cmdColors(const cdg::CdgColorsData &data, const cdg::CdgColorTab
 
 bool CdgParser::cmdMemoryPreset(const cdg::CdgMemoryPresetData &memoryPreset)
 {
+    // reject out of range value from corrupted CDG packets
+    if (memoryPreset.color >= 16)
+        return false;
     if (m_lastCmdWasMempreset && memoryPreset.repeat)
     {
         return false;
@@ -252,6 +258,11 @@ bool CdgParser::cmdMemoryPreset(const cdg::CdgMemoryPresetData &memoryPreset)
 
 void CdgParser::cmdTileBlock(const cdg::CdgTileBlockData &tileBlockPacket, const cdg::TileBlockType &type)
 {
+    
+    // reject corrupted CDG packets w/ invalid row/column
+    if (tileBlockPacket.row >= 18 || tileBlockPacket.column >= 50 || tileBlockPacket.color0 >= 16 || tileBlockPacket.color1 >= 16)
+        return;
+    
     // There's probably a better way to do this, needs research
     for (auto y = 0; y < 12; y++)
     {
