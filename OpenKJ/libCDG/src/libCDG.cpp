@@ -210,9 +210,8 @@ void CdgParser::cmdBorderPreset(const cdg::CdgBorderPresetData &borderPreset)
 {
     // reject out of range value from corrupted CDG packets
     if (borderPreset.color >= 16)
-        return false;
+        return;
     // Is there a safer C++ way to do these memory copies?
-    if (
     for (auto line=0; line < 216; line++)
     {
         if (line < 12 || line > 202)
