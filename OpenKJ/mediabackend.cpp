@@ -662,6 +662,21 @@ void MediaBackend::buildPipeline()
         break;
     }
 #elif defined(Q_OS_WIN)
+    // Force use of DirectSound to avoid bug in WASAPI that destroys OLE objects that belong to
+    // Qt, breaking drag and drop.
+    GstRegistry *reg = gst_registry_get();
+    if (reg) {
+        GstPluginFeature *directsoundsink = gst_registry_lookup_feature(reg, "directsoundsink");
+        GstPluginFeature *wasapisink = gst_registry_lookup_feature(reg, "wasapisink");
+        if (directsoundsink && wasapisink) {
+            gst_plugin_feature_set_rank(directsoundsink, GST_RANK_PRIMARY);
+            gst_plugin_feature_set_rank(wasapisink, GST_RANK_SECONDARY);
+        }
+        if (directsoundsink) gst_object_unref(directsoundsink);
+        if (wasapisink) gst_object_unref(wasapisink);
+    }
+    
+    
     m_videoSink1 = gst_element_factory_make ("d3dvideosink", "videoSink1");
     m_videoSink2 = gst_element_factory_make("d3dvideosink", "videoSink2");
 #else
