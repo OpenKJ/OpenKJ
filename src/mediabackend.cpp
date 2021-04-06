@@ -58,15 +58,19 @@ MediaBackend::MediaBackend(QObject *parent, QString objectName, const MediaType 
 
 void MediaBackend::setVideoEnabled(const bool &enabled)
 {
-    auto curPos = m_lastPosition;
-    gst_element_set_state(m_pipeline, GST_STATE_PAUSED);
+    bool needsPause{false};
+    if (state() == PlayingState)
+    {
+        needsPause = true;
+        gst_element_set_state(m_pipeline, GST_STATE_PAUSED);
+    }
     if(m_videoEnabled != enabled)
     {
         m_videoEnabled = enabled;
         patchPipelineSinks();
     }
-    gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
-    setPosition(curPos);
+    if (needsPause)
+        gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
 }
 
 bool MediaBackend::hasActiveVideo()
