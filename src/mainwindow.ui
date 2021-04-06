@@ -3283,6 +3283,7 @@ QPushButton:default {
     <addaction name="actionKaraoke_torture"/>
     <addaction name="actionK_B_torture"/>
     <addaction name="actionBurn_in"/>
+    <addaction name="actionBurn_in_EOS_Jump"/>
     <addaction name="actionCDG_Decode_Torture"/>
     <addaction name="actionBreak_music_torture"/>
     <addaction name="actionWrite_Gstreamer_pipeline_dot_files"/>
@@ -3520,6 +3521,11 @@ QPushButton:default {
   <action name="actionWrite_Gstreamer_pipeline_dot_files">
    <property name="text">
     <string>Write Gstreamer pipeline dot files</string>
+   </property>
+  </action>
+  <action name="actionBurn_in_EOS_Jump">
+   <property name="text">
+    <string>Burn in - EOS Jump</string>
    </property>
   </action>
  </widget>

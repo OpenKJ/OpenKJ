@@ -483,6 +483,7 @@ void MediaBackend::timerSlow_timeout()
                 if (m_type != Karaoke)
                 {
                     emit silenceDetected();
+                    m_silenceDuration = 0;
                 }
                 else if(m_cdgMode)
                 {
@@ -491,6 +492,7 @@ void MediaBackend::timerSlow_timeout()
                     if (last_frame_pos > 0 && last_frame_pos <= currPos)
                     {
                         emit silenceDetected();
+                        m_silenceDuration = 0;
                     }
                 }
             }
@@ -500,12 +502,19 @@ void MediaBackend::timerSlow_timeout()
     }
 
     // Check if playback is hung (playing but no movement since 1 second ago) for some reason
+    static int hungCycles{0};
     if (state() == PlayingState)
     {
         if (m_positionWatchdogLastPos == currPos && m_positionWatchdogLastPos > 10)
         {
-            qWarning() << m_objName << " - Playback appears to be hung, emitting end of stream";
-            emit stateChanged(EndOfMediaState);
+            hungCycles++;
+            qWarning() << m_objName << " - Playback appears to be hung, no position change for " << hungCycles << " seconds!";
+            if (hungCycles >= 5)
+            {
+                qWarning() << m_objName << " - Playback appears to have been hung for consecutive seconds, giving up!";
+                emit stateChanged(EndOfMediaState);
+                hungCycles = 0;
+            }
         }
         m_positionWatchdogLastPos = currPos;
     }

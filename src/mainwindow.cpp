@@ -3799,7 +3799,7 @@ void MainWindow::on_actionBurn_in_triggered() {
         playing = true;
         qInfo() << "Burn in test cycle: " << ++runs;
     });
-    m_timerTest.start(3000);
+    m_timerTest.start(10000);
 #endif
 }
 
@@ -4117,4 +4117,51 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 {
     qInfo() << "Mouse move event: " << event->pos();
     QMainWindow::mouseMoveEvent(event);
+}
+
+void MainWindow::on_actionBurn_in_EOS_Jump_triggered()
+{
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
+    m_testMode = true;
+    emit ui->buttonClearRotation->clicked();
+    for (auto i = 0; i < 21; i++) {
+        auto singerName = "Test Singer " + QString::number(i);
+        rotModel.singerAdd(singerName);
+        // rotModel.regularDelete(singerName);
+    }
+    connect(&m_timerTest, &QTimer::timeout, [&]() {
+        QApplication::beep();
+        static bool playing = false;
+        static int runs = 0;
+        rotModel.singerMove(QRandomGenerator::global()->bounded(0, 19), QRandomGenerator::global()->bounded(0, 19));
+        ui->tableViewRotation->selectRow(QRandomGenerator::global()->bounded(0, 19));
+        int randno{0};
+        if (karaokeSongsModel.rowCount(QModelIndex()) > 1)
+            randno = QRandomGenerator::global()->bounded(0, karaokeSongsModel.rowCount(QModelIndex()) - 1);
+        qInfo() << "randno: " << randno;
+        ui->tableViewDB->selectRow(randno);
+        ui->tableViewDB->scrollTo(ui->tableViewDB->selectionModel()->selectedRows().at(0));
+        emit ui->tableViewDB->doubleClicked(ui->tableViewDB->selectionModel()->selectedRows().at(0));
+        ui->tableViewQueue->selectRow(qModel.rowCount() - 1);
+        ui->tableViewQueue->scrollTo(ui->tableViewQueue->selectionModel()->selectedRows().at(0));
+        if (qModel.rowCount() > 2) {
+            auto newPos = QRandomGenerator::global()->bounded(0, qModel.rowCount() - 1);
+            qModel.move(qModel.rowCount() - 1, newPos);
+            ui->tableViewQueue->selectRow(newPos);
+            ui->tableViewQueue->scrollTo(ui->tableViewQueue->selectionModel()->selectedRows().at(0));
+        }
+        auto idx = ui->tableViewQueue->selectionModel()->selectedRows().at(0);
+        emit ui->tableViewQueue->doubleClicked(idx);
+        ui->tableViewQueue->selectRow(idx.row());
+        playing = true;
+        QTimer::singleShot(500, [&] () {
+           auto duration = kMediaBackend.duration();
+           auto jumpPoint = duration - 10000;
+           kMediaBackend.setPosition(jumpPoint);
+        });
+        qInfo() << "Burn in test cycle: " << ++runs;
+        ui->labelSinger->setText("Torture run (" + QString::number(runs) + ")");
+    });
+    m_timerTest.start(13000);
+#endif
 }
