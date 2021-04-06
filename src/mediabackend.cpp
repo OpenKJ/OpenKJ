@@ -58,11 +58,15 @@ MediaBackend::MediaBackend(QObject *parent, QString objectName, const MediaType 
 
 void MediaBackend::setVideoEnabled(const bool &enabled)
 {
+    auto curPos = m_lastPosition;
+    gst_element_set_state(m_pipeline, GST_STATE_PAUSED);
     if(m_videoEnabled != enabled)
     {
         m_videoEnabled = enabled;
         patchPipelineSinks();
     }
+    gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
+    setPosition(curPos);
 }
 
 bool MediaBackend::hasActiveVideo()
@@ -501,23 +505,23 @@ void MediaBackend::timerSlow_timeout()
             m_silenceDuration = 0;
     }
 
-//    // Check if playback is hung (playing but no movement since 1 second ago) for some reason
-//    static int hungCycles{0};
-//    if (state() == PlayingState)
-//    {
-//        if (m_positionWatchdogLastPos == currPos && m_positionWatchdogLastPos > 10)
-//        {
-//            hungCycles++;
-//            qWarning() << m_objName << " - Playback appears to be hung, no position change for " << hungCycles << " seconds!";
-//            if (hungCycles >= 5)
-//            {
-//                qWarning() << m_objName << " - Playback appears to have been hung for consecutive seconds, giving up!";
-//                emit stateChanged(EndOfMediaState);
-//                hungCycles = 0;
-//            }
-//        }
-//        m_positionWatchdogLastPos = currPos;
-//    }
+    // Check if playback is hung (playing but no movement since 1 second ago) for some reason
+    static int hungCycles{0};
+    if (state() == PlayingState)
+    {
+        if (m_positionWatchdogLastPos == currPos && m_positionWatchdogLastPos > 10)
+        {
+            hungCycles++;
+            qWarning() << m_objName << " - Playback appears to be hung, no position change for " << hungCycles << " seconds!";
+            if (hungCycles >= 5)
+            {
+                qWarning() << m_objName << " - Playback appears to have been hung for consecutive seconds, giving up!";
+                emit stateChanged(EndOfMediaState);
+                hungCycles = 0;
+            }
+        }
+        m_positionWatchdogLastPos = currPos;
+    }
 }
 
 void MediaBackend::setVideoOffset(const int offsetMs) {
