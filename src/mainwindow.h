@@ -194,7 +194,7 @@ private slots:
     void sfxAudioBackend_positionChanged(const qint64 &position);
     void sfxAudioBackend_durationChanged(const qint64 &duration);
     void sfxAudioBackend_stateChanged(const MediaBackend::State &state);
-    void on_hasActiveVideoChanged();
+    void hasActiveVideoChanged();
     void on_buttonRegulars_clicked();
     void rotationDataChanged();
     void silenceDetectedKar();

@@ -501,6 +501,7 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->pushButtonIncomingRequests->setStyleSheet("");
         update();
     }
+    ui->videoPreviewBm->hide();
     ui->pushButtonKeyDn->setEnabled(false);
     ui->pushButtonKeyUp->setEnabled(false);
     ui->pushButtonTempoDn->setEnabled(false);
@@ -588,7 +589,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&kMediaBackend, &MediaBackend::stateChanged, this, &MainWindow::karaokeMediaBackend_stateChanged);
     connect(&kMediaBackend, &MediaBackend::hasActiveVideoChanged, [=](const bool &isActive) {
         m_kHasActiveVideo = isActive;
-        on_hasActiveVideoChanged();
+        hasActiveVideoChanged();
     });
     connect(&kMediaBackend, &MediaBackend::pitchChanged, ui->spinBoxKey, &QSpinBox::setValue);
     connect(&kMediaBackend, &MediaBackend::audioError, this, &MainWindow::audioError);
@@ -597,7 +598,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&bmMediaBackend, &MediaBackend::silenceDetected, this, &MainWindow::silenceDetectedBm);
     connect(&bmMediaBackend, &MediaBackend::hasActiveVideoChanged, [=](const bool &isActive) {
         m_bmHasActiveVideo = isActive;
-        on_hasActiveVideoChanged();
+        hasActiveVideoChanged();
     });
     connect(&sfxMediaBackend, &MediaBackend::positionChanged, this, &MainWindow::sfxAudioBackend_positionChanged);
     connect(&sfxMediaBackend, &MediaBackend::durationChanged, this, &MainWindow::sfxAudioBackend_durationChanged);
@@ -921,7 +922,7 @@ MainWindow::MainWindow(QWidget *parent) :
                                                         QItemSelectionModel::Select);
     });
     std::vector<QWidget *> videoWidgets{cdgWindow->getVideoDisplay(), ui->videoPreview};
-    bmMediaBackend.setVideoOutputWidgets(videoWidgets);
+    bmMediaBackend.setVideoOutputWidgets({cdgWindow->getVideoDisplayBm(), ui->videoPreviewBm});
     kMediaBackend.setVideoOutputWidgets(videoWidgets);
 }
 
@@ -1070,7 +1071,7 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k) {
                     if (!k2k)
                         bmMediaBackend.fadeOut(!settings.bmKCrossFade());
                     qInfo() << "Beginning playback of file: " << audioFile;
-                    bmMediaBackend.setVideoEnabled(false);
+                    //bmMediaBackend.setVideoEnabled(false);
                     QApplication::setOverrideCursor(Qt::WaitCursor);
                     kMediaBackend.play();
                     QApplication::restoreOverrideCursor();
@@ -1113,7 +1114,7 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k) {
                                       khTmpDir->path() + QDir::separator() + audTmpFile);
             if (!k2k)
                 bmMediaBackend.fadeOut(!settings.bmKCrossFade());
-            bmMediaBackend.setVideoEnabled(false);
+            //bmMediaBackend.setVideoEnabled(false);
             QApplication::setOverrideCursor(Qt::WaitCursor);
             kMediaBackend.play();
             QApplication::restoreOverrideCursor();
@@ -1127,7 +1128,7 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k) {
             kMediaBackend.setMedia(tmpFileName);
             if (!k2k)
                 bmMediaBackend.fadeOut();
-            bmMediaBackend.setVideoEnabled(false);
+            //bmMediaBackend.setVideoEnabled(false);
             kMediaBackend.play();
             kMediaBackend.fadeInImmediate();
         }
@@ -1655,7 +1656,7 @@ void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &sta
             return;
         }
         qInfo() << "KAudio entered StoppedState";
-        bmMediaBackend.setVideoEnabled(true);
+        //bmMediaBackend.setVideoEnabled(true);
         audioRecorder.stop();
         if (k2kTransition)
             return;
@@ -1724,7 +1725,7 @@ void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &sta
         qInfo() << "KAudio entered EndOfMediaState";
         audioRecorder.stop();
 //        ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
-        bmMediaBackend.setVideoEnabled(true);
+        //bmMediaBackend.setVideoEnabled(true);
         kMediaBackend.stop(true);
         bmMediaBackend.fadeIn(false);
     }
@@ -1735,7 +1736,7 @@ void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &sta
     if (state == MediaBackend::PlayingState) {
         qInfo() << "KAudio entered PlayingState";
         m_lastAudioState = state;
-        bmMediaBackend.setVideoEnabled(false);
+        //bmMediaBackend.setVideoEnabled(false);
         ui->pushButtonKeyUp->setEnabled(true);
         ui->pushButtonKeyDn->setEnabled(true);
         ui->pushButtonTempoDn->setEnabled(true);
@@ -1764,12 +1765,27 @@ void MainWindow::sfxAudioBackend_stateChanged(const MediaBackend::State &state) 
         ui->sliderSfxPos->setValue(0);
 }
 
-void MainWindow::on_hasActiveVideoChanged() {
-    bool hasActiveVideo = m_kHasActiveVideo || m_bmHasActiveVideo;
-    ui->videoPreview->setHasActiveVideo(hasActiveVideo);
-    cdgWindow->getVideoDisplay()->setHasActiveVideo(hasActiveVideo);
-    if (m_kHasActiveVideo)
-        kMediaBackend.forceVideoExpose();
+void MainWindow::hasActiveVideoChanged() {
+    ui->videoPreview->setHasActiveVideo(m_kHasActiveVideo);
+    ui->videoPreviewBm->setHasActiveVideo(m_bmHasActiveVideo);
+    cdgWindow->getVideoDisplay()->setHasActiveVideo(m_kHasActiveVideo);
+    cdgWindow->getVideoDisplayBm()->setHasActiveVideo(m_bmHasActiveVideo);
+    if (m_timerKaraokeAA.isActive() && settings.karaokeAAAlertEnabled())
+        return;
+    if (m_bmHasActiveVideo && !m_kHasActiveVideo)
+    {
+        cdgWindow->getVideoDisplay()->hide();
+        cdgWindow->getVideoDisplayBm()->show();
+        ui->videoPreview->hide();
+        ui->videoPreviewBm->show();
+    }
+    else
+    {
+        cdgWindow->getVideoDisplay()->show();
+        cdgWindow->getVideoDisplayBm()->hide();
+        ui->videoPreview->show();
+        ui->videoPreviewBm->hide();
+    }
 }
 
 void MainWindow::on_buttonRegulars_clicked() {
@@ -3405,11 +3421,6 @@ void MainWindow::updateRotationDuration() {
     } else
         text = " Rotation Duration: 0 min";
     labelRotationDuration.setText(text);
-
-    // Safety check to make sure break music video is muted if karaoke is playing
-    if (!bmMediaBackend.isVideoEnabled() && kMediaBackend.state() != MediaBackend::PlayingState &&
-        kMediaBackend.state() != MediaBackend::PausedState)
-        bmMediaBackend.setVideoEnabled(true);
 }
 
 void MainWindow::cdgVisibilityChanged() {

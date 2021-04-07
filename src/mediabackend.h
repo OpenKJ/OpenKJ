@@ -211,8 +211,6 @@ private:
 
     void gstBusFunc(GstMessage *message);
     static void padAddedToDecoder_cb(GstElement *element,  GstPad *pad, gpointer caller);
-    static GstPadProbeReturn videoDisable_cb (GstPad * pad, GstPadProbeInfo * info, gpointer user_data);
-    static GstPadProbeReturn videoEnable_cb (GstPad * pad, GstPadProbeInfo * info, gpointer user_data);
 
     void stopPipeline();
     void resetPipeline();

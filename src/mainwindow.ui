@@ -1190,6 +1190,22 @@ QPushButton:default {
                     </layout>
                    </widget>
                   </item>
+                  <item>
+                   <widget class="VideoDisplay" name="videoPreviewBm" native="true">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="minimumSize">
+                     <size>
+                      <width>256</width>
+                      <height>144</height>
+                     </size>
+                    </property>
+                   </widget>
+                  </item>
                  </layout>
                 </item>
                 <item>
@@ -3532,6 +3548,12 @@ QPushButton:default {
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
+   <class>VideoDisplay</class>
+   <extends>QWidget</extends>
+   <header location="global">videodisplay.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>CustomLineEdit</class>
    <extends>QLineEdit</extends>
    <header>customlineedit.h</header>
@@ -3540,12 +3562,6 @@ QPushButton:default {
    <class>VolSlider</class>
    <extends>QSlider</extends>
    <header location="global">volslider.h</header>
-  </customwidget>
-  <customwidget>
-   <class>VideoDisplay</class>
-   <extends>QWidget</extends>
-   <header location="global">videodisplay.h</header>
-   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>

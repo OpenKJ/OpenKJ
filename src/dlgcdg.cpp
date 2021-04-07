@@ -31,7 +31,12 @@ extern Settings settings;
 
 VideoDisplay *DlgCdg::getVideoDisplay()
 {
-    return ui->videoDisplay;
+    return ui->videoDisplayKar;
+}
+
+VideoDisplay *DlgCdg::getVideoDisplayBm()
+{
+    return ui->videoDisplayBm;
 }
 
 DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget *parent, Qt::WindowFlags f) :
@@ -42,7 +47,7 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
     tWidget->setObjectName("DurationTimer");
     tWidget->show();
     tWidget->move(settings.durationPosition());
-    ui->videoDisplay->setFillOnPaint(false);
+    ui->videoDisplayKar->setFillOnPaint(false);
     ui->widgetAlert->setAutoFillBackground(true);
     ui->fsToggleWidget->hide();
     ui->widgetAlert->hide();
@@ -74,7 +79,7 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
     alertTxtColorChanged(settings.alertTxtColor());
     cdgOffsetsChanged();
 
-    connect(ui->videoDisplay, &VideoDisplay::mouseMoveEvent, this, &DlgCdg::mouseMove);
+    connect(ui->videoDisplayKar, &VideoDisplay::mouseMoveEvent, this, &DlgCdg::mouseMove);
     connect(&settings, &Settings::alertBgColorChanged, this, &DlgCdg::alertBgColorChanged);
     connect(&settings, &Settings::alertTxtColorChanged, this, &DlgCdg::alertTxtColorChanged);
     connect(&settings, &Settings::bgModeChanged, [&] () { applyBackgroundImageMode(); });
@@ -106,6 +111,7 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
     m_timerAlertCountdown.setInterval(1000);
     m_timer1s.start(1000);
     m_timerSlideShow.start((int)settings.slideShowInterval() * 1000);
+    ui->videoDisplayBm->hide();
     if (!settings.showCdgWindow())
         hide();
     else
@@ -229,13 +235,21 @@ void DlgCdg::showAlert(bool show)
 {
     if ((show) && (settings.karaokeAAAlertEnabled()))
     {
-        ui->videoDisplay->hide();
+        ui->videoDisplayKar->hide();
+        ui->videoDisplayBm->hide();
         ui->widgetAlert->show();
     }
     else
     {
         ui->widgetAlert->hide();
-        ui->videoDisplay->show();
+        if (m_bmb->hasActiveVideo() && !m_kmb->hasActiveVideo()) {
+            ui->videoDisplayBm->show();
+            ui->videoDisplayKar->hide();
+        }
+        else {
+            ui->videoDisplayBm->hide();
+            ui->videoDisplayKar->show();
+        }
     }
 }
 
@@ -292,7 +306,7 @@ void DlgCdg::applyBackgroundImageMode()
 {
     if (settings.bgMode() == Settings::BgMode::BG_MODE_IMAGE && QFile::exists(settings.cdgDisplayBackgroundImage()))
     {
-        ui->videoDisplay->setBackground(QPixmap(settings.cdgDisplayBackgroundImage()));
+        ui->videoDisplayKar->setBackground(QPixmap(settings.cdgDisplayBackgroundImage()));
     }
     else if (settings.bgMode() == Settings::BgMode::BG_MODE_SLIDESHOW && QDir(settings.bgSlideShowDir()).exists())
     {
@@ -300,13 +314,13 @@ void DlgCdg::applyBackgroundImageMode()
     }
     else
     {
-        ui->videoDisplay->useDefaultBackground();
+        ui->videoDisplayKar->useDefaultBackground();
     }
 }
 
 void DlgCdg::timerSlideShowTimeout()
 {
-    if (!ui->videoDisplay->hasActiveVideo() && settings.bgMode() == Settings::BgMode::BG_MODE_SLIDESHOW)
+    if (!ui->videoDisplayKar->hasActiveVideo() && settings.bgMode() == Settings::BgMode::BG_MODE_SLIDESHOW)
     {
         slideShowMoveNext();
     }
@@ -318,7 +332,7 @@ void DlgCdg::slideShowMoveNext()
     auto images = getSlideShowImages();
     if (images.empty())
     {
-        ui->videoDisplay->useDefaultBackground();
+        ui->videoDisplayKar->useDefaultBackground();
         return;
     }
     if (position >= images.size())
@@ -329,10 +343,10 @@ void DlgCdg::slideShowMoveNext()
         QPainter painter(&bgImage);
         QSvgRenderer renderer(images.at(position).absoluteFilePath());
         renderer.render(&painter);
-        ui->videoDisplay->setBackground(bgImage);
+        ui->videoDisplayKar->setBackground(bgImage);
     }
     else
-        ui->videoDisplay->setBackground(images.at(position).absoluteFilePath());
+        ui->videoDisplayKar->setBackground(images.at(position).absoluteFilePath());
     position++;
 }
 
