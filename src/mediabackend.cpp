@@ -299,6 +299,37 @@ void MediaBackend::resetPipeline()
     delete m_audioSrcPad; delete m_videoSrcPad; m_audioSrcPad = m_videoSrcPad = nullptr;
 }
 
+GstPadProbeReturn MediaBackend::videoDisable_cb ([[maybe_unused]]GstPad * pad, [[maybe_unused]]GstPadProbeInfo * info, gpointer user_data)
+{
+    qInfo() << "videoDisable_cb called";
+    MediaBackend *mb = (MediaBackend*) user_data;
+    auto currentSrc = gsthlp_get_peer_element(mb->m_videoBin, "sink");
+    mb->m_hasVideo = false;
+    gst_element_unlink(currentSrc, mb->m_videoBin);
+    gst_bin_remove(mb->m_pipelineAsBin, mb->m_videoBin);
+    gst_element_set_state(mb->m_videoBin, GST_STATE_NULL);
+    emit mb->hasActiveVideoChanged(false);
+    return GST_PAD_PROBE_REMOVE;
+}
+
+GstPadProbeReturn MediaBackend::videoEnable_cb ([[maybe_unused]]GstPad * pad, [[maybe_unused]]GstPadProbeInfo * info, gpointer user_data)
+{
+    qInfo() << "videoEnable_cb called";
+    MediaBackend *mb = (MediaBackend*) user_data;
+
+    mb->m_hasVideo = true;
+    gst_bin_add(mb->m_pipelineAsBin, mb->m_videoBin);
+    gst_element_link_pads(mb->m_videoSrcPad->element, mb->m_videoSrcPad->pad.c_str(), mb->m_videoBin, "sink");
+    gst_element_sync_state_with_parent(mb->m_videoBin);
+    for(auto &vs : mb->m_videoSinks)
+    {
+        gst_video_overlay_set_window_handle(reinterpret_cast<GstVideoOverlay*>(vs.videoSink), vs.surface->winId());
+    }
+    emit mb->hasActiveVideoChanged(true);
+
+    return GST_PAD_PROBE_REMOVE;
+}
+
 void MediaBackend::patchPipelineSinks()
 {
     // Audio
@@ -331,11 +362,20 @@ void MediaBackend::patchPipelineSinks()
         bool isLinked = gsthlp_is_sink_linked(m_videoBin);
         if(!isLinked && m_videoSrcPad && m_videoEnabled)
         {
-            m_hasVideo = true;
-            gst_bin_add(m_pipelineAsBin, m_videoBin);
-            gst_element_link_pads(m_videoSrcPad->element, m_videoSrcPad->pad.c_str(), m_videoBin, "sink");
-            gst_element_sync_state_with_parent(m_videoBin);
-            emit hasActiveVideoChanged(true);
+            qInfo() << "Adding gst pad probe to unmute video";
+            if (m_videoSrcPad->element)
+            {
+                auto vsrcPad = gst_element_get_static_pad(m_videoSrcPad->element, m_videoSrcPad->pad.c_str());
+                gst_pad_add_probe(vsrcPad, GST_PAD_PROBE_TYPE_IDLE, videoEnable_cb, this, nullptr);
+            }
+            else
+            {
+                m_hasVideo = true;
+                gst_bin_add(m_pipelineAsBin, m_videoBin);
+                gst_element_link_pads(m_videoSrcPad->element, m_videoSrcPad->pad.c_str(), m_videoBin, "sink");
+                gst_element_sync_state_with_parent(m_videoBin);
+                emit hasActiveVideoChanged(true);
+            }
         }
         else
         if(isLinked && !(m_videoSrcPad && m_videoEnabled))
@@ -343,11 +383,10 @@ void MediaBackend::patchPipelineSinks()
             auto currentSrc = gsthlp_get_peer_element(m_videoBin, "sink");
             if (currentSrc)
             {
-                m_hasVideo = false;
-                gst_element_unlink(currentSrc, m_videoBin);
-                gst_bin_remove(m_pipelineAsBin, m_videoBin);
-                gst_element_set_state(m_videoBin, GST_STATE_NULL);
-                emit hasActiveVideoChanged(false);
+                qInfo() << "Adding gst pad probe to mute video";
+                auto vbinPad = gst_element_get_static_pad(m_videoBin, "sink");
+                auto peerPad = gst_pad_get_peer(vbinPad);
+                gst_pad_add_probe(peerPad, GST_PAD_PROBE_TYPE_IDLE, videoDisable_cb, this, nullptr);
             }
         }
     }
