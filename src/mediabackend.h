@@ -90,6 +90,7 @@ public:
     [[nodiscard]] bool isVideoEnabled() const { return m_videoEnabled; }
     bool hasActiveVideo();
     [[nodiscard]] int getVolume() const { return m_volume; }
+    void forceVideoExpose();
 
     void writePipelinesGraphToFile(const QString& filePath);
 
@@ -203,7 +204,6 @@ private:
     void buildVideoSinkBin();
     void buildAudioSinkBin();
     void resetVideoSinks();
-    void forceVideoExpose();
     const char* getVideoSinkElementNameForFactory();
     void getAudioOutputDevices();
     void writePipelineGraphToFile(GstBin *bin, const QString& filePath, QString fileName);

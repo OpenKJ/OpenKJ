@@ -1768,6 +1768,8 @@ void MainWindow::on_hasActiveVideoChanged() {
     bool hasActiveVideo = m_kHasActiveVideo || m_bmHasActiveVideo;
     ui->videoPreview->setHasActiveVideo(hasActiveVideo);
     cdgWindow->getVideoDisplay()->setHasActiveVideo(hasActiveVideo);
+    if (m_kHasActiveVideo)
+        kMediaBackend.forceVideoExpose();
 }
 
 void MainWindow::on_buttonRegulars_clicked() {
