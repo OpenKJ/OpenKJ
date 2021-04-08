@@ -1071,7 +1071,6 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k) {
                     if (!k2k)
                         bmMediaBackend.fadeOut(!settings.bmKCrossFade());
                     qInfo() << "Beginning playback of file: " << audioFile;
-                    //bmMediaBackend.setVideoEnabled(false);
                     QApplication::setOverrideCursor(Qt::WaitCursor);
                     kMediaBackend.play();
                     QApplication::restoreOverrideCursor();
@@ -1114,7 +1113,6 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k) {
                                       khTmpDir->path() + QDir::separator() + audTmpFile);
             if (!k2k)
                 bmMediaBackend.fadeOut(!settings.bmKCrossFade());
-            //bmMediaBackend.setVideoEnabled(false);
             QApplication::setOverrideCursor(Qt::WaitCursor);
             kMediaBackend.play();
             QApplication::restoreOverrideCursor();
@@ -1128,7 +1126,6 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k) {
             kMediaBackend.setMedia(tmpFileName);
             if (!k2k)
                 bmMediaBackend.fadeOut();
-            //bmMediaBackend.setVideoEnabled(false);
             kMediaBackend.play();
             kMediaBackend.fadeInImmediate();
         }
