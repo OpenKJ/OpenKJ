@@ -75,6 +75,12 @@ public:
         XVideo
     };
 
+    struct AudioOutputDevice {
+        QString name;
+        GstDevice* gstDevice{nullptr};
+        size_t index{0};
+    };
+
     explicit MediaBackend(QObject *parent, QString objectName, MediaType type);
     ~MediaBackend() override;
 
@@ -84,7 +90,8 @@ public:
     bool hasVideo() { return m_hasVideo; }
     bool isSilent();
     void setAccelType(const accel &type=accel::XVideo) { m_accelMode = type; }
-    void setAudioOutputDevice(int deviceIndex);
+    void setAudioOutputDevice(const AudioOutputDevice &device);
+    void setAudioOutputDevice(const QString &deviceName);
     void setVideoOutputWidgets(const std::vector<QWidget*>& surfaces);
     void setVideoEnabled(const bool &enabled);
     [[nodiscard]] bool isVideoEnabled() const { return m_videoEnabled; }
@@ -97,7 +104,7 @@ public:
     qint64 position();
     qint64 duration();
     State state();
-    QStringList getOutputDevices() { return m_outputDeviceNames; }
+    QStringList getOutputDevices();
     static QString msToMMSS(const qint64 &msec)
     {
         QString sec;
@@ -123,6 +130,8 @@ private:
         GstElement *videoScale { nullptr };
         SoftwareRenderVideoSink *softwareRenderVideoSink { nullptr };
     };
+
+
 
     QString m_objName;
     MediaType m_type;
@@ -159,7 +168,7 @@ private:
     GstCaps *m_audioCapsStereo { nullptr };
     GstCaps *m_audioCapsMono { nullptr };
 
-    std::vector<GstDevice*> m_audioOutputDevices;
+    std::vector<AudioOutputDevice> m_audioOutputDevices;
 
     std::array<int,10> m_eqLevels{0,0,0,0,0,0,0,0,0,0};
 
@@ -185,7 +194,7 @@ private:
     double m_playbackRate{1.0};
     int m_volume{0};
     int m_lastPosition{0};
-    int m_outputDeviceIdx{0};
+    AudioOutputDevice m_outputDevice;
     double m_currentRmsLevel{0.0};
     bool m_cdgMode{false};
     bool m_fade{false};

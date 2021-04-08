@@ -934,59 +934,48 @@ void DlgSettings::on_comboBoxKAudioDevices_currentIndexChanged(int index)
 {
     if (!m_pageSetupDone)
         return;
-    static int lastSelIndex = index;
-    static QString lastSelItem = ui->comboBoxKAudioDevices->itemText(index);
     QString device = ui->comboBoxKAudioDevices->itemText(index);
-    if (lastSelItem == device)
+    if (settings.audioOutputDevice() == device)
         return;
     if (kAudioBackend->state() == MediaBackend::PlayingState)
     {
         QMessageBox msgBox;
         msgBox.setText("Can not change audio device while audio is playing, please stop playback and try again");
         msgBox.exec();
-        int selDevice = audioOutputDevices.indexOf(settings.audioOutputDevice());
-        if (selDevice == -1)
+        int prevDevice = audioOutputDevices.indexOf(settings.audioOutputDevice());
+        if (prevDevice == -1)
             ui->comboBoxKAudioDevices->setCurrentIndex(0);
         else
-            ui->comboBoxKAudioDevices->setCurrentIndex(lastSelIndex);
+            ui->comboBoxKAudioDevices->setCurrentIndex(prevDevice);
         return;
     }
+    qInfo() << "Changing karaoke audio output device to: " << index << ")" << device;
     settings.setAudioOutputDevice(device);
-    int deviceIndex = audioOutputDevices.indexOf(QRegExp(device,Qt::CaseSensitive,QRegExp::FixedString));
-    if (deviceIndex != -1)
-        kAudioBackend->setAudioOutputDevice(deviceIndex);
-    lastSelItem = device;
+    kAudioBackend->setAudioOutputDevice(device);
 }
 
 void DlgSettings::on_comboBoxBAudioDevices_currentIndexChanged(int index)
 {
     if (!m_pageSetupDone)
         return;
-    static int lastSelIndex = index;
-    static QString lastSelItem = ui->comboBoxBAudioDevices->itemText(index);
     QString device = ui->comboBoxBAudioDevices->itemText(index);
-    if (lastSelIndex == index)
-    {
-        qInfo() << "BM audio device index change fired but index is the same, ignoring";
+    if (settings.audioOutputDeviceBm() == device)
         return;
-    }
     if (bmAudioBackend->state() == MediaBackend::PlayingState)
     {
         QMessageBox msgBox;
         msgBox.setText("Can not change audio device while audio is playing, please stop playback and try again");
         msgBox.exec();
-        int selDevice = audioOutputDevices.indexOf(settings.audioOutputDevice());
-        if (selDevice == -1)
+        int prevDevice = audioOutputDevices.indexOf(settings.audioOutputDeviceBm());
+        if (prevDevice == -1)
             ui->comboBoxBAudioDevices->setCurrentIndex(0);
         else
-            ui->comboBoxBAudioDevices->setCurrentIndex(lastSelIndex);
+            ui->comboBoxBAudioDevices->setCurrentIndex(prevDevice);
         return;
     }
+    qInfo() << "Changing karaoke audio output device to: " << index << ")" << device;
     settings.setAudioOutputDeviceBm(device);
-    int deviceIndex = audioOutputDevices.indexOf(QRegExp(device,Qt::CaseSensitive,QRegExp::FixedString));
-    if (deviceIndex != -1)
-        bmAudioBackend->setAudioOutputDevice(deviceIndex);
-    lastSelItem = device;
+    bmAudioBackend->setAudioOutputDevice(device);
 }
 
 void DlgSettings::on_checkBoxEnforceAspectRatio_clicked(bool checked)

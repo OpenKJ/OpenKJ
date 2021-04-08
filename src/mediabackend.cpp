@@ -46,10 +46,19 @@ MediaBackend::MediaBackend(QObject *parent, QString objectName, const MediaType 
     qInfo() << "Start constructing GStreamer backend";
     m_videoAccelEnabled = settings.hardwareAccelEnabled();
     qInfo() << "Hardware accelerated video rendering" << (m_videoAccelEnabled ? "enabled" : "disabled");
-
     QMetaTypeId<std::shared_ptr<GstMessage>>::qt_metatype_id();
+
     buildPipeline();
     getAudioOutputDevices();
+
+    switch (type) {
+        case Karaoke:
+            setAudioOutputDevice(settings.audioOutputDevice());
+            break;
+        default:
+            setAudioOutputDevice(settings.audioOutputDeviceBm());
+    }
+
     qInfo() << "Done constructing GStreamer backend";
 
     connect(&m_timerSlow, &QTimer::timeout, this, &MediaBackend::timerSlow_timeout);
@@ -155,7 +164,7 @@ MediaBackend::~MediaBackend()
     delete m_cdgSrc;
     for (auto &device : m_audioOutputDevices)
     {
-       g_object_unref(device);
+       g_object_unref(device.gstDevice);
     }
 
     for (auto &vs : m_videoSinks)
@@ -195,6 +204,14 @@ MediaBackend::State MediaBackend::state()
         default:
             return StoppedState;
     }
+}
+
+QStringList MediaBackend::getOutputDevices()
+{
+    QStringList deviceNames;
+    for(auto device : m_audioOutputDevices)
+        deviceNames.push_back(device.name);
+     return deviceNames;
 }
 
 void MediaBackend::play()
@@ -859,7 +876,7 @@ void MediaBackend::buildAudioSinkBin()
     g_object_set(level, "message", TRUE, nullptr);
     setVolume(m_volume);
     m_timerSlow.start(1000);
-    setAudioOutputDevice(m_outputDeviceIdx);
+    setAudioOutputDevice(m_outputDevice);
     setEqBypass(m_bypass);
     setDownmix(m_downmix);
     setVolume(m_volume);
@@ -940,6 +957,13 @@ void MediaBackend::forceVideoExpose()
 
 void MediaBackend::getAudioOutputDevices()
 {
+    m_audioOutputDevices.emplace_back(
+                AudioOutputDevice{
+                    "0 - Default",
+                    nullptr,
+                    m_audioOutputDevices.size()
+                }
+                );
     auto monitor = gst_device_monitor_new ();
     auto moncaps = gst_caps_new_empty_simple ("audio/x-raw");
     auto monId = gst_device_monitor_add_filter (monitor, "Audio/Sink", moncaps);
@@ -948,9 +972,14 @@ void MediaBackend::getAudioOutputDevices()
     GList *devices, *elem;
     devices = gst_device_monitor_get_devices(monitor);
     for(elem = devices; elem; elem = elem->next) {
-        auto device = m_audioOutputDevices.emplace_back(reinterpret_cast<GstDevice*>(elem->data));
-        auto *deviceName = gst_device_get_display_name(device);
-        m_outputDeviceNames.append(QString::number(m_outputDeviceNames.size()) + " - " + deviceName);
+        auto *deviceName = gst_device_get_display_name(reinterpret_cast<GstDevice*>(elem->data));
+        m_audioOutputDevices.emplace_back(
+                    AudioOutputDevice{
+                        QString::number(m_audioOutputDevices.size()) + " - " + QString(deviceName),
+                        reinterpret_cast<GstDevice*>(elem->data),
+                        m_audioOutputDevices.size()
+                    }
+                    );
         g_free(deviceName);
     }
     gst_device_monitor_remove_filter(monitor, monId);
@@ -1038,20 +1067,34 @@ void MediaBackend::setTempo(const int &percent)
     gst_element_send_event(m_pipeline, gst_event_new_seek(m_playbackRate, GST_FORMAT_TIME, (GstSeekFlags)(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE), GST_SEEK_TYPE_SET, curpos, GST_SEEK_TYPE_NONE, 0));
 }
 
-void MediaBackend::setAudioOutputDevice(int deviceIndex)
+void MediaBackend::setAudioOutputDevice(const AudioOutputDevice &device)
 {
-    m_outputDeviceIdx = deviceIndex;
+    m_outputDevice = device;
     gst_element_unlink(m_aConvEnd, m_audioSink);
     gst_bin_remove(GST_BIN(m_audioBin), m_audioSink);
-    if (deviceIndex == 0)
-    {
+    if (device.index <= 0) {
         m_audioSink = gst_element_factory_make("autoaudiosink", "audioSink");
+    } else {
+        m_audioSink = gst_device_create_element(device.gstDevice, nullptr);
     }
-    else
-    {
-        m_audioSink = gst_device_create_element(m_audioOutputDevices.at(deviceIndex - 1), nullptr);
-    }
+    gst_bin_add(GST_BIN(m_audioBin), m_audioSink);
+    gst_element_link(m_aConvEnd, m_audioSink);
+}
 
+void MediaBackend::setAudioOutputDevice(const QString &deviceName)
+{
+    gst_element_unlink(m_aConvEnd, m_audioSink);
+    gst_bin_remove(GST_BIN(m_audioBin), m_audioSink);
+    auto it = std::find_if(m_audioOutputDevices.begin(), m_audioOutputDevices.end(), [deviceName] (AudioOutputDevice device) {
+        return (device.name == deviceName);
+    });
+    if (it == m_audioOutputDevices.end() || it->index == 0) {
+        m_outputDevice = m_audioOutputDevices.at(0);
+        m_audioSink = gst_element_factory_make("autoaudiosink", "autoAudioSink");
+    } else {
+        m_audioSink = gst_device_create_element(it->gstDevice, nullptr);
+        m_outputDevice = *it;
+    }
     gst_bin_add(GST_BIN(m_audioBin), m_audioSink);
     gst_element_link(m_aConvEnd, m_audioSink);
 }
