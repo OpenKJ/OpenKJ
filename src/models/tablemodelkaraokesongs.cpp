@@ -146,7 +146,7 @@ void TableModelKaraokeSongs::search(const QString &searchString) {
     searchTerms.emplace_back(s.substr(prev_pos, pos - prev_pos));
     m_filteredSongs.clear();
     m_filteredSongs.reserve(m_allSongs.size());
-    auto needles = m_lastSearch.split(' ', Qt::SplitBehavior(Qt::SkipEmptyParts));
+    auto needles = m_lastSearch.split(' ', QString::SplitBehavior::SkipEmptyParts);
     std::for_each(m_allSongs.begin(), m_allSongs.end(), [&](KaraokeSong &song) {
         QString haystack;
         switch (m_searchType) {
