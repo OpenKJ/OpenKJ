@@ -3641,6 +3641,8 @@ void MainWindow::on_actionNow_Playing_triggered(const bool &checked) {
 void MainWindow::on_actionVideoSmall_triggered() {
     ui->videoPreview->setMinimumSize(QSize(256, 144));
     ui->videoPreview->setMaximumSize(QSize(256, 144));
+    ui->videoPreviewBm->setMinimumSize(QSize(256, 144));
+    ui->videoPreviewBm->setMaximumSize(QSize(256, 144));
     ui->mediaFrame->setMaximumWidth(300);
     ui->mediaFrame->setMinimumWidth(300);
     settings.setMainWindowVideoSize(Settings::Small);
@@ -3650,6 +3652,8 @@ void MainWindow::on_actionVideoSmall_triggered() {
 void MainWindow::on_actionVideoMedium_triggered() {
     ui->videoPreview->setMinimumSize(QSize(384, 216));
     ui->videoPreview->setMaximumSize(QSize(384, 216));
+    ui->videoPreviewBm->setMinimumSize(QSize(384, 216));
+    ui->videoPreviewBm->setMaximumSize(QSize(384, 216));
     ui->mediaFrame->setMaximumWidth(430);
     ui->mediaFrame->setMinimumWidth(430);
     settings.setMainWindowVideoSize(Settings::Medium);
@@ -3659,6 +3663,8 @@ void MainWindow::on_actionVideoMedium_triggered() {
 void MainWindow::on_actionVideoLarge_triggered() {
     ui->videoPreview->setMinimumSize(QSize(512, 288));
     ui->videoPreview->setMaximumSize(QSize(512, 288));
+    ui->videoPreviewBm->setMinimumSize(QSize(512, 288));
+    ui->videoPreviewBm->setMaximumSize(QSize(512, 288));
     ui->mediaFrame->setMaximumWidth(560);
     ui->mediaFrame->setMinimumWidth(560);
     settings.setMainWindowVideoSize(Settings::Large);
