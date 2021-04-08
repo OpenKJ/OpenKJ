@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>687</width>
+    <width>688</width>
     <height>520</height>
    </rect>
   </property>
@@ -82,9 +82,16 @@
    <item>
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
-      <string>Karaoke.NET Account</string>
+      <string>PartyTyme Account</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
+      <item row="1" column="1">
+       <widget class="QPushButton" name="pushButtonTestLogin">
+        <property name="text">
+         <string>Test</string>
+        </property>
+       </widget>
+      </item>
       <item row="0" column="0">
        <widget class="QLineEdit" name="lineEditKNUser">
         <property name="placeholderText">
@@ -118,8 +125,8 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="2">
-       <spacer name="horizontalSpacer_5">
+      <item row="2" column="2">
+       <spacer name="horizontalSpacer_6">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
@@ -138,8 +145,8 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="2">
-       <spacer name="horizontalSpacer_6">
+      <item row="1" column="2">
+       <spacer name="horizontalSpacer_5">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
@@ -151,10 +158,19 @@
         </property>
        </spacer>
       </item>
-      <item row="1" column="1">
-       <widget class="QPushButton" name="pushButtonTestLogin">
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>Test</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Don't have an account? &lt;a href=&quot;https://www.partytyme.net/songshop/cat/create_account?merchant=99&quot;&gt;Create one&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::RichText</enum>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+        <property name="openExternalLinks">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
