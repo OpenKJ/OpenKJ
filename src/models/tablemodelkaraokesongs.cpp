@@ -110,7 +110,7 @@ void TableModelKaraokeSongs::loadData() {
     if (query.size() > 0)
         m_filteredSongs.reserve(query.size());
     while (query.next()) {
-        m_allSongs.emplace_back(KaraokeSong{
+        auto song = m_allSongs.emplace_back(KaraokeSong{
                 query.value(0).toInt(),
                 query.value(1).toString(),
                 query.value(2).toString(),
@@ -118,19 +118,21 @@ void TableModelKaraokeSongs::loadData() {
                 query.value(4).toInt(),
                 query.value(5).toString(),
                 query.value(6).toString(),
-                query.value(7).toString().toLower().toStdString(),
+                query.value(7).toString().toLower(),
                 query.value(8).toInt(),
                 query.value(9).toDateTime()
         });
     }
+
     qInfo() << "Loaded " << m_filteredSongs.size() << " karaoke songs from database.";
     search(m_lastSearch);
     emit layoutChanged();
 }
 
 void TableModelKaraokeSongs::search(const QString &searchString) {
-    m_lastSearch = searchString;
+    m_lastSearch = searchString.toLower();
     m_lastSearch.replace(',', ' ');
+    m_lastSearch.replace('&', " and ");
     if (settings.ignoreAposInSearch())
         m_lastSearch.replace('\'', ' ');
     emit layoutAboutToBeChanged();
@@ -144,35 +146,32 @@ void TableModelKaraokeSongs::search(const QString &searchString) {
     searchTerms.emplace_back(s.substr(prev_pos, pos - prev_pos));
     m_filteredSongs.clear();
     m_filteredSongs.reserve(m_allSongs.size());
-    std::for_each(m_allSongs.begin(), m_allSongs.end(), [&](auto &song) {
-        std::string searchString;
+    auto needles = m_lastSearch.split(' ', Qt::SkipEmptyParts);
+    std::for_each(m_allSongs.begin(), m_allSongs.end(), [&](KaraokeSong &song) {
+        QString haystack;
         switch (m_searchType) {
             case TableModelKaraokeSongs::SEARCH_TYPE_ALL: {
-                QString tmpSearchString = QString::fromStdString(song.searchString);
-                if (settings.ignoreAposInSearch())
-                    tmpSearchString.remove('\'');
-                searchString = tmpSearchString.toStdString();
+                haystack = song.searchString;
                 break;
             }
             case TableModelKaraokeSongs::SEARCH_TYPE_ARTIST: {
-                QString tmpSearchString{song.artist.toLower()};
-                if (settings.ignoreAposInSearch())
-                    tmpSearchString.remove('\'');
-                searchString = tmpSearchString.toStdString();
+                haystack = song.artist.toLower();
                 break;
             }
             case TableModelKaraokeSongs::SEARCH_TYPE_TITLE: {
-                QString tmpSearchString{song.title.toLower()};
-                if (settings.ignoreAposInSearch())
-                    tmpSearchString.remove('\'');
-                searchString = tmpSearchString.toStdString();
+                haystack = song.title.toLower();
                 break;
             }
         }
+        haystack.replace('&', " and ");
+        if (settings.ignoreAposInSearch())
+            haystack.remove('\'');
         bool match{true};
-        for (const auto &term : searchTerms) {
-            if (searchString.find(term) == std::string::npos)
+        for (const auto &needle : needles) {
+            if (!haystack.contains(needle)) {
                 match = false;
+                break;
+            }
         }
         if (match)
             m_filteredSongs.emplace_back(song);

@@ -13,7 +13,7 @@ struct KaraokeSong {
     int duration{0};
     QString filename;
     QString path;
-    std::string searchString;
+    QString searchString;
     int plays;
     QDateTime lastPlay;
 };
