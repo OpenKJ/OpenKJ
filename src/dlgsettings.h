@@ -22,8 +22,10 @@
 #define SETTINGSDIALOG_H
 
 #include <QDialog>
+#include <QKeySequenceEdit>
 #include <QList>
 #include <QNetworkAccessManager>
+#include <QPushButton>
 #include "settings.h"
 #include "mediabackend.h"
 #include "okjsongbookapi.h"
@@ -45,6 +47,11 @@ private:
     bool m_pageSetupDone;
     QStringList audioOutputDevices;
     void setupHotkeysForm();
+    struct KeyboardShortcut
+    {
+        QString description;
+        QString sequenceName;
+    };
 
 public:
     explicit DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBackend, QWidget *parent = 0);
@@ -127,7 +134,7 @@ private slots:
     void on_checkBoxHardwareAccel_toggled(bool checked);
     void on_checkBoxCdgPrescaling_stateChanged(int arg1);
     void on_checkBoxCurrentSingerTop_toggled(bool checked);
-
+    void keySequenceEditChanged(QKeySequence sequence);
     // QWidget interface
 protected:
     void closeEvent(QCloseEvent *event) override;
