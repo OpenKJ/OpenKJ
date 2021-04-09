@@ -204,6 +204,7 @@ private:
     bool m_bypass{false};
     bool m_loadPitchShift;
     bool m_downmix{false};
+    gboolean m_changingAudioOutputs{false};
     std::atomic<bool> m_hasVideo{false};
     bool m_videoAccelEnabled{false};
     QPointer<AudioFader> m_fader;
@@ -220,7 +221,6 @@ private:
 
     void gstBusFunc(GstMessage *message);
     static void padAddedToDecoder_cb(GstElement *element,  GstPad *pad, gpointer caller);
-
     void stopPipeline();
     void resetPipeline();
     void patchPipelineSinks();

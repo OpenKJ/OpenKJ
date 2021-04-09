@@ -164,7 +164,8 @@ MediaBackend::~MediaBackend()
     delete m_cdgSrc;
     for (auto &device : m_audioOutputDevices)
     {
-       g_object_unref(device.gstDevice);
+       if (device.index != m_outputDevice.index)
+            g_object_unref(device.gstDevice);
     }
 
     for (auto &vs : m_videoSinks)
@@ -411,6 +412,7 @@ void MediaBackend::setPosition(const qint64 &position)
     }
     gst_element_send_event(m_pipeline, gst_event_new_seek(m_playbackRate, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_SEEK_TYPE_SET, position * GST_MSECOND, GST_SEEK_TYPE_NONE, 0));
     emit positionChanged(position);
+    forceVideoExpose();
 }
 
 void MediaBackend::setVolume(const int &volume)
@@ -605,6 +607,10 @@ void MediaBackend::gstBusFunc(GstMessage *message)
             // This will fire for all elements in the pipeline.
             // We only want to react once: on the actual pipeline element.
             if (GST_MESSAGE_SRC(message) != (GstObject *)m_pipeline) break;
+
+            // Avoid doing anything while audio outputs are changing
+            if (m_changingAudioOutputs)
+                break;
 
             GstState oldState, state, pending;
             gst_message_parse_state_changed(message, &oldState, &state, &pending);
@@ -1069,34 +1075,70 @@ void MediaBackend::setTempo(const int &percent)
 
 void MediaBackend::setAudioOutputDevice(const AudioOutputDevice &device)
 {
+    qInfo() << m_objName << " - Changing audio output device to: " << device.name;
     m_outputDevice = device;
+    auto curpos = position();
+    bool playAfter{false};
+    if (state() == PlayingState)
+    {
+        playAfter = true;
+        m_changingAudioOutputs = true;
+        gst_element_set_state(m_pipeline, GST_STATE_NULL);
+        qInfo() << m_objName << " - Waiting for stopped state";
+        GstState curState;
+        gst_element_get_state(m_pipeline, &curState, nullptr, GST_CLOCK_TIME_NONE);
+        while (curState != GST_STATE_NULL)
+        {
+            gst_element_get_state(m_pipeline, &curState, nullptr, GST_CLOCK_TIME_NONE);
+            QApplication::processEvents();
+        }
+        qInfo() << m_objName << " - Stop done, continuing";
+    }
+    qInfo() << m_objName << " - Unlinking and removing old elements";
     gst_element_unlink(m_aConvEnd, m_audioSink);
     gst_bin_remove(GST_BIN(m_audioBin), m_audioSink);
-    if (device.index <= 0) {
+    qInfo() << m_objName << " - Creating new audio sink element";
+    if (m_outputDevice.index <= 0) {
         m_audioSink = gst_element_factory_make("autoaudiosink", "audioSink");
     } else {
-        m_audioSink = gst_device_create_element(device.gstDevice, nullptr);
+        m_audioSink = gst_device_create_element(m_outputDevice.gstDevice, nullptr);
     }
+    qInfo() << m_objName << " - Adding and linking new element";
     gst_bin_add(GST_BIN(m_audioBin), m_audioSink);
     gst_element_link(m_aConvEnd, m_audioSink);
+    if (playAfter)
+    {
+        qInfo() << m_objName << " - Resuming playback";
+        if (m_cdgMode)
+            setMediaCdg(m_cdgFilename, m_filename);
+        else
+            setMedia(m_filename);
+        play();
+        qInfo() << m_objName << " - Waiting for playing state";
+        GstState curState;
+        gst_element_get_state(m_pipeline, &curState, nullptr, GST_CLOCK_TIME_NONE);
+        while (curState != GST_STATE_PLAYING)
+        {
+            gst_element_get_state(m_pipeline, &curState, nullptr, GST_CLOCK_TIME_NONE);
+            QApplication::processEvents();
+        }
+        qInfo() << m_objName << "Playing, jumping back to current playback position";
+        setPosition(curpos);
+    }
+
+    m_changingAudioOutputs = false;
 }
 
 void MediaBackend::setAudioOutputDevice(const QString &deviceName)
 {
-    gst_element_unlink(m_aConvEnd, m_audioSink);
-    gst_bin_remove(GST_BIN(m_audioBin), m_audioSink);
     auto it = std::find_if(m_audioOutputDevices.begin(), m_audioOutputDevices.end(), [deviceName] (AudioOutputDevice device) {
         return (device.name == deviceName);
     });
     if (it == m_audioOutputDevices.end() || it->index == 0) {
-        m_outputDevice = m_audioOutputDevices.at(0);
-        m_audioSink = gst_element_factory_make("autoaudiosink", "autoAudioSink");
+        setAudioOutputDevice(AudioOutputDevice{"0 - Default", nullptr, 0});
     } else {
-        m_audioSink = gst_device_create_element(it->gstDevice, nullptr);
-        m_outputDevice = *it;
+        setAudioOutputDevice(*it);
     }
-    gst_bin_add(GST_BIN(m_audioBin), m_audioSink);
-    gst_element_link(m_aConvEnd, m_audioSink);
 }
 
 void MediaBackend::setVideoOutputWidgets(const std::vector<QWidget*>& surfaces)

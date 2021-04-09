@@ -937,18 +937,6 @@ void DlgSettings::on_comboBoxKAudioDevices_currentIndexChanged(int index)
     QString device = ui->comboBoxKAudioDevices->itemText(index);
     if (settings.audioOutputDevice() == device)
         return;
-    if (kAudioBackend->state() == MediaBackend::PlayingState)
-    {
-        QMessageBox msgBox;
-        msgBox.setText("Can not change audio device while audio is playing, please stop playback and try again");
-        msgBox.exec();
-        int prevDevice = audioOutputDevices.indexOf(settings.audioOutputDevice());
-        if (prevDevice == -1)
-            ui->comboBoxKAudioDevices->setCurrentIndex(0);
-        else
-            ui->comboBoxKAudioDevices->setCurrentIndex(prevDevice);
-        return;
-    }
     qInfo() << "Changing karaoke audio output device to: " << index << ")" << device;
     settings.setAudioOutputDevice(device);
     kAudioBackend->setAudioOutputDevice(device);
@@ -961,18 +949,6 @@ void DlgSettings::on_comboBoxBAudioDevices_currentIndexChanged(int index)
     QString device = ui->comboBoxBAudioDevices->itemText(index);
     if (settings.audioOutputDeviceBm() == device)
         return;
-    if (bmAudioBackend->state() == MediaBackend::PlayingState)
-    {
-        QMessageBox msgBox;
-        msgBox.setText("Can not change audio device while audio is playing, please stop playback and try again");
-        msgBox.exec();
-        int prevDevice = audioOutputDevices.indexOf(settings.audioOutputDeviceBm());
-        if (prevDevice == -1)
-            ui->comboBoxBAudioDevices->setCurrentIndex(0);
-        else
-            ui->comboBoxBAudioDevices->setCurrentIndex(prevDevice);
-        return;
-    }
     qInfo() << "Changing karaoke audio output device to: " << index << ")" << device;
     settings.setAudioOutputDeviceBm(device);
     bmAudioBackend->setAudioOutputDevice(device);
