@@ -102,9 +102,6 @@
                    <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
                     <bool>false</bool>
                    </attribute>
-                   <attribute name="horizontalHeaderStretchLastSection">
-                    <bool>false</bool>
-                   </attribute>
                    <attribute name="verticalHeaderVisible">
                     <bool>false</bool>
                    </attribute>

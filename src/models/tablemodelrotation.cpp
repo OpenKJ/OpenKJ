@@ -37,6 +37,8 @@ QVariant TableModelRotation::headerData(int section, Qt::Orientation orientation
             return QVariant();
         case COL_NAME:
             return "Name";
+        case COL_NEXT_SONG:
+            return "Next Song";
         default:
             return QVariant();
 
@@ -52,7 +54,7 @@ int TableModelRotation::rowCount([[maybe_unused]]const QModelIndex &parent) cons
 
 int TableModelRotation::columnCount([[maybe_unused]]const QModelIndex &parent) const
 {
-    return 6;
+    return 7;
 }
 
 QVariant TableModelRotation::data(const QModelIndex &index, int role) const
@@ -196,6 +198,10 @@ QVariant TableModelRotation::data(const QModelIndex &index, int role) const
             return m_singers.at(index.row()).regular;
         case COL_ADDTS:
             return m_singers.at(index.row()).addTs;
+        case COL_NEXT_SONG:
+            if (settings.rotationShowNextSong())
+                return nextSongArtistTitle(index.data(Qt::UserRole).toInt());
+            return QVariant();
         }
     }
     return QVariant();
@@ -503,6 +509,17 @@ QString TableModelRotation::nextSongTitle(const int singerId) const
     if (query.first())
         return query.value(0).toString();
     return QString();
+}
+
+QString TableModelRotation::nextSongArtistTitle(const int singerId) const
+{
+    QSqlQuery query;
+    query.prepare("SELECT dbsongs.artist, dbsongs.title FROM dbsongs,queuesongs WHERE queuesongs.singer = :singerid AND queuesongs.played = 0 AND dbsongs.songid = queuesongs.song ORDER BY position LIMIT 1");
+    query.bindValue(":singerid", singerId);
+    query.exec();
+    if (query.first())
+        return query.value(0).toString() + " - " + query.value(1).toString();
+    return " - empty - ";
 }
 
 QString TableModelRotation::nextSongSongId(const int singerId) const

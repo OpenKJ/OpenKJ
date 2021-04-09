@@ -534,14 +534,22 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewRotation->hideColumn(TableModelRotation::COL_POSITION);
     if (settings.treatAllSingersAsRegs())
         ui->tableViewRotation->hideColumn(TableModelRotation::COL_REGULAR);
-    ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(TableModelRotation::COL_NAME, QHeaderView::Stretch);
+    if (settings.rotationShowNextSong())
+    {
+        ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(TableModelRotation::COL_NAME, QHeaderView::Interactive);
+        ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(TableModelRotation::COL_NEXT_SONG, QHeaderView::Stretch);
+    } else {
+        ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(TableModelRotation::COL_NAME, QHeaderView::Stretch);
+        ui->tableViewRotation->hideColumn(TableModelRotation::COL_NEXT_SONG);
+    }
     ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(TableModelRotation::COL_ID,
                                                                     QHeaderView::ResizeToContents);
     ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(TableModelRotation::COL_DELETE,
                                                                     QHeaderView::ResizeToContents);
     ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(TableModelRotation::COL_REGULAR,
                                                                     QHeaderView::ResizeToContents);
-
+    if (settings.rotationShowNextSong())
+        settings.restoreColumnWidths(ui->tableViewRotation);
     ui->tableViewQueue->setModel(&qModel);
     ui->tableViewQueue->setItemDelegate(&qDelegate);
     ui->tableViewQueue->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewQueue));
@@ -783,7 +791,10 @@ MainWindow::MainWindow(QWidget *parent) :
     updateRotationDuration();
     connect(&m_timerSlowUiUpdate, &QTimer::timeout, this, &MainWindow::updateRotationDuration);
     m_timerSlowUiUpdate.start(10000);
-    connect(&qModel, &TableModelQueueSongs::queueModified, [&]() { updateRotationDuration(); });
+    connect(&qModel, &TableModelQueueSongs::queueModified, [&]() {
+        updateRotationDuration();
+        rotModel.layoutChanged();
+    });
     connect(&settings, &Settings::rotationDurationSettingsModified, this, &MainWindow::updateRotationDuration);
     lazyDurationUpdater = new LazyDurationUpdateController(this);
     connect(lazyDurationUpdater, &LazyDurationUpdateController::gotDuration, &karaokeSongsModel,
@@ -3091,47 +3102,15 @@ void MainWindow::appFontChanged(const QFont &font) {
 }
 
 void MainWindow::resizeRotation() {
-    return;
-    int fH = QFontMetrics(settings.applicationFont()).height();
-    int iconWidth = fH + fH;
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
-    int waitSize = QFontMetrics(settings.applicationFont()).horizontalAdvance("Wait_");
-#else
-    int waitSize = QFontMetrics(settings.applicationFont()).width("Wait_");
-#endif
-    if (waitSize > iconWidth)
-        iconWidth = waitSize;
-    int iconsWidth{iconWidth * 3};
-    if (settings.treatAllSingersAsRegs())
-        iconsWidth = iconWidth * 2;
-    int singerColSize = ui->tableViewRotation->width() - iconsWidth - 5;
-    int songColSize = 0;
-    if (!settings.rotationShowNextSong()) {
-        ui->tableViewRotation->hideColumn(TableModelRotation::COL_REGULAR);
+    if (settings.rotationShowNextSong())
+    {
+        ui->tableViewRotation->showColumn(TableModelRotation::COL_NEXT_SONG);
+        ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(TableModelRotation::COL_NAME, QHeaderView::Interactive);
+        ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(TableModelRotation::COL_NEXT_SONG, QHeaderView::Stretch);
     } else {
-        ui->tableViewRotation->showColumn(TableModelRotation::COL_REGULAR);
-        QStringList singers = rotModel.singers();
-        int largestName = 0;
-        for (int i = 0; i < singers.size(); i++) {
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
-            int width = QFontMetrics(settings.applicationFont()).horizontalAdvance("_" + singers.at(i) + "_");
-#else
-            int width = QFontMetrics(settings.applicationFont()).width("_" + singers.at(i) + "_");
-#endif
-            if (width > largestName)
-                largestName = width;
-        }
-        singerColSize = largestName;
-        songColSize = ui->tableViewRotation->width() - iconsWidth - singerColSize - 5;
-        ui->tableViewRotation->horizontalHeader()->resizeSection(2, songColSize);
+        ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(TableModelRotation::COL_NAME, QHeaderView::Stretch);
+        ui->tableViewRotation->hideColumn(TableModelRotation::COL_NEXT_SONG);
     }
-    ui->tableViewRotation->horizontalHeader()->resizeSection(TableModelRotation::COL_ID, iconWidth);
-    ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(TableModelRotation::COL_ID, QHeaderView::Fixed);
-    ui->tableViewRotation->horizontalHeader()->resizeSection(TableModelRotation::COL_NAME, singerColSize);
-    ui->tableViewRotation->horizontalHeader()->resizeSection(3, iconWidth);
-    ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Fixed);
-    ui->tableViewRotation->horizontalHeader()->resizeSection(4, iconWidth);
-    ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Fixed);
 }
 
 void MainWindow::autosizeViews() {

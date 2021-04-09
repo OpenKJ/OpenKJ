@@ -39,7 +39,7 @@ class TableModelRotation : public QAbstractTableModel
     Q_OBJECT
 
 public:
-    enum {COL_ID=0,COL_NAME,COL_POSITION,COL_REGULAR,COL_ADDTS,COL_DELETE};
+    enum {COL_ID=0,COL_NAME,COL_POSITION,COL_NEXT_SONG,COL_REGULAR,COL_ADDTS,COL_DELETE};
     enum {ADD_FAIR=0,ADD_BOTTOM,ADD_NEXT};
     explicit TableModelRotation(QObject *parent = nullptr);
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
@@ -68,6 +68,7 @@ public:
     QString nextSongPath(const int singerId) const;
     QString nextSongArtist(const int singerId) const;
     QString nextSongTitle(const int singerId) const;
+    QString nextSongArtistTitle(const int singerId) const;
     QString nextSongSongId(const int singerId) const;
     int nextSongDurationSecs(const int singerId) const;
     int rotationDuration();
