@@ -1365,6 +1365,7 @@ void MainWindow::on_tableViewRotation_doubleClicked(const QModelIndex &index) {
             rotModel.setCurrentSinger(singerId);
             if (settings.rotationAltSortOrder()) {
                 auto curSingerPos = rotModel.getSingerPosition(singerId);
+                m_curSingerOriginalPosition = curSingerPos;
                 if (curSingerPos != 0) {
                     rotModel.singerMove(curSingerPos, 0);
                     ui->tableViewRotation->clearSelection();
@@ -1489,6 +1490,7 @@ void MainWindow::on_tableViewQueue_doubleClicked(const QModelIndex &index) {
     rotDelegate.setCurrentSinger(curSingerId);
     if (settings.rotationAltSortOrder()) {
         auto curSingerPos = rotModel.getSingerPosition(curSingerId);
+        m_curSingerOriginalPosition = curSingerPos;
         if (curSingerPos != 0) {
             rotModel.singerMove(curSingerPos, 0);
             ui->tableViewRotation->clearSelection();
@@ -1650,14 +1652,6 @@ void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &sta
         return;
     //qInfo() << "MainWindow - audioBackend_stateChanged(" << state << ") triggered";
     if (state == MediaBackend::StoppedState) {
-        if (settings.rotationAltSortOrder()) {
-            rotModel.singerMove(0, rotModel.rowCount() - 1);
-            rotModel.setCurrentSinger(-1);
-            rotDelegate.setCurrentSinger(-1);
-            ui->tableViewRotation->clearSelection();
-            ui->tableViewRotation->selectRow(0);
-            rotModel.setCurRemainSecs(0);
-        }
         qInfo() << "MainWindow - audio backend state is now STOPPED";
         if (ui->labelTotalTime->text() == "0:00") {
             //qInfo() << "MainWindow - UI is already reset, bailing out";
@@ -1692,22 +1686,25 @@ void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &sta
                 qInfo() << " - Karaoke Autoplay set to skip, bailing out";
             } else {
                 int nextSinger = -1;
-                int nextPos;
                 QString nextSongPath;
                 bool empty = false;
+
+                int curSingerId = rotModel.currentSinger();
+
+                int curPos = rotModel.getSingerPosition(curSingerId);
+                if (settings.rotationAltSortOrder())
+                    curPos = m_curSingerOriginalPosition;
+                if (curSingerId == -1)
+                    curPos = rotModel.rowCount() - 1;
                 int loops = 0;
                 while ((nextSongPath == "") && (!empty)) {
                     if (loops > rotModel.rowCount()) {
                         empty = true;
                     } else {
-                        int curSingerId = rotModel.currentSinger();
-                        int curPos = rotModel.getSingerPosition(curSingerId);
-                        if ((curPos + 1) < rotModel.rowCount()) {
-                            nextPos = curPos + 1;
-                        } else {
-                            nextPos = 0;
+                        if (++curPos >= rotModel.rowCount()) {
+                            curPos = 0;
                         }
-                        nextSinger = rotModel.singerIdAtPosition(nextPos);
+                        nextSinger = rotModel.singerIdAtPosition(curPos);
                         nextSongPath = rotModel.nextSongPath(nextSinger);
                         loops++;
                     }
@@ -1727,6 +1724,14 @@ void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &sta
                     cdgWindow->showAlert(true);
                 }
             }
+        }
+        if (settings.rotationAltSortOrder()) {
+            rotModel.singerMove(0, rotModel.rowCount() - 1);
+            rotModel.setCurrentSinger(-1);
+            rotDelegate.setCurrentSinger(-1);
+            ui->tableViewRotation->clearSelection();
+            ui->tableViewRotation->selectRow(0);
+            rotModel.setCurRemainSecs(0);
         }
     }
     if (state == MediaBackend::EndOfMediaState) {
@@ -2367,6 +2372,7 @@ void MainWindow::karaokeAATimerTimeout() {
         rotDelegate.setCurrentSinger(kAANextSinger);
         if (settings.rotationAltSortOrder()) {
             auto curSingerPos = rotModel.getSingerPosition(kAANextSinger);
+            m_curSingerOriginalPosition = curSingerPos;
             if (curSingerPos != 0)
                 rotModel.singerMove(curSingerPos, 0);
         }
@@ -3968,6 +3974,7 @@ void MainWindow::on_pushButtonHistoryPlay_clicked() {
     rotDelegate.setCurrentSinger(curSingerId);
     if (settings.rotationAltSortOrder()) {
         auto curSingerPos = rotModel.getSingerPosition(curSingerId);
+        m_curSingerOriginalPosition = curSingerPos;
         if (curSingerPos != 0)
             rotModel.singerMove(curSingerPos, 0);
     }

@@ -649,6 +649,7 @@ void MediaBackend::gstBusFunc(GstMessage *message)
             if (GST_MESSAGE_SRC(message) != (GstObject *)m_pipeline) break;
             qInfo() << m_objName << " - state change to EndOfMediaState emitted";
             emit stateChanged(EndOfMediaState);
+            m_currentState = GST_STATE_NULL;
             break;
         }
 

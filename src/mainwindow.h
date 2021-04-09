@@ -98,6 +98,7 @@ private:
     void play(const QString &karaokeFilePath, const bool &k2k = false);
     int m_rtClickQueueSongId{-1};
     int m_rtClickRotationSingerId{-1};
+    int m_curSingerOriginalPosition{0};
     QTemporaryDir *khTmpDir;
     QString dbRtClickFile;
     QString curSinger;

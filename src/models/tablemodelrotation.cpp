@@ -440,6 +440,8 @@ int TableModelRotation::getSingerId(const QString &name)
 
 int TableModelRotation::getSingerPosition(const int singerId) const
 {
+    if (singerId < 0)
+        return -1;
     auto it = std::find_if(m_singers.begin(), m_singers.end(), [&singerId] (RotationSinger singer) {
         return (singerId == singer.id);
     });
