@@ -1312,7 +1312,7 @@ void MainWindow::on_buttonAddSinger_clicked() {
 }
 
 void MainWindow::on_tableViewRotation_doubleClicked(const QModelIndex &index) {
-    if (index.column() < 3) {
+    if (index.column() <= 3) {
         k2kTransition = false;
         int singerId = index.data(Qt::UserRole).toInt();
         QString nextSongPath = rotModel.nextSongPath(singerId);
