@@ -46,6 +46,7 @@ QDataStream &operator>>(QDataStream &in, SfxEntry &obj)
 }
 
 Settings settings;
+
 IdleDetect *filter;
 
 QFile logFile;
@@ -106,6 +107,7 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
 
 int main(int argc, char *argv[])
 {
+
     //QLoggingCategory::setFilterRules("*.debug=true");
     qInstallMessageHandler(myMessageOutput);
     qRegisterMetaType<SfxEntry>("SfxEntry");
@@ -178,7 +180,25 @@ int main(int argc, char *argv[])
          msgBox.exec();
          return 1;
      }
-
+     if (!settings.lastStartupOk())
+     {
+         QMessageBox msgBox;
+         msgBox.setText("OpenKJ appears to have failed to startup on the last run.");
+         msgBox.setInformativeText("Would you like to attempt to recover by loading safe settings?");
+         msgBox.setIcon(QMessageBox::Warning);
+         msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+         msgBox.setDefaultButton(QMessageBox::Yes);
+         int ret = msgBox.exec();
+         switch (ret) {
+         case QMessageBox::Yes:
+             settings.setSafeStartupMode(true);
+             break;
+         default:
+             settings.setSafeStartupMode(false);
+             qInfo() << "User declined to safe load settings after startup crash";
+         }
+     }
+     settings.setStartupOk(false);
     MainWindow w;
     w.show();
 

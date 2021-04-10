@@ -56,8 +56,13 @@ class Settings : public QObject
 
 private:
     QSettings *settings;
+    bool m_safeStartupMode{false};
 
 public:
+    bool lastStartupOk() const;
+    void setStartupOk(const bool ok);
+    bool safeStartupMode() const;
+    void setSafeStartupMode(const bool safeMode);
     int historyDblClickAction() const;
     void setHistoryDblClickAction(const int index);
     int getSystemRamSize();

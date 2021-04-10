@@ -935,6 +935,7 @@ MainWindow::MainWindow(QWidget *parent) :
     std::vector<QWidget *> videoWidgets{cdgWindow->getVideoDisplay(), ui->videoPreview};
     bmMediaBackend.setVideoOutputWidgets({cdgWindow->getVideoDisplayBm(), ui->videoPreviewBm});
     kMediaBackend.setVideoOutputWidgets(videoWidgets);
+    settings.setStartupOk(true);
 }
 
 void MainWindow::dbInit(const QDir &okjDataDir) {
@@ -1180,6 +1181,7 @@ MainWindow::~MainWindow() {
     settings.saveWindowState(dlgSongShop);
     settings.saveWindowState(dlgSongShop);
     settings.saveWindowState(dbDialog);
+    settings.saveWindowState(this);
     settings.saveSplitterState(ui->splitterBm);
     settings.saveColumnWidths(ui->tableViewBmDb);
     settings.saveColumnWidths(ui->tableViewBmPlaylist);

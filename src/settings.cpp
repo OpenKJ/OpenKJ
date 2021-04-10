@@ -41,6 +41,26 @@
 
 
 
+bool Settings::lastStartupOk() const
+{
+    return settings->value("startupOk", true).toBool();
+}
+
+void Settings::setStartupOk(const bool ok)
+{
+    settings->setValue("startupOk", ok);
+}
+
+bool Settings::safeStartupMode() const
+{
+    return m_safeStartupMode;
+}
+
+void Settings::setSafeStartupMode(const bool safeMode)
+{
+    m_safeStartupMode = safeMode;
+}
+
 int Settings::historyDblClickAction() const
 {
     return settings->value("historyDblClickAction", 0).toInt();
@@ -390,6 +410,8 @@ void Settings::saveWindowState(QWidget *window)
 
 void Settings::restoreWindowState(QWidget *window)
 {
+    if (m_safeStartupMode)
+        return;
     qInfo() << "Restoring window state for: " << window->objectName();
     settings->beginGroup(window->objectName());
     if (settings->contains("geometry"))
@@ -428,6 +450,8 @@ void Settings::saveColumnWidths(QTableView *tableView)
 
 void Settings::restoreColumnWidths(QTreeView *treeView)
 {
+    if (m_safeStartupMode)
+        return;
     settings->beginGroup(treeView->objectName());
     if ((settings->contains("headerState")) && (settings->value("hiddenSections").toInt() == treeView->header()->hiddenSectionCount()) && (settings->value("sections").toInt() == treeView->header()->count()))
         treeView->header()->restoreState(settings->value("headerState").toByteArray());
@@ -436,6 +460,8 @@ void Settings::restoreColumnWidths(QTreeView *treeView)
 
 void Settings::restoreColumnWidths(QTableView *tableView)
 {
+    if (m_safeStartupMode)
+        return;
     settings->beginGroup(tableView->objectName());
     QStringList headers = settings->childGroups();
     for (int i=0; i < headers.size(); i++)
@@ -460,6 +486,8 @@ void Settings::saveSplitterState(QSplitter *splitter)
 
 void Settings::restoreSplitterState(QSplitter *splitter)
 {
+    if (m_safeStartupMode)
+        return;
     settings->beginGroup(splitter->objectName());
     if (settings->contains("splitterState"))
         splitter->restoreState(settings->value("splitterState").toByteArray());
