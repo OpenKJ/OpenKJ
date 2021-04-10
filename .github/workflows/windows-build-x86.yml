@@ -109,7 +109,7 @@ jobs:
       with:
        cached: ${{ steps.cache-qt.outputs.cache-hit }}
        version: '5.15.2'
-       arch: win32_msvc2015
+       arch: win32_msvc2019
        modules: 'core gui sql network widgets concurrent svg printsupport'
 
     - name: Create Build Environment
