@@ -120,7 +120,7 @@ jobs:
     - name: Set up Visual Studio shell
       uses: egor-tensin/vs-shell@v2
       with:
-        arch: x32
+        arch: x86
 
     - name: Configure CMake
       # Use a bash shell so we can use the same syntax for environment variable
