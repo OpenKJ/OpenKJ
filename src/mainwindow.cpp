@@ -1181,7 +1181,6 @@ MainWindow::~MainWindow() {
     settings.saveWindowState(dlgSongShop);
     settings.saveWindowState(dlgSongShop);
     settings.saveWindowState(dbDialog);
-    settings.saveWindowState(this);
     settings.saveSplitterState(ui->splitterBm);
     settings.saveColumnWidths(ui->tableViewBmDb);
     settings.saveColumnWidths(ui->tableViewBmPlaylist);

@@ -61,6 +61,8 @@ private:
 public:
     bool lastStartupOk() const;
     void setStartupOk(const bool ok);
+    QString lastRunVersion() const;
+    void setLastRunVersion(const QString &version);
     bool safeStartupMode() const;
     void setSafeStartupMode(const bool safeMode);
     int historyDblClickAction() const;

@@ -30,6 +30,7 @@
 #include "settings.h"
 #include "idledetect.h"
 #include "runguard/runguard.h"
+#include "okjversion.h"
 
 QDataStream &operator<<(QDataStream &out, const SfxEntry &obj)
 {
@@ -198,6 +199,11 @@ int main(int argc, char *argv[])
              qInfo() << "User declined to safe load settings after startup crash";
          }
      }
+#ifdef Q_OS_DARWIN
+     if (settings.lastRunVersion() != OKJ_VERSION_STRING)
+         settings.setSafeStartupMode(true);
+#endif
+     settings.setLastRunVersion(OKJ_VERSION_STRING);
      settings.setStartupOk(false);
     MainWindow w;
     w.show();

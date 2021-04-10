@@ -51,6 +51,16 @@ void Settings::setStartupOk(const bool ok)
     settings->setValue("startupOk", ok);
 }
 
+QString Settings::lastRunVersion() const
+{
+    return settings->value("lastRunVersion", "0.0.0").toString();
+}
+
+void Settings::setLastRunVersion(const QString &version)
+{
+    settings->setValue("lastRunVersion", version);
+}
+
 bool Settings::safeStartupMode() const
 {
     return m_safeStartupMode;
@@ -364,6 +374,8 @@ Settings::Settings(QObject *parent) :
 
 bool Settings::cdgWindowFullscreen()
 {
+    if (m_safeStartupMode)
+        return false;
     return settings->value("cdgWindowFullscreen", false).toBool();
 }
 
@@ -376,6 +388,8 @@ void Settings::setCdgWindowFullscreen(bool fullScreen)
 
 bool Settings::showCdgWindow()
 {
+    if (m_safeStartupMode)
+        return false;
     return settings->value("showCdgWindow", false).toBool();
 }
 
