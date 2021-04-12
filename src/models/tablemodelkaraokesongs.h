@@ -4,6 +4,7 @@
 #include <QAbstractTableModel>
 #include <QDateTime>
 #include <QImage>
+#include <memory>
 
 struct KaraokeSong {
     int id{0};
@@ -65,8 +66,8 @@ public:
 
 
 private:
-    std::vector<std::reference_wrapper<KaraokeSong>> m_filteredSongs;
-    std::vector<KaraokeSong> m_allSongs;
+    std::vector<std::shared_ptr<KaraokeSong>> m_filteredSongs;
+    std::vector< std::shared_ptr<KaraokeSong> > m_allSongs;
     QString m_lastSearch;
     Qt::SortOrder m_lastSortOrder{Qt::AscendingOrder};
     int m_lastSortColumn{1};

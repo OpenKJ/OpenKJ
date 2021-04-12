@@ -9,6 +9,7 @@
 #include <QDirIterator>
 #include <QSvgRenderer>
 #include <QMimeData>
+#include <QApplication>
 #include "settings.h"
 
 extern Settings settings;
@@ -66,9 +67,9 @@ QVariant TableModelKaraokeSongs::data(const QModelIndex &index, int role) const 
         }
     } else if (role == Qt::DecorationRole) {
         if (index.column() == COL_SONGID) {
-            if (m_filteredSongs.at(index.row()).get().path.endsWith("cdg", Qt::CaseInsensitive))
+            if (m_filteredSongs.at(index.row())->path.endsWith("cdg", Qt::CaseInsensitive))
                 return m_iconCdg;
-            else if (m_filteredSongs.at(index.row()).get().path.endsWith("zip", Qt::CaseInsensitive))
+            else if (m_filteredSongs.at(index.row())->path.endsWith("zip", Qt::CaseInsensitive))
                 return m_iconZip;
             else
                 return m_iconVid;
@@ -76,25 +77,25 @@ QVariant TableModelKaraokeSongs::data(const QModelIndex &index, int role) const 
     } else if (role == Qt::DisplayRole) {
         switch (index.column()) {
             case TableModelKaraokeSongs::COL_ID:
-                return m_filteredSongs.at(index.row()).get().id;
+                return m_filteredSongs.at(index.row())->id;
             case TableModelKaraokeSongs::COL_ARTIST:
-                return m_filteredSongs.at(index.row()).get().artist;
+                return m_filteredSongs.at(index.row())->artist;
             case TableModelKaraokeSongs::COL_TITLE:
-                return m_filteredSongs.at(index.row()).get().title;
+                return m_filteredSongs.at(index.row())->title;
             case TableModelKaraokeSongs::COL_SONGID:
-                return m_filteredSongs.at(index.row()).get().songid;
+                return m_filteredSongs.at(index.row())->songid;
             case TableModelKaraokeSongs::COL_FILENAME:
-                return m_filteredSongs.at(index.row()).get().filename;
+                return m_filteredSongs.at(index.row())->filename;
             case TableModelKaraokeSongs::COL_DURATION:
-                if (m_filteredSongs.at(index.row()).get().duration < 1)
+                if (m_filteredSongs.at(index.row())->duration < 1)
                     return QVariant();
-                return QTime(0, 0, 0, 0).addSecs(m_filteredSongs.at(index.row()).get().duration / 1000).toString(
+                return QTime(0, 0, 0, 0).addSecs(m_filteredSongs.at(index.row())->duration / 1000).toString(
                         "m:ss");
             case TableModelKaraokeSongs::COL_PLAYS:
-                return m_filteredSongs.at(index.row()).get().plays;
+                return m_filteredSongs.at(index.row())->plays;
             case TableModelKaraokeSongs::COL_LASTPLAY:
                 QLocale locale;
-                return m_filteredSongs.at(index.row()).get().lastPlay.toString(
+                return m_filteredSongs.at(index.row())->lastPlay.toString(
                         locale.dateTimeFormat(QLocale::ShortFormat));
         }
     }
@@ -111,7 +112,7 @@ void TableModelKaraokeSongs::loadData() {
     if (query.size() > 0)
         m_filteredSongs.reserve(query.size());
     while (query.next()) {
-        auto song = m_allSongs.emplace_back(KaraokeSong{
+        auto song = m_allSongs.emplace_back(std::make_shared<KaraokeSong>(KaraokeSong{
                 query.value(0).toInt(),
                 query.value(1).toString(),
                 query.value(2).toString(),
@@ -122,7 +123,7 @@ void TableModelKaraokeSongs::loadData() {
                 query.value(7).toString().toLower(),
                 query.value(8).toInt(),
                 query.value(9).toDateTime()
-        });
+        }));
     }
 
     qInfo() << "Loaded " << m_filteredSongs.size() << " karaoke songs from database.";
@@ -148,21 +149,21 @@ void TableModelKaraokeSongs::search(const QString &searchString) {
     m_filteredSongs.clear();
     m_filteredSongs.reserve(m_allSongs.size());
     auto needles = m_lastSearch.split(' ', QString::SplitBehavior::SkipEmptyParts);
-    std::for_each(m_allSongs.begin(), m_allSongs.end(), [&](KaraokeSong &song) {
-        if (song.songid.contains("!!DROPPED!!"))
+    std::for_each(m_allSongs.begin(), m_allSongs.end(), [&](const std::shared_ptr<KaraokeSong>& song) {
+        if (song->songid.contains("!!DROPPED!!"))
             return;
         QString haystack;
         switch (m_searchType) {
             case TableModelKaraokeSongs::SEARCH_TYPE_ALL: {
-                haystack = song.searchString;
+                haystack = song->searchString;
                 break;
             }
             case TableModelKaraokeSongs::SEARCH_TYPE_ARTIST: {
-                haystack = song.artist.toLower();
+                haystack = song->artist.toLower();
                 break;
             }
             case TableModelKaraokeSongs::SEARCH_TYPE_TITLE: {
-                haystack = song.title.toLower();
+                haystack = song->title.toLower();
                 break;
             }
         }
@@ -191,34 +192,34 @@ void TableModelKaraokeSongs::setSearchType(TableModelKaraokeSongs::SearchType ty
 }
 
 int TableModelKaraokeSongs::getIdForPath(const QString &path) {
-    auto it = std::find_if(m_allSongs.begin(), m_allSongs.end(), [&](KaraokeSong &song) {
-        return (song.path == path);
+    auto it = std::find_if(m_allSongs.begin(), m_allSongs.end(), [&](const std::shared_ptr<KaraokeSong>& song) {
+        return (song->path == path);
     });
     if (it == m_allSongs.end())
         return -1;
-    return it->id;
+    return it->get()->id;
 }
 
 QString TableModelKaraokeSongs::getPath(const int songId) {
-    auto it = std::find_if(m_allSongs.begin(), m_allSongs.end(), [&songId](KaraokeSong &song) {
-        return (song.id == songId);
+    auto it = std::find_if(m_allSongs.begin(), m_allSongs.end(), [&songId](const std::shared_ptr<KaraokeSong>& song) {
+        return (song->id == songId);
     });
-    return it->path;
+    return it->get()->path;
 }
 
 void TableModelKaraokeSongs::updateSongHistory(const int songId) {
-    auto it = find_if(m_allSongs.begin(), m_allSongs.end(), [&songId](KaraokeSong &song) {
-        if (song.id == songId)
+    auto it = find_if(m_allSongs.begin(), m_allSongs.end(), [&songId](const std::shared_ptr<KaraokeSong>& song) {
+        if (song->id == songId)
             return true;
         return false;
     });
     if (it != m_allSongs.end()) {
-        it->plays++;
-        it->lastPlay = QDateTime::currentDateTime();
+        it->get()->plays++;
+        it->get()->lastPlay = QDateTime::currentDateTime();
     }
 
-    auto it2 = find_if(m_filteredSongs.begin(), m_filteredSongs.end(), [&songId](auto song) {
-        if (song.get().id == songId)
+    auto it2 = find_if(m_filteredSongs.begin(), m_filteredSongs.end(), [&songId](const std::shared_ptr<KaraokeSong>& song) {
+        if (song->id == songId)
             return true;
         return false;
     });
@@ -236,10 +237,10 @@ void TableModelKaraokeSongs::updateSongHistory(const int songId) {
 }
 
 KaraokeSong &TableModelKaraokeSongs::getSong(const int songId) {
-    auto it = std::find_if(m_allSongs.begin(), m_allSongs.end(), [&songId](KaraokeSong &song) {
-        return (song.id == songId);
+    auto it = std::find_if(m_allSongs.begin(), m_allSongs.end(), [&songId](const std::shared_ptr<KaraokeSong>& song) {
+        return (song->id == songId);
     });
-    return *it;
+    return **it;
 }
 
 void TableModelKaraokeSongs::resizeIconsForFont(const QFont &font) {
@@ -280,13 +281,13 @@ void TableModelKaraokeSongs::sort(int column, Qt::SortOrder order) {
     m_lastSortColumn = column;
     m_lastSortOrder = order;
 
-    auto sortLambda = [&column] (KaraokeSong &a, KaraokeSong &b)->bool {
-        QString artistAl{a.artist.toLower()};
-        QString artistBl{b.artist.toLower()};
-        QString titleAl{a.title.toLower()};
-        QString titleBl{b.title.toLower()};
-        QString songIdAl{a.songid.toLower()};
-        QString songIdBl{b.songid.toLower()};
+    auto sortLambda = [&column] (const std::shared_ptr<KaraokeSong>& a, const std::shared_ptr<KaraokeSong>& b)->bool {
+        QString artistAl{a->artist.toLower()};
+        QString artistBl{b->artist.toLower()};
+        QString titleAl{a->title.toLower()};
+        QString titleBl{b->title.toLower()};
+        QString songIdAl{a->songid.toLower()};
+        QString songIdBl{b->songid.toLower()};
         switch (column) {
             case COL_ARTIST:
                 if (artistAl == artistBl) {
@@ -307,40 +308,41 @@ void TableModelKaraokeSongs::sort(int column, Qt::SortOrder order) {
                 }
                 return (titleAl < titleBl);
             case COL_SONGID:
-                return (a.songid.toLower() < b.songid.toLower());
+                return (a->songid.toLower() < b->songid.toLower());
             case COL_FILENAME:
-                return (a.filename.toLower() < b.filename.toLower());
+                return (a->filename.toLower() < b->filename.toLower());
             case COL_DURATION:
-                return (a.duration < b.duration);
+                return (a->duration < b->duration);
             case COL_PLAYS:
-                return (a.plays < b.plays);
+                return (a->plays < b->plays);
             case COL_LASTPLAY:
-                return (a.lastPlay < b.lastPlay);
+                return (a->lastPlay < b->lastPlay);
 
             default:
-                return (a.id < b.id);
+                return (a->id < b->id);
         }
     };
 
+    QApplication::setOverrideCursor(Qt::BusyCursor);
     if (order == Qt::AscendingOrder) {
         std::sort(m_allSongs.begin(), m_allSongs.end(), sortLambda);
     } else {
         std::sort(m_allSongs.rbegin(), m_allSongs.rend(), sortLambda);
     }
-
+    QApplication::restoreOverrideCursor();
     search(m_lastSearch);
 }
 
 void TableModelKaraokeSongs::setSongDuration(QString &path, int duration) {
-    auto it = find_if(m_allSongs.begin(), m_allSongs.end(), [&path](auto &song) {
-        return (song.path == path);
+    auto it = find_if(m_allSongs.begin(), m_allSongs.end(), [&path](const std::shared_ptr<KaraokeSong>& song) {
+        return (song->path == path);
     });
     if (it == m_allSongs.end())
         return;
-    it->duration = duration;
-    int songId = it->id;
-    auto it2 = find_if(m_filteredSongs.begin(), m_filteredSongs.end(), [&songId](auto &song) {
-        return (song.get().id == songId);
+    it->get()->duration = duration;
+    int songId = it->get()->id;
+    auto it2 = find_if(m_filteredSongs.begin(), m_filteredSongs.end(), [&songId](const std::shared_ptr<KaraokeSong>& song) {
+        return (song->id == songId);
     });
     if (it2 != m_filteredSongs.end()) {
         int row = std::distance(m_filteredSongs.begin(), it2);
@@ -355,14 +357,14 @@ void TableModelKaraokeSongs::markSongBad(QString path) {
     query.exec();
 
     emit layoutAboutToBeChanged();
-    auto newFilteredEnd = std::remove_if(m_filteredSongs.begin(), m_filteredSongs.end(), [&path] (auto &song) {
-        return (song.get().path == path);
+    auto newFilteredEnd = std::remove_if(m_filteredSongs.begin(), m_filteredSongs.end(), [&path] (const std::shared_ptr<KaraokeSong>& song) {
+        return (song->path == path);
     });
     m_filteredSongs.erase(newFilteredEnd, m_filteredSongs.end());
     emit layoutChanged();
 
-    auto newAllSongsEnd = std::remove_if(m_allSongs.begin(), m_allSongs.end(), [&path] (auto &song) {
-        return (song.path == path);
+    auto newAllSongsEnd = std::remove_if(m_allSongs.begin(), m_allSongs.end(), [&path] (const std::shared_ptr<KaraokeSong>& song) {
+        return (song->path == path);
     });
     m_allSongs.erase(newAllSongsEnd, m_allSongs.end());
 
@@ -383,14 +385,14 @@ TableModelKaraokeSongs::DeleteStatus TableModelKaraokeSongs::removeBadSong(QStri
         query.exec();
         
         emit layoutAboutToBeChanged();
-        auto newFilteredEnd = std::remove_if(m_filteredSongs.begin(), m_filteredSongs.end(), [&path] (auto &song) {
-            return (song.get().path == path);
+        auto newFilteredEnd = std::remove_if(m_filteredSongs.begin(), m_filteredSongs.end(), [&path] (const std::shared_ptr<KaraokeSong>& song) {
+            return (song->path == path);
         });
         m_filteredSongs.erase(newFilteredEnd, m_filteredSongs.end());
 
         emit layoutChanged();
-        auto newAllSongsEnd = std::remove_if(m_allSongs.begin(), m_allSongs.end(), [&path] (auto &song) {
-            return (song.path == path);
+        auto newAllSongsEnd = std::remove_if(m_allSongs.begin(), m_allSongs.end(), [&path] (const std::shared_ptr<KaraokeSong>& song) {
+            return (song->path == path);
         });
         m_allSongs.erase(newAllSongsEnd, m_allSongs.end());
 
@@ -460,7 +462,7 @@ int TableModelKaraokeSongs::addSong(KaraokeSong song)
     {
         int lastInsertId = query.lastInsertId().toInt();
         song.id = lastInsertId;
-        m_allSongs.push_back(song);
+        m_allSongs.push_back(std::make_shared<KaraokeSong>(song));
         search(m_lastSearch);
         return lastInsertId;
     }
