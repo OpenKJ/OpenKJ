@@ -1195,9 +1195,8 @@ const char* MediaBackend::getVideoSinkElementNameForFactory()
     }
 #elif defined(Q_OS_WIN)
     return "d3dvideosink";
-#else
-    return "glimagesink";
 #endif
+    return "glimagesink";
 }
 
 void MediaBackend::setMplxMode(const int &mode)

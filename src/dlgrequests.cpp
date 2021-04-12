@@ -38,7 +38,11 @@ QString toMixedCase(const QString& s)
         return QString();
     if (s.size() < 1)
         return QString();
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
     QStringList parts = s.split(" ", QString::SkipEmptyParts);
+#else
+    QStringList parts = s.split(' ', Qt::SkipEmptyParts);
+#endif
     for (int i=1; i<parts.size(); ++i)
         parts[i].replace(0, 1, parts[i][0].toUpper());
     QString newStr = parts.join(" ");

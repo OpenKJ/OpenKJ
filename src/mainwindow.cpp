@@ -34,10 +34,8 @@
 #include "src/models/tableviewtooltipfilter.h"
 #include <tickernew.h>
 #include "dbupdatethread.h"
-#include <chrono>
 #include "okjutil.h"
 #include <algorithm>
-#include <random>
 #include "dlgaddsong.h"
 
 #ifdef _MSC_VER
@@ -413,7 +411,7 @@ void MainWindow::setupShortcuts() {
             playlistSongsModel.setCurrentPosition(-1);
         }
         playlistSongsModel.savePlaylistChanges();
-        if (auto state = bmMediaBackend.state(); state != MediaBackend::PlayingState && state != MediaBackend::PausedState)
+        if (state != MediaBackend::PlayingState && state != MediaBackend::PausedState)
             return;
         if (ui->checkBoxBmBreak->isChecked())
             ui->labelBmNext->setText("None - Breaking after current song");
@@ -3300,7 +3298,6 @@ void MainWindow::bmDatabaseAboutToUpdate() {
 }
 
 void MainWindow::bmSongMoved(const int &oldPos, const int &newPos) {
-    QString nextSong;
     int curPlPos = playlistSongsModel.currentPosition();
     if (oldPos < curPlPos && newPos >= curPlPos)
         curPlPos--;
@@ -3817,7 +3814,7 @@ void MainWindow::on_actionBurn_in_triggered() {
         playing = true;
         qInfo() << "Burn in test cycle: " << ++runs;
     });
-    m_timerTest.start(10000);
+    m_timerTest.start(3000);
 #endif
 }
 

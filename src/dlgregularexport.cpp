@@ -75,7 +75,7 @@ void DlgRegularExport::on_pushButtonExport_clicked()
     if (saveFilePath != "")
     {
         QMessageBox *msgBox = new QMessageBox(this);
-        msgBox->setStandardButtons(0);
+        msgBox->setStandardButtons(QFlags<QMessageBox::StandardButton>());
         msgBox->setText(tr("Exporting regular singers, please wait..."));
         msgBox->show();
         exportSingers(historySingerIds, saveFilePath);
@@ -101,7 +101,7 @@ void DlgRegularExport::on_pushButtonExportAll_clicked()
         if (saveFilePath != "")
         {
             QMessageBox *msgBox = new QMessageBox(this);
-            msgBox->setStandardButtons(0);
+            msgBox->setStandardButtons(QFlags<QMessageBox::StandardButton>());
             msgBox->setText(tr("Exporting regular singers, please wait..."));
             msgBox->show();
             exportSingers(singerIds, saveFilePath);

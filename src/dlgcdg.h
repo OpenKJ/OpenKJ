@@ -112,7 +112,7 @@ private:
     TransparentWidget *tWidget;
 
 public:
-    explicit DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget *parent = nullptr, Qt::WindowFlags f = nullptr);
+    explicit DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget *parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>());
     ~DlgCdg();
     void setTickerText(const QString &text);
     void stopTicker();

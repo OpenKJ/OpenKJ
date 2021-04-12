@@ -148,7 +148,11 @@ void TableModelKaraokeSongs::search(const QString &searchString) {
     searchTerms.emplace_back(s.substr(prev_pos, pos - prev_pos));
     m_filteredSongs.clear();
     m_filteredSongs.reserve(m_allSongs.size());
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
     auto needles = m_lastSearch.split(' ', QString::SplitBehavior::SkipEmptyParts);
+#else
+    auto needles = m_lastSearch.split(' ', Qt::SplitBehavior(Qt::SkipEmptyParts));
+#endif
     std::for_each(m_allSongs.begin(), m_allSongs.end(), [&](const std::shared_ptr<KaraokeSong>& song) {
         if (song->songid.contains("!!DROPPED!!"))
             return;

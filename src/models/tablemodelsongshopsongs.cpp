@@ -106,7 +106,11 @@ bool SortFilterProxyModelSongShopSongs::filterAcceptsRow(int source_row, const Q
     QModelIndex index0 = sourceModel()->index(source_row, 0, source_parent);
     QModelIndex index1 = sourceModel()->index(source_row, 1, source_parent);
     QModelIndex index2 = sourceModel()->index(source_row, 2, source_parent);
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
     QStringList terms = searchTerms.split(" ", QString::SkipEmptyParts);
+#else
+    QStringList terms = searchTerms.split(' ', Qt::SplitBehavior(Qt::SkipEmptyParts));
+#endif
     QString artist = sourceModel()->data(index0).toString();
     QString title = sourceModel()->data(index1).toString();
     QString songId = sourceModel()->data(index2).toString();

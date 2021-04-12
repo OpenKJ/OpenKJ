@@ -74,7 +74,7 @@ void DlgRegularImport::on_pushButtonImport_clicked()
         return;
 
     QMessageBox *msgBox = new QMessageBox(this);
-    msgBox->setStandardButtons(0);
+    msgBox->setStandardButtons(QFlags<QMessageBox::StandardButton>());
     msgBox->setText(tr("Importing regular singers, please wait..."));
     msgBox->show();
     for (int i=0; i < ui->listWidgetRegulars->selectedItems().size(); i++)
@@ -124,7 +124,7 @@ void DlgRegularImport::on_pushButtonImportAll_clicked()
 {
     QStringList errors;
     QMessageBox *msgBox = new QMessageBox(this);
-    msgBox->setStandardButtons(0);
+    msgBox->setStandardButtons(QFlags<QMessageBox::StandardButton>());
     msgBox->setText(tr("Importing regular singers, please wait..."));
     msgBox->show();
     ui->listWidgetRegulars->selectAll();
