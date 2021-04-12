@@ -363,6 +363,7 @@ void TableModelRotation::singerDelete(const int singerId)
        singer.position = pos++;
     });
     emit layoutChanged();
+    emit rotationModified();
     commitChanges();
     outputRotationDebug();
 }
