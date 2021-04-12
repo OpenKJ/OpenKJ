@@ -124,6 +124,11 @@ void TableModelHistorySongs::loadSinger(const QString historySingerName)
 void TableModelHistorySongs::saveSong(const QString &singerName, const QString &filePath, const QString &artist, const QString &title, const QString &songid, const int keyChange)
 {
     qInfo() << "filepath: " << filePath;
+    if (artist == "--Dropped Song--")
+    {
+        qInfo() << "Song was added via drop from external source, not saving to history";
+        return;
+    }
     QSqlQuery query;
     auto historySingerId = getSingerId(singerName);
     if (historySingerId != -1 && songExists(historySingerId, filePath))

@@ -61,6 +61,7 @@ public:
     void markSongBad(QString path);
     DeleteStatus removeBadSong(QString path);
     static QString findCdgAudioFile(const QString& path);
+    int addSong(KaraokeSong song);
 
 
 private:

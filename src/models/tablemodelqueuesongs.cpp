@@ -92,6 +92,8 @@ QVariant TableModelQueueSongs::data(const QModelIndex &index, int role) const
         case COL_TITLE:
             return m_songs.at(index.row()).title;
         case COL_SONGID:
+            if (m_songs.at(index.row()).songId == "!!DROPPED!!")
+                return QVariant();
             return m_songs.at(index.row()).songId;
         case COL_KEY:
             if (m_songs.at(index.row()).keyChange == 0)
@@ -101,6 +103,8 @@ QVariant TableModelQueueSongs::data(const QModelIndex &index, int role) const
             else
                 return m_songs.at(index.row()).keyChange;
         case COL_DURATION:
+            if (m_songs.at(index.row()).duration < 1)
+                return QVariant();
             return QTime(0,0,0,0).addMSecs(m_songs.at(index.row()).duration).toString("m:ss");
         case COL_PATH:
             return m_songs.at(index.row()).path;

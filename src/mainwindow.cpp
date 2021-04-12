@@ -3022,7 +3022,22 @@ void MainWindow::filesDroppedOnQueue(const QList<QUrl> &urls, const int &singerI
                     continue;
                 }
                 qInfo() << "Karaoke file dropped. Singer: " << singerId << " Pos: " << position << " Path: " << file;
-                int songId = dbDialog->dropFileAdd(file);
+                QFileInfo dFileInfo(file);
+
+                KaraokeSong droppedSong{
+                    -1,
+                    "--Dropped Song--",
+                    dFileInfo.completeBaseName(),
+                    "!!DROPPED!!",
+                    0,
+                    dFileInfo.fileName(),
+                    file,
+                    "",
+                    0,
+                    QDateTime()
+                };
+                int songId = karaokeSongsModel.addSong(droppedSong);
+                qInfo() << "addSong returned songid: " << songId;
                 if (songId == -1)
                     continue;
                 qModel.insert(songId, position);

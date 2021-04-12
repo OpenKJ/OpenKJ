@@ -1,6 +1,7 @@
 #include "tablemodelkaraokesongs.h"
 
 #include <QSqlQuery>
+#include <QSqlError>
 #include <QDebug>
 #include <QPainter>
 #include <QFileInfo>
@@ -106,7 +107,7 @@ void TableModelKaraokeSongs::loadData() {
     m_filteredSongs.clear();
     QSqlQuery query;
     query.exec("SELECT songid,artist,title,discid,duration,filename,path,searchstring,plays,lastplay "
-               "FROM dbsongs WHERE discid != '!!BAD!!' AND discid != '!!DROPPED!!'");
+               "FROM dbsongs WHERE discid != '!!BAD!!'");
     if (query.size() > 0)
         m_filteredSongs.reserve(query.size());
     while (query.next()) {
@@ -148,6 +149,8 @@ void TableModelKaraokeSongs::search(const QString &searchString) {
     m_filteredSongs.reserve(m_allSongs.size());
     auto needles = m_lastSearch.split(' ', QString::SplitBehavior::SkipEmptyParts);
     std::for_each(m_allSongs.begin(), m_allSongs.end(), [&](KaraokeSong &song) {
+        if (song.songid.contains("!!DROPPED!!"))
+            return;
         QString haystack;
         switch (m_searchType) {
             case TableModelKaraokeSongs::SEARCH_TYPE_ALL: {
@@ -432,4 +435,38 @@ QString TableModelKaraokeSongs::findCdgAudioFile(const QString& path) {
     }
     qInfo() << "findMatchingAudioFile found no matches";
     return QString();
+}
+
+int TableModelKaraokeSongs::addSong(KaraokeSong song)
+{
+    qInfo() << "TableModelKaraokeSongs::addSong() called";
+    if (int songId = getIdForPath(song.path); songId > -1)
+    {
+        qInfo() << "addSong() - Song at path already exists in db:\n\t" << song.path;
+        return songId;
+    }
+    QSqlQuery query;
+    query.prepare("INSERT INTO dbSongs (discid,artist,title,path,duration,filename,searchstring) VALUES(:songid, :artist, :title, :path, :duration, :filename, :searchString)");
+    query.bindValue(":songid", song.songid);
+    query.bindValue(":artist", song.artist);
+    query.bindValue(":title", song.title);
+    query.bindValue(":path", song.path);
+    query.bindValue(":duration", song.duration);
+    query.bindValue(":filename", song.filename);
+    query.bindValue(":searchString", song.searchString);
+    query.exec();
+    qInfo() << query.lastError();
+    if (query.lastInsertId().isValid())
+    {
+        int lastInsertId = query.lastInsertId().toInt();
+        song.id = lastInsertId;
+        m_allSongs.push_back(song);
+        search(m_lastSearch);
+        return lastInsertId;
+    }
+    else
+    {
+        qInfo() << "Error while inserting song into DB";
+        return -1;
+    }
 }
