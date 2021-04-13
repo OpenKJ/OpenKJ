@@ -5,12 +5,16 @@
 #include <QDateTime>
 #include <QImage>
 #include <memory>
+#include <QTimer>
 
 struct KaraokeSong {
     int id{0};
     QString artist;
+    QString artistL;
     QString title;
+    QString titleL;
     QString songid;
+    QString songidL;
     int duration{0};
     QString filename;
     QString path;
@@ -78,6 +82,8 @@ private:
     SearchType m_searchType{SearchType::SEARCH_TYPE_ALL};
 
     void resizeIconsForFont(const QFont &font);
+    void searchExec();
+    QTimer searchTimer{this};
 
 public slots:
 

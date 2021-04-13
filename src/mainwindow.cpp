@@ -3025,8 +3025,11 @@ void MainWindow::filesDroppedOnQueue(const QList<QUrl> &urls, const int &singerI
                 KaraokeSong droppedSong{
                     -1,
                     "--Dropped Song--",
+                    "--dropped song--",
                     dFileInfo.completeBaseName(),
+                    dFileInfo.completeBaseName().toLower(),
                     "!!DROPPED!!",
+                    "!!dropped!!",
                     0,
                     dFileInfo.fileName(),
                     file,
