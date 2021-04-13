@@ -70,6 +70,7 @@ Q_OBJECT
 
 private:
     Ui::MainWindow *ui;
+    bool m_initialUiSetupDone{false};
     QSqlDatabase database;
     TableModelKaraokeSongs karaokeSongsModel;
     TableModelQueueSongs qModel{karaokeSongsModel, this};

@@ -629,7 +629,9 @@ MainWindow::MainWindow(QWidget *parent) :
     int initialKVol = settings.audioVolume();
     int initialBMVol = settings.bmVolume();
     qInfo() << "Initial volumes - K: " << initialKVol << " BM: " << initialBMVol;
-    settings.restoreWindowState(this);
+    QTimer::singleShot(250, [&] () {
+        settings.restoreWindowState(this);
+    });
     dbInit(okjDataDir);
     setupShortcuts();
     karaokeSongsModel.loadData();
@@ -1058,6 +1060,7 @@ MainWindow::MainWindow(QWidget *parent) :
     bmMediaBackend.setVideoOutputWidgets({cdgWindow->getVideoDisplayBm(), ui->videoPreviewBm});
     kMediaBackend.setVideoOutputWidgets(videoWidgets);
     settings.setStartupOk(true);
+    m_initialUiSetupDone = true;
 }
 
 void MainWindow::dbInit(const QDir &okjDataDir) {
@@ -3391,7 +3394,8 @@ void MainWindow::autosizeBmViews() {
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event) {
-
+    if (!m_initialUiSetupDone)
+        return;
     QMainWindow::resizeEvent(event);
     autosizeViews();
     autosizeBmViews();
@@ -3405,6 +3409,7 @@ void MainWindow::resizeEvent(QResizeEvent *event) {
         bNeedAutoSize = false;
         kNeedAutoSize = true;
     }
+    settings.saveWindowState(this);
 }
 
 void MainWindow::on_tabWidget_currentChanged(const int &index) {
