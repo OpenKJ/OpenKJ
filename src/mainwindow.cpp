@@ -51,6 +51,7 @@ OKJSongbookAPI *songbookApi;
 // for some reason clang-tidy is choking on this function
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCDFAInspection"
+
 void MainWindow::addSfxButton(const QString &filename, const QString &label, const bool &reset) {
     static int numButtons = 0;
     if (reset)
@@ -71,6 +72,7 @@ void MainWindow::addSfxButton(const QString &filename, const QString &label, con
             &MainWindow::sfxButton_customContextMenuRequested);
     numButtons++;
 }
+
 #pragma clang diagnostic pop
 
 void MainWindow::refreshSfxButtons() {
@@ -131,6 +133,90 @@ void MainWindow::updateIcons() {
 }
 
 void MainWindow::setupShortcuts() {
+
+    scutKPlayNextUnsung = new QShortcut(settings.loadShortcutKeySequence("kPlayNextUnsung"), this, nullptr, nullptr,
+                                        Qt::ApplicationShortcut);
+
+    connect(scutKPlayNextUnsung, &QShortcut::activated, [&] () {
+        if (auto state = kMediaBackend.state(); state == MediaBackend::PlayingState || state == MediaBackend::PausedState)
+        {
+            if (settings.showSongInterruptionWarning()) {
+                QMessageBox msgBox(this);
+                auto *cb = new QCheckBox("Show this warning in the future");
+                cb->setChecked(settings.showSongInterruptionWarning());
+                msgBox.setIcon(QMessageBox::Warning);
+                msgBox.setText("Interrupt currenly playing karaoke song?");
+                msgBox.setInformativeText(
+                        "There is currently a karaoke song playing.  If you continue, the current song will be stopped.  Are you sure?");
+                QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
+                msgBox.addButton(QMessageBox::Cancel);
+                msgBox.setCheckBox(cb);
+                connect(cb, &QCheckBox::toggled, &settings, &Settings::setShowSongInterruptionWarning);
+                msgBox.exec();
+                if (msgBox.clickedButton() != yesButton) {
+                    return;
+                }
+            }
+            kMediaBackend.stop();
+        }
+        int nextSinger{-1};
+        QString nextSongPath;
+        bool empty{false};
+        int curSingerId{rotModel.currentSinger()};
+        int curPos{rotModel.getSingerPosition(curSingerId)};
+        if (curSingerId == -1)
+            curPos = rotModel.rowCount() - 1;
+        int loops = 0;
+        while ((nextSongPath == "") && (!empty)) {
+            if (loops > rotModel.rowCount()) {
+                empty = true;
+            } else {
+                if (++curPos >= rotModel.rowCount()) {
+                    curPos = 0;
+                }
+                nextSinger = rotModel.singerIdAtPosition(curPos);
+                nextSongPath = rotModel.nextSongPath(nextSinger);
+                loops++;
+            }
+        }
+        if (empty) {
+            QMessageBox::information(this, "Unable to play next",
+                                     "Sorry, no unsung karaoke songs are currently in any singer's queue");
+            return;
+        }
+        curSinger = rotModel.getSingerName(nextSinger);
+        curArtist = rotModel.nextSongArtist(nextSinger);
+        curTitle = rotModel.nextSongTitle(nextSinger);
+
+        if (settings.treatAllSingersAsRegs() || rotModel.singerIsRegular(nextSinger)) {
+            historySongsModel.saveSong(
+                    curSinger,
+                    nextSongPath,
+                    curArtist,
+                    curTitle,
+                    rotModel.nextSongSongId(nextSinger),
+                    rotModel.nextSongKeyChg(nextSinger)
+            );
+        }
+        karaokeSongsModel.updateSongHistory(karaokeSongsModel.getIdForPath(nextSongPath));
+        play(nextSongPath);
+        kMediaBackend.setPitchShift(rotModel.nextSongKeyChg(nextSinger));
+        qModel.setPlayed(rotModel.nextSongQueueId(nextSinger));
+        rotModel.setCurrentSinger(nextSinger);
+        rotDelegate.setCurrentSinger(nextSinger);
+        if (settings.rotationAltSortOrder()) {
+            auto curSingerPos = rotModel.getSingerPosition(nextSinger);
+            m_curSingerOriginalPosition = curSingerPos;
+            if (curSingerPos != 0)
+                rotModel.singerMove(curSingerPos, 0);
+        }
+        ui->labelArtist->setText(curArtist);
+        ui->labelTitle->setText(curTitle);
+        ui->labelSinger->setText(curSinger);
+        ui->tableViewRotation->clearSelection();
+        ui->tableViewRotation->selectRow(rotModel.getSingerPosition(rotModel.currentSinger()));
+    });
+
     scutAddSinger = new QShortcut(settings.loadShortcutKeySequence("addSinger"), this, nullptr, nullptr,
                                   Qt::ApplicationShortcut);
     connect(scutAddSinger, &QShortcut::activated, this, &MainWindow::on_buttonAddSinger_clicked);
@@ -428,6 +514,7 @@ void MainWindow::setupShortcuts() {
 }
 
 void MainWindow::shortcutsUpdated() {
+    scutKPlayNextUnsung->setKey(settings.loadShortcutKeySequence("kPlayNextUnsung"));
     scutAddSinger->setKey(settings.loadShortcutKeySequence("addSinger"));
     scutBFfwd->setKey(settings.loadShortcutKeySequence("bFfwd"));
     scutBPause->setKey(settings.loadShortcutKeySequence("bPause"));
@@ -532,12 +619,14 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewRotation->hideColumn(TableModelRotation::COL_POSITION);
     if (settings.treatAllSingersAsRegs())
         ui->tableViewRotation->hideColumn(TableModelRotation::COL_REGULAR);
-    if (settings.rotationShowNextSong())
-    {
-        ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(TableModelRotation::COL_NAME, QHeaderView::Interactive);
-        ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(TableModelRotation::COL_NEXT_SONG, QHeaderView::Stretch);
+    if (settings.rotationShowNextSong()) {
+        ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(TableModelRotation::COL_NAME,
+                                                                        QHeaderView::Interactive);
+        ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(TableModelRotation::COL_NEXT_SONG,
+                                                                        QHeaderView::Stretch);
     } else {
-        ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(TableModelRotation::COL_NAME, QHeaderView::Stretch);
+        ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(TableModelRotation::COL_NAME,
+                                                                        QHeaderView::Stretch);
         ui->tableViewRotation->hideColumn(TableModelRotation::COL_NEXT_SONG);
     }
     ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(TableModelRotation::COL_ID,
@@ -911,7 +1000,8 @@ MainWindow::MainWindow(QWidget *parent) :
                 }
 
             });
-    connect(&playlistSongsModel, &TableModelPlaylistSongs::playingPlSongIdChanged, &bmPlDelegate, &ItemDelegatePlaylistSongs::setPlayingPlSongId);
+    connect(&playlistSongsModel, &TableModelPlaylistSongs::playingPlSongIdChanged, &bmPlDelegate,
+            &ItemDelegatePlaylistSongs::setPlayingPlSongId);
     connect(&qModel, &TableModelQueueSongs::qSongsMoved, [&](auto startRow, auto startCol, auto endRow, auto endCol) {
         auto topLeft = ui->tableViewQueue->model()->index(startRow, startCol);
         auto bottomRight = ui->tableViewQueue->model()->index(endRow, endCol);
@@ -1785,15 +1875,12 @@ void MainWindow::hasActiveVideoChanged() {
     cdgWindow->getVideoDisplayBm()->setHasActiveVideo(m_bmHasActiveVideo);
     if (m_timerKaraokeAA.isActive() && settings.karaokeAAAlertEnabled())
         return;
-    if (m_bmHasActiveVideo && !m_kHasActiveVideo)
-    {
+    if (m_bmHasActiveVideo && !m_kHasActiveVideo) {
         cdgWindow->getVideoDisplay()->hide();
         cdgWindow->getVideoDisplayBm()->show();
         ui->videoPreview->hide();
         ui->videoPreviewBm->show();
-    }
-    else
-    {
+    } else {
         cdgWindow->getVideoDisplay()->show();
         cdgWindow->getVideoDisplayBm()->hide();
         ui->videoPreview->show();
@@ -2507,8 +2594,7 @@ void MainWindow::bmMediaStateChanged(const MediaBackend::State &newState) {
                 bmMediaBackend.play();
                 if (kMediaBackend.state() == MediaBackend::PlayingState)
                     bmMediaBackend.fadeOutImmediate();
-            }
-            else {
+            } else {
                 bmMediaBackend.stop(true);
                 resetBmLabels();
             }
@@ -2548,7 +2634,8 @@ void MainWindow::bmMediaDurationChanged(const qint64 &duration) {
 
 void MainWindow::on_tableViewBmPlaylist_clicked(const QModelIndex &index) {
     qInfo() << "DNDDEBUG - acceptDrops(): " << ui->tableViewBmPlaylist->acceptDrops();
-    qInfo() << "DNDDEBUG - testAttribute(Qt::WA_AcceptDrops): " << ui->tableViewBmPlaylist->testAttribute(Qt::WA_AcceptDrops);
+    qInfo() << "DNDDEBUG - testAttribute(Qt::WA_AcceptDrops): "
+            << ui->tableViewBmPlaylist->testAttribute(Qt::WA_AcceptDrops);
     qInfo() << "DNDDEBUG - hasMouseTracking(): " << ui->tableViewBmPlaylist->hasMouseTracking();
     qInfo() << "DNDDEBUG - mainwindow hasMouseTracking(): " << hasMouseTracking();
     qInfo() << "DNDDEBUG - supportedDropActions(): " << playlistSongsModel.supportedDropActions();
@@ -2556,11 +2643,11 @@ void MainWindow::on_tableViewBmPlaylist_clicked(const QModelIndex &index) {
     if (index.column() == TableModelPlaylistSongs::COL_PATH) {
         if (playlistSongsModel.isCurrentlyPlayingSong(index.data(Qt::UserRole).toInt())) {
             if (bmMediaBackend.state() == MediaBackend::PlayingState ||
-                bmMediaBackend.state() == MediaBackend::PausedState)
-            {
+                bmMediaBackend.state() == MediaBackend::PausedState) {
                 QMessageBox msgBox;
                 msgBox.setWindowTitle("Unable to remove");
-                msgBox.setText("The playlist song you are trying to remove is currently playing and can not be removed.");
+                msgBox.setText(
+                        "The playlist song you are trying to remove is currently playing and can not be removed.");
                 msgBox.exec();
                 return;
             }
@@ -3023,19 +3110,19 @@ void MainWindow::filesDroppedOnQueue(const QList<QUrl> &urls, const int &singerI
                 QFileInfo dFileInfo(file);
 
                 KaraokeSong droppedSong{
-                    -1,
-                    "--Dropped Song--",
-                    "--dropped song--",
-                    dFileInfo.completeBaseName(),
-                    dFileInfo.completeBaseName().toLower(),
-                    "!!DROPPED!!",
-                    "!!dropped!!",
-                    0,
-                    dFileInfo.fileName(),
-                    file,
-                    "",
-                    0,
-                    QDateTime()
+                        -1,
+                        "--Dropped Song--",
+                        "--dropped song--",
+                        dFileInfo.completeBaseName(),
+                        dFileInfo.completeBaseName().toLower(),
+                        "!!DROPPED!!",
+                        "!!dropped!!",
+                        0,
+                        dFileInfo.fileName(),
+                        file,
+                        "",
+                        0,
+                        QDateTime()
                 };
                 int songId = karaokeSongsModel.addSong(droppedSong);
                 qInfo() << "addSong returned songid: " << songId;
@@ -3126,13 +3213,15 @@ void MainWindow::appFontChanged(const QFont &font) {
 }
 
 void MainWindow::resizeRotation() {
-    if (settings.rotationShowNextSong())
-    {
+    if (settings.rotationShowNextSong()) {
         ui->tableViewRotation->showColumn(TableModelRotation::COL_NEXT_SONG);
-        ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(TableModelRotation::COL_NAME, QHeaderView::Interactive);
-        ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(TableModelRotation::COL_NEXT_SONG, QHeaderView::Stretch);
+        ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(TableModelRotation::COL_NAME,
+                                                                        QHeaderView::Interactive);
+        ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(TableModelRotation::COL_NEXT_SONG,
+                                                                        QHeaderView::Stretch);
     } else {
-        ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(TableModelRotation::COL_NAME, QHeaderView::Stretch);
+        ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(TableModelRotation::COL_NAME,
+                                                                        QHeaderView::Stretch);
         ui->tableViewRotation->hideColumn(TableModelRotation::COL_NEXT_SONG);
     }
 }
@@ -4132,14 +4221,12 @@ void MainWindow::resetBmLabels() {
     ui->sliderBmPosition->setValue(0);
 }
 
-void MainWindow::mouseMoveEvent(QMouseEvent *event)
-{
+void MainWindow::mouseMoveEvent(QMouseEvent *event) {
     qInfo() << "Mouse move event: " << event->pos();
     QMainWindow::mouseMoveEvent(event);
 }
 
-void MainWindow::on_actionBurn_in_EOS_Jump_triggered()
-{
+void MainWindow::on_actionBurn_in_EOS_Jump_triggered() {
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
     m_testMode = true;
     emit ui->buttonClearRotation->clicked();
@@ -4173,10 +4260,10 @@ void MainWindow::on_actionBurn_in_EOS_Jump_triggered()
         emit ui->tableViewQueue->doubleClicked(idx);
         ui->tableViewQueue->selectRow(idx.row());
         playing = true;
-        QTimer::singleShot(500, [&] () {
-           auto duration = kMediaBackend.duration();
-           auto jumpPoint = duration - 10000;
-           kMediaBackend.setPosition(jumpPoint);
+        QTimer::singleShot(500, [&]() {
+            auto duration = kMediaBackend.duration();
+            auto jumpPoint = duration - 10000;
+            kMediaBackend.setPosition(jumpPoint);
         });
         qInfo() << "Burn in test cycle: " << ++runs;
         ui->labelSinger->setText("Torture run (" + QString::number(runs) + ")");

@@ -127,6 +127,7 @@ private:
     bool kNeedAutoSize{false};
     bool bNeedAutoSize{true};
     QShortcut *scutAddSinger{nullptr};
+    QShortcut *scutKPlayNextUnsung{nullptr};
     QShortcut *scutBFfwd{nullptr};
     QShortcut *scutBPause{nullptr};
     QShortcut *scutBRestartSong{nullptr};

@@ -127,7 +127,8 @@ void TableModelQueueSongs::loadSinger(const int singerId)
                   "queuesongs.keychg, queuesongs.position, rotationsingers.name, dbsongs.artist, "
                   "dbsongs.title, dbsongs.discid, dbsongs.duration, dbsongs.path FROM queuesongs "
                   "INNER JOIN rotationsingers ON rotationsingers.singerid = queuesongs.singer "
-                  "INNER JOIN dbsongs ON dbsongs.songid = queuesongs.song WHERE queuesongs.singer = :singerId");
+                  "INNER JOIN dbsongs ON dbsongs.songid = queuesongs.song WHERE queuesongs.singer = :singerId "
+                  "ORDER BY queuesongs.position");
     query.bindValue(":singerId", singerId);
     query.exec();
     qInfo() << query.lastError();
