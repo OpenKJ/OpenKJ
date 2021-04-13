@@ -299,6 +299,10 @@ void DlgSettings::setupHotkeysForm() {
             "kPlayNextUnsung"
     });
     shortcuts.emplace_back(KeyboardShortcut{
+            "Karaoke - Select next singer w/ unsung queued songs",
+            "kSelectNextSinger"
+    });
+    shortcuts.emplace_back(KeyboardShortcut{
             "Break Music - Volume up",
             "bVolUp"
     });

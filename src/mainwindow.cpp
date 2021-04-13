@@ -134,6 +134,39 @@ void MainWindow::updateIcons() {
 
 void MainWindow::setupShortcuts() {
 
+    scutKSelectNextSinger = new QShortcut(settings.loadShortcutKeySequence("kSelectNextSinger"), this, nullptr, nullptr,
+                                          Qt::ApplicationShortcut);
+
+    connect(scutKSelectNextSinger, &QShortcut::activated, [&] () {
+        int nextSinger{-1};
+        QString nextSongPath;
+        bool empty{false};
+        int curSingerId{rotModel.currentSinger()};
+        int curPos{rotModel.getSingerPosition(curSingerId)};
+        if (curSingerId == -1)
+            curPos = rotModel.rowCount() - 1;
+        int loops = 0;
+        while ((nextSongPath == "") && (!empty)) {
+            if (loops > rotModel.rowCount()) {
+                empty = true;
+            } else {
+                if (++curPos >= rotModel.rowCount()) {
+                    curPos = 0;
+                }
+                nextSinger = rotModel.singerIdAtPosition(curPos);
+                nextSongPath = rotModel.nextSongPath(nextSinger);
+                loops++;
+            }
+        }
+        if (empty) {
+            QMessageBox::information(this, "Unable to select next",
+                                     "Sorry, no unsung karaoke songs are currently in any singer's queue");
+            return;
+        }
+        ui->tableViewRotation->clearSelection();
+        ui->tableViewRotation->selectRow(rotModel.getSingerPosition(nextSinger));
+    });
+
     scutKPlayNextUnsung = new QShortcut(settings.loadShortcutKeySequence("kPlayNextUnsung"), this, nullptr, nullptr,
                                         Qt::ApplicationShortcut);
 
@@ -514,6 +547,7 @@ void MainWindow::setupShortcuts() {
 }
 
 void MainWindow::shortcutsUpdated() {
+    scutKSelectNextSinger->setKey(settings.loadShortcutKeySequence("kSelectNextSinger"));
     scutKPlayNextUnsung->setKey(settings.loadShortcutKeySequence("kPlayNextUnsung"));
     scutAddSinger->setKey(settings.loadShortcutKeySequence("addSinger"));
     scutBFfwd->setKey(settings.loadShortcutKeySequence("bFfwd"));
