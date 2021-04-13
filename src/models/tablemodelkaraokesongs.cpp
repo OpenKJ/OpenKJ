@@ -9,7 +9,6 @@
 #include <QSvgRenderer>
 #include <QMimeData>
 #include <QApplication>
-#include <execution>
 #include "settings.h"
 
 extern Settings settings;
@@ -332,9 +331,9 @@ void TableModelKaraokeSongs::sort(int column, Qt::SortOrder order) {
 
     QApplication::setOverrideCursor(Qt::BusyCursor);
     if (order == Qt::AscendingOrder) {
-        std::sort(std::execution::par, m_allSongs.begin(), m_allSongs.end(), sortLambda);
+        std::sort(m_allSongs.begin(), m_allSongs.end(), sortLambda);
     } else {
-        std::sort(std::execution::par, m_allSongs.rbegin(), m_allSongs.rend(), sortLambda);
+        std::sort(m_allSongs.rbegin(), m_allSongs.rend(), sortLambda);
     }
     QApplication::restoreOverrideCursor();
     search(m_lastSearch);
