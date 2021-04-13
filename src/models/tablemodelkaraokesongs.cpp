@@ -10,6 +10,7 @@
 #include <QSvgRenderer>
 #include <QMimeData>
 #include <QApplication>
+#include <execution>
 #include "settings.h"
 
 extern Settings settings;
@@ -115,8 +116,11 @@ void TableModelKaraokeSongs::loadData() {
         auto song = m_allSongs.emplace_back(std::make_shared<KaraokeSong>(KaraokeSong{
                 query.value(0).toInt(),
                 query.value(1).toString(),
+                query.value(1).toString().toLower(),
                 query.value(2).toString(),
+                query.value(2).toString().toLower(),
                 query.value(3).toString(),
+                query.value(3).toString().toLower(),
                 query.value(4).toInt(),
                 query.value(5).toString(),
                 query.value(6).toString(),
@@ -286,33 +290,27 @@ void TableModelKaraokeSongs::sort(int column, Qt::SortOrder order) {
     m_lastSortOrder = order;
 
     auto sortLambda = [&column] (const std::shared_ptr<KaraokeSong>& a, const std::shared_ptr<KaraokeSong>& b)->bool {
-        QString artistAl{a->artist.toLower()};
-        QString artistBl{b->artist.toLower()};
-        QString titleAl{a->title.toLower()};
-        QString titleBl{b->title.toLower()};
-        QString songIdAl{a->songid.toLower()};
-        QString songIdBl{b->songid.toLower()};
         switch (column) {
             case COL_ARTIST:
-                if (artistAl == artistBl) {
-                    if (titleAl == titleBl)
+                if (a->artistL == b->artistL) {
+                    if (a->titleL == b->titleL)
                     {
-                        return (songIdAl < songIdBl);
+                        return (a->songidL < b->songidL);
                     }
-                    return (titleAl < titleBl);
+                    return (a->titleL < b->titleL);
                 }
-                return (artistAl < artistBl);
+                return (a->artistL < b->artistL);
             case COL_TITLE:
-                if (titleAl == titleBl) {
-                    if (artistAl == artistBl)
+                if (a->titleL == b->titleL) {
+                    if (a->artistL == b->artistL)
                     {
-                        return (songIdAl < songIdBl);
+                        return (a->songidL < b->songidL);
                     }
-                    return (artistAl < artistBl);
+                    return (a->artistL < b->artistL);
                 }
-                return (titleAl < titleBl);
+                return (a->titleL < b->titleL);
             case COL_SONGID:
-                return (a->songid.toLower() < b->songid.toLower());
+                return (a->songidL < b->songidL);
             case COL_FILENAME:
                 return (a->filename.toLower() < b->filename.toLower());
             case COL_DURATION:
@@ -329,9 +327,9 @@ void TableModelKaraokeSongs::sort(int column, Qt::SortOrder order) {
 
     QApplication::setOverrideCursor(Qt::BusyCursor);
     if (order == Qt::AscendingOrder) {
-        std::sort(m_allSongs.begin(), m_allSongs.end(), sortLambda);
+        std::sort(std::execution::par, m_allSongs.begin(), m_allSongs.end(), sortLambda);
     } else {
-        std::sort(m_allSongs.rbegin(), m_allSongs.rend(), sortLambda);
+        std::sort(std::execution::par,m_allSongs.rbegin(), m_allSongs.rend(), sortLambda);
     }
     QApplication::restoreOverrideCursor();
     search(m_lastSearch);
