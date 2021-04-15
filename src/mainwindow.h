@@ -255,8 +255,6 @@ private slots:
     void on_actionEqualizer_triggered();
     static void audioError(const QString &msg);
     void resizeRotation();
-    void on_sliderVolume_sliderMoved(const int &position);
-    void on_sliderBmVolume_sliderMoved(const int &position);
     static void songDropNoSingerSel();
     void newVersionAvailable(const QString &version);
     void on_pushButtonIncomingRequests_clicked();
@@ -319,6 +317,10 @@ private slots:
     void on_actionBurn_in_EOS_Jump_triggered();
 
     void on_actionSong_Shop_triggered();
+
+    void on_sliderVolume_valueChanged(int value);
+
+    void on_sliderBmVolume_valueChanged(int value);
 
 protected:
     void closeEvent(QCloseEvent *event) override;

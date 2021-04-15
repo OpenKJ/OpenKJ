@@ -3060,13 +3060,15 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     event->accept();
 }
 
-void MainWindow::on_sliderVolume_sliderMoved(const int &position) {
-    kMediaBackend.setVolume(position);
+void MainWindow::on_sliderVolume_valueChanged(int value)
+{
+    kMediaBackend.setVolume(value);
     kMediaBackend.fadeInImmediate();
 }
 
-void MainWindow::on_sliderBmVolume_sliderMoved(const int &position) {
-    bmMediaBackend.setVolume(position);
+void MainWindow::on_sliderBmVolume_valueChanged(int value)
+{
+    bmMediaBackend.setVolume(value);
     if (kMediaBackend.state() != MediaBackend::PlayingState)
         bmMediaBackend.fadeInImmediate();
 }
@@ -4315,3 +4317,6 @@ void MainWindow::on_actionSong_Shop_triggered()
 {
     on_pushButtonShop_clicked();
 }
+
+
+
