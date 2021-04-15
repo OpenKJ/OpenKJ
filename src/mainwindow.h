@@ -318,6 +318,8 @@ private slots:
 
     void on_actionBurn_in_EOS_Jump_triggered();
 
+    void on_actionSong_Shop_triggered();
+
 protected:
     void closeEvent(QCloseEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;

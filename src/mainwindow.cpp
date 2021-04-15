@@ -4310,3 +4310,8 @@ void MainWindow::on_actionBurn_in_EOS_Jump_triggered() {
     m_timerTest.start(13000);
 #endif
 }
+
+void MainWindow::on_actionSong_Shop_triggered()
+{
+    on_pushButtonShop_clicked();
+}
