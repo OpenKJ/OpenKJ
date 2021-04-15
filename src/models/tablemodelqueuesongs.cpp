@@ -363,7 +363,7 @@ void TableModelQueueSongs::songAddSlot(int songId, int singerId, int keyChg)
         int newPos{0};
         KaraokeSong ksong = m_karaokeSongsModel.getSong(songId);
         QSqlQuery query;
-        query.prepare("SELECT COUNT(id) FROM queuesongs WHERE singer = :singerId");
+        query.prepare("SELECT COUNT(qsongid) FROM queuesongs WHERE singer = :singerId");
         query.bindValue(":singerId", singerId);
         query.exec();
         if (query.first())
