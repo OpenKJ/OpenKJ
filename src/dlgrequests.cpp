@@ -205,6 +205,7 @@ void DlgRequests::on_lineEditSearch_returnPressed()
 
 void DlgRequests::requestSelectionChanged(const QItemSelection &current, const QItemSelection &previous)
 {
+    ui->tableViewSearch->clearSelection();
     ui->groupBoxAddSong->setDisabled(true);
     if (current.indexes().size() == 0)
     {
