@@ -407,7 +407,7 @@ void MediaBackend::setPosition(const qint64 &position)
 {
     if (position > 1000 && position > duration() - 1000)
     {
-        stop(true);
+        emit stateChanged(EndOfMediaState);
         return;
     }
     gst_element_send_event(m_pipeline, gst_event_new_seek(m_playbackRate, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_SEEK_TYPE_SET, position * GST_MSECOND, GST_SEEK_TYPE_NONE, 0));
