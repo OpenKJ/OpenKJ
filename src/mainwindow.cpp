@@ -18,6 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <qglobal.h>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QMessageBox>
@@ -1182,6 +1183,8 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k) {
                 cdgWindow->showAlert(false);
             }
             kMediaBackend.stop();
+            if (k2kTransition && settings.rotationAltSortOrder())
+                rotModel.singerMove(0, rotModel.rowCount() - 1);
             ui->spinBoxTempo->setValue(100);
         }
         if (karaokeFilePath.endsWith(".zip", Qt::CaseInsensitive)) {
