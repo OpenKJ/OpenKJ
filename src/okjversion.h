@@ -4,7 +4,7 @@
 #define OKJ_VERSION_MAJOR 2
 #define OKJ_VERSION_MINOR 0
 #define OKJ_VERSION_BUILD 0
-#define OKJ_VERSION_STRING "2.0-RC2"
-#define OKJ_VERSION_BRANCH "beta"
+#define OKJ_VERSION_STRING "2.0-RC3"
+#define OKJ_VERSION_BRANCH "unstable"
 
 #endif //OKJVERSION_H
