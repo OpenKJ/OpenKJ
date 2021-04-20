@@ -1,3 +1,9 @@
+openkj (2.0.0-4~bionic) bionic; urgency=medium
+
+  * 2.0 Release Candidate 4
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 20 Apr 2021 16:31:32 -0500
+
 openkj (2.0.0-3~bionic) bionic; urgency=medium
 
   * 2.0 Release Candidate
