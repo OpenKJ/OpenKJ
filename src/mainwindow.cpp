@@ -138,7 +138,7 @@ void MainWindow::setupShortcuts() {
     scutKSelectNextSinger = new QShortcut(settings.loadShortcutKeySequence("kSelectNextSinger"), this, nullptr, nullptr,
                                           Qt::ApplicationShortcut);
 
-    connect(scutKSelectNextSinger, &QShortcut::activated, [&] () {
+    connect(scutKSelectNextSinger, &QShortcut::activated, [&]() {
         int nextSinger{-1};
         QString nextSongPath;
         bool empty{false};
@@ -171,9 +171,9 @@ void MainWindow::setupShortcuts() {
     scutKPlayNextUnsung = new QShortcut(settings.loadShortcutKeySequence("kPlayNextUnsung"), this, nullptr, nullptr,
                                         Qt::ApplicationShortcut);
 
-    connect(scutKPlayNextUnsung, &QShortcut::activated, [&] () {
-        if (auto state = kMediaBackend.state(); state == MediaBackend::PlayingState || state == MediaBackend::PausedState)
-        {
+    connect(scutKPlayNextUnsung, &QShortcut::activated, [&]() {
+        if (auto state = kMediaBackend.state(); state == MediaBackend::PlayingState ||
+                                                state == MediaBackend::PausedState) {
             if (settings.showSongInterruptionWarning()) {
                 QMessageBox msgBox(this);
                 auto *cb = new QCheckBox("Show this warning in the future");
@@ -630,7 +630,7 @@ MainWindow::MainWindow(QWidget *parent) :
     int initialKVol = settings.audioVolume();
     int initialBMVol = settings.bmVolume();
     qInfo() << "Initial volumes - K: " << initialKVol << " BM: " << initialBMVol;
-    QTimer::singleShot(250, [&] () {
+    QTimer::singleShot(250, [&]() {
         settings.restoreWindowState(this);
     });
     dbInit(okjDataDir);
@@ -829,21 +829,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionAutoplay_mode, &QAction::toggled, &settings, &Settings::setKaraokeAutoAdvance);
     connect(&settings, &Settings::karaokeAutoAdvanceChanged, ui->actionAutoplay_mode, &QAction::setChecked);
 
-    if ((settings.bmAutoStart()) && (playlistSongsModel.rowCount() > 0)) {
-        playlistSongsModel.setCurrentPosition(0);
-        auto plSong = playlistSongsModel.getCurrentSong();
-        if (plSong.has_value()) {
-            if (QFile::exists(plSong->get().path)) {
-                bmMediaBackend.setMedia(plSong->get().path);
-                bmMediaBackend.play();
-                bmMediaBackend.setVolume(ui->sliderBmVolume->value());
-            } else {
-                QMessageBox::warning(this, tr("Break music autostart failure"),
-                                     tr("Break music is set to autostart but the first song in the current playlist was not found.\n\nAborting playback."),
-                                     QMessageBox::Ok);
-            }
-        }
-    }
+
     // todo - athom: what's this?
     // isaac: this is the AV offset between audio and video to compensate for any downstream signal processing
     // delay on either the video or audio side (hdmi decoder lag on TVs or audio effects hardware and such).
@@ -1062,6 +1048,25 @@ MainWindow::MainWindow(QWidget *parent) :
     kMediaBackend.setVideoOutputWidgets(videoWidgets);
     settings.setStartupOk(true);
     m_initialUiSetupDone = true;
+    bmMediaBackend.stop(true);
+    if ((settings.bmAutoStart()) && (playlistSongsModel.rowCount() > 0)) {
+        QTimer::singleShot(1000, [&]() {
+            playlistSongsModel.setCurrentPosition(0);
+            auto plSong = playlistSongsModel.getCurrentSong();
+            if (plSong.has_value()) {
+                if (QFile::exists(plSong->get().path)) {
+                    bmMediaBackend.setMedia(plSong->get().path);
+                    bmMediaBackend.play();
+                    bmMediaBackend.setVolume(ui->sliderBmVolume->value());
+                } else {
+                    QMessageBox::warning(this, tr("Break music autostart failure"),
+                                         tr("Break music is set to autostart but the first song in the current playlist was not found.\n\nAborting playback."),
+                                         QMessageBox::Ok);
+                }
+            }
+        });
+    }
+
 }
 
 void MainWindow::dbInit(const QDir &okjDataDir) {
@@ -3063,14 +3068,12 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     event->accept();
 }
 
-void MainWindow::on_sliderVolume_valueChanged(int value)
-{
+void MainWindow::on_sliderVolume_valueChanged(int value) {
     kMediaBackend.setVolume(value);
     kMediaBackend.fadeInImmediate();
 }
 
-void MainWindow::on_sliderBmVolume_valueChanged(int value)
-{
+void MainWindow::on_sliderBmVolume_valueChanged(int value) {
     bmMediaBackend.setVolume(value);
     if (kMediaBackend.state() != MediaBackend::PlayingState)
         bmMediaBackend.fadeInImmediate();
@@ -4316,8 +4319,7 @@ void MainWindow::on_actionBurn_in_EOS_Jump_triggered() {
 #endif
 }
 
-void MainWindow::on_actionSong_Shop_triggered()
-{
+void MainWindow::on_actionSong_Shop_triggered() {
     on_pushButtonShop_clicked();
 }
 
