@@ -27,7 +27,7 @@ QVariant TableModelRotation::headerData(int section, Qt::Orientation orientation
         case COL_DELETE:
         case COL_ID:
             auto fHeight = QFontMetrics(settings.applicationFont()).height();
-            return QSize(fHeight,fHeight);
+            return QSize(fHeight * 2,fHeight);
         }
     }
     if (role == Qt::DisplayRole && orientation == Qt::Horizontal)
