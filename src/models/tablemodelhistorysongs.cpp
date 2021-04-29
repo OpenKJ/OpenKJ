@@ -5,7 +5,7 @@
 #include <QDebug>
 #include <QDateTime>
 
-TableModelHistorySongs::TableModelHistorySongs()
+TableModelHistorySongs::TableModelHistorySongs(TableModelKaraokeSongs &songsModel) : m_karaokeSongsModel(songsModel)
 {
 
 }
@@ -23,6 +23,16 @@ int TableModelHistorySongs::columnCount([[maybe_unused]]const QModelIndex &paren
 
 QVariant TableModelHistorySongs::data(const QModelIndex &index, int role) const
 {
+    if (role == Qt::ForegroundRole)
+    {
+        if (m_karaokeSongsModel.getIdForPath(m_songs.at(index.row()).filePath) == -1)
+            return QColor(Qt::gray);
+    }
+    if (role == Qt::ToolTipRole)
+    {
+        if (m_karaokeSongsModel.getIdForPath(m_songs.at(index.row()).filePath) == -1)
+            return QString("Song doesn't exist in current database.");
+    }
     if (role == Qt::TextAlignmentRole)
     {
         switch (index.column()) {

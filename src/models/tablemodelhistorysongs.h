@@ -4,6 +4,7 @@
 #include <QAbstractTableModel>
 #include <QDateTime>
 #include <QObject>
+#include "tablemodelkaraokesongs.h"
 
 struct HistorySong {
     unsigned int id{0};
@@ -25,8 +26,10 @@ private:
     QString m_currentSinger;
     int m_lastSortColumn{3};
     Qt::SortOrder m_lastSortOrder{Qt::AscendingOrder};
+    TableModelKaraokeSongs &m_karaokeSongsModel;
+
 public:
-    TableModelHistorySongs();
+    explicit TableModelHistorySongs(TableModelKaraokeSongs &songsModel);
     int rowCount(const QModelIndex &parent) const override;
     int columnCount(const QModelIndex &parent) const override;
     QVariant data(const QModelIndex &index, int role) const override;
@@ -40,7 +43,6 @@ public:
     int addSinger(const QString name) const;
     bool songExists(const int historySingerId, const QString &filePath) const;
     int getSingerId(const QString &name) const;
-    int getDbSongId(const int historySongId) const;
     std::vector<HistorySong> getSingerSongs(const int historySingerId);
     QString currentSingerName() const { return m_currentSinger; }
     void refresh();

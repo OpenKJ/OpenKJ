@@ -32,7 +32,8 @@
 #include <QJsonObject>
 #include <QDebug>
 
-DlgRegularImport::DlgRegularImport(QWidget *parent) :
+DlgRegularImport::DlgRegularImport(TableModelKaraokeSongs &karaokeSongsModel, QWidget *parent) :
+    m_karaokeSongsModel(karaokeSongsModel),
     QDialog(parent),
     ui(new Ui::DlgRegularImport)
 {

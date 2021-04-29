@@ -77,7 +77,7 @@ private:
     ItemDelegateQueueSongs qDelegate{this};
     TableModelRotation rotModel{this};
     ItemDelegateRotation rotDelegate{this};
-    TableModelHistorySongs historySongsModel;
+    TableModelHistorySongs historySongsModel{karaokeSongsModel};
     DlgCdg *cdgWindow;
     DlgDebugOutput *debugDialog;
     DlgDatabase *dbDialog;

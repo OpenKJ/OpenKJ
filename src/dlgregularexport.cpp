@@ -32,8 +32,9 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 
-DlgRegularExport::DlgRegularExport(QWidget *parent) :
-    QDialog(parent),
+DlgRegularExport::DlgRegularExport(TableModelKaraokeSongs &karaokeSongsModel, QWidget *parent) :
+        m_karaokeSongsModel(karaokeSongsModel),
+        QDialog(parent),
     ui(new Ui::DlgRegularExport)
 {
     ui->setupUi(this);

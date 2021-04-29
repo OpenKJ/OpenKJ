@@ -1645,13 +1645,13 @@ void MainWindow::on_actionManage_DB_triggered() {
 }
 
 void MainWindow::on_actionExport_Regulars_triggered() {
-    auto exportdlg = new DlgRegularExport(this);
+    auto exportdlg = new DlgRegularExport(karaokeSongsModel, this);
     exportdlg->setModal(true);
     exportdlg->show();
 }
 
 void MainWindow::on_actionImport_Regulars_triggered() {
-    auto iDialog = new DlgRegularImport(this);
+    auto iDialog = new DlgRegularImport(karaokeSongsModel, this);
     iDialog->setModal(true);
     iDialog->show();
 }
