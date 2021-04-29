@@ -61,6 +61,7 @@ DlgRegularSingers::~DlgRegularSingers()
 
 void DlgRegularSingers::regularsChanged()
 {
+    m_historySingersModel.loadSingers();
     //regModel->select();
 }
 

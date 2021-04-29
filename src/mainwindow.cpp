@@ -1938,6 +1938,7 @@ void MainWindow::on_buttonRegulars_clicked() {
     connect(&regularSingersDialog->historySingersModel(), &TableModelHistorySingers::historySingersModified, [&]() {
         historySongsModel.refresh();
     });
+    connect(&qModel, &TableModelQueueSongs::queueModified, regularSingersDialog, &DlgRegularSingers::regularsChanged);
     regularSingersDialog->show();
 }
 
