@@ -37,17 +37,17 @@ DlgEditSong::~DlgEditSong()
 
 QString DlgEditSong::artist()
 {
-    return ui->lineEditArtist->text();
+    return ui->lineEditArtist->text().trimmed();
 }
 
 QString DlgEditSong::title()
 {
-    return ui->lineEditTitle->text();
+    return ui->lineEditTitle->text().trimmed();
 }
 
 QString DlgEditSong::songId()
 {
-    return ui->lineEditSongId->text();
+    return ui->lineEditSongId->text().trimmed();
 }
 
 bool DlgEditSong::renameFile()
