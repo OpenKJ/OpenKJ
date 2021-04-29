@@ -198,5 +198,5 @@ void DlgRegularSingers::on_tableViewRegulars_doubleClicked(const QModelIndex &in
 void DlgRegularSingers::closeEvent([[maybe_unused]]QCloseEvent *event)
 {
     settings.saveWindowState(this);
-    deleteLater();
+    hide();
 }

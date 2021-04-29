@@ -889,6 +889,12 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(songbookApi, &OKJSongbookAPI::alertRecieved, this, &MainWindow::showAlert);
     connect(&settings, &Settings::cdgShowCdgWindowChanged, this, &MainWindow::cdgVisibilityChanged);
     connect(&settings, &Settings::rotationShowNextSongChanged, [&]() { resizeRotation(); });
+    connect(&m_dlgRegularSingers.historySingersModel(), &TableModelHistorySingers::historySingersModified, [&]() {
+        historySongsModel.refresh();
+    });
+    connect(&qModel, &TableModelQueueSongs::queueModified, &m_dlgRegularSingers, &DlgRegularSingers::regularsChanged);
+    m_dlgRegularSingers.regularsChanged();
+    m_dlgRegularSingers.setModal(false);
     SfxEntryList list = settings.getSfxEntries();
     qInfo() << "SfxEntryList size: " << list.size();
             foreach (SfxEntry entry, list) {
@@ -1934,12 +1940,7 @@ void MainWindow::hasActiveVideoChanged() {
 }
 
 void MainWindow::on_buttonRegulars_clicked() {
-    auto regularSingersDialog = new DlgRegularSingers(&rotModel, this);
-    connect(&regularSingersDialog->historySingersModel(), &TableModelHistorySingers::historySingersModified, [&]() {
-        historySongsModel.refresh();
-    });
-    connect(&qModel, &TableModelQueueSongs::queueModified, regularSingersDialog, &DlgRegularSingers::regularsChanged);
-    regularSingersDialog->show();
+    m_dlgRegularSingers.setVisible(!m_dlgRegularSingers.isVisible());
 }
 
 void MainWindow::rotationDataChanged() {

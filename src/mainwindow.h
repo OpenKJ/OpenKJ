@@ -84,6 +84,7 @@ private:
     DlgKeyChange *dlgKeyChange;
     DlgRequests *requestsDialog;
     DlgBookCreator *dlgBookCreator;
+    DlgRegularSingers m_dlgRegularSingers{&rotModel, this};
     DlgEq *dlgEq;
     DlgAddSinger *dlgAddSinger;
     DlgSongShop *dlgSongShop;
@@ -96,6 +97,7 @@ private:
     bool sliderPositionPressed{false};
     bool sliderBmPositionPressed{false};
     bool m_shuttingDown{false};
+    bool m_regSingersDlgShown{false};
     void play(const QString &karaokeFilePath, const bool &k2k = false);
     int m_rtClickQueueSongId{-1};
     int m_rtClickRotationSingerId{-1};
