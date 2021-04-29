@@ -11,9 +11,8 @@
 #include <QStandardPaths>
 
 DlgBookCreator::DlgBookCreator(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::DlgBookCreator)
-{
+        QDialog(parent),
+        ui(new Ui::DlgBookCreator) {
     setupdone = false;
     ui->setupUi(this);
     ui->cbxColumns->addItem("2", 2);
@@ -74,30 +73,24 @@ DlgBookCreator::DlgBookCreator(QWidget *parent) :
 
 }
 
-DlgBookCreator::~DlgBookCreator()
-{
+DlgBookCreator::~DlgBookCreator() {
     delete ui;
 }
 
-void DlgBookCreator::on_buttonBox_clicked(QAbstractButton *button)
-{
+void DlgBookCreator::on_buttonBox_clicked(QAbstractButton *button) {
     Q_UNUSED(button);
     close();
 }
 
-void DlgBookCreator::on_comboBoxSort_currentIndexChanged(int index)
-{
-    if (setupdone)
-    {
+void DlgBookCreator::on_comboBoxSort_currentIndexChanged(int index) {
+    if (setupdone) {
         settings->setBookCreatorSortCol(index);
         qInfo() << "Set sort col to: " << index;
     }
 }
 
-void DlgBookCreator::saveFontSettings()
-{
-    if (setupdone)
-    {
+void DlgBookCreator::saveFontSettings() {
+    if (setupdone) {
         QFont tFont(ui->fontCbxTitle->currentFont());
         tFont.setPointSize(ui->spinBoxSizeTitle->value());
         tFont.setBold(ui->checkBoxBoldTitle->isChecked());
@@ -120,36 +113,31 @@ void DlgBookCreator::saveFontSettings()
     }
 }
 
-QStringList DlgBookCreator::getArtists()
-{
+QStringList DlgBookCreator::getArtists() {
     QSqlQuery query;
     QStringList artists;
-    QString sql = "SELECT DISTINCT artist FROM mem.dbsongs WHERE discid != '!!BAD!!' AND discid != '!!DROPPED!!' ORDER BY artist";
+    QString sql = "SELECT DISTINCT artist FROM dbsongs WHERE discid != '!!BAD!!' AND discid != '!!DROPPED!!' ORDER BY artist";
     query.exec(sql);
-    while (query.next())
-    {
+    while (query.next()) {
         artists.append(query.value("artist").toString());
     }
     return artists;
 }
 
-QStringList DlgBookCreator::getTitles(QString artist)
-{
+QStringList DlgBookCreator::getTitles(QString artist) {
     QSqlQuery query;
     QStringList titles;
-    QString sql = "SELECT DISTINCT title FROM mem.dbsongs WHERE artist = :artist AND discid != '!!BAD!!' AND discid != '!!DROPPED!!' ORDER BY title";
+    QString sql = "SELECT DISTINCT title FROM dbsongs WHERE artist = :artist AND discid != '!!BAD!!' AND discid != '!!DROPPED!!' ORDER BY title";
     query.prepare(sql);
     query.bindValue(":artist", artist);
     query.exec();
-    while (query.next())
-    {
+    while (query.next()) {
         titles.append(query.value("title").toString());
     }
     return titles;
 }
 
-void DlgBookCreator::writePdf(QString filename, int nCols)
-{
+void DlgBookCreator::writePdf(QString filename, int nCols) {
     QProgressDialog progress(this);
     progress.setWindowModality(Qt::WindowModal);
     progress.setCancelButton(0);
@@ -164,7 +152,9 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
     QFont fFont = settings->bookCreatorFooterFont();
     QPdfWriter pdf(filename);
     pdf.setPageSize(QPageSize(static_cast<QPageSize::PageSizeId>(ui->cbxPageSize->currentData().toInt())));
-    pdf.setPageMargins(QMarginsF(ui->doubleSpinBoxLeft->value(),ui->doubleSpinBoxTop->value(),ui->doubleSpinBoxRight->value(),ui->doubleSpinBoxBottom->value()), QPageLayout::Inch);
+    pdf.setPageMargins(
+            QMarginsF(ui->doubleSpinBoxLeft->value(), ui->doubleSpinBoxTop->value(), ui->doubleSpinBoxRight->value(),
+                      ui->doubleSpinBoxBottom->value()), QPageLayout::Inch);
     QPainter painter(&pdf);
     qInfo() << "Getting artists";
     QStringList artists = getArtists();
@@ -173,20 +163,18 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
     qInfo() << "Getting titles for artists";
     progress.setLabelText("Parsing song data");
     progress.setMaximum(artists.size());
-    for (int i=0; i < artists.size(); i++)
-    {
+    for (int i = 0; i < artists.size(); i++) {
         QApplication::processEvents();
         entries.append("-" + artists.at(i));
         QStringList titles = getTitles(artists.at(i));
-        for (int j=0; j < titles.size(); j++)
-        {
+        for (int j = 0; j < titles.size(); j++) {
             entries.append("+" + titles.at(j));
         }
         progress.setValue(i);
     }
     qInfo() << "Got titles";
     QPen pen;
-    pen.setColor(QColor(0,0,0));
+    pen.setColor(QColor(0, 0, 0));
     pen.setWidth(4);
     painter.setPen(pen);
     painter.setFont(tFont);
@@ -196,8 +184,7 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
     int fontHeight = painter.fontMetrics().height();
     QString lastArtist;
     lineOffset = painter.viewport().width() / 2;
-    if (nCols == 3)
-    {
+    if (nCols == 3) {
         lineOffset = painter.viewport().width() / 3;
         lineOffset2 = lineOffset + lineOffset;
     }
@@ -208,43 +195,44 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
     progress.setValue(0);
     progress.setMaximum(entries.size());
     int curEntry = 0;
-    while (!entries.isEmpty())
-    {
+    while (!entries.isEmpty()) {
         QApplication::processEvents();
         pages++;
         qInfo() << "Generating page " << pages;
         int topOffset = 40;
         int headerOffset = 0;
         int bottomOffset = 0;
-        if (ui->lineEditHeaderText->text() != "")
-        {
+        if (ui->lineEditHeaderText->text() != "") {
             painter.setFont(hFont);
-            painter.drawText(0, 0, painter.viewport().width(), painter.fontMetrics().height(), Qt::AlignCenter, ui->lineEditHeaderText->text());
+            painter.drawText(0, 0, painter.viewport().width(), painter.fontMetrics().height(), Qt::AlignCenter,
+                             ui->lineEditHeaderText->text());
             headerOffset = painter.fontMetrics().height() + 50;
         }
-        if (ui->lineEditFooterText->text() != "" || settings->bookCreatorPageNumbering())
-        {
+        if (ui->lineEditFooterText->text() != "" || settings->bookCreatorPageNumbering()) {
             bottomOffset = 45;
             painter.setFont(fFont);
             int fFontHeight = painter.fontMetrics().height();
             if (settings->bookCreatorFooterText() != "")
-                painter.drawText(0, painter.viewport().height() - fFontHeight, painter.viewport().width(), painter.fontMetrics().height(), Qt::AlignCenter, settings->bookCreatorFooterText());
-            if (settings->bookCreatorPageNumbering())
-            {
+                painter.drawText(0, painter.viewport().height() - fFontHeight, painter.viewport().width(),
+                                 painter.fontMetrics().height(), Qt::AlignCenter, settings->bookCreatorFooterText());
+            if (settings->bookCreatorPageNumbering()) {
                 QString pageStr = tr("Page ") + QString::number(pages);
                 QRect txtRect = painter.fontMetrics().boundingRect(pageStr);
-                painter.drawText(painter.viewport().width() - txtRect.width() - 20, painter.viewport().height() - txtRect.height(), txtRect.width(), txtRect.height(), Qt::AlignRight, pageStr);
+                painter.drawText(painter.viewport().width() - txtRect.width() - 20,
+                                 painter.viewport().height() - txtRect.height(), txtRect.width(), txtRect.height(),
+                                 Qt::AlignRight, pageStr);
             }
             bottomOffset = fFontHeight + bottomOffset;
         }
-        painter.drawLine(0,headerOffset,0,painter.viewport().height() - bottomOffset);
-        painter.drawLine(painter.viewport().width(), headerOffset, painter.viewport().width(), painter.viewport().height() - bottomOffset);
-        painter.drawLine(0,headerOffset,painter.viewport().width(),headerOffset);
-        painter.drawLine(0,painter.viewport().height() - bottomOffset, painter.viewport().width(), painter.viewport().height() - bottomOffset);
+        painter.drawLine(0, headerOffset, 0, painter.viewport().height() - bottomOffset);
+        painter.drawLine(painter.viewport().width(), headerOffset, painter.viewport().width(),
+                         painter.viewport().height() - bottomOffset);
+        painter.drawLine(0, headerOffset, painter.viewport().width(), headerOffset);
+        painter.drawLine(0, painter.viewport().height() - bottomOffset, painter.viewport().width(),
+                         painter.viewport().height() - bottomOffset);
         if (nCols == 2)
             painter.drawLine(lineOffset, headerOffset, lineOffset, painter.viewport().height() - bottomOffset);
-        if (nCols == 3)
-        {
+        if (nCols == 3) {
             painter.drawLine(lineOffset, headerOffset, lineOffset, painter.viewport().height() - bottomOffset);
             painter.drawLine(lineOffset2, headerOffset, lineOffset2, painter.viewport().height() - bottomOffset);
         }
@@ -254,32 +242,26 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
             if (entries.isEmpty())
                 break;
             QString entry;
-            if ((curDrawPos == (topOffset + headerOffset)) && (entries.at(0).at(0) == QString("+")))
-            {
+            if ((curDrawPos == (topOffset + headerOffset)) && (entries.at(0).at(0) == QString("+"))) {
                 // We're at the top and it's not an artist entry, re-display artist
                 entry = "-" + lastArtist + tr(" (cont'd)");
-            }
-            else if ((curDrawPos + (2 * fontHeight) >= (painter.viewport().height() - bottomOffset)) && (entries.at(0).at(0) == QString("-")))
-            {
+            } else if ((curDrawPos + (2 * fontHeight) >= (painter.viewport().height() - bottomOffset)) &&
+                       (entries.at(0).at(0) == QString("-"))) {
                 // We're on the last line and it's an artist, skip it to the next col/page
                 curDrawPos = curDrawPos + fontHeight;
                 continue;
-            }
-            else
+            } else
                 entry = entries.takeFirst();
-            if (entry.at(0) == QString("-"))
-            {
+            if (entry.at(0) == QString("-")) {
                 painter.setFont(aFont);
                 txtRect = painter.fontMetrics().boundingRect(entry);
-                entry.remove(0,1);
+                entry.remove(0, 1);
                 painter.drawText(200, curDrawPos, txtRect.width(), txtRect.height(), Qt::AlignLeft, entry);
                 lastArtist = entry;
-            }
-            else if (entry.at(0) == QString("+"))
-            {
+            } else if (entry.at(0) == QString("+")) {
                 painter.setFont(tFont);
                 txtRect = painter.fontMetrics().boundingRect(entry);
-                entry.remove(0,1);
+                entry.remove(0, 1);
                 painter.drawText(400, curDrawPos, txtRect.width(), txtRect.height(), Qt::AlignLeft, entry);
 
             }
@@ -291,79 +273,69 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
             if (entries.isEmpty())
                 break;
             QString entry;
-            if ((curDrawPos == (topOffset + headerOffset)) && (entries.at(0).at(0) == QString("+")))
-            {
+            if ((curDrawPos == (topOffset + headerOffset)) && (entries.at(0).at(0) == QString("+"))) {
                 // We're at the top and it's not an artist entry, re-display artist
                 entry = "-" + lastArtist + tr(" (cont'd)");
-            }
-            else if ((curDrawPos + (2 * fontHeight) >= (painter.viewport().height() - bottomOffset)) && (entries.at(0).at(0) == QString("-")))
-            {
+            } else if ((curDrawPos + (2 * fontHeight) >= (painter.viewport().height() - bottomOffset)) &&
+                       (entries.at(0).at(0) == QString("-"))) {
                 // We're on the last line and it's an artist, skip it to the next col/page
                 curDrawPos = curDrawPos + fontHeight;
                 continue;
-            }
-            else
+            } else
                 entry = entries.takeFirst();
-            if (entry.at(0) == QString("-"))
-            {
+            if (entry.at(0) == QString("-")) {
                 painter.setFont(aFont);
                 txtRect = painter.fontMetrics().boundingRect(entry);
-                entry.remove(0,1);
+                entry.remove(0, 1);
                 painter.drawText(lineOffset + 200, curDrawPos, txtRect.width(), txtRect.height(), Qt::AlignLeft, entry);
                 lastArtist = entry;
-            }
-            else if (entry.at(0) == QString("+"))
-            {
+            } else if (entry.at(0) == QString("+")) {
                 painter.setFont(tFont);
                 txtRect = painter.fontMetrics().boundingRect(entry);
-                entry.remove(0,1);
+                entry.remove(0, 1);
                 painter.drawText(lineOffset + 400, curDrawPos, txtRect.width(), txtRect.height(), Qt::AlignLeft, entry);
             }
             curDrawPos = curDrawPos + fontHeight;
         }
-        if (nCols == 3)
-        {
+        if (nCols == 3) {
             curDrawPos = topOffset + headerOffset;
             while ((curDrawPos + fontHeight) <= (painter.viewport().height() - bottomOffset)) {
                 QApplication::processEvents();
                 if (entries.isEmpty())
                     break;
                 QString entry;
-                if ((curDrawPos == (topOffset + headerOffset)) && (entries.at(0).at(0) == QString("+")))
-                {
+                if ((curDrawPos == (topOffset + headerOffset)) && (entries.at(0).at(0) == QString("+"))) {
                     // We're at the top and it's not an artist entry, re-display artist
                     entry = "-" + lastArtist + tr(" (cont'd)");
-                }
-                else if ((curDrawPos + (2 * fontHeight) >= (painter.viewport().height() - bottomOffset)) && (entries.at(0).at(0) == QString("-")))
-                {
+                } else if ((curDrawPos + (2 * fontHeight) >= (painter.viewport().height() - bottomOffset)) &&
+                           (entries.at(0).at(0) == QString("-"))) {
                     // We're on the last line and it's an artist, skip it to the next col/page
                     curDrawPos = curDrawPos + fontHeight;
                     continue;
-                }
-                else
+                } else
                     entry = entries.takeFirst();
-                if (entry.at(0) == QString("-"))
-                {
+                if (entry.at(0) == QString("-")) {
                     painter.setFont(aFont);
                     txtRect = painter.fontMetrics().boundingRect(entry);
-                    entry.remove(0,1);
-                    painter.drawText(lineOffset2 + 200, curDrawPos, txtRect.width(), txtRect.height(), Qt::AlignLeft, entry);
+                    entry.remove(0, 1);
+                    painter.drawText(lineOffset2 + 200, curDrawPos, txtRect.width(), txtRect.height(), Qt::AlignLeft,
+                                     entry);
                     lastArtist = entry;
-                }
-                else if (entry.at(0) == QString("+"))
-                {
+                } else if (entry.at(0) == QString("+")) {
                     painter.setFont(tFont);
                     txtRect = painter.fontMetrics().boundingRect(entry);
-                    entry.remove(0,1);
-                    painter.drawText(lineOffset2 + 400, curDrawPos, txtRect.width(), txtRect.height(), Qt::AlignLeft, entry);
+                    entry.remove(0, 1);
+                    painter.drawText(lineOffset2 + 400, curDrawPos, txtRect.width(), txtRect.height(), Qt::AlignLeft,
+                                     entry);
                 }
                 curDrawPos = curDrawPos + fontHeight;
             }
         }
-        if (!entries.isEmpty())
-        {
+        if (!entries.isEmpty()) {
             pdf.newPage();
-            pdf.setPageMargins(QMarginsF(ui->doubleSpinBoxLeft->value(),ui->doubleSpinBoxTop->value(),ui->doubleSpinBoxRight->value(),ui->doubleSpinBoxBottom->value()), QPageLayout::Inch);
+            pdf.setPageMargins(QMarginsF(ui->doubleSpinBoxLeft->value(), ui->doubleSpinBoxTop->value(),
+                                         ui->doubleSpinBoxRight->value(), ui->doubleSpinBoxBottom->value()),
+                               QPageLayout::Inch);
         }
         curEntry++;
         progress.setValue(curEntry);
@@ -375,7 +347,7 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
     progress.setLabelText("Finalizing PDF");
     progress.setMaximum(0);
     progress.setValue(0);
-    painter.end();    
+    painter.end();
     progress.close();
     QMessageBox msgBox(this);
     msgBox.setText("Songbook PDF generation complete");
@@ -384,30 +356,26 @@ void DlgBookCreator::writePdf(QString filename, int nCols)
 }
 
 
-
-void DlgBookCreator::on_btnGenerate_clicked()
-{
-    QString defFn = tr("Songbook.pdf");
-    QString defaultFilePath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QDir::separator() + defFn;
-    qDebug() << "Default save location: " << defaultFilePath;
-    QString saveFilePath = QFileDialog::getSaveFileName(this,tr("Select songbook filename"), defaultFilePath, "(*.pdf)");
-    if (saveFilePath != "")
-    {
+void DlgBookCreator::on_btnGenerate_clicked() {
+    QString defFn = "Songbook.pdf";
+    QString defaultFilePath =
+            QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QDir::separator() + defFn;
+    QString saveFilePath = QFileDialog::getSaveFileName(this, "Select songbook filename", defaultFilePath,
+                                                        "PDF Files (*.pdf)", nullptr, QFileDialog::DontUseNativeDialog);
+    if (saveFilePath != "") {
         QApplication::processEvents();
         writePdf(saveFilePath, ui->cbxColumns->currentData().toInt());
     }
 }
 
-void DlgBookCreator::on_cbxColumns_currentIndexChanged(int index)
-{
+void DlgBookCreator::on_cbxColumns_currentIndexChanged(int index) {
     Q_UNUSED(index);
     if (!setupdone)
         return;
     settings->setBookCreatorCols(ui->cbxColumns->currentIndex());
 }
 
-void DlgBookCreator::on_cbxPageSize_currentIndexChanged(int index)
-{
+void DlgBookCreator::on_cbxPageSize_currentIndexChanged(int index) {
     Q_UNUSED(index);
     if (!setupdone)
         return;
