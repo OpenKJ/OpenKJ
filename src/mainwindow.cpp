@@ -2238,48 +2238,48 @@ void MainWindow::editSong() {
         switch (srcDir.getPattern()) {
             case SourceDir::SAT:
                 newFn = dlg.songId() + " - " + dlg.artist() + " - " + dlg.title() + "." +
-                        QFileInfo(dbRtClickFile).completeSuffix();
+                        QFileInfo(dbRtClickFile).suffix();
                 if (isCdg)
                     newMediaFn = dlg.songId() + " - " + dlg.artist() + " - " + dlg.title() + "." +
-                                 QFileInfo(mediaFile).completeSuffix();
+                                 QFileInfo(mediaFile).suffix();
                 break;
             case SourceDir::STA:
                 newFn = dlg.songId() + " - " + dlg.title() + " - " + dlg.artist() + "." +
-                        QFileInfo(dbRtClickFile).completeSuffix();
+                        QFileInfo(dbRtClickFile).suffix();
                 if (isCdg)
                     newMediaFn = dlg.songId() + " - " + dlg.title() + " - " + dlg.artist() + "." +
-                                 QFileInfo(mediaFile).completeSuffix();
+                                 QFileInfo(mediaFile).suffix();
                 break;
             case SourceDir::ATS:
                 newFn = dlg.artist() + " - " + dlg.title() + " - " + dlg.songId() + "." +
-                        QFileInfo(dbRtClickFile).completeSuffix();
+                        QFileInfo(dbRtClickFile).suffix();
                 if (isCdg)
                     newMediaFn = dlg.artist() + " - " + dlg.title() + " - " + dlg.songId() + "." +
-                                 QFileInfo(mediaFile).completeSuffix();
+                                 QFileInfo(mediaFile).suffix();
                 break;
             case SourceDir::TAS:
                 newFn = dlg.title() + " - " + dlg.artist() + " - " + dlg.songId() + "." +
-                        QFileInfo(dbRtClickFile).completeSuffix();
+                        QFileInfo(dbRtClickFile).suffix();
                 if (isCdg)
                     newMediaFn = dlg.title() + " - " + dlg.artist() + " - " + dlg.songId() + "." +
-                                 QFileInfo(mediaFile).completeSuffix();
+                                 QFileInfo(mediaFile).suffix();
                 break;
             case SourceDir::S_T_A:
                 newFn = dlg.songId() + "_" + dlg.title() + "_" + dlg.artist() + "." +
-                        QFileInfo(dbRtClickFile).completeSuffix();
+                        QFileInfo(dbRtClickFile).suffix();
                 if (isCdg)
                     newMediaFn = dlg.songId() + "_" + dlg.title() + "_" + dlg.artist() + "." +
-                                 QFileInfo(mediaFile).completeSuffix();
+                                 QFileInfo(mediaFile).suffix();
                 break;
             case SourceDir::AT:
-                newFn = dlg.artist() + " - " + dlg.title() + "." + QFileInfo(dbRtClickFile).completeSuffix();
+                newFn = dlg.artist() + " - " + dlg.title() + "." + QFileInfo(dbRtClickFile).suffix();
                 if (isCdg)
-                    newMediaFn = dlg.artist() + " - " + dlg.title() + "." + QFileInfo(mediaFile).completeSuffix();
+                    newMediaFn = dlg.artist() + " - " + dlg.title() + "." + QFileInfo(mediaFile).suffix();
                 break;
             case SourceDir::TA:
-                newFn = dlg.title() + " - " + dlg.artist() + "." + QFileInfo(dbRtClickFile).completeSuffix();
+                newFn = dlg.title() + " - " + dlg.artist() + "." + QFileInfo(dbRtClickFile).suffix();
                 if (isCdg)
-                    newMediaFn = dlg.title() + " - " + dlg.artist() + "." + QFileInfo(mediaFile).completeSuffix();
+                    newMediaFn = dlg.title() + " - " + dlg.artist() + "." + QFileInfo(mediaFile).suffix();
                 break;
             case SourceDir::CUSTOM:
             case SourceDir::METADATA:
