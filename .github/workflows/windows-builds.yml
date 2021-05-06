@@ -1,4 +1,4 @@
-name: Windows 32bit Build
+name: Windows Builds
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    name: Windows 32bit Build
+    name: Windows Builds
     runs-on: windows-2019
     strategy:
       matrix: 
@@ -114,7 +114,7 @@ jobs:
       with:
         path: |
           /downloads
-        key: ${{ runner.os }}-CachedDownloads-1
+        key: ${{ runner.os }}-CachedDownloads-${{ matrix.bits }}-1
 
     - name: Download InfoZip Binary
       if: steps.cache-downloads.outputs.cache-hit != true
@@ -217,7 +217,7 @@ jobs:
     - name: Build
       working-directory: ${{github.workspace}}/build
       shell: bash
-      run: cmake --build . --config $BUILD_TYPE
+      run: cmake --build . --parallel 4
 
     - name: Create output dir and copy exe
       run: |
