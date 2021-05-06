@@ -295,7 +295,7 @@ jobs:
       with:
         credentials: ${{ secrets.gcp_credentials }}
         path: installer/${{ env.branch }}/${{ env.installer_fn }}
-        destination: openkj-installers/windows/
+        destination: openkj-installers/windows/${{ env.branch }}
 
     - name: Upload installer artifact
       id: upload_artifact
