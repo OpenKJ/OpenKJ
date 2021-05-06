@@ -58,7 +58,7 @@ jobs:
       shell: bash
 
     - name: Update files with new version info
-      if: steps.get_version.outputs.is-semver == true
+      if: steps.get_version.outputs.is-semver == 'true'
       run: |
         MAJOR=${{ steps.get_version.outputs.major }}
         MINOR=${{ steps.get_version.outputs.minor }}
@@ -272,7 +272,7 @@ jobs:
 
     - name: Release
       uses: softprops/action-gh-release@v1
-      if: steps.get_version.outputs.is-semver == true
+      if: steps.get_version.outputs.is-semver == 'true'
       with:
         files: installer/${{ env.branch }}/${{ env.installer_fn }}
         prerelease: ${{ env.rtype != 'release' }}
@@ -281,7 +281,7 @@ jobs:
 
     - name: Upload to OpenKJ website
       id: upload_installer
-      if: steps.get_version.outputs.is-semver == true
+      if: steps.get_version.outputs.is-semver == 'true'
       uses: google-github-actions/upload-cloud-storage@main
       with:
         credentials: ${{ secrets.gcp_credentials }}
