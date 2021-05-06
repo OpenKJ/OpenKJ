@@ -1,0 +1,294 @@
+name: Windows 32bit Build
+
+on:
+  push:
+    branches:
+      - rework-actions
+    tags:
+      - '*.*.*'
+
+jobs:
+  build:
+    name: Windows 32bit Build
+    runs-on: windows-2019
+    strategy:
+      matrix: 
+        include:
+          - windows-arch: 32
+            bits: 32
+            arch: x86
+            msvcarch: x86
+            qtarch: win32_msvc2019
+          - windows-arch: 64
+            bits: 64
+            arch: x86_64
+            msvcarch: x64
+            qtarch: win64_msvc2019_64
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: seanmiddleditch/gha-setup-ninja@master
+
+    - name: Get version from git tag
+      id: get_version
+      uses: battila7/get-version-action@v2
+
+    - name: Setup OpenKJ verion env vars
+      run: |
+        BRANCH=${GITHUB_REF##*/}
+        if [ "$BRANCH" = "master" ];then
+          RTYPE="unstable"
+        elif [ "$BRANCH" = "stable" ];then
+          RTYPE="release"
+        else
+          RTYPE=$BRANCH
+        fi
+        if [ "${{ steps.get_version.outputs.is-semver }}" = "true" ];then
+          OKJVER=${{ steps.get_version.outputs.version-without-v }}
+        else
+          OKJVER=`grep VERSION_STRING src/okjversion.h | cut -d'"' -f2`
+        fi
+        FN="OpenKJ-${OKJVER}-${{ matrix.bits }}bit-${RTYPE}-setup.exe"
+        echo "branch=${BRANCH}" >> $GITHUB_ENV
+        echo "rtype=${RTYPE}" >> $GITHUB_ENV
+        echo "okjver=${OKJVER}" >> $GITHUB_ENV
+        echo "installer_fn=${FN}" >> $GITHUB_ENV
+        echo "OpenKJ Version: $OKJVER"
+        echo "Installer Filename: $FN"
+      shell: bash
+
+    - name: Update files with new version info
+      if: steps.get_version.outputs.is-semver == true
+      run: |
+        MAJOR=${{ steps.get_version.outputs.major }}
+        MINOR=${{ steps.get_version.outputs.minor }}
+        PATCH=${{ steps.get_version.outputs.patch }}
+        BRANCH=${{ env.rtype }}
+
+        echo "Updating okjversion.h"
+        echo "#ifndef OKJVERSION_H" > src/okjversion.h
+        echo "#define OKJVERSION_H" >> src/okjversion.h
+        echo >> src/okjversion.h
+        echo "#define OKJ_VERSION_MAJOR ${{ steps.get_version.outputs.major }}" >> src/okjversion.h
+        echo "#define OKJ_VERSION_MINOR ${{ steps.get_version.outputs.minor }}" >> src/okjversion.h
+        echo "#define OKJ_VERSION_BUILD ${{ steps.get_version.outputs.patch }}" >> src/okjversion.h
+        echo "#define OKJ_VERSION_STRING \"${{ steps.get_version.outputs.version-without-v }}\"" >> src/okjversion.h
+        echo "#define OKJ_VERSION_BRANCH ${{ env.rtype }}" >> src/okjversion.h
+        echo >> src/okjversion.h
+        echo "#endif //OKJVERSION_H" >> src/okjversion.h
+
+        echo "Updating installer config file"
+        sed -i "s/#define MyAppVersion.*/#define MyAppVersion \"${{ steps.get_version.outputs.version-without-v }}\"/" cd/openkj${{ matrix.bits }}.iss
+      shell: bash
+
+    - name: Cache GStreamer
+      id: cache-gst
+      uses: actions/cache@v2
+      with:
+        path: |
+          C:/gstreamer
+          ${{github.workspace}}/gstreamer-dist
+        key: ${{ runner.os }}-GstCache-1.14.5-${{ matrix.bits }}-1
+
+    - name: Download GST Installer
+      if: steps.cache-gst.outputs.cache-hit != true
+      uses: carlosperate/download-file-action@v1.0.3
+      id: download-gst
+      with:
+        file-url: 'https://gstreamer.freedesktop.org/data/pkg/windows/1.14.5/gstreamer-1.0-${{ matrix.arch }}-1.14.5.msi'
+        file-name: 'gstreamer.msi'
+        location: './downloads'
+
+    - name: Download GST-Dev Installer
+      if: steps.cache-gst.outputs.cache-hit != true
+      uses: carlosperate/download-file-action@v1.0.3
+      id: download-gst-dev
+      with:
+        file-url: 'https://gstreamer.freedesktop.org/data/pkg/windows/1.14.5/gstreamer-1.0-devel-${{ matrix.arch }}-1.14.5.msi'
+        file-name: 'gstreamer-devel.msi'
+        location: './downloads'
+
+    - name: Cache Other Downloads
+      id: cache-downloads
+      uses: actions/cache@v2
+      with:
+        path: |
+          /downloads
+        key: ${{ runner.os }}-CachedDownloads-1
+
+    - name: Download InfoZip Binary
+      if: steps.cache-downloads.outputs.cache-hit != true
+      uses: carlosperate/download-file-action@v1.0.3
+      id: download-infozip
+      with:
+        file-url: 'https://storage.googleapis.com/okj-installer-deps/unzip.exe'
+        file-name: unzip.exe
+        location: /cached-downloads
+
+    - name: Download OpenSSL dll files
+      if: steps.cache-downloads.outputs.cache-hit != true
+      uses: carlosperate/download-file-action@v1.0.3
+      id: download-openssl
+      with:
+        file-url: 'https://storage.googleapis.com/okj-installer-deps/ssl-${{ matrix.arch }}-1.1.1.zip'
+        file-name: openssl.zip
+        location: /cached-downloads
+
+    - name: Download Roboto Bold
+      if: steps.cache-downloads.outputs.cache-hit != true
+      uses: carlosperate/download-file-action@v1.0.3
+      id: download-roboto-bold
+      with:
+        file-url: 'https://storage.googleapis.com/okj-installer-deps/Roboto-Bold.ttf' 
+        file-name: Roboto-Bold.ttf
+        location: /cached-downloads
+
+    - name: Download Roboto Medium
+      if: steps.cache-downloads.outputs.cache-hit != true
+      uses: carlosperate/download-file-action@v1.0.3
+      id: download-roboto-medium
+      with:
+        file-url: 'https://storage.googleapis.com/okj-installer-deps/Roboto-Medium.ttf' 
+        file-name: Roboto-Medium.ttf
+        location: /cached-downloads
+
+    - name: Download Roboto Regular
+      if: steps.cache-downloads.outputs.cache-hit != true
+      uses: carlosperate/download-file-action@v1.0.3
+      id: download-roboto-regular
+      with:
+        file-url: 'https://storage.googleapis.com/okj-installer-deps/Roboto-Regular.ttf' 
+        file-name: Roboto-Regular.ttf
+        location: /cached-downloads
+
+    - name: Download Source Code Pro Medium
+      if: steps.cache-downloads.outputs.cache-hit != true
+      uses: carlosperate/download-file-action@v1.0.3
+      id: download-source-code-pro-medium
+      with:
+        file-url: 'https://storage.googleapis.com/okj-installer-deps/SourceCodePro-Medium.ttf' 
+        file-name: SourceCodePro-Medium.ttf
+        location: /cached-downloads
+
+    - name: Install GST
+      if: steps.cache-gst.outputs.cache-hit != true
+      run: |
+        cmd /c start /wait msiexec /package ${{ steps.download-gst.outputs.file-path }} /passive ADDLOCAL=ALL
+        
+    - name: Make dist copy of gstreamer
+      if: steps.cache-gst.outputs.cache-hit != true
+      run: |
+        cp -Rv c:/gstreamer ./gstreamer-dist
+      shell: bash
+
+    - name: Install GST-Dev
+      if: steps.cache-gst.outputs.cache-hit != true
+      run: |
+        cmd /c start /wait msiexec /package ${{ steps.download-gst-dev.outputs.file-path }} /passive ADDLOCAL=ALL
+
+    - name: Cache Qt
+      id: cache-qt
+      uses: actions/cache@v2
+      with:
+       path: "D:/a/KLM/Qt"
+       key: ${{ runner.os }}-QtCache-5.15.2-${{ matrix.arch }}-1
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2
+      with:
+       cached: ${{ steps.cache-qt.outputs.cache-hit }}
+       version: '5.15.2'
+       arch: ${{ matrix.qtarch }}
+       modules: 'core gui sql network widgets concurrent svg printsupport'
+
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{github.workspace}}/build
+
+    - name: Set up Visual Studio shell
+      uses: egor-tensin/vs-shell@v2
+      with:
+        arch: ${{ matrix.msvcarch }}
+
+    - name: Configure CMake
+      shell: cmd
+      working-directory: ${{github.workspace}}/build
+      run: |
+        cmake .. -DCMAKE_BUILD_TYPE=Release -G Ninja
+    - name: Build
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      run: cmake --build . --config $BUILD_TYPE
+
+    - name: Create output dir and copy exe
+      run: |
+        mkdir output
+        copy build\openkj.exe output\
+    - name: Run windeployqt
+      run: |
+        windeployqt --release --compiler-runtime output/openkj.exe
+        dir output
+      shell: cmd
+      
+    - name: Copy in gstreamer dependencies
+      run: |
+        cp -Rv ./gstreamer-dist/1.0/${{ matrix.arch }}/* output/
+        cp -v ./gstreamer-dist/1.0/${{ matrix.arch }}/bin/*.dll output/
+      shell: bash
+
+    - name: Copy in other dependencies
+      run: |
+        copy LICENSE output\LICENSE.txt
+        copy ${{ steps.download-infozip.outputs.file-path }} output\
+        copy ${{ steps.download-roboto-bold.outputs.file-path }} output\
+        copy ${{ steps.download-roboto-medium.outputs.file-path }} output\
+        copy ${{ steps.download-roboto-regular.outputs.file-path }} output\
+        copy ${{ steps.download-source-code-pro-medium.outputs.file-path }} output\
+        7z e -bb3 -y ${{ steps.download-openssl.outputs.file-path }} -o"output\"
+
+    - name: Sign OpenKJ executable
+      run: |
+        mkdir cscrt
+        7z e cd/cscrt.7z -p"${{ secrets.WIN_CSCRT_ARCHIVE_PASS }}" -ocscrt/
+        signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f cscrt\cscrt.pfx /p "${{ secrets.WIN_CSCRT_PFX_PASS }}" output/OpenKJ.exe
+      shell: cmd
+
+    - name: Create Installer
+      run: |
+        cp cd\openkj${{ matrix.bits }}.iss inst.iss
+        mkdir installer
+        "%programfiles(x86)%\Inno Setup 6\iscc.exe" inst.iss /Oinstaller\
+      shell: cmd
+
+    - name: Sign Installer
+      run: |
+        signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f cscrt\cscrt.pfx /p "${{ secrets.WIN_CSCRT_PFX_PASS }}" installer\OpenKJ.exe
+      shell: cmd
+
+    - name: Rename Installer
+      run: |
+        mkdir installer/${{ env.branch }}
+        mv installer/OpenKJ.exe installer/${{ env.branch }}/${{ env.installer_fn }}
+      shell: bash
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: steps.get_version.outputs.is-semver == true
+      with:
+        files: installer/${{ env.branch }}/${{ env.installer_fn }}
+        prerelease: ${{ env.rtype != 'release' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - id: Upload to OpenKJ website
+      if: steps.get_version.outputs.is-semver == true
+      uses: google-github-actions/upload-cloud-storage@main
+      with:
+        credentials: ${{ secrets.gcp_credentials }}
+        path: installer/*
+        destination: openkj-installers/windows/
+
+    - id: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: Win${{ matrix.bits }} installer
+        path: installer/${{ env.branch }}/${{ env.installer_fn }}
