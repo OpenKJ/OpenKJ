@@ -52,7 +52,7 @@ jobs:
             BRANCH="master"
           else
             RTYPE=${{ steps.get_version.outputs.prerelease }}
-            BRANCH="unstable"
+            BRANCH="master"
           fi
           OKJVER=${{ steps.get_version.outputs.version-without-v }}
         fi
