@@ -288,7 +288,8 @@ jobs:
         path: installer/*
         destination: openkj-installers/windows/
 
-    - id: Upload artifact
+    - name: Upload installer artifact
+      id: upload_artifact
       uses: actions/upload-artifact@v2
       with:
         name: Win${{ matrix.bits }} installer
