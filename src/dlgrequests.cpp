@@ -361,7 +361,8 @@ void DlgRequests::on_tableViewSearch_customContextMenuRequested(const QPoint &po
     QModelIndex index = ui->tableViewSearch->indexAt(pos);
     if (index.isValid())
     {
-        rtClickFile = index.sibling(index.row(),5).data().toString();
+        int songIdx = index.sibling(index.row(), TableModelKaraokeSongs::COL_ID).data().toInt();
+        rtClickFile = dbModel.getPath(songIdx);
         QMenu contextMenu(this);
         contextMenu.addAction(tr("Preview"), this, SLOT(previewCdg()));
         contextMenu.exec(QCursor::pos());
