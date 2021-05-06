@@ -34,16 +34,20 @@ include_directories(
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     find_package(PkgConfig)
     pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0 gstreamer-pbutils-1.0 gstreamer-controller-1.0 gstreamer-video-1.0)
-    pkg_check_modules(TAGLIB REQUIRED IMPORTED_TARGET taglib)
-    include_directories(
+    pkg_check_modules(TAGLIB IMPORTED_TARGET taglib)
+    if (TAGLIB_FOUND)
+        include_directories(
             ${GLIB_INCLUDE_DIRS}
             ${GSTREAMER_INCLUDE_DIRS}
 
-    )
-    link_directories(
+            )
+        link_directories(
             ${GLIB_LIBRARY_DIRS}
             ${GSTREAMER_LIBRARY_DIRS}
-    )
+            )
+    else()
+        set(STATIC_TAGLIB True)
+    endif()
 endif ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -521,8 +525,11 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBS
     add_executable(openkj
         ${SOURCE_FILES}
         )
-    target_link_libraries(openkj Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Sql Qt5::Network Qt5::Svg Qt5::PrintSupport Qt5::Concurrent ${GSTREAMER_LIBRARIES} PkgConfig::TAGLIB)
-
+    if (TAGLIB_FOUND)
+        target_link_libraries(openkj Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Sql Qt5::Network Qt5::Svg Qt5::PrintSupport Qt5::Concurrent ${GSTREAMER_LIBRARIES} PkgConfig::TAGLIB)
+    else()
+        target_link_libraries(openkj Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Sql Qt5::Network Qt5::Svg Qt5::PrintSupport Qt5::Concurrent ${GSTREAMER_LIBRARIES})
+    endif()
     install(
             TARGETS openkj
             DESTINATION bin
