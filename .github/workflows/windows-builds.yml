@@ -293,7 +293,7 @@ jobs:
       if: steps.get_version.outputs.is-semver == 'true'
       uses: google-github-actions/upload-cloud-storage@main
       with:
-        service_account_key: ${{ secrets.GCLOUD_KEY }}
+        credentials: ${{ secrets.gcp_credentials }}
         path: installer/${{ env.branch }}/${{ env.installer_fn }}
         destination: openkj-installers/windows/
 
