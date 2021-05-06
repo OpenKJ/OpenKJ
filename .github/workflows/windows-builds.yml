@@ -279,7 +279,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - id: Upload to OpenKJ website
+    - name: Upload to OpenKJ website
+      id: upload_installer
       if: steps.get_version.outputs.is-semver == true
       uses: google-github-actions/upload-cloud-storage@main
       with:
