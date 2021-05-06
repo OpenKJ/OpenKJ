@@ -276,8 +276,8 @@ jobs:
       with:
         files: installer/${{ env.branch }}/${{ env.installer_fn }}
         prerelease: ${{ env.rtype != 'release' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - id: Upload to OpenKJ website
       if: steps.get_version.outputs.is-semver == true
