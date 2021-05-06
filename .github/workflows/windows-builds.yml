@@ -41,11 +41,22 @@ jobs:
         else
           RTYPE=$BRANCH
         fi
+        OKJVER=`grep VERSION_STRING src/okjversion.h | cut -d'"' -f2`
+
         if [ "${{ steps.get_version.outputs.is-semver }}" = "true" ];then
+          if [ "${{ steps.get_version.outputs.prerelease }}" = "" ];then
+            RTYPE="release"
+            BRANCH="release"
+          elif [ "${{ steps.get_version.outputs.prerelease }}" = "unstable" ];then
+            RTYPE="unstable"
+            BRANCH="master"
+          else
+            RTYPE=${{ steps.get_version.outputs.prerelease }}
+            BRANCH="unstable"
+          fi
           OKJVER=${{ steps.get_version.outputs.version-without-v }}
-        else
-          OKJVER=`grep VERSION_STRING src/okjversion.h | cut -d'"' -f2`
         fi
+
         FN="OpenKJ-${OKJVER}-${{ matrix.bits }}bit-${RTYPE}-setup.exe"
         echo "branch=${BRANCH}" >> $GITHUB_ENV
         echo "rtype=${RTYPE}" >> $GITHUB_ENV
