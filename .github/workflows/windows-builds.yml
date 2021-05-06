@@ -57,7 +57,7 @@ jobs:
           OKJVER=${{ steps.get_version.outputs.version-without-v }}
         fi
 
-        FN="OpenKJ-${OKJVER}-${{ matrix.bits }}bit-${RTYPE}-setup.exe"
+        FN="OpenKJ-${OKJVER}-${{ matrix.bits }}bit-setup.exe"
         echo "branch=${BRANCH}" >> $GITHUB_ENV
         echo "rtype=${RTYPE}" >> $GITHUB_ENV
         echo "okjver=${OKJVER}" >> $GITHUB_ENV
