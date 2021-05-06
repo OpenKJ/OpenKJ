@@ -294,7 +294,7 @@ jobs:
       uses: google-github-actions/upload-cloud-storage@main
       with:
         credentials: ${{ secrets.gcp_credentials }}
-        path: installer/*
+        path: installer/${{ env.branch }}/${{ env.installer_fn }}
         destination: openkj-installers/windows/
 
     - name: Upload installer artifact
