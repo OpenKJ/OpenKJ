@@ -34,16 +34,21 @@ include_directories(
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     find_package(PkgConfig)
     pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0 gstreamer-pbutils-1.0 gstreamer-controller-1.0 gstreamer-video-1.0)
+    include_directories(
+        ${GSTREAMER_INCLUDE_DIRS}
+        ${GLIB_LIBRARY_DIRS}
+        )
+    link_directories(
+        ${GSTREAMER_LIBRARY_DIRS}
+        ${GLIB_INCLUDE_DIRS}
+        )
     pkg_check_modules(TAGLIB IMPORTED_TARGET taglib)
     if (TAGLIB_FOUND)
         include_directories(
-            ${GLIB_INCLUDE_DIRS}
-            ${GSTREAMER_INCLUDE_DIRS}
-
+            ${TAGLIB_INCLUDE_DIRS}
             )
         link_directories(
-            ${GLIB_LIBRARY_DIRS}
-            ${GSTREAMER_LIBRARY_DIRS}
+            ${TAGLIB_LIBRARY_DIRS}
             )
     else()
         set(STATIC_TAGLIB True)
