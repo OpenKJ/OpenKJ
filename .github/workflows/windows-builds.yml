@@ -91,7 +91,7 @@ jobs:
         key: ${{ runner.os }}-GstCache-1.14.5-${{ matrix.bits }}-1
 
     - name: Download GST Installer
-      if: steps.cache-gst.outputs.cache-hit != true
+      if: steps.cache-gst.outputs.cache-hit != 'true'
       uses: carlosperate/download-file-action@v1.0.3
       id: download-gst
       with:
@@ -100,7 +100,7 @@ jobs:
         location: './downloads'
 
     - name: Download GST-Dev Installer
-      if: steps.cache-gst.outputs.cache-hit != true
+      if: steps.cache-gst.outputs.cache-hit != 'true'
       uses: carlosperate/download-file-action@v1.0.3
       id: download-gst-dev
       with:
@@ -117,7 +117,7 @@ jobs:
         key: ${{ runner.os }}-CachedDownloads-${{ matrix.bits }}-1
 
     - name: Download InfoZip Binary
-      if: steps.cache-downloads.outputs.cache-hit != true
+      if: steps.cache-downloads.outputs.cache-hit != 'true'
       uses: carlosperate/download-file-action@v1.0.3
       id: download-infozip
       with:
@@ -126,7 +126,7 @@ jobs:
         location: /cached-downloads
 
     - name: Download OpenSSL dll files
-      if: steps.cache-downloads.outputs.cache-hit != true
+      if: steps.cache-downloads.outputs.cache-hit != 'true'
       uses: carlosperate/download-file-action@v1.0.3
       id: download-openssl
       with:
@@ -135,7 +135,7 @@ jobs:
         location: /cached-downloads
 
     - name: Download Roboto Bold
-      if: steps.cache-downloads.outputs.cache-hit != true
+      if: steps.cache-downloads.outputs.cache-hit != 'true'
       uses: carlosperate/download-file-action@v1.0.3
       id: download-roboto-bold
       with:
@@ -144,7 +144,7 @@ jobs:
         location: /cached-downloads
 
     - name: Download Roboto Medium
-      if: steps.cache-downloads.outputs.cache-hit != true
+      if: steps.cache-downloads.outputs.cache-hit != 'true'
       uses: carlosperate/download-file-action@v1.0.3
       id: download-roboto-medium
       with:
@@ -153,7 +153,7 @@ jobs:
         location: /cached-downloads
 
     - name: Download Roboto Regular
-      if: steps.cache-downloads.outputs.cache-hit != true
+      if: steps.cache-downloads.outputs.cache-hit != 'true'
       uses: carlosperate/download-file-action@v1.0.3
       id: download-roboto-regular
       with:
@@ -162,7 +162,7 @@ jobs:
         location: /cached-downloads
 
     - name: Download Source Code Pro Medium
-      if: steps.cache-downloads.outputs.cache-hit != true
+      if: steps.cache-downloads.outputs.cache-hit != 'true'
       uses: carlosperate/download-file-action@v1.0.3
       id: download-source-code-pro-medium
       with:
@@ -171,18 +171,18 @@ jobs:
         location: /cached-downloads
 
     - name: Install GST
-      if: steps.cache-gst.outputs.cache-hit != true
+      if: steps.cache-gst.outputs.cache-hit != 'true'
       run: |
         cmd /c start /wait msiexec /package ${{ steps.download-gst.outputs.file-path }} /passive ADDLOCAL=ALL
         
     - name: Make dist copy of gstreamer
-      if: steps.cache-gst.outputs.cache-hit != true
+      if: steps.cache-gst.outputs.cache-hit != 'true'
       run: |
         cp -Rv c:/gstreamer ./gstreamer-dist
       shell: bash
 
     - name: Install GST-Dev
-      if: steps.cache-gst.outputs.cache-hit != true
+      if: steps.cache-gst.outputs.cache-hit != 'true'
       run: |
         cmd /c start /wait msiexec /package ${{ steps.download-gst-dev.outputs.file-path }} /passive ADDLOCAL=ALL
 
@@ -217,7 +217,7 @@ jobs:
     - name: Build
       working-directory: ${{github.workspace}}/build
       shell: bash
-      run: cmake --build . --parallel 4
+      run: cmake --build .
 
     - name: Create output dir and copy exe
       run: |
