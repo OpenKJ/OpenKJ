@@ -2,8 +2,6 @@ name: Windows Builds
 
 on:
   push:
-    branches:
-      - rework-actions
     tags:
       - '*.*.*'
 
