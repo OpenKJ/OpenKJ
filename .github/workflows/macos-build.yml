@@ -2,29 +2,37 @@ name: Create MacOS Build & Installer
 
 on:
   push:
-    branches: [ macos-actiontest, master, release ]
+    tags:
+      - '*.*.*'
 
 jobs:
   build:
-    runs-on: [ macos-10.15 ]
+    runs-on: macos-10.15
     steps:
     - uses: actions/checkout@v2
     - uses: lukka/get-cmake@latest
-    
+
+    - name: Get version from git tag
+      id: get_version
+      uses: battila7/get-version-action@v2
+
     - name: Get OpenKJ version being buit
       run: |
-        BRANCH=${GITHUB_REF##*/}
-        if [ "$BRANCH" = "master" ];then
-        RTYPE="unstable"
+        if [ "${{ steps.get_version.outputs.prerelease }}" = "" ];then
+          RTYPE="release"
+          BRANCH="release"
+        elif [ "${{ steps.get_version.outputs.prerelease }}" = "unstable" ];then
+          RTYPE="unstable"
+          BRANCH="unstable"
         else
-        RTYPE=$BRANCH
+          RTYPE=${{ steps.get_version.outputs.prerelease }}
+          BRANCH="unstable"
         fi
-        echo "rtype=${RTYPE}" >> $GITHUB_ENV
-        OKJVER=`grep VERSION_STRING src/okjversion.h | cut -d'"' -f2`
-        echo "okjver=${OKJVER}" >> $GITHUB_ENV
-        echo "OpenKJ Version: $OKJVER"
-        FN="OpenKJ-${OKJVER}-${RTYPE}-osx-installer.pkg"
+        OKJVER=${{ steps.get_version.outputs.version-without-v }}
+        FN="OpenKJ-${OKJVER}-osx-installer.pkg"
         echo "installer_fn=${FN}" >> $GITHUB_ENV
+        echo "rtype=${RTYPE}" >> $GITHUB_ENV
+        echo "branch=${BRANCH}" >> $GITHUB_ENV
     
     - name: Setup Signing Keychain
       uses: apple-actions/import-codesign-certs@v1
@@ -98,7 +106,7 @@ jobs:
 
     - name: Build
       working-directory: ${{github.workspace}}/build
-      run: cmake --build .
+      run: cmake --build . --parallel 4
       
     - name: Sign app bundle
       working-directory: ${{github.workspace}}/build
@@ -127,17 +135,20 @@ jobs:
 #      with:
 #        product-path: ${{ github.workspace }}/build/${{ env.installer_fn }}
 
-    - name: Installing gcloud console tools
-      uses: google-github-actions/setup-gcloud@master
+    - name: Upload to OpenKJ website
+      id: upload_installer
+      if: steps.get_version.outputs.is-semver == 'true'
+      uses: google-github-actions/upload-cloud-storage@main
       with:
-        version: 'latest'
-        service_account_key: ${{ secrets.GCLOUD_KEY }}
-        export_default_credentials: true
+        credentials: ${{ secrets.gcp_credentials }}
+        path: ${{ github.workspace }}/build/${{ env.installer_fn }}
+        destination: openkj-installers/macos/${{ env.branch }}
 
-    - name: Upload installer to Google Cloud Storage
-      working-directory: ${{github.workspace}}/build
-      continue-on-error: true
-      run: |
-        gsutil cp ${{ env.installer_fn }} gs://openkj-installers/macos/${{ env.rtype }}/
-
-
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: steps.get_version.outputs.is-semver == 'true'
+      with:
+        files: ${{ github.workspace }}/build/${{ env.installer_fn }}
+        prerelease: ${{ env.rtype != 'release' }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
