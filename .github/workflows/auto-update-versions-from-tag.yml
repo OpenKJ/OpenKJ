@@ -1,0 +1,110 @@
+name: Update versions from tag
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+
+jobs:
+  update-build-files:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - id: get_version
+        uses: battila7/get-version-action@v2
+
+      - name: Setup OpenKJ verion env vars
+        run: |
+          BRANCH=${GITHUB_REF##*/}
+          if [ "$BRANCH" = "master" ];then
+            RTYPE="unstable"
+          elif [ "$BRANCH" = "stable" ];then
+            RTYPE="release"
+          else
+            RTYPE=$BRANCH
+          fi
+          OKJVER=`grep VERSION_STRING src/okjversion.h | cut -d'"' -f2`
+
+          if [ "${{ steps.get_version.outputs.is-semver }}" = "true" ];then
+            if [ "${{ steps.get_version.outputs.prerelease }}" = "" ];then
+              RTYPE="release"
+              BRANCH="release"
+            elif [ "${{ steps.get_version.outputs.prerelease }}" = "unstable" ];then
+              RTYPE="unstable"
+              BRANCH="master"
+            else
+              RTYPE=${{ steps.get_version.outputs.prerelease }}
+              BRANCH="master"
+            fi
+            OKJVER=${{ steps.get_version.outputs.version-without-v }}
+          fi
+
+          echo "branch=${BRANCH}" >> $GITHUB_ENV
+          echo "rtype=${RTYPE}" >> $GITHUB_ENV
+          echo "okjver=${OKJVER}" >> $GITHUB_ENV
+          echo "OpenKJ Version: $OKJVER"
+        shell: bash
+
+      - name: Update Windows installer config files
+        run: |
+          sed -i "s/#define MyAppVersion.*/#define MyAppVersion \"${{ steps.get_version.outputs.version-without-v }}\"/" cd/openkj32.iss
+          sed -i "s/#define MyAppVersion.*/#define MyAppVersion \"${{ steps.get_version.outputs.version-without-v }}\"/" cd/openkj64.iss
+
+      - name: Update okjversion.h
+        run: |
+          echo "Updating okjversion.h"
+          echo "#ifndef OKJVERSION_H" > src/okjversion.h
+          echo "#define OKJVERSION_H" >> src/okjversion.h
+          echo >> src/okjversion.h
+          echo "#define OKJ_VERSION_MAJOR ${{ steps.get_version.outputs.major }}" >> src/okjversion.h
+          echo "#define OKJ_VERSION_MINOR ${{ steps.get_version.outputs.minor }}" >> src/okjversion.h
+          echo "#define OKJ_VERSION_BUILD ${{ steps.get_version.outputs.patch }}" >> src/okjversion.h
+          echo "#define OKJ_VERSION_STRING \"${{ steps.get_version.outputs.version-without-v }}\"" >> src/okjversion.h
+          echo "#define OKJ_VERSION_BRANCH \"${{ env.rtype }}\"" >> src/okjversion.h
+          echo >> src/okjversion.h
+          echo "#endif //OKJVERSION_H" >> src/okjversion.h
+
+      - name: Update RPM specfile with git tag version
+        # Build your program with the given configuration
+        run: |
+          sed -i "s/Version:.*/Version:\t\t${{ steps.get_version.outputs.major }}.${{ steps.get_version.outputs.minor }}.${{ steps.get_version.outputs.patch }}/" rpm/openkj.spec
+          sed -i "s/Source0:.*/Source0:\thttps:\/\/github.com\/OpenKJ\/OpenKJ\/releases\/download\/${{ steps.get_version.outputs.version }}\/openkj-${{ steps.get_version.outputs.version-without-v }}.tar.gz/" rpm/openkj.spec
+
+      - name: Update deb config
+        run: |
+          sudo apt-get update
+          sudo apt-get install devscripts
+          dch -D bionic -v ${{ steps.get_version.outputs.version-without-v }}-1~bionic "Automatc update from github tag"
+          dch -r "Autobuild from git commit"
+
+      - name: Create fedora tarball
+        run: |
+          cd ..
+          cp -R OpenKJ openkj-${{ steps.get_version.outputs.major }}.${{ steps.get_version.outputs.minor }}.${{ steps.get_version.outputs.patch }}
+          tar -zcf openkj-${{ steps.get_version.outputs.version-without-v }}.tar.gz openkj-${{ steps.get_version.outputs.major }}.${{ steps.get_version.outputs.minor }}.${{ steps.get_version.outputs.patch }}
+          mv openkj*.tar.gz OpenKJ/
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: "openkj-${{ steps.get_version.outputs.version-without-v }}.tar.gz"
+          prerelease: ${{ env.rtype != 'release' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit changes to repo
+        uses: test-room-7/action-update-file@v1
+        with:
+          file-path: |
+            rpm/openkj.spec
+            debian/changelog
+            src/okjversion.h
+            cd/openkj32.iss
+            cd/openkj64.iss
+          commit-msg: Auto commit - update version from git tag
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trigger COPR build
+        run: |
+          curl -X POST https://copr.fedorainfracloud.org/webhooks/custom/16440/a71138a2-bc88-4b77-8af0-bc3b1697ac35/openkj/

@@ -143,3 +143,12 @@ jobs:
         credentials: ${{ secrets.gcp_credentials }}
         path: ${{ github.workspace }}/build/${{ env.installer_fn }}
         destination: openkj-installers/macos/${{ env.branch }}
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: steps.get_version.outputs.is-semver == 'true'
+      with:
+        files: ${{ github.workspace }}/build/${{ env.installer_fn }}
+        prerelease: ${{ env.rtype != 'release' }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
