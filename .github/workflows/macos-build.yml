@@ -53,9 +53,6 @@ jobs:
         echo "#define OKJ_VERSION_BRANCH \"${{ env.rtype }}\"" >> src/okjversion.h
         echo >> src/okjversion.h
         echo "#endif //OKJVERSION_H" >> src/okjversion.h
-
-        echo "Updating installer config file"
-        sed -i "s/#define MyAppVersion.*/#define MyAppVersion \"${{ steps.get_version.outputs.version-without-v }}\"/" cd/openkj${{ matrix.bits }}.iss
       shell: bash
 
     - name: Setup Signing Keychain
