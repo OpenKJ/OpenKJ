@@ -23,10 +23,10 @@ jobs:
           BRANCH="release"
         elif [ "${{ steps.get_version.outputs.prerelease }}" = "unstable" ];then
           RTYPE="unstable"
-          BRANCH="master"
+          BRANCH="unstable"
         else
           RTYPE=${{ steps.get_version.outputs.prerelease }}
-          BRANCH="master"
+          BRANCH="unstable"
         fi
         OKJVER=${{ steps.get_version.outputs.version-without-v }}
         FN="OpenKJ-${OKJVER}-osx-installer.pkg"
@@ -133,17 +133,11 @@ jobs:
 #      with:
 #        product-path: ${{ github.workspace }}/build/${{ env.installer_fn }}
 
-    - name: Installing gcloud console tools
-      uses: google-github-actions/setup-gcloud@master
+    - name: Upload to OpenKJ website
+      id: upload_installer
+      if: steps.get_version.outputs.is-semver == 'true'
+      uses: google-github-actions/upload-cloud-storage@main
       with:
-        version: 'latest'
-        service_account_key: ${{ secrets.GCLOUD_KEY }}
-        export_default_credentials: true
-
-    - name: Upload installer to Google Cloud Storage
-      working-directory: ${{github.workspace}}/build
-      continue-on-error: true
-      run: |
-        gsutil cp ${{ env.installer_fn }} gs://openkj-installers/macos/${{ env.rtype }}/
-
-
+        credentials: ${{ secrets.gcp_credentials }}
+        path: ${{ env.installer_fn }}
+        destination: openkj-installers/macos/${{ env.branch }}
