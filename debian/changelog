@@ -1,3 +1,10 @@
+openkj (2.0.0-RC6.7-1~bionic) bionic; urgency=medium
+
+  [ runner@fv-az105-367.wy5h1aom0jgehahef1oyr10hrc.bx.internal.cloudapp.net ]
+  * Automatc update from github tag
+
+ --  <runner@fv-az105-367.wy5h1aom0jgehahef1oyr10hrc.bx.internal.cloudapp.net>  Fri, 07 May 2021 01:29:54 +0000
+
 openkj (2.0.0-5~bionic) bionic; urgency=medium
 
   * 2.0 Release Candidate 5
