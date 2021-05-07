@@ -226,7 +226,7 @@ jobs:
     - name: Build
       working-directory: ${{github.workspace}}/build
       shell: bash
-      run: cmake --build .
+      run: cmake --build . --parallel 4
 
     - name: Create output dir and copy exe
       run: |
