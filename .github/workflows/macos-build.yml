@@ -31,8 +31,8 @@ jobs:
         OKJVER=${{ steps.get_version.outputs.version-without-v }}
         FN="OpenKJ-${OKJVER}-osx-installer.pkg"
         echo "installer_fn=${FN}" >> $GITHUB_ENV
-        echo "rtype=${RTYPE} >> $GITHUB_ENV
-        echo "branch=${BRANCH} >> $GITHUB_ENV
+        echo "rtype=${RTYPE}" >> $GITHUB_ENV
+        echo "branch=${BRANCH}" >> $GITHUB_ENV
     
     - name: Setup Signing Keychain
       uses: apple-actions/import-codesign-certs@v1
