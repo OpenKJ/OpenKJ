@@ -139,5 +139,5 @@ jobs:
       uses: google-github-actions/upload-cloud-storage@main
       with:
         credentials: ${{ secrets.gcp_credentials }}
-        path: ${{ env.installer_fn }}
+        path: ${{ github.workspace }}/build/${{ env.installer_fn }}
         destination: openkj-installers/macos/${{ env.branch }}
