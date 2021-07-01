@@ -25,6 +25,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        submodules: recursive
     - uses: seanmiddleditch/gha-setup-ninja@master
 
     - name: Get version from git tag
