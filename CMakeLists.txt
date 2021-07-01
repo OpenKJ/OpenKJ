@@ -11,27 +11,8 @@ set(sem_ver "${ver_major}.${ver_minor}.${ver_build}")
 
 message(STATUS "Building OpenKJ ${sem_ver}")
 
-find_package(Git QUIET)
-if(GIT_FOUND AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
-    option(GIT_SUBMODULE "Check submodules during build" ON)
-    if(GIT_SUBMODULE)
-        message(STATUS "Submodule update")
-        execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                RESULT_VARIABLE GIT_SUBMOD_RESULT)
-        if(NOT GIT_SUBMOD_RESULT EQUAL "0")
-            message(FATAL_ERROR "git submodule update --init --recursive failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
-        endif()
-    endif()
-endif()
-
-message(STATUS "Checking for ${CMAKE_CURRENT_SOURCE_DIR}/src/3rdparty/spdlog/CMakeLists.txt")
-
-if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/3rdparty/spdlog/CMakeLists.txt")
-    message(FATAL_ERROR "The submodules were not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
-endif()
-
-add_subdirectory(src/3rdparty/spdlog)
+include(cmake/CPM.cmake)
+CPMAddPackage("gh:gabime/spdlog@1.8.2")
 
 message("Building OpenKJ ${sem_ver}")
 
@@ -54,7 +35,6 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Gui Sql Network Widgets Concurrent
 
 include_directories(
         src/
-        src/3rdparty/spdlog/include/
 )
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     find_package(PkgConfig)
@@ -551,7 +531,7 @@ set(SOURCE_FILES
         )
 
 set(LIBRARIES
-        spdlog::spdlog_header_only
+        spdlog
         Qt5::Widgets
         Qt5::Core
         Qt5::Gui
