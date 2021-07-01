@@ -43,7 +43,7 @@
 #define NOMINMAX
 
 #include <Windows.h>
-
+#include <timeapi.h>
 #endif
 
 extern Settings settings;
