@@ -168,6 +168,13 @@ QVariant TableModelRotation::data(const QModelIndex &index, int role) const
         if (index.column() > 0)
         return (settings.theme() == 1) ? QColor(180,180,0) : QColor("yellow");
     }
+    if (role == Qt::BackgroundRole && index.column() == COL_NAME)
+    {
+        int singerId = index.data(Qt::UserRole).toInt();
+        int qSongsSung = numSongsSung(singerId);
+        if (qSongsSung == 0)
+            return QColor(140, 30, 150);
+    }
     if (role == Qt::ForegroundRole && m_singers.at(index.row()).id == m_currentSingerId)
     {
         if (index.column() > 0)
