@@ -19,6 +19,8 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        submodules: recursive
     - uses: seanmiddleditch/gha-setup-ninja@master
 
     - name: Download GST Installer
