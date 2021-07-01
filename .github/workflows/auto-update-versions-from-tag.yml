@@ -84,6 +84,9 @@ jobs:
         run: |
           cd ..
           cp -R OpenKJ openkj-${{ steps.get_version.outputs.major }}.${{ steps.get_version.outputs.minor }}.${{ steps.get_version.outputs.patch }}
+          cd openkj-${{ steps.get_version.outputs.major }}.${{ steps.get_version.outputs.minor }}.${{ steps.get_version.outputs.patch }}
+          git submodule update --init
+          cd ..
           tar -zcf openkj-${{ steps.get_version.outputs.version-without-v }}.tar.gz openkj-${{ steps.get_version.outputs.major }}.${{ steps.get_version.outputs.minor }}.${{ steps.get_version.outputs.patch }}
           mv openkj*.tar.gz OpenKJ/
 
