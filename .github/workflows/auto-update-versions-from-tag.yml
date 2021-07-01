@@ -71,7 +71,7 @@ jobs:
         # Build your program with the given configuration
         run: |
           sed -i "s/Version:.*/Version:\t\t${{ steps.get_version.outputs.major }}.${{ steps.get_version.outputs.minor }}.${{ steps.get_version.outputs.patch }}/" rpm/openkj.spec
-          sed -i "s/Source0:.*/Source0:\thttps:\/\/github.com\/OpenKJ\/OpenKJ\/releases\/download\/${{ steps.get_version.outputs.version }}\/openkj-${{ steps.get_version.outputs.version-without-v }}.tar.gz/" rpm/openkj.spec
+          sed -i "s/Source0:.*/Source0:\t\topenkj-${{ steps.get_version.outputs.version-without-v }}.tar.gz/" rpm/openkj.spec
 
       - name: Update deb config
         run: |
