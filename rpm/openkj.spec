@@ -1,9 +1,3 @@
-# Disables stripping of debug info
-%global _enable_debug_package 0
-%global debug_package %{nil}
-%global __os_install_post /usr/lib/rpm/brp-compress %{nil}
-# End debug strip disable
-
 Name:           openkj
 Version:		2.0.3
 Release:        5%{?dist}
@@ -13,7 +7,7 @@ License:        GPL
 URL:            https://openkj.org
 Source0:	https://github.com/OpenKJ/OpenKJ/releases/download/v2.0.3/openkj-2.0.3.tar.gz
 
-BuildRequires:  cmake qt5-qtbase-devel qt5-qtsvg-devel qt5-qtmultimedia-devel gstreamer1-devel gstreamer1-plugins-base-devel taglib-devel taglib-extras-devel
+BuildRequires:  cmake qt5-qtbase-devel qt5-qtsvg-devel qt5-qtmultimedia-devel gstreamer1-devel gstreamer1-plugins-base-devel taglib-devel taglib-extras-devel git
 Requires:       qt5-qtbase qt5-qtsvg qt5-qtmultimedia gstreamer1 gstreamer1-plugins-good gstreamer1-plugins-bad-free gstreamer1-plugins-ugly-free unzip gstreamer1-libav taglib taglib-extras google-roboto-fonts google-roboto-mono-fonts
 
 %description
@@ -26,7 +20,7 @@ key changer, and all of the various bits and pieces required to host karaoke.
 %setup
 
 %build
-%cmake -DCMAKE_BUILD_TYPE=Debug
+%cmake -DCMAKE_BUILD_TYPE=Release
 %cmake_build
 
 %install

@@ -27,6 +27,7 @@
 #include "src/models/tablemodelkaraokesongs.h"
 #include "src/models/tablemodelrotation.h"
 #include "okjsongbookapi.h"
+#include <spdlog/spdlog.h>
 
 namespace Ui {
 class DlgRequests;
@@ -46,6 +47,9 @@ private:
     int curRequestId;
     QString curSelReqSinger;
     QTimer testTimer;
+    std::shared_ptr<spdlog::logger> m_reqLogger;
+    std::vector<int> m_prevRequestList;
+
 
 public:
     explicit DlgRequests(TableModelRotation *rotationModel, QWidget *parent = 0);
@@ -65,6 +69,7 @@ public slots:
 private slots:
     void on_pushButtonClose_clicked();
     void requestsModified();
+    void requestsChanged(OkjsRequests requests);
     void on_pushButtonSearch_clicked();
     void on_lineEditSearch_returnPressed();
     void requestSelectionChanged(const QItemSelection & current, const QItemSelection & previous);
