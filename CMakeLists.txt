@@ -61,7 +61,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBS
     pkg_check_modules(SPDLOG IMPORTED_TARGET spdlog)
     if (SPDLOG_FOUND)
         message(STATUS "Using OS installed spdlog")
-        add_compile_definitions(SPDLOG_FMT_EXTERNAL)
+        add_definitions(-DSPDLOG_FMT_EXTERNAL)
         link_directories(${SPDLOG_LIBRARY_DIRS})
         include_directories(${SPDLOG_INCLUDE_DIRS})
         set(EXTERNAL_SPDLOG True)
