@@ -55,7 +55,6 @@
 #include "dlgsongshop.h"
 #include "songshop.h"
 #include "durationlazyupdater.h"
-#include "dlgdebugoutput.h"
 #include "dlgvideopreview.h"
 #include "src/models/tablemodelhistorysongs.h"
 #include "src/models/tablemodelplaylistsongs.h"
@@ -79,7 +78,6 @@ private:
     ItemDelegateRotation rotDelegate{this};
     TableModelHistorySongs historySongsModel{karaokeSongsModel};
     DlgCdg *cdgWindow;
-    DlgDebugOutput *debugDialog;
     DlgDatabase *dbDialog;
     DlgKeyChange *dlgKeyChange;
     DlgRequests *requestsDialog;
@@ -238,7 +236,6 @@ private slots:
     void on_buttonBmPause_clicked(const bool &checked);
     void on_actionDisplay_Metadata_toggled(const bool &arg1);
     void on_actionDisplay_Filenames_toggled(const bool &arg1);
-    void on_actionShow_Debug_Log_toggled(const bool &arg1);
     void on_actionManage_Karaoke_DB_triggered();
     void on_actionPlaylistNew_triggered();
     void on_actionPlaylistImport_triggered();

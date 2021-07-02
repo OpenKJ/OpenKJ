@@ -449,7 +449,6 @@ set(SOURCE_FILES
         src/runguard/runguard.cpp
         src/durationlazyupdater.cpp
         src/idledetect.cpp
-        src/dlgdebugoutput.cpp
         src/mainwindow.h
         src/dlgaddsong.h
         src/dlgvideopreview.h
@@ -509,7 +508,6 @@ set(SOURCE_FILES
         src/models/tableviewtooltipfilter.h
         src/durationlazyupdater.h
         src/idledetect.h
-        src/dlgdebugoutput.h
         src/mainwindow.ui
         src/dlgaddsong.ui
         src/dlgkeychange.ui
@@ -532,7 +530,6 @@ set(SOURCE_FILES
         src/dlgpassword.ui
         src/dlgpurchaseprogress.ui
         src/dlgeditsong.ui
-        src/dlgdebugoutput.ui
         src/dlgvideopreview.ui
         src/resources.qrc
         src/softwarerendervideosink.cpp

@@ -98,7 +98,7 @@ public:
     bool hasActiveVideo();
     [[nodiscard]] int getVolume() const { return m_volume; }
     void forceVideoExpose();
-
+    QString getName() { return m_objName; }
     void writePipelinesGraphToFile(const QString& filePath);
 
     qint64 position();

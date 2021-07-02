@@ -34,8 +34,10 @@
 #include <gst/video/videooverlay.h>
 #include <gst/gstsegment.h>
 #include "gstreamer/gstreamerhelper.h"
+#include <spdlog/async_logger.h>
 
 extern Settings settings;
+extern std::shared_ptr<spdlog::async_logger> logger;
 
 Q_DECLARE_SMART_POINTER_METATYPE(std::shared_ptr);
 Q_DECLARE_METATYPE(std::shared_ptr<GstMessage>);
@@ -699,6 +701,38 @@ void MediaBackend::gstBusFunc(GstMessage *message)
     }
 }
 
+void gstDebugFunction(GstDebugCategory * category, GstDebugLevel level, const gchar * file, const gchar * function, gint line, GObject * object, GstDebugMessage * message, gpointer user_data) {
+    auto *backend = (MediaBackend*)user_data;
+    switch (level) {
+        case GST_LEVEL_NONE:
+            break;
+        case GST_LEVEL_ERROR:
+            logger->error("[{}] [gstreamer] [{}] - {}", backend->getName().toStdString(), category->name, gst_debug_message_get(message));
+            break;
+        case GST_LEVEL_WARNING:
+            logger->warn("[{}] [gstreamer] [{}] - {}", backend->getName().toStdString(), category->name, gst_debug_message_get(message));
+            break;
+        case GST_LEVEL_FIXME:
+            logger->info("[{}] [gstreamer] [{}] - {}", backend->getName().toStdString(), category->name, gst_debug_message_get(message));
+            break;
+        case GST_LEVEL_INFO:
+            logger->info("[{}] [gstreamer] [{}] - {}", backend->getName().toStdString(), category->name, gst_debug_message_get(message));
+            break;
+        case GST_LEVEL_DEBUG:
+            logger->debug("[{}] [gstreamer] [{}] - {}", backend->getName().toStdString(), category->name, gst_debug_message_get(message));
+            break;
+        case GST_LEVEL_LOG:
+            break;
+        case GST_LEVEL_TRACE:
+            logger->trace("[{}] [gstreamer] [{}] - {}", backend->getName().toStdString(), category->name, gst_debug_message_get(message));
+            break;
+        case GST_LEVEL_MEMDUMP:
+            break;
+        case GST_LEVEL_COUNT:
+            break;
+    }
+}
+
 void MediaBackend::buildPipeline()
 {
     qInfo() << m_objName << " - buildPipeline() called";
@@ -707,6 +741,8 @@ void MediaBackend::buildPipeline()
         qInfo() << m_objName << " - gst not initialized - initializing";
         gst_init(nullptr,nullptr);
     }
+    gst_debug_remove_log_function(nullptr);
+    gst_debug_add_log_function(gstDebugFunction, this, nullptr);
 #ifdef Q_OS_WIN
     // Use directsoundsink by default because of buggy wasapi plugin.
     GstRegistry *reg = gst_registry_get();

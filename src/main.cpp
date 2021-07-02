@@ -31,83 +31,81 @@
 #include "idledetect.h"
 #include "runguard/runguard.h"
 #include "okjversion.h"
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/async_logger.h>
+#include <spdlog/async.h>
 
-QDataStream &operator<<(QDataStream &out, const SfxEntry &obj)
-{
+QDataStream &operator<<(QDataStream &out, const SfxEntry &obj) {
     out << obj.name << obj.path;
     qInfo() << "returning " << obj.name << " " << obj.path;
     return out;
 }
 
-QDataStream &operator>>(QDataStream &in, SfxEntry &obj)
-{
-   qInfo() << "setting " << obj.name << " " << obj.path;
-   in >> obj.name >> obj.path;
-   return in;
+QDataStream &operator>>(QDataStream &in, SfxEntry &obj) {
+    qInfo() << "setting " << obj.name << " " << obj.path;
+    in >> obj.name >> obj.path;
+    return in;
 }
 
 Settings settings;
-
 IdleDetect *filter;
+std::shared_ptr<spdlog::async_logger> logger;
 
-QFile logFile;
-QTextStream logStream;
-QStringList logContents;
-auto startTime = std::chrono::high_resolution_clock::now();
 
-void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
-{
+void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg) {
     bool loggingEnabled = settings.logEnabled();
-    auto currentTime = std::chrono::high_resolution_clock::now();
-    unsigned int elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count();
-    if (loggingEnabled && !logFile.isOpen())
-    {
-        QString logDir = settings.logDir();
-        QDir dir;
-        QString logFilePath;
-        QString filename = "openkj-debug-" + QDateTime::currentDateTime().toString("yyyy-MM-dd-hhmm") + "-log";
-        dir.mkpath(logDir);
-        logFilePath = logDir + QDir::separator() + filename;
-        logFile.setFileName(logFilePath);
-        logFile.open(QFile::WriteOnly);
-        logStream.setDevice(&logFile);
+    std::string logMsg = msg.toStdString();
+    if (context.function) {
+        logMsg.append(" [");
+        logMsg.append(context.function);
+        logMsg.append("]");
     }
-
-
-    QByteArray localMsg = msg.toLocal8Bit();
     switch (type) {
-    case QtDebugMsg:
-        fprintf(stderr, "DEBG: %s (%s)\n", localMsg.constData(), context.function);
-        if (loggingEnabled) logStream << "DEBG: " << localMsg << " (" << context.function << ")\n";
-        if (loggingEnabled) logContents.append(QString::number(elapsed) + QString(" - DEBG: " + localMsg + " (" + context.function + ")"));
-        break;
-    case QtInfoMsg:
-        fprintf(stderr, "INFO: %s (%s)\n", localMsg.constData(), context.function);
-        if (loggingEnabled) logStream << "INFO: " << localMsg << " (" << context.function << ")\n";
-        if (loggingEnabled) logContents.append(QString::number(elapsed) + QString(" - INFO: " + localMsg + " (" + context.function + ")"));
-        break;
-    case QtWarningMsg:
-        fprintf(stderr, "WARN: %s (%s)\n", localMsg.constData(), context.function);
-        if (loggingEnabled) logStream << "WARN: " << localMsg << " (" << context.function << ")\n";
-        logContents.append(QString::number(elapsed) + QString(" - WARN: " + localMsg + " (" + context.function + ")"));
-        break;
-    case QtCriticalMsg:
-        fprintf(stderr, "CRIT: %s (%s)\n", localMsg.constData(), context.function);
-        if (loggingEnabled) logStream << "CRIT: " << localMsg << " (" << context.function << ")\n";
-        logContents.append(QString::number(elapsed) + QString(" - CRIT: " + localMsg + " (" + context.function + ")"));
-        break;
-    case QtFatalMsg:
-        fprintf(stderr, "FATAL!!: %s (%s)\n", localMsg.constData(), context.function);
-        if (loggingEnabled) logStream << "FATAL!!: " << localMsg << " (" << context.function << ")\n";
-        logContents.append(QString::number(elapsed) + QString(" - FATAL!!: " + localMsg + " (" + context.function + ")"));
-        if (loggingEnabled) logStream.flush();
-        abort();
+        case QtDebugMsg:
+            if (!loggingEnabled)
+                return;
+            logger->debug(logMsg);
+            break;
+        case QtInfoMsg:
+            logger->info(logMsg);
+        case QtWarningMsg:
+            logger->warn(logMsg);
+            break;
+        case QtCriticalMsg:
+            logger->critical(logMsg);
+            break;
+        case QtFatalMsg:
+            logger->critical(logMsg);
+            abort();
     }
-    if (loggingEnabled) logStream.flush();
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
+    QString logDir = settings.logDir();
+    QDir dir;
+    QString logFilePath;
+    QString filename = "openkj-debug-" + QDateTime::currentDateTime().toString("yyyy-MM-dd") + ".log";
+    dir.mkpath(logDir);
+    logFilePath = logDir + QDir::separator() + filename;
+
+    auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+    auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(logFilePath.toStdString(), false);
+    console_sink->set_level(spdlog::level::info);
+    console_sink->set_pattern("[%^%l%$] %v");
+    file_sink->set_level(spdlog::level::info);
+    file_sink->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%l] %v");
+
+    spdlog::init_thread_pool(8192, 1);
+    std::vector<spdlog::sink_ptr> sinks{console_sink, file_sink};
+    logger = std::make_shared<spdlog::async_logger>("loggername", sinks.begin(), sinks.end(), spdlog::thread_pool(),
+                                                    spdlog::async_overflow_policy::block);
+    spdlog::register_logger(logger);
+    spdlog::flush_every(std::chrono::seconds(1));
+    logger->flush_on(spdlog::level::err);
+
+
+    logger->info("OpenKJ version {} starting up", OKJ_VERSION_STRING);
 
     //QLoggingCategory::setFilterRules("*.debug=true");
     qInstallMessageHandler(myMessageOutput);
@@ -134,34 +132,31 @@ int main(int argc, char *argv[])
     a.installEventFilter(filter);
     qputenv("GST_DEBUG", "*:3");
     QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-    if (settings.theme() == 1)
-    {
+    if (settings.theme() == 1) {
         QPalette palette;
         a.setStyle(QStyleFactory::create("Fusion"));
-        palette.setColor(QPalette::Window,QColor(53,53,53));
-        palette.setColor(QPalette::WindowText,Qt::white);
-        palette.setColor(QPalette::Disabled,QPalette::WindowText,QColor(127,127,127));
-        palette.setColor(QPalette::Base,QColor(42,42,42));
-        palette.setColor(QPalette::AlternateBase,QColor(66,66,66));
-        palette.setColor(QPalette::ToolTipBase,Qt::white);
-        palette.setColor(QPalette::ToolTipText,QColor(53,53,53));
-        palette.setColor(QPalette::Text,Qt::white);
-        palette.setColor(QPalette::Disabled,QPalette::Text,QColor(127,127,127));
-        palette.setColor(QPalette::Dark,QColor(35,35,35));
-        palette.setColor(QPalette::Shadow,QColor(20,20,20));
-        palette.setColor(QPalette::Button,QColor(53,53,53));
-        palette.setColor(QPalette::ButtonText,Qt::white);
-        palette.setColor(QPalette::Disabled,QPalette::ButtonText,QColor(127,127,127));
-        palette.setColor(QPalette::BrightText,Qt::red);
-        palette.setColor(QPalette::Link,QColor(42,130,218));
-        palette.setColor(QPalette::Highlight,QColor(42,130,218));
-        palette.setColor(QPalette::Disabled,QPalette::Highlight,QColor(80,80,80));
-        palette.setColor(QPalette::HighlightedText,Qt::white);
-        palette.setColor(QPalette::Disabled,QPalette::HighlightedText,QColor(127,127,127));
+        palette.setColor(QPalette::Window, QColor(53, 53, 53));
+        palette.setColor(QPalette::WindowText, Qt::white);
+        palette.setColor(QPalette::Disabled, QPalette::WindowText, QColor(127, 127, 127));
+        palette.setColor(QPalette::Base, QColor(42, 42, 42));
+        palette.setColor(QPalette::AlternateBase, QColor(66, 66, 66));
+        palette.setColor(QPalette::ToolTipBase, Qt::white);
+        palette.setColor(QPalette::ToolTipText, QColor(53, 53, 53));
+        palette.setColor(QPalette::Text, Qt::white);
+        palette.setColor(QPalette::Disabled, QPalette::Text, QColor(127, 127, 127));
+        palette.setColor(QPalette::Dark, QColor(35, 35, 35));
+        palette.setColor(QPalette::Shadow, QColor(20, 20, 20));
+        palette.setColor(QPalette::Button, QColor(53, 53, 53));
+        palette.setColor(QPalette::ButtonText, Qt::white);
+        palette.setColor(QPalette::Disabled, QPalette::ButtonText, QColor(127, 127, 127));
+        palette.setColor(QPalette::BrightText, Qt::red);
+        palette.setColor(QPalette::Link, QColor(42, 130, 218));
+        palette.setColor(QPalette::Highlight, QColor(42, 130, 218));
+        palette.setColor(QPalette::Disabled, QPalette::Highlight, QColor(80, 80, 80));
+        palette.setColor(QPalette::HighlightedText, Qt::white);
+        palette.setColor(QPalette::Disabled, QPalette::HighlightedText, QColor(127, 127, 127));
         a.setPalette(palette);
-    }
-    else if (settings.theme() == 2)
-    {
+    } else if (settings.theme() == 2) {
         a.setStyle(QStyleFactory::create("Fusion"));
     }
 //    else
@@ -172,39 +167,38 @@ int main(int argc, char *argv[])
     a.setFont(settings.applicationFont(), "QMenu");
 
     RunGuard guard("SharedMemorySingleInstanceProtectorOpenKJ");
-     if (!guard.tryToRun())
-     {
-         QMessageBox msgBox;
-         msgBox.setText("OpenKJ is already running!");
-         msgBox.setInformativeText("In order to protect the database, you can only run one instance of OpenKJ at a time.\nExiting now.");
-         msgBox.setIcon(QMessageBox::Critical);
-         msgBox.exec();
-         return 1;
-     }
-     if (!settings.lastStartupOk())
-     {
-         QMessageBox msgBox;
-         msgBox.setText("OpenKJ appears to have failed to startup on the last run.");
-         msgBox.setInformativeText("Would you like to attempt to recover by loading safe settings?");
-         msgBox.setIcon(QMessageBox::Warning);
-         msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-         msgBox.setDefaultButton(QMessageBox::Yes);
-         int ret = msgBox.exec();
-         switch (ret) {
-         case QMessageBox::Yes:
-             settings.setSafeStartupMode(true);
-             break;
-         default:
-             settings.setSafeStartupMode(false);
-             qInfo() << "User declined to safe load settings after startup crash";
-         }
-     }
+    if (!guard.tryToRun()) {
+        QMessageBox msgBox;
+        msgBox.setText("OpenKJ is already running!");
+        msgBox.setInformativeText(
+                "In order to protect the database, you can only run one instance of OpenKJ at a time.\nExiting now.");
+        msgBox.setIcon(QMessageBox::Critical);
+        msgBox.exec();
+        return 1;
+    }
+    if (!settings.lastStartupOk()) {
+        QMessageBox msgBox;
+        msgBox.setText("OpenKJ appears to have failed to startup on the last run.");
+        msgBox.setInformativeText("Would you like to attempt to recover by loading safe settings?");
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+        msgBox.setDefaultButton(QMessageBox::Yes);
+        int ret = msgBox.exec();
+        switch (ret) {
+            case QMessageBox::Yes:
+                settings.setSafeStartupMode(true);
+                break;
+            default:
+                settings.setSafeStartupMode(false);
+                qInfo() << "User declined to safe load settings after startup crash";
+        }
+    }
 #ifdef Q_OS_DARWIN
-     if (settings.lastRunVersion() != OKJ_VERSION_STRING)
-         settings.setSafeStartupMode(true);
+    if (settings.lastRunVersion() != OKJ_VERSION_STRING)
+        settings.setSafeStartupMode(true);
 #endif
-     settings.setLastRunVersion(OKJ_VERSION_STRING);
-     settings.setStartupOk(false);
+    settings.setLastRunVersion(OKJ_VERSION_STRING);
+    settings.setStartupOk(false);
     MainWindow w;
     w.show();
 

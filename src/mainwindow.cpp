@@ -597,8 +597,6 @@ MainWindow::MainWindow(QWidget *parent) :
 #ifdef _MSC_VER
     timeBeginPeriod(1);
 #endif
-    debugDialog = new DlgDebugOutput(this);
-    debugDialog->setVisible(settings.logShow());
     shop = new SongShop(this);
     QCoreApplication::setOrganizationName("OpenKJ");
     QCoreApplication::setOrganizationDomain("OpenKJ.org");
@@ -2795,11 +2793,6 @@ void MainWindow::on_actionDisplay_Filenames_toggled(const bool &arg1) {
     ui->tableViewBmPlaylist->setColumnHidden(TableModelPlaylistSongs::COL_FILENAME, !arg1);
     settings.bmSetShowFilenames(arg1);
     autosizeBmViews();
-}
-
-void MainWindow::on_actionShow_Debug_Log_toggled(const bool &arg1) {
-    debugDialog->setVisible(arg1);
-    settings.setLogVisible(arg1);
 }
 
 void MainWindow::on_actionManage_Karaoke_DB_triggered() {

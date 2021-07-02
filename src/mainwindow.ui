@@ -3231,7 +3231,6 @@ QPushButton:default {
     <addaction name="actionSongbook_Generator"/>
     <addaction name="actionEqualizer"/>
     <addaction name="separator"/>
-    <addaction name="actionShow_Debug_Log"/>
    </widget>
    <widget class="QMenu" name="menuKaraoke">
     <property name="title">
@@ -3562,6 +3561,7 @@ QPushButton:default {
   </customwidget>
  </customwidgets>
  <resources>
+  <include location="resources.qrc"/>
   <include location="resources.qrc"/>
  </resources>
  <connections>
