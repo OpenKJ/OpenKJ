@@ -1,3 +1,10 @@
+openkj (2.1.8-unstable-1~bionic) bionic; urgency=medium
+
+  [ runner@fv-az213-553.wq3jjldsz12ede1gumgyek31ig.jx.internal.cloudapp.net ]
+  * Automatc update from github tag
+
+ --  <runner@fv-az213-553.wq3jjldsz12ede1gumgyek31ig.jx.internal.cloudapp.net>  Thu, 01 Jul 2021 10:57:19 +0000
+
 openkj (2.1.7-unstable-1~bionic) bionic; urgency=medium
 
   [ runner@fv-az96-512.m4cgkdvplvgupd014rd20bgx3d.gx.internal.cloudapp.net ]
