@@ -594,6 +594,7 @@ void MainWindow::treatAllSingersAsRegsChanged(bool enabled) {
 MainWindow::MainWindow(QWidget *parent) :
         QMainWindow(parent),
         ui(new Ui::MainWindow) {
+    mainLogger = spdlog::get("mainLogger");
 #ifdef _MSC_VER
     timeBeginPeriod(1);
 #endif
@@ -627,7 +628,7 @@ MainWindow::MainWindow(QWidget *parent) :
     songbookApi = new OKJSongbookAPI(this);
     int initialKVol = settings.audioVolume();
     int initialBMVol = settings.bmVolume();
-    qInfo() << "Initial volumes - K: " << initialKVol << " BM: " << initialBMVol;
+    mainLogger->debug("Initial volumes - K: {} - BM {}", initialKVol, initialBMVol);
     QTimer::singleShot(250, [&]() {
         settings.restoreWindowState(this);
     });

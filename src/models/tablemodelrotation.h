@@ -57,6 +57,7 @@ public:
     bool singerIsRegular(const int singerId);
     void singerSetRegular(const int singerId, const bool isRegular);
     void singerMakeRegular(const int singerId);
+    uint singerTurnDistance(const int singerId);
     void singerDisableRegularTracking(const int singerId);
     bool historySingerExists(const QString &name);
     QString getSingerName(const int singerId);

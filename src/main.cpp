@@ -91,15 +91,16 @@ int main(int argc, char *argv[]) {
 
     auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
     auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(logFilePath.toStdString(), false);
-    console_sink->set_level(spdlog::level::info);
+    console_sink->set_level(spdlog::level::trace);
     console_sink->set_pattern("[%^%l%$] %v");
-    file_sink->set_level(spdlog::level::info);
+    file_sink->set_level(spdlog::level::trace);
     file_sink->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%l] %v");
 
     spdlog::init_thread_pool(8192, 1);
     std::vector<spdlog::sink_ptr> sinks{console_sink, file_sink};
-    logger = std::make_shared<spdlog::async_logger>("loggername", sinks.begin(), sinks.end(), spdlog::thread_pool(),
+    logger = std::make_shared<spdlog::async_logger>("mainLogger", sinks.begin(), sinks.end(), spdlog::thread_pool(),
                                                     spdlog::async_overflow_policy::block);
+    logger->set_level(spdlog::level::trace);
     spdlog::register_logger(logger);
     spdlog::flush_every(std::chrono::seconds(1));
     logger->flush_on(spdlog::level::err);

@@ -59,6 +59,7 @@
 #include "src/models/tablemodelhistorysongs.h"
 #include "src/models/tablemodelplaylistsongs.h"
 #include "src/models/tablemodelqueuesongs.h"
+#include <spdlog/async_logger.h>
 
 namespace Ui {
     class MainWindow;
@@ -69,6 +70,7 @@ Q_OBJECT
 
 private:
     Ui::MainWindow *ui;
+    std::shared_ptr<spdlog::logger> mainLogger;
     bool m_initialUiSetupDone{false};
     QSqlDatabase database;
     TableModelKaraokeSongs karaokeSongsModel;

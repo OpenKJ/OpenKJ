@@ -919,3 +919,14 @@ Qt::ItemFlags TableModelRotation::flags([[maybe_unused]]const QModelIndex &index
 {
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
 }
+
+uint TableModelRotation::singerTurnDistance(const int singerId) {
+    int pos = getSingerPosition(singerId);
+    int curPos = getSingerPosition(m_currentSingerId);
+
+    if (pos > curPos)
+        return pos - curPos;
+    else if (pos < curPos)
+        return (m_singers.size() - curPos) + pos;
+    return 0;
+}

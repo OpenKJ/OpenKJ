@@ -62,6 +62,7 @@ DlgRequests::DlgRequests(TableModelRotation *rotationModel, QWidget *parent) :
     logFilePath = logDir + QDir::separator() + filename;
     m_reqLogger = spdlog::basic_logger_mt("requests", logFilePath.toStdString());
     m_reqLogger->set_level(spdlog::level::info);
+    m_reqLogger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] | %v");
     m_reqLogger->info("New logging session starting up");
     m_reqLogger->flush();
     curRequestId = -1;
@@ -310,7 +311,7 @@ void DlgRequests::on_pushButtonAddSong_clicked() {
     QModelIndex index = ui->tableViewSearch->selectionModel()->selectedIndexes().at(0);
     QModelIndex rIndex = ui->tableViewRequests->selectionModel()->selectedIndexes().at(0);
     int songid = index.sibling(index.row(), TableModelKaraokeSongs::COL_ID).data().toInt();
-    int keyChg = requestsModel->requests().at(rIndex.row()).key();
+    int keyChg = ui->spinBoxKey->value();
     if (ui->radioButtonNewSinger->isChecked()) {
         if (ui->lineEditSingerName->text() == "")
             return;
@@ -320,28 +321,33 @@ void DlgRequests::on_pushButtonAddSong_clicked() {
             int newSingerId = rotModel->singerAdd(ui->lineEditSingerName->text(),
                                                   ui->comboBoxAddPosition->currentIndex());
             emit addRequestSong(songid, newSingerId, keyChg);
-            m_reqLogger->info("RequestID: {} | Added to new singer: {} | Song: {} - {} - {}",
-                              curRequestId,
-                              ui->lineEditSingerName->text().toStdString(),
-                              index.sibling(index.row(),
-                                            TableModelKaraokeSongs::COL_SONGID).data().toString().toStdString(),
-                              index.sibling(index.row(),
-                                            TableModelKaraokeSongs::COL_ARTIST).data().toString().toStdString(),
-                              index.sibling(index.row(),
-                                            TableModelKaraokeSongs::COL_TITLE).data().toString().toStdString()
+            m_reqLogger->info(
+                    "RequestID: {} | Added to new singer | Name: {} | Position: {} | Wait: {} | Song: {} - {} - {} | Key: {}",
+                    curRequestId,
+                    ui->lineEditSingerName->text().toStdString(),
+                    rotModel->getSingerPosition(newSingerId),
+                    rotModel->singerTurnDistance(newSingerId),
+                    index.sibling(index.row(),
+                                  TableModelKaraokeSongs::COL_SONGID).data().toString().toStdString(),
+                    index.sibling(index.row(),
+                                  TableModelKaraokeSongs::COL_ARTIST).data().toString().toStdString(),
+                    index.sibling(index.row(),
+                                  TableModelKaraokeSongs::COL_TITLE).data().toString().toStdString(),
+                    keyChg
             );
             m_reqLogger->flush();
         }
     } else if (ui->radioButtonExistingSinger->isChecked()) {
         emit addRequestSong(songid, rotModel->getSingerId(ui->comboBoxSingers->currentText()), keyChg);
-        m_reqLogger->info("RequestID: {} | Added to existing singer: {} | Song: {} - {} - {}",
+        m_reqLogger->info("RequestID: {} | Added to existing singer | Name: {} | Song: {} - {} - {} | Key: {}",
                           curRequestId,
                           ui->comboBoxSingers->currentText().toStdString(),
                           index.sibling(index.row(),
                                         TableModelKaraokeSongs::COL_SONGID).data().toString().toStdString(),
                           index.sibling(index.row(),
                                         TableModelKaraokeSongs::COL_ARTIST).data().toString().toStdString(),
-                          index.sibling(index.row(), TableModelKaraokeSongs::COL_TITLE).data().toString().toStdString()
+                          index.sibling(index.row(), TableModelKaraokeSongs::COL_TITLE).data().toString().toStdString(),
+                          keyChg
         );
         m_reqLogger->flush();
     }
@@ -566,13 +572,13 @@ void DlgRequests::requestsChanged(OkjsRequests requests) {
         curRequestsList.push_back(request.requestId);
         auto result = std::find(m_prevRequestList.begin(), m_prevRequestList.end(), request.requestId);
         if (result == m_prevRequestList.end()) {
-            m_reqLogger->info("Received new request | RequestID: {} | Singer: {} | Submitted: {} | Song: {} - {}",
+            m_reqLogger->info("RequestID: {} | Received new request |  Singer: {} | Submitted: {} | Song: {} - {}",
                               request.requestId,
                               request.singer.toStdString(),
                               QDateTime::fromSecsSinceEpoch(request.time).toString(Qt::ISODateWithMs).toStdString(),
                               request.artist.toStdString(),
                               request.title.toStdString()
-                              );
+            );
             m_reqLogger->flush();
 
         }
