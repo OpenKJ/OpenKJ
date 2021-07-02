@@ -2,7 +2,7 @@ Source: openkj
 Section: video 
 Priority: optional
 Maintainer: Isaac Lightburn <isaac@hozed.net>
-Build-Depends: cmake, libspdlog-dev, libfmt-dev, qt5-default, qttools5-dev-tools, qtbase5-dev, qtmultimedia5-dev, libqt5svg5-dev, qttools5-dev, qt5-qmake, libtag1-dev, libtag-extras-dev, libgstreamer1.0-dev, libgstreamer-plugins-base1.0-dev, libqt5opengl5-dev, libpulse-dev, debhelper (>=9)
+Build-Depends: cmake, libspdlog-dev, libfmt-dev, qttools5-dev-tools, qtbase5-dev, qtmultimedia5-dev, libqt5svg5-dev, qttools5-dev, qt5-qmake, libtag1-dev, libtag-extras-dev, libgstreamer1.0-dev, libgstreamer-plugins-base1.0-dev, libqt5opengl5-dev, libpulse-dev, debhelper (>=9)
 Standards-Version: 3.9.6
 Homepage: https://www.openkj.org
 #Vcs-Git: git://anonscm.debian.org/collab-maint/openkj.git
