@@ -11,9 +11,6 @@ set(sem_ver "${ver_major}.${ver_minor}.${ver_build}")
 
 message(STATUS "Building OpenKJ ${sem_ver}")
 
-include(cmake/CPM.cmake)
-CPMAddPackage("gh:gabime/spdlog@1.8.2")
-
 message("Building OpenKJ ${sem_ver}")
 
 project(openkj
@@ -36,6 +33,7 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Gui Sql Network Widgets Concurrent
 include_directories(
         src/
 )
+
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     find_package(PkgConfig)
     pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0 gstreamer-pbutils-1.0 gstreamer-controller-1.0 gstreamer-video-1.0)
@@ -49,16 +47,36 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBS
     )
     pkg_check_modules(TAGLIB IMPORTED_TARGET taglib)
     if (TAGLIB_FOUND)
+        message(STATUS "Using OS installed taglib")
         include_directories(
                 ${TAGLIB_INCLUDE_DIRS}
         )
         link_directories(
                 ${TAGLIB_LIBRARY_DIRS}
         )
+        set(EXTERNAL_TAGLIB True)
     else ()
         set(STATIC_TAGLIB True)
     endif ()
+    pkg_check_modules(SPDLOG IMPORTED_TARGET spdlog)
+    if (SPDLOG_FOUND)
+        message(STATUS "Using OS installed spdlog")
+        add_compile_definitions(SPDLOG_FMT_EXTERNAL)
+        link_directories(${SPDLOG_LIBRARY_DIRS})
+        include_directories(${SPDLOG_INCLUDE_DIRS})
+        set(EXTERNAL_SPDLOG True)
+#        include_directories(
+#                ${SPDLOG_INCLUDE_DIRS}
+#        )
+    endif ()
 endif ()
+
+if (NOT EXTERNAL_SPDLOG)
+    message(STATUS "No spdlog install found, pulling it in via CPM")
+    include(cmake/CPM.cmake)
+    CPMAddPackage("gh:gabime/spdlog@1.8.2")
+endif ()
+
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     message("macOS detected")
@@ -542,15 +560,23 @@ set(LIBRARIES
         Qt5::Concurrent
         )
 
+
+
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+
+    if (EXTERNAL_TAGLIB)
+        list(APPEND LIBRARIES "PkgConfig::TAGLIB")
+    endif()
+
+    if (EXTERNAL_SPDLOG)
+        list(APPEND LIBRARIES "PkgConfig::SPDLOG")
+    endif()
+
     add_executable(openkj
             ${SOURCE_FILES}
             )
-    if (TAGLIB_FOUND)
-        target_link_libraries(openkj ${LIBRARIES} ${GSTREAMER_LIBRARIES} PkgConfig::TAGLIB)
-    else ()
         target_link_libraries(openkj ${LIBRARIES} ${GSTREAMER_LIBRARIES})
-    endif ()
+
     install(
             TARGETS openkj
             DESTINATION bin
