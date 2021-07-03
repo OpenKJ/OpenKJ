@@ -272,7 +272,7 @@ int TableModelRotation::singerAdd(const QString &name, const int positionHint) {
             break;
         case ADD_BOTTOM:
             if (settings.rotationAltSortOrder()) {
-                if (auto rotTopSingerPos = getSingerPosition(m_rotationTopSingerId); rotTopSingerPos != 0)
+                if (auto rotTopSingerPos = getSingerPosition(m_rotationTopSingerId); rotTopSingerPos > 0)
                     singerMove(addPos, rotTopSingerPos);
             }
         default:
