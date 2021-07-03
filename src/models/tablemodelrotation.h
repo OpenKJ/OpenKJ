@@ -78,6 +78,7 @@ public:
     void clearRotation();
     int currentSinger() const;
     void setCurrentSinger(const int currentSingerId);
+    void setRotationTopSingerId(const int id);
     bool rotationIsValid();
     int numSongs(const int singerId) const;
     int numSongsSung(const int singerId) const;
@@ -91,6 +92,7 @@ public:
 private:
     std::vector<RotationSinger> m_singers;
     int m_currentSingerId{-1};
+    int m_rotationTopSingerId{-1};
     QImage m_iconGreenCircle;
     QImage m_iconYellowCircle;
     int m_curFontHeight;

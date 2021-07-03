@@ -59,6 +59,8 @@ private:
     bool m_safeStartupMode{false};
 
 public:
+    int lastRunRotationTopSingerId();
+    void setLastRunRotationTopSingerId(const int id);
     bool lastStartupOk() const;
     void setStartupOk(const bool ok);
     QString lastRunVersion() const;

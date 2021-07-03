@@ -2068,6 +2068,9 @@ void MainWindow::on_tableViewRotation_customContextMenuRequested(const QPoint &p
             contextMenu.addAction("Delete", scutDeleteSinger, &QShortcut::activated);
         } else {
             contextMenu.addAction("Rename", this, &MainWindow::renameSinger);
+            contextMenu.addAction("Set as top of rotation", [&] () {
+                rotModel.setRotationTopSingerId(m_rtClickRotationSingerId);
+            });
         }
         contextMenu.exec(QCursor::pos());
     }

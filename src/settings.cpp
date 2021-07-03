@@ -1828,6 +1828,14 @@ void Settings::setCdgRemainEnabled(bool enabled)
     emit cdgRemainEnabledChanged(enabled);
 }
 
+int Settings::lastRunRotationTopSingerId() {
+    return settings->value("lastRunRotationTopSingerId", -1).toInt();
+    return 0;
+}
+
+void Settings::setLastRunRotationTopSingerId(const int id) {
+    settings->setValue("lastRunRotationTopSingerId", id);
+}
 
 
 QDebug operator<<(QDebug dbg, const SfxEntry &entry)

@@ -36,20 +36,12 @@
 #include <spdlog/async_logger.h>
 #include <spdlog/async.h>
 
-QDataStream &operator<<(QDataStream &out, const SfxEntry &obj) {
-    out << obj.name << obj.path;
-    qInfo() << "returning " << obj.name << " " << obj.path;
-    return out;
-}
-
-QDataStream &operator>>(QDataStream &in, SfxEntry &obj) {
-    qInfo() << "setting " << obj.name << " " << obj.path;
-    in >> obj.name >> obj.path;
-    return in;
-}
 
 Settings settings;
 IdleDetect *filter;
+
+//todo: This should be me moved into main after migration to spdlog is complete
+//      It's currently only global for use by the QDebug callback
 std::shared_ptr<spdlog::async_logger> logger;
 
 
@@ -93,7 +85,10 @@ int main(int argc, char *argv[]) {
     auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(logFilePath.toStdString(), false);
     console_sink->set_level(spdlog::level::trace);
     console_sink->set_pattern("[%^%l%$] %v");
-    file_sink->set_level(spdlog::level::trace);
+    if (settings.logEnabled())
+        file_sink->set_level(spdlog::level::debug);
+    else
+        file_sink->set_level(spdlog::level::off);
     file_sink->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%l] %v");
 
     spdlog::init_thread_pool(8192, 1);
@@ -110,10 +105,6 @@ int main(int argc, char *argv[]) {
 
     //QLoggingCategory::setFilterRules("*.debug=true");
     qInstallMessageHandler(myMessageOutput);
-    qRegisterMetaType<SfxEntry>("SfxEntry");
-    qRegisterMetaTypeStreamOperators<SfxEntry>("SfxEntry");
-    qRegisterMetaType<QList<SfxEntry> >("QList<SfxEntry>");
-    qRegisterMetaTypeStreamOperators<QList<SfxEntry> >("QList<SfxEntry>");
     QApplication a(argc, argv);
 
 #ifdef MAC_OVERRIDE_GST
