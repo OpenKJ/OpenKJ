@@ -45,7 +45,7 @@ void AudioRecorder::initGStreamer()
 #ifdef Q_OS_WIN
     autoAudioSrc    = gst_element_factory_make("autoaudiosrc", NULL);
     if (!autoAudioSrc)
-        logger->error("{} Failed to create autoAudioSrc";
+        logger->error("{} Failed to create autoAudioSrc", m_loggingPrefix);
 #endif
     audioConvert    = gst_element_factory_make("audioconvert", NULL);
     if (!audioConvert)
