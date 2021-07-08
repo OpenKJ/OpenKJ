@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2021 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -69,8 +69,9 @@ class MainWindow : public QMainWindow {
 Q_OBJECT
 
 private:
+    std::string m_loggingPrefix{"[MainWindow]"};
     Ui::MainWindow *ui;
-    std::shared_ptr<spdlog::logger> mainLogger;
+    std::shared_ptr<spdlog::logger> logger;
     bool m_initialUiSetupDone{false};
     QSqlDatabase database;
     TableModelKaraokeSongs karaokeSongsModel;
@@ -328,10 +329,6 @@ protected:
     void resizeEvent(QResizeEvent *event) override;
     void dbInit(const QDir &okjDataDir);
 
-
-    // QWidget interface
-protected:
-    void mouseMoveEvent(QMouseEvent *event) override;
 };
 
 

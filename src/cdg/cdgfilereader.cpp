@@ -1,7 +1,6 @@
 #include "cdgfilereader.h"
 #include <QFile>
-#include <QDebug>
-
+#include <spdlog/spdlog.h>
 
 constexpr int CDG_PACKAGES_PER_SECOND = 300;
 constexpr int MAXFPS = 60;  // no need to go higher than 60 fps
@@ -9,6 +8,7 @@ constexpr int MIN_PACKAGES_BEFORE_NEW_FRAME = CDG_PACKAGES_PER_SECOND / MAXFPS;
 
 CdgFileReader::CdgFileReader(const QString &filename)
 {
+    logger = spdlog::get("logger");
     // read entire cdg to memory
     QFile file(filename);
     file.open(QFile::ReadOnly);
@@ -81,13 +81,13 @@ bool CdgFileReader::seek(int positionMS)
 
     if (pkgIdx > m_cdgData.length() / (int)sizeof(cdg::CDG_SubCode))
     {
-        qWarning() << "CDG: Tried to seek past file size!";
+        logger->warn("CDG: Tried to seek past file size!", m_loggingPrefix);
         return false;
     }
 
     if (pkgIdx < m_current_image_pgk_idx)
     {
-        qDebug() << "CDG: Seek backwards - rewinding";
+        logger->debug("CDG: Seek backwards - rewinding", m_loggingPrefix);
         rewind();
     }
 

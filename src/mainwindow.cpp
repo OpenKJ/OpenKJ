@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2021 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -57,13 +57,13 @@ void MainWindow::addSfxButton(const QString &filename, const QString &label, con
     static int numButtons = 0;
     if (reset)
         numButtons = 0;
-    qInfo() << "sfxButtonGrid contains " << numButtons << " children";
+    logger->info("{} sfxButtonGrid contains {} children", m_loggingPrefix, numButtons);
     int col = 0;
     if (numButtons % 2) {
         col = 1;
     }
     int row = numButtons / 2;
-    qInfo() << "Adding button " << label << "at row: " << row << " col: " << col;
+    logger->info("{} Adding button {} at row: {} col: {}",m_loggingPrefix, label.toStdString(), row, col );
     auto *button = new SoundFxButton();
     button->setButtonData(filename);
     button->setText(label);
@@ -84,7 +84,7 @@ void MainWindow::refreshSfxButtons() {
     }
     SfxEntryList list = settings.getSfxEntries();
     bool first = true;
-    qInfo() << "SfxEntryList size: " << list.size();
+    logger->info("{} SfxEntryList size: {}", m_loggingPrefix, list.size());
             foreach (SfxEntry entry, list) {
             if (first) {
                 first = false;
@@ -594,7 +594,7 @@ void MainWindow::treatAllSingersAsRegsChanged(bool enabled) {
 MainWindow::MainWindow(QWidget *parent) :
         QMainWindow(parent),
         ui(new Ui::MainWindow) {
-    mainLogger = spdlog::get("mainLogger");
+    logger = spdlog::get("logger");
 #ifdef _MSC_VER
     timeBeginPeriod(1);
 #endif
@@ -628,7 +628,7 @@ MainWindow::MainWindow(QWidget *parent) :
     songbookApi = new OKJSongbookAPI(this);
     int initialKVol = settings.audioVolume();
     int initialBMVol = settings.bmVolume();
-    mainLogger->debug("Initial volumes - K: {} - BM {}", initialKVol, initialBMVol);
+    logger->debug("{} Initial volumes - K: {} - BM {}",m_loggingPrefix, initialKVol, initialBMVol);
     QTimer::singleShot(250, [&]() {
         settings.restoreWindowState(this);
     });
@@ -773,7 +773,7 @@ MainWindow::MainWindow(QWidget *parent) :
     rotModel.setHeaderData(4, Qt::Horizontal, "");
     //ui->tableViewRotation->hideColumn(2);
     //ui->tableViewRotation->hideColumn(5);
-    qInfo() << "Adding singer count to status bar";
+    logger->info("{} Adding singer count to status bar", m_loggingPrefix);
     ui->statusBar->addWidget(&labelSingerCount);
     ui->statusBar->addWidget(&labelRotationDuration);
 
@@ -874,7 +874,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&settings, &Settings::requestServerEnabledChanged, ui->pushButtonIncomingRequests,
             &QPushButton::setVisible);
     connect(ui->actionSong_Shop, &QAction::triggered, [&]() { show(); });
-    qInfo() << "Initial UI stup complete";
+    logger->info("{} Initial UI stup complete", m_loggingPrefix);
     connect(&qModel, &TableModelQueueSongs::filesDroppedOnSinger, this, &MainWindow::filesDroppedOnQueue);
     connect(&settings, &Settings::applicationFontChanged, this, &MainWindow::appFontChanged);
     QApplication::processEvents();
@@ -895,7 +895,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_dlgRegularSingers.regularsChanged();
     m_dlgRegularSingers.setModal(false);
     SfxEntryList list = settings.getSfxEntries();
-    qInfo() << "SfxEntryList size: " << list.size();
+    logger->info("{} SfxEntryList size: ", m_loggingPrefix, list.size());
             foreach (SfxEntry entry, list) {
             addSfxButton(entry.path, entry.name);
         }
@@ -1104,43 +1104,43 @@ void MainWindow::dbInit(const QDir &okjDataDir) {
     query.exec("PRAGMA user_version");
     if (query.first())
         schemaVersion = query.value(0).toInt();
-    qInfo() << "Database schema version: " << schemaVersion;
+    logger->info("{} Database schema version: {}", m_loggingPrefix, schemaVersion);
 
     if (schemaVersion < 100) {
-        qInfo() << "Updating database schema to version 101";
+        logger->info("{} Updating database schema to version 101", m_loggingPrefix);
         query.exec("ALTER TABLE sourceDirs ADD COLUMN custompattern INTEGER");
         query.exec("PRAGMA user_version = 100");
-        qInfo() << "DB Schema update to v100 completed";
+        logger->info("{} DB Schema update to v100 completed", m_loggingPrefix);
     }
     if (schemaVersion < 101) {
-        qInfo() << "Updating database schema to version 101";
+        logger->info("{} Updating database schema to version 101", m_loggingPrefix);
         query.exec(
                 "CREATE TABLE custompatterns ( patternid INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, artistregex TEXT, artistcapturegrp INT, titleregex TEXT, titlecapturegrp INT, discidregex TEXT, discidcapturegrp INT)");
         query.exec("PRAGMA user_version = 101");
-        qInfo() << "DB Schema update to v101 completed";
+        logger->info("{} DB Schema update to v101 completed", m_loggingPrefix);
     }
     if (schemaVersion < 102) {
-        qInfo() << "Updating database schema to version 102";
+        logger->info("{} Updating database schema to version 102", m_loggingPrefix);
         query.exec("CREATE UNIQUE INDEX idx_path ON dbsongs(path)");
         query.exec("PRAGMA user_version = 102");
-        qInfo() << "DB Schema update to v102 completed";
+        logger->info("{} DB Schema update to v102 completed", m_loggingPrefix);
     }
     if (schemaVersion < 103) {
-        qInfo() << "Updating database schema to version 103";
+        logger->info("{} Updating database schema to version 103", m_loggingPrefix);
         query.exec("ALTER TABLE dbsongs ADD COLUMN searchstring TEXT");
         query.exec("UPDATE dbsongs SET searchstring = filename || ' ' || artist || ' ' || title || ' ' || discid");
         query.exec("PRAGMA user_version = 103");
-        qInfo() << "DB Schema update to v103 completed";
+        logger->info("{} DB Schema update to v103 completed", m_loggingPrefix);
 
     }
     if (schemaVersion < 105) {
-        qInfo() << "Updating database schema to version 105";
+        logger->info("{} Updating database schema to version 105", m_loggingPrefix);
         query.exec("ALTER TABLE rotationSingers ADD COLUMN addts TIMESTAMP");
         query.exec("PRAGMA user_version = 105");
-        qInfo() << "DB Schema update to v105 completed";
+        logger->info("{} DB Schema update to v105 completed", m_loggingPrefix);
     }
     if (schemaVersion < 106) {
-        qInfo() << "Updating database schema to version 106";
+        logger->info("{} Updating database schema to version 106", m_loggingPrefix);
         query.exec(
                 "CREATE TABLE dbSongHistory ( id INTEGER PRIMARY KEY AUTOINCREMENT, filepath TEXT, artist TEXT, title TEXT, songid TEXT, timestamp TIMESTAMP)");
         query.exec("CREATE INDEX idx_filepath ON dbSongHistory(filepath)");
@@ -1151,21 +1151,21 @@ void MainWindow::dbInit(const QDir &okjDataDir) {
                 "CREATE TABLE historySongs(id INTEGER PRIMARY KEY AUTOINCREMENT, historySinger INT NOT NULL, filepath TEXT NOT NULL, artist TEXT, title TEXT, songid TEXT, keychange INT DEFAULT(0), plays INT DEFAULT(0), lastplay TIMESTAMP)");
         query.exec("CREATE INDEX idx_historySinger on historySongs(historySinger)");
         query.exec("PRAGMA user_version = 106");
-        qInfo() << "DB Schema update to v106 completed";
-        qInfo() << "Importing old regular singers data into singer history";
+        logger->info("{} DB Schema update to v106 completed", m_loggingPrefix);
+        logger->info("{} Importing old regular singers data into singer history", m_loggingPrefix);
         QSqlQuery songImportQuery;
         songImportQuery.prepare(
                 "INSERT INTO historySongs (historySinger, filepath, artist, title, songid, keychange) values(:historySinger, :filepath, :artist, :title, :songid, :keychange)");
         QSqlQuery singersQuery;
         singersQuery.exec("SELECT regsingerid,name FROM regularSingers");
         while (singersQuery.next()) {
-            qInfo() << "Running import for singer: " << singersQuery.value("name");
+            logger->info("{} Running import for singer: {}", m_loggingPrefix, singersQuery.value("name").toString().toStdString());
             QSqlQuery songsQuery;
             songsQuery.exec(
                     "SELECT dbsongs.artist,dbsongs.title,dbsongs.discid,regularsongs.keychg,dbsongs.path FROM regularsongs,dbsongs WHERE dbsongs.songid == regularsongs.songid AND regularsongs.regsingerid == " +
                     singersQuery.value("regsingerid").toString() + " ORDER BY regularsongs.position");
             while (songsQuery.next()) {
-                qInfo() << "Importing song: " << songsQuery.value(4).toString();
+                logger->info("{} Importing song: {}", m_loggingPrefix, songsQuery.value(4).toString().toStdString());
                 historySongsModel.saveSong(
                         singersQuery.value("name").toString(),
                         songsQuery.value(4).toString(),
@@ -1175,7 +1175,7 @@ void MainWindow::dbInit(const QDir &okjDataDir) {
                         songsQuery.value(3).toInt()
                 );
             }
-            qInfo() << "Import complete for singer: " << singersQuery.value("name").toString();
+            logger->info("{} Import complete for singer: {}", m_loggingPrefix, singersQuery.value("name").toString().toStdString());
         }
     }
 
@@ -1186,7 +1186,7 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k) {
     delete khTmpDir;
     khTmpDir = new QTemporaryDir();
     if (kMediaBackend.state() != MediaBackend::PausedState) {
-        qInfo() << "Playing file: " << karaokeFilePath;
+        logger->info("{} Playing file: {}", m_loggingPrefix, karaokeFilePath.toStdString());
         if (kMediaBackend.state() == MediaBackend::PlayingState) {
             if (settings.karaokeAutoAdvance()) {
                 kAASkip = true;
@@ -1215,12 +1215,12 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k) {
                     }
                     QString audioFile = khTmpDir->path() + QDir::separator() + "tmp" + archive.audioExtension();
                     QString cdgFile = khTmpDir->path() + QDir::separator() + "tmp.cdg";
-                    qInfo() << "Extracted audio file size: " << QFileInfo(audioFile).size();
-                    qInfo() << "Setting karaoke backend source file to: " << audioFile;
+                    logger->info("{} Extracted audio file size: {}", m_loggingPrefix, QFileInfo(audioFile).size());
+                    logger->info("{} Setting karaoke backend source file to: {}", m_loggingPrefix, audioFile.toStdString());
                     kMediaBackend.setMediaCdg(cdgFile, audioFile);
                     if (!k2k)
                         bmMediaBackend.fadeOut(!settings.bmKCrossFade());
-                    qInfo() << "Beginning playback of file: " << audioFile;
+                    logger->info("{} Beginning playback of file: {}", m_loggingPrefix, audioFile.toStdString());
                     QApplication::setOverrideCursor(Qt::WaitCursor);
                     kMediaBackend.play();
                     QApplication::restoreOverrideCursor();
@@ -1269,10 +1269,10 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k) {
             kMediaBackend.fadeInImmediate();
         } else {
             // Close CDG if open to avoid double video playback
-            qInfo() << "Playing non-CDG video file: " << karaokeFilePath;
+            logger->info("{} Playing non-CDG video file: {}", m_loggingPrefix, karaokeFilePath.toStdString());
             QString tmpFileName = khTmpDir->path() + QDir::separator() + "tmpvid." + karaokeFilePath.right(4);
             QFile::copy(karaokeFilePath, tmpFileName);
-            qInfo() << "Playing temporary copy to avoid bad filename stuff w/ gstreamer: " << tmpFileName;
+            logger->info("{} Playing temporary copy to avoid bad filename stuff w/ gstreamer: {}", m_loggingPrefix, tmpFileName.toStdString());
             kMediaBackend.setMedia(tmpFileName);
             if (!k2k)
                 bmMediaBackend.fadeOut();
@@ -1281,7 +1281,7 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k) {
         }
         kMediaBackend.setTempo(ui->spinBoxTempo->value());
         if (settings.recordingEnabled()) {
-            qInfo() << "Starting recording";
+            logger->info("{} Starting recording", m_loggingPrefix);
             QString timeStamp = QDateTime::currentDateTime().toString("yyyy-MM-dd-hhmm");
             audioRecorder.record(curSinger + " - " + curArtist + " - " + curTitle + " - " + timeStamp);
         }
@@ -1307,8 +1307,8 @@ MainWindow::~MainWindow() {
     lazyDurationUpdater->stopWork();
     settings.bmSetVolume(ui->sliderBmVolume->value());
     settings.setAudioVolume(ui->sliderVolume->value());
-    qInfo() << "Saving volumes - K: " << settings.audioVolume() << " BM: " << settings.bmVolume();
-    qInfo() << "Saving window and widget sizing and positioning info";
+    logger->info("{} Saving volumes - K: {} BM {}", m_loggingPrefix, settings.audioVolume(), settings.bmVolume());
+    logger->info("{} Saving window and widget sizing and positioning info", m_loggingPrefix);
     settings.saveSplitterState(ui->splitter);
     settings.saveSplitterState(ui->splitter_2);
     settings.saveSplitterState(ui->splitter_3);
@@ -1325,12 +1325,12 @@ MainWindow::~MainWindow() {
     settings.saveColumnWidths(ui->tableViewBmPlaylist);
     settings.bmSetPlaylistIndex(ui->comboBoxBmPlaylists->currentIndex());
     settings.sync();
-    qInfo() << "Deleting non-owned objects";
+    logger->info("{} Deleting non-owned objects", m_loggingPrefix);
     delete ui;
     delete khTmpDir;
     delete dlgSongShop;
     delete requestsDialog;
-    qInfo() << "OpenKJ mainwindow destructor complete";
+    logger->info("{} OpenKJ mainwindow destructor complete", m_loggingPrefix);
 }
 
 void MainWindow::search() {
@@ -1536,7 +1536,7 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index) {
             }
         }
         int singerId = index.data(Qt::UserRole).toInt();
-        qInfo() << "Singer id selected: " << singerId;
+        logger->info("{} Singer id selected: {}", m_loggingPrefix, singerId);
         qModel.loadSinger(-1);
         if (rotModel.currentSinger() == singerId) {
             rotModel.setCurrentSinger(-1);
@@ -1790,14 +1790,14 @@ void MainWindow::karaokeMediaBackend_durationChanged(const qint64 &duration) {
 void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &state) {
     if (m_shuttingDown)
         return;
-    //qInfo() << "MainWindow - audioBackend_stateChanged(" << state << ") triggered";
+    //logger->info("{} MainWindow - audioBackend_stateChanged(" << state << ") triggered";
     if (state == MediaBackend::StoppedState) {
-        qInfo() << "MainWindow - audio backend state is now STOPPED";
+        logger->info("{} MainWindow - audio backend state is now STOPPED", m_loggingPrefix);
         if (ui->labelTotalTime->text() == "0:00") {
-            //qInfo() << "MainWindow - UI is already reset, bailing out";
+            //logger->info("{} MainWindow - UI is already reset, bailing out";
             return;
         }
-        qInfo() << "KAudio entered StoppedState";
+        logger->info("{} KAudio entered StoppedState", m_loggingPrefix);
         //bmMediaBackend.setVideoEnabled(true);
         audioRecorder.stop();
         if (k2kTransition)
@@ -1820,10 +1820,10 @@ void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &sta
         m_lastAudioState = state;
         bmMediaBackend.fadeIn(false);
         if (settings.karaokeAutoAdvance()) {
-            qInfo() << " - Karaoke Autoplay is enabled";
+            logger->info("{}  - Karaoke Autoplay is enabled", m_loggingPrefix);
             if (kAASkip) {
                 kAASkip = false;
-                qInfo() << " - Karaoke Autoplay set to skip, bailing out";
+                logger->info("{}  - Karaoke Autoplay set to skip, bailing out", m_loggingPrefix);
             } else {
                 int nextSinger = -1;
                 QString nextSongPath;
@@ -1850,12 +1850,12 @@ void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &sta
                     }
                 }
                 if (empty)
-                    qInfo() << "KaraokeAA - No more songs to play, giving up";
+                    logger->info("{} KaraokeAA - No more songs to play, giving up", m_loggingPrefix);
                 else {
                     kAANextSinger = nextSinger;
                     kAANextSongPath = nextSongPath;
-                    qInfo() << "KaraokeAA - Will play: " << rotModel.getSingerName(nextSinger) << " - " << nextSongPath;
-                    qInfo() << "KaraokeAA - Starting " << settings.karaokeAATimeout() << " second timer";
+                    logger->info("{} KaraokeAA - Will play: {} - {}", m_loggingPrefix, rotModel.getSingerName(nextSinger).toStdString(), nextSongPath.toStdString());
+                    logger->info("{} KaraokeAA - Starting {} second timer", m_loggingPrefix, settings.karaokeAATimeout());
                     m_timerKaraokeAA.start(settings.karaokeAATimeout() * 1000);
                     cdgWindow->setNextSinger(rotModel.getSingerName(nextSinger));
                     cdgWindow->setNextSong(
@@ -1875,7 +1875,7 @@ void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &sta
         }
     }
     if (state == MediaBackend::EndOfMediaState) {
-        qInfo() << "KAudio entered EndOfMediaState";
+        logger->info("{} KAudio entered EndOfMediaState", m_loggingPrefix);
         audioRecorder.stop();
 //        ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
         //bmMediaBackend.setVideoEnabled(true);
@@ -1883,11 +1883,11 @@ void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &sta
         bmMediaBackend.fadeIn(false);
     }
     if (state == MediaBackend::PausedState) {
-        qInfo() << "KAudio entered PausedState";
+        logger->info("{} KAudio entered PausedState", m_loggingPrefix);
         audioRecorder.pause();
     }
     if (state == MediaBackend::PlayingState) {
-        qInfo() << "KAudio entered PlayingState";
+        logger->info("{} KAudio entered PlayingState", m_loggingPrefix);
         m_lastAudioState = state;
         //bmMediaBackend.setVideoEnabled(false);
         ui->pushButtonKeyUp->setEnabled(true);
@@ -1896,7 +1896,7 @@ void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &sta
         ui->pushButtonTempoUp->setEnabled(true);
     }
     if (state == MediaBackend::UnknownState) {
-        qInfo() << "KAudio entered UnknownState";
+        logger->info("{} KAudio entered UnknownState", m_loggingPrefix);
     }
     rotationDataChanged();
 }
@@ -2030,7 +2030,7 @@ void MainWindow::rotationDataChanged() {
 }
 
 void MainWindow::silenceDetectedKar() {
-    qInfo() << "Karaoke music silence detected";
+    logger->info("{} Karaoke music silence detected", m_loggingPrefix);
     kMediaBackend.rawStop();
     if (settings.karaokeAutoAdvance())
         kAASkip = false;
@@ -2040,7 +2040,7 @@ void MainWindow::silenceDetectedKar() {
 
 void MainWindow::silenceDetectedBm() {
     if (bmMediaBackend.position() > 10000 && bmMediaBackend.position() < (bmMediaBackend.duration() - 3)) {
-        qInfo() << "Break music silence detected, reporting EndOfMediaState to trigger playlist advance";
+        logger->info("{} Break music silence detected, reporting EndOfMediaState to trigger playlist advance", m_loggingPrefix);
         bmMediaStateChanged(MediaBackend::EndOfMediaState);
     }
 }
@@ -2186,12 +2186,12 @@ void MainWindow::editSong() {
     query.bindValue(":path", dbRtClickFile);
     query.exec();
     if (!query.next())
-        qInfo() << "Unable to find song in db!";
+        logger->warn("{} Unable to find song in db!", m_loggingPrefix);
     artist = query.value("artist").toString();
     title = query.value("title").toString();
     songId = query.value("discid").toString();
     rowId = query.value("songid").toInt();
-    qInfo() << "db song match: " << rowId << ": " << artist << " - " << title << " - " << songId;
+    logger->info("{} db song match: {} : {} - {} - {}", m_loggingPrefix, rowId, artist.toStdString(), title.toStdString(), songId.toStdString());
     bool allowRename = true;
     bool showSongId = true;
     if (srcDir.getPattern() == SourceDir::AT || srcDir.getPattern() == SourceDir::TA)
@@ -2340,7 +2340,7 @@ void MainWindow::editSong() {
                 }
             }
         }
-        qInfo() << "New filename: " << newFn;
+        logger->info("{} New filename: {}", m_loggingPrefix, newFn.toStdString());
         query.prepare(
                 "UPDATE dbsongs SET artist = :artist, title = :title, discid = :songid, path = :path, filename = :filename, searchstring = :searchstring WHERE songid = :rowid");
         QString newArtist = dlg.artist();
@@ -2477,11 +2477,11 @@ void MainWindow::markSongBad() {
 }
 
 void MainWindow::karaokeAATimerTimeout() {
-    qInfo() << "KaraokeAA - timer timeout";
+    logger->info("{} KaraokeAA - timer timeout", m_loggingPrefix);
     m_timerKaraokeAA.stop();
     cdgWindow->showAlert(false);
     if (kAASkip) {
-        qInfo() << "KaraokeAA - Aborted via stop button";
+        logger->info("{} KaraokeAA - Aborted via stop button", m_loggingPrefix);
         kAASkip = false;
     } else {
         curSinger = rotModel.getSingerName(kAANextSinger);
@@ -2608,7 +2608,7 @@ void MainWindow::bmDbUpdated() {
 }
 
 void MainWindow::bmDbCleared() {
-    qInfo() << "bmDbCleared fired";
+    logger->info("{} bmDbCleared fired", m_loggingPrefix);
     bmDbModel.loadDatabase();
     bmAddPlaylist("Default");
     ui->comboBoxBmPlaylists->setCurrentIndex(0);
@@ -2638,7 +2638,7 @@ void MainWindow::bmMediaStateChanged(const MediaBackend::State &newState) {
             if (plSong.has_value()) {
                 bmMediaBackend.setMedia(plSong->get().path);
                 playlistSongsModel.setCurrentPosition(plSong->get().position);
-                qInfo() << "Break music auto-advancing to song: " << plSong->get().path;
+                logger->info("{} Break music auto-advancing to song: {}", m_loggingPrefix, plSong->get().path.toStdString());
                 bmMediaBackend.stop(true);
                 bmMediaBackend.play();
                 if (kMediaBackend.state() == MediaBackend::PlayingState)
@@ -2682,12 +2682,11 @@ void MainWindow::bmMediaDurationChanged(const qint64 &duration) {
 }
 
 void MainWindow::on_tableViewBmPlaylist_clicked(const QModelIndex &index) {
-    qInfo() << "DNDDEBUG - acceptDrops(): " << ui->tableViewBmPlaylist->acceptDrops();
-    qInfo() << "DNDDEBUG - testAttribute(Qt::WA_AcceptDrops): "
-            << ui->tableViewBmPlaylist->testAttribute(Qt::WA_AcceptDrops);
-    qInfo() << "DNDDEBUG - hasMouseTracking(): " << ui->tableViewBmPlaylist->hasMouseTracking();
-    qInfo() << "DNDDEBUG - mainwindow hasMouseTracking(): " << hasMouseTracking();
-    qInfo() << "DNDDEBUG - supportedDropActions(): " << playlistSongsModel.supportedDropActions();
+    logger->trace("{} DNDDEBUG - acceptDrops(): {}", m_loggingPrefix, ui->tableViewBmPlaylist->acceptDrops());
+    logger->trace("{} DNDDEBUG - testAttribute(Qt::WA_AcceptDrops): {}", m_loggingPrefix, ui->tableViewBmPlaylist->testAttribute(Qt::WA_AcceptDrops));
+    logger->trace("{} DNDDEBUG - hasMouseTracking(): {}", m_loggingPrefix, ui->tableViewBmPlaylist->hasMouseTracking());
+    logger->trace("{} DNDDEBUG - mainwindow hasMouseTracking(): ", m_loggingPrefix, hasMouseTracking());
+    logger->trace("{} DNDDEBUG - supportedDropActions(): ", m_loggingPrefix, playlistSongsModel.supportedDropActions());
 
     if (index.column() == TableModelPlaylistSongs::COL_PATH) {
         if (playlistSongsModel.isCurrentlyPlayingSong(index.data(Qt::UserRole).toInt())) {
@@ -2913,7 +2912,7 @@ void MainWindow::on_actionPlaylistImport_triggered() {
 void MainWindow::on_actionPlaylistExport_triggered() {
     QString defaultFilePath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QDir::separator() +
                               ui->comboBoxBmPlaylists->currentText() + ".m3u";
-    qDebug() << "Default save location: " << defaultFilePath;
+    logger->debug("{} Default save location: {}", m_loggingPrefix, defaultFilePath.toStdString());
     QString saveFilePath = QFileDialog::getSaveFileName(this, tr("Select filename to save playlist as"),
                                                         defaultFilePath, tr("m3u playlist(*.m3u)"));
     if (saveFilePath != "") {
@@ -3001,7 +3000,7 @@ void MainWindow::setMultiPlayed() {
             foreach(index, indexes) {
             if (index.column() == 0) {
                 int queueId = index.sibling(index.row(), 0).data().toInt();
-                qInfo() << "Selected row: " << index.row() << " queueId: " << queueId;
+                logger->info("{} Selected row: {} - queueId: {}", m_loggingPrefix, index.row(), queueId);
                 qModel.setPlayed(queueId);
             }
         }
@@ -3014,7 +3013,7 @@ void MainWindow::setMultiUnplayed() {
             foreach(index, indexes) {
             if (index.column() == 0) {
                 int queueId = index.sibling(index.row(), 0).data().toInt();
-                qInfo() << "Selected row: " << index.row() << " queueId: " << queueId;
+                logger->info("{} Selected row: {} - queueId: {}", m_loggingPrefix, index.row(), queueId);
                 qModel.setPlayed(queueId, false);
             }
         }
@@ -3150,7 +3149,7 @@ void MainWindow::filesDroppedOnQueue(const QList<QUrl> &urls, const int &singerI
                     msgBox.exec();
                     continue;
                 }
-                qInfo() << "Karaoke file dropped. Singer: " << singerId << " Pos: " << position << " Path: " << file;
+                logger->info("{} Karaoke file dropped. Singer: {} Pos: {} Path: {}", m_loggingPrefix, singerId, position, file.toStdString());
                 QFileInfo dFileInfo(file);
 
                 KaraokeSong droppedSong{
@@ -3169,7 +3168,7 @@ void MainWindow::filesDroppedOnQueue(const QList<QUrl> &urls, const int &singerI
                         QDateTime()
                 };
                 int songId = karaokeSongsModel.addSong(droppedSong);
-                qInfo() << "addSong returned songid: " << songId;
+                logger->info("{} addSong returned songid: {}", m_loggingPrefix, songId);
                 if (songId == -1)
                     continue;
                 qModel.insert(songId, position);
@@ -3203,7 +3202,7 @@ void MainWindow::appFontChanged(const QFont &font) {
 #else
     int cvwWidth = std::max(300, fm.width("Total: 00:00  Current:00:00  Remain: 00:00"));
 #endif
-    qInfo() << "Resizing videoPreview to width: " << cvwWidth;
+    logger->info("{} Resizing videoPreview to width: {}", m_loggingPrefix, cvwWidth);
 //    ui->cdgFrame->setMinimumWidth(cvwWidth);
 //    ui->cdgFrame->setMaximumWidth(cvwWidth);
 //    ui->mediaFrame->setMinimumWidth(cvwWidth);
@@ -3452,19 +3451,18 @@ void MainWindow::bmSongMoved(const int &oldPos, const int &newPos) {
 }
 
 void MainWindow::on_sliderBmPosition_sliderPressed() {
-    qInfo() << "BM slider down";
+    logger->trace("{} BM slider down", m_loggingPrefix);
     sliderBmPositionPressed = true;
 }
 
 void MainWindow::on_sliderBmPosition_sliderReleased() {
     bmMediaBackend.setPosition(ui->sliderBmPosition->value());
     sliderBmPositionPressed = false;
-    qInfo() << "BM slider up.  Position:" << ui->sliderBmPosition->value();
+    logger->trace("{} BM slider up.  Position: {}", m_loggingPrefix, ui->sliderBmPosition->value());
 }
 
 void MainWindow::sfxButtonPressed() {
     auto *btn = (SoundFxButton *) sender();
-    qInfo() << "SfxButton pressed: " << btn->buttonData();
     sfxMediaBackend.setMedia(btn->buttonData().toString());
     sfxMediaBackend.setVolume(ui->sliderVolume->value());
     sfxMediaBackend.play();
@@ -3563,7 +3561,7 @@ void MainWindow::cdgVisibilityChanged() {
 
 void MainWindow::rotationSelectionChanged(const QItemSelection &sel, const QItemSelection &desel) {
     if (sel.empty()) {
-        qInfo() << "Rotation Selection Cleared!";
+        logger->trace("{} Rotation Selection Cleared!", m_loggingPrefix);
         qModel.loadSinger(-1);
         ui->tableViewRotation->reset();
         ui->gbxQueue->setTitle("Song Queue");
@@ -3571,7 +3569,7 @@ void MainWindow::rotationSelectionChanged(const QItemSelection &sel, const QItem
         ui->labelNoSinger->setVisible(true);
     }
 
-    qInfo() << "Rotation Selection Changed";
+    logger->trace("{} Rotation Selection Changed", m_loggingPrefix);
 
 }
 
@@ -3815,8 +3813,8 @@ void MainWindow::on_actionKaraoke_torture_triggered() {
     connect(&m_timerTest, &QTimer::timeout, [&]() {
         QApplication::beep();
         static int runs = 0;
-        qInfo() << "Karaoke torture test timer timeout";
-        qInfo() << "num songs in db: " << karaokeSongsModel.rowCount(QModelIndex());
+        logger->info("{} Karaoke torture test timer timeout", m_loggingPrefix);
+        logger->info("{} num songs in db: {}", m_loggingPrefix, karaokeSongsModel.rowCount(QModelIndex()));
         ui->tableViewDB->scrollToBottom();
         ui->tableViewDB->scrollToBottom();
         ui->tableViewDB->scrollToBottom();
@@ -3835,7 +3833,7 @@ void MainWindow::on_actionKaraoke_torture_triggered() {
         ui->tableViewDB->scrollToBottom();
         int randno = QRandomGenerator::global()->bounded(0, karaokeSongsModel.rowCount(QModelIndex()) - 1);
         randno = 1;
-        qInfo() << "randno: " << randno;
+        logger->info("{} randno: {}", m_loggingPrefix, randno);
         ui->tableViewDB->selectRow(randno);
         ui->tableViewDB->scrollTo(ui->tableViewDB->selectionModel()->selectedRows().at(0));
         play(karaokeSongsModel.getPath(
@@ -3846,12 +3844,12 @@ void MainWindow::on_actionKaraoke_torture_triggered() {
 //       query.prepare("SELECT songid,artist,title,discid,path FROM dbsongs WHERE songid >= (abs(random()) % (SELECT max(songid) FROM dbsongs))LIMIT 1");
 //       query.exec();
 //       if (!query.next())
-//           qInfo() << "Unable to find song in db!";
+//           logger->info("{} Unable to find song in db!";
 //       auto artist = query.value("artist").toString();
 //       auto title = query.value("title").toString();
 //       auto songId = query.value("discid").toString();
 //       auto path = query.value("path").toString();
-//       qInfo() << "Torture test playing: " << path;
+//       logger->info("{} Torture test playing: " << path;
     });
     m_timerTest.start(4000);
 #endif
@@ -3869,8 +3867,8 @@ void MainWindow::on_actionK_B_torture_triggered() {
             ui->labelSinger->setText("Torture run (" + QString::number(runs) + ")");
             return;
         }
-        qInfo() << "Karaoke torture test timer timeout";
-        qInfo() << "num songs in db: " << karaokeSongsModel.rowCount(QModelIndex());
+        logger->info("{} Karaoke torture test timer timeout", m_loggingPrefix);
+        logger->info("{} num songs in db: {}", m_loggingPrefix, karaokeSongsModel.rowCount(QModelIndex()));
         ui->tableViewDB->scrollToBottom();
         ui->tableViewDB->scrollToBottom();
         ui->tableViewDB->scrollToBottom();
@@ -3888,7 +3886,7 @@ void MainWindow::on_actionK_B_torture_triggered() {
         ui->tableViewDB->scrollToBottom();
         ui->tableViewDB->scrollToBottom();
         int randno = QRandomGenerator::global()->bounded(0, karaokeSongsModel.rowCount(QModelIndex()) - 1);
-        qInfo() << "randno: " << randno;
+        logger->info("{} randno: {}", m_loggingPrefix, randno);
         ui->tableViewDB->selectRow(randno);
         ui->tableViewDB->scrollTo(ui->tableViewDB->selectionModel()->selectedRows().at(0));
         play(ui->tableViewDB->selectionModel()->selectedRows(5).at(0).data().toString(), false);
@@ -3898,12 +3896,12 @@ void MainWindow::on_actionK_B_torture_triggered() {
 //       query.prepare("SELECT songid,artist,title,discid,path FROM dbsongs WHERE songid >= (abs(random()) % (SELECT max(songid) FROM dbsongs))LIMIT 1");
 //       query.exec();
 //       if (!query.next())
-//           qInfo() << "Unable to find song in db!";
+//           logger->info("{} Unable to find song in db!";
 //       auto artist = query.value("artist").toString();
 //       auto title = query.value("title").toString();
 //       auto songId = query.value("discid").toString();
 //       auto path = query.value("path").toString();
-//       qInfo() << "Torture test playing: " << path;
+//       logger->info("{} Torture test playing: " << path;
     });
     m_timerTest.start(2000);
 #endif
@@ -3934,7 +3932,7 @@ void MainWindow::on_actionBurn_in_triggered() {
         int randno{0};
         if (karaokeSongsModel.rowCount(QModelIndex()) > 1)
             randno = QRandomGenerator::global()->bounded(0, karaokeSongsModel.rowCount(QModelIndex()) - 1);
-        qInfo() << "randno: " << randno;
+        logger->info("{} randno: {}", m_loggingPrefix, randno);
         ui->tableViewDB->selectRow(randno);
         ui->tableViewDB->scrollTo(ui->tableViewDB->selectionModel()->selectedRows().at(0));
         emit ui->tableViewDB->doubleClicked(ui->tableViewDB->selectionModel()->selectedRows().at(0));
@@ -3950,7 +3948,7 @@ void MainWindow::on_actionBurn_in_triggered() {
         emit ui->tableViewQueue->doubleClicked(idx);
         ui->tableViewQueue->selectRow(idx.row());
         playing = true;
-        qInfo() << "Burn in test cycle: " << ++runs;
+        logger->info("{} Burn in test cycle: {}", m_loggingPrefix, ++runs);
     });
     m_timerTest.start(3000);
 #endif
@@ -3966,8 +3964,8 @@ void MainWindow::on_actionCDG_Decode_Torture_triggered() {
     connect(&m_timerTest, &QTimer::timeout, [&]() {
         QApplication::beep();
         static int runs = 0;
-        qInfo() << "Karaoke torture test timer timeout";
-        qInfo() << "num songs in db: " << karaokeSongsModel.rowCount(QModelIndex());
+        logger->info("{} Karaoke torture test timer timeout", m_loggingPrefix);
+        logger->info("{} num songs in db: {}", m_loggingPrefix, karaokeSongsModel.rowCount(QModelIndex()));
         ui->tableViewDB->scrollToBottom();
         ui->tableViewDB->scrollToBottom();
         ui->tableViewDB->scrollToBottom();
@@ -3985,7 +3983,7 @@ void MainWindow::on_actionCDG_Decode_Torture_triggered() {
         ui->tableViewDB->scrollToBottom();
         ui->tableViewDB->scrollToBottom();
         int randno = QRandomGenerator::global()->bounded(0, karaokeSongsModel.rowCount(QModelIndex()) - 1);
-        qInfo() << "randno: " << randno;
+        logger->info("{} randno: {}", m_loggingPrefix, randno);
         ui->tableViewDB->selectRow(randno);
         ui->tableViewDB->scrollTo(ui->tableViewDB->selectionModel()->selectedRows().at(0));
         QString karaokeFilePath = ui->tableViewDB->selectionModel()->selectedRows(5).at(0).data().toString();
@@ -4005,8 +4003,8 @@ void MainWindow::on_actionCDG_Decode_Torture_triggered() {
                     }
                     QString audioFile = khTmpDir->path() + QDir::separator() + "tmp" + archive.audioExtension();
                     QString cdgFile = khTmpDir->path() + QDir::separator() + "tmp.cdg";
-                    qInfo() << "Extracted audio file size: " << QFileInfo(audioFile).size();
-                    qInfo() << "Setting karaoke backend source file to: " << audioFile;
+                    logger->info("{} Extracted audio file size: {}", m_loggingPrefix, QFileInfo(audioFile).size());
+                    logger->info("{} Setting karaoke backend source file to: {}", m_loggingPrefix, audioFile.toStdString());
                     kMediaBackend.setMediaCdg(cdgFile, audioFile);
                     //kMediaBackend.testCdgDecode(); // todo: andth
                 }
@@ -4243,10 +4241,10 @@ void MainWindow::on_actionBreak_music_torture_triggered() {
     connect(&m_timerTest, &QTimer::timeout, [&]() {
         QApplication::beep();
         static int runs = 0;
-        qInfo() << "Karaoke torture test timer timeout";
+        logger->info("{} Karaoke torture test timer timeout", m_loggingPrefix);
         ui->tableViewBmPlaylist->selectRow(0);
         on_tableViewBmPlaylist_doubleClicked(ui->tableViewBmPlaylist->selectionModel()->selectedRows().at(0));
-        qInfo() << "test runs: " << ++runs;
+        logger->info("{} test runs: ", m_loggingPrefix, ++runs);
     });
     m_timerTest.start(2000);
 }
@@ -4267,11 +4265,6 @@ void MainWindow::resetBmLabels() {
     ui->sliderBmPosition->setValue(0);
 }
 
-void MainWindow::mouseMoveEvent(QMouseEvent *event) {
-    qInfo() << "Mouse move event: " << event->pos();
-    QMainWindow::mouseMoveEvent(event);
-}
-
 void MainWindow::on_actionBurn_in_EOS_Jump_triggered() {
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
     m_testMode = true;
@@ -4290,7 +4283,7 @@ void MainWindow::on_actionBurn_in_EOS_Jump_triggered() {
         int randno{0};
         if (karaokeSongsModel.rowCount(QModelIndex()) > 1)
             randno = QRandomGenerator::global()->bounded(0, karaokeSongsModel.rowCount(QModelIndex()) - 1);
-        qInfo() << "randno: " << randno;
+        logger->info("{} randno: {}", m_loggingPrefix, randno);
         ui->tableViewDB->selectRow(randno);
         ui->tableViewDB->scrollTo(ui->tableViewDB->selectionModel()->selectedRows().at(0));
         emit ui->tableViewDB->doubleClicked(ui->tableViewDB->selectionModel()->selectedRows().at(0));
@@ -4311,7 +4304,7 @@ void MainWindow::on_actionBurn_in_EOS_Jump_triggered() {
             auto jumpPoint = duration - 10000;
             kMediaBackend.setPosition(jumpPoint);
         });
-        qInfo() << "Burn in test cycle: " << ++runs;
+        logger->info("{} Burn in test cycle: {}", m_loggingPrefix, ++runs);
         ui->labelSinger->setText("Torture run (" + QString::number(runs) + ")");
     });
     m_timerTest.start(13000);

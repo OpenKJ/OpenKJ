@@ -5,6 +5,7 @@
 #include <QPainter>
 #include <QFileInfo>
 #include <QDir>
+#include <QDebug>
 #include <QDirIterator>
 #include <QSvgRenderer>
 #include <QMimeData>

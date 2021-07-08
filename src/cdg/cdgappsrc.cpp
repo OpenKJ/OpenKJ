@@ -2,10 +2,11 @@
 #include <gst/app/gstappsrc.h>
 #include "cdg/cdgfilereader.h"
 #include <QMutex>
-#include <QDebug>
+#include <spdlog/spdlog.h>
 
 CdgAppSrc::CdgAppSrc()
 {
+    logger = spdlog::get("logger");
     m_cdgAppSrc = reinterpret_cast<GstAppSrc*>(gst_element_factory_make("appsrc", "cdgAppSrc"));
     g_object_ref(m_cdgAppSrc);
 
@@ -90,7 +91,7 @@ void CdgAppSrc::cb_need_data(GstAppSrc *appsrc, [[maybe_unused]]guint unused_siz
 
             if (rc != GST_FLOW_OK)
             {
-                qWarning() << "push buffer returned non-OK status: " << rc;
+                instance->logger->trace("{} Push buffer returned non-OK status", instance->m_loggingPrefix);
                 break;
             }
         }
@@ -110,12 +111,9 @@ void CdgAppSrc::cb_enough_data([[maybe_unused]]GstAppSrc *appsrc, [[maybe_unused
 
 gboolean CdgAppSrc::cb_seek_data([[maybe_unused]]GstAppSrc *appsrc, guint64 position, [[maybe_unused]]gpointer user_data)
 {
-    qDebug() << "Got seek request to position " << position / GST_MSECOND << " ms.";
-
     auto instance = reinterpret_cast<CdgAppSrc *>(user_data);
-
+    instance->logger->trace("{} Got seek request to position: {}ms", instance->m_loggingPrefix, position / GST_MSECOND);
     QMutexLocker locker(&instance->m_cdgFileReaderLock);
     if (instance->m_cdgFileReader == nullptr) return false;
-
     return instance->m_cdgFileReader->seek(position / GST_MSECOND);
 }

@@ -23,7 +23,6 @@
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QStandardPaths>
-#include <QDebug>
 #include <QCryptographicHash>
 #include <QDataStream>
 #include "simplecrypt.h"
@@ -33,6 +32,7 @@
 #include <QFontDatabase>
 #include <QUuid>
 #include <fstream>
+#include <spdlog/spdlog.h>
 
 #ifdef Q_OS_WIN
     #include <windows.h>
@@ -357,6 +357,7 @@ QString Settings::karoakeDotNetPass(const QString &password)
 Settings::Settings(QObject *parent) :
     QObject(parent)
 {
+    logger = spdlog::get("logger");
     QCoreApplication::setOrganizationName("OpenKJ");
     QCoreApplication::setOrganizationDomain("OpenKJ.org");
     QCoreApplication::setApplicationName("OpenKJ");
@@ -414,7 +415,6 @@ int Settings::cdgWindowFullScreenMonitor()
 
 void Settings::saveWindowState(QWidget *window)
 {
-    qInfo() << "Saving state for " << window->objectName() << " x:" << window->pos().x() << " y:" << window->pos().y();
     settings->beginGroup(window->objectName());
     //settings->setValue("size", window->size());
     //settings->setValue("pos", window->pos());
@@ -426,7 +426,6 @@ void Settings::restoreWindowState(QWidget *window)
 {
     if (m_safeStartupMode)
         return;
-    qInfo() << "Restoring window state for: " << window->objectName();
     settings->beginGroup(window->objectName());
     if (settings->contains("geometry"))
     {
@@ -782,7 +781,7 @@ void Settings::setDbDoubleClickAddsSong(const bool enabled)
 
 void Settings::setDurationPosition(const QPoint pos)
 {
-    qInfo() << "Saving duration position: " << pos;
+    logger->debug("{} Saving duration position - x: {} y: {}", m_loggingPrefix, pos.x(), pos.y());
     settings->setValue("DurationPosition", pos);
 }
 
@@ -1684,7 +1683,6 @@ int Settings::theme()
 
 const QPoint Settings::durationPosition()
 {
-    qInfo() << "Getting saved duration position: " << settings->value("DurationPosition", QPoint(0,0)).toPoint();
     return settings->value("DurationPosition", QPoint(0,0)).toPoint();
 }
 
@@ -1710,12 +1708,9 @@ SfxEntryList Settings::getSfxEntries()
 
 void Settings::addSfxEntry(SfxEntry entry)
 {
-    qInfo() << "addSfxEntry called";
     SfxEntryList list = getSfxEntries();
-    qInfo() << "Current sfxEntries: " << list;
     list.append(entry);
     setSfxEntries(list);
-    qInfo() << "addSfxEntry completed";
 }
 
 void Settings::setSfxEntries(SfxEntryList entries)
@@ -1835,11 +1830,4 @@ int Settings::lastRunRotationTopSingerId() {
 
 void Settings::setLastRunRotationTopSingerId(const int id) {
     settings->setValue("lastRunRotationTopSingerId", id);
-}
-
-
-QDebug operator<<(QDebug dbg, const SfxEntry &entry)
-{
-        dbg.nospace() << "SfxEntry - " << entry.name << " - " << entry.path;
-        return dbg.maybeSpace();
 }

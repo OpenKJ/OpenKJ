@@ -10,11 +10,14 @@
 #include <gst/gstdevice.h>
 #include <gst/gstplugin.h>
 #include "settings.h"
+#include <spdlog/logger.h>
 
 class AudioRecorder : public QObject
 {
     Q_OBJECT
 private:
+    std::shared_ptr<spdlog::logger> logger;
+    std::string m_loggingPrefix{"[AudioRecorder]"};
     Settings settings;
     GstElement *pipeline;
     GstElement *audioConvert;

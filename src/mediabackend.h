@@ -54,7 +54,7 @@ class MediaBackend : public QObject
 {
     Q_OBJECT
 public:
-
+    std::string m_loggingPrefix;
     enum MediaType {
         Karaoke,
         BackgroundMusic,
@@ -130,7 +130,6 @@ private:
         GstElement *videoScale { nullptr };
         SoftwareRenderVideoSink *softwareRenderVideoSink { nullptr };
     };
-
 
 
     QString m_objName;

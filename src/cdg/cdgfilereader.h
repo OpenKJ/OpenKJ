@@ -4,6 +4,7 @@
 #include <QString>
 #include "cdgimageframe.h"
 #include "libCDG.h"
+#include <spdlog/logger.h>
 
 class CdgFileReader
 {
@@ -50,6 +51,8 @@ public:
 #endif
 
 private:
+    std::shared_ptr<spdlog::logger> logger;
+    std::string m_loggingPrefix{"[CDGFileReader]"};
     void rewind();
     bool readAndProcessNextPackage();
     inline bool isEOF();

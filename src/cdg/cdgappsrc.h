@@ -5,6 +5,7 @@
 #include <gst/app/gstappsrc.h>
 #include <QMutex>
 #include "cdgfilereader.h"
+#include <spdlog/logger.h>
 
 class CdgAppSrc
 {
@@ -22,6 +23,8 @@ private:
     static gboolean cb_seek_data(GstAppSrc *appsrc, guint64 position, gpointer user_data);
 
 public:
+    std::shared_ptr<spdlog::logger> logger;
+    std::string m_loggingPrefix{"[CDGAppSrc]"};
     explicit CdgAppSrc();
     ~CdgAppSrc();
 

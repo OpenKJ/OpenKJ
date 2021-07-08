@@ -1,7 +1,27 @@
+/*
+ * Copyright (c) 2013-2021 Thomas Isaac Lightburn
+ *
+ *
+ * This file is part of OpenKJ.
+ *
+ * OpenKJ is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "audiofader.h"
 #include <gst/audio/streamvolume.h>
 #include <QApplication>
-#include <QDebug>
+#include <spdlog/spdlog.h>
 
 
 void AudioFader::setVolume(double volume)
@@ -13,7 +33,7 @@ void AudioFader::setVolume(double volume)
 
 void AudioFader::immediateIn()
 {
-    qInfo() << objName << "Immediate IN called";
+    logger->debug("[{}] Immediate IN requested", objName.toStdString());
     timer->stop();
     //g_object_set(volumeElement, "mute", false, nullptr);
     if (volume() == 1.0 && curState == FadedIn)
@@ -25,7 +45,8 @@ void AudioFader::immediateIn()
 
 void AudioFader::immediateOut()
 {
-    qInfo() << objName << "Immediate OUT called";
+    logger->debug("[{}] Immediate OUT requested", objName.toStdString());
+
     timer->stop();
     setVolume(0);
     //g_object_set(volumeElement, "mute", true, nullptr);
@@ -40,7 +61,7 @@ AudioFader::FaderState AudioFader::state()
 
 void AudioFader::setVolumeElement(GstElement *volumeElement)
 {
-    qInfo() << objName << "setVolumeElement called";
+    logger->trace("[{}] setVolumeElement called", objName.toStdString());
     this->volumeElement = volumeElement;
 }
 
@@ -62,6 +83,7 @@ double AudioFader::volume()
 
 AudioFader::AudioFader(QObject *parent) : QObject(parent)
 {
+    logger = spdlog::get("logger");
     curState = FadedIn;
     emit faderStateChanged(curState);
     targetVol = 0;
@@ -86,41 +108,38 @@ QString AudioFader::stateToStr(AudioFader::FaderState state)
     return "Unknown";
 }
 
-void AudioFader::fadeOut(bool block)
-{
-    qInfo() << objName << " - fadeOut( " << block << " ) called";
+void AudioFader::fadeOut(bool block) {
+    logger->debug("[{}] Fade OUT requested - blocking: {}", objName.toStdString(), block);
     emit fadeStarted();
     targetVol = 0;
     curState = FadingOut;
     emit faderStateChanged(curState);
     timer->start();
-    if (block)
-    {
-        while (volume() != targetVol  && curState == FadingOut)
-        {
-            QApplication::processEvents();
-        }
+    if (!block)
+        return;
+    logger->debug("[{}] Waiting for fade to complete", objName.toStdString());
+    while (volume() != targetVol && curState == FadingOut) {
+        QApplication::processEvents();
     }
-    qInfo() << objName << " - fadeOut() returned";
+    logger->debug("[{}] Fade completed", objName.toStdString());
 }
 
 void AudioFader::fadeIn(bool block)
 {
-    qInfo() << objName << " - fadeIn( " << block << " ) called";
+    logger->debug("[{}] Fade IN requested - blocking: {}", objName.toStdString(), block);
     emit fadeStarted();
     targetVol = 1.0;
     curState = FadingIn;
     emit faderStateChanged(curState);
     //g_object_set(volumeElement, "mute", false, nullptr);
     timer->start();
-    if (block)
-    {
+    if (!block)
+        return;
         while (volume() != targetVol && curState == FadingIn)
         {
             QApplication::processEvents();
         }
-    }
-    qInfo() << objName << " - fadeIn() returned";
+    logger->debug("[{}] Fade completed", objName.toStdString());
 }
 
 void AudioFader::timerTimeout()
@@ -131,7 +150,7 @@ void AudioFader::timerTimeout()
     {
         if (volume() == targetVol)
         {
-            qInfo() << objName << " - Timer - target volume reached";
+            logger->debug("[{}] Target volume reached", objName.toStdString());
             timer->stop();
             if (curState == FadingOut)
                 curState = FadedOut;

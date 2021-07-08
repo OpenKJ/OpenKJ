@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2013-2019 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2021 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -17,15 +17,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-
-//#include <QtGui/QApplication>
 #include <QApplication>
 #include "mainwindow.h"
 #include <QStyleFactory>
 #include <QSplashScreen>
 #include <QStringList>
-#include <QDebug>
 #include <QMessageBox>
 #include "settings.h"
 #include "idledetect.h"
@@ -61,6 +57,7 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
             break;
         case QtInfoMsg:
             logger->info(logMsg);
+            break;
         case QtWarningMsg:
             logger->warn(logMsg);
             break;
@@ -93,7 +90,7 @@ int main(int argc, char *argv[]) {
 
     spdlog::init_thread_pool(8192, 1);
     std::vector<spdlog::sink_ptr> sinks{console_sink, file_sink};
-    logger = std::make_shared<spdlog::async_logger>("mainLogger", sinks.begin(), sinks.end(), spdlog::thread_pool(),
+    logger = std::make_shared<spdlog::async_logger>("logger", sinks.begin(), sinks.end(), spdlog::thread_pool(),
                                                     spdlog::async_overflow_policy::block);
     logger->set_level(spdlog::level::trace);
     spdlog::register_logger(logger);
@@ -126,7 +123,7 @@ int main(int argc, char *argv[]) {
     QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     if (settings.theme() == 1) {
         QPalette palette;
-        a.setStyle(QStyleFactory::create("Fusion"));
+        QApplication::setStyle(QStyleFactory::create("Fusion"));
         palette.setColor(QPalette::Window, QColor(53, 53, 53));
         palette.setColor(QPalette::WindowText, Qt::white);
         palette.setColor(QPalette::Disabled, QPalette::WindowText, QColor(127, 127, 127));
@@ -147,16 +144,16 @@ int main(int argc, char *argv[]) {
         palette.setColor(QPalette::Disabled, QPalette::Highlight, QColor(80, 80, 80));
         palette.setColor(QPalette::HighlightedText, Qt::white);
         palette.setColor(QPalette::Disabled, QPalette::HighlightedText, QColor(127, 127, 127));
-        a.setPalette(palette);
+        QApplication::setPalette(palette);
     } else if (settings.theme() == 2) {
-        a.setStyle(QStyleFactory::create("Fusion"));
+        QApplication::setStyle(QStyleFactory::create("Fusion"));
     }
 //    else
 //    {
 //
 //    }
-    a.setFont(settings.applicationFont(), "QWidget");
-    a.setFont(settings.applicationFont(), "QMenu");
+    QApplication::setFont(settings.applicationFont(), "QWidget");
+    QApplication::setFont(settings.applicationFont(), "QMenu");
 
     RunGuard guard("SharedMemorySingleInstanceProtectorOpenKJ");
     if (!guard.tryToRun()) {
@@ -175,15 +172,10 @@ int main(int argc, char *argv[]) {
         msgBox.setIcon(QMessageBox::Warning);
         msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
         msgBox.setDefaultButton(QMessageBox::Yes);
-        int ret = msgBox.exec();
-        switch (ret) {
-            case QMessageBox::Yes:
-                settings.setSafeStartupMode(true);
-                break;
-            default:
-                settings.setSafeStartupMode(false);
-                qInfo() << "User declined to safe load settings after startup crash";
-        }
+        if (msgBox.exec() == QMessageBox::Yes)
+            settings.setSafeStartupMode(true);
+        else
+            settings.setSafeStartupMode(false);
     }
 #ifdef Q_OS_DARWIN
     if (settings.lastRunVersion() != OKJ_VERSION_STRING)
@@ -193,6 +185,5 @@ int main(int argc, char *argv[]) {
     settings.setStartupOk(false);
     MainWindow w;
     w.show();
-
-    return a.exec();
+    return QApplication::exec();
 }

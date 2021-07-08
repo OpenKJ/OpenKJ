@@ -29,8 +29,8 @@
 #include <QTreeView>
 #include <QWidget>
 #include <QMetaType>
-#include <QDebug>
 #include <QKeySequence>
+#include <spdlog/logger.h>
 
 struct SfxEntry
 {
@@ -40,10 +40,6 @@ struct SfxEntry
 
 
 }; Q_DECLARE_METATYPE(SfxEntry)
-
-QDebug operator<<(QDebug dbg, const SfxEntry &entry);
-
-
 
 
 typedef QList<SfxEntry> SfxEntryList;
@@ -57,6 +53,8 @@ class Settings : public QObject
 private:
     QSettings *settings;
     bool m_safeStartupMode{false};
+    std::shared_ptr<spdlog::logger> logger;
+    std::string m_loggingPrefix{"[Settings]"};
 
 public:
     int lastRunRotationTopSingerId();
