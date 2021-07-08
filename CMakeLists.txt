@@ -65,9 +65,9 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBS
         link_directories(${SPDLOG_LIBRARY_DIRS})
         include_directories(${SPDLOG_INCLUDE_DIRS})
         set(EXTERNAL_SPDLOG True)
-#        include_directories(
-#                ${SPDLOG_INCLUDE_DIRS}
-#        )
+        #        include_directories(
+        #                ${SPDLOG_INCLUDE_DIRS}
+        #        )
     endif ()
 endif ()
 
@@ -558,21 +558,20 @@ set(LIBRARIES
         )
 
 
-
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
 
     if (EXTERNAL_TAGLIB)
         list(APPEND LIBRARIES "PkgConfig::TAGLIB")
-    endif()
+    endif ()
 
     if (EXTERNAL_SPDLOG)
         list(APPEND LIBRARIES "PkgConfig::SPDLOG")
-    endif()
+    endif ()
 
     add_executable(openkj
             ${SOURCE_FILES}
             )
-        target_link_libraries(openkj ${LIBRARIES} ${GSTREAMER_LIBRARIES})
+    target_link_libraries(openkj ${LIBRARIES} ${GSTREAMER_LIBRARIES})
 
     install(
             TARGETS openkj
@@ -609,84 +608,85 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
             ${LIBRARIES}
             "-F /Library/Frameworks -framework GStreamer"
             )
-    get_target_property(_qt5_qmake_location Qt5::qmake IMPORTED_LOCATION)
-    execute_process(
-            COMMAND "${_qt5_qmake_location}" -query QT_INSTALL_PREFIX
-            RESULT_VARIABLE return_code
-            OUTPUT_VARIABLE qt5_install_prefix
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    if (qt5_install_prefix)
-        find_program(MACDEPLOYQT macdeployqt HINTS ${qt5_install_prefix} PATH_SUFFIXES bin)
-        if (MACDEPLOYQT)
-            if (DEFINED MAC_SIGNING_IDENTITY)
-                add_custom_command(
-                        TARGET openkj
-                        COMMAND "${MACDEPLOYQT}"
-                        VERBATIM
-                        ARGS
-                        "${CMAKE_BINARY_DIR}/openkj.app"
-                        -codesign=${MAC_SIGNING_IDENTITY}
-                        "-appstore-compliant"
-                )
+    if (NOT DEFINED BUILDONLY)
+        get_target_property(_qt5_qmake_location Qt5::qmake IMPORTED_LOCATION)
+        execute_process(
+                COMMAND "${_qt5_qmake_location}" -query QT_INSTALL_PREFIX
+                RESULT_VARIABLE return_code
+                OUTPUT_VARIABLE qt5_install_prefix
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        if (qt5_install_prefix)
+            find_program(MACDEPLOYQT macdeployqt HINTS ${qt5_install_prefix} PATH_SUFFIXES bin)
+            if (MACDEPLOYQT)
+                if (DEFINED MAC_SIGNING_IDENTITY)
+                    add_custom_command(
+                            TARGET openkj
+                            COMMAND "${MACDEPLOYQT}"
+                            VERBATIM
+                            ARGS
+                            "${CMAKE_BINARY_DIR}/openkj.app"
+                            -codesign=${MAC_SIGNING_IDENTITY}
+                            "-appstore-compliant"
+                    )
+                else ()
+                    add_custom_command(
+                            TARGET openkj
+                            COMMAND "${MACDEPLOYQT}"
+                            ARGS "${CMAKE_BINARY_DIR}/openkj.app"
+                    )
+                endif ()
             else ()
-                add_custom_command(
-                        TARGET openkj
-                        COMMAND "${MACDEPLOYQT}"
-                        ARGS "${CMAKE_BINARY_DIR}/openkj.app"
-                )
+                message("Can't find macdeployqt")
             endif ()
         else ()
-            message("Can't find macdeployqt")
+            message("QT_INSTALL_DIR not defined")
         endif ()
-    else ()
-        message("QT_INSTALL_DIR not defined")
+        if (DEFINED BUNDLE_GSTREAMER)
+            message("Installing GStreamer framework into app bundle")
+            install(
+                    DIRECTORY "/Library/Frameworks/GStreamer.framework.dist"
+                    DESTINATION "openkj.app/Contents/Frameworks/GStreamer.framework"
+            )
+            add_custom_command(
+                    TARGET openkj
+                    POST_BUILD
+                    COMMAND "cp"
+                    ARGS
+                    "-pR"
+                    "/Library/Frameworks/GStreamer.framework.dist"
+                    "openkj.app/Contents/Frameworks/GStreamer.framework"
+                    COMMAND "osxrelocator"
+                    ARGS
+                    "openkj.app/Contents/Frameworks/GStreamer.framework/Versions/Current/lib"
+                    "/Library/Frameworks/GStreamer.framework/"
+                    "@executable_path/../Frameworks/GStreamer.framework/"
+                    "-r"
+                    USES_TERMINAL
+                    COMMAND "osxrelocator"
+                    ARGS
+                    "openkj.app/Contents/Frameworks/GStreamer.framework/Versions/Current/libexec"
+                    "/Library/Frameworks/GStreamer.framework/"
+                    "@executable_path/../../../../../../Frameworks/GStreamer.framework/"
+                    "-r"
+                    USES_TERMINAL
+                    COMMAND "osxrelocator"
+                    ARGS
+                    "openkj.app/Contents/Frameworks/GStreamer.framework/Versions/Current/bin"
+                    "/Library/Frameworks/GStreamer.framework/"
+                    "@executable_path/../../../../Frameworks/GStreamer.framework/"
+                    "-r"
+                    USES_TERMINAL
+                    COMMAND "osxrelocator"
+                    ARGS
+                    "openkj.app/Contents/MacOS"
+                    "/Library/Frameworks/GStreamer.framework/"
+                    "@executable_path/../Frameworks/GStreamer.framework/"
+                    "-r"
+                    USES_TERMINAL
+            )
+        endif ()
     endif ()
-    if (DEFINED BUNDLE_GSTREAMER)
-        message("Installing GStreamer framework into app bundle")
-        install(
-                DIRECTORY "/Library/Frameworks/GStreamer.framework.dist"
-                DESTINATION "openkj.app/Contents/Frameworks/GStreamer.framework"
-        )
-        add_custom_command(
-                TARGET openkj
-                POST_BUILD
-                COMMAND "cp"
-                ARGS
-                "-pR"
-                "/Library/Frameworks/GStreamer.framework.dist"
-                "openkj.app/Contents/Frameworks/GStreamer.framework"
-                COMMAND "osxrelocator"
-                ARGS
-                "openkj.app/Contents/Frameworks/GStreamer.framework/Versions/Current/lib"
-                "/Library/Frameworks/GStreamer.framework/"
-                "@executable_path/../Frameworks/GStreamer.framework/"
-                "-r"
-                USES_TERMINAL
-                COMMAND "osxrelocator"
-                ARGS
-                "openkj.app/Contents/Frameworks/GStreamer.framework/Versions/Current/libexec"
-                "/Library/Frameworks/GStreamer.framework/"
-                "@executable_path/../../../../../../Frameworks/GStreamer.framework/"
-                "-r"
-                USES_TERMINAL
-                COMMAND "osxrelocator"
-                ARGS
-                "openkj.app/Contents/Frameworks/GStreamer.framework/Versions/Current/bin"
-                "/Library/Frameworks/GStreamer.framework/"
-                "@executable_path/../../../../Frameworks/GStreamer.framework/"
-                "-r"
-                USES_TERMINAL
-                COMMAND "osxrelocator"
-                ARGS
-                "openkj.app/Contents/MacOS"
-                "/Library/Frameworks/GStreamer.framework/"
-                "@executable_path/../Frameworks/GStreamer.framework/"
-                "-r"
-                USES_TERMINAL
-        )
-    endif ()
-
 endif ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
