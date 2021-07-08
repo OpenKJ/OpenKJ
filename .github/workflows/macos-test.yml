@@ -73,7 +73,7 @@ jobs:
     - name: Configure CMake
       working-directory: ${{github.workspace}}/build
       run: |
-        cmake .. -DCMAKE_BUILD_TYPE=Release -DBUNDLE_GSTREAMER=True -DMAC_SIGNING_IDENTITY=47W8CPBS5A -G Ninja
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DBUNDLE_GSTREAMER=False -G Ninja
 
     - name: Build
       working-directory: ${{github.workspace}}/build
