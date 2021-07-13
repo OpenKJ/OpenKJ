@@ -1,0 +1,36 @@
+app-id: org.openkj.OpenKJ
+runtime: org.kde.Platform
+runtime-version: 5.15
+sdk: org.kde.Sdk
+command: openkj
+modules:
+  - name: fmt 
+    buildsystem: cmake-ninja
+    sources:
+      - type: git
+        url: https://github.com/fmtlib/fmt.git
+        branch: master 
+  - name: spdlog 
+    buildsystem: cmake-ninja
+    sources:
+      - type: git
+        url: https://github.com/gabime/spdlog.git
+        branch: v1.x
+  - name: taglib 
+    buildsystem: cmake-ninja
+    sources:
+      - type: git
+        url: https://github.com/taglib/taglib.git
+        branch: master 
+  - name: OpenKJ
+    buildsystem: cmake-ninja
+    sources:
+      - type: git
+        url: https://github.com/openkj/openkj.git
+        branch: master 
+finish-args: 
+  - "--share=ipc"
+  - "--socket=x11"
+  - "--socket=wayland"
+  - "--socket=pulseaudio"
+  - "--filesystem=host"

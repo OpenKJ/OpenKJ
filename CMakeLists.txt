@@ -579,10 +579,10 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBS
     )
     install(
             FILES src/Icons/okjicon.svg
-            DESTINATION share/pixmaps
+            DESTINATION share/icons/hicolor/scalable/org.openkj.OpenKJ.svg
     )
     install(
-            FILES src/openkj.desktop
+            FILES src/org.openkj.OpenKJ.desktop
             DESTINATION share/applications
     )
 endif ()
