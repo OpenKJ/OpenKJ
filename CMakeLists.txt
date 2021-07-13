@@ -578,8 +578,8 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBS
             DESTINATION bin
     )
     install(
-            FILES src/Icons/okjicon.svg
-            DESTINATION share/icons/hicolor/scalable/org.openkj.OpenKJ.svg
+            FILES src/Icons/org.openkj.OpenKJ.svg
+            DESTINATION share/icons/hicolor/scalable
     )
     install(
             FILES src/org.openkj.OpenKJ.desktop
