@@ -62,7 +62,7 @@ jobs:
           echo "#define OKJ_VERSION_MAJOR ${{ steps.get_version.outputs.major }}" >> src/okjversion.h
           echo "#define OKJ_VERSION_MINOR ${{ steps.get_version.outputs.minor }}" >> src/okjversion.h
           echo "#define OKJ_VERSION_BUILD ${{ steps.get_version.outputs.patch }}" >> src/okjversion.h
-          echo "#define OKJ_VERSION_STRING \"${{ steps.get_version.outputs.version-without-v }}\"" >> src/okjversion.h
+          echo "#define OKJ_VERSION_STRING \"${{ steps.get_version.outputs.major }}.${{ steps.get_version.outputs.minor }}.${{ steps.get_version.outputs.patch }}\"" >> src/okjversion.h
           echo "#define OKJ_VERSION_BRANCH \"${{ env.rtype }}\"" >> src/okjversion.h
           echo >> src/okjversion.h
           echo "#endif //OKJVERSION_H" >> src/okjversion.h
