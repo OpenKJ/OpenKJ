@@ -4,14 +4,32 @@ runtime-version: 5.15
 sdk: org.kde.Sdk
 command: openkj
 modules:
+  - codecs/liba52.json
+  - codecs/libmpeg2.json
+  - codecs/gst-plugins-ugly.json
+  - codecs/libdvdcss.json
+  - codecs/libdvdread.json
+  - codecs/libdvdnav.json
+  - codecs/libass.json
+  - codecs/ffmpeg.json
+  - codecs/gst-libav.json
+  - codecs/gst-plugins-bad.json
+  - name: rubberband 
+    buildsystem: meson
+    sources:
+      - type: git
+        url: https://github.com/breakfastquay/rubberband.git
+        branch: default
   - name: fmt 
     buildsystem: cmake-ninja
+    builddir: yes
     sources:
       - type: git
         url: https://github.com/fmtlib/fmt.git
         branch: master 
   - name: spdlog 
     buildsystem: cmake-ninja
+    builddir: yes
     sources:
       - type: git
         url: https://github.com/gabime/spdlog.git
@@ -31,6 +49,9 @@ modules:
 finish-args: 
   - "--share=ipc"
   - "--socket=x11"
-  - "--socket=wayland"
+  - "--device=dri"
+  - "--share=network"
+    #  - "--socket=wayland"
   - "--socket=pulseaudio"
   - "--filesystem=host"
+  - "--env=LADSPA_PATH=/app/lib/ladspa/"

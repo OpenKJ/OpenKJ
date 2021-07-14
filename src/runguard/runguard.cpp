@@ -2,7 +2,6 @@
 
 #include <QCryptographicHash>
 
-
 namespace
 {
 

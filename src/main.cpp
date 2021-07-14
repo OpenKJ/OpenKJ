@@ -155,15 +155,22 @@ int main(int argc, char *argv[]) {
     QApplication::setFont(settings.applicationFont(), "QWidget");
     QApplication::setFont(settings.applicationFont(), "QMenu");
 
-    RunGuard guard("SharedMemorySingleInstanceProtectorOpenKJ");
-    if (!guard.tryToRun()) {
-        QMessageBox msgBox;
-        msgBox.setText("OpenKJ is already running!");
-        msgBox.setInformativeText(
-                "In order to protect the database, you can only run one instance of OpenKJ at a time.\nExiting now.");
-        msgBox.setIcon(QMessageBox::Critical);
-        msgBox.exec();
-        return 1;
+    // RunGuard seems to be broken by flatpak, ignore it if running in a flatpak sandbox
+    logger->info("App dir path {}", QCoreApplication::applicationDirPath().toStdString());
+    if (QCoreApplication::applicationDirPath() == "/app/bin") {
+        logger->info("RunGuard disabled due to flatpak sandbox");
+    } else {
+        logger->debug("Checking for other instances");
+        RunGuard guard("SharedMemorySingleInstanceProtectorOpenKJ");
+        if (!guard.tryToRun()) {
+            QMessageBox msgBox;
+            msgBox.setText("OpenKJ is already running!");
+            msgBox.setInformativeText(
+                    "In order to protect the database, you can only run one instance of OpenKJ at a time.\nExiting now.");
+            msgBox.setIcon(QMessageBox::Critical);
+            msgBox.exec();
+            return 1;
+        }
     }
     if (!settings.lastStartupOk()) {
         QMessageBox msgBox;
