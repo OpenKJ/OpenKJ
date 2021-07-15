@@ -30,7 +30,6 @@
 #include <QWidget>
 #include <QMetaType>
 #include <QKeySequence>
-#include <spdlog/logger.h>
 
 struct SfxEntry
 {
@@ -53,8 +52,6 @@ class Settings : public QObject
 private:
     QSettings *settings;
     bool m_safeStartupMode{false};
-    std::shared_ptr<spdlog::logger> logger;
-    std::string m_loggingPrefix{"[Settings]"};
 
 public:
     int lastRunRotationTopSingerId();

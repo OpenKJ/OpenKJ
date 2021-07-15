@@ -1,6 +1,5 @@
 #include "dlgvideopreview.h"
 #include "ui_dlgvideopreview.h"
-#include <QDebug>
 #include <QMessageBox>
 #include "mzarchive.h"
 #include "okjutil.h"

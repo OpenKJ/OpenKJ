@@ -32,7 +32,6 @@
 #include <QFontDatabase>
 #include <QUuid>
 #include <fstream>
-#include <spdlog/spdlog.h>
 
 #ifdef Q_OS_WIN
     #include <windows.h>
@@ -357,7 +356,6 @@ QString Settings::karoakeDotNetPass(const QString &password)
 Settings::Settings(QObject *parent) :
     QObject(parent)
 {
-    logger = spdlog::get("logger");
     QCoreApplication::setOrganizationName("OpenKJ");
     QCoreApplication::setOrganizationDomain("OpenKJ.org");
     QCoreApplication::setApplicationName("OpenKJ");
@@ -781,7 +779,6 @@ void Settings::setDbDoubleClickAddsSong(const bool enabled)
 
 void Settings::setDurationPosition(const QPoint pos)
 {
-    logger->debug("{} Saving duration position - x: {} y: {}", m_loggingPrefix, pos.x(), pos.y());
     settings->setValue("DurationPosition", pos);
 }
 
