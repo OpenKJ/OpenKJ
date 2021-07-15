@@ -99,7 +99,7 @@ jobs:
         path: |
           C:/gstreamer
           ${{github.workspace}}/gstreamer-dist
-        key: ${{ runner.os }}-GstCache-1.14.5-${{ matrix.bits }}-1
+        key: ${{ runner.os }}-GstCache-1.14.5-${{ matrix.bits }}-installer-build
 
     - name: Download GST Installer
       if: steps.cache-gst.outputs.cache-hit != 'true'
