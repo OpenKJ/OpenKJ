@@ -7,9 +7,6 @@ modules:
   - codecs/liba52.json
   - codecs/libmpeg2.json
   - codecs/gst-plugins-ugly.json
-  - codecs/libdvdcss.json
-  - codecs/libdvdread.json
-  - codecs/libdvdnav.json
   - codecs/libass.json
   - codecs/ffmpeg.json
   - codecs/gst-libav.json
@@ -23,6 +20,8 @@ modules:
   - name: fmt 
     buildsystem: cmake-ninja
     builddir: yes
+    config-opts:
+      - "-DFMT_TEST=OFF"
     sources:
       - type: git
         url: https://github.com/fmtlib/fmt.git
@@ -30,6 +29,9 @@ modules:
   - name: spdlog 
     buildsystem: cmake-ninja
     builddir: yes
+    config-opts:
+      - "-DSPDLOG_BUILD_EXAMPLE=OFF"
+      - "-DSPDLOG_BUILD_TESTS=OFF"
     sources:
       - type: git
         url: https://github.com/gabime/spdlog.git
@@ -55,3 +57,9 @@ finish-args:
   - "--socket=pulseaudio"
   - "--filesystem=host"
   - "--env=LADSPA_PATH=/app/lib/ladspa/"
+  - "--env=GST_PLUGIN_PATH=/app/lib/codecs/lib/gstreamer-1.0"
+  - "--env=PATH=/app/lib/totem-pl-parser/bin/:/app/lib/codecs/bin/:/app/bin:/usr/bin"
+cleanup-commands:
+  - "mv /app/lib/liba52*.* /app/lib/codecs/lib/"
+  - "mv /app/lib/libass.* /app/lib/codecs/lib/"
+  - "mkdir -p /app/lib/ffmpeg"
