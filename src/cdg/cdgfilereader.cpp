@@ -13,7 +13,6 @@ CdgFileReader::CdgFileReader(const QString &filename)
     QFile file(filename);
     file.open(QFile::ReadOnly);
     m_cdgData = file.readAll();
-
     rewind();
 }
 
@@ -65,12 +64,12 @@ bool CdgFileReader::moveToNextFrame()
     }
 }
 
-int CdgFileReader::currentFrameDurationMS()
+int CdgFileReader::currentFrameDurationMS() const
 {
     return getDurationOfPackagesInMS(m_next_image_pgk_idx - m_current_image_pgk_idx);
 }
 
-int CdgFileReader::currentFramePositionMS()
+int CdgFileReader::currentFramePositionMS() const
 {
     return getDurationOfPackagesInMS(m_current_image_pgk_idx);
 }
@@ -111,9 +110,8 @@ void CdgFileReader::rewind()
 
 bool CdgFileReader::readAndProcessNextPackage()
 {
-    cdg::CDG_SubCode* subCode = (cdg::CDG_SubCode*)(m_cdgData.constData() + m_cdgDataPos);
+    auto subCode = (cdg::CDG_SubCode*)(m_cdgData.constData() + m_cdgDataPos);
     m_cdgDataPos += sizeof(cdg::CDG_SubCode);
-
     m_next_image_pgk_idx++;
     return m_next_image.applySubCode(*subCode);
 }
@@ -129,13 +127,14 @@ inline int CdgFileReader::getDurationOfPackagesInMS(const int numberOfPackages)
 }
 
 #ifdef QT_DEBUG
-void CdgFileReader::saveNextImgToFile()
+
+[[maybe_unused]] void CdgFileReader::saveNextImgToFile()
 {
     auto fn = QString("/tmp/cdgimg/nxt-%1.png").arg(m_next_image_pgk_idx, 4, 10, QLatin1Char('0'));
     m_next_image.getImage().save(fn);
 }
 
-void CdgFileReader::saveCurrentImgToFile()
+[[maybe_unused]] void CdgFileReader::saveCurrentImgToFile()
 {
     auto fn = QString("/tmp/cdgimg/cur-%1-%2-%3.png")
             .arg(m_current_image_pgk_idx, 4, 10, QLatin1Char('0'))

@@ -226,8 +226,9 @@ void CdgImageFrame::cmdScroll(const cdg::CdgScrollCmdData &scrollCmdData, const 
             memset(bits, scrollCmdData.color, m_image.bytesPerLine() * 12);
     }
     if (m_curVOffset != scrollCmdData.vSOffset)
-    m_curHOffset = scrollCmdData.hSOffset;
-    m_curVOffset = scrollCmdData.vSOffset;
+        m_curVOffset = scrollCmdData.vSOffset;
+    if (m_curHOffset != scrollCmdData.hSOffset)
+        m_curHOffset = scrollCmdData.hSOffset;
 }
 
 

@@ -9,7 +9,7 @@
 class CdgFileReader
 {
 public:
-    CdgFileReader(const QString &filename);
+    explicit CdgFileReader(const QString &filename);
 
     /**
      * @brief Read first/next frame from the data stream.
@@ -20,8 +20,8 @@ public:
     bool moveToNextFrame();
 
     std::array<uchar, cdg::CDG_IMAGE_SIZE> currentFrame() { return m_current_image_data; }
-    int currentFrameDurationMS();
-    int currentFramePositionMS();
+    [[nodiscard]] int currentFrameDurationMS() const;
+    [[nodiscard]] int currentFramePositionMS() const;
 
     /**
      * @brief Set currentFrame() to the frame that should be displayed at a given point in time.
@@ -46,8 +46,8 @@ public:
     int positionOfFinalFrameMS();
 
 #ifdef QT_DEBUG
-    void saveNextImgToFile();
-    void saveCurrentImgToFile();
+    [[maybe_unused]] void saveNextImgToFile();
+    [[maybe_unused]] void saveCurrentImgToFile();
 #endif
 
 private:
@@ -57,21 +57,21 @@ private:
     bool readAndProcessNextPackage();
     inline bool isEOF();
 
-    inline static int getDurationOfPackagesInMS(const int numberOfPackages);
+    inline static int getDurationOfPackagesInMS(int numberOfPackages);
 
     QByteArray m_cdgData;
-    int m_cdgDataPos;
+    int m_cdgDataPos{0};
 
-    std::array<uchar, cdg::CDG_IMAGE_SIZE> m_current_image_data;
-    int m_current_image_pgk_idx;
+    std::array<uchar, cdg::CDG_IMAGE_SIZE> m_current_image_data{0};
+    int m_current_image_pgk_idx{0};
 
     CdgImageFrame m_next_image;
-    int m_next_image_pgk_idx;
+    int m_next_image_pgk_idx{0};
 
     /**
      * Index of the last read package that caused a visible image change.
      */
-    int m_last_image_change_pgk_idx;
+    int m_last_image_change_pgk_idx{0};
 };
 
 #endif // CDGFILEREADER_H

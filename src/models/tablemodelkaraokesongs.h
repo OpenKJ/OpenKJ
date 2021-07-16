@@ -87,7 +87,7 @@ private:
 
 public slots:
 
-    void setSongDuration(QString &path, int duration);
+    void setSongDuration(const QString &path, unsigned int duration);
 };
 
 #endif // TABLEMODELKARAOKESONGS_H

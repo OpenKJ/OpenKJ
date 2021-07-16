@@ -340,7 +340,7 @@ void TableModelKaraokeSongs::sort(int column, Qt::SortOrder order) {
     search(m_lastSearch);
 }
 
-void TableModelKaraokeSongs::setSongDuration(QString &path, int duration) {
+void TableModelKaraokeSongs::setSongDuration(const QString &path, unsigned int duration) {
     auto it = find_if(m_allSongs.begin(), m_allSongs.end(), [&path](const std::shared_ptr<KaraokeSong> &song) {
         return (song->path == path);
     });

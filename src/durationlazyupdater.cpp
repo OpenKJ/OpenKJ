@@ -7,13 +7,12 @@
 #include "karaokefileinfo.h"
 
 
-void LazyDurationUpdateWorker::getDurations(const QStringList files) {
+void LazyDurationUpdateWorker::getDurations(const QStringList &files) {
     MzArchive archive;
     KaraokeFileInfo parser;
-    QString path;
-    foreach (path, files)
+    for (const auto &path : files)
     {
-        int duration = 0;
+        unsigned int duration = 0;
         if (path.endsWith(".zip", Qt::CaseInsensitive))
         {
             archive.setArchiveFile(path);
@@ -32,7 +31,7 @@ void LazyDurationUpdateWorker::getDurations(const QStringList files) {
 }
 
 LazyDurationUpdateController::LazyDurationUpdateController(QObject *parent) : QObject(parent) {
-    LazyDurationUpdateWorker *worker = new LazyDurationUpdateWorker;
+    auto *worker = new LazyDurationUpdateWorker;
     workerThread.setObjectName("DurationUpdater");
     worker->moveToThread(&workerThread);
     connect(&workerThread, &QThread::finished, worker, &QObject::deleteLater);
@@ -67,7 +66,7 @@ void LazyDurationUpdateController::stopWork()
     workerThread.requestInterruption();
 }
 
-void LazyDurationUpdateController::updateDbDuration(QString file, int duration)
+void LazyDurationUpdateController::updateDbDuration(const QString& file, int duration)
 {
     QSqlQuery query;
     query.prepare("UPDATE dbsongs SET duration = :duration WHERE path = :path");

@@ -32,34 +32,28 @@ class MzArchive : public QObject
 {
     Q_OBJECT
 public:
-    explicit MzArchive(QString ArchiveFile, QObject *parent = 0);
-    explicit MzArchive(QObject *parent = 0);
+    explicit MzArchive(const QString &ArchiveFile, QObject *parent = nullptr);
+    explicit MzArchive(QObject *parent = nullptr);
     unsigned int getSongDuration();
-    QByteArray getCDGData();
-    QString getArchiveFile() const;
     void setArchiveFile(const QString &value);
     bool checkCDG();
     bool checkAudio();
     QString audioExtension();
-    bool extractAudio(QString destPath, QString destFile);
-    bool extractCdg(QString destPath, QString destFile);
+    bool extractAudio(const QString& destPath, const QString& destFile);
+    bool extractCdg(const QString& destPath, const QString& destFile);
     bool isValidKaraokeFile();
     QString getLastError();
 
 private:
     QString archiveFile;
-    QString cdgFileName;
-    QString audioFileName;
     QString audioExt;
     QString lastError;
     bool findCDG();
     bool findAudio();
-    int cdgSize();
-    int audioSize();
-    int m_audioFileIndex{0};
-    int m_cdgFileIndex{0};
-    int m_cdgSize{0};
-    int m_audioSize{0};
+    unsigned int m_audioFileIndex{0};
+    unsigned int m_cdgFileIndex{0};
+    unsigned int m_cdgSize{0};
+    unsigned int m_audioSize{0};
     bool m_audioSupportedCompression{false};
     bool m_cdgSupportedCompression{false};
     bool m_cdgFound{false};
@@ -73,4 +67,4 @@ signals:
 public slots:
 };
 
-#endif // KHARCHIVE_H
+#endif // MZARCHIVE_H

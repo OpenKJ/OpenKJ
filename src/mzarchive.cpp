@@ -27,11 +27,9 @@
 #include "src/miniz/miniz.h"
 #ifdef Q_OS_WIN
 #include <io.h>
-#else
-#include <unistd.h>
 #endif
 
-MzArchive::MzArchive(QString ArchiveFile, QObject *parent) : QObject(parent)
+MzArchive::MzArchive(const QString &ArchiveFile, QObject *parent) : QObject(parent)
 {
     archiveFile = ArchiveFile;
     oka.setArchiveFile(archiveFile);
@@ -52,53 +50,10 @@ MzArchive::MzArchive(QObject *parent) : QObject(parent)
 
 unsigned int MzArchive::getSongDuration()
 {
-    if ((m_cdgFound) && (m_cdgSize > 0))
-        return ((m_cdgSize / 96) / 75) * 1000;
-    else if (findCDG())
+    if (findCDG())
         return ((m_cdgSize / 96) / 75) * 1000;
     else
         return 0;
-}
-
-QByteArray MzArchive::getCDGData()
-{
-    QByteArray data;
-    if (findCDG())
-    {
-        mz_zip_archive archive;
-        memset(&archive, 0, sizeof(archive));
-        if (!mz_zip_reader_init_file(&archive, archiveFile.toLocal8Bit(), 0))
-        {
-             QString err(mz_zip_get_error_string(mz_zip_get_last_error(&archive)));
-             qWarning() << "unzip error: " << err;
-             return data;
-        }
-
-        QTemporaryDir dir;
-        QString cdgTmpFile = dir.path() + QDir::separator() + "tmp.cdg";
-        qWarning() << "Extracting CDG file to tmp path: " << cdgTmpFile;
-        if (mz_zip_reader_extract_file_to_file(&archive, cdgFileName.toLocal8Bit(), cdgTmpFile.toLocal8Bit(),0))
-        {
-            QFile cdg(cdgTmpFile);
-            cdg.open(QFile::ReadOnly);
-            data = cdg.readAll();
-            mz_zip_reader_end(&archive);
-            return data;
-        }
-        else
-        {
-            QString err(mz_zip_get_error_string(mz_zip_get_last_error(&archive)));
-            qWarning() << "unzip error: " << err;
-        }
-        mz_zip_reader_end(&archive);
-        return data;
-    }
-    return data;
-}
-
-QString MzArchive::getArchiveFile() const
-{
-    return archiveFile;
 }
 
 void MzArchive::setArchiveFile(const QString &value)
@@ -138,7 +93,7 @@ QString MzArchive::audioExtension()
     return audioExt;
 }
 
-bool MzArchive::extractAudio(QString destPath, QString destFile)
+bool MzArchive::extractAudio(const QString& destPath, const QString& destFile)
 {
     if (findAudio())
     {
@@ -172,7 +127,7 @@ bool MzArchive::extractAudio(QString destPath, QString destFile)
     return false;
 }
 
-bool MzArchive::extractCdg(QString destPath, QString destFile)
+bool MzArchive::extractCdg(const QString& destPath, const QString& destFile)
 {
     if (findCDG())
     {
@@ -248,6 +203,8 @@ QString MzArchive::getLastError()
 
 bool MzArchive::findCDG()
 {
+    if (m_cdgFound)
+        return true;
     findEntries();
     return m_cdgFound;
 }
@@ -287,7 +244,6 @@ bool MzArchive::findEntries()
             QString fileName = fStat.m_filename;
             if (fileName.endsWith(".cdg",Qt::CaseInsensitive))
             {
-                cdgFileName = fileName;
                 m_cdgFileIndex = fStat.m_file_index;
                 m_cdgSize = fStat.m_uncomp_size;
                 m_cdgSupportedCompression = fStat.m_is_supported;
@@ -299,7 +255,6 @@ bool MzArchive::findEntries()
                 {
                     if (fileName.endsWith(audioExtensions.at(e), Qt::CaseInsensitive))
                     {
-                        audioFileName = fileName;
                         m_audioFileIndex = fStat.m_file_index;
                         audioExt = audioExtensions.at(e);
                         m_audioSize = fStat.m_uncomp_size;

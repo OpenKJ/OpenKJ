@@ -8,9 +8,9 @@ class LazyDurationUpdateWorker : public QObject
 {
     Q_OBJECT
 public slots:
-    void getDurations(const QStringList files);
+    void getDurations(const QStringList &files);
 signals:
-    void gotDuration(QString, int);
+    void gotDuration(const QString&, unsigned int);
 
 };
 
@@ -20,17 +20,16 @@ class LazyDurationUpdateController : public QObject
     QThread workerThread;
     QStringList files;
 public:
-    LazyDurationUpdateController(QObject *parent = 0);
-    ~LazyDurationUpdateController();
+    explicit LazyDurationUpdateController(QObject *parent = nullptr);
+    ~LazyDurationUpdateController() override;
     void getSongsRequiringUpdate();
     void stopWork();
 public slots:
-    void updateDbDuration(QString file, int duration);
+    void updateDbDuration(const QString& file, int duration);
     void getDurations();
 signals:
-    void operate(const QStringList);
-    void gotDuration(QString &path, int duration);
-    void gotStopWork();
+    void operate(const QStringList &list);
+    void gotDuration(const QString &path, unsigned int duration);
 };
 
 

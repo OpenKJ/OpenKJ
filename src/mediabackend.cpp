@@ -213,7 +213,7 @@ MediaBackend::State MediaBackend::state()
 QStringList MediaBackend::getOutputDevices()
 {
     QStringList deviceNames;
-    for(auto device : m_audioOutputDevices)
+    for(const auto &device : m_audioOutputDevices)
         deviceNames.push_back(device.name);
      return deviceNames;
 }
@@ -1162,7 +1162,7 @@ void MediaBackend::setAudioOutputDevice(const AudioOutputDevice &device)
 
 void MediaBackend::setAudioOutputDevice(const QString &deviceName)
 {
-    auto it = std::find_if(m_audioOutputDevices.begin(), m_audioOutputDevices.end(), [deviceName] (AudioOutputDevice device) {
+    auto it = std::find_if(m_audioOutputDevices.begin(), m_audioOutputDevices.end(), [deviceName] (const AudioOutputDevice &device) {
         return (device.name == deviceName);
     });
     if (it == m_audioOutputDevices.end() || it->index == 0) {

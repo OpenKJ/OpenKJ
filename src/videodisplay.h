@@ -17,7 +17,7 @@ private:
 
 public:
     explicit VideoDisplay(QWidget *parent = nullptr);
-    bool hasActiveVideo() { return m_hasActiveVideo; }
+    [[nodiscard]] bool hasActiveVideo() const { return m_hasActiveVideo; }
 
 signals:
     void mouseMoveEvent(QMouseEvent *event) override;
