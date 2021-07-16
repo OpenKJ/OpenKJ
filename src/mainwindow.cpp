@@ -53,20 +53,16 @@ OKJSongbookAPI *songbookApi;
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCDFAInspection"
 
-void MainWindow::addSfxButton(const QString &filename, const QString &label, const bool &reset) {
+void MainWindow::addSfxButton(const QString &filename, const QString &label, const bool reset) {
     static int numButtons = 0;
     if (reset)
         numButtons = 0;
     logger->info("{} sfxButtonGrid contains {} children", m_loggingPrefix, numButtons);
-    int col = 0;
-    if (numButtons % 2) {
+    int col{0};
+    if (numButtons % 2)
         col = 1;
-    }
     int row = numButtons / 2;
-    logger->info("{} Adding button {} at row: {} col: {}",m_loggingPrefix, label.toStdString(), row, col );
-    auto *button = new SoundFxButton();
-    button->setButtonData(filename);
-    button->setText(label);
+    auto button = new SoundFxButton(filename, label);
     ui->sfxButtonGrid->addWidget(button, row, col);
     connect(button, &SoundFxButton::clicked, this, &MainWindow::sfxButtonPressed);
     connect(button, &SoundFxButton::customContextMenuRequested, this,
@@ -84,15 +80,14 @@ void MainWindow::refreshSfxButtons() {
     }
     SfxEntryList list = settings.getSfxEntries();
     bool first = true;
-    logger->info("{} SfxEntryList size: {}", m_loggingPrefix, list.size());
-            foreach (SfxEntry entry, list) {
-            if (first) {
-                first = false;
-                addSfxButton(entry.path, entry.name, true);
-                continue;
-            }
-            addSfxButton(entry.path, entry.name);
+    for (const auto &entry : list) {
+        if (first) {
+            first = false;
+            addSfxButton(entry.path, entry.name, true);
+            continue;
         }
+        addSfxButton(entry.path, entry.name);
+    }
 }
 
 void MainWindow::updateIcons() {
@@ -260,8 +255,8 @@ void MainWindow::setupShortcuts() {
     connect(scutBFfwd, &QShortcut::activated, [&]() {
         auto mediaState = bmMediaBackend.state();
         if (mediaState == MediaBackend::PlayingState || mediaState == MediaBackend::PausedState) {
-            int curPos = bmMediaBackend.position();
-            int duration = bmMediaBackend.duration();
+            auto curPos = bmMediaBackend.position();
+            auto duration = bmMediaBackend.duration();
             if (curPos + 5000 < duration)
                 bmMediaBackend.setPosition(curPos + 5000);
         }
@@ -294,7 +289,7 @@ void MainWindow::setupShortcuts() {
     connect(scutBRwnd, &QShortcut::activated, [&]() {
         auto mediaState = bmMediaBackend.state();
         if (mediaState == MediaBackend::PlayingState || mediaState == MediaBackend::PausedState) {
-            int curPos = bmMediaBackend.position();
+            auto curPos = bmMediaBackend.position();
             if (curPos - 5000 > 0)
                 bmMediaBackend.setPosition(curPos - 5000);
             else
@@ -347,8 +342,8 @@ void MainWindow::setupShortcuts() {
     connect(scutKFfwd, &QShortcut::activated, [&]() {
         auto mediaState = kMediaBackend.state();
         if (mediaState == MediaBackend::PlayingState || mediaState == MediaBackend::PausedState) {
-            int curPos = kMediaBackend.position();
-            int duration = kMediaBackend.duration();
+            auto curPos = kMediaBackend.position();
+            auto duration = kMediaBackend.duration();
             if (curPos + 5000 < duration)
                 kMediaBackend.setPosition(curPos + 5000);
         }
@@ -373,7 +368,7 @@ void MainWindow::setupShortcuts() {
     connect(scutKRwnd, &QShortcut::activated, [&]() {
         auto mediaState = kMediaBackend.state();
         if (mediaState == MediaBackend::PlayingState || mediaState == MediaBackend::PausedState) {
-            int curPos = kMediaBackend.position();
+            auto curPos = kMediaBackend.position();
             if (curPos - 5000 > 0)
                 kMediaBackend.setPosition(curPos - 5000);
             else
@@ -1790,15 +1785,12 @@ void MainWindow::karaokeMediaBackend_durationChanged(const qint64 &duration) {
 void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &state) {
     if (m_shuttingDown)
         return;
-    //logger->info("{} MainWindow - audioBackend_stateChanged(" << state << ") triggered";
     if (state == MediaBackend::StoppedState) {
         logger->info("{} MainWindow - audio backend state is now STOPPED", m_loggingPrefix);
         if (ui->labelTotalTime->text() == "0:00") {
-            //logger->info("{} MainWindow - UI is already reset, bailing out";
             return;
         }
         logger->info("{} KAudio entered StoppedState", m_loggingPrefix);
-        //bmMediaBackend.setVideoEnabled(true);
         audioRecorder.stop();
         if (k2kTransition)
             return;
@@ -2024,7 +2016,6 @@ void MainWindow::rotationDataChanged() {
             if (i < listSize - 1)
                 tickerText += " ";
         }
-        // tickerText += "|";
     }
     cdgWindow->setTickerText(tickerText);
 }
@@ -2034,7 +2025,6 @@ void MainWindow::silenceDetectedKar() {
     kMediaBackend.rawStop();
     if (settings.karaokeAutoAdvance())
         kAASkip = false;
-//        ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
     bmMediaBackend.fadeIn();
 }
 
@@ -2162,10 +2152,6 @@ void MainWindow::previewCdg() {
     auto *videoPreview = new DlgVideoPreview(dbRtClickFile, this);
     videoPreview->setAttribute(Qt::WA_DeleteOnClose);
     videoPreview->show();
-//    DlgCdgPreview *cdgPreviewDialog = new DlgCdgPreview(this);
-//    cdgPreviewDialog->setAttribute(Qt::WA_DeleteOnClose);
-//    cdgPreviewDialog->setSourceFile(dbRtClickFile);
-//    cdgPreviewDialog->preview();
 }
 
 void MainWindow::editSong() {
@@ -2885,7 +2871,6 @@ void MainWindow::on_actionPlaylistImport_triggered() {
             }
         }
         query.exec("COMMIT TRANSACTION");
-        //bmDbModel->select();
         bmDbModel.loadDatabase();
         QApplication::processEvents();
         QList<int> songIds;
@@ -3203,56 +3188,18 @@ void MainWindow::appFontChanged(const QFont &font) {
     int cvwWidth = std::max(300, fm.width("Total: 00:00  Current:00:00  Remain: 00:00"));
 #endif
     logger->info("{} Resizing videoPreview to width: {}", m_loggingPrefix, cvwWidth);
-//    ui->cdgFrame->setMinimumWidth(cvwWidth);
-//    ui->cdgFrame->setMaximumWidth(cvwWidth);
-//    ui->mediaFrame->setMinimumWidth(cvwWidth);
-//    ui->mediaFrame->setMaximumWidth(cvwWidth);
-
     QSize mcbSize(fm.height(), fm.height());
     if (mcbSize.width() < 32) {
         mcbSize.setWidth(32);
         mcbSize.setHeight(32);
     }
-//    ui->buttonStop->resize(mcbSize);
-//    ui->buttonPause->resize(mcbSize);
-//    ui->buttonStop->setIconSize(mcbSize);
-//    ui->buttonPause->setIconSize(mcbSize);
-//    ui->buttonStop->setIcon(style()->standardIcon(QStyle::SP_MediaStop));
-//    ui->buttonPause->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
-
     ui->buttonBmStop->resize(mcbSize);
     ui->buttonBmPause->resize(mcbSize);
     ui->buttonBmStop->setIconSize(mcbSize);
     ui->buttonBmPause->setIconSize(mcbSize);
     ui->buttonBmStop->setIcon(style()->standardIcon(QStyle::SP_MediaStop));
     ui->buttonBmPause->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
-
-//    ui->pushButton->resize(mcbSize);
-//    ui->pushButton->setIcon(QIcon(QPixmap(":/Icons/system-search2.png").scaled(mcbSize)));
-//    ui->pushButton->setIconSize(mcbSize);
-
-//    ui->buttonBmSearch->resize(mcbSize);
-//    ui->buttonBmSearch->setIcon(QIcon(QPixmap(":/Icons/system-search2.png").scaled(mcbSize)));
-//    ui->buttonBmSearch->setIconSize(mcbSize);
-
-//    ui->buttonAddSinger->resize(mcbSize);
-//    ui->buttonAddSinger->setIcon(QIcon(QPixmap(":/Icons/breeze-dark/list-add-user.svg").scaled(mcbSize)));
-//    ui->buttonAddSinger->setIconSize(mcbSize);
-
-//    ui->buttonClearRotation->resize(mcbSize);
-//    ui->buttonClearRotation->setIcon(QIcon(QPixmap(":/Icons/breeze-dark/edit-delete.svg").scaled(mcbSize)));
-//    ui->buttonClearRotation->setIconSize(mcbSize);
-
-//    ui->buttonClearQueue->resize(mcbSize);
-//    ui->buttonClearQueue->setIcon(QIcon(QPixmap(":/Icons/breeze-dark/edit-delete.svg").scaled(mcbSize)));
-//    ui->buttonClearQueue->setIconSize(mcbSize);
-
-//    ui->buttonRegulars->resize(mcbSize);
-//    ui->buttonRegulars->setIcon(QIcon(QPixmap(":/Icons/breeze-dark/user-others.svg").scaled(mcbSize)));
-//    ui->buttonRegulars->setIconSize(mcbSize);
-
     autosizeViews();
-
 }
 
 void MainWindow::resizeRotation() {
@@ -3290,9 +3237,6 @@ void MainWindow::autosizeViews() {
     ui->tableViewDB->horizontalHeader()->resizeSection(TableModelKaraokeSongs::COL_LASTPLAY, lastPlayColSize);
     resizeRotation();
     autosizeQueue();
-//    ui->tableViewQueue->horizontalHeader()->resizeSection(7, playsColSize);
-//    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(7, QHeaderView::Fixed);
-
 }
 
 void MainWindow::autosizeQueue() {
@@ -3376,7 +3320,6 @@ void MainWindow::autosizeBmViews() {
 
 
     remainingSpace = ui->tableViewBmPlaylist->width() - durationColSize - (iconWidth * 2) - 15;
-    //5=filename  6=Duration 3=artist 4=title
     if (settings.bmShowMetadata() && settings.bmShowFilenames()) {
         artistColSize = (float) remainingSpace * .25;
         titleColSize = (float) remainingSpace * .25;
@@ -3840,16 +3783,6 @@ void MainWindow::on_actionKaraoke_torture_triggered() {
                 ui->tableViewDB->selectionModel()->selectedRows(TableModelKaraokeSongs::COL_ID).at(0).data().toInt()),
              true);
         ui->labelSinger->setText("Torture run (" + QString::number(++runs) + ")");
-//       QSqlQuery query;
-//       query.prepare("SELECT songid,artist,title,discid,path FROM dbsongs WHERE songid >= (abs(random()) % (SELECT max(songid) FROM dbsongs))LIMIT 1");
-//       query.exec();
-//       if (!query.next())
-//           logger->info("{} Unable to find song in db!";
-//       auto artist = query.value("artist").toString();
-//       auto title = query.value("title").toString();
-//       auto songId = query.value("discid").toString();
-//       auto path = query.value("path").toString();
-//       logger->info("{} Torture test playing: " << path;
     });
     m_timerTest.start(4000);
 #endif
@@ -3892,16 +3825,6 @@ void MainWindow::on_actionK_B_torture_triggered() {
         play(ui->tableViewDB->selectionModel()->selectedRows(5).at(0).data().toString(), false);
         ui->labelSinger->setText("Torture run (" + QString::number(++runs) + ")");
         playing = true;
-//       QSqlQuery query;
-//       query.prepare("SELECT songid,artist,title,discid,path FROM dbsongs WHERE songid >= (abs(random()) % (SELECT max(songid) FROM dbsongs))LIMIT 1");
-//       query.exec();
-//       if (!query.next())
-//           logger->info("{} Unable to find song in db!";
-//       auto artist = query.value("artist").toString();
-//       auto title = query.value("title").toString();
-//       auto songId = query.value("discid").toString();
-//       auto path = query.value("path").toString();
-//       logger->info("{} Torture test playing: " << path;
     });
     m_timerTest.start(2000);
 #endif
@@ -3914,7 +3837,6 @@ void MainWindow::on_actionBurn_in_triggered() {
     for (auto i = 0; i < 21; i++) {
         auto singerName = "Test Singer " + QString::number(i);
         rotModel.singerAdd(singerName);
-        // rotModel.regularDelete(singerName);
     }
     connect(&m_timerTest, &QTimer::timeout, [&]() {
         QApplication::beep();

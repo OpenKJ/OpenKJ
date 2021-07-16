@@ -157,7 +157,7 @@ private:
     QShortcut *scutDeleteSong{nullptr};
     QShortcut *scutDeletePlSong{nullptr};
     QWidget *historyTabWidget;
-    void addSfxButton(const QString &filename, const QString &label, const bool &reset = false);
+    void addSfxButton(const QString &filename, const QString &label, const bool reset = false);
     void refreshSfxButtons();
     SfxEntry lastRtClickedSfxBtn;
     LazyDurationUpdateController *lazyDurationUpdater;

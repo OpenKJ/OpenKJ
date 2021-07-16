@@ -2,17 +2,15 @@
 #include <QMouseEvent>
 #include <QDebug>
 
-SoundFxButton::SoundFxButton()
-{
-
+SoundFxButton::SoundFxButton(const QVariant &data, const QString &label) {
+    setButtonData(data);
+    setText(label);
 }
 
-void SoundFxButton::setButtonData(QVariant data)
+void SoundFxButton::setButtonData(const QVariant &data)
 {
     this->data = data;
 }
-
-
 
 void SoundFxButton::mouseReleaseEvent(QMouseEvent *event)
 {
@@ -24,3 +22,5 @@ void SoundFxButton::mouseReleaseEvent(QMouseEvent *event)
     }
     QAbstractButton::mouseReleaseEvent(event);
 }
+
+
