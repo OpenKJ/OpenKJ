@@ -25,7 +25,6 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QSqlQuery>
-#include <QDebug>
 #include <QtConcurrent>
 
 BmDbDialog::BmDbDialog(QSqlDatabase db, QWidget *parent) :

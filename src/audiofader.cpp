@@ -24,164 +24,134 @@
 #include <spdlog/spdlog.h>
 
 
-void AudioFader::setVolume(double volume)
-{
-    //qInfo() << objName << "setVolume(" << volume << ")";
-    gst_stream_volume_set_volume(GST_STREAM_VOLUME(volumeElement), GST_STREAM_VOLUME_FORMAT_CUBIC, volume);
+void AudioFader::setVolume(double volume) {
+    gst_stream_volume_set_volume(GST_STREAM_VOLUME(m_volumeElement), GST_STREAM_VOLUME_FORMAT_CUBIC, volume);
     emit volumeChanged(volume);
 }
 
-void AudioFader::immediateIn()
-{
-    logger->debug("[{}] Immediate IN requested", objName.toStdString());
-    timer->stop();
-    //g_object_set(volumeElement, "mute", false, nullptr);
-    if (volume() == 1.0 && curState == FadedIn)
+void AudioFader::immediateIn() {
+    m_logger->debug("[{}] Immediate IN requested", m_objName.toStdString());
+    m_timer.stop();
+    if (volume() == 1.0 && m_curState == FadedIn)
         return;
     setVolume(1.0);
-    curState = FadedIn;
-    emit faderStateChanged(curState);
+    m_curState = FadedIn;
+    emit faderStateChanged(m_curState);
 }
 
-void AudioFader::immediateOut()
-{
-    logger->debug("[{}] Immediate OUT requested", objName.toStdString());
-
-    timer->stop();
+void AudioFader::immediateOut() {
+    m_logger->debug("[{}] Immediate OUT requested", m_objName.toStdString());
+    m_timer.stop();
     setVolume(0);
-    //g_object_set(volumeElement, "mute", true, nullptr);
-    curState = FadedOut;
-    emit faderStateChanged(curState);
+    m_curState = FadedOut;
+    emit faderStateChanged(m_curState);
 }
 
-AudioFader::FaderState AudioFader::state()
-{
-    return curState;
+AudioFader::FaderState AudioFader::state() {
+    return m_curState;
 }
 
-void AudioFader::setVolumeElement(GstElement *volumeElement)
-{
-    logger->trace("[{}] setVolumeElement called", objName.toStdString());
-    this->volumeElement = volumeElement;
+void AudioFader::setVolumeElement(GstElement *volumeElement) {
+    m_logger->trace("[{}] setVolumeElement called", m_objName.toStdString());
+    this->m_volumeElement = volumeElement;
 }
 
-void AudioFader::setObjName(QString name)
-{
-    objName = name;
+void AudioFader::setObjName(const QString &name) {
+    m_objName = name;
 }
 
 bool AudioFader::isFading() {
-    if (curState == FadingIn || curState == FadingOut)
+    if (m_curState == FadingIn || m_curState == FadingOut)
         return true;
     return false;
 }
 
-double AudioFader::volume()
-{
-    return gst_stream_volume_get_volume(GST_STREAM_VOLUME(volumeElement), GST_STREAM_VOLUME_FORMAT_CUBIC);
+double AudioFader::volume() {
+    return gst_stream_volume_get_volume(GST_STREAM_VOLUME(m_volumeElement), GST_STREAM_VOLUME_FORMAT_CUBIC);
 }
 
-AudioFader::AudioFader(QObject *parent) : QObject(parent)
-{
-    logger = spdlog::get("logger");
-    curState = FadedIn;
-    emit faderStateChanged(curState);
-    targetVol = 0;
-    timer = new QTimer(this);
-    timer->setInterval(100);
-    connect(timer, SIGNAL(timeout()), this, SLOT(timerTimeout()));
+AudioFader::AudioFader(QObject *parent) : QObject(parent) {
+    m_logger = spdlog::get("logger");
+    m_timer.setInterval(100);
+    connect(&m_timer, &QTimer::timeout, this, &AudioFader::timerTimeout);
 }
 
-QString AudioFader::stateToStr(AudioFader::FaderState state)
-{
-    switch (state)
-    {
-    case AudioFader::FadedIn:
-        return "AudioFader::FadedIn";
-    case AudioFader::FadingIn:
-        return "AudioFader::FadingIn";
-    case AudioFader::FadedOut:
-        return "AudioFader::FadedOut";
-    case AudioFader::FadingOut:
-        return "AudioFader::FadingOut";
+std::string AudioFader::stateToStr(AudioFader::FaderState state) {
+    switch (state) {
+        case AudioFader::FadedIn:
+            return "AudioFader::FadedIn";
+        case AudioFader::FadingIn:
+            return "AudioFader::FadingIn";
+        case AudioFader::FadedOut:
+            return "AudioFader::FadedOut";
+        case AudioFader::FadingOut:
+            return "AudioFader::FadingOut";
     }
     return "Unknown";
 }
 
 void AudioFader::fadeOut(bool block) {
-    logger->debug("[{}] Fade OUT requested - blocking: {}", objName.toStdString(), block);
+    m_logger->debug("[{}] Fade OUT requested - blocking: {}", m_objName.toStdString(), block);
     emit fadeStarted();
-    targetVol = 0;
-    curState = FadingOut;
-    emit faderStateChanged(curState);
-    timer->start();
+    m_targetVol = 0;
+    m_curState = FadingOut;
+    emit faderStateChanged(FadingOut);
+    m_timer.start();
     if (!block)
         return;
-    logger->debug("[{}] Waiting for fade to complete", objName.toStdString());
-    while (volume() != targetVol && curState == FadingOut) {
+    m_logger->debug("[{}] Waiting for fade to complete", m_objName.toStdString());
+    while (volume() != m_targetVol && m_curState == FadingOut) {
         QApplication::processEvents();
     }
-    logger->debug("[{}] Fade completed", objName.toStdString());
+    m_logger->debug("[{}] Fade completed", m_objName.toStdString());
 }
 
-void AudioFader::fadeIn(bool block)
-{
-    logger->debug("[{}] Fade IN requested - blocking: {}", objName.toStdString(), block);
+void AudioFader::fadeIn(bool block) {
+    m_logger->debug("[{}] Fade IN requested - blocking: {}", m_objName.toStdString(), block);
     emit fadeStarted();
-    targetVol = 1.0;
-    curState = FadingIn;
-    emit faderStateChanged(curState);
-    //g_object_set(volumeElement, "mute", false, nullptr);
-    timer->start();
+    m_targetVol = 1.0;
+    m_curState = FadingIn;
+    emit faderStateChanged(FadingIn);
+    m_timer.start();
     if (!block)
         return;
-        while (volume() != targetVol && curState == FadingIn)
-        {
-            QApplication::processEvents();
-        }
-    logger->debug("[{}] Fade completed", objName.toStdString());
+    while (volume() != m_targetVol && m_curState == FadingIn) {
+        QApplication::processEvents();
+    }
+    m_logger->debug("[{}] Fade completed", m_objName.toStdString());
 }
 
-void AudioFader::timerTimeout()
-{
-    //qInfo() << objName << " - Timer - Current: " << volume() << " Target: " << targetVol;
+void AudioFader::timerTimeout() {
     double increment = .05;
-    if (isFading())
-    {
-        if (volume() == targetVol)
-        {
-            logger->debug("[{}] Target volume reached", objName.toStdString());
-            timer->stop();
-            if (curState == FadingOut)
-                curState = FadedOut;
-            if (curState == FadingIn)
-                curState = FadedIn;
-            emit faderStateChanged(curState);
+    if (isFading()) {
+        if (volume() == m_targetVol) {
+            m_logger->debug("[{}] Target volume reached", m_objName.toStdString());
+            m_timer.stop();
+            if (m_curState == FadingOut)
+                m_curState = FadedOut;
+            else
+                m_curState = FadedIn;
+            emit faderStateChanged(m_curState);
             emit fadeComplete();
             return;
         }
-        if (volume() > targetVol)
-        {
-            if ((volume() - increment) < targetVol)
-            {
-                setVolume(targetVol);
-                timer->stop();
-                curState = FadedOut;
-                //g_object_set(volumeElement, "mute", true, nullptr);
-                emit faderStateChanged(curState);
+        else if (volume() > m_targetVol) {
+            if ((volume() - increment) < m_targetVol) {
+                setVolume(m_targetVol);
+                m_timer.stop();
+                m_curState = FadedOut;
+                emit faderStateChanged(FadedOut);
                 emit fadeComplete();
                 return;
             }
             setVolume(volume() - increment);
         }
-        if (volume() < targetVol)
-        {
-            if ((volume() + increment) > targetVol)
-            {
-                setVolume(targetVol);
-                timer->stop();
-                curState = FadedIn;
-                emit faderStateChanged(curState);
+        else if (volume() < m_targetVol) {
+            if ((volume() + increment) > m_targetVol) {
+                setVolume(m_targetVol);
+                m_timer.stop();
+                m_curState = FadedIn;
+                emit faderStateChanged(FadedIn);
                 emit fadeComplete();
                 return;
             }

@@ -845,7 +845,7 @@ void MediaBackend::buildAudioSinkBin()
     m_aConvEnd = gst_element_factory_make("audioconvert", "aConvEnd");
     m_fltrPostPanorama = gst_element_factory_make("capsfilter", "fltrPostPanorama");
     g_object_set(m_fltrPostPanorama, "caps", m_audioCapsStereo, nullptr);
-    m_volumeElement = gst_element_factory_make("volume", "volumeElement");
+    m_volumeElement = gst_element_factory_make("volume", "m_volumeElement");
     auto queueMainAudio = gst_element_factory_make("queue", "queueMainAudio");
     auto queueEndAudio = gst_element_factory_make("queue", "queueEndAudio");
     auto audioResample = gst_element_factory_make("audioresample", "audioResample");
@@ -923,7 +923,7 @@ void MediaBackend::buildAudioSinkBin()
         logger->debug("{} Fade operation completed", m_loggingPrefix);
     });
     connect(m_fader, &AudioFader::faderStateChanged, [&] (auto state) {
-        logger->debug("{} Fader state changed to: ", m_loggingPrefix, m_fader->stateToStr(state).toStdString());
+        logger->debug("{} Fader state changed to: ", m_loggingPrefix, m_fader->stateToStr(state));
     });
 }
 
