@@ -37,7 +37,7 @@ class BmDbDialog : public QDialog
     
 public:
     explicit BmDbDialog(QSqlDatabase db, QWidget *parent = 0);
-    ~BmDbDialog();
+    ~BmDbDialog() override;
     
 private slots:
     void on_pushButtonAdd_clicked();
@@ -68,4 +68,4 @@ private:
 
 };
 
-#endif // DATABASEDIALOG_H
+#endif // BMDBDIALOG_H

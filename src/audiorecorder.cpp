@@ -81,8 +81,8 @@ void AudioRecorder::initGStreamer() {
     logger->debug("{} Elements created, adding to pipeline and linking", m_loggingPrefix);
     g_object_set(m_vorbisEnc, "quality", 0.9, nullptr);
 #ifdef Q_OS_WIN
-    gst_bin_add_many(GST_BIN (pipeline), m_autoAudioSrc, audioRate, audioConvert, lameMp3Enc, wavEnc, vorbisEnc, oggMux, fileSink, nullptr);
-    bool result = gst_element_link_many(m_autoAudioSrc, audioRate, audioConvert, vorbisEnc, oggMux, fileSink, nullptr);
+    gst_bin_add_many(GST_BIN (pipeline), m_autoAudioSrc, m_audioRate, m_audioConvert, m_lameMp3Enc, m_wavEnc, m_vorbisEnc, m_oggMux, m_fileSink, nullptr);
+    bool result = gst_element_link_many(m_autoAudioSrc, m_audioRate, m_audioConvert, m_vorbisEnc, m_oggMux, m_fileSink, nullptr);
 #else
     gst_bin_add_many(GST_BIN (m_pipeline), m_audioSrc, m_audioRate, m_audioConvert, m_lameMp3Enc, m_wavEnc, m_vorbisEnc, m_oggMux,
                      m_fileSink, nullptr);

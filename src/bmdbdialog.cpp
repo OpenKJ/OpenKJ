@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2021 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -64,14 +64,9 @@ void BmDbDialog::on_pushButtonUpdate_clicked()
 {
     if (selectedDirectoryIdx >= 0)
     {
-        //emit bmDbAboutToUpdate();
         dbUpdateDlg->reset();
         dbUpdateDlg->show();
-        //QMessageBox *msgBox = new QMessageBox(this);
-        //msgBox->setStandardButtons(0);
-        //msgBox->setText("Updating Database, please wait...");
-        //msgBox->show();
-        BmDbUpdateThread *thread = new BmDbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "bmThreadDb"),this);
+        auto thread = new BmDbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "bmThreadDb"),this);
         thread->setPath(pathsModel->data(pathsModel->index(selectedDirectoryIdx, 0)).toString());
         dbUpdateDlg->changeDirectory(pathsModel->data(pathsModel->index(selectedDirectoryIdx, 0)).toString());
         connect(thread, SIGNAL(progressMessage(QString)), dbUpdateDlg, SLOT(addProgressMsg(QString)));
@@ -79,14 +74,10 @@ void BmDbDialog::on_pushButtonUpdate_clicked()
         connect(thread, SIGNAL(progressMaxChanged(int)), dbUpdateDlg, SLOT(setProgressMax(int)));
         connect(thread, SIGNAL(progressChanged(int)), dbUpdateDlg, SLOT(changeProgress(int)));
         thread->startUnthreaded();
-//        while (thread->isRunning())
-//            QApplication::processEvents();
-        //msgBox->close();
         QMessageBox::information(this, tr("Update Complete"), tr("Database update complete."));
         dbUpdateDlg->hide();
         emit bmDbUpdated();
         delete(thread);
-        //delete msgBox;
     }
 }
 
@@ -94,15 +85,10 @@ void BmDbDialog::on_pushButtonUpdateAll_clicked()
 {
     dbUpdateDlg->reset();
     dbUpdateDlg->show();
-    //emit bmDbAboutToUpdate();
-    //QMessageBox *msgBox = new QMessageBox(this);
-    //msgBox->setStandardButtons(0);
-    //msgBox->setText("Updating Database, please wait...");
-    //msgBox->show();
     for (int i=0; i < pathsModel->rowCount(); i++)
     {
         QApplication::processEvents();
-        BmDbUpdateThread *thread = new BmDbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "bmThreadDb"),this);
+        auto thread = new BmDbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "bmThreadDb"),this);
         thread->setPath(pathsModel->data(pathsModel->index(i, 0)).toString());
         dbUpdateDlg->changeDirectory(pathsModel->data(pathsModel->index(i, 0)).toString());
         connect(thread, SIGNAL(progressMessage(QString)), dbUpdateDlg, SLOT(addProgressMsg(QString)));
@@ -110,11 +96,8 @@ void BmDbDialog::on_pushButtonUpdateAll_clicked()
         connect(thread, SIGNAL(progressMaxChanged(int)), dbUpdateDlg, SLOT(setProgressMax(int)));
         connect(thread, SIGNAL(progressChanged(int)), dbUpdateDlg, SLOT(changeProgress(int)));
         thread->startUnthreaded();
-//        while (thread->isRunning())
-//            QApplication::processEvents();
         delete(thread);
     }
-    //msgBox->close();
     QMessageBox::information(this, tr("Update Complete"), tr("Database update complete."));
     dbUpdateDlg->hide();
     emit bmDbUpdated();
