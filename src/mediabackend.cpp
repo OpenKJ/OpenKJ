@@ -923,7 +923,7 @@ void MediaBackend::buildAudioSinkBin()
         logger->debug("{} Fade operation completed", m_loggingPrefix);
     });
     connect(m_fader, &AudioFader::faderStateChanged, [&] (auto state) {
-        logger->debug("{} Fader state changed to: ", m_loggingPrefix, m_fader->stateToStr(state));
+        logger->debug("{} Fader state changed to: {}", m_loggingPrefix, m_fader->stateToStr(state));
     });
 }
 
