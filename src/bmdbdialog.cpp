@@ -61,7 +61,7 @@ void BmDbDialog::pushButtonUpdateClicked() {
     auto path = selIndex.sibling(selIndex.row(), 0).data().toString();
     m_dbUpdateDlg.reset();
     m_dbUpdateDlg.show();
-    auto thread = new BmDbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "bmThreadDb"), this);
+    auto thread = new BmDbUpdateThread(this);
     thread->setPath(path);
     m_dbUpdateDlg.changeDirectory(path);
     connect(thread, SIGNAL(progressMessage(QString)), &m_dbUpdateDlg, SLOT(addProgressMsg(QString)));
@@ -80,7 +80,7 @@ void BmDbDialog::pushButtonUpdateAllClicked() {
     m_dbUpdateDlg.show();
     for (int i = 0; i < m_pathsModel.rowCount(); i++) {
         QApplication::processEvents();
-        auto thread = new BmDbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "bmThreadDb"), this);
+        auto thread = new BmDbUpdateThread(this);
         thread->setPath(m_pathsModel.data(m_pathsModel.index(i, 0)).toString());
         m_dbUpdateDlg.changeDirectory(m_pathsModel.data(m_pathsModel.index(i, 0)).toString());
         connect(thread, SIGNAL(progressMessage(QString)), &m_dbUpdateDlg, SLOT(addProgressMsg(QString)));

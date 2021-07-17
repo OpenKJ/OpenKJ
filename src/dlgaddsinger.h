@@ -13,22 +13,21 @@ class DlgAddSinger : public QDialog
     Q_OBJECT
 
 public:
-    explicit DlgAddSinger(TableModelRotation *rotModel, QWidget *parent = 0);
-    ~DlgAddSinger();
+    explicit DlgAddSinger(TableModelRotation &rotationModel, QWidget *parent = nullptr);
+    ~DlgAddSinger() override;
 
 private slots:
-    void on_buttonBox_accepted();
+    void addSinger();
 
 private:
-    Ui::DlgAddSinger *ui;
-    TableModelRotation *rotModel;
+    std::unique_ptr<Ui::DlgAddSinger> ui;
+    TableModelRotation &m_rotModel;
 
-    // QWidget interface
 protected:
     void showEvent(QShowEvent *event) override;
 
 signals:
-    void newSingerAdded(const int position);
+    void newSingerAdded(int position);
 };
 
 #endif // DLGADDSINGER_H

@@ -27,10 +27,9 @@
 #include "tagreader.h"
 #include <QtConcurrent>
 
-BmDbUpdateThread::BmDbUpdateThread(QSqlDatabase db, QObject *parent) :
+BmDbUpdateThread::BmDbUpdateThread(QObject *parent) :
     QThread(parent)
 {
-    database = db;
     supportedExtensions.append(".mp3");
     supportedExtensions.append(".wav");
     supportedExtensions.append(".ogg");
@@ -53,7 +52,7 @@ void BmDbUpdateThread::setPath(const QString &path)
     m_path = path;
 }
 
-QStringList BmDbUpdateThread::findMediaFiles(QString directory)
+QStringList BmDbUpdateThread::findMediaFiles(const QString& directory)
 {
     QStringList files;
     QDir dir(directory);

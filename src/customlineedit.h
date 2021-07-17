@@ -6,11 +6,11 @@ class CustomLineEdit : public QLineEdit
 {
     Q_OBJECT
 public:
-    CustomLineEdit(QWidget *parent);
+    explicit CustomLineEdit(QWidget *parent = nullptr);
 
     // QWidget interface
 protected:
-    void keyPressEvent(QKeyEvent *event);
+    void keyPressEvent(QKeyEvent *event) override;
 signals:
     void escapePressed();
 };

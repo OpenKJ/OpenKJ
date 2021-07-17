@@ -681,7 +681,7 @@ MainWindow::MainWindow(QWidget *parent) :
     requestsDialog->setModal(false);
     dlgBookCreator = new DlgBookCreator(this);
     dlgEq = new DlgEq(this);
-    dlgAddSinger = new DlgAddSinger(&rotModel, this);
+    dlgAddSinger = new DlgAddSinger(rotModel, this);
     connect(dlgAddSinger, &DlgAddSinger::newSingerAdded, [&](auto pos) {
         ui->tableViewRotation->selectRow(pos);
         ui->lineEdit->setFocus();
@@ -1423,7 +1423,7 @@ void MainWindow::on_lineEdit_returnPressed() {
 
 void MainWindow::on_tableViewDB_doubleClicked(const QModelIndex &index) {
     if (settings.dbDoubleClickAddsSong()) {
-        auto addSongDlg = new DlgAddSong(&rotModel, &qModel, index.sibling(index.row(), 0).data().toInt(), this);
+        auto addSongDlg = new DlgAddSong(rotModel, qModel, index.sibling(index.row(), 0).data().toInt(), this);
         connect(addSongDlg, &DlgAddSong::newSingerAdded, [&](auto pos) {
             ui->tableViewRotation->selectRow(pos);
             ui->lineEdit->setFocus();

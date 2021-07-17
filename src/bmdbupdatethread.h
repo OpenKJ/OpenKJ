@@ -29,10 +29,10 @@ class BmDbUpdateThread : public QThread
 {
     Q_OBJECT
 public:
-    explicit BmDbUpdateThread(QSqlDatabase db, QObject *parent = 0);
-    void run();
+    explicit BmDbUpdateThread(QObject *parent = nullptr);
+    void run() override;
     void startUnthreaded();
-    QString path() const;
+    [[nodiscard]] QString path() const;
     void setPath(const QString &path);
 
 signals:
@@ -45,11 +45,11 @@ public slots:
 
 private:
     QString m_path;
-    QStringList findMediaFiles(QString directory);
+    QStringList findMediaFiles(const QString& directory);
     QStringList supportedExtensions;
     QSqlDatabase database;
 
     
 };
 
-#endif // DATABASEUPDATETHREAD_H
+#endif // BMDBUPDATETHREAD_H
