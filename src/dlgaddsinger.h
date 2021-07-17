@@ -1,6 +1,7 @@
 #ifndef DLGADDSINGER_H
 #define DLGADDSINGER_H
 
+#include <memory>
 #include <QDialog>
 #include <src/models/tablemodelrotation.h>
 

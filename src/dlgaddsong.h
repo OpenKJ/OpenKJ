@@ -1,6 +1,7 @@
 #ifndef DLGADDSONG_H
 #define DLGADDSONG_H
 
+#include <memory>
 #include <QButtonGroup>
 #include <QDialog>
 #include "src/models/tablemodelrotation.h"

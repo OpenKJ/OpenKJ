@@ -21,6 +21,7 @@
 #ifndef BMDBDIALOG_H
 #define BMDBDIALOG_H
 
+#include <memory>
 #include <QDialog>
 #include <QSqlTableModel>
 #include <QSqlDatabase>
