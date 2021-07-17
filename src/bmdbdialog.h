@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2021 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -36,23 +36,15 @@ class BmDbDialog : public QDialog
     Q_OBJECT
     
 public:
-    explicit BmDbDialog(QSqlDatabase db, QWidget *parent = 0);
+    explicit BmDbDialog(QWidget *parent = nullptr);
     ~BmDbDialog() override;
-    
+
 private slots:
-    void on_pushButtonAdd_clicked();
-
-    void on_pushButtonUpdateAll_clicked();
-
-    void on_pushButtonClose_clicked();
-
-    void on_pushButtonClearDb_clicked();
-
-    void on_pushButtonDelete_clicked();
-
-    void on_tableViewPaths_clicked(const QModelIndex &index);
-
-    void on_pushButtonUpdate_clicked();
+    void pushButtonAddClicked();
+    void pushButtonUpdateAllClicked();
+    void pushButtonClearDbClicked();
+    void pushButtonDeleteClicked();
+    void pushButtonUpdateClicked();
 
 signals:
     void bmDbAboutToUpdate();
@@ -60,12 +52,9 @@ signals:
     void bmDbCleared();
 
 private:
-    Ui::BmDbDialog *ui;
-    QSqlTableModel *pathsModel;
-    int selectedDirectoryIdx;
-    QSqlDatabase m_db;
-    DlgDbUpdate *dbUpdateDlg;
-
+    std::unique_ptr<Ui::BmDbDialog> ui;
+    QSqlTableModel m_pathsModel;
+    DlgDbUpdate m_dbUpdateDlg{this};
 };
 
 #endif // BMDBDIALOG_H

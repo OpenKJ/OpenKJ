@@ -21,127 +21,103 @@
 #include "bmdbdialog.h"
 #include "ui_bmdbdialog.h"
 #include "bmdbupdatethread.h"
-#include "tagreader.h"
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QSqlQuery>
-#include <QtConcurrent>
 
-BmDbDialog::BmDbDialog(QSqlDatabase db, QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::BmDbDialog)
-{
-    m_db = db;
+BmDbDialog::BmDbDialog(QWidget *parent) :
+        QDialog(parent),
+        ui(new Ui::BmDbDialog) {
     ui->setupUi(this);
-    pathsModel = new QSqlTableModel(this, db);
-    pathsModel->setTable("bmsrcdirs");
-    pathsModel->select();
-    ui->tableViewPaths->setModel(pathsModel);
-    pathsModel->sort(0, Qt::AscendingOrder);
-    selectedDirectoryIdx = -1;
-    dbUpdateDlg = new DlgDbUpdate(this);
+    m_pathsModel.setTable("bmsrcdirs");
+    m_pathsModel.select();
+    ui->tableViewPaths->setModel(&m_pathsModel);
+    m_pathsModel.sort(0, Qt::AscendingOrder);
+    connect(ui->pushButtonAdd, &QPushButton::clicked, this, &BmDbDialog::pushButtonAddClicked);
+    connect(ui->pushButtonClearDb, &QPushButton::clicked, this, &BmDbDialog::pushButtonClearDbClicked);
+    connect(ui->pushButtonClose, &QPushButton::clicked, this, &BmDbDialog::close);
+    connect(ui->pushButtonDelete, &QPushButton::clicked, this, &BmDbDialog::pushButtonDeleteClicked);
+    connect(ui->pushButtonUpdate, &QPushButton::clicked, this, &BmDbDialog::pushButtonUpdateClicked);
+    connect(ui->pushButtonUpdateAll, &QPushButton::clicked, this, &BmDbDialog::pushButtonUpdateAllClicked);
 }
 
-BmDbDialog::~BmDbDialog()
-{
-    delete ui;
-}
+// This is here instead of the header to make moc & std::unique_ptr happy
+BmDbDialog::~BmDbDialog() = default;
 
-void BmDbDialog::on_pushButtonAdd_clicked()
-{
+void BmDbDialog::pushButtonAddClicked() {
     QString fileName = QFileDialog::getExistingDirectory(this);
-    if (fileName != "")
-    {
-        pathsModel->insertRow(pathsModel->rowCount());
-        pathsModel->setData(pathsModel->index(pathsModel->rowCount() - 1, 0), fileName);
-        pathsModel->submitAll();
+    if (fileName != "") {
+        m_pathsModel.insertRow(m_pathsModel.rowCount());
+        m_pathsModel.setData(m_pathsModel.index(m_pathsModel.rowCount() - 1, 0), fileName);
+        m_pathsModel.submitAll();
     }
 }
 
 
-
-void BmDbDialog::on_pushButtonUpdate_clicked()
-{
-    if (selectedDirectoryIdx >= 0)
-    {
-        dbUpdateDlg->reset();
-        dbUpdateDlg->show();
-        auto thread = new BmDbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "bmThreadDb"),this);
-        thread->setPath(pathsModel->data(pathsModel->index(selectedDirectoryIdx, 0)).toString());
-        dbUpdateDlg->changeDirectory(pathsModel->data(pathsModel->index(selectedDirectoryIdx, 0)).toString());
-        connect(thread, SIGNAL(progressMessage(QString)), dbUpdateDlg, SLOT(addProgressMsg(QString)));
-        connect(thread, SIGNAL(stateChanged(QString)), dbUpdateDlg, SLOT(changeStatusTxt(QString)));
-        connect(thread, SIGNAL(progressMaxChanged(int)), dbUpdateDlg, SLOT(setProgressMax(int)));
-        connect(thread, SIGNAL(progressChanged(int)), dbUpdateDlg, SLOT(changeProgress(int)));
-        thread->startUnthreaded();
-        QMessageBox::information(this, tr("Update Complete"), tr("Database update complete."));
-        dbUpdateDlg->hide();
-        emit bmDbUpdated();
-        delete(thread);
-    }
+void BmDbDialog::pushButtonUpdateClicked() {
+    if (ui->tableViewPaths->selectionModel()->selectedIndexes().empty())
+        return;
+    auto selIndex = ui->tableViewPaths->selectionModel()->selectedIndexes().at(0);
+    auto path = selIndex.sibling(selIndex.row(), 0).data().toString();
+    m_dbUpdateDlg.reset();
+    m_dbUpdateDlg.show();
+    auto thread = new BmDbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "bmThreadDb"), this);
+    thread->setPath(path);
+    m_dbUpdateDlg.changeDirectory(path);
+    connect(thread, SIGNAL(progressMessage(QString)), &m_dbUpdateDlg, SLOT(addProgressMsg(QString)));
+    connect(thread, SIGNAL(stateChanged(QString)), &m_dbUpdateDlg, SLOT(changeStatusTxt(QString)));
+    connect(thread, SIGNAL(progressMaxChanged(int)), &m_dbUpdateDlg, SLOT(setProgressMax(int)));
+    connect(thread, SIGNAL(progressChanged(int)), &m_dbUpdateDlg, SLOT(changeProgress(int)));
+    thread->startUnthreaded();
+    QMessageBox::information(this, tr("Update Complete"), tr("Database update complete."));
+    m_dbUpdateDlg.hide();
+    emit bmDbUpdated();
+    delete (thread);
 }
 
-void BmDbDialog::on_pushButtonUpdateAll_clicked()
-{
-    dbUpdateDlg->reset();
-    dbUpdateDlg->show();
-    for (int i=0; i < pathsModel->rowCount(); i++)
-    {
+void BmDbDialog::pushButtonUpdateAllClicked() {
+    m_dbUpdateDlg.reset();
+    m_dbUpdateDlg.show();
+    for (int i = 0; i < m_pathsModel.rowCount(); i++) {
         QApplication::processEvents();
-        auto thread = new BmDbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "bmThreadDb"),this);
-        thread->setPath(pathsModel->data(pathsModel->index(i, 0)).toString());
-        dbUpdateDlg->changeDirectory(pathsModel->data(pathsModel->index(i, 0)).toString());
-        connect(thread, SIGNAL(progressMessage(QString)), dbUpdateDlg, SLOT(addProgressMsg(QString)));
-        connect(thread, SIGNAL(stateChanged(QString)), dbUpdateDlg, SLOT(changeStatusTxt(QString)));
-        connect(thread, SIGNAL(progressMaxChanged(int)), dbUpdateDlg, SLOT(setProgressMax(int)));
-        connect(thread, SIGNAL(progressChanged(int)), dbUpdateDlg, SLOT(changeProgress(int)));
+        auto thread = new BmDbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "bmThreadDb"), this);
+        thread->setPath(m_pathsModel.data(m_pathsModel.index(i, 0)).toString());
+        m_dbUpdateDlg.changeDirectory(m_pathsModel.data(m_pathsModel.index(i, 0)).toString());
+        connect(thread, SIGNAL(progressMessage(QString)), &m_dbUpdateDlg, SLOT(addProgressMsg(QString)));
+        connect(thread, SIGNAL(stateChanged(QString)), &m_dbUpdateDlg, SLOT(changeStatusTxt(QString)));
+        connect(thread, SIGNAL(progressMaxChanged(int)), &m_dbUpdateDlg, SLOT(setProgressMax(int)));
+        connect(thread, SIGNAL(progressChanged(int)), &m_dbUpdateDlg, SLOT(changeProgress(int)));
         thread->startUnthreaded();
-        delete(thread);
+        delete (thread);
     }
     QMessageBox::information(this, tr("Update Complete"), tr("Database update complete."));
-    dbUpdateDlg->hide();
+    m_dbUpdateDlg.hide();
     emit bmDbUpdated();
 }
 
-void BmDbDialog::on_pushButtonClose_clicked()
-{
-    close();
+void BmDbDialog::pushButtonClearDbClicked() {
+    QMessageBox msgBox(QMessageBox::Warning, "Are you sure?",
+                       "Clearing the database will also clear all playlists.  If you have not already done so, "
+                       "you may want to export your playlists before performing this operation.",
+                       QMessageBox::Cancel | QMessageBox::Yes);
+    if (msgBox.exec() != QMessageBox::Yes)
+        return;
+    QSqlQuery query;
+    query.exec("DELETE FROM bmplaylists");
+    query.exec("DELETE FROM bmplsongs");
+    query.exec("DELETE FROM bmsongs");
+    query.exec("UPDATE sqlite_sequence SET seq = 0");
+    query.exec("VACUUM");
+    m_pathsModel.select();
+    emit bmDbCleared();
 }
 
-void BmDbDialog::on_pushButtonClearDb_clicked()
-{
-    QMessageBox msgBox;
-    msgBox.setText(tr("Are you sure?"));
-    msgBox.setInformativeText(tr("Clearing the database will also clear all playlists.  If you have not already done so, you may want to export your playlists before performing this operation.  This operation can not be undone."));
-    msgBox.setIcon(QMessageBox::Warning);
-    msgBox.addButton(QMessageBox::Cancel);
-    QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
-    msgBox.exec();
-    if (msgBox.clickedButton() == yesButton) {
-        QSqlQuery query;
-        query.exec("DELETE FROM bmplaylists");
-        query.exec("DELETE FROM bmplsongs");
-        query.exec("DELETE FROM bmsongs");
-        query.exec("UPDATE sqlite_sequence SET seq = 0");
-        query.exec("VACUUM");
-        pathsModel->select();
-        emit bmDbCleared();
-    }
-}
-
-void BmDbDialog::on_pushButtonDelete_clicked()
-{
-    pathsModel->removeRow(selectedDirectoryIdx);
-    pathsModel->select();
-    pathsModel->submitAll();
-}
-
-void BmDbDialog::on_tableViewPaths_clicked(const QModelIndex &index)
-{
-    if (index.row() >= 0)
-        selectedDirectoryIdx = index.row();
-    else
-        selectedDirectoryIdx = -1;
+void BmDbDialog::pushButtonDeleteClicked() {
+    if (ui->tableViewPaths->selectionModel()->selectedIndexes().empty())
+        return;
+    m_pathsModel.removeRow(ui->tableViewPaths->selectionModel()->selectedIndexes().at(0).row());
+    m_pathsModel.select();
+    m_pathsModel.submitAll();
 }
 
 

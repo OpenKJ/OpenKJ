@@ -776,7 +776,7 @@ MainWindow::MainWindow(QWidget *parent) :
     bmPlaylistsModel = new QSqlTableModel(this, database);
     bmPlaylistsModel->setTable("bmplaylists");
     bmPlaylistsModel->sort(2, Qt::AscendingOrder);
-    bmDbDialog = new BmDbDialog(database, this);
+    bmDbDialog = new BmDbDialog(this);
     bmCurrentPlaylist = settings.bmPlaylistIndex();
     ui->comboBoxBmPlaylists->setModel(bmPlaylistsModel);
     ui->comboBoxBmPlaylists->setModelColumn(1);
