@@ -701,7 +701,7 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->lblTempo->hide();
     }
     ui->videoPreview->setFillOnPaint(true);
-    cdgWindow = new DlgCdg(&kMediaBackend, &bmMediaBackend, nullptr, Qt::Window);
+    cdgWindow = new DlgCdg(kMediaBackend, bmMediaBackend, nullptr, Qt::Window);
     settings.restoreWindowState(cdgWindow);
 
     connect(&rotModel, &TableModelRotation::songDroppedOnSinger, this, &MainWindow::songDroppedOnSinger);

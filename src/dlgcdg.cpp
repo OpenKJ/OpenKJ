@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2021 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -39,14 +39,14 @@ VideoDisplay *DlgCdg::getVideoDisplayBm()
     return ui->videoDisplayBm;
 }
 
-DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget *parent, Qt::WindowFlags f) :
+DlgCdg::DlgCdg(MediaBackend &KaraokeBackend, MediaBackend &BreakBackend, QWidget *parent, Qt::WindowFlags f) :
     QDialog(parent, f), ui(new Ui::DlgCdg), m_kmb(KaraokeBackend), m_bmb(BreakBackend)
 {
     ui->setupUi(this);
-    tWidget = new TransparentWidget(this);
-    tWidget->setObjectName("DurationTimer");
-    tWidget->show();
-    tWidget->move(settings.durationPosition());
+    m_tWidget = std::make_unique<TransparentWidget>(this);
+    m_tWidget->setObjectName("DurationTimer");
+    m_tWidget->show();
+    m_tWidget->move(settings.durationPosition());
     ui->videoDisplayKar->setFillOnPaint(false);
     ui->widgetAlert->setAutoFillBackground(true);
     ui->fsToggleWidget->hide();
@@ -55,12 +55,12 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
     ui->widgetAlert->setMouseTracking(true);
     ui->scroll->setVisible(settings.tickerEnabled());
     ui->scroll->setTickerEnabled(settings.tickerEnabled());
-    tWidget->setVisible(settings.cdgRemainEnabled());
+    m_tWidget->setVisible(settings.cdgRemainEnabled());
     ui->scroll->setFont(settings.tickerFont());
     ui->scroll->setMinimumHeight(settings.tickerHeight());
     ui->scroll->setMaximumHeight(settings.tickerHeight());
     ui->scroll->setSpeed(settings.tickerSpeed());
-    cdgRemainFontChanged(settings.cdgRemainFont());
+    m_tWidget->setTextFont(settings.cdgRemainFont());
     QPalette palette = ui->scroll->palette();
     palette.setColor(ui->scroll->foregroundRole(), settings.tickerTextColor());
     ui->scroll->setPalette(palette);
@@ -70,8 +70,8 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
     m_lastSize.setWidth(300);
     m_lastSize.setHeight(216);
     m_fullScreen = settings.cdgWindowFullscreen();
-    cdgRemainTextColorChanged(settings.cdgRemainTextColor());
-    cdgRemainBgColorChanged(settings.cdgRemainBgColor());
+    m_tWidget->setTextColor(settings.cdgRemainTextColor());
+    m_tWidget->setBackgroundColor(settings.cdgRemainBgColor());
     applyBackgroundImageMode();
     showAlert(false);
     alertFontChanged(settings.karaokeAAAlertFont());
@@ -85,7 +85,7 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
     connect(&settings, &Settings::bgModeChanged, [&] () { applyBackgroundImageMode(); });
     connect(&settings, &Settings::cdgBgImageChanged, [&] () { applyBackgroundImageMode(); });
     connect(&settings, &Settings::bgSlideShowDirChanged, [&] () { applyBackgroundImageMode(); });
-    connect(&settings, &Settings::cdgRemainEnabledChanged, tWidget, &QWidget::setVisible);
+    connect(&settings, &Settings::cdgRemainEnabledChanged, m_tWidget.get(), &TransparentWidget::setVisible);
     connect(&settings, &Settings::cdgOffsetsChanged, this, &DlgCdg::cdgOffsetsChanged);
     connect(&settings, &Settings::tickerFontChanged, this, &DlgCdg::tickerFontChanged);
     connect(&settings, &Settings::tickerHeightChanged, this, &DlgCdg::tickerHeightChanged);
@@ -93,16 +93,17 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
     connect(&settings, &Settings::tickerTextColorChanged, this, &DlgCdg::tickerTextColorChanged);
     connect(&settings, &Settings::tickerBgColorChanged, this, &DlgCdg::tickerBgColorChanged);
     connect(&settings, &Settings::tickerEnableChanged, this, &DlgCdg::tickerEnableChanged);
-    connect(&settings, &Settings::cdgRemainFontChanged, this, &DlgCdg::cdgRemainFontChanged);
-    connect(&settings, &Settings::cdgRemainTextColorChanged, this, &DlgCdg::cdgRemainTextColorChanged);
-    connect(&settings, &Settings::cdgRemainBgColorChanged, this, &DlgCdg::cdgRemainBgColorChanged);
+    connect(&settings, &Settings::cdgRemainFontChanged, m_tWidget.get(), &TransparentWidget::setTextFont);
+    connect(&settings, &Settings::cdgRemainTextColorChanged, m_tWidget.get(), &TransparentWidget::setTextColor);
+    connect(&settings, &Settings::cdgRemainBgColorChanged, m_tWidget.get(), &TransparentWidget::setBackgroundColor);
     connect(&settings, &Settings::karaokeAAAlertFontChanged, this, &DlgCdg::alertFontChanged);
     connect(&settings, &Settings::durationPositionReset, [&] () {
-       tWidget->move(0,0);
+       m_tWidget->move(0, 0);
     });
     connect(&settings, &Settings::slideShowIntervalChanged, [&] (auto val) {
        m_timerSlideShow.setInterval(val * 1000);
     });
+    connect(ui->btnToggleFullscreen, &QPushButton::clicked, this, &DlgCdg::btnToggleFullscreenClicked);
     connect(&m_timerSlideShow, &QTimer::timeout, this, &DlgCdg::timerSlideShowTimeout);
     connect(&m_timer1s, &QTimer::timeout, this, &DlgCdg::timer1sTimeout);
     connect(&m_timerAlertCountdown, &QTimer::timeout, this, &DlgCdg::timerCountdownTimeout);
@@ -118,11 +119,7 @@ DlgCdg::DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget
         show();
 }
 
-DlgCdg::~DlgCdg()
-{
-    tWidget->deleteLater();
-    delete ui;
-}
+DlgCdg::~DlgCdg() = default;
 
 void DlgCdg::setTickerText(const QString &text)
 {
@@ -136,7 +133,6 @@ void DlgCdg::stopTicker()
 
 void DlgCdg::tickerFontChanged()
 {
-    //ui->scroll->refreshTickerSettings();
     ui->scroll->setFont(settings.tickerFont());
     settings.setTickerHeight(QFontMetrics(ui->scroll->font()).height());
 }
@@ -158,7 +154,6 @@ void DlgCdg::tickerTextColorChanged()
     palette.setColor(ui->scroll->foregroundRole(), settings.tickerTextColor());
     ui->scroll->setPalette(palette);
     ui->scroll->refresh();
-    //ui->scroll->refreshTickerSettings();
 }
 
 void DlgCdg::tickerBgColorChanged()
@@ -174,34 +169,6 @@ void DlgCdg::tickerEnableChanged()
 {
     ui->scroll->setVisible(settings.tickerEnabled());
     ui->scroll->setTickerEnabled(settings.tickerEnabled());
-}
-
-void DlgCdg::cdgRemainFontChanged(const QFont &font)
-{
-    tWidget->label->setFont(font);
-    tWidget->label->setAlignment(Qt::AlignVCenter | Qt::AlignHCenter);
-#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
-    tWidget->setFixedSize(QFontMetrics(font).horizontalAdvance("_____"),QFontMetrics(font).height());
-    tWidget->label->setFixedSize(QFontMetrics(font).horizontalAdvance("_____"),QFontMetrics(font).height());
-#else
-    tWidget->setFixedSize(QFontMetrics(font).width("_____"),QFontMetrics(font).tightBoundingRect("0123456789:").height());
-    tWidget->label->setFixedSize(QFontMetrics(font).width("_____"),QFontMetrics(font).tightBoundingRect("0123456789:").height());
-#endif
-    ui->scroll->refresh();
-}
-
-void DlgCdg::cdgRemainTextColorChanged(const QColor &color)
-{
-    auto palette = tWidget->label->palette();
-    palette.setColor(QPalette::WindowText, color);
-    tWidget->label->setPalette(palette);
-}
-
-void DlgCdg::cdgRemainBgColorChanged(const QColor &color)
-{
-    auto palette = tWidget->label->palette();
-    palette.setColor(QPalette::Window, color);
-    tWidget->label->setPalette(palette);
 }
 
 void DlgCdg::mouseDoubleClickEvent([[maybe_unused]]QMouseEvent *e)
@@ -242,7 +209,7 @@ void DlgCdg::showAlert(bool show)
     else
     {
         ui->widgetAlert->hide();
-        if (m_bmb->hasActiveVideo() && !m_kmb->hasActiveVideo()) {
+        if (m_bmb.hasActiveVideo() && !m_kmb.hasActiveVideo()) {
             ui->videoDisplayBm->show();
             ui->videoDisplayKar->hide();
         }
@@ -294,14 +261,6 @@ void DlgCdg::alertTxtColorChanged(const QColor &color)
     ui->widgetAlert->setPalette(palette);
 }
 
-void DlgCdg::cdgRemainEnabledChanged(bool enabled)
-{
-    if ((m_kmb->state() == MediaBackend::PlayingState) || !enabled)
-    {
-        tWidget->setVisible(enabled);
-    }
-}
-
 void DlgCdg::applyBackgroundImageMode()
 {
     if (settings.bgMode() == Settings::BgMode::BG_MODE_IMAGE && QFile::exists(settings.cdgDisplayBackgroundImage()))
@@ -328,26 +287,25 @@ void DlgCdg::timerSlideShowTimeout()
 
 void DlgCdg::slideShowMoveNext()
 {
-    static int position = 0;
+    m_curSlideshowPos++;
     auto images = getSlideShowImages();
     if (images.empty())
     {
         ui->videoDisplayKar->useDefaultBackground();
         return;
     }
-    if (position >= images.size())
-        position = 0;
-    if (images.at(position).fileName().endsWith("svg", Qt::CaseInsensitive))
+    if (m_curSlideshowPos >= images.size())
+        m_curSlideshowPos = 0;
+    if (images.at(m_curSlideshowPos).fileName().endsWith("svg", Qt::CaseInsensitive))
     {
         QPixmap bgImage(QSize(1920,1080));
         QPainter painter(&bgImage);
-        QSvgRenderer renderer(images.at(position).absoluteFilePath());
+        QSvgRenderer renderer(images.at(m_curSlideshowPos).absoluteFilePath());
         renderer.render(&painter);
         ui->videoDisplayKar->setBackground(bgImage);
     }
     else
-        ui->videoDisplayKar->setBackground(images.at(position).absoluteFilePath());
-    position++;
+        ui->videoDisplayKar->setBackground(images.at(m_curSlideshowPos).absoluteFilePath());
 }
 
 void DlgCdg::alertFontChanged(const QFont &font)
@@ -374,24 +332,23 @@ void DlgCdg::timer1sTimeout()
 {
     if (settings.cdgRemainEnabled())
     {
-        if (m_kmb->state() == MediaBackend::PlayingState && !tWidget->isVisible())
+        if (m_kmb.state() == MediaBackend::PlayingState && !m_tWidget->isVisible())
         {
-            tWidget->show();
-            //tWidget->move(settings.durationPosition());
+            m_tWidget->show();
         }
-        else if (m_kmb->state() != MediaBackend::PlayingState && tWidget->isVisible())
+        else if (m_kmb.state() != MediaBackend::PlayingState && m_tWidget->isVisible())
         {
-            tWidget->hide();
+            m_tWidget->hide();
         }
-        if (m_kmb->state() == MediaBackend::PlayingState)
+        if (m_kmb.state() == MediaBackend::PlayingState)
         {
-            tWidget->setString(" " + MediaBackend::msToMMSS(m_kmb->duration() - m_kmb->position()) + " ");
+            m_tWidget->setString(" " + MediaBackend::msToMMSS(m_kmb.duration() - m_kmb.position()) + " ");
         }
     }
 }
 
 
-void DlgCdg::on_btnToggleFullscreen_clicked()
+void DlgCdg::btnToggleFullscreenClicked()
 {
     m_fullScreen = !m_fullScreen;
     if (m_fullScreen)
@@ -446,7 +403,7 @@ void DlgCdg::showEvent(QShowEvent *event)
 void DlgCdg::hideEvent(QHideEvent *event)
 {
     settings.saveWindowState(this);
-    //settings.saveWindowState(tWidget);
+    //settings.saveWindowState(m_tWidget);
     QWidget::hideEvent(event);
 }
 
@@ -466,4 +423,62 @@ void TransparentWidget::moveEvent(QMoveEvent *event)
 {
     QWidget::moveEvent(event);
     //settings.saveWindowState(this);
+}
+
+void TransparentWidget::mousePressEvent(QMouseEvent *event) {
+    if (event->button() == Qt::LeftButton) {
+        m_startPoint = frameGeometry().topLeft() - event->globalPos();
+    }
+}
+
+void TransparentWidget::setString(const QString &string) {
+    m_label->setText(string);
+}
+
+void TransparentWidget::paintEvent(QPaintEvent *) {
+    QPainter painter(this);
+    painter.fillRect (this->rect(), QColor(0, 0, 0, 0x20)); /* set transparent color*/
+}
+
+TransparentWidget::TransparentWidget(QWidget *parent)
+        : QWidget(parent)
+{
+    setWindowFlags(Qt::FramelessWindowHint);
+    auto layout = new QHBoxLayout(this);
+    setLayout(layout);
+    layout->setMargin(0);
+    layout->setSpacing(0);
+    layout->setContentsMargins(0,0,0,0);
+    setContentsMargins(0,0,0,0);
+    m_label = std::make_unique<QLabel>(this);
+    layout->addWidget(m_label.get());
+    m_label->setMargin(0);
+    m_label->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
+    m_label->setText("00:00");
+    m_label->setAutoFillBackground(true);
+    m_label->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+}
+
+void TransparentWidget::setTextColor(const QColor &color) {
+    auto palette = m_label->palette();
+    palette.setColor(QPalette::WindowText, color);
+    m_label->setPalette(palette);
+}
+
+void TransparentWidget::setBackgroundColor(const QColor &color) {
+    auto palette = m_label->palette();
+    palette.setColor(QPalette::Window, color);
+    m_label->setPalette(palette);
+}
+
+void TransparentWidget::setTextFont(const QFont &font) {
+    m_label->setFont(font);
+    m_label->setAlignment(Qt::AlignVCenter | Qt::AlignHCenter);
+#if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
+    setFixedSize(QFontMetrics(font).horizontalAdvance("_____"), QFontMetrics(font).height());
+    m_label->setFixedSize(QFontMetrics(font).horizontalAdvance("_____"), QFontMetrics(font).height());
+#else
+    setFixedSize(QFontMetrics(font).width("_____"),QFontMetrics(font).tightBoundingRect("0123456789:").height());
+    m_label->setFixedSize(QFontMetrics(font).width("_____"),QFontMetrics(font).tightBoundingRect("0123456789:").height());
+#endif
 }

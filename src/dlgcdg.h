@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2021 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -33,95 +33,64 @@
 #include "mediabackend.h"
 #include "videodisplay.h"
 #include <QShortcut>
+#include <memory>
 
 
-class TransparentWidget : public QWidget
-{
-  Q_OBJECT
+class TransparentWidget : public QWidget {
+Q_OBJECT
 public:
-    QLabel *label;
-  TransparentWidget(QWidget *parent = 0)
-    : QWidget(parent)
-  {
-    setWindowFlags(Qt::FramelessWindowHint);
-    QHBoxLayout *layout = new QHBoxLayout(this);
-    setLayout(layout);
-
-    layout->setMargin(0);
-    layout->setSpacing(0);
-    layout->setContentsMargins(0,0,0,0);
-    setContentsMargins(0,0,0,0);
-    label = new QLabel(this);
-    layout->addWidget(label);
-    label->setMargin(0);
-    label->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
-    label->setText("00:00");
-    label->setAutoFillBackground(true);
-    label->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-
-  }
-  ~TransparentWidget();
-  void setString(QString string) {
-      label->setText(string);
-  }
-  void paintEvent(QPaintEvent *) override
-  {
-    QPainter painter(this);
-    painter.fillRect (this->rect(), QColor(0, 0, 0, 0x20)); /* set transparent color*/
-  }
-
-  void mousePressEvent(QMouseEvent *event) override
-  {
-    if (event->button() == Qt::LeftButton) {
-      m_startPoint = frameGeometry().topLeft() - event->globalPos();
-    }
-  }
-
-  void mouseMoveEvent(QMouseEvent *event) override;
+    std::unique_ptr<QLabel> m_label;
+    explicit TransparentWidget(QWidget *parent = nullptr);
+    ~TransparentWidget() override;
+    void setString(const QString &string);
+    void paintEvent(QPaintEvent *) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
 
 private:
-  QPoint m_startPoint;
+    QPoint m_startPoint;
 
-  // QWidget interface
+public slots:
+
+    void setTextColor(const QColor &color);
+    void setBackgroundColor(const QColor &color);
+    void setTextFont(const QFont &font);
+
 protected:
-  void moveEvent(QMoveEvent *event) override;
+    void moveEvent(QMoveEvent *event) override;
 };
 
 
-
 namespace Ui {
-class DlgCdg;
+    class DlgCdg;
 }
 
-class DlgCdg : public QDialog
-{
-    Q_OBJECT
+class DlgCdg : public QDialog {
+Q_OBJECT
 
 private:
-    Ui::DlgCdg *ui;
+    std::unique_ptr<Ui::DlgCdg> ui;
     bool m_fullScreen{false};
     int m_countdownPos{0};
+    int m_curSlideshowPos{-1};
     QRect m_lastSize;
-    QRect m_lastPos;
     QTimer m_timer1s;
     QTimer m_timerAlertCountdown;
     QTimer m_timerButtonShow;
     QTimer m_timerSlideShow;
-    MediaBackend *m_kmb;
-    MediaBackend *m_bmb;
-    TransparentWidget *tWidget;
+    MediaBackend &m_kmb;
+    MediaBackend &m_bmb;
+    std::unique_ptr<TransparentWidget> m_tWidget;
 
 public:
-    explicit DlgCdg(MediaBackend *KaraokeBackend, MediaBackend *BreakBackend, QWidget *parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>());
-    ~DlgCdg();
+    explicit DlgCdg(MediaBackend &KaraokeBackend, MediaBackend &BreakBackend, QWidget *parent = nullptr,
+                    Qt::WindowFlags f = QFlags<Qt::WindowType>());
+    ~DlgCdg() override;
     void setTickerText(const QString &text);
     void stopTicker();
-    VideoDisplay* getVideoDisplay();
-    VideoDisplay* getVideoDisplayBm();
+    VideoDisplay *getVideoDisplay();
+    VideoDisplay *getVideoDisplayBm();
     void slideShowMoveNext();
-
-protected:
-    void mouseDoubleClickEvent(QMouseEvent *e) override;
 
 private slots:
     void applyBackgroundImageMode();
@@ -130,21 +99,17 @@ private slots:
     void mouseMove(QMouseEvent *event);
     void timer1sTimeout();
     void timerCountdownTimeout();
-    void on_btnToggleFullscreen_clicked();
+    void btnToggleFullscreenClicked();
     void cdgOffsetsChanged();
-    void cdgRemainFontChanged(const QFont &font);
-    void cdgRemainTextColorChanged(const QColor &color);
     void tickerFontChanged();
     void tickerSpeedChanged();
     void tickerHeightChanged(const int &height);
     void tickerTextColorChanged();
     void tickerBgColorChanged();
     void tickerEnableChanged();
-    void cdgRemainBgColorChanged(const QColor &color);
     static QFileInfoList getSlideShowImages();
     void alertBgColorChanged(const QColor &color);
     void alertTxtColorChanged(const QColor &color);
-    void cdgRemainEnabledChanged(bool enabled);
 
 public slots:
     void showAlert(bool show);
@@ -155,10 +120,8 @@ public slots:
 protected:
     void closeEvent(QCloseEvent *event) override;
     void showEvent(QShowEvent *event) override;
-
-    // QWidget interface
-protected:
     void hideEvent(QHideEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent *e) override;
 };
 
 #endif // CDGWINDOW_H
