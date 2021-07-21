@@ -1,7 +1,6 @@
 #include "dlgcustompatterns.h"
 #include "ui_dlgcustompatterns.h"
 #include "settings.h"
-#include <QRegularExpression>
 #include <QInputDialog>
 #include <QSqlQuery>
 #include "karaokefileinfo.h"
@@ -21,30 +20,36 @@ DlgCustomPatterns::DlgCustomPatterns(QWidget *parent) :
     ui(new Ui::DlgCustomPatterns)
 {
     ui->setupUi(this);
-    patternsModel = new TableModelCustomNamingPatterns(this);
-    ui->tableViewPatterns->setModel(patternsModel);
+    ui->tableViewPatterns->setModel(&m_patternsModel);
     settings.restoreColumnWidths(ui->tableViewPatterns);
     settings.restoreWindowState(this);
-    selectedRow = -1;
+    connect(ui->lineEditArtistRegEx, &QLineEdit::textChanged, this, &DlgCustomPatterns::evaluateRegEx);
+    connect(ui->lineEditTitleRegEx, &QLineEdit::textChanged, this, &DlgCustomPatterns::evaluateRegEx);
+    connect(ui->lineEditDiscIdRegEx, &QLineEdit::textChanged, this, &DlgCustomPatterns::evaluateRegEx);
+    connect(ui->lineEditFilenameExample, &QLineEdit::textChanged, this, &DlgCustomPatterns::evaluateRegEx);
+    connect(ui->spinBoxArtistCaptureGrp, qOverload<int>(&QSpinBox::valueChanged), this, &DlgCustomPatterns::evaluateRegEx);
+    connect(ui->spinBoxTitleCaptureGrp, qOverload<int>(&QSpinBox::valueChanged), this, &DlgCustomPatterns::evaluateRegEx);
+    connect(ui->spinBoxDiscIdCaptureGrp, qOverload<int>(&QSpinBox::valueChanged), this, &DlgCustomPatterns::evaluateRegEx);
+    connect(ui->tableViewPatterns, &QTableView::clicked, this, &DlgCustomPatterns::tableViewPatternsClicked);
+    connect(ui->btnClose, &QPushButton::clicked, this, &DlgCustomPatterns::btnCloseClicked);
+    connect(ui->btnAdd, &QPushButton::clicked, this, &DlgCustomPatterns::btnAddClicked);
+    connect(ui->btnDelete, &QPushButton::clicked, this, &DlgCustomPatterns::btnDeleteClicked);
+    connect(ui->btnApplyChanges, &QPushButton::clicked, this, &DlgCustomPatterns::btnApplyChangesClicked);
 }
 
-DlgCustomPatterns::~DlgCustomPatterns()
-{
-    delete ui;
-}
+DlgCustomPatterns::~DlgCustomPatterns() = default;
 
-void DlgCustomPatterns::on_btnClose_clicked()
+void DlgCustomPatterns::btnCloseClicked()
 {
     settings.saveColumnWidths(ui->tableViewPatterns);
     settings.saveWindowState(this);
     hide();
 }
 
-void DlgCustomPatterns::on_tableViewPatterns_clicked(const QModelIndex &index)
+void DlgCustomPatterns::tableViewPatternsClicked(const QModelIndex &index)
 {
-    selectedRow = index.row();
-    Pattern pattern = patternsModel->getPattern(selectedRow);
-    selectedPattern = pattern;
+    Pattern pattern = m_patternsModel.getPattern(index.row());
+    m_selectedPattern = pattern;
     ui->lineEditDiscIdRegEx->setText(pattern.getSongIdRegex());
     ui->spinBoxDiscIdCaptureGrp->setValue(pattern.getSongIdCaptureGrp());
     ui->lineEditArtistRegEx->setText(pattern.getArtistRegex());
@@ -53,49 +58,7 @@ void DlgCustomPatterns::on_tableViewPatterns_clicked(const QModelIndex &index)
     ui->spinBoxTitleCaptureGrp->setValue(pattern.getTitleCaptureGrp());
 }
 
-void DlgCustomPatterns::on_lineEditDiscIdRegEx_textChanged(const QString &arg1)
-{
-    Q_UNUSED(arg1);
-    evaluateRegEx();
-}
-
-void DlgCustomPatterns::on_lineEditArtistRegEx_textChanged(const QString &arg1)
-{
-    Q_UNUSED(arg1);
-    evaluateRegEx();
-}
-
-void DlgCustomPatterns::on_lineEditTitleRegEx_textChanged(const QString &arg1)
-{
-    Q_UNUSED(arg1);
-    evaluateRegEx();
-}
-
-void DlgCustomPatterns::on_lineEditFilenameExample_textChanged(const QString &arg1)
-{
-    Q_UNUSED(arg1);
-    evaluateRegEx();
-}
-
-void DlgCustomPatterns::on_spinBoxDiscIdCaptureGrp_valueChanged(int arg1)
-{
-    Q_UNUSED(arg1);
-    evaluateRegEx();
-}
-
-void DlgCustomPatterns::on_spinBoxArtistCaptureGrp_valueChanged(int arg1)
-{
-    Q_UNUSED(arg1);
-    evaluateRegEx();
-}
-
-void DlgCustomPatterns::on_spinBoxTitleCaptureGrp_valueChanged(int arg1)
-{
-    Q_UNUSED(arg1);
-    evaluateRegEx();
-}
-
-void DlgCustomPatterns::on_btnAdd_clicked()
+void DlgCustomPatterns::btnAddClicked()
 {
     bool ok;
     QString name = QInputDialog::getText(this, tr("New Custom Pattern"), tr("Pattern name:"), QLineEdit::Normal, tr("New Pattern"), &ok);
@@ -103,22 +66,21 @@ void DlgCustomPatterns::on_btnAdd_clicked()
     {
         QSqlQuery query;
         query.exec("INSERT INTO custompatterns (name) VALUES(\"" + name + "\")");
-        patternsModel->loadFromDB();
-        //bmAddPlaylist(title);
+        m_patternsModel.loadFromDB();
     }
 }
 
-void DlgCustomPatterns::on_btnDelete_clicked()
+void DlgCustomPatterns::btnDeleteClicked()
 {
     if (ui->tableViewPatterns->selectionModel()->selectedIndexes().count() > 0)
     {
         QSqlQuery query;
-        query.exec("DELETE FROM custompatterns WHERE name == \"" + selectedPattern.getName() + "\"");
-        patternsModel->loadFromDB();
+        query.exec("DELETE FROM custompatterns WHERE name == \"" + m_selectedPattern.getName() + "\"");
+        m_patternsModel.loadFromDB();
     }
 }
 
-void DlgCustomPatterns::on_btnApplyChanges_clicked()
+void DlgCustomPatterns::btnApplyChangesClicked()
 {
     if (ui->tableViewPatterns->selectionModel()->selectedIndexes().count() > 0)
     {
@@ -130,9 +92,9 @@ void DlgCustomPatterns::on_btnApplyChanges_clicked()
         acg = QString::number(ui->spinBoxArtistCaptureGrp->value());
         tcg = QString::number(ui->spinBoxTitleCaptureGrp->value());
         dcg = QString::number(ui->spinBoxDiscIdCaptureGrp->value());
-        name = selectedPattern.getName();
+        name = m_selectedPattern.getName();
         query.exec("UPDATE custompatterns SET artistregex = \"" + arx + "\", titleregex = \"" + trx + "\", discidregex = \"" + drx + \
                    "\", artistcapturegrp = " + acg + ", titlecapturegrp = " + tcg + ", discidcapturegrp = " + dcg + " WHERE name = \"" + name + "\"");
-        patternsModel->loadFromDB();
+        m_patternsModel.loadFromDB();
     }
 }

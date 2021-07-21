@@ -41,7 +41,6 @@
 
 #ifdef _MSC_VER
 #define NOMINMAX
-
 #include <Windows.h>
 #include <timeapi.h>
 #endif
@@ -1329,6 +1328,7 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::search() {
+    ui->tableViewDB->scrollToTop();
     karaokeSongsModel.search(ui->lineEdit->text());
 }
 
@@ -1417,7 +1417,6 @@ void MainWindow::on_buttonPause_clicked() {
 }
 
 void MainWindow::on_lineEdit_returnPressed() {
-    ui->tableViewDB->scrollToTop();
     search();
 }
 
