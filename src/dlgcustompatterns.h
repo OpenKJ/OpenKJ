@@ -6,12 +6,11 @@
 #include "src/models/tablemodelcustomnamingpatterns.h"
 
 namespace Ui {
-class DlgCustomPatterns;
+    class DlgCustomPatterns;
 }
 
-class DlgCustomPatterns : public QDialog
-{
-    Q_OBJECT
+class DlgCustomPatterns : public QDialog {
+Q_OBJECT
 public:
     explicit DlgCustomPatterns(QWidget *parent = nullptr);
     ~DlgCustomPatterns() override;
