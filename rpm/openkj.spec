@@ -34,8 +34,8 @@ key changer, and all of the various bits and pieces required to host karaoke.
 
 %files
 /usr/bin/openkj
-/usr/share/applications/openkj.desktop
-/usr/share/pixmaps/okjicon.svg
+/usr/share/applications/org.openkj.OpenKJ.desktop
+/usr/share/icons/hicolor/scalable/apps/org.openkj.OpenKJ.svg
 
 %changelog
 * Tue Aug 15 2017 T. Isaac Lightburn <isaac@hozed.net>
