@@ -6,7 +6,7 @@
 
 Name:           openkj
 Version:		2.0.3
-Release:        5%{?dist}
+Release:        6%{?dist}
 Summary:        Karaoke show hosting software
 
 License:        GPL
@@ -36,6 +36,7 @@ key changer, and all of the various bits and pieces required to host karaoke.
 /usr/bin/openkj
 /usr/share/applications/org.openkj.OpenKJ.desktop
 /usr/share/icons/hicolor/scalable/apps/org.openkj.OpenKJ.svg
+/usr/share/metainfo/org.openkj.OpenKJ.metainfo.xml
 
 %changelog
 * Tue Aug 15 2017 T. Isaac Lightburn <isaac@hozed.net>

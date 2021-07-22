@@ -588,6 +588,10 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBS
             FILES src/org.openkj.OpenKJ.desktop
             DESTINATION share/applications
     )
+    install(
+            FILES src/org.openkj.OpenKJ.metainfo.xml
+            DESTINATION share/metainfo
+    )
 endif ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
