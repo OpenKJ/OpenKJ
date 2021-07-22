@@ -4,7 +4,8 @@
 
     <name>OpenKJ</name>
     <summary>Professional karaoke hosting software</summary>
-
+    <content_rating type="oars-1.1" />
+    <url type="homepage">https://openkj.org</url>
     <metadata_license>FSFAP</metadata_license>
     <project_license>GPL-3.0-or-later</project_license>
 
@@ -25,5 +26,15 @@
         <screenshot>
             <image>https://openkj.org/static/okj-cdgdisplay.png</image>
         </screenshot>
-    </screenshots>
+</screenshots>
+<provides>
+	<binary>openkj</binary>
+</provides>
+<releases>
+	<release version="2.0.4" date="2021-07-22">
+		<description>
+			<p>Initial flatpak release</p>
+		</description>
+	</release>
+</releases>
 </component>
