@@ -2,4 +2,23 @@ path_classifiers:
   library:
     - src/miniz
     - src/taglib
+extraction:
+  cpp:
+    prepare:
+      packages:
+        - cmake
+        - libspdlog-dev
+        - libfmt-dev
+        - qttools5-dev-tools
+        - qtbase5-dev
+        - qtmultimedia5-dev
+        - libqt5svg5-dev
+        - qttools5-dev
+        - qt5-qmake
+        - libtag1-dev
+        - libtag-extras-dev
+        - libgstreamer1.0-dev
+        - libgstreamer-plugins-base1.0-dev
+        - libqt5opengl5-dev
+        - libpulse-dev
 
