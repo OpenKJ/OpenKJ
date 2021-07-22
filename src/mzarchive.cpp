@@ -48,7 +48,7 @@ MzArchive::MzArchive(QObject *parent) : QObject(parent)
     audioExtensions.append(".mov");
 }
 
-unsigned int MzArchive::getSongDuration()
+int MzArchive::getSongDuration()
 {
     if (findCDG())
         return ((m_cdgSize / 96) / 75) * 1000;

@@ -44,12 +44,11 @@ private:
     DlgCustomPatterns *customPatternsDlg;
     DlgDbUpdate *dbUpdateDlg;
     int selectedRow;
-    QSqlDatabase db;
     QFileSystemWatcher fsWatcher;
 
 public:
-    explicit DlgDatabase(QSqlDatabase db, QWidget *parent = 0);
-    ~DlgDatabase();
+    explicit DlgDatabase(QWidget *parent = nullptr);
+    ~DlgDatabase() override;
 
 signals:
     void databaseAboutToUpdate();
@@ -70,7 +69,7 @@ private slots:
     void on_buttonUpdate_clicked();
     void on_btnClearDatabase_clicked();
     void dbupdate_thread_finished();
-    void showDbUpdateErrors(QStringList errors);
+    static void showDbUpdateErrors(const QStringList& errors);
     void on_btnCustomPatterns_clicked();
     void on_btnExport_clicked();
     void directoryChanged(QString dirPath);

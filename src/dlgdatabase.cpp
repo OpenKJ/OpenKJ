@@ -32,11 +32,10 @@
 
 extern Settings settings;
 
-DlgDatabase::DlgDatabase(QSqlDatabase db, QWidget *parent) :
+DlgDatabase::DlgDatabase(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DlgDatabase)
 {
-    this->db = db;
     ui->setupUi(this);
     sourcedirmodel = new TableModelKaraokeSourceDirs();
     sourcedirmodel->loadFromDB();
@@ -81,7 +80,7 @@ DlgDatabase::~DlgDatabase()
 void DlgDatabase::singleSongAdd(const QString& path)
 {
     qInfo() << "singleSongAdd(" << path << ") called";
-    DbUpdateThread *updateThread = new DbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "threaddb"),this);
+    DbUpdater *updateThread = new DbUpdater(this);
     updateThread->addSingleTrack(path);
     delete updateThread;
     emit databaseUpdateComplete();
@@ -90,7 +89,7 @@ void DlgDatabase::singleSongAdd(const QString& path)
 
 int DlgDatabase::dropFileAdd(const QString &path)
 {
-    DbUpdateThread *updateThread = new DbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "threaddb"),this);
+    DbUpdater *updateThread = new DbUpdater(this);
     int songId = updateThread->addDroppedFile(path);
     delete updateThread;
     return songId;
@@ -166,7 +165,7 @@ void DlgDatabase::on_buttonUpdate_clicked()
 {
     if (selectedRow >= 0)
     {
-        DbUpdateThread *updateThread = new DbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "threaddb"),this);
+        DbUpdater *updateThread = new DbUpdater(this);
         //emit databaseAboutToUpdate();
         dbUpdateDlg->reset();
         connect(updateThread, SIGNAL(progressMessage(QString)), dbUpdateDlg, SLOT(addProgressMsg(QString)));
@@ -183,7 +182,7 @@ void DlgDatabase::on_buttonUpdate_clicked()
         updateThread->setPath(sourcedirmodel->getDirByIndex(selectedRow).getPath());
         updateThread->setPattern(sourcedirmodel->getDirByIndex(selectedRow).getPattern());
         QApplication::processEvents();
-        updateThread->startUnthreaded();
+        updateThread->process();
 //        while (updateThread->isRunning())
 //        {
 //            QApplication::processEvents();
@@ -202,8 +201,7 @@ void DlgDatabase::on_buttonUpdate_clicked()
 
 void DlgDatabase::on_buttonUpdateAll_clicked()
 {
-    //emit databaseAboutToUpdate();
-    DbUpdateThread *updateThread = new DbUpdateThread(QSqlDatabase::cloneDatabase(QSqlDatabase::database(), "threaddb"),this);
+    auto updateThread = new DbUpdater(this);
     dbUpdateDlg->reset();
     connect(updateThread, SIGNAL(progressMessage(QString)), dbUpdateDlg, SLOT(addProgressMsg(QString)));
     connect(updateThread, SIGNAL(stateChanged(QString)), dbUpdateDlg, SLOT(changeStatusTxt(QString)));
@@ -211,25 +209,15 @@ void DlgDatabase::on_buttonUpdateAll_clicked()
     connect(updateThread, SIGNAL(progressChanged(int)), dbUpdateDlg, SLOT(changeProgress(int)));
     dbUpdateDlg->show();
 
-    //QMessageBox msgBox;
-    //msgBox.setStandardButtons(0);
-    //msgBox.setText("Updating Database, please wait...");
-    //msgBox.show();
     for (int i=0; i < sourcedirmodel->size(); i++)
     {
         //msgBox.setInformativeText("Processing path: " + sourcedirmodel->getDirByIndex(i)->getPath());
         dbUpdateDlg->changeDirectory(sourcedirmodel->getDirByIndex(i).getPath());
         updateThread->setPath(sourcedirmodel->getDirByIndex(i).getPath());
         updateThread->setPattern(sourcedirmodel->getDirByIndex(i).getPattern());
-        updateThread->startUnthreaded();
-//        while (updateThread->isRunning())
-//        {
-//            QApplication::processEvents();
-//        }
+        updateThread->process();
     }
-//    msgBox.setInformativeText("Reloading song database into cache");
     emit databaseUpdateComplete();
-//    msgBox.hide();
     showDbUpdateErrors(updateThread->getErrors());
     dbUpdateDlg->hide();
     QMessageBox::information(this, tr("Update Complete"), tr("Database update complete."));
@@ -262,15 +250,15 @@ void DlgDatabase::dbupdate_thread_finished()
 {
 }
 
-void DlgDatabase::showDbUpdateErrors(QStringList errors)
+void DlgDatabase::showDbUpdateErrors(const QStringList& errors)
 {
     if (errors.count() > 0)
     {
         QMessageBox msgBox;
         msgBox.setText(tr("Some files were skipped due to problems"));
         msgBox.setDetailedText(errors.join("\n"));
-        QSpacerItem* horizontalSpacer = new QSpacerItem(600, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-        QGridLayout* layout = (QGridLayout*)msgBox.layout();
+        auto horizontalSpacer = new QSpacerItem(600, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+        auto layout = (QGridLayout*)msgBox.layout();
         layout->addItem(horizontalSpacer, layout->rowCount(), 0, 1, layout->columnCount());
         msgBox.exec();
     }
@@ -313,7 +301,7 @@ void DlgDatabase::directoryChanged(QString dirPath)
 {
     if (!settings.dbDirectoryWatchEnabled())
         return;
-    DbUpdateThread *dbthread = new DbUpdateThread(db, this);
+    DbUpdater *dbthread = new DbUpdater(this);
     qInfo() << "Directory changed fired for dir: " << dirPath;
     QDirIterator it(dirPath);
     while (it.hasNext()) {
@@ -327,7 +315,7 @@ void DlgDatabase::directoryChanged(QString dirPath)
         {
             continue;
         }
-        if (dbthread->dbEntryExists(file))
+        if (dbthread->dbEntryExists(file, false))
         {
             continue;
         }

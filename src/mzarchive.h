@@ -34,7 +34,7 @@ class MzArchive : public QObject
 public:
     explicit MzArchive(const QString &ArchiveFile, QObject *parent = nullptr);
     explicit MzArchive(QObject *parent = nullptr);
-    unsigned int getSongDuration();
+    int getSongDuration();
     void setArchiveFile(const QString &value);
     bool checkCDG();
     bool checkAudio();
@@ -52,7 +52,7 @@ private:
     bool findAudio();
     unsigned int m_audioFileIndex{0};
     unsigned int m_cdgFileIndex{0};
-    unsigned int m_cdgSize{0};
+    int m_cdgSize{0};
     unsigned int m_audioSize{0};
     bool m_audioSupportedCompression{false};
     bool m_cdgSupportedCompression{false};

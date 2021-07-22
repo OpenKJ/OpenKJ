@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2021 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -18,54 +18,50 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef DBUPDATETHREAD_H
-#define DBUPDATETHREAD_H
+#ifndef DBUPDATER_H
+#define DBUPDATER_H
 
-#include <QThread>
+#include <QObject>
 #include <QStringList>
 #include <QtSql>
 #include "src/models/tablemodelkaraokesourcedirs.h"
 #include "settings.h"
 
-class DbUpdateThread : public QThread
+class DbUpdater : public QObject
 {
     Q_OBJECT
 
 private:
-    QString path;
-    SourceDir::NamingPattern pattern;
-    //QSqlDatabase database;
-    QSqlDatabase database;
-    Settings *settings;
+    QString m_path;
+    SourceDir::NamingPattern m_pattern{SourceDir::SAT};
+    Settings m_settings;
+    QStringList errors;
 
+    void fixMissingFiles(QStringList &existingFiles);
+    void importDragDropSongs(QStringList &existingFiles);
 
 public:
-    explicit DbUpdateThread(QSqlDatabase tdb, QObject *parent = 0);
-    void run();
-    QString getPath() const;
+    explicit DbUpdater(QObject *parent = nullptr);
     void setPath(const QString &value);
-    int getPattern() const;
     void setPattern(SourceDir::NamingPattern value);
-    QStringList findKaraokeFiles(QString directory);
-    QStringList getMissingDbFiles();
-    QStringList getDragDropFiles();
+    QStringList findKaraokeFiles(const QString& directory);
+    static QStringList getMissingDbFiles();
+    static QStringList getDragDropFiles();
     QStringList getErrors();
-    void addSingleTrack(QString path);
-    int addDroppedFile(QString path);
-    void startUnthreaded();
-    bool dbEntryExists(QString filepath);
-    static QString findMatchingAudioFile(QString cdgFilePath);
+    void addSingleTrack(const QString& filePath);
+    static int addDroppedFile(const QString& filePath);
+    void process();
+    static bool dbEntryExists(const QString &filepath, bool includeDropped = true);
+    static QString findMatchingAudioFile(const QString& cdgFilePath);
+    static bool isSupportedMediaFile(const QString &filePath);
 
 signals:
-    void threadFinished();
     void errorsGenerated(QStringList);
     void progressMessage(QString msg);
     void stateChanged(QString state);
     void progressChanged(int progress);
     void progressMaxChanged(int max);
-    void databaseAboutToUpdate();
-    void databaseUpdateComplete();
 
 };
 
-#endif // DBUPDATETHREAD_H
+#endif // DBUPDATER_H

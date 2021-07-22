@@ -674,7 +674,7 @@ MainWindow::MainWindow(QWidget *parent) :
     autosizeQueue();
     ui->tabWidgetQueue->setVisible(false);
     khTmpDir = new QTemporaryDir();
-    dbDialog = new DlgDatabase(database, this);
+    dbDialog = new DlgDatabase(this);
     dlgKeyChange = new DlgKeyChange(&qModel, this);
     requestsDialog = new DlgRequests(&rotModel);
     requestsDialog->setModal(false);
@@ -2159,7 +2159,7 @@ void MainWindow::editSong() {
         isCdg = true;
     QString mediaFile;
     if (isCdg)
-        mediaFile = DbUpdateThread::findMatchingAudioFile(dbRtClickFile);
+        mediaFile = DbUpdater::findMatchingAudioFile(dbRtClickFile);
     TableModelKaraokeSourceDirs model;
     SourceDir srcDir = model.getDirByPath(dbRtClickFile);
     int rowId;
@@ -2434,7 +2434,7 @@ void MainWindow::markSongBad() {
             isCdg = true;
         QString mediaFile;
         if (isCdg)
-            mediaFile = DbUpdateThread::findMatchingAudioFile(dbRtClickFile);
+            mediaFile = DbUpdater::findMatchingAudioFile(dbRtClickFile);
         QFile file(dbRtClickFile);
         auto ret = karaokeSongsModel.removeBadSong(dbRtClickFile);
         switch (ret) {
