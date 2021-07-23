@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
 
     RunGuard guard("SharedMemorySingleInstanceProtectorOpenKJ");
     if (QCoreApplication::applicationDirPath() == "/app/bin") {
-        QInfo() << "RunGuard disabled due to flatpak sandbox";
+        qInfo() << "RunGuard disabled due to flatpak sandbox";
     } else {
         RunGuard guard("SharedMemorySingleInstanceProtectorOpenKJ");
         if (!guard.tryToRun()) {
