@@ -1,13 +1,17 @@
 [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/OpenKJ/OpenKJ.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/OpenKJ/OpenKJ/context:cpp)
+[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/OpenKJ/OpenKJ.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/OpenKJ/OpenKJ/context:cpp)
 [![Copr build status](https://copr.fedorainfracloud.org/coprs/openkj/OpenKJ-unstable/package/openkjtools/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/openkj/OpenKJ-unstable/package/openkjtools/)
-![Windows Build](https://github.com/openkj/openkj/actions/workflows/windows-builds.yml/badge.svg?branch=master)
-![macOS Build](https://github.com/openkj/openkj/actions/workflows/macos-build.yml/badge.svg?branch=master)
-
+[![Windows Build](https://github.com/OpenKJ/OpenKJ/actions/workflows/windows-test.yml/badge.svg)](https://github.com/OpenKJ/OpenKJ/actions/workflows/windows-test.yml)
+[![Test building on macOS](https://github.com/OpenKJ/OpenKJ/actions/workflows/macos-test.yml/badge.svg)](https://github.com/OpenKJ/OpenKJ/actions/workflows/macos-test.yml)
 
 **Downloads**  
-If you are looking for installers for Windows or macOS or binary packages for Fedora, Debian, or Ubuntu, please visit the Downloads section at https://openkj.org
+If you are looking for installers for Windows or macOS, please visit the Downloads section at https://openkj.org
+
+Linux users can grab OpenKJ from flathub: https://flathub.org/apps/details/org.openkj.OpenKJ
 
 If you need help with OpenKJ, you can reach out to support@openkj.org via email.
+
+Documentation can be found at https://docs.openkj.org
 
 OpenKJ
 ======
@@ -24,7 +28,7 @@ A few features:
 * Rotation ticker on the CDG display
 * Option to use a custom background or display a rotating slide show on the CDG output dialog while idle
 * Fades break music in and out automatically when karaoke tracks start/end
-* Remote requests server integration allowing singers to look up and submit songs via the web
+* Remote request server integration allowing singers to look up and submit songs via the web or mobile apps
 * Automatic performance recording
 * Autoplay karaoke mode
 * Lots of other little things
@@ -35,9 +39,9 @@ Database entries for the songs are based on the file naming scheme.  I've includ
 
 
 **Screenshots**
-  
-See https://openkj.org  
-  
+
+See https://openkj.org
+
 **Requirements to build OpenKJ:**
 
 * Qt 5.x
@@ -45,26 +49,7 @@ See https://openkj.org
 
 **Linux**
 
-I develop the software and host my shows on Linux (Fedora specifically), so it is known to build and work there.  (It "should" work similarly on any Linux distro or the BSD's.)  Everything needed will most likely be available via the package manager on any common distro.  On Fedora the packages are gstreamer-devel gstreamer gstreamer-plugins-good gstreamer-plugins-bad and the Qt5 stuff (I just yum install qt5-* because I'm lazy).  On Fedora you will also need to have the rpmfusion repo enabled to get mp3 support, as the app is pretty useless w/o it.  "qmake-qt5" or possibly just "qmake", depending on your distro, followed by a "make" should get it built. A "make install" will put the binaries in /usr/bin and copy .desktop file and icon into the appropriate places for it to appear in the app menu.  Tweak the OpenKJ.pro file to enable or disable OpenGL support prior to building.  One thing to note, you'll probably need to turn off flat volumes in your pulseaudio config if you're using it, otherwise the applicaitons may mess with your system-wide volume instead of just the application volume.
-
-**Contributed notes for building on Ubuntu 16.04 courtesy of Henry74**  
-
-```
-sudo apt install qt5-qmake  
-sudo apt install libqt5svg5-dev
-sudo apt install libgstreamer-plugins-base1.0-dev
-```
-
-In a terminal switch to the OpenKJ/OpenKJ directory in the repository.  
-```
-/usr/lib/x86_64-linux-gnu/qt5/bin/qmake
-make
-```
-
-Suggest installing and using checkinstall to create a .deb file  
-`sudo checkinstall`
-
-Install the .deb file.
+Build using cmake from the command line or in your IDE of choice
 
 **Mac**
 
