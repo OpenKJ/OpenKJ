@@ -19,6 +19,7 @@
 */
 
 #include "dbupdatethread.h"
+#include <array>
 #include <QSqlQuery>
 #include <QFileInfo>
 #include <QDir>
