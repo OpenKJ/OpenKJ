@@ -78,13 +78,6 @@ jobs:
         run: |
           sed -i "s/<release version=.*/<release version=\"${{ steps.get_version.outputs.major }}.${{ steps.get_version.outputs.minor }}.${{ steps.get_version.outputs.patch }}\" date=\"${{ env.blddate }}\">/" src/org.openkj.OpenKJ.metainfo.xml
 
-      - name: Update deb config
-        run: |
-          sudo apt-get update
-          sudo apt-get install devscripts
-          dch -D bionic -v ${{ steps.get_version.outputs.version-without-v }}-1~bionic "Automatc update from github tag"
-          dch -r "Autobuild from git commit"
-
       - name: Create fedora tarball
         run: |
           cd ..
@@ -108,10 +101,10 @@ jobs:
         with:
           file-path: |
             rpm/openkj.spec
-            debian/changelog
             src/okjversion.h
             cd/openkj32.iss
             cd/openkj64.iss
+            src/org.openkj.OpenKJ.metainfo.xml
           commit-msg: Auto commit - update version from git tag
           github-token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ env.branch }}
