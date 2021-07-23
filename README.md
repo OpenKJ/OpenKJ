@@ -6,18 +6,20 @@
 **Downloads**  
 If you are looking for installers for Windows or macOS, please visit the Downloads section at https://openkj.org
 
-Linux users can grab OpenKJ from flathub: https://flathub.org/apps/details/org.openkj.OpenKJ
+Linux users can grab OpenKJ stable versions from flathub: https://flathub.org/apps/details/org.openkj.OpenKJ
 
-If you need help with OpenKJ, you can reach out to support@openkj.org via email.
+If you would like to install Linux versions of the unstable builds, please refer to the OpenKJ documentation wiki.
 
 Documentation can be found at https://docs.openkj.org
+
+If you need help with OpenKJ, you can reach out to support@openkj.org via email.
 
 OpenKJ
 ======
 
 Cross-platform open source karaoke show hosting software.
 
-OpenKJ is a full featured karaoke hosting program.
+OpenKJ is a fully featured karaoke hosting program.
 A few features:
 * Save/track/load regular singers
 * Key changer
@@ -34,12 +36,9 @@ A few features:
 
 It currently handles media+g zip files (zip files containing an mp3, wav, or ogg file and a cdg file) and paired mp3 and cdg files.  I'll be adding others in the future if anyone expresses interest.  It also can play non-cdg based video files (mkv, mp4, mpg, avi) for both break music and karaoke.
 
-Database entries for the songs are based on the file naming scheme.  I've included the commone ones I've come across which should cover 90% of what's out there. Custom patterns can be also defined in the program using regular expressions.
+Database entries for the songs are based on the file naming scheme.  I've included the common ones I've come across which should cover 90% of what's out there. Custom patterns can be also defined in the program using regular expressions.
 
 
-**Screenshots**
-
-See https://openkj.org
 
 **Requirements to build OpenKJ:**
 
