@@ -114,6 +114,7 @@ jobs:
             cd/openkj64.iss
           commit-msg: Auto commit - update version from git tag
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ env.branch }}
 
       - name: Trigger COPR build
         run: |
