@@ -45,6 +45,8 @@ See https://openkj.org
 
 * Qt 5.x
 * gstreamer 1.4 or above
+* spdlog
+* taglib
 
 **Linux**
 
