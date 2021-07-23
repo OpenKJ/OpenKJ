@@ -253,9 +253,7 @@ void DbUpdater::process() {
         if (filePath.contains("*") || filePath.contains("?") || filePath.contains("<") || filePath.contains(">") || filePath.contains("|"))
         {
             // illegal character
-            errorMutex.lock();
             errors.append("Illegal character in filename: " + filePath);
-            errorMutex.unlock();
             emit progressMessage("Illegal character in filename: " + filePath);
             emit progressChanged(i + 1);
             continue;
