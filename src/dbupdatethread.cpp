@@ -255,7 +255,7 @@ void DbUpdater::process() {
             // illegal character
             errors.append("Illegal character in filename: " + filePath);
             emit progressMessage("Illegal character in filename: " + filePath);
-            emit progressChanged(i + 1);
+            emit progressChanged(loops + 1);
             continue;
         }
 #endif
