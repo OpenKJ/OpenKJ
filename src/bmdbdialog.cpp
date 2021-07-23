@@ -50,7 +50,7 @@ BmDbDialog::~BmDbDialog()
 
 void BmDbDialog::on_pushButtonAdd_clicked()
 {
-    QString fileName = QFileDialog::getExistingDirectory(this);
+    QString fileName = QFileDialog::getExistingDirectory(this, "Select a media directory", QStandardPaths::writableLocation(QStandardPaths::MusicLocation),QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog);
     if (fileName != "")
     {
         pathsModel->insertRow(pathsModel->rowCount());

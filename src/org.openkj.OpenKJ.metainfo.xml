@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
     <id>org.openkj.OpenKJ</id>
-
     <name>OpenKJ</name>
     <summary>Professional karaoke hosting software</summary>
+    <developer_name>T. Isaac Lightburn</developer_name>
     <content_rating type="oars-1.1" />
     <url type="homepage">https://openkj.org</url>
     <metadata_license>FSFAP</metadata_license>
