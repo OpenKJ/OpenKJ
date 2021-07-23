@@ -1,9 +1,9 @@
-openkj (2.0.4-release-1~bionic) bionic; urgency=medium
+openkj (2.0.4-release.1-1~bionic) bionic; urgency=medium
 
-  [ runner@fv-az91-689.1u4dveb1r3ruphbftqvtwhitpc.gx.internal.cloudapp.net ]
+  [ runner@fv-az105-845.wy5h1aom0jgehahef1oyr10hrc.bx.internal.cloudapp.net ]
   * Automatc update from github tag
 
- --  <runner@fv-az91-689.1u4dveb1r3ruphbftqvtwhitpc.gx.internal.cloudapp.net>  Thu, 22 Jul 2021 23:35:44 +0000
+ --  <runner@fv-az105-845.wy5h1aom0jgehahef1oyr10hrc.bx.internal.cloudapp.net>  Fri, 23 Jul 2021 06:46:12 +0000
 
 openkj (2.0.3-1~bionic) bionic; urgency=medium
 
