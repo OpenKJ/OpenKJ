@@ -41,10 +41,11 @@ jobs:
             fi
             OKJVER=${{ steps.get_version.outputs.version-without-v }}
           fi
-
+          BLDDATE=$(date +'%Y-%m-%d')
           echo "branch=${BRANCH}" >> $GITHUB_ENV
           echo "rtype=${RTYPE}" >> $GITHUB_ENV
           echo "okjver=${OKJVER}" >> $GITHUB_ENV
+          echo "blddate=${BLDDATE}" >> $GITHUB_ENV
           echo "OpenKJ Version: $OKJVER"
         shell: bash
 
@@ -72,6 +73,10 @@ jobs:
         run: |
           sed -i "s/Version:.*/Version:\t\t${{ steps.get_version.outputs.major }}.${{ steps.get_version.outputs.minor }}.${{ steps.get_version.outputs.patch }}/" rpm/openkj.spec
           sed -i "s/Source0:.*/Source0:\t\topenkj-${{ steps.get_version.outputs.version-without-v }}.tar.gz/" rpm/openkj.spec
+
+      - name: Update appstream xml with git tag version
+        run: |
+          sed -i "s/<release version=.*/<release version=\"${{ steps.get_version.outputs.major }}.${{ steps.get_version.outputs.minor }}.${{ steps.get_version.outputs.patch }}\" date=\"${{ env.blddate }}\">/" src/org.openkj.OpenKJ.metainfo.xml
 
       - name: Update deb config
         run: |

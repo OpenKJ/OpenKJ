@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+    <id>org.openkj.OpenKJ</id>
+    <name>OpenKJ</name>
+    <summary>Professional karaoke hosting software</summary>
+    <developer_name>T. Isaac Lightburn</developer_name>
+    <content_rating type="oars-1.1" />
+    <url type="homepage">https://openkj.org</url>
+    <metadata_license>FSFAP</metadata_license>
+    <project_license>GPL-3.0-or-later</project_license>
+
+    <description>
+        <p>
+            Karaoke hosting software aimed at professional karaoke DJs
+        </p>
+        <p>
+            Features rotation management, playback of all common karaoke formats, and various other features important for hosting a show.
+        </p>
+    </description>
+
+    <launchable type="desktop-id">org.openkj.OpenKJ.desktop</launchable>
+    <screenshots>
+        <screenshot type="default">
+            <image>https://openkj.org/static/okj-karaoke.png</image>
+        </screenshot>
+        <screenshot>
+            <image>https://openkj.org/static/okj-cdgdisplay.png</image>
+        </screenshot>
+</screenshots>
+<provides>
+	<binary>openkj</binary>
+</provides>
+<releases>
+	<release version="2.0.4" date="2021-07-22">
+		<description>
+			<p>Initial flatpak release</p>
+		</description>
+	</release>
+</releases>
+</component>
