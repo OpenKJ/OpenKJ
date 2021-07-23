@@ -473,7 +473,7 @@ void DlgSettings::on_groupBoxRequestServer_toggled(bool arg1) {
 void DlgSettings::on_pushButtonBrowse_clicked() {
     QString imageFile = QFileDialog::getOpenFileName(this, QString("Select image file"),
                                                      QStandardPaths::writableLocation(QStandardPaths::PicturesLocation),
-                                                     QString("Images (*.png *.jpg *.jpeg *.gif)"));
+                                                     QString("Images (*.png *.jpg *.jpeg *.gif)"), nullptr, QFileDialog::DontUseNativeDialog);
     if (imageFile != "") {
         QImage image(imageFile);
         if (!image.isNull()) {
@@ -548,9 +548,12 @@ void DlgSettings::on_groupBoxRecording_toggled(bool arg1) {
 }
 
 void DlgSettings::on_buttonBrowse_clicked() {
-    QString dirName = QFileDialog::getExistingDirectory(this, "Select the output directory",
-                                                        QStandardPaths::writableLocation(
-                                                                QStandardPaths::MusicLocation));
+    QString dirName = QFileDialog::getExistingDirectory(
+            this,
+            "Select output directory",
+            QStandardPaths::standardLocations(QStandardPaths::MusicLocation).at(0),
+            QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog
+            );
     if (dirName != "") {
         settings.setRecordingOutputDir(dirName);
         ui->lineEditOutputDir->setText(dirName);
@@ -566,7 +569,12 @@ void DlgSettings::on_pushButtonSlideshowBrowse_clicked() {
     QString initialPath = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
     if (settings.bgSlideShowDir() != "")
         initialPath = settings.bgSlideShowDir();
-    QString dirName = QFileDialog::getExistingDirectory(this, "Select the slideshow directory", initialPath);
+    QString dirName = QFileDialog::getExistingDirectory(
+            this,
+            "Select the slideshow directory",
+            initialPath,
+            QFileDialog::DontUseNativeDialog | QFileDialog::ShowDirsOnly
+            );
     if (dirName != "") {
         settings.setBgSlideShowDir(dirName);
         ui->lineEditSlideshowDir->setText(dirName);
@@ -674,8 +682,12 @@ void DlgSettings::on_cbxTheme_currentIndexChanged(int index) {
 }
 
 void DlgSettings::on_btnBrowse_clicked() {
-    QString fileName = QFileDialog::getExistingDirectory(this, "Select directory to put store downloads in",
-                                                         settings.storeDownloadDir());
+    QString fileName = QFileDialog::getExistingDirectory(
+            this,
+            "Select directory to put store downloads in",
+            settings.storeDownloadDir(),
+            QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog
+            );
     if (fileName != "") {
         QFileInfo fi(fileName);
         if (!fi.isWritable() || !fi.isReadable()) {
@@ -809,7 +821,12 @@ void DlgSettings::on_btnDurationBgColor_clicked() {
 }
 
 void DlgSettings::on_btnLogDirBrowse_clicked() {
-    QString fileName = QFileDialog::getExistingDirectory(this, "Select directory to put logs in", settings.logDir());
+    QString fileName = QFileDialog::getExistingDirectory(
+            this,
+            "Select directory to put logs in",
+            settings.logDir(),
+            QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog
+            );
     if (fileName != "") {
         QFileInfo fi(fileName);
         if (!fi.isWritable() || !fi.isReadable()) {

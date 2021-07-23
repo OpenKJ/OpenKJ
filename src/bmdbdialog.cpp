@@ -45,7 +45,12 @@ BmDbDialog::BmDbDialog(QWidget *parent) :
 BmDbDialog::~BmDbDialog() = default;
 
 void BmDbDialog::pushButtonAddClicked() {
-    QString fileName = QFileDialog::getExistingDirectory(this);
+    QString fileName = QFileDialog::getExistingDirectory(
+            this,
+            "Select a meadia source dir",
+            QStandardPaths::standardLocations(QStandardPaths::MusicLocation).at(0),
+            QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog
+            );
     if (fileName != "") {
         m_pathsModel.insertRow(m_pathsModel.rowCount());
         m_pathsModel.setData(m_pathsModel.index(m_pathsModel.rowCount() - 1, 0), fileName);
