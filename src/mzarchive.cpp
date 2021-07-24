@@ -95,6 +95,7 @@ QString MzArchive::audioExtension()
 
 bool MzArchive::extractAudio(const QString& destPath, const QString& destFile)
 {
+    qInfo() << "Extracting: " << archiveFile << " audio file to: " << destPath << "/" << destFile;
     if (findAudio())
     {
         if (!m_audioSupportedCompression || !m_cdgSupportedCompression)
@@ -117,11 +118,12 @@ bool MzArchive::extractAudio(const QString& destPath, const QString& destFile)
         }
         else
         {
-            qCritical() << "Failed to extract mp3 file";
+            qWarning() << "Failed to extract mp3 file";
             QString err(mz_zip_get_error_string(mz_zip_get_last_error(&archive)));
             qWarning() << "unzip error: " << err;
             mz_zip_reader_end(&archive);
-            return false;
+            qWarning() << "Attempting to fall back to external infozip method";
+            return oka.extractAudio(destPath, destFile);
         }
     }
     return false;
