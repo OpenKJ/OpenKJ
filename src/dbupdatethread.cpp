@@ -45,7 +45,19 @@ bool DbUpdater::dbEntryExists(const QString &filepath, const bool includeDropped
 }
 
 QString DbUpdater::findMatchingAudioFile(const QString &cdgFilePath) {
-    std::array<QString, 5> audioExtensions{"mp3", "wav", "ogg", "mov", "flac"};
+    std::array<QString, 41> audioExtensions{
+        "mp3",
+        "ogg",
+        "wav",
+        "mov",
+        "flac",
+        "MP3","Mp3","mP3",
+        "WAV","Wav","wAv","waV","WAv","wAV","WaV",
+        "OGG","Ogg","oGg","ogG","OGg","oGG","OgG",
+        "MOV","Mov","mOv","moV","MOv","mOV","MoV",
+        "FLAC","Flac","fLac","flAc","flaC","FLac","FLAc",
+        "flAC","fLAC","FlaC", "FLaC", "FlAC"
+    };
     QFileInfo cdgInfo(cdgFilePath);
     for (const auto &ext : audioExtensions) {
         QString testPath = cdgInfo.absolutePath() + QDir::separator() + cdgInfo.completeBaseName() + '.' + ext;
