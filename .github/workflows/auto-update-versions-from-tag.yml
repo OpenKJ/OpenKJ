@@ -68,25 +68,9 @@ jobs:
           echo >> src/okjversion.h
           echo "#endif //OKJVERSION_H" >> src/okjversion.h
 
-      - name: Update RPM specfile with git tag version
-        # Build your program with the given configuration
-        run: |
-          sed -i "s/Version:.*/Version:\t\t${{ steps.get_version.outputs.major }}.${{ steps.get_version.outputs.minor }}.${{ steps.get_version.outputs.patch }}/" rpm/openkj.spec
-          sed -i "s/Source0:.*/Source0:\t\topenkj-${{ steps.get_version.outputs.version-without-v }}.tar.gz/" rpm/openkj.spec
-
       - name: Update appstream xml with git tag version
         run: |
           sed -i "s/<release version=.*/<release version=\"${{ steps.get_version.outputs.major }}.${{ steps.get_version.outputs.minor }}.${{ steps.get_version.outputs.patch }}\" date=\"${{ env.blddate }}\">/" src/org.openkj.OpenKJ.metainfo.xml
-
-      - name: Create fedora tarball
-        run: |
-          cd ..
-          cp -R OpenKJ openkj-${{ steps.get_version.outputs.major }}.${{ steps.get_version.outputs.minor }}.${{ steps.get_version.outputs.patch }}
-          cd openkj-${{ steps.get_version.outputs.major }}.${{ steps.get_version.outputs.minor }}.${{ steps.get_version.outputs.patch }}
-          git submodule update --init
-          cd ..
-          tar -zcf openkj-${{ steps.get_version.outputs.version-without-v }}.tar.gz openkj-${{ steps.get_version.outputs.major }}.${{ steps.get_version.outputs.minor }}.${{ steps.get_version.outputs.patch }}
-          mv openkj*.tar.gz OpenKJ/
 
       - name: Release
         uses: softprops/action-gh-release@v1
@@ -100,7 +84,6 @@ jobs:
         uses: test-room-7/action-update-file@v1
         with:
           file-path: |
-            rpm/openkj.spec
             src/okjversion.h
             cd/openkj32.iss
             cd/openkj64.iss
@@ -108,7 +91,3 @@ jobs:
           commit-msg: Auto commit - update version from git tag
           github-token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ env.branch }}
-
-      - name: Trigger COPR build
-        run: |
-          curl -X POST https://copr.fedorainfracloud.org/webhooks/custom/16440/a71138a2-bc88-4b77-8af0-bc3b1697ac35/openkj/
