@@ -42,8 +42,7 @@ jobs:
     - name: Install build dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install devscripts equivs
-        sudo apt-get install $(dpkg-checkbuilddeps 2>&1 | sed 's/dpkg-checkbuilddeps:\serror:\sUnmet build dependencies: //g' | sed 's/[\(][^)]*[\)] //g')
+        sudo apt-get install cmake libspdlog-dev libfmt-dev qtbase5-dev libqt5svg5-dev libtag1-dev libtag-extras-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libpulse-dev
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
