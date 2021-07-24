@@ -72,14 +72,6 @@ jobs:
         run: |
           sed -i "s/<release version=.*/<release version=\"${{ steps.get_version.outputs.major }}.${{ steps.get_version.outputs.minor }}.${{ steps.get_version.outputs.patch }}\" date=\"${{ env.blddate }}\">/" src/org.openkj.OpenKJ.metainfo.xml
 
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: "openkj-${{ steps.get_version.outputs.version-without-v }}.tar.gz"
-          prerelease: ${{ env.rtype != 'release' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Commit changes to repo
         uses: test-room-7/action-update-file@v1
         with:
