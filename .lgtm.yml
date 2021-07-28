@@ -19,4 +19,4 @@ extraction:
         - "libpulse-dev"
     configure:
       command:
-       - "cmake -DSPDLOG_USE_CPM=true" .
+       - "cmake -DSPDLOG_USE_CPM=true ."
