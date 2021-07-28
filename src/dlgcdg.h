@@ -42,7 +42,7 @@ public:
     std::unique_ptr<QLabel> m_label;
     explicit TransparentWidget(QWidget *parent = nullptr);
     ~TransparentWidget() override;
-    void setString(const QString &string);
+    void setString(const QString &string) const;
     void paintEvent(QPaintEvent *) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
@@ -52,8 +52,8 @@ private:
 
 public slots:
 
-    void setTextColor(const QColor &color);
-    void setBackgroundColor(const QColor &color);
+    void setTextColor(const QColor &color) const;
+    void setBackgroundColor(const QColor &color) const;
     void setTextFont(const QFont &font);
 
 protected:

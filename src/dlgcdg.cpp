@@ -431,7 +431,7 @@ void TransparentWidget::mousePressEvent(QMouseEvent *event) {
     }
 }
 
-void TransparentWidget::setString(const QString &string) {
+void TransparentWidget::setString(const QString &string) const {
     m_label->setText(string);
 }
 
@@ -459,13 +459,13 @@ TransparentWidget::TransparentWidget(QWidget *parent)
     m_label->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 }
 
-void TransparentWidget::setTextColor(const QColor &color) {
+void TransparentWidget::setTextColor(const QColor &color) const {
     auto palette = m_label->palette();
     palette.setColor(QPalette::WindowText, color);
     m_label->setPalette(palette);
 }
 
-void TransparentWidget::setBackgroundColor(const QColor &color) {
+void TransparentWidget::setBackgroundColor(const QColor &color) const {
     auto palette = m_label->palette();
     palette.setColor(QPalette::Window, color);
     m_label->setPalette(palette);
