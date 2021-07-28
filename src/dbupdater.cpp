@@ -248,7 +248,7 @@ void DbUpdater::process() {
         if (filePath.contains("*") || filePath.contains("?") || filePath.contains("<") || filePath.contains(">") || filePath.contains("|"))
         {
             // illegal character
-            errors.append("Illegal character in filename: " + filePath);
+            m_errors.append("Illegal character in filename: " + filePath);
             emit progressMessage("Illegal character in filename: " + filePath);
             emit progressChanged(loops + 1);
             continue;
