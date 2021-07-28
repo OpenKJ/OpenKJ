@@ -65,7 +65,7 @@ void MainWindow::addSfxButton(const QString &filename, const QString &label, con
     ui->sfxButtonGrid->addWidget(button, row, col);
     connect(button, &SoundFxButton::clicked, this, &MainWindow::sfxButtonPressed);
     connect(button, &SoundFxButton::customContextMenuRequested, this,
-            &MainWindow::sfxButton_customContextMenuRequested);
+            &MainWindow::sfxButtonContextMenuRequested);
     numButtons++;
 }
 
@@ -129,10 +129,9 @@ void MainWindow::updateIcons() {
 
 void MainWindow::setupShortcuts() {
 
-    scutKSelectNextSinger = new QShortcut(settings.loadShortcutKeySequence("kSelectNextSinger"), this, nullptr, nullptr,
-                                          Qt::ApplicationShortcut);
-
-    connect(scutKSelectNextSinger, &QShortcut::activated, [&]() {
+    scutKSelectNextSinger.setKey(settings.loadShortcutKeySequence("kSelectNextSinger"));
+    scutKSelectNextSinger.setContext(Qt::ApplicationShortcut);
+    connect(&scutKSelectNextSinger, &QShortcut::activated, [&]() {
         int nextSinger{-1};
         QString nextSongPath;
         bool empty{false};
@@ -162,10 +161,9 @@ void MainWindow::setupShortcuts() {
         ui->tableViewRotation->selectRow(rotModel.getSingerPosition(nextSinger));
     });
 
-    scutKPlayNextUnsung = new QShortcut(settings.loadShortcutKeySequence("kPlayNextUnsung"), this, nullptr, nullptr,
-                                        Qt::ApplicationShortcut);
-
-    connect(scutKPlayNextUnsung, &QShortcut::activated, [&]() {
+    scutKPlayNextUnsung.setKey(settings.loadShortcutKeySequence("kPlayNextUnsung"));
+    scutKPlayNextUnsung.setContext(Qt::ApplicationShortcut);
+    connect(&scutKPlayNextUnsung, &QShortcut::activated, [&]() {
         if (auto state = kMediaBackend.state(); state == MediaBackend::PlayingState ||
                                                 state == MediaBackend::PausedState) {
             if (settings.showSongInterruptionWarning()) {
@@ -245,13 +243,13 @@ void MainWindow::setupShortcuts() {
         ui->tableViewRotation->selectRow(rotModel.getSingerPosition(rotModel.currentSinger()));
     });
 
-    scutAddSinger = new QShortcut(settings.loadShortcutKeySequence("addSinger"), this, nullptr, nullptr,
-                                  Qt::ApplicationShortcut);
-    connect(scutAddSinger, &QShortcut::activated, this, &MainWindow::on_buttonAddSinger_clicked);
+    scutAddSinger.setKey(settings.loadShortcutKeySequence("addSinger"));
+    scutAddSinger.setContext(Qt::ApplicationShortcut);
+    connect(&scutAddSinger, &QShortcut::activated, dlgAddSinger, &DlgAddSinger::show);
 
-    scutBFfwd = new QShortcut(settings.loadShortcutKeySequence("bFfwd"), this, nullptr, nullptr,
-                              Qt::ApplicationShortcut);
-    connect(scutBFfwd, &QShortcut::activated, [&]() {
+    scutBFfwd.setKey(settings.loadShortcutKeySequence("bFfwd"));
+    scutBFfwd.setContext(Qt::ApplicationShortcut);
+    connect(&scutBFfwd, &QShortcut::activated, [&]() {
         auto mediaState = bmMediaBackend.state();
         if (mediaState == MediaBackend::PlayingState || mediaState == MediaBackend::PausedState) {
             auto curPos = bmMediaBackend.position();
@@ -261,9 +259,9 @@ void MainWindow::setupShortcuts() {
         }
     });
 
-    scutBPause = new QShortcut(settings.loadShortcutKeySequence("bPause"), this, nullptr, nullptr,
-                               Qt::ApplicationShortcut);
-    connect(scutBPause, &QShortcut::activated, [&]() {
+    scutBPause.setKey(settings.loadShortcutKeySequence("bPause"));
+    scutBPause.setContext(Qt::ApplicationShortcut);
+    connect(&scutBPause, &QShortcut::activated, [&]() {
         auto mediaState = bmMediaBackend.state();
         if (mediaState == MediaBackend::PlayingState) {
             bmMediaBackend.pause();
@@ -274,18 +272,17 @@ void MainWindow::setupShortcuts() {
         }
     });
 
-    scutBRestartSong = new QShortcut(settings.loadShortcutKeySequence("bRestartSong"), this, nullptr, nullptr,
-                                     Qt::ApplicationShortcut);
-    connect(scutBRestartSong, &QShortcut::activated, [&]() {
+    scutBRestartSong.setKey(settings.loadShortcutKeySequence("bRestartSong"));
+    scutBRestartSong.setContext(Qt::ApplicationShortcut);
+    connect(&scutBRestartSong, &QShortcut::activated, [&]() {
         auto mediaState = bmMediaBackend.state();
         if (mediaState == MediaBackend::PlayingState || mediaState == MediaBackend::PausedState) {
             bmMediaBackend.setPosition(0);
         }
     });
-
-    scutBRwnd = new QShortcut(settings.loadShortcutKeySequence("bRwnd"), this, nullptr, nullptr,
-                              Qt::ApplicationShortcut);
-    connect(scutBRwnd, &QShortcut::activated, [&]() {
+    scutBRwnd.setKey(settings.loadShortcutKeySequence("bRwnd"));
+    scutBRwnd.setContext(Qt::ApplicationShortcut);
+    connect(&scutBRwnd, &QShortcut::activated, [&]() {
         auto mediaState = bmMediaBackend.state();
         if (mediaState == MediaBackend::PlayingState || mediaState == MediaBackend::PausedState) {
             auto curPos = bmMediaBackend.position();
@@ -296,37 +293,35 @@ void MainWindow::setupShortcuts() {
         }
     });
 
-    scutBStop = new QShortcut(settings.loadShortcutKeySequence("bStop"), this, nullptr, nullptr,
-                              Qt::ApplicationShortcut);
-    connect(scutBStop, &QShortcut::activated, [&]() {
+    scutBStop.setKey(settings.loadShortcutKeySequence("bStop"));
+    scutBStop.setContext(Qt::ApplicationShortcut);
+    connect(&scutBStop, &QShortcut::activated, [&]() {
         bmMediaBackend.stop();
     });
 
-    scutBVolDn = new QShortcut(settings.loadShortcutKeySequence("bVolDn"), this, nullptr, nullptr,
-                               Qt::ApplicationShortcut);
-    connect(scutBVolDn, &QShortcut::activated, [&]() {
-        int curVol = bmMediaBackend.getVolume();
-        if (curVol > 0)
+    scutBVolDn.setKey(settings.loadShortcutKeySequence("bVolDn"));
+    scutBVolDn.setContext(Qt::ApplicationShortcut);
+    connect(&scutBVolDn, &QShortcut::activated, [&]() {
+        if (int curVol = bmMediaBackend.getVolume(); curVol > 0)
             bmMediaBackend.setVolume(curVol - 1);
     });
 
-    scutBVolMute = new QShortcut(settings.loadShortcutKeySequence("bVolMute"), this, nullptr, nullptr,
-                                 Qt::ApplicationShortcut);
-    connect(scutBVolMute, &QShortcut::activated, [&]() {
+    scutBVolMute.setKey(settings.loadShortcutKeySequence("bVolMute"));
+    scutBVolMute.setContext(Qt::ApplicationShortcut);
+    connect(&scutBVolMute, &QShortcut::activated, [&]() {
         bmMediaBackend.setMuted(!bmMediaBackend.isMuted());
     });
 
-    scutBVolUp = new QShortcut(settings.loadShortcutKeySequence("bVolUp"), this, nullptr, nullptr,
-                               Qt::ApplicationShortcut);
-    connect(scutBVolUp, &QShortcut::activated, [&]() {
-        int curVol = bmMediaBackend.getVolume();
-        if (curVol < 100)
+    scutBVolUp.setKey(settings.loadShortcutKeySequence("bVolUp"));
+    scutBVolUp.setContext(Qt::ApplicationShortcut);
+    connect(&scutBVolUp, &QShortcut::activated, [&]() {
+        if (int curVol = bmMediaBackend.getVolume(); curVol < 100)
             bmMediaBackend.setVolume(curVol + 1);
     });
 
-    scutJumpToSearch = new QShortcut(settings.loadShortcutKeySequence("jumpToSearch"), this, nullptr, nullptr,
-                                     Qt::ApplicationShortcut);
-    connect(scutJumpToSearch, &QShortcut::activated, [&]() {
+    scutJumpToSearch.setKey(settings.loadShortcutKeySequence("jumpToSearch"));
+    scutJumpToSearch.setContext(Qt::ApplicationShortcut);
+    connect(&scutJumpToSearch, &QShortcut::activated, [&]() {
         activateWindow();
         if (!hasFocus() && !ui->lineEdit->hasFocus())
             setFocus();
@@ -336,93 +331,83 @@ void MainWindow::setupShortcuts() {
             ui->lineEdit->setFocus();
     });
 
-    scutKFfwd = new QShortcut(settings.loadShortcutKeySequence("kFfwd"), this, nullptr, nullptr,
-                              Qt::ApplicationShortcut);
-    connect(scutKFfwd, &QShortcut::activated, [&]() {
-        auto mediaState = kMediaBackend.state();
-        if (mediaState == MediaBackend::PlayingState || mediaState == MediaBackend::PausedState) {
-            auto curPos = kMediaBackend.position();
-            auto duration = kMediaBackend.duration();
-            if (curPos + 5000 < duration)
+    scutKFfwd.setKey(settings.loadShortcutKeySequence("kFfwd"));
+    scutKFfwd.setContext(Qt::ApplicationShortcut);
+    connect(&scutKFfwd, &QShortcut::activated, [&]() {
+        if (auto state = kMediaBackend.state(); state == MediaBackend::PlayingState || state == MediaBackend::PausedState) {
+            if (auto curPos = kMediaBackend.position(); curPos + 5000 < kMediaBackend.duration())
                 kMediaBackend.setPosition(curPos + 5000);
         }
     });
 
-    scutKPause = new QShortcut(settings.loadShortcutKeySequence("kPause"), this, nullptr, nullptr,
-                               Qt::ApplicationShortcut);
-    connect(scutKPause, &QShortcut::activated, this, &MainWindow::on_buttonPause_clicked);
+    scutKPause.setKey(settings.loadShortcutKeySequence("kPause"));
+    scutKPause.setContext(Qt::ApplicationShortcut);
+    connect(&scutKPause, &QShortcut::activated, this, &MainWindow::buttonPauseClicked);
 
-    scutKRestartSong = new QShortcut(settings.loadShortcutKeySequence("kRestartSong"), this, nullptr, nullptr,
-                                     Qt::ApplicationShortcut);
-    connect(scutKRestartSong, &QShortcut::activated, [&]() {
-        auto mediaState = kMediaBackend.state();
-        if (mediaState == MediaBackend::PlayingState || mediaState == MediaBackend::PausedState) {
+    scutKRestartSong.setKey(settings.loadShortcutKeySequence("kRestartSong"));
+    scutKRestartSong.setContext(Qt::ApplicationShortcut);
+    connect(&scutKRestartSong, &QShortcut::activated, [&]() {
+        if (auto state = kMediaBackend.state(); state == MediaBackend::PlayingState || state == MediaBackend::PausedState)
             kMediaBackend.setPosition(0);
-        }
     });
 
+    scutKRwnd.setKey(settings.loadShortcutKeySequence("kRwnd"));
+    scutKRwnd.setContext(Qt::ApplicationShortcut);
+    connect(&scutKRwnd, &QShortcut::activated, [&]() {
+        if (auto state = kMediaBackend.state(); state == MediaBackend::PlayingState || state == MediaBackend::PausedState) {
 
-    scutKRwnd = new QShortcut(settings.loadShortcutKeySequence("kRwnd"), this, nullptr, nullptr,
-                              Qt::ApplicationShortcut);
-    connect(scutKRwnd, &QShortcut::activated, [&]() {
-        auto mediaState = kMediaBackend.state();
-        if (mediaState == MediaBackend::PlayingState || mediaState == MediaBackend::PausedState) {
-            auto curPos = kMediaBackend.position();
-            if (curPos - 5000 > 0)
+            if (auto curPos = kMediaBackend.position(); curPos - 5000 > 0)
                 kMediaBackend.setPosition(curPos - 5000);
             else
                 kMediaBackend.setPosition(0);
         }
     });
 
-    scutKStop = new QShortcut(settings.loadShortcutKeySequence("kStop"), this, nullptr, nullptr,
-                              Qt::ApplicationShortcut);
-    connect(scutKStop, &QShortcut::activated, [&]() {
+    scutKStop.setKey(settings.loadShortcutKeySequence("kStop"));
+    scutKStop.setContext(Qt::ApplicationShortcut);
+    connect(&scutKStop, &QShortcut::activated, [&]() {
         kMediaBackend.stop();
     });
 
-    scutKVolDn = new QShortcut(settings.loadShortcutKeySequence("kVolDn"), this, nullptr, nullptr,
-                               Qt::ApplicationShortcut);
-    connect(scutKVolDn, &QShortcut::activated, [&]() {
+    scutKVolDn.setKey(settings.loadShortcutKeySequence("kVolDn"));
+    scutKVolDn.setContext(Qt::ApplicationShortcut);
+    connect(&scutKVolDn, &QShortcut::activated, [&]() {
         int curVol = kMediaBackend.getVolume();
         if (curVol > 0)
             kMediaBackend.setVolume(curVol - 1);
     });
 
-    scutKVolMute = new QShortcut(settings.loadShortcutKeySequence("kVolMute"), this, nullptr, nullptr,
-                                 Qt::ApplicationShortcut);
-    connect(scutKVolMute, &QShortcut::activated, [&]() {
+    scutKVolMute.setKey(settings.loadShortcutKeySequence("kVolMute"));
+    scutKVolMute.setContext(Qt::ApplicationShortcut);
+    connect(&scutKVolMute, &QShortcut::activated, [&]() {
         kMediaBackend.setMuted(!kMediaBackend.isMuted());
     });
 
-    scutKVolUp = new QShortcut(settings.loadShortcutKeySequence("kVolUp"), this, nullptr, nullptr,
-                               Qt::ApplicationShortcut);
-    connect(scutKVolUp, &QShortcut::activated, [&]() {
-        int curVol = kMediaBackend.getVolume();
-        if (curVol < 100)
+    scutKVolUp.setKey(settings.loadShortcutKeySequence("kVolUp"));
+    scutKVolUp.setContext(Qt::ApplicationShortcut);
+    connect(&scutKVolUp, &QShortcut::activated, [&]() {
+        if (int curVol = kMediaBackend.getVolume(); curVol < 100)
             kMediaBackend.setVolume(curVol + 1);
     });
 
-    scutLoadRegularSinger = new QShortcut(settings.loadShortcutKeySequence("loadRegularSinger"), this, nullptr, nullptr,
-                                          Qt::ApplicationShortcut);
-    connect(scutLoadRegularSinger, &QShortcut::activated, this, &MainWindow::on_buttonRegulars_clicked);
+    scutLoadRegularSinger.setKey(settings.loadShortcutKeySequence("loadRegularSinger"));
+    scutLoadRegularSinger.setContext(Qt::ApplicationShortcut);
+    connect(&scutLoadRegularSinger, &QShortcut::activated, &m_dlgRegularSingers, &DlgRegularSingers::toggleVisibility);
 
-    scutToggleSingerWindow = new QShortcut(settings.loadShortcutKeySequence("toggleSingerWindow"), this, nullptr,
-                                           nullptr, Qt::ApplicationShortcut);
-    connect(scutToggleSingerWindow, &QShortcut::activated, [&]() {
-        if (cdgWindow->isVisible())
-            cdgWindow->hide();
-        else
-            cdgWindow->show();
+    scutToggleSingerWindow.setKey(settings.loadShortcutKeySequence("toggleSingerWindow"));
+    scutToggleSingerWindow.setContext(Qt::ApplicationShortcut);
+    connect(&scutToggleSingerWindow, &QShortcut::activated, [&]() {
+        cdgWindow->setVisible(!cdgWindow->isVisible());
     });
 
-    scutRequests = new QShortcut(settings.loadShortcutKeySequence("showIncomingRequests"), this, nullptr, nullptr,
-                                 Qt::ApplicationShortcut);
-    connect(scutRequests, &QShortcut::activated, this, &MainWindow::on_pushButtonIncomingRequests_clicked);
+    scutRequests.setKey(settings.loadShortcutKeySequence("showIncomingRequests"));
+    scutRequests.setContext(Qt::ApplicationShortcut);
+    connect(&scutRequests, &QShortcut::activated, requestsDialog, &DlgRequests::show);
 
-    scutDeleteSinger = new QShortcut(QKeySequence(QKeySequence::Delete), ui->tableViewRotation, nullptr, nullptr,
-                                     Qt::WidgetShortcut);
-    connect(scutDeleteSinger, &QShortcut::activated, [&]() {
+    scutDeleteSinger.setParent(ui->tableViewRotation);
+    scutDeleteSinger.setKey(QKeySequence::Delete);
+    scutDeleteSinger.setContext(Qt::WidgetShortcut);
+    connect(&scutDeleteSinger, &QShortcut::activated, [&]() {
         auto indexes = ui->tableViewRotation->selectionModel()->selectedRows(0);
         std::vector<int> singerIds;
         std::for_each(indexes.begin(), indexes.end(), [&](auto index) {
@@ -466,9 +451,10 @@ void MainWindow::setupShortcuts() {
         ui->tableViewQueue->clearSelection();
     });
 
-    scutDeleteSong = new QShortcut(QKeySequence(QKeySequence::Delete), ui->tableViewQueue, nullptr, nullptr,
-                                   Qt::WidgetShortcut);
-    connect(scutDeleteSong, &QShortcut::activated, [&]() {
+    scutDeleteSong.setParent(ui->tableViewQueue);
+    scutDeleteSong.setKey(QKeySequence::Delete);
+    scutDeleteSong.setContext(Qt::WidgetShortcut);
+    connect(&scutDeleteSong, &QShortcut::activated, [&]() {
         auto indexes = ui->tableViewQueue->selectionModel()->selectedRows(0);
         bool containsUnplayed{false};
         std::vector<int> songIds;
@@ -497,9 +483,10 @@ void MainWindow::setupShortcuts() {
         });
     });
 
-    scutDeletePlSong = new QShortcut(QKeySequence(QKeySequence::Delete), ui->tableViewBmPlaylist, nullptr, nullptr,
-                                     Qt::WidgetShortcut);
-    connect(scutDeletePlSong, &QShortcut::activated, [&]() {
+    scutDeletePlSong.setParent(ui->tableViewBmPlaylist);
+    scutDeleteSong.setKey(QKeySequence::Delete);
+    scutDeleteSong.setContext(Qt::WidgetShortcut);
+    connect(&scutDeletePlSong, &QShortcut::activated, [&]() {
         auto rows = ui->tableViewBmPlaylist->selectionModel()->selectedRows(0);
         std::vector<int> positions;
         bool curPlayingSelected{false};
@@ -542,29 +529,29 @@ void MainWindow::setupShortcuts() {
 }
 
 void MainWindow::shortcutsUpdated() {
-    scutKSelectNextSinger->setKey(settings.loadShortcutKeySequence("kSelectNextSinger"));
-    scutKPlayNextUnsung->setKey(settings.loadShortcutKeySequence("kPlayNextUnsung"));
-    scutAddSinger->setKey(settings.loadShortcutKeySequence("addSinger"));
-    scutBFfwd->setKey(settings.loadShortcutKeySequence("bFfwd"));
-    scutBPause->setKey(settings.loadShortcutKeySequence("bPause"));
-    scutBRestartSong->setKey(settings.loadShortcutKeySequence("bRestartSong"));
-    scutBRwnd->setKey(settings.loadShortcutKeySequence("bRwnd"));
-    scutBStop->setKey(settings.loadShortcutKeySequence("bStop"));
-    scutBVolDn->setKey(settings.loadShortcutKeySequence("bVolDn"));
-    scutBVolMute->setKey(settings.loadShortcutKeySequence("bVolMute"));
-    scutBVolUp->setKey(settings.loadShortcutKeySequence("bVolUp"));
-    scutJumpToSearch->setKey(settings.loadShortcutKeySequence("jumpToSearch"));
-    scutKFfwd->setKey(settings.loadShortcutKeySequence("kFfwd"));
-    scutKPause->setKey(settings.loadShortcutKeySequence("kPause"));
-    scutKRestartSong->setKey(settings.loadShortcutKeySequence("kRestartSong"));
-    scutKRwnd->setKey(settings.loadShortcutKeySequence("kRwnd"));
-    scutKStop->setKey(settings.loadShortcutKeySequence("kStop"));
-    scutKVolDn->setKey(settings.loadShortcutKeySequence("kVolDn"));
-    scutKVolMute->setKey(settings.loadShortcutKeySequence("kVolMute"));
-    scutKVolUp->setKey(settings.loadShortcutKeySequence("kVolUp"));
-    scutLoadRegularSinger->setKey(settings.loadShortcutKeySequence("loadRegularSinger"));
-    scutRequests->setKey(settings.loadShortcutKeySequence("showIncomingRequests"));
-    scutToggleSingerWindow->setKey(settings.loadShortcutKeySequence("toggleSingerWindow"));
+    scutKSelectNextSinger.setKey(settings.loadShortcutKeySequence("kSelectNextSinger"));
+    scutKPlayNextUnsung.setKey(settings.loadShortcutKeySequence("kPlayNextUnsung"));
+    scutAddSinger.setKey(settings.loadShortcutKeySequence("addSinger"));
+    scutBFfwd.setKey(settings.loadShortcutKeySequence("bFfwd"));
+    scutBPause.setKey(settings.loadShortcutKeySequence("bPause"));
+    scutBRestartSong.setKey(settings.loadShortcutKeySequence("bRestartSong"));
+    scutBRwnd.setKey(settings.loadShortcutKeySequence("bRwnd"));
+    scutBStop.setKey(settings.loadShortcutKeySequence("bStop"));
+    scutBVolDn.setKey(settings.loadShortcutKeySequence("bVolDn"));
+    scutBVolMute.setKey(settings.loadShortcutKeySequence("bVolMute"));
+    scutBVolUp.setKey(settings.loadShortcutKeySequence("bVolUp"));
+    scutJumpToSearch.setKey(settings.loadShortcutKeySequence("jumpToSearch"));
+    scutKFfwd.setKey(settings.loadShortcutKeySequence("kFfwd"));
+    scutKPause.setKey(settings.loadShortcutKeySequence("kPause"));
+    scutKRestartSong.setKey(settings.loadShortcutKeySequence("kRestartSong"));
+    scutKRwnd.setKey(settings.loadShortcutKeySequence("kRwnd"));
+    scutKStop.setKey(settings.loadShortcutKeySequence("kStop"));
+    scutKVolDn.setKey(settings.loadShortcutKeySequence("kVolDn"));
+    scutKVolMute.setKey(settings.loadShortcutKeySequence("kVolMute"));
+    scutKVolUp.setKey(settings.loadShortcutKeySequence("kVolUp"));
+    scutLoadRegularSinger.setKey(settings.loadShortcutKeySequence("loadRegularSinger"));
+    scutRequests.setKey(settings.loadShortcutKeySequence("showIncomingRequests"));
+    scutToggleSingerWindow.setKey(settings.loadShortcutKeySequence("toggleSingerWindow"));
 }
 
 void MainWindow::treatAllSingersAsRegsChanged(bool enabled) {
@@ -627,7 +614,6 @@ MainWindow::MainWindow(QWidget *parent) :
         settings.restoreWindowState(this);
     });
     dbInit(okjDataDir);
-    setupShortcuts();
     karaokeSongsModel.loadData();
     rotModel.loadData();
     ui->comboBoxHistoryDblClick->addItems(QStringList{"Adds to queue", "Plays song"});
@@ -796,8 +782,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewBmDb->setColumnHidden(TableModelBreakSongs::COL_ID, true);
     ui->tableViewBmPlaylist->setColumnHidden(TableModelPlaylistSongs::COL_POSITION, true);
     settings.restoreSplitterState(ui->splitter_3);
-    on_actionDisplay_Filenames_toggled(settings.bmShowFilenames());
-    on_actionDisplay_Metadata_toggled(settings.bmShowMetadata());
+    actionDisplayFilenamesToggled(settings.bmShowFilenames());
+    actionDisplayMetadataToggled(settings.bmShowMetadata());
 
 
     connect(&bmMediaBackend, &MediaBackend::stateChanged, this, &MainWindow::bmMediaStateChanged);
@@ -934,13 +920,13 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->widgetMplxControls->setVisible(settings.showMplxControls());
     switch (settings.mainWindowVideoSize()) {
         case Settings::Small:
-            on_actionVideoSmall_triggered();
+            actionVideoSmallTriggered();
             break;
         case Settings::Medium:
-            on_actionVideoMedium_triggered();
+            actionVideoMediumTriggered();
             break;
         case Settings::Large:
-            on_actionVideoLarge_triggered();
+            actionVideoLargeTriggered();
             break;
     }
     ui->labelVolume->setPixmap(QIcon::fromTheme("player-volume").pixmap(QSize(22, 22)));
@@ -1065,7 +1051,8 @@ MainWindow::MainWindow(QWidget *parent) :
             }
         });
     }
-
+    setupShortcuts();
+    setupConnections();
 }
 
 void MainWindow::dbInit(const QDir &okjDataDir) {
@@ -1172,7 +1159,115 @@ void MainWindow::dbInit(const QDir &okjDataDir) {
             logger->info("{} Import complete for singer: {}", m_loggingPrefix, singersQuery.value("name").toString().toStdString());
         }
     }
+}
 
+void MainWindow::setupConnections() {
+    connect(ui->buttonStop, &QPushButton::clicked, this, &MainWindow::buttonStopClicked);
+    connect(ui->buttonPause, &QPushButton::clicked, this, &MainWindow::buttonPauseClicked);
+    connect(ui->lineEdit, &QLineEdit::returnPressed, this, &MainWindow::search);
+    connect(ui->lineEditBmSearch, &QLineEdit::returnPressed, this, &MainWindow::searchBreakMusic);
+    connect(ui->tableViewDB, &QTableView::doubleClicked, this, &MainWindow::tableViewDbDoubleClicked);
+    connect(ui->buttonAddSinger, &QPushButton::clicked, dlgAddSinger, &DlgAddSinger::show);
+    connect(ui->tableViewRotation, &QTableView::doubleClicked, this, &MainWindow::tableViewRotationDoubleClicked);
+    connect(ui->tableViewRotation, &QTableView::clicked, this, &MainWindow::tableViewRotationClicked);
+    connect(ui->tableViewQueue, &QTableView::doubleClicked, this, &MainWindow::tableViewQueueDoubleClicked);
+    connect(ui->tableViewQueue, &QTableView::clicked, this, &MainWindow::tableViewQueueClicked);
+    connect(ui->tableViewBmPlaylist, &QTableView::clicked, this, &MainWindow::tableViewBmPlaylistClicked);
+    connect(ui->tableViewBmPlaylist, &QTableView::doubleClicked, this, &MainWindow::tableViewBmPlaylistDoubleClicked);
+    connect(ui->tableViewBmDb, &QTableView::doubleClicked, this, &MainWindow::tableViewBmDbDoubleClicked);
+    connect(ui->tableViewBmDb, &QTableView::clicked, this, &MainWindow::tableViewBmDbClicked);
+    connect(ui->actionManage_DB, &QAction::triggered, dbDialog, &DlgDatabase::showNormal);
+    connect(ui->actionManage_Karaoke_DB, &QAction::triggered, dbDialog, &DlgDatabase::showNormal);
+    connect(ui->actionExport_Regulars, &QAction::triggered, this, &MainWindow::actionExportRegularsTriggered);
+    connect(ui->actionImport_Regulars, &QAction::triggered, this, &MainWindow::actionImportRegularsTriggered);
+    connect(ui->actionSettings, &QAction::triggered, this, &MainWindow::actionSettingsTriggered);
+    connect(ui->actionRegulars, &QAction::triggered, &m_dlgRegularSingers, &DlgRegularSingers::showNormal);
+    connect(ui->actionIncoming_Requests, &QAction::triggered, requestsDialog, &DlgRequests::show);
+    connect(ui->pushButton, &QPushButton::clicked, this, &MainWindow::search);
+    connect(ui->buttonClearRotation, &QPushButton::clicked, this, &MainWindow::clearRotation);
+    connect(ui->buttonClearQueue, &QPushButton::clicked, this, &MainWindow::clearSingerQueue);
+    connect(ui->spinBoxKey, qOverload<int>(&QSpinBox::valueChanged), this, &MainWindow::spinBoxKeyValueChanged);
+    connect(ui->buttonRegulars, &QPushButton::clicked, &m_dlgRegularSingers, &DlgRegularSingers::toggleVisibility);
+    connect(ui->tableViewDB, &QTableView::customContextMenuRequested, this, &MainWindow::tableViewDBContextMenuRequested);
+    connect(ui->tableViewQueue, &QTableView::customContextMenuRequested, this,
+            &MainWindow::tableViewQueueContextMenuRequested);
+    connect(ui->tableViewRotation, &QTableView::customContextMenuRequested, this,
+            &MainWindow::tableViewRotationContextMenuRequested);
+    connect(ui->sliderProgress, &QSlider::sliderPressed, this, &MainWindow::sliderProgressPressed);
+    connect(ui->sliderProgress, &QSlider::sliderReleased, this, &MainWindow::sliderProgressReleased);
+    connect(ui->actionManage_Break_DB, &QAction::triggered, bmDbDialog, &BmDbDialog::show);
+    connect(ui->comboBoxBmPlaylists, qOverload<int>(&QComboBox::currentIndexChanged), this,
+            &MainWindow::comboBoxBmPlaylistsIndexChanged);
+    connect(ui->checkBoxBmBreak, &QCheckBox::toggled, this, &MainWindow::checkBoxBmBreakToggled);
+    connect(ui->buttonBmStop, &QPushButton::clicked, this, &MainWindow::buttonBmStopClicked);
+    connect(ui->buttonBmPause, &QPushButton::clicked, this, &MainWindow::buttonBmPauseClicked);
+    connect(ui->actionDisplay_Filenames, &QAction::toggled, this, &MainWindow::actionDisplayFilenamesToggled);
+    connect(ui->actionDisplay_Metadata, &QAction::toggled, this, &MainWindow::actionDisplayMetadataToggled);
+    connect(ui->actionPlaylistNew, &QAction::triggered, this, &MainWindow::actionPlaylistNewTriggered);
+    connect(ui->actionPlaylistImport, &QAction::triggered, this, &MainWindow::actionPlaylistImportTriggered);
+    connect(ui->actionPlaylistExport, &QAction::triggered, this, &MainWindow::actionPlaylistExportTriggered);
+    connect(ui->actionPlaylistDelete, &QAction::triggered, this, &MainWindow::actionPlaylistDeleteTriggered);
+    connect(ui->buttonBmSearch, &QPushButton::clicked, this, &MainWindow::searchBreakMusic);
+    connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::actionAboutTriggered);
+    connect(ui->pushButtonMplxBoth, &QPushButton::toggled, this, &MainWindow::pushButtonMplxBothToggled);
+    connect(ui->pushButtonMplxLeft, &QPushButton::toggled, this, &MainWindow::pushButtonMplxLeftToggled);
+    connect(ui->pushButtonMplxRight, &QPushButton::toggled, this, &MainWindow::pushButtonMplxRightToggled);
+    connect(ui->lineEdit, &QLineEdit::textChanged, this, &MainWindow::lineEditSearchTextChanged);
+    connect(ui->spinBoxTempo, qOverload<int>(&QSpinBox::valueChanged), this, &MainWindow::spinBoxTempoValueChanged);
+    connect(ui->actionSongbook_Generator, &QAction::triggered, dlgBookCreator, &DlgBookCreator::show);
+    connect(ui->actionEqualizer, &QAction::triggered, dlgEq, &DlgEq::show);
+    connect(ui->pushButtonIncomingRequests, &QPushButton::clicked, requestsDialog, &DlgRequests::show);
+    connect(ui->pushButtonShop, &QPushButton::clicked, dlgSongShop, &DlgSongShop::show);
+    connect(ui->actionSong_Shop, &QAction::triggered, dlgSongShop, &DlgSongShop::show);
+    connect(ui->tabWidget, &QTabWidget::currentChanged, this, &MainWindow::tabWidgetCurrentChanged);
+    connect(ui->sliderBmPosition, &QSlider::sliderPressed, this, &MainWindow::sliderBmPositionPressed);
+    connect(ui->sliderBmPosition, &QSlider::sliderReleased, this, &MainWindow::sliderBmPositionReleased);
+    connect(ui->btnAddSfx, &QPushButton::clicked, this, &MainWindow::addSfxButtonPressed);
+    connect(ui->btnSfxStop, &QPushButton::clicked, this, &MainWindow::stopSfxPlayback);
+    connect(ui->lineEditBmSearch, &QLineEdit::textChanged, this, &MainWindow::lineEditBmSearchChanged);
+    connect(ui->btnRotUp, &QPushButton::clicked, this, &MainWindow::btnRotUpClicked);
+    connect(ui->btnRotTop, &QPushButton::clicked, this, &MainWindow::btnRotTopClicked);
+    connect(ui->btnRotDown, &QPushButton::clicked, this, &MainWindow::btnRotDownClicked);
+    connect(ui->btnRotBottom, &QPushButton::clicked, this, &MainWindow::btnRotBottomClicked);
+    connect(ui->btnQUp, &QPushButton::clicked, this, &MainWindow::btnQUpClicked);
+    connect(ui->btnQTop, &QPushButton::clicked, this, &MainWindow::btnQTopClicked);
+    connect(ui->btnQDown, &QPushButton::clicked, this, &MainWindow::btnQDownClicked);
+    connect(ui->btnQBottom, &QPushButton::clicked, this, &MainWindow::btnQBottomClicked);
+    connect(ui->btnPlUp, &QPushButton::clicked, this, &MainWindow::btnPlUpClicked);
+    connect(ui->btnPlTop, &QPushButton::clicked, this, &MainWindow::btnPlTopClicked);
+    connect(ui->btnPlDown, &QPushButton::clicked, this, &MainWindow::btnPlDownClicked);
+    connect(ui->btnPlBottom, &QPushButton::clicked, this, &MainWindow::btnPlBottomClicked);
+    connect(ui->btnBmPlRandomize, &QPushButton::clicked, this, &MainWindow::btnBmPlRandomizeClicked);
+    connect(ui->actionSound_Clips, &QAction::triggered, this, &MainWindow::actionSoundClipsTriggered);
+    connect(ui->actionNow_Playing, &QAction::triggered, this, &MainWindow::actionNowPlayingTriggered);
+    connect(ui->actionVideoLarge, &QAction::triggered, this, &MainWindow::actionVideoLargeTriggered);
+    connect(ui->actionVideoSmall, &QAction::triggered, this, &MainWindow::actionVideoSmallTriggered);
+    connect(ui->actionVideoMedium, &QAction::triggered, this, &MainWindow::actionVideoMediumTriggered);
+    connect(ui->actionVideo_Output_2, &QAction::toggled, ui->videoPreview, &VideoDisplay::setVisible);
+    connect(ui->actionVideo_Output_2, &QAction::toggled, &settings, &Settings::setShowMainWindowVideo);
+    connect(ui->actionKaraoke_torture, &QAction::triggered, this, &MainWindow::actionKaraokeTorture);
+    connect(ui->actionK_B_torture, &QAction::triggered, this, &MainWindow::actionKAndBTorture);
+    connect(ui->actionBurn_in, &QAction::triggered, this, &MainWindow::actionBurnIn);
+    connect(ui->actionMultiplex_Controls, &QAction::toggled, ui->widgetMplxControls, &QWidget::setVisible);
+    connect(ui->actionMultiplex_Controls, &QAction::toggled, &settings, &Settings::setShowMplxControls);
+    connect(ui->actionCDG_Decode_Torture, &QAction::triggered, this, &MainWindow::actionCdgDecodeTorture);
+    connect(ui->actionWrite_Gstreamer_pipeline_dot_files, &QAction::triggered, this,
+            &MainWindow::writeGstPipelineDiagramToDisk);
+    connect(ui->comboBoxSearchType, qOverload<int>(&QComboBox::currentIndexChanged), this,
+            &MainWindow::comboBoxSearchTypeIndexChanged);
+    connect(ui->actionDocumentation, &QAction::triggered, this, &MainWindow::actionDocumentation);
+    connect(ui->btnToggleCdgWindow, &QPushButton::toggled, cdgWindow, &DlgCdg::setVisible);
+    connect(ui->tableViewBmPlaylist, &QTableView::customContextMenuRequested, this,
+            &MainWindow::tableViewBmPlaylistContextMenu);
+    connect(ui->pushButtonHistoryPlay, &QPushButton::clicked, this, &MainWindow::buttonHistoryPlayClicked);
+    connect(ui->pushButtonHistoryToQueue, &QPushButton::clicked, this, &MainWindow::buttonHistoryToQueueClicked);
+    connect(ui->tableViewHistory, &QTableView::doubleClicked, this, &MainWindow::tableViewHistoryDoubleClicked);
+    connect(ui->tableViewHistory, &QTableView::customContextMenuRequested, this,
+            &MainWindow::tableViewHistoryContextMenu);
+    connect(ui->actionBreak_music_torture, &QAction::triggered, this, &MainWindow::actionBreakMusicTorture);
+    connect(ui->actionBurn_in_EOS_Jump, &QAction::triggered, this, &MainWindow::actionBurnInEosJump);
+    connect(ui->sliderVolume, &QSlider::valueChanged, this, &MainWindow::sliderVolumeChanged);
+    connect(ui->sliderBmVolume, &QSlider::valueChanged, this, &MainWindow::sliderBmVolumeChanged);
 }
 
 void MainWindow::play(const QString &karaokeFilePath, const bool &k2k) {
@@ -1358,7 +1453,7 @@ void MainWindow::databaseCleared() {
 
 }
 
-void MainWindow::on_buttonStop_clicked() {
+void MainWindow::buttonStopClicked() {
     if (kMediaBackend.state() == MediaBackend::PlayingState) {
         if (settings.showSongPauseStopWarning()) {
             QMessageBox msgBox(this);
@@ -1388,10 +1483,9 @@ void MainWindow::on_buttonStop_clicked() {
         kMediaBackend.stop();
         bmMediaBackend.fadeIn();
     }
-//    ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
 }
 
-void MainWindow::on_buttonPause_clicked() {
+void MainWindow::buttonPauseClicked() {
     if (kMediaBackend.state() == MediaBackend::PausedState) {
         kMediaBackend.play();
     } else if (kMediaBackend.state() == MediaBackend::PlayingState) {
@@ -1416,11 +1510,7 @@ void MainWindow::on_buttonPause_clicked() {
     }
 }
 
-void MainWindow::on_lineEdit_returnPressed() {
-    search();
-}
-
-void MainWindow::on_tableViewDB_doubleClicked(const QModelIndex &index) {
+void MainWindow::tableViewDbDoubleClicked(const QModelIndex &index) {
     if (settings.dbDoubleClickAddsSong()) {
         auto addSongDlg = new DlgAddSong(rotModel, qModel, index.sibling(index.row(), 0).data().toInt(), this);
         connect(addSongDlg, &DlgAddSong::newSingerAdded, [&](auto pos) {
@@ -1441,11 +1531,7 @@ void MainWindow::on_tableViewDB_doubleClicked(const QModelIndex &index) {
     }
 }
 
-void MainWindow::on_buttonAddSinger_clicked() {
-    dlgAddSinger->show();
-}
-
-void MainWindow::on_tableViewRotation_doubleClicked(const QModelIndex &index) {
+void MainWindow::tableViewRotationDoubleClicked(const QModelIndex &index) {
     if (index.column() <= 3) {
         k2kTransition = false;
         int singerId = index.data(Qt::UserRole).toInt();
@@ -1510,7 +1596,7 @@ void MainWindow::on_tableViewRotation_doubleClicked(const QModelIndex &index) {
     }
 }
 
-void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index) {
+void MainWindow::tableViewRotationClicked(const QModelIndex &index) {
     if (index.column() == TableModelRotation::COL_DELETE) {
         if (settings.showSingerRemovalWarning()) {
             QMessageBox msgBox(this);
@@ -1573,7 +1659,7 @@ void MainWindow::on_tableViewRotation_clicked(const QModelIndex &index) {
     }
 }
 
-void MainWindow::on_tableViewQueue_doubleClicked(const QModelIndex &index) {
+void MainWindow::tableViewQueueDoubleClicked(const QModelIndex &index) {
     k2kTransition = false;
     if (kMediaBackend.state() == MediaBackend::PlayingState) {
         if (settings.showSongInterruptionWarning()) {
@@ -1633,23 +1719,19 @@ void MainWindow::on_tableViewQueue_doubleClicked(const QModelIndex &index) {
     }
 }
 
-void MainWindow::on_actionManage_DB_triggered() {
-    dbDialog->showNormal();
-}
-
-void MainWindow::on_actionExport_Regulars_triggered() {
+void MainWindow::actionExportRegularsTriggered() {
     auto exportdlg = new DlgRegularExport(karaokeSongsModel, this);
     exportdlg->setModal(true);
     exportdlg->show();
 }
 
-void MainWindow::on_actionImport_Regulars_triggered() {
+void MainWindow::actionImportRegularsTriggered() {
     auto iDialog = new DlgRegularImport(karaokeSongsModel, this);
     iDialog->setModal(true);
     iDialog->show();
 }
 
-void MainWindow::on_actionSettings_triggered() {
+void MainWindow::actionSettingsTriggered() {
     auto settingsDialog = new DlgSettings(&kMediaBackend, &bmMediaBackend, this);
     settingsDialog->setModal(true);
     connect(settingsDialog, &DlgSettings::audioUseFaderChanged, &kMediaBackend, &MediaBackend::setUseFader);
@@ -1661,14 +1743,6 @@ void MainWindow::on_actionSettings_triggered() {
     connect(settingsDialog, &DlgSettings::audioDownmixChanged, &kMediaBackend, &MediaBackend::setDownmix);
     connect(settingsDialog, &DlgSettings::audioDownmixChangedBm, &bmMediaBackend, &MediaBackend::setDownmix);
     settingsDialog->show();
-}
-
-void MainWindow::on_actionRegulars_triggered() {
-    on_buttonRegulars_clicked();
-}
-
-void MainWindow::on_actionIncoming_Requests_triggered() {
-    requestsDialog->show();
 }
 
 void MainWindow::songDroppedOnSinger(const int &singerId, const int &songId, const int &dropRow) {
@@ -1684,11 +1758,7 @@ void MainWindow::songDroppedOnSinger(const int &singerId, const int &songId, con
     selmodel->select(selection, QItemSelectionModel::Select);
 }
 
-void MainWindow::on_pushButton_clicked() {
-    search();
-}
-
-void MainWindow::on_tableViewQueue_clicked(const QModelIndex &index) {
+void MainWindow::tableViewQueueClicked(const QModelIndex &index) {
     if (index.column() == TableModelQueueSongs::COL_PATH) {
         if ((settings.showQueueRemovalWarning()) &&
             (!qModel.getPlayed(index.sibling(index.row(), TableModelQueueSongs::COL_ID).data().toInt()))) {
@@ -1712,7 +1782,7 @@ void MainWindow::on_tableViewQueue_clicked(const QModelIndex &index) {
     }
 }
 
-void MainWindow::on_buttonClearRotation_clicked() {
+void MainWindow::clearRotation() {
     if (m_testMode) {
         settings.setCurrentRotationPosition(-1);
         rotModel.clearRotation();
@@ -1736,7 +1806,7 @@ void MainWindow::on_buttonClearRotation_clicked() {
     }
 }
 
-void MainWindow::on_buttonClearQueue_clicked() {
+void MainWindow::clearSingerQueue() {
     if (m_testMode) {
         qModel.removeAll();
         return;
@@ -1754,7 +1824,7 @@ void MainWindow::on_buttonClearQueue_clicked() {
     }
 }
 
-void MainWindow::on_spinBoxKey_valueChanged(const int &arg1) {
+void MainWindow::spinBoxKeyValueChanged(const int &arg1) {
     kMediaBackend.setPitchShift(arg1);
     if (arg1 > 0)
         ui->spinBoxKey->setPrefix("+");
@@ -1767,13 +1837,13 @@ void MainWindow::on_spinBoxKey_valueChanged(const int &arg1) {
 
 void MainWindow::karaokeMediaBackend_positionChanged(const qint64 &position) {
     if (kMediaBackend.state() == MediaBackend::PlayingState) {
-        if (!sliderPositionPressed) {
-            ui->sliderProgress->setMaximum(kMediaBackend.duration());
-            ui->sliderProgress->setValue(position);
+        if (!m_sliderPositionPressed) {
+            ui->sliderProgress->setMaximum((int)kMediaBackend.duration());
+            ui->sliderProgress->setValue((int)position);
         }
         ui->labelElapsedTime->setText(MediaBackend::msToMMSS(position));
         ui->labelRemainTime->setText(MediaBackend::msToMMSS(kMediaBackend.duration() - position));
-        rotModel.setCurRemainSecs((kMediaBackend.duration() - position) / 1000);
+        rotModel.setCurRemainSecs((int)(kMediaBackend.duration() - position) / 1000);
     }
 }
 
@@ -1893,11 +1963,11 @@ void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &sta
 }
 
 void MainWindow::sfxAudioBackend_positionChanged(const qint64 &position) {
-    ui->sliderSfxPos->setValue(position);
+    ui->sliderSfxPos->setValue((int)position);
 }
 
 void MainWindow::sfxAudioBackend_durationChanged(const qint64 &duration) {
-    ui->sliderSfxPos->setMaximum(duration);
+    ui->sliderSfxPos->setMaximum((int)duration);
 }
 
 void MainWindow::sfxAudioBackend_stateChanged(const MediaBackend::State &state) {
@@ -1927,10 +1997,6 @@ void MainWindow::hasActiveVideoChanged() {
         ui->videoPreview->show();
         ui->videoPreviewBm->hide();
     }
-}
-
-void MainWindow::on_buttonRegulars_clicked() {
-    m_dlgRegularSingers.setVisible(!m_dlgRegularSingers.isVisible());
 }
 
 void MainWindow::rotationDataChanged() {
@@ -2034,7 +2100,7 @@ void MainWindow::silenceDetectedBm() {
     }
 }
 
-void MainWindow::on_tableViewDB_customContextMenuRequested(const QPoint &pos) {
+void MainWindow::tableViewDBContextMenuRequested(const QPoint &pos) {
     QModelIndex index = ui->tableViewDB->indexAt(pos);
     if (index.isValid()) {
         dbRtClickFile = karaokeSongsModel.getPath(
@@ -2048,13 +2114,13 @@ void MainWindow::on_tableViewDB_customContextMenuRequested(const QPoint &pos) {
     }
 }
 
-void MainWindow::on_tableViewRotation_customContextMenuRequested(const QPoint &pos) {
+void MainWindow::tableViewRotationContextMenuRequested(const QPoint &pos) {
     QModelIndex index = ui->tableViewRotation->indexAt(pos);
     if (index.isValid()) {
         m_rtClickRotationSingerId = index.data(Qt::UserRole).toInt();
         QMenu contextMenu(this);
         if (ui->tableViewRotation->selectionModel()->selectedRows().size() > 1) {
-            contextMenu.addAction("Delete", scutDeleteSinger, &QShortcut::activated);
+            contextMenu.addAction("Delete", &scutDeleteSinger, &QShortcut::activated);
         } else {
             contextMenu.addAction("Rename", this, &MainWindow::renameSinger);
             contextMenu.addAction("Set as top of rotation", [&] () {
@@ -2065,7 +2131,7 @@ void MainWindow::on_tableViewRotation_customContextMenuRequested(const QPoint &p
     }
 }
 
-void MainWindow::sfxButton_customContextMenuRequested([[maybe_unused]]const QPoint &pos) {
+void MainWindow::sfxButtonContextMenuRequested([[maybe_unused]]const QPoint &pos) {
     auto *btn = (SoundFxButton *) sender();
     lastRtClickedSfxBtn.path = btn->buttonData().toString();
     lastRtClickedSfxBtn.name = btn->text();
@@ -2090,13 +2156,13 @@ void MainWindow::renameSinger() {
     }
 }
 
-void MainWindow::on_tableViewBmPlaylist_customContextMenuRequested([[maybe_unused]]const QPoint &pos) {
+void MainWindow::tableViewBmPlaylistContextMenu([[maybe_unused]]const QPoint &pos) {
     QMenu contextMenu(this);
-    contextMenu.addAction("Delete", scutDeletePlSong, &QShortcut::activated);
+    contextMenu.addAction("Delete", &scutDeletePlSong, &QShortcut::activated);
     contextMenu.exec(QCursor::pos());
 }
 
-void MainWindow::on_tableViewQueue_customContextMenuRequested(const QPoint &pos) {
+void MainWindow::tableViewQueueContextMenuRequested(const QPoint &pos) {
     int selCount = ui->tableViewQueue->selectionModel()->selectedRows().size();
     if (selCount == 1) {
         QModelIndex index = ui->tableViewQueue->indexAt(pos);
@@ -2110,7 +2176,7 @@ void MainWindow::on_tableViewQueue_customContextMenuRequested(const QPoint &pos)
             contextMenu.addAction("Set Key Change", this, &MainWindow::setKeyChange);
             contextMenu.addAction("Toggle played", this, &MainWindow::toggleQueuePlayed);
             contextMenu.addSeparator();
-            contextMenu.addAction("Delete", scutDeleteSong, &QShortcut::activated);
+            contextMenu.addAction("Delete", &scutDeleteSong, &QShortcut::activated);
             contextMenu.exec(QCursor::pos());
         }
     } else if (selCount > 1) {
@@ -2118,19 +2184,19 @@ void MainWindow::on_tableViewQueue_customContextMenuRequested(const QPoint &pos)
         contextMenu.addAction("Set Played", this, &MainWindow::setMultiPlayed);
         contextMenu.addAction("Set Unplayed", this, &MainWindow::setMultiUnplayed);
         contextMenu.addSeparator();
-        contextMenu.addAction("Delete", scutDeleteSong, &QShortcut::activated);
+        contextMenu.addAction("Delete", &scutDeleteSong, &QShortcut::activated);
 
         contextMenu.exec(QCursor::pos());
     }
 }
 
-void MainWindow::on_sliderProgress_sliderPressed() {
-    sliderPositionPressed = true;
+void MainWindow::sliderProgressPressed() {
+    m_sliderPositionPressed = true;
 }
 
-void MainWindow::on_sliderProgress_sliderReleased() {
+void MainWindow::sliderProgressReleased() {
     kMediaBackend.setPosition(ui->sliderProgress->value());
-    sliderPositionPressed = false;
+    m_sliderPositionPressed = false;
 }
 
 void MainWindow::setKeyChange() {
@@ -2599,10 +2665,6 @@ void MainWindow::bmDbCleared() {
     ui->comboBoxBmPlaylists->setCurrentIndex(0);
 }
 
-void MainWindow::on_actionManage_Break_DB_triggered() {
-    bmDbDialog->show();
-}
-
 void MainWindow::bmMediaStateChanged(const MediaBackend::State &newState) {
     static MediaBackend::State lastState = MediaBackend::StoppedState;
     if (newState == lastState)
@@ -2654,19 +2716,19 @@ void MainWindow::bmMediaStateChanged(const MediaBackend::State &newState) {
 }
 
 void MainWindow::bmMediaPositionChanged(const qint64 &position) {
-    if (!sliderBmPositionPressed) {
-        ui->sliderBmPosition->setValue(position);
+    if (!m_sliderBmPositionPressed) {
+        ui->sliderBmPosition->setValue((int)position);
     }
-    ui->labelBmPosition->setText(QTime(0, 0, 0, 0).addMSecs(position).toString("m:ss"));
-    ui->labelBmRemaining->setText(QTime(0, 0, 0, 0).addMSecs(bmMediaBackend.duration() - position).toString("m:ss"));
+    ui->labelBmPosition->setText(QTime(0, 0, 0, 0).addMSecs((int)position).toString("m:ss"));
+    ui->labelBmRemaining->setText(QTime(0, 0, 0, 0).addMSecs((int)(bmMediaBackend.duration() - position)).toString("m:ss"));
 }
 
 void MainWindow::bmMediaDurationChanged(const qint64 &duration) {
-    ui->sliderBmPosition->setMaximum(duration);
-    ui->labelBmDuration->setText(QTime(0, 0, 0, 0).addMSecs(duration).toString("m:ss"));
+    ui->sliderBmPosition->setMaximum((int)duration);
+    ui->labelBmDuration->setText(QTime(0, 0, 0, 0).addMSecs((int)duration).toString("m:ss"));
 }
 
-void MainWindow::on_tableViewBmPlaylist_clicked(const QModelIndex &index) {
+void MainWindow::tableViewBmPlaylistClicked(const QModelIndex &index) {
     logger->trace("{} DNDDEBUG - acceptDrops(): {}", m_loggingPrefix, ui->tableViewBmPlaylist->acceptDrops());
     logger->trace("{} DNDDEBUG - testAttribute(Qt::WA_AcceptDrops): {}", m_loggingPrefix, ui->tableViewBmPlaylist->testAttribute(Qt::WA_AcceptDrops));
     logger->trace("{} DNDDEBUG - hasMouseTracking(): {}", m_loggingPrefix, ui->tableViewBmPlaylist->hasMouseTracking());
@@ -2704,7 +2766,7 @@ void MainWindow::on_tableViewBmPlaylist_clicked(const QModelIndex &index) {
     }
 }
 
-void MainWindow::on_comboBoxBmPlaylists_currentIndexChanged(const int &index) {
+void MainWindow::comboBoxBmPlaylistsIndexChanged(const int &index) {
     bmCurrentPlaylist = bmPlaylistsModel->index(index, 0).data().toInt();
     playlistSongsModel.setCurrentPlaylist(bmCurrentPlaylist);
     auto nextPlSong = playlistSongsModel.getNextPlSong();
@@ -2715,7 +2777,7 @@ void MainWindow::on_comboBoxBmPlaylists_currentIndexChanged(const int &index) {
     ui->tableViewBmPlaylist->clearSelection();
 }
 
-void MainWindow::on_checkBoxBmBreak_toggled(const bool &checked) {
+void MainWindow::checkBoxBmBreakToggled(const bool &checked) {
     if (!checked) {
         auto nextSong = playlistSongsModel.getNextPlSong();
         if (nextSong.has_value())
@@ -2725,21 +2787,21 @@ void MainWindow::on_checkBoxBmBreak_toggled(const bool &checked) {
     ui->labelBmNext->setText("None - Stopping after current song");
 }
 
-void MainWindow::on_tableViewBmDb_doubleClicked(const QModelIndex &index) {
+void MainWindow::tableViewBmDbDoubleClicked(const QModelIndex &index) {
     int songId = index.sibling(index.row(), 0).data().toInt();
     playlistSongsModel.addSong(songId);
     playlistSongsModel.savePlaylistChanges();
 }
 
-void MainWindow::on_buttonBmStop_clicked() {
+void MainWindow::buttonBmStopClicked() {
     bmMediaBackend.stop(false);
 }
 
-void MainWindow::on_lineEditBmSearch_returnPressed() {
+void MainWindow::searchBreakMusic() {
     bmDbModel.search(ui->lineEditBmSearch->text());
 }
 
-void MainWindow::on_tableViewBmPlaylist_doubleClicked(const QModelIndex &index) {
+void MainWindow::tableViewBmPlaylistDoubleClicked(const QModelIndex &index) {
     if (bmMediaBackend.state() == MediaBackend::PlayingState || bmMediaBackend.state() == MediaBackend::PausedState)
         bmMediaBackend.stop(false);
     playlistSongsModel.setCurrentPosition(index.row());
@@ -2752,7 +2814,7 @@ void MainWindow::on_tableViewBmPlaylist_doubleClicked(const QModelIndex &index) 
         bmMediaBackend.fadeInImmediate();
 }
 
-void MainWindow::on_buttonBmPause_clicked(const bool &checked) {
+void MainWindow::buttonBmPauseClicked(const bool &checked) {
     if (checked)
         bmMediaBackend.pause();
     else
@@ -2767,7 +2829,7 @@ bool MainWindow::bmPlaylistExists(const QString &name) {
     return false;
 }
 
-void MainWindow::on_actionDisplay_Metadata_toggled(const bool &arg1) {
+void MainWindow::actionDisplayMetadataToggled(const bool &arg1) {
     ui->tableViewBmDb->setColumnHidden(TableModelBreakSongs::COL_ARTIST, !arg1);
     ui->tableViewBmDb->setColumnHidden(TableModelBreakSongs::COL_TITLE, !arg1);
     ui->tableViewBmPlaylist->setColumnHidden(TableModelPlaylistSongs::COL_ARTIST, !arg1);
@@ -2776,18 +2838,14 @@ void MainWindow::on_actionDisplay_Metadata_toggled(const bool &arg1) {
     autosizeBmViews();
 }
 
-void MainWindow::on_actionDisplay_Filenames_toggled(const bool &arg1) {
+void MainWindow::actionDisplayFilenamesToggled(const bool &arg1) {
     ui->tableViewBmDb->setColumnHidden(TableModelBreakSongs::COL_FILENAME, !arg1);
     ui->tableViewBmPlaylist->setColumnHidden(TableModelPlaylistSongs::COL_FILENAME, !arg1);
     settings.bmSetShowFilenames(arg1);
     autosizeBmViews();
 }
 
-void MainWindow::on_actionManage_Karaoke_DB_triggered() {
-    dbDialog->showNormal();
-}
-
-void MainWindow::on_actionPlaylistNew_triggered() {
+void MainWindow::actionPlaylistNewTriggered() {
     bool ok;
     QString title = QInputDialog::getText(this, tr("New Playlist"), tr("Playlist title:"), QLineEdit::Normal,
                                           tr("New Playlist"), &ok);
@@ -2796,7 +2854,7 @@ void MainWindow::on_actionPlaylistNew_triggered() {
     }
 }
 
-void MainWindow::on_actionPlaylistImport_triggered() {
+void MainWindow::actionPlaylistImportTriggered() {
     QString importFile = QFileDialog::getOpenFileName(
             this,
             tr("Select playlist to import"),
@@ -2897,7 +2955,7 @@ void MainWindow::on_actionPlaylistImport_triggered() {
     }
 }
 
-void MainWindow::on_actionPlaylistExport_triggered() {
+void MainWindow::actionPlaylistExportTriggered() {
     QString defaultFilePath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QDir::separator() +
                               ui->comboBoxBmPlaylists->currentText() + ".m3u";
     logger->debug("{} Default save location: {}", m_loggingPrefix, defaultFilePath.toStdString());
@@ -2924,7 +2982,7 @@ void MainWindow::on_actionPlaylistExport_triggered() {
     }
 }
 
-void MainWindow::on_actionPlaylistDelete_triggered() {
+void MainWindow::actionPlaylistDeleteTriggered() {
     QMessageBox msgBox;
     msgBox.setText("Are you sure?");
     msgBox.setInformativeText(
@@ -2947,11 +3005,7 @@ void MainWindow::on_actionPlaylistDelete_triggered() {
     }
 }
 
-void MainWindow::on_buttonBmSearch_clicked() {
-    bmDbModel.search(ui->lineEditBmSearch->text());
-}
-
-void MainWindow::on_actionAbout_triggered() {
+void MainWindow::actionAboutTriggered() {
     QString title;
     QString text;
     QString date = QString::fromLocal8Bit(__DATE__) + " " + QString(__TIME__);
@@ -2961,22 +3015,25 @@ void MainWindow::on_actionAbout_triggered() {
     QMessageBox::about(this, title, text);
 }
 
-void MainWindow::on_pushButtonMplxLeft_toggled(const bool &checked) {
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "readability-convert-member-functions-to-static"
+void MainWindow::pushButtonMplxLeftToggled(const bool &checked) {
     if (checked)
         settings.setMplxMode(Multiplex_LeftChannel);
 }
 
-void MainWindow::on_pushButtonMplxBoth_toggled(const bool &checked) {
+void MainWindow::pushButtonMplxBothToggled(const bool &checked) {
     if (checked)
         settings.setMplxMode(Multiplex_Normal);
 }
 
-void MainWindow::on_pushButtonMplxRight_toggled(const bool &checked) {
+void MainWindow::pushButtonMplxRightToggled(const bool &checked) {
     if (checked)
         settings.setMplxMode(Multiplex_RightChannel);
 }
+#pragma clang diagnostic pop
 
-void MainWindow::on_lineEdit_textChanged(const QString &arg1) {
+void MainWindow::lineEditSearchTextChanged(const QString &arg1) {
     if (!settings.progressiveSearchEnabled())
         return;
     ui->tableViewDB->scrollToTop();
@@ -3013,19 +3070,11 @@ void MainWindow::setMultiUnplayed() {
         }
 }
 
-void MainWindow::on_spinBoxTempo_valueChanged(const int &arg1) {
+void MainWindow::spinBoxTempoValueChanged(const int &arg1) {
     kMediaBackend.setTempo(arg1);
     QTimer::singleShot(20, [&]() {
         ui->spinBoxTempo->findChild<QLineEdit *>()->deselect();
     });
-}
-
-void MainWindow::on_actionSongbook_Generator_triggered() {
-    dlgBookCreator->show();
-}
-
-void MainWindow::on_actionEqualizer_triggered() {
-    dlgEq->show();
 }
 
 void MainWindow::audioError(const QString &msg) {
@@ -3060,12 +3109,12 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     event->accept();
 }
 
-void MainWindow::on_sliderVolume_valueChanged(int value) {
+void MainWindow::sliderVolumeChanged(int value) {
     kMediaBackend.setVolume(value);
     kMediaBackend.fadeInImmediate();
 }
 
-void MainWindow::on_sliderBmVolume_valueChanged(int value) {
+void MainWindow::sliderBmVolumeChanged(int value) {
     bmMediaBackend.setVolume(value);
     if (kMediaBackend.state() != MediaBackend::PlayingState)
         bmMediaBackend.fadeInImmediate();
@@ -3096,15 +3145,6 @@ void MainWindow::newVersionAvailable(const QString &version) {
                 "You can download the new version at <a href=https://openkj.org/software>https://openkj.org/software</a>");
     }
     msgBox.exec();
-}
-
-void MainWindow::on_pushButtonIncomingRequests_clicked() {
-    requestsDialog->show();
-}
-
-void MainWindow::on_pushButtonShop_clicked() {
-    dlgSongShop->show();
-    dlgSongShop->setModal(false);
 }
 
 void MainWindow::filesDroppedOnQueue(const QList<QUrl> &urls, const int &singerId, const int &position) {
@@ -3312,12 +3352,12 @@ void MainWindow::autosizeBmViews() {
     int fnameColSize = 0;
     int remainingSpace = ui->tableViewBmDb->width() - durationColSize - 15;
     if (settings.bmShowMetadata() && settings.bmShowFilenames()) {
-        artistColSize = (float) remainingSpace * .25;
-        titleColSize = (float) remainingSpace * .25;
-        fnameColSize = (float) remainingSpace * .5;
+        artistColSize = (int)((float) remainingSpace * .25);
+        titleColSize = (int)((float) remainingSpace * .25);
+        fnameColSize = (int)((float) remainingSpace * .5);
     } else if (settings.bmShowMetadata()) {
-        artistColSize = remainingSpace * .5;
-        titleColSize = remainingSpace * .5;
+        artistColSize = (int)((float)remainingSpace * .5);
+        titleColSize = (int)((float)remainingSpace * .5);
     } else if (settings.bmShowFilenames()) {
         fnameColSize = remainingSpace;
     }
@@ -3330,12 +3370,12 @@ void MainWindow::autosizeBmViews() {
 
     remainingSpace = ui->tableViewBmPlaylist->width() - durationColSize - (iconWidth * 2) - 15;
     if (settings.bmShowMetadata() && settings.bmShowFilenames()) {
-        artistColSize = (float) remainingSpace * .25;
-        titleColSize = (float) remainingSpace * .25;
-        fnameColSize = (float) remainingSpace * .5;
+        artistColSize = (int)((float)remainingSpace * .25);
+        titleColSize = (int)((float)remainingSpace * .25);
+        fnameColSize = (int)((float)remainingSpace * .5);
     } else if (settings.bmShowMetadata()) {
-        artistColSize = remainingSpace * .5;
-        titleColSize = remainingSpace * .5;
+        artistColSize = (int)((float)remainingSpace * .5);
+        titleColSize = (int)((float)remainingSpace * .5);
     } else if (settings.bmShowFilenames()) {
         fnameColSize = remainingSpace;
     }
@@ -3370,7 +3410,7 @@ void MainWindow::resizeEvent(QResizeEvent *event) {
     settings.saveWindowState(this);
 }
 
-void MainWindow::on_tabWidget_currentChanged(const int &index) {
+void MainWindow::tabWidgetCurrentChanged(const int &index) {
     if (bNeedAutoSize && index == 1) {
         autosizeBmViews();
         bNeedAutoSize = false;
@@ -3402,14 +3442,14 @@ void MainWindow::bmSongMoved(const int &oldPos, const int &newPos) {
         ui->labelBmNext->setText("None - Breaking after current song");
 }
 
-void MainWindow::on_sliderBmPosition_sliderPressed() {
+void MainWindow::sliderBmPositionPressed() {
     logger->trace("{} BM slider down", m_loggingPrefix);
-    sliderBmPositionPressed = true;
+    m_sliderBmPositionPressed = true;
 }
 
-void MainWindow::on_sliderBmPosition_sliderReleased() {
+void MainWindow::sliderBmPositionReleased() {
     bmMediaBackend.setPosition(ui->sliderBmPosition->value());
-    sliderBmPositionPressed = false;
+    m_sliderBmPositionPressed = false;
     logger->trace("{} BM slider up.  Position: {}", m_loggingPrefix, ui->sliderBmPosition->value());
 }
 
@@ -3420,7 +3460,7 @@ void MainWindow::sfxButtonPressed() {
     sfxMediaBackend.play();
 }
 
-void MainWindow::on_btnAddSfx_clicked() {
+void MainWindow::addSfxButtonPressed() {
     QString path = QFileDialog::getOpenFileName(
             this,
             "Select audio file",
@@ -3444,7 +3484,7 @@ void MainWindow::on_btnAddSfx_clicked() {
 
 }
 
-void MainWindow::on_btnSfxStop_clicked() {
+void MainWindow::stopSfxPlayback() {
     sfxMediaBackend.stop(true);
 }
 
@@ -3514,8 +3554,8 @@ void MainWindow::cdgVisibilityChanged() {
     ui->btnToggleCdgWindow->setChecked(cdgWindow->isVisible());
 }
 
-void MainWindow::rotationSelectionChanged(const QItemSelection &sel, const QItemSelection &desel) {
-    if (sel.empty()) {
+void MainWindow::rotationSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected) {
+    if (selected.empty()) {
         logger->trace("{} Rotation Selection Cleared!", m_loggingPrefix);
         qModel.loadSinger(-1);
         ui->tableViewRotation->reset();
@@ -3528,7 +3568,7 @@ void MainWindow::rotationSelectionChanged(const QItemSelection &sel, const QItem
 
 }
 
-void MainWindow::on_lineEditBmSearch_textChanged(const QString &arg1) {
+void MainWindow::lineEditBmSearchChanged(const QString &arg1) {
     if (!settings.progressiveSearchEnabled())
         return;
     static QString lastVal;
@@ -3538,7 +3578,7 @@ void MainWindow::on_lineEditBmSearch_textChanged(const QString &arg1) {
     }
 }
 
-void MainWindow::on_btnRotTop_clicked() {
+void MainWindow::btnRotTopClicked() {
     auto indexes = ui->tableViewRotation->selectionModel()->selectedRows();
     std::vector<int> singerIds;
     std::for_each(indexes.begin(), indexes.end(), [&](QModelIndex index) {
@@ -3548,13 +3588,13 @@ void MainWindow::on_btnRotTop_clicked() {
         rotModel.singerMove(rotModel.getSingerPosition(singerId), 0);
     });
     auto topLeft = ui->tableViewRotation->model()->index(0, 0);
-    auto bottomRight = ui->tableViewRotation->model()->index(singerIds.size() - 1, rotModel.columnCount() - 1);
+    auto bottomRight = ui->tableViewRotation->model()->index((int)singerIds.size() - 1, rotModel.columnCount() - 1);
     ui->tableViewRotation->clearSelection();
     ui->tableViewRotation->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
     rotationDataChanged();
 }
 
-void MainWindow::on_btnRotUp_clicked() {
+void MainWindow::btnRotUpClicked() {
     if (ui->tableViewRotation->selectionModel()->selectedRows().count() < 1)
         return;
     int curPos = ui->tableViewRotation->selectionModel()->selectedRows().at(0).row();
@@ -3565,7 +3605,7 @@ void MainWindow::on_btnRotUp_clicked() {
     rotationDataChanged();
 }
 
-void MainWindow::on_btnRotDown_clicked() {
+void MainWindow::btnRotDownClicked() {
     if (ui->tableViewRotation->selectionModel()->selectedRows().count() < 1)
         return;
     int curPos = ui->tableViewRotation->selectionModel()->selectedRows().at(0).row();
@@ -3576,7 +3616,7 @@ void MainWindow::on_btnRotDown_clicked() {
     rotationDataChanged();
 }
 
-void MainWindow::on_btnRotBottom_clicked() {
+void MainWindow::btnRotBottomClicked() {
     auto indexes = ui->tableViewRotation->selectionModel()->selectedRows();
     std::vector<int> singerIds;
     std::for_each(indexes.begin(), indexes.end(), [&](QModelIndex index) {
@@ -3585,14 +3625,14 @@ void MainWindow::on_btnRotBottom_clicked() {
     std::for_each(singerIds.begin(), singerIds.end(), [&](auto songId) {
         rotModel.singerMove(rotModel.getSingerPosition(songId), rotModel.rowCount() - 1);
     });
-    auto topLeft = ui->tableViewRotation->model()->index(rotModel.rowCount() - singerIds.size(), 0);
+    auto topLeft = ui->tableViewRotation->model()->index((int)(rotModel.rowCount() - singerIds.size()), 0);
     auto bottomRight = ui->tableViewRotation->model()->index(rotModel.rowCount() - 1, rotModel.columnCount() - 1);
     ui->tableViewRotation->clearSelection();
     ui->tableViewRotation->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
     rotationDataChanged();
 }
 
-void MainWindow::on_btnQTop_clicked() {
+void MainWindow::btnQTopClicked() {
     auto indexes = ui->tableViewQueue->selectionModel()->selectedRows();
     std::vector<int> songIds;
     std::for_each(indexes.begin(), indexes.end(), [&](QModelIndex index) {
@@ -3602,12 +3642,12 @@ void MainWindow::on_btnQTop_clicked() {
         qModel.moveSongId(songId, 0);
     });
     auto topLeft = ui->tableViewQueue->model()->index(0, 0);
-    auto bottomRight = ui->tableViewQueue->model()->index(songIds.size() - 1, qModel.columnCount() - 1);
+    auto bottomRight = ui->tableViewQueue->model()->index((int)songIds.size() - 1, qModel.columnCount() - 1);
     ui->tableViewQueue->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
     rotationDataChanged();
 }
 
-void MainWindow::on_btnQUp_clicked() {
+void MainWindow::btnQUpClicked() {
     if (ui->tableViewQueue->selectionModel()->selectedRows().count() < 1)
         return;
     int curPos = ui->tableViewQueue->selectionModel()->selectedRows().at(0).row();
@@ -3618,7 +3658,7 @@ void MainWindow::on_btnQUp_clicked() {
     rotationDataChanged();
 }
 
-void MainWindow::on_btnQDown_clicked() {
+void MainWindow::btnQDownClicked() {
     if (ui->tableViewQueue->selectionModel()->selectedRows().count() < 1)
         return;
     int curPos = ui->tableViewQueue->selectionModel()->selectedRows().at(0).row();
@@ -3629,7 +3669,7 @@ void MainWindow::on_btnQDown_clicked() {
     rotationDataChanged();
 }
 
-void MainWindow::on_btnQBottom_clicked() {
+void MainWindow::btnQBottomClicked() {
     auto indexes = ui->tableViewQueue->selectionModel()->selectedRows();
     std::vector<int> songIds;
     std::for_each(indexes.begin(), indexes.end(), [&](QModelIndex index) {
@@ -3638,19 +3678,19 @@ void MainWindow::on_btnQBottom_clicked() {
     std::for_each(songIds.begin(), songIds.end(), [&](auto songId) {
         qModel.moveSongId(songId, qModel.rowCount() - 1);
     });
-    auto topLeft = ui->tableViewQueue->model()->index(qModel.rowCount() - songIds.size(), 0);
+    auto topLeft = ui->tableViewQueue->model()->index((int)(qModel.rowCount() - songIds.size()), 0);
     auto bottomRight = ui->tableViewQueue->model()->index(qModel.rowCount() - 1, qModel.columnCount() - 1);
     ui->tableViewQueue->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
     rotationDataChanged();
 }
 
-void MainWindow::on_btnBmPlRandomize_clicked() {
+void MainWindow::btnBmPlRandomizeClicked() {
     if (playlistSongsModel.rowCount() < 2)
         return;
     playlistSongsModel.randomizePlaylist();
 }
 
-void MainWindow::on_btnPlTop_clicked() {
+void MainWindow::btnPlTopClicked() {
     auto indexes = ui->tableViewBmPlaylist->selectionModel()->selectedRows();
     std::vector<int> plSongIds;
     std::for_each(indexes.begin(), indexes.end(), [&](QModelIndex index) {
@@ -3661,12 +3701,12 @@ void MainWindow::on_btnPlTop_clicked() {
     });
     playlistSongsModel.savePlaylistChanges();
     auto topLeft = ui->tableViewBmPlaylist->model()->index(0, 0);
-    auto bottomRight = ui->tableViewBmPlaylist->model()->index(plSongIds.size() - 1, 7);
+    auto bottomRight = ui->tableViewBmPlaylist->model()->index((int)plSongIds.size() - 1, 7);
     ui->tableViewBmPlaylist->selectionModel()->select(QItemSelection(topLeft, bottomRight),
                                                       QItemSelectionModel::Select);
 }
 
-void MainWindow::on_btnPlUp_clicked() {
+void MainWindow::btnPlUpClicked() {
     if (ui->tableViewBmPlaylist->selectionModel()->selectedRows().count() < 1)
         return;
     int curPos = ui->tableViewBmPlaylist->selectionModel()->selectedRows().at(0).row();
@@ -3677,7 +3717,7 @@ void MainWindow::on_btnPlUp_clicked() {
     ui->tableViewBmPlaylist->selectRow(curPos - 1);
 }
 
-void MainWindow::on_btnPlDown_clicked() {
+void MainWindow::btnPlDownClicked() {
     int maxpos = ui->tableViewBmPlaylist->model()->rowCount() - 1;
     if (ui->tableViewBmPlaylist->selectionModel()->selectedRows().count() < 1)
         return;
@@ -3689,7 +3729,7 @@ void MainWindow::on_btnPlDown_clicked() {
     ui->tableViewBmPlaylist->selectRow(curPos + 1);
 }
 
-void MainWindow::on_btnPlBottom_clicked() {
+void MainWindow::btnPlBottomClicked() {
     auto indexes = ui->tableViewBmPlaylist->selectionModel()->selectedRows();
     std::vector<int> plSongIds;
     std::for_each(indexes.begin(), indexes.end(), [&](QModelIndex index) {
@@ -3700,13 +3740,13 @@ void MainWindow::on_btnPlBottom_clicked() {
                                     playlistSongsModel.rowCount() - 1);
     });
     playlistSongsModel.savePlaylistChanges();
-    auto topLeft = ui->tableViewBmPlaylist->model()->index(playlistSongsModel.rowCount() - plSongIds.size(), 0);
+    auto topLeft = ui->tableViewBmPlaylist->model()->index((int)(playlistSongsModel.rowCount() - plSongIds.size()), 0);
     auto bottomRight = ui->tableViewBmPlaylist->model()->index(playlistSongsModel.rowCount() - 1, 7);
     ui->tableViewBmPlaylist->selectionModel()->select(QItemSelection(topLeft, bottomRight),
                                                       QItemSelectionModel::Select);
 }
 
-void MainWindow::on_actionSound_Clips_triggered(const bool &checked) {
+void MainWindow::actionSoundClipsTriggered(const bool &checked) {
     if (checked) {
         ui->groupBoxSoundClips->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         ui->scrollAreaSoundClips->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -3720,12 +3760,12 @@ void MainWindow::on_actionSound_Clips_triggered(const bool &checked) {
     settings.setShowMainWindowSoundClips(checked);
 }
 
-void MainWindow::on_actionNow_Playing_triggered(const bool &checked) {
+void MainWindow::actionNowPlayingTriggered(const bool &checked) {
     ui->groupBoxNowPlaying->setVisible(checked);
     settings.setShowMainWindowNowPlaying(checked);
 }
 
-void MainWindow::on_actionVideoSmall_triggered() {
+void MainWindow::actionVideoSmallTriggered() {
     ui->videoPreview->setMinimumSize(QSize(256, 144));
     ui->videoPreview->setMaximumSize(QSize(256, 144));
     ui->videoPreviewBm->setMinimumSize(QSize(256, 144));
@@ -3736,7 +3776,7 @@ void MainWindow::on_actionVideoSmall_triggered() {
     QTimer::singleShot(15, [&]() { autosizeViews(); });
 }
 
-void MainWindow::on_actionVideoMedium_triggered() {
+void MainWindow::actionVideoMediumTriggered() {
     ui->videoPreview->setMinimumSize(QSize(384, 216));
     ui->videoPreview->setMaximumSize(QSize(384, 216));
     ui->videoPreviewBm->setMinimumSize(QSize(384, 216));
@@ -3747,7 +3787,7 @@ void MainWindow::on_actionVideoMedium_triggered() {
     QTimer::singleShot(15, [&]() { autosizeViews(); });
 }
 
-void MainWindow::on_actionVideoLarge_triggered() {
+void MainWindow::actionVideoLargeTriggered() {
     ui->videoPreview->setMinimumSize(QSize(512, 288));
     ui->videoPreview->setMaximumSize(QSize(512, 288));
     ui->videoPreviewBm->setMinimumSize(QSize(512, 288));
@@ -3758,12 +3798,7 @@ void MainWindow::on_actionVideoLarge_triggered() {
     QTimer::singleShot(15, [&]() { autosizeViews(); });
 }
 
-void MainWindow::on_actionVideo_Output_2_triggered(const bool &checked) {
-    ui->videoPreview->setVisible(checked);
-    settings.setShowMainWindowVideo(checked);
-}
-
-void MainWindow::on_actionKaraoke_torture_triggered() {
+void MainWindow::actionKaraokeTorture() {
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
     connect(&m_timerTest, &QTimer::timeout, [&]() {
         QApplication::beep();
@@ -3800,14 +3835,14 @@ void MainWindow::on_actionKaraoke_torture_triggered() {
 #endif
 }
 
-void MainWindow::on_actionK_B_torture_triggered() {
+void MainWindow::actionKAndBTorture() {
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
     connect(&m_timerTest, &QTimer::timeout, [&]() {
         QApplication::beep();
         static bool playing = false;
         static int runs = 0;
         if (playing) {
-            on_buttonStop_clicked();
+            buttonStopClicked();
             playing = false;
             ui->labelSinger->setText("Torture run (" + QString::number(runs) + ")");
             return;
@@ -3842,7 +3877,7 @@ void MainWindow::on_actionK_B_torture_triggered() {
 #endif
 }
 
-void MainWindow::on_actionBurn_in_triggered() {
+void MainWindow::actionBurnIn() {
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
     m_testMode = true;
     emit ui->buttonClearRotation->clicked();
@@ -3855,7 +3890,7 @@ void MainWindow::on_actionBurn_in_triggered() {
         static bool playing = false;
         static int runs = 0;
         if (playing) {
-            on_buttonStop_clicked();
+            buttonStopClicked();
             playing = false;
             ui->labelSinger->setText("Torture run (" + QString::number(runs) + ")");
             return;
@@ -3888,12 +3923,7 @@ void MainWindow::on_actionBurn_in_triggered() {
 #endif
 }
 
-void MainWindow::on_actionMultiplex_Controls_triggered(bool checked) {
-    ui->widgetMplxControls->setVisible(checked);
-    settings.setShowMplxControls(checked);
-}
-
-void MainWindow::on_actionCDG_Decode_Torture_triggered() {
+void MainWindow::actionCdgDecodeTorture() {
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
     connect(&m_timerTest, &QTimer::timeout, [&]() {
         QApplication::beep();
@@ -3972,14 +4002,14 @@ void MainWindow::on_actionCDG_Decode_Torture_triggered() {
 #endif
 }
 
-void MainWindow::on_actionWrite_Gstreamer_pipeline_dot_files_triggered() {
+void MainWindow::writeGstPipelineDiagramToDisk() {
     QString outputFolder = QStandardPaths::standardLocations(QStandardPaths::PicturesLocation).at(0);
     kMediaBackend.writePipelinesGraphToFile(outputFolder);
     bmMediaBackend.writePipelinesGraphToFile(outputFolder);
     sfxMediaBackend.writePipelinesGraphToFile(outputFolder);
 }
 
-void MainWindow::on_comboBoxSearchType_currentIndexChanged(int index) {
+void MainWindow::comboBoxSearchTypeIndexChanged(int index) {
     switch (index) {
         case 1:
             karaokeSongsModel.setSearchType(TableModelKaraokeSongs::SEARCH_TYPE_ARTIST);
@@ -3993,19 +4023,11 @@ void MainWindow::on_comboBoxSearchType_currentIndexChanged(int index) {
     }
 }
 
-void MainWindow::on_actionDocumentation_triggered() {
+void MainWindow::actionDocumentation() {
     QDesktopServices::openUrl(QUrl("https://docs.openkj.org"));
 }
 
-void MainWindow::on_btnToggleCdgWindow_clicked(bool checked) {
-    if (!checked) {
-        cdgWindow->hide();
-    } else {
-        cdgWindow->show();
-    }
-}
-
-void MainWindow::on_pushButtonHistoryPlay_clicked() {
+void MainWindow::buttonHistoryPlayClicked() {
     auto selRows = ui->tableViewHistory->selectionModel()->selectedRows();
     if (selRows.empty())
         return;
@@ -4064,7 +4086,7 @@ void MainWindow::on_pushButtonHistoryPlay_clicked() {
     }
 }
 
-void MainWindow::on_pushButtonHistoryToQueue_clicked() {
+void MainWindow::buttonHistoryToQueueClicked() {
     auto selRows = ui->tableViewHistory->selectionModel()->selectedRows();
     if (selRows.empty())
         return;
@@ -4090,18 +4112,18 @@ void MainWindow::on_pushButtonHistoryToQueue_clicked() {
     ui->tabWidgetQueue->setCurrentIndex(0);
 }
 
-void MainWindow::on_tableViewHistory_doubleClicked([[maybe_unused]]const QModelIndex &index) {
+void MainWindow::tableViewHistoryDoubleClicked([[maybe_unused]]const QModelIndex &index) {
     switch (ui->comboBoxHistoryDblClick->currentIndex()) {
         case 0:
-            on_pushButtonHistoryToQueue_clicked();
+            buttonHistoryToQueueClicked();
             break;
         case 1:
-            on_pushButtonHistoryPlay_clicked();
+            buttonHistoryPlayClicked();
             break;
     }
 }
 
-void MainWindow::on_tableViewHistory_customContextMenuRequested(const QPoint &pos) {
+void MainWindow::tableViewHistoryContextMenu(const QPoint &pos) {
     int selCount = ui->tableViewHistory->selectionModel()->selectedRows().size();
     if (selCount == 1) {
         QModelIndex index = ui->tableViewHistory->indexAt(pos);
@@ -4119,8 +4141,8 @@ void MainWindow::on_tableViewHistory_customContextMenuRequested(const QPoint &po
                 videoPreview->setAttribute(Qt::WA_DeleteOnClose);
                 videoPreview->show();
             });
-            contextMenu.addAction("Play", this, &MainWindow::on_pushButtonHistoryPlay_clicked);
-            contextMenu.addAction("Add to queue", this, &MainWindow::on_pushButtonHistoryToQueue_clicked);
+            contextMenu.addAction("Play", this, &MainWindow::buttonHistoryPlayClicked);
+            contextMenu.addAction("Add to queue", this, &MainWindow::buttonHistoryToQueueClicked);
             contextMenu.addSeparator();
             contextMenu.addAction("Delete", [&]() {
                 QMessageBox msgBox;
@@ -4140,7 +4162,7 @@ void MainWindow::on_tableViewHistory_customContextMenuRequested(const QPoint &po
         }
     } else if (selCount > 1) {
         QMenu contextMenu(this);
-        contextMenu.addAction("Add to queue", this, &MainWindow::on_pushButtonHistoryToQueue_clicked);
+        contextMenu.addAction("Add to queue", this, &MainWindow::buttonHistoryToQueueClicked);
         contextMenu.addSeparator();
         contextMenu.addAction("Delete", [&]() {
             QMessageBox msgBox;
@@ -4163,7 +4185,7 @@ void MainWindow::on_tableViewHistory_customContextMenuRequested(const QPoint &po
     }
 }
 
-void MainWindow::on_actionBreak_music_torture_triggered() {
+void MainWindow::actionBreakMusicTorture() {
     bmPlaylistsModel->select();
     bmAddPlaylist("torture");
     bmPlaylistsModel->select();
@@ -4177,13 +4199,13 @@ void MainWindow::on_actionBreak_music_torture_triggered() {
         static int runs = 0;
         logger->info("{} Karaoke torture test timer timeout", m_loggingPrefix);
         ui->tableViewBmPlaylist->selectRow(0);
-        on_tableViewBmPlaylist_doubleClicked(ui->tableViewBmPlaylist->selectionModel()->selectedRows().at(0));
+        tableViewBmPlaylistDoubleClicked(ui->tableViewBmPlaylist->selectionModel()->selectedRows().at(0));
         logger->info("{} test runs: ", m_loggingPrefix, ++runs);
     });
     m_timerTest.start(2000);
 }
 
-void MainWindow::on_tableViewBmDb_clicked([[maybe_unused]]const QModelIndex &index) {
+void MainWindow::tableViewBmDbClicked([[maybe_unused]]const QModelIndex &index) {
 #ifdef Q_OS_WIN
     ui->tableViewBmPlaylist->setAttribute(Qt::WA_AcceptDrops, false);
     ui->tableViewBmPlaylist->setAttribute(Qt::WA_AcceptDrops, true);
@@ -4199,7 +4221,7 @@ void MainWindow::resetBmLabels() {
     ui->sliderBmPosition->setValue(0);
 }
 
-void MainWindow::on_actionBurn_in_EOS_Jump_triggered() {
+void MainWindow::actionBurnInEosJump() {
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
     m_testMode = true;
     emit ui->buttonClearRotation->clicked();
@@ -4243,10 +4265,6 @@ void MainWindow::on_actionBurn_in_EOS_Jump_triggered() {
     });
     m_timerTest.start(13000);
 #endif
-}
-
-void MainWindow::on_actionSong_Shop_triggered() {
-    on_pushButtonShop_clicked();
 }
 
 

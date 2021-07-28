@@ -273,7 +273,6 @@ public:
     void sync();
     bool previewEnabled();
     bool showMainWindowVideo();
-    void setShowMainWindowVideo(const bool &show);
     bool showMainWindowSoundClips();
     void setShowMplxControls(const bool show);
     bool showMplxControls();
@@ -349,6 +348,7 @@ signals:
 
 
 public slots:
+    void setShowMainWindowVideo(const bool &show);
     void setTreatAllSingersAsRegs(const bool enabled);
     void setRotationAltSortOrder(bool enabled);
     void setCdgPrescalingEnabled(bool enabled);

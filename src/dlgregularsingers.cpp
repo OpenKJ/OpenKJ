@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2021 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -199,4 +199,8 @@ void DlgRegularSingers::closeEvent([[maybe_unused]]QCloseEvent *event)
 {
     settings.saveWindowState(this);
     hide();
+}
+
+void DlgRegularSingers::toggleVisibility() {
+    setVisible(!isVisible());
 }

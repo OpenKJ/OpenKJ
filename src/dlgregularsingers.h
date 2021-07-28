@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2021 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -61,7 +61,7 @@ private slots:
 
 public slots:
     void regularsChanged();
-
+    void toggleVisibility();
 
     // QWidget interface
 protected:
