@@ -5,112 +5,111 @@
 #include <QMessageBox>
 #include <QPainter>
 #include <QPdfWriter>
-#include <QPrinter>
 #include <QProgressDialog>
 #include <QSqlQuery>
 #include <QStandardPaths>
 
+
 DlgBookCreator::DlgBookCreator(QWidget *parent) :
         QDialog(parent),
         ui(new Ui::DlgBookCreator) {
-    setupdone = false;
     ui->setupUi(this);
+    loadSettings();
+    setupConnections();
+}
+
+void DlgBookCreator::loadSettings() {
     ui->cbxColumns->addItem("2", 2);
     ui->cbxColumns->addItem("3", 3);
     ui->cbxPageSize->addItem(tr("Letter"), QPageSize::Letter);
     ui->cbxPageSize->addItem(tr("Legal"), QPageSize::Legal);
     ui->cbxPageSize->addItem(tr("A4"), QPageSize::A4);
-    settings = new Settings(this);
-    qInfo() << "Header font: " << settings->bookCreatorArtistFont().toString();
-    qInfo() << "Item font:   " << settings->bookCreatorTitleFont().toString();
-    ui->fontCbxArtist->setCurrentFont(settings->bookCreatorArtistFont());
-    ui->fontCbxTitle->setCurrentFont(settings->bookCreatorTitleFont());
-    ui->fontCbxHeader->setCurrentFont(settings->bookCreatorHeaderFont());
-    ui->fontCbxFooter->setCurrentFont(settings->bookCreatorFooterFont());
-    ui->spinBoxSizeArtist->setValue(settings->bookCreatorArtistFont().pointSize());
-    ui->spinBoxSizeTitle->setValue(settings->bookCreatorTitleFont().pointSize());
-    ui->spinBoxSizeHeader->setValue(settings->bookCreatorHeaderFont().pointSize());
-    ui->spinBoxSizeFooter->setValue(settings->bookCreatorFooterFont().pointSize());
-    ui->checkBoxBoldArtist->setChecked(settings->bookCreatorArtistFont().bold());
-    ui->checkBoxBoldTitle->setChecked(settings->bookCreatorTitleFont().bold());
-    ui->checkBoxBoldHeader->setChecked(settings->bookCreatorHeaderFont().bold());
-    ui->checkBoxBoldFooter->setChecked(settings->bookCreatorFooterFont().bold());
-    ui->doubleSpinBoxLeft->setValue(settings->bookCreatorMarginLft());
-    ui->doubleSpinBoxRight->setValue(settings->bookCreatorMarginRt());
-    ui->doubleSpinBoxTop->setValue(settings->bookCreatorMarginTop());
-    ui->doubleSpinBoxBottom->setValue(settings->bookCreatorMarginBtm());
-    ui->cbxColumns->setCurrentIndex(settings->bookCreatorCols());
-    ui->cbxPageSize->setCurrentIndex(settings->bookCreatorPageSize());
-    ui->lineEditHeaderText->setText(settings->bookCreatorHeaderText());
-    ui->lineEditFooterText->setText(settings->bookCreatorFooterText());
-    ui->cbxPageNumbering->setChecked(settings->bookCreatorPageNumbering());
-    connect(ui->doubleSpinBoxLeft, SIGNAL(valueChanged(double)), settings, SLOT(setBookCreatorMarginLft(double)));
-    connect(ui->doubleSpinBoxRight, SIGNAL(valueChanged(double)), settings, SLOT(setBookCreatorMarginRt(double)));
-    connect(ui->doubleSpinBoxTop, SIGNAL(valueChanged(double)), settings, SLOT(setBookCreatorMarginTop(double)));
-    connect(ui->doubleSpinBoxBottom, SIGNAL(valueChanged(double)), settings, SLOT(setBookCreatorMarginBtm(double)));
-    connect(ui->fontCbxFooter, SIGNAL(currentFontChanged(QFont)), this, SLOT(saveFontSettings()));
-    connect(ui->spinBoxSizeFooter, SIGNAL(valueChanged(int)), this, SLOT(saveFontSettings()));
-    connect(ui->checkBoxBoldFooter, SIGNAL(clicked(bool)), this, SLOT(saveFontSettings()));
-    connect(ui->lineEditFooterText, SIGNAL(textChanged(QString)), settings, SLOT(setBookCreatorFooterText(QString)));
-    connect(ui->fontCbxHeader, SIGNAL(currentFontChanged(QFont)), this, SLOT(saveFontSettings()));
-    connect(ui->spinBoxSizeHeader, SIGNAL(valueChanged(int)), this, SLOT(saveFontSettings()));
-    connect(ui->checkBoxBoldHeader, SIGNAL(clicked(bool)), this, SLOT(saveFontSettings()));
-    connect(ui->lineEditHeaderText, SIGNAL(textChanged(QString)), settings, SLOT(setBookCreatorHeaderText(QString)));
-    connect(ui->fontCbxArtist, SIGNAL(currentFontChanged(QFont)), this, SLOT(saveFontSettings()));
-    connect(ui->spinBoxSizeArtist, SIGNAL(valueChanged(int)), this, SLOT(saveFontSettings()));
-    connect(ui->checkBoxBoldArtist, SIGNAL(clicked(bool)), this, SLOT(saveFontSettings()));
-    connect(ui->fontCbxTitle, SIGNAL(currentFontChanged(QFont)), this, SLOT(saveFontSettings()));
-    connect(ui->spinBoxSizeTitle, SIGNAL(valueChanged(int)), this, SLOT(saveFontSettings()));
-    connect(ui->checkBoxBoldTitle, SIGNAL(clicked(bool)), this, SLOT(saveFontSettings()));
-    connect(ui->doubleSpinBoxBottom, SIGNAL(valueChanged(double)), settings, SLOT(setBookCreatorMarginBtm(double)));
-    connect(ui->doubleSpinBoxLeft, SIGNAL(valueChanged(double)), settings, SLOT(setBookCreatorMarginLft(double)));
-    connect(ui->doubleSpinBoxRight, SIGNAL(valueChanged(double)), settings, SLOT(setBookCreatorMarginRt(double)));
-    connect(ui->doubleSpinBoxTop, SIGNAL(valueChanged(double)), settings, SLOT(setBookCreatorMarginTop(double)));
-    connect(ui->cbxPageNumbering, SIGNAL(clicked(bool)), settings, SLOT(setBookCreatorPageNumbering(bool)));
-
-
-    setupdone = true;
-
+    ui->fontCbxArtist->setCurrentFont(m_settings.bookCreatorArtistFont());
+    ui->fontCbxTitle->setCurrentFont(m_settings.bookCreatorTitleFont());
+    ui->fontCbxHeader->setCurrentFont(m_settings.bookCreatorHeaderFont());
+    ui->fontCbxFooter->setCurrentFont(m_settings.bookCreatorFooterFont());
+    ui->spinBoxSizeArtist->setValue(m_settings.bookCreatorArtistFont().pointSize());
+    ui->spinBoxSizeTitle->setValue(m_settings.bookCreatorTitleFont().pointSize());
+    ui->spinBoxSizeHeader->setValue(m_settings.bookCreatorHeaderFont().pointSize());
+    ui->spinBoxSizeFooter->setValue(m_settings.bookCreatorFooterFont().pointSize());
+    ui->checkBoxBoldArtist->setChecked(m_settings.bookCreatorArtistFont().bold());
+    ui->checkBoxBoldTitle->setChecked(m_settings.bookCreatorTitleFont().bold());
+    ui->checkBoxBoldHeader->setChecked(m_settings.bookCreatorHeaderFont().bold());
+    ui->checkBoxBoldFooter->setChecked(m_settings.bookCreatorFooterFont().bold());
+    ui->doubleSpinBoxLeft->setValue(m_settings.bookCreatorMarginLft());
+    ui->doubleSpinBoxRight->setValue(m_settings.bookCreatorMarginRt());
+    ui->doubleSpinBoxTop->setValue(m_settings.bookCreatorMarginTop());
+    ui->doubleSpinBoxBottom->setValue(m_settings.bookCreatorMarginBtm());
+    ui->cbxColumns->setCurrentIndex(m_settings.bookCreatorCols());
+    ui->cbxPageSize->setCurrentIndex(m_settings.bookCreatorPageSize());
+    ui->lineEditHeaderText->setText(m_settings.bookCreatorHeaderText());
+    ui->lineEditFooterText->setText(m_settings.bookCreatorFooterText());
+    ui->cbxPageNumbering->setChecked(m_settings.bookCreatorPageNumbering());
 }
 
-DlgBookCreator::~DlgBookCreator() {
-    delete ui;
+void DlgBookCreator::setupConnections() const {
+    connect(ui->doubleSpinBoxLeft, qOverload<double>(&QDoubleSpinBox::valueChanged), &m_settings,
+            &Settings::setBookCreatorMarginLft);
+    connect(ui->doubleSpinBoxRight, qOverload<double>(&QDoubleSpinBox::valueChanged), &m_settings,
+            &Settings::setBookCreatorMarginRt);
+    connect(ui->doubleSpinBoxTop, qOverload<double>(&QDoubleSpinBox::valueChanged), &m_settings,
+            &Settings::setBookCreatorMarginTop);
+    connect(ui->doubleSpinBoxBottom, qOverload<double>(&QDoubleSpinBox::valueChanged), &m_settings,
+            &Settings::setBookCreatorMarginBtm);
+    connect(ui->fontCbxFooter, &QFontComboBox::currentFontChanged, this, &DlgBookCreator::saveFontSettings);
+    connect(ui->spinBoxSizeFooter, qOverload<int>(&QSpinBox::valueChanged), this, &DlgBookCreator::saveFontSettings);
+    connect(ui->checkBoxBoldFooter, qOverload<bool>(&QCheckBox::clicked), this, &DlgBookCreator::saveFontSettings);
+    connect(ui->lineEditFooterText, &QLineEdit::textChanged, &m_settings, &Settings::setBookCreatorFooterText);
+    connect(ui->fontCbxHeader, &QFontComboBox::currentFontChanged, this, &DlgBookCreator::saveFontSettings);
+    connect(ui->spinBoxSizeHeader, qOverload<int>(&QSpinBox::valueChanged), this, &DlgBookCreator::saveFontSettings);
+    connect(ui->checkBoxBoldHeader, qOverload<bool>(&QCheckBox::clicked), this, &DlgBookCreator::saveFontSettings);
+    connect(ui->lineEditHeaderText, &QLineEdit::textChanged, &m_settings, &Settings::setBookCreatorHeaderText);
+    connect(ui->fontCbxArtist, &QFontComboBox::currentFontChanged, this, &DlgBookCreator::saveFontSettings);
+    connect(ui->spinBoxSizeArtist, qOverload<int>(&QSpinBox::valueChanged), this, &DlgBookCreator::saveFontSettings);
+    connect(ui->checkBoxBoldArtist, qOverload<bool>(&QCheckBox::clicked), this, &DlgBookCreator::saveFontSettings);
+    connect(ui->fontCbxTitle, &QFontComboBox::currentFontChanged, this, &DlgBookCreator::saveFontSettings);
+    connect(ui->spinBoxSizeTitle, qOverload<int>(&QSpinBox::valueChanged), this, &DlgBookCreator::saveFontSettings);
+    connect(ui->checkBoxBoldTitle, qOverload<bool>(&QCheckBox::clicked), this, &DlgBookCreator::saveFontSettings);
+    connect(ui->doubleSpinBoxBottom, qOverload<double>(&QDoubleSpinBox::valueChanged), &m_settings,
+            &Settings::setBookCreatorMarginBtm);
+    connect(ui->doubleSpinBoxLeft, qOverload<double>(&QDoubleSpinBox::valueChanged), &m_settings,
+            &Settings::setBookCreatorMarginLft);
+    connect(ui->doubleSpinBoxRight, qOverload<double>(&QDoubleSpinBox::valueChanged), &m_settings,
+            &Settings::setBookCreatorMarginRt);
+    connect(ui->doubleSpinBoxTop, qOverload<double>(&QDoubleSpinBox::valueChanged), &m_settings,
+            &Settings::setBookCreatorMarginTop);
+    connect(ui->cbxPageNumbering, qOverload<bool>(&QCheckBox::clicked), &m_settings,
+            &Settings::setBookCreatorPageNumbering);
+    connect(ui->buttonBox, &QDialogButtonBox::clicked, this, &DlgBookCreator::close);
+    connect(ui->btnGenerate, &QPushButton::clicked, this, &DlgBookCreator::btnGenerateClicked);
+    connect(ui->cbxColumns, qOverload<int>(&QComboBox::currentIndexChanged), &m_settings,
+            &Settings::setBookCreatorCols);
+    connect(ui->cbxPageSize, qOverload<int>(&QComboBox::currentIndexChanged), &m_settings,
+            &Settings::setBookCreatorPageSize);
 }
 
-void DlgBookCreator::on_buttonBox_clicked(QAbstractButton *button) {
-    Q_UNUSED(button);
-    close();
-}
-
-void DlgBookCreator::on_comboBoxSort_currentIndexChanged(int index) {
-    if (setupdone) {
-        settings->setBookCreatorSortCol(index);
-        qInfo() << "Set sort col to: " << index;
-    }
-}
+DlgBookCreator::~DlgBookCreator() = default;
 
 void DlgBookCreator::saveFontSettings() {
-    if (setupdone) {
-        QFont tFont(ui->fontCbxTitle->currentFont());
-        tFont.setPointSize(ui->spinBoxSizeTitle->value());
-        tFont.setBold(ui->checkBoxBoldTitle->isChecked());
-        settings->setBookCreatorTitleFont(tFont);
+    QFont tFont(ui->fontCbxTitle->currentFont());
+    tFont.setPointSize(ui->spinBoxSizeTitle->value());
+    tFont.setBold(ui->checkBoxBoldTitle->isChecked());
+    m_settings.setBookCreatorTitleFont(tFont);
 
-        QFont aFont(ui->fontCbxArtist->currentFont());
-        aFont.setPointSize(ui->spinBoxSizeArtist->value());
-        aFont.setBold(ui->checkBoxBoldArtist->isChecked());
-        settings->setBookCreatorArtistFont(aFont);
+    QFont aFont(ui->fontCbxArtist->currentFont());
+    aFont.setPointSize(ui->spinBoxSizeArtist->value());
+    aFont.setBold(ui->checkBoxBoldArtist->isChecked());
+    m_settings.setBookCreatorArtistFont(aFont);
 
-        QFont hFont(ui->fontCbxHeader->currentFont());
-        hFont.setPointSize(ui->spinBoxSizeHeader->value());
-        hFont.setBold(ui->checkBoxBoldHeader->isChecked());
-        settings->setBookCreatorHeaderFont(hFont);
+    QFont hFont(ui->fontCbxHeader->currentFont());
+    hFont.setPointSize(ui->spinBoxSizeHeader->value());
+    hFont.setBold(ui->checkBoxBoldHeader->isChecked());
+    m_settings.setBookCreatorHeaderFont(hFont);
 
-        QFont fFont(ui->fontCbxFooter->currentFont());
-        fFont.setPointSize(ui->spinBoxSizeFooter->value());
-        fFont.setBold(ui->checkBoxBoldFooter->isChecked());
-        settings->setBookCreatorFooterFont(fFont);
-    }
+    QFont fFont(ui->fontCbxFooter->currentFont());
+    fFont.setPointSize(ui->spinBoxSizeFooter->value());
+    fFont.setBold(ui->checkBoxBoldFooter->isChecked());
+    m_settings.setBookCreatorFooterFont(fFont);
 }
 
 QStringList DlgBookCreator::getArtists() {
@@ -124,7 +123,7 @@ QStringList DlgBookCreator::getArtists() {
     return artists;
 }
 
-QStringList DlgBookCreator::getTitles(QString artist) {
+QStringList DlgBookCreator::getTitles(const QString &artist) {
     QSqlQuery query;
     QStringList titles;
     QString sql = "SELECT DISTINCT title FROM dbsongs WHERE artist = :artist AND discid != '!!BAD!!' AND discid != '!!DROPPED!!' ORDER BY title";
@@ -137,19 +136,19 @@ QStringList DlgBookCreator::getTitles(QString artist) {
     return titles;
 }
 
-void DlgBookCreator::writePdf(QString filename, int nCols) {
+void DlgBookCreator::writePdf(const QString &filename, int nCols) {
     QProgressDialog progress(this);
     progress.setWindowModality(Qt::WindowModal);
-    progress.setCancelButton(0);
+    progress.setCancelButton(nullptr);
     progress.setLabelText("Gathering artist data");
     progress.setValue(0);
     progress.setMaximum(0);
     progress.show();
     qInfo() << "Beginning pdf generation";
-    QFont aFont = settings->bookCreatorArtistFont();
-    QFont tFont = settings->bookCreatorTitleFont();
-    QFont hFont = settings->bookCreatorHeaderFont();
-    QFont fFont = settings->bookCreatorFooterFont();
+    QFont aFont = m_settings.bookCreatorArtistFont();
+    QFont tFont = m_settings.bookCreatorTitleFont();
+    QFont hFont = m_settings.bookCreatorHeaderFont();
+    QFont fFont = m_settings.bookCreatorFooterFont();
     QPdfWriter pdf(filename);
     pdf.setPageSize(QPageSize(static_cast<QPageSize::PageSizeId>(ui->cbxPageSize->currentData().toInt())));
     pdf.setPageMargins(
@@ -208,16 +207,16 @@ void DlgBookCreator::writePdf(QString filename, int nCols) {
                              ui->lineEditHeaderText->text());
             headerOffset = painter.fontMetrics().height() + 50;
         }
-        if (ui->lineEditFooterText->text() != "" || settings->bookCreatorPageNumbering()) {
+        if (ui->lineEditFooterText->text() != "" || m_settings.bookCreatorPageNumbering()) {
             bottomOffset = 45;
             painter.setFont(fFont);
             int fFontHeight = painter.fontMetrics().height();
-            if (settings->bookCreatorFooterText() != "")
+            if (m_settings.bookCreatorFooterText() != "")
                 painter.drawText(0, painter.viewport().height() - fFontHeight, painter.viewport().width(),
-                                 painter.fontMetrics().height(), Qt::AlignCenter, settings->bookCreatorFooterText());
-            if (settings->bookCreatorPageNumbering()) {
+                                 painter.fontMetrics().height(), Qt::AlignCenter, m_settings.bookCreatorFooterText());
+            if (m_settings.bookCreatorPageNumbering()) {
                 QString pageStr = tr("Page ") + QString::number(pages);
-                QRect txtRect = painter.fontMetrics().boundingRect(pageStr);
+                txtRect = painter.fontMetrics().boundingRect(pageStr);
                 painter.drawText(painter.viewport().width() - txtRect.width() - 20,
                                  painter.viewport().height() - txtRect.height(), txtRect.width(), txtRect.height(),
                                  Qt::AlignRight, pageStr);
@@ -356,7 +355,7 @@ void DlgBookCreator::writePdf(QString filename, int nCols) {
 }
 
 
-void DlgBookCreator::on_btnGenerate_clicked() {
+void DlgBookCreator::btnGenerateClicked() {
     QString defFn = "Songbook.pdf";
     QString defaultFilePath =
             QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QDir::separator() + defFn;
@@ -368,16 +367,3 @@ void DlgBookCreator::on_btnGenerate_clicked() {
     }
 }
 
-void DlgBookCreator::on_cbxColumns_currentIndexChanged(int index) {
-    Q_UNUSED(index);
-    if (!setupdone)
-        return;
-    settings->setBookCreatorCols(ui->cbxColumns->currentIndex());
-}
-
-void DlgBookCreator::on_cbxPageSize_currentIndexChanged(int index) {
-    Q_UNUSED(index);
-    if (!setupdone)
-        return;
-    settings->setBookCreatorPageSize(ui->cbxPageSize->currentIndex());
-}
