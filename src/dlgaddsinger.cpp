@@ -11,12 +11,10 @@ DlgAddSinger::DlgAddSinger(TableModelRotation &rotationModel, QWidget *parent) :
         m_rotModel(rotationModel),
         ui(new Ui::DlgAddSinger) {
     ui->setupUi(this);
-    ui->cbxPosition->addItem(tr("Fair"));
-    ui->cbxPosition->addItem(tr("Bottom"));
-    ui->cbxPosition->addItem(tr("Next"));
+    ui->cbxPosition->addItems({"Fair", "Bottom", "Next"});
     ui->cbxPosition->setCurrentIndex(settings.lastSingerAddPositionType());
     connect(&settings, &Settings::lastSingerAddPositionTypeChanged, ui->cbxPosition, &QComboBox::setCurrentIndex);
-    connect(ui->cbxPosition, SIGNAL(currentIndexChanged(int)), &settings, SLOT(setLastSingerAddPositionType(int)));
+    connect(ui->cbxPosition, qOverload<int>(&QComboBox::currentIndexChanged), &settings, &Settings::setLastSingerAddPositionType);
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &DlgAddSinger::addSinger);
 
 }

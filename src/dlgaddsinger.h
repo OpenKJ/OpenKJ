@@ -6,19 +6,15 @@
 #include <src/models/tablemodelrotation.h>
 
 namespace Ui {
-class DlgAddSinger;
+    class DlgAddSinger;
 }
 
-class DlgAddSinger : public QDialog
-{
-    Q_OBJECT
+class DlgAddSinger : public QDialog {
+Q_OBJECT
 
 public:
     explicit DlgAddSinger(TableModelRotation &rotationModel, QWidget *parent = nullptr);
     ~DlgAddSinger() override;
-
-private slots:
-    void addSinger();
 
 private:
     std::unique_ptr<Ui::DlgAddSinger> ui;
@@ -26,6 +22,9 @@ private:
 
 protected:
     void showEvent(QShowEvent *event) override;
+
+private slots:
+    void addSinger();
 
 signals:
     void newSingerAdded(int position);
