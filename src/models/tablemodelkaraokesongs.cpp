@@ -11,6 +11,7 @@
 #include <QMimeData>
 #include <QApplication>
 #include "settings.h"
+#include <array>
 
 extern Settings settings;
 
