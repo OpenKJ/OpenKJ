@@ -29,6 +29,7 @@
 #include <QSqlDatabase>
 #include "dlgdbupdate.h"
 #include <QFileSystemWatcher>
+#include "models/tablemodelkaraokesongs.h"
 
 namespace Ui {
 class DlgDatabase;
@@ -42,12 +43,13 @@ private:
     Ui::DlgDatabase *ui;
     TableModelKaraokeSourceDirs *sourcedirmodel;
     DlgCustomPatterns *customPatternsDlg;
+    TableModelKaraokeSongs &m_dbModel;
     DlgDbUpdate *dbUpdateDlg;
     int selectedRow;
     QFileSystemWatcher fsWatcher;
 
 public:
-    explicit DlgDatabase(QWidget *parent = nullptr);
+    explicit DlgDatabase(TableModelKaraokeSongs &dbModel, QWidget *parent = nullptr);
     ~DlgDatabase() override;
 
 signals:
@@ -72,7 +74,7 @@ private slots:
     static void showDbUpdateErrors(const QStringList& errors);
     void on_btnCustomPatterns_clicked();
     void on_btnExport_clicked();
-    void directoryChanged(QString dirPath);
+    void directoryChanged(const QString& dirPath);
 };
 
 #endif // DATABASEDIALOG_H

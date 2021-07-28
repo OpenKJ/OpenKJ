@@ -109,7 +109,7 @@ void TableModelKaraokeSongs::loadData() {
     m_filteredSongs.clear();
     QSqlQuery query;
     query.exec("SELECT songid,artist,title,discid,duration,filename,path,searchstring,plays,lastplay "
-               "FROM dbsongs WHERE discid != '!!BAD!!'");
+               "FROM dbsongs");
     if (query.size() > 0)
         m_filteredSongs.reserve(query.size());
     while (query.next()) {
@@ -126,7 +126,9 @@ void TableModelKaraokeSongs::loadData() {
                 query.value(6).toString(),
                 query.value(7).toString().replace('&', " and ").toLower(),
                 query.value(8).toInt(),
-                query.value(9).toDateTime()
+                query.value(9).toDateTime(),
+                (query.value(3).toString() == "!!BAD!!"),
+                (query.value(3).toString() == "!!DROPPED!!")
         }));
     }
     qInfo() << "Loaded " << m_filteredSongs.size() << " karaoke songs from database.";
@@ -163,9 +165,11 @@ void TableModelKaraokeSongs::searchExec() {
 #else
     auto needles = m_lastSearch.split(' ', Qt::SplitBehavior(Qt::SkipEmptyParts));
 #endif
-    std::for_each(m_allSongs.begin(), m_allSongs.end(), [&](const std::shared_ptr<KaraokeSong> &song) {
-        if (song->songid.contains("!!DROPPED!!"))
-            return;
+    for (const auto &song : m_allSongs) {
+        if (song->dropped)
+            continue;
+        if (song->bad)
+            continue;
         QString haystack;
         switch (m_searchType) {
             case TableModelKaraokeSongs::SEARCH_TYPE_ALL: {
@@ -187,12 +191,12 @@ void TableModelKaraokeSongs::searchExec() {
         for (const auto &needle : needles) {
             if (!haystack.contains(needle)) {
                 match = false;
-                break;
+                continue;
             }
         }
         if (match)
             m_filteredSongs.emplace_back(song);
-    });
+    }
     m_filteredSongs.shrink_to_fit();
     emit layoutChanged();
 }
@@ -372,12 +376,12 @@ void TableModelKaraokeSongs::markSongBad(QString path) {
     m_filteredSongs.erase(newFilteredEnd, m_filteredSongs.end());
     emit layoutChanged();
 
-    auto newAllSongsEnd = std::remove_if(m_allSongs.begin(), m_allSongs.end(),
+    auto songEntry = std::find_if(m_allSongs.begin(), m_allSongs.end(),
                                          [&path](const std::shared_ptr<KaraokeSong> &song) {
                                              return (song->path == path);
                                          });
-    m_allSongs.erase(newAllSongsEnd, m_allSongs.end());
-
+    if (songEntry != m_allSongs.end())
+        songEntry->get()->bad = true;
 }
 
 TableModelKaraokeSongs::DeleteStatus TableModelKaraokeSongs::removeBadSong(QString path) {
@@ -421,30 +425,30 @@ TableModelKaraokeSongs::DeleteStatus TableModelKaraokeSongs::removeBadSong(QStri
 
 QString TableModelKaraokeSongs::findCdgAudioFile(const QString &path) {
     qInfo() << "findMatchingAudioFile(" << path << ") called";
-    QStringList audioExtensions;
-    audioExtensions.append("mp3");
-    audioExtensions.append("wav");
-    audioExtensions.append("ogg");
-    audioExtensions.append("mov");
-    audioExtensions.append("flac");
+    std::array<QString, 41> audioExtensions{
+            "mp3",
+            "ogg",
+            "wav",
+            "mov",
+            "flac",
+            "MP3",
+            "WAV",
+            "OGG",
+            "MOV",
+            "FLAC",
+            "Mp3","mP3",
+            "Wav","wAv","waV","WAv","wAV","WaV",
+            "Ogg","oGg","ogG","OGg","oGG","OgG",
+            "Mov","mOv","moV","MOv","mOV","MoV",
+            "Flac","fLac","flAc","flaC","FLac","FLAc",
+            "flAC","fLAC","FlaC", "FLaC", "FlAC"
+    };
     QFileInfo cdgInfo(path);
-    QDir srcDir = cdgInfo.absoluteDir();
-    QDirIterator it(srcDir);
-    while (it.hasNext()) {
-        it.next();
-        if (it.fileInfo().completeBaseName() != cdgInfo.completeBaseName())
-            continue;
-        if (it.fileInfo().suffix().toLower() == "cdg")
-            continue;
-        QString ext;
-                foreach (ext, audioExtensions) {
-                if (it.fileInfo().suffix().toLower() == ext) {
-                    qInfo() << "findMatchingAudioFile found match: " << it.filePath();
-                    return it.filePath();
-                }
-            }
+    for (const auto &ext : audioExtensions) {
+        QString testPath = cdgInfo.absolutePath() + QDir::separator() + cdgInfo.completeBaseName() + '.' + ext;
+        if (QFile::exists(testPath))
+            return testPath;
     }
-    qInfo() << "findMatchingAudioFile found no matches";
     return QString();
 }
 

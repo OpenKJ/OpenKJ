@@ -398,7 +398,7 @@ set(SOURCE_FILES
         src/okjutil.h
         src/dlgvideopreview.cpp
         src/mainwindow.cpp
-        src/dbupdatethread.cpp
+        src/dbupdater.cpp
         src/dlgkeychange.cpp
         src/dlgdatabase.cpp
         src/dlgrequests.cpp
@@ -455,7 +455,7 @@ set(SOURCE_FILES
         src/mediabackend.h
         src/mzarchive.h
         src/okjutil.h
-        src/dbupdatethread.h
+        src/dbupdater.h
         src/dlgkeychange.h
         src/dlgdatabase.h
         src/dlgrequests.h

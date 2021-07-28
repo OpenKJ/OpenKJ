@@ -83,127 +83,38 @@ void KaraokeFileInfo::setFileName(const QString &filename)
     songId = "";
     duration = 0;
     tagsRead = false;
+    m_success = false;
 }
 
 void KaraokeFileInfo::setPattern(SourceDir::NamingPattern pattern, QString path)
 {
-//    useMetadata = false;
-//    int customPatternId = 0;
     artist = "";
     title = "";
     songId = "";
     this->path = path;
     this->pattern = pattern;
-//    switch (pattern)
-//    {
-//    case SourceDir::STA:
-////        setSongIdRegEx("^.+?(?=(\\s|_)-(\\s|_))");
-////        setTitleRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))", 0);
-////        setArtistRegEx("(?:^\\S+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|_))(.+)",1);
-//        break;
-//    case SourceDir::SAT:
-////        setSongIdRegEx("^.+?(?=(\\s|_)-(\\s|_))");
-////        setTitleRegEx("(?:^\\S+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|_))(.+)",1);
-////        setArtistRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))", 0);
-//        break;
-//    case SourceDir::ATS:
-////        setArtistRegEx(".+?(?=(\\s|_)-(\\s|_))",0);
-////        setTitleRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))");
-////        setSongIdRegEx("(?:^.+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|))(.+)", 1);
-//        break;
-//    case SourceDir::TAS:
-////        setTitleRegEx(".+?(?=(\\s|_)-(\\s|_))",0);
-////        setArtistRegEx("(?<=(\\s|_)-(\\s|_))(.*?)(?=(\\s|_)-(\\s|_))");
-////        setSongIdRegEx("(?:^.+(?:\\s|_)-(?:\\s|_).+(?:\\s|_)-(?:\\s|))(.+)", 1);
-//        break;
-//    case SourceDir::AT:
-////        setArtistRegEx(".+?(?=(\\s|_)-(\\s|_))");
-////        setTitleRegEx("(?<=(\\s|_)-(\\s|_))(.*)");
-//        break;
-//    case SourceDir::TA:
-////        setTitleRegEx(".+?(?=(\\s|_)-(\\s|_))");
-////        setArtistRegEx("(?<=(\\s|_)-(\\s|_))(.*)");
-//        break;
-//    case SourceDir::S_T_A:
-////        setSongIdRegEx("^[^_]*_");
-////        setTitleRegEx("((?<=_)[^_]*_)");
-////        setArtistRegEx("([^_]+(?=_[^_]*(\\r?\\n|$)))");
-//        break;
-//    case SourceDir::METADATA:
-//        useMetadata = true;
-//        break;
-//    case SourceDir::CUSTOM:
-//        QSqlQuery query;
-//        query.exec("SELECT custompattern FROM sourcedirs WHERE path == \"" + path + "\"" );
-//        if (query.first())
-//        {
-//            customPatternId = query.value(0).toInt();
-//        }
-//        if (customPatternId < 1)
-//        {
-//            qCritical() << "Custom pattern set for path, but pattern ID is invalid!  Bailing out!";
-//            return;
-//        }
-//        query.exec("SELECT * FROM custompatterns WHERE patternid == " + QString::number(customPatternId));
-//        if (query.first())
-//        {
-//            setArtistRegEx(query.value("artistregex").toString(), query.value("artistcapturegrp").toInt());
-//            setTitleRegEx(query.value("titleregex").toString(), query.value("titlecapturegrp").toInt());
-//            setSongIdRegEx(query.value("discidregex").toString(), query.value("discidcapturegrp").toInt());
-//        }
-//        break;
-//    }
+    m_success = false;
 }
 
 const QString &KaraokeFileInfo::getArtist()
 {
     getMetadata();
     return artist;
-//    if (useMetadata)
-//    {
-//        readTags();
-//        return tagArtist;
-//    }
-//    QRegularExpression r(artistPattern);
-//    QRegularExpressionMatch match = r.match(fileBaseName);
-//    QString result = match.captured(artistCaptureGroup);
-//    result.replace("_", " ");
-//    return result;
 }
 
 const QString &KaraokeFileInfo::getTitle()
 {
     getMetadata();
     return title;
-//    if (useMetadata)
-//    {
-//        readTags();
-//        return tagTitle;
-//    }
-//    QRegularExpression r(titlePattern);
-//    QRegularExpressionMatch match = r.match(fileBaseName);
-//    QString result = match.captured(titleCaptureGroup);
-//    result.replace("_", " ");
-//    return result;
 }
 
 const QString &KaraokeFileInfo::getSongId()
 {
     getMetadata();
     return songId;
-//    if (useMetadata)
-//    {
-//        readTags();
-//        return tagSongid;
-//    }
-//    QRegularExpression r(songIdPattern);
-//    QRegularExpressionMatch match = r.match(fileBaseName);
-//    QString result = match.captured(songIdCaptureGroup);
-//    result.replace("_", " ");
-    //    return result;
 }
 
-QString KaraokeFileInfo::testPattern(QString regex, QString filename, int captureGroup)
+QString KaraokeFileInfo::testPattern(const QString& regex, const QString& filename, int captureGroup)
 {
     QRegularExpression r;
     QRegularExpressionMatch match;
@@ -245,16 +156,18 @@ const int& KaraokeFileInfo::getDuration()
 
 void KaraokeFileInfo::getMetadata()
 {
-    if (artist != "" || title != "" || songId != "")
+    //TODO: This needs to be cleaned up, the logic is convoluted and is probably
+    // slowing down db updates
+    if ( !artist.isEmpty() || !title.isEmpty() || !songId.isEmpty())
         return;
-    int customPatternId = 0;
+    int customPatternId{0};
     QString baseNameFiltered = fileBaseName;
     baseNameFiltered.replace("_", " ");
     QStringList parts = baseNameFiltered.split(" - ");
     switch (pattern)
     {
     case SourceDir::STA:
-        if (parts.size() >= 1)
+        if (!parts.empty())
             songId = parts.at(0);
         if (parts.size() >= 2)
             title = parts.at(1);
@@ -265,7 +178,7 @@ void KaraokeFileInfo::getMetadata()
         artist = parts.join(" - ");
         break;
     case SourceDir::SAT:
-        if (parts.size() >= 1)
+        if (!parts.empty())
             songId = parts.at(0);
         if (parts.size() >= 2)
             artist = parts.at(1);
@@ -276,7 +189,7 @@ void KaraokeFileInfo::getMetadata()
         title = parts.join(" - ");
         break;
     case SourceDir::ATS:
-        if (parts.size() >= 1)
+        if (!parts.empty())
             artist = parts.at(0);
         if (parts.size() >= 3)
         {
@@ -288,7 +201,7 @@ void KaraokeFileInfo::getMetadata()
         title = parts.join(" - ");
         break;
     case SourceDir::TAS:
-        if (parts.size() >= 1)
+        if (!parts.empty())
             title = parts.at(0);
         if (parts.size() >= 3)
         {
@@ -301,7 +214,7 @@ void KaraokeFileInfo::getMetadata()
         artist = parts.join(" - ");
         break;
     case SourceDir::AT:
-        if (parts.size() >= 1)
+        if (!parts.empty())
         {
             artist = parts.at(0);
             parts.removeFirst();
@@ -309,7 +222,7 @@ void KaraokeFileInfo::getMetadata()
         title = parts.join(" - ");
         break;
     case SourceDir::TA:
-        if (parts.size() >= 1)
+        if (!parts.empty())
         {
             title = parts.at(0);
             parts.removeFirst();
@@ -318,7 +231,7 @@ void KaraokeFileInfo::getMetadata()
         break;
     case SourceDir::S_T_A:
         parts = fileBaseName.split("_");
-        if (parts.size() >= 1)
+        if (!parts.empty())
             songId = parts.at(0);
         if (parts.size() >= 2)
             title = parts.at(1);
@@ -345,6 +258,7 @@ void KaraokeFileInfo::getMetadata()
         if (customPatternId < 1)
         {
             qCritical() << "Custom pattern set for path, but pattern ID is invalid!  Bailing out!";
+            m_success = false;
             return;
         }
         query.exec("SELECT * FROM custompatterns WHERE patternid == " + QString::number(customPatternId));
@@ -367,4 +281,8 @@ void KaraokeFileInfo::getMetadata()
         songId = match.captured(songIdCaptureGroup).replace("_", " ");
         break;
     }
+    if ( !artist.isEmpty() || !title.isEmpty() || !songId.isEmpty())
+        m_success = true;
+    else
+        m_success = false;
 }

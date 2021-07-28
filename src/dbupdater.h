@@ -27,6 +27,7 @@
 #include "src/models/tablemodelkaraokesourcedirs.h"
 #include "settings.h"
 
+
 class DbUpdater : public QObject
 {
     Q_OBJECT
@@ -35,8 +36,7 @@ private:
     QString m_path;
     SourceDir::NamingPattern m_pattern{SourceDir::SAT};
     Settings m_settings;
-    QStringList errors;
-
+    QStringList m_errors;
     void fixMissingFiles(QStringList &existingFiles);
     void importDragDropSongs(QStringList &existingFiles);
 
@@ -51,7 +51,7 @@ public:
     void addSingleTrack(const QString& filePath);
     static int addDroppedFile(const QString& filePath);
     void process();
-    static bool dbEntryExists(const QString &filepath, bool includeDropped = true);
+    static bool dbEntryExists(const QString &filepath, bool includeDropped = false);
     static QString findMatchingAudioFile(const QString& cdgFilePath);
     static bool isSupportedMediaFile(const QString &filePath);
 

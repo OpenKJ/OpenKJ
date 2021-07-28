@@ -1,5 +1,4 @@
 #include "tablemodelhistorysongs.h"
-
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QDebug>
@@ -7,7 +6,6 @@
 
 TableModelHistorySongs::TableModelHistorySongs(TableModelKaraokeSongs &songsModel) : m_karaokeSongsModel(songsModel)
 {
-
 }
 
 

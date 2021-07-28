@@ -34,7 +34,7 @@
 #include "soundfxbutton.h"
 #include "src/models/tableviewtooltipfilter.h"
 #include <tickernew.h>
-#include "dbupdatethread.h"
+#include "dbupdater.h"
 #include "okjutil.h"
 #include <algorithm>
 #include "dlgaddsong.h"
@@ -674,7 +674,7 @@ MainWindow::MainWindow(QWidget *parent) :
     autosizeQueue();
     ui->tabWidgetQueue->setVisible(false);
     khTmpDir = new QTemporaryDir();
-    dbDialog = new DlgDatabase(this);
+    dbDialog = new DlgDatabase(karaokeSongsModel, this);
     dlgKeyChange = new DlgKeyChange(&qModel, this);
     requestsDialog = new DlgRequests(&rotModel);
     requestsDialog->setModal(false);

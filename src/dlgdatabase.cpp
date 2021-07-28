@@ -25,15 +25,15 @@
 #include <QInputDialog>
 #include <QSqlQuery>
 #include <QMessageBox>
-#include "dbupdatethread.h"
+#include "dbupdater.h"
 #include "settings.h"
 #include <QStandardPaths>
-#include <QFileSystemWatcher>
 
 extern Settings settings;
 
-DlgDatabase::DlgDatabase(QWidget *parent) :
+DlgDatabase::DlgDatabase(TableModelKaraokeSongs &dbModel, QWidget *parent) :
     QDialog(parent),
+    m_dbModel(dbModel),
     ui(new Ui::DlgDatabase)
 {
     ui->setupUi(this);
@@ -80,19 +80,15 @@ DlgDatabase::~DlgDatabase()
 void DlgDatabase::singleSongAdd(const QString& path)
 {
     qInfo() << "singleSongAdd(" << path << ") called";
-    DbUpdater *updateThread = new DbUpdater(this);
-    updateThread->addSingleTrack(path);
-    delete updateThread;
+    DbUpdater updater;
+    updater.addSingleTrack(path);
     emit databaseUpdateComplete();
     //emit databaseSongAdded();
 }
 
 int DlgDatabase::dropFileAdd(const QString &path)
 {
-    DbUpdater *updateThread = new DbUpdater(this);
-    int songId = updateThread->addDroppedFile(path);
-    delete updateThread;
-    return songId;
+    return DbUpdater::addDroppedFile(path);
 }
 
 void DlgDatabase::on_buttonNew_clicked()
@@ -170,35 +166,27 @@ void DlgDatabase::on_buttonUpdate_clicked()
 {
     if (selectedRow >= 0)
     {
-        DbUpdater *updateThread = new DbUpdater(this);
+        DbUpdater updater;
         //emit databaseAboutToUpdate();
         dbUpdateDlg->reset();
-        connect(updateThread, SIGNAL(progressMessage(QString)), dbUpdateDlg, SLOT(addProgressMsg(QString)));
-        connect(updateThread, SIGNAL(stateChanged(QString)), dbUpdateDlg, SLOT(changeStatusTxt(QString)));
-        connect(updateThread, SIGNAL(progressMaxChanged(int)), dbUpdateDlg, SLOT(setProgressMax(int)));
-        connect(updateThread, SIGNAL(progressChanged(int)), dbUpdateDlg, SLOT(changeProgress(int)));
+        connect(&updater, SIGNAL(progressMessage(QString)), dbUpdateDlg, SLOT(addProgressMsg(QString)));
+        connect(&updater, SIGNAL(stateChanged(QString)), dbUpdateDlg, SLOT(changeStatusTxt(QString)));
+        connect(&updater, SIGNAL(progressMaxChanged(int)), dbUpdateDlg, SLOT(setProgressMax(int)));
+        connect(&updater, SIGNAL(progressChanged(int)), dbUpdateDlg, SLOT(changeProgress(int)));
         dbUpdateDlg->changeDirectory(sourcedirmodel->getDirByIndex(selectedRow).getPath());
         dbUpdateDlg->show();
-//        QMessageBox msgBox;
-//        msgBox.setStandardButtons(0);
-//        msgBox.setText("Updating Database, please wait...");
-//        msgBox.show();
         QApplication::processEvents();
-        updateThread->setPath(sourcedirmodel->getDirByIndex(selectedRow).getPath());
-        updateThread->setPattern(sourcedirmodel->getDirByIndex(selectedRow).getPattern());
+        updater.setPath(sourcedirmodel->getDirByIndex(selectedRow).getPath());
+        updater.setPattern(sourcedirmodel->getDirByIndex(selectedRow).getPattern());
         QApplication::processEvents();
-        updateThread->process();
-//        while (updateThread->isRunning())
-//        {
-//            QApplication::processEvents();
-//        }
+        updater.process();
         emit databaseUpdateComplete();
         QApplication::processEvents();
         dbUpdateDlg->changeStatusTxt(tr("Database update complete!"));
         dbUpdateDlg->setProgressMax(100);
         dbUpdateDlg->changeProgress(100);
         QApplication::processEvents();
-        showDbUpdateErrors(updateThread->getErrors());
+        showDbUpdateErrors(updater.getErrors());
         QMessageBox::information(this, tr("Update Complete"), tr("Database update complete."));
         dbUpdateDlg->hide();
     }
@@ -206,27 +194,26 @@ void DlgDatabase::on_buttonUpdate_clicked()
 
 void DlgDatabase::on_buttonUpdateAll_clicked()
 {
-    auto updateThread = new DbUpdater(this);
+    DbUpdater updater;
     dbUpdateDlg->reset();
-    connect(updateThread, SIGNAL(progressMessage(QString)), dbUpdateDlg, SLOT(addProgressMsg(QString)));
-    connect(updateThread, SIGNAL(stateChanged(QString)), dbUpdateDlg, SLOT(changeStatusTxt(QString)));
-    connect(updateThread, SIGNAL(progressMaxChanged(int)), dbUpdateDlg, SLOT(setProgressMax(int)));
-    connect(updateThread, SIGNAL(progressChanged(int)), dbUpdateDlg, SLOT(changeProgress(int)));
+    connect(&updater, SIGNAL(progressMessage(QString)), dbUpdateDlg, SLOT(addProgressMsg(QString)));
+    connect(&updater, SIGNAL(stateChanged(QString)), dbUpdateDlg, SLOT(changeStatusTxt(QString)));
+    connect(&updater, SIGNAL(progressMaxChanged(int)), dbUpdateDlg, SLOT(setProgressMax(int)));
+    connect(&updater, SIGNAL(progressChanged(int)), dbUpdateDlg, SLOT(changeProgress(int)));
     dbUpdateDlg->show();
 
     for (int i=0; i < sourcedirmodel->size(); i++)
     {
         //msgBox.setInformativeText("Processing path: " + sourcedirmodel->getDirByIndex(i)->getPath());
         dbUpdateDlg->changeDirectory(sourcedirmodel->getDirByIndex(i).getPath());
-        updateThread->setPath(sourcedirmodel->getDirByIndex(i).getPath());
-        updateThread->setPattern(sourcedirmodel->getDirByIndex(i).getPattern());
-        updateThread->process();
+        updater.setPath(sourcedirmodel->getDirByIndex(i).getPath());
+        updater.setPattern(sourcedirmodel->getDirByIndex(i).getPattern());
+        updater.process();
     }
     emit databaseUpdateComplete();
-    showDbUpdateErrors(updateThread->getErrors());
+    showDbUpdateErrors(updater.getErrors());
     dbUpdateDlg->hide();
     QMessageBox::information(this, tr("Update Complete"), tr("Database update complete."));
-    delete(updateThread);
     emit databaseUpdateComplete();
 }
 
@@ -303,11 +290,11 @@ void DlgDatabase::on_btnExport_clicked()
     }
 }
 
-void DlgDatabase::directoryChanged(QString dirPath)
+void DlgDatabase::directoryChanged(const QString& dirPath)
 {
     if (!settings.dbDirectoryWatchEnabled())
         return;
-    DbUpdater *dbthread = new DbUpdater(this);
+    DbUpdater updater;
     qInfo() << "Directory changed fired for dir: " << dirPath;
     QDirIterator it(dirPath);
     while (it.hasNext()) {
@@ -321,15 +308,13 @@ void DlgDatabase::directoryChanged(QString dirPath)
         {
             continue;
         }
-        if (dbthread->dbEntryExists(file, false))
+        if (DbUpdater::dbEntryExists(file))
         {
             continue;
         }
         qInfo() << "Detected new file: " << file;
         qInfo() << "Adding file to the database";
-        dbthread->addSingleTrack(file);
+        updater.addSingleTrack(file);
         emit databaseUpdateComplete();
     }
-    delete(dbthread);
-
 }

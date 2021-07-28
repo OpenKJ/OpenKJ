@@ -28,6 +28,7 @@ class KaraokeFileInfo : public QObject
     QString artist;
     QString title;
     QString songId;
+    bool m_success{false};
 
 public:
     void setArtistRegEx(QString pattern, int captureGroup = 0) {artistPattern = pattern; artistCaptureGroup = captureGroup;}
@@ -38,9 +39,10 @@ public:
     const QString& getArtist();
     const QString& getTitle();
     const QString& getSongId();
-    QString testPattern(QString regex, QString filename, int captureGroup = 0);
+    static QString testPattern(const QString& regex, const QString& filename, int captureGroup = 0);
     const int& getDuration();
     void getMetadata();
+    bool parseSuccess() { return m_success; }
 
 signals:
 

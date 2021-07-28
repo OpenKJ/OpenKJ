@@ -21,6 +21,8 @@ struct KaraokeSong {
     QString searchString;
     int plays;
     QDateTime lastPlay;
+    bool bad{false};
+    bool dropped{false};
 };
 
 class TableModelKaraokeSongs : public QAbstractTableModel {
