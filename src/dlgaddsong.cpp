@@ -25,17 +25,17 @@ DlgAddSong::DlgAddSong(TableModelRotation &rotationModel, TableModelQueueSongs &
     ui->comboBoxPosition->addItem(tr("Next"));
     ui->comboBoxPosition->setCurrentIndex(settings.lastSingerAddPositionType());
 
-    QStringList rotSingers = m_rotModel.singers();
+    auto rotSingers = m_rotModel.singers();
     rotSingers.sort(Qt::CaseInsensitive);
     ui->comboBoxRotSingers->addItems(rotSingers);
 
-    QStringList regSingers = m_rotModel.historySingers();
+    auto regSingers = m_rotModel.historySingers();
     regSingers.sort(Qt::CaseInsensitive);
     ui->comboBoxRegSingers->addItems(regSingers);
 
     connect(ui->pushButtonKeyDown, &QPushButton::clicked, ui->spinBoxKeyChange, &QSpinBox::stepDown);
     connect(ui->pushButtonKeyUp, &QPushButton::clicked, ui->spinBoxKeyChange, &QSpinBox::stepUp);
-    connect(ui->comboBoxPosition, SIGNAL(currentIndexChanged(int)), &settings, SLOT(setLastSingerAddPositionType(int)));
+    connect(ui->comboBoxPosition, qOverload<int>(&QComboBox::currentIndexChanged), &settings, &Settings::setLastSingerAddPositionType);
     connect(ui->pushButtonAdd, &QPushButton::clicked, this, &DlgAddSong::pushButtonAddClicked);
     connect(ui->pushButtonCancel, &QPushButton::clicked, this, &DlgAddSong::pushButtonCancelClicked);
     connect(ui->spinBoxKeyChange, qOverload<int>(&QSpinBox::valueChanged), this, &DlgAddSong::spinBoxKeyChangeChanged);
@@ -71,7 +71,6 @@ void DlgAddSong::pushButtonAddClicked()
 {
     switch (m_rButtons.checkedId()) {
     case 0:
-        qInfo() << "Add new singer";
         if (ui->lineEditNewSingerName->text() == QString())
         {
             QMessageBox::warning(this, "No singer name specified", "You must enter a new singer name to add the song to.");
@@ -83,8 +82,7 @@ void DlgAddSong::pushButtonAddClicked()
             msgBox.setInformativeText("Would you like to add the song to the existing singer instead?");
             msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
             msgBox.setDefaultButton(QMessageBox::Yes);
-            int ret = msgBox.exec();
-            if (ret == QMessageBox::Yes)
+            if (msgBox.exec() == QMessageBox::Yes)
             {
                 int singerId = m_rotModel.getSingerId(ui->lineEditNewSingerName->text());
                 m_queueModel.songAddSlot(m_songId, singerId, ui->spinBoxKeyChange->value());
@@ -102,7 +100,6 @@ void DlgAddSong::pushButtonAddClicked()
         break;
     case 1:
     {
-        qInfo() << "Add to existing singer";
         int singerId = m_rotModel.getSingerId(ui->comboBoxRotSingers->currentText());
         m_queueModel.songAddSlot(m_songId, singerId, ui->spinBoxKeyChange->value());
         emit newSingerAdded(m_rotModel.getSingerPosition(singerId));
@@ -110,7 +107,6 @@ void DlgAddSong::pushButtonAddClicked()
         break;
     }
     case 2:
-        qInfo() << "Add regular and queue";
         if (m_rotModel.singerExists(ui->comboBoxRegSingers->currentText()))
         {
             int existingId = m_rotModel.getSingerId(ui->comboBoxRegSingers->currentText());
@@ -122,8 +118,7 @@ void DlgAddSong::pushButtonAddClicked()
                                           "Would you like to add the song to their queue instead?");
                 msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
                 msgBox.setDefaultButton(QMessageBox::Yes);
-                int ret = msgBox.exec();
-                if (ret == QMessageBox::Yes)
+                if (msgBox.exec() == QMessageBox::Yes)
                 {
                     m_queueModel.songAddSlot(m_songId, existingId, ui->spinBoxKeyChange->value());
                     emit newSingerAdded(m_rotModel.getSingerPosition(existingId));
@@ -158,8 +153,6 @@ void DlgAddSong::pushButtonAddClicked()
             close();
         }
         break;
-    default:
-        qInfo() << "do nothing";
     }
 }
 
