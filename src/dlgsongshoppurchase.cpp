@@ -1,4 +1,6 @@
 #include "dlgsongshoppurchase.h"
+
+#include <utility>
 #include "ui_dlgsongshoppurchase.h"
 #include "dlgsetpassword.h"
 #include "dlgpassword.h"
@@ -6,8 +8,9 @@
 
 extern Settings settings;
 
-DlgSongShopPurchase::DlgSongShopPurchase(SongShop *songShop, QWidget *parent) :
+DlgSongShopPurchase::DlgSongShopPurchase(std::shared_ptr<SongShop> songShop, QWidget *parent) :
     QDialog(parent),
+    shop(std::move(songShop)),
     ui(new Ui::DlgSongShopPurchase)
 {
     setupDone = false;
@@ -16,19 +19,18 @@ DlgSongShopPurchase::DlgSongShopPurchase(SongShop *songShop, QWidget *parent) :
     ui->lineEditCCM->setValidator(new QRegExpValidator(QRegExp("[0-9]*"), this));
     ui->lineEditCCY->setValidator(new QRegExpValidator(QRegExp("[0-9]*"), this));
     ui->lineEditCCV->setValidator(new QRegExpValidator(QRegExp("[0-9]*"), this));
-    shop = songShop;
     knLoginTest = false;
     ui->cbxSaveAccount->setChecked(settings.saveKNAccount());
     ui->cbxSaveCard->setChecked(settings.saveCC());
     authenticated = false;
     setupDone = true;
-    connect(shop, SIGNAL(paymentProcessingFailed()), this, SLOT(paymentProcessingFailed()));
-    connect(shop, SIGNAL(karaokeSongDownloaded(QString)), this, SLOT(purchaseSuccess()));
+    connect(shop.get(), SIGNAL(paymentProcessingFailed()), this, SLOT(paymentProcessingFailed()));
+    connect(shop.get(), SIGNAL(karaokeSongDownloaded(QString)), this, SLOT(purchaseSuccess()));
     msgBoxInfo = new DlgPurchaseProgress;
     msgBoxInfo->setModal(false);
-    connect(shop, SIGNAL(downloadProgress(qint64,qint64)), this, SLOT(downloadProgress(qint64,qint64)));
-    connect(shop, SIGNAL(knLoginSuccess()), this, SLOT(knLoginSuccess()));
-    connect(shop, SIGNAL(knLoginFailure()), this, SLOT(knLoginFailure()));
+    connect(shop.get(), SIGNAL(downloadProgress(qint64,qint64)), this, SLOT(downloadProgress(qint64,qint64)));
+    connect(shop.get(), SIGNAL(knLoginSuccess()), this, SLOT(knLoginSuccess()));
+    connect(shop.get(), SIGNAL(knLoginFailure()), this, SLOT(knLoginFailure()));
 }
 
 DlgSongShopPurchase::~DlgSongShopPurchase()
@@ -154,7 +156,7 @@ void DlgSongShopPurchase::on_btnPurchase_clicked()
 {
     msgBoxInfo->setWindowTitle("Purchasing Song");
     msgBoxInfo->show();
-//    if (!shop->loggedIn())
+//    if (!m_songShop->loggedIn())
 //    {
         msgBoxInfo->setText("Logging you in to Karoake.NET...");
         shop->knLogin(ui->lineEditKNUser->text(), ui->lineEditKNPass->text());

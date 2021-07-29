@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2021 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -25,90 +25,80 @@
 
 
 extern Settings settings;
-extern OKJSongbookAPI *songbookApi;
 
-TableModelRequests::TableModelRequests(QObject *parent) :
-    QAbstractTableModel(parent)
-{
-    connect(songbookApi, SIGNAL(requestsChanged(OkjsRequests)), this, SLOT(requestsChanged(OkjsRequests)));
+TableModelRequests::TableModelRequests(OKJSongbookAPI &songbookAPI, QObject *parent) :
+        QAbstractTableModel(parent),
+        songbookApi(songbookAPI) {
+    connect(&songbookApi, SIGNAL(requestsChanged(OkjsRequests)), this, SLOT(requestsChanged(OkjsRequests)));
     QString thm = (settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
     delete16 = QIcon(thm + "actions/16/edit-delete.svg");
     delete22 = QIcon(thm + "actions/22/edit-delete.svg");
 }
 
-void TableModelRequests::requestsChanged(OkjsRequests requests)
-{
+void TableModelRequests::requestsChanged(const OkjsRequests &requests) {
     emit layoutAboutToBeChanged();
     m_requests.clear();
-    for (int i=0; i < requests.size(); i++)
-    {
-        int index = requests.at(i).requestId;
-        QString singer = requests.at(i).singer;
-        QString artist = requests.at(i).artist;
-        QString title = requests.at(i).title;
-        int reqtime = requests.at(i).time;
-        int key = requests.at(i).key;
-        m_requests << Request(index,singer,artist,title,reqtime,key);
+    for (const auto &request : requests) {
+        int index = request.requestId;
+        QString singer = request.singer;
+        QString artist = request.artist;
+        QString title = request.title;
+        int reqtime = request.time;
+        int key = request.key;
+        m_requests << Request(index, singer, artist, title, reqtime, key);
     }
     emit layoutChanged();
 }
 
-int TableModelRequests::rowCount(const QModelIndex &parent) const
-{
+int TableModelRequests::rowCount(const QModelIndex &parent) const {
     Q_UNUSED(parent);
     return m_requests.size();
 }
 
-int TableModelRequests::columnCount(const QModelIndex &parent) const
-{
+int TableModelRequests::columnCount(const QModelIndex &parent) const {
     Q_UNUSED(parent);
     return 6;
 }
 
-QVariant TableModelRequests::data(const QModelIndex &index, int role) const
-{
+QVariant TableModelRequests::data(const QModelIndex &index, int role) const {
     QSize sbSize(QFontMetrics(settings.applicationFont()).height(), QFontMetrics(settings.applicationFont()).height());
-    if(!index.isValid())
+    if (!index.isValid())
         return QVariant();
 
-    if(index.row() >= m_requests.size() || index.row() < 0)
+    if (index.row() >= m_requests.size() || index.row() < 0)
         return QVariant();
-    if ((index.column() == 5) && (role == Qt::DecorationRole))
-    {
+    if ((index.column() == 5) && (role == Qt::DecorationRole)) {
         if (sbSize.height() > 18)
             return delete22.pixmap(sbSize);
         else
             return delete16.pixmap(sbSize);
     }
     if (role == Qt::TextAlignmentRole)
-        switch(index.column())
-        {
-        case KEYCHG:
-            return Qt::AlignCenter;
-        default:
-            return Qt::AlignLeft;
+        switch (index.column()) {
+            case KEYCHG:
+                return Qt::AlignCenter;
+            default:
+                return Qt::AlignLeft;
         }
-    if(role == Qt::DisplayRole || role == Qt::ToolTipRole)
-    {
-        switch(index.column())
-        {
-        case SINGER:
-            return m_requests.at(index.row()).singer();
-        case ARTIST:
-            return m_requests.at(index.row()).artist();
-        case TITLE:
-            return m_requests.at(index.row()).title();
-        case KEYCHG:
-            if (m_requests.at(index.row()).key() == 0)
-                return "";
-            else if (m_requests.at(index.row()).key() > 0)
-                return "+" + QString::number(m_requests.at(index.row()).key());
-            else
-                return QString::number(m_requests.at(index.row()).key());
-        case TIMESTAMP:
-            QDateTime ts;
-            ts.setTime_t(m_requests.at(index.row()).timeStamp());
-            return ts.toString("M-d-yy h:mm ap");
+    if (role == Qt::DisplayRole || role == Qt::ToolTipRole) {
+        switch (index.column()) {
+            case SINGER:
+                return m_requests.at(index.row()).singer();
+            case ARTIST:
+                return m_requests.at(index.row()).artist();
+            case TITLE:
+                return m_requests.at(index.row()).title();
+            case KEYCHG:
+                if (m_requests.at(index.row()).key() == 0)
+                    return "";
+                else if (m_requests.at(index.row()).key() > 0)
+                    return "+" + QString::number(m_requests.at(index.row()).key());
+                else
+                    return QString::number(m_requests.at(index.row()).key());
+            case TIMESTAMP:
+                QDateTime ts;
+                ts.setTime_t(m_requests.at(index.row()).timeStamp());
+                return ts.toString("M-d-yy h:mm ap");
         }
     }
     if (role == Qt::UserRole)
@@ -116,50 +106,45 @@ QVariant TableModelRequests::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-QVariant TableModelRequests::headerData(int section, Qt::Orientation orientation, int role) const
-{
+QVariant TableModelRequests::headerData(int section, Qt::Orientation orientation, int role) const {
     Q_UNUSED(orientation);
-    if (role == Qt::DisplayRole && orientation == Qt::Horizontal)
-    {
-        switch(section) {
-        case SINGER:
-            return "Singer";
-        case ARTIST:
-            return "Artist";
-        case TITLE:
-            return "Title";
-        case KEYCHG:
-            return "Key";
-        case TIMESTAMP:
-            return "Received";
+    if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
+        switch (section) {
+            case SINGER:
+                return "Singer";
+            case ARTIST:
+                return "Artist";
+            case TITLE:
+                return "Title";
+            case KEYCHG:
+                return "Key";
+            case TIMESTAMP:
+                return "Received";
+            default:
+                return "";
         }
     }
     return QVariant();
 }
 
-Qt::ItemFlags TableModelRequests::flags(const QModelIndex &index) const
-{
+Qt::ItemFlags TableModelRequests::flags(const QModelIndex &index) const {
     Q_UNUSED(index);
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
 
-int TableModelRequests::count()
-{
+int TableModelRequests::count() {
     return m_requests.count();
 }
 
-int Request::key() const
-{
+int Request::key() const {
     return m_key;
 }
 
-void Request::setKey(int key)
-{
+void Request::setKey(int key) {
     m_key = key;
 }
 
-Request::Request(int RequestId, QString Singer, QString Artist, QString Title, int ts, int key)
-{
+Request::Request(int RequestId, QString Singer, QString Artist, QString Title, int ts, int key) {
     m_requestId = RequestId;
     m_singer = Singer;
     m_artist = Artist;
@@ -168,53 +153,43 @@ Request::Request(int RequestId, QString Singer, QString Artist, QString Title, i
     m_key = key;
 }
 
-int Request::requestId() const
-{
+int Request::requestId() const {
     return m_requestId;
 }
 
-void Request::setRequestId(int requestId)
-{
+void Request::setRequestId(int requestId) {
     m_requestId = requestId;
 }
 
-int Request::timeStamp() const
-{
+int Request::timeStamp() const {
     return m_timeStamp;
 }
 
-void Request::setTimeStamp(int timeStamp)
-{
+void Request::setTimeStamp(int timeStamp) {
     m_timeStamp = timeStamp;
 }
 
-QString Request::artist() const
-{
+QString Request::artist() const {
     return m_artist;
 }
 
-void Request::setArtist(const QString &artist)
-{
+void Request::setArtist(const QString &artist) {
     m_artist = artist;
 }
 
-QString Request::title() const
-{
+QString Request::title() const {
     return m_title;
 }
 
-void Request::setTitle(const QString &title)
-{
+void Request::setTitle(const QString &title) {
     m_title = title;
 }
 
-QString Request::singer() const
-{
+QString Request::singer() const {
     return m_singer;
 }
 
-void Request::setSinger(const QString &singer)
-{
+void Request::setSinger(const QString &singer) {
     m_singer = singer;
 }
 

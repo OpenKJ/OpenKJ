@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2021 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -32,7 +32,6 @@
 #include <spdlog/sinks/basic_file_sink.h>
 
 extern Settings settings;
-extern OKJSongbookAPI *songbookApi;
 
 QString toMixedCase(const QString &s) {
     if (s.isNull())
@@ -51,8 +50,10 @@ QString toMixedCase(const QString &s) {
     return newStr;
 }
 
-DlgRequests::DlgRequests(TableModelRotation *rotationModel, QWidget *parent) :
+DlgRequests::DlgRequests(TableModelRotation &rotationModel, OKJSongbookAPI &songbookAPI, QWidget *parent) :
         QDialog(parent),
+        rotModel(rotationModel),
+        songbookApi(songbookAPI),
         ui(new Ui::DlgRequests) {
     QString logDir = settings.logDir();
     QDir dir;
@@ -67,7 +68,7 @@ DlgRequests::DlgRequests(TableModelRotation *rotationModel, QWidget *parent) :
     m_reqLogger->flush();
     curRequestId = -1;
     ui->setupUi(this);
-    requestsModel = new TableModelRequests(this);
+    requestsModel = new TableModelRequests(songbookApi, this);
     dbModel.loadData();
     ui->tableViewRequests->setModel(requestsModel);
     ui->tableViewRequests->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewRequests));
@@ -76,14 +77,13 @@ DlgRequests::DlgRequests(TableModelRotation *rotationModel, QWidget *parent) :
     ui->tableViewSearch->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewSearch));
     ui->groupBoxAddSong->setDisabled(true);
     ui->groupBoxSongDb->setDisabled(true);
-    connect(ui->tableViewRequests->selectionModel(), SIGNAL(selectionChanged(QItemSelection, QItemSelection)), this,
-            SLOT(requestSelectionChanged(QItemSelection, QItemSelection)));
-    connect(ui->tableViewSearch->selectionModel(), SIGNAL(selectionChanged(QItemSelection, QItemSelection)), this,
-            SLOT(songSelectionChanged(QItemSelection, QItemSelection)));
-    connect(songbookApi, SIGNAL(synchronized(QTime)), this, SLOT(updateReceived(QTime)));
-    connect(songbookApi, SIGNAL(sslError()), this, SLOT(sslError()));
-    connect(songbookApi, SIGNAL(delayError(int)), this, SLOT(delayError(int)));
-    rotModel = rotationModel;
+    connect(ui->tableViewRequests->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this,
+            SLOT(requestSelectionChanged(QItemSelection,QItemSelection)));
+    connect(ui->tableViewSearch->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this,
+            SLOT(songSelectionChanged(QItemSelection,QItemSelection)));
+    connect(&songbookApi, SIGNAL(synchronized(QTime)), this, SLOT(updateReceived(QTime)));
+    connect(&songbookApi, SIGNAL(sslError()), this, SLOT(sslError()));
+    connect(&songbookApi, SIGNAL(delayError(int)), this, SLOT(delayError(int)));
     ui->comboBoxAddPosition->setEnabled(false);
     ui->comboBoxSingers->setEnabled(true);
     ui->lineEditSingerName->setEnabled(false);
@@ -102,7 +102,7 @@ DlgRequests::DlgRequests(TableModelRotation *rotationModel, QWidget *parent) :
     ui->tableViewSearch->hideColumn(TableModelKaraokeSongs::COL_FILENAME);
     ui->tableViewSearch->horizontalHeader()->resizeSection(4, 75);
     ui->checkBoxDelOnAdd->setChecked(settings.requestRemoveOnRotAdd());
-    connect(songbookApi, SIGNAL(venuesChanged(OkjsVenues)), this, SLOT(venuesChanged(OkjsVenues)));
+    connect(&songbookApi, SIGNAL(venuesChanged(OkjsVenues)), this, SLOT(venuesChanged(OkjsVenues)));
     connect(ui->lineEditSearch, SIGNAL(escapePressed()), this, SLOT(lineEditSearchEscapePressed()));
     connect(ui->checkBoxDelOnAdd, SIGNAL(clicked(bool)), &settings, SLOT(setRequestRemoveOnRotAdd(bool)));
     ui->cbxAutoShowRequestsDlg->setChecked(settings.requestDialogAutoShow());
@@ -115,7 +115,7 @@ DlgRequests::DlgRequests(TableModelRotation *rotationModel, QWidget *parent) :
     autoSizeViews();
     if (!settings.testingEnabled())
         ui->pushButtonRunTortureTest->hide();
-    connect(songbookApi, &OKJSongbookAPI::requestsChanged, this, &DlgRequests::requestsChanged);
+    connect(&songbookApi, &OKJSongbookAPI::requestsChanged, this, &DlgRequests::requestsChanged);
 
 }
 
@@ -144,7 +144,7 @@ void DlgRequests::databaseSongAdded() {
 void DlgRequests::rotationChanged() {
     QString curSelSinger = ui->comboBoxSingers->currentText();
     ui->comboBoxSingers->clear();
-    QStringList singers = rotModel->singers();
+    QStringList singers = rotModel.singers();
     singers.sort(Qt::CaseInsensitive);
     ui->comboBoxSingers->addItems(singers);
     if (singers.contains(curSelSinger))
@@ -188,9 +188,9 @@ void DlgRequests::requestsModified() {
         ui->tableViewSearch->selectRow(0);
         QApplication::processEvents();
         on_pushButtonAddSong_clicked();
-        songbookApi->removeRequest(requestsModel->requests().at(0).requestId());
-        if (rotModel->rowCount() > 5)
-            rotModel->singerDelete(rotModel->singerIdAtPosition(0));
+        songbookApi.removeRequest(requestsModel->requests().at(0).requestId());
+        if (rotModel.rowCount() > 5)
+            rotModel.singerDelete(rotModel.singerIdAtPosition(0));
         ui->pushButtonRunTortureTest->setText("Running Torture Test (" + QString::number(++testruns) + ")");
     }
 }
@@ -221,7 +221,7 @@ void DlgRequests::requestSelectionChanged(const QItemSelection &current, const Q
         ui->comboBoxSingers->clear();
         QString singerName = index.sibling(index.row(), 0).data().toString();
         curSelReqSinger = singerName;
-        QStringList singers = rotModel->singers();
+        QStringList singers = rotModel.singers();
         singers.sort(Qt::CaseInsensitive);
         ui->comboBoxSingers->addItems(singers);
 
@@ -280,7 +280,7 @@ void DlgRequests::on_pushButtonClearReqs_clicked() {
         ui->lineEditSingerName->clear();
         ui->comboBoxSingers->clear();
         ui->radioButtonExistingSinger->setChecked(true);
-        songbookApi->clearRequests();
+        songbookApi.clearRequests();
         m_reqLogger->info("All requests cleared by host");
         m_reqLogger->flush();
     }
@@ -288,7 +288,7 @@ void DlgRequests::on_pushButtonClearReqs_clicked() {
 
 void DlgRequests::on_tableViewRequests_clicked(const QModelIndex &index) {
     if (index.column() == 5) {
-        songbookApi->removeRequest(index.data(Qt::UserRole).toInt());
+        songbookApi.removeRequest(index.data(Qt::UserRole).toInt());
         m_reqLogger->info("RequestID: {} | Manually removed by host", index.data(Qt::UserRole).toInt());
         m_reqLogger->flush();
         ui->tableViewRequests->selectionModel()->clearSelection();
@@ -315,18 +315,18 @@ void DlgRequests::on_pushButtonAddSong_clicked() {
     if (ui->radioButtonNewSinger->isChecked()) {
         if (ui->lineEditSingerName->text() == "")
             return;
-        else if (rotModel->singerExists(ui->lineEditSingerName->text()))
+        else if (rotModel.singerExists(ui->lineEditSingerName->text()))
             return;
         else {
-            int newSingerId = rotModel->singerAdd(ui->lineEditSingerName->text(),
+            int newSingerId = rotModel.singerAdd(ui->lineEditSingerName->text(),
                                                   ui->comboBoxAddPosition->currentIndex());
             emit addRequestSong(songid, newSingerId, keyChg);
             m_reqLogger->info(
                     "RequestID: {} | Added to new singer | Name: {} | Position: {} | Wait: {} | Song: {} - {} - {} | Key: {}",
                     curRequestId,
                     ui->lineEditSingerName->text().toStdString(),
-                    rotModel->getSingerPosition(newSingerId),
-                    rotModel->singerTurnDistance(newSingerId),
+                    rotModel.getSingerPosition(newSingerId),
+                    rotModel.singerTurnDistance(newSingerId),
                     index.sibling(index.row(),
                                   TableModelKaraokeSongs::COL_SONGID).data().toString().toStdString(),
                     index.sibling(index.row(),
@@ -338,7 +338,7 @@ void DlgRequests::on_pushButtonAddSong_clicked() {
             m_reqLogger->flush();
         }
     } else if (ui->radioButtonExistingSinger->isChecked()) {
-        emit addRequestSong(songid, rotModel->getSingerId(ui->comboBoxSingers->currentText()), keyChg);
+        emit addRequestSong(songid, rotModel.getSingerId(ui->comboBoxSingers->currentText()), keyChg);
         m_reqLogger->info("RequestID: {} | Added to existing singer | Name: {} | Song: {} - {} - {} | Key: {}",
                           curRequestId,
                           ui->comboBoxSingers->currentText().toStdString(),
@@ -353,7 +353,7 @@ void DlgRequests::on_pushButtonAddSong_clicked() {
     }
     if (settings.requestRemoveOnRotAdd()) {
 
-        songbookApi->removeRequest(curRequestId);
+        songbookApi.removeRequest(curRequestId);
         m_reqLogger->info("RequestID: {} | Auto-removed after add to singer queue", curRequestId);
         m_reqLogger->flush();
 
@@ -381,8 +381,8 @@ void DlgRequests::updateReceived(QTime updateTime) {
 }
 
 void DlgRequests::on_buttonRefresh_clicked() {
-    songbookApi->refreshRequests();
-    songbookApi->refreshVenues();
+    songbookApi.refreshRequests();
+    songbookApi.refreshVenues();
 }
 
 void DlgRequests::sslError() {
@@ -396,7 +396,7 @@ void DlgRequests::delayError(int seconds) {
 }
 
 void DlgRequests::on_checkBoxAccepting_clicked(bool checked) {
-    songbookApi->setAccepting(checked);
+    songbookApi.setAccepting(checked);
 }
 
 void DlgRequests::venuesChanged(OkjsVenues venues) {
@@ -411,7 +411,7 @@ void DlgRequests::venuesChanged(OkjsVenues venues) {
     }
     ui->comboBoxVenue->setCurrentIndex(selItem);
     settings.setRequestServerVenue(ui->comboBoxVenue->itemData(selItem).toInt());
-    ui->checkBoxAccepting->setChecked(songbookApi->getAccepting());
+    ui->checkBoxAccepting->setChecked(songbookApi.getAccepting());
 }
 
 void DlgRequests::on_pushButtonUpdateDb_clicked() {
@@ -433,12 +433,12 @@ void DlgRequests::on_pushButtonUpdateDb_clicked() {
         progressDialog->setLabelText(tr("Updating request server song database"));
         progressDialog->show();
         QApplication::processEvents();
-        connect(songbookApi, SIGNAL(remoteSongDbUpdateNumDocs(int)), progressDialog, SLOT(setMaximum(int)));
-        connect(songbookApi, SIGNAL(remoteSongDbUpdateProgress(int)), progressDialog, SLOT(setValue(int)));
-        connect(progressDialog, SIGNAL(canceled()), songbookApi, SLOT(dbUpdateCanceled()));
+        connect(&songbookApi, SIGNAL(remoteSongDbUpdateNumDocs(int)), progressDialog, SLOT(setMaximum(int)));
+        connect(&songbookApi, SIGNAL(remoteSongDbUpdateProgress(int)), progressDialog, SLOT(setValue(int)));
+        connect(progressDialog, SIGNAL(canceled()), &songbookApi, SLOT(dbUpdateCanceled()));
         //    progressDialog->show();
-        songbookApi->updateSongDb();
-        if (songbookApi->updateWasCancelled())
+        songbookApi.updateSongDb();
+        if (songbookApi.updateWasCancelled())
             qInfo() << "Songbook DB update cancelled by user";
         else {
             QMessageBox msgBox;
@@ -455,8 +455,8 @@ void DlgRequests::on_pushButtonUpdateDb_clicked() {
 void DlgRequests::on_comboBoxVenue_activated(int index) {
     int venue = ui->comboBoxVenue->itemData(index).toInt();
     settings.setRequestServerVenue(venue);
-    songbookApi->refreshRequests();
-    ui->checkBoxAccepting->setChecked(songbookApi->getAccepting());
+    songbookApi.refreshRequests();
+    ui->checkBoxAccepting->setChecked(songbookApi.getAccepting());
     qInfo() << "Set venue_id to " << venue;
     qInfo() << "Settings now reporting venue as " << settings.requestServerVenue();
 }
@@ -561,7 +561,7 @@ void DlgRequests::closeEvent(QCloseEvent *event) {
 void DlgRequests::on_pushButtonRunTortureTest_clicked() {
     connect(&testTimer, &QTimer::timeout, [&]() {
         qInfo() << "Triggering test songbook add";
-        songbookApi->triggerTestAdd();
+        songbookApi.triggerTestAdd();
     });
     testTimer.start(3000);
 }

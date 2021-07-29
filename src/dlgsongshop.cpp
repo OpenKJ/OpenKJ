@@ -1,15 +1,17 @@
 #include "dlgsongshop.h"
+
+#include <utility>
 #include "ui_dlgsongshop.h"
 #include "settings.h"
 
 extern Settings settings;
 
-DlgSongShop::DlgSongShop(SongShop *songShop, QWidget *parent) :
+DlgSongShop::DlgSongShop(std::shared_ptr<SongShop> songShop, QWidget *parent) :
     QDialog(parent),
+    shop(std::move(songShop)),
     ui(new Ui::DlgSongShop)
 {
     ui->setupUi(this);
-    shop = songShop;
     modelSongs = new TableModelSongShopSongs(shop, this);
     sortFilterModel = new SortFilterProxyModelSongShopSongs(this);
     sortFilterModel->setSourceModel(modelSongs);
@@ -21,8 +23,8 @@ DlgSongShop::DlgSongShop(SongShop *songShop, QWidget *parent) :
     dlgPurchase = new DlgSongShopPurchase(shop, this);
     dlgPurchase->setModal(false);
     settings.restoreColumnWidths(ui->tableViewSongs);
-    connect(modelSongs->getShop(), SIGNAL(karaokeSongDownloaded(QString)), this, SIGNAL(karaokeSongDownloaded(QString)));
-    connect(modelSongs->getShop(), SIGNAL(songsUpdated()), this, SLOT(autoSizeView()));
+    connect(shop.get(), SIGNAL(karaokeSongDownloaded(QString)), this, SIGNAL(karaokeSongDownloaded(QString)));
+    connect(shop.get(), SIGNAL(songsUpdated()), this, SLOT(autoSizeView()));
 }
 
 DlgSongShop::~DlgSongShop()

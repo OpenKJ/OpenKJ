@@ -4,11 +4,12 @@
 #include <QAbstractTableModel>
 #include "songshop.h"
 #include <QSortFilterProxyModel>
+#include <memory>
 
 class SortFilterProxyModelSongShopSongs : public QSortFilterProxyModel
 {
 public:
-    SortFilterProxyModelSongShopSongs(QObject *parent = 0);
+    explicit SortFilterProxyModelSongShopSongs(QObject *parent = nullptr);
     void setSearchTerms(const QString &value);
 
 protected:
@@ -23,20 +24,18 @@ class TableModelSongShopSongs : public QAbstractTableModel
     Q_OBJECT
 
 public:
-    explicit TableModelSongShopSongs(SongShop *songShop, QObject *parent = 0);
+    explicit TableModelSongShopSongs(std::shared_ptr<SongShop> songShop, QObject *parent = nullptr);
 
     // Header:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 
 
-    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
-
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-    SongShop *getShop() { return shop; }
+    [[nodiscard]] int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    [[nodiscard]] int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+    [[nodiscard]] QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
 private:
-    SongShop *shop;
+    std::shared_ptr<SongShop> shop;
     ShopSongs songs;
 
 private slots:

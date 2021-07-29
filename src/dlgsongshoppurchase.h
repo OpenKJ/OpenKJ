@@ -5,6 +5,7 @@
 #include "songshop.h"
 #include <QMessageBox>
 #include "dlgpurchaseprogress.h"
+#include <memory>
 
 namespace Ui {
 class DlgSongShopPurchase;
@@ -15,7 +16,7 @@ class DlgSongShopPurchase : public QDialog
     Q_OBJECT
 
 public:
-    explicit DlgSongShopPurchase(SongShop *songShop, QWidget *parent = 0);
+    explicit DlgSongShopPurchase(std::shared_ptr<SongShop> songShop, QWidget *parent = nullptr);
     ~DlgSongShopPurchase();
     void setArtist(QString artist);
     void setTitle(QString title);
@@ -60,7 +61,7 @@ private:
     QString songId;
     QString artist;
     QString title;
-    SongShop *shop;
+    std::shared_ptr<SongShop> shop;
     bool knLoginTest;
     bool authenticated;
     QString password;

@@ -41,8 +41,8 @@ class DlgSettings : public QDialog
 private:
     Ui::DlgSettings *ui;
     QStringList getMonitors();
-    MediaBackend *kAudioBackend;
-    MediaBackend *bmAudioBackend;
+    MediaBackend &kAudioBackend;
+    MediaBackend &bmAudioBackend;
     QNetworkAccessManager *networkManager;
     bool m_pageSetupDone;
     QStringList audioOutputDevices;
@@ -52,10 +52,12 @@ private:
         QString description;
         QString sequenceName;
     };
+    OKJSongbookAPI &songbookApi;
 
 public:
-    explicit DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBackend, QWidget *parent = 0);
-    ~DlgSettings();
+    explicit DlgSettings(MediaBackend &AudioBackend, MediaBackend &BmAudioBackend, OKJSongbookAPI &songbookAPI,
+                         QWidget *parent = nullptr);
+    ~DlgSettings() override;
 
 signals:
     void audioUseFaderChanged(bool);

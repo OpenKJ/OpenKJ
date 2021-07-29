@@ -39,15 +39,16 @@
 
 
 extern Settings settings;
-extern OKJSongbookAPI *songbookApi;
 
 
-DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBackend, QWidget *parent) :
+DlgSettings::DlgSettings(MediaBackend &AudioBackend, MediaBackend &BmAudioBackend, OKJSongbookAPI &songbookAPI,
+                         QWidget *parent) :
         QDialog(parent),
+        kAudioBackend(AudioBackend),
+        bmAudioBackend(BmAudioBackend),
+        songbookApi(songbookAPI),
         ui(new Ui::DlgSettings) {
     m_pageSetupDone = false;
-    kAudioBackend = AudioBackend;
-    bmAudioBackend = BmAudioBackend;
     networkManager = new QNetworkAccessManager(this);
     ui->setupUi(this);
     settings.restoreWindowState(this);
@@ -63,7 +64,7 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     ui->cbxRotShowNextSong->setChecked(settings.rotationShowNextSong());
     ui->checkBoxCdgPrescaling->setChecked(settings.cdgPrescalingEnabled());
     ui->checkBoxCurrentSingerTop->setChecked(settings.rotationAltSortOrder());
-    audioOutputDevices = kAudioBackend->getOutputDevices();
+    audioOutputDevices = kAudioBackend.getOutputDevices();
     ui->comboBoxKAudioDevices->addItems(audioOutputDevices);
     ui->checkBoxShowAddDlgOnDbDblclk->setChecked(settings.dbDoubleClickAddsSong());
     int selDevice = audioOutputDevices.indexOf(settings.audioOutputDevice());
@@ -139,7 +140,7 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     ui->checkBoxDownmixBm->setChecked(settings.audioDownmixBm());
     ui->checkBoxSilenceDetectionBm->setChecked(settings.audioDetectSilenceBm());
     ui->spinBoxInterval->setValue(settings.requestServerInterval());
-    ui->spinBoxSystemId->setMaximum(songbookApi->entitledSystemCount());
+    ui->spinBoxSystemId->setMaximum(songbookApi.entitledSystemCount());
     ui->spinBoxSystemId->setValue(settings.systemId());
     ui->spinBoxCdgOffsetTop->setValue(settings.cdgOffsetTop());
     ui->spinBoxCdgOffsetBottom->setValue(settings.cdgOffsetBottom());
@@ -239,7 +240,7 @@ DlgSettings::DlgSettings(MediaBackend *AudioBackend, MediaBackend *BmAudioBacken
     connect(ui->cbxStopPauseWarning, SIGNAL(toggled(bool)), &settings, SLOT(setShowSongPauseStopWarning(bool)));
     connect(ui->cbxTickerShowRotationInfo, SIGNAL(clicked(bool)), &settings, SLOT(setTickerShowRotationInfo(bool)));
     connect(&settings, SIGNAL(tickerShowRotationInfoChanged(bool)), this, SLOT(tickerShowRotationInfoChanged(bool)));
-    connect(songbookApi, SIGNAL(entitledSystemCountChanged(int)), this, SLOT(entitledSystemCountChanged(int)));
+    connect(&songbookApi, SIGNAL(entitledSystemCountChanged(int)), this, SLOT(entitledSystemCountChanged(int)));
     connect(ui->cbxRotShowNextSong, SIGNAL(clicked(bool)), &settings, SLOT(setRotationShowNextSong(bool)));
     setupHotkeysForm();
     m_pageSetupDone = true;
@@ -860,7 +861,7 @@ void DlgSettings::on_comboBoxKAudioDevices_currentIndexChanged(int index) {
         return;
     qInfo() << "Changing karaoke audio output device to: " << index << ")" << device;
     settings.setAudioOutputDevice(device);
-    kAudioBackend->setAudioOutputDevice(device);
+    kAudioBackend.setAudioOutputDevice(device);
 }
 
 void DlgSettings::on_comboBoxBAudioDevices_currentIndexChanged(int index) {
@@ -871,7 +872,7 @@ void DlgSettings::on_comboBoxBAudioDevices_currentIndexChanged(int index) {
         return;
     qInfo() << "Changing karaoke audio output device to: " << index << ")" << device;
     settings.setAudioOutputDeviceBm(device);
-    bmAudioBackend->setAudioOutputDevice(device);
+    bmAudioBackend.setAudioOutputDevice(device);
 }
 
 void DlgSettings::on_checkBoxEnforceAspectRatio_clicked(bool checked) {

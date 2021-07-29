@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2021 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -64,8 +64,10 @@ private:
     QList<Request> m_requests;
     QIcon delete16;
     QIcon delete22;
+    OKJSongbookAPI &songbookApi;
+
 public:
-    explicit TableModelRequests(QObject *parent = 0);
+    explicit TableModelRequests(OKJSongbookAPI &songbookAPI, QObject *parent = nullptr);
     enum {SINGER=0,ARTIST,TITLE,TIMESTAMP,KEYCHG};
     int count();
     int rowCount(const QModelIndex &parent) const;
@@ -76,7 +78,7 @@ public:
     QList<Request> requests() {return m_requests; }
 
 private slots:
-    void requestsChanged(OkjsRequests requests);
+    void requestsChanged(const OkjsRequests& requests);
 };
 
 #endif // REQUESTSTABLEMODEL_H

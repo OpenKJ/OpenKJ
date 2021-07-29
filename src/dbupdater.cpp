@@ -157,7 +157,7 @@ QStringList DbUpdater::getDragDropFiles() {
 }
 
 // Adds a single media file to the database.
-// Typically used for files purchased from the song shop,
+// Typically used for files purchased from the song m_songShop,
 // or files added through the directory watch feature.
 void DbUpdater::addSingleTrack(const QString &filePath) {
     MzArchive archive;

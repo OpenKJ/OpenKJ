@@ -5,6 +5,7 @@
 #include "src/models/tablemodelsongshopsongs.h"
 #include "dlgsongshoppurchase.h"
 #include "settings.h"
+#include <memory>
 
 namespace Ui {
 class DlgSongShop;
@@ -15,7 +16,7 @@ class DlgSongShop : public QDialog
     Q_OBJECT
 
 public:
-    explicit DlgSongShop(SongShop *songShop, QWidget *parent = 0);
+    explicit DlgSongShop(std::shared_ptr<SongShop> songShop, QWidget *parent = nullptr);
     ~DlgSongShop();
 
 private slots:
@@ -30,7 +31,7 @@ private:
     TableModelSongShopSongs *modelSongs;
     SortFilterProxyModelSongShopSongs *sortFilterModel;
     DlgSongShopPurchase *dlgPurchase;
-    SongShop *shop;
+    std::shared_ptr<SongShop> shop;
 
     // QWidget interface
 public slots:

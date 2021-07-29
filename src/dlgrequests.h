@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Thomas Isaac Lightburn
+ * Copyright (c) 2013-2021 Thomas Isaac Lightburn
  *
  *
  * This file is part of OpenKJ.
@@ -42,17 +42,18 @@ private:
     TableModelRequests *requestsModel;
     //SongDBTableModel *songDbModel;
     TableModelKaraokeSongs dbModel;
-    TableModelRotation *rotModel;
+    TableModelRotation &rotModel;
     QString rtClickFile;
     int curRequestId;
     QString curSelReqSinger;
     QTimer testTimer;
     std::shared_ptr<spdlog::logger> m_reqLogger;
     std::vector<int> m_prevRequestList;
+    OKJSongbookAPI &songbookApi;
 
 
 public:
-    explicit DlgRequests(TableModelRotation *rotationModel, QWidget *parent = 0);
+    explicit DlgRequests(TableModelRotation &rotationModel, OKJSongbookAPI &songbookAPI, QWidget *parent = nullptr);
     int numRequests();
     ~DlgRequests();
 

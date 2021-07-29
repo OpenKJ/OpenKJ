@@ -1,12 +1,12 @@
 #include "tablemodelsongshopsongs.h"
 #include <QApplication>
-TableModelSongShopSongs::TableModelSongShopSongs(SongShop *songShop, QObject *parent)
-    : QAbstractTableModel(parent)
+#include <utility>
+TableModelSongShopSongs::TableModelSongShopSongs(std::shared_ptr<SongShop> songShop, QObject *parent)
+    : QAbstractTableModel(parent), shop(std::move(songShop))
 {
-    shop = songShop;
     songs = shop->getSongs();
-    connect(shop, SIGNAL(songUpdateStarted()), this, SLOT(songShopUpdating()));
-    connect(shop, SIGNAL(songsUpdated()), this, SLOT(songShopUpdated()));
+    connect(shop.get(), SIGNAL(songUpdateStarted()), this, SLOT(songShopUpdating()));
+    connect(shop.get(), SIGNAL(songsUpdated()), this, SLOT(songShopUpdated()));
    // while (songs.isEmpty())
    //     QApplication::processEvents();
 }
