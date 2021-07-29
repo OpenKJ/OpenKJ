@@ -30,6 +30,7 @@
 #include "dlgdbupdate.h"
 #include <QFileSystemWatcher>
 #include "models/tablemodelkaraokesongs.h"
+#include "settings.h"
 
 namespace Ui {
 class DlgDatabase;
@@ -47,6 +48,7 @@ private:
     DlgDbUpdate *dbUpdateDlg;
     int selectedRow;
     QFileSystemWatcher fsWatcher;
+    Settings m_settings;
 
 public:
     explicit DlgDatabase(TableModelKaraokeSongs &dbModel, QWidget *parent = nullptr);

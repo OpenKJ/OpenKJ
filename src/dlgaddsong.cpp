@@ -2,9 +2,7 @@
 #include "ui_dlgaddsong.h"
 #include <QDebug>
 #include <QMessageBox>
-#include <settings.h>
 
-extern Settings settings;
 
 DlgAddSong::DlgAddSong(TableModelRotation &rotationModel, TableModelQueueSongs &queueModel, int songId, QWidget *parent) :
     QDialog(parent), ui(new Ui::DlgAddSong), m_rotModel(rotationModel), m_queueModel(queueModel), m_songId(songId)
@@ -23,7 +21,7 @@ DlgAddSong::DlgAddSong(TableModelRotation &rotationModel, TableModelQueueSongs &
     ui->comboBoxPosition->addItem(tr("Fair"));
     ui->comboBoxPosition->addItem(tr("Bottom"));
     ui->comboBoxPosition->addItem(tr("Next"));
-    ui->comboBoxPosition->setCurrentIndex(settings.lastSingerAddPositionType());
+    ui->comboBoxPosition->setCurrentIndex(m_settings.lastSingerAddPositionType());
 
     auto rotSingers = m_rotModel.singers();
     rotSingers.sort(Qt::CaseInsensitive);
@@ -35,7 +33,7 @@ DlgAddSong::DlgAddSong(TableModelRotation &rotationModel, TableModelQueueSongs &
 
     connect(ui->pushButtonKeyDown, &QPushButton::clicked, ui->spinBoxKeyChange, &QSpinBox::stepDown);
     connect(ui->pushButtonKeyUp, &QPushButton::clicked, ui->spinBoxKeyChange, &QSpinBox::stepUp);
-    connect(ui->comboBoxPosition, qOverload<int>(&QComboBox::currentIndexChanged), &settings, &Settings::setLastSingerAddPositionType);
+    connect(ui->comboBoxPosition, qOverload<int>(&QComboBox::currentIndexChanged), &m_settings, &Settings::setLastSingerAddPositionType);
     connect(ui->pushButtonAdd, &QPushButton::clicked, this, &DlgAddSong::pushButtonAddClicked);
     connect(ui->pushButtonCancel, &QPushButton::clicked, this, &DlgAddSong::pushButtonCancelClicked);
     connect(ui->spinBoxKeyChange, qOverload<int>(&QSpinBox::valueChanged), this, &DlgAddSong::spinBoxKeyChangeChanged);

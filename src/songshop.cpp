@@ -6,10 +6,8 @@
 #include <QCryptographicHash>
 #include <QEventLoop>
 #include <QFileInfo>
-#include "settings.h"
 #include <QDir>
 
-extern Settings settings;
 
 SongShop::SongShop(QObject *parent) : QObject(parent)
 {
@@ -87,7 +85,7 @@ void SongShop::setDlSongInfo(QString artist, QString title, QString songId)
 
 void SongShop::downloadFile(const QString &url, const QString &destFn)
 {
-    QString destDir = settings.storeDownloadDir();
+    QString destDir = m_settings.storeDownloadDir();
     if (!QDir(destDir).exists())
         QDir().mkdir(destDir);
     QString destPath = destDir + destFn;

@@ -6,6 +6,7 @@
 #include <QDialog>
 #include "src/models/tablemodelrotation.h"
 #include "src/models/tablemodelqueuesongs.h"
+#include "settings.h"
 
 namespace Ui {
     class DlgAddSong;
@@ -25,6 +26,7 @@ private:
     TableModelRotation &m_rotModel;
     TableModelQueueSongs &m_queueModel;
     int m_songId;
+    Settings m_settings;
 
 protected:
     void closeEvent(QCloseEvent *event) override;

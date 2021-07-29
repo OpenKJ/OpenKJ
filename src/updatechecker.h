@@ -4,6 +4,7 @@
 #include <QNetworkAccessManager>
 #include <QObject>
 #include "okjversion.h"
+#include "settings.h"
 
 class UpdateChecker : public QObject
 {
@@ -14,6 +15,8 @@ private:
     QString availVersion;
     QString OS;
     QString channel;
+    Settings m_settings;
+
 public:
     explicit UpdateChecker(QObject *parent = 0);
     void checkForUpdates();

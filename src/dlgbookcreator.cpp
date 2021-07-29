@@ -19,6 +19,7 @@ DlgBookCreator::DlgBookCreator(QWidget *parent) :
 }
 
 void DlgBookCreator::loadSettings() {
+    m_settings.restoreWindowState(this);
     ui->cbxColumns->addItem("2", 2);
     ui->cbxColumns->addItem("3", 3);
     ui->cbxPageSize->addItem(tr("Letter"), QPageSize::Letter);
@@ -365,5 +366,10 @@ void DlgBookCreator::btnGenerateClicked() {
         QApplication::processEvents();
         writePdf(saveFilePath, ui->cbxColumns->currentData().toInt());
     }
+}
+
+void DlgBookCreator::resizeEvent(QResizeEvent *event) {
+    m_settings.saveWindowState(this);
+    QDialog::resizeEvent(event);
 }
 

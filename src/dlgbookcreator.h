@@ -29,10 +29,11 @@ private:
     void writePdf(const QString& filename, int nCols = 2);
     static QStringList getArtists();
     static QStringList getTitles(const QString& artist);
-
     void setupConnections() const;
-
     void loadSettings();
+
+protected:
+    void resizeEvent(QResizeEvent *event) override;
 };
 
 #endif // DLGBOOKCREATOR_H

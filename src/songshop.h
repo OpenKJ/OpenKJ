@@ -6,6 +6,7 @@
 #include <QObject>
 #include <QUrl>
 #include <QDebug>
+#include "settings.h"
 
 
 class ShopSong
@@ -50,6 +51,7 @@ private:
     QString dlArtist;
     QString dlTitle;
     QString dlSongId;
+    Settings m_settings;
 
 signals:
     void songUpdateStarted();

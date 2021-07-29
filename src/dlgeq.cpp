@@ -1,21 +1,22 @@
 #include "dlgeq.h"
 #include "ui_dlgeq.h"
-#include "settings.h"
 
-extern Settings settings;
 
 DlgEq::DlgEq(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DlgEq)
 {
     ui->setupUi(this);
-
-    connect(ui->checkBoxEqBypassK, SIGNAL(toggled(bool)), &settings, SLOT(setEqKBypass(bool)));
-    connect(ui->checkBoxEqBypassB, SIGNAL(toggled(bool)), &settings, SLOT(setEqBBypass(bool)));
-
-    ui->checkBoxEqBypassK->setChecked(settings.eqKBypass());
-    ui->checkBoxEqBypassB->setChecked(settings.eqBBypass());
-
+    connect(ui->checkBoxEqBypassK, &QCheckBox::toggled, [&] (auto enabled) {
+        m_settings.setEqKBypass(enabled);
+        emit karEqBypassChanged(enabled);
+    });
+    connect(ui->checkBoxEqBypassB, &QCheckBox::toggled, [&](auto enabled) {
+        m_settings.setEqBBypass(enabled);
+        emit bmEqBypassChanged(enabled);
+    });
+    ui->checkBoxEqBypassK->setChecked(m_settings.eqKBypass());
+    ui->checkBoxEqBypassB->setChecked(m_settings.eqBBypass());
     auto eqSliderControlsK = {
         ui->verticalSliderEqK1,
         ui->verticalSliderEqK2,
@@ -28,7 +29,6 @@ DlgEq::DlgEq(QWidget *parent) :
         ui->verticalSliderEqK9,
         ui->verticalSliderEqK10
     };
-
     auto eqSliderControlsB = {
         ui->verticalSliderEqB1,
         ui->verticalSliderEqB2,
@@ -41,22 +41,24 @@ DlgEq::DlgEq(QWidget *parent) :
         ui->verticalSliderEqB9,
         ui->verticalSliderEqB10
     };
-
-
-    int band = 0;
-
+    int band{0};
     for (auto &slider : eqSliderControlsK)
     {
-        connect(slider, &QSlider::valueChanged, [=]( int newValue ) { settings.setEqKLevel(band, newValue); });
-        slider->setValue(settings.getEqKLevel(band));
+        slider->setValue(m_settings.getEqKLevel(band));
+        connect(slider, &QSlider::valueChanged, [=]( int newValue ) {
+            m_settings.setEqKLevel(band, newValue);
+            emit karEqLevelChanged(band, newValue);
+        });
         band++;
     }
-
     band = 0;
     for (auto &slider : eqSliderControlsB)
     {
-        connect(slider, &QSlider::valueChanged, [=]( int newValue ) { settings.setEqBLevel(band, newValue); });
-        slider->setValue(settings.getEqBLevel(band));
+        slider->setValue(m_settings.getEqBLevel(band));
+        connect(slider, &QSlider::valueChanged, [=]( int newValue ) {
+            m_settings.setEqBLevel(band, newValue);
+            emit bmEqLevelChanged(band, newValue);
+        });
         band++;
     }
 }

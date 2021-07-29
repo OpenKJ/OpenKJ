@@ -2,9 +2,7 @@
 
 #include <utility>
 #include "ui_dlgsongshop.h"
-#include "settings.h"
 
-extern Settings settings;
 
 DlgSongShop::DlgSongShop(std::shared_ptr<SongShop> songShop, QWidget *parent) :
     QDialog(parent),
@@ -22,7 +20,7 @@ DlgSongShop::DlgSongShop(std::shared_ptr<SongShop> songShop, QWidget *parent) :
     ui->tableViewSongs->setModel(sortFilterModel);
     dlgPurchase = new DlgSongShopPurchase(shop, this);
     dlgPurchase->setModal(false);
-    settings.restoreColumnWidths(ui->tableViewSongs);
+    m_settings.restoreColumnWidths(ui->tableViewSongs);
     connect(shop.get(), SIGNAL(karaokeSongDownloaded(QString)), this, SIGNAL(karaokeSongDownloaded(QString)));
     connect(shop.get(), SIGNAL(songsUpdated()), this, SLOT(autoSizeView()));
 }
@@ -34,7 +32,7 @@ DlgSongShop::~DlgSongShop()
 
 void DlgSongShop::on_btnClose_clicked()
 {
-    settings.saveColumnWidths(ui->tableViewSongs);
+    m_settings.saveColumnWidths(ui->tableViewSongs);
     close();
 }
 
@@ -58,17 +56,17 @@ void DlgSongShop::on_btnPurchase_clicked()
 
 void DlgSongShop::setVisible(bool visible)
 {
-    settings.restoreColumnWidths(ui->tableViewSongs);
+    m_settings.restoreColumnWidths(ui->tableViewSongs);
     QDialog::setVisible(visible);
 }
 
 void DlgSongShop::autoSizeView()
 {
 #if (QT_VERSION >= QT_VERSION_CHECK(5,11,0))
-    int priceColSize = QFontMetrics(settings.applicationFont()).horizontalAdvance("__$0.00__");
-    int songidColSize = QFontMetrics(settings.applicationFont()).horizontalAdvance("__PY000000__");
-    int vendorColSize = QFontMetrics(settings.applicationFont()).horizontalAdvance("__Party Tyme Karaoke__");
-    int mediaColSize = QFontMetrics(settings.applicationFont()).horizontalAdvance("__mp3+g__");
+    int priceColSize = QFontMetrics(m_settings.applicationFont()).horizontalAdvance("__$0.00__");
+    int songidColSize = QFontMetrics(m_settings.applicationFont()).horizontalAdvance("__PY000000__");
+    int vendorColSize = QFontMetrics(m_settings.applicationFont()).horizontalAdvance("__Party Tyme Karaoke__");
+    int mediaColSize = QFontMetrics(m_settings.applicationFont()).horizontalAdvance("__mp3+g__");
 #else
     int priceColSize = QFontMetrics(settings.applicationFont()).width("__$0.00__");
     int songidColSize = QFontMetrics(settings.applicationFont()).width("__PY000000__");

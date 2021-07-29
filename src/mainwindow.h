@@ -105,15 +105,12 @@ private:
     TableModelHistorySongs m_historySongsModel{m_karaokeSongsModel};
     TableModelBreakSongs m_tableModelBreakSongs{this};
     TableModelPlaylistSongs m_tableModelPlaylistSongs{m_tableModelBreakSongs, this};
-    QSqlTableModel *m_tableModelPlaylists;
+    std::unique_ptr<QSqlTableModel> m_tableModelPlaylists;
     ItemDelegatePlaylistSongs m_itemDelegatePlaylistSongs;
     std::unique_ptr<DlgCdg> cdgWindow;
     std::unique_ptr<DlgDatabase> dbDialog;
     std::unique_ptr<DlgKeyChange> dlgKeyChange;
     std::unique_ptr<DlgRequests> requestsDialog;
-    std::unique_ptr<DlgBookCreator> dlgBookCreator;
-    std::unique_ptr<DlgEq> dlgEq;
-    std::unique_ptr<DlgAddSinger> dlgAddSinger;
     std::unique_ptr<DlgSongShop> dlgSongShop;
     std::unique_ptr<BmDbDialog> bmDbDialog;
     DlgRegularSingers m_dlgRegularSingers{&m_rotModel, this};
@@ -305,6 +302,8 @@ private slots:
     void actionBurnInEosJump();
     void sliderVolumeChanged(int value);
     void sliderBmVolumeChanged(int value);
+    void showAddSingerDialog();
+
 
 protected:
     void closeEvent(QCloseEvent *event) override;

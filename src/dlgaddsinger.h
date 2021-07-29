@@ -4,6 +4,7 @@
 #include <memory>
 #include <QDialog>
 #include <src/models/tablemodelrotation.h>
+#include "settings.h"
 
 namespace Ui {
     class DlgAddSinger;
@@ -19,6 +20,7 @@ public:
 private:
     std::unique_ptr<Ui::DlgAddSinger> ui;
     TableModelRotation &m_rotModel;
+    Settings m_settings;
 
 protected:
     void showEvent(QShowEvent *event) override;

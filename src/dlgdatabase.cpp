@@ -26,10 +26,8 @@
 #include <QSqlQuery>
 #include <QMessageBox>
 #include "dbupdater.h"
-#include "settings.h"
 #include <QStandardPaths>
 
-extern Settings settings;
 
 DlgDatabase::DlgDatabase(TableModelKaraokeSongs &dbModel, QWidget *parent) :
     QDialog(parent),
@@ -45,7 +43,7 @@ DlgDatabase::DlgDatabase(TableModelKaraokeSongs &dbModel, QWidget *parent) :
     selectedRow = -1;
     customPatternsDlg = new DlgCustomPatterns(this);
     dbUpdateDlg = new DlgDbUpdate(this);
-    if (settings.dbDirectoryWatchEnabled())
+    if (m_settings.dbDirectoryWatchEnabled())
     {
         QStringList sourceDirs = sourcedirmodel->getSourceDirs();
         QString path;
@@ -141,7 +139,7 @@ void DlgDatabase::on_buttonNew_clicked()
 
 void DlgDatabase::on_buttonClose_clicked()
 {
-    settings.saveColumnWidths(ui->tableViewFolders);
+    m_settings.saveColumnWidths(ui->tableViewFolders);
     ui->tableViewFolders->clearSelection();
     hide();
 }
@@ -292,7 +290,7 @@ void DlgDatabase::on_btnExport_clicked()
 
 void DlgDatabase::directoryChanged(const QString& dirPath)
 {
-    if (!settings.dbDirectoryWatchEnabled())
+    if (!m_settings.dbDirectoryWatchEnabled())
         return;
     DbUpdater updater;
     qInfo() << "Directory changed fired for dir: " << dirPath;

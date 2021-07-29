@@ -6,6 +6,7 @@
 #include <QMessageBox>
 #include "dlgpurchaseprogress.h"
 #include <memory>
+#include "settings.h"
 
 namespace Ui {
 class DlgSongShopPurchase;
@@ -67,7 +68,7 @@ private:
     QString password;
     bool setupDone;
     DlgPurchaseProgress *msgBoxInfo;
-
+    Settings m_settings;
     // QWidget interface
 protected:
     void showEvent(QShowEvent *event);

@@ -25,9 +25,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QSqlQuery>
-#include "settings.h"
 
-extern Settings settings;
 
 DlgRegularSingers::DlgRegularSingers(TableModelRotation *rotationModel, QWidget *parent) :
     QDialog(parent),
@@ -35,15 +33,14 @@ DlgRegularSingers::DlgRegularSingers(TableModelRotation *rotationModel, QWidget 
 {
     m_rtClickHistorySingerId = -1;
     ui->setupUi(this);
-    settings.restoreWindowState(this);
+    m_settings.restoreWindowState(this);
     ui->tableViewRegulars->setModel(&m_historySingersModel);
     ui->tableViewRegulars->setItemDelegate(&m_historySingersDelegate);
     ui->comboBoxAddPos->addItem("Fair");
     ui->comboBoxAddPos->addItem("Bottom");
     ui->comboBoxAddPos->addItem("Next");
-    ui->comboBoxAddPos->setCurrentIndex(settings.lastSingerAddPositionType());
-    connect(ui->comboBoxAddPos, SIGNAL(currentIndexChanged(int)), &settings, SLOT(setLastSingerAddPositionType(int)));
-    connect(&settings, &Settings::lastSingerAddPositionTypeChanged, ui->comboBoxAddPos, &QComboBox::setCurrentIndex);
+    ui->comboBoxAddPos->setCurrentIndex(m_settings.lastSingerAddPositionType());
+    connect(ui->comboBoxAddPos, SIGNAL(currentIndexChanged(int)), &m_settings, SLOT(setLastSingerAddPositionType(int)));
     m_rotModel = rotationModel;
     ui->tableViewRegulars->hideColumn(0);
     ui->tableViewRegulars->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
@@ -197,10 +194,13 @@ void DlgRegularSingers::on_tableViewRegulars_doubleClicked(const QModelIndex &in
 
 void DlgRegularSingers::closeEvent([[maybe_unused]]QCloseEvent *event)
 {
-    settings.saveWindowState(this);
+    m_settings.saveWindowState(this);
     hide();
 }
 
 void DlgRegularSingers::toggleVisibility() {
+    if (!isVisible())
+        ui->comboBoxAddPos->setCurrentIndex(m_settings.lastSingerAddPositionType());
     setVisible(!isVisible());
+
 }

@@ -26,6 +26,7 @@
 #include <QSqlTableModel>
 #include "src/models/tablemodelrotation.h"
 #include "src/models/tablemodelhistorysingers.h"
+#include "settings.h"
 
 namespace Ui {
 class DlgRegularSingers;
@@ -41,6 +42,7 @@ private:
     TableModelHistorySingers m_historySingersModel;
     ItemDelegateHistorySingers m_historySingersDelegate;
     TableModelRotation *m_rotModel;
+    Settings m_settings;
 
 public:
     explicit DlgRegularSingers(TableModelRotation *rotationModel, QWidget *parent = 0);

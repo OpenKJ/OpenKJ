@@ -23,7 +23,6 @@
 #include <QDesktopServices>
 #include <QMenu>
 #include <QMessageBox>
-#include "settings.h"
 #include "okjsongbookapi.h"
 #include <QProgressDialog>
 #include "src/models/tableviewtooltipfilter.h"
@@ -31,13 +30,12 @@
 
 #include <spdlog/sinks/basic_file_sink.h>
 
-extern Settings settings;
 
 QString toMixedCase(const QString &s) {
     if (s.isNull())
-        return QString();
+        return {};
     if (s.size() < 1)
-        return QString();
+        return {};
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
     QStringList parts = s.split(" ", QString::SkipEmptyParts);
 #else
@@ -55,7 +53,7 @@ DlgRequests::DlgRequests(TableModelRotation &rotationModel, OKJSongbookAPI &song
         rotModel(rotationModel),
         songbookApi(songbookAPI),
         ui(new Ui::DlgRequests) {
-    QString logDir = settings.logDir();
+    QString logDir = m_settings.logDir();
     QDir dir;
     dir.mkpath(logDir);
     QString logFilePath;
@@ -93,27 +91,25 @@ DlgRequests::DlgRequests(TableModelRotation &rotationModel, OKJSongbookAPI &song
     posOptions << tr("Bottom of rotation");
     posOptions << tr("After current singer");
     ui->comboBoxAddPosition->addItems(posOptions);
-    ui->comboBoxAddPosition->setCurrentIndex(settings.lastSingerAddPositionType());
-    connect(&settings, &Settings::lastSingerAddPositionTypeChanged, ui->comboBoxAddPosition,
-            &QComboBox::setCurrentIndex);
-    connect(ui->comboBoxAddPosition, SIGNAL(currentIndexChanged(int)), &settings,
+    ui->comboBoxAddPosition->setCurrentIndex(m_settings.lastSingerAddPositionType());
+    connect(ui->comboBoxAddPosition, SIGNAL(currentIndexChanged(int)), &m_settings,
             SLOT(setLastSingerAddPositionType(int)));
     ui->tableViewSearch->hideColumn(TableModelKaraokeSongs::COL_ID);
     ui->tableViewSearch->hideColumn(TableModelKaraokeSongs::COL_FILENAME);
     ui->tableViewSearch->horizontalHeader()->resizeSection(4, 75);
-    ui->checkBoxDelOnAdd->setChecked(settings.requestRemoveOnRotAdd());
+    ui->checkBoxDelOnAdd->setChecked(m_settings.requestRemoveOnRotAdd());
     connect(&songbookApi, SIGNAL(venuesChanged(OkjsVenues)), this, SLOT(venuesChanged(OkjsVenues)));
     connect(ui->lineEditSearch, SIGNAL(escapePressed()), this, SLOT(lineEditSearchEscapePressed()));
-    connect(ui->checkBoxDelOnAdd, SIGNAL(clicked(bool)), &settings, SLOT(setRequestRemoveOnRotAdd(bool)));
-    ui->cbxAutoShowRequestsDlg->setChecked(settings.requestDialogAutoShow());
-    connect(ui->cbxAutoShowRequestsDlg, SIGNAL(clicked(bool)), &settings, SLOT(setRequestDialogAutoShow(bool)));
+    connect(ui->checkBoxDelOnAdd, SIGNAL(clicked(bool)), &m_settings, SLOT(setRequestRemoveOnRotAdd(bool)));
+    ui->cbxAutoShowRequestsDlg->setChecked(m_settings.requestDialogAutoShow());
+    connect(ui->cbxAutoShowRequestsDlg, SIGNAL(clicked(bool)), &m_settings, SLOT(setRequestDialogAutoShow(bool)));
 
-    QFontMetrics fm(settings.applicationFont());
+    QFontMetrics fm(m_settings.applicationFont());
     QSize mcbSize(fm.height(), fm.height());
     ui->spinBoxKey->setMaximum(12);
     ui->spinBoxKey->setMinimum(-12);
     autoSizeViews();
-    if (!settings.testingEnabled())
+    if (!m_settings.testingEnabled())
         ui->pushButtonRunTortureTest->hide();
     connect(&songbookApi, &OKJSongbookAPI::requestsChanged, this, &DlgRequests::requestsChanged);
 
@@ -164,7 +160,7 @@ void DlgRequests::rotationChanged() {
 }
 
 void DlgRequests::updateIcons() {
-    QString thm = (settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
+    QString thm = (m_settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
     ui->buttonRefresh->setIcon(QIcon(thm + "actions/22/view-refresh.svg"));
     ui->pushButtonClearReqs->setIcon(QIcon(thm + "actions/22/edit-clear-all.svg"));
     ui->pushButtonSearch->setIcon(QIcon(thm + "actions/22/edit-find.svg"));
@@ -177,12 +173,12 @@ void DlgRequests::on_pushButtonClose_clicked() {
 
 void DlgRequests::requestsModified() {
     static int testruns = 0;
-    if ((requestsModel->count() > 0) && (settings.requestDialogAutoShow())) {
+    if ((requestsModel->count() > 0) && (m_settings.requestDialogAutoShow())) {
         this->show();
         this->raise();
     }
     autoSizeViews();
-    if (requestsModel->count() > 0 && settings.testingEnabled() && testTimer.isActive()) {
+    if (requestsModel->count() > 0 && m_settings.testingEnabled() && testTimer.isActive()) {
         ui->tableViewRequests->selectRow(0);
         QApplication::processEvents();
         ui->tableViewSearch->selectRow(0);
@@ -351,7 +347,7 @@ void DlgRequests::on_pushButtonAddSong_clicked() {
         );
         m_reqLogger->flush();
     }
-    if (settings.requestRemoveOnRotAdd()) {
+    if (m_settings.requestRemoveOnRotAdd()) {
 
         songbookApi.removeRequest(curRequestId);
         m_reqLogger->info("RequestID: {} | Auto-removed after add to singer queue", curRequestId);
@@ -400,7 +396,7 @@ void DlgRequests::on_checkBoxAccepting_clicked(bool checked) {
 }
 
 void DlgRequests::venuesChanged(OkjsVenues venues) {
-    int venue = settings.requestServerVenue();
+    int venue = m_settings.requestServerVenue();
     ui->comboBoxVenue->clear();
     int selItem = 0;
     for (int i = 0; i < venues.size(); i++) {
@@ -410,7 +406,7 @@ void DlgRequests::venuesChanged(OkjsVenues venues) {
         }
     }
     ui->comboBoxVenue->setCurrentIndex(selItem);
-    settings.setRequestServerVenue(ui->comboBoxVenue->itemData(selItem).toInt());
+    m_settings.setRequestServerVenue(ui->comboBoxVenue->itemData(selItem).toInt());
     ui->checkBoxAccepting->setChecked(songbookApi.getAccepting());
 }
 
@@ -454,11 +450,9 @@ void DlgRequests::on_pushButtonUpdateDb_clicked() {
 
 void DlgRequests::on_comboBoxVenue_activated(int index) {
     int venue = ui->comboBoxVenue->itemData(index).toInt();
-    settings.setRequestServerVenue(venue);
+    m_settings.setRequestServerVenue(venue);
     songbookApi.refreshRequests();
     ui->checkBoxAccepting->setChecked(songbookApi.getAccepting());
-    qInfo() << "Set venue_id to " << venue;
-    qInfo() << "Settings now reporting venue as " << settings.requestServerVenue();
 }
 
 void DlgRequests::previewCdg() {
@@ -485,10 +479,10 @@ void DlgRequests::lineEditSearchEscapePressed() {
 }
 
 void DlgRequests::autoSizeViews() {
-    int fH = QFontMetrics(settings.applicationFont()).height();
+    int fH = QFontMetrics(m_settings.applicationFont()).height();
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
-    int durationColSize = QFontMetrics(settings.applicationFont()).horizontalAdvance(tr(" Duration "));
-    int songidColSize = QFontMetrics(settings.applicationFont()).horizontalAdvance(" AA0000000-0000 ");
+    int durationColSize = QFontMetrics(m_settings.applicationFont()).horizontalAdvance(tr(" Duration "));
+    int songidColSize = QFontMetrics(m_settings.applicationFont()).horizontalAdvance(" AA0000000-0000 ");
 #else
     int durationColSize = QFontMetrics(settings.applicationFont()).width(tr(" Duration "));
     int songidColSize = QFontMetrics(settings.applicationFont()).width(" AA0000000-0000 ");
@@ -505,9 +499,9 @@ void DlgRequests::autoSizeViews() {
                                                                   QHeaderView::Fixed);
     ui->tableViewSearch->horizontalHeader()->resizeSection(TableModelKaraokeSongs::COL_SONGID, songidColSize);
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
-    int tsWidth = QFontMetrics(settings.applicationFont()).horizontalAdvance(" 00/00/00 00:00 xx ");
-    int keyWidth = QFontMetrics(settings.applicationFont()).horizontalAdvance("_Key_");
-    int singerColSize = QFontMetrics(settings.applicationFont()).horizontalAdvance("_Isaac_Lightburn_");
+    int tsWidth = QFontMetrics(m_settings.applicationFont()).horizontalAdvance(" 00/00/00 00:00 xx ");
+    int keyWidth = QFontMetrics(m_settings.applicationFont()).horizontalAdvance("_Key_");
+    int singerColSize = QFontMetrics(m_settings.applicationFont()).horizontalAdvance("_Isaac_Lightburn_");
 #else
     int tsWidth = QFontMetrics(settings.applicationFont()).width(" 00/00/00 00:00 xx ");
     int keyWidth = QFontMetrics(settings.applicationFont()).width("_Key_");
@@ -538,6 +532,7 @@ void DlgRequests::resizeEvent(QResizeEvent *event) {
 void DlgRequests::showEvent(QShowEvent *event) {
     QDialog::showEvent(event);
     autoSizeViews();
+    ui->comboBoxAddPosition->setCurrentIndex(m_settings.lastSingerAddPositionType());
 }
 
 void DlgRequests::on_spinBoxKey_valueChanged(int arg1) {

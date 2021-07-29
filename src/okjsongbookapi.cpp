@@ -10,10 +10,8 @@
 #include <QSqlQuery>
 #include <QMessageBox>
 #include <QPushButton>
-#include "settings.h"
 #include "idledetect.h"
 
-extern Settings settings;
 extern IdleDetect *filter;
 
 QDebug operator<<(QDebug dbg, const OkjsVenue &okjsvenue)
@@ -33,7 +31,7 @@ OKJSongbookAPI::OKJSongbookAPI(QObject *parent) : QObject(parent)
     serial = 0;
     entitledSystems = 1;
     timer = new QTimer(this);
-    timer->setInterval(settings.requestServerInterval() * 1000);
+    timer->setInterval(m_settings.requestServerInterval() * 1000);
     alertTimer = new QTimer(this);
     alertTimer->start(600000);
     manager = new QNetworkAccessManager(this);
@@ -41,9 +39,8 @@ OKJSongbookAPI::OKJSongbookAPI(QObject *parent) : QObject(parent)
     connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
     connect(timer, SIGNAL(timeout()), this, SLOT(timerTimeout()));
     connect(alertTimer, SIGNAL(timeout()), this, SLOT(alertTimerTimeout()));
-    connect(&settings, SIGNAL(requestServerIntervalChanged(int)), this, SLOT(setInterval(int)));
     connect(filter, SIGNAL(idleStateChanged(bool)), this, SLOT(idleStateChanged(bool)));
-    if (settings.requestServerEnabled())
+    if (m_settings.requestServerEnabled())
     {
         getEntitledSystemCount();
         refreshVenues();
@@ -55,11 +52,11 @@ OKJSongbookAPI::OKJSongbookAPI(QObject *parent) : QObject(parent)
 void OKJSongbookAPI::getSerial()
 {
     QJsonObject mainObject;
-    mainObject.insert("api_key", settings.requestServerApiKey());
+    mainObject.insert("api_key", m_settings.requestServerApiKey());
     mainObject.insert("command","getSerial");
     QJsonDocument jsonDocument;
     jsonDocument.setObject(mainObject);
-    QNetworkRequest request(QUrl(settings.requestServerUrl()));
+    QNetworkRequest request(QUrl(m_settings.requestServerUrl()));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     manager->post(request, jsonDocument.toJson());
 }
@@ -67,12 +64,12 @@ void OKJSongbookAPI::getSerial()
 void OKJSongbookAPI::refreshRequests()
 {
     QJsonObject jsonObject;
-    jsonObject.insert("api_key", settings.requestServerApiKey());
+    jsonObject.insert("api_key", m_settings.requestServerApiKey());
     jsonObject.insert("command","getRequests");
-    jsonObject.insert("venue_id", settings.requestServerVenue());
+    jsonObject.insert("venue_id", m_settings.requestServerVenue());
     QJsonDocument jsonDocument;
     jsonDocument.setObject(jsonObject);
-    QNetworkRequest request(QUrl(settings.requestServerUrl()));
+    QNetworkRequest request(QUrl(m_settings.requestServerUrl()));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     manager->post(request, jsonDocument.toJson());
 }
@@ -81,10 +78,10 @@ void OKJSongbookAPI::triggerTestAdd()
 {
     QJsonObject jsonObject;
     jsonObject.insert("command","testingAddRandomRequest");
-    jsonObject.insert("venue_id", settings.requestServerVenue());
+    jsonObject.insert("venue_id", m_settings.requestServerVenue());
     QJsonDocument jsonDocument;
     jsonDocument.setObject(jsonObject);
-    QNetworkRequest request(QUrl(settings.requestServerUrl()));
+    QNetworkRequest request(QUrl(m_settings.requestServerUrl()));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     manager->post(request, jsonDocument.toJson());
 }
@@ -93,23 +90,23 @@ void OKJSongbookAPI::triggerTestAdd()
 void OKJSongbookAPI::removeRequest(int requestId)
 {
     QJsonObject mainObject;
-    mainObject.insert("api_key", settings.requestServerApiKey());
+    mainObject.insert("api_key", m_settings.requestServerApiKey());
     mainObject.insert("command","deleteRequest");
-    mainObject.insert("venue_id", settings.requestServerVenue());
+    mainObject.insert("venue_id", m_settings.requestServerVenue());
     mainObject.insert("request_id", requestId);
     QJsonDocument jsonDocument;
     jsonDocument.setObject(mainObject);
-    QNetworkRequest request(QUrl(settings.requestServerUrl()));
+    QNetworkRequest request(QUrl(m_settings.requestServerUrl()));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     manager->post(request, jsonDocument.toJson());
 }
 
 bool OKJSongbookAPI::getAccepting()
 {
-    for (int i=0; i<venues.size(); i++)
+    for (const auto & venue : venues)
     {
-        if (venues.at(i).venueId == settings.requestServerVenue())
-            return venues.at(i).accepting;
+        if (venue.venueId == m_settings.requestServerVenue())
+            return venue.accepting;
     }
     return false;
 }
@@ -118,14 +115,14 @@ void OKJSongbookAPI::setAccepting(bool enabled)
 {
     alertCheck();
     QJsonObject mainObject;
-    mainObject.insert("api_key", settings.requestServerApiKey());
+    mainObject.insert("api_key", m_settings.requestServerApiKey());
     mainObject.insert("command","setAccepting");
-    mainObject.insert("venue_id", settings.requestServerVenue());
+    mainObject.insert("venue_id", m_settings.requestServerVenue());
     mainObject.insert("accepting", enabled);
-    mainObject.insert("system_id", settings.systemId());
+    mainObject.insert("system_id", m_settings.systemId());
     QJsonDocument jsonDocument;
     jsonDocument.setObject(mainObject);
-    QNetworkRequest request(QUrl(settings.requestServerUrl()));
+    QNetworkRequest request(QUrl(m_settings.requestServerUrl()));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     manager->post(request, jsonDocument.toJson());
 }
@@ -133,11 +130,11 @@ void OKJSongbookAPI::setAccepting(bool enabled)
 void OKJSongbookAPI::refreshVenues(bool blocking)
 {
     QJsonObject mainObject;
-    mainObject.insert("api_key", settings.requestServerApiKey());
+    mainObject.insert("api_key", m_settings.requestServerApiKey());
     mainObject.insert("command","getVenues");
     QJsonDocument jsonDocument;
     jsonDocument.setObject(mainObject);
-    QNetworkRequest request(QUrl(settings.requestServerUrl()));
+    QNetworkRequest request(QUrl(m_settings.requestServerUrl()));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     QNetworkReply *reply = manager->post(request, jsonDocument.toJson());
     if (blocking)
@@ -150,12 +147,12 @@ void OKJSongbookAPI::refreshVenues(bool blocking)
 void OKJSongbookAPI::clearRequests()
 {
     QJsonObject mainObject;
-    mainObject.insert("api_key", settings.requestServerApiKey());
+    mainObject.insert("api_key", m_settings.requestServerApiKey());
     mainObject.insert("command","clearRequests");
-    mainObject.insert("venue_id", settings.requestServerVenue());
+    mainObject.insert("venue_id", m_settings.requestServerVenue());
     QJsonDocument jsonDocument;
     jsonDocument.setObject(mainObject);
-    QNetworkRequest request(QUrl(settings.requestServerUrl()));
+    QNetworkRequest request(QUrl(m_settings.requestServerUrl()));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     manager->post(request, jsonDocument.toJson());
 }
@@ -212,19 +209,19 @@ void OKJSongbookAPI::updateSongDb()
             if (count < songsPerDoc)
                 done = true;
             QJsonObject mainObject;
-            mainObject.insert("api_key", settings.requestServerApiKey());
+            mainObject.insert("api_key", m_settings.requestServerApiKey());
             mainObject.insert("command","addSongs");
             mainObject.insert("songs", songsArray);
-            mainObject.insert("system_id", settings.systemId());
+            mainObject.insert("system_id", m_settings.systemId());
             QJsonDocument jsonDocument;
             jsonDocument.setObject(mainObject);
             jsonDocs.append(jsonDocument);
         }
-        QUrl url(settings.requestServerUrl());
+        QUrl url(m_settings.requestServerUrl());
         QJsonObject mainObject;
-        mainObject.insert("api_key", settings.requestServerApiKey());
+        mainObject.insert("api_key", m_settings.requestServerApiKey());
         mainObject.insert("command","clearDatabase");
-        mainObject.insert("system_id", settings.systemId());
+        mainObject.insert("system_id", m_settings.systemId());
         QJsonDocument jsonDocument;
         jsonDocument.setObject(mainObject);
         QNetworkRequest request(url);
@@ -264,13 +261,13 @@ void OKJSongbookAPI::updateSongDb()
 bool OKJSongbookAPI::test()
 {
     QJsonObject mainObject;
-    mainObject.insert("api_key", settings.requestServerApiKey());
+    mainObject.insert("api_key", m_settings.requestServerApiKey());
     mainObject.insert("command","getSerial");
     QJsonDocument jsonDocument;
     jsonDocument.setObject(mainObject);
     QNetworkAccessManager m_NetworkMngr;
 
-    QNetworkRequest request(QUrl(settings.requestServerUrl()));
+    QNetworkRequest request(QUrl(m_settings.requestServerUrl()));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     QNetworkReply *reply = m_NetworkMngr.post(request, jsonDocument.toJson());
     QEventLoop loop;
@@ -314,23 +311,23 @@ bool OKJSongbookAPI::test()
 void OKJSongbookAPI::alertCheck()
 {
     QJsonObject mainObject;
-    mainObject.insert("api_key", settings.requestServerApiKey());
+    mainObject.insert("api_key", m_settings.requestServerApiKey());
     mainObject.insert("command","getAlert");
     QJsonDocument jsonDocument;
     jsonDocument.setObject(mainObject);
-    QNetworkRequest request(QUrl(settings.requestServerUrl()));
+    QNetworkRequest request(QUrl(m_settings.requestServerUrl()));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     manager->post(request, jsonDocument.toJson());
 }
 
-void OKJSongbookAPI::onSslErrors(QNetworkReply *reply, QList<QSslError> errors)
+void OKJSongbookAPI::onSslErrors(QNetworkReply *reply, const QList<QSslError>& errors)
 {
     Q_UNUSED(errors)
     static QString lastUrl;
     static bool errorEmitted = false;
-    if (lastUrl != settings.requestServerUrl())
+    if (lastUrl != m_settings.requestServerUrl())
         errorEmitted = false;
-    if (settings.requestServerIgnoreCertErrors())
+    if (m_settings.requestServerIgnoreCertErrors())
         reply->ignoreSslErrors();
     else if (!errorEmitted)
     {
@@ -338,12 +335,12 @@ void OKJSongbookAPI::onSslErrors(QNetworkReply *reply, QList<QSslError> errors)
         errorEmitted = true;
 
     }
-    lastUrl = settings.requestServerUrl();
+    lastUrl = m_settings.requestServerUrl();
 }
 
 void OKJSongbookAPI::onTestSslErrors(QNetworkReply *reply, QList<QSslError> errors)
 {
-    if (settings.requestServerIgnoreCertErrors())
+    if (m_settings.requestServerIgnoreCertErrors())
     {
         reply->ignoreSslErrors();
         return;
@@ -357,7 +354,7 @@ void OKJSongbookAPI::onTestSslErrors(QNetworkReply *reply, QList<QSslError> erro
 
 void OKJSongbookAPI::onNetworkReply(QNetworkReply *reply)
 {
-    if (settings.requestServerIgnoreCertErrors())
+    if (m_settings.requestServerIgnoreCertErrors())
         reply->ignoreSslErrors();
     if (reply->error() != QNetworkReply::NoError)
     {
@@ -422,10 +419,10 @@ void OKJSongbookAPI::onNetworkReply(QNetworkReply *reply)
     {
         QJsonArray venuesArray = json.object().value("venues").toArray();
         OkjsVenues l_venues;
-        for (int i=0; i < venuesArray.size(); i++)
+        for (const auto &venuesEntry : venuesArray)
         {
             OkjsVenue venue;
-            QJsonObject jsonObject = venuesArray.at(i).toObject();
+            QJsonObject jsonObject = venuesEntry.toObject();
             venue.venueId = jsonObject.value("venue_id").toInt();
             venue.name = jsonObject.value("name").toString();
             venue.urlName = jsonObject.value("url_name").toString();
@@ -450,10 +447,10 @@ void OKJSongbookAPI::onNetworkReply(QNetworkReply *reply)
     {
         QJsonArray requestsArray = json.object().value("requests").toArray();
         OkjsRequests l_requests;
-        for (int i=0; i < requestsArray.size(); i++)
+        for (const auto &requestEntry : requestsArray)
         {
             OkjsRequest request;
-            QJsonObject jsonObject = requestsArray.at(i).toObject();
+            QJsonObject jsonObject = requestEntry.toObject();
             request.requestId = jsonObject.value("request_id").toInt();
             request.artist = jsonObject.value("artist").toString();
             request.title = jsonObject.value("title").toString();
@@ -484,7 +481,7 @@ void OKJSongbookAPI::onNetworkReply(QNetworkReply *reply)
 
 void OKJSongbookAPI::timerTimeout()
 {
-    if (settings.requestServerEnabled() && !programIsIdle)
+    if (m_settings.requestServerEnabled() && !programIsIdle)
     {
         if ((lastSync.secsTo(QTime::currentTime()) > 300) && (!delayErrorEmitted))
         {
@@ -508,7 +505,7 @@ void OKJSongbookAPI::timerTimeout()
 
 void OKJSongbookAPI::alertTimerTimeout()
 {
-    if (settings.requestServerEnabled())
+    if (m_settings.requestServerEnabled())
         alertCheck();
 }
 
@@ -534,11 +531,11 @@ void OKJSongbookAPI::idleStateChanged(bool isIdle)
 void OKJSongbookAPI::getEntitledSystemCount()
 {
     QJsonObject mainObject;
-    mainObject.insert("api_key", settings.requestServerApiKey());
+    mainObject.insert("api_key", m_settings.requestServerApiKey());
     mainObject.insert("command","getEntitledSystemCount");
     QJsonDocument jsonDocument;
     jsonDocument.setObject(mainObject);
-    QNetworkRequest request(settings.requestServerUrl());
+    QNetworkRequest request(m_settings.requestServerUrl());
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     manager->post(request, jsonDocument.toJson());
 }
@@ -577,7 +574,7 @@ bool OkjsVenue::operator ==(const OkjsVenue &v) const
     return true;
 }
 
-bool OkjsRequest::operator ==(const OkjsRequest r) const
+bool OkjsRequest::operator ==(const OkjsRequest& r) const
 {
     if (r.requestId != requestId)
         return false;

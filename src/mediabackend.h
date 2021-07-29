@@ -29,6 +29,7 @@
 #include <gst/controller/gstinterpolationcontrolsource.h>
 #include <gst/controller/gstdirectcontrolbinding.h>
 #include <cdg/cdgappsrc.h>
+#include "settings.h"
 
 #include <QTimer>
 #include <QThread>

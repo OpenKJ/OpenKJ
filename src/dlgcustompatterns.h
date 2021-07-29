@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <memory>
 #include "src/models/tablemodelcustomnamingpatterns.h"
+#include "settings.h"
 
 namespace Ui {
     class DlgCustomPatterns;
@@ -27,6 +28,7 @@ private:
     Pattern m_selectedPattern;
     std::unique_ptr<Ui::DlgCustomPatterns> ui;
     TableModelCustomNamingPatterns m_patternsModel;
+    Settings m_settings;
 };
 
 #endif // DLGCUSTOMPATTERNS_H

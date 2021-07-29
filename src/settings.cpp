@@ -1312,27 +1312,23 @@ void Settings::setBookCreatorMarginBtm(double margin)
 void Settings::setEqKBypass(bool bypass)
 {
     settings->setValue("eqKBypass", bypass);
-    emit eqKBypassChanged(bypass);
 }
 
 void Settings::setEqKLevel(int band, int level)
 {
     // eq bands in settings are indexed 1-10
     settings->setValue(QString("eqKLevel%1").arg(band + 1), level);
-    emit eqKLevelChanged(band, level);
 }
 
 void Settings::setEqBBypass(bool bypass)
 {
     settings->setValue("eqBBypass", bypass);
-    emit eqBBypassChanged(bypass);
 }
 
 void Settings::setEqBLevel(int band, int level)
 {
     // eq bands in settings are indexed 1-10
     settings->setValue(QString("eqBLevel%1").arg(band + 1), level);
-    emit eqBLevelChanged(band, level);
 }
 
 void Settings::setRequestServerInterval(int interval)

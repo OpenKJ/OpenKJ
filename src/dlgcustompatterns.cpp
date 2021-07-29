@@ -1,11 +1,9 @@
 #include "dlgcustompatterns.h"
 #include "ui_dlgcustompatterns.h"
-#include "settings.h"
 #include <QInputDialog>
 #include <QSqlQuery>
 #include "karaokefileinfo.h"
 
-extern Settings settings;
 
 void DlgCustomPatterns::evaluateRegEx() {
     KaraokeFileInfo parser;
@@ -25,8 +23,8 @@ DlgCustomPatterns::DlgCustomPatterns(QWidget *parent) :
         ui(new Ui::DlgCustomPatterns) {
     ui->setupUi(this);
     ui->tableViewPatterns->setModel(&m_patternsModel);
-    settings.restoreColumnWidths(ui->tableViewPatterns);
-    settings.restoreWindowState(this);
+    m_settings.restoreColumnWidths(ui->tableViewPatterns);
+    m_settings.restoreWindowState(this);
     connect(ui->lineEditArtistRegEx, &QLineEdit::textChanged, this, &DlgCustomPatterns::evaluateRegEx);
     connect(ui->lineEditTitleRegEx, &QLineEdit::textChanged, this, &DlgCustomPatterns::evaluateRegEx);
     connect(ui->lineEditDiscIdRegEx, &QLineEdit::textChanged, this, &DlgCustomPatterns::evaluateRegEx);
@@ -47,8 +45,8 @@ DlgCustomPatterns::DlgCustomPatterns(QWidget *parent) :
 DlgCustomPatterns::~DlgCustomPatterns() = default;
 
 void DlgCustomPatterns::btnCloseClicked() {
-    settings.saveColumnWidths(ui->tableViewPatterns);
-    settings.saveWindowState(this);
+    m_settings.saveColumnWidths(ui->tableViewPatterns);
+    m_settings.saveWindowState(this);
     hide();
 }
 

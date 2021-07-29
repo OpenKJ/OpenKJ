@@ -7,6 +7,7 @@
 #include <QUrl>
 #include <QDebug>
 #include <QTimer>
+#include "settings.h"
 
 
 class OkjsRequest
@@ -18,7 +19,7 @@ public:
     QString title;
     int key;
     int time;
-    bool operator == (const OkjsRequest r) const;
+    bool operator == (const OkjsRequest& r) const;
 };
 
 
@@ -55,6 +56,7 @@ private:
     bool programIsIdle;
     bool cancelUpdate;
     bool updateInProgress;
+    Settings m_settings;
 
 public:
     explicit OKJSongbookAPI(QObject *parent = nullptr);
@@ -69,8 +71,8 @@ public:
     bool test();
     void alertCheck();
     void getEntitledSystemCount();
-    int entitledSystemCount() { return entitledSystems; }
-    bool updateWasCancelled() {return cancelUpdate; }
+    [[nodiscard]] int entitledSystemCount() const { return entitledSystems; }
+    [[nodiscard]] bool updateWasCancelled() const {return cancelUpdate; }
     void triggerTestAdd();
 
 signals:
@@ -92,14 +94,15 @@ signals:
 
 public slots:
     void dbUpdateCanceled();
+    void setInterval(int interval);
+
 
 private slots:
-        void onSslErrors(QNetworkReply * reply, QList<QSslError> errors);
+        void onSslErrors(QNetworkReply * reply, const QList<QSslError>& errors);
         void onTestSslErrors(QNetworkReply * reply, QList<QSslError> errors);
         void onNetworkReply(QNetworkReply* reply);
         void timerTimeout();
         void alertTimerTimeout();
-        void setInterval(int interval);
         void idleStateChanged(bool isIdle);
 };
 

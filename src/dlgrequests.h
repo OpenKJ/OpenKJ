@@ -28,6 +28,7 @@
 #include "src/models/tablemodelrotation.h"
 #include "okjsongbookapi.h"
 #include <spdlog/spdlog.h>
+#include "settings.h"
 
 namespace Ui {
 class DlgRequests;
@@ -50,7 +51,7 @@ private:
     std::shared_ptr<spdlog::logger> m_reqLogger;
     std::vector<int> m_prevRequestList;
     OKJSongbookAPI &songbookApi;
-
+    Settings m_settings;
 
 public:
     explicit DlgRequests(TableModelRotation &rotationModel, OKJSongbookAPI &songbookAPI, QWidget *parent = nullptr);

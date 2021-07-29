@@ -21,9 +21,7 @@ public:
 
 private slots:
     void on_btnClose_clicked();
-
     void on_lineEditSearch_textChanged(const QString &arg1);
-
     void on_btnPurchase_clicked();
 
 private:
@@ -32,6 +30,7 @@ private:
     SortFilterProxyModelSongShopSongs *sortFilterModel;
     DlgSongShopPurchase *dlgPurchase;
     std::shared_ptr<SongShop> shop;
+    Settings m_settings;
 
     // QWidget interface
 public slots:

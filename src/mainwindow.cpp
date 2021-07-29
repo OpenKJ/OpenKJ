@@ -243,7 +243,7 @@ void MainWindow::setupShortcuts() {
 
     m_scutAddSinger.setKey(settings.loadShortcutKeySequence("addSinger"));
     m_scutAddSinger.setContext(Qt::ApplicationShortcut);
-    connect(&m_scutAddSinger, &QShortcut::activated, dlgAddSinger.get(), &DlgAddSinger::show);
+    connect(&m_scutAddSinger, &QShortcut::activated, this, &MainWindow::showAddSingerDialog);
 
     m_scutBFfwd.setKey(settings.loadShortcutKeySequence("bFfwd"));
     m_scutBFfwd.setContext(Qt::ApplicationShortcut);
@@ -651,9 +651,6 @@ MainWindow::MainWindow(QWidget *parent) :
     dlgKeyChange = std::make_unique<DlgKeyChange>(&m_qModel, this);
     requestsDialog = std::make_unique<DlgRequests>(m_rotModel, m_songbookApi);
     requestsDialog->setModal(false);
-    dlgBookCreator = std::make_unique<DlgBookCreator>(this);
-    dlgEq = std::make_unique<DlgEq>(this);
-    dlgAddSinger = std::make_unique<DlgAddSinger>(m_rotModel, this);
     dlgSongShop = std::make_unique<DlgSongShop>(m_songShop);
     dlgSongShop->setModal(false);
     ui->tableViewDB->setModel(&m_karaokeSongsModel);
@@ -685,13 +682,11 @@ MainWindow::MainWindow(QWidget *parent) :
     m_logger->info("{} Adding singer count to status bar", m_loggingPrefix);
     ui->statusBar->addWidget(&m_labelSingerCount);
     ui->statusBar->addWidget(&m_labelRotationDuration);
-
-
-    m_tableModelPlaylists = new QSqlTableModel(this, m_database);
+    m_tableModelPlaylists = std::make_unique<QSqlTableModel>(this, m_database);
     m_tableModelPlaylists->setTable("bmplaylists");
     m_tableModelPlaylists->sort(2, Qt::AscendingOrder);
     bmDbDialog = std::make_unique<BmDbDialog>(this);
-    ui->comboBoxBmPlaylists->setModel(m_tableModelPlaylists);
+    ui->comboBoxBmPlaylists->setModel(m_tableModelPlaylists.get());
     ui->comboBoxBmPlaylists->setModelColumn(1);
     if (m_tableModelPlaylists->rowCount() == 0) {
         bmAddPlaylist("Default");
@@ -854,10 +849,6 @@ void MainWindow::loadSettings() {
 void MainWindow::setupConnections() {
     connect(ui->comboBoxHistoryDblClick, QOverload<int>::of(&QComboBox::currentIndexChanged), &settings,
             &Settings::setHistoryDblClickAction);
-    connect(dlgAddSinger.get(), &DlgAddSinger::newSingerAdded, [&](auto pos) {
-        ui->tableViewRotation->selectRow(pos);
-        ui->lineEdit->setFocus();
-    });
     connect(&m_rotModel, &TableModelRotation::songDroppedOnSinger, this, &MainWindow::songDroppedOnSinger);
     connect(dbDialog.get(), &DlgDatabase::databaseUpdateComplete, this, &MainWindow::databaseUpdated);
     connect(dbDialog.get(), &DlgDatabase::databaseSongAdded, &m_karaokeSongsModel, &TableModelKaraokeSongs::loadData);
@@ -989,7 +980,7 @@ void MainWindow::setupConnections() {
     connect(ui->lineEdit, &QLineEdit::returnPressed, this, &MainWindow::search);
     connect(ui->lineEditBmSearch, &QLineEdit::returnPressed, this, &MainWindow::searchBreakMusic);
     connect(ui->tableViewDB, &QTableView::doubleClicked, this, &MainWindow::tableViewDbDoubleClicked);
-    connect(ui->buttonAddSinger, &QPushButton::clicked, dlgAddSinger.get(), &DlgAddSinger::show);
+    connect(ui->buttonAddSinger, &QPushButton::clicked, this, &MainWindow::showAddSingerDialog);
     connect(ui->tableViewRotation, &QTableView::doubleClicked, this, &MainWindow::tableViewRotationDoubleClicked);
     connect(ui->tableViewRotation, &QTableView::clicked, this, &MainWindow::tableViewRotationClicked);
     connect(ui->tableViewQueue, &QTableView::doubleClicked, this, &MainWindow::tableViewQueueDoubleClicked);
@@ -1037,8 +1028,29 @@ void MainWindow::setupConnections() {
     connect(ui->pushButtonMplxRight, &QPushButton::toggled, this, &MainWindow::pushButtonMplxRightToggled);
     connect(ui->lineEdit, &QLineEdit::textChanged, this, &MainWindow::lineEditSearchTextChanged);
     connect(ui->spinBoxTempo, qOverload<int>(&QSpinBox::valueChanged), this, &MainWindow::spinBoxTempoValueChanged);
-    connect(ui->actionSongbook_Generator, &QAction::triggered, dlgBookCreator.get(), &DlgBookCreator::show);
-    connect(ui->actionEqualizer, &QAction::triggered, dlgEq.get(), &DlgEq::show);
+    connect(ui->actionSongbook_Generator, &QAction::triggered, [&] () {
+        auto dlgBookCreator = findChild<DlgBookCreator *>(QString(), Qt::FindDirectChildrenOnly);
+        if (dlgBookCreator == nullptr) {
+            dlgBookCreator = new DlgBookCreator(this);
+            connect(dlgBookCreator, &DlgBookCreator::finished, dlgBookCreator, &DlgBookCreator::deleteLater);
+            dlgBookCreator->show();
+        }
+        else
+            dlgBookCreator->raise();
+    });
+    connect(ui->actionEqualizer, &QAction::triggered, [&] () {
+        auto dlgEq = findChild<DlgEq *>(QString(), Qt::FindDirectChildrenOnly);
+        if (dlgEq == nullptr) {
+            dlgEq = new DlgEq(this);
+            connect(dlgEq, &DlgEq::finished, dlgEq, &DlgEq::deleteLater);
+            connect(dlgEq, &DlgEq::bmEqBypassChanged, &m_mediaBackendBm, &MediaBackend::setEqBypass);
+            connect(dlgEq, &DlgEq::karEqBypassChanged, &m_mediaBackendKar, &MediaBackend::setEqBypass);
+            connect(dlgEq, &DlgEq::bmEqLevelChanged, &m_mediaBackendBm, &MediaBackend::setEqLevel);
+            connect(dlgEq, &DlgEq::karEqLevelChanged, &m_mediaBackendKar, &MediaBackend::setEqLevel);
+            dlgEq->show();
+        } else
+            dlgEq->raise();
+    });
     connect(ui->pushButtonIncomingRequests, &QPushButton::clicked, requestsDialog.get(), &DlgRequests::show);
     connect(ui->pushButtonShop, &QPushButton::clicked, dlgSongShop.get(), &DlgSongShop::show);
     connect(ui->actionSong_Shop, &QAction::triggered, dlgSongShop.get(), &DlgSongShop::show);
@@ -1091,6 +1103,7 @@ void MainWindow::setupConnections() {
     connect(ui->actionBurn_in_EOS_Jump, &QAction::triggered, this, &MainWindow::actionBurnInEosJump);
     connect(ui->sliderVolume, &QSlider::valueChanged, this, &MainWindow::sliderVolumeChanged);
     connect(ui->sliderBmVolume, &QSlider::valueChanged, this, &MainWindow::sliderBmVolumeChanged);
+    connect(&settings, &Settings::requestServerIntervalChanged, &m_songbookApi, &OKJSongbookAPI::setInterval);
 }
 
 void MainWindow::tableViewRotationSelChanged() {
@@ -4260,6 +4273,21 @@ void MainWindow::actionBurnInEosJump() {
     });
     m_timerTest.start(13000);
 #endif
+}
+
+void MainWindow::showAddSingerDialog() {
+    auto dlgAddSinger = findChild<DlgAddSinger *>(QString(), Qt::FindDirectChildrenOnly);
+    if (dlgAddSinger == nullptr)
+    {
+        dlgAddSinger = new DlgAddSinger(m_rotModel, this);
+        connect(dlgAddSinger, &DlgAddSinger::finished, dlgAddSinger, &DlgAddSinger::deleteLater);
+        connect(dlgAddSinger, &DlgAddSinger::newSingerAdded, [&](auto pos) {
+            ui->tableViewRotation->selectRow(pos);
+            ui->lineEdit->setFocus();
+        });
+        dlgAddSinger->show();
+    } else
+        dlgAddSinger->raise();
 }
 
 

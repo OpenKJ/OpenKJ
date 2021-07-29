@@ -25,7 +25,6 @@
 #include <QFile>
 #include <gst/audio/streamvolume.h>
 #include <gst/gstdebugutils.h>
-#include "settings.h"
 #include "softwarerendervideosink.h"
 #include <QDir>
 #include <QProcess>
@@ -37,7 +36,6 @@
 #include <spdlog/async_logger.h>
 #include <QTextStream>
 
-extern Settings settings;
 extern std::shared_ptr<spdlog::async_logger> logger;
 
 Q_DECLARE_SMART_POINTER_METATYPE(std::shared_ptr);
@@ -48,7 +46,7 @@ MediaBackend::MediaBackend(QObject *parent, QString objectName, const MediaType 
 {
     m_loggingPrefix = "[MediaBackend] [" + m_objName.toStdString() + "]";
     logger->debug("{} Constructing GStreamer backend", m_loggingPrefix);
-    m_videoAccelEnabled = settings.hardwareAccelEnabled();
+    m_videoAccelEnabled = m_settings.hardwareAccelEnabled();
     logger->info("{} Hardware accelerated video rendering mode: {}",m_loggingPrefix, m_videoAccelEnabled);
     QMetaTypeId<std::shared_ptr<GstMessage>>::qt_metatype_id();
 
@@ -57,10 +55,10 @@ MediaBackend::MediaBackend(QObject *parent, QString objectName, const MediaType 
 
     switch (type) {
         case Karaoke:
-            setAudioOutputDevice(settings.audioOutputDevice());
+            setAudioOutputDevice(m_settings.audioOutputDevice());
             break;
         default:
-            setAudioOutputDevice(settings.audioOutputDeviceBm());
+            setAudioOutputDevice(m_settings.audioOutputDeviceBm());
     }
     logger->debug("{} GStreamer backend construction complete", m_loggingPrefix);
 
@@ -252,7 +250,7 @@ void MediaBackend::play()
             return;
         }
 
-        if (settings.cdgPrescalingEnabled() && settings.hardwareAccelEnabled())
+        if (m_settings.cdgPrescalingEnabled() && m_settings.hardwareAccelEnabled())
         {
             gst_element_unlink(m_queueMainVideo, m_videoTee);
             gst_element_link_many(m_queueMainVideo, m_prescalerVideoConvert, m_prescaler, m_prescalerCapsFilter, m_videoTee, nullptr);
@@ -296,7 +294,7 @@ void MediaBackend::play()
     resetVideoSinks();
 
     gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
-    setEnforceAspectRatio(settings.enforceAspectRatio());
+    setEnforceAspectRatio(m_settings.enforceAspectRatio());
     forceVideoExpose();
 }
 

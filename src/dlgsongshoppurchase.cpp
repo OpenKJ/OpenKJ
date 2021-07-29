@@ -6,7 +6,6 @@
 #include "dlgpassword.h"
 #include "settings.h"
 
-extern Settings settings;
 
 DlgSongShopPurchase::DlgSongShopPurchase(std::shared_ptr<SongShop> songShop, QWidget *parent) :
     QDialog(parent),
@@ -20,8 +19,8 @@ DlgSongShopPurchase::DlgSongShopPurchase(std::shared_ptr<SongShop> songShop, QWi
     ui->lineEditCCY->setValidator(new QRegExpValidator(QRegExp("[0-9]*"), this));
     ui->lineEditCCV->setValidator(new QRegExpValidator(QRegExp("[0-9]*"), this));
     knLoginTest = false;
-    ui->cbxSaveAccount->setChecked(settings.saveKNAccount());
-    ui->cbxSaveCard->setChecked(settings.saveCC());
+    ui->cbxSaveAccount->setChecked(m_settings.saveKNAccount());
+    ui->cbxSaveCard->setChecked(m_settings.saveCC());
     authenticated = false;
     setupDone = true;
     connect(shop.get(), SIGNAL(paymentProcessingFailed()), this, SLOT(paymentProcessingFailed()));
@@ -66,7 +65,7 @@ void DlgSongShopPurchase::doAuth()
     if (!setupDone)
         return;
     qInfo() << "running doAuth";
-    if ((settings.saveCC() || settings.saveKNAccount()) && settings.passIsSet())
+    if ((m_settings.saveCC() || m_settings.saveKNAccount()) && m_settings.passIsSet())
     {
         setupDone = false;
         if (!authenticated)
@@ -82,17 +81,17 @@ void DlgSongShopPurchase::doAuth()
                 return;
             }
         }
-        if (settings.saveKNAccount())
+        if (m_settings.saveKNAccount())
         {
-            ui->lineEditKNUser->setText(settings.karoakeDotNetUser(password));
-            ui->lineEditKNPass->setText(settings.karoakeDotNetPass(password));
+            ui->lineEditKNUser->setText(m_settings.karoakeDotNetUser(password));
+            ui->lineEditKNPass->setText(m_settings.karoakeDotNetPass(password));
         }
-        if (settings.saveCC())
+        if (m_settings.saveCC())
         {
-            ui->lineEditCCN->setText(settings.getCCN(password));
-            ui->lineEditCCM->setText(settings.getCCM(password));
-            ui->lineEditCCY->setText(settings.getCCY(password));
-            ui->lineEditCCV->setText(settings.getCCV(password));
+            ui->lineEditCCN->setText(m_settings.getCCN(password));
+            ui->lineEditCCM->setText(m_settings.getCCM(password));
+            ui->lineEditCCY->setText(m_settings.getCCY(password));
+            ui->lineEditCCV->setText(m_settings.getCCV(password));
         }
         setupDone = true;
     }
@@ -180,23 +179,23 @@ void DlgSongShopPurchase::on_cbxSaveAccount_stateChanged(int arg1)
 
     if ((arg1) && (!authenticated))
     {
-        if (settings.passIsSet())
+        if (m_settings.passIsSet())
         {
             DlgPassword dlgPass;
             if (dlgPass.exec() == QDialog::Accepted)
             {
                 password = dlgPass.getPassword();
                 authenticated = true;
-                settings.setKaroakeDotNetUser(ui->lineEditKNUser->text(), password);
-                settings.setKaraokeDotNetPass(ui->lineEditKNPass->text(), password);
-                settings.setSaveKNAccount(true);
+                m_settings.setKaroakeDotNetUser(ui->lineEditKNUser->text(), password);
+                m_settings.setKaraokeDotNetPass(ui->lineEditKNPass->text(), password);
+                m_settings.setSaveKNAccount(true);
             }
             else
             {
                 password = "";
                 authenticated = false;
                 ui->cbxSaveAccount->setChecked(false);
-                settings.setSaveKNAccount(false);
+                m_settings.setSaveKNAccount(false);
             }
         }
         else
@@ -206,27 +205,27 @@ void DlgSongShopPurchase::on_cbxSaveAccount_stateChanged(int arg1)
             {
                 password = dlgSetPw.getPassword();
                 authenticated = true;
-                settings.setKaroakeDotNetUser(ui->lineEditKNUser->text(), password);
-                settings.setKaraokeDotNetPass(ui->lineEditKNPass->text(), password);
-                settings.setSaveKNAccount(true);
+                m_settings.setKaroakeDotNetUser(ui->lineEditKNUser->text(), password);
+                m_settings.setKaraokeDotNetPass(ui->lineEditKNPass->text(), password);
+                m_settings.setSaveKNAccount(true);
             }
             else
             {
                 ui->cbxSaveAccount->setChecked(false);
-                settings.setSaveKNAccount(false);
+                m_settings.setSaveKNAccount(false);
             }
         }
     }
     else if (arg1 && authenticated)
     {
-        settings.setKaroakeDotNetUser(ui->lineEditKNUser->text(), password);
-        settings.setKaraokeDotNetPass(ui->lineEditKNPass->text(), password);
-        settings.setSaveKNAccount(true);
+        m_settings.setKaroakeDotNetUser(ui->lineEditKNUser->text(), password);
+        m_settings.setKaraokeDotNetPass(ui->lineEditKNPass->text(), password);
+        m_settings.setSaveKNAccount(true);
     }
     else
     {
-        settings.clearKNAccount();
-        settings.setSaveKNAccount(false);
+        m_settings.clearKNAccount();
+        m_settings.setSaveKNAccount(false);
     }
 }
 
@@ -236,22 +235,22 @@ void DlgSongShopPurchase::on_cbxSaveCard_stateChanged(int arg1)
         return;
     if ((arg1) && (!authenticated))
     {
-        if (settings.passIsSet())
+        if (m_settings.passIsSet())
         {
             DlgPassword dlgPass;
             if (dlgPass.exec() == QDialog::Accepted)
             {
                 password = dlgPass.getPassword();
                 authenticated = true;
-                settings.setCC(ui->lineEditCCN->text(), ui->lineEditCCM->text(),ui->lineEditCCY->text(), ui->lineEditCCV->text(), password);
-                settings.setSaveCC(true);
+                m_settings.setCC(ui->lineEditCCN->text(), ui->lineEditCCM->text(),ui->lineEditCCY->text(), ui->lineEditCCV->text(), password);
+                m_settings.setSaveCC(true);
             }
             else
             {
                 password = "";
                 authenticated = false;
                 ui->cbxSaveCard->setChecked(false);
-                settings.setSaveCC(false);
+                m_settings.setSaveCC(false);
             }
         }
         else
@@ -261,25 +260,25 @@ void DlgSongShopPurchase::on_cbxSaveCard_stateChanged(int arg1)
             {
                 password = dlgSetPw.getPassword();
                 authenticated = true;
-                settings.setCC(ui->lineEditCCN->text(), ui->lineEditCCM->text(),ui->lineEditCCY->text(), ui->lineEditCCV->text(), password);
-                settings.setSaveCC(true);
+                m_settings.setCC(ui->lineEditCCN->text(), ui->lineEditCCM->text(),ui->lineEditCCY->text(), ui->lineEditCCV->text(), password);
+                m_settings.setSaveCC(true);
             }
             else
             {
                 ui->cbxSaveCard->setChecked(false);
-                settings.setSaveCC(false);
+                m_settings.setSaveCC(false);
             }
         }
     }
     else if (arg1 && authenticated)
     {
-        settings.setCC(ui->lineEditCCN->text(), ui->lineEditCCM->text(),ui->lineEditCCY->text(), ui->lineEditCCV->text(), password);
-        settings.setSaveCC(true);
+        m_settings.setCC(ui->lineEditCCN->text(), ui->lineEditCCM->text(),ui->lineEditCCY->text(), ui->lineEditCCV->text(), password);
+        m_settings.setSaveCC(true);
     }
     else
     {
-        settings.clearCC();
-        settings.setSaveCC(false);
+        m_settings.clearCC();
+        m_settings.setSaveCC(false);
     }
 }
 
@@ -299,16 +298,16 @@ void DlgSongShopPurchase::on_lineEditKNUser_textChanged(const QString &arg1)
 {
     if (!setupDone)
         return;
-    if (settings.saveKNAccount() && authenticated)
-        settings.setKaroakeDotNetUser(arg1, password);
+    if (m_settings.saveKNAccount() && authenticated)
+        m_settings.setKaroakeDotNetUser(arg1, password);
 }
 
 void DlgSongShopPurchase::on_lineEditKNPass_textChanged(const QString &arg1)
 {
     if (!setupDone)
         return;
-    if (settings.saveKNAccount() && authenticated)
-        settings.setKaraokeDotNetPass(arg1,password);
+    if (m_settings.saveKNAccount() && authenticated)
+        m_settings.setKaraokeDotNetPass(arg1,password);
 }
 
 void DlgSongShopPurchase::on_lineEditCCN_textChanged(const QString &arg1)
@@ -318,8 +317,8 @@ void DlgSongShopPurchase::on_lineEditCCN_textChanged(const QString &arg1)
         return;
     ui->lineEditCCN->setEchoMode(QLineEdit::Normal);
     setupDone = false;
-    if (settings.saveCC() && authenticated)
-        settings.setCC(ui->lineEditCCN->text(), ui->lineEditCCM->text(),ui->lineEditCCY->text(), ui->lineEditCCV->text(), password);
+    if (m_settings.saveCC() && authenticated)
+        m_settings.setCC(ui->lineEditCCN->text(), ui->lineEditCCM->text(),ui->lineEditCCY->text(), ui->lineEditCCV->text(), password);
     setupDone = true;
 }
 
@@ -329,8 +328,8 @@ void DlgSongShopPurchase::on_lineEditCCM_textChanged(const QString &arg1)
     if (!setupDone)
         return;
     setupDone = false;
-    if (settings.saveCC() && authenticated)
-        settings.setCC(ui->lineEditCCN->text(), ui->lineEditCCM->text(),ui->lineEditCCY->text(), ui->lineEditCCV->text(), password);
+    if (m_settings.saveCC() && authenticated)
+        m_settings.setCC(ui->lineEditCCN->text(), ui->lineEditCCM->text(),ui->lineEditCCY->text(), ui->lineEditCCV->text(), password);
     setupDone = true;
 }
 
@@ -340,8 +339,8 @@ void DlgSongShopPurchase::on_lineEditCCY_textChanged(const QString &arg1)
     if (!setupDone)
         return;
     setupDone = false;
-    if (settings.saveCC() && authenticated)
-        settings.setCC(ui->lineEditCCN->text(), ui->lineEditCCM->text(),ui->lineEditCCY->text(), ui->lineEditCCV->text(), password);
+    if (m_settings.saveCC() && authenticated)
+        m_settings.setCC(ui->lineEditCCN->text(), ui->lineEditCCM->text(),ui->lineEditCCY->text(), ui->lineEditCCV->text(), password);
     setupDone = true;
 }
 
@@ -351,8 +350,8 @@ void DlgSongShopPurchase::on_lineEditCCV_textChanged(const QString &arg1)
     if (!setupDone)
         return;
     setupDone = false;
-    if (settings.saveCC() && authenticated)
-        settings.setCC(ui->lineEditCCN->text(), ui->lineEditCCM->text(),ui->lineEditCCY->text(), ui->lineEditCCV->text(), password);
+    if (m_settings.saveCC() && authenticated)
+        m_settings.setCC(ui->lineEditCCN->text(), ui->lineEditCCM->text(),ui->lineEditCCY->text(), ui->lineEditCCV->text(), password);
     setupDone = true;
 }
 

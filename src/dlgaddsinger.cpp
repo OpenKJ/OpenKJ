@@ -1,10 +1,8 @@
 #include "dlgaddsinger.h"
 #include "ui_dlgaddsinger.h"
-#include "settings.h"
 #include <QDebug>
 #include <QMessageBox>
 
-extern Settings settings;
 
 DlgAddSinger::DlgAddSinger(TableModelRotation &rotationModel, QWidget *parent) :
         QDialog(parent),
@@ -12,9 +10,8 @@ DlgAddSinger::DlgAddSinger(TableModelRotation &rotationModel, QWidget *parent) :
         ui(new Ui::DlgAddSinger) {
     ui->setupUi(this);
     ui->cbxPosition->addItems({"Fair", "Bottom", "Next"});
-    ui->cbxPosition->setCurrentIndex(settings.lastSingerAddPositionType());
-    connect(&settings, &Settings::lastSingerAddPositionTypeChanged, ui->cbxPosition, &QComboBox::setCurrentIndex);
-    connect(ui->cbxPosition, qOverload<int>(&QComboBox::currentIndexChanged), &settings, &Settings::setLastSingerAddPositionType);
+    ui->cbxPosition->setCurrentIndex(m_settings.lastSingerAddPositionType());
+    connect(ui->cbxPosition, qOverload<int>(&QComboBox::currentIndexChanged), &m_settings, &Settings::setLastSingerAddPositionType);
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &DlgAddSinger::addSinger);
 
 }
