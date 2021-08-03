@@ -49,7 +49,8 @@ DlgRegularImport::~DlgRegularImport()
 
 void DlgRegularImport::on_pushButtonSelectFile_clicked()
 {
-    QString importFile = QFileDialog::getOpenFileName(this,tr("Select file to load regulars from"), QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), "OpenKJ export files (*.xml *json)");
+    QString importFile = QFileDialog::getOpenFileName(this,tr("Select file to load regulars from"), QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), "OpenKJ export files (*.xml *json)",
+                                                      nullptr, QFileDialog::DontUseNativeDialog);
     if (importFile != "")
     {
         m_curImportFile = importFile;

@@ -2825,7 +2825,7 @@ void MainWindow::on_actionPlaylistImport_triggered() {
     QString importFile = QFileDialog::getOpenFileName(this, tr("Select playlist to import"),
                                                       QStandardPaths::writableLocation(
                                                               QStandardPaths::DocumentsLocation),
-                                                      tr("m3u playlist(*.m3u)"));
+                                                      tr("m3u playlist(*.m3u)"), nullptr, QFileDialog::DontUseNativeDialog);
     if (importFile != "") {
         QFileInfo fi(importFile);
         QString importPath = fi.absoluteDir().path();
@@ -2924,7 +2924,7 @@ void MainWindow::on_actionPlaylistExport_triggered() {
                               ui->comboBoxBmPlaylists->currentText() + ".m3u";
     qDebug() << "Default save location: " << defaultFilePath;
     QString saveFilePath = QFileDialog::getSaveFileName(this, tr("Select filename to save playlist as"),
-                                                        defaultFilePath, tr("m3u playlist(*.m3u)"));
+                                                        defaultFilePath, tr("m3u playlist(*.m3u)"), nullptr, QFileDialog::DontUseNativeDialog);
     if (saveFilePath != "") {
         QFile file(saveFilePath);
         if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -3484,7 +3484,7 @@ void MainWindow::on_btnAddSfx_clicked() {
 //    QString path = "a path";
     QString path = QFileDialog::getOpenFileName(this, QString("Select audio file"),
                                                 QStandardPaths::writableLocation(QStandardPaths::MusicLocation),
-                                                QString("Audio (*.mp3 *.ogg *.wav *.wma)"));
+                                                QString("Audio (*.mp3 *.ogg *.wav *.wma)"), nullptr, QFileDialog::DontUseNativeDialog);
     if (path != "") {
         bool ok;
         QString name = QInputDialog::getText(this, tr("Button Text"), tr("Enter button text:"), QLineEdit::Normal,

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=OpenKJ
+Comment=Karaoke hosting software
+Exec=openkj
+Icon=org.openkj.OpenKJ
+Terminal=false
+Categories=AudioVideo;Audio;Player;

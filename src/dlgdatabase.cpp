@@ -98,7 +98,7 @@ int DlgDatabase::dropFileAdd(const QString &path)
 
 void DlgDatabase::on_buttonNew_clicked()
 {
-    QString fileName = QFileDialog::getExistingDirectory(this);
+    QString fileName = QFileDialog::getExistingDirectory(this, "Select karaoke source directory", QStandardPaths::writableLocation(QStandardPaths::MusicLocation),QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog);
     if (fileName != "")
     {
         bool okPressed = false;
@@ -285,7 +285,7 @@ void DlgDatabase::on_btnExport_clicked()
 {
     QString defaultFilePath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QDir::separator() + "dbexport.csv";
     qDebug() << "Default save location: " << defaultFilePath;
-    QString saveFilePath = QFileDialog::getSaveFileName(this,tr("Select DB export filename"), defaultFilePath, "(*.csv)");
+    QString saveFilePath = QFileDialog::getSaveFileName(this,tr("Select DB export filename"), defaultFilePath, "CSV files (*.csv)",nullptr,QFileDialog::DontUseNativeDialog);
     if (saveFilePath != "")
     {
         QFile csvFile(saveFilePath);

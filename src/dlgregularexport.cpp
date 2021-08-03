@@ -71,7 +71,7 @@ void DlgRegularExport::on_pushButtonExport_clicked()
     qInfo() << "export - done looping over singer ids";
     QString defaultFilePath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QDir::separator() + "KhRegularSingersExport.json";
     qInfo() << "export - Default save location: " << defaultFilePath;
-    QString saveFilePath = QFileDialog::getSaveFileName(this,tr("Select file to save regulars to"), defaultFilePath, "JSON files (*.json)");
+    QString saveFilePath = QFileDialog::getSaveFileName(this,tr("Select file to save regulars to"), defaultFilePath, "JSON files (*.json)", nullptr, QFileDialog::DontUseNativeDialog);
     qInfo() << "export - file select dialog should have shown";
     if (saveFilePath != "")
     {
@@ -98,7 +98,8 @@ void DlgRegularExport::on_pushButtonExportAll_clicked()
     {
         QString defaultFilePath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QDir::separator() + "KhRegularSingersExport.json";
         qDebug() << "Default save location: " << defaultFilePath;
-        QString saveFilePath = QFileDialog::getSaveFileName(this,tr("Select file to save regulars to"), defaultFilePath, "JSON Files (*.json)");
+        QString saveFilePath = QFileDialog::getSaveFileName(this,tr("Select file to save regulars to"), defaultFilePath, "JSON Files (*.json)",
+                                                            nullptr, QFileDialog::DontUseNativeDialog);
         if (saveFilePath != "")
         {
             QMessageBox *msgBox = new QMessageBox(this);
