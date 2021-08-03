@@ -1,0 +1,80 @@
+name: macOS build test
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: macos-10.15
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - uses: lukka/get-cmake@latest
+    
+    - name: Cache Qt
+      id: cache-qt
+      uses: actions/cache@v1
+      with:
+       path: ../Qt
+       key: ${{ runner.os }}-QtCache
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2
+      with:
+       cached: ${{ steps.cache-qt.outputs.cache-hit }}
+
+    - name: Cache GStreamer
+      id: cache-gstreamer
+      uses: actions/cache@v2
+      with:
+        path: '/Library/Frameworks/GStreamer.framework'
+        key: ${{ runner.os }}-gstreamer
+
+    - name: Cache GStreamer dist
+      id: cache-gstreamer-dist
+      uses: actions/cache@v2
+      with:
+        path: '/Library/Frameworks/GStreamer.framework.dist'
+        key: ${{ runner.os }}-gstreamer-dist
+
+    - name: Download GST Installer
+      if: steps.cache-gstreamer.outputs.cache-hit != 'true'
+      uses: carlosperate/download-file-action@v1.0.3
+      id: download-gst
+      with:
+        file-url: 'https://gstreamer.freedesktop.org/data/pkg/osx/1.16.3/gstreamer-1.0-1.16.3-x86_64.pkg'
+        file-name: 'gstreamer-1.0-1.16.3-x86_64.pkg'
+        location: './downloads'
+
+    - name: Download GST-Dev Installer
+      if: steps.cache-gstreamer-dist.outputs.cache-hit != 'true'
+      uses: carlosperate/download-file-action@v1.0.3
+      id: download-gst-dev
+      with:
+        file-url: 'https://gstreamer.freedesktop.org/data/pkg/osx/1.16.3/gstreamer-1.0-devel-1.16.3-x86_64.pkg'
+        file-name: 'gstreamer-1.0-devel-1.16.3-x86_64.pkg'
+        location: './downloads'
+
+    - name: Install GST
+      if: steps.cache-gstreamer.outputs.cache-hit != 'true'
+      run: |
+        sudo installer -package ${{ steps.download-gst.outputs.file-path }} -target /
+        sudo cp -R /Library/Frameworks/GStreamer.framework /Library/Frameworks/GStreamer.framework.dist
+        sudo installer -package ${{ steps.download-gst-dev.outputs.file-path }} -target /
+      
+    - name: Create Build Dir
+      run: cmake -E make_directory ${{github.workspace}}/build
+
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}/build
+      run: |
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILDONLY=True -G Ninja
+
+    - name: Build
+      working-directory: ${{github.workspace}}/build
+      run: cmake --build . --parallel 4

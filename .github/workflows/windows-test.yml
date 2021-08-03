@@ -1,0 +1,102 @@
+name: Windows build test
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    name: Windows Builds
+    runs-on: windows-2019
+    strategy:
+      matrix: 
+        include:
+          - windows-arch: 32
+            bits: 32
+            arch: x86
+            msvcarch: x86
+            qtarch: win32_msvc2019
+          - windows-arch: 64
+            bits: 64
+            arch: x86_64
+            msvcarch: x64
+            qtarch: win64_msvc2019_64
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - uses: seanmiddleditch/gha-setup-ninja@master
+
+    - name: Cache GStreamer
+      id: cache-gst
+      uses: actions/cache@v2
+      with:
+        path: |
+          C:/gstreamer
+          ${{github.workspace}}/gstreamer-dist
+        key: ${{ runner.os }}-GstCache-1.14.5-${{ matrix.bits }}-1
+
+    - name: Download GST Installer
+      if: steps.cache-gst.outputs.cache-hit != 'true'
+      uses: carlosperate/download-file-action@v1.0.3
+      id: download-gst
+      with:
+        file-url: 'https://gstreamer.freedesktop.org/data/pkg/windows/1.14.5/gstreamer-1.0-${{ matrix.arch }}-1.14.5.msi'
+        file-name: 'gstreamer.msi'
+        location: './downloads'
+
+    - name: Download GST-Dev Installer
+      if: steps.cache-gst.outputs.cache-hit != 'true'
+      uses: carlosperate/download-file-action@v1.0.3
+      id: download-gst-dev
+      with:
+        file-url: 'https://gstreamer.freedesktop.org/data/pkg/windows/1.14.5/gstreamer-1.0-devel-${{ matrix.arch }}-1.14.5.msi'
+        file-name: 'gstreamer-devel.msi'
+        location: './downloads'
+
+    - name: Install GST
+      if: steps.cache-gst.outputs.cache-hit != 'true'
+      run: |
+        cmd /c start /wait msiexec /package ${{ steps.download-gst.outputs.file-path }} /passive ADDLOCAL=ALL
+
+    - name: Install GST-Dev
+      if: steps.cache-gst.outputs.cache-hit != 'true'
+      run: |
+        cmd /c start /wait msiexec /package ${{ steps.download-gst-dev.outputs.file-path }} /passive ADDLOCAL=ALL
+
+    - name: Cache Qt
+      id: cache-qt
+      uses: actions/cache@v2
+      with:
+       path: "D:/a/OpenKJ/Qt"
+       key: ${{ runner.os }}-QtCache-5.15.2-${{ matrix.arch }}-2
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2
+      with:
+       cached: ${{ steps.cache-qt.outputs.cache-hit }}
+       version: '5.15.2'
+       arch: ${{ matrix.qtarch }}
+       modules: 'core gui sql network widgets concurrent svg printsupport'
+
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{github.workspace}}/build
+
+    - name: Set up Visual Studio shell
+      uses: egor-tensin/vs-shell@v2
+      with:
+        arch: ${{ matrix.msvcarch }}
+
+    - name: Configure CMake
+      shell: cmd
+      working-directory: ${{github.workspace}}/build
+      run: |
+        cmake .. -DCMAKE_BUILD_TYPE=Release -G Ninja
+
+    - name: Build
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      run: cmake --build . --parallel 4
