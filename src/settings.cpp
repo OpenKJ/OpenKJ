@@ -381,7 +381,6 @@ bool Settings::cdgWindowFullscreen()
 void Settings::setCdgWindowFullscreen(bool fullScreen)
 {
     settings->setValue("cdgWindowFullscreen", fullScreen);
-    emit cdgWindowFullscreenChanged(fullScreen);
 }
 
 
@@ -395,13 +394,11 @@ bool Settings::showCdgWindow()
 void Settings::setShowCdgWindow(bool show)
 {
     settings->setValue("showCdgWindow", show);
-    emit cdgShowCdgWindowChanged(show);
 }
 
 void Settings::setCdgWindowFullscreenMonitor(int monitor)
 {
     settings->setValue("cdgWindowFullScreenMonitor", monitor);
-    emit cdgWindowFullscreenMonitorChanged(monitor);
 }
 
 int Settings::cdgWindowFullScreenMonitor()
@@ -508,7 +505,6 @@ void Settings::restoreSplitterState(QSplitter *splitter)
 void Settings::setTickerFont(const QFont &font)
 {
     settings->setValue("tickerFont", font.toString());
-    emit tickerFontChanged();
 }
 
 void Settings::setApplicationFont(const QFont &font)
@@ -516,7 +512,6 @@ void Settings::setApplicationFont(const QFont &font)
     settings->setValue("applicationFont", font.toString());
     QApplication::setFont(font, "QWidget");
     QApplication::setFont(font, "QMenu");
-    emit applicationFontChanged(font);
 }
 
 QFont Settings::tickerFont()
@@ -533,7 +528,7 @@ QFont Settings::tickerFont()
     return font;
 }
 
-QFont Settings::applicationFont()
+QFont Settings::applicationFont() const
 {
     QFontDatabase fdb;
     QFont font;
@@ -555,7 +550,6 @@ int Settings::tickerHeight()
 void Settings::setTickerHeight(int height)
 {
     settings->setValue("tickerHeight", height);
-    emit tickerHeightChanged(height);
 }
 
 int Settings::tickerSpeed()
@@ -568,7 +562,6 @@ int Settings::tickerSpeed()
 void Settings::setTickerSpeed(int speed)
 {
     settings->setValue("tickerSpeed", speed);
-    emit tickerSpeedChanged();
 }
 
 QColor Settings::tickerTextColor()
@@ -579,7 +572,6 @@ QColor Settings::tickerTextColor()
 void Settings::setTickerTextColor(QColor color)
 {
     settings->setValue("tickerTextColor", color);
-    emit tickerTextColorChanged();
 }
 
 QFont Settings::cdgRemainFont()
@@ -609,7 +601,7 @@ QColor Settings::cdgRemainBgColor()
 
 }
 
-bool Settings::rotationShowNextSong()
+bool Settings::rotationShowNextSong() const
 {
     return settings->value("rotationShowNextSong", false).toBool();
 }
@@ -629,7 +621,7 @@ bool Settings::showMainWindowVideo()
     return settings->value("showMainWindowVideo", true).toBool();
 }
 
-void Settings::setShowMainWindowVideo(const bool &show)
+void Settings::setShowMainWindowVideo(bool show)
 {
     settings->setValue("showMainWindowVideo", show);
 }
@@ -726,7 +718,7 @@ bool Settings::cdgPrescalingEnabled()
     return settings->value("cdgPrescaling", false).toBool();
 }
 
-bool Settings::rotationAltSortOrder()
+bool Settings::rotationAltSortOrder() const
 {
     return settings->value("rotationAltSortOrder", true).toBool();
 }
@@ -757,11 +749,9 @@ void Settings::setSlideShowInterval(int secs)
     if (secs <= 5)
     {
         settings->setValue("slideShowInterval", 5);
-        emit slideShowIntervalChanged(5);
         return;
     }
     settings->setValue("slideShowInterval", secs);
-    emit slideShowIntervalChanged(secs);
 }
 
 void Settings::setHardwareAccelEnabled(const bool enabled)
@@ -784,7 +774,6 @@ void Settings::setDurationPosition(const QPoint pos)
 
 void Settings::resetDurationPosition()
 {
-    emit durationPositionReset();
 }
 
 void Settings::setRemainRtOffset(int offset)
@@ -807,19 +796,16 @@ bool Settings::cdgRemainEnabled()
 void Settings::setCdgRemainFont(QFont font)
 {
     settings->setValue("cdgRemainFont", font.toString());
-    emit cdgRemainFontChanged(font);
 }
 
 void Settings::setCdgRemainTextColor(QColor color)
 {
     settings->setValue("cdgRemainTextColor", color);
-    emit cdgRemainTextColorChanged(color);
 }
 
 void Settings::setCdgRemainBgColor(QColor color)
 {
     settings->setValue("cdgRemainBgColor", color);
-    emit cdgRemainBgColorChanged(color);
 }
 
 void Settings::setRotationShowNextSong(bool show)
@@ -859,7 +845,6 @@ QColor Settings::tickerBgColor()
 void Settings::setTickerBgColor(QColor color)
 {
     settings->setValue("tickerBgColor", color);
-    emit tickerBgColorChanged();
 }
 
 bool Settings::tickerFullRotation()
@@ -870,7 +855,6 @@ bool Settings::tickerFullRotation()
 void Settings::setTickerFullRotation(bool full)
 {
     settings->setValue("tickerFullRotation", full);
-    emit tickerOutputModeChanged();
 }
 
 int Settings::tickerShowNumSingers()
@@ -881,13 +865,11 @@ int Settings::tickerShowNumSingers()
 void Settings::setTickerShowNumSingers(int limit)
 {
     settings->setValue("tickerShowNumSingers", limit);
-    emit tickerOutputModeChanged();
 }
 
 void Settings::setTickerEnabled(bool enable)
 {
     settings->setValue("tickerEnabled", enable);
-    emit tickerEnableChanged();
 }
 
 bool Settings::tickerEnabled()
@@ -903,7 +885,6 @@ QString Settings::tickerCustomString()
 void Settings::setTickerCustomString(const QString &value)
 {
     settings->setValue("tickerCustomString", value);
-    emit tickerCustomStringChanged();
 }
 
 bool Settings::tickerShowRotationInfo()
@@ -1010,7 +991,6 @@ void Settings::setCdgDisplayBackgroundImage(QString imageFile)
         settings->remove("cdgDisplayBackgroundImage");
     else
         settings->setValue("cdgDisplayBackgroundImage", imageFile);
-    emit cdgBgImageChanged();
 }
 
 Settings::BgMode Settings::bgMode()
@@ -1021,7 +1001,6 @@ Settings::BgMode Settings::bgMode()
 void Settings::setBgMode(Settings::BgMode mode)
 {
     settings->setValue("bgMode", mode);
-    emit bgModeChanged(mode);
 }
 
 QString Settings::bgSlideShowDir()
@@ -1032,7 +1011,6 @@ QString Settings::bgSlideShowDir()
 void Settings::setBgSlideShowDir(QString dir)
 {
     settings->setValue("bgSlideShowDir", dir);
-    emit bgSlideShowDirChanged(dir);
 }
 
 bool Settings::audioDownmix()
@@ -1103,7 +1081,6 @@ int Settings::audioBackend()
 void Settings::setAudioBackend(int index)
 {
     settings->setValue("audioBackend", index);
-    emit audioBackendChanged(index);
 }
 
 QString Settings::recordingContainer()
@@ -1114,7 +1091,6 @@ QString Settings::recordingContainer()
 void Settings::setRecordingContainer(QString container)
 {
     settings->setValue("recordingContainer", container);
-    emit recordingSetupChanged();
 }
 
 QString Settings::recordingCodec()
@@ -1125,7 +1101,6 @@ QString Settings::recordingCodec()
 void Settings::setRecordingCodec(QString codec)
 {
     settings->setValue("recordingCodec", codec);
-    emit recordingSetupChanged();
 }
 
 QString Settings::recordingInput()
@@ -1136,7 +1111,6 @@ QString Settings::recordingInput()
 void Settings::setRecordingInput(QString input)
 {
     settings->setValue("recordingInput", input);
-    emit recordingSetupChanged();
 }
 
 QString Settings::recordingOutputDir()
@@ -1148,7 +1122,6 @@ QString Settings::recordingOutputDir()
 void Settings::setRecordingOutputDir(QString path)
 {
     settings->setValue("recordingOutputDir", path);
-    emit recordingSetupChanged();
 }
 
 bool Settings::recordingEnabled()
@@ -1159,7 +1132,6 @@ bool Settings::recordingEnabled()
 void Settings::setRecordingEnabled(bool enabled)
 {
     settings->setValue("recordingEnabled", enabled);
-    emit recordingSetupChanged();
 }
 
 QString Settings::recordingRawExtension()
@@ -1175,25 +1147,21 @@ void Settings::setRecordingRawExtension(QString extension)
 void Settings::setCdgOffsetTop(int pixels)
 {
     settings->setValue("cdgOffsetTop", pixels);
-    emit cdgOffsetsChanged();
 }
 
 void Settings::setCdgOffsetBottom(int pixels)
 {
     settings->setValue("cdgOffsetBottom", pixels);
-    emit cdgOffsetsChanged();
 }
 
 void Settings::setCdgOffsetLeft(int pixels)
 {
     settings->setValue("cdgOffsetLeft", pixels);
-    emit cdgOffsetsChanged();
 }
 
 void Settings::setCdgOffsetRight(int pixels)
 {
     settings->setValue("cdgOffsetRight", pixels);
-    emit cdgOffsetsChanged();
 }
 
 void Settings::setShowQueueRemovalWarning(bool show)
@@ -1340,8 +1308,6 @@ void Settings::setRequestServerInterval(int interval)
 void Settings::setTickerShowRotationInfo(bool show)
 {
     settings->setValue("tickerShowRotationInfo", show);
-    emit tickerShowRotationInfoChanged(show);
-    emit tickerOutputModeChanged();
 }
 
 void Settings::setRequestRemoveOnRotAdd(bool remove)
@@ -1450,13 +1416,11 @@ void Settings::setShowSongInterruptionWarning(bool enabled)
 void Settings::setAlertBgColor(QColor color)
 {
     settings->setValue("alertBgColor", color);
-    emit alertBgColorChanged(color);
 }
 
 void Settings::setAlertTxtColor(QColor color)
 {
     settings->setValue("alertTxtColor", color);
-    emit alertTxtColorChanged(color);
 }
 
 int Settings::karaokeAATimeout()
@@ -1489,7 +1453,6 @@ QFont Settings::karaokeAAAlertFont()
 void Settings::setKaraokeAAAlertFont(QFont font)
 {
     settings->setValue("karaokeAAAlertFont", font.toString());
-    emit karaokeAAAlertFontChanged(font);
 }
 
 bool Settings::showQueueRemovalWarning()
@@ -1669,7 +1632,7 @@ int Settings::updatesBranch()
     return settings->value("updatesBranch", 0).toInt();
 }
 
-int Settings::theme()
+int Settings::theme() const
 {
     return settings->value("theme", 1).toInt();
 }
@@ -1719,7 +1682,7 @@ void Settings::setSfxEntries(SfxEntryList entries)
     settings->setValue("sfxEntryPaths", paths);
 }
 
-int Settings::estimationSingerPad()
+int Settings::estimationSingerPad() const
 {
     return settings->value("estimationSingerPad", 60).toInt();
 }
@@ -1730,7 +1693,7 @@ void Settings::setEstimationSingerPad(int secs)
     emit rotationDurationSettingsModified();
 }
 
-int Settings::estimationEmptySongLength()
+int Settings::estimationEmptySongLength() const
 {
     return settings->value("estimationEmptySongLength", 240).toInt();
 }
@@ -1741,7 +1704,7 @@ void Settings::setEstimationEmptySongLength(int secs)
     emit rotationDurationSettingsModified();
 }
 
-bool Settings::estimationSkipEmptySingers()
+bool Settings::estimationSkipEmptySingers() const
 {
     return settings->value("estimationSkipEmptySingers", false).toBool();
 }
@@ -1752,7 +1715,7 @@ void Settings::setEstimationSkipEmptySingers(bool skip)
     emit rotationDurationSettingsModified();
 }
 
-bool Settings::rotationDisplayPosition()
+bool Settings::rotationDisplayPosition() const
 {
     return settings->value("rotationDisplayPosition", false).toBool();
 }
@@ -1813,12 +1776,10 @@ void Settings::setSystemId(int id)
 void Settings::setCdgRemainEnabled(bool enabled)
 {
     settings->setValue("cdgRemainEnabled", enabled);
-    emit cdgRemainEnabledChanged(enabled);
 }
 
 int Settings::lastRunRotationTopSingerId() {
     return settings->value("lastRunRotationTopSingerId", -1).toInt();
-    return 0;
 }
 
 void Settings::setLastRunRotationTopSingerId(const int id) {

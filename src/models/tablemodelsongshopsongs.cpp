@@ -5,8 +5,8 @@ TableModelSongShopSongs::TableModelSongShopSongs(std::shared_ptr<SongShop> songS
     : QAbstractTableModel(parent), shop(std::move(songShop))
 {
     songs = shop->getSongs();
-    connect(shop.get(), SIGNAL(songUpdateStarted()), this, SLOT(songShopUpdating()));
-    connect(shop.get(), SIGNAL(songsUpdated()), this, SLOT(songShopUpdated()));
+    connect(shop.get(), &SongShop::songUpdateStarted, this, &TableModelSongShopSongs::songShopUpdating);
+    connect(shop.get(), &SongShop::songsUpdated, this, &TableModelSongShopSongs::songShopUpdated);
    // while (songs.isEmpty())
    //     QApplication::processEvents();
 }

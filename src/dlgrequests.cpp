@@ -70,18 +70,18 @@ DlgRequests::DlgRequests(TableModelRotation &rotationModel, OKJSongbookAPI &song
     dbModel.loadData();
     ui->tableViewRequests->setModel(requestsModel);
     ui->tableViewRequests->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewRequests));
-    connect(requestsModel, SIGNAL(layoutChanged()), this, SLOT(requestsModified()));
+    connect(requestsModel, &TableModelRequests::layoutChanged, this, &DlgRequests::requestsModified);
     ui->tableViewSearch->setModel(&dbModel);
     ui->tableViewSearch->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewSearch));
     ui->groupBoxAddSong->setDisabled(true);
     ui->groupBoxSongDb->setDisabled(true);
-    connect(ui->tableViewRequests->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this,
-            SLOT(requestSelectionChanged(QItemSelection,QItemSelection)));
-    connect(ui->tableViewSearch->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this,
-            SLOT(songSelectionChanged(QItemSelection,QItemSelection)));
-    connect(&songbookApi, SIGNAL(synchronized(QTime)), this, SLOT(updateReceived(QTime)));
-    connect(&songbookApi, SIGNAL(sslError()), this, SLOT(sslError()));
-    connect(&songbookApi, SIGNAL(delayError(int)), this, SLOT(delayError(int)));
+    connect(ui->tableViewRequests->selectionModel(), &QItemSelectionModel::selectionChanged, this,
+            &DlgRequests::requestSelectionChanged);
+    connect(ui->tableViewSearch->selectionModel(), &QItemSelectionModel::selectionChanged, this,
+            &DlgRequests::songSelectionChanged);
+    connect(&songbookApi, &OKJSongbookAPI::synchronized, this, &DlgRequests::updateReceived);
+    connect(&songbookApi, &OKJSongbookAPI::sslError, this, &DlgRequests::sslError);
+    connect(&songbookApi, &OKJSongbookAPI::delayError, this, &DlgRequests::delayError);
     ui->comboBoxAddPosition->setEnabled(false);
     ui->comboBoxSingers->setEnabled(true);
     ui->lineEditSingerName->setEnabled(false);
@@ -92,17 +92,17 @@ DlgRequests::DlgRequests(TableModelRotation &rotationModel, OKJSongbookAPI &song
     posOptions << tr("After current singer");
     ui->comboBoxAddPosition->addItems(posOptions);
     ui->comboBoxAddPosition->setCurrentIndex(m_settings.lastSingerAddPositionType());
-    connect(ui->comboBoxAddPosition, SIGNAL(currentIndexChanged(int)), &m_settings,
-            SLOT(setLastSingerAddPositionType(int)));
+    connect(ui->comboBoxAddPosition, qOverload<int>(&QComboBox::currentIndexChanged), &m_settings,
+            &Settings::setLastSingerAddPositionType);
     ui->tableViewSearch->hideColumn(TableModelKaraokeSongs::COL_ID);
     ui->tableViewSearch->hideColumn(TableModelKaraokeSongs::COL_FILENAME);
     ui->tableViewSearch->horizontalHeader()->resizeSection(4, 75);
     ui->checkBoxDelOnAdd->setChecked(m_settings.requestRemoveOnRotAdd());
-    connect(&songbookApi, SIGNAL(venuesChanged(OkjsVenues)), this, SLOT(venuesChanged(OkjsVenues)));
-    connect(ui->lineEditSearch, SIGNAL(escapePressed()), this, SLOT(lineEditSearchEscapePressed()));
-    connect(ui->checkBoxDelOnAdd, SIGNAL(clicked(bool)), &m_settings, SLOT(setRequestRemoveOnRotAdd(bool)));
+    connect(&songbookApi, &OKJSongbookAPI::venuesChanged, this, &DlgRequests::venuesChanged);
+    connect(ui->lineEditSearch, &CustomLineEdit::escapePressed, this, &DlgRequests::lineEditSearchEscapePressed);
+    connect(ui->checkBoxDelOnAdd, &QCheckBox::clicked, &m_settings, &Settings::setRequestRemoveOnRotAdd);
     ui->cbxAutoShowRequestsDlg->setChecked(m_settings.requestDialogAutoShow());
-    connect(ui->cbxAutoShowRequestsDlg, SIGNAL(clicked(bool)), &m_settings, SLOT(setRequestDialogAutoShow(bool)));
+    connect(ui->cbxAutoShowRequestsDlg, &QCheckBox::clicked, &m_settings, &Settings::setRequestDialogAutoShow);
 
     QFontMetrics fm(m_settings.applicationFont());
     QSize mcbSize(fm.height(), fm.height());
@@ -367,7 +367,7 @@ void DlgRequests::on_tableViewSearch_customContextMenuRequested(const QPoint &po
         int songIdx = index.sibling(index.row(), TableModelKaraokeSongs::COL_ID).data().toInt();
         rtClickFile = dbModel.getPath(songIdx);
         QMenu contextMenu(this);
-        contextMenu.addAction(tr("Preview"), this, SLOT(previewCdg()));
+        contextMenu.addAction(tr("Preview"), this, &DlgRequests::previewCdg);
         contextMenu.exec(QCursor::pos());
     }
 }
@@ -429,9 +429,9 @@ void DlgRequests::on_pushButtonUpdateDb_clicked() {
         progressDialog->setLabelText(tr("Updating request server song database"));
         progressDialog->show();
         QApplication::processEvents();
-        connect(&songbookApi, SIGNAL(remoteSongDbUpdateNumDocs(int)), progressDialog, SLOT(setMaximum(int)));
-        connect(&songbookApi, SIGNAL(remoteSongDbUpdateProgress(int)), progressDialog, SLOT(setValue(int)));
-        connect(progressDialog, SIGNAL(canceled()), &songbookApi, SLOT(dbUpdateCanceled()));
+        connect(&songbookApi, &OKJSongbookAPI::remoteSongDbUpdateNumDocs, progressDialog, &QProgressDialog::setMaximum);
+        connect(&songbookApi, &OKJSongbookAPI::remoteSongDbUpdateProgress, progressDialog, &QProgressDialog::setValue);
+        connect(progressDialog, &QProgressDialog::canceled, &songbookApi, &OKJSongbookAPI::dbUpdateCanceled);
         //    progressDialog->show();
         songbookApi.updateSongDb();
         if (songbookApi.updateWasCancelled())

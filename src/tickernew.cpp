@@ -175,9 +175,9 @@ TickerDisplayWidget::TickerDisplayWidget(QWidget *parent)
     ticker = new TickerNew();
     ticker->setPriority(QThread::TimeCriticalPriority);
     ticker->setTickerGeometry(this->width(), this->height());
-    connect(ticker, SIGNAL(newFrame(QPixmap)), this, SLOT(newFrame(QPixmap)));
-    connect(ticker, SIGNAL(newFrameRect(QPixmap, QRect)), this, SLOT(newFrameRect(QPixmap, QRect)));
-    connect(ticker, SIGNAL(newRect(QRect)), this, SLOT(newRect(QRect)));
+    connect(ticker, &TickerNew::newFrame, this, &TickerDisplayWidget::newFrame);
+    connect(ticker, &TickerNew::newFrameRect, this, &TickerDisplayWidget::newFrameRect);
+    connect(ticker, &TickerNew::newRect, this, &TickerDisplayWidget::newRect);
 }
 
 TickerDisplayWidget::~TickerDisplayWidget()

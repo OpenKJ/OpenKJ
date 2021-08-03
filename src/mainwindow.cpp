@@ -697,7 +697,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewBmDb->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewBmDb));
     ui->tableViewBmPlaylist->setModel(&m_tableModelPlaylistSongs);
     ui->tableViewBmPlaylist->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewBmPlaylist));
-    ui->tableViewBmPlaylist->setItemDelegate(&m_itemDelegatePlaylistSongs);
+    ui->tableViewBmPlaylist->setItemDelegate(&m_itemDelegatePlSongs);
     ui->tableViewBmDb->setColumnHidden(TableModelBreakSongs::COL_ID, true);
     ui->tableViewBmPlaylist->setColumnHidden(TableModelPlaylistSongs::COL_POSITION, true);
     m_updateChecker = std::make_unique<UpdateChecker>(this);
@@ -812,17 +812,18 @@ void MainWindow::loadSettings() {
         case Settings::Small:
             actionVideoSmallTriggered();
             break;
-            case Settings::Medium:
-                actionVideoMediumTriggered();
-                break;
-                case Settings::Large:
-                    actionVideoLargeTriggered();
-                    break;
+        case Settings::Medium:
+            actionVideoMediumTriggered();
+            break;
+        case Settings::Large:
+            actionVideoLargeTriggered();
+            break;
     }
     comboBoxBmPlaylistsIndexChanged(settings.bmPlaylistIndex());
     QTimer::singleShot(250, [&]() {
         settings.restoreWindowState(this);
         m_initialUiSetupDone = true;
+        rotationDataChanged();
     });
     if (settings.bmAutoStart()) {
         QTimer::singleShot(1000, [&]() {
@@ -875,14 +876,12 @@ void MainWindow::setupConnections() {
     connect(&m_mediaBackendSfx, &MediaBackend::durationChanged, this, &MainWindow::sfxAudioBackend_durationChanged);
     connect(&m_mediaBackendSfx, &MediaBackend::stateChanged, this, &MainWindow::sfxAudioBackend_stateChanged);
     connect(&m_rotModel, &TableModelRotation::rotationModified, this, &MainWindow::rotationDataChanged);
-    connect(&settings, &Settings::tickerOutputModeChanged, this, &MainWindow::rotationDataChanged);
     connect(m_songShop.get(), &SongShop::karaokeSongDownloaded, dbDialog.get(), &DlgDatabase::singleSongAdd);
     connect(ui->pushButtonTempoDn, &QPushButton::clicked, ui->spinBoxTempo, &QSpinBox::stepDown);
     connect(ui->pushButtonTempoUp, &QPushButton::clicked, ui->spinBoxTempo, &QSpinBox::stepUp);
     connect(ui->pushButtonKeyDn, &QPushButton::clicked, ui->spinBoxKey, &QSpinBox::stepDown);
     connect(ui->pushButtonKeyUp, &QPushButton::clicked, ui->spinBoxKey, &QSpinBox::stepUp);
     connect(requestsDialog.get(), &DlgRequests::addRequestSong, &m_qModel, &TableModelQueueSongs::songAddSlot);
-    connect(&settings, &Settings::tickerCustomStringChanged, this, &MainWindow::rotationDataChanged);
     connect(&m_mediaBackendBm, &MediaBackend::stateChanged, this, &MainWindow::bmMediaStateChanged);
     connect(&m_mediaBackendBm, &MediaBackend::positionChanged, this, &MainWindow::bmMediaPositionChanged);
     connect(&m_mediaBackendBm, &MediaBackend::durationChanged, this, &MainWindow::bmMediaDurationChanged);
@@ -893,10 +892,6 @@ void MainWindow::setupConnections() {
     connect(&m_timerKaraokeAA, &QTimer::timeout, this, &MainWindow::karaokeAATimerTimeout);
     connect(ui->actionAutoplay_mode, &QAction::toggled, &settings, &Settings::setKaraokeAutoAdvance);
     connect(&settings, &Settings::karaokeAutoAdvanceChanged, ui->actionAutoplay_mode, &QAction::setChecked);
-    connect(&settings, &Settings::eqKBypassChanged, &m_mediaBackendKar, &MediaBackend::setEqBypass);
-    connect(&settings, &Settings::eqKLevelChanged, &m_mediaBackendKar, &MediaBackend::setEqLevel);
-    connect(&settings, &Settings::eqBBypassChanged, &m_mediaBackendBm, &MediaBackend::setEqBypass);
-    connect(&settings, &Settings::eqBLevelChanged, &m_mediaBackendBm, &MediaBackend::setEqLevel);
     connect(&settings, &Settings::enforceAspectRatioChanged, &m_mediaBackendKar, &MediaBackend::setEnforceAspectRatio);
     connect(&settings, &Settings::enforceAspectRatioChanged, &m_mediaBackendBm, &MediaBackend::setEnforceAspectRatio);
     connect(&settings, &Settings::mplxModeChanged, &m_mediaBackendKar, &MediaBackend::setMplxMode);
@@ -915,12 +910,10 @@ void MainWindow::setupConnections() {
             &QPushButton::setVisible);
     connect(ui->actionSong_Shop, &QAction::triggered, [&]() { show(); });
     connect(&m_qModel, &TableModelQueueSongs::filesDroppedOnSinger, this, &MainWindow::filesDroppedOnQueue);
-    connect(&settings, &Settings::applicationFontChanged, this, &MainWindow::appFontChanged);
     connect(ui->tableViewRotation->selectionModel(), &QItemSelectionModel::currentChanged, this,
             &MainWindow::tableViewRotationCurrentChanged);
     connect(&m_tableModelPlaylistSongs, &TableModelPlaylistSongs::bmSongMoved, this, &MainWindow::bmSongMoved);
     connect(&m_songbookApi, &OKJSongbookAPI::alertRecieved, this, &MainWindow::showAlert);
-    connect(&settings, &Settings::cdgShowCdgWindowChanged, this, &MainWindow::cdgVisibilityChanged);
     connect(&settings, &Settings::rotationShowNextSongChanged, [&]() { resizeRotation(); });
     connect(&m_dlgRegularSingers.historySingersModel(), &TableModelHistorySingers::historySingersModified, [&]() {
         m_historySongsModel.refresh();
@@ -954,7 +947,7 @@ void MainWindow::setupConnections() {
         }
 
     });
-    connect(&m_tableModelPlaylistSongs, &TableModelPlaylistSongs::playingPlSongIdChanged, &m_itemDelegatePlaylistSongs,
+    connect(&m_tableModelPlaylistSongs, &TableModelPlaylistSongs::playingPlSongIdChanged, &m_itemDelegatePlSongs,
             &ItemDelegatePlaylistSongs::setPlayingPlSongId);
     connect(&m_qModel, &TableModelQueueSongs::qSongsMoved, [&](auto startRow, auto startCol, auto endRow, auto endCol) {
         auto topLeft = ui->tableViewQueue->model()->index(startRow, startCol);
@@ -1733,6 +1726,7 @@ void MainWindow::actionImportRegularsTriggered() {
 void MainWindow::actionSettingsTriggered() {
     auto settingsDialog = new DlgSettings(m_mediaBackendKar, m_mediaBackendBm, m_songbookApi, this);
     settingsDialog->setModal(true);
+
     connect(settingsDialog, &DlgSettings::audioUseFaderChanged, &m_mediaBackendKar, &MediaBackend::setUseFader);
     connect(settingsDialog, &DlgSettings::audioSilenceDetectChanged, &m_mediaBackendKar,
             &MediaBackend::setUseSilenceDetection);
@@ -1741,6 +1735,30 @@ void MainWindow::actionSettingsTriggered() {
             &MediaBackend::setUseSilenceDetection);
     connect(settingsDialog, &DlgSettings::audioDownmixChanged, &m_mediaBackendKar, &MediaBackend::setDownmix);
     connect(settingsDialog, &DlgSettings::audioDownmixChangedBm, &m_mediaBackendBm, &MediaBackend::setDownmix);
+    connect(settingsDialog, &DlgSettings::applicationFontChanged, &m_itemDelegatePlSongs, &ItemDelegatePlaylistSongs::resizeIconsForFont);
+    connect(settingsDialog, &DlgSettings::applicationFontChanged, &m_qDelegate, &ItemDelegateQueueSongs::resizeIconsForFont);
+    connect(settingsDialog, &DlgSettings::applicationFontChanged, &m_rotDelegate, &ItemDelegateRotation::resizeIconsForFont);
+    connect(settingsDialog, &DlgSettings::applicationFontChanged, this, &MainWindow::appFontChanged);
+
+    connect(settingsDialog, &DlgSettings::alertBgColorChanged, cdgWindow.get(), &DlgCdg::alertBgColorChanged);
+    connect(settingsDialog, &DlgSettings::alertTxtColorChanged, cdgWindow.get(), &DlgCdg::alertTxtColorChanged);
+    connect(settingsDialog, &DlgSettings::bgModeChanged, cdgWindow.get(), &DlgCdg::applyBackgroundImageMode);
+    connect(settingsDialog, &DlgSettings::bgSlideShowDirChanged, cdgWindow.get(), &DlgCdg::applyBackgroundImageMode);
+    connect(settingsDialog, &DlgSettings::cdgBgImageChanged, cdgWindow.get(), &DlgCdg::applyBackgroundImageMode);
+    connect(settingsDialog, &DlgSettings::cdgOffsetsChanged, cdgWindow.get(), &DlgCdg::cdgOffsetsChanged);
+    connect(settingsDialog, &DlgSettings::cdgRemainBgColorChanged, cdgWindow->durationWidget(), &TransparentWidget::setBackgroundColor);
+    connect(settingsDialog, &DlgSettings::cdgRemainEnabledChanged, cdgWindow->durationWidget(), &TransparentWidget::setVisible);
+    connect(settingsDialog, &DlgSettings::cdgRemainFontChanged, cdgWindow->durationWidget(), &TransparentWidget::setTextFont);
+    connect(settingsDialog, &DlgSettings::cdgRemainTextColorChanged, cdgWindow->durationWidget(), &TransparentWidget::setTextColor);
+    connect(settingsDialog, &DlgSettings::durationPositionReset, cdgWindow->durationWidget(), &TransparentWidget::resetPosition);
+    connect(settingsDialog, &DlgSettings::karaokeAAAlertFontChanged, cdgWindow.get(), &DlgCdg::alertFontChanged);
+    connect(settingsDialog, &DlgSettings::slideShowIntervalChanged, cdgWindow.get(), &DlgCdg::setSlideshowInterval);
+    connect(settingsDialog, &DlgSettings::tickerBgColorChanged, cdgWindow.get(), &DlgCdg::tickerBgColorChanged);
+    connect(settingsDialog, &DlgSettings::tickerEnableChanged, cdgWindow.get(), &DlgCdg::tickerEnableChanged);
+    connect(settingsDialog, &DlgSettings::tickerFontChanged, cdgWindow.get(), &DlgCdg::tickerFontChanged);
+    connect(settingsDialog, &DlgSettings::tickerSpeedChanged, cdgWindow.get(), &DlgCdg::tickerSpeedChanged);
+    connect(settingsDialog, &DlgSettings::tickerTextColorChanged, cdgWindow.get(), &DlgCdg::tickerTextColorChanged);
+
     settingsDialog->show();
 }
 
@@ -4200,7 +4218,7 @@ void MainWindow::actionBreakMusicTorture() {
     ui->comboBoxBmPlaylists->setCurrentText("torture");
     ui->tableViewBmDb->selectAll();
     auto mimeData = m_tableModelBreakSongs.mimeData(ui->tableViewBmDb->selectionModel()->selectedIndexes());
-    m_tableModelPlaylistSongs.dropMimeData(mimeData, Qt::CopyAction, 0, 3, QModelIndex());
+    auto throwaway = m_tableModelPlaylistSongs.dropMimeData(mimeData, Qt::CopyAction, 0, 3, QModelIndex());
 
     connect(&m_timerTest, &QTimer::timeout, [&]() {
         QApplication::beep();

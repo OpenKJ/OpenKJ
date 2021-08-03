@@ -58,7 +58,7 @@ void UpdateChecker::checkForUpdates()
     if (!m_settings.checkUpdates())
         return;
     qInfo() << "Requesting current version info for branch: " << channel;
-    connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
+    connect(manager, &QNetworkAccessManager::finished, this, &UpdateChecker::onNetworkReply);
     [[maybe_unused]]QNetworkReply *reply = manager->get(QNetworkRequest(QUrl("http://openkj.org/downloads/" + OS + "-" + channel + "-curversion.txt")));
 //    while (!reply->isFinished())
 //        QApplication::processEvents();
@@ -97,9 +97,9 @@ void UpdateChecker::onNetworkReply(QNetworkReply *reply)
         emit newVersionAvailable(availVersion);
     qInfo() << "Received version: " << availVersion << " Current version: " << currentVer;
     reply->deleteLater();
-    disconnect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
-    connect(manager, &QNetworkAccessManager::finished, this, &UpdateChecker::aOnNetworkReply);
+    disconnect(manager, &QNetworkAccessManager::finished, this, &UpdateChecker::onNetworkReply);
 
+    connect(manager, &QNetworkAccessManager::finished, this, &UpdateChecker::aOnNetworkReply);
     QJsonObject jsonObject;
     jsonObject.insert("uuid", m_settings.uuid());
     jsonObject.insert("branch", OKJ_VERSION_BRANCH);

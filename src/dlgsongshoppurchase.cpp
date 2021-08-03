@@ -23,13 +23,13 @@ DlgSongShopPurchase::DlgSongShopPurchase(std::shared_ptr<SongShop> songShop, QWi
     ui->cbxSaveCard->setChecked(m_settings.saveCC());
     authenticated = false;
     setupDone = true;
-    connect(shop.get(), SIGNAL(paymentProcessingFailed()), this, SLOT(paymentProcessingFailed()));
-    connect(shop.get(), SIGNAL(karaokeSongDownloaded(QString)), this, SLOT(purchaseSuccess()));
+    connect(shop.get(), &SongShop::paymentProcessingFailed, this, &DlgSongShopPurchase::paymentProcessingFailed);
+    connect(shop.get(), &SongShop::karaokeSongDownloaded, this, &DlgSongShopPurchase::purchaseSuccess);
     msgBoxInfo = new DlgPurchaseProgress;
     msgBoxInfo->setModal(false);
-    connect(shop.get(), SIGNAL(downloadProgress(qint64,qint64)), this, SLOT(downloadProgress(qint64,qint64)));
-    connect(shop.get(), SIGNAL(knLoginSuccess()), this, SLOT(knLoginSuccess()));
-    connect(shop.get(), SIGNAL(knLoginFailure()), this, SLOT(knLoginFailure()));
+    connect(shop.get(), &SongShop::downloadProgress, this, &DlgSongShopPurchase::downloadProgress);
+    connect(shop.get(), &SongShop::knLoginSuccess, this, &DlgSongShopPurchase::knLoginSuccess);
+    connect(shop.get(), &SongShop::knLoginFailure, this, &DlgSongShopPurchase::knLoginFailure);
 }
 
 DlgSongShopPurchase::~DlgSongShopPurchase()

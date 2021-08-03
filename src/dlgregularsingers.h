@@ -39,8 +39,8 @@ class DlgRegularSingers : public QDialog
 private:
     int m_rtClickHistorySingerId;
     Ui::DlgRegularSingers *ui;
-    TableModelHistorySingers m_historySingersModel;
-    ItemDelegateHistorySingers m_historySingersDelegate;
+    TableModelHistorySingers m_historySingersModel{this};
+    ItemDelegateHistorySingers m_historySingersDelegate{this};
     TableModelRotation *m_rotModel;
     Settings m_settings;
 

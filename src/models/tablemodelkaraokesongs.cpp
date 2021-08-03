@@ -10,14 +10,12 @@
 #include <QSvgRenderer>
 #include <QMimeData>
 #include <QApplication>
-#include "settings.h"
 #include <array>
 
-extern Settings settings;
 
 TableModelKaraokeSongs::TableModelKaraokeSongs(QObject *parent)
         : QAbstractTableModel(parent) {
-    resizeIconsForFont(settings.applicationFont());
+    resizeIconsForFont(m_settings.applicationFont());
     connect(&searchTimer, &QTimer::timeout, this, &TableModelKaraokeSongs::searchExec);
 }
 
@@ -41,10 +39,10 @@ QVariant TableModelKaraokeSongs::headerData(int section, Qt::Orientation orienta
             case TableModelKaraokeSongs::COL_LASTPLAY:
                 return "Last Played";
             default:
-                return QVariant();
+                return {};
         }
     }
-    return QVariant();
+    return {};
 }
 
 int TableModelKaraokeSongs::rowCount([[maybe_unused]]const QModelIndex &parent) const {
@@ -57,7 +55,7 @@ int TableModelKaraokeSongs::columnCount([[maybe_unused]]const QModelIndex &paren
 
 QVariant TableModelKaraokeSongs::data(const QModelIndex &index, int role) const {
     if (!index.isValid())
-        return QVariant();
+        return {};
     if (role == Qt::TextAlignmentRole) {
         switch (index.column()) {
             case COL_DURATION:
@@ -90,7 +88,7 @@ QVariant TableModelKaraokeSongs::data(const QModelIndex &index, int role) const 
                 return m_filteredSongs.at(index.row())->filename;
             case TableModelKaraokeSongs::COL_DURATION:
                 if (m_filteredSongs.at(index.row())->duration < 1)
-                    return QVariant();
+                    return {};
                 return QTime(0, 0, 0, 0).addSecs(m_filteredSongs.at(index.row())->duration / 1000).toString(
                         "m:ss");
             case TableModelKaraokeSongs::COL_PLAYS:
@@ -101,7 +99,7 @@ QVariant TableModelKaraokeSongs::data(const QModelIndex &index, int role) const 
                         locale.dateTimeFormat(QLocale::ShortFormat));
         }
     }
-    return QVariant();
+    return {};
 }
 
 void TableModelKaraokeSongs::loadData() {
@@ -141,7 +139,7 @@ void TableModelKaraokeSongs::search(const QString &searchString) {
     m_lastSearch = searchString.toLower();
     m_lastSearch.replace(',', ' ');
     m_lastSearch.replace('&', " and ");
-    if (settings.ignoreAposInSearch())
+    if (m_settings.ignoreAposInSearch())
         m_lastSearch.replace('\'', ' ');
     if (searchTimer.isActive())
         searchTimer.stop();
@@ -186,7 +184,7 @@ void TableModelKaraokeSongs::searchExec() {
                 break;
             }
         }
-        if (settings.ignoreAposInSearch())
+        if (m_settings.ignoreAposInSearch())
             haystack.remove('\'');
         bool match{true};
         for (const auto &needle : needles) {
@@ -263,7 +261,7 @@ KaraokeSong &TableModelKaraokeSongs::getSong(const int songId) {
 }
 
 void TableModelKaraokeSongs::resizeIconsForFont(const QFont &font) {
-    QString thm = (settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
+    QString thm = (m_settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
     m_curFontHeight = QFontMetrics(font).height();
     m_iconVid = QImage(m_curFontHeight, m_curFontHeight, QImage::Format_ARGB32);
     m_iconZip = QImage(m_curFontHeight, m_curFontHeight, QImage::Format_ARGB32);
@@ -298,9 +296,6 @@ Qt::ItemFlags TableModelKaraokeSongs::flags(const QModelIndex &index) const {
 
 
 void TableModelKaraokeSongs::sort(int column, Qt::SortOrder order) {
-    m_lastSortColumn = column;
-    m_lastSortOrder = order;
-
     auto sortLambda = [&column](const std::shared_ptr<KaraokeSong> &a, const std::shared_ptr<KaraokeSong> &b) -> bool {
         switch (column) {
             case COL_ARTIST:
@@ -351,7 +346,7 @@ void TableModelKaraokeSongs::setSongDuration(const QString &path, unsigned int d
     });
     if (it == m_allSongs.end())
         return;
-    it->get()->duration = duration;
+    it->get()->duration = static_cast<int>(duration);
     int songId = it->get()->id;
     auto it2 = find_if(m_filteredSongs.begin(), m_filteredSongs.end(),
                        [&songId](const std::shared_ptr<KaraokeSong> &song) {
@@ -450,7 +445,7 @@ QString TableModelKaraokeSongs::findCdgAudioFile(const QString &path) {
         if (QFile::exists(testPath))
             return testPath;
     }
-    return QString();
+    return {};
 }
 
 int TableModelKaraokeSongs::addSong(KaraokeSong song) {

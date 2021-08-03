@@ -6,6 +6,8 @@
 #include <QImage>
 #include <memory>
 #include <QTimer>
+#include "settings.h"
+
 
 struct KaraokeSong {
     int id{0};
@@ -75,13 +77,12 @@ private:
     std::vector<std::shared_ptr<KaraokeSong>> m_filteredSongs;
     std::vector< std::shared_ptr<KaraokeSong> > m_allSongs;
     QString m_lastSearch;
-    Qt::SortOrder m_lastSortOrder{Qt::AscendingOrder};
-    int m_lastSortColumn{1};
     int m_curFontHeight{0};
     QImage m_iconCdg;
     QImage m_iconZip;
     QImage m_iconVid;
     SearchType m_searchType{SearchType::SEARCH_TYPE_ALL};
+    Settings m_settings;
 
     void resizeIconsForFont(const QFont &font);
     void searchExec();

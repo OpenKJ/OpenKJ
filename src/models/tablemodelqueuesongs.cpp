@@ -9,114 +9,97 @@
 #include <QJsonDocument>
 #include <QUrl>
 #include <QSvgRenderer>
-#include "settings.h"
 
-extern Settings settings;
 
 TableModelQueueSongs::TableModelQueueSongs(TableModelKaraokeSongs &karaokeSongsModel, QObject *parent)
-    : QAbstractTableModel(parent), m_karaokeSongsModel(karaokeSongsModel)
-{
+        : QAbstractTableModel(parent), m_karaokeSongsModel(karaokeSongsModel) {
 }
 
-QVariant TableModelQueueSongs::headerData(int section, Qt::Orientation orientation, int role) const
-{
-    if (role == Qt::DisplayRole && orientation == Qt::Horizontal)
-    {
+QVariant TableModelQueueSongs::headerData(int section, Qt::Orientation orientation, int role) const {
+    if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
         switch (section) {
-        case COL_ID:
-            return "ID";
-        case COL_DBSONGID:
-            return "DBSongId";
-        case COL_ARTIST:
-            return "Artist";
-        case COL_TITLE:
-            return "Title";
-        case COL_SONGID:
-            return "SongID";
-        case COL_KEY:
-            return "Key";
-        case COL_DURATION:
-            return "Duration";
-        case COL_PATH:
-            return QVariant();
+            case COL_ID:
+                return "ID";
+            case COL_DBSONGID:
+                return "DBSongId";
+            case COL_ARTIST:
+                return "Artist";
+            case COL_TITLE:
+                return "Title";
+            case COL_SONGID:
+                return "SongID";
+            case COL_KEY:
+                return "Key";
+            case COL_DURATION:
+                return "Duration";
+            default:
+                return {};
         }
     }
-    return QVariant();
+    return {};
 }
 
-int TableModelQueueSongs::rowCount([[maybe_unused]]const QModelIndex &parent) const
-{
-    return m_songs.size();
+int TableModelQueueSongs::rowCount([[maybe_unused]]const QModelIndex &parent) const {
+    return static_cast<int>(m_songs.size());
 }
 
-int TableModelQueueSongs::columnCount([[maybe_unused]]const QModelIndex &parent) const
-{
+int TableModelQueueSongs::columnCount([[maybe_unused]]const QModelIndex &parent) const {
     return 8;
 }
 
-QVariant TableModelQueueSongs::data(const QModelIndex &index, int role) const
-{
+QVariant TableModelQueueSongs::data(const QModelIndex &index, int role) const {
 
-    if (role == Qt::FontRole)
-    {
-        if (m_songs.at(index.row()).played)
-        {
-           auto font = settings.applicationFont();
-           font.setStrikeOut(true);
-           return font;
+    if (role == Qt::FontRole) {
+        if (m_songs.at(index.row()).played) {
+            auto font = m_settings.applicationFont();
+            font.setStrikeOut(true);
+            return font;
         }
     }
-    if (role == Qt::ForegroundRole)
-    {
-        if (m_songs.at(index.row()).played)
-        {
+    if (role == Qt::ForegroundRole) {
+        if (m_songs.at(index.row()).played) {
             return QColor("darkGrey");
         }
     }
-    if (role == Qt::TextAlignmentRole)
-    {
+    if (role == Qt::TextAlignmentRole) {
         if (index.column() == COL_KEY)
             return Qt::AlignHCenter + Qt::AlignVCenter;
         if (index.column() == COL_DURATION)
             return Qt::AlignRight + Qt::AlignVCenter;
     }
-    if (role == Qt::DisplayRole)
-    {
+    if (role == Qt::DisplayRole) {
         switch (index.column()) {
-        case COL_ID:
-            return m_songs.at(index.row()).id;
-        case COL_DBSONGID:
-            return m_songs.at(index.row()).dbSongId;
-        case COL_ARTIST:
-            return m_songs.at(index.row()).artist;
-        case COL_TITLE:
-            return m_songs.at(index.row()).title;
-        case COL_SONGID:
-            if (m_songs.at(index.row()).songId == "!!DROPPED!!")
-                return QVariant();
-            return m_songs.at(index.row()).songId;
-        case COL_KEY:
-            if (m_songs.at(index.row()).keyChange == 0)
-                return QVariant();
-            else if (m_songs.at(index.row()).keyChange > 0)
-                return "+" + QString::number(m_songs.at(index.row()).keyChange);
-            else
-                return m_songs.at(index.row()).keyChange;
-        case COL_DURATION:
-            if (m_songs.at(index.row()).duration < 1)
-                return QVariant();
-            return QTime(0,0,0,0).addMSecs(m_songs.at(index.row()).duration).toString("m:ss");
-        case COL_PATH:
-            return m_songs.at(index.row()).path;
-            break;
-
+            case COL_ID:
+                return m_songs.at(index.row()).id;
+            case COL_DBSONGID:
+                return m_songs.at(index.row()).dbSongId;
+            case COL_ARTIST:
+                return m_songs.at(index.row()).artist;
+            case COL_TITLE:
+                return m_songs.at(index.row()).title;
+            case COL_SONGID:
+                if (m_songs.at(index.row()).songId == "!!DROPPED!!")
+                    return {};
+                return m_songs.at(index.row()).songId;
+            case COL_KEY:
+                if (m_songs.at(index.row()).keyChange == 0)
+                    return {};
+                else if (m_songs.at(index.row()).keyChange > 0)
+                    return "+" + QString::number(m_songs.at(index.row()).keyChange);
+                else
+                    return m_songs.at(index.row()).keyChange;
+            case COL_DURATION:
+                if (m_songs.at(index.row()).duration < 1)
+                    return {};
+                return QTime(0, 0, 0, 0).addMSecs(m_songs.at(index.row()).duration).toString("m:ss");
+            case COL_PATH:
+                return m_songs.at(index.row()).path;
         }
     }
-    return QVariant();
+    return {};
 }
 
-void TableModelQueueSongs::loadSinger(const int singerId)
-{
+void TableModelQueueSongs::loadSinger(const int singerId) {
     qInfo() << "loadSinger( " << singerId << " ) fired";
     emit layoutAboutToBeChanged();
     m_songs.clear();
@@ -134,29 +117,26 @@ void TableModelQueueSongs::loadSinger(const int singerId)
     qInfo() << query.lastError();
     //qInfo() << query.lastQuery();
     qInfo() << "quey returned " << query.size() << " rows";
-    while (query.next())
-    {
+    while (query.next()) {
         m_songs.emplace_back(QueueSong{
-                                query.value(0).toInt(),
-                                 query.value(1).toInt(),
-                                 query.value(2).toInt(),
-                                 query.value(3).toBool(),
-                                 query.value(4).toInt(),
-                                 query.value(5).toInt(),
-                                 query.value(7).toString(),
-                                 query.value(8).toString(),
-                                 query.value(9).toString(),
-                                 query.value(10).toInt(),
-                                 query.value(11).toString()
-                             });
+                query.value(0).toInt(),
+                query.value(1).toInt(),
+                query.value(2).toInt(),
+                query.value(3).toBool(),
+                query.value(4).toInt(),
+                query.value(5).toInt(),
+                query.value(7).toString(),
+                query.value(8).toString(),
+                query.value(9).toString(),
+                query.value(10).toInt(),
+                query.value(11).toString()
+        });
     }
     emit layoutChanged();
 }
 
-int TableModelQueueSongs::getPosition(const int songId)
-{
-    auto it = std::find_if(m_songs.begin(), m_songs.end(), [&songId] (QueueSong &song)
-    {
+int TableModelQueueSongs::getPosition(const int songId) {
+    auto it = std::find_if(m_songs.begin(), m_songs.end(), [&songId](QueueSong &song) {
         return (song.id == songId);
     });
     if (it == m_songs.end())
@@ -164,21 +144,17 @@ int TableModelQueueSongs::getPosition(const int songId)
     return it->position;
 }
 
-bool TableModelQueueSongs::getPlayed(const int songId)
-{
-    auto it = std::find_if(m_songs.begin(), m_songs.end(), [&songId] (QueueSong &song)
-    {
+bool TableModelQueueSongs::getPlayed(const int songId) {
+    auto it = std::find_if(m_songs.begin(), m_songs.end(), [&songId](QueueSong &song) {
         return (song.id == songId);
     });
     if (it == m_songs.end())
-        return 0;
+        return false;
     return it->played;
 }
 
-int TableModelQueueSongs::getKey(const int songId)
-{
-    auto it = std::find_if(m_songs.begin(), m_songs.end(), [&songId] (QueueSong &song)
-    {
+int TableModelQueueSongs::getKey(const int songId) {
+    auto it = std::find_if(m_songs.begin(), m_songs.end(), [&songId](QueueSong &song) {
         return (song.id == songId);
     });
     if (it == m_songs.end())
@@ -186,32 +162,28 @@ int TableModelQueueSongs::getKey(const int songId)
     return it->keyChange;
 }
 
-void TableModelQueueSongs::move(const int oldPosition, const int newPosition)
-{
+void TableModelQueueSongs::move(const int oldPosition, const int newPosition) {
     if (oldPosition == newPosition)
         return;
     emit layoutAboutToBeChanged();
-    if (oldPosition > newPosition)
-    {
+    if (oldPosition > newPosition) {
         // moving up
-        std::for_each(m_songs.begin(), m_songs.end(), [&oldPosition, &newPosition] (QueueSong &song) {
-           if (song.position == oldPosition)
-               song.position = newPosition;
-           else if(song.position >= newPosition && song.position < oldPosition)
-               song.position++;
+        std::for_each(m_songs.begin(), m_songs.end(), [&oldPosition, &newPosition](QueueSong &song) {
+            if (song.position == oldPosition)
+                song.position = newPosition;
+            else if (song.position >= newPosition && song.position < oldPosition)
+                song.position++;
         });
-    }
-    else
-    {
+    } else {
         // moving down
-        std::for_each(m_songs.begin(), m_songs.end(), [&oldPosition, &newPosition] (QueueSong &song) {
+        std::for_each(m_songs.begin(), m_songs.end(), [&oldPosition, &newPosition](QueueSong &song) {
             if (song.position == oldPosition)
                 song.position = newPosition;
             else if (song.position > oldPosition && song.position <= newPosition)
                 song.position--;
         });
     }
-    std::sort(m_songs.begin(), m_songs.end(), [] (QueueSong &a, QueueSong &b) {
+    std::sort(m_songs.begin(), m_songs.end(), [](QueueSong &a, QueueSong &b) {
         return (a.position < b.position);
     });
     emit layoutChanged();
@@ -219,13 +191,11 @@ void TableModelQueueSongs::move(const int oldPosition, const int newPosition)
     emit queueModified(m_curSingerId);
 }
 
-void TableModelQueueSongs::moveSongId(const int songId, const int newPosition)
-{
+void TableModelQueueSongs::moveSongId(const int songId, const int newPosition) {
     move(getPosition(songId), newPosition);
 }
 
-int TableModelQueueSongs::add(const int songId)
-{
+int TableModelQueueSongs::add(const int songId) {
     KaraokeSong ksong = m_karaokeSongsModel.getSong(songId);
     QSqlQuery query;
     query.prepare("INSERT INTO queuesongs (singer,song,artist,title,discid,path,keychg,played,position) "
@@ -234,45 +204,43 @@ int TableModelQueueSongs::add(const int songId)
     query.bindValue(":songId", songId);
     query.bindValue(":key", 0);
     query.bindValue(":played", false);
-    query.bindValue(":position", (int)m_songs.size());
+    query.bindValue(":position", (int) m_songs.size());
     query.exec();
     auto queueSongId = query.lastInsertId().toInt();
     emit layoutAboutToBeChanged();
     m_songs.emplace_back(QueueSong{
-                             queueSongId,
-                             m_curSingerId,
-                             songId,
-                             false,
-                             0,
-                             (int)m_songs.size(),
-                             ksong.artist,
-                             ksong.title,
-                             ksong.songid,
-                             ksong.duration,
-                             ksong.path
-                         });
+            queueSongId,
+            m_curSingerId,
+            songId,
+            false,
+            0,
+            (int) m_songs.size(),
+            ksong.artist,
+            ksong.title,
+            ksong.songid,
+            ksong.duration,
+            ksong.path
+    });
     emit layoutChanged();
     emit queueModified(m_curSingerId);
     return queueSongId;
 }
 
-void TableModelQueueSongs::insert(const int songId, const int position)
-{
+void TableModelQueueSongs::insert(const int songId, const int position) {
     add(songId);
-    move(m_songs.size() - 1, position);
+    move(static_cast<int>(m_songs.size()) - 1, position);
 }
 
-void TableModelQueueSongs::remove(const int songId)
-{
+void TableModelQueueSongs::remove(const int songId) {
     qInfo() << "songs before delete: " << m_songs.size();
     emit layoutAboutToBeChanged();
-    auto it = std::remove_if(m_songs.begin(), m_songs.end(), [&songId] (QueueSong &song) {
-       return (song.id == songId);
+    auto it = std::remove_if(m_songs.begin(), m_songs.end(), [&songId](QueueSong &song) {
+        return (song.id == songId);
     });
     m_songs.erase(it, m_songs.end());
     int pos{0};
-    std::for_each(m_songs.begin(), m_songs.end(), [&pos] (QueueSong &song) {
-       song.position = pos++;
+    std::for_each(m_songs.begin(), m_songs.end(), [&pos](QueueSong &song) {
+        song.position = pos++;
     });
     emit layoutChanged();
     qInfo() << "songs after delete" << m_songs.size();
@@ -280,21 +248,20 @@ void TableModelQueueSongs::remove(const int songId)
     emit queueModified(m_curSingerId);
 }
 
-void TableModelQueueSongs::setKey(const int songId, const int semitones)
-{
+void TableModelQueueSongs::setKey(const int songId, const int semitones) {
     QSqlQuery query;
     query.prepare("UPDATE queuesongs SET keychg = :key WHERE qsongid = :id");
     query.bindValue(":id", songId);
     query.bindValue(":key", semitones);
     query.exec();
-    auto it = std::find_if(m_songs.begin(), m_songs.end(), [&songId] (QueueSong &song)
-    {
+    auto it = std::find_if(m_songs.begin(), m_songs.end(), [&songId](QueueSong &song) {
         return (song.id == songId);
     });
     if (it == m_songs.end())
         return;
     it->keyChange = semitones;
-    emit dataChanged(this->index(it->position, COL_KEY),this->index(it->position, COL_KEY),QVector<int>{Qt::DisplayRole});
+    emit dataChanged(this->index(it->position, COL_KEY), this->index(it->position, COL_KEY),
+                     QVector<int>{Qt::DisplayRole});
 }
 
 void TableModelQueueSongs::setPlayed(const int songId, const bool played) {
@@ -311,12 +278,11 @@ void TableModelQueueSongs::setPlayed(const int songId, const bool played) {
         return;
     it->played = played;
     emit dataChanged(this->index(it->position, 0), this->index(it->position, columnCount() - 1),
-                         QVector<int>{Qt::FontRole, Qt::BackgroundRole, Qt::ForegroundRole});
+                     QVector<int>{Qt::FontRole, Qt::BackgroundRole, Qt::ForegroundRole});
     emit queueModified(m_curSingerId);
 }
 
-void TableModelQueueSongs::removeAll()
-{
+void TableModelQueueSongs::removeAll() {
     emit layoutAboutToBeChanged();
     QSqlQuery query;
     query.prepare("DELETE FROM queuesongs WHERE singer = :singerId");
@@ -328,8 +294,7 @@ void TableModelQueueSongs::removeAll()
     emit queueModified(m_curSingerId);
 }
 
-void TableModelQueueSongs::commitChanges()
-{
+void TableModelQueueSongs::commitChanges() {
     QSqlQuery query;
     query.exec("BEGIN TRANSACTION");
     query.prepare("DELETE FROM queuesongs WHERE singer = :singerId");
@@ -337,8 +302,7 @@ void TableModelQueueSongs::commitChanges()
     query.exec();
     query.prepare("INSERT INTO queuesongs (qsongid,singer,song,artist,title,discid,path,keychg,played,position) "
                   "VALUES(:id,:singerId,:songId,:songId,:songId,:songId,:songId,:key,:played,:position)");
-    std::for_each(m_songs.begin(), m_songs.end(), [&] (QueueSong &song)
-    {
+    std::for_each(m_songs.begin(), m_songs.end(), [&](QueueSong &song) {
         query.bindValue(":id", song.id);
         query.bindValue(":singerId", song.singerId);
         query.bindValue(":songId", song.dbSongId);
@@ -350,16 +314,12 @@ void TableModelQueueSongs::commitChanges()
     query.exec("COMMIT");
 }
 
-void TableModelQueueSongs::songAddSlot(int songId, int singerId, int keyChg)
-{
+void TableModelQueueSongs::songAddSlot(int songId, int singerId, int keyChg) {
     qInfo() << "TableModelQueueSongs::songAddSlot(" << songId << ", " << singerId << ", " << keyChg << ") called";
-    if (singerId == m_curSingerId)
-    {
+    if (singerId == m_curSingerId) {
         int queueSongId = add(songId);
         setKey(queueSongId, keyChg);
-    }
-    else
-    {
+    } else {
         int newPos{0};
         KaraokeSong ksong = m_karaokeSongsModel.getSong(songId);
         QSqlQuery query;
@@ -381,21 +341,18 @@ void TableModelQueueSongs::songAddSlot(int songId, int singerId, int keyChg)
 }
 
 
-QStringList TableModelQueueSongs::mimeTypes() const
-{
+QStringList TableModelQueueSongs::mimeTypes() const {
     QStringList types;
     types << "integer/songid";
     types << "text/queueitems";
     return types;
 }
 
-QMimeData *TableModelQueueSongs::mimeData(const QModelIndexList &indexes) const
-{
-    QMimeData *mimeData = new QMimeData();
-    if (indexes.size() > 1)
-    {
+QMimeData *TableModelQueueSongs::mimeData(const QModelIndexList &indexes) const {
+    auto mimeData = new QMimeData();
+    if (indexes.size() > 1) {
         QJsonArray jArr;
-        std::for_each(indexes.begin(), indexes.end(), [&] (QModelIndex index) {
+        std::for_each(indexes.begin(), indexes.end(), [&](QModelIndex index) {
             // Just using COL_ARTIST here because it's the first column that's included in the index list
             if (index.column() != COL_ARTIST)
                 return;
@@ -407,14 +364,10 @@ QMimeData *TableModelQueueSongs::mimeData(const QModelIndexList &indexes) const
     return mimeData;
 }
 
-bool TableModelQueueSongs::canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const
-{
-    Q_UNUSED(action);
-    Q_UNUSED(row);
-    Q_UNUSED(column);
-    Q_UNUSED(parent);
-    if ((data->hasFormat("integer/songid")) || (data->hasFormat("text/queueitems")) || data->hasFormat("text/uri-list"))
-    {
+bool TableModelQueueSongs::canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column,
+                                           const QModelIndex &parent) const {
+    if ((data->hasFormat("integer/songid")) || (data->hasFormat("text/queueitems")) ||
+        data->hasFormat("text/uri-list")) {
         qInfo() << "QueueModel - Good data type - can drop: " << data->formats();
         return true;
     }
@@ -422,88 +375,76 @@ bool TableModelQueueSongs::canDropMimeData(const QMimeData *data, Qt::DropAction
     return false;
 }
 
-bool TableModelQueueSongs::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
-{
-    Q_UNUSED(column);
-
-    qInfo() <<"qdrop: action: " << action << " format: " << data->formats();
-
-    if (getSingerId() == -1)
-    {
+bool TableModelQueueSongs::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column,
+                                        const QModelIndex &parent) {
+    qInfo() << "qdrop: action: " << action << " format: " << data->formats();
+    if (getSingerId() == -1) {
         qInfo() << "Song dropped into queue w/ no singer selected";
         emit songDroppedWithoutSinger();
         return false;
     }
-
-    if (action == Qt::MoveAction && data->hasFormat("text/queueitems"))
-    {
+    if (action == Qt::MoveAction && data->hasFormat("text/queueitems")) {
         QJsonDocument jDoc = QJsonDocument::fromJson(data->data("text/queueitems"));
         QJsonArray jArr = jDoc.array();
         auto ids = jArr.toVariantList();
-        int droprow{0};
+        int dropRow{0};
         if (parent.row() >= 0)
-            droprow = parent.row();
+            dropRow = parent.row();
         else if (row >= 0)
-            droprow = row;
+            dropRow = row;
         else
-            droprow = rowCount() - 1;
-        if (getPosition(ids.at(0).toInt()) > droprow)
-            std::reverse(ids.begin(),ids.end());
-        std::for_each(ids.begin(), ids.end(), [&] (auto val) {
+            dropRow = rowCount() - 1;
+        if (getPosition(ids.at(0).toInt()) > dropRow)
+            std::reverse(ids.begin(), ids.end());
+        std::for_each(ids.begin(), ids.end(), [&](auto val) {
             int oldPosition = getPosition(val.toInt());
-            if (oldPosition < droprow && droprow != rowCount() - 1)
-                moveSongId(val.toInt(), droprow - 1);
+            if (oldPosition < dropRow && dropRow != rowCount() - 1)
+                moveSongId(val.toInt(), dropRow - 1);
             else
-                moveSongId(val.toInt(), droprow);
+                moveSongId(val.toInt(), dropRow);
         });
-        if (droprow == rowCount() - 1)
-        {
+        if (dropRow == rowCount() - 1) {
             // moving to bottom
-            emit qSongsMoved(droprow - ids.size() + 1, 0, rowCount() - 1, columnCount() - 1);
-        }
-        else if (getPosition(ids.at(0).toInt()) < droprow)
-        {
+            emit qSongsMoved(dropRow - ids.size() + 1, 0, rowCount() - 1, columnCount() - 1);
+        } else if (getPosition(ids.at(0).toInt()) < dropRow) {
             // moving down
-            emit qSongsMoved(droprow - ids.size(), 0, droprow - 1, columnCount() - 1);
-        }
-        else
-        {
+            emit qSongsMoved(dropRow - ids.size(), 0, dropRow - 1, columnCount() - 1);
+        } else {
             // moving up
-            emit qSongsMoved(droprow, 0, droprow + ids.size() - 1, columnCount() - 1);
+            emit qSongsMoved(dropRow, 0, dropRow + ids.size() - 1, columnCount() - 1);
         }
         commitChanges();
         return true;
     }
-    if (data->hasFormat("integer/songid"))
-    {
-        unsigned int droprow;
+    if (data->hasFormat("integer/songid")) {
+        unsigned int dropRow;
         if (parent.row() >= 0)
-            droprow = parent.row();
+            dropRow = parent.row();
         else if (row >= 0)
-            droprow = row;
+            dropRow = row;
         else
-            droprow = rowCount();
+            dropRow = rowCount();
         int songid;
         QByteArray bytedata = data->data("integer/songid");
         songid = QString(bytedata.data()).toInt();
-        insert(songid, droprow);
+        insert(songid, static_cast<int>(dropRow));
         commitChanges();
         return true;
-    }
-    else if (data->hasFormat("text/uri-list"))
-    {
-        QString dataIn = data->data("text/urilist");
+    } else if (data->hasFormat("text/uri-list")) {
         QList<QUrl> items = data->urls();
-        if (items.size() > 0)
-        {
+        if (!items.empty()) {
             unsigned int droprow;
-            if (parent.row() >= 0)
+            if (parent.row() >= 0) {
                 droprow = parent.row();
-            else if (row >= 0)
+            }
+            else if (row >= 0) {
                 droprow = row;
-            else
+            }
+            else {
                 droprow = rowCount();
-            emit filesDroppedOnSinger(items, m_curSingerId, droprow);
+            }
+
+            emit filesDroppedOnSinger(items, m_curSingerId, static_cast<int>(droprow));
         }
         commitChanges();
         return true;
@@ -511,72 +452,62 @@ bool TableModelQueueSongs::dropMimeData(const QMimeData *data, Qt::DropAction ac
     return false;
 }
 
-Qt::DropActions TableModelQueueSongs::supportedDropActions() const
-{
+Qt::DropActions TableModelQueueSongs::supportedDropActions() const {
     return Qt::CopyAction | Qt::MoveAction;
 }
 
-Qt::ItemFlags TableModelQueueSongs::flags([[maybe_unused]]const QModelIndex &index) const
-{
+Qt::ItemFlags TableModelQueueSongs::flags([[maybe_unused]]const QModelIndex &index) const {
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
 
 }
 
-void TableModelQueueSongs::sort(int column, Qt::SortOrder order)
-{
+void TableModelQueueSongs::sort(int column, Qt::SortOrder order) {
     emit layoutAboutToBeChanged();
-    if (order == Qt::AscendingOrder)
-    {
-        std::sort(m_songs.begin(), m_songs.end(), [&column] (QueueSong &a, QueueSong &b)
-        {
+    if (order == Qt::AscendingOrder) {
+        std::sort(m_songs.begin(), m_songs.end(), [&column](QueueSong &a, QueueSong &b) {
             switch (column) {
-            case COL_ARTIST:
-                return (a.artist < b.artist);
-            case COL_TITLE:
-                return (a.title < b.title);
-            case COL_SONGID:
-                return (a.songId < b.songId);
-            case COL_DURATION:
-                return (a.duration < b.duration);
-            case COL_KEY:
-                return (a.keyChange < b.keyChange);
-            default:
-                return (a.position < b.position);
+                case COL_ARTIST:
+                    return (a.artist < b.artist);
+                case COL_TITLE:
+                    return (a.title < b.title);
+                case COL_SONGID:
+                    return (a.songId < b.songId);
+                case COL_DURATION:
+                    return (a.duration < b.duration);
+                case COL_KEY:
+                    return (a.keyChange < b.keyChange);
+                default:
+                    return (a.position < b.position);
             }
         });
-    }
-    else
-    {
-        std::sort(m_songs.rbegin(), m_songs.rend(), [&column] (QueueSong &a, QueueSong &b)
-        {
+    } else {
+        std::sort(m_songs.rbegin(), m_songs.rend(), [&column](QueueSong &a, QueueSong &b) {
             switch (column) {
-            case COL_ARTIST:
-                return (a.artist < b.artist);
-            case COL_TITLE:
-                return (a.title < b.title);
-            case COL_SONGID:
-                return (a.songId < b.songId);
-            case COL_DURATION:
-                return (a.duration < b.duration);
-            case COL_KEY:
-                return (a.keyChange < b.keyChange);
-            default:
-                return (a.position < b.position);
+                case COL_ARTIST:
+                    return (a.artist < b.artist);
+                case COL_TITLE:
+                    return (a.title < b.title);
+                case COL_SONGID:
+                    return (a.songId < b.songId);
+                case COL_DURATION:
+                    return (a.duration < b.duration);
+                case COL_KEY:
+                    return (a.keyChange < b.keyChange);
+                default:
+                    return (a.position < b.position);
             }
         });
     }
     int pos{0};
-    std::for_each(m_songs.begin(), m_songs.end(), [&pos] (QueueSong &song)
-    {
+    std::for_each(m_songs.begin(), m_songs.end(), [&pos](QueueSong &song) {
         song.position = pos++;
     });
     emit layoutChanged();
     commitChanges();
 }
 
-void ItemDelegateQueueSongs::resizeIconsForFont(const QFont &font)
-{
-    QString thm = (settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
+void ItemDelegateQueueSongs::resizeIconsForFont(const QFont &font) {
+    QString thm = (m_settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
     m_curFontHeight = QFontMetrics(font).height();
     m_iconDelete = QImage(m_curFontHeight, m_curFontHeight, QImage::Format_ARGB32);
     m_iconDelete.fill(Qt::transparent);
@@ -586,19 +517,16 @@ void ItemDelegateQueueSongs::resizeIconsForFont(const QFont &font)
 }
 
 ItemDelegateQueueSongs::ItemDelegateQueueSongs(QObject *parent) :
-    QItemDelegate(parent)
-{
-    m_currentSong = -1;
-    resizeIconsForFont(settings.applicationFont());
+        QItemDelegate(parent) {
+    resizeIconsForFont(m_settings.applicationFont());
 }
 
-void ItemDelegateQueueSongs::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
-{
-    if (index.column() == TableModelQueueSongs::COL_PATH)
-    {
+void ItemDelegateQueueSongs::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const {
+    if (index.column() == TableModelQueueSongs::COL_PATH) {
         int topPad = (option.rect.height() - m_curFontHeight) / 2;
         int leftPad = (option.rect.width() - m_curFontHeight) / 2;
-        painter->drawImage(QRect(option.rect.x() + leftPad,option.rect.y() + topPad, m_curFontHeight, m_curFontHeight),m_iconDelete);
+        painter->drawImage(QRect(option.rect.x() + leftPad, option.rect.y() + topPad, m_curFontHeight, m_curFontHeight),
+                           m_iconDelete);
         return;
     }
     QItemDelegate::paint(painter, option, index);

@@ -21,8 +21,8 @@ DlgSongShop::DlgSongShop(std::shared_ptr<SongShop> songShop, QWidget *parent) :
     dlgPurchase = new DlgSongShopPurchase(shop, this);
     dlgPurchase->setModal(false);
     m_settings.restoreColumnWidths(ui->tableViewSongs);
-    connect(shop.get(), SIGNAL(karaokeSongDownloaded(QString)), this, SIGNAL(karaokeSongDownloaded(QString)));
-    connect(shop.get(), SIGNAL(songsUpdated()), this, SLOT(autoSizeView()));
+    connect(shop.get(), &SongShop::karaokeSongDownloaded, this, &DlgSongShop::karaokeSongDownloaded);
+    connect(shop.get(), &SongShop::songsUpdated, this, &DlgSongShop::autoSizeView);
 }
 
 DlgSongShop::~DlgSongShop()

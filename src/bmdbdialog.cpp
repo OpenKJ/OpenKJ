@@ -69,10 +69,10 @@ void BmDbDialog::pushButtonUpdateClicked() {
     auto thread = new BmDbUpdateThread(this);
     thread->setPath(path);
     m_dbUpdateDlg.changeDirectory(path);
-    connect(thread, SIGNAL(progressMessage(QString)), &m_dbUpdateDlg, SLOT(addProgressMsg(QString)));
-    connect(thread, SIGNAL(stateChanged(QString)), &m_dbUpdateDlg, SLOT(changeStatusTxt(QString)));
-    connect(thread, SIGNAL(progressMaxChanged(int)), &m_dbUpdateDlg, SLOT(setProgressMax(int)));
-    connect(thread, SIGNAL(progressChanged(int)), &m_dbUpdateDlg, SLOT(changeProgress(int)));
+    connect(thread, &BmDbUpdateThread::progressMessage, &m_dbUpdateDlg, &DlgDbUpdate::addProgressMsg);
+    connect(thread, &BmDbUpdateThread::stateChanged, &m_dbUpdateDlg, &DlgDbUpdate::changeStatusTxt);
+    connect(thread, &BmDbUpdateThread::progressMaxChanged, &m_dbUpdateDlg, &DlgDbUpdate::setProgressMax);
+    connect(thread, &BmDbUpdateThread::progressChanged, &m_dbUpdateDlg, &DlgDbUpdate::changeProgress);
     thread->startUnthreaded();
     QMessageBox::information(this, tr("Update Complete"), tr("Database update complete."));
     m_dbUpdateDlg.hide();
@@ -88,10 +88,10 @@ void BmDbDialog::pushButtonUpdateAllClicked() {
         auto thread = new BmDbUpdateThread(this);
         thread->setPath(m_pathsModel.data(m_pathsModel.index(i, 0)).toString());
         m_dbUpdateDlg.changeDirectory(m_pathsModel.data(m_pathsModel.index(i, 0)).toString());
-        connect(thread, SIGNAL(progressMessage(QString)), &m_dbUpdateDlg, SLOT(addProgressMsg(QString)));
-        connect(thread, SIGNAL(stateChanged(QString)), &m_dbUpdateDlg, SLOT(changeStatusTxt(QString)));
-        connect(thread, SIGNAL(progressMaxChanged(int)), &m_dbUpdateDlg, SLOT(setProgressMax(int)));
-        connect(thread, SIGNAL(progressChanged(int)), &m_dbUpdateDlg, SLOT(changeProgress(int)));
+        connect(thread, &BmDbUpdateThread::progressMessage, &m_dbUpdateDlg, &DlgDbUpdate::addProgressMsg);
+        connect(thread, &BmDbUpdateThread::stateChanged, &m_dbUpdateDlg, &DlgDbUpdate::changeStatusTxt);
+        connect(thread, &BmDbUpdateThread::progressMaxChanged, &m_dbUpdateDlg, &DlgDbUpdate::setProgressMax);
+        connect(thread, &BmDbUpdateThread::progressChanged, &m_dbUpdateDlg, &DlgDbUpdate::changeProgress);
         thread->startUnthreaded();
         delete (thread);
     }

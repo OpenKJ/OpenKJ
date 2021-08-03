@@ -21,16 +21,13 @@
 #include "tablemodelrequests.h"
 #include <QDebug>
 #include <QDateTime>
-#include "settings.h"
 
-
-extern Settings settings;
 
 TableModelRequests::TableModelRequests(OKJSongbookAPI &songbookAPI, QObject *parent) :
         QAbstractTableModel(parent),
         songbookApi(songbookAPI) {
-    connect(&songbookApi, SIGNAL(requestsChanged(OkjsRequests)), this, SLOT(requestsChanged(OkjsRequests)));
-    QString thm = (settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
+    connect(&songbookApi, &OKJSongbookAPI::requestsChanged, this, &TableModelRequests::requestsChanged);
+    QString thm = (m_settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
     delete16 = QIcon(thm + "actions/16/edit-delete.svg");
     delete22 = QIcon(thm + "actions/22/edit-delete.svg");
 }
@@ -51,22 +48,20 @@ void TableModelRequests::requestsChanged(const OkjsRequests &requests) {
 }
 
 int TableModelRequests::rowCount(const QModelIndex &parent) const {
-    Q_UNUSED(parent);
     return m_requests.size();
 }
 
 int TableModelRequests::columnCount(const QModelIndex &parent) const {
-    Q_UNUSED(parent);
     return 6;
 }
 
 QVariant TableModelRequests::data(const QModelIndex &index, int role) const {
-    QSize sbSize(QFontMetrics(settings.applicationFont()).height(), QFontMetrics(settings.applicationFont()).height());
+    QSize sbSize(QFontMetrics(m_settings.applicationFont()).height(), QFontMetrics(m_settings.applicationFont()).height());
     if (!index.isValid())
-        return QVariant();
+        return {};
 
     if (index.row() >= m_requests.size() || index.row() < 0)
-        return QVariant();
+        return {};
     if ((index.column() == 5) && (role == Qt::DecorationRole)) {
         if (sbSize.height() > 18)
             return delete22.pixmap(sbSize);
@@ -103,11 +98,10 @@ QVariant TableModelRequests::data(const QModelIndex &index, int role) const {
     }
     if (role == Qt::UserRole)
         return m_requests.at(index.row()).requestId();
-    return QVariant();
+    return {};
 }
 
 QVariant TableModelRequests::headerData(int section, Qt::Orientation orientation, int role) const {
-    Q_UNUSED(orientation);
     if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
         switch (section) {
             case SINGER:
@@ -124,11 +118,10 @@ QVariant TableModelRequests::headerData(int section, Qt::Orientation orientation
                 return "";
         }
     }
-    return QVariant();
+    return {};
 }
 
 Qt::ItemFlags TableModelRequests::flags(const QModelIndex &index) const {
-    Q_UNUSED(index);
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
 
@@ -140,11 +133,7 @@ int Request::key() const {
     return m_key;
 }
 
-void Request::setKey(int key) {
-    m_key = key;
-}
-
-Request::Request(int RequestId, QString Singer, QString Artist, QString Title, int ts, int key) {
+Request::Request(int RequestId, const QString &Singer, const QString &Artist, const QString &Title, int ts, int key) {
     m_requestId = RequestId;
     m_singer = Singer;
     m_artist = Artist;
@@ -157,16 +146,8 @@ int Request::requestId() const {
     return m_requestId;
 }
 
-void Request::setRequestId(int requestId) {
-    m_requestId = requestId;
-}
-
 int Request::timeStamp() const {
     return m_timeStamp;
-}
-
-void Request::setTimeStamp(int timeStamp) {
-    m_timeStamp = timeStamp;
 }
 
 QString Request::artist() const {

@@ -13,8 +13,8 @@ SongShop::SongShop(QObject *parent) : QObject(parent)
 {
     connectionReset = false;
     manager = new QNetworkAccessManager(this);
-    connect(manager, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(onSslErrors(QNetworkReply*,QList<QSslError>)));
-    connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
+    connect(manager, &QNetworkAccessManager::sslErrors, this, &SongShop::onSslErrors);
+    connect(manager, &QNetworkAccessManager::finished, this, &SongShop::onNetworkReply);
     songsLoaded = false;
     knLoginError = false;
 }
@@ -92,8 +92,8 @@ void SongShop::downloadFile(const QString &url, const QString &destFn)
     QNetworkAccessManager m_NetworkMngr;
     QNetworkReply *reply= m_NetworkMngr.get(QNetworkRequest(url));
     QEventLoop loop;
-    QObject::connect(reply, SIGNAL(finished()),&loop, SLOT(quit()));
-    connect(reply, SIGNAL(downloadProgress(qint64,qint64)), this, SLOT(onDownloadProgress(qint64,qint64)));
+    QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    connect(reply, &QNetworkReply::downloadProgress, this, &SongShop::onDownloadProgress);
     loop.exec();
     QUrl aUrl(url);
     QFileInfo fileInfo=aUrl.path();

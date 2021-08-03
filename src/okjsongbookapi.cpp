@@ -35,11 +35,11 @@ OKJSongbookAPI::OKJSongbookAPI(QObject *parent) : QObject(parent)
     alertTimer = new QTimer(this);
     alertTimer->start(600000);
     manager = new QNetworkAccessManager(this);
-    connect(manager, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)), this, SLOT(onSslErrors(QNetworkReply*,QList<QSslError>)));
-    connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onNetworkReply(QNetworkReply*)));
-    connect(timer, SIGNAL(timeout()), this, SLOT(timerTimeout()));
-    connect(alertTimer, SIGNAL(timeout()), this, SLOT(alertTimerTimeout()));
-    connect(filter, SIGNAL(idleStateChanged(bool)), this, SLOT(idleStateChanged(bool)));
+    connect(manager, &QNetworkAccessManager::sslErrors, this, &OKJSongbookAPI::onSslErrors);
+    connect(manager, &QNetworkAccessManager::finished, this, &OKJSongbookAPI::onNetworkReply);
+    connect(timer, &QTimer::timeout, this, &OKJSongbookAPI::timerTimeout);
+    connect(alertTimer, &QTimer::timeout, this, &OKJSongbookAPI::alertTimerTimeout);
+    connect(filter, &IdleDetect::idleStateChanged, this, &OKJSongbookAPI::idleStateChanged);
     if (m_settings.requestServerEnabled())
     {
         getEntitledSystemCount();
@@ -271,7 +271,7 @@ bool OKJSongbookAPI::test()
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     QNetworkReply *reply = m_NetworkMngr.post(request, jsonDocument.toJson());
     QEventLoop loop;
-    QObject::connect(reply, SIGNAL(finished()),&loop, SLOT(quit()));
+    QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
     if (reply->error() != QNetworkReply::NoError)
     {

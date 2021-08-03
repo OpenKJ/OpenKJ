@@ -5,9 +5,7 @@
 #include <QSqlError>
 #include <QPainter>
 #include <QSvgRenderer>
-#include "settings.h"
 
-extern Settings settings;
 
 TableModelHistorySingers::TableModelHistorySingers(QObject *parent)
     : QAbstractTableModel(parent)
@@ -27,15 +25,15 @@ QVariant TableModelHistorySingers::headerData(int section, Qt::Orientation orien
         case 2:
             return "Songs";
         default:
-            return QVariant();
+            return {};
         }
     }
-    return QVariant();
+    return {};
 }
 
 int TableModelHistorySingers::rowCount([[maybe_unused]]const QModelIndex &parent) const
 {
-    return m_singers.size();
+    return static_cast<int>(m_singers.size());
 }
 
 int TableModelHistorySingers::columnCount([[maybe_unused]]const QModelIndex &parent) const
@@ -46,14 +44,13 @@ int TableModelHistorySingers::columnCount([[maybe_unused]]const QModelIndex &par
 QVariant TableModelHistorySingers::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid())
-        return QVariant();
+        return {};
     if (role == Qt::TextAlignmentRole)
     {
         switch (index.column()) {
         case 2:
             return Qt::AlignRight + Qt::AlignVCenter;
         case 3:
-            return Qt::AlignHCenter + Qt::AlignVCenter;
         case 4:
             return Qt::AlignHCenter + Qt::AlignVCenter;
         }
@@ -69,10 +66,10 @@ QVariant TableModelHistorySingers::data(const QModelIndex &index, int role) cons
             return m_singers.at(index.row()).songCount;
         }
     }
-    return QVariant();
+    return {};
 }
 
-int TableModelHistorySingers::getSongCount(const int historySingerId) const
+int TableModelHistorySingers::getSongCount(const int historySingerId)
 {
     QSqlQuery query;
     query.prepare("SELECT COUNT(id) FROM historySongs WHERE historySinger = :historySinger");
@@ -110,7 +107,7 @@ QString TableModelHistorySingers::getName(const int historySingerId) const
     });
     if (match != m_singers.end())
         return match->name;
-    return QString();
+    return {};
 }
 
 bool TableModelHistorySingers::exists(const QString &name) const
@@ -174,17 +171,17 @@ std::vector<HistorySinger> &TableModelHistorySingers::singers()
 
 HistorySinger TableModelHistorySingers::getSinger(const int historySingerId)
 {
-    auto result = std::find_if(m_singers.begin(), m_singers.end(), [&historySingerId] (HistorySinger singer) {
+    auto result = std::find_if(m_singers.begin(), m_singers.end(), [&historySingerId] (const HistorySinger& singer) {
        return (singer.historySingerId == historySingerId);
     });
-    if (result == m_singers.end())
-        return HistorySinger();
-    return *result;
+    if (result != m_singers.end())
+        return *result;
+    return {};
 }
 
-void ItemDelegateHistorySingers::resizeIconsForFont(QFont font)
+void ItemDelegateHistorySingers::resizeIconsForFont(const QFont& font)
 {
-    QString thm = (settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
+    QString thm = (m_settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
     m_curFontHeight = QFontMetrics(font).height();
     m_iconDelete = QImage(m_curFontHeight, m_curFontHeight, QImage::Format_ARGB32);
     m_iconLoadReg = QImage(m_curFontHeight, m_curFontHeight, QImage::Format_ARGB32);
@@ -201,8 +198,7 @@ void ItemDelegateHistorySingers::resizeIconsForFont(QFont font)
 ItemDelegateHistorySingers::ItemDelegateHistorySingers(QObject *parent) :
     QItemDelegate(parent)
 {
-    resizeIconsForFont(settings.applicationFont());
-    connect(&settings, &Settings::applicationFontChanged, this, &ItemDelegateHistorySingers::resizeIconsForFont);
+    resizeIconsForFont(m_settings.applicationFont());
 }
 
 void ItemDelegateHistorySingers::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const

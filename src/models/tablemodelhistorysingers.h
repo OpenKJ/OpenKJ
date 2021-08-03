@@ -4,6 +4,7 @@
 #include <QAbstractTableModel>
 #include <QIcon>
 #include <QItemDelegate>
+#include "settings.h"
 
 struct HistorySinger {
     int historySingerId{-1};
@@ -17,12 +18,15 @@ class ItemDelegateHistorySingers : public QItemDelegate
 private:
     QImage m_iconDelete;
     QImage m_iconLoadReg;
-    int m_curFontHeight;
-    void resizeIconsForFont(QFont font);
+    int m_curFontHeight{0};
+    Settings m_settings;
 
 public:
-    explicit ItemDelegateHistorySingers(QObject *parent = 0);
-    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    explicit ItemDelegateHistorySingers(QObject *parent = nullptr);
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+
+public slots:
+    void resizeIconsForFont(const QFont& font);
 
 };
 
@@ -32,23 +36,24 @@ class TableModelHistorySingers : public QAbstractTableModel
 private:
     std::vector<HistorySinger> m_singers;
     QString m_filterString;
+    Settings m_settings;
 
 public:
     explicit TableModelHistorySingers(QObject *parent = nullptr);
-    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
-    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-    int getSongCount(const int historySingerId) const;
+    [[nodiscard]] QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+    [[nodiscard]] int rowCount(const QModelIndex &parent) const override;
+    [[nodiscard]] int columnCount(const QModelIndex &parent) const override;
+    [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
+    [[nodiscard]] static int getSongCount(int historySingerId) ;
     void loadSingers();
-    QString getName(const int historySingerId) const;
-    bool exists(const QString &name) const;
-    int getId(const QString &historySingerName) const;
-    void deleteHistory(const int historySingerId);
-    bool rename(const int historySingerId, const QString &newName);
+    [[nodiscard]] QString getName(int historySingerId) const;
+    [[nodiscard]] bool exists(const QString &name) const;
+    [[nodiscard]] int getId(const QString &historySingerName) const;
+    void deleteHistory(int historySingerId);
+    bool rename(int historySingerId, const QString &newName);
     void filter(const QString &filterString);
     std::vector<HistorySinger> &singers();
-    HistorySinger getSinger(const int historySingerId);
+    HistorySinger getSinger(int historySingerId);
 
 signals:
     void historySingersModified();

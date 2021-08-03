@@ -27,7 +27,6 @@
 #include <QImageReader>
 #include <QScreen>
 
-extern Settings settings;
 
 VideoDisplay *DlgCdg::getVideoDisplay()
 {
@@ -46,63 +45,58 @@ DlgCdg::DlgCdg(MediaBackend &KaraokeBackend, MediaBackend &BreakBackend, QWidget
     m_tWidget = std::make_unique<TransparentWidget>(this);
     m_tWidget->setObjectName("DurationTimer");
     m_tWidget->show();
-    m_tWidget->move(settings.durationPosition());
+    m_tWidget->move(m_settings.durationPosition());
     ui->videoDisplayKar->setFillOnPaint(false);
     ui->widgetAlert->setAutoFillBackground(true);
     ui->fsToggleWidget->hide();
     ui->widgetAlert->hide();
     ui->widgetAlert->setAttribute(Qt::WA_TransparentForMouseEvents);
     ui->widgetAlert->setMouseTracking(true);
-    ui->scroll->setVisible(settings.tickerEnabled());
-    ui->scroll->setTickerEnabled(settings.tickerEnabled());
-    m_tWidget->setVisible(settings.cdgRemainEnabled());
-    ui->scroll->setFont(settings.tickerFont());
-    ui->scroll->setMinimumHeight(settings.tickerHeight());
-    ui->scroll->setMaximumHeight(settings.tickerHeight());
-    ui->scroll->setSpeed(settings.tickerSpeed());
-    m_tWidget->setTextFont(settings.cdgRemainFont());
+    ui->scroll->setVisible(m_settings.tickerEnabled());
+    ui->scroll->setTickerEnabled(m_settings.tickerEnabled());
+    m_tWidget->setVisible(m_settings.cdgRemainEnabled());
+    tickerFontChanged();
+    ui->scroll->setSpeed(m_settings.tickerSpeed());
+    m_tWidget->setTextFont(m_settings.cdgRemainFont());
     QPalette palette = ui->scroll->palette();
-    palette.setColor(ui->scroll->foregroundRole(), settings.tickerTextColor());
+    palette.setColor(ui->scroll->foregroundRole(), m_settings.tickerTextColor());
     ui->scroll->setPalette(palette);
     palette = this->palette();
-    palette.setColor(QPalette::Window, settings.tickerBgColor());
+    palette.setColor(QPalette::Window, m_settings.tickerBgColor());
     setPalette(palette);
     m_lastSize.setWidth(300);
     m_lastSize.setHeight(216);
-    m_fullScreen = settings.cdgWindowFullscreen();
-    m_tWidget->setTextColor(settings.cdgRemainTextColor());
-    m_tWidget->setBackgroundColor(settings.cdgRemainBgColor());
+    m_fullScreen = m_settings.cdgWindowFullscreen();
+    m_tWidget->setTextColor(m_settings.cdgRemainTextColor());
+    m_tWidget->setBackgroundColor(m_settings.cdgRemainBgColor());
     applyBackgroundImageMode();
     showAlert(false);
-    alertFontChanged(settings.karaokeAAAlertFont());
-    alertBgColorChanged(settings.alertBgColor());
-    alertTxtColorChanged(settings.alertTxtColor());
+    alertFontChanged(m_settings.karaokeAAAlertFont());
+    alertBgColorChanged(m_settings.alertBgColor());
+    alertTxtColorChanged(m_settings.alertTxtColor());
     cdgOffsetsChanged();
 
-    connect(ui->videoDisplayKar, &VideoDisplay::mouseMoveEvent, this, &DlgCdg::mouseMove);
+    /*
     connect(&settings, &Settings::alertBgColorChanged, this, &DlgCdg::alertBgColorChanged);
     connect(&settings, &Settings::alertTxtColorChanged, this, &DlgCdg::alertTxtColorChanged);
-    connect(&settings, &Settings::bgModeChanged, [&] () { applyBackgroundImageMode(); });
-    connect(&settings, &Settings::cdgBgImageChanged, [&] () { applyBackgroundImageMode(); });
-    connect(&settings, &Settings::bgSlideShowDirChanged, [&] () { applyBackgroundImageMode(); });
-    connect(&settings, &Settings::cdgRemainEnabledChanged, m_tWidget.get(), &TransparentWidget::setVisible);
+    connect(&settings, &Settings::bgModeChanged, this, &DlgCdg::applyBackgroundImageMode);
+    connect(&settings, &Settings::bgSlideShowDirChanged, this, &DlgCdg::applyBackgroundImageMode);
+    connect(&settings, &Settings::cdgBgImageChanged, this, &DlgCdg::applyBackgroundImageMode);
     connect(&settings, &Settings::cdgOffsetsChanged, this, &DlgCdg::cdgOffsetsChanged);
-    connect(&settings, &Settings::tickerFontChanged, this, &DlgCdg::tickerFontChanged);
-    connect(&settings, &Settings::tickerHeightChanged, this, &DlgCdg::tickerHeightChanged);
-    connect(&settings, &Settings::tickerSpeedChanged, this, &DlgCdg::tickerSpeedChanged);
-    connect(&settings, &Settings::tickerTextColorChanged, this, &DlgCdg::tickerTextColorChanged);
+    connect(&settings, &Settings::cdgRemainBgColorChanged, durationWidget(), &TransparentWidget::setBackgroundColor);
+    connect(&settings, &Settings::cdgRemainEnabledChanged, durationWidget(), &TransparentWidget::setVisible);
+    connect(&settings, &Settings::cdgRemainFontChanged, durationWidget(), &TransparentWidget::setTextFont);
+    connect(&settings, &Settings::cdgRemainTextColorChanged, durationWidget(), &TransparentWidget::setTextColor);
+    connect(&settings, &Settings::durationPositionReset, durationWidget(), &TransparentWidget::resetPosition);
+    connect(&settings, &Settings::karaokeAAAlertFontChanged, this, &DlgCdg::alertFontChanged);
+    connect(&settings, &Settings::slideShowIntervalChanged, this, &DlgCdg::setSlideshowInterval);
     connect(&settings, &Settings::tickerBgColorChanged, this, &DlgCdg::tickerBgColorChanged);
     connect(&settings, &Settings::tickerEnableChanged, this, &DlgCdg::tickerEnableChanged);
-    connect(&settings, &Settings::cdgRemainFontChanged, m_tWidget.get(), &TransparentWidget::setTextFont);
-    connect(&settings, &Settings::cdgRemainTextColorChanged, m_tWidget.get(), &TransparentWidget::setTextColor);
-    connect(&settings, &Settings::cdgRemainBgColorChanged, m_tWidget.get(), &TransparentWidget::setBackgroundColor);
-    connect(&settings, &Settings::karaokeAAAlertFontChanged, this, &DlgCdg::alertFontChanged);
-    connect(&settings, &Settings::durationPositionReset, [&] () {
-       m_tWidget->move(0, 0);
-    });
-    connect(&settings, &Settings::slideShowIntervalChanged, [&] (auto val) {
-       m_timerSlideShow.setInterval(val * 1000);
-    });
+    connect(&settings, &Settings::tickerFontChanged, this, &DlgCdg::tickerFontChanged);
+    connect(&settings, &Settings::tickerSpeedChanged, this, &DlgCdg::tickerSpeedChanged);
+    connect(&settings, &Settings::tickerTextColorChanged, this, &DlgCdg::tickerTextColorChanged);
+    */
+    connect(ui->videoDisplayKar, &VideoDisplay::mouseMoveEvent, this, &DlgCdg::mouseMove);
     connect(ui->btnToggleFullscreen, &QPushButton::clicked, this, &DlgCdg::btnToggleFullscreenClicked);
     connect(&m_timerSlideShow, &QTimer::timeout, this, &DlgCdg::timerSlideShowTimeout);
     connect(&m_timer1s, &QTimer::timeout, this, &DlgCdg::timer1sTimeout);
@@ -111,9 +105,9 @@ DlgCdg::DlgCdg(MediaBackend &KaraokeBackend, MediaBackend &BreakBackend, QWidget
     m_timerButtonShow.setInterval(1000);
     m_timerAlertCountdown.setInterval(1000);
     m_timer1s.start(1000);
-    m_timerSlideShow.start((int)settings.slideShowInterval() * 1000);
+    m_timerSlideShow.start(static_cast<int>(m_settings.slideShowInterval() * 1000));
     ui->videoDisplayBm->hide();
-    if (!settings.showCdgWindow())
+    if (!m_settings.showCdgWindow())
         hide();
     else
         show();
@@ -133,25 +127,20 @@ void DlgCdg::stopTicker()
 
 void DlgCdg::tickerFontChanged()
 {
-    ui->scroll->setFont(settings.tickerFont());
-    settings.setTickerHeight(QFontMetrics(ui->scroll->font()).height());
-}
-
-void DlgCdg::tickerHeightChanged(const int &height)
-{
-    ui->scroll->setMinimumHeight(height);
-    ui->scroll->setMaximumHeight(height);
+    ui->scroll->setFont(m_settings.tickerFont());
+    ui->scroll->setMinimumHeight(QFontMetrics(m_settings.tickerFont()).height());
+    ui->scroll->setMaximumHeight(QFontMetrics(m_settings.tickerFont()).height());
 }
 
 void DlgCdg::tickerSpeedChanged()
 {
-    ui->scroll->setSpeed(settings.tickerSpeed());
+    ui->scroll->setSpeed(m_settings.tickerSpeed());
 }
 
 void DlgCdg::tickerTextColorChanged()
 {
     auto palette = ui->scroll->palette();
-    palette.setColor(ui->scroll->foregroundRole(), settings.tickerTextColor());
+    palette.setColor(ui->scroll->foregroundRole(), m_settings.tickerTextColor());
     ui->scroll->setPalette(palette);
     ui->scroll->refresh();
 }
@@ -159,7 +148,7 @@ void DlgCdg::tickerTextColorChanged()
 void DlgCdg::tickerBgColorChanged()
 {
     auto palette = this->palette();
-    palette.setColor(QPalette::Window, settings.tickerBgColor());
+    palette.setColor(QPalette::Window, m_settings.tickerBgColor());
     this->setPalette(palette);
     ui->scroll->refresh();
     //ui->scroll->refreshTickerSettings();
@@ -167,8 +156,8 @@ void DlgCdg::tickerBgColorChanged()
 
 void DlgCdg::tickerEnableChanged()
 {
-    ui->scroll->setVisible(settings.tickerEnabled());
-    ui->scroll->setTickerEnabled(settings.tickerEnabled());
+    ui->scroll->setVisible(m_settings.tickerEnabled());
+    ui->scroll->setTickerEnabled(m_settings.tickerEnabled());
 }
 
 void DlgCdg::mouseDoubleClickEvent([[maybe_unused]]QMouseEvent *e)
@@ -179,16 +168,16 @@ void DlgCdg::mouseDoubleClickEvent([[maybe_unused]]QMouseEvent *e)
     else
         showNormal();
     cdgOffsetsChanged();
-    settings.setCdgWindowFullscreen(m_fullScreen);
-    settings.saveWindowState(this);
+    m_settings.setCdgWindowFullscreen(m_fullScreen);
+    m_settings.saveWindowState(this);
     QDesktopWidget widget;
-    settings.setCdgWindowFullscreenMonitor(widget.screenNumber(this));
+    m_settings.setCdgWindowFullscreenMonitor(widget.screenNumber(this));
 }
 
 QFileInfoList DlgCdg::getSlideShowImages()
 {
     QFileInfoList images;
-    QDir srcDir(settings.bgSlideShowDir());
+    QDir srcDir(m_settings.bgSlideShowDir());
     auto files = srcDir.entryInfoList(QDir::Files, QDir::Name | QDir::IgnoreCase);
     for (const auto & file : files)
     {
@@ -200,7 +189,7 @@ QFileInfoList DlgCdg::getSlideShowImages()
 
 void DlgCdg::showAlert(bool show)
 {
-    if ((show) && (settings.karaokeAAAlertEnabled()))
+    if ((show) && (m_settings.karaokeAAAlertEnabled()))
     {
         ui->videoDisplayKar->hide();
         ui->videoDisplayBm->hide();
@@ -263,11 +252,11 @@ void DlgCdg::alertTxtColorChanged(const QColor &color)
 
 void DlgCdg::applyBackgroundImageMode()
 {
-    if (settings.bgMode() == Settings::BgMode::BG_MODE_IMAGE && QFile::exists(settings.cdgDisplayBackgroundImage()))
+    if (m_settings.bgMode() == Settings::BgMode::BG_MODE_IMAGE && QFile::exists(m_settings.cdgDisplayBackgroundImage()))
     {
-        ui->videoDisplayKar->setBackground(QPixmap(settings.cdgDisplayBackgroundImage()));
+        ui->videoDisplayKar->setBackground(QPixmap(m_settings.cdgDisplayBackgroundImage()));
     }
-    else if (settings.bgMode() == Settings::BgMode::BG_MODE_SLIDESHOW && QDir(settings.bgSlideShowDir()).exists())
+    else if (m_settings.bgMode() == Settings::BgMode::BG_MODE_SLIDESHOW && QDir(m_settings.bgSlideShowDir()).exists())
     {
         slideShowMoveNext();
     }
@@ -279,7 +268,7 @@ void DlgCdg::applyBackgroundImageMode()
 
 void DlgCdg::timerSlideShowTimeout()
 {
-    if (!ui->videoDisplayKar->hasActiveVideo() && settings.bgMode() == Settings::BgMode::BG_MODE_SLIDESHOW)
+    if (!ui->videoDisplayKar->hasActiveVideo() && m_settings.bgMode() == Settings::BgMode::BG_MODE_SLIDESHOW)
     {
         slideShowMoveNext();
     }
@@ -330,7 +319,7 @@ void DlgCdg::mouseMove([[maybe_unused]]QMouseEvent *event)
 
 void DlgCdg::timer1sTimeout()
 {
-    if (settings.cdgRemainEnabled())
+    if (m_settings.cdgRemainEnabled())
     {
         if (m_kmb.state() == MediaBackend::PlayingState && !m_tWidget->isVisible())
         {
@@ -357,17 +346,17 @@ void DlgCdg::btnToggleFullscreenClicked()
     }
     else
         showNormal();
-    settings.setCdgWindowFullscreen(m_fullScreen);
-    settings.saveWindowState(this);
+    m_settings.setCdgWindowFullscreen(m_fullScreen);
+    m_settings.saveWindowState(this);
     QDesktopWidget widget;
-    settings.setCdgWindowFullscreenMonitor(widget.screenNumber(this));
+    m_settings.setCdgWindowFullscreenMonitor(widget.screenNumber(this));
     cdgOffsetsChanged();
 }
 
 void DlgCdg::cdgOffsetsChanged()
 {
     if (isFullScreen())
-        this->layout()->setContentsMargins(settings.cdgOffsetLeft(),settings.cdgOffsetTop(),settings.cdgOffsetRight(),settings.cdgOffsetBottom());
+        this->layout()->setContentsMargins(m_settings.cdgOffsetLeft(),m_settings.cdgOffsetTop(),m_settings.cdgOffsetRight(),m_settings.cdgOffsetBottom());
     else
         this->layout()->setContentsMargins(0,0,0,0);
 }
@@ -376,16 +365,16 @@ void DlgCdg::cdgOffsetsChanged()
 void DlgCdg::closeEvent([[maybe_unused]]QCloseEvent *event)
 {
     this->hide();
-    settings.setShowCdgWindow(false);
+    m_settings.setShowCdgWindow(false);
     event->ignore();
 }
 
 void DlgCdg::showEvent(QShowEvent *event)
 {
     QDialog::showEvent(event);
-    settings.restoreWindowState(this);
-    settings.setShowCdgWindow(true);
-    if (settings.cdgWindowFullscreen())
+    m_settings.restoreWindowState(this);
+    m_settings.setShowCdgWindow(true);
+    if (m_settings.cdgWindowFullscreen())
     {
         this->showNormal();
         QTimer::singleShot(100, [&] () {
@@ -402,21 +391,25 @@ void DlgCdg::showEvent(QShowEvent *event)
 
 void DlgCdg::hideEvent(QHideEvent *event)
 {
-    settings.saveWindowState(this);
+    m_settings.saveWindowState(this);
     //settings.saveWindowState(m_tWidget);
     QWidget::hideEvent(event);
+}
+
+void DlgCdg::setSlideshowInterval(int secs) {
+    m_timerSlideShow.setInterval(secs * 1000);
 }
 
 
 TransparentWidget::~TransparentWidget()
 {
-    settings.saveWindowState(this);
+    m_settings.saveWindowState(this);
 }
 
 void TransparentWidget::mouseMoveEvent(QMouseEvent *event)
 {
     this->move(event->globalPos() + m_startPoint);
-    settings.setDurationPosition(this->pos());
+    m_settings.setDurationPosition(this->pos());
 }
 
 void TransparentWidget::moveEvent(QMoveEvent *event)
@@ -481,4 +474,8 @@ void TransparentWidget::setTextFont(const QFont &font) {
     setFixedSize(QFontMetrics(font).width("_____"),QFontMetrics(font).tightBoundingRect("0123456789:").height());
     m_label->setFixedSize(QFontMetrics(font).width("_____"),QFontMetrics(font).tightBoundingRect("0123456789:").height());
 #endif
+}
+
+void TransparentWidget::resetPosition() {
+    move(0,0);
 }

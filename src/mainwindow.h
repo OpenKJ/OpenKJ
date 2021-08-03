@@ -106,7 +106,7 @@ private:
     TableModelBreakSongs m_tableModelBreakSongs{this};
     TableModelPlaylistSongs m_tableModelPlaylistSongs{m_tableModelBreakSongs, this};
     std::unique_ptr<QSqlTableModel> m_tableModelPlaylists;
-    ItemDelegatePlaylistSongs m_itemDelegatePlaylistSongs;
+    ItemDelegatePlaylistSongs m_itemDelegatePlSongs{this};
     std::unique_ptr<DlgCdg> cdgWindow;
     std::unique_ptr<DlgDatabase> dbDialog;
     std::unique_ptr<DlgKeyChange> dlgKeyChange;

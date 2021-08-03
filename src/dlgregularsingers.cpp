@@ -40,7 +40,7 @@ DlgRegularSingers::DlgRegularSingers(TableModelRotation *rotationModel, QWidget 
     ui->comboBoxAddPos->addItem("Bottom");
     ui->comboBoxAddPos->addItem("Next");
     ui->comboBoxAddPos->setCurrentIndex(m_settings.lastSingerAddPositionType());
-    connect(ui->comboBoxAddPos, SIGNAL(currentIndexChanged(int)), &m_settings, SLOT(setLastSingerAddPositionType(int)));
+    connect(ui->comboBoxAddPos, qOverload<int>(&QComboBox::currentIndexChanged), &m_settings, &Settings::setLastSingerAddPositionType);
     m_rotModel = rotationModel;
     ui->tableViewRegulars->hideColumn(0);
     ui->tableViewRegulars->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
@@ -96,7 +96,7 @@ void DlgRegularSingers::on_tableViewRegulars_customContextMenuRequested(const QP
     {
         m_rtClickHistorySingerId = index.sibling(index.row(),0).data().toInt();
         QMenu contextMenu(this);
-        contextMenu.addAction(tr("Rename"), this, SLOT(renameHistorySinger()));
+        contextMenu.addAction(tr("Rename"), this, &DlgRegularSingers::renameHistorySinger);
         contextMenu.exec(QCursor::pos());
     }
 }

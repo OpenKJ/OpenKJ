@@ -7,6 +7,7 @@
 #include <QStyleOptionViewItem>
 #include <optional>
 #include "tablemodelbreaksongs.h"
+#include "settings.h"
 
 
 struct PlaylistSong {
@@ -24,16 +25,20 @@ class ItemDelegatePlaylistSongs : public QItemDelegate
 {
     Q_OBJECT
 private:
-    int m_currentSong;
     int m_playingPlSongId;
     QImage m_iconDelete;
     QImage m_iconPlaying;
     int m_curFontHeight;
-    void resizeIconsForFont(const QFont &font);
+    Settings m_settings;
+
 public:
     explicit ItemDelegatePlaylistSongs(QObject *parent = 0);
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
     void setPlayingPlSongId(int plSongId);
+
+public slots:
+    void resizeIconsForFont(const QFont &font);
+
 };
 
 class TableModelPlaylistSongs : public QAbstractTableModel
@@ -43,35 +48,33 @@ class TableModelPlaylistSongs : public QAbstractTableModel
 public:
     enum {COL_ID=0,COL_POSITION,COL_ARTIST,COL_TITLE,COL_FILENAME,COL_DURATION,COL_PATH};
     explicit TableModelPlaylistSongs(TableModelBreakSongs &breakSongsModel, QObject *parent = nullptr);
-    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
-    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-    QStringList mimeTypes() const override;
-    QMimeData *mimeData(const QModelIndexList &indexes) const override;
-    bool canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const override;
-    bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
-    Qt::DropActions supportedDropActions() const override;
-    Qt::ItemFlags flags(const QModelIndex &index) const override;
-    bool isCurrentlyPlayingSong(int plSongId);
-    void setCurrentPlaylist(const int playlistId);
-    void setCurrentPosition(const int currentPos);
-    int currentPosition() { return m_currentPosition; }
+    [[nodiscard]] QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+    [[nodiscard]] int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    [[nodiscard]] int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+    [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
+    [[nodiscard]] QStringList mimeTypes() const override;
+    [[nodiscard]] QMimeData *mimeData(const QModelIndexList &indexes) const override;
+    [[nodiscard]] bool canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const override;
+    [[nodiscard]] bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
+    [[nodiscard]] Qt::DropActions supportedDropActions() const override;
+    [[nodiscard]] Qt::ItemFlags flags(const QModelIndex &index) const override;
+    [[nodiscard]] bool isCurrentlyPlayingSong(int plSongId) const;
+    void setCurrentPlaylist(int playlistId);
+    void setCurrentPosition(int currentPos);
+    [[nodiscard]] int currentPosition() const { return m_currentPosition; }
     void savePlaylistChanges();
-    void moveSong(const int oldPosition, const int newPosition);
-    void addSong(const int songId);
-    void insertSong(const int songId, const int position);
-    void deleteSong(const int position);
-    int currentPlaylist() const;
-    int getSongIdByFilePath(const QString &filePath) const;
-    int numSongs() const;
+    void moveSong(int oldPosition, int newPosition);
+    void addSong(int songId);
+    void insertSong(int songId, int position);
+    void deleteSong(int position);
+    [[nodiscard]] int currentPlaylist() const;
     int randomizePlaylist();
-    int getPlSongIdAtPos(const int position) const;
-    std::optional<std::reference_wrapper<PlaylistSong>> getPlSong(const int plSongId);
-    std::optional<std::reference_wrapper<PlaylistSong>> getPlSongByPosition(const int position);
-    std::optional<std::reference_wrapper<PlaylistSong>> getNextPlSong();
-    std::optional<std::reference_wrapper<PlaylistSong>> getCurrentSong();
-    int getSongPositionById(const int plSongId) const;
+    [[nodiscard]] int getPlSongIdAtPos(int position) const;
+    [[nodiscard]] std::optional<std::reference_wrapper<PlaylistSong>> getPlSong(int plSongId);
+    [[nodiscard]] std::optional<std::reference_wrapper<PlaylistSong>> getPlSongByPosition(int position);
+    [[nodiscard]] std::optional<std::reference_wrapper<PlaylistSong>> getNextPlSong();
+    [[nodiscard]] std::optional<std::reference_wrapper<PlaylistSong>> getCurrentSong();
+    [[nodiscard]] int getSongPositionById(int plSongId) const;
 
 
 private:
@@ -81,11 +84,12 @@ private:
     int m_playingPlaylist{0};
     int m_currentPosition{-1};
     int m_playingPlSongId{-1};
+    Settings m_settings;
 
 signals:
     void bmSongMoved(int oldPos, int newPos);
-    void bmPlSongsMoved(const int startRow, const int startCol, const int endRow, const int endCol);
-    void playingPlSongIdChanged(const int plSongId);
+    void bmPlSongsMoved(int startRow, int startCol, int endRow, int endCol);
+    void playingPlSongIdChanged(int plSongId);
 
 };
 

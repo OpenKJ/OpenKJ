@@ -64,7 +64,7 @@ DlgDatabase::DlgDatabase(TableModelKaraokeSongs &dbModel, QWidget *parent) :
                 }
             }
         }
-        connect(&fsWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(directoryChanged(QString)));
+        connect(&fsWatcher, &QFileSystemWatcher::directoryChanged, this, &DlgDatabase::directoryChanged);
     }
 }
 
@@ -167,10 +167,10 @@ void DlgDatabase::on_buttonUpdate_clicked()
         DbUpdater updater;
         //emit databaseAboutToUpdate();
         dbUpdateDlg->reset();
-        connect(&updater, SIGNAL(progressMessage(QString)), dbUpdateDlg, SLOT(addProgressMsg(QString)));
-        connect(&updater, SIGNAL(stateChanged(QString)), dbUpdateDlg, SLOT(changeStatusTxt(QString)));
-        connect(&updater, SIGNAL(progressMaxChanged(int)), dbUpdateDlg, SLOT(setProgressMax(int)));
-        connect(&updater, SIGNAL(progressChanged(int)), dbUpdateDlg, SLOT(changeProgress(int)));
+        connect(&updater, &DbUpdater::progressMessage, dbUpdateDlg, &DlgDbUpdate::addProgressMsg);
+        connect(&updater, &DbUpdater::stateChanged, dbUpdateDlg, &DlgDbUpdate::changeStatusTxt);
+        connect(&updater, &DbUpdater::progressMaxChanged, dbUpdateDlg, &DlgDbUpdate::setProgressMax);
+        connect(&updater, &DbUpdater::progressChanged, dbUpdateDlg, &DlgDbUpdate::changeProgress);
         dbUpdateDlg->changeDirectory(sourcedirmodel->getDirByIndex(selectedRow).getPath());
         dbUpdateDlg->show();
         QApplication::processEvents();
@@ -194,10 +194,10 @@ void DlgDatabase::on_buttonUpdateAll_clicked()
 {
     DbUpdater updater;
     dbUpdateDlg->reset();
-    connect(&updater, SIGNAL(progressMessage(QString)), dbUpdateDlg, SLOT(addProgressMsg(QString)));
-    connect(&updater, SIGNAL(stateChanged(QString)), dbUpdateDlg, SLOT(changeStatusTxt(QString)));
-    connect(&updater, SIGNAL(progressMaxChanged(int)), dbUpdateDlg, SLOT(setProgressMax(int)));
-    connect(&updater, SIGNAL(progressChanged(int)), dbUpdateDlg, SLOT(changeProgress(int)));
+    connect(&updater, &DbUpdater::progressMessage, dbUpdateDlg, &DlgDbUpdate::addProgressMsg);
+    connect(&updater, &DbUpdater::stateChanged, dbUpdateDlg, &DlgDbUpdate::changeStatusTxt);
+    connect(&updater, &DbUpdater::progressMaxChanged, dbUpdateDlg, &DlgDbUpdate::setProgressMax);
+    connect(&updater, &DbUpdater::progressChanged, dbUpdateDlg, &DlgDbUpdate::changeProgress);
     dbUpdateDlg->show();
 
     for (int i=0; i < sourcedirmodel->size(); i++)

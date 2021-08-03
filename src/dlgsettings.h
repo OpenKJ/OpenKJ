@@ -66,6 +66,28 @@ signals:
     void audioSilenceDetectChangedBm(bool);
     void audioDownmixChanged(bool);
     void audioDownmixChangedBm(bool);
+    void applicationFontChanged(const QFont &font);
+
+    void alertTxtColorChanged(QColor color);
+    void alertBgColorChanged(QColor color);
+    void bgModeChanged(Settings::BgMode mode);
+    void bgSlideShowDirChanged(QString dir);
+    void cdgBgImageChanged();
+    void cdgOffsetsChanged();
+    void cdgRemainBgColorChanged(QColor color);
+    void cdgRemainEnabledChanged(bool enabled);
+    void cdgRemainFontChanged(QFont font);
+    void cdgRemainTextColorChanged(QColor color);
+    void durationPositionReset();
+    void karaokeAAAlertFontChanged(QFont font);
+    void slideShowIntervalChanged(uint secs);
+    void tickerBgColorChanged();
+    void tickerEnableChanged();
+    void tickerFontChanged();
+    void tickerSpeedChanged();
+    void tickerTextColorChanged();
+    void tickerCustomStringChanged();
+    void tickerOutputModeChanged();
 
 private slots:
     void on_btnClose_clicked();
@@ -92,7 +114,6 @@ private slots:
     void on_buttonBrowse_clicked();
     void onNetworkReply(QNetworkReply* reply);
     void onSslErrors(QNetworkReply * reply);
-
     void on_pushButtonClearBgImg_clicked();
     void on_pushButtonSlideshowBrowse_clicked();
     void on_rbSlideshow_toggled(bool checked);
@@ -106,7 +127,6 @@ private slots:
     void on_btnAlertBgColor_clicked();
     void on_cbxBmAutostart_clicked(bool checked);
     void on_spinBoxInterval_valueChanged(int arg1);
-    void tickerShowRotationInfoChanged(bool show);
     void on_cbxTheme_currentIndexChanged(int index);
     void on_btnBrowse_clicked();
     void on_fontComboBox_currentFontChanged(const QFont &f);

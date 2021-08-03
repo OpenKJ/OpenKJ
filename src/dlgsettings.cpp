@@ -171,7 +171,7 @@ DlgSettings::DlgSettings(MediaBackend &AudioBackend, MediaBackend &BmAudioBacken
     ui->cbxTheme->addItem("Fusion Light");
     ui->cbxTheme->setCurrentIndex(settings.theme());
     ui->lineEditOutputDir->setText(settings.recordingOutputDir());
-    tickerShowRotationInfoChanged(settings.tickerShowRotationInfo());
+    ui->cbxTickerShowRotationInfo->setChecked(settings.tickerShowRotationInfo());
     ui->groupBoxTicker->setChecked(settings.tickerEnabled());
     ui->lineEditTickerMessage->setText(settings.tickerCustomString());
     ui->fontComboBox->setFont(settings.applicationFont());
@@ -199,29 +199,37 @@ DlgSettings::DlgSettings(MediaBackend &AudioBackend, MediaBackend &BmAudioBacken
     ui->checkBoxTreatAllSingersAsRegs->setChecked(settings.treatAllSingersAsRegs());
     ui->cbxCrossFade->setChecked(settings.bmKCrossFade());
     adjustSize();
-    connect(ui->spinBoxCdgOffsetTop, SIGNAL(valueChanged(int)), &settings, SLOT(setCdgOffsetTop(int)));
-    connect(ui->spinBoxCdgOffsetBottom, SIGNAL(valueChanged(int)), &settings, SLOT(setCdgOffsetBottom(int)));
-    connect(ui->spinBoxCdgOffsetLeft, SIGNAL(valueChanged(int)), &settings, SLOT(setCdgOffsetLeft(int)));
-    connect(ui->spinBoxCdgOffsetRight, SIGNAL(valueChanged(int)), &settings, SLOT(setCdgOffsetRight(int)));
-    connect(ui->spinBoxVideoOffset, SIGNAL(valueChanged(int)), &settings, SLOT(setVideoOffsetMs(int)));
-    connect(ui->spinBoxSlideshowInterval, SIGNAL(valueChanged(int)), &settings, SLOT(setSlideShowInterval(int)));
-    connect(&settings, SIGNAL(karaokeAutoAdvanceChanged(bool)), ui->checkBoxKAA, SLOT(setChecked(bool)));
-    connect(&settings, SIGNAL(showQueueRemovalWarningChanged(bool)), ui->cbxQueueRemovalWarning,
-            SLOT(setChecked(bool)));
-    connect(&settings, SIGNAL(showSingerRemovalWarningChanged(bool)), ui->cbxSingerRemovalWarning,
-            SLOT(setChecked(bool)));
-    connect(&settings, SIGNAL(showSongInterruptionWarningChanged(bool)), ui->cbxSongInterruptionWarning,
-            SLOT(setChecked(bool)));
-    connect(&settings, SIGNAL(showSongStopPauseWarningChanged(bool)), ui->cbxStopPauseWarning, SLOT(setChecked(bool)));
-    connect(ui->cbxIgnoreApos, SIGNAL(toggled(bool)), &settings, SLOT(setIgnoreAposInSearch(bool)));
-    connect(ui->cbxCrossFade, SIGNAL(clicked(bool)), &settings, SLOT(setBmKCrossfade(bool)));
-    connect(ui->cbxCheckUpdates, SIGNAL(clicked(bool)), &settings, SLOT(setCheckUpdates(bool)));
-    connect(ui->comboBoxUpdateBranch, SIGNAL(currentIndexChanged(int)), &settings, SLOT(setUpdatesBranch(int)));
-    connect(ui->checkBoxDbSkipValidation, SIGNAL(toggled(bool)), &settings, SLOT(dbSetSkipValidation(bool)));
-    connect(ui->checkBoxLazyLoadDurations, SIGNAL(toggled(bool)), &settings, SLOT(dbSetLazyLoadDurations(bool)));
-    connect(ui->checkBoxMonitorDirs, SIGNAL(toggled(bool)), &settings, SLOT(dbSetDirectoryWatchEnabled(bool)));
-    connect(ui->spinBoxSystemId, SIGNAL(valueChanged(int)), &settings, SLOT(setSystemId(int)));
-    connect(ui->checkBoxLogging, SIGNAL(toggled(bool)), &settings, SLOT(setLogEnabled(bool)));
+    tickerFontChanged();
+    tickerBgColorChanged();
+    tickerTextColorChanged();
+    tickerOutputModeChanged();
+    tickerCustomStringChanged();
+    tickerSpeedChanged();
+    connect(ui->spinBoxCdgOffsetTop, qOverload<int>(&QSpinBox::valueChanged), &settings, &Settings::setCdgOffsetTop);
+    connect(ui->spinBoxCdgOffsetTop, qOverload<int>(&QSpinBox::valueChanged), this, &DlgSettings::cdgOffsetsChanged);
+    connect(ui->spinBoxCdgOffsetBottom, qOverload<int>(&QSpinBox::valueChanged), &settings, &Settings::setCdgOffsetBottom);
+    connect(ui->spinBoxCdgOffsetBottom, qOverload<int>(&QSpinBox::valueChanged), this, &DlgSettings::cdgOffsetsChanged);
+    connect(ui->spinBoxCdgOffsetLeft, qOverload<int>(&QSpinBox::valueChanged), &settings, &Settings::setCdgOffsetLeft);
+    connect(ui->spinBoxCdgOffsetLeft, qOverload<int>(&QSpinBox::valueChanged), this, &DlgSettings::cdgOffsetsChanged);
+    connect(ui->spinBoxCdgOffsetRight, qOverload<int>(&QSpinBox::valueChanged), &settings, &Settings::setCdgOffsetRight);
+    connect(ui->spinBoxCdgOffsetRight, qOverload<int>(&QSpinBox::valueChanged), this, &DlgSettings::cdgOffsetsChanged);
+    connect(ui->spinBoxVideoOffset, qOverload<int>(&QSpinBox::valueChanged), &settings, &Settings::setVideoOffsetMs);
+    connect(ui->spinBoxSlideshowInterval, qOverload<int>(&QSpinBox::valueChanged), &settings, &Settings::setSlideShowInterval);
+    connect(ui->spinBoxSlideshowInterval, qOverload<int>(&QSpinBox::valueChanged), this, &DlgSettings::slideShowIntervalChanged);
+    connect(&settings, &Settings::karaokeAutoAdvanceChanged, ui->checkBoxKAA, &QCheckBox::setChecked);
+    connect(&settings, &Settings::showQueueRemovalWarningChanged, ui->cbxQueueRemovalWarning, &QCheckBox::setChecked);
+    connect(&settings, &Settings::showSingerRemovalWarningChanged, ui->cbxSingerRemovalWarning, &QCheckBox::setChecked);
+    connect(&settings, &Settings::showSongInterruptionWarningChanged, ui->cbxSongInterruptionWarning, &QCheckBox::setChecked);
+    connect(&settings, &Settings::showSongStopPauseWarningChanged, ui->cbxStopPauseWarning, &QCheckBox::setChecked);
+    connect(ui->cbxIgnoreApos, &QCheckBox::toggled, &settings, &Settings::setIgnoreAposInSearch);
+    connect(ui->cbxCrossFade, &QCheckBox::toggled, &settings, &Settings::setBmKCrossfade);
+    connect(ui->cbxCheckUpdates, &QCheckBox::toggled, &settings, &Settings::setCheckUpdates);
+    connect(ui->comboBoxUpdateBranch, qOverload<int>(&QComboBox::currentIndexChanged), &settings, &Settings::setUpdatesBranch);
+    connect(ui->checkBoxDbSkipValidation, &QCheckBox::toggled, &settings, &Settings::dbSetSkipValidation);
+    connect(ui->checkBoxLazyLoadDurations, &QCheckBox::toggled, &settings, &Settings::dbSetLazyLoadDurations);
+    connect(ui->checkBoxMonitorDirs, &QCheckBox::toggled, &settings, &Settings::dbSetDirectoryWatchEnabled);
+    connect(ui->spinBoxSystemId, qOverload<int>(&QSpinBox::valueChanged), &settings, &Settings::setSystemId);
+    connect(ui->checkBoxLogging, &QCheckBox::toggled, &settings, &Settings::setLogEnabled);
     connect(ui->checkBoxTreatAllSingersAsRegs, &QAbstractButton::toggled, &settings,
             &Settings::setTreatAllSingersAsRegs);
     connect(ui->checkBoxShowAddDlgOnDbDblclk, &QCheckBox::stateChanged, [&](auto state) {
@@ -230,18 +238,16 @@ DlgSettings::DlgSettings(MediaBackend &AudioBackend, MediaBackend &BmAudioBacken
         else
             settings.setDbDoubleClickAddsSong(true);
     });
-    connect(networkManager, SIGNAL(finished(QNetworkReply * )), this, SLOT(onNetworkReply(QNetworkReply * )));
-    connect(networkManager, SIGNAL(sslErrors(QNetworkReply * , QList<QSslError>)), this,
-            SLOT(onSslErrors(QNetworkReply * )));
-    connect(ui->cbxQueueRemovalWarning, SIGNAL(toggled(bool)), &settings, SLOT(setShowQueueRemovalWarning(bool)));
-    connect(ui->cbxSingerRemovalWarning, SIGNAL(toggled(bool)), &settings, SLOT(setShowSingerRemovalWarning(bool)));
-    connect(ui->cbxSongInterruptionWarning, SIGNAL(toggled(bool)), &settings,
-            SLOT(setShowSongInterruptionWarning(bool)));
-    connect(ui->cbxStopPauseWarning, SIGNAL(toggled(bool)), &settings, SLOT(setShowSongPauseStopWarning(bool)));
-    connect(ui->cbxTickerShowRotationInfo, SIGNAL(clicked(bool)), &settings, SLOT(setTickerShowRotationInfo(bool)));
-    connect(&settings, SIGNAL(tickerShowRotationInfoChanged(bool)), this, SLOT(tickerShowRotationInfoChanged(bool)));
-    connect(&songbookApi, SIGNAL(entitledSystemCountChanged(int)), this, SLOT(entitledSystemCountChanged(int)));
-    connect(ui->cbxRotShowNextSong, SIGNAL(clicked(bool)), &settings, SLOT(setRotationShowNextSong(bool)));
+    connect(networkManager, &QNetworkAccessManager::finished, this, &DlgSettings::onNetworkReply);
+    connect(networkManager, &QNetworkAccessManager::sslErrors, this, &DlgSettings::onSslErrors);
+    connect(ui->cbxQueueRemovalWarning, &QCheckBox::toggled, &settings, &Settings::setShowQueueRemovalWarning);
+    connect(ui->cbxSingerRemovalWarning, &QCheckBox::toggled, &settings, &Settings::setShowSingerRemovalWarning);
+    connect(ui->cbxSongInterruptionWarning, &QCheckBox::toggled, &settings, &Settings::setShowSongInterruptionWarning);
+    connect(ui->cbxStopPauseWarning, &QCheckBox::toggled, &settings, &Settings::setShowSongPauseStopWarning);
+    connect(ui->cbxTickerShowRotationInfo, &QCheckBox::toggled, &settings, &Settings::setTickerShowRotationInfo);
+    connect(ui->cbxTickerShowRotationInfo, &QCheckBox::toggled, this, &DlgSettings::tickerOutputModeChanged);
+    connect(&songbookApi, &OKJSongbookAPI::entitledSystemCountChanged, this, &DlgSettings::entitledSystemCountChanged);
+    connect(ui->cbxRotShowNextSong, &QCheckBox::toggled, &settings, &Settings::setRotationShowNextSong);
     setupHotkeysForm();
     m_pageSetupDone = true;
 }
@@ -398,6 +404,7 @@ void DlgSettings::on_pushButtonFont_clicked() {
     QFont font = QFontDialog::getFont(&ok, settings.tickerFont(), this, "Select ticker font");
     if (ok) {
         settings.setTickerFont(font);
+        emit tickerFontChanged();
     }
 }
 
@@ -405,6 +412,7 @@ void DlgSettings::on_horizontalSliderTickerSpeed_valueChanged(int value) {
     if (!m_pageSetupDone)
         return;
     settings.setTickerSpeed(value);
+    emit tickerSpeedChanged();
 }
 
 void DlgSettings::on_pushButtonTextColor_clicked() {
@@ -418,6 +426,7 @@ void DlgSettings::on_pushButtonTextColor_clicked() {
                            QString::number(clr.blue())));
         ui->pushButtonTextColor->setStyleSheet(ss);
         settings.setTickerTextColor(clr);
+        emit tickerTextColorChanged();
     }
 }
 
@@ -432,6 +441,7 @@ void DlgSettings::on_pushButtonBgColor_clicked() {
                            QString::number(clr.blue())));
         ui->pushButtonBgColor->setStyleSheet(ss);
         settings.setTickerBgColor(clr);
+        emit tickerBgColorChanged();
     }
 }
 
@@ -440,6 +450,7 @@ void DlgSettings::on_radioButtonFullRotation_toggled(bool checked) {
         return;
     settings.setTickerFullRotation(checked);
     ui->spinBoxTickerSingers->setEnabled(!checked);
+    emit tickerOutputModeChanged();
 }
 
 
@@ -447,12 +458,14 @@ void DlgSettings::on_spinBoxTickerSingers_valueChanged(int arg1) {
     if (!m_pageSetupDone)
         return;
     settings.setTickerShowNumSingers(arg1);
+    emit tickerOutputModeChanged();
 }
 
 void DlgSettings::on_groupBoxTicker_toggled(bool arg1) {
     if (!m_pageSetupDone)
         return;
     settings.setTickerEnabled(arg1);
+    emit tickerEnableChanged();
 }
 
 void DlgSettings::on_lineEditUrl_editingFinished() {
@@ -479,6 +492,7 @@ void DlgSettings::on_pushButtonBrowse_clicked() {
         QImage image(imageFile);
         if (!image.isNull()) {
             settings.setCdgDisplayBackgroundImage(imageFile);
+            emit cdgBgImageChanged();
             ui->lineEditCdgBackground->setText(imageFile);
         } else {
             QMessageBox::warning(this, tr("Image load error"), QString("Unsupported or corrupt image file."));
@@ -564,6 +578,7 @@ void DlgSettings::on_buttonBrowse_clicked() {
 void DlgSettings::on_pushButtonClearBgImg_clicked() {
     settings.setCdgDisplayBackgroundImage(QString());
     ui->lineEditCdgBackground->setText(QString());
+    emit cdgBgImageChanged();
 }
 
 void DlgSettings::on_pushButtonSlideshowBrowse_clicked() {
@@ -578,6 +593,7 @@ void DlgSettings::on_pushButtonSlideshowBrowse_clicked() {
             );
     if (dirName != "") {
         settings.setBgSlideShowDir(dirName);
+        emit bgSlideShowDirChanged(dirName);
         ui->lineEditSlideshowDir->setText(dirName);
     }
 }
@@ -585,19 +601,17 @@ void DlgSettings::on_pushButtonSlideshowBrowse_clicked() {
 void DlgSettings::on_rbSlideshow_toggled(bool checked) {
     if (!m_pageSetupDone)
         return;
-    if (checked)
-        settings.setBgMode(settings.BG_MODE_SLIDESHOW);
-    else
-        settings.setBgMode(settings.BG_MODE_IMAGE);
+    Settings::BgMode mode = (checked) ? settings.BG_MODE_SLIDESHOW : settings.BG_MODE_IMAGE;
+    settings.setBgMode(mode);
+    emit bgModeChanged(mode);
 }
 
 void DlgSettings::on_rbBgImage_toggled(bool checked) {
     if (!m_pageSetupDone)
         return;
-    if (checked)
-        settings.setBgMode(settings.BG_MODE_IMAGE);
-    else
-        settings.setBgMode(settings.BG_MODE_SLIDESHOW);
+    Settings::BgMode mode = (checked) ? settings.BG_MODE_IMAGE : settings.BG_MODE_SLIDESHOW;
+    settings.setBgMode(mode);
+    emit bgModeChanged(mode);
 }
 
 void DlgSettings::on_lineEditApiKey_editingFinished() {
@@ -627,6 +641,7 @@ void DlgSettings::on_btnAlertFont_clicked() {
     QFont font = QFontDialog::getFont(&ok, settings.karaokeAAAlertFont(), this, "Select alert font");
     if (ok) {
         settings.setKaraokeAAAlertFont(font);
+        emit karaokeAAAlertFontChanged(font);
     }
 }
 
@@ -641,6 +656,7 @@ void DlgSettings::on_btnAlertTxtColor_clicked() {
                            QString::number(clr.blue())));
         ui->btnAlertTxtColor->setStyleSheet(ss);
         settings.setAlertTxtColor(clr);
+        emit alertTxtColorChanged(clr);
     }
 }
 
@@ -655,6 +671,7 @@ void DlgSettings::on_btnAlertBgColor_clicked() {
                            QString::number(clr.blue())));
         ui->btnAlertBgColor->setStyleSheet(ss);
         settings.setAlertBgColor(clr);
+        emit alertBgColorChanged(clr);
     }
 }
 
@@ -666,14 +683,6 @@ void DlgSettings::on_spinBoxInterval_valueChanged(int arg1) {
     if (!m_pageSetupDone)
         return;
     settings.setRequestServerInterval(arg1);
-}
-
-void DlgSettings::tickerShowRotationInfoChanged(bool show) {
-    ui->radioButtonFullRotation->setEnabled(show);
-    ui->radioButtonPartialRotation->setEnabled(show);
-    ui->spinBoxTickerSingers->setEnabled(show);
-    ui->label_5->setEnabled(show);
-    ui->cbxTickerShowRotationInfo->setChecked(show);
 }
 
 void DlgSettings::on_cbxTheme_currentIndexChanged(int index) {
@@ -708,6 +717,7 @@ void DlgSettings::on_fontComboBox_currentFontChanged(const QFont &f) {
     QFont font = f;
     font.setPointSize(ui->spinBoxAppFontSize->value());
     settings.setApplicationFont(font);
+    emit applicationFontChanged(font);
     setFont(font);
 }
 
@@ -717,14 +727,15 @@ void DlgSettings::on_spinBoxAppFontSize_valueChanged(int arg1) {
     QFont font = settings.applicationFont();
     font.setPointSize(arg1);
     settings.setApplicationFont(font);
+    emit applicationFontChanged(font);
     setFont(font);
 }
 
 void DlgSettings::on_btnTestReqServer_clicked() {
-    OKJSongbookAPI *api = new OKJSongbookAPI(this);
-    connect(api, SIGNAL(testFailed(QString)), this, SLOT(reqSvrTestError(QString)));
-    connect(api, SIGNAL(testSslError(QString)), this, SLOT(reqSvrTestSslError(QString)));
-    connect(api, SIGNAL(testPassed()), this, SLOT(reqSvrTestPassed()));
+    auto api = new OKJSongbookAPI(this);
+    connect(api, &OKJSongbookAPI::testFailed, this, &DlgSettings::reqSvrTestError);
+    connect(api, &OKJSongbookAPI::testSslError, this, &DlgSettings::reqSvrTestSslError);
+    connect(api, &OKJSongbookAPI::testPassed, this, &DlgSettings::reqSvrTestPassed);
     api->test();
 
     delete api;
@@ -782,6 +793,7 @@ void DlgSettings::entitledSystemCountChanged(int count) {
 
 void DlgSettings::on_groupBoxShowDuration_clicked(bool checked) {
     settings.setCdgRemainEnabled(checked);
+    emit cdgRemainEnabledChanged(checked);
 }
 
 void DlgSettings::on_btnDurationFont_clicked() {
@@ -789,6 +801,7 @@ void DlgSettings::on_btnDurationFont_clicked() {
     QFont font = QFontDialog::getFont(&ok, settings.cdgRemainFont(), this, "Select CDG duration display font");
     if (ok) {
         settings.setCdgRemainFont(font);
+        emit cdgRemainFontChanged(font);
     }
 }
 
@@ -803,6 +816,7 @@ void DlgSettings::on_btnDurationFontColor_clicked() {
                            QString::number(clr.blue())));
         ui->btnDurationFontColor->setStyleSheet(ss);
         settings.setCdgRemainTextColor(clr);
+        emit cdgRemainTextColorChanged(clr);
     }
 }
 
@@ -818,6 +832,7 @@ void DlgSettings::on_btnDurationBgColor_clicked() {
                            QString::number(clr.blue())));
         ui->btnDurationBgColor->setStyleSheet(ss);
         settings.setCdgRemainBgColor(clr);
+        emit cdgRemainBgColorChanged(clr);
     }
 }
 
@@ -881,14 +896,17 @@ void DlgSettings::on_checkBoxEnforceAspectRatio_clicked(bool checked) {
 
 void DlgSettings::on_pushButtonApplyTickerMsg_clicked() {
     settings.setTickerCustomString(ui->lineEditTickerMessage->text());
+    emit tickerCustomStringChanged();
 }
 
 void DlgSettings::on_pushButtonResetDurationPos_clicked() {
     settings.resetDurationPosition();
+    emit durationPositionReset();
 }
 
 void DlgSettings::on_lineEditTickerMessage_returnPressed() {
     settings.setTickerCustomString(ui->lineEditTickerMessage->text());
+    emit tickerCustomStringChanged();
 }
 
 void DlgSettings::on_checkBoxHardwareAccel_toggled(bool checked) {

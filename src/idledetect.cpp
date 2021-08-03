@@ -9,7 +9,7 @@ IdleDetect::IdleDetect(QObject *parent) : QObject(parent)
     int timerGranularity = 60000;
 //    timerGranularity = 1000;
     idleIncrement->start(timerGranularity);
-    connect(idleIncrement, SIGNAL(timeout()), this, SLOT(idleIncrementTimeout()));
+    connect(idleIncrement, &QTimer::timeout, this, &IdleDetect::idleIncrementTimeout);
 }
 
 bool IdleDetect::eventFilter(QObject *obj, QEvent *ev)

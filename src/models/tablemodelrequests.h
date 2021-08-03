@@ -24,6 +24,7 @@
 #include <QAbstractTableModel>
 #include "okjsongbookapi.h"
 #include <QIcon>
+#include "settings.h"
 
 class Request
 {
@@ -35,25 +36,18 @@ private:
     QString m_title;
     QString m_singer;
     int m_key;
-    QIcon favorite22On;
-    QIcon favorite22Off;
-    QIcon delete16;
-    QIcon delete22;
 
 public:
-    Request(int RequestId, QString Singer, QString Artist, QString Title, int ts, int key = 0);
-    int requestId() const;
-    void setRequestId(int requestId);
-    int timeStamp() const;
-    void setTimeStamp(int timeStamp);
-    QString artist() const;
+    Request(int RequestId, const QString &Singer, const QString &Artist, const QString &Title, int ts, int key = 0);
+    [[nodiscard]] int requestId() const;
+    [[nodiscard]] int timeStamp() const;
+    [[nodiscard]] QString artist() const;
     void setArtist(const QString &artist);
-    QString title() const;
+    [[nodiscard]] QString title() const;
     void setTitle(const QString &title);
-    QString singer() const;
+    [[nodiscard]] QString singer() const;
     void setSinger(const QString &singer);
-    int key() const;
-    void setKey(int key);
+    [[nodiscard]] int key() const;
 };
 
 class TableModelRequests : public QAbstractTableModel
@@ -65,16 +59,17 @@ private:
     QIcon delete16;
     QIcon delete22;
     OKJSongbookAPI &songbookApi;
+    Settings m_settings;
 
 public:
     explicit TableModelRequests(OKJSongbookAPI &songbookAPI, QObject *parent = nullptr);
     enum {SINGER=0,ARTIST,TITLE,TIMESTAMP,KEYCHG};
     int count();
-    int rowCount(const QModelIndex &parent) const;
-    int columnCount(const QModelIndex &parent) const;
-    QVariant data(const QModelIndex &index, int role) const;
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
-    Qt::ItemFlags flags(const QModelIndex &index) const;
+    [[nodiscard]] int rowCount(const QModelIndex &parent) const override;
+    [[nodiscard]] int columnCount(const QModelIndex &parent) const override;
+    [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
+    [[nodiscard]] QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+    [[nodiscard]] Qt::ItemFlags flags(const QModelIndex &index) const override;
     QList<Request> requests() {return m_requests; }
 
 private slots:

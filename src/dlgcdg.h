@@ -49,12 +49,14 @@ public:
 
 private:
     QPoint m_startPoint;
+    Settings m_settings;
 
 public slots:
 
     void setTextColor(const QColor &color) const;
     void setBackgroundColor(const QColor &color) const;
     void setTextFont(const QFont &font);
+    void resetPosition();
 
 protected:
     void moveEvent(QMoveEvent *event) override;
@@ -81,6 +83,7 @@ private:
     MediaBackend &m_kmb;
     MediaBackend &m_bmb;
     std::unique_ptr<TransparentWidget> m_tWidget;
+    Settings m_settings;
 
 public:
     explicit DlgCdg(MediaBackend &KaraokeBackend, MediaBackend &BreakBackend, QWidget *parent = nullptr,
@@ -91,8 +94,14 @@ public:
     VideoDisplay *getVideoDisplay();
     VideoDisplay *getVideoDisplayBm();
     void slideShowMoveNext();
+    TransparentWidget* durationWidget() {return m_tWidget.get(); }
+    QFileInfoList getSlideShowImages();
 
-private slots:
+public slots:
+    void showAlert(bool show);
+    void setNextSinger(const QString &name);
+    void setNextSong(const QString &song);
+    void setCountdownSecs(int seconds);
     void applyBackgroundImageMode();
     void timerSlideShowTimeout();
     void alertFontChanged(const QFont &font);
@@ -103,19 +112,12 @@ private slots:
     void cdgOffsetsChanged();
     void tickerFontChanged();
     void tickerSpeedChanged();
-    void tickerHeightChanged(const int &height);
     void tickerTextColorChanged();
     void tickerBgColorChanged();
     void tickerEnableChanged();
-    static QFileInfoList getSlideShowImages();
     void alertBgColorChanged(const QColor &color);
     void alertTxtColorChanged(const QColor &color);
-
-public slots:
-    void showAlert(bool show);
-    void setNextSinger(const QString &name);
-    void setNextSong(const QString &song);
-    void setCountdownSecs(int seconds);
+    void setSlideshowInterval(int secs);
 
 protected:
     void closeEvent(QCloseEvent *event) override;
