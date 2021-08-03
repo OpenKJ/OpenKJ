@@ -27,6 +27,7 @@
 #include <QStringList>
 #include <QDebug>
 #include <QMessageBox>
+#include <QCommandLineParser>
 #include "settings.h"
 #include "idledetect.h"
 #include "runguard/runguard.h"
@@ -46,6 +47,7 @@ QDataStream &operator>>(QDataStream &in, SfxEntry &obj)
    return in;
 }
 
+QString altDataDir{};
 Settings settings;
 
 IdleDetect *filter;
@@ -108,6 +110,19 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
 
 int main(int argc, char *argv[])
 {
+    QCoreApplication::setOrganizationName("OpenKJ");
+    QCoreApplication::setOrganizationDomain("OpenKJ.org");
+    QCoreApplication::setApplicationName("OpenKJ");
+    QCoreApplication::setApplicationVersion(OKJ_VERSION_STRING);
+    QCommandLineParser parser;
+    parser.setApplicationDescription("OpenKJ");
+    parser.addHelpOption();
+    parser.addVersionOption();
+    QCommandLineOption dataDirectoryOption(QStringList() << "d" << "data-directory",
+                                             "Overrides the path that OpenKJ will use for its config and database files",
+                                             QCoreApplication::translate("main", "data-directory"));
+    parser.addOption(dataDirectoryOption);
+
 
     //QLoggingCategory::setFilterRules("*.debug=true");
     qInstallMessageHandler(myMessageOutput);
@@ -116,7 +131,13 @@ int main(int argc, char *argv[])
     qRegisterMetaType<QList<SfxEntry> >("QList<SfxEntry>");
     qRegisterMetaTypeStreamOperators<QList<SfxEntry> >("QList<SfxEntry>");
     QApplication a(argc, argv);
-
+    parser.process(a);
+    if (parser.isSet(dataDirectoryOption))
+    {
+        qInfo() << "User specified alternate data directory at the command line, using " << parser.value(dataDirectoryOption) << " for config and db files";
+        altDataDir = parser.value(dataDirectoryOption);
+        settings.reload();
+    }
 #ifdef MAC_OVERRIDE_GST
     // This points GStreamer paths to the framework contained in the app bundle.  Not needed on brew installs.
     QString appDir = QCoreApplication::applicationDirPath();

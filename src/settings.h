@@ -31,6 +31,8 @@
 #include <QMetaType>
 #include <QDebug>
 #include <QKeySequence>
+#include <QCommandLineParser>
+
 
 struct SfxEntry
 {
@@ -59,6 +61,7 @@ private:
     bool m_safeStartupMode{false};
 
 public:
+    void reload();
     bool lastStartupOk() const;
     void setStartupOk(const bool ok);
     QString lastRunVersion() const;

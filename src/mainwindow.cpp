@@ -46,6 +46,7 @@
 
 #endif
 
+extern QString altDataDir;
 extern Settings settings;
 OKJSongbookAPI *songbookApi;
 
@@ -1077,7 +1078,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
 void MainWindow::dbInit(const QDir &okjDataDir) {
     database = QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE"));
-    database.setDatabaseName(okjDataDir.absolutePath() + QDir::separator() + "openkj.sqlite");
+    if (altDataDir.isEmpty()) {
+        database.setDatabaseName(okjDataDir.absolutePath() + QDir::separator() + "openkj.sqlite");
+    } else {
+        auto dataDir = QDir(altDataDir);
+        database.setDatabaseName(dataDir.absolutePath() + QDir::separator() + "openkj.sqlite");
+    }
     database.open();
     QSqlQuery query(
             "CREATE TABLE IF NOT EXISTS dbSongs ( songid INTEGER PRIMARY KEY AUTOINCREMENT, Artist COLLATE NOCASE, Title COLLATE NOCASE, DiscId COLLATE NOCASE, 'Duration' INTEGER, path VARCHAR(700) NOT NULL UNIQUE, filename COLLATE NOCASE, searchstring TEXT)");
