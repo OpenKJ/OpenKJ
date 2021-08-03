@@ -1,0 +1,3467 @@
+openkj (2.0.5-release-1~bionic) bionic; urgency=medium
+
+  [ runner@fv-az137-824.aripajfx3awelhgv3otau1goqd.bx.internal.cloudapp.net ]
+  * Automatc update from github tag
+
+ --  <runner@fv-az137-824.aripajfx3awelhgv3otau1goqd.bx.internal.cloudapp.net>  Tue, 03 Aug 2021 02:28:49 +0000
+
+openkj (2.0.3-1~bionic) bionic; urgency=medium
+
+  [ runner@fv-az213-930.myevld0x5ppejn3ihmbjdxfrpc.jx.internal.cloudapp.net ]
+  * Automatc update from github tag
+
+ --  <runner@fv-az213-930.myevld0x5ppejn3ihmbjdxfrpc.jx.internal.cloudapp.net>  Fri, 07 May 2021 03:39:54 +0000
+
+openkj (2.0.2-1~bionic) bionic; urgency=medium
+
+  [ runner@fv-az214-299.id12tdznztpetdc1ukmlxjki0b.gx.internal.cloudapp.net ]
+  * Automatc update from github tag
+
+ --  <runner@fv-az214-299.id12tdznztpetdc1ukmlxjki0b.gx.internal.cloudapp.net>  Fri, 07 May 2021 03:36:49 +0000
+
+openkj (2.0.1-1~bionic) bionic; urgency=medium
+
+  [ runner@fv-az213-930.siozmy300uqe3kzp0oxop4sl0e.jx.internal.cloudapp.net ]
+  * Automatc update from github tag
+
+ --  <runner@fv-az213-930.siozmy300uqe3kzp0oxop4sl0e.jx.internal.cloudapp.net>  Fri, 07 May 2021 01:54:03 +0000
+
+openkj (2.0.0-RC6.7-1~bionic) bionic; urgency=medium
+
+  [ runner@fv-az105-367.wy5h1aom0jgehahef1oyr10hrc.bx.internal.cloudapp.net ]
+  * Automatc update from github tag
+
+ --  <runner@fv-az105-367.wy5h1aom0jgehahef1oyr10hrc.bx.internal.cloudapp.net>  Fri, 07 May 2021 01:29:54 +0000
+
+openkj (2.0.0-5~bionic) bionic; urgency=medium
+
+  * 2.0 Release Candidate 5
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 29 Apr 2021 06:51:42 -0500
+
+openkj (2.0.0-4~bionic) bionic; urgency=medium
+
+  * 2.0 Release Candidate 4
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 20 Apr 2021 16:31:32 -0500
+
+openkj (2.0.0-3~bionic) bionic; urgency=medium
+
+  * 2.0 Release Candidate
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 16 Apr 2021 11:23:46 -0500
+
+openkj (2.0.0-2~bionic) bionic; urgency=medium
+
+  * 2.0 Release Candidate 2
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 15 Apr 2021 11:25:33 -0500
+
+openkj (2.0.0-1~bionic) bionic; urgency=medium
+
+  * 2.0 Release Candidate
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 14 Apr 2021 12:17:17 -0500
+
+openkj (1.9.105-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 13 Apr 2021 16:09:08 -0500
+
+openkj (1.9.104-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 13 Apr 2021 13:27:25 -0500
+
+openkj (1.9.103-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 13 Apr 2021 12:20:23 -0500
+
+openkj (1.9.102-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 13 Apr 2021 07:10:03 -0500
+
+openkj (1.9.101-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 12 Apr 2021 08:41:29 -0500
+
+openkj (1.9.100-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 12 Apr 2021 08:03:45 -0500
+
+openkj (1.9.99-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 12 Apr 2021 06:15:18 -0500
+
+openkj (1.9.98-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 12 Apr 2021 05:52:14 -0500
+
+openkj (1.9.97-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 10 Apr 2021 04:19:02 -0500
+
+openkj (1.9.96-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 10 Apr 2021 04:12:14 -0500
+
+openkj (1.9.95-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 10 Apr 2021 03:32:28 -0500
+
+openkj (1.9.94-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 09 Apr 2021 22:59:45 -0500
+
+openkj (1.9.93-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 09 Apr 2021 18:32:04 -0500
+
+openkj (1.9.92-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 09 Apr 2021 16:52:20 -0500
+
+openkj (1.9.91-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 08 Apr 2021 22:20:49 -0500
+
+openkj (1.9.90-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 08 Apr 2021 21:11:49 -0500
+
+openkj (1.9.89-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 08 Apr 2021 15:19:06 -0500
+
+openkj (1.9.88-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 08 Apr 2021 15:02:43 -0500
+
+openkj (1.9.87-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 07 Apr 2021 23:34:24 -0500
+
+openkj (1.9.86-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 07 Apr 2021 22:44:14 -0500
+
+openkj (1.9.85-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 07 Apr 2021 21:33:33 -0500
+
+openkj (1.9.84-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 07 Apr 2021 17:29:24 -0500
+
+openkj (1.9.83-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 07 Apr 2021 08:37:28 -0500
+
+openkj (1.9.82-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 07 Apr 2021 07:19:55 -0500
+
+openkj (1.9.81-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 06 Apr 2021 17:26:33 -0500
+
+openkj (1.9.80-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 05 Apr 2021 21:47:18 -0500
+
+openkj (1.9.79-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 05 Apr 2021 19:43:13 -0500
+
+openkj (1.9.78-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 05 Apr 2021 19:20:00 -0500
+
+openkj (1.9.77-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 05 Apr 2021 15:49:33 -0500
+
+openkj (1.9.76-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 05 Apr 2021 15:34:46 -0500
+
+openkj (1.9.75-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 05 Apr 2021 14:22:39 -0500
+
+openkj (1.9.74-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 05 Apr 2021 14:07:13 -0500
+
+openkj (1.9.73-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 05 Apr 2021 11:39:01 -0500
+
+openkj (1.9.72-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 05 Apr 2021 10:19:33 -0500
+
+openkj (1.9.71-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 02 Apr 2021 14:47:25 -0500
+
+openkj (1.9.70-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 01 Apr 2021 17:03:02 -0500
+
+openkj (1.9.69-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 30 Mar 2021 20:09:18 -0500
+
+openkj (1.9.68-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 30 Mar 2021 20:08:16 -0500
+
+openkj (1.9.67-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 30 Mar 2021 20:08:09 -0500
+
+openkj (1.9.66-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 26 Mar 2021 21:45:13 -0500
+
+openkj (1.9.65-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 19 Mar 2021 17:12:06 -0500
+
+openkj (1.9.64-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 19 Mar 2021 17:11:45 -0500
+
+openkj (1.9.63-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 19 Mar 2021 14:51:19 -0500
+
+openkj (1.9.62-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 19 Mar 2021 01:46:56 -0500
+
+openkj (1.9.61-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 18 Mar 2021 17:42:46 -0500
+
+openkj (1.9.60-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 18 Mar 2021 17:21:07 -0500
+
+openkj (1.9.59-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sun, 14 Mar 2021 18:31:27 -0500
+
+openkj (1.9.58-1~bionic) bionic; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 11 Mar 2021 08:26:54 -0600
+
+openkj (1.9.57-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 11 Mar 2021 08:23:19 -0600
+
+openkj (1.9.56-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 08 Mar 2021 18:25:53 -0600
+
+openkj (1.9.55-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 08 Mar 2021 18:05:37 -0600
+
+openkj (1.9.54-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 08 Mar 2021 17:31:12 -0600
+
+openkj (1.9.53-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 08 Mar 2021 15:42:56 -0600
+
+openkj (1.9.52-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 08 Mar 2021 07:18:12 -0600
+
+openkj (1.9.51-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 06 Mar 2021 18:41:42 -0600
+
+openkj (1.9.50-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 06 Mar 2021 18:34:14 -0600
+
+openkj (1.9.49-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 06 Mar 2021 08:12:46 -0600
+
+openkj (1.9.48-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 06 Mar 2021 06:45:05 -0600
+
+openkj (1.9.47-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 06 Mar 2021 06:41:39 -0600
+
+openkj (1.9.46-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 06 Mar 2021 06:09:43 -0600
+
+openkj (1.9.45-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 04 Mar 2021 19:40:26 -0600
+
+openkj (1.9.44-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 04 Mar 2021 18:09:06 -0600
+
+openkj (1.9.43-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 04 Mar 2021 05:15:56 -0600
+
+openkj (1.9.42-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 27 Feb 2021 15:09:13 -0600
+
+openkj (1.9.41-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 27 Feb 2021 14:14:08 -0600
+
+openkj (1.9.40-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 27 Feb 2021 13:18:53 -0600
+
+openkj (1.9.39-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 26 Feb 2021 11:34:53 -0600
+
+openkj (1.9.38-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 25 Feb 2021 21:32:42 -0600
+
+openkj (1.9.37-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 25 Feb 2021 21:27:30 -0600
+
+openkj (1.9.36-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 25 Feb 2021 12:44:49 -0600
+
+openkj (1.9.35-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 23 Feb 2021 16:11:49 -0600
+
+openkj (1.9.34-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sun, 21 Feb 2021 22:11:23 -0600
+
+openkj (1.9.33-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sun, 21 Feb 2021 20:52:18 -0600
+
+openkj (1.9.32-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 20 Feb 2021 21:12:31 -0600
+
+openkj (1.9.31-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 20 Feb 2021 20:51:36 -0600
+
+openkj (1.9.30-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 20 Feb 2021 06:27:22 -0600
+
+openkj (1.9.29-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 19 Feb 2021 15:46:09 -0600
+
+openkj (1.9.28-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 18 Feb 2021 09:38:58 -0600
+
+openkj (1.9.27-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 17 Feb 2021 17:49:30 -0600
+
+openkj (1.9.26-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 13 Feb 2021 16:45:47 -0600
+
+openkj (1.9.25-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 13 Feb 2021 04:58:05 -0600
+
+openkj (1.9.24-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 12 Feb 2021 21:51:21 -0600
+
+openkj (1.9.24-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 12 Feb 2021 21:40:33 -0600
+
+openkj (1.9.24-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 12 Feb 2021 18:42:31 -0600
+
+openkj (1.9.24-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 12 Feb 2021 00:47:21 -0600
+
+openkj (1.9.23-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 11 Feb 2021 22:19:07 -0600
+
+openkj (1.9.22-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 11 Feb 2021 22:16:42 -0600
+
+openkj (1.9.22-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 11 Feb 2021 16:54:09 -0600
+
+openkj (1.9.22-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 11 Feb 2021 16:36:01 -0600
+
+openkj (1.9.21-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 11 Feb 2021 16:35:27 -0600
+
+openkj (1.9.20-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 11 Feb 2021 16:34:51 -0600
+
+openkj (1.9.20-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 11 Feb 2021 12:16:52 -0600
+
+openkj (1.9.20-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 11 Feb 2021 12:13:24 -0600
+
+openkj (1.9.20-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 11 Feb 2021 00:04:05 -0600
+
+openkj (1.9.19-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 10 Feb 2021 01:33:30 -0600
+
+openkj (1.9.18-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 08 Feb 2021 10:16:30 -0600
+
+openkj (1.9.17-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 05 Feb 2021 03:41:12 -0600
+
+openkj (1.9.17-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 05 Feb 2021 02:26:33 -0600
+
+openkj (1.9.16-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 04 Feb 2021 20:01:55 -0600
+
+openkj (1.9.15-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 13 Jan 2021 00:52:13 -0600
+
+openkj (1.9.14-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 12 Jan 2021 23:56:12 -0600
+
+openkj (1.9.14-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 12 Jan 2021 23:45:25 -0600
+
+openkj (1.9.14-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 12 Jan 2021 20:44:59 -0600
+
+openkj (1.9.14-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 09 Jan 2021 14:30:47 -0600
+
+openkj (1.9.13-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 09 Jan 2021 13:51:15 -0600
+
+openkj (1.9.12-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 09 Jan 2021 13:47:06 -0600
+
+openkj (1.9.11-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 09 Jan 2021 01:03:21 -0600
+
+openkj (1.9.10-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 08 Jan 2021 15:27:50 -0600
+
+openkj (1.9.9-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 08 Jan 2021 15:11:27 -0600
+
+openkj (1.9.8-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 08 Jan 2021 14:56:44 -0600
+
+openkj (1.9.7-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 08 Jan 2021 14:53:58 -0600
+
+openkj (1.9.7-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 08 Jan 2021 14:14:45 -0600
+
+openkj (1.9.7-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 08 Jan 2021 14:08:22 -0600
+
+openkj (1.9.7-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 08 Jan 2021 13:59:50 -0600
+
+openkj (1.9.7-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 08 Jan 2021 13:22:52 -0600
+
+openkj (1.9.7-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 08 Jan 2021 13:16:47 -0600
+
+openkj (1.9.7-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 08 Jan 2021 13:11:44 -0600
+
+openkj (1.9.7-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 06 Jan 2021 23:24:24 -0600
+
+openkj (1.9.6-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 06 Jan 2021 18:01:12 -0600
+
+openkj (1.9.5-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 06 Jan 2021 12:33:54 -0600
+
+openkj (1.9.4-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 30 Dec 2020 23:38:03 -0600
+
+openkj (1.9.3-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 30 Dec 2020 22:50:44 -0600
+
+openkj (1.9.3-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 24 Dec 2020 12:45:53 -0600
+
+openkj (1.9.3-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 24 Dec 2020 02:42:27 -0600
+
+openkj (1.9.3-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 24 Dec 2020 02:27:46 -0600
+
+openkj (1.9.3-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 24 Dec 2020 02:17:17 -0600
+
+openkj (1.9.2-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 24 Dec 2020 01:34:48 -0600
+
+openkj (1.9.2-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 23 Dec 2020 23:07:00 -0600
+
+openkj (1.9.2-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 23 Dec 2020 22:57:52 -0600
+
+openkj (1.9.1-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 23 Dec 2020 20:55:41 -0600
+
+openkj (1.8.0-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 22 Dec 2020 18:50:30 -0600
+
+openkj (1.8.0-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 22 Dec 2020 17:44:15 -0600
+
+openkj (1.8.0-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 09 Dec 2020 13:55:11 -0600
+
+openkj (1.8.0-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 27 Nov 2020 18:03:24 -0600
+
+openkj (1.8.0-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 27 Nov 2020 16:57:45 -0600
+
+openkj (1.8.0-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 27 Nov 2020 11:38:51 -0600
+
+openkj (1.8.0-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 27 Nov 2020 11:34:24 -0600
+
+openkj (1.8.0-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 27 Nov 2020 11:21:48 -0600
+
+openkj (1.8.0-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 27 Nov 2020 02:04:23 -0600
+
+openkj (1.8.0-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 24 Nov 2020 20:14:33 -0600
+
+openkj (1.8.0-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 24 Nov 2020 18:43:53 -0600
+
+openkj (1.8.0-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 24 Nov 2020 16:28:34 -0600
+
+openkj (1.8.0-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 23 Nov 2020 20:14:05 -0600
+
+openkj (1.8.0-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 23 Nov 2020 15:56:01 -0600
+
+openkj (1.8.0-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sun, 22 Nov 2020 23:04:17 -0600
+
+openkj (1.8.0-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sun, 22 Nov 2020 12:33:16 -0600
+
+openkj (1.8.0-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sun, 22 Nov 2020 12:11:04 -0600
+
+openkj (1.8.0-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sun, 22 Nov 2020 12:09:25 -0600
+
+openkj (1.8.0-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 15 Oct 2020 11:15:01 -0500
+
+openkj (1.8.0-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 14 Oct 2020 19:48:24 -0500
+
+openkj (1.8.0-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 14 Oct 2020 19:43:53 -0500
+
+openkj (1.8.0-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 14 Oct 2020 17:55:29 -0500
+
+openkj (1.8.0-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 14 Oct 2020 17:45:15 -0500
+
+openkj (1.8.0-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 25 Sep 2020 20:04:58 -0500
+
+openkj (1.8.0-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 25 Sep 2020 20:03:39 -0500
+
+openkj (1.7.171-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 26 Sep 2020 12:26:12 -0500
+
+openkj (1.7.171-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 25 Sep 2020 20:01:44 -0500
+
+openkj (1.7.170-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 25 Sep 2020 18:48:03 -0500
+
+openkj (1.7.169-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 25 Sep 2020 18:45:32 -0500
+
+openkj (1.7.168-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 24 Sep 2020 14:13:47 -0500
+
+openkj (1.7.167-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 22 Sep 2020 14:24:11 -0500
+
+openkj (1.7.166-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 22 Sep 2020 12:55:37 -0500
+
+openkj (1.7.165-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 22 Sep 2020 11:45:35 -0500
+
+openkj (1.7.164-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 21 Sep 2020 13:47:57 -0500
+
+openkj (1.7.163-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 21 Sep 2020 03:36:48 -0500
+
+openkj (1.7.162-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 21 Sep 2020 03:09:12 -0500
+
+openkj (1.7.161-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 21 Sep 2020 02:11:27 -0500
+
+openkj (1.7.160-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 21 Sep 2020 01:47:19 -0500
+
+openkj (1.7.159-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 21 Sep 2020 01:06:24 -0500
+
+openkj (1.7.158-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sun, 20 Sep 2020 21:35:02 -0500
+
+openkj (1.7.157-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sun, 20 Sep 2020 20:37:12 -0500
+
+openkj (1.7.156-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sun, 20 Sep 2020 20:05:25 -0500
+
+openkj (1.7.155-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sun, 20 Sep 2020 19:58:14 -0500
+
+openkj (1.7.154-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sun, 20 Sep 2020 19:30:23 -0500
+
+openkj (1.7.153-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sun, 20 Sep 2020 07:52:57 -0500
+
+openkj (1.7.152-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sun, 20 Sep 2020 05:28:01 -0500
+
+openkj (1.7.151-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sun, 20 Sep 2020 04:33:49 -0500
+
+openkj (1.7.150-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sun, 20 Sep 2020 04:26:44 -0500
+
+openkj (1.7.149-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sun, 20 Sep 2020 03:04:02 -0500
+
+openkj (1.7.148-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sun, 20 Sep 2020 02:48:20 -0500
+
+openkj (1.7.147-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 19 Sep 2020 12:17:41 -0500
+
+openkj (1.7.146-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 19 Sep 2020 12:01:41 -0500
+
+openkj (1.7.145-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 19 Sep 2020 11:26:50 -0500
+
+openkj (1.7.144-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 19 Sep 2020 11:20:33 -0500
+
+openkj (1.7.143-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 18 Sep 2020 19:30:15 -0500
+
+openkj (1.7.142-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 18 Sep 2020 10:46:05 -0500
+
+openkj (1.7.141-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 18 Sep 2020 10:34:10 -0500
+
+openkj (1.7.140-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 18 Sep 2020 10:24:35 -0500
+
+openkj (1.7.139-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 25 Aug 2020 21:32:22 -0500
+
+openkj (1.7.138-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 25 Aug 2020 21:03:14 -0500
+
+openkj (1.7.137-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 25 Aug 2020 20:32:59 -0500
+
+openkj (1.7.136-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 25 Aug 2020 19:51:53 -0500
+
+openkj (1.7.135-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 25 Aug 2020 19:23:04 -0500
+
+openkj (1.7.134-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 25 Aug 2020 18:51:50 -0500
+
+openkj (1.7.133-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 25 Aug 2020 17:10:42 -0500
+
+openkj (1.7.132-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 25 Aug 2020 16:32:15 -0500
+
+openkj (1.7.131-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 25 Aug 2020 15:54:54 -0500
+
+openkj (1.7.130-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 25 Aug 2020 15:12:20 -0500
+
+openkj (1.7.129-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 24 Aug 2020 18:07:26 -0500
+
+openkj (1.7.128-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 31 Jul 2020 16:14:07 -0500
+
+openkj (1.7.127-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 31 Jul 2020 07:57:58 -0500
+
+openkj (1.7.126-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 30 Jul 2020 16:07:01 -0500
+
+openkj (1.7.125-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 28 Jul 2020 05:41:39 -0500
+
+openkj (1.7.124-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 28 Jul 2020 03:46:31 -0500
+
+openkj (1.7.123-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 24 Jul 2020 07:19:10 -0500
+
+openkj (1.7.122-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 23 Jul 2020 19:40:01 -0500
+
+openkj (1.7.121-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 23 Jul 2020 09:39:53 -0500
+
+openkj (1.7.120-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 23 Jul 2020 06:56:57 -0500
+
+openkj (1.7.119-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 23 Jul 2020 04:09:58 -0500
+
+openkj (1.7.118-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 23 Jul 2020 03:23:08 -0500
+
+openkj (1.7.117-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 23 Jul 2020 03:22:18 -0500
+
+openkj (1.7.116-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 23 Jul 2020 03:20:45 -0500
+
+openkj (1.7.115-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 21 Jul 2020 18:34:03 -0500
+
+openkj (1.7.114-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 21 Jul 2020 18:28:10 -0500
+
+openkj (1.7.113-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 21 Jul 2020 18:21:58 -0500
+
+openkj (1.7.112-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 21 Jul 2020 01:04:54 -0500
+
+openkj (1.7.111-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Mon, 20 Jul 2020 15:14:39 -0500
+
+openkj (1.7.110-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sun, 19 Jul 2020 05:20:36 -0500
+
+openkj (1.7.109-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sun, 19 Jul 2020 03:23:01 -0500
+
+openkj (1.7.108-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sun, 19 Jul 2020 02:27:04 -0500
+
+openkj (1.7.107-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sun, 19 Jul 2020 02:24:58 -0500
+
+openkj (1.7.106-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sun, 19 Jul 2020 02:06:52 -0500
+
+openkj (1.7.105-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 18 Jul 2020 18:46:48 -0500
+
+openkj (1.7.104-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 18 Jul 2020 17:50:19 -0500
+
+openkj (1.7.103-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 18 Jul 2020 16:34:07 -0500
+
+openkj (1.7.102-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 18 Jul 2020 04:21:53 -0500
+
+openkj (1.7.101-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 18 Jul 2020 04:01:53 -0500
+
+openkj (1.7.100-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Sat, 18 Jul 2020 02:57:21 -0500
+
+openkj (1.7.99-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 17 Jul 2020 23:57:24 -0500
+
+openkj (1.7.98-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 17 Jul 2020 19:51:22 -0500
+
+openkj (1.7.97-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Fri, 17 Jul 2020 17:38:36 -0500
+
+openkj (1.7.96-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 17 Jul 2020 09:24:54 -0500
+
+openkj (1.7.95-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 16 Jul 2020 19:35:46 -0500
+
+openkj (1.7.94-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 16 Jul 2020 16:52:11 -0500
+
+openkj (1.7.93-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 16 Jul 2020 16:39:02 -0500
+
+openkj (1.7.92-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 16 Jul 2020 16:27:23 -0500
+
+openkj (1.7.91-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 16 Jul 2020 16:16:55 -0500
+
+openkj (1.7.90-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 16 Jul 2020 13:07:39 -0500
+
+openkj (1.7.89-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 16 Jul 2020 02:12:55 -0500
+
+openkj (1.7.88-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 16 Jul 2020 01:52:10 -0500
+
+openkj (1.7.87-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 16 Jul 2020 00:53:07 -0500
+
+openkj (1.7.86-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 14 Jul 2020 17:56:04 -0500
+
+openkj (1.7.85-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 14 Jul 2020 15:24:35 -0500
+
+openkj (1.7.84-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Tue, 14 Jul 2020 10:58:38 -0500
+
+openkj (1.7.83-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 13 Jul 2020 20:58:46 -0500
+
+openkj (1.7.82-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 13 Jul 2020 19:53:01 -0500
+
+openkj (1.7.81-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 13 Jul 2020 19:35:35 -0500
+
+openkj (1.7.80-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 13 Jul 2020 19:08:51 -0500
+
+openkj (1.7.79-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 13 Jul 2020 17:05:56 -0500
+
+openkj (1.7.78-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 13 Jul 2020 15:45:38 -0500
+
+openkj (1.7.77-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 13 Jul 2020 15:37:53 -0500
+
+openkj (1.7.76-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 13 Jul 2020 14:42:04 -0500
+
+openkj (1.7.75-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 13 Jul 2020 13:45:10 -0500
+
+openkj (1.7.74-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 13 Jul 2020 01:17:02 -0500
+
+openkj (1.7.73-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 13 Jul 2020 01:15:54 -0500
+
+openkj (1.7.72-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Sun, 12 Jul 2020 16:09:47 -0500
+
+openkj (1.7.71-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Sun, 12 Jul 2020 16:07:46 -0500
+
+openkj (1.7.70-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Sun, 12 Jul 2020 16:04:57 -0500
+
+openkj (1.7.69-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 11 Jul 2020 21:47:46 -0500
+
+openkj (1.7.68-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 09 Jul 2020 09:25:24 -0500
+
+openkj (1.7.67-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Thu, 09 Jul 2020 08:38:27 -0500
+
+openkj (1.7.66-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 09 Jul 2020 02:40:14 -0500
+
+openkj (1.7.65-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 09 Jul 2020 02:29:45 -0500
+
+openkj (1.7.64-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 09 Jul 2020 02:13:14 -0500
+
+openkj (1.7.63-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 09 Jul 2020 02:00:35 -0500
+
+openkj (1.7.62-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 09 Jul 2020 01:40:54 -0500
+
+openkj (1.7.61-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 09 Jul 2020 01:40:11 -0500
+
+openkj (1.7.60-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Mon, 22 Jun 2020 00:57:51 -0500
+
+openkj (1.7.59-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Sat, 20 Jun 2020 04:33:36 -0500
+
+openkj (1.7.58-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 10 Jun 2020 15:40:14 -0500
+
+openkj (1.7.57-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 10 Jun 2020 15:39:52 -0500
+
+openkj (1.7.56-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 10 Jun 2020 13:57:51 -0500
+
+openkj (1.7.55-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 10 Jun 2020 05:13:19 -0500
+
+openkj (1.7.54-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychotic.hm.hozed.net>  Wed, 10 Jun 2020 03:29:56 -0500
+
+openkj (1.7.48-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Sun, 05 Apr 2020 08:13:06 -0500
+
+openkj (1.7.47-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychopath.hm.hozed.net>  Sat, 07 Mar 2020 19:58:17 -0600
+
+openkj (1.7.46-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychopath.hm.hozed.net>  Fri, 06 Mar 2020 17:53:07 -0600
+
+openkj (1.7.45-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychopath.hm.hozed.net>  Fri, 06 Mar 2020 17:26:42 -0600
+
+openkj (1.7.44-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychopath.hm.hozed.net>  Fri, 06 Mar 2020 12:22:59 -0600
+
+openkj (1.7.43-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychopath.hm.hozed.net>  Fri, 06 Mar 2020 11:02:21 -0600
+
+openkj (1.7.42-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychopath.hm.hozed.net>  Fri, 06 Mar 2020 10:43:27 -0600
+
+openkj (1.7.41-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychopath.hm.hozed.net>  Fri, 06 Mar 2020 09:53:20 -0600
+
+openkj (1.7.40-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychopath.hm.hozed.net>  Thu, 05 Mar 2020 11:13:25 -0600
+
+openkj (1.7.39-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychopath.hm.hozed.net>  Wed, 04 Mar 2020 18:32:00 -0600
+
+openkj (1.7.38-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychopath.hm.hozed.net>  Wed, 04 Mar 2020 17:22:38 -0600
+
+openkj (1.7.37-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychopath.hm.hozed.net>  Wed, 04 Mar 2020 13:01:00 -0600
+
+openkj (1.7.36-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychopath.hm.hozed.net>  Fri, 21 Feb 2020 18:43:02 -0600
+
+openkj (1.7.35-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychopath.hm.hozed.net>  Fri, 21 Feb 2020 16:43:36 -0600
+
+openkj (1.7.34-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychopath.hm.hozed.net>  Fri, 21 Feb 2020 14:37:26 -0600
+
+openkj (1.7.33-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 20 Feb 2020 23:58:58 -0600
+
+openkj (1.7.32-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 20 Feb 2020 23:40:45 -0600
+
+openkj (1.7.31-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 20 Feb 2020 23:15:22 -0600
+
+openkj (1.7.30-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychopath.hm.hozed.net>  Wed, 19 Feb 2020 23:25:15 -0600
+
+openkj (1.7.29-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@psychopath.hm.hozed.net>  Wed, 19 Feb 2020 23:03:41 -0600
+
+openkj (1.7.27-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Tue, 17 Dec 2019 11:26:16 -0600
+
+openkj (1.7.26-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Sat, 14 Dec 2019 19:35:28 -0600
+
+openkj (1.7.25-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 12 Dec 2019 06:04:04 -0600
+
+openkj (1.7.24-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 12 Dec 2019 05:25:33 -0600
+
+openkj (1.7.23-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 12 Dec 2019 05:10:03 -0600
+
+openkj (1.7.22-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 12 Dec 2019 04:48:38 -0600
+
+openkj (1.7.21-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 12 Dec 2019 04:40:00 -0600
+
+openkj (1.7.20-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 12 Dec 2019 03:42:35 -0600
+
+openkj (1.7.19-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 12 Dec 2019 01:25:06 -0600
+
+openkj (1.7.18-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 12 Dec 2019 00:45:46 -0600
+
+openkj (1.7.17-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Wed, 11 Dec 2019 18:45:49 -0600
+
+openkj (1.7.16-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Wed, 11 Dec 2019 18:45:32 -0600
+
+openkj (1.7.15-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Wed, 11 Dec 2019 17:23:20 -0600
+
+openkj (1.7.14-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Wed, 11 Dec 2019 12:31:03 -0600
+
+openkj (1.7.13-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Wed, 11 Dec 2019 10:44:05 -0600
+
+openkj (1.7.12-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Tue, 10 Dec 2019 23:42:58 -0600
+
+openkj (1.7.11-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 06 Dec 2019 12:23:42 -0600
+
+openkj (1.7.10-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 06 Dec 2019 11:01:33 -0600
+
+openkj (1.7.9-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 06 Dec 2019 11:01:18 -0600
+
+openkj (1.7.8-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 18 Oct 2019 07:31:36 -0500
+
+openkj (1.7.7-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 11 Oct 2019 18:03:03 -0500
+
+openkj (1.7.6-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 11 Oct 2019 16:59:24 -0500
+
+openkj (1.7.5-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 11 Oct 2019 16:43:10 -0500
+
+openkj (1.7.4-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Tue, 08 Oct 2019 17:05:55 -0500
+
+openkj (1.7.3-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Mon, 07 Oct 2019 20:11:50 -0500
+
+openkj (1.7.2-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Mon, 07 Oct 2019 18:31:22 -0500
+
+openkj (1.7.1-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Mon, 07 Oct 2019 16:41:18 -0500
+
+openkj (1.5.129-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Mon, 07 Oct 2019 14:43:57 -0500
+
+openkj (1.5.128-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 27 Sep 2019 12:43:44 -0500
+
+openkj (1.5.127-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Wed, 25 Sep 2019 23:09:52 -0500
+
+openkj (1.5.126-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Wed, 25 Sep 2019 15:56:17 -0500
+
+openkj (1.5.125-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Wed, 25 Sep 2019 14:28:02 -0500
+
+openkj (1.5.124-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Wed, 25 Sep 2019 13:19:29 -0500
+
+openkj (1.5.123-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Wed, 25 Sep 2019 13:09:49 -0500
+
+openkj (1.5.122-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Mon, 23 Sep 2019 11:39:04 -0500
+
+openkj (1.5.121-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Sat, 21 Sep 2019 18:50:03 -0500
+
+openkj (1.5.120-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 20 Sep 2019 06:18:31 -0500
+
+openkj (1.5.119-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 20 Sep 2019 02:45:28 -0500
+
+openkj (1.5.118-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 20 Sep 2019 02:14:41 -0500
+
+openkj (1.5.116-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Sat, 14 Sep 2019 17:28:15 -0500
+
+openkj (1.5.115-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Sat, 14 Sep 2019 16:48:02 -0500
+
+openkj (1.5.114-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Sat, 14 Sep 2019 16:06:43 -0500
+
+openkj (1.5.113-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 12 Sep 2019 13:58:06 -0500
+
+openkj (1.5.112-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 12 Sep 2019 13:45:25 -0500
+
+openkj (1.5.111-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Wed, 11 Sep 2019 10:06:01 -0500
+
+openkj (1.5.110-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Wed, 11 Sep 2019 10:01:36 -0500
+
+openkj (1.5.109-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Wed, 11 Sep 2019 10:01:00 -0500
+
+openkj (1.5.108-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 05 Sep 2019 20:23:48 -0500
+
+openkj (1.5.107-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 05 Sep 2019 12:23:56 -0500
+
+openkj (1.5.106-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Wed, 04 Sep 2019 22:43:42 -0500
+
+openkj (1.5.105-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Mon, 02 Sep 2019 01:02:25 -0500
+
+openkj (1.5.104-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Mon, 02 Sep 2019 00:52:25 -0500
+
+openkj (1.5.103-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 30 Aug 2019 13:14:25 -0500
+
+openkj (1.5.102-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 29 Aug 2019 18:55:14 -0500
+
+openkj (1.5.101-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 29 Aug 2019 10:29:54 -0500
+
+openkj (1.5.100-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Wed, 28 Aug 2019 11:35:22 -0500
+
+openkj (1.5.99-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Tue, 27 Aug 2019 10:37:00 -0500
+
+openkj (1.5.98-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Mon, 26 Aug 2019 10:57:40 -0500
+
+openkj (1.5.97-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 23 Aug 2019 11:48:55 -0500
+
+openkj (1.5.96-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 22 Aug 2019 22:11:04 -0500
+
+openkj (1.5.95-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Mon, 29 Jul 2019 13:53:42 -0500
+
+openkj (1.5.94-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Mon, 29 Jul 2019 13:47:07 -0500
+
+openkj (1.5.93-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Sat, 27 Jul 2019 18:25:15 -0500
+
+openkj (1.5.92-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Sat, 27 Jul 2019 18:24:44 -0500
+
+openkj (1.5.91-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 26 Jul 2019 16:20:28 -0500
+
+openkj (1.5.90-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 26 Jul 2019 16:15:23 -0500
+
+openkj (1.5.89-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Wed, 24 Jul 2019 15:36:13 -0500
+
+openkj (1.5.88-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Wed, 24 Jul 2019 14:27:38 -0500
+
+openkj (1.5.87-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 19 Jul 2019 16:36:56 -0500
+
+openkj (1.5.86-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 19 Jul 2019 15:26:07 -0500
+
+openkj (1.5.85-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 19 Jul 2019 15:10:57 -0500
+
+openkj (1.5.84-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 19 Jul 2019 13:54:34 -0500
+
+openkj (1.5.83-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 19 Jul 2019 12:28:14 -0500
+
+openkj (1.5.82-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 11 Jul 2019 16:43:03 -0500
+
+openkj (1.5.81-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 11 Jul 2019 16:05:23 -0500
+
+openkj (1.5.80-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 11 Jul 2019 12:20:51 -0500
+
+openkj (1.5.79-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 11 Jul 2019 09:31:02 -0500
+
+openkj (1.5.78-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Wed, 10 Jul 2019 19:59:55 -0500
+
+openkj (1.5.77-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Sat, 06 Jul 2019 16:11:58 -0500
+
+openkj (1.5.76-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Sat, 06 Jul 2019 16:06:40 -0500
+
+openkj (1.5.75-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Sat, 06 Jul 2019 15:58:05 -0500
+
+openkj (1.5.74-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Sat, 06 Jul 2019 15:45:17 -0500
+
+openkj (1.5.73-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 05 Jul 2019 19:48:01 -0500
+
+openkj (1.5.72-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 05 Jul 2019 18:52:42 -0500
+
+openkj (1.5.71-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 05 Jul 2019 18:23:03 -0500
+
+openkj (1.5.70-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 28 Jun 2019 18:51:05 -0500
+
+openkj (1.5.69-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 28 Jun 2019 16:11:14 -0500
+
+openkj (1.5.68-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 28 Jun 2019 15:09:11 -0500
+
+openkj (1.5.67-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 27 Jun 2019 19:30:20 -0500
+
+openkj (1.5.66-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 27 Jun 2019 19:19:12 -0500
+
+openkj (1.5.65-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 27 Jun 2019 16:21:41 -0500
+
+openkj (1.5.64-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Wed, 26 Jun 2019 17:34:45 -0500
+
+openkj (1.5.63-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Wed, 26 Jun 2019 17:01:35 -0500
+
+openkj (1.5.62-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Wed, 26 Jun 2019 13:07:15 -0500
+
+openkj (1.5.61-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Wed, 26 Jun 2019 12:42:05 -0500
+
+openkj (1.5.60-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Tue, 25 Jun 2019 02:56:18 -0500
+
+openkj (1.5.59-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Tue, 25 Jun 2019 02:04:52 -0500
+
+openkj (1.5.58-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 21 Jun 2019 11:08:42 -0500
+
+openkj (1.5.57-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 20 Jun 2019 03:44:53 -0500
+
+openkj (1.5.56-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 20 Jun 2019 03:38:15 -0500
+
+openkj (1.5.55-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 31 May 2019 17:02:24 -0500
+
+openkj (1.5.54-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 31 May 2019 15:20:52 -0500
+
+openkj (1.5.53-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 30 May 2019 19:40:09 -0500
+
+openkj (1.5.52-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Thu, 30 May 2019 14:22:40 -0500
+
+openkj (1.5.51-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Tue, 30 Apr 2019 13:57:32 -0500
+
+openkj (1.5.50-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Tue, 30 Apr 2019 13:48:43 -0500
+
+openkj (1.5.49-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Tue, 30 Apr 2019 12:12:01 -0500
+
+openkj (1.5.48-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Tue, 30 Apr 2019 11:51:51 -0500
+
+openkj (1.5.47-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Tue, 30 Apr 2019 11:37:00 -0500
+
+openkj (1.5.46-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Tue, 30 Apr 2019 11:25:19 -0500
+
+openkj (1.5.45-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Tue, 30 Apr 2019 11:20:00 -0500
+
+openkj (1.5.44-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Tue, 30 Apr 2019 09:57:26 -0500
+
+openkj (1.5.43-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 12 Apr 2019 02:17:19 -0500
+
+openkj (1.5.42-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps.hm.hozed.net>  Fri, 12 Apr 2019 02:08:49 -0500
+
+openkj (1.5.33-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 01 Mar 2019 06:42:55 -0600
+
+openkj (1.5.32-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 28 Feb 2019 10:11:42 -0600
+
+openkj (1.5.31-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Wed, 13 Feb 2019 21:42:54 -0600
+
+openkj (1.5.30-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 07 Feb 2019 18:12:56 -0600
+
+openkj (1.5.29-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Mon, 04 Feb 2019 19:49:14 -0600
+
+openkj (1.5.28-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Sun, 03 Feb 2019 23:23:17 -0600
+
+openkj (1.5.27-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Sun, 03 Feb 2019 20:39:06 -0600
+
+openkj (1.5.26-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 31 Jan 2019 22:42:33 -0600
+
+openkj (1.5.25-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 31 Jan 2019 22:23:14 -0600
+
+openkj (1.5.24-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Wed, 30 Jan 2019 21:21:33 -0600
+
+openkj (1.5.23-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Wed, 30 Jan 2019 21:20:53 -0600
+
+openkj (1.5.22-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 04 Jan 2019 13:08:05 -0600
+
+openkj (1.5.21-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 20 Dec 2018 13:33:08 -0600
+
+openkj (1.5.20-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Mon, 17 Dec 2018 21:47:07 -0600
+
+openkj (1.5.19-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Mon, 17 Dec 2018 20:51:48 -0600
+
+openkj (1.5.18-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 14 Dec 2018 05:57:25 -0600
+
+openkj (1.5.17-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 14 Dec 2018 05:02:01 -0600
+
+openkj (1.5.16-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 14 Dec 2018 04:57:55 -0600
+
+openkj (1.5.15-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 14 Dec 2018 03:05:24 -0600
+
+openkj (1.5.14-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 14 Dec 2018 02:37:23 -0600
+
+openkj (1.5.13-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 13 Dec 2018 23:58:58 -0600
+
+openkj (1.5.12-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 13 Dec 2018 21:21:29 -0600
+
+openkj (1.5.11-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 13 Dec 2018 19:37:13 -0600
+
+openkj (1.5.10-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 27 Nov 2018 16:19:08 -0600
+
+openkj (1.5.9-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 27 Nov 2018 15:09:07 -0600
+
+openkj (1.5.8-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 23 Nov 2018 10:41:18 -0600
+
+openkj (1.5.7-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 06 Nov 2018 21:01:43 -0600
+
+openkj (1.5.6-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 06 Nov 2018 20:56:32 -0600
+
+openkj (1.5.5-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 06 Nov 2018 01:20:34 -0600
+
+openkj (1.5.4-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Sun, 04 Nov 2018 20:08:37 -0600
+
+openkj (1.5.3-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Sun, 04 Nov 2018 20:06:16 -0600
+
+openkj (1.5.2-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 12 Oct 2018 17:52:02 -0500
+
+openkj (1.5.1-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 12 Oct 2018 13:45:23 -0500
+
+openkj (1.5.0-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Wed, 10 Oct 2018 15:05:25 -0500
+
+openkj (1.3.123-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 28 Sep 2018 19:49:38 -0500
+
+openkj (1.3.122-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 28 Sep 2018 19:04:43 -0500
+
+openkj (1.3.121-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 25 Sep 2018 01:34:56 -0500
+
+openkj (1.3.120-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Wed, 05 Sep 2018 15:49:31 -0500
+
+openkj (1.3.119-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Wed, 05 Sep 2018 13:44:40 -0500
+
+openkj (1.3.118-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Sat, 01 Sep 2018 15:03:33 -0500
+
+openkj (1.3.117-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 31 Aug 2018 13:38:16 -0500
+
+openkj (1.3.116-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 31 Aug 2018 04:14:24 -0500
+
+openkj (1.3.115-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 30 Aug 2018 18:38:57 -0500
+
+openkj (1.3.114-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 30 Aug 2018 18:37:59 -0500
+
+openkj (1.3.113-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 30 Aug 2018 16:56:45 -0500
+
+openkj (1.3.112-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 28 Aug 2018 08:55:06 -0500
+
+openkj (1.3.111-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Sun, 26 Aug 2018 23:30:12 -0500
+
+openkj (1.3.110-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 24 Aug 2018 17:17:32 -0500
+
+openkj (1.3.109-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 24 Aug 2018 16:26:19 -0500
+
+openkj (1.3.108-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 24 Aug 2018 15:29:48 -0500
+
+openkj (1.3.107-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 24 Aug 2018 03:03:38 -0500
+
+openkj (1.3.106-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 23 Aug 2018 17:39:50 -0500
+
+openkj (1.3.105-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 23 Aug 2018 15:54:30 -0500
+
+openkj (1.3.104-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 23 Aug 2018 14:39:04 -0500
+
+openkj (1.3.103-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 23 Aug 2018 12:36:13 -0500
+
+openkj (1.3.102-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 23 Aug 2018 01:57:51 -0500
+
+openkj (1.3.101-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Wed, 22 Aug 2018 15:28:50 -0500
+
+openkj (1.3.100-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Wed, 22 Aug 2018 14:02:58 -0500
+
+openkj (1.3.99-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Wed, 22 Aug 2018 13:20:30 -0500
+
+openkj (1.3.98-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Wed, 22 Aug 2018 11:33:46 -0500
+
+openkj (1.3.97-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 21 Aug 2018 19:14:44 -0500
+
+openkj (1.3.96-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 21 Aug 2018 17:23:13 -0500
+
+openkj (1.3.95-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 21 Aug 2018 17:16:11 -0500
+
+openkj (1.3.94-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 21 Aug 2018 16:41:47 -0500
+
+openkj (1.3.93-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 21 Aug 2018 15:39:04 -0500
+
+openkj (1.3.92-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 21 Aug 2018 15:14:21 -0500
+
+openkj (1.3.91-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Mon, 20 Aug 2018 19:29:29 -0500
+
+openkj (1.3.90-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Mon, 20 Aug 2018 19:13:44 -0500
+
+openkj (1.3.89-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Mon, 20 Aug 2018 18:01:32 -0500
+
+openkj (1.3.88-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Mon, 20 Aug 2018 17:35:42 -0500
+
+openkj (1.3.87-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Mon, 20 Aug 2018 16:20:14 -0500
+
+openkj (1.3.86-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Mon, 20 Aug 2018 16:18:49 -0500
+
+openkj (1.3.85-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 17 Aug 2018 05:24:48 -0500
+
+openkj (1.3.84-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 17 Aug 2018 04:37:21 -0500
+
+openkj (1.3.83-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 16 Aug 2018 12:58:22 -0500
+
+openkj (1.3.82-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 16 Aug 2018 12:49:24 -0500
+
+openkj (1.3.81-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 16 Aug 2018 12:32:15 -0500
+
+openkj (1.3.80-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 16 Aug 2018 12:23:11 -0500
+
+openkj (1.3.79-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 16 Aug 2018 11:44:24 -0500
+
+openkj (1.3.78-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 31 Jul 2018 00:02:28 -0500
+
+openkj (1.3.77-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Mon, 30 Jul 2018 22:42:39 -0500
+
+openkj (1.3.76-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Mon, 30 Jul 2018 22:27:57 -0500
+
+openkj (1.3.75-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 13 Jul 2018 17:17:01 -0500
+
+openkj (1.3.74-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 06 Jul 2018 15:39:32 -0500
+
+openkj (1.3.73-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 06 Jul 2018 13:22:37 -0500
+
+openkj (1.3.72-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 06 Jul 2018 13:01:06 -0500
+
+openkj (1.3.71-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Wed, 27 Jun 2018 14:29:05 -0500
+
+openkj (1.3.70-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 26 Jun 2018 22:02:42 -0500
+
+openkj (1.3.69-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 26 Jun 2018 21:12:34 -0500
+
+openkj (1.3.68-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 26 Jun 2018 20:19:55 -0500
+
+openkj (1.3.67-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 26 Jun 2018 19:58:04 -0500
+
+openkj (1.3.66-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 19 Jun 2018 07:51:08 -0500
+
+openkj (1.3.65-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 19 Jun 2018 07:04:54 -0500
+
+openkj (1.3.64-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 19 Jun 2018 06:59:54 -0500
+
+openkj (1.3.63-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 19 Jun 2018 05:56:45 -0500
+
+openkj (1.3.62-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 01 Jun 2018 14:39:44 -0500
+
+openkj (1.3.61-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 01 Jun 2018 14:04:10 -0500
+
+openkj (1.3.60-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 01 Jun 2018 09:25:35 -0500
+
+openkj (1.3.59-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 25 May 2018 11:35:10 -0500
+
+openkj (1.3.58-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Wed, 23 May 2018 13:25:39 -0500
+
+openkj (1.3.57-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Wed, 23 May 2018 13:14:05 -0500
+
+openkj (1.3.56-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Wed, 23 May 2018 13:09:43 -0500
+
+openkj (1.3.55-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Wed, 23 May 2018 13:01:57 -0500
+
+openkj (1.3.54-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Wed, 23 May 2018 10:40:44 -0500
+
+openkj (1.3.53-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 22 May 2018 13:33:33 -0500
+
+openkj (1.3.52-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 22 May 2018 13:32:54 -0500
+
+openkj (1.3.51-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Mon, 21 May 2018 09:42:59 -0500
+
+openkj (1.3.50-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Sat, 19 May 2018 17:53:17 -0500
+
+openkj (1.3.49-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Sat, 19 May 2018 17:37:59 -0500
+
+openkj (1.3.48-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Sat, 19 May 2018 17:25:44 -0500
+
+openkj (1.3.47-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 11 May 2018 18:49:24 -0500
+
+openkj (1.3.46-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 11 May 2018 18:29:07 -0500
+
+openkj (1.3.45-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 11 May 2018 18:24:20 -0500
+
+openkj (1.3.44-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 10 May 2018 23:52:21 -0500
+
+openkj (1.3.43-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 10 May 2018 23:48:33 -0500
+
+openkj (1.3.42-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 10 May 2018 20:00:38 -0500
+
+openkj (1.3.41-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 10 May 2018 19:22:21 -0500
+
+openkj (1.3.40-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Wed, 09 May 2018 16:37:56 -0500
+
+openkj (1.3.39-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 08 May 2018 14:44:05 -0500
+
+openkj (1.3.38-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 08 May 2018 14:22:20 -0500
+
+openkj (1.3.37-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Sat, 05 May 2018 19:23:52 -0500
+
+openkj (1.3.36-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 04 May 2018 19:58:28 -0500
+
+openkj (1.3.35-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 04 May 2018 19:58:18 -0500
+
+openkj (1.3.34-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 04 May 2018 12:28:12 -0500
+
+openkj (1.3.33-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 04 May 2018 12:05:08 -0500
+
+openkj (1.3.32-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 04 May 2018 11:56:54 -0500
+
+openkj (1.3.31-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 04 May 2018 11:43:18 -0500
+
+openkj (1.3.30-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 04 May 2018 11:37:45 -0500
+
+openkj (1.3.29-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 04 May 2018 11:37:41 -0500
+
+openkj (1.3.28-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 04 May 2018 11:17:27 -0500
+
+openkj (1.3.27-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 04 May 2018 11:13:43 -0500
+
+openkj (1.3.26-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 03 May 2018 22:20:57 -0500
+
+openkj (1.3.25-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 03 May 2018 13:13:51 -0500
+
+openkj (1.3.24-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 03 May 2018 11:37:28 -0500
+
+openkj (1.3.23-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 03 May 2018 11:17:32 -0500
+
+openkj (1.3.22-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 03 May 2018 00:42:28 -0500
+
+openkj (1.3.21-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 03 May 2018 00:37:26 -0500
+
+openkj (1.3.20-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Wed, 02 May 2018 17:04:20 -0500
+
+openkj (1.3.19-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Wed, 02 May 2018 16:22:40 -0500
+
+openkj (1.3.18-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Wed, 02 May 2018 14:32:04 -0500
+
+openkj (1.3.17-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Wed, 02 May 2018 14:11:17 -0500
+
+openkj (1.3.16-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Wed, 02 May 2018 13:13:03 -0500
+
+openkj (1.3.15-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 01 May 2018 19:55:17 -0500
+
+openkj (1.3.14-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 01 May 2018 17:06:24 -0500
+
+openkj (1.3.13-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 01 May 2018 16:48:38 -0500
+
+openkj (1.3.13-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 01 May 2018 16:47:18 -0500
+
+openkj (1.3.12-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 01 May 2018 01:02:32 -0500
+
+openkj (1.3.12-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 01 May 2018 00:39:52 -0500
+
+openkj (1.3.12-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 01 May 2018 00:36:20 -0500
+
+openkj (1.3.11-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 26 Apr 2018 22:58:29 -0500
+
+openkj (1.3.11-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 20 Apr 2018 16:19:28 -0500
+
+openkj (1.3.10-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 20 Apr 2018 15:56:26 -0500
+
+openkj (1.3.9-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 20 Apr 2018 15:55:32 -0500
+
+openkj (1.3.8-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 20 Apr 2018 15:46:03 -0500
+
+openkj (1.3.8-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 20 Apr 2018 15:40:53 -0500
+
+openkj (1.3.8-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Fri, 20 Apr 2018 15:39:57 -0500
+
+openkj (1.3.8-1~xenial) xenial; urgency=medium
+
+  * Autobuild from git tag
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Tue, 17 Apr 2018 02:08:45 -0500
+
+openkj (0.11.0-1ubuntu1) unstable; urgency=medium
+
+  [ root ]
+  * Fighting stupid packaging tricks 
+
+ -- Isaac Lightburn <lightburnisaac@xps13.hm.hozed.net>  Thu, 12 Apr 2018 21:11:32 -0500
+
+openkj (0.11.0-1) unstable; urgency=medium
+
+  * Initial ubuntu package
+
+ -- Isaac Lightburn <isaac@hozed.net>  Wed, 16 Aug 2017 04:51:05 +0000
