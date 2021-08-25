@@ -32,7 +32,7 @@ void TickerNew::run() {
             mutex.unlock();
         }
         curOffset++;
-        this->usleep(m_speed / 2 * 250);
+        TickerNew::usleep(m_speed / 2 * 250);
     }
 }
 
@@ -52,15 +52,16 @@ void TickerNew::stop()
 TickerNew::TickerNew()
 {
     setText("No ticker data");
+    setObjectName("Ticker");
 }
 
-const QSize TickerNew::getSize()
+QSize TickerNew::getSize()
 {
     //qInfo() << "Locking mutex in getSize()";
     if (!mutex.tryLock(100))
     {
         qWarning() << "TickerNew - getSize() unable to lock mutex!";
-        return QSize();
+        return {};
     }
     //mutex.lock();
     QSize size = scrollImage.size();
@@ -91,7 +92,7 @@ void TickerNew::setTickerGeometry(const int width, const int height)
     qInfo() << "TickerNew - setTickerGeometry() completed";
 }
 
-void TickerNew::setText(QString text)
+void TickerNew::setText(const QString& text)
 {
     qInfo() << "TickerNew - setText(" << text << ") called";
     //qInfo() << "Locking mutex in setText()";
@@ -173,7 +174,6 @@ TickerDisplayWidget::TickerDisplayWidget(QWidget *parent)
     : QWidget(parent)
 {
     ticker = new TickerNew();
-    ticker->setPriority(QThread::TimeCriticalPriority);
     ticker->setTickerGeometry(this->width(), this->height());
     connect(ticker, &TickerNew::newFrame, this, &TickerDisplayWidget::newFrame);
     connect(ticker, &TickerNew::newFrameRect, this, &TickerDisplayWidget::newFrameRect);
@@ -188,7 +188,7 @@ TickerDisplayWidget::~TickerDisplayWidget()
     delete ticker;
 }
 
-void TickerDisplayWidget::setText(const QString newText)
+void TickerDisplayWidget::setText(const QString& newText)
 {
     ticker->setText(newText);
     setFixedHeight(ticker->getSize().height());
@@ -212,8 +212,10 @@ void TickerDisplayWidget::stop()
 void TickerDisplayWidget::setTickerEnabled(bool enabled)
 {
     qInfo() << "TickerDisplayWidget - setTickerEnabled(" << enabled << ") called";
-    if (enabled && !ticker->isRunning())
+    if (enabled && !ticker->isRunning()) {
         ticker->start();
+        ticker->setPriority(QThread::TimeCriticalPriority);
+    }
     else if (!enabled && ticker->isRunning())
         ticker->stop();
 }
@@ -224,7 +226,7 @@ void TickerDisplayWidget::resizeEvent(QResizeEvent *event)
     ticker->setTickerGeometry(event->size().width(), event->size().height());
 }
 
-void TickerDisplayWidget::newFrameRect(const QPixmap frame, const QRect displayArea)
+void TickerDisplayWidget::newFrameRect(const QPixmap& frame, const QRect displayArea)
 {
     rectBasedDrawing = true;
     m_image = frame;
@@ -241,7 +243,7 @@ void TickerDisplayWidget::newRect(const QRect displayArea)
     update();
 }
 
-void TickerDisplayWidget::newFrame(const QPixmap frame)
+void TickerDisplayWidget::newFrame(const QPixmap& frame)
 {
     if (!isVisible())
         return;

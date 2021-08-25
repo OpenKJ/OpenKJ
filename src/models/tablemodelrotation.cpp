@@ -7,10 +7,12 @@
 #include <QMimeData>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <spdlog/spdlog.h>
 
 
 TableModelRotation::TableModelRotation(QObject *parent)
         : QAbstractTableModel(parent) {
+    m_logger = spdlog::get("logger");
     resizeIconsForFont(m_settings.applicationFont());
     m_rotationTopSingerId = m_settings.lastRunRotationTopSingerId();
 }
@@ -101,13 +103,12 @@ QVariant TableModelRotation::data(const QModelIndex &index, int role) const {
         toolTipText += "\nTime Added: " + m_singers.at(index.row()).addTs.toString("h:mm a");
 
         if (totalWaitDuration > 0) {
-            int hours = 0;
             int minutes = totalWaitDuration / 60;
             int seconds = totalWaitDuration % 60;
             if (seconds > 0)
                 minutes++;
             if (minutes > 60) {
-                hours = minutes / 60;
+                int hours = minutes / 60;
                 minutes = minutes % 60;
                 if (hours > 1)
                     toolTipText += "\nEst wait time: " + QString::number(hours) + " hours " + QString::number(minutes) +
@@ -190,6 +191,7 @@ QVariant TableModelRotation::data(const QModelIndex &index, int role) const {
 }
 
 void TableModelRotation::loadData() {
+    m_logger->debug("{} loading rotation data from disk", m_loggingPrefix);
     emit layoutAboutToBeChanged();
     m_singers.clear();
     QSqlQuery query;
@@ -205,10 +207,11 @@ void TableModelRotation::loadData() {
         });
     }
     emit layoutChanged();
-    qInfo() << "Loaded " << m_singers.size() << " rotation singers";
+    m_logger->debug("{} loaded {} rotation singers", m_loggingPrefix, m_singers.size());
 }
 
 void TableModelRotation::commitChanges() {
+    m_logger->debug("{} Committing db changes to disk", m_loggingPrefix);
     QSqlQuery query;
     query.exec("BEGIN TRANSACTION");
     query.exec("DELETE FROM rotationsingers");
@@ -224,9 +227,14 @@ void TableModelRotation::commitChanges() {
         query.exec();
     });
     query.exec("COMMIT");
+    if ( auto lastError = query.lastError(); lastError.type() != QSqlError::NoError)
+        m_logger->error("{} Commit error! Unable to write rotation changes to db on disk! Error: {}", m_loggingPrefix, lastError.text().toStdString());
+    else
+        m_logger->debug("{} Commit completed successfully", m_loggingPrefix);
 }
 
 int TableModelRotation::singerAdd(const QString &name, const int positionHint) {
+    m_logger->debug("{} Adding singer {} to rotation using positionHint {}", m_loggingPrefix, name.toStdString(), positionHint);
     auto curTs = QDateTime::currentDateTime();
     int addPos = static_cast<int>(m_singers.size());
     QSqlQuery query;
@@ -238,13 +246,15 @@ int TableModelRotation::singerAdd(const QString &name, const int positionHint) {
     query.bindValue(":regularid", -1);
     query.bindValue(":addts", curTs);
     query.exec();
+    if ( auto lastError = query.lastError(); lastError.type() != QSqlError::NoError)
+        m_logger->error("{} Commit error! Unable to write rotation changes to db on disk while adding singer! Error: {}", m_loggingPrefix, lastError.text().toStdString());
     int singerId = query.lastInsertId().toInt();
     if (m_singers.empty()) {
         m_rotationTopSingerId = singerId;
         m_settings.setLastRunRotationTopSingerId(singerId);
     }
     if (singerId == -1) {
-        qCritical() << "ERROR ADDING SINGER TO DB!!!";
+        m_logger->critical("{} Error occurred while inserting singer into the database singers table!!!", m_loggingPrefix);
         return -1;
     }
     emit layoutAboutToBeChanged();
@@ -279,14 +289,19 @@ int TableModelRotation::singerAdd(const QString &name, const int positionHint) {
 
 
     emit rotationModified();
+    m_logger->debug("{} Singer add completed", m_loggingPrefix);
     outputRotationDebug();
     return singerId;
 }
 
 void TableModelRotation::singerMove(const int oldPosition, const int newPosition, const bool skipCommit) {
-    qInfo() << "singerMove called - oldpos: " << oldPosition << " newpos: " << newPosition;
     if (oldPosition == newPosition)
         return;
+    if (auto singer = getSingerAtPosition(oldPosition); singer != std::nullopt)
+        m_logger->debug("{} Moving singer - Name: {} - Old postion: {} - New position: {} - Skip DB commit: {}",
+                        m_loggingPrefix, singer->name.toStdString(), oldPosition, newPosition, skipCommit);
+    else
+        m_logger->error("{} Error loading singer by position!!");
     emit layoutAboutToBeChanged();
     if (oldPosition > newPosition) {
         // moving up
@@ -312,15 +327,19 @@ void TableModelRotation::singerMove(const int oldPosition, const int newPosition
         commitChanges();
     emit layoutChanged();
     emit rotationModified();
+    m_logger->debug("{} Singer move completed.", m_loggingPrefix);
     outputRotationDebug();
 }
 
 void TableModelRotation::singerSetName(const int singerId, const QString &newName) {
+    auto singerName = getSingerName(singerId);
+    m_logger->debug("{} Renaming singer '{}' to '{}'", m_loggingPrefix, singerName.toStdString(),
+                    newName.toStdString());
     auto it = std::find_if(m_singers.begin(), m_singers.end(), [&singerId](RotationSinger &singer) {
         return (singer.id == singerId);
     });
     if (it == m_singers.end()) {
-        qCritical() << "singerSetName - Unable to find singer!!!";
+        m_logger->critical("{} Unable to find singer!!!", m_loggingPrefix);
         return;
     }
     it->name = newName;
@@ -336,7 +355,7 @@ void TableModelRotation::singerSetName(const int singerId, const QString &newNam
 }
 
 void TableModelRotation::singerDelete(const int singerId) {
-
+    m_logger->debug("{} Deleting singer id: {} name: {}", m_loggingPrefix, singerId, getSingerName(singerId).toStdString());
     if (singerId == m_rotationTopSingerId) {
         if (m_singers.size() == 1)
             m_rotationTopSingerId = -1;
@@ -561,6 +580,7 @@ int TableModelRotation::nextSongQueueId(const int singerId) {
 }
 
 void TableModelRotation::clearRotation() {
+    m_logger->debug("{} Clearing rotation", m_loggingPrefix);
     emit layoutAboutToBeChanged();
     QSqlQuery query;
     query.exec("DELETE from queuesongs");
@@ -577,6 +597,8 @@ int TableModelRotation::currentSinger() const {
 }
 
 void TableModelRotation::setCurrentSinger(const int currentSingerId) {
+    m_logger->debug("{} Setting singer id: {} name: '{}' as the current rotation singer", m_loggingPrefix, currentSingerId,
+                    getSingerName(currentSingerId).toStdString());
     emit layoutAboutToBeChanged();
     m_currentSingerId = currentSingerId;
     emit rotationModified();
@@ -628,25 +650,25 @@ QDateTime TableModelRotation::timeAdded(const int singerId) {
 }
 
 void TableModelRotation::outputRotationDebug() {
-    qInfo() << " -- Rotation debug output -- ";
-    qInfo() << "singerid,position,regular,added,name";
+    m_logger->debug("{} -- Rotation debug output --", m_loggingPrefix);
+    m_logger->debug("{} singerid\tposition\tregular\t\tadded\t\t\t\tname", m_loggingPrefix);
     int expectedPosition = 0;
     bool needsRepair = false;
-    std::for_each(m_singers.begin(), m_singers.end(), [&expectedPosition, &needsRepair](RotationSinger &singer) {
-        qInfo() << singer.id << "," << singer.position << "," << singer.regular << "," << singer.addTs << ","
-                << singer.name;
+    std::for_each(m_singers.begin(), m_singers.end(), [&](RotationSinger &singer) {
+        m_logger->debug("{} {}\t\t\t{}\t\t\t{}\t\t{}\t{}", m_loggingPrefix, singer.id, singer.position, singer.regular, singer.addTs.toString("dd.MM.yy hh:mm:ss").toStdString(), singer.name.toStdString());
         if (singer.position != expectedPosition) {
             needsRepair = true;
-            qInfo() << "ERROR DETECTED!!! - Singer position does not match expected position";
+            m_logger->critical("{} ERROR DETECTED!!! - Singer position does not match expected position!", m_loggingPrefix);
         }
         expectedPosition++;
     });
     if (needsRepair)
         fixSingerPositions();
-    qInfo() << " -- Rotation debug output end -- ";
+    m_logger->debug("{} -- Rotation debug output end --", m_loggingPrefix);
 }
 
 void TableModelRotation::fixSingerPositions() {
+    m_logger->error("{} Attempting to recover from corrupted rotation data", m_loggingPrefix);
     emit layoutAboutToBeChanged();
     int pos{0};
     std::for_each(m_singers.begin(), m_singers.end(), [&pos](RotationSinger &singer) {
@@ -654,6 +676,7 @@ void TableModelRotation::fixSingerPositions() {
     });
     emit layoutChanged();
     commitChanges();
+    m_logger->error("{} Repair complete", m_loggingPrefix);
 }
 
 void TableModelRotation::resizeIconsForFont(const QFont &font) {
@@ -743,11 +766,11 @@ void ItemDelegateRotation::setCurrentSinger(const int singerId) {
 
 
 QStringList TableModelRotation::mimeTypes() const {
-    QStringList types;
-    types << "integer/songid";
-    types << "integer/rotationpos";
-    types << "application/rotsingers";
-    return types;
+    return {
+            "integer/songid",
+            "integer/rotationpos",
+            "application/rotsingers"
+    };
 }
 
 QMimeData *TableModelRotation::mimeData(const QModelIndexList &indexes) const {
@@ -764,7 +787,6 @@ QMimeData *TableModelRotation::mimeData(const QModelIndexList &indexes) const {
         });
         QJsonDocument jDoc(jArr);
         mimeData->setData("application/rotsingers", jDoc.toJson());
-        qInfo() << "Rotation singers mime data: " << jDoc.toJson();
     }
     return mimeData;
 }
@@ -784,8 +806,7 @@ bool TableModelRotation::dropMimeData(const QMimeData *data, Qt::DropAction acti
         QJsonDocument jDoc = QJsonDocument::fromJson(data->data("application/rotsingers"));
         QJsonArray jArr = jDoc.array();
         auto ids = jArr.toVariantList();
-        qInfo() << "mime data dropped: " << jDoc.toJson();
-        int droprow{0};
+        int droprow;
         if (parent.row() >= 0)
             droprow = parent.row();
         else if (row >= 0)
@@ -798,10 +819,8 @@ bool TableModelRotation::dropMimeData(const QMimeData *data, Qt::DropAction acti
             singerMove(getSingerPosition(val.toInt()), droprow, false);
         });
         commitChanges();
-        qInfo() << "droprow: " << droprow;
         emit rotationModified();
         if (droprow == rowCount() - 1) {
-            qInfo() << "moving to bottom";
             // moving to bottom
             emit singersMoved(rowCount() - ids.size(), 0, rowCount() - 1, columnCount() - 1);
         } else if (getSingerPosition(ids.at(0).toInt()) < droprow) {
@@ -875,4 +894,13 @@ uint TableModelRotation::singerTurnDistance(const int singerId) {
 void TableModelRotation::setRotationTopSingerId(const int id) {
     m_rotationTopSingerId = id;
     m_settings.setLastRunRotationTopSingerId(id);
+}
+
+std::optional<RotationSinger> TableModelRotation::getSingerAtPosition(int position) {
+    auto it = std::find_if(m_singers.begin(), m_singers.end(), [&position](const RotationSinger &singer) {
+        return singer.position == position;
+    });
+    if (it == m_singers.end())
+        return std::nullopt;
+    return *it;
 }

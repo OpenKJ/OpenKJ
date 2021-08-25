@@ -75,27 +75,6 @@ DlgCdg::DlgCdg(MediaBackend &KaraokeBackend, MediaBackend &BreakBackend, QWidget
     alertBgColorChanged(m_settings.alertBgColor());
     alertTxtColorChanged(m_settings.alertTxtColor());
     cdgOffsetsChanged();
-
-    /*
-    connect(&settings, &Settings::alertBgColorChanged, this, &DlgCdg::alertBgColorChanged);
-    connect(&settings, &Settings::alertTxtColorChanged, this, &DlgCdg::alertTxtColorChanged);
-    connect(&settings, &Settings::bgModeChanged, this, &DlgCdg::applyBackgroundImageMode);
-    connect(&settings, &Settings::bgSlideShowDirChanged, this, &DlgCdg::applyBackgroundImageMode);
-    connect(&settings, &Settings::cdgBgImageChanged, this, &DlgCdg::applyBackgroundImageMode);
-    connect(&settings, &Settings::cdgOffsetsChanged, this, &DlgCdg::cdgOffsetsChanged);
-    connect(&settings, &Settings::cdgRemainBgColorChanged, durationWidget(), &TransparentWidget::setBackgroundColor);
-    connect(&settings, &Settings::cdgRemainEnabledChanged, durationWidget(), &TransparentWidget::setVisible);
-    connect(&settings, &Settings::cdgRemainFontChanged, durationWidget(), &TransparentWidget::setTextFont);
-    connect(&settings, &Settings::cdgRemainTextColorChanged, durationWidget(), &TransparentWidget::setTextColor);
-    connect(&settings, &Settings::durationPositionReset, durationWidget(), &TransparentWidget::resetPosition);
-    connect(&settings, &Settings::karaokeAAAlertFontChanged, this, &DlgCdg::alertFontChanged);
-    connect(&settings, &Settings::slideShowIntervalChanged, this, &DlgCdg::setSlideshowInterval);
-    connect(&settings, &Settings::tickerBgColorChanged, this, &DlgCdg::tickerBgColorChanged);
-    connect(&settings, &Settings::tickerEnableChanged, this, &DlgCdg::tickerEnableChanged);
-    connect(&settings, &Settings::tickerFontChanged, this, &DlgCdg::tickerFontChanged);
-    connect(&settings, &Settings::tickerSpeedChanged, this, &DlgCdg::tickerSpeedChanged);
-    connect(&settings, &Settings::tickerTextColorChanged, this, &DlgCdg::tickerTextColorChanged);
-    */
     connect(ui->videoDisplayKar, &VideoDisplay::mouseMoveEvent, this, &DlgCdg::mouseMove);
     connect(ui->btnToggleFullscreen, &QPushButton::clicked, this, &DlgCdg::btnToggleFullscreenClicked);
     connect(&m_timerSlideShow, &QTimer::timeout, this, &DlgCdg::timerSlideShowTimeout);
@@ -105,7 +84,8 @@ DlgCdg::DlgCdg(MediaBackend &KaraokeBackend, MediaBackend &BreakBackend, QWidget
     m_timerButtonShow.setInterval(1000);
     m_timerAlertCountdown.setInterval(1000);
     m_timer1s.start(1000);
-    m_timerSlideShow.start(static_cast<int>(m_settings.slideShowInterval() * 1000));
+    if (m_settings.bgMode() == Settings::BG_MODE_SLIDESHOW)
+        m_timerSlideShow.start(static_cast<int>(m_settings.slideShowInterval() * 1000));
     ui->videoDisplayBm->hide();
     if (!m_settings.showCdgWindow())
         hide();
@@ -254,21 +234,24 @@ void DlgCdg::applyBackgroundImageMode()
 {
     if (m_settings.bgMode() == Settings::BgMode::BG_MODE_IMAGE && QFile::exists(m_settings.cdgDisplayBackgroundImage()))
     {
+        m_timerSlideShow.stop();
         ui->videoDisplayKar->setBackground(QPixmap(m_settings.cdgDisplayBackgroundImage()));
     }
     else if (m_settings.bgMode() == Settings::BgMode::BG_MODE_SLIDESHOW && QDir(m_settings.bgSlideShowDir()).exists())
     {
+        m_timerSlideShow.start();
         slideShowMoveNext();
     }
     else
     {
+        m_timerSlideShow.stop();
         ui->videoDisplayKar->useDefaultBackground();
     }
 }
 
 void DlgCdg::timerSlideShowTimeout()
 {
-    if (!ui->videoDisplayKar->hasActiveVideo() && m_settings.bgMode() == Settings::BgMode::BG_MODE_SLIDESHOW)
+    if (!ui->videoDisplayKar->hasActiveVideo() && !ui->videoDisplayBm->hasActiveVideo())
     {
         slideShowMoveNext();
     }

@@ -7,6 +7,8 @@
 #include <QImage>
 #include <QItemDelegate>
 #include <QPainter>
+#include <spdlog/async_logger.h>
+#include <optional>
 #include "settings.h"
 
 struct RotationSinger {
@@ -30,7 +32,7 @@ private:
     Settings m_settings;
 
 public:
-    explicit ItemDelegateRotation(QObject *parent = 0);
+    explicit ItemDelegateRotation(QObject *parent = nullptr);
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
     [[nodiscard]] int currentSinger() const;
     void setCurrentSinger(int singerId);
@@ -63,6 +65,7 @@ public:
     bool singerIsRegular(int singerId);
     void singerSetRegular(int singerId, bool isRegular);
     void singerMakeRegular(int singerId);
+    std::optional<RotationSinger> getSingerAtPosition(int position);
     uint singerTurnDistance(int singerId);
     void singerDisableRegularTracking(int singerId);
     static bool historySingerExists(const QString &name) ;
@@ -96,6 +99,8 @@ public:
     void setCurRemainSecs(const int secs) { m_remainSecs = secs; }
 
 private:
+    std::string m_loggingPrefix{"[RotationModel]"};
+    std::shared_ptr<spdlog::logger> m_logger;
     std::vector<RotationSinger> m_singers;
     int m_currentSingerId{-1};
     int m_rotationTopSingerId{-1};

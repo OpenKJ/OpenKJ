@@ -379,6 +379,7 @@ void DlgSettings::setupHotkeysForm() {
 
 void DlgSettings::keySequenceEditChanged(QKeySequence sequence) {
     settings.saveShortcutKeySequence(sender()->objectName(), sequence);
+    emit shortcutsChanged();
 }
 
 

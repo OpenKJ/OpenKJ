@@ -1739,7 +1739,6 @@ void MainWindow::actionSettingsTriggered() {
     connect(settingsDialog, &DlgSettings::applicationFontChanged, &m_qDelegate, &ItemDelegateQueueSongs::resizeIconsForFont);
     connect(settingsDialog, &DlgSettings::applicationFontChanged, &m_rotDelegate, &ItemDelegateRotation::resizeIconsForFont);
     connect(settingsDialog, &DlgSettings::applicationFontChanged, this, &MainWindow::appFontChanged);
-
     connect(settingsDialog, &DlgSettings::alertBgColorChanged, cdgWindow.get(), &DlgCdg::alertBgColorChanged);
     connect(settingsDialog, &DlgSettings::alertTxtColorChanged, cdgWindow.get(), &DlgCdg::alertTxtColorChanged);
     connect(settingsDialog, &DlgSettings::bgModeChanged, cdgWindow.get(), &DlgCdg::applyBackgroundImageMode);
@@ -1758,6 +1757,9 @@ void MainWindow::actionSettingsTriggered() {
     connect(settingsDialog, &DlgSettings::tickerFontChanged, cdgWindow.get(), &DlgCdg::tickerFontChanged);
     connect(settingsDialog, &DlgSettings::tickerSpeedChanged, cdgWindow.get(), &DlgCdg::tickerSpeedChanged);
     connect(settingsDialog, &DlgSettings::tickerTextColorChanged, cdgWindow.get(), &DlgCdg::tickerTextColorChanged);
+    connect(settingsDialog, &DlgSettings::tickerOutputModeChanged, this, &MainWindow::rotationDataChanged);
+    connect(settingsDialog, &DlgSettings::tickerCustomStringChanged, this, &MainWindow::rotationDataChanged);
+    connect(settingsDialog, &DlgSettings::shortcutsChanged, this, &MainWindow::shortcutsUpdated);
 
     settingsDialog->show();
 }

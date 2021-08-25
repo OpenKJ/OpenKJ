@@ -88,6 +88,7 @@ signals:
     void tickerTextColorChanged();
     void tickerCustomStringChanged();
     void tickerOutputModeChanged();
+    void shortcutsChanged();
 
 private slots:
     void on_btnClose_clicked();

@@ -1062,7 +1062,7 @@ void MediaBackend::setUseSilenceDetection(const bool &enabled) {
 
 bool MediaBackend::isSilent()
 {
-    if ((m_currentRmsLevel <= 0.01) && (m_volume > 0) && (!m_fader->isFading()))
+    if ((m_currentRmsLevel <= 0.001) && (m_volume > 0) && (!m_fader->isFading()))
         return true;
     return false;
 }

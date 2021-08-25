@@ -22,14 +22,14 @@ class TickerNew : public QThread
     int curOffset{0};
     bool m_textOverflows{false};
     int m_speed{5};
-    bool m_textChanged;
+    bool m_textChanged{false};
 public:
     TickerNew();
-    const QSize getSize();
+    QSize getSize();
     void stop();
 public slots:
     void setTickerGeometry(const int width, const int height);
-    void setText(const QString text);
+    void setText(const QString& text);
     void refresh();
     void setSpeed(const int speed);
 signals:
@@ -45,7 +45,7 @@ class TickerDisplayWidget : public QWidget
 public:
         TickerDisplayWidget(QWidget *parent = 0);
         ~TickerDisplayWidget();
-        void setText(const QString newText);
+        void setText(const QString& newText);
         QSize sizeHint() const;
         void setSpeed(int speed);
         QPixmap m_image;
@@ -58,9 +58,9 @@ public:
 protected:
         void resizeEvent(QResizeEvent *event);
 private slots:
-        void newFrameRect(const QPixmap frame, const QRect displayArea);
+        void newFrameRect(const QPixmap& frame, const QRect displayArea);
         void newRect(const QRect displayArea);
-        void newFrame(const QPixmap frame);
+        void newFrame(const QPixmap& frame);
 
         // QWidget interface
 protected:
