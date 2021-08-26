@@ -133,7 +133,7 @@ void DlgRegularSingers::renameHistorySinger()
                                                 );
             if (answer == QMessageBox::No)
                 return;
-            m_rotModel->singerSetName(m_rotModel->getSingerId(currentName), name);
+            m_rotModel->singerSetName(m_rotModel->getSingerByName(currentName).id, name);
         }
         else
         {
@@ -162,7 +162,7 @@ void DlgRegularSingers::on_tableViewRegulars_doubleClicked(const QModelIndex &in
     QString singerName = index.sibling(index.row(), 1).data().toString();
     if (m_rotModel->singerExists(singerName))
     {
-        if (m_rotModel->singerIsRegular(m_rotModel->getSingerId(singerName)))
+        if (m_rotModel->getSingerByName(singerName).regular)
         {
             QMessageBox::warning(this, "This regular singer is already in the rotation",
                                  "This regular singer already exists in the current rotation.\n\nAction cancelled.");
@@ -177,8 +177,7 @@ void DlgRegularSingers::on_tableViewRegulars_doubleClicked(const QModelIndex &in
                                             );
         if (answer == QMessageBox::Yes)
         {
-            int singerId = m_rotModel->getSingerId(singerName);
-            m_rotModel->singerMakeRegular(singerId);
+            m_rotModel->singerMakeRegular(m_rotModel->getSingerByName(singerName).id);
         }
         return;
     }
@@ -188,7 +187,7 @@ void DlgRegularSingers::on_tableViewRegulars_doubleClicked(const QModelIndex &in
         m_rotModel->singerAdd(singerName, m_rotModel->ADD_FAIR);
     else
         m_rotModel->singerAdd(singerName, m_rotModel->ADD_BOTTOM);
-    m_rotModel->singerMakeRegular(m_rotModel->getSingerId(singerName));
+    m_rotModel->singerMakeRegular(m_rotModel->getSingerByName(singerName).id);
 }
 
 

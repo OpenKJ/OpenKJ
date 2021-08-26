@@ -82,9 +82,9 @@ void DlgAddSong::pushButtonAddClicked()
             msgBox.setDefaultButton(QMessageBox::Yes);
             if (msgBox.exec() == QMessageBox::Yes)
             {
-                int singerId = m_rotModel.getSingerId(ui->lineEditNewSingerName->text());
+                int singerId = m_rotModel.getSingerByName(ui->lineEditNewSingerName->text()).id;
                 m_queueModel.songAddSlot(m_songId, singerId, ui->spinBoxKeyChange->value());
-                emit newSingerAdded(m_rotModel.getSingerPosition(singerId));
+                emit newSingerAdded(m_rotModel.getSinger(singerId).position);
                 close();
             }
         }
@@ -92,23 +92,23 @@ void DlgAddSong::pushButtonAddClicked()
         {
             int singerId = m_rotModel.singerAdd(ui->lineEditNewSingerName->text(), ui->comboBoxPosition->currentIndex());
             m_queueModel.songAddSlot(m_songId, singerId, ui->spinBoxKeyChange->value());
-            emit newSingerAdded(m_rotModel.getSingerPosition(singerId));
+            emit newSingerAdded(m_rotModel.getSinger(singerId).position);
             close();
         }
         break;
     case 1:
     {
-        int singerId = m_rotModel.getSingerId(ui->comboBoxRotSingers->currentText());
+        int singerId = m_rotModel.getSingerByName(ui->comboBoxRotSingers->currentText()).id;
         m_queueModel.songAddSlot(m_songId, singerId, ui->spinBoxKeyChange->value());
-        emit newSingerAdded(m_rotModel.getSingerPosition(singerId));
+        emit newSingerAdded(m_rotModel.getSinger(singerId).position);
         close();
         break;
     }
     case 2:
         if (m_rotModel.singerExists(ui->comboBoxRegSingers->currentText()))
         {
-            int existingId = m_rotModel.getSingerId(ui->comboBoxRegSingers->currentText());
-            if (m_rotModel.singerIsRegular(existingId))
+            int existingId = m_rotModel.getSingerByName(ui->comboBoxRegSingers->currentText()).id;
+            if (m_rotModel.getSinger(existingId).regular)
             {
                 QMessageBox msgBox;
                 msgBox.setText("Regular singer already loaded");
@@ -119,7 +119,7 @@ void DlgAddSong::pushButtonAddClicked()
                 if (msgBox.exec() == QMessageBox::Yes)
                 {
                     m_queueModel.songAddSlot(m_songId, existingId, ui->spinBoxKeyChange->value());
-                    emit newSingerAdded(m_rotModel.getSingerPosition(existingId));
+                    emit newSingerAdded(m_rotModel.getSinger(existingId).position);
                     close();
                 }
             }
@@ -135,10 +135,10 @@ void DlgAddSong::pushButtonAddClicked()
                                                     );
                 if (answer == QMessageBox::Yes)
                 {
-                    int singerId = m_rotModel.getSingerId(ui->comboBoxRegSingers->currentText());
+                    int singerId = m_rotModel.getSingerByName(ui->comboBoxRegSingers->currentText()).id;
                     m_rotModel.singerMakeRegular(singerId);
                     m_queueModel.songAddSlot(m_songId, singerId, ui->spinBoxKeyChange->value());
-                    emit newSingerAdded(m_rotModel.getSingerPosition(singerId));
+                    emit newSingerAdded(m_rotModel.getSinger(singerId).position);
                 }
             }
         }
@@ -147,7 +147,7 @@ void DlgAddSong::pushButtonAddClicked()
             int singerId = m_rotModel.singerAdd(ui->comboBoxRegSingers->currentText(), ui->comboBoxPosition->currentIndex());
             m_rotModel.singerMakeRegular(singerId);
             m_queueModel.songAddSlot(m_songId, singerId, ui->spinBoxKeyChange->value());
-            emit newSingerAdded(m_rotModel.getSingerPosition(singerId));
+            emit newSingerAdded(m_rotModel.getSinger(singerId).position);
             close();
         }
         break;

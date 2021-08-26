@@ -28,7 +28,7 @@ void DlgAddSinger::addSinger() {
         return;
     }
     int newSingerId = m_rotModel.singerAdd(ui->lineEditName->text(), ui->cbxPosition->currentIndex());
-    emit newSingerAdded(m_rotModel.getSingerPosition(newSingerId));
+    emit newSingerAdded(m_rotModel.getSinger(newSingerId).position);
     ui->lineEditName->clear();
     close();
 }

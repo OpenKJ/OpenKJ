@@ -185,8 +185,8 @@ void DlgRequests::requestsModified() {
         QApplication::processEvents();
         on_pushButtonAddSong_clicked();
         songbookApi.removeRequest(requestsModel->requests().at(0).requestId());
-        if (rotModel.rowCount() > 5)
-            rotModel.singerDelete(rotModel.singerIdAtPosition(0));
+        if (rotModel.singerCount() > 5)
+            rotModel.singerDelete(rotModel.getSingerAtPosition(0).id);
         ui->pushButtonRunTortureTest->setText("Running Torture Test (" + QString::number(++testruns) + ")");
     }
 }
@@ -321,7 +321,7 @@ void DlgRequests::on_pushButtonAddSong_clicked() {
                     "RequestID: {} | Added to new singer | Name: {} | Position: {} | Wait: {} | Song: {} - {} - {} | Key: {}",
                     curRequestId,
                     ui->lineEditSingerName->text().toStdString(),
-                    rotModel.getSingerPosition(newSingerId),
+                    rotModel.getSinger(newSingerId).position,
                     rotModel.singerTurnDistance(newSingerId),
                     index.sibling(index.row(),
                                   TableModelKaraokeSongs::COL_SONGID).data().toString().toStdString(),
@@ -334,7 +334,7 @@ void DlgRequests::on_pushButtonAddSong_clicked() {
             m_reqLogger->flush();
         }
     } else if (ui->radioButtonExistingSinger->isChecked()) {
-        emit addRequestSong(songid, rotModel.getSingerId(ui->comboBoxSingers->currentText()), keyChg);
+        emit addRequestSong(songid, rotModel.getSingerByName(ui->comboBoxSingers->currentText()).id, keyChg);
         m_reqLogger->info("RequestID: {} | Added to existing singer | Name: {} | Song: {} - {} - {} | Key: {}",
                           curRequestId,
                           ui->comboBoxSingers->currentText().toStdString(),

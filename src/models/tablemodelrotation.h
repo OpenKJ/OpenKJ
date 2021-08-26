@@ -17,6 +17,8 @@ struct RotationSinger {
     int position{0};
     bool regular{false};
     QDateTime addTs;
+    bool valid{true};
+    [[nodiscard]] bool isValid() const { return valid; }
 };
 
 class ItemDelegateRotation : public QItemDelegate
@@ -32,9 +34,8 @@ private:
     Settings m_settings;
 
 public:
-    explicit ItemDelegateRotation(QObject *parent = nullptr);
+    [[maybe_unused]] explicit ItemDelegateRotation(QObject *parent = nullptr);
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
-    [[nodiscard]] int currentSinger() const;
     void setCurrentSinger(int singerId);
 
 public slots:
@@ -49,30 +50,35 @@ class TableModelRotation : public QAbstractTableModel
 public:
     enum {COL_ID=0,COL_NAME,COL_POSITION,COL_NEXT_SONG,COL_REGULAR,COL_ADDTS,COL_DELETE};
     enum {ADD_FAIR=0,ADD_BOTTOM,ADD_NEXT};
+    RotationSinger InvalidSinger {
+        -1,
+        "invalid",
+        -1,
+        false,
+        QDateTime(),
+        false
+    };
     explicit TableModelRotation(QObject *parent = nullptr);
     [[nodiscard]] QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
-    [[nodiscard]] int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-    [[nodiscard]] int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+    [[nodiscard]] int rowCount(const QModelIndex &parent) const override;
+    [[nodiscard]] int columnCount(const QModelIndex &parent) const override;
     [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
+    [[nodiscard]] size_t singerCount();
     void loadData();
-
     void commitChanges();
     int singerAdd(const QString& name, int positionHint = ADD_BOTTOM);
     void singerMove(int oldPosition, int newPosition, bool skipCommit = false);
     void singerSetName(int singerId, const QString &newName);
     void singerDelete(int singerId);
     bool singerExists(const QString &name);
-    bool singerIsRegular(int singerId);
     void singerSetRegular(int singerId, bool isRegular);
     void singerMakeRegular(int singerId);
-    std::optional<RotationSinger> getSingerAtPosition(int position);
+    [[nodiscard]] const RotationSinger& getSingerAtPosition(int position) const;
+    [[nodiscard]] const RotationSinger& getSinger(int singerId) const;
+    [[nodiscard]] const RotationSinger& getSingerByName(const QString &name) const;
     uint singerTurnDistance(int singerId);
     void singerDisableRegularTracking(int singerId);
     static bool historySingerExists(const QString &name) ;
-    QString getSingerName(int singerId);
-    int getSingerId(const QString &name);
-    [[nodiscard]] int getSingerPosition(int singerId) const;
-    [[nodiscard]] int singerIdAtPosition(int position) const;
     QStringList singers();
     [[nodiscard]] static QStringList historySingers() ;
     [[nodiscard]] static QString nextSongPath(int singerId) ;
@@ -81,18 +87,15 @@ public:
     [[nodiscard]] static QString nextSongArtistTitle(int singerId) ;
     [[nodiscard]] static QString nextSongSongId(int singerId) ;
     [[nodiscard]] int nextSongDurationSecs(int singerId) const;
-    int rotationDuration();
     [[nodiscard]] static int nextSongKeyChg(int singerId) ;
     [[nodiscard]] static int nextSongQueueId(int singerId) ;
+    [[nodiscard]] static int numSongsSung(int singerId) ;
+    [[nodiscard]] static int numSongsUnsung(int singerId) ;
+    int rotationDuration();
     void clearRotation();
     [[nodiscard]] int currentSinger() const;
     void setCurrentSinger(int currentSingerId);
     void setRotationTopSingerId(int id);
-    bool rotationIsValid();
-    [[nodiscard]] static int numSongs(int singerId) ;
-    [[nodiscard]] static int numSongsSung(int singerId) ;
-    [[nodiscard]] static int numSongsUnsung(int singerId) ;
-    QDateTime timeAdded(int singerId);
     void outputRotationDebug();
     void fixSingerPositions();
     void resizeIconsForFont(const QFont &font);
@@ -112,10 +115,7 @@ private:
 
 signals:
     void songDroppedOnSinger(int singerId, int songId, int dropRow);
-    void regularAddNameConflict(QString name);
-    void regularLoadNameConflict(QString name);
     void rotationModified();
-    void regularsModified();
     void singersMoved(int startRow, int startCol, int endRow, int endCol);
 
     // QAbstractItemModel interface
