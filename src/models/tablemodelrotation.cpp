@@ -1,5 +1,24 @@
-#include "tablemodelrotation.h"
+/*
+ * Copyright (c) 2013-2021 Thomas Isaac Lightburn
+ *
+ *
+ * This file is part of OpenKJ.
+ *
+ * OpenKJ is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
+#include "tablemodelrotation.h"
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QDateTime>
@@ -18,27 +37,26 @@ TableModelRotation::TableModelRotation(QObject *parent)
 }
 
 QVariant TableModelRotation::headerData(int section, Qt::Orientation orientation, int role) const {
-    if (role == Qt::SizeHintRole) {
+    if (role == Qt::SizeHintRole && orientation == Qt::Horizontal) {
         switch (section) {
             case COL_REGULAR:
             case COL_DELETE:
-            case COL_ID:
-                return QSize(QFontMetrics(m_settings.applicationFont()).height() * 2, QFontMetrics(m_settings.applicationFont()).height());
+            case COL_ID: {
+                int fHeight = QFontMetrics(m_settings.applicationFont()).height();
+                return QSize(fHeight * 2,fHeight);
+            }
             default:
                 return {};
         }
     }
     if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
         switch (section) {
-            case COL_ID:
-                return {};
             case COL_NAME:
                 return "Name";
             case COL_NEXT_SONG:
                 return "Next Song";
             default:
                 return {};
-
         }
     }
     return {};
@@ -55,139 +73,128 @@ int TableModelRotation::columnCount([[maybe_unused]]const QModelIndex &parent) c
 QVariant TableModelRotation::data(const QModelIndex &index, int role) const {
     if (!index.isValid())
         return {};
-    if (role == Qt::ToolTipRole) {
-        QString toolTipText;
-        auto curSingerPos{0};
-        if (m_currentSingerId != -1)
-            curSingerPos = getSinger(m_currentSingerId).position;
-        auto hoverSingerPos{index.sibling(index.row(), COL_POSITION).data().toInt()};
-        int totalWaitDuration = 0;
-        int singerId = index.data(Qt::UserRole).toInt();
-        int qSongsSung = numSongsSung(singerId);
-        int qSongsUnsung = numSongsUnsung(singerId);
-        if (m_currentSingerId == singerId) {
-            toolTipText = "Current singer - Sung: " + QString::number(qSongsSung) + " - Unsung: " +
-                          QString::number(qSongsUnsung);
-        } else if (curSingerPos < hoverSingerPos) {
-            toolTipText = "Wait: " + QString::number(hoverSingerPos - curSingerPos) + " - Sung: " +
-                          QString::number(qSongsSung) + " - Unsung: " + QString::number(qSongsUnsung);
-            for (int i = curSingerPos; i < hoverSingerPos; i++) {
-                int sId = getSingerAtPosition(i).id;
-                if (i == curSingerPos) {
-                    totalWaitDuration += m_remainSecs;
-                } else if (sId != singerId) {
-                    int nextDuration = nextSongDurationSecs(sId);
-                    totalWaitDuration += nextDuration;
-                }
-            }
-        } else if (curSingerPos > hoverSingerPos) {
-            toolTipText = "Wait: " + QString::number(hoverSingerPos + (m_singers.size() - curSingerPos)) + " - Sung: " +
-                          QString::number(qSongsSung) + " - Unsung: " + QString::number(qSongsUnsung);
-            for (int i = 0; i < hoverSingerPos; i++) {
-                int sId = getSingerAtPosition(i).id;
-                if (sId != singerId) {
-                    int nextDuration = nextSongDurationSecs(sId);
-                    totalWaitDuration += nextDuration;
-                }
-            }
-            for (int i = curSingerPos; i < m_singers.size(); i++) {
-                int sId = getSingerAtPosition(i).id;
-                if (i == curSingerPos)
-                    totalWaitDuration += 240;
-                else if (sId != singerId) {
-                    int nextDuration = nextSongDurationSecs(sId);
-                    totalWaitDuration += nextDuration;
-                }
-            }
-        }
-        toolTipText += "\nTime Added: " + m_singers.at(index.row()).addTs.toString("h:mm a");
+    switch (role) {
+        case Qt::ToolTipRole:
+            return getTooltipData(index);
+        case Qt::UserRole:
+            return m_singers.at(index.row()).id;
+        case Qt::SizeHintRole:
+            return getColumnSizeHint(index);
+        case Qt::DecorationRole:
+            return getDecorationRole(index);
+        case Qt::TextAlignmentRole:
+            if (index.column() == COL_ID)
+                return Qt::AlignCenter;
+            return {};
+        case Qt::BackgroundRole:
+            return getBackgroundRole(index);
+        case Qt::ForegroundRole:
+            if (m_singers.at(index.row()).id == m_currentSingerId && index.column() > 0)
+                return QColor("black");
+        case Qt::DisplayRole:
+            return getDisplayData(index);
+        default:
+            return {};
+    }
+}
 
-        if (totalWaitDuration > 0) {
-            int minutes = totalWaitDuration / 60;
-            int seconds = totalWaitDuration % 60;
-            if (seconds > 0)
-                minutes++;
-            if (minutes > 60) {
-                int hours = minutes / 60;
-                minutes = minutes % 60;
-                if (hours > 1)
-                    toolTipText += "\nEst wait time: " + QString::number(hours) + " hours " + QString::number(minutes) +
-                                   " min";
-                else
-                    toolTipText +=
-                            "\nEst wait time: " + QString::number(hours) + " hour " + QString::number(minutes) + " min";
-            } else
-                toolTipText += "\nEst wait time: " + QString::number(minutes) + " min";
-        }
-        return QString(toolTipText);
+QVariant TableModelRotation::getBackgroundRole(const QModelIndex &index) const {
+    if (m_singers.at(index.row()).id == m_currentSingerId) {
+        if (index.column() > 0)
+            return (m_settings.theme() == 1) ? QColor(180, 180, 0) : QColor("yellow");
+    } else if (index.column() == COL_NAME) {
+        const auto &singer = m_singers.at(index.row());
+        if (singer.id == m_rotationTopSingerId && m_settings.rotationAltSortOrder())
+            return QColor("green");
+        if (singer.numSongsSung() == 0)
+            return QColor(140, 30, 150);
     }
+    return {};
+}
 
-    if (role == Qt::UserRole) {
-        return m_singers.at(index.row()).id;
-    }
-    if (role == Qt::SizeHintRole) {
-        switch (index.column()) {
-            case COL_REGULAR:
-            case COL_DELETE:
-            case COL_ID:
-                auto fHeight = QFontMetrics(m_settings.applicationFont()).height();
-                return QSize(fHeight, fHeight);
-        }
-    }
-    if (role == Qt::DecorationRole && index.column() == COL_NAME) {
-        if (numSongsUnsung(index.data(Qt::UserRole).toInt()) > 0)
+QVariant TableModelRotation::getDecorationRole(const QModelIndex &index) const {
+    if (index.column() == COL_NAME) {
+        if (getSinger(index.data(Qt::UserRole).toInt()).numSongsUnsung() > 0)
             return m_iconGreenCircle;
         return m_iconYellowCircle;
     }
-    if (role == Qt::TextAlignmentRole && index.column() == COL_ID)
-        return Qt::AlignCenter;
-    if (role == Qt::BackgroundRole && m_singers.at(index.row()).id == m_currentSingerId) {
-        if (index.column() > 0)
-            return (m_settings.theme() == 1) ? QColor(180, 180, 0) : QColor("yellow");
-    }
-
-    if (role == Qt::BackgroundRole && index.column() == COL_NAME) {
-        int singerId = index.data(Qt::UserRole).toInt();
-        int qSongsSung = numSongsSung(singerId);
-        if (singerId == m_rotationTopSingerId && m_settings.rotationAltSortOrder())
-            return QColor("green");
-        if (qSongsSung == 0)
-            return QColor(140, 30, 150);
-    }
-    if (role == Qt::ForegroundRole && m_singers.at(index.row()).id == m_currentSingerId) {
-        if (index.column() > 0)
-            return QColor("black");
-    }
-    if (role == Qt::DisplayRole) {
-        switch (index.column()) {
-            case COL_ID:
-                if (m_settings.rotationDisplayPosition()) {
-                    int curSingerPos{getSinger(m_currentSingerId).position};
-                    size_t wait{0};
-                    if (curSingerPos < index.row())
-                        wait = index.row() - curSingerPos;
-                    else if (curSingerPos > index.row())
-                        wait = index.row() + (m_singers.size() - curSingerPos);
-                    if (wait > 0)
-                        return static_cast<int>(wait);
-                    return {};
-                }
-                return {};
-            case COL_NAME:
-                return m_singers.at(index.row()).name;
-            case COL_POSITION:
-                return m_singers.at(index.row()).position;
-            case COL_REGULAR:
-                return m_singers.at(index.row()).regular;
-            case COL_ADDTS:
-                return m_singers.at(index.row()).addTs;
-            case COL_NEXT_SONG:
-                if (m_settings.rotationShowNextSong())
-                    return nextSongArtistTitle(index.data(Qt::UserRole).toInt());
-                return {};
-        }
-    }
     return {};
+}
+
+QVariant TableModelRotation::getColumnSizeHint(const QModelIndex &index) const {
+    switch (index.column()) {
+        case COL_REGULAR:
+        case COL_DELETE:
+        case COL_ID: {
+            auto fHeight = QFontMetrics(m_settings.applicationFont()).height();
+            return QSize(fHeight, fHeight);
+        }
+        default:
+            return {};
+    }
+}
+
+QVariant TableModelRotation::getDisplayData(const QModelIndex &index) const {
+    switch (index.column()) {
+        case COL_ID:
+            if (m_settings.rotationDisplayPosition())
+                return positionTurnDistance(index.row());
+            return {};
+        case COL_NAME:
+            return m_singers.at(index.row()).name;
+        case COL_POSITION:
+            return m_singers.at(index.row()).position;
+        case COL_REGULAR:
+            return m_singers.at(index.row()).regular;
+        case COL_ADDTS:
+            return m_singers.at(index.row()).addTs;
+        case COL_NEXT_SONG:
+            if (m_settings.rotationShowNextSong())
+                return m_singers.at(index.row()).nextSongArtistTitle();
+            return {};
+        default:
+            return {};
+    }
+}
+
+QVariant TableModelRotation::getTooltipData(const QModelIndex &index) const {
+    QString toolTipText;
+    int totalWaitDuration = 0;
+    const auto &singer = m_singers.at(index.row());
+    QString qSongsSung = QString::number(singer.numSongsSung());
+    QString qSongsUnsung = QString::number(singer.numSongsUnsung());
+    QString singerDistance = QString::number(positionTurnDistance(index.row()));
+    if (m_currentSingerId == singer.id) {
+        toolTipText = "Current singer - Sung: " + qSongsSung + " - Unsung: " + qSongsUnsung;
+    } else {
+        toolTipText = "Wait: " + singerDistance + " - Sung: " + qSongsSung + " - Unsung: " + qSongsUnsung;
+        totalWaitDuration = positionWaitTime(singer.position);
+    }
+    toolTipText += "\nTime Added: " + m_singers.at(index.row()).addTs.toString("h:mm a");
+    if (totalWaitDuration > 0) {
+        toolTipText += "\n" + getWaitTimeString(totalWaitDuration);
+    }
+    return QString(toolTipText);
+}
+
+QString TableModelRotation::getWaitTimeString(int totalWaitDuration) {
+    QString output;
+    int minutes = totalWaitDuration / 60;
+    int seconds = totalWaitDuration % 60;
+    if (seconds > 0)
+        minutes++;
+    if (minutes > 60) {
+        int hours = minutes / 60;
+        minutes = minutes % 60;
+        if (hours > 1)
+            output += "Est wait time: " + QString::number(hours) + " hours " + QString::number(minutes) +
+                      " min";
+        else
+            output +=
+                    "Est wait time: " + QString::number(hours) + " hour " + QString::number(minutes) + " min";
+    } else
+        output += "Est wait time: " + QString::number(minutes) + " min";
+    return output;
 }
 
 void TableModelRotation::loadData() {
@@ -197,9 +204,10 @@ void TableModelRotation::loadData() {
     QSqlQuery query;
     query.exec("SELECT singerid,name,position,regular,addts FROM rotationsingers ORDER BY position");
     if (auto sqlError = query.lastError(); sqlError.type() != QSqlError::NoError)
-        m_logger->error("{} TableModelRotation - SQL error on load: {}", m_loggingPrefix, sqlError.text().toStdString());
+        m_logger->error("{} TableModelRotation - SQL error on load: {}", m_loggingPrefix,
+                        sqlError.text().toStdString());
     while (query.next()) {
-        m_singers.emplace_back(RotationSinger{
+        m_singers.emplace_back(okj::RotationSinger{
                 query.value(0).toInt(),
                 query.value(1).toString(),
                 query.value(2).toInt(),
@@ -218,7 +226,7 @@ void TableModelRotation::commitChanges() {
     query.exec("DELETE FROM rotationsingers");
     query.prepare(
             "INSERT INTO rotationsingers (singerid,name,position,regular,regularid,addts) VALUES(:singerid,:name,:pos,:regular,:regularid,:addts)");
-    std::for_each(m_singers.begin(), m_singers.end(), [&](RotationSinger &singer) {
+    for (const auto &singer: m_singers) {
         query.bindValue(":singerid", singer.id);
         query.bindValue(":name", singer.name);
         query.bindValue(":pos", singer.position);
@@ -226,16 +234,18 @@ void TableModelRotation::commitChanges() {
         query.bindValue(":regularid", -1);
         query.bindValue(":addts", singer.addTs);
         query.exec();
-    });
+    }
     query.exec("COMMIT");
-    if ( auto lastError = query.lastError(); lastError.type() != QSqlError::NoError)
-        m_logger->error("{} Commit error! Unable to write rotation changes to db on disk! Error: {}", m_loggingPrefix, lastError.text().toStdString());
+    if (auto lastError = query.lastError(); lastError.type() != QSqlError::NoError)
+        m_logger->error("{} Commit error! Unable to write rotation changes to db on disk! Error: {}", m_loggingPrefix,
+                        lastError.text().toStdString());
     else
         m_logger->debug("{} Commit completed successfully", m_loggingPrefix);
 }
 
 int TableModelRotation::singerAdd(const QString &name, const int positionHint) {
-    m_logger->debug("{} Adding singer {} to rotation using positionHint {}", m_loggingPrefix, name.toStdString(), positionHint);
+    m_logger->debug("{} Adding singer {} to rotation using positionHint {}", m_loggingPrefix, name.toStdString(),
+                    positionHint);
     auto curTs = QDateTime::currentDateTime();
     int addPos = static_cast<int>(m_singers.size());
     QSqlQuery query;
@@ -247,19 +257,22 @@ int TableModelRotation::singerAdd(const QString &name, const int positionHint) {
     query.bindValue(":regularid", -1);
     query.bindValue(":addts", curTs);
     query.exec();
-    if ( auto lastError = query.lastError(); lastError.type() != QSqlError::NoError)
-        m_logger->error("{} Commit error! Unable to write rotation changes to db on disk while adding singer! Error: {}", m_loggingPrefix, lastError.text().toStdString());
+    if (auto lastError = query.lastError(); lastError.type() != QSqlError::NoError)
+        m_logger->error(
+                "{} Commit error! Unable to write rotation changes to db on disk while adding singer! Error: {}",
+                m_loggingPrefix, lastError.text().toStdString());
     int singerId = query.lastInsertId().toInt();
     if (m_singers.empty()) {
         m_rotationTopSingerId = singerId;
         m_settings.setLastRunRotationTopSingerId(singerId);
     }
     if (singerId == -1) {
-        m_logger->critical("{} Error occurred while inserting singer into the database singers table!!!", m_loggingPrefix);
+        m_logger->critical("{} Error occurred while inserting singer into the database singers table!!!",
+                           m_loggingPrefix);
         return -1;
     }
     emit layoutAboutToBeChanged();
-    m_singers.emplace_back(RotationSinger{
+    m_singers.emplace_back(okj::RotationSinger{
             singerId,
             name,
             addPos,
@@ -306,22 +319,22 @@ void TableModelRotation::singerMove(const int oldPosition, const int newPosition
     emit layoutAboutToBeChanged();
     if (oldPosition > newPosition) {
         // moving up
-        std::for_each(m_singers.begin(), m_singers.end(), [&oldPosition, &newPosition](RotationSinger &singer) {
+        for (auto &singer: m_singers) {
             if (singer.position == oldPosition)
                 singer.position = newPosition;
             else if (singer.position >= newPosition && singer.position < oldPosition)
                 singer.position++;
-        });
+        }
     } else {
         // moving down
-        std::for_each(m_singers.begin(), m_singers.end(), [&oldPosition, &newPosition](RotationSinger &singer) {
+        for (auto &singer: m_singers) {
             if (singer.position == oldPosition)
                 singer.position = newPosition;
             else if (singer.position > oldPosition && singer.position <= newPosition)
                 singer.position--;
-        });
+        }
     }
-    std::sort(m_singers.begin(), m_singers.end(), [](RotationSinger &a, RotationSinger &b) {
+    std::sort(m_singers.begin(), m_singers.end(), [](okj::RotationSinger &a, okj::RotationSinger &b) {
         return (a.position < b.position);
     });
     if (!skipCommit)
@@ -335,7 +348,7 @@ void TableModelRotation::singerMove(const int oldPosition, const int newPosition
 void TableModelRotation::singerSetName(const int singerId, const QString &newName) {
     m_logger->debug("{} Renaming singer '{}' to '{}'", m_loggingPrefix, getSinger(singerId).name.toStdString(),
                     newName.toStdString());
-    auto it = std::find_if(m_singers.begin(), m_singers.end(), [&singerId](RotationSinger &singer) {
+    auto it = std::find_if(m_singers.begin(), m_singers.end(), [&singerId](okj::RotationSinger &singer) {
         return (singer.id == singerId);
     });
     if (it == m_singers.end()) {
@@ -350,14 +363,16 @@ void TableModelRotation::singerSetName(const int singerId, const QString &newNam
     query.bindValue(":name", newName);
     query.bindValue(":singerid", singerId);
     query.exec();
-    if ( auto lastError = query.lastError(); lastError.type() != QSqlError::NoError)
-        m_logger->error("{} DB error! Unable to write rotation changes to db on disk! Error: {}", m_loggingPrefix, lastError.text().toStdString());
+    if (auto lastError = query.lastError(); lastError.type() != QSqlError::NoError)
+        m_logger->error("{} DB error! Unable to write rotation changes to db on disk! Error: {}", m_loggingPrefix,
+                        lastError.text().toStdString());
     emit rotationModified();
     outputRotationDebug();
 }
 
 void TableModelRotation::singerDelete(const int singerId) {
-    m_logger->debug("{} Deleting singer id: {} name: {}", m_loggingPrefix, singerId, getSinger(singerId).name.toStdString());
+    m_logger->debug("{} Deleting singer id: {} name: {}", m_loggingPrefix, singerId,
+                    getSinger(singerId).name.toStdString());
     if (singerId == m_rotationTopSingerId) {
         if (m_singers.size() == 1)
             m_rotationTopSingerId = -1;
@@ -369,29 +384,29 @@ void TableModelRotation::singerDelete(const int singerId) {
     }
 
     emit layoutAboutToBeChanged();
-    auto it = std::remove_if(m_singers.begin(), m_singers.end(), [&singerId](RotationSinger &singer) {
+    auto it = std::remove_if(m_singers.begin(), m_singers.end(), [&singerId](okj::RotationSinger &singer) {
         return (singer.id == singerId);
     });
     m_singers.erase(it, m_singers.end());
     int pos{0};
-    std::for_each(m_singers.begin(), m_singers.end(), [&pos](RotationSinger &singer) {
+    for (auto &singer: m_singers) {
         singer.position = pos++;
-    });
+    }
     emit layoutChanged();
     emit rotationModified();
     commitChanges();
     outputRotationDebug();
 }
 
-bool TableModelRotation::singerExists(const QString &name) {
-    auto it = std::find_if(m_singers.begin(), m_singers.end(), [&name](RotationSinger &singer) {
+bool TableModelRotation::singerExists(const QString &name) const {
+    auto it = std::find_if(m_singers.begin(), m_singers.end(), [&name](const okj::RotationSinger &singer) {
         return (name.toLower() == singer.name.toLower());
     });
     return (it != m_singers.end());
 }
 
 void TableModelRotation::singerSetRegular(const int singerId, const bool isRegular) {
-    auto it = std::find_if(m_singers.begin(), m_singers.end(), [&singerId](RotationSinger &singer) {
+    auto it = std::find_if(m_singers.begin(), m_singers.end(), [&singerId](okj::RotationSinger &singer) {
         return (singerId == singer.id);
     });
     it->regular = isRegular;
@@ -402,8 +417,10 @@ void TableModelRotation::singerSetRegular(const int singerId, const bool isRegul
     query.bindValue(":regular", isRegular);
     query.bindValue(":singerid", singerId);
     query.exec();
-    if ( auto lastError = query.lastError(); lastError.type() != QSqlError::NoError)
-        m_logger->error("{} DB error! Unable to write rotation changes to db on disk! Error: {}", m_loggingPrefix, lastError.text().toStdString());
+    if (auto lastError = query.lastError(); lastError.type() != QSqlError::NoError) {
+        m_logger->error("{} DB error! Unable to write rotation changes to db on disk! Error: {}", m_loggingPrefix,
+                        lastError.text().toStdString());
+    }
 }
 
 void TableModelRotation::singerMakeRegular(const int singerId) {
@@ -414,7 +431,7 @@ void TableModelRotation::singerDisableRegularTracking(const int singerId) {
     singerSetRegular(singerId, false);
 }
 
-bool TableModelRotation::historySingerExists(const QString &name) {
+bool TableModelRotation::historySingerExists(const QString &name) const {
     auto hSingers = historySingers();
     auto it = std::find_if(hSingers.begin(), hSingers.end(), [&name](QString &hSinger) {
         return (name.toLower() == hSinger.toLower());
@@ -422,137 +439,34 @@ bool TableModelRotation::historySingerExists(const QString &name) {
     return (it != hSingers.end());
 }
 
-QStringList TableModelRotation::singers() {
+QStringList TableModelRotation::singers() const {
     QStringList names;
     names.reserve(static_cast<int>(m_singers.size()));
-    std::for_each(m_singers.begin(), m_singers.end(), [&names](RotationSinger &singer) {
+    for (const auto &singer: m_singers) {
         names.push_back(singer.name);
-    });
+    }
     return names;
 }
 
-QStringList TableModelRotation::historySingers() {
+QStringList TableModelRotation::historySingers() const {
     QStringList names;
     QSqlQuery query;
     query.exec("SELECT name FROM historySingers");
-    if ( auto lastError = query.lastError(); lastError.type() != QSqlError::NoError)
-        m_logger->error("{} DB error! Unable to read history singers data from the db on disk! Error: {}", m_loggingPrefix, lastError.text().toStdString());
+    if (auto lastError = query.lastError(); lastError.type() != QSqlError::NoError)
+        m_logger->error("{} DB error! Unable to read history singers data from the db on disk! Error: {}",
+                        m_loggingPrefix, lastError.text().toStdString());
     while (query.next())
         names << query.value(0).toString();
 
     return names;
 }
 
-QString TableModelRotation::nextSongPath(const int singerId) const {
-    QSqlQuery query;
-    query.prepare(
-            "SELECT dbsongs.path FROM dbsongs,queuesongs WHERE queuesongs.singer = :singerid AND queuesongs.played = 0 AND dbsongs.songid = queuesongs.song ORDER BY position LIMIT 1");
-    query.bindValue(":singerid", singerId);
-    query.exec();
-    if ( auto lastError = query.lastError(); lastError.type() != QSqlError::NoError)
-        m_logger->error("{} DB error! Error while querying the db on disk! Error: {}", m_loggingPrefix, lastError.text().toStdString());
-    if (query.first())
-        return query.value(0).toString();
-    return {};
-}
-
-QString TableModelRotation::nextSongArtist(const int singerId) const {
-    QSqlQuery query;
-    query.prepare(
-            "SELECT dbsongs.artist FROM dbsongs,queuesongs WHERE queuesongs.singer = :singerid AND queuesongs.played = 0 AND dbsongs.songid = queuesongs.song ORDER BY position LIMIT 1");
-    query.bindValue(":singerid", singerId);
-    query.exec();
-    if ( auto lastError = query.lastError(); lastError.type() != QSqlError::NoError)
-        m_logger->error("{} DB error! Error while querying the db on disk! Error: {}", m_loggingPrefix, lastError.text().toStdString());
-    if (query.first())
-        return query.value(0).toString();
-    return {};
-}
-
-QString TableModelRotation::nextSongTitle(const int singerId) const {
-    QSqlQuery query;
-    query.prepare(
-            "SELECT dbsongs.title FROM dbsongs,queuesongs WHERE queuesongs.singer = :singerid AND queuesongs.played = 0 AND dbsongs.songid = queuesongs.song ORDER BY position LIMIT 1");
-    query.bindValue(":singerid", singerId);
-    query.exec();
-    if ( auto lastError = query.lastError(); lastError.type() != QSqlError::NoError)
-        m_logger->error("{} DB error! Error while querying the db on disk! Error: {}", m_loggingPrefix, lastError.text().toStdString());
-    if (query.first())
-        return query.value(0).toString();
-    return {};
-}
-
-QString TableModelRotation::nextSongArtistTitle(const int singerId) const {
-    QSqlQuery query;
-    query.prepare(
-            "SELECT dbsongs.artist, dbsongs.title FROM dbsongs,queuesongs WHERE queuesongs.singer = :singerid AND queuesongs.played = 0 AND dbsongs.songid = queuesongs.song ORDER BY position LIMIT 1");
-    query.bindValue(":singerid", singerId);
-    query.exec();
-    if ( auto lastError = query.lastError(); lastError.type() != QSqlError::NoError)
-        m_logger->error("{} DB error! Error while querying the db on disk! Error: {}", m_loggingPrefix, lastError.text().toStdString());
-    if (query.first())
-        return query.value(0).toString() + " - " + query.value(1).toString();
-    return " - empty - ";
-}
-
-QString TableModelRotation::nextSongSongId(const int singerId) const {
-    QSqlQuery query;
-    query.prepare(
-            "SELECT dbsongs.discid FROM dbsongs,queuesongs WHERE queuesongs.singer = :singerid AND queuesongs.played = 0 AND dbsongs.songid = queuesongs.song ORDER BY position LIMIT 1");
-    query.bindValue(":singerid", singerId);
-    query.exec();
-    if ( auto lastError = query.lastError(); lastError.type() != QSqlError::NoError)
-        m_logger->error("{} DB error! Error while querying the db on disk! Error: {}", m_loggingPrefix, lastError.text().toStdString());
-    if (query.first())
-        return query.value(0).toString();
-    return {};
-}
-
-int TableModelRotation::nextSongDurationSecs(const int singerId) const {
-    QSqlQuery query;
-    query.prepare(
-            "SELECT dbsongs.duration FROM dbsongs,queuesongs WHERE queuesongs.singer = :singerid AND queuesongs.played = 0 AND dbsongs.songid = queuesongs.song ORDER BY position LIMIT 1");
-    query.bindValue(":singerid", singerId);
-    query.exec();
-    if ( auto lastError = query.lastError(); lastError.type() != QSqlError::NoError)
-        m_logger->error("{} DB error! Error while querying the db on disk! Error: {}", m_loggingPrefix, lastError.text().toStdString());
-    if (query.first())
-        return (query.value(0).toInt() / 1000) + m_settings.estimationSingerPad();
-    else if (!m_settings.estimationSkipEmptySingers())
-        return m_settings.estimationEmptySongLength() + m_settings.estimationSingerPad();
-    return 0;
-}
-
-int TableModelRotation::rotationDuration() {
+int TableModelRotation::rotationDuration() const {
     int secs = 0;
-    std::for_each(m_singers.begin(), m_singers.end(), [&](RotationSinger &singer) {
-        secs += nextSongDurationSecs(singer.id);
-    });
+    for (const auto &singer: m_singers) {
+        secs += singer.nextSongDurationSecs();
+    }
     return secs;
-}
-
-int TableModelRotation::nextSongKeyChg(const int singerId) const {
-    QSqlQuery query;
-    query.prepare("SELECT keychg FROM queuesongs WHERE singer = :singerid AND played = 0 ORDER BY position LIMIT 1");
-    query.bindValue(":singerid", singerId);
-    query.exec();
-    if ( auto lastError = query.lastError(); lastError.type() != QSqlError::NoError)
-        m_logger->error("{} DB error! Error while querying the db on disk! Error: {}", m_loggingPrefix, lastError.text().toStdString());
-    if (query.first())
-        return query.value(0).toInt();
-    return 0;
-}
-
-int TableModelRotation::nextSongQueueId(const int singerId) const {
-    QSqlQuery query;
-    query.prepare("SELECT qsongid FROM queuesongs WHERE singer = :singerid AND played = 0 ORDER BY position LIMIT 1");
-    query.bindValue(":singerid", singerId);
-    query.exec();
-    if ( auto lastError = query.lastError(); lastError.type() != QSqlError::NoError)
-        m_logger->error("{} DB error! Error while querying the db on disk! Error: {}", m_loggingPrefix, lastError.text().toStdString());
-    if (query.first())
-        return query.value(0).toInt();
-    return -1;
 }
 
 void TableModelRotation::clearRotation() {
@@ -560,11 +474,13 @@ void TableModelRotation::clearRotation() {
     emit layoutAboutToBeChanged();
     QSqlQuery query;
     query.exec("DELETE from queuesongs");
-    if ( auto lastError = query.lastError(); lastError.type() != QSqlError::NoError)
-        m_logger->error("{} DB error! Error occurred while clearing the queuesongs db table on disk! Error: {}", m_loggingPrefix, lastError.text().toStdString());
+    if (auto lastError = query.lastError(); lastError.type() != QSqlError::NoError)
+        m_logger->error("{} DB error! Error occurred while clearing the queuesongs db table on disk! Error: {}",
+                        m_loggingPrefix, lastError.text().toStdString());
     query.exec("DELETE FROM rotationsingers");
-    if ( auto lastError = query.lastError(); lastError.type() != QSqlError::NoError)
-        m_logger->error("{} DB error! Error occurred while clearing the rotation singers db table on disk! Error: {}", m_loggingPrefix, lastError.text().toStdString());
+    if (auto lastError = query.lastError(); lastError.type() != QSqlError::NoError)
+        m_logger->error("{} DB error! Error occurred while clearing the rotation singers db table on disk! Error: {}",
+                        m_loggingPrefix, lastError.text().toStdString());
     m_singers.clear();
     m_settings.setCurrentRotationPosition(-1);
     m_currentSingerId = -1;
@@ -577,7 +493,8 @@ int TableModelRotation::currentSinger() const {
 }
 
 void TableModelRotation::setCurrentSinger(const int currentSingerId) {
-    m_logger->debug("{} Setting singer id: {} name: '{}' as the current rotation singer", m_loggingPrefix, currentSingerId,
+    m_logger->debug("{} Setting singer id: {} name: '{}' as the current rotation singer", m_loggingPrefix,
+                    currentSingerId,
                     getSinger(currentSingerId).name.toStdString());
     emit layoutAboutToBeChanged();
     m_currentSingerId = currentSingerId;
@@ -586,54 +503,34 @@ void TableModelRotation::setCurrentSinger(const int currentSingerId) {
     m_settings.setCurrentRotationPosition(currentSingerId);
 }
 
-int TableModelRotation::numSongsSung(const int singerId) const {
-    QSqlQuery query;
-    query.prepare("SELECT COUNT(qsongid) FROM queuesongs WHERE singer = :singerid AND played = true");
-    query.bindValue(":singerid", singerId);
-    query.exec();
-    if ( auto lastError = query.lastError(); lastError.type() != QSqlError::NoError)
-        m_logger->error("{} DB error! Error while querying the db on disk! Error: {}", m_loggingPrefix, lastError.text().toStdString());
-    if (query.first())
-        return query.value(0).toInt();
-    return -1;
-}
-
-int TableModelRotation::numSongsUnsung(const int singerId) const {
-    QSqlQuery query;
-    query.prepare("SELECT COUNT(qsongid) FROM queuesongs WHERE singer = :singerid AND played = false");
-    query.bindValue(":singerid", singerId);
-    query.exec();
-    if ( auto lastError = query.lastError(); lastError.type() != QSqlError::NoError)
-        m_logger->error("{} DB error! Error while querying the db on disk! Error: {}", m_loggingPrefix, lastError.text().toStdString());
-    if (query.first())
-        return query.value(0).toInt();
-    return -1;
-}
-
 void TableModelRotation::outputRotationDebug() {
     m_logger->debug("{} -- Rotation debug output --", m_loggingPrefix);
     m_logger->debug("{} singerid    position    regular    added                name", m_loggingPrefix);
     int expectedPosition = 0;
     bool needsRepair = false;
-    std::for_each(m_singers.begin(), m_singers.end(), [&](RotationSinger &singer) {
-        m_logger->debug("{}      {:03}         {:03}     {:5}     {}    {}", m_loggingPrefix, singer.id, singer.position, singer.regular, singer.addTs.toString("dd.MM.yy hh:mm:ss").toStdString(), singer.name.toStdString());
+    for (const auto &singer: m_singers) {
+        m_logger->debug("{}      {:03}         {:03}     {:5}     {}    {}", m_loggingPrefix, singer.id,
+                        singer.position, singer.regular, singer.addTs.toString("dd.MM.yy hh:mm:ss").toStdString(),
+                        singer.name.toStdString());
         if (singer.position != expectedPosition) {
             needsRepair = true;
-            m_logger->critical("{} ERROR DETECTED!!! - Singer position does not match expected position!", m_loggingPrefix);
+            m_logger->critical("{} ERROR DETECTED!!! - Singer position does not match expected position!",
+                               m_loggingPrefix);
         }
         expectedPosition++;
-    });
+    }
     m_logger->debug("{} -- Rotation debug output end --", m_loggingPrefix);
     if (needsRepair)
-        fixSingerPositions();}
+        fixSingerPositions();
+}
 
 void TableModelRotation::fixSingerPositions() {
     m_logger->error("{} Attempting to recover from corrupted rotation data", m_loggingPrefix);
     emit layoutAboutToBeChanged();
     int pos{0};
-    std::for_each(m_singers.begin(), m_singers.end(), [&pos](RotationSinger &singer) {
+    for (auto &singer: m_singers) {
         singer.position = pos++;
-    });
+    }
     emit layoutChanged();
     commitChanges();
     m_logger->error("{} Repair complete", m_loggingPrefix);
@@ -730,20 +627,20 @@ QStringList TableModelRotation::mimeTypes() const {
 }
 
 QMimeData *TableModelRotation::mimeData(const QModelIndexList &indexes) const {
+
     auto mimeData = new QMimeData();
+    if (indexes.isEmpty())
+        return mimeData;
     mimeData->setData("integer/rotationpos",
                       indexes.at(0).sibling(indexes.at(0).row(), COL_POSITION).data().toByteArray().data());
-    if (!indexes.empty()) {
-        QJsonArray jArr;
-        std::for_each(indexes.begin(), indexes.end(), [&](QModelIndex index) {
-            // only act on one column to avoid duplicate singerIds in the list for each col
-            if (index.column() != COL_NAME)
-                return;
-            jArr.append(index.data(Qt::UserRole).toInt());
-        });
-        QJsonDocument jDoc(jArr);
-        mimeData->setData("application/rotsingers", jDoc.toJson());
+    QJsonArray jArr;
+    for (const auto &index: indexes) {
+        // only act on one column to avoid duplicate singerIds in the list for each col
+        if (index.column() != COL_NAME)
+            continue;
+        jArr.append(index.data(Qt::UserRole).toInt());
     }
+    mimeData->setData("application/rotsingers", QJsonDocument(jArr).toJson());
     return mimeData;
 }
 
@@ -771,20 +668,23 @@ bool TableModelRotation::dropMimeData(const QMimeData *data, Qt::DropAction acti
             dropRow = m_singers.size() - 1;
         if (getSinger(ids.at(0).toInt()).position > dropRow)
             std::reverse(ids.begin(), ids.end());
-        std::for_each(ids.begin(), ids.end(), [&](auto val) {
-            singerMove(getSinger(val.toInt()).position, dropRow, false);
-        });
+        for (const auto &val: ids) {
+            singerMove(getSinger(val.toInt()).position, static_cast<int>(dropRow), false);
+        }
         commitChanges();
         emit rotationModified();
         if (dropRow == m_singers.size() - 1) {
             // moving to bottom
-            emit singersMoved(static_cast<int>(m_singers.size() - ids.size()), 0, static_cast<int>(m_singers.size() - 1), columnCount(QModelIndex()) - 1);
+            emit singersMoved(static_cast<int>(m_singers.size() - ids.size()), 0,
+                              static_cast<int>(m_singers.size() - 1), columnCount(QModelIndex()) - 1);
         } else if (getSinger(ids.at(0).toInt()).position < dropRow) {
             // moving down
-            emit singersMoved(static_cast<int>(dropRow - ids.size() + 1), 0, static_cast<int>(dropRow), columnCount(QModelIndex()) - 1);
+            emit singersMoved(static_cast<int>(dropRow - ids.size() + 1), 0, static_cast<int>(dropRow),
+                              columnCount(QModelIndex()) - 1);
         } else {
             // moving up
-            emit singersMoved(static_cast<int>(dropRow), 0, static_cast<int>(dropRow + ids.size() - 1), columnCount(QModelIndex()) - 1);
+            emit singersMoved(static_cast<int>(dropRow), 0, static_cast<int>(dropRow + ids.size() - 1),
+                              columnCount(QModelIndex()) - 1);
         }
         return true;
     }
@@ -815,14 +715,8 @@ Qt::ItemFlags TableModelRotation::flags([[maybe_unused]]const QModelIndex &index
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
 }
 
-uint TableModelRotation::singerTurnDistance(const int singerId) {
-    const auto &singer = getSinger(singerId);
-    const auto &curSinger = getSinger(m_currentSingerId);
-    if (singer.position > curSinger.position)
-        return singer.position - curSinger.position;
-    else if (singer.position < curSinger.position)
-        return (m_singers.size() - curSinger.position) + singer.position;
-    return 0;
+int TableModelRotation::singerTurnDistance(const int singerId) const {
+    return positionTurnDistance(getSinger(singerId).position);
 }
 
 void TableModelRotation::setRotationTopSingerId(const int id) {
@@ -830,14 +724,14 @@ void TableModelRotation::setRotationTopSingerId(const int id) {
     m_settings.setLastRunRotationTopSingerId(id);
 }
 
-const RotationSinger& TableModelRotation::getSingerAtPosition(int position) const {
-    if (position < 0 || position > m_singers.size() -1)
+const okj::RotationSinger &TableModelRotation::getSingerAtPosition(int position) const {
+    if (position < 0 || position > m_singers.size() - 1)
         return InvalidSinger;
     return m_singers.at(position);
 }
 
-const RotationSinger& TableModelRotation::getSinger(int singerId) const {
-    auto it = std::find_if(m_singers.begin(), m_singers.end(), [&singerId] (const RotationSinger &singer) {
+const okj::RotationSinger &TableModelRotation::getSinger(int singerId) const {
+    auto it = std::find_if(m_singers.begin(), m_singers.end(), [&singerId](const okj::RotationSinger &singer) {
         return singer.id == singerId;
     });
     if (it == m_singers.end())
@@ -845,8 +739,8 @@ const RotationSinger& TableModelRotation::getSinger(int singerId) const {
     return *it;
 }
 
-const RotationSinger &TableModelRotation::getSingerByName(const QString &name) const {
-    auto it = std::find_if(m_singers.begin(), m_singers.end(), [&name] (const RotationSinger &singer) {
+const okj::RotationSinger &TableModelRotation::getSingerByName(const QString &name) const {
+    auto it = std::find_if(m_singers.begin(), m_singers.end(), [&name](const okj::RotationSinger &singer) {
         return singer.name == name;
     });
     if (it == m_singers.end())
@@ -856,4 +750,60 @@ const RotationSinger &TableModelRotation::getSingerByName(const QString &name) c
 
 size_t TableModelRotation::singerCount() {
     return m_singers.size();
+}
+
+int TableModelRotation::positionTurnDistance(int position) const {
+    const auto &curSinger = getSinger(m_currentSingerId);
+    if (position > curSinger.position)
+        return position - curSinger.position;
+    else if (position < curSinger.position)
+        return static_cast<int>(m_singers.size() - curSinger.position) + position;
+    return 0;
+}
+
+int TableModelRotation::positionWaitTime(int position) const {
+    if (position < 0 || position > m_singers.size() - 1)
+        return 0;
+
+    const auto &curSinger = getSinger(m_currentSingerId);
+    const auto &singer = getSingerAtPosition(position);
+    int totalWaitDuration{0};
+
+    if (curSinger.position == singer.position)
+        return 0;
+
+    if (curSinger.position < singer.position) {
+        for (int i = curSinger.position; i < singer.position; i++) {
+            const auto &loopSinger = getSingerAtPosition(i);
+            if (i == curSinger.position) {
+                totalWaitDuration += m_remainSecs;
+            } else if (loopSinger.id != singer.id) {
+                int nextDuration = loopSinger.nextSongDurationSecs();
+                totalWaitDuration += nextDuration;
+            }
+        }
+        return totalWaitDuration;
+    }
+
+    if (curSinger.position > singer.position) {
+        for (int i = 0; i < singer.position; i++) {
+            const auto &loopSinger = getSingerAtPosition(i);
+            if (loopSinger.id != singer.id) {
+                int nextDuration = loopSinger.nextSongDurationSecs();
+                totalWaitDuration += nextDuration;
+            }
+        }
+        for (int i = curSinger.position; i < m_singers.size(); i++) {
+            const auto &loopSinger = getSingerAtPosition(i);
+            if (i == curSinger.position)
+                totalWaitDuration += 240;
+            else if (loopSinger.id != singer.id) {
+                int nextDuration = loopSinger.nextSongDurationSecs();
+                totalWaitDuration += nextDuration;
+            }
+        }
+        return totalWaitDuration;
+    }
+
+    return 0;
 }

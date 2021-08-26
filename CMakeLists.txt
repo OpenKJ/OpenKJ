@@ -410,6 +410,7 @@ set(SOURCE_FILES
         src/mediabackend.cpp
         src/mzarchive.cpp
         src/okjutil.h
+        src/okjtypes.cpp
         src/dlgvideopreview.cpp
         src/mainwindow.cpp
         src/dbupdater.cpp
@@ -469,6 +470,7 @@ set(SOURCE_FILES
         src/mediabackend.h
         src/mzarchive.h
         src/okjutil.h
+        src/okjtypes.h
         src/dbupdater.h
         src/dlgkeychange.h
         src/dlgdatabase.h
