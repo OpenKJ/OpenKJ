@@ -58,7 +58,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBS
     else ()
         set(STATIC_TAGLIB True)
     endif ()
-    if (NOT DEFINED SPDLOG_USE_CPM)
+    if (NOT DEFINED SPDLOG_USE_CPM AND NOT DEFINED SPDLOG_USE_BUNDLED)
         pkg_check_modules(SPDLOG IMPORTED_TARGET spdlog)
         if (SPDLOG_FOUND)
             message(STATUS "Using OS installed spdlog")
@@ -71,14 +71,24 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBS
             #        )
         endif ()
     else ()
-        message("SPDLOG_USE_CPM defined, forcing CPM version and ignoring OS packages")
+        message("SPDLOG_USE_CPM or SPDLOG_USE_BUNDLED defined, ignoring OS packages")
     endif ()
 endif ()
 
 if (NOT EXTERNAL_SPDLOG)
-    message(STATUS "No spdlog install found or CPM spdlong forced, pulling it in via CPM")
-    include(cmake/CPM.cmake)
-    CPMAddPackage("gh:gabime/spdlog@1.8.2")
+    if (CMAKE_VERSION VERSION_LESS 3.14 OR DEFINED SPDLOG_USE_BUNDLED)
+        message(STATUS "No spdlog install found, SPDLOG_USE_BUNDLED define, or SPDLOG_USE_CPM defined and cmake too old for CPM, trying git submodule")
+        add_subdirectory(
+                src/3rdparty/spdlog
+        )
+        include_directories(
+                src/3rdparty/spdlog/include
+        )
+    else ()
+        message(STATUS "No spdlog install found or CPM spdlog forced, pulling it in via CPM")
+        include(cmake/CPM.cmake)
+        CPMAddPackage("gh:gabime/spdlog@1.8.2")
+    endif ()
 endif ()
 
 

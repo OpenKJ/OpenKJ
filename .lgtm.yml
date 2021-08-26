@@ -7,8 +7,6 @@ extraction:
     prepare:
       packages:
         - "cmake"
-        - "libspdlog-dev"
-        - "libfmt-dev"
         - "qttools5-dev-tools"
         - "qtbase5-dev"
         - "libqt5svg5-dev"
@@ -19,4 +17,4 @@ extraction:
         - "libpulse-dev"
     configure:
       command:
-       - "cmake -DSPDLOG_USE_CPM=true ."
+       - "cmake -DSPDLOG_USE_BUNDLED=true ."
