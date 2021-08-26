@@ -191,12 +191,13 @@ QVariant TableModelRotation::data(const QModelIndex &index, int role) const {
 }
 
 void TableModelRotation::loadData() {
-    m_logger->debug("{} loading rotation data from disk", m_loggingPrefix);
+    m_logger->debug("{} loading rotation data from DB on disk", m_loggingPrefix);
     emit layoutAboutToBeChanged();
     m_singers.clear();
     QSqlQuery query;
     query.exec("SELECT singerid,name,position,regular,addts FROM rotationsingers ORDER BY position");
-    qInfo() << "TableModelRotation - SQL error on load: " << query.lastError();
+    if (auto sqlError = query.lastError(); sqlError.type() != QSqlError::NoError)
+        m_logger->error("{} TableModelRotation - SQL error on load: {}", m_loggingPrefix, sqlError.text().toStdString());
     while (query.next()) {
         m_singers.emplace_back(RotationSinger{
                 query.value(0).toInt(),
