@@ -2,6 +2,7 @@ path_classifiers:
   library:
     - "src/miniz"
     - "src/taglib"
+    - "src/3rdparty"
 extraction:
   cpp:
     prepare:
