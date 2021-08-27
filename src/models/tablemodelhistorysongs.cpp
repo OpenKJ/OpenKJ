@@ -1,98 +1,102 @@
+
+
 #include "tablemodelhistorysongs.h"
-#include <QSqlQuery>
-#include <QSqlError>
-#include <QDebug>
+#include <QApplication>
 #include <QDateTime>
+#include <QDebug>
+#include <QSqlError>
+#include <QFontMetrics>
+#include <QSqlQuery>
 
-TableModelHistorySongs::TableModelHistorySongs(TableModelKaraokeSongs &songsModel) : m_karaokeSongsModel(songsModel)
-{
+TableModelHistorySongs::TableModelHistorySongs(TableModelKaraokeSongs &songsModel) : m_karaokeSongsModel(songsModel) {
 }
 
 
-int TableModelHistorySongs::rowCount([[maybe_unused]]const QModelIndex &parent) const
-{
-    return m_songs.size();
+int TableModelHistorySongs::rowCount([[maybe_unused]]const QModelIndex &parent) const {
+    return static_cast<int>(m_songs.size());
 }
 
-int TableModelHistorySongs::columnCount([[maybe_unused]]const QModelIndex &parent) const
-{
+int TableModelHistorySongs::columnCount([[maybe_unused]]const QModelIndex &parent) const {
     return 9;
 }
 
-QVariant TableModelHistorySongs::data(const QModelIndex &index, int role) const
-{
-    if (role == Qt::ForegroundRole)
-    {
-        if (m_karaokeSongsModel.getIdForPath(m_songs.at(index.row()).filePath) == -1)
-            return QColor(Qt::gray);
+QVariant TableModelHistorySongs::data(const QModelIndex &index, int role) const {
+    switch (role) {
+        case Qt::ForegroundRole:
+            if (m_karaokeSongsModel.getIdForPath(m_songs.at(index.row()).filePath) == -1)
+                return QColor(Qt::gray);
+            return {};
+        case Qt::ToolTipRole:
+            if (m_karaokeSongsModel.getIdForPath(m_songs.at(index.row()).filePath) == -1)
+                return QString("Song doesn't exist in current database.");
+            return {};
+        case Qt::TextAlignmentRole:
+            return getTextAlignment(index);
+        case Qt::DisplayRole:
+            return getDisplayData(index);
+        case Qt::SizeHintRole:
+            return getSizeHint(index.column());
+        default:
+            return {};
     }
-    if (role == Qt::ToolTipRole)
-    {
-        if (m_karaokeSongsModel.getIdForPath(m_songs.at(index.row()).filePath) == -1)
-            return QString("Song doesn't exist in current database.");
-    }
-    if (role == Qt::TextAlignmentRole)
-    {
-        switch (index.column()) {
-        case 6:
+}
+
+QVariant TableModelHistorySongs::getTextAlignment(const QModelIndex &index) {
+    switch (index.column()) {
+        case KEY_CHANGE:
             return Qt::AlignHCenter;
-        case 7:
+        case SUNG_COUNT:
             return Qt::AlignRight;
-        case 8:
+        case LAST_SUNG:
             return Qt::AlignHCenter;
         default:
             return Qt::AlignLeft;
-        }
     }
-    if (role == Qt::DisplayRole)
-    {
-        switch (index.column()) {
-        case 0:
+}
+
+QVariant TableModelHistorySongs::getDisplayData(const QModelIndex &index) const {
+    switch (index.column()) {
+        case SONG_ID:
             return m_songs.at(index.row()).id;
-        case 1:
+        case SINGER_ID:
             return m_songs.at(index.row()).historySinger;
-        case 2:
+        case PATH:
             return m_songs.at(index.row()).filePath;
-        case 3:
+        case ARTIST:
             return m_songs.at(index.row()).artist;
-        case 4:
+        case TITLE:
             return m_songs.at(index.row()).title;
-        case 5:
+        case SONGID:
             return m_songs.at(index.row()).songid;
-        case 6:
-        {
+        case KEY_CHANGE: {
             int key = m_songs.at(index.row()).keyChange;
             if (key == 0)
-                return QVariant();
+                return {};
             if (key > 0)
                 return "+" + QString::number(key);
             else
                 return key;
         }
-        case 7:
+        case SUNG_COUNT:
             return m_songs.at(index.row()).plays;
-        case 8:
-        {
+        case LAST_SUNG: {
             QLocale locale;
             return m_songs.at(index.row()).lastPlayed.toString(locale.dateFormat(QLocale::ShortFormat));
         }
-        }
     }
-    return QVariant();
+    return {};
 }
 
-void TableModelHistorySongs::loadSinger(const int historySingerId)
-{
+void TableModelHistorySongs::loadSinger(const int historySingerId) {
     qInfo() << "SingerHistoryTableModel::loadSinger(" << historySingerId << ") called";
     emit layoutAboutToBeChanged();
-    beginInsertRows(QModelIndex(),m_songs.size(),m_songs.size());
+    beginInsertRows(QModelIndex(), m_songs.size(), m_songs.size());
     m_songs.clear();
     QSqlQuery query;
     query.prepare("SELECT * from historySongs WHERE historySinger = :historySinger");
     query.bindValue(":historySinger", historySingerId);
     query.exec();
-    while (query.next())
-    {
+    while (query.next()) {
         HistorySong song;
         song.id = query.value(0).toUInt();
         song.historySinger = query.value(1).toUInt();
@@ -110,8 +114,7 @@ void TableModelHistorySongs::loadSinger(const int historySingerId)
     emit endInsertRows();
 }
 
-void TableModelHistorySongs::loadSinger(const QString historySingerName)
-{
+void TableModelHistorySongs::loadSinger(const QString &historySingerName) {
     qInfo() << "SingerHistoryTableModel::loadSinger(" << historySingerName << ") called";
     m_currentSinger = historySingerName;
     QSqlQuery query;
@@ -120,8 +123,7 @@ void TableModelHistorySongs::loadSinger(const QString historySingerName)
     query.exec();
     if (query.next())
         loadSinger(query.value(0).toUInt());
-    else
-    {
+    else {
         qInfo() << "No history found for singer, nothing loaded";
         emit layoutAboutToBeChanged();
         m_songs.clear();
@@ -129,18 +131,16 @@ void TableModelHistorySongs::loadSinger(const QString historySingerName)
     }
 }
 
-void TableModelHistorySongs::saveSong(const QString &singerName, const QString &filePath, const QString &artist, const QString &title, const QString &songid, const int keyChange)
-{
+void TableModelHistorySongs::saveSong(const QString &singerName, const QString &filePath, const QString &artist,
+                                      const QString &title, const QString &songid, const int keyChange) {
     qInfo() << "filepath: " << filePath;
-    if (artist == "--Dropped Song--")
-    {
+    if (artist == "--Dropped Song--") {
         qInfo() << "Song was added via drop from external source, not saving to history";
         return;
     }
     QSqlQuery query;
     auto historySingerId = getSingerId(singerName);
-    if (historySingerId != -1 && songExists(historySingerId, filePath))
-    {
+    if (historySingerId != -1 && songExists(historySingerId, filePath)) {
         qInfo() << "Song already in singer history, updating existing record";
         query.prepare("UPDATE historySongs SET artist = :artist, title = :title, songid = :songid, "
                       "keychange = :keychange, plays = plays + 1, lastplay = :datetime "
@@ -157,14 +157,14 @@ void TableModelHistorySongs::saveSong(const QString &singerName, const QString &
         qInfo() << query.lastError();
         return;
     }
-    if (historySingerId == -1)
-    {
+    if (historySingerId == -1) {
         qInfo() << "Singer does not exist in historySinger table, adding";
         historySingerId = addSinger(singerName);
     }
     qInfo() << "Adding new song to singer history";
-    query.prepare("INSERT INTO historySongs (historySinger, filepath, artist, title, songid, keychange, plays, lastplay) "
-                  "values (:historySinger, :filepath, :artist, :title, :songid, :keychange, 1, :datetime)");
+    query.prepare(
+            "INSERT INTO historySongs (historySinger, filepath, artist, title, songid, keychange, plays, lastplay) "
+            "values (:historySinger, :filepath, :artist, :title, :songid, :keychange, 1, :datetime)");
     query.bindValue(":artist", artist);
     query.bindValue(":title", title);
     query.bindValue(":songid", songid);
@@ -177,24 +177,24 @@ void TableModelHistorySongs::saveSong(const QString &singerName, const QString &
     loadSinger(m_currentSinger);
 }
 
-void TableModelHistorySongs::saveSong(const QString &singerName, const QString &filePath, const QString &artist, const QString &title, const QString &songid, const int keyChange, int plays, QDateTime lastPlayed)
-{
+void TableModelHistorySongs::saveSong(const QString &singerName, const QString &filePath, const QString &artist,
+                                      const QString &title, const QString &songid, const int keyChange, int plays,
+                                      const QDateTime& lastPlayed) {
     qInfo() << "filepath: " << filePath;
     QSqlQuery query;
     auto historySingerId = getSingerId(singerName);
-    if (historySingerId != -1 && songExists(historySingerId, filePath))
-    {
+    if (historySingerId != -1 && songExists(historySingerId, filePath)) {
         qInfo() << "Song already in singer history, skipping";
         return;
     }
-    if (historySingerId == -1)
-    {
+    if (historySingerId == -1) {
         qInfo() << "Singer does not exist in historySinger table, adding";
         historySingerId = addSinger(singerName);
     }
     qInfo() << "Adding new song to singer history";
-    query.prepare("INSERT INTO historySongs (historySinger, filepath, artist, title, songid, keychange, plays, lastplay) "
-                  "values (:historySinger, :filepath, :artist, :title, :songid, :keychange, :plays, :datetime)");
+    query.prepare(
+            "INSERT INTO historySongs (historySinger, filepath, artist, title, songid, keychange, plays, lastplay) "
+            "values (:historySinger, :filepath, :artist, :title, :songid, :keychange, :plays, :datetime)");
     query.bindValue(":artist", artist);
     query.bindValue(":title", title);
     query.bindValue(":songid", songid);
@@ -208,8 +208,7 @@ void TableModelHistorySongs::saveSong(const QString &singerName, const QString &
     loadSinger(m_currentSinger);
 }
 
-void TableModelHistorySongs::deleteSong(const int historySongId)
-{
+void TableModelHistorySongs::deleteSong(const int historySongId) {
     QSqlQuery query;
     query.prepare("DELETE FROM historySongs WHERE id = :historySongId");
     query.bindValue(":historySongId", historySongId);
@@ -217,8 +216,7 @@ void TableModelHistorySongs::deleteSong(const int historySongId)
     loadSinger(m_currentSinger);
 }
 
-int TableModelHistorySongs::addSinger(const QString name) const
-{
+int TableModelHistorySongs::addSinger(const QString &name) const {
     qInfo() << "Inserting singer into history: " << name;
     QSqlQuery query;
     query.prepare("INSERT INTO historySingers (name) VALUES( :name )");
@@ -228,8 +226,7 @@ int TableModelHistorySongs::addSinger(const QString name) const
     return query.lastInsertId().toInt();
 }
 
-bool TableModelHistorySongs::songExists(const int historySingerId, const QString &filePath) const
-{
+bool TableModelHistorySongs::songExists(const int historySingerId, const QString &filePath) const {
     QSqlQuery query;
     query.prepare("SELECT id FROM historySongs WHERE historySinger = :historySinger AND filepath = :filePath LIMIT 1");
     query.bindValue(":historySinger", historySingerId);
@@ -240,29 +237,25 @@ bool TableModelHistorySongs::songExists(const int historySingerId, const QString
     return false;
 }
 
-int TableModelHistorySongs::getSingerId(const QString &name) const
-{
+int TableModelHistorySongs::getSingerId(const QString &name) const {
     int retVal = -1;
     QSqlQuery query;
     query.prepare("SELECT id FROM historySingers WHERE name = :name LIMIT 1");
     query.bindValue(":name", name);
     query.exec();
-    if (query.next())
-    {
+    if (query.next()) {
         retVal = query.value(0).toInt();
     }
     return retVal;
 }
 
-std::vector<HistorySong> TableModelHistorySongs::getSingerSongs(const int historySingerId)
-{
+std::vector<HistorySong> TableModelHistorySongs::getSingerSongs(const int historySingerId) {
     std::vector<HistorySong> songs;
     QSqlQuery query;
     query.prepare("SELECT * from historySongs WHERE historySinger = :historySinger");
     query.bindValue(":historySinger", historySingerId);
     query.exec();
-    while (query.next())
-    {
+    while (query.next()) {
         HistorySong song;
         song.id = query.value(0).toUInt();
         song.historySinger = query.value(1).toUInt();
@@ -278,10 +271,8 @@ std::vector<HistorySong> TableModelHistorySongs::getSingerSongs(const int histor
     return songs;
 }
 
-void TableModelHistorySongs::refresh()
-{
-    if (getSingerId(m_currentSinger) != -1)
-    {
+void TableModelHistorySongs::refresh() {
+    if (getSingerId(m_currentSinger) != -1) {
         emit layoutAboutToBeChanged();
         m_songs.clear();
         emit layoutChanged();
@@ -291,79 +282,96 @@ void TableModelHistorySongs::refresh()
 }
 
 
-QVariant TableModelHistorySongs::headerData(int section, Qt::Orientation orientation, int role) const
-{
-    if (role == Qt::DisplayRole  && orientation == Qt::Horizontal)
-    {
+QVariant TableModelHistorySongs::headerData(int section, Qt::Orientation orientation, int role) const {
+    if (role == Qt::SizeHintRole && orientation == Qt::Horizontal)
+        return getSizeHint(section);
+    if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
         switch (section) {
-        case 0:
-            return "id";
-        case 1:
-            return "historySingerId";
-        case 2:
-            return "filepath";
-        case 3:
-            return "Artist";
-        case 4:
-            return "Title";
-        case 5:
-            return "SongID";
-        case 6:
-            return "Key";
-        case 7:
-            return "Plays";
-        case 8:
-            return "Last Play";
+            case SONG_ID:
+                return "id";
+            case SINGER_ID:
+                return "historySingerId";
+            case PATH:
+                return "filepath";
+            case ARTIST:
+                return "Artist";
+            case TITLE:
+                return "Title";
+            case SONGID:
+                return "SongID";
+            case KEY_CHANGE:
+                return "Key";
+            case SUNG_COUNT:
+                return "Plays";
+            case LAST_SUNG:
+                return "Last Play";
+            default:
+                return {};
         }
     }
-    return QVariant();
+    return {};
+}
+
+QVariant TableModelHistorySongs::getSizeHint(int section) {
+    switch (section) {
+        case KEY_CHANGE:
+            return QApplication::fontMetrics().size(Qt::TextSingleLine, " Key ");
+        case SUNG_COUNT:
+            return QApplication::fontMetrics().size(Qt::TextSingleLine, " Plays ");
+        case LAST_SUNG:
+            return QApplication::fontMetrics().size(Qt::TextSingleLine, " 00/00/00 ");
+        case SONGID:
+            return QApplication::fontMetrics().size(Qt::TextSingleLine, " 8888088888 ");
+        case ARTIST:
+            return QApplication::fontMetrics().size(Qt::TextSingleLine, " Some long artist name");
+        case TITLE:
+            return QApplication::fontMetrics().size(Qt::TextSingleLine, " some long title name as well ");
+        default:
+            return {};
+    }
 }
 
 
-void TableModelHistorySongs::sort(int column, Qt::SortOrder order)
-{
+void TableModelHistorySongs::sort(int column, Qt::SortOrder order) {
     m_lastSortColumn = column;
     m_lastSortOrder = order;
     emit layoutAboutToBeChanged();
-    if (order == Qt::DescendingOrder)
-    {
-        std::sort(m_songs.begin(), m_songs.end(), [&column] (HistorySong a, HistorySong b) {
+    if (order == Qt::DescendingOrder) {
+        std::sort(m_songs.begin(), m_songs.end(), [&column](HistorySong a, HistorySong b) {
             switch (column) {
-            case 3:
-                return (a.artist.toLower() > b.artist.toLower());
-            case 4:
-                return (a.title.toLower() > b.title.toLower());
-            case 5:
-                return (a.songid.toLower() > b.songid.toLower());
-            case 6:
-                return (a.keyChange > b.keyChange);
-            case 7:
-                return (a.plays > b.plays);
-            case 8:
-                return (a.lastPlayed > b.lastPlayed);
-            default:
-                return (a.id > b.id);
+                case 3:
+                    return (a.artist.toLower() > b.artist.toLower());
+                case 4:
+                    return (a.title.toLower() > b.title.toLower());
+                case 5:
+                    return (a.songid.toLower() > b.songid.toLower());
+                case 6:
+                    return (a.keyChange > b.keyChange);
+                case 7:
+                    return (a.plays > b.plays);
+                case 8:
+                    return (a.lastPlayed > b.lastPlayed);
+                default:
+                    return (a.id > b.id);
             }
         });
-    }
-    else
-    {
-        std::sort(m_songs.begin(), m_songs.end(), [&column] (HistorySong a, HistorySong b) {
+    } else {
+        std::sort(m_songs.begin(), m_songs.end(), [&column](HistorySong a, HistorySong b) {
             switch (column) {
-            case 3:
-                return (a.artist.toLower() < b.artist.toLower());
-            case 4:
-                return (a.title.toLower() < b.title.toLower());
-            case 5:
-                return (a.songid.toLower() < b.songid.toLower());
-            case 6:
-                return (a.keyChange < b.keyChange);
-            case 7:
-                return (a.plays < b.plays);
-            case 8:
-                return (a.lastPlayed < b.lastPlayed);
-            default:
-                return (a.id < b.id);
+                case 3:
+                    return (a.artist.toLower() < b.artist.toLower());
+                case 4:
+                    return (a.title.toLower() < b.title.toLower());
+                case 5:
+                    return (a.songid.toLower() < b.songid.toLower());
+                case 6:
+                    return (a.keyChange < b.keyChange);
+                case 7:
+                    return (a.plays < b.plays);
+                case 8:
+                    return (a.lastPlayed < b.lastPlayed);
+                default:
+                    return (a.id < b.id);
             }
         });
     }

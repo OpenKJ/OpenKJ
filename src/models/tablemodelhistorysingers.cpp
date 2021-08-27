@@ -95,7 +95,7 @@ void TableModelHistorySingers::loadSingers()
     }
     while (query.next())
     {
-        m_singers.emplace_back(HistorySinger{query.value("id").toInt(),query.value("name").toString(),getSongCount(query.value("id").toInt())});
+        m_singers.emplace_back(okj::HistorySinger{query.value("id").toInt(),query.value("name").toString(),getSongCount(query.value("id").toInt())});
     }
     emit layoutChanged();
 }
@@ -164,14 +164,14 @@ void TableModelHistorySingers::filter(const QString &filterString)
     auto blah = singers();
 }
 
-std::vector<HistorySinger> &TableModelHistorySingers::singers()
+std::vector<okj::HistorySinger> &TableModelHistorySingers::singers()
 {
     return m_singers;
 }
 
-HistorySinger TableModelHistorySingers::getSinger(const int historySingerId)
+okj::HistorySinger TableModelHistorySingers::getSinger(const int historySingerId)
 {
-    auto result = std::find_if(m_singers.begin(), m_singers.end(), [&historySingerId] (const HistorySinger& singer) {
+    auto result = std::find_if(m_singers.begin(), m_singers.end(), [&historySingerId] (const okj::HistorySinger& singer) {
        return (singer.historySingerId == historySingerId);
     });
     if (result != m_singers.end())

@@ -848,6 +848,10 @@ void MainWindow::loadSettings() {
 }
 
 void MainWindow::setupConnections() {
+    connect(ui->tabWidgetQueue, &QTabWidget::currentChanged, [&] (auto tab) {
+       if (tab == 1)
+           ui->tableViewHistory->resizeColumnsToContents();
+    });
     connect(ui->comboBoxHistoryDblClick, QOverload<int>::of(&QComboBox::currentIndexChanged), &settings,
             &Settings::setHistoryDblClickAction);
     connect(&m_rotModel, &TableModelRotation::songDroppedOnSinger, this, &MainWindow::songDroppedOnSinger);
@@ -3316,10 +3320,8 @@ void MainWindow::autosizeViews() {
 }
 
 void MainWindow::autosizeQueue() {
-    auto curTab = ui->tabWidgetQueue->currentIndex();
-
-    ui->tabWidgetQueue->setCurrentIndex(0);
-    QApplication::processEvents();
+    if (ui->tabWidgetQueue->currentIndex() == 1)
+        return;
     int fH = QFontMetrics(settings.applicationFont()).height();
     int iconWidth = fH + fH;
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
@@ -3347,20 +3349,6 @@ void MainWindow::autosizeQueue() {
     ui->tableViewQueue->horizontalHeader()->resizeSection(TableModelQueueSongs::COL_KEY, keyColSize);
     ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(TableModelQueueSongs::COL_KEY, QHeaderView::Fixed);
 
-    ui->tabWidgetQueue->setCurrentIndex(1);
-    QApplication::processEvents();
-    remainingSpace = ui->tableViewHistory->width() - keyColSize - songidColSize - lastPlayedColSize - playsColSize - 16;
-    artistColSize = (remainingSpace / 2);
-    titleColSize = (remainingSpace / 2);
-    ui->tableViewHistory->horizontalHeader()->resizeSection(3, artistColSize);
-    ui->tableViewHistory->horizontalHeader()->resizeSection(4, titleColSize);
-    ui->tableViewHistory->horizontalHeader()->resizeSection(5, songidColSize);
-    ui->tableViewHistory->horizontalHeader()->resizeSection(6, keyColSize);
-    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(6, QHeaderView::Fixed);
-    ui->tableViewHistory->horizontalHeader()->resizeSection(7, playsColSize);
-    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(7, QHeaderView::Fixed);
-    QApplication::processEvents();
-    ui->tabWidgetQueue->setCurrentIndex(curTab);
 }
 
 void MainWindow::autosizeBmViews() {

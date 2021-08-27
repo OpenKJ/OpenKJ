@@ -5,12 +5,8 @@
 #include <QIcon>
 #include <QItemDelegate>
 #include "settings.h"
+#include "okjtypes.h"
 
-struct HistorySinger {
-    int historySingerId{-1};
-    QString name;
-    int songCount{0};
-};
 
 class ItemDelegateHistorySingers : public QItemDelegate
 {
@@ -34,7 +30,7 @@ class TableModelHistorySingers : public QAbstractTableModel
 {
     Q_OBJECT
 private:
-    std::vector<HistorySinger> m_singers;
+    std::vector<okj::HistorySinger> m_singers;
     QString m_filterString;
     Settings m_settings;
 
@@ -52,8 +48,8 @@ public:
     void deleteHistory(int historySingerId);
     bool rename(int historySingerId, const QString &newName);
     void filter(const QString &filterString);
-    std::vector<HistorySinger> &singers();
-    HistorySinger getSinger(int historySingerId);
+    std::vector<okj::HistorySinger> &singers();
+    okj::HistorySinger getSinger(int historySingerId);
 
 signals:
     void historySingersModified();

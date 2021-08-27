@@ -28,6 +28,12 @@
 
 namespace okj {
 
+    struct HistorySinger {
+        int historySingerId{-1};
+        QString name;
+        int songCount{0};
+    };
+
     struct RotationSinger {
         int id{0};
         QString name;

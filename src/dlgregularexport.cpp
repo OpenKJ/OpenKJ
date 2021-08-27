@@ -91,7 +91,7 @@ void DlgRegularExport::on_pushButtonExportAll_clicked()
 {
     std::vector<int> singerIds;
     auto singers = m_historySingersModel.singers();
-    std::for_each(singers.begin(), singers.end(), [&singerIds] (HistorySinger singer) {
+    std::for_each(singers.begin(), singers.end(), [&singerIds] (okj::HistorySinger singer) {
         singerIds.emplace_back(singer.historySingerId);
     });
     if (singerIds.size() > 0)
