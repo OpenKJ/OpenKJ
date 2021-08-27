@@ -23,6 +23,11 @@
 
 #include <QAbstractTableModel>
 #include <QSqlDatabase>
+#include <spdlog/spdlog.h>
+#include <spdlog/async_logger.h>
+#include <spdlog/fmt/ostr.h>
+
+std::ostream& operator<<(std::ostream& os, const QString& s);
 
 class SourceDir
 {
@@ -62,10 +67,13 @@ class TableModelKaraokeSourceDirs : public QAbstractTableModel
     Q_OBJECT
 
 private:
+    std::string m_loggingPrefix{"[KaraokeSrcDirsModel]"};
+    std::shared_ptr<spdlog::logger> m_logger;
     QVector<SourceDir> mydata;
     void addSourceDir(const SourceDir dir);
 
 public:
+    explicit TableModelKaraokeSourceDirs(QObject *parent = nullptr);
     enum {PATH=0,PATTERN};
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;
@@ -80,9 +88,9 @@ public:
     void setDBObject(QSqlDatabase *value);
     void clear();
     SourceDir getDirByIndex(int index);
-    SourceDir getDirByPath(QString path);
+    SourceDir getDirByPath(const QString& path);
     QStringList getSourceDirs();
-    
+
 };
 
 #endif // SOURCEDIRTABLEMODEL_H

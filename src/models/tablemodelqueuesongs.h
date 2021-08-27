@@ -8,6 +8,9 @@
 #include <QUrl>
 #include "tablemodelkaraokesongs.h"
 #include "settings.h"
+#include <spdlog/spdlog.h>
+#include <spdlog/async_logger.h>
+#include <spdlog/fmt/ostr.h>
 
 struct QueueSong {
     int id{0};
@@ -74,6 +77,8 @@ public:
     void commitChanges();
 
 private:
+    std::string m_loggingPrefix{"[QueueSongsModel]"};
+    std::shared_ptr<spdlog::logger> m_logger;
     int m_curSingerId{0};
     TableModelKaraokeSongs &m_karaokeSongsModel;
     std::vector<QueueSong> m_songs;

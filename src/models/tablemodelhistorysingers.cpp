@@ -10,6 +10,7 @@
 TableModelHistorySingers::TableModelHistorySingers(QObject *parent)
     : QAbstractTableModel(parent)
 {
+    m_logger = spdlog::get("logger");
     loadSingers();
 }
 

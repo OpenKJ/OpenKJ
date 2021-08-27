@@ -1,6 +1,5 @@
 #include "tablemodelcustomnamingpatterns.h"
 #include <QSqlQuery>
-#include <QDebug>
 
 void TableModelCustomNamingPatterns::loadFromDB()
 {

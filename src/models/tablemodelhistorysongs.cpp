@@ -3,12 +3,12 @@
 #include "tablemodelhistorysongs.h"
 #include <QApplication>
 #include <QDateTime>
-#include <QDebug>
 #include <QSqlError>
 #include <QFontMetrics>
 #include <QSqlQuery>
 
 TableModelHistorySongs::TableModelHistorySongs(TableModelKaraokeSongs &songsModel) : m_karaokeSongsModel(songsModel) {
+    m_logger = spdlog::get("logger");
 }
 
 
@@ -88,7 +88,6 @@ QVariant TableModelHistorySongs::getDisplayData(const QModelIndex &index) const 
 }
 
 void TableModelHistorySongs::loadSinger(const int historySingerId) {
-    qInfo() << "SingerHistoryTableModel::loadSinger(" << historySingerId << ") called";
     emit layoutAboutToBeChanged();
     beginInsertRows(QModelIndex(), m_songs.size(), m_songs.size());
     m_songs.clear();
@@ -115,7 +114,6 @@ void TableModelHistorySongs::loadSinger(const int historySingerId) {
 }
 
 void TableModelHistorySongs::loadSinger(const QString &historySingerName) {
-    qInfo() << "SingerHistoryTableModel::loadSinger(" << historySingerName << ") called";
     m_currentSinger = historySingerName;
     QSqlQuery query;
     query.prepare("SELECT id FROM historySingers WHERE name == :name LIMIT 1");
@@ -124,7 +122,7 @@ void TableModelHistorySongs::loadSinger(const QString &historySingerName) {
     if (query.next())
         loadSinger(query.value(0).toUInt());
     else {
-        qInfo() << "No history found for singer, nothing loaded";
+        m_logger->debug("{} No history found for singer '{}'. Nothing loaded", m_loggingPrefix, historySingerName);
         emit layoutAboutToBeChanged();
         m_songs.clear();
         emit layoutChanged();
@@ -133,15 +131,14 @@ void TableModelHistorySongs::loadSinger(const QString &historySingerName) {
 
 void TableModelHistorySongs::saveSong(const QString &singerName, const QString &filePath, const QString &artist,
                                       const QString &title, const QString &songid, const int keyChange) {
-    qInfo() << "filepath: " << filePath;
     if (artist == "--Dropped Song--") {
-        qInfo() << "Song was added via drop from external source, not saving to history";
+        m_logger->info("{} Song was added via drag and drop from an external source, not adding to history",
+                       m_loggingPrefix);
         return;
     }
     QSqlQuery query;
     auto historySingerId = getSingerId(singerName);
     if (historySingerId != -1 && songExists(historySingerId, filePath)) {
-        qInfo() << "Song already in singer history, updating existing record";
         query.prepare("UPDATE historySongs SET artist = :artist, title = :title, songid = :songid, "
                       "keychange = :keychange, plays = plays + 1, lastplay = :datetime "
                       "WHERE filePath = :filepath AND historysinger = :historysinger");
@@ -153,15 +150,14 @@ void TableModelHistorySongs::saveSong(const QString &singerName, const QString &
         query.bindValue(":historysinger", historySingerId);
         query.bindValue(":datetime", QDateTime::currentDateTime());
         query.exec();
+        if (auto error = query.lastError(); error.type() != QSqlError::NoError)
+            m_logger->error("{} DB error: {}", m_loggingPrefix, error.text());
         loadSinger(m_currentSinger);
-        qInfo() << query.lastError();
         return;
     }
     if (historySingerId == -1) {
-        qInfo() << "Singer does not exist in historySinger table, adding";
         historySingerId = addSinger(singerName);
     }
-    qInfo() << "Adding new song to singer history";
     query.prepare(
             "INSERT INTO historySongs (historySinger, filepath, artist, title, songid, keychange, plays, lastplay) "
             "values (:historySinger, :filepath, :artist, :title, :songid, :keychange, 1, :datetime)");
@@ -173,25 +169,22 @@ void TableModelHistorySongs::saveSong(const QString &singerName, const QString &
     query.bindValue(":historySinger", historySingerId);
     query.bindValue(":datetime", QDateTime::currentDateTime());
     query.exec();
-    qInfo() << query.lastError();
+    if (auto error = query.lastError(); error.type() != QSqlError::NoError)
+        m_logger->error("{} DB error: {}", m_loggingPrefix, error.text());
     loadSinger(m_currentSinger);
 }
 
 void TableModelHistorySongs::saveSong(const QString &singerName, const QString &filePath, const QString &artist,
                                       const QString &title, const QString &songid, const int keyChange, int plays,
-                                      const QDateTime& lastPlayed) {
-    qInfo() << "filepath: " << filePath;
+                                      const QDateTime &lastPlayed) {
     QSqlQuery query;
     auto historySingerId = getSingerId(singerName);
     if (historySingerId != -1 && songExists(historySingerId, filePath)) {
-        qInfo() << "Song already in singer history, skipping";
         return;
     }
     if (historySingerId == -1) {
-        qInfo() << "Singer does not exist in historySinger table, adding";
         historySingerId = addSinger(singerName);
     }
-    qInfo() << "Adding new song to singer history";
     query.prepare(
             "INSERT INTO historySongs (historySinger, filepath, artist, title, songid, keychange, plays, lastplay) "
             "values (:historySinger, :filepath, :artist, :title, :songid, :keychange, :plays, :datetime)");
@@ -204,7 +197,8 @@ void TableModelHistorySongs::saveSong(const QString &singerName, const QString &
     query.bindValue(":plays", plays);
     query.bindValue(":datetime", lastPlayed);
     query.exec();
-    qInfo() << query.lastError();
+    if (auto error = query.lastError(); error.type() != QSqlError::NoError)
+        m_logger->error("{} DB error: {}", m_loggingPrefix, error.text());
     loadSinger(m_currentSinger);
 }
 
@@ -217,12 +211,12 @@ void TableModelHistorySongs::deleteSong(const int historySongId) {
 }
 
 int TableModelHistorySongs::addSinger(const QString &name) const {
-    qInfo() << "Inserting singer into history: " << name;
     QSqlQuery query;
     query.prepare("INSERT INTO historySingers (name) VALUES( :name )");
     query.bindValue(":name", name);
     query.exec();
-    qInfo() << query.lastError();
+    if (auto error = query.lastError(); error.type() != QSqlError::NoError)
+        m_logger->error("{} DB error: {}", m_loggingPrefix, error.text());
     return query.lastInsertId().toInt();
 }
 
@@ -312,20 +306,45 @@ QVariant TableModelHistorySongs::headerData(int section, Qt::Orientation orienta
     return {};
 }
 
-QVariant TableModelHistorySongs::getSizeHint(int section) {
+QVariant TableModelHistorySongs::getSizeHint(int section) const {
+    int height = QApplication::fontMetrics().height() + 10;
+    auto keySize = QSize(
+            QApplication::fontMetrics().horizontalAdvance(" Key "),
+            height
+    );
+    auto sungCountSize = QSize(
+            QFontMetrics(m_settings.applicationFont()).horizontalAdvance(" Plays "),
+            height
+            );
+    auto lastSungSize = QSize(
+            QFontMetrics(m_settings.applicationFont()).horizontalAdvance(" Last Play "),
+            height
+    );
+    auto songIdSize = QSize(
+            QFontMetrics(m_settings.applicationFont()).horizontalAdvance(" 888808888888 "),
+            height
+    );
+    auto artistSize = QSize(
+            QFontMetrics(m_settings.applicationFont()).horizontalAdvance(" Some long artist name "),
+            height
+    );
+    auto titleSize = QSize(
+            QFontMetrics(m_settings.applicationFont()).horizontalAdvance(" some long title name as well "),
+            height
+    );
     switch (section) {
         case KEY_CHANGE:
-            return QApplication::fontMetrics().size(Qt::TextSingleLine, " Key ");
+            return keySize;
         case SUNG_COUNT:
-            return QApplication::fontMetrics().size(Qt::TextSingleLine, " Plays ");
+            return sungCountSize;
         case LAST_SUNG:
-            return QApplication::fontMetrics().size(Qt::TextSingleLine, " 00/00/00 ");
+            return lastSungSize;
         case SONGID:
-            return QApplication::fontMetrics().size(Qt::TextSingleLine, " 8888088888 ");
+            return songIdSize;
         case ARTIST:
-            return QApplication::fontMetrics().size(Qt::TextSingleLine, " Some long artist name");
+            return artistSize;
         case TITLE:
-            return QApplication::fontMetrics().size(Qt::TextSingleLine, " some long title name as well ");
+            return titleSize;
         default:
             return {};
     }

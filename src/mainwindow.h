@@ -70,6 +70,7 @@ class MainWindow : public QMainWindow {
 Q_OBJECT
 
 private:
+    Settings m_settings;
     std::unique_ptr<Ui::MainWindow> ui;
     std::string m_loggingPrefix{"[MainWindow]"};
     std::shared_ptr<spdlog::logger> m_logger;

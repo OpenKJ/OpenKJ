@@ -5,16 +5,17 @@
 #include <QPainter>
 #include <QFileInfo>
 #include <QDir>
-#include <QDebug>
 #include <QDirIterator>
 #include <QSvgRenderer>
 #include <QMimeData>
 #include <QApplication>
 #include <array>
 
+std::ostream & operator<<(std::ostream& os, const QString& s);
 
 TableModelKaraokeSongs::TableModelKaraokeSongs(QObject *parent)
         : QAbstractTableModel(parent) {
+    m_logger = spdlog::get("logger");
     resizeIconsForFont(m_settings.applicationFont());
     connect(&searchTimer, &QTimer::timeout, this, &TableModelKaraokeSongs::searchExec);
 }
@@ -130,7 +131,7 @@ void TableModelKaraokeSongs::loadData() {
                 (query.value(3).toString() == "!!DROPPED!!")
         }));
     }
-    qInfo() << "Loaded " << m_filteredSongs.size() << " karaoke songs from database.";
+    m_logger->info("{} Loaded {} karaoke songs from the db on disk", m_loggingPrefix, m_filteredSongs.size());
     search(m_lastSearch);
     emit layoutChanged();
 }
@@ -420,7 +421,7 @@ TableModelKaraokeSongs::DeleteStatus TableModelKaraokeSongs::removeBadSong(QStri
 }
 
 QString TableModelKaraokeSongs::findCdgAudioFile(const QString &path) {
-    qInfo() << "findMatchingAudioFile(" << path << ") called";
+    m_logger->debug("{} findMatchingAudioFile({}) called", m_loggingPrefix, path.toStdString());
     std::array<QString, 41> audioExtensions{
             "mp3",
             "ogg",
@@ -449,9 +450,9 @@ QString TableModelKaraokeSongs::findCdgAudioFile(const QString &path) {
 }
 
 int TableModelKaraokeSongs::addSong(KaraokeSong song) {
-    qInfo() << "TableModelKaraokeSongs::addSong() called";
+    m_logger->debug("{} addSong() called", m_loggingPrefix);
     if (int songId = getIdForPath(song.path); songId > -1) {
-        qInfo() << "addSong() - Song at path already exists in db:\n\t" << song.path;
+        m_logger->debug("{} addSong() - Song at path already exists in the db:{}", m_loggingPrefix, song.path.toStdString());
         return songId;
     }
     QSqlQuery query;
@@ -465,15 +466,15 @@ int TableModelKaraokeSongs::addSong(KaraokeSong song) {
     query.bindValue(":filename", song.filename);
     query.bindValue(":searchString", song.searchString);
     query.exec();
-    qInfo() << query.lastError();
-    if (query.lastInsertId().isValid()) {
+    if (auto error = query.lastError(); error.type() != QSqlError::NoError) {
+        m_logger->error("{} Error adding song to the database", m_loggingPrefix);
+        m_logger->error("{} Database error: {}", m_loggingPrefix, error.text().toStdString());
+        return -1;
+    } else {
         int lastInsertId = query.lastInsertId().toInt();
         song.id = lastInsertId;
         m_allSongs.push_back(std::make_shared<KaraokeSong>(song));
         search(m_lastSearch);
         return lastInsertId;
-    } else {
-        qInfo() << "Error while inserting song into DB";
-        return -1;
     }
 }

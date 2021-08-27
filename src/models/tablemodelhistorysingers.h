@@ -6,7 +6,11 @@
 #include <QItemDelegate>
 #include "settings.h"
 #include "okjtypes.h"
+#include <spdlog/spdlog.h>
+#include <spdlog/async_logger.h>
+#include <spdlog/fmt/ostr.h>
 
+std::ostream& operator<<(std::ostream& os, const QString& s);
 
 class ItemDelegateHistorySingers : public QItemDelegate
 {
@@ -30,6 +34,8 @@ class TableModelHistorySingers : public QAbstractTableModel
 {
     Q_OBJECT
 private:
+    std::string m_loggingPrefix{"[HistorySingersModel]"};
+    std::shared_ptr<spdlog::logger> m_logger;
     std::vector<okj::HistorySinger> m_singers;
     QString m_filterString;
     Settings m_settings;

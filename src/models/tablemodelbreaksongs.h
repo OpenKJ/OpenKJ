@@ -3,8 +3,10 @@
 
 #include <QAbstractTableModel>
 #include <QTime>
-#include <QDebug>
 #include <chrono>
+#include <spdlog/async_logger.h>
+#include "spdlog/spdlog.h"
+#include "spdlog/fmt/ostr.h"
 
 struct BreakSong {
     int id{0};
@@ -14,7 +16,9 @@ struct BreakSong {
     QString filename;
     int duration;
     std::string searchString;
+
 };
+
 
 class TableModelBreakSongs : public QAbstractTableModel
 {
@@ -37,6 +41,8 @@ public:
 
 
 private:
+    std::string m_loggingPrefix{"[BreakSongsModel]"};
+    std::shared_ptr<spdlog::logger> m_logger;
     std::vector<BreakSong> m_filteredSongs;
     std::vector<BreakSong> m_allSongs;
     QString m_lastSearch;

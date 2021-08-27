@@ -23,7 +23,6 @@
 #include <QFileInfo>
 #include <QSqlQuery>
 #include <QSqlRecord>
-#include <QDebug>
 
 #define UNUSED(x) (void)x
 
@@ -199,24 +198,24 @@ SourceDir TableModelKaraokeSourceDirs::getDirByIndex(int index)
     return mydata.at(index);
 }
 
-SourceDir TableModelKaraokeSourceDirs::getDirByPath(QString path)
+SourceDir TableModelKaraokeSourceDirs::getDirByPath(const QString& path)
 {
     loadFromDB();
     QFileInfo fileInfo(path);
     QDir dir = fileInfo.absoluteDir();
     while (dir.absolutePath() != dir.rootPath())
     {
-        for (int i=0; i<mydata.size(); i++)
+        for (const auto & i : mydata)
         {
-            if (mydata.at(i).getPath() == dir.absolutePath())
+            if (i.getPath() == dir.absolutePath())
             {
-                qInfo() << "Match found - " << mydata.at(i).getPath() << " - " << mydata.at(i).getPattern();
-                return mydata.at(i);
+                m_logger->debug("{} Match found - {} - {}", m_loggingPrefix, i.getPath(), i.getPattern());
+                return i;
             }
         }
         dir.cdUp();
     }
-    qInfo() << "No Match Found";
+    m_logger->debug("{} No match found - {}", m_loggingPrefix, path);
     return SourceDir();
 }
 
@@ -228,4 +227,8 @@ QStringList TableModelKaraokeSourceDirs::getSourceDirs()
         dirs.append(mydata.at(i).getPath());
     }
     return dirs;
+}
+
+TableModelKaraokeSourceDirs::TableModelKaraokeSourceDirs(QObject *parent) : QAbstractTableModel(parent) {
+    m_logger = spdlog::get("logger");
 }

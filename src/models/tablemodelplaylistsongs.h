@@ -8,7 +8,8 @@
 #include <optional>
 #include "tablemodelbreaksongs.h"
 #include "settings.h"
-
+#include <spdlog/spdlog.h>
+#include <spdlog/async_logger.h>
 
 struct PlaylistSong {
     int id{0};
@@ -78,6 +79,8 @@ public:
 
 
 private:
+    std::string m_loggingPrefix{"[PlaylistSongsModel]"};
+    std::shared_ptr<spdlog::logger> m_logger;
     std::vector<PlaylistSong> m_songs;
     TableModelBreakSongs &m_breakSongsModel;
     int m_curPlaylistId{0};

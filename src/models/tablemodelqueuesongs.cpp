@@ -2,17 +2,19 @@
 
 #include <QSqlQuery>
 #include <QSqlError>
-#include <QDebug>
 #include <QTime>
 #include <QMimeData>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QUrl>
 #include <QSvgRenderer>
+#include <spdlog/fmt/ostr.h>
 
+std::ostream & operator<<(std::ostream& os, const QString& s);
 
 TableModelQueueSongs::TableModelQueueSongs(TableModelKaraokeSongs &karaokeSongsModel, QObject *parent)
         : QAbstractTableModel(parent), m_karaokeSongsModel(karaokeSongsModel) {
+    m_logger = spdlog::get("logger");
 }
 
 QVariant TableModelQueueSongs::headerData(int section, Qt::Orientation orientation, int role) const {
@@ -100,7 +102,7 @@ QVariant TableModelQueueSongs::data(const QModelIndex &index, int role) const {
 }
 
 void TableModelQueueSongs::loadSinger(const int singerId) {
-    qInfo() << "loadSinger( " << singerId << " ) fired";
+    m_logger->debug("{} loadSinger({}) fired", m_loggingPrefix, singerId);
     emit layoutAboutToBeChanged();
     m_songs.clear();
     m_songs.shrink_to_fit();
@@ -114,9 +116,10 @@ void TableModelQueueSongs::loadSinger(const int singerId) {
                   "ORDER BY queuesongs.position");
     query.bindValue(":singerId", singerId);
     query.exec();
-    qInfo() << query.lastError();
-    //qInfo() << query.lastQuery();
-    qInfo() << "quey returned " << query.size() << " rows";
+    if (auto error = query.lastError(); error.type() != QSqlError::NoError)
+        m_logger->error("{} DB error: {}", m_loggingPrefix, error.text());
+    else
+        m_logger->debug("{} Query returned {} rows", m_loggingPrefix, query.size());
     while (query.next()) {
         m_songs.emplace_back(QueueSong{
                 query.value(0).toInt(),
@@ -232,7 +235,6 @@ void TableModelQueueSongs::insert(const int songId, const int position) {
 }
 
 void TableModelQueueSongs::remove(const int songId) {
-    qInfo() << "songs before delete: " << m_songs.size();
     emit layoutAboutToBeChanged();
     auto it = std::remove_if(m_songs.begin(), m_songs.end(), [&songId](QueueSong &song) {
         return (song.id == songId);
@@ -243,7 +245,6 @@ void TableModelQueueSongs::remove(const int songId) {
         song.position = pos++;
     });
     emit layoutChanged();
-    qInfo() << "songs after delete" << m_songs.size();
     commitChanges();
     emit queueModified(m_curSingerId);
 }
@@ -265,7 +266,7 @@ void TableModelQueueSongs::setKey(const int songId, const int semitones) {
 }
 
 void TableModelQueueSongs::setPlayed(const int songId, const bool played) {
-    qInfo() << "Setting songId " << songId << " to played = " << played;
+    m_logger->debug("{} Setting songId {} to played", m_loggingPrefix, songId);
     QSqlQuery query;
     query.prepare("UPDATE queuesongs SET played = :played WHERE qsongid = :id");
     query.bindValue(":id", songId);
@@ -315,7 +316,6 @@ void TableModelQueueSongs::commitChanges() {
 }
 
 void TableModelQueueSongs::songAddSlot(int songId, int singerId, int keyChg) {
-    qInfo() << "TableModelQueueSongs::songAddSlot(" << songId << ", " << singerId << ", " << keyChg << ") called";
     if (singerId == m_curSingerId) {
         int queueSongId = add(songId);
         setKey(queueSongId, keyChg);
@@ -326,6 +326,8 @@ void TableModelQueueSongs::songAddSlot(int songId, int singerId, int keyChg) {
         query.prepare("SELECT COUNT(qsongid) FROM queuesongs WHERE singer = :singerId");
         query.bindValue(":singerId", singerId);
         query.exec();
+        if (auto error = query.lastError(); error.type() != QSqlError::NoError)
+            m_logger->error("{} DB error: {}", m_loggingPrefix, error.text());
         if (query.first())
             newPos = query.value(0).toInt();
         query.prepare("INSERT INTO queuesongs (singer,song,artist,title,discid,path,keychg,played,position) "
@@ -336,7 +338,8 @@ void TableModelQueueSongs::songAddSlot(int songId, int singerId, int keyChg) {
         query.bindValue(":played", false);
         query.bindValue(":position", newPos);
         query.exec();
-        qInfo() << query.lastError();
+        if (auto error = query.lastError(); error.type() != QSqlError::NoError)
+            m_logger->error("{} DB error: {}", m_loggingPrefix, error.text());
     }
 }
 
@@ -368,18 +371,14 @@ bool TableModelQueueSongs::canDropMimeData(const QMimeData *data, Qt::DropAction
                                            const QModelIndex &parent) const {
     if ((data->hasFormat("integer/songid")) || (data->hasFormat("text/queueitems")) ||
         data->hasFormat("text/uri-list")) {
-        qInfo() << "QueueModel - Good data type - can drop: " << data->formats();
         return true;
     }
-    qInfo() << "QueueModel - Unknown data type - can't drop: " << data->formats();
     return false;
 }
 
 bool TableModelQueueSongs::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column,
                                         const QModelIndex &parent) {
-    qInfo() << "qdrop: action: " << action << " format: " << data->formats();
     if (getSingerId() == -1) {
-        qInfo() << "Song dropped into queue w/ no singer selected";
         emit songDroppedWithoutSinger();
         return false;
     }

@@ -53,6 +53,7 @@ private:
         QString sequenceName;
     };
     OKJSongbookAPI &songbookApi;
+    Settings m_settings;
 
 public:
     explicit DlgSettings(MediaBackend &AudioBackend, MediaBackend &BmAudioBackend, OKJSongbookAPI &songbookAPI,
@@ -89,6 +90,14 @@ signals:
     void tickerCustomStringChanged();
     void tickerOutputModeChanged();
     void shortcutsChanged();
+    void karaokeAutoAdvanceChanged(bool enabled);
+    void enforceAspectRatioChanged(bool enabled);
+    void treatAllSingersAsRegsChanged(bool enabled);
+    void requestServerIntervalChanged(int interval);
+    void rotationDurationSettingsModified();
+    void rotationShowNextSongChanged(bool enabled);
+    void requestServerEnableChanged(bool enabled);
+    void videoOffsetChanged(int offsetMs);
 
 private slots:
     void on_btnClose_clicked();

@@ -5,6 +5,11 @@
 #include <QDateTime>
 #include <QObject>
 #include "tablemodelkaraokesongs.h"
+#include <spdlog/spdlog.h>
+#include <spdlog/async_logger.h>
+#include <spdlog/fmt/ostr.h>
+
+std::ostream& operator<<(std::ostream& os, const QString& s);
 
 struct HistorySong {
     unsigned int id{0};
@@ -22,11 +27,14 @@ class TableModelHistorySongs : public QAbstractTableModel
 {
     Q_OBJECT
 private:
+    std::string m_loggingPrefix{"[HistorySongsModel]"};
+    std::shared_ptr<spdlog::logger> m_logger;
     std::vector<HistorySong> m_songs;
     QString m_currentSinger;
     int m_lastSortColumn{3};
     Qt::SortOrder m_lastSortOrder{Qt::AscendingOrder};
     TableModelKaraokeSongs &m_karaokeSongsModel;
+    Settings m_settings;
 
 public:
     enum {
@@ -66,7 +74,7 @@ public:
     void sort(int column, Qt::SortOrder order) override;
     [[nodiscard]] QVariant getDisplayData(const QModelIndex &index) const;
     [[nodiscard]] static QVariant getTextAlignment(const QModelIndex &index) ;
-    static QVariant getSizeHint(int section) ;
+    QVariant getSizeHint(int section) const;
 };
 
 #endif // SINGERHISTORYTABLEMODEL_H

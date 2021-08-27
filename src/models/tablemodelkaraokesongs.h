@@ -7,6 +7,8 @@
 #include <memory>
 #include <QTimer>
 #include "settings.h"
+#include <spdlog/spdlog.h>
+#include <spdlog/async_logger.h>
 
 
 struct KaraokeSong {
@@ -69,11 +71,13 @@ public:
     KaraokeSong &getSong(int songId);
     void markSongBad(QString path);
     DeleteStatus removeBadSong(QString path);
-    static QString findCdgAudioFile(const QString& path);
+    QString findCdgAudioFile(const QString& path);
     int addSong(KaraokeSong song);
 
 
 private:
+    std::string m_loggingPrefix{"[KaraokeSongsModel]"};
+    std::shared_ptr<spdlog::logger> m_logger;
     std::vector<std::shared_ptr<KaraokeSong>> m_filteredSongs;
     std::vector< std::shared_ptr<KaraokeSong> > m_allSongs;
     QString m_lastSearch;

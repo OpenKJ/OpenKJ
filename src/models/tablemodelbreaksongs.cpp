@@ -4,29 +4,34 @@
 #include <QMimeData>
 #include <QSqlQuery>
 #include <QString>
+#include <spdlog/spdlog.h>
 
-QDebug operator<<(QDebug debug, const BreakSong &b)
+std::ostream& operator<<(std::ostream& os, const BreakSong& b)
 {
-    QDebugStateSaver saver(debug);
-    debug.nospace() << "{(artist="
-                    << b.artist
+    return os << "{(artist="
+                    << b.artist.toStdString()
                     << ")(title="
-                    << b.title
+                    << b.title.toStdString()
                     << ")(path="
-                    << b.path
+                    << b.path.toStdString()
                     << ")(fname="
-                    << b.filename
+                    << b.filename.toStdString()
                     << ")(duration="
                     << b.duration
                     << ")(sstring="
-                    << QString::fromStdString(b.searchString)
+                    << b.searchString
                     << ")}";
-    return debug;
+}
+
+std::ostream & operator<<(std::ostream& os, const QString& s)
+{
+    return os << s.toStdString();
 }
 
 TableModelBreakSongs::TableModelBreakSongs(QObject *parent)
     : QAbstractTableModel(parent)
 {
+    m_logger = spdlog::get("logger");
     loadDatabase();
 }
 

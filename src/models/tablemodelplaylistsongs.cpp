@@ -15,6 +15,7 @@
 TableModelPlaylistSongs::TableModelPlaylistSongs(TableModelBreakSongs &breakSongsModel, QObject *parent)
     : QAbstractTableModel(parent), m_breakSongsModel(breakSongsModel)
 {
+    m_logger = spdlog::get("logger");
 }
 
 QVariant TableModelPlaylistSongs::headerData(int section, Qt::Orientation orientation, int role) const
@@ -121,7 +122,7 @@ void TableModelPlaylistSongs::setCurrentPlaylist(const int playlistId)
                           });
     }
     emit layoutChanged();
-    qInfo() << "Loaded " << m_songs.size() << "songs";
+    m_logger->info("{} Loaded {} songs from db on disk", m_loggingPrefix, m_songs.size());
 }
 
 void TableModelPlaylistSongs::setCurrentPosition(const int currentPos)
@@ -151,7 +152,10 @@ void TableModelPlaylistSongs::savePlaylistChanges()
         query.exec();
     });
     query.exec("COMMIT");
-    qInfo() << "Break playlist - Saved playlist changes to database";
+    if (auto error = query.lastError(); error.type() != QSqlError::NoError)
+        m_logger->error("{} DB error while saving playlist changes: {}", m_loggingPrefix, error.text().toStdString());
+    else
+        m_logger->debug("{} Playlist changes saved to db", m_loggingPrefix);
 }
 
 void TableModelPlaylistSongs::moveSong(const int oldPosition, const int newPosition)
@@ -218,7 +222,7 @@ void TableModelPlaylistSongs::insertSong(const int songId, const int position)
 
 void TableModelPlaylistSongs::deleteSong(const int position)
 {
-    qInfo() << "songs before delete: " << m_songs.size();
+    m_logger->debug("{} Songs before delete: {}", m_songs.size());
     emit layoutAboutToBeChanged();
     auto it = std::remove_if(m_songs.begin(), m_songs.end(), [&position] (PlaylistSong &song) {
        return (song.position == position);
@@ -229,7 +233,7 @@ void TableModelPlaylistSongs::deleteSong(const int position)
            song.position--;
     });
     emit layoutChanged();
-    qInfo() << "songs after delete" << m_songs.size();
+    m_logger->debug("{} Songs after delete: {}", m_songs.size());
 }
 
 int TableModelPlaylistSongs::currentPlaylist() const
@@ -418,7 +422,6 @@ bool TableModelPlaylistSongs::dropMimeData(const QMimeData *data, Qt::DropAction
         QDataStream stream(&encodedData, QIODevice::ReadOnly);
         QList<int> songids;
         stream >> songids;
-        qInfo() << songids;
         unsigned int droprow;
         if (parent.row() >= 0)
             droprow = parent.row();
