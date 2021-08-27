@@ -669,7 +669,7 @@ bool TableModelRotation::dropMimeData(const QMimeData *data, Qt::DropAction acti
         if (getSinger(ids.at(0).toInt()).position > dropRow)
             std::reverse(ids.begin(), ids.end());
         for (const auto &val: ids) {
-            singerMove(getSinger(val.toInt()).position, static_cast<int>(dropRow), false);
+            singerMove(getSinger(val.toInt()).position, static_cast<int>(dropRow), true);
         }
         commitChanges();
         emit rotationModified();
