@@ -92,7 +92,6 @@ int main(int argc, char *argv[]) {
 
     auto consoleLogLevel = settings.getConsoleLogLevel();
     auto fileLogLevel = settings.getFileLogLevel();
-    auto loggerLogLevel = std::max(consoleLogLevel, fileLogLevel);
 
     switch (consoleLogLevel) {
         case Settings::LOG_LEVEL_CRITICAL:

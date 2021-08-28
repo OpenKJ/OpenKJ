@@ -87,6 +87,10 @@ void TickerNew::setTickerGeometry(const int width, const int height)
 
 void TickerNew::setText(const QString& text)
 {
+    if (text == m_text)
+        return;
+    m_logger->trace("{} [{}] Called", m_loggingPrefix, __func__);
+    auto st = std::chrono::high_resolution_clock::now();
     m_logger->info("{} Setting ticker text: {}", m_loggingPrefix, text);
     if (!mutex.tryLock(100))
     {
@@ -135,6 +139,11 @@ void TickerNew::setText(const QString& text)
         auxFile.close();
     }
     mutex.unlock();
+    m_logger->trace("{} [{}] finished in {}ms",
+                    m_loggingPrefix,
+                    __func__,
+                    std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - st).count()
+    );
     //qInfo() << "TickerNew - setText() completed";
 }
 
