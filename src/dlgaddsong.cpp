@@ -1,6 +1,5 @@
 #include "dlgaddsong.h"
 #include "ui_dlgaddsong.h"
-#include <QDebug>
 #include <QMessageBox>
 
 

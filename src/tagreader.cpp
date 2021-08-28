@@ -1,13 +1,12 @@
 #include "tagreader.h"
-#include <QDebug>
 #include <tag.h>
 #include <taglib/fileref.h>
 
 TagReader::TagReader(QObject *parent) : QObject(parent)
 {
+    m_logger = spdlog::get("logger");
     m_duration = 0;
-    discoverer = gst_discoverer_new(2 * GST_SECOND, NULL);
-
+    discoverer = gst_discoverer_new(2 * GST_SECOND, nullptr);
 }
 
 TagReader::~TagReader()
@@ -35,28 +34,28 @@ QString TagReader::getTrack()
     return m_track;
 }
 
-unsigned int TagReader::getDuration()
+unsigned int TagReader::getDuration() const
 {
     return m_duration;
 }
 
-void TagReader::setMedia(QString path)
+void TagReader::setMedia(const QString& path)
 {
-    qInfo() << "Getting tags for: " << path;
+    m_logger->info("{} Getting tags for: {}", m_loggingPrefix, path);
     if ((path.endsWith(".mp3", Qt::CaseInsensitive)) || (path.endsWith(".ogg", Qt::CaseInsensitive)) || path.endsWith(".mp4", Qt::CaseInsensitive) || path.endsWith(".m4v", Qt::CaseInsensitive))
     {
-        qInfo() << "Using taglib to get tags";
+        m_logger->info("{} Using taglib to get tags", m_loggingPrefix);
         taglibTags(path);
         return;
     }
-    qInfo() << "Using gstreamer to get tags";
+    m_logger->info("{} Using GStreamer to get tags", m_loggingPrefix);
     QString uri;
 #ifdef Q_OS_WIN
     uri = "file:///" + path;
 #else
     uri = "file://" + path;
 #endif
-    GError *err = NULL;
+    GError *err = nullptr;
     GstDiscovererInfo *discovererInfo = gst_discoverer_discover_uri(discoverer, uri.toUtf8().toPercentEncoding("!$&'()*+,;=:/?[]@").constData(), &err);
     if (err)
     {
@@ -65,9 +64,9 @@ void TagReader::setMedia(QString path)
     }
     if (GST_IS_DISCOVERER_INFO(discovererInfo))
     {
-        gint64 duration = gst_discoverer_info_get_duration(discovererInfo);
+        auto duration = gst_discoverer_info_get_duration(discovererInfo);
         m_duration = duration / 1000000;
-        qInfo() << "Got duration: " << m_duration;
+        m_logger->debug("{} Got duration: {}", m_loggingPrefix, m_duration);
         const GstTagList *tags = gst_discoverer_info_get_tags(discovererInfo);
         if (GST_IS_TAG_LIST(tags))
         {
@@ -75,24 +74,24 @@ void TagReader::setMedia(QString path)
             if (gst_tag_list_get_string(tags,"artist",&tagVal))
             {
                 m_artist = tagVal;
-                qInfo() << "Got artist tag: " << m_artist;
+                m_logger->info("{} Got artist tag: {}", m_loggingPrefix, m_artist);
             }
             if (gst_tag_list_get_string(tags,"title",&tagVal))
             {
                 m_title = tagVal;
-                qInfo() << "Got title tag: " << m_title;
+                m_logger->info("{} Got title tag: {}", m_loggingPrefix, m_title);
             }
         }
         else
-            qInfo() << "Invalid or missing metadata tags";
+            m_logger->warn("{} Invalid or missing metadata tags", m_loggingPrefix);
         gst_discoverer_info_unref(discovererInfo);
     }
     else
-        qInfo() << "Error retreiving discovererInfo";
-    qInfo() << "Done getting tags for: " << path;
+        m_logger->error("{} Error retrieving discovererInfo", m_loggingPrefix);
+    m_logger->info("{} Done getting tags for: {}", m_loggingPrefix, path);
 }
 
-void TagReader::taglibTags(QString path)
+void TagReader::taglibTags(const QString& path)
 {
     TagLib::FileRef f(path.toLocal8Bit().data());
     if (!f.isNull())
@@ -101,18 +100,18 @@ void TagReader::taglibTags(QString path)
         m_title = f.tag()->title().toCString(true);
         m_duration = f.audioProperties()->length() * 1000;
         m_album = f.tag()->album().toCString(true);
-        int track = f.tag()->track();
+        auto track = f.tag()->track();
         if (track == 0)
             m_track = QString();
         else if (track < 10)
             m_track = "0" + QString::number(track);
         else
             m_track = QString::number(track);
-        qInfo() << "Taglib result - Artist: " << m_artist << " Title: " << m_title << " Album: " << m_album << " Track: " << m_track << " Duration: " << m_duration;
+        m_logger->info("{} Taglib result: Artist: {} - Title: {} - Album: {} - Track: {} - Duration: {}", m_loggingPrefix, m_artist, m_title, m_album, m_track, m_duration);
     }
     else
     {
-        qWarning() << "Taglib was unable to process the file";
+        m_logger->error("{} Taglib was unable to process the specified file", m_loggingPrefix);
         m_artist = QString();
         m_title = QString();
         m_album = QString();

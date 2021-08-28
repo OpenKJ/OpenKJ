@@ -1,6 +1,5 @@
 #include "dlgpurchaseprogress.h"
 #include "ui_dlgpurchaseprogress.h"
-#include <QDebug>
 
 DlgPurchaseProgress::DlgPurchaseProgress(QWidget *parent) :
     QDialog(parent),
@@ -23,7 +22,6 @@ void DlgPurchaseProgress::setText(QString message)
 
 void DlgPurchaseProgress::setProgress(qint64 current, qint64 total)
 {
-    qInfo() << "DlgPurchaseProgress::setProgress(" << current << "," << total << ") called";
     ui->progressBar->setMaximum(total / 1000);
     ui->progressBar->setValue(current / 1000);
 }

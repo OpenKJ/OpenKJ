@@ -5,6 +5,8 @@
 #include <QSqlQuery>
 #include <QString>
 #include <spdlog/spdlog.h>
+#include <okjsongbookapi.h>
+
 
 std::ostream& operator<<(std::ostream& os, const BreakSong& b)
 {

@@ -20,7 +20,6 @@
 
 
 #include "mzarchive.h"
-#include <QDebug>
 #include <QFile>
 #include <QBuffer>
 #include <QTemporaryDir>
@@ -33,11 +32,11 @@ MzArchive::MzArchive(const QString &ArchiveFile, QObject *parent) : QObject(pare
 {
     archiveFile = ArchiveFile;
     oka.setArchiveFile(archiveFile);
-    //qWarning() << "MzArchive opening file: " << archiveFile;
     audioExtensions.append(".mp3");
     audioExtensions.append(".wav");
     audioExtensions.append(".ogg");
     audioExtensions.append(".mov");
+    m_logger = spdlog::get("logger");
 }
 
 MzArchive::MzArchive(QObject *parent) : QObject(parent)
@@ -46,6 +45,7 @@ MzArchive::MzArchive(QObject *parent) : QObject(parent)
     audioExtensions.append(".wav");
     audioExtensions.append(".ogg");
     audioExtensions.append(".mov");
+    m_logger = spdlog::get("logger");
 }
 
 int MzArchive::getSongDuration()
@@ -58,7 +58,6 @@ int MzArchive::getSongDuration()
 
 void MzArchive::setArchiveFile(const QString &value)
 {
-    //qWarning() << "MzArchive opening archive file: " << value;
     archiveFile = value;
     oka.setArchiveFile(value);
     m_cdgFound = false;
@@ -95,12 +94,12 @@ QString MzArchive::audioExtension()
 
 bool MzArchive::extractAudio(const QString& destPath, const QString& destFile)
 {
-    qInfo() << "Extracting: " << archiveFile << " audio file to: " << destPath << "/" << destFile;
+    m_logger->info("{} Extracting {} audio file to: {}/{}",m_loggingPrefix, archiveFile, destPath, destFile);
     if (findAudio())
     {
         if (!m_audioSupportedCompression || !m_cdgSupportedCompression)
         {
-            qWarning() << archiveFile << " - Archive using non-standard compression method, falling back to infozip based zip handling";
+            m_logger->warn("{} {} - Archive using non-standard compression method, falling back to infozip based zip handling", m_loggingPrefix, archiveFile);
             return oka.extractAudio(destPath, destFile);
         }
         mz_zip_archive archive;
@@ -118,11 +117,11 @@ bool MzArchive::extractAudio(const QString& destPath, const QString& destFile)
         }
         else
         {
-            qWarning() << "Failed to extract mp3 file";
-            QString err(mz_zip_get_error_string(mz_zip_get_last_error(&archive)));
-            qWarning() << "unzip error: " << err;
+            m_logger->warn("{} Failed to extract audio file", m_loggingPrefix);
+            auto err = mz_zip_get_error_string(mz_zip_get_last_error(&archive));
+            m_logger->warn("{} Unzip error: {}", m_loggingPrefix, err);
             mz_zip_reader_end(&archive);
-            qWarning() << "Attempting to fall back to external infozip method";
+            m_logger->warn("{} Attempting to fall back to external infozip method", m_loggingPrefix);
             return oka.extractAudio(destPath, destFile);
         }
     }
@@ -131,11 +130,12 @@ bool MzArchive::extractAudio(const QString& destPath, const QString& destFile)
 
 bool MzArchive::extractCdg(const QString& destPath, const QString& destFile)
 {
+    m_logger->info("{} Extracting {} cdg file to: {}/{}",m_loggingPrefix, archiveFile, destPath, destFile);
     if (findCDG())
     {
         if (!m_audioSupportedCompression || !m_cdgSupportedCompression)
         {
-            qWarning() << archiveFile << " - Archive using non-standard compression method, falling back to infozip based zip handling";
+            m_logger->warn("{} {} - Archive using non-standard compression method, falling back to infozip based zip handling", m_loggingPrefix, archiveFile);
             return oka.extractCdg(destPath, destFile);
         }
         mz_zip_archive archive;
@@ -152,9 +152,9 @@ bool MzArchive::extractCdg(const QString& destPath, const QString& destFile)
         }
         else
         {
-            qCritical() << "Failed to extract cdg file";
-            QString err(mz_zip_get_error_string(mz_zip_get_last_error(&archive)));
-            qWarning() << "unzip error: " << err;
+            m_logger->warn("{} Failed to extract cdg file", m_loggingPrefix);
+            auto err = mz_zip_get_error_string(mz_zip_get_last_error(&archive));
+            m_logger->warn("{} Unzip error: ", m_loggingPrefix, err);
             mz_zip_reader_end(&archive);
             return false;
         }
@@ -168,30 +168,30 @@ bool MzArchive::isValidKaraokeFile()
     {
         if (!m_audioSupportedCompression || !m_cdgSupportedCompression)
         {
-            qWarning() << archiveFile << " - Archive using non-standard compression method, falling back to infozip based zip handling";
+            m_logger->warn("{} {} - Archive using non-standard compression method, falling back to infozip based zip handling", m_loggingPrefix, archiveFile);
             return oka.isValidKaraokeFile();
         }
         if (!m_cdgFound)
         {
-            qWarning() << archiveFile << " - Missing CDG file";
+            m_logger->warn("{} Missing cdg file! - {}", m_loggingPrefix, archiveFile);
             lastError = "CDG not found in zip file";
         }
         if (!m_audioFound)
         {
-            qWarning() << archiveFile << " - Missing audio file";
+            m_logger->warn("{} Missing audio file! - {}", m_loggingPrefix, archiveFile);
             lastError = "Audio file not found in zip file";
         }
         return false;
     }
     if (m_audioSize <= 0)
     {
-        qWarning() << archiveFile << " - Zero byte audio file";
+        m_logger->warn("{} Zero byte audio file! - {}", m_loggingPrefix, archiveFile);
         lastError = "Zero byte audio file";
         return false;
     }
     if (m_cdgSize <= 0)
     {
-        qWarning() << archiveFile << " - Zero byte CDG file";
+        m_logger->warn("{} Zero byte cdg file! - {}", m_loggingPrefix, archiveFile);
         lastError = "Zero byte CDG file";
         return false;
     }
@@ -228,14 +228,14 @@ bool MzArchive::findEntries()
     QFile zipFile(archiveFile);
     if (!zipFile.open(QIODevice::ReadOnly))
     {
-        qWarning() << "Error opening zip file";
+        m_logger->warn("{} Error opening zip file!", m_loggingPrefix);
         return false;
     }
     QByteArray zipData = zipFile.readAll();
     zipFile.close();
     if (!mz_zip_reader_init_mem(&archive, zipData.data(), zipData.size(), 0))
     {
-        qWarning() << "Error opening zip file";
+        m_logger->warn("{} Error opening zip file!", m_loggingPrefix);
         return false;
     }
     unsigned int files = mz_zip_reader_get_num_files(&archive);

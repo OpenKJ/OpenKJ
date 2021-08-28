@@ -25,6 +25,11 @@
 #include <QObject>
 #include <QStringList>
 #include <QProcess>
+#include <spdlog/spdlog.h>
+#include <spdlog/async_logger.h>
+#include <spdlog/fmt/ostr.h>
+
+std::ostream& operator<<(std::ostream& os, const QString& s);
 
 struct zipEntry
 {
@@ -54,6 +59,8 @@ public:
     QString getLastError();
 
 private:
+    std::string m_loggingPrefix{"[ExternalZipUtil]"};
+    std::shared_ptr<spdlog::logger> m_logger;
     QString archiveFile;
     QString cdgFileName;
     QString audioFileName;

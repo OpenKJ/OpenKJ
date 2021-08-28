@@ -20,7 +20,6 @@
 
 #include "mediabackend.h"
 #include <QApplication>
-//#include <QDebug>
 #include <cmath>
 #include <QFile>
 #include <gst/audio/streamvolume.h>

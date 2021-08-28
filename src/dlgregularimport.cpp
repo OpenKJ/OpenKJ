@@ -30,7 +30,7 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
-#include <QDebug>
+
 
 DlgRegularImport::DlgRegularImport(TableModelKaraokeSongs &karaokeSongsModel, QWidget *parent) :
     m_karaokeSongsModel(karaokeSongsModel),
@@ -43,7 +43,6 @@ DlgRegularImport::DlgRegularImport(TableModelKaraokeSongs &karaokeSongsModel, QW
 
 DlgRegularImport::~DlgRegularImport()
 {
-    qInfo() << "DlgRegularImport destructor fired";
     delete ui;
 }
 
@@ -200,7 +199,6 @@ QStringList DlgRegularImport::loadSingerList(const QString &filename)
     auto jDoc = QJsonDocument::fromJson(contents);
     auto array = jDoc.array();
     std::for_each(array.begin(), array.end(), [&singers] (QJsonValueRef singer) {
-        qInfo() << singer.toObject().value("name").toString();
         singers.push_back(singer.toObject().value("name").toString());
     });
     return singers;

@@ -1,5 +1,4 @@
 #include "softwarerendervideosink.h"
-#include <QDebug>
 #include <QObject>
 #include <QPainter>
 #include <QResizeEvent>

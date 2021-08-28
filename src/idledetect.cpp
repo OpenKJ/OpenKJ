@@ -1,5 +1,4 @@
 #include "idledetect.h"
-#include <QDebug>
 
 IdleDetect::IdleDetect(QObject *parent) : QObject(parent)
 {
@@ -7,7 +6,6 @@ IdleDetect::IdleDetect(QObject *parent) : QObject(parent)
     idle = false;
     idleIncrement = new QTimer(this);
     int timerGranularity = 60000;
-//    timerGranularity = 1000;
     idleIncrement->start(timerGranularity);
     connect(idleIncrement, &QTimer::timeout, this, &IdleDetect::idleIncrementTimeout);
 }
@@ -29,7 +27,6 @@ bool IdleDetect::eventFilter(QObject *obj, QEvent *ev)
 void IdleDetect::idleIncrementTimeout()
 {
     idleMins++;
-//    qInfo() << "Current idle time: " << idleMins;
     if (idleMins > 60 && !idle)
     {
         idle = true;

@@ -17,6 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <algorithm>
 #include <QApplication>
 #include "mainwindow.h"
 #include <QStyleFactory>
@@ -80,25 +81,74 @@ int main(int argc, char *argv[]) {
 
     auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
     auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(logFilePath.toStdString(), false);
-    console_sink->set_level(spdlog::level::trace);
-    console_sink->set_pattern("[%^%l%$] %v");
-    if (settings.logEnabled())
-        file_sink->set_level(spdlog::level::debug);
-    else
-        file_sink->set_level(spdlog::level::off);
-    file_sink->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%l] %v");
-
-    spdlog::init_thread_pool(8192, 1);
+    spdlog::init_thread_pool(8192, 2);
     std::vector<spdlog::sink_ptr> sinks{console_sink, file_sink};
     logger = std::make_shared<spdlog::async_logger>("logger", sinks.begin(), sinks.end(), spdlog::thread_pool(),
                                                     spdlog::async_overflow_policy::block);
-    logger->set_level(spdlog::level::trace);
     spdlog::register_logger(logger);
+    logger->set_level(spdlog::level::trace);
     spdlog::flush_every(std::chrono::seconds(1));
-    logger->flush_on(spdlog::level::err);
+    logger->flush_on(spdlog::level::warn);
 
+    auto consoleLogLevel = settings.getConsoleLogLevel();
+    auto fileLogLevel = settings.getFileLogLevel();
+    auto loggerLogLevel = std::max(consoleLogLevel, fileLogLevel);
+
+    switch (consoleLogLevel) {
+        case Settings::LOG_LEVEL_CRITICAL:
+            console_sink->set_level(spdlog::level::critical);
+            break;
+        case Settings::LOG_LEVEL_ERROR:
+            console_sink->set_level(spdlog::level::err);
+            break;
+        case Settings::LOG_LEVEL_WARNING:
+            console_sink->set_level(spdlog::level::warn);
+            break;
+        case Settings::LOG_LEVEL_INFO:
+            console_sink->set_level(spdlog::level::info);
+            break;
+        case Settings::LOG_LEVEL_DEBUG:
+            console_sink->set_level(spdlog::level::debug);
+            break;
+        case Settings::LOG_LEVEL_TRACE:
+            console_sink->set_level(spdlog::level::info);
+            break;
+        default:
+            console_sink->set_level(spdlog::level::off);
+    }
+    switch (fileLogLevel) {
+        case Settings::LOG_LEVEL_CRITICAL:
+            file_sink->set_level(spdlog::level::critical);
+            break;
+        case Settings::LOG_LEVEL_ERROR:
+            file_sink->set_level(spdlog::level::err);
+            break;
+        case Settings::LOG_LEVEL_WARNING:
+            file_sink->set_level(spdlog::level::warn);
+            break;
+        case Settings::LOG_LEVEL_INFO:
+            file_sink->set_level(spdlog::level::info);
+            break;
+        case Settings::LOG_LEVEL_DEBUG:
+            file_sink->set_level(spdlog::level::debug);
+            break;
+        case Settings::LOG_LEVEL_TRACE:
+            file_sink->set_level(spdlog::level::trace);
+            break;
+        default:
+            file_sink->set_level(spdlog::level::off);
+    }
+    if (file_sink->level() > console_sink->level())
+        logger->set_level(file_sink->level());
+    else
+        logger->set_level(console_sink->level());
+
+    logger->set_level(spdlog::level::trace);
+    console_sink->set_pattern("[%^%l%$] %v");
+    file_sink->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%l] %v");
 
     logger->info("OpenKJ version {} starting up", OKJ_VERSION_STRING);
+
 
     //QLoggingCategory::setFilterRules("*.debug=true");
     qInstallMessageHandler(myMessageOutput);

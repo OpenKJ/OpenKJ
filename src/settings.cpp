@@ -1766,8 +1766,6 @@ int Settings::systemId()
     return settings->value("systemId", 1).toInt();
 }
 
-
-
 void Settings::setSystemId(int id)
 {
     return settings->setValue("systemId", id);
@@ -1784,4 +1782,20 @@ int Settings::lastRunRotationTopSingerId() {
 
 void Settings::setLastRunRotationTopSingerId(const int id) {
     settings->setValue("lastRunRotationTopSingerId", id);
+}
+
+int Settings::getConsoleLogLevel() {
+    return settings->value("consoleLogLevel", LOG_LEVEL_WARNING).toInt();
+}
+
+int Settings::getFileLogLevel() {
+    return settings->value("fileLogLevel", LOG_LEVEL_DISABLED).toInt();
+}
+
+void Settings::setConsoleLogLevel(int level) {
+    settings->setValue("consoleLogLevel", level);
+}
+
+void Settings::setFileLogLevel(int level) {
+    settings->setValue("fileLogLevel", level);
 }

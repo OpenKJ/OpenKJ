@@ -5,9 +5,13 @@
 #include <QNetworkReply>
 #include <QObject>
 #include <QUrl>
-#include <QDebug>
 #include <QTimer>
 #include "settings.h"
+#include <spdlog/spdlog.h>
+#include <spdlog/async_logger.h>
+#include <spdlog/fmt/ostr.h>
+
+std::ostream& operator<<(std::ostream& os, const QString& s);
 
 
 class OkjsRequest
@@ -35,7 +39,8 @@ public:
     bool operator == (const OkjsVenue& v) const;
 };
 
-QDebug operator<<(QDebug dbg, const OkjsVenue &okjsvenue);
+std::ostream& operator<<(std::ostream& os, const OkjsVenue& v);
+
 
 typedef QList<OkjsVenue> OkjsVenues;
 
@@ -43,6 +48,8 @@ class OKJSongbookAPI : public QObject
 {
     Q_OBJECT
 private:
+    std::string m_loggingPrefix{"[SongbookAPI]"};
+    std::shared_ptr<spdlog::logger> m_logger;
     int serial;
     OkjsVenues venues;
     OkjsRequests requests;

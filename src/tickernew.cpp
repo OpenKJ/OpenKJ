@@ -2,16 +2,16 @@
 
 #include <QPainter>
 #include <QFontMetrics>
-#include <QDebug>
 #include <QResizeEvent>
 #include <QMutex>
 #include <QApplication>
+#include <QTextStream>
 
 QMutex mutex;
 
 
 void TickerNew::run() {
-    qInfo() << "TickerNew - run() called, ticker starting";
+    m_logger->info("{} Ticker starting", m_loggingPrefix);
     m_stop = false;
     m_textChanged = true;
     while (!m_stop)
@@ -38,45 +38,39 @@ void TickerNew::run() {
 
 void TickerNew::stop()
 {
-    //qInfo() << "Locking mutex in stop()";
     if (!mutex.tryLock(100))
     {
-        qWarning() << "TickerNew - stop() unable to lock mutex!";
+        m_logger->warn("{} stop() unable to lock mutex!", m_loggingPrefix);
         return;
     }
     m_stop = true;
-    //qInfo() << "Unlocking mutex in stop()";
     mutex.unlock();
 }
 
 TickerNew::TickerNew()
 {
+    m_logger = spdlog::get("logger");
     setText("No ticker data");
     setObjectName("Ticker");
 }
 
 QSize TickerNew::getSize()
 {
-    //qInfo() << "Locking mutex in getSize()";
     if (!mutex.tryLock(100))
     {
-        qWarning() << "TickerNew - getSize() unable to lock mutex!";
+        m_logger->warn("{} getSize() unable to lock mutex!", m_loggingPrefix);
         return {};
     }
-    //mutex.lock();
     QSize size = scrollImage.size();
-    //qInfo() << "Unlocking mutex in getSize()";
     mutex.unlock();
     return size;
 }
 
 void TickerNew::setTickerGeometry(const int width, const int height)
 {
-    qInfo() << "TickerNew - setTickerGeometry(" << width << "," << height << ") called";
-    //qInfo() << "Locking mutex in setTickerGeometry()";
     if (!mutex.tryLock(100))
     {
-        qWarning() << "TickerNew - setTickerGeometry() unable to lock mutex!";
+        m_logger->warn("{} setTickerGeometry() unable to lock mutex", m_loggingPrefix);
         return;
     }
 #ifdef Q_OS_WIN
@@ -89,16 +83,14 @@ void TickerNew::setTickerGeometry(const int width, const int height)
     //qInfo() << "Unlocking mutex in setTickerGeometry()";
     mutex.unlock();
     setText(m_text);
-    qInfo() << "TickerNew - setTickerGeometry() completed";
 }
 
 void TickerNew::setText(const QString& text)
 {
-    qInfo() << "TickerNew - setText(" << text << ") called";
-    //qInfo() << "Locking mutex in setText()";
+    m_logger->info("{} Setting ticker text: {}", m_loggingPrefix, text);
     if (!mutex.tryLock(100))
     {
-        qWarning() << "TickerNew - setText() unable to lock mutex!";
+        m_logger->warn("{} setText() unable to lock mutex!", m_loggingPrefix);
         return;
     }
     //mutex.lock();
@@ -126,7 +118,6 @@ void TickerNew::setText(const QString& text)
         drawText = text;
         scrollImage = QPixmap(m_width, m_height);
     }
-    //qInfo() << "TickerNew - drawing text: " << drawText;
     scrollImage.fill(settings.tickerBgColor());
     QPainter p;
     p.begin(&scrollImage);
@@ -134,10 +125,9 @@ void TickerNew::setText(const QString& text)
     p.setFont(settings.tickerFont());
     p.drawText(scrollImage.rect(), Qt::AlignLeft | Qt::AlignVCenter, drawText);
     p.end();
-    //qInfo() << "Unlocking mutex in setText()";
     if (settings.auxTickerFile() != QString())
     {
-        qInfo() << "Saving ticker to file " << settings.auxTickerFile();
+        m_logger->debug("{} Saving ticker data to aux file: {}", m_loggingPrefix, settings.auxTickerFile());
         QFile auxFile(settings.auxTickerFile());
         auxFile.open(QIODevice::Truncate | QIODevice::WriteOnly | QIODevice::Text);
         QTextStream out(&auxFile);
@@ -158,7 +148,7 @@ void TickerNew::setSpeed(int speed)
     //qInfo() << "Locking mutex in setSpeed()";
     if (!mutex.tryLock(100))
     {
-        qWarning() << "TickerNew - setSpeed() unable to lock mutex!";
+        m_logger->warn("{} setSpeed() unable to lock mutex!", m_loggingPrefix);
         return;
     }
     //mutex.lock();
@@ -166,13 +156,13 @@ void TickerNew::setSpeed(int speed)
         m_speed = 50;
     else
         m_speed = 51 - speed;
-    //qInfo() << "Unlocking mutex in setSpeed()";
     mutex.unlock();
 }
 
 TickerDisplayWidget::TickerDisplayWidget(QWidget *parent)
     : QWidget(parent)
 {
+    m_logger = spdlog::get("logger");
     ticker = new TickerNew();
     ticker->setTickerGeometry(this->width(), this->height());
     connect(ticker, &TickerNew::newFrame, this, &TickerDisplayWidget::newFrame);
@@ -182,7 +172,6 @@ TickerDisplayWidget::TickerDisplayWidget(QWidget *parent)
 
 TickerDisplayWidget::~TickerDisplayWidget()
 {
-    qInfo() << "TickerDisplayWidget destructor called";
     ticker->stop();
     ticker->wait(1000);
     delete ticker;
@@ -211,7 +200,7 @@ void TickerDisplayWidget::stop()
 
 void TickerDisplayWidget::setTickerEnabled(bool enabled)
 {
-    qInfo() << "TickerDisplayWidget - setTickerEnabled(" << enabled << ") called";
+    m_logger->info("{} Enabled set to: {}", m_loggingPrefix, enabled);
     if (enabled && !ticker->isRunning()) {
         ticker->start();
         ticker->setPriority(QThread::TimeCriticalPriority);

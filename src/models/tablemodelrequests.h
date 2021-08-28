@@ -25,6 +25,11 @@
 #include "okjsongbookapi.h"
 #include <QIcon>
 #include "settings.h"
+#include <spdlog/spdlog.h>
+#include <spdlog/async_logger.h>
+#include <spdlog/fmt/ostr.h>
+
+std::ostream& operator<<(std::ostream& os, const QString& s);
 
 class Request
 {
@@ -55,6 +60,8 @@ class TableModelRequests : public QAbstractTableModel
     Q_OBJECT
 
 private:
+    std::string m_loggingPrefix{"[RequestsModel]"};
+    std::shared_ptr<spdlog::logger> m_logger;
     QList<Request> m_requests;
     QIcon delete16;
     QIcon delete22;

@@ -1,6 +1,5 @@
 #include "dlgaddsinger.h"
 #include "ui_dlgaddsinger.h"
-#include <QDebug>
 #include <QMessageBox>
 
 

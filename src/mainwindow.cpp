@@ -879,7 +879,7 @@ void MainWindow::setupConnections() {
     connect(&m_mediaBackendSfx, &MediaBackend::positionChanged, this, &MainWindow::sfxAudioBackend_positionChanged);
     connect(&m_mediaBackendSfx, &MediaBackend::durationChanged, this, &MainWindow::sfxAudioBackend_durationChanged);
     connect(&m_mediaBackendSfx, &MediaBackend::stateChanged, this, &MainWindow::sfxAudioBackend_stateChanged);
-    connect(&m_rotModel, &TableModelRotation::rotationModified, this, &MainWindow::rotationDataChanged);
+    connect(&m_rotModel, &TableModelRotation::rotationModified, this, &MainWindow::rotationDataChanged, Qt::QueuedConnection);
     connect(m_songShop.get(), &SongShop::karaokeSongDownloaded, dbDialog.get(), &DlgDatabase::singleSongAdd);
     connect(ui->pushButtonTempoDn, &QPushButton::clicked, ui->spinBoxTempo, &QSpinBox::stepDown);
     connect(ui->pushButtonTempoUp, &QPushButton::clicked, ui->spinBoxTempo, &QSpinBox::stepUp);
@@ -2030,6 +2030,8 @@ void MainWindow::hasActiveVideoChanged() {
 void MainWindow::rotationDataChanged() {
     if (m_shuttingDown)
         return;
+    m_logger->trace("{} [{}] Called", m_loggingPrefix, __func__);
+    auto st = std::chrono::high_resolution_clock::now();
     if (m_settings.rotationShowNextSong())
         resizeRotation();
     updateRotationDuration();
@@ -2113,6 +2115,12 @@ void MainWindow::rotationDataChanged() {
         }
     }
     cdgWindow->setTickerText(tickerText);
+
+    m_logger->trace("{} [{}] finished in {}ms",
+                    m_loggingPrefix,
+                    __func__,
+                    std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - st).count()
+    );
 }
 
 void MainWindow::silenceDetectedKar() {

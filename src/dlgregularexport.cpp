@@ -23,7 +23,6 @@
 #include <QFileDialog>
 #include <QFile>
 #include <QStandardPaths>
-#include <QDebug>
 #include <QMessageBox>
 #include <QXmlStreamWriter>
 #include <QSqlQuery>
@@ -48,7 +47,6 @@ DlgRegularExport::DlgRegularExport(TableModelKaraokeSongs &karaokeSongsModel, QW
 
 DlgRegularExport::~DlgRegularExport()
 {
-    qInfo() << "dlgregularexport destructor called";
     delete ui;
 }
 
@@ -59,20 +57,15 @@ void DlgRegularExport::on_pushButtonClose_clicked()
 
 void DlgRegularExport::on_pushButtonExport_clicked()
 {
-    qInfo() << "export - export button pressed";
     auto rowIndexes = ui->tableViewRegulars->selectionModel()->selectedRows();
     if (rowIndexes.size() == 0)
         return;
     std::vector<int> historySingerIds;
     std::for_each(rowIndexes.begin(), rowIndexes.end(), [&historySingerIds] (QModelIndex index) {
         historySingerIds.emplace_back(index.data().toInt());
-        qInfo() << "export - singer id" << index.data().toInt();
     });
-    qInfo() << "export - done looping over singer ids";
     QString defaultFilePath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QDir::separator() + "KhRegularSingersExport.json";
-    qInfo() << "export - Default save location: " << defaultFilePath;
     QString saveFilePath = QFileDialog::getSaveFileName(this,tr("Select file to save regulars to"), defaultFilePath, "JSON files (*.json)", nullptr, QFileDialog::DontUseNativeDialog);
-    qInfo() << "export - file select dialog should have shown";
     if (saveFilePath != "")
     {
         QMessageBox *msgBox = new QMessageBox(this);
@@ -97,7 +90,6 @@ void DlgRegularExport::on_pushButtonExportAll_clicked()
     if (singerIds.size() > 0)
     {
         QString defaultFilePath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QDir::separator() + "KhRegularSingersExport.json";
-        qDebug() << "Default save location: " << defaultFilePath;
         QString saveFilePath = QFileDialog::getSaveFileName(this,tr("Select file to save regulars to"), defaultFilePath, "JSON Files (*.json)", nullptr, QFileDialog::DontUseNativeDialog);
         if (saveFilePath != "")
         {

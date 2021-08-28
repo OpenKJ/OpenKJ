@@ -14,15 +14,16 @@
 
 extern IdleDetect *filter;
 
-QDebug operator<<(QDebug dbg, const OkjsVenue &okjsvenue)
-{
-    dbg.nospace() << "venue_id: " << okjsvenue.venueId << " name: " << okjsvenue.name << " urlName: " << okjsvenue.urlName << " accepting: " << okjsvenue.accepting;
-    return dbg.maybeSpace();
+std::ostream &operator<<(std::ostream &os, const OkjsVenue &v) {
+    return os << "venue_id: " << v.venueId
+              << "name: " << v.name
+              << "urlName: " << v.urlName
+              << "accepting: " << v.accepting;
 }
-
 
 OKJSongbookAPI::OKJSongbookAPI(QObject *parent) : QObject(parent)
 {
+    m_logger = spdlog::get("logger");
     programIsIdle = false;
     delayErrorEmitted = false;
     connectionReset = false;
@@ -180,12 +181,10 @@ void OKJSongbookAPI::updateSongDb()
         if (cancelUpdate)
             return;
         bool done = false;
-        qInfo() << "Number of results: " << numEntries;
         int numDocs = numEntries / songsPerDoc;
         if (numEntries % songsPerDoc > 0)
             numDocs++;
         emit remoteSongDbUpdateNumDocs(numDocs);
-        qInfo() << "Emitted remoteSongDbUpdateNumDocs(" << numDocs << ")";
         int docs = 0;
         while (!done)
         {
@@ -232,7 +231,7 @@ void OKJSongbookAPI::updateSongDb()
         QNetworkReply *reply = manager->post(request, jsonDocument.toJson());
         while (!reply->isFinished())
             QApplication::processEvents();
-        qInfo() << reply->readAll();
+        m_logger->trace("{} Got reply: {}", m_loggingPrefix, reply->readAll().toStdString());
         for (int i=0; i < jsonDocs.size(); i++)
         {
             if (cancelUpdate)
@@ -275,21 +274,19 @@ bool OKJSongbookAPI::test()
     loop.exec();
     if (reply->error() != QNetworkReply::NoError)
     {
-        qInfo() << "Network error: " << reply->errorString();
+        m_logger->error("{} Network error: {}", m_loggingPrefix, reply->errorString());
         emit testFailed(reply->errorString());
         return false;
     }
     QByteArray data = reply->readAll();
     delete reply;
     QJsonDocument json = QJsonDocument::fromJson(data);
-    qInfo() << json;
+    m_logger->trace("{} Got server response: {}", m_loggingPrefix, json.toJson().toStdString());
     QString command = json.object().value("command").toString();
     bool error = json.object().value("error").toBool();
-    qInfo() << "error = " << error;
     if (json.object().value("errorString").toString() != "")
     {
-        qInfo() << "Got error json reply";
-        qInfo() << "Error string: " << json.object().value("errorString");
+        m_logger->warn("{} Got error reply: {}", m_loggingPrefix, json.object().value("errorString").toString());
         emit testFailed(json.object().value("errorString").toString());
         return false;
     }
@@ -298,12 +295,10 @@ bool OKJSongbookAPI::test()
         int newSerial = json.object().value("serial").toInt();
         if (newSerial != 0)
         {
-            qInfo() << "SongbookAPI - Server returned good serial";
             emit testPassed();
             return true;
         }
     }
-    qInfo() << data;
     emit testFailed("Unknown error");
     return false;
 }
@@ -358,8 +353,7 @@ void OKJSongbookAPI::onNetworkReply(QNetworkReply *reply)
         reply->ignoreSslErrors();
     if (reply->error() != QNetworkReply::NoError)
     {
-        qInfo() << reply->errorString();
-        //output some meaningful error msg
+        m_logger->warn("{} Network error: {}", m_loggingPrefix, reply->errorString());
         return;
     }
     QByteArray data = reply->readAll();
@@ -368,21 +362,18 @@ void OKJSongbookAPI::onNetworkReply(QNetworkReply *reply)
     bool error = json.object().value("error").toBool();
     if (error)
     {
-        qInfo() << "Got error json reply";
-        qInfo() << "Error string: " << json.object().value("errorString");
+        m_logger->warn("{} Got error reply: {}", m_loggingPrefix, json.object().value("errorString").toString());
         return;
     }
     if (command == "testingAddRandomRequest")
     {
-        qInfo() << "Got reply from testingAddRandomRequest, refreshing requests";
         refreshRequests();
     }
     if (command == "getEntitledSystemCount")
     {
-        qInfo() << json;
         entitledSystems = json.object().value("count").toInt();
         emit entitledSystemCountChanged(entitledSystems);
-        qInfo() << "OKJSongbookAPI: Server reports entitled to run " << entitledSystems << " concurrent systems";
+        m_logger->info("{} Server reports entitlements for {} concurrent systems", m_loggingPrefix, entitledSystems);
     }
     if (command == "getAlert")
     {
@@ -398,7 +389,7 @@ void OKJSongbookAPI::onNetworkReply(QNetworkReply *reply)
         int newSerial = json.object().value("serial").toInt();
         if (newSerial == 0)
         {
-            qInfo() << "SongbookAPI - Server didn't return valid serial";
+            m_logger->warn("{} Server didn't returen a valid serial!", m_loggingPrefix);
             return;
         }
         if (serial == newSerial)
@@ -525,7 +516,7 @@ void OKJSongbookAPI::idleStateChanged(bool isIdle)
         timerTimeout();
     }
     programIsIdle = isIdle;
-    qInfo() << "Program idle state changed to: " << isIdle;
+    m_logger->info("{} Program idle state changed to: {}", m_loggingPrefix, isIdle);
 }
 
 void OKJSongbookAPI::getEntitledSystemCount()
@@ -542,7 +533,7 @@ void OKJSongbookAPI::getEntitledSystemCount()
 
 void OKJSongbookAPI::dbUpdateCanceled()
 {
-    qInfo() << "SBAPI - dbUpdateCancelled() fired";
+    m_logger->info("{} Remote db update cancelled by user", m_loggingPrefix);
     if (!cancelUpdate && updateInProgress)
     {
         QMessageBox msgBox(nullptr);

@@ -29,6 +29,11 @@
 #include "settings.h"
 #include "mediabackend.h"
 #include "okjsongbookapi.h"
+#include <spdlog/spdlog.h>
+#include <spdlog/async_logger.h>
+#include <spdlog/fmt/ostr.h>
+
+std::ostream& operator<<(std::ostream& os, const QString& s);
 
 namespace Ui {
 class DlgSettings;
@@ -39,6 +44,8 @@ class DlgSettings : public QDialog
     Q_OBJECT
 
 private:
+    std::string m_loggingPrefix{"[SettingsDialog]"};
+    std::shared_ptr<spdlog::logger> m_logger;
     Ui::DlgSettings *ui;
     QStringList getMonitors();
     MediaBackend &kAudioBackend;
@@ -100,6 +107,8 @@ signals:
     void videoOffsetChanged(int offsetMs);
 
 private slots:
+    void comboBoxConsoleLogLevelChanged(int index);
+    void comboBoxFileLogLevelChanged(int index);
     void on_btnClose_clicked();
     void on_pushButtonFont_clicked();
     void on_horizontalSliderTickerSpeed_valueChanged(int value);

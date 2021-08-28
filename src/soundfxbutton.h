@@ -7,12 +7,12 @@
 class SoundFxButton : public QPushButton
 {
 private:
-    QVariant data;
+    QVariant m_data;
 public:
     SoundFxButton() = default;
     SoundFxButton(const QVariant &data, const QString &label);
     void setButtonData(const QVariant &data);
-    QVariant buttonData() { return data; }
+    QVariant buttonData() { return m_data; }
 
     // QWidget interface
 protected:

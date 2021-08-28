@@ -19,13 +19,13 @@
 */
 
 #include "tablemodelrequests.h"
-#include <QDebug>
 #include <QDateTime>
 
 
 TableModelRequests::TableModelRequests(OKJSongbookAPI &songbookAPI, QObject *parent) :
         QAbstractTableModel(parent),
         songbookApi(songbookAPI) {
+    m_logger = spdlog::get("logger");
     connect(&songbookApi, &OKJSongbookAPI::requestsChanged, this, &TableModelRequests::requestsChanged);
     QString thm = (m_settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
     delete16 = QIcon(thm + "actions/16/edit-delete.svg");

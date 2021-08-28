@@ -28,6 +28,7 @@
 #include <QJsonDocument>
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
+#include <chrono>
 
 std::ostream& operator<<(std::ostream& os, const QString& s);
 
@@ -222,6 +223,9 @@ void TableModelRotation::loadData() {
 }
 
 void TableModelRotation::commitChanges() {
+    m_logger->trace("{} [{}] Called", m_loggingPrefix, __func__);
+    auto st = std::chrono::high_resolution_clock::now();
+
     m_logger->debug("{} Committing db changes to disk", m_loggingPrefix);
     QSqlQuery query;
     query.exec("BEGIN TRANSACTION");
@@ -243,9 +247,18 @@ void TableModelRotation::commitChanges() {
                         lastError.text());
     else
         m_logger->debug("{} Commit completed successfully", m_loggingPrefix);
+
+    m_logger->trace("{} [{}] finished in {}ms",
+                    m_loggingPrefix,
+                    __func__,
+                    std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - st).count()
+    );
 }
 
 int TableModelRotation::singerAdd(const QString &name, const int positionHint) {
+    m_logger->trace("{} [{}] Called with ({}, {})", m_loggingPrefix, __func__, name, positionHint);
+    auto st = std::chrono::high_resolution_clock::now();
+
     m_logger->debug("{} Adding singer {} to rotation using positionHint {}", m_loggingPrefix, name, positionHint);
     auto curTs = QDateTime::currentDateTime();
     int addPos = static_cast<int>(m_singers.size());
@@ -281,35 +294,50 @@ int TableModelRotation::singerAdd(const QString &name, const int positionHint) {
             curTs
     });
     emit layoutChanged();
-
+    bool singerMoved{false};
     int curSingerPos = getSinger(m_currentSingerId).position;
     switch (positionHint) {
         case ADD_FAIR: {
-            if (curSingerPos > 0 && !m_settings.rotationAltSortOrder())
+            if (curSingerPos > 0 && !m_settings.rotationAltSortOrder()) {
                 singerMove(addPos, curSingerPos);
+                singerMoved = true;
+            }
             break;
         }
         case ADD_NEXT:
-            if (curSingerPos != m_singers.size() - 2)
+            if (curSingerPos != m_singers.size() - 2) {
                 singerMove(addPos, curSingerPos + 1);
+                singerMoved = true;
+            }
             break;
         case ADD_BOTTOM:
             if (m_settings.rotationAltSortOrder()) {
-                if (auto rotTopSingerPos = getSinger(m_rotationTopSingerId).position; rotTopSingerPos > 0)
+                if (auto rotTopSingerPos = getSinger(m_rotationTopSingerId).position; rotTopSingerPos > 0) {
                     singerMove(addPos, rotTopSingerPos);
+                    singerMoved = true;
+                }
             }
         default:
             break;
     }
 
-
-    emit rotationModified();
+    if (!singerMoved)
+        emit rotationModified();
     m_logger->debug("{} Singer add completed", m_loggingPrefix);
     outputRotationDebug();
+
+    m_logger->trace("{} [{}] finished in {}ms",
+                    m_loggingPrefix,
+                    __func__,
+                    std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - st).count()
+    );
+
     return singerId;
 }
 
 void TableModelRotation::singerMove(const int oldPosition, const int newPosition, const bool skipCommit) {
+    m_logger->trace("{} [singerMove] Called with ({}, {}, {})", m_loggingPrefix, oldPosition, newPosition, skipCommit);
+    auto st = std::chrono::high_resolution_clock::now();
     if (oldPosition == newPosition)
         return;
     if (auto singer = getSingerAtPosition(oldPosition); singer.isValid())
@@ -340,10 +368,26 @@ void TableModelRotation::singerMove(const int oldPosition, const int newPosition
     });
     if (!skipCommit)
         commitChanges();
+
     emit layoutChanged();
-    emit rotationModified();
+
+    auto emitsSt = std::chrono::high_resolution_clock::now();
+
+    // skipping this here because functions that use it emit rotationModified() themselves.
+    if (!skipCommit)
+        emit rotationModified();
+    m_logger->trace("{} [singerMove] emits finished in {}ms",
+                    m_loggingPrefix,
+                    std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - emitsSt).count()
+    );
+
+
     m_logger->debug("{} Singer move completed.", m_loggingPrefix);
     outputRotationDebug();
+    m_logger->trace("{} [singerMove] finished in {}ms",
+                    m_loggingPrefix,
+                    std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - st).count()
+                    );
 }
 
 void TableModelRotation::singerSetName(const int singerId, const QString &newName) {

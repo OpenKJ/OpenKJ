@@ -1,6 +1,5 @@
 #include "karaokefileinfo.h"
 #include <QRegularExpression>
-#include <QDebug>
 #include <QTemporaryDir>
 #include "tagreader.h"
 #include "okarchive.h"
@@ -56,16 +55,12 @@ void KaraokeFileInfo::readTags()
     }
     else
     {
-        qInfo() << "KaraokeFileInfo::readTags() called on non zip or cdg file (" << fileName << ").  Trying taglib.";
+        m_logger->info("{} readTags called on non zip or cdg file '{}'.  Trying taglib.", m_loggingPrefix);
         tagReader->setMedia(fileName);
         tagArtist = tagReader->getArtist();
         tagTitle = tagReader->getTitle();
         tagSongid = tagReader->getAlbum();
         duration = tagReader->getDuration();
-//        tagArtist = "Error";
-//        tagTitle = "Error";
-//        tagSongid = "Error";
-//        duration = 0;
     }
     tagsRead = true;
     delete tagReader;
@@ -148,7 +143,7 @@ const int& KaraokeFileInfo::getDuration()
         }
         catch (...)
         {
-            qInfo() << "KaraokeFileInfo unable to get duration for file: " << fileBaseName;
+            m_logger->error("{} Unable to get duration for file {}", m_loggingPrefix, fileBaseName);
         }
     }
     return duration;
@@ -242,7 +237,6 @@ void KaraokeFileInfo::getMetadata()
         artist = parts.join(" - ");
         break;
     case SourceDir::METADATA:
-        qInfo() << "Using metadata";
         readTags();
         artist = tagArtist;
         title = tagTitle;
@@ -257,7 +251,7 @@ void KaraokeFileInfo::getMetadata()
         }
         if (customPatternId < 1)
         {
-            qCritical() << "Custom pattern set for path, but pattern ID is invalid!  Bailing out!";
+            m_logger->error("{} Custom pattern set for path, but pattern ID is invalid!  Bailing out!", m_loggingPrefix);
             m_success = false;
             return;
         }
@@ -285,4 +279,8 @@ void KaraokeFileInfo::getMetadata()
         m_success = true;
     else
         m_success = false;
+}
+
+KaraokeFileInfo::KaraokeFileInfo(QObject *parent) : QObject(parent) {
+    m_logger = spdlog::get("logger");
 }

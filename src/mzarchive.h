@@ -25,7 +25,11 @@
 #include <QObject>
 #include <QStringList>
 #include <okarchive.h>
-//#include <quazip.h>
+#include <spdlog/spdlog.h>
+#include <spdlog/async_logger.h>
+#include <spdlog/fmt/ostr.h>
+
+std::ostream& operator<<(std::ostream& os, const QString& s);
 
 
 class MzArchive : public QObject
@@ -61,6 +65,8 @@ private:
     bool findEntries();
     QStringList audioExtensions;
     OkArchive oka;
+    std::string m_loggingPrefix{"[MZArchive]"};
+    std::shared_ptr<spdlog::logger> m_logger;
 
 signals:
 

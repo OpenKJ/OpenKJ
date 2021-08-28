@@ -5,9 +5,12 @@
 #include <QNetworkReply>
 #include <QObject>
 #include <QUrl>
-#include <QDebug>
 #include "settings.h"
+#include <spdlog/spdlog.h>
+#include <spdlog/async_logger.h>
+#include <spdlog/fmt/ostr.h>
 
+std::ostream& operator<<(std::ostream& os, const QString& s);
 
 class ShopSong
 {
@@ -41,6 +44,8 @@ public:
     void setDlSongInfo(QString artist, QString title, QString songId);
 
 private:
+    std::string m_loggingPrefix{"[SongShop]"};
+    std::shared_ptr<spdlog::logger> m_logger;
     QNetworkAccessManager *manager;
     bool connectionReset;
     bool songsLoaded;

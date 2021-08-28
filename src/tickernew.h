@@ -5,6 +5,11 @@
 #include <QPixmap>
 #include <QThread>
 #include <settings.h>
+#include <spdlog/spdlog.h>
+#include <spdlog/async_logger.h>
+#include <spdlog/fmt/ostr.h>
+
+std::ostream& operator<<(std::ostream& os, const QString& s);
 
 
 class TickerNew : public QThread
@@ -23,6 +28,8 @@ class TickerNew : public QThread
     bool m_textOverflows{false};
     int m_speed{5};
     bool m_textChanged{false};
+    std::string m_loggingPrefix{"[TickerThread]"};
+    std::shared_ptr<spdlog::logger> m_logger;
 public:
     TickerNew();
     QSize getSize();
@@ -41,6 +48,8 @@ signals:
 class TickerDisplayWidget : public QWidget
 {
     Q_OBJECT
+    std::string m_loggingPrefix{"[TickerDisplayWidget]"};
+    std::shared_ptr<spdlog::logger> m_logger;
     TickerNew *ticker;
 public:
         TickerDisplayWidget(QWidget *parent = 0);

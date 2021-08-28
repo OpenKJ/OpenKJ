@@ -54,6 +54,19 @@ private:
     bool m_safeStartupMode{false};
 
 public:
+    enum {
+        LOG_LEVEL_DISABLED,
+        LOG_LEVEL_CRITICAL,
+        LOG_LEVEL_ERROR,
+        LOG_LEVEL_WARNING,
+        LOG_LEVEL_INFO,
+        LOG_LEVEL_DEBUG,
+        LOG_LEVEL_TRACE
+    };
+    int getConsoleLogLevel();
+    int getFileLogLevel();
+    void setConsoleLogLevel(int level);
+    void setFileLogLevel(int level);
     int lastRunRotationTopSingerId();
     void setLastRunRotationTopSingerId(int id);
     [[nodiscard]] bool lastStartupOk() const;

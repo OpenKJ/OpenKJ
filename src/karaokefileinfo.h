@@ -4,6 +4,11 @@
 #include <QObject>
 #include "src/models/tablemodelkaraokesourcedirs.h"
 #include "tagreader.h"
+#include <spdlog/spdlog.h>
+#include <spdlog/async_logger.h>
+#include <spdlog/fmt/ostr.h>
+
+std::ostream& operator<<(std::ostream& os, const QString& s);
 
 class KaraokeFileInfo : public QObject
 {
@@ -29,8 +34,11 @@ class KaraokeFileInfo : public QObject
     QString title;
     QString songId;
     bool m_success{false};
+    std::string m_loggingPrefix{"[KaraokeFileInfo]"};
+    std::shared_ptr<spdlog::logger> m_logger;
 
 public:
+    explicit KaraokeFileInfo(QObject *parent = nullptr);
     void setArtistRegEx(QString pattern, int captureGroup = 0) {artistPattern = pattern; artistCaptureGroup = captureGroup;}
     void setTitleRegEx(QString pattern, int captureGroup = 0) {titlePattern = pattern; titleCaptureGroup = captureGroup;}
     void setSongIdRegEx(QString pattern, int captureGroup = 0) {songIdPattern = pattern; songIdCaptureGroup = captureGroup;}

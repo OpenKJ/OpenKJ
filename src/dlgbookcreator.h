@@ -6,6 +6,11 @@
 #include <QTextDocument>
 #include "settings.h"
 #include <memory>
+#include <spdlog/spdlog.h>
+#include <spdlog/async_logger.h>
+#include <spdlog/fmt/ostr.h>
+
+std::ostream& operator<<(std::ostream& os, const QString& s);
 
 namespace Ui {
 class DlgBookCreator;
@@ -24,6 +29,8 @@ private slots:
     void saveFontSettings();
 
 private:
+    std::string m_loggingPrefix{"[BookCreator]"};
+    std::shared_ptr<spdlog::logger> m_logger;
     std::unique_ptr<Ui::DlgBookCreator> ui;
     Settings m_settings;
     void writePdf(const QString& filename, int nCols = 2);

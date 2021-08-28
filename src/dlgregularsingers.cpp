@@ -20,7 +20,6 @@
 
 #include "dlgregularsingers.h"
 #include "ui_dlgregularsingers.h"
-#include <QDebug>
 #include <QInputDialog>
 #include <QMenu>
 #include <QMessageBox>

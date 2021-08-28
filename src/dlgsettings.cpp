@@ -20,7 +20,6 @@
 
 #include "dlgsettings.h"
 #include "ui_dlgsettings.h"
-#include <QDebug>
 #include <QGuiApplication>
 #include <QDesktopWidget>
 #include <QFontDialog>
@@ -36,9 +35,8 @@
 #include <QKeySequenceEdit>
 #include "audiorecorder.h"
 #include <QScreen>
-
-
-
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 
 DlgSettings::DlgSettings(MediaBackend &AudioBackend, MediaBackend &BmAudioBackend, OKJSongbookAPI &songbookAPI,
                          QWidget *parent) :
@@ -47,6 +45,7 @@ DlgSettings::DlgSettings(MediaBackend &AudioBackend, MediaBackend &BmAudioBacken
         bmAudioBackend(BmAudioBackend),
         songbookApi(songbookAPI),
         ui(new Ui::DlgSettings) {
+    m_logger = spdlog::get("logger");
     m_pageSetupDone = false;
     networkManager = new QNetworkAccessManager(this);
     ui->setupUi(this);
@@ -55,6 +54,32 @@ DlgSettings::DlgSettings(MediaBackend &AudioBackend, MediaBackend &BmAudioBacken
 #ifdef Q_OS_MACOS
     ui->checkBoxHardwareAccel->setHidden(true);
 #endif
+    ui->comboBoxConsoleLogLevel->addItems(
+            {
+                    "Disabled",
+                    "Critical",
+                    "Error",
+                    "Warning",
+                    "Info",
+                    "Debug",
+                    "Trace"
+            }
+    );
+    ui->comboBoxFileLogLevel->addItems(
+            {
+                    "Disabled",
+                    "Critical",
+                    "Error",
+                    "Warning",
+                    "Info",
+                    "Debug",
+                    "Trace"
+            }
+    );
+    ui->comboBoxConsoleLogLevel->setCurrentIndex(m_settings.getConsoleLogLevel());
+    ui->comboBoxFileLogLevel->setCurrentIndex(m_settings.getFileLogLevel());
+    connect(ui->comboBoxConsoleLogLevel, qOverload<int>(&QComboBox::currentIndexChanged), this, &DlgSettings::comboBoxConsoleLogLevelChanged);
+    connect(ui->comboBoxFileLogLevel, qOverload<int>(&QComboBox::currentIndexChanged), this, &DlgSettings::comboBoxFileLogLevelChanged);
     ui->tabWidgetMain->setCurrentIndex(0);
     ui->checkBoxDbSkipValidation->setChecked(m_settings.dbSkipValidation());
     ui->checkBoxLazyLoadDurations->setChecked(m_settings.dbLazyLoadDurations());
@@ -192,7 +217,6 @@ DlgSettings::DlgSettings(MediaBackend &AudioBackend, MediaBackend &BmAudioBacken
     ui->cbxCheckUpdates->setChecked(m_settings.checkUpdates());
     ui->comboBoxUpdateBranch->setCurrentIndex(m_settings.updatesBranch());
     ui->lineEditDownloadsDir->setText(m_settings.storeDownloadDir());
-    ui->checkBoxLogging->setChecked(m_settings.logEnabled());
     ui->lineEditLogDir->setText(m_settings.logDir());
     ui->checkBoxEnforceAspectRatio->setChecked(m_settings.enforceAspectRatio());
     ui->checkBoxTreatAllSingersAsRegs->setChecked(m_settings.treatAllSingersAsRegs());
@@ -208,30 +232,37 @@ DlgSettings::DlgSettings(MediaBackend &AudioBackend, MediaBackend &BmAudioBacken
     connect(ui->checkBoxEnforceAspectRatio, &QCheckBox::toggled, this, &DlgSettings::enforceAspectRatioChanged);
     connect(ui->spinBoxCdgOffsetTop, qOverload<int>(&QSpinBox::valueChanged), &m_settings, &Settings::setCdgOffsetTop);
     connect(ui->spinBoxCdgOffsetTop, qOverload<int>(&QSpinBox::valueChanged), this, &DlgSettings::cdgOffsetsChanged);
-    connect(ui->spinBoxCdgOffsetBottom, qOverload<int>(&QSpinBox::valueChanged), &m_settings, &Settings::setCdgOffsetBottom);
+    connect(ui->spinBoxCdgOffsetBottom, qOverload<int>(&QSpinBox::valueChanged), &m_settings,
+            &Settings::setCdgOffsetBottom);
     connect(ui->spinBoxCdgOffsetBottom, qOverload<int>(&QSpinBox::valueChanged), this, &DlgSettings::cdgOffsetsChanged);
-    connect(ui->spinBoxCdgOffsetLeft, qOverload<int>(&QSpinBox::valueChanged), &m_settings, &Settings::setCdgOffsetLeft);
+    connect(ui->spinBoxCdgOffsetLeft, qOverload<int>(&QSpinBox::valueChanged), &m_settings,
+            &Settings::setCdgOffsetLeft);
     connect(ui->spinBoxCdgOffsetLeft, qOverload<int>(&QSpinBox::valueChanged), this, &DlgSettings::cdgOffsetsChanged);
-    connect(ui->spinBoxCdgOffsetRight, qOverload<int>(&QSpinBox::valueChanged), &m_settings, &Settings::setCdgOffsetRight);
+    connect(ui->spinBoxCdgOffsetRight, qOverload<int>(&QSpinBox::valueChanged), &m_settings,
+            &Settings::setCdgOffsetRight);
     connect(ui->spinBoxCdgOffsetRight, qOverload<int>(&QSpinBox::valueChanged), this, &DlgSettings::cdgOffsetsChanged);
     connect(ui->spinBoxVideoOffset, qOverload<int>(&QSpinBox::valueChanged), &m_settings, &Settings::setVideoOffsetMs);
     connect(ui->spinBoxVideoOffset, qOverload<int>(&QSpinBox::valueChanged), this, &DlgSettings::videoOffsetChanged);
-    connect(ui->spinBoxSlideshowInterval, qOverload<int>(&QSpinBox::valueChanged), &m_settings, &Settings::setSlideShowInterval);
-    connect(ui->spinBoxSlideshowInterval, qOverload<int>(&QSpinBox::valueChanged), this, &DlgSettings::slideShowIntervalChanged);
+    connect(ui->spinBoxSlideshowInterval, qOverload<int>(&QSpinBox::valueChanged), &m_settings,
+            &Settings::setSlideShowInterval);
+    connect(ui->spinBoxSlideshowInterval, qOverload<int>(&QSpinBox::valueChanged), this,
+            &DlgSettings::slideShowIntervalChanged);
     connect(ui->checkBoxKAA, &QCheckBox::toggled, this, &DlgSettings::karaokeAutoAdvanceChanged);
     connect(&m_settings, &Settings::showQueueRemovalWarningChanged, ui->cbxQueueRemovalWarning, &QCheckBox::setChecked);
-    connect(&m_settings, &Settings::showSingerRemovalWarningChanged, ui->cbxSingerRemovalWarning, &QCheckBox::setChecked);
-    connect(&m_settings, &Settings::showSongInterruptionWarningChanged, ui->cbxSongInterruptionWarning, &QCheckBox::setChecked);
+    connect(&m_settings, &Settings::showSingerRemovalWarningChanged, ui->cbxSingerRemovalWarning,
+            &QCheckBox::setChecked);
+    connect(&m_settings, &Settings::showSongInterruptionWarningChanged, ui->cbxSongInterruptionWarning,
+            &QCheckBox::setChecked);
     connect(&m_settings, &Settings::showSongStopPauseWarningChanged, ui->cbxStopPauseWarning, &QCheckBox::setChecked);
     connect(ui->cbxIgnoreApos, &QCheckBox::toggled, &m_settings, &Settings::setIgnoreAposInSearch);
     connect(ui->cbxCrossFade, &QCheckBox::toggled, &m_settings, &Settings::setBmKCrossfade);
     connect(ui->cbxCheckUpdates, &QCheckBox::toggled, &m_settings, &Settings::setCheckUpdates);
-    connect(ui->comboBoxUpdateBranch, qOverload<int>(&QComboBox::currentIndexChanged), &m_settings, &Settings::setUpdatesBranch);
+    connect(ui->comboBoxUpdateBranch, qOverload<int>(&QComboBox::currentIndexChanged), &m_settings,
+            &Settings::setUpdatesBranch);
     connect(ui->checkBoxDbSkipValidation, &QCheckBox::toggled, &m_settings, &Settings::dbSetSkipValidation);
     connect(ui->checkBoxLazyLoadDurations, &QCheckBox::toggled, &m_settings, &Settings::dbSetLazyLoadDurations);
     connect(ui->checkBoxMonitorDirs, &QCheckBox::toggled, &m_settings, &Settings::dbSetDirectoryWatchEnabled);
     connect(ui->spinBoxSystemId, qOverload<int>(&QSpinBox::valueChanged), &m_settings, &Settings::setSystemId);
-    connect(ui->checkBoxLogging, &QCheckBox::toggled, &m_settings, &Settings::setLogEnabled);
     connect(ui->checkBoxTreatAllSingersAsRegs, &QAbstractButton::toggled, &m_settings,
             &Settings::setTreatAllSingersAsRegs);
     connect(ui->checkBoxShowAddDlgOnDbDblclk, &QCheckBox::stateChanged, [&](auto state) {
@@ -244,7 +275,8 @@ DlgSettings::DlgSettings(MediaBackend &AudioBackend, MediaBackend &BmAudioBacken
     connect(networkManager, &QNetworkAccessManager::sslErrors, this, &DlgSettings::onSslErrors);
     connect(ui->cbxQueueRemovalWarning, &QCheckBox::toggled, &m_settings, &Settings::setShowQueueRemovalWarning);
     connect(ui->cbxSingerRemovalWarning, &QCheckBox::toggled, &m_settings, &Settings::setShowSingerRemovalWarning);
-    connect(ui->cbxSongInterruptionWarning, &QCheckBox::toggled, &m_settings, &Settings::setShowSongInterruptionWarning);
+    connect(ui->cbxSongInterruptionWarning, &QCheckBox::toggled, &m_settings,
+            &Settings::setShowSongInterruptionWarning);
     connect(ui->cbxStopPauseWarning, &QCheckBox::toggled, &m_settings, &Settings::setShowSongPauseStopWarning);
     connect(ui->cbxTickerShowRotationInfo, &QCheckBox::toggled, &m_settings, &Settings::setTickerShowRotationInfo);
     connect(ui->cbxTickerShowRotationInfo, &QCheckBox::toggled, this, &DlgSettings::tickerOutputModeChanged);
@@ -492,7 +524,8 @@ void DlgSettings::on_groupBoxRequestServer_toggled(bool arg1) {
 void DlgSettings::on_pushButtonBrowse_clicked() {
     QString imageFile = QFileDialog::getOpenFileName(this, QString("Select image file"),
                                                      QStandardPaths::writableLocation(QStandardPaths::PicturesLocation),
-                                                     QString("Images (*.png *.jpg *.jpeg *.gif)"), nullptr, QFileDialog::DontUseNativeDialog);
+                                                     QString("Images (*.png *.jpg *.jpeg *.gif)"), nullptr,
+                                                     QFileDialog::DontUseNativeDialog);
     if (imageFile != "") {
         QImage image(imageFile);
         if (!image.isNull()) {
@@ -573,7 +606,7 @@ void DlgSettings::on_buttonBrowse_clicked() {
             "Select output directory",
             QStandardPaths::standardLocations(QStandardPaths::MusicLocation).at(0),
             QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog
-            );
+    );
     if (dirName != "") {
         m_settings.setRecordingOutputDir(dirName);
         ui->lineEditOutputDir->setText(dirName);
@@ -595,7 +628,7 @@ void DlgSettings::on_pushButtonSlideshowBrowse_clicked() {
             "Select the slideshow directory",
             initialPath,
             QFileDialog::DontUseNativeDialog | QFileDialog::ShowDirsOnly
-            );
+    );
     if (dirName != "") {
         m_settings.setBgSlideShowDir(dirName);
         emit bgSlideShowDirChanged(dirName);
@@ -703,7 +736,7 @@ void DlgSettings::on_btnBrowse_clicked() {
             "Select directory to put store downloads in",
             m_settings.storeDownloadDir(),
             QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog
-            );
+    );
     if (fileName != "") {
         QFileInfo fi(fileName);
         if (!fi.isWritable() || !fi.isReadable()) {
@@ -815,7 +848,8 @@ void DlgSettings::on_btnDurationFont_clicked() {
 }
 
 void DlgSettings::on_btnDurationFontColor_clicked() {
-    QColor clr = QColorDialog::getColor(m_settings.cdgRemainTextColor(), this, "Select CDG duration display text color");
+    QColor clr = QColorDialog::getColor(m_settings.cdgRemainTextColor(), this,
+                                        "Select CDG duration display text color");
     if (clr.isValid()) {
         QString ss = ui->btnDurationFontColor->styleSheet();
         QColor oclr = m_settings.cdgRemainTextColor();
@@ -851,7 +885,7 @@ void DlgSettings::on_btnLogDirBrowse_clicked() {
             "Select directory to put logs in",
             m_settings.logDir(),
             QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog
-            );
+    );
     if (fileName != "") {
         QFileInfo fi(fileName);
         if (!fi.isWritable() || !fi.isReadable()) {
@@ -947,4 +981,58 @@ void DlgSettings::closeEvent([[maybe_unused]]QCloseEvent *event) {
 
 void DlgSettings::done(int) {
     close();
+}
+
+void DlgSettings::comboBoxConsoleLogLevelChanged(int index) {
+    m_settings.setConsoleLogLevel(index);
+    auto sink = m_logger->sinks().at(0);
+    switch (index) {
+        case Settings::LOG_LEVEL_CRITICAL:
+            sink->set_level(spdlog::level::critical);
+            break;
+        case Settings::LOG_LEVEL_ERROR:
+            sink->set_level(spdlog::level::err);
+            break;
+        case Settings::LOG_LEVEL_WARNING:
+            sink->set_level(spdlog::level::warn);
+            break;
+        case Settings::LOG_LEVEL_INFO:
+            sink->set_level(spdlog::level::info);
+            break;
+        case Settings::LOG_LEVEL_DEBUG:
+            sink->set_level(spdlog::level::debug);
+            break;
+        case Settings::LOG_LEVEL_TRACE:
+            sink->set_level(spdlog::level::info);
+            break;
+        default:
+            sink->set_level(spdlog::level::off);
+    }
+}
+
+void DlgSettings::comboBoxFileLogLevelChanged(int index) {
+    m_settings.setFileLogLevel(index);
+    auto sink = m_logger->sinks().at(1);
+    switch (index) {
+        case Settings::LOG_LEVEL_CRITICAL:
+            sink->set_level(spdlog::level::critical);
+            break;
+        case Settings::LOG_LEVEL_ERROR:
+            sink->set_level(spdlog::level::err);
+            break;
+        case Settings::LOG_LEVEL_WARNING:
+            sink->set_level(spdlog::level::warn);
+            break;
+        case Settings::LOG_LEVEL_INFO:
+            sink->set_level(spdlog::level::info);
+            break;
+        case Settings::LOG_LEVEL_DEBUG:
+            sink->set_level(spdlog::level::debug);
+            break;
+        case Settings::LOG_LEVEL_TRACE:
+            sink->set_level(spdlog::level::info);
+            break;
+        default:
+            sink->set_level(spdlog::level::off);
+    }
 }

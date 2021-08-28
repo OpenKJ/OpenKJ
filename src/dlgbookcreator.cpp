@@ -1,6 +1,5 @@
 #include "dlgbookcreator.h"
 #include "ui_dlgbookcreator.h"
-#include <QDebug>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QPainter>
@@ -13,6 +12,7 @@
 DlgBookCreator::DlgBookCreator(QWidget *parent) :
         QDialog(parent),
         ui(new Ui::DlgBookCreator) {
+    m_logger = spdlog::get("logger");
     ui->setupUi(this);
     loadSettings();
     setupConnections();
@@ -145,7 +145,7 @@ void DlgBookCreator::writePdf(const QString &filename, int nCols) {
     progress.setValue(0);
     progress.setMaximum(0);
     progress.show();
-    qInfo() << "Beginning pdf generation";
+    m_logger->info("{} Beginning pdf book generation",m_loggingPrefix);
     QFont aFont = m_settings.bookCreatorArtistFont();
     QFont tFont = m_settings.bookCreatorTitleFont();
     QFont hFont = m_settings.bookCreatorHeaderFont();
@@ -156,11 +156,11 @@ void DlgBookCreator::writePdf(const QString &filename, int nCols) {
             QMarginsF(ui->doubleSpinBoxLeft->value(), ui->doubleSpinBoxTop->value(), ui->doubleSpinBoxRight->value(),
                       ui->doubleSpinBoxBottom->value()), QPageLayout::Inch);
     QPainter painter(&pdf);
-    qInfo() << "Getting artists";
+    m_logger->info("{} Getting artists",m_loggingPrefix);
     QStringList artists = getArtists();
-    qInfo() << "Got " << artists.size() << " artists";
+    m_logger->info("{} Got {} artists",m_loggingPrefix, artists.size());
     QStringList entries;
-    qInfo() << "Getting titles for artists";
+    m_logger->info("{} Getting titles for artists",m_loggingPrefix);
     progress.setLabelText("Parsing song data");
     progress.setMaximum(artists.size());
     for (int i = 0; i < artists.size(); i++) {
@@ -172,7 +172,7 @@ void DlgBookCreator::writePdf(const QString &filename, int nCols) {
         }
         progress.setValue(i);
     }
-    qInfo() << "Got titles";
+    m_logger->info("{} Done getting titles",m_loggingPrefix);
     QPen pen;
     pen.setColor(QColor(0, 0, 0));
     pen.setWidth(4);
@@ -190,15 +190,16 @@ void DlgBookCreator::writePdf(const QString &filename, int nCols) {
     }
     int curDrawPos;
     int pages = 0;
-    qInfo() << "Writing data to pdf";
+    m_logger->info("{} Writing data to pdf",m_loggingPrefix);
     progress.setLabelText("Writing data to PDF");
     progress.setValue(0);
     progress.setMaximum(entries.size());
     int curEntry = 0;
+    m_logger->info("{} Generating pages",m_loggingPrefix);
     while (!entries.isEmpty()) {
         QApplication::processEvents();
         pages++;
-        qInfo() << "Generating page " << pages;
+        m_logger->debug("{} Generating page {}",m_loggingPrefix, pages);
         int topOffset = 40;
         int headerOffset = 0;
         int bottomOffset = 0;
@@ -340,10 +341,8 @@ void DlgBookCreator::writePdf(const QString &filename, int nCols) {
         curEntry++;
         progress.setValue(curEntry);
     }
-    qInfo() << "Done writing data to pdf";
-//    painter.drawText(txtRect, Qt::AlignLeft, "This is some title");
-    qInfo() << rect();
-    qInfo() << "Finalizing pdf";
+    m_logger->info("{} Done writing data to pdf",m_loggingPrefix);
+    m_logger->info("{} Finalizing pdf",m_loggingPrefix);
     progress.setLabelText("Finalizing PDF");
     progress.setMaximum(0);
     progress.setValue(0);
@@ -352,7 +351,7 @@ void DlgBookCreator::writePdf(const QString &filename, int nCols) {
     QMessageBox msgBox(this);
     msgBox.setText("Songbook PDF generation complete");
     msgBox.exec();
-    qInfo() << "Done with songbook generation";
+    m_logger->info("{} Songbook generation complete",m_loggingPrefix);
 }
 
 

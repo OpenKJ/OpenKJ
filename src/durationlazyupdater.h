@@ -3,6 +3,11 @@
 
 #include <QObject>
 #include <QThread>
+#include <spdlog/spdlog.h>
+#include <spdlog/async_logger.h>
+#include <spdlog/fmt/ostr.h>
+
+std::ostream& operator<<(std::ostream& os, const QString& s);
 
 class LazyDurationUpdateWorker : public QObject
 {
@@ -19,6 +24,9 @@ class LazyDurationUpdateController : public QObject
     Q_OBJECT
     QThread workerThread;
     QStringList files;
+    std::string m_loggingPrefix{"[LazyDurationController]"};
+    std::shared_ptr<spdlog::logger> m_logger;
+
 public:
     explicit LazyDurationUpdateController(QObject *parent = nullptr);
     ~LazyDurationUpdateController() override;
