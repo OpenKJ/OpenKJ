@@ -110,7 +110,7 @@ int main(int argc, char *argv[]) {
             console_sink->set_level(spdlog::level::debug);
             break;
         case Settings::LOG_LEVEL_TRACE:
-            console_sink->set_level(spdlog::level::info);
+            console_sink->set_level(spdlog::level::trace);
             break;
         default:
             console_sink->set_level(spdlog::level::off);

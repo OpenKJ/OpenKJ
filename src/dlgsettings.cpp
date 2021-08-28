@@ -1003,11 +1003,13 @@ void DlgSettings::comboBoxConsoleLogLevelChanged(int index) {
             sink->set_level(spdlog::level::debug);
             break;
         case Settings::LOG_LEVEL_TRACE:
-            sink->set_level(spdlog::level::info);
+            sink->set_level(spdlog::level::trace);
             break;
         default:
             sink->set_level(spdlog::level::off);
     }
+    if (m_logger->level() < sink->level())
+        m_logger->set_level(sink->level());
 }
 
 void DlgSettings::comboBoxFileLogLevelChanged(int index) {
@@ -1030,9 +1032,11 @@ void DlgSettings::comboBoxFileLogLevelChanged(int index) {
             sink->set_level(spdlog::level::debug);
             break;
         case Settings::LOG_LEVEL_TRACE:
-            sink->set_level(spdlog::level::info);
+            sink->set_level(spdlog::level::trace);
             break;
         default:
             sink->set_level(spdlog::level::off);
     }
+    if (m_logger->level() < sink->level())
+        m_logger->set_level(sink->level());
 }
