@@ -58,7 +58,8 @@ void TickerNew::setText(const QString &text, bool force)
 #ifdef Q_OS_WIN
     m_height = QFontMetrics(tickerFont).height();
 #else
-    m_height = QFontMetrics(tickerFont).tightBoundingRect(text).height() * 1.2;
+   // m_height = QFontMetrics(tickerFont).tightBoundingRect(text).height() * 1.2;
+    m_height = QFontMetrics(tickerFont).size(Qt::TextSingleLine, drawText).height();
 #endif
     m_imgWidth = QFontMetrics(tickerFont).size(Qt::TextSingleLine, text).width();
     m_txtWidth = m_imgWidth;
@@ -78,7 +79,7 @@ void TickerNew::setText(const QString &text, bool force)
     QPainter p;
     p.begin(&m_scrollImage);
     p.setPen(QPen(settings.tickerTextColor()));
-    p.setFont(settings.tickerFont());
+    p.setFont(tickerFont);
     p.drawText(m_scrollImage.rect(), Qt::AlignLeft | Qt::AlignVCenter, drawText);
     p.end();
     if (settings.auxTickerFile() != QString())
