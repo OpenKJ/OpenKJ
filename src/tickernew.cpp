@@ -6,98 +6,50 @@
 #include <QMutex>
 #include <QApplication>
 #include <QTextStream>
+#include <utility>
 
-QMutex mutex;
-
-
-void TickerNew::run() {
-    m_logger->info("{} Ticker starting", m_loggingPrefix);
-    m_stop = false;
-    m_textChanged = true;
-    while (!m_stop)
-    {
-        if (!m_textOverflows)
-            curOffset = 0;
-        if (curOffset >= m_txtWidth)
-        {
-            curOffset = 0;
-        }
-        if (!m_textChanged)
-            emit newRect(QRect(curOffset,0,m_width,m_height));
-        else
-        {
-            m_textChanged = false;
-            mutex.lock();
-            emit newFrameRect(scrollImage, QRect(curOffset,0,m_width,m_height));
-            mutex.unlock();
-        }
-        curOffset++;
-        TickerNew::usleep(m_speed / 2 * 250);
-    }
-}
 
 void TickerNew::stop()
 {
-    if (!mutex.tryLock(100))
-    {
-        m_logger->warn("{} stop() unable to lock mutex!", m_loggingPrefix);
-        return;
-    }
-    m_stop = true;
-    mutex.unlock();
+    m_timer->stop();
 }
 
-TickerNew::TickerNew()
+TickerNew::TickerNew(QObject *parent) : QObject(parent)
 {
     m_logger = spdlog::get("logger");
-    setText("No ticker data");
+    m_timer = new QTimer(this);
+    QTimer::singleShot(250, [&] () {
+        setText("No ticker data", false);
+    });
     setObjectName("Ticker");
+    connect(m_timer, &QTimer::timeout, this, &TickerNew::timerTimeout);
+    m_timer->setInterval(m_speed);
 }
 
 QSize TickerNew::getSize()
 {
-    if (!mutex.tryLock(100))
-    {
-        m_logger->warn("{} getSize() unable to lock mutex!", m_loggingPrefix);
-        return {};
-    }
-    QSize size = scrollImage.size();
-    mutex.unlock();
-    return size;
+    return m_scrollImage.size();
 }
 
 void TickerNew::setTickerGeometry(const int width, const int height)
 {
-    if (!mutex.tryLock(100))
-    {
-        m_logger->warn("{} setTickerGeometry() unable to lock mutex", m_loggingPrefix);
-        return;
-    }
 #ifdef Q_OS_WIN
     m_height = QFontMetrics(settings.tickerFont()).height();
 #else
     m_height = QFontMetrics(settings.tickerFont()).tightBoundingRect("PLACEHOLDERtextgj|i01").height() * 1.2;
 #endif
     m_width = width;
-    scrollImage = QPixmap(width * 2, m_height);
-    //qInfo() << "Unlocking mutex in setTickerGeometry()";
-    mutex.unlock();
-    setText(m_text);
+    m_scrollImage = QPixmap(width * 2, m_height);
+    setText(m_text, true);
 }
 
-void TickerNew::setText(const QString& text)
+void TickerNew::setText(const QString &text, bool force)
 {
-    if (text == m_text)
+    if (text == m_text && !force)
         return;
     m_logger->trace("{} [{}] Called", m_loggingPrefix, __func__);
     auto st = std::chrono::high_resolution_clock::now();
     m_logger->info("{} Setting ticker text: {}", m_loggingPrefix, text);
-    if (!mutex.tryLock(100))
-    {
-        m_logger->warn("{} setText() unable to lock mutex!", m_loggingPrefix);
-        return;
-    }
-    //mutex.lock();
     m_textChanged = true;
     m_textOverflows = false;
     m_text = text;
@@ -116,18 +68,18 @@ void TickerNew::setText(const QString& text)
         drawText.append(text + " • " + text + " • ");
         m_imgWidth = QFontMetrics(tickerFont).size(Qt::TextSingleLine, drawText).width();
         m_txtWidth = m_txtWidth + QFontMetrics(tickerFont).size(Qt::TextSingleLine," • ").width();
-        scrollImage = QPixmap(m_imgWidth, m_height);
+        m_scrollImage = QPixmap(m_imgWidth, m_height);
     }
     else {
         drawText = text;
-        scrollImage = QPixmap(m_width, m_height);
+        m_scrollImage = QPixmap(m_width, m_height);
     }
-    scrollImage.fill(settings.tickerBgColor());
+    m_scrollImage.fill(settings.tickerBgColor());
     QPainter p;
-    p.begin(&scrollImage);
+    p.begin(&m_scrollImage);
     p.setPen(QPen(settings.tickerTextColor()));
     p.setFont(settings.tickerFont());
-    p.drawText(scrollImage.rect(), Qt::AlignLeft | Qt::AlignVCenter, drawText);
+    p.drawText(m_scrollImage.rect(), Qt::AlignLeft | Qt::AlignVCenter, drawText);
     p.end();
     if (settings.auxTickerFile() != QString())
     {
@@ -138,7 +90,6 @@ void TickerNew::setText(const QString& text)
         out << drawText;
         auxFile.close();
     }
-    mutex.unlock();
     m_logger->trace("{} [{}] finished in {}ms",
                     m_loggingPrefix,
                     __func__,
@@ -149,23 +100,40 @@ void TickerNew::setText(const QString& text)
 
 void TickerNew::refresh()
 {
-    setText(m_text);
+    setText(m_text, false);
 }
 
 void TickerNew::setSpeed(int speed)
 {
     //qInfo() << "Locking mutex in setSpeed()";
-    if (!mutex.tryLock(100))
-    {
-        m_logger->warn("{} setSpeed() unable to lock mutex!", m_loggingPrefix);
-        return;
-    }
-    //mutex.lock();
     if (speed > 50)
-        m_speed = 50;
+        speed = 50;
+    speed = 55 - speed;
+    m_speed = (speed / 2 * 250) / 1000;
+    m_speed = std::clamp(m_speed, 1, 7);
+    m_timer->setInterval(m_speed);
+    m_logger->warn("{} m_timer interval: {}", m_logger, m_timer->interval());
+}
+
+void TickerNew::start() {
+    m_timer->start();
+}
+
+void TickerNew::timerTimeout() {
+    if (!m_textOverflows)
+        m_curOffset = 0;
+    if (m_curOffset >= m_txtWidth)
+    {
+        m_curOffset = 0;
+    }
+    if (!m_textChanged)
+            emit newRect(QRect(m_curOffset, 0, m_width, m_height));
     else
-        m_speed = 51 - speed;
-    mutex.unlock();
+    {
+        m_textChanged = false;
+        emit newFrameRect(m_scrollImage, QRect(m_curOffset, 0, m_width, m_height));
+    }
+    m_curOffset++;
 }
 
 TickerDisplayWidget::TickerDisplayWidget(QWidget *parent)
@@ -173,61 +141,74 @@ TickerDisplayWidget::TickerDisplayWidget(QWidget *parent)
 {
     m_logger = spdlog::get("logger");
     ticker = new TickerNew();
+    worker = new QThread(this);
+    worker->setObjectName("TickerWorker");
+    worker->start();
+    ticker->moveToThread(worker);
     ticker->setTickerGeometry(this->width(), this->height());
-    connect(ticker, &TickerNew::newFrame, this, &TickerDisplayWidget::newFrame);
-    connect(ticker, &TickerNew::newFrameRect, this, &TickerDisplayWidget::newFrameRect);
-    connect(ticker, &TickerNew::newRect, this, &TickerDisplayWidget::newRect);
+    connect(ticker, &TickerNew::newFrame, this, &TickerDisplayWidget::newFrame, Qt::QueuedConnection);
+    connect(ticker, &TickerNew::newFrameRect, this, &TickerDisplayWidget::newFrameRect, Qt::QueuedConnection);
+    connect(ticker, &TickerNew::newRect, this, &TickerDisplayWidget::newRect, Qt::QueuedConnection);
+    connect(this, &TickerDisplayWidget::setTextSignal, ticker, &TickerNew::setText, Qt::QueuedConnection);
+    connect(this, &TickerDisplayWidget::setTickerGeometrySignal, ticker, &TickerNew::setTickerGeometry, Qt::QueuedConnection);
+    connect(this, &TickerDisplayWidget::speedChanged, ticker, &TickerNew::setSpeed, Qt::QueuedConnection);
+    connect(worker, &QThread::finished, ticker, &TickerNew::deleteLater);
 }
 
 TickerDisplayWidget::~TickerDisplayWidget()
 {
-    ticker->stop();
-    ticker->wait(1000);
-    delete ticker;
+    worker->quit();
+    worker->wait();
 }
 
 void TickerDisplayWidget::setText(const QString& newText)
 {
-    ticker->setText(newText);
+    m_logger->trace("{} [{}] Called", m_loggingPrefix, __func__);
+    auto st = std::chrono::high_resolution_clock::now();
+    emit setTextSignal(newText, false);
     setFixedHeight(ticker->getSize().height());
+    m_logger->trace("{} [{}] finished in {}ms",
+                    m_loggingPrefix,
+                    __func__,
+                    std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - st).count()
+    );
 }
 
 QSize TickerDisplayWidget::sizeHint() const
 {
-    return ticker->getSize();
+    return m_image.size();
 }
 
 void TickerDisplayWidget::setSpeed(int speed)
 {
-    ticker->setSpeed(speed);
+    emit speedChanged(speed);
 }
 
 void TickerDisplayWidget::stop()
 {
-    ticker->stop();
+    QMetaObject::invokeMethod(ticker, &TickerNew::stop, Qt::QueuedConnection);
 }
 
 void TickerDisplayWidget::setTickerEnabled(bool enabled)
 {
     m_logger->info("{} Enabled set to: {}", m_loggingPrefix, enabled);
-    if (enabled && !ticker->isRunning()) {
-        ticker->start();
-        ticker->setPriority(QThread::TimeCriticalPriority);
-    }
-    else if (!enabled && ticker->isRunning())
-        ticker->stop();
+    if (enabled)
+        QMetaObject::invokeMethod(ticker, &TickerNew::start, Qt::QueuedConnection);
+    else
+        QMetaObject::invokeMethod(ticker, &TickerNew::stop, Qt::QueuedConnection);
+
 }
 
 
 void TickerDisplayWidget::resizeEvent(QResizeEvent *event)
 {
-    ticker->setTickerGeometry(event->size().width(), event->size().height());
+    emit setTickerGeometrySignal(event->size().width(), event->size().height());
 }
 
-void TickerDisplayWidget::newFrameRect(const QPixmap& frame, const QRect displayArea)
+void TickerDisplayWidget::newFrameRect(QPixmap frame, QRect displayArea)
 {
     rectBasedDrawing = true;
-    m_image = frame;
+    m_image = std::move(frame);
     drawRect = displayArea;
     update();
 }
@@ -241,12 +222,12 @@ void TickerDisplayWidget::newRect(const QRect displayArea)
     update();
 }
 
-void TickerDisplayWidget::newFrame(const QPixmap& frame)
+void TickerDisplayWidget::newFrame(QPixmap frame)
 {
     if (!isVisible())
         return;
     rectBasedDrawing = false;
-    m_image = frame;
+    m_image = std::move(frame);
     update();
 }
 

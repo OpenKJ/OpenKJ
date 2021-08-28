@@ -8,41 +8,45 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/async_logger.h>
 #include <spdlog/fmt/ostr.h>
+#include <QTimer>
 
 std::ostream& operator<<(std::ostream& os, const QString& s);
 
 
-class TickerNew : public QThread
+class TickerNew : public QObject
 {
     Q_OBJECT
     Settings settings;
-    void run() override;
-    bool m_stop{false};
-    QPixmap scrollImage;
+    QPixmap m_scrollImage;
     QString m_text;
     int m_height{0};
     int m_width{0};
     int m_imgWidth{1024};
     int m_txtWidth{1024};
-    int curOffset{0};
+    int m_curOffset{0};
     bool m_textOverflows{false};
     int m_speed{5};
     bool m_textChanged{false};
     std::string m_loggingPrefix{"[TickerThread]"};
     std::shared_ptr<spdlog::logger> m_logger;
+    QTimer *m_timer;
 public:
-    TickerNew();
+    explicit TickerNew(QObject *parent = nullptr);
     QSize getSize();
-    void stop();
+private slots:
+    void timerTimeout();
 public slots:
-    void setTickerGeometry(const int width, const int height);
-    void setText(const QString& text);
+    void setTickerGeometry(int width, int height);
+    void setText(const QString &text, bool force);
     void refresh();
-    void setSpeed(const int speed);
+    void setSpeed(int speed);
+    void start();
+    void stop();
+
 signals:
-    void newFrame(const QPixmap frame);
-    void newFrameRect(const QPixmap frame, const QRect displayArea);
-    void newRect(const QRect displayArea);
+    void newFrame(QPixmap frame);
+    void newFrameRect(QPixmap frame, QRect displayArea);
+    void newRect(QRect displayArea);
 };
 
 class TickerDisplayWidget : public QWidget
@@ -51,11 +55,11 @@ class TickerDisplayWidget : public QWidget
     std::string m_loggingPrefix{"[TickerDisplayWidget]"};
     std::shared_ptr<spdlog::logger> m_logger;
     TickerNew *ticker;
+    QThread *worker;
 public:
-        TickerDisplayWidget(QWidget *parent = 0);
-        ~TickerDisplayWidget();
-        void setText(const QString& newText);
-        QSize sizeHint() const;
+        explicit TickerDisplayWidget(QWidget *parent = nullptr);
+        ~TickerDisplayWidget() override;
+        [[nodiscard]] QSize sizeHint() const override;
         void setSpeed(int speed);
         QPixmap m_image;
         QRect drawRect;
@@ -65,15 +69,22 @@ public:
         void refresh() {ticker->refresh();}
         // QWidget interface
 protected:
-        void resizeEvent(QResizeEvent *event);
+        void resizeEvent(QResizeEvent *event) override;
+public slots:
+    void setText(const QString& newText);
 private slots:
-        void newFrameRect(const QPixmap& frame, const QRect displayArea);
-        void newRect(const QRect displayArea);
-        void newFrame(const QPixmap& frame);
+        void newFrameRect(QPixmap frame, QRect displayArea);
+        void newRect(QRect displayArea);
+        void newFrame(QPixmap frame);
 
         // QWidget interface
 protected:
-        void paintEvent(QPaintEvent *event);
+        void paintEvent(QPaintEvent *event) override;
+
+        signals:
+    void setTextSignal(const QString &newText, bool force);
+    void setTickerGeometrySignal(int width, int height);
+    void speedChanged(int speed);
 };
 
 #endif // TICKERNEW_H
