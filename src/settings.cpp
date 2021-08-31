@@ -1801,7 +1801,7 @@ void Settings::setFileLogLevel(int level) {
 }
 
 bool Settings::tickerReducedCpuMode() {
-    return settings->value("tickerReducedCpuMode", true).toBool();
+    return settings->value("tickerReducedCpuMode", false).toBool();
 }
 
 void Settings::setTickerReducedCpuMode(bool enabled) {
