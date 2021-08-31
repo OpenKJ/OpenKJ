@@ -1799,3 +1799,11 @@ void Settings::setConsoleLogLevel(int level) {
 void Settings::setFileLogLevel(int level) {
     settings->setValue("fileLogLevel", level);
 }
+
+bool Settings::tickerReducedCpuMode() {
+    return settings->value("tickerReducedCpuMode", true).toBool();
+}
+
+void Settings::setTickerReducedCpuMode(bool enabled) {
+    settings->setValue("tickerReducedCpuMode", enabled);
+}

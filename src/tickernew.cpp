@@ -18,6 +18,10 @@
 #endif
 
 void TickerNew::run() {
+    bool reducedCpuMode = m_settings.tickerReducedCpuMode();
+    using namespace std::chrono_literals;
+    using namespace std::chrono;
+    auto lastUpdate = high_resolution_clock::now();
 #ifdef _MSC_VER
     timeBeginPeriod(1);
 #endif
@@ -28,22 +32,23 @@ void TickerNew::run() {
     {
         if (!m_textOverflows)
             curOffset = 0;
-        if (curOffset >= m_txtWidth)
-        {
+        if (curOffset >= m_txtWidth) {
             curOffset = 0;
         }
-        if (!m_textChanged)
-                emit newRect(QRect(curOffset,0,m_width,m_height));
-        else
-        {
-            m_textChanged = false;
-            m_mutex.lock();
-            emit newFrameRect(scrollImage, QRect(curOffset,0,m_width,m_height));
-            m_mutex.unlock();
+        if (!reducedCpuMode || high_resolution_clock::now() - lastUpdate > 7ms) {
+            if (!m_textChanged) {
+                emit newRect(QRect(curOffset, 0, m_width, m_height));
+            } else {
+                m_textChanged = false;
+                m_mutex.lock();
+                emit newFrameRect(scrollImage, QRect(curOffset, 0, m_width, m_height));
+                m_mutex.unlock();
+            }
+            lastUpdate = high_resolution_clock::now();
         }
         curOffset++;
         //TickerNew::usleep(m_speed / 2 * 250);
-        std::this_thread::sleep_for(std::chrono::microseconds(m_speed / 2 * 250));
+        std::this_thread::sleep_for(microseconds(m_speed / 2 * 250));
     }
 }
 

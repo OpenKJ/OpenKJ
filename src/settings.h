@@ -65,6 +65,8 @@ public:
     };
     int getConsoleLogLevel();
     int getFileLogLevel();
+    bool tickerReducedCpuMode();
+    void setTickerReducedCpuMode(bool enabled);
     void setConsoleLogLevel(int level);
     void setFileLogLevel(int level);
     int lastRunRotationTopSingerId();
