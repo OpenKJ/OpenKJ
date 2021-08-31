@@ -100,3 +100,9 @@ jobs:
       working-directory: ${{github.workspace}}/build
       shell: bash
       run: cmake --build . --parallel 4
+
+    - name: Upload executable artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: Windows ${{ matrix.arch }} binary
+        path: build/openkj.exe
