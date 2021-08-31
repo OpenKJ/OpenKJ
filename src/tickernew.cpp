@@ -9,8 +9,16 @@
 #include <utility>
 #include <QTimer>
 
+#ifdef _MSC_VER
+#define NOMINMAX
+#include <Windows.h>
+#include <timeapi.h>
+#endif
 
 void TickerNew::run() {
+#ifdef _MSC_VER
+    timeBeginPeriod(1);
+#endif
     m_logger->info("{} Ticker starting", m_loggingPrefix);
     m_stop = false;
     m_textChanged = true;
