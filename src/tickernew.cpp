@@ -8,6 +8,8 @@
 #include <QTextStream>
 #include <utility>
 #include <QTimer>
+#include <chrono>
+#include <thread>
 
 #ifdef _MSC_VER
 #define NOMINMAX
@@ -40,7 +42,8 @@ void TickerNew::run() {
             m_mutex.unlock();
         }
         curOffset++;
-        TickerNew::usleep(m_speed / 2 * 250);
+        //TickerNew::usleep(m_speed / 2 * 250);
+        std::this_thread::sleep_for(std::chrono::microseconds(m_speed / 2 * 250));
     }
 }
 
