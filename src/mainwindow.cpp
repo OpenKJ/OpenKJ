@@ -2266,7 +2266,7 @@ void MainWindow::previewKaraokeSong(const QString &path) {
     }
     auto *videoPreview = new DlgVideoPreview(path, this);
     if (m_testMode)
-        videoPreview->setPlaybackTimeLimit(5);
+        videoPreview->setPlaybackTimeLimit(3);
     videoPreview->setAttribute(Qt::WA_DeleteOnClose);
     videoPreview->show();
 }
@@ -3965,7 +3965,7 @@ void MainWindow::actionPreviewBurnIn() {
         previewKaraokeSong(m_karaokeSongsModel.getPath(songId));
         m_logger->info("{} Preview burn-in test cycle: {}", m_loggingPrefix, ++runs);
     });
-    m_timerTest.start(6000);
+    m_timerTest.start(3250);
 #endif
 }
 
