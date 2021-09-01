@@ -27,7 +27,7 @@ jobs:
       uses: carlosperate/download-file-action@v1.0.3
       id: download-gst
       with:
-        file-url: 'https://gstreamer.freedesktop.org/data/pkg/windows/1.18.3/msvc/gstreamer-1.0-msvc-x86_64-1.18.3.msi'
+        file-url: 'https://gstreamer.freedesktop.org/data/pkg/windows/1.18.4/mingw/gstreamer-1.0-mingw-x86_64-1.18.4.msi'
         file-name: 'gstreamer.msi'
         location: './downloads'
 
@@ -35,7 +35,7 @@ jobs:
       uses: carlosperate/download-file-action@v1.0.3
       id: download-gst-dev
       with:
-        file-url: 'https://gstreamer.freedesktop.org/data/pkg/windows/1.18.3/msvc/gstreamer-1.0-devel-msvc-x86_64-1.18.3.msi'
+        file-url: 'https://gstreamer.freedesktop.org/data/pkg/windows/1.18.4/mingw/gstreamer-1.0-devel-mingw-x86_64-1.18.4.msi'
         file-name: 'gstreamer-devel.msi'
         location: './downloads'
 
