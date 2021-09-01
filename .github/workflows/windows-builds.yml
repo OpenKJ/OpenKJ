@@ -242,8 +242,8 @@ jobs:
       
     - name: Copy in gstreamer dependencies
       run: |
-        cp -Rv ./gstreamer-dist/1.0/${{ matrix.arch }}/* output/
-        cp -v ./gstreamer-dist/1.0/${{ matrix.arch }}/bin/*.dll output/
+        cp -Rv ./gstreamer-dist/1.0/mingw_${{ matrix.arch }}/* output/
+        cp -v ./gstreamer-dist/1.0/mingw_${{ matrix.arch }}/bin/*.dll output/
       shell: bash
 
     - name: Copy in other dependencies
