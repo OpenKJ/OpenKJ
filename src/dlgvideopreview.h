@@ -15,8 +15,11 @@ class DlgVideoPreview : public QDialog
     Q_OBJECT
 
 public:
-    explicit DlgVideoPreview(const QString &mediaFilePath, QWidget *parent = nullptr);
-    ~DlgVideoPreview();
+    explicit DlgVideoPreview(QString mediaFilePath, QWidget *parent = nullptr);
+    ~DlgVideoPreview() override;
+    // Intended for use with torture testing modes.  Closes the dialog after playing back the specified number
+    // of seconds of playback
+    void setPlaybackTimeLimit(int playSecs);
 
 private:
     Ui::DlgVideoPreview *ui;
@@ -24,8 +27,10 @@ private:
     QString m_mediaFilename;
     QTemporaryDir tmpDir;
     guint64 position{0};
+    int m_playbackLimit{0};
     void playCdg(const QString &filename);
     void playVideo(const QString &filename);
+
 };
 
 #endif // DLGVIDEOPREVIEW_H

@@ -210,7 +210,7 @@ private slots:
     void sliderProgressReleased();
     void setKeyChange();
     void toggleQueuePlayed();
-    void previewCdg();
+    void previewKaraokeSong(const QString &path);
     void editSong();
     void markSongBad();
     void karaokeAATimerTimeout();
@@ -288,6 +288,7 @@ private slots:
     void actionKaraokeTorture();
     void actionKAndBTorture();
     void actionBurnIn();
+    void actionPreviewBurnIn();
     void actionCdgDecodeTorture();
     void writeGstPipelineDiagramToDisk();
     void comboBoxSearchTypeIndexChanged(int index);

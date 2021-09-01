@@ -1071,6 +1071,7 @@ void MainWindow::setupConnections() {
     connect(ui->actionKaraoke_torture, &QAction::triggered, this, &MainWindow::actionKaraokeTorture);
     connect(ui->actionK_B_torture, &QAction::triggered, this, &MainWindow::actionKAndBTorture);
     connect(ui->actionBurn_in, &QAction::triggered, this, &MainWindow::actionBurnIn);
+    connect(ui->actionPreview_burn_in, &QAction::triggered, this, &MainWindow::actionPreviewBurnIn);
     connect(ui->actionMultiplex_Controls, &QAction::toggled, ui->widgetMplxControls, &QWidget::setVisible);
     connect(ui->actionMultiplex_Controls, &QAction::toggled, &m_settings, &Settings::setShowMplxControls);
     connect(ui->actionCDG_Decode_Torture, &QAction::triggered, this, &MainWindow::actionCdgDecodeTorture);
@@ -2145,7 +2146,13 @@ void MainWindow::tableViewDBContextMenuRequested(const QPoint &pos) {
         m_dbRtClickFile = m_karaokeSongsModel.getPath(
                 index.sibling(index.row(), TableModelKaraokeSongs::COL_ID).data().toInt());
         QMenu contextMenu(this);
-        contextMenu.addAction("Preview", this, &MainWindow::previewCdg);
+        contextMenu.addAction("Preview", [&]() {
+            previewKaraokeSong(
+                    m_karaokeSongsModel.getPath(
+                            index.sibling(index.row(), TableModelKaraokeSongs::COL_ID).data().toInt()
+                    )
+            );
+        });
         contextMenu.addSeparator();
         contextMenu.addAction("Edit", this, &MainWindow::editSong);
         contextMenu.addAction("Mark bad", this, &MainWindow::markSongBad);
@@ -2210,7 +2217,9 @@ void MainWindow::tableViewQueueContextMenuRequested(const QPoint &pos) {
             m_rtClickQueueSongId = index.sibling(index.row(), 0).data().toInt();
             dlgKeyChange->setActiveSong(m_rtClickQueueSongId);
             QMenu contextMenu(this);
-            contextMenu.addAction("Preview", this, &MainWindow::previewCdg);
+            contextMenu.addAction("Preview", [&] () {
+                previewKaraokeSong(index.sibling(index.row(), TableModelQueueSongs::COL_PATH).data().toString());
+            });
             contextMenu.addSeparator();
             contextMenu.addAction("Set Key Change", this, &MainWindow::setKeyChange);
             contextMenu.addAction("Toggle played", this, &MainWindow::toggleQueuePlayed);
@@ -2247,13 +2256,17 @@ void MainWindow::toggleQueuePlayed() {
     updateRotationDuration();
 }
 
-void MainWindow::previewCdg() {
-    if (!QFile::exists(m_dbRtClickFile)) {
+void MainWindow::previewKaraokeSong(const QString &path) {
+    if (path.isEmpty())
+        return;
+    if (!QFile::exists(path)) {
         QMessageBox::warning(this, tr("Missing File!"),
-                             "Specified karaoke file missing, preview aborted!\n\n" + m_dbRtClickFile, QMessageBox::Ok);
+                             "Specified karaoke file missing, preview aborted!\n\n" + path, QMessageBox::Ok);
         return;
     }
-    auto *videoPreview = new DlgVideoPreview(m_dbRtClickFile, this);
+    auto *videoPreview = new DlgVideoPreview(path, this);
+    if (m_testMode)
+        videoPreview->setPlaybackTimeLimit(5);
     videoPreview->setAttribute(Qt::WA_DeleteOnClose);
     videoPreview->show();
 }
@@ -3930,6 +3943,29 @@ void MainWindow::actionBurnIn() {
         m_logger->info("{} Burn in test cycle: {}", m_loggingPrefix, ++runs);
     });
     m_timerTest.start(3000);
+#endif
+}
+
+void MainWindow::actionPreviewBurnIn() {
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
+    m_testMode = true;
+    connect(&m_timerTest, &QTimer::timeout, [&]() {
+        QApplication::beep();
+        static bool playing = false;
+        static int runs = 0;
+        ui->labelSinger->setText("Preview burn-in run (" + QString::number(runs) + ")");
+        int randomNum{0};
+        if (m_karaokeSongsModel.rowCount(QModelIndex()) > 1)
+            randomNum = QRandomGenerator::global()->bounded(0, m_karaokeSongsModel.rowCount(QModelIndex()) - 1);
+        m_logger->info("{} randomNum: {}", m_loggingPrefix, randomNum);
+        ui->tableViewDB->selectRow(randomNum);
+        ui->tableViewDB->scrollTo(ui->tableViewDB->selectionModel()->selectedRows().at(0));
+        auto selRow = ui->tableViewDB->selectionModel()->selectedRows().at(0);
+        int songId = selRow.sibling(selRow.row(), TableModelKaraokeSongs::COL_ID).data().toInt();
+        previewKaraokeSong(m_karaokeSongsModel.getPath(songId));
+        m_logger->info("{} Preview burn-in test cycle: {}", m_loggingPrefix, ++runs);
+    });
+    m_timerTest.start(6000);
 #endif
 }
 

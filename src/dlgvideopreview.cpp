@@ -1,24 +1,21 @@
 #include "dlgvideopreview.h"
 #include "ui_dlgvideopreview.h"
 #include <QMessageBox>
+#include <utility>
 #include "mzarchive.h"
 #include "okjutil.h"
 #include <gst/video/videooverlay.h>
 #include <gst/app/gstappsrc.h>
 
-DlgVideoPreview::DlgVideoPreview(const QString &mediaFilePath, QWidget *parent) :
-    QDialog(parent), ui(new Ui::DlgVideoPreview), m_mediaFilename(mediaFilePath)
+DlgVideoPreview::DlgVideoPreview(QString mediaFilePath, QWidget *parent) :
+    QDialog(parent), ui(new Ui::DlgVideoPreview), m_mediaFilename(std::move(mediaFilePath))
 {
     ui->setupUi(this);
     connect(ui->pushButtonClose, &QPushButton::clicked, [&] () {
        close();
-       deleteLater();
     });
-
-    //m_mediaBackend.setVolume(0);
     m_mediaBackend.setVideoOutputWidgets({ ui->videoDisplay });
-    // todo: should we set silence detection off?
-
+    m_mediaBackend.setUseSilenceDetection(false);
     if (m_mediaFilename.endsWith(".zip", Qt::CaseInsensitive))
     {
         MzArchive archive(m_mediaFilename);
@@ -50,7 +47,6 @@ DlgVideoPreview::DlgVideoPreview(const QString &mediaFilePath, QWidget *parent) 
     }
     else if (m_mediaFilename.endsWith(".cdg", Qt::CaseInsensitive))
     {
-        QString cdgTmpFile = "tmp.cdg";
         QFile cdgFile(m_mediaFilename);
         if (!cdgFile.exists())
         {
@@ -100,5 +96,13 @@ void DlgVideoPreview::playVideo(const QString &filename)
     m_mediaBackend.setMedia(filename);
     m_mediaBackend.play();
 
+}
+
+void DlgVideoPreview::setPlaybackTimeLimit(int playSecs) {
+    m_playbackLimit = playSecs;
+    if (m_playbackLimit != 0)
+        QTimer::singleShot(m_playbackLimit * 1000, [&] () {
+            close();
+        });
 }
 
