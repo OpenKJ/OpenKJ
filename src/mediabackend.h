@@ -44,6 +44,11 @@
 #include "cdg/cdgfilereader.h"
 #include "settings.h"
 #include "gstreamer/gstreamerhelper.h"
+#include <spdlog/spdlog.h>
+#include <spdlog/async_logger.h>
+#include <spdlog/fmt/ostr.h>
+
+std::ostream& operator<<(std::ostream& os, const QString& s);
 
 #define STUP 1.0594630943592952645618252949461
 #define STDN 0.94387431268169349664191315666784
@@ -56,6 +61,7 @@ class MediaBackend : public QObject
     Q_OBJECT
 public:
     std::string m_loggingPrefix;
+    std::shared_ptr<spdlog::logger> m_logger;
     enum MediaType {
         Karaoke,
         BackgroundMusic,
@@ -131,7 +137,6 @@ private:
         GstElement *videoScale { nullptr };
         SoftwareRenderVideoSink *softwareRenderVideoSink { nullptr };
     };
-
 
     QString m_objName;
     MediaType m_type;
