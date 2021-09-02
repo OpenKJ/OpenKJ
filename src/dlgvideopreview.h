@@ -5,6 +5,11 @@
 #include <QTemporaryDir>
 #include <mediabackend.h>
 #include <gst/gst.h>
+#include <spdlog/spdlog.h>
+#include <spdlog/async_logger.h>
+#include <spdlog/fmt/ostr.h>
+
+std::ostream& operator<<(std::ostream& os, const QString& s);
 
 namespace Ui {
 class DlgVideoPreview;
@@ -22,12 +27,13 @@ public:
     void setPlaybackTimeLimit(int playSecs);
 
 private:
-    Ui::DlgVideoPreview *ui;
-    MediaBackend m_mediaBackend { this, "PREVIEW", MediaBackend::VideoPreview };
+    std::string m_loggingPrefix{"[PreviewDialog]"};
+    std::shared_ptr<spdlog::logger> m_logger;
+    std::unique_ptr<Ui::DlgVideoPreview> ui;
+    QTemporaryDir m_tmpDir;
     QString m_mediaFilename;
-    QTemporaryDir tmpDir;
-    guint64 position{0};
-    int m_playbackLimit{0};
+    MediaBackend m_mediaBackend { this, "PREVIEW", MediaBackend::VideoPreview };
+
     void playCdg(const QString &filename);
     void playVideo(const QString &filename);
 
