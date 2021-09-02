@@ -39,6 +39,9 @@
 #include <algorithm>
 #include <memory>
 #include "dlgaddsong.h"
+#include <spdlog/version.h>
+#include <taglib.h>
+#include <miniz/miniz.h>
 
 #ifdef _MSC_VER
 #define NOMINMAX
@@ -3029,8 +3032,20 @@ void MainWindow::actionAboutTriggered() {
     QString text;
     QString date = QString::fromLocal8Bit(__DATE__) + " " + QString(__TIME__);
     title = "About OpenKJ";
-    text = "OpenKJ\n\nVersion: " + QString(OKJ_VERSION_STRING) + " " + QString(OKJ_VERSION_BRANCH) + "\nBuilt: " +
-           date + "\nLicense: GPL v3+";
+    text =  "OpenKJ\nVersion: " + QString(OKJ_VERSION_STRING) + " " + QString(OKJ_VERSION_BRANCH);
+    text += "\nLicense: GNU GPL v3+";
+    text += "\nBuilt: " + date;
+    text += "\n\nIncluded library info";
+    text += "\n\nQt version: " + QString(QT_VERSION_STR);
+    text += "\nLicense: GNU GPL v3";
+    text += "\n\nGStreamer version: " + QString::number(GST_VERSION_MAJOR) + '.' + QString::number(GST_VERSION_MINOR) + '.' + QString::number(GST_VERSION_MICRO);
+    text += "\nLicense: GNU LGPL v2.1";
+    text += "\n\nspdlog version: " + QString::number(SPDLOG_VER_MAJOR) + '.' + QString::number(SPDLOG_VER_MINOR) + '.' + QString::number(SPDLOG_VER_PATCH);
+    text += "\nLicense: MIT";
+    text += "\n\nTagLib version: " + QString::number(TAGLIB_MAJOR_VERSION) + '.' + QString::number(TAGLIB_MINOR_VERSION) + '.' + QString::number(TAGLIB_PATCH_VERSION);
+    text += "\nLicense: GNU LGPL v2.1";
+    text += "\n\nMiniZ version: " + QString(MZ_VERSION);
+    text += "\nLicense: MIT";
     QMessageBox::about(this, title, text);
 }
 
