@@ -2072,7 +2072,7 @@ QPushButton:default {
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>278</width>
+                     <width>245</width>
                      <height>16</height>
                     </rect>
                    </property>
@@ -3217,7 +3217,7 @@ QPushButton:default {
      <x>0</x>
      <y>0</y>
      <width>1082</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -3299,6 +3299,7 @@ QPushButton:default {
     <addaction name="actionK_B_torture"/>
     <addaction name="actionBurn_in"/>
     <addaction name="actionBurn_in_EOS_Jump"/>
+    <addaction name="actionPreview_burn_in"/>
     <addaction name="actionCDG_Decode_Torture"/>
     <addaction name="actionBreak_music_torture"/>
     <addaction name="actionWrite_Gstreamer_pipeline_dot_files"/>
@@ -3541,6 +3542,11 @@ QPushButton:default {
   <action name="actionBurn_in_EOS_Jump">
    <property name="text">
     <string>Burn in - EOS Jump</string>
+   </property>
+  </action>
+  <action name="actionPreview_burn_in">
+   <property name="text">
+    <string>Preview burn-in</string>
    </property>
   </action>
  </widget>

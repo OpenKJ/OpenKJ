@@ -47,8 +47,8 @@ void TickerNew::run() {
             lastUpdate = high_resolution_clock::now();
         }
         curOffset++;
-        //TickerNew::usleep(m_speed / 2 * 250);
-        std::this_thread::sleep_for(microseconds(m_speed / 2 * 250));
+        TickerNew::usleep(m_speed / 2 * 250);
+        //std::this_thread::sleep_for(microseconds(m_speed / 2 * 250));
     }
 }
 

@@ -35,7 +35,6 @@
 #include <spdlog/async_logger.h>
 #include <QTextStream>
 
-extern std::shared_ptr<spdlog::async_logger> logger;
 
 Q_DECLARE_SMART_POINTER_METATYPE(std::shared_ptr);
 Q_DECLARE_METATYPE(std::shared_ptr<GstMessage>);
@@ -43,10 +42,11 @@ Q_DECLARE_METATYPE(std::shared_ptr<GstMessage>);
 MediaBackend::MediaBackend(QObject *parent, QString objectName, const MediaType type) :
     QObject(parent), m_objName(std::move(objectName)), m_type(type), m_loadPitchShift(type == Karaoke)
 {
+    m_logger = spdlog::get("logger");
     m_loggingPrefix = "[MediaBackend] [" + m_objName.toStdString() + "]";
-    logger->debug("{} Constructing GStreamer backend", m_loggingPrefix);
+    m_logger->debug("{} Constructing GStreamer backend", m_loggingPrefix);
     m_videoAccelEnabled = m_settings.hardwareAccelEnabled();
-    logger->info("{} Hardware accelerated video rendering mode: {}",m_loggingPrefix, m_videoAccelEnabled);
+    m_logger->info("{} Hardware accelerated video rendering mode: {}",m_loggingPrefix, m_videoAccelEnabled);
     QMetaTypeId<std::shared_ptr<GstMessage>>::qt_metatype_id();
 
     buildPipeline();
@@ -59,7 +59,7 @@ MediaBackend::MediaBackend(QObject *parent, QString objectName, const MediaType 
         default:
             setAudioOutputDevice(m_settings.audioOutputDeviceBm());
     }
-    logger->debug("{} GStreamer backend construction complete", m_loggingPrefix);
+    m_logger->debug("{} GStreamer backend construction complete", m_loggingPrefix);
 
     connect(&m_timerSlow, &QTimer::timeout, this, &MediaBackend::timerSlow_timeout);
     connect(&m_timerFast, &QTimer::timeout, this, &MediaBackend::timerFast_timeout);
@@ -87,7 +87,7 @@ bool MediaBackend::hasActiveVideo()
 void MediaBackend::writePipelineGraphToFile(GstBin *bin, const QString& filePath, QString fileName)
 {
     fileName = QString("%1/%2 - %3").arg(QDir::cleanPath(filePath + QDir::separator()), m_objName, fileName);
-    logger->info("{} Writing GStreamer pipeline graph out to file: {}", m_loggingPrefix, fileName.toStdString());
+    m_logger->info("{} Writing GStreamer pipeline graph out to file: {}", m_loggingPrefix, fileName.toStdString());
     auto filenameDot = fileName + ".dot";
     auto filenamePng = fileName + ".png";
 
@@ -99,7 +99,7 @@ void MediaBackend::writePipelineGraphToFile(GstBin *bin, const QString& filePath
         QTextStream out{&f};
         out << QString(data);
     } else {
-        logger->error("{} Error opening dot file for writing", m_loggingPrefix);
+        m_logger->error("{} Error opening dot file for writing", m_loggingPrefix);
     }
     g_free(data);
 
@@ -149,7 +149,7 @@ void MediaBackend::setEnforceAspectRatio(const bool &enforce)
 
 MediaBackend::~MediaBackend()
 {
-    logger->debug("{} MediaBackend destructor called", m_loggingPrefix);
+    m_logger->debug("{} MediaBackend destructor called", m_loggingPrefix);
     resetPipeline();
     m_timerSlow.stop();
     m_timerFast.stop();
@@ -217,7 +217,7 @@ QStringList MediaBackend::getOutputDevices()
 
 void MediaBackend::play()
 {
-    logger->debug("{} Play called", m_loggingPrefix);
+    m_logger->debug("{} Play called", m_loggingPrefix);
     m_videoOffsetMs = m_settings.videoOffsetMs();
 
     if (m_currentlyFadedOut)
@@ -226,7 +226,7 @@ void MediaBackend::play()
     }
     if (state() == MediaBackend::PausedState)
     {
-        logger->debug("{} Play called with playback currently paused, unpausing", m_loggingPrefix);
+        m_logger->debug("{} Play called with playback currently paused, unpausing", m_loggingPrefix);
         gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
         if (m_fade)
             fadeIn();
@@ -242,7 +242,7 @@ void MediaBackend::play()
         // Check if cdg file exists
         if (!QFile::exists(m_cdgFilename))
         {
-            logger->error("{} Missing CDG file!  Aborting playback", m_loggingPrefix);
+            m_logger->error("{} Missing CDG file!  Aborting playback", m_loggingPrefix);
             emit stateChanged(PlayingState);
             QApplication::processEvents();
             emit stateChanged(EndOfMediaState);
@@ -264,7 +264,7 @@ void MediaBackend::play()
         patchPipelineSinks();
         allowMissingAudio = m_type == VideoPreview;
         m_cdgSrc->load(m_cdgFilename);
-        logger->info("{} Playing CDG graphics from file: {}", m_loggingPrefix, m_cdgFilename.toStdString());
+        m_logger->info("{} Playing CDG graphics from file: {}", m_loggingPrefix, m_cdgFilename.toStdString());
     } else {
         gst_element_unlink_many(m_queueMainVideo, m_prescalerVideoConvert, m_prescaler, m_prescalerCapsFilter, m_videoTee, nullptr);
         gst_element_link(m_queueMainVideo, m_videoTee);
@@ -274,7 +274,7 @@ void MediaBackend::play()
     {
         if (!allowMissingAudio)
         {
-            logger->error("{} Specified file doesn't exist, aborting playback. {}", m_loggingPrefix, m_filename.toStdString());
+            m_logger->error("{} Specified file doesn't exist, aborting playback. {}", m_loggingPrefix, m_filename.toStdString());
             emit stateChanged(PlayingState);
             QApplication::processEvents();
             emit stateChanged(EndOfMediaState);
@@ -284,7 +284,7 @@ void MediaBackend::play()
     else
     {
         gst_bin_add(reinterpret_cast<GstBin*>(m_pipeline), m_decoder);
-        logger->info("{} Playing media file: {}", m_loggingPrefix, m_filename.toStdString());
+        m_logger->info("{} Playing media file: {}", m_loggingPrefix, m_filename.toStdString());
         auto uri = gst_filename_to_uri(m_filename.toLocal8Bit(), nullptr);
         g_object_set(m_decoder, "uri", uri, nullptr);
         g_free(uri);
@@ -414,7 +414,7 @@ void MediaBackend::setPosition(const qint64 &position)
 
 void MediaBackend::setVolume(const int &volume)
 {
-    logger->debug("{} Setting volume to: {}", m_loggingPrefix, volume);
+    m_logger->debug("{} Setting volume to: {}", m_loggingPrefix, volume);
     m_volume = volume;
     gst_stream_volume_set_volume(GST_STREAM_VOLUME(m_volumeElement), GST_STREAM_VOLUME_FORMAT_CUBIC, volume * .01);
     emit volumeChanged(volume);
@@ -422,16 +422,16 @@ void MediaBackend::setVolume(const int &volume)
 
 void MediaBackend::stop(const bool &skipFade)
 {
-    logger->info("{} Stop requested", m_loggingPrefix);
+    m_logger->info("{} Stop requested", m_loggingPrefix);
     if (state() == MediaBackend::StoppedState)
     {
-        logger->debug("{} Backend already in stopped state, aborting", m_loggingPrefix);
+        m_logger->debug("{} Backend already in stopped state, aborting", m_loggingPrefix);
         emit stateChanged(MediaBackend::StoppedState);
         return;
     }
     if (state() == MediaBackend::PausedState)
     {
-        logger->debug("{} Backend currently in paused state, stopping paused playback", m_loggingPrefix);
+        m_logger->debug("{} Backend currently in paused state, stopping paused playback", m_loggingPrefix);
         stopPipeline();
         m_fader->immediateIn();
         return;
@@ -440,22 +440,22 @@ void MediaBackend::stop(const bool &skipFade)
     {
         if (m_fader->state() == AudioFader::FadedIn || m_fader->state() == AudioFader::FadingIn)
         {
-            logger->debug("{} Fading out volume", m_loggingPrefix);
+            m_logger->debug("{} Fading out volume", m_loggingPrefix);
             fadeOut(true);
-            logger->debug("{} Fade out completed, stopping playback", m_loggingPrefix);
+            m_logger->debug("{} Fade out completed, stopping playback", m_loggingPrefix);
             stopPipeline();
             m_fader->immediateIn();
-            logger->info("{} Stop completed", m_loggingPrefix);
+            m_logger->info("{} Stop completed", m_loggingPrefix);
             return;
         }
     }
     stopPipeline();
-    logger->info("{} Stop completed", m_loggingPrefix);
+    m_logger->info("{} Stop completed", m_loggingPrefix);
 }
 
 void MediaBackend::rawStop()
 {
-    logger->info("{} Raw stop requested, immediately stopping GStreamer pipeline", m_loggingPrefix);
+    m_logger->info("{} Raw stop requested, immediately stopping GStreamer pipeline", m_loggingPrefix);
     stopPipeline();
 }
 
@@ -522,10 +522,10 @@ void MediaBackend::timerSlow_timeout()
         if (m_positionWatchdogLastPos == currPos && m_positionWatchdogLastPos > 10)
         {
             hungCycles++;
-            logger->warn("{} Playback appears to be hung!  No position change for {} seconds!", m_loggingPrefix, hungCycles);
+            m_logger->warn("{} Playback appears to be hung!  No position change for {} seconds!", m_loggingPrefix, hungCycles);
             if (hungCycles >= 5)
             {
-                logger->warn("{} Playback has been hung for {} seconds, giving up!", m_loggingPrefix, hungCycles);
+                m_logger->warn("{} Playback has been hung for {} seconds, giving up!", m_loggingPrefix, hungCycles);
                 emit stateChanged(EndOfMediaState);
                 hungCycles = 0;
             }
@@ -556,7 +556,7 @@ void MediaBackend::setPitchShift(const int &pitchShift)
     }
     else
     {
-        logger->error("{} Pitch shift requested but no plugin is loaded!", m_loggingPrefix);
+        m_logger->error("{} Pitch shift requested but no plugin is loaded!", m_loggingPrefix);
         return;
     }
     emit pitchChanged(pitchShift); // NOLINT(readability-misleading-indentation)
@@ -571,12 +571,12 @@ void MediaBackend::gstBusFunc(GstMessage *message)
             GError *err;
             gchar *debug;
             gst_message_parse_error(message, &err, &debug);
-            logger->error("{} [GStreamer] {}", m_loggingPrefix, err->message);
-            logger->debug("{} [GStreamer] {}", m_loggingPrefix, debug);
+            m_logger->error("{} [GStreamer] {}", m_loggingPrefix, err->message);
+            m_logger->debug("{} [GStreamer] {}", m_loggingPrefix, debug);
             if (QString(err->message) == "Your GStreamer installation is missing a plug-in.")
             {
                 QString player = (m_objName == "KAR") ? "karaoke" : "break music";
-                logger->error("{} Unable to play file, missing media codec", m_loggingPrefix);
+                m_logger->error("{} Unable to play file, missing media codec", m_loggingPrefix);
                 emit audioError("Unable to play " + player + " file, missing gstreamer plugin");
                 stop(true);
             }
@@ -590,8 +590,8 @@ void MediaBackend::gstBusFunc(GstMessage *message)
             GError *err;
             gchar *debug;
             gst_message_parse_warning(message, &err, &debug);
-            logger->warn("{} [GStreamer] {}", m_loggingPrefix, err->message);
-            logger->debug("{} [GStreamer] {}", m_loggingPrefix, debug);
+            m_logger->warn("{} [GStreamer] {}", m_loggingPrefix, err->message);
+            m_logger->debug("{} [GStreamer] {}", m_loggingPrefix, debug);
             g_error_free(err);
             g_free(debug);
             break;
@@ -622,14 +622,14 @@ void MediaBackend::gstBusFunc(GstMessage *message)
             switch (state)
             {
                 case GST_STATE_PLAYING:
-                    logger->debug("{} GStreamer reported state change to Playing", m_loggingPrefix);
+                    m_logger->debug("{} GStreamer reported state change to Playing", m_loggingPrefix);
                     emit stateChanged(MediaBackend::PlayingState);
                     if (m_currentlyFadedOut)
                         m_fader->immediateOut();
                     break;
 
                 case GST_STATE_PAUSED:
-                    logger->debug("{} GStreamer reported state change to Paused", m_loggingPrefix);
+                    m_logger->debug("{} GStreamer reported state change to Paused", m_loggingPrefix);
                     emit stateChanged(MediaBackend::PausedState);
                     break;
 
@@ -642,7 +642,7 @@ void MediaBackend::gstBusFunc(GstMessage *message)
         case GST_MESSAGE_EOS:
         {
             if (GST_MESSAGE_SRC(message) != (GstObject *)m_pipeline) break;
-            logger->debug("{} GStreamer reported state change to EndOfMedia", m_loggingPrefix);
+            m_logger->debug("{} GStreamer reported state change to EndOfMedia", m_loggingPrefix);
             emit stateChanged(EndOfMediaState);
             m_currentState = GST_STATE_NULL;
             break;
@@ -675,7 +675,7 @@ void MediaBackend::gstBusFunc(GstMessage *message)
                 msdur = dur / 1000000;
             else
                 msdur = 0;
-            logger->debug("{} GStreamer reported duration change to {}ms", m_loggingPrefix, msdur);
+            m_logger->debug("{} GStreamer reported duration change to {}ms", m_loggingPrefix, msdur);
             emit durationChanged(msdur);
             break;
         }
@@ -689,7 +689,7 @@ void MediaBackend::gstBusFunc(GstMessage *message)
             break;
 
         default:
-            logger->debug("{} Unhandled GStreamer message received - element: {} - type: {} - name: {}",
+            m_logger->debug("{} Unhandled GStreamer message received - element: {} - type: {} - name: {}",
                           m_loggingPrefix,
                           message->src->name,
                           GST_MESSAGE_TYPE_NAME(message),
@@ -700,26 +700,27 @@ void MediaBackend::gstBusFunc(GstMessage *message)
 
 void gstDebugFunction(GstDebugCategory * category, GstDebugLevel level, const gchar * file, const gchar * function, gint line, GObject * object, GstDebugMessage * message, gpointer user_data) {
     auto *backend = (MediaBackend*)user_data;
+    std::string loggingPrefix{"[GStreamerGlobalLog]"};
     switch (level) {
         case GST_LEVEL_NONE:
             break;
         case GST_LEVEL_ERROR:
-            logger->error("{} [gstreamer] [{}] - {}", backend->m_loggingPrefix, category->name, gst_debug_message_get(message));
+            backend->m_logger->error("{} [gstreamer] [{}] - {}", loggingPrefix, category->name, gst_debug_message_get(message));
             break;
         case GST_LEVEL_WARNING:
-            logger->warn("{} [gstreamer] [{}] - {}", backend->m_loggingPrefix, category->name, gst_debug_message_get(message));
+            backend->m_logger->warn("{} [gstreamer] [{}] - {}", loggingPrefix, category->name, gst_debug_message_get(message));
             break;
         case GST_LEVEL_FIXME:
         case GST_LEVEL_INFO:
-            logger->info("{} [gstreamer] [{}] - {}", backend->m_loggingPrefix, category->name, gst_debug_message_get(message));
+            backend->m_logger->info("{} [gstreamer] [{}] - {}", loggingPrefix, category->name, gst_debug_message_get(message));
             break;
         case GST_LEVEL_DEBUG:
-            logger->debug("{} [gstreamer] [{}] - {}", backend->m_loggingPrefix, category->name, gst_debug_message_get(message));
+            backend->m_logger->debug("{} [gstreamer] [{}] - {}", loggingPrefix, category->name, gst_debug_message_get(message));
             break;
         case GST_LEVEL_LOG:
             break;
         case GST_LEVEL_TRACE:
-            logger->trace("{} [gstreamer] [{}] - {}", backend->m_loggingPrefix, category->name, gst_debug_message_get(message));
+            backend->m_logger->trace("{} [gstreamer] [{}] - {}", loggingPrefix, category->name, gst_debug_message_get(message));
             break;
         case GST_LEVEL_MEMDUMP:
         case GST_LEVEL_COUNT:
@@ -729,14 +730,15 @@ void gstDebugFunction(GstDebugCategory * category, GstDebugLevel level, const gc
 
 void MediaBackend::buildPipeline()
 {
-    logger->debug("{} Building GStreamer pipeline", m_loggingPrefix);
+    m_logger->debug("{} Building GStreamer pipeline", m_loggingPrefix);
     if (!gst_is_initialized())
     {
-        logger->debug("{} Gstreamer not initialized yet, initializing", m_loggingPrefix);
+        m_logger->debug("{} Gstreamer not initialized yet, initializing", m_loggingPrefix);
         gst_init(nullptr,nullptr);
+        gst_debug_remove_log_function(nullptr);
+        gst_debug_add_log_function(gstDebugFunction, this, nullptr);
     }
-    gst_debug_remove_log_function(nullptr);
-    gst_debug_add_log_function(gstDebugFunction, this, nullptr);
+
 #ifdef Q_OS_WIN
     // Use directsoundsink by default because of buggy wasapi plugin.
     GstRegistry *reg = gst_registry_get();
@@ -783,7 +785,7 @@ void MediaBackend::buildPipeline()
         }
     });
 
-    logger->debug("{} Gstreamer pipeline build completed", m_loggingPrefix);
+    m_logger->debug("{} Gstreamer pipeline build completed", m_loggingPrefix);
     //setEnforceAspectRatio(m_settings.enforceAspectRatio());
 }
 
@@ -862,7 +864,7 @@ void MediaBackend::buildAudioSinkBin()
         // try to initialize Rubber Band
         if ((m_pitchShifterRubberBand = gst_element_factory_make("ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo", "ladspa-ladspa-rubberband-so-rubberband-pitchshifter-stereo")))
         {
-            logger->info("{} Using RubberBand pitch shifter", m_loggingPrefix);
+            m_logger->info("{} Using RubberBand pitch shifter", m_loggingPrefix);
 
             auto aConvPrePitchShift = gst_element_factory_make("audioconvert", "aConvPrePitchShift");
             auto aConvPostPitchShift = gst_element_factory_make("audioconvert", "aConvPostPitchShift");
@@ -878,7 +880,7 @@ void MediaBackend::buildAudioSinkBin()
         // fail back to "pitch" plugin
         if (!m_pitchShifterRubberBand && (m_pitchShifterSoundtouch = gst_element_factory_make("pitch", "pitch")))
         {
-            logger->info("{} Using SoundTouch pitch shifter", m_loggingPrefix);
+            m_logger->info("{} Using SoundTouch pitch shifter", m_loggingPrefix);
             auto aConvPrePitchShift = gst_element_factory_make("audioconvert", "aConvPrePitchShift");
 
             gst_bin_add_many(GST_BIN(m_audioBin), aConvPrePitchShift, m_pitchShifterSoundtouch, nullptr);
@@ -914,13 +916,13 @@ void MediaBackend::buildAudioSinkBin()
     m_timerFast.start(250);
 
     connect(m_fader, &AudioFader::fadeStarted, [&] () {
-        logger->debug("{} Fade operation started", m_loggingPrefix);
+        m_logger->debug("{} Fade operation started", m_loggingPrefix);
     });
     connect(m_fader, &AudioFader::fadeComplete, [&] () {
-        logger->debug("{} Fade operation completed", m_loggingPrefix);
+        m_logger->debug("{} Fade operation completed", m_loggingPrefix);
     });
     connect(m_fader, &AudioFader::faderStateChanged, [&] (auto state) {
-        logger->debug("{} Fader state changed to: {}", m_loggingPrefix, m_fader->stateToStr(state));
+        m_logger->debug("{} Fader state changed to: {}", m_loggingPrefix, m_fader->stateToStr(state));
     });
 }
 
@@ -1021,13 +1023,13 @@ void MediaBackend::getAudioOutputDevices()
 
 void MediaBackend::fadeOut(const bool &waitForFade)
 {
-    logger->debug("{} Fade out requested", m_loggingPrefix);
+    m_logger->debug("{} Fade out requested", m_loggingPrefix);
     m_currentlyFadedOut = true;
     gdouble curVolume;
     g_object_get(G_OBJECT(m_volumeElement), "volume", &curVolume, nullptr);
     if (state() != PlayingState)
     {
-        logger->debug("{} Media not currently playing, skipping fade and immediately setting volume", m_loggingPrefix);
+        m_logger->debug("{} Media not currently playing, skipping fade and immediately setting volume", m_loggingPrefix);
         m_fader->immediateOut();
         return;
     }
@@ -1036,17 +1038,17 @@ void MediaBackend::fadeOut(const bool &waitForFade)
 
 void MediaBackend::fadeIn(const bool &waitForFade)
 {
-    logger->debug("{} Fade in requested", m_loggingPrefix);
+    m_logger->debug("{} Fade in requested", m_loggingPrefix);
     m_currentlyFadedOut = false;
     if (state() != PlayingState)
     {
-        logger->debug("{} Media not currently playing, skipping fade and immediately setting volume", m_loggingPrefix);
+        m_logger->debug("{} Media not currently playing, skipping fade and immediately setting volume", m_loggingPrefix);
         m_fader->immediateIn();
         return;
     }
     if (isSilent())
     {
-        logger->debug("{} Media is currently silent, skipping fade and immediately setting volume", m_loggingPrefix);
+        m_logger->debug("{} Media is currently silent, skipping fade and immediately setting volume", m_loggingPrefix);
         m_fader->immediateIn();
         return;
     }
@@ -1055,7 +1057,7 @@ void MediaBackend::fadeIn(const bool &waitForFade)
 
 void MediaBackend::setUseSilenceDetection(const bool &enabled) {
     QString state = enabled ? "on" : "off";
-    logger->debug("{} Turning {} silence detection", m_loggingPrefix, state.toStdString());
+    m_logger->debug("{} Turning {} silence detection", m_loggingPrefix, state.toStdString());
     m_silenceDetect = enabled;
 }
 
@@ -1101,9 +1103,9 @@ void MediaBackend::setTempo(const int &percent)
 void MediaBackend::setAudioOutputDevice(const AudioOutputDevice &device)
 {
     if (device.name == "")
-        logger->info("{} Setting audio output device to default", m_loggingPrefix);
+        m_logger->info("{} Setting audio output device to default", m_loggingPrefix);
     else
-        logger->info("{} Setting audio output device to \"{}\"", m_loggingPrefix, device.name.toStdString());
+        m_logger->info("{} Setting audio output device to \"{}\"", m_loggingPrefix, device.name.toStdString());
     m_outputDevice = device;
     auto curpos = position();
     bool playAfter{false};
@@ -1112,7 +1114,7 @@ void MediaBackend::setAudioOutputDevice(const AudioOutputDevice &device)
         playAfter = true;
         m_changingAudioOutputs = true;
         gst_element_set_state(m_pipeline, GST_STATE_NULL);
-        logger->debug("{} Waiting for media to enter stopped state", m_loggingPrefix);
+        m_logger->debug("{} Waiting for media to enter stopped state", m_loggingPrefix);
         GstState curState;
         gst_element_get_state(m_pipeline, &curState, nullptr, GST_CLOCK_TIME_NONE);
         while (curState != GST_STATE_NULL)
@@ -1120,29 +1122,29 @@ void MediaBackend::setAudioOutputDevice(const AudioOutputDevice &device)
             gst_element_get_state(m_pipeline, &curState, nullptr, GST_CLOCK_TIME_NONE);
             QApplication::processEvents();
         }
-        logger->debug("{} Media entered stopped state, continuing output device change", m_loggingPrefix);
+        m_logger->debug("{} Media entered stopped state, continuing output device change", m_loggingPrefix);
     }
-    logger->debug("{} Unlinking and removing old elements", m_loggingPrefix);
+    m_logger->debug("{} Unlinking and removing old elements", m_loggingPrefix);
     gst_element_unlink(m_aConvEnd, m_audioSink);
     gst_bin_remove(GST_BIN(m_audioBin), m_audioSink);
-    logger->debug("{} Creating new audio sink element", m_loggingPrefix);
+    m_logger->debug("{} Creating new audio sink element", m_loggingPrefix);
     if (m_outputDevice.index <= 0) {
         m_audioSink = gst_element_factory_make("autoaudiosink", "audioSink");
     } else {
         m_audioSink = gst_device_create_element(m_outputDevice.gstDevice, nullptr);
     }
-    logger->debug("{} Adding and linking new audio output element", m_loggingPrefix);
+    m_logger->debug("{} Adding and linking new audio output element", m_loggingPrefix);
     gst_bin_add(GST_BIN(m_audioBin), m_audioSink);
     gst_element_link(m_aConvEnd, m_audioSink);
     if (playAfter)
     {
-        logger->debug("{} Resuming playback after audio output device change", m_loggingPrefix);
+        m_logger->debug("{} Resuming playback after audio output device change", m_loggingPrefix);
         if (m_cdgMode)
             setMediaCdg(m_cdgFilename, m_filename);
         else
             setMedia(m_filename);
         play();
-        logger->debug("{} Waiting or pipeline to enter playing state", m_loggingPrefix);
+        m_logger->debug("{} Waiting or pipeline to enter playing state", m_loggingPrefix);
         GstState curState;
         gst_element_get_state(m_pipeline, &curState, nullptr, GST_CLOCK_TIME_NONE);
         while (curState != GST_STATE_PLAYING)
@@ -1150,7 +1152,7 @@ void MediaBackend::setAudioOutputDevice(const AudioOutputDevice &device)
             gst_element_get_state(m_pipeline, &curState, nullptr, GST_CLOCK_TIME_NONE);
             QApplication::processEvents();
         }
-        logger->debug("{} Jumping back to previous playback position after audio output device change", m_loggingPrefix);
+        m_logger->debug("{} Jumping back to previous playback position after audio output device change", m_loggingPrefix);
         setPosition(curpos);
     }
 
