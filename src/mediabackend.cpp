@@ -584,7 +584,6 @@ void MediaBackend::gstBusFunc(GstMessage *message)
             g_free(debug);
             break;
         }
-
         case GST_MESSAGE_WARNING:
         {
             GError *err;
@@ -596,7 +595,6 @@ void MediaBackend::gstBusFunc(GstMessage *message)
             g_free(debug);
             break;
         }
-
         case GST_MESSAGE_STATE_CHANGED:
         {
             // This will fire for all elements in the pipeline.
@@ -638,7 +636,6 @@ void MediaBackend::gstBusFunc(GstMessage *message)
             }
             break;
         }
-
         case GST_MESSAGE_EOS:
         {
             if (GST_MESSAGE_SRC(message) != (GstObject *)m_pipeline) break;
@@ -647,7 +644,6 @@ void MediaBackend::gstBusFunc(GstMessage *message)
             m_currentState = GST_STATE_NULL;
             break;
         }
-
         case GST_MESSAGE_ELEMENT:
         {
             auto msgStructure = gst_message_get_structure(message);
@@ -667,7 +663,6 @@ void MediaBackend::gstBusFunc(GstMessage *message)
             }
             break;
         }
-
         case GST_MESSAGE_DURATION_CHANGED:
         {
             gint64 dur, msdur;
@@ -679,7 +674,8 @@ void MediaBackend::gstBusFunc(GstMessage *message)
             emit durationChanged(msdur);
             break;
         }
-
+        case GST_MESSAGE_STREAM_START:
+            m_logger->debug("{} GStreamer reported stream started", m_loggingPrefix);
         case GST_MESSAGE_NEED_CONTEXT:
         case GST_MESSAGE_TAG:
         case GST_MESSAGE_STREAM_STATUS:
