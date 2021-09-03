@@ -157,33 +157,23 @@ MediaBackend::~MediaBackend()
     gst_object_unref(m_bus);
     gst_caps_unref(m_audioCapsMono);
     gst_caps_unref(m_audioCapsStereo);
-    while (G_IS_OBJECT(m_pipeline))
-        gst_object_unref(m_pipeline);
+    gst_object_unref(m_pipeline);
     gst_object_unref(m_decoder);
+    // these still have 2 refs each for some reason
     gst_object_unref(m_audioBin);
-    while (G_IS_OBJECT(m_videoBin))
-        gst_object_unref(m_videoBin);
+    gst_object_unref(m_audioBin);
+    gst_object_unref(m_videoBin);
+    gst_object_unref(m_videoBin);
     delete m_cdgSrc;
     for (auto &device : m_audioOutputDevices)
     {
-        while(G_IS_OBJECT(device.gstDevice)) {
-            m_logger->trace("{} Unrefing audio device: {}", m_loggingPrefix, device.name);
+        if (device.index != m_outputDevice.index)
             g_object_unref(device.gstDevice);
-        }
     }
+
     for (auto &vs : m_videoSinks)
     {
         delete vs.softwareRenderVideoSink;
-        while (G_IS_OBJECT(vs.videoSink))
-        {
-            m_logger->trace("{} Unrefing video sink", m_loggingPrefix);
-            g_object_unref(vs.videoSink);
-        }
-        while (G_IS_OBJECT(vs.videoScale))
-        {
-            m_logger->trace("{} Unrefing videoscale", m_loggingPrefix);
-            g_object_unref(vs.videoScale);
-        }
     }
     // Uncomment the following when running valgrind to eliminate noise
 //    if (gst_is_initialized())
@@ -1027,8 +1017,7 @@ void MediaBackend::getAudioOutputDevices()
     g_list_free(devices);
     gst_device_monitor_remove_filter(monitor, monId);
     gst_caps_unref(moncaps);
-    while (G_IS_OBJECT(monitor))
-        gst_object_unref(monitor);
+    gst_object_unref(monitor);
 }
 
 void MediaBackend::fadeOut(const bool &waitForFade)
