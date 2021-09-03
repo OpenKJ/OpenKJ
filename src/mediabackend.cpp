@@ -157,22 +157,34 @@ MediaBackend::~MediaBackend()
     gst_object_unref(m_bus);
     gst_caps_unref(m_audioCapsMono);
     gst_caps_unref(m_audioCapsStereo);
-    g_object_unref(m_pipeline);
-    g_object_unref(m_decoder);
-    g_object_unref(m_audioBin);
-    g_object_unref(m_videoBin);
+    while (G_IS_OBJECT(m_pipeline))
+        gst_object_unref(m_pipeline);
+    gst_object_unref(m_decoder);
+    gst_object_unref(m_audioBin);
+    while (G_IS_OBJECT(m_videoBin))
+        gst_object_unref(m_videoBin);
     delete m_cdgSrc;
     for (auto &device : m_audioOutputDevices)
     {
-       if (device.index != m_outputDevice.index)
+        while(G_IS_OBJECT(device.gstDevice)) {
+            m_logger->trace("{} Unrefing audio device: {}", m_loggingPrefix, device.name);
             g_object_unref(device.gstDevice);
+        }
     }
-
     for (auto &vs : m_videoSinks)
     {
         delete vs.softwareRenderVideoSink;
+        while (G_IS_OBJECT(vs.videoSink))
+        {
+            m_logger->trace("{} Unrefing video sink", m_loggingPrefix);
+            g_object_unref(vs.videoSink);
+        }
+        while (G_IS_OBJECT(vs.videoScale))
+        {
+            m_logger->trace("{} Unrefing videoscale", m_loggingPrefix);
+            g_object_unref(vs.videoScale);
+        }
     }
-
     // Uncomment the following when running valgrind to eliminate noise
 //    if (gst_is_initialized())
 //        gst_deinit();
@@ -599,7 +611,7 @@ void MediaBackend::gstBusFunc(GstMessage *message)
         {
             // This will fire for all elements in the pipeline.
             // We only want to react once: on the actual pipeline element.
-            if (GST_MESSAGE_SRC(message) != (GstObject *)m_pipeline) break;
+            if (message->src != (GstObject *)m_pipeline) break;
 
             // Avoid doing anything while audio outputs are changing
             if (m_changingAudioOutputs)
@@ -638,7 +650,7 @@ void MediaBackend::gstBusFunc(GstMessage *message)
         }
         case GST_MESSAGE_EOS:
         {
-            if (GST_MESSAGE_SRC(message) != (GstObject *)m_pipeline) break;
+            if (message->src != (GstObject *)m_pipeline) break;
             m_logger->debug("{} GStreamer reported state change to EndOfMedia", m_loggingPrefix);
             emit stateChanged(EndOfMediaState);
             m_currentState = GST_STATE_NULL;
@@ -688,13 +700,14 @@ void MediaBackend::gstBusFunc(GstMessage *message)
             m_logger->debug("{} Unhandled GStreamer message received - element: {} - type: {} - name: {}",
                           m_loggingPrefix,
                           message->src->name,
-                          GST_MESSAGE_TYPE_NAME(message),
-                          GST_MESSAGE_TYPE(message));
+                          gst_message_type_get_name(message->type),
+                          message->type);
             break;
     }
 }
 
-void gstDebugFunction(GstDebugCategory * category, GstDebugLevel level, const gchar * file, const gchar * function, gint line, GObject * object, GstDebugMessage * message, gpointer user_data) {
+void gstDebugFunction(GstDebugCategory * category, GstDebugLevel level, [[maybe_unused]] const gchar * file,
+                      [[maybe_unused]] const gchar * function, [[maybe_unused]] gint line, [[maybe_unused]] GObject * object, GstDebugMessage * message, gpointer user_data) {
     auto *backend = (MediaBackend*)user_data;
     std::string loggingPrefix{"[GStreamerGlobalLog]"};
     switch (level) {
@@ -752,12 +765,6 @@ void MediaBackend::buildPipeline()
 
     m_pipeline = gst_pipeline_new("pipeline");
     m_pipelineAsBin = reinterpret_cast<GstBin *>(m_pipeline);
-
-    /*
-    auto bus = gst_element_get_bus(m_pipeline);
-    gst_bus_add_watch(bus, (GstBusFunc)gstBusFunc, this);
-    gst_object_unref(bus);
-    */
 
     m_decoder = gst_element_factory_make("uridecodebin", "uridecodebin");
     g_signal_connect(m_decoder, "pad-added", G_CALLBACK(padAddedToDecoder_cb), this);
@@ -986,6 +993,8 @@ void MediaBackend::forceVideoExpose()
 
 void MediaBackend::getAudioOutputDevices()
 {
+    m_outputDeviceNames.clear();
+    m_outputDeviceNames.append("0 - Default");
     m_audioOutputDevices.emplace_back(
                 AudioOutputDevice{
                     "0 - Default",
@@ -993,11 +1002,15 @@ void MediaBackend::getAudioOutputDevices()
                     m_audioOutputDevices.size()
                 }
                 );
+    // skip all of this if we're being built for preview use
+    if (m_objName == "PREVIEW") {
+        m_logger->debug("{} Constructing for preview use, skipping audio output device detection", m_loggingPrefix);
+        return;
+    }
     auto monitor = gst_device_monitor_new ();
     auto moncaps = gst_caps_new_empty_simple ("audio/x-raw");
     auto monId = gst_device_monitor_add_filter (monitor, "Audio/Sink", moncaps);
-    m_outputDeviceNames.clear();
-    m_outputDeviceNames.append("0 - Default");
+
     GList *devices, *elem;
     devices = gst_device_monitor_get_devices(monitor);
     for(elem = devices; elem; elem = elem->next) {
@@ -1011,10 +1024,11 @@ void MediaBackend::getAudioOutputDevices()
                     );
         g_free(deviceName);
     }
-    gst_device_monitor_remove_filter(monitor, monId);
-    gst_caps_unref (moncaps);
-    g_object_unref(monitor);
     g_list_free(devices);
+    gst_device_monitor_remove_filter(monitor, monId);
+    gst_caps_unref(moncaps);
+    while (G_IS_OBJECT(monitor))
+        gst_object_unref(monitor);
 }
 
 void MediaBackend::fadeOut(const bool &waitForFade)

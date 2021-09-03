@@ -30,7 +30,7 @@ public:
 
     GstElement* getSrcElement();
     void reset();
-    void load(const QString filename);
+    void load(const QString& filename);
 
     /**
      * Returns the position of the very last frame.

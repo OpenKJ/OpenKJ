@@ -166,8 +166,8 @@ int main(int argc, char *argv[]) {
     qWarning() << qgetenv("GST_PLUGIN_SYSTEM_PATH") << endl << qgetenv("GST_PLUGIN_SCANNER") << endl << qgetenv("GTK_PATH") << endl << qgetenv("GIO_EXTRA_MODULES") << endl;
 #endif
 
-    filter = new IdleDetect;
-    a.installEventFilter(filter);
+    IdleDetect filter;
+    a.installEventFilter(&filter);
     qputenv("GST_DEBUG", "*:3");
     QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     if (settings.theme() == 1) {

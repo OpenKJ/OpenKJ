@@ -7,11 +7,9 @@ void AudioRecorder::generateDeviceList() {
     logger->debug("{} Getting input devices", m_loggingPrefix);
     GstDeviceMonitor *monitor;
     monitor = gst_device_monitor_new();
-    GstCaps *moncaps;
-    moncaps = gst_caps_new_empty_simple("audio/x-raw");
-    gst_device_monitor_add_filter(monitor, "Audio/Source", moncaps);
+    auto moncaps = gst_caps_new_empty_simple("audio/x-raw");
+    auto filterId = gst_device_monitor_add_filter(monitor, "Audio/Source", moncaps);
     gst_caps_unref(moncaps);
-    gst_device_monitor_start(monitor);
     m_inputDeviceNames.clear();
     GList *devices, *elem;
     devices = gst_device_monitor_get_devices(monitor);
@@ -24,9 +22,9 @@ void AudioRecorder::generateDeviceList() {
         m_inputDevices.append(device);
     }
     logger->debug("{} Found {} input devices", m_loggingPrefix, m_inputDeviceNames.size());
-    gst_device_monitor_stop(monitor);
     g_list_free(devices);
-    g_object_unref(monitor);
+    gst_device_monitor_remove_filter(monitor, filterId);
+    gst_object_unref(monitor);
 }
 
 void AudioRecorder::initGStreamer() {
@@ -37,9 +35,11 @@ void AudioRecorder::initGStreamer() {
     // Give Windows users something to look at in the dropdown
     m_inputDeviceNames.append("System default");
 #endif
-    logger->debug("{} Initializing gstreamer", m_loggingPrefix);
-    gst_init(nullptr, nullptr);
-    logger->debug("{} Creating elements", m_loggingPrefix);
+    if (!gst_is_initialized()) {
+        logger->debug("{} Initializing gstreamer", m_loggingPrefix);
+        gst_init(nullptr, nullptr);
+        logger->debug("{} Creating elements", m_loggingPrefix);
+    }
 #ifdef Q_OS_WIN
     m_autoAudioSrc    = gst_element_factory_make("autoaudiosrc", NULL);
     if (!m_autoAudioSrc)
@@ -187,6 +187,14 @@ AudioRecorder::~AudioRecorder() {
     logger->debug("{} AudioRecorder destructor called", m_loggingPrefix);
     gst_element_set_state(m_pipeline, GST_STATE_NULL);
     g_object_unref(m_pipeline);
+    int i{0};
+    for (auto device : m_inputDevices) {
+        while (G_IS_OBJECT(device)) {
+            logger->trace("{} Unreffing audio input device {}", m_loggingPrefix, i);
+            gst_object_unref(device);
+        }
+        i++;
+    }
 }
 
 QStringList AudioRecorder::getDeviceList() {

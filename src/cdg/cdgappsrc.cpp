@@ -50,7 +50,7 @@ void CdgAppSrc::reset()
     m_cdgFileReader = nullptr;
 }
 
-void CdgAppSrc::load(const QString filename)
+void CdgAppSrc::load(const QString& filename)
 {
     QMutexLocker locker(&m_cdgFileReaderLock);
     reset();
