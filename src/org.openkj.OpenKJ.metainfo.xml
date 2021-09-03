@@ -31,7 +31,7 @@
 	<binary>openkj</binary>
 </provides>
 <releases>
-	<release version="2.1.25" date="2021-09-02">
+	<release version="2.1.26" date="2021-09-03">
 		<description>
 			<p>Initial flatpak release</p>
 		</description>
