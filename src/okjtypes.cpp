@@ -24,6 +24,18 @@
 #include <utility>
 #include <spdlog/spdlog.h>
 
+std::ostream & operator<<(std::ostream& os, const okj::RotationSinger& s)
+{
+    return os
+        << " RotationSinger(id: " << s.id
+        << " position: " << s.position
+        << " name: " << s.name.toStdString()
+        << " regular: " << s.regular
+        << " addTS: " << s.addTs.toString().toStdString()
+        << " valid: " << s.valid
+        << ")";
+}
+
 
 namespace okj {
 

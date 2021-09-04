@@ -42,6 +42,7 @@
 #include <spdlog/version.h>
 #include <taglib.h>
 #include <miniz/miniz.h>
+#include "okjtypes.h"
 
 #ifdef _MSC_VER
 #define NOMINMAX
@@ -1650,6 +1651,10 @@ void MainWindow::tableViewRotationClicked(const QModelIndex &index) {
 }
 
 void MainWindow::tableViewQueueDoubleClicked(const QModelIndex &index) {
+    if (!index.isValid())
+        return;
+    auto song = qvariant_cast<QueueSong>(index.data(Qt::UserRole));
+    auto singer = m_rotModel.getSinger(song.singerId);
     m_k2kTransition = false;
     if (m_mediaBackendKar.state() == MediaBackend::PlayingState) {
         if (m_settings.showSongInterruptionWarning()) {
@@ -1670,8 +1675,13 @@ void MainWindow::tableViewQueueDoubleClicked(const QModelIndex &index) {
             }
         }
         m_k2kTransition = true;
+        m_mediaBackendKar.stop();
+        while (m_mediaBackendKar.state() == MediaBackend::PlayingState)
+            QApplication::processEvents();
+        if (m_settings.rotationAltSortOrder())
+            m_rotModel.singerMove(0, static_cast<int>(m_rotModel.singerCount() -1), true);
     }
-    if (m_mediaBackendKar.state() == MediaBackend::PausedState) {
+    else if (m_mediaBackendKar.state() == MediaBackend::PausedState) {
         if (m_settings.karaokeAutoAdvance()) {
             m_kAASkip = true;
             cdgWindow->showAlert(false);
@@ -1679,30 +1689,26 @@ void MainWindow::tableViewQueueDoubleClicked(const QModelIndex &index) {
         audioRecorder.stop();
         m_mediaBackendKar.stop(true);
     }
-    int curSingerId = m_qModel.getSingerId();
-    m_curSinger = m_rotModel.getSinger(curSingerId).name;
-    m_curArtist = index.sibling(index.row(), TableModelQueueSongs::COL_ARTIST).data().toString();
-    m_curTitle = index.sibling(index.row(), TableModelQueueSongs::COL_TITLE).data().toString();
-    QString curSongId = index.sibling(index.row(), TableModelQueueSongs::COL_SONGID).data().toString();
-    QString filePath = index.sibling(index.row(), TableModelQueueSongs::COL_PATH).data().toString();
-    int curKeyChange = index.sibling(index.row(), TableModelQueueSongs::COL_KEY).data().toInt();
-    ui->labelSinger->setText(m_curSinger);
-    ui->labelArtist->setText(m_curArtist);
-    ui->labelTitle->setText(m_curTitle);
-    m_karaokeSongsModel.updateSongHistory(m_karaokeSongsModel.getIdForPath(filePath));
-    play(filePath, m_k2kTransition);
-    if (m_settings.treatAllSingersAsRegs() || m_rotModel.getSinger(curSingerId).regular)
-        m_historySongsModel.saveSong(m_curSinger, filePath, m_curArtist, m_curTitle, curSongId, curKeyChange);
-    m_mediaBackendKar.setPitchShift(curKeyChange);
-    m_qModel.setPlayed(index.sibling(index.row(), TableModelQueueSongs::COL_ID).data().toInt());
-
-    m_rotModel.setCurrentSinger(curSingerId);
-    m_rotDelegate.setCurrentSinger(curSingerId);
+    m_curSinger = singer.name;
+    m_curArtist = song.artist;
+    m_curTitle = song.title;
+    ui->labelSinger->setText(singer.name);
+    ui->labelArtist->setText(song.artist);
+    ui->labelTitle->setText(song.title);
+    m_karaokeSongsModel.updateSongHistory(song.dbSongId);
+    play(song.path, m_k2kTransition);
+    if (m_settings.treatAllSingersAsRegs() || singer.regular)
+        m_historySongsModel.saveSong(singer.name, song.path, song.artist, song.title, song.songId, song.keyChange);
+    m_mediaBackendKar.setPitchShift(song.keyChange);
+    m_qModel.setPlayed(song.id);
+    m_rotModel.setCurrentSinger(singer.id);
+    m_rotDelegate.setCurrentSinger(singer.id);
     if (m_settings.rotationAltSortOrder()) {
-        auto curSingerPos = m_rotModel.getSinger(curSingerId).position;
-        m_curSingerOriginalPosition = curSingerPos;
-        if (curSingerPos != 0) {
-            m_rotModel.singerMove(curSingerPos, 0);
+        // Need a new copy of the singer since the rotation has changed since we last grabbed them
+        singer = m_rotModel.getSinger(singer.id);
+        m_curSingerOriginalPosition = singer.position;
+        if (singer.position != 0) {
+            m_rotModel.singerMove(singer.position, 0);
             ui->tableViewRotation->clearSelection();
             ui->tableViewRotation->selectRow(0);
         }
@@ -1892,8 +1898,6 @@ void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &sta
         }
         m_logger->info("{} KAudio entered StoppedState", m_loggingPrefix);
         audioRecorder.stop();
-        if (m_k2kTransition)
-            return;
         ui->labelArtist->setText("None");
         ui->labelTitle->setText("None");
         ui->labelSinger->setText("None");
@@ -1907,7 +1911,7 @@ void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &sta
         ui->pushButtonKeyUp->setEnabled(false);
         ui->pushButtonTempoDn->setEnabled(false);
         ui->pushButtonTempoUp->setEnabled(false);
-        if (state == m_lastAudioState)
+        if (state == m_lastAudioState || m_k2kTransition)
             return;
         m_lastAudioState = state;
         m_mediaBackendBm.fadeIn(false);

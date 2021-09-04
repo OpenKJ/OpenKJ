@@ -26,6 +26,8 @@ struct QueueSong {
     QString path;
 };
 
+Q_DECLARE_METATYPE(QueueSong)
+
 class ItemDelegateQueueSongs : public QItemDelegate
 {
     Q_OBJECT

@@ -24,6 +24,7 @@
 #include <QDateTime>
 #include <QString>
 #include <spdlog/async_logger.h>
+#include <spdlog/fmt/ostr.h>
 #include "settings.h"
 
 namespace okj {
@@ -63,6 +64,10 @@ namespace okj {
         [[nodiscard]] int numSongsUnsung() const;
     };
 
+
+
 }
+
+std::ostream& operator<<(std::ostream& os, const okj::RotationSinger& s);
 
 #endif //OPENKJ_OKJTYPES_H

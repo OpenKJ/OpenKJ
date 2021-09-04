@@ -69,6 +69,11 @@ QVariant TableModelQueueSongs::data(const QModelIndex &index, int role) const {
         if (index.column() == COL_DURATION)
             return Qt::AlignRight + Qt::AlignVCenter;
     }
+    if (role == Qt::UserRole) {
+        QVariant retVal;
+        retVal.setValue(m_songs.at(index.row()));
+        return retVal;
+    }
     if (role == Qt::DisplayRole) {
         switch (index.column()) {
             case COL_ID:
