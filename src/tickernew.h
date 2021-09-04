@@ -54,7 +54,7 @@ public:
 
 public slots:
     void setWidth(int width);
-    void setText(const QString& text);
+    void setText(const QString &text, bool force = false);
     void replaceImage(const QPixmap &image, int textWidth);
     void refresh();
     void setSpeed(int speed);
@@ -74,14 +74,15 @@ private:
     TickerNew *ticker;
     QPixmap m_image;
     QRect drawRect;
+    QString m_currentText;
 
 public:
     explicit TickerDisplayWidget(QWidget *parent = nullptr);
     ~TickerDisplayWidget() override;
-    void setText(const QString& newText);
+    void setText(const QString& newText, bool force = false);
     [[nodiscard]] QSize sizeHint() const override;
     void setSpeed(int speed);
-
+    QString getCurrentText() { return m_currentText; }
     bool rectBasedDrawing{false};
     void stop();
     void setTickerEnabled(bool enabled);

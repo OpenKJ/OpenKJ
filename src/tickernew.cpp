@@ -66,7 +66,7 @@ void TickerNew::stop()
 TickerNew::TickerNew()
 {
     m_logger = spdlog::get("logger");
-    setText("No ticker data");
+    setText("No ticker data", false);
     setObjectName("Ticker");
 }
 
@@ -98,12 +98,12 @@ void TickerNew::setWidth(int width)
     scrollImage = QPixmap(width * 2, m_height);
     //qInfo() << "Unlocking m_mutex in setWidth()";
     m_mutex.unlock();
-    setText(m_text);
+    setText(m_text, false);
 }
 
-void TickerNew::setText(const QString& text)
+void TickerNew::setText(const QString &text, bool force)
 {
-    if (m_text == text)
+    if (m_text == text && !force)
         return;
     m_text = text;
     auto imageCreator = new TickerImageCreator(text, m_width);
@@ -114,7 +114,7 @@ void TickerNew::setText(const QString& text)
 
 void TickerNew::refresh()
 {
-    setText(m_text);
+    setText(m_text, true);
 }
 
 void TickerNew::setSpeed(int speed)
@@ -166,9 +166,10 @@ TickerDisplayWidget::~TickerDisplayWidget()
     delete ticker;
 }
 
-void TickerDisplayWidget::setText(const QString& newText)
+void TickerDisplayWidget::setText(const QString& newText, bool force)
 {
-    ticker->setText(newText);
+    m_currentText = newText;
+    ticker->setText(newText, force);
     setFixedHeight(ticker->getSize().height());
 }
 

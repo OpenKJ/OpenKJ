@@ -110,6 +110,7 @@ void DlgCdg::tickerFontChanged()
     ui->scroll->setFont(m_settings.tickerFont());
     ui->scroll->setMinimumHeight(QFontMetrics(m_settings.tickerFont()).height());
     ui->scroll->setMaximumHeight(QFontMetrics(m_settings.tickerFont()).height());
+    ui->scroll->refresh();
 }
 
 void DlgCdg::tickerSpeedChanged()
@@ -138,6 +139,7 @@ void DlgCdg::tickerEnableChanged()
 {
     ui->scroll->setVisible(m_settings.tickerEnabled());
     ui->scroll->setTickerEnabled(m_settings.tickerEnabled());
+    ui->scroll->setText(ui->scroll->getCurrentText(), true);
 }
 
 void DlgCdg::mouseDoubleClickEvent([[maybe_unused]]QMouseEvent *e)

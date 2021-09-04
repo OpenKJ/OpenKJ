@@ -1770,6 +1770,7 @@ void MainWindow::actionSettingsTriggered() {
     connect(settingsDialog, &DlgSettings::slideShowIntervalChanged, cdgWindow.get(), &DlgCdg::setSlideshowInterval);
     connect(settingsDialog, &DlgSettings::tickerBgColorChanged, cdgWindow.get(), &DlgCdg::tickerBgColorChanged);
     connect(settingsDialog, &DlgSettings::tickerEnableChanged, cdgWindow.get(), &DlgCdg::tickerEnableChanged);
+    connect(settingsDialog, &DlgSettings::tickerEnableChanged, this, &MainWindow::rotationDataChanged);
     connect(settingsDialog, &DlgSettings::tickerFontChanged, cdgWindow.get(), &DlgCdg::tickerFontChanged);
     connect(settingsDialog, &DlgSettings::tickerSpeedChanged, cdgWindow.get(), &DlgCdg::tickerSpeedChanged);
     connect(settingsDialog, &DlgSettings::tickerTextColorChanged, cdgWindow.get(), &DlgCdg::tickerTextColorChanged);
@@ -3707,6 +3708,7 @@ void MainWindow::btnQTopClicked() {
     });
     auto topLeft = ui->tableViewQueue->model()->index(0, 0);
     auto bottomRight = ui->tableViewQueue->model()->index((int) songIds.size() - 1, m_qModel.columnCount() - 1);
+    ui->tableViewQueue->clearSelection();
     ui->tableViewQueue->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
     rotationDataChanged();
 }
@@ -3744,6 +3746,7 @@ void MainWindow::btnQBottomClicked() {
     });
     auto topLeft = ui->tableViewQueue->model()->index((int) (m_qModel.rowCount() - songIds.size()), 0);
     auto bottomRight = ui->tableViewQueue->model()->index(m_qModel.rowCount() - 1, m_qModel.columnCount() - 1);
+    ui->tableViewQueue->clearSelection();
     ui->tableViewQueue->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
     rotationDataChanged();
 }
