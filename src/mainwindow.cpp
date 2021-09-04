@@ -1772,6 +1772,7 @@ void MainWindow::actionSettingsTriggered() {
     connect(settingsDialog, &DlgSettings::slideShowIntervalChanged, cdgWindow.get(), &DlgCdg::setSlideshowInterval);
     connect(settingsDialog, &DlgSettings::tickerBgColorChanged, cdgWindow.get(), &DlgCdg::tickerBgColorChanged);
     connect(settingsDialog, &DlgSettings::tickerEnableChanged, cdgWindow.get(), &DlgCdg::tickerEnableChanged);
+    connect(settingsDialog, &DlgSettings::tickerEnableChanged, this, &MainWindow::rotationDataChanged);
     connect(settingsDialog, &DlgSettings::tickerFontChanged, cdgWindow.get(), &DlgCdg::tickerFontChanged);
     connect(settingsDialog, &DlgSettings::tickerSpeedChanged, cdgWindow.get(), &DlgCdg::tickerSpeedChanged);
     connect(settingsDialog, &DlgSettings::tickerTextColorChanged, cdgWindow.get(), &DlgCdg::tickerTextColorChanged);
