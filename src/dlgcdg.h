@@ -124,6 +124,9 @@ protected:
     void showEvent(QShowEvent *event) override;
     void hideEvent(QHideEvent *event) override;
     void mouseDoubleClickEvent(QMouseEvent *e) override;
+
+    signals:
+    void visibilityChanged(bool visible);
 };
 
 #endif // CDGWINDOW_H

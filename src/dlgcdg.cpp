@@ -350,6 +350,7 @@ void DlgCdg::closeEvent([[maybe_unused]]QCloseEvent *event)
     this->hide();
     m_settings.setShowCdgWindow(false);
     event->ignore();
+    emit visibilityChanged(false);
 }
 
 void DlgCdg::showEvent(QShowEvent *event)
@@ -370,12 +371,12 @@ void DlgCdg::showEvent(QShowEvent *event)
     else
         ui->btnToggleFullscreen->setText("Make Fullscreen");
     QDialog::showEvent(event);
+    emit visibilityChanged(true);
 }
 
 void DlgCdg::hideEvent(QHideEvent *event)
 {
     m_settings.saveWindowState(this);
-    //settings.saveWindowState(m_tWidget);
     QWidget::hideEvent(event);
 }
 

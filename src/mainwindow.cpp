@@ -51,11 +51,9 @@
 #endif
 
 
-// for some reason clang-tidy is choking on this function
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCDFAInspection"
-
-void MainWindow::addSfxButton(const QString &filename, const QString &label, const bool reset) {
+void MainWindow::addSfxButton(const QString &filename, const QString &label, bool reset) {
     static int numButtons = 0;
     if (reset)
         numButtons = 0;
@@ -70,7 +68,6 @@ void MainWindow::addSfxButton(const QString &filename, const QString &label, con
             &MainWindow::sfxButtonContextMenuRequested);
     numButtons++;
 }
-
 #pragma clang diagnostic pop
 
 void MainWindow::refreshSfxButtons() {
@@ -856,6 +853,7 @@ void MainWindow::setupConnections() {
            ui->tableViewHistory->resizeColumnsToContents();
        }
     });
+    connect(cdgWindow.get(), &DlgCdg::visibilityChanged, ui->btnToggleCdgWindow, &QPushButton::setChecked);
     connect(ui->comboBoxHistoryDblClick, QOverload<int>::of(&QComboBox::currentIndexChanged), &m_settings,
             &Settings::setHistoryDblClickAction);
     connect(&m_rotModel, &TableModelRotation::songDroppedOnSinger, this, &MainWindow::songDroppedOnSinger);
@@ -3086,28 +3084,27 @@ void MainWindow::actionAboutTriggered() {
     QMessageBox::about(this, title, text);
 }
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "readability-convert-member-functions-to-static"
-
 void MainWindow::pushButtonMplxLeftToggled(const bool &checked) {
-    if (checked)
-        m_settings.setMplxMode(Multiplex_LeftChannel);
-        m_mediaBackendKar.setMplxMode(Multiplex_LeftChannel);
+    if (!checked)
+        return;
+    m_settings.setMplxMode(Multiplex_LeftChannel);
+    m_mediaBackendKar.setMplxMode(Multiplex_LeftChannel);
+
 }
 
 void MainWindow::pushButtonMplxBothToggled(const bool &checked) {
-    if (checked)
-        m_settings.setMplxMode(Multiplex_Normal);
+    if (!checked)
+        return;
+    m_settings.setMplxMode(Multiplex_Normal);
     m_mediaBackendKar.setMplxMode(Multiplex_Normal);
 }
 
 void MainWindow::pushButtonMplxRightToggled(const bool &checked) {
-    if (checked)
-        m_settings.setMplxMode(Multiplex_RightChannel);
+    if (!checked)
+        return;
+    m_settings.setMplxMode(Multiplex_RightChannel);
     m_mediaBackendKar.setMplxMode(Multiplex_RightChannel);
 }
-
-#pragma clang diagnostic pop
 
 void MainWindow::lineEditSearchTextChanged(const QString &arg1) {
     if (!m_settings.progressiveSearchEnabled())
@@ -3619,10 +3616,6 @@ void MainWindow::updateRotationDuration() {
     } else
         text = " Rotation Duration: 0 min";
     m_labelRotationDuration.setText(text);
-}
-
-void MainWindow::cdgVisibilityChanged() {
-    ui->btnToggleCdgWindow->setChecked(cdgWindow->isVisible());
 }
 
 void MainWindow::rotationSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected) {

@@ -264,7 +264,6 @@ private slots:
     static void showAlert(const QString &title, const QString &message);
     void tableViewRotationCurrentChanged(const QModelIndex &cur, const QModelIndex &prev);
     void updateRotationDuration();
-    void cdgVisibilityChanged();
     void rotationSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
     void lineEditBmSearchChanged(const QString &arg1);
     void btnRotTopClicked();
