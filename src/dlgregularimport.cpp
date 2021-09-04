@@ -48,8 +48,13 @@ DlgRegularImport::~DlgRegularImport()
 
 void DlgRegularImport::on_pushButtonSelectFile_clicked()
 {
+#ifdef Q_OS_LINUX
     QString importFile = QFileDialog::getOpenFileName(this,tr("Select file to load regulars from"), QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), "OpenKJ export files (*.xml *json)",
                                                       nullptr, QFileDialog::DontUseNativeDialog);
+#else
+    QString importFile = QFileDialog::getOpenFileName(this,tr("Select file to load regulars from"), QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), "OpenKJ export files (*.xml *json)",
+                                                      nullptr);
+#endif
     if (importFile != "")
     {
         m_curImportFile = importFile;

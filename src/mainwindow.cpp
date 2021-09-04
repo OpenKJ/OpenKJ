@@ -2892,6 +2892,7 @@ void MainWindow::actionPlaylistNewTriggered() {
 }
 
 void MainWindow::actionPlaylistImportTriggered() {
+#ifdef Q_OS_LINUX
     QString importFile = QFileDialog::getOpenFileName(
             this,
             tr("Select playlist to import"),
@@ -2900,6 +2901,15 @@ void MainWindow::actionPlaylistImportTriggered() {
             nullptr,
             QFileDialog::DontUseNativeDialog
     );
+#else
+    QString importFile = QFileDialog::getOpenFileName(
+            this,
+            tr("Select playlist to import"),
+            QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation).at(0),
+            tr("m3u playlist(*.m3u)"),
+            nullptr
+    );
+#endif
     if (importFile != "") {
         QFileInfo fi(importFile);
         QString importPath = fi.absoluteDir().path();
@@ -2996,6 +3006,7 @@ void MainWindow::actionPlaylistExportTriggered() {
     QString defaultFilePath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QDir::separator() +
                               ui->comboBoxBmPlaylists->currentText() + ".m3u";
     m_logger->debug("{} Default save location: {}", m_loggingPrefix, defaultFilePath.toStdString());
+#ifdef Q_OS_LINUX
     QString saveFilePath = QFileDialog::getSaveFileName(
             this,
             tr("Select filename to save playlist as"),
@@ -3004,6 +3015,15 @@ void MainWindow::actionPlaylistExportTriggered() {
             nullptr,
             QFileDialog::DontUseNativeDialog
     );
+#else
+    QString saveFilePath = QFileDialog::getSaveFileName(
+            this,
+            tr("Select filename to save playlist as"),
+            defaultFilePath,
+            tr("m3u playlist(*.m3u)"),
+            nullptr
+    );
+#endif
     if (saveFilePath != "") {
         QFile file(saveFilePath);
         if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -3502,6 +3522,7 @@ void MainWindow::sfxButtonPressed() {
 }
 
 void MainWindow::addSfxButtonPressed() {
+#ifdef Q_OS_LINUX
     QString path = QFileDialog::getOpenFileName(
             this,
             "Select audio file",
@@ -3510,6 +3531,15 @@ void MainWindow::addSfxButtonPressed() {
             nullptr,
             QFileDialog::DontUseNativeDialog
     );
+#else
+    QString path = QFileDialog::getOpenFileName(
+            this,
+            "Select audio file",
+            QStandardPaths::standardLocations(QStandardPaths::MusicLocation).at(0),
+            "Audio (*.mp3 *.ogg *.wav *.wma)",
+            nullptr
+    );
+#endif
     if (path != "") {
         bool ok;
         QString name = QInputDialog::getText(this, tr("Button Text"), tr("Enter button text:"), QLineEdit::Normal,

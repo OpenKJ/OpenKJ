@@ -522,10 +522,16 @@ void DlgSettings::on_groupBoxRequestServer_toggled(bool arg1) {
 }
 
 void DlgSettings::on_pushButtonBrowse_clicked() {
+#ifdef Q_OS_LINUX
     QString imageFile = QFileDialog::getOpenFileName(this, QString("Select image file"),
                                                      QStandardPaths::writableLocation(QStandardPaths::PicturesLocation),
                                                      QString("Images (*.png *.jpg *.jpeg *.gif)"), nullptr,
                                                      QFileDialog::DontUseNativeDialog);
+#else
+    QString imageFile = QFileDialog::getOpenFileName(this, QString("Select image file"),
+                                                     QStandardPaths::writableLocation(QStandardPaths::PicturesLocation),
+                                                     QString("Images (*.png *.jpg *.jpeg *.gif)"), nullptr);
+#endif
     if (imageFile != "") {
         QImage image(imageFile);
         if (!image.isNull()) {
@@ -601,12 +607,21 @@ void DlgSettings::on_groupBoxRecording_toggled(bool arg1) {
 }
 
 void DlgSettings::on_buttonBrowse_clicked() {
+#ifdef Q_OS_LINUX
     QString dirName = QFileDialog::getExistingDirectory(
             this,
             "Select output directory",
             QStandardPaths::standardLocations(QStandardPaths::MusicLocation).at(0),
             QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog
     );
+#else
+    QString dirName = QFileDialog::getExistingDirectory(
+            this,
+            "Select output directory",
+            QStandardPaths::standardLocations(QStandardPaths::MusicLocation).at(0),
+            QFileDialog::ShowDirsOnly
+    );
+#endif
     if (dirName != "") {
         m_settings.setRecordingOutputDir(dirName);
         ui->lineEditOutputDir->setText(dirName);
@@ -623,12 +638,21 @@ void DlgSettings::on_pushButtonSlideshowBrowse_clicked() {
     QString initialPath = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
     if (m_settings.bgSlideShowDir() != "")
         initialPath = m_settings.bgSlideShowDir();
+#ifdef Q_OS_LINUX
     QString dirName = QFileDialog::getExistingDirectory(
             this,
             "Select the slideshow directory",
             initialPath,
             QFileDialog::DontUseNativeDialog | QFileDialog::ShowDirsOnly
     );
+#else
+    QString dirName = QFileDialog::getExistingDirectory(
+            this,
+            "Select the slideshow directory",
+            initialPath,
+            QFileDialog::ShowDirsOnly
+    );
+#endif
     if (dirName != "") {
         m_settings.setBgSlideShowDir(dirName);
         emit bgSlideShowDirChanged(dirName);
@@ -731,12 +755,21 @@ void DlgSettings::on_cbxTheme_currentIndexChanged(int index) {
 }
 
 void DlgSettings::on_btnBrowse_clicked() {
+#ifdef Q_OS_LINUX
     QString fileName = QFileDialog::getExistingDirectory(
             this,
             "Select directory to put store downloads in",
             m_settings.storeDownloadDir(),
             QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog
     );
+#else
+    QString fileName = QFileDialog::getExistingDirectory(
+            this,
+            "Select directory to put store downloads in",
+            m_settings.storeDownloadDir(),
+            QFileDialog::ShowDirsOnly
+    );
+#endif
     if (fileName != "") {
         QFileInfo fi(fileName);
         if (!fi.isWritable() || !fi.isReadable()) {
@@ -880,12 +913,21 @@ void DlgSettings::on_btnDurationBgColor_clicked() {
 }
 
 void DlgSettings::on_btnLogDirBrowse_clicked() {
+#ifdef Q_OS_LINUX
     QString fileName = QFileDialog::getExistingDirectory(
             this,
             "Select directory to put logs in",
             m_settings.logDir(),
             QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog
     );
+#else
+    QString fileName = QFileDialog::getExistingDirectory(
+            this,
+            "Select directory to put logs in",
+            m_settings.logDir(),
+            QFileDialog::ShowDirsOnly
+    );
+#endif
     if (fileName != "") {
         QFileInfo fi(fileName);
         if (!fi.isWritable() || !fi.isReadable()) {

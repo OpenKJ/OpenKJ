@@ -357,10 +357,17 @@ void DlgBookCreator::writePdf(const QString &filename, int nCols) {
 
 void DlgBookCreator::btnGenerateClicked() {
     QString defFn = "Songbook.pdf";
+#ifdef Q_OS_LINUX
     QString defaultFilePath =
             QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QDir::separator() + defFn;
     QString saveFilePath = QFileDialog::getSaveFileName(this, "Select songbook filename", defaultFilePath,
                                                         "PDF Files (*.pdf)", nullptr, QFileDialog::DontUseNativeDialog);
+#else
+    QString defaultFilePath =
+            QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QDir::separator() + defFn;
+    QString saveFilePath = QFileDialog::getSaveFileName(this, "Select songbook filename", defaultFilePath,
+                                                        "PDF Files (*.pdf)", nullptr);
+#endif
     if (saveFilePath != "") {
         QApplication::processEvents();
         writePdf(saveFilePath, ui->cbxColumns->currentData().toInt());
