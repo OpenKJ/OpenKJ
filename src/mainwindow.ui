@@ -30,6 +30,18 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QHBoxLayout" name="horizontalLayout_19">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="tabPosition">
@@ -46,6 +58,18 @@
         <string>Karaoke</string>
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout_23">
+        <property name="leftMargin">
+         <number>4</number>
+        </property>
+        <property name="topMargin">
+         <number>4</number>
+        </property>
+        <property name="rightMargin">
+         <number>4</number>
+        </property>
+        <property name="bottomMargin">
+         <number>4</number>
+        </property>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_20">
           <item>
@@ -67,6 +91,21 @@
                  <string>Rotation</string>
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_14">
+                 <property name="spacing">
+                  <number>3</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>3</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>3</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>3</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>3</number>
+                 </property>
                  <item>
                   <widget class="QTableView" name="tableViewRotation">
                    <property name="contextMenuPolicy">
@@ -98,6 +137,9 @@
                    </property>
                    <attribute name="horizontalHeaderCascadingSectionResizes">
                     <bool>true</bool>
+                   </attribute>
+                   <attribute name="horizontalHeaderMinimumSectionSize">
+                    <number>1</number>
                    </attribute>
                    <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
                     <bool>false</bool>
@@ -131,32 +173,6 @@
                     <property name="bottomMargin">
                      <number>0</number>
                     </property>
-                    <item>
-                     <widget class="QPushButton" name="buttonClearRotation">
-                      <property name="focusPolicy">
-                       <enum>Qt::NoFocus</enum>
-                      </property>
-                      <property name="toolTip">
-                       <string>Clear rotation</string>
-                      </property>
-                      <property name="text">
-                       <string/>
-                      </property>
-                      <property name="icon">
-                       <iconset theme="edit-clear-all">
-                        <normaloff>.</normaloff>.</iconset>
-                      </property>
-                      <property name="iconSize">
-                       <size>
-                        <width>32</width>
-                        <height>32</height>
-                       </size>
-                      </property>
-                      <property name="flat">
-                       <bool>false</bool>
-                      </property>
-                     </widget>
-                    </item>
                     <item>
                      <spacer name="horizontalSpacer_9">
                       <property name="orientation">
@@ -356,6 +372,32 @@
                     <number>0</number>
                    </property>
                    <item>
+                    <widget class="QPushButton" name="buttonClearRotation">
+                     <property name="focusPolicy">
+                      <enum>Qt::NoFocus</enum>
+                     </property>
+                     <property name="toolTip">
+                      <string>Clear rotation</string>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="icon">
+                      <iconset theme="edit-clear-all">
+                       <normaloff>.</normaloff>.</iconset>
+                     </property>
+                     <property name="iconSize">
+                      <size>
+                       <width>32</width>
+                       <height>32</height>
+                      </size>
+                     </property>
+                     <property name="flat">
+                      <bool>false</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
                     <spacer name="horizontalSpacer_18">
                      <property name="orientation">
                       <enum>Qt::Horizontal</enum>
@@ -414,19 +456,6 @@
                      </property>
                     </widget>
                    </item>
-                   <item>
-                    <spacer name="horizontalSpacer_19">
-                     <property name="orientation">
-                      <enum>Qt::Horizontal</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>40</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
                   </layout>
                  </item>
                 </layout>
@@ -455,6 +484,9 @@
                <enum>QFrame::Plain</enum>
               </property>
               <layout class="QHBoxLayout" name="horizontalLayout_8">
+               <property name="spacing">
+                <number>3</number>
+               </property>
                <property name="leftMargin">
                 <number>0</number>
                </property>
@@ -481,6 +513,15 @@
                  <layout class="QVBoxLayout" name="verticalLayout_12">
                   <property name="spacing">
                    <number>4</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>3</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>3</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>3</number>
                   </property>
                   <property name="bottomMargin">
                    <number>4</number>
@@ -645,13 +686,13 @@ QPushButton:default {
                    <number>0</number>
                   </property>
                   <property name="leftMargin">
-                   <number>0</number>
+                   <number>3</number>
                   </property>
                   <property name="topMargin">
-                   <number>0</number>
+                   <number>3</number>
                   </property>
                   <property name="rightMargin">
-                   <number>0</number>
+                   <number>3</number>
                   </property>
                   <property name="bottomMargin">
                    <number>0</number>
@@ -684,7 +725,16 @@ QPushButton:default {
                       </attribute>
                       <layout class="QVBoxLayout" name="verticalLayout_20">
                        <property name="spacing">
-                        <number>2</number>
+                        <number>4</number>
+                       </property>
+                       <property name="leftMargin">
+                        <number>0</number>
+                       </property>
+                       <property name="topMargin">
+                        <number>0</number>
+                       </property>
+                       <property name="rightMargin">
+                        <number>0</number>
                        </property>
                        <property name="bottomMargin">
                         <number>4</number>
@@ -963,6 +1013,21 @@ QPushButton:default {
                        <string>History</string>
                       </attribute>
                       <layout class="QVBoxLayout" name="verticalLayout_21">
+                       <property name="spacing">
+                        <number>4</number>
+                       </property>
+                       <property name="leftMargin">
+                        <number>0</number>
+                       </property>
+                       <property name="topMargin">
+                        <number>0</number>
+                       </property>
+                       <property name="rightMargin">
+                        <number>0</number>
+                       </property>
+                       <property name="bottomMargin">
+                        <number>4</number>
+                       </property>
                        <item>
                         <widget class="QTableView" name="tableViewHistory">
                          <property name="contextMenuPolicy">
@@ -1135,16 +1200,16 @@ QPushButton:default {
                  <number>3</number>
                 </property>
                 <property name="leftMargin">
-                 <number>4</number>
+                 <number>3</number>
                 </property>
                 <property name="topMargin">
-                 <number>4</number>
+                 <number>3</number>
                 </property>
                 <property name="rightMargin">
-                 <number>4</number>
+                 <number>0</number>
                 </property>
                 <property name="bottomMargin">
-                 <number>4</number>
+                 <number>3</number>
                 </property>
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_24">
@@ -2072,7 +2137,7 @@ QPushButton:default {
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>245</width>
+                     <width>299</width>
                      <height>16</height>
                     </rect>
                    </property>
@@ -2219,6 +2284,18 @@ QPushButton:default {
         <string>Break Music</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_9">
+        <property name="leftMargin">
+         <number>4</number>
+        </property>
+        <property name="topMargin">
+         <number>4</number>
+        </property>
+        <property name="rightMargin">
+         <number>4</number>
+        </property>
+        <property name="bottomMargin">
+         <number>4</number>
+        </property>
         <item>
          <widget class="QSplitter" name="splitterBm">
           <property name="orientation">

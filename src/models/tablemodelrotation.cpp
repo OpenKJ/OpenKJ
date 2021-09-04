@@ -45,8 +45,7 @@ QVariant TableModelRotation::headerData(int section, Qt::Orientation orientation
             case COL_REGULAR:
             case COL_DELETE:
             case COL_ID: {
-                int fHeight = QFontMetrics(m_settings.applicationFont()).height();
-                return QSize(fHeight * 2,fHeight);
+                return QFontMetrics(m_settings.applicationFont()).size(Qt::TextSingleLine, "_00");
             }
             default:
                 return {};
@@ -129,8 +128,7 @@ QVariant TableModelRotation::getColumnSizeHint(const QModelIndex &index) const {
         case COL_REGULAR:
         case COL_DELETE:
         case COL_ID: {
-            auto fHeight = QFontMetrics(m_settings.applicationFont()).height();
-            return QSize(fHeight, fHeight);
+            return QFontMetrics(m_settings.applicationFont()).size(Qt::TextSingleLine, "_00");
         }
         default:
             return {};
