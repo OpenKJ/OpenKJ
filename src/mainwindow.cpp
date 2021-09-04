@@ -3715,6 +3715,7 @@ void MainWindow::btnQTopClicked() {
     });
     auto topLeft = ui->tableViewQueue->model()->index(0, 0);
     auto bottomRight = ui->tableViewQueue->model()->index((int) songIds.size() - 1, m_qModel.columnCount() - 1);
+    ui->tableViewQueue->clearSelection();
     ui->tableViewQueue->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
     rotationDataChanged();
 }
@@ -3752,6 +3753,7 @@ void MainWindow::btnQBottomClicked() {
     });
     auto topLeft = ui->tableViewQueue->model()->index((int) (m_qModel.rowCount() - songIds.size()), 0);
     auto bottomRight = ui->tableViewQueue->model()->index(m_qModel.rowCount() - 1, m_qModel.columnCount() - 1);
+    ui->tableViewQueue->clearSelection();
     ui->tableViewQueue->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
     rotationDataChanged();
 }
