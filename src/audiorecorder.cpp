@@ -187,14 +187,6 @@ AudioRecorder::~AudioRecorder() {
     logger->debug("{} AudioRecorder destructor called", m_loggingPrefix);
     gst_element_set_state(m_pipeline, GST_STATE_NULL);
     g_object_unref(m_pipeline);
-    int i{0};
-    for (auto device : m_inputDevices) {
-        while (G_IS_OBJECT(device)) {
-            logger->trace("{} Unreffing audio input device {}", m_loggingPrefix, i);
-            gst_object_unref(device);
-        }
-        i++;
-    }
 }
 
 QStringList AudioRecorder::getDeviceList() {
