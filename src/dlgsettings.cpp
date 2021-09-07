@@ -51,6 +51,7 @@ DlgSettings::DlgSettings(MediaBackend &AudioBackend, MediaBackend &BmAudioBacken
     ui->setupUi(this);
     m_settings.restoreWindowState(this);
     ui->checkBoxHardwareAccel->setChecked(m_settings.hardwareAccelEnabled());
+    setFont(m_settings.applicationFont());
 #ifdef Q_OS_MACOS
     ui->checkBoxHardwareAccel->setHidden(true);
 #endif

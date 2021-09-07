@@ -22,6 +22,8 @@ int TableModelHistorySongs::columnCount([[maybe_unused]]const QModelIndex &paren
 
 QVariant TableModelHistorySongs::data(const QModelIndex &index, int role) const {
     switch (role) {
+        case Qt::FontRole:
+            return m_settings.applicationFont();
         case Qt::ForegroundRole:
             if (m_karaokeSongsModel.getIdForPath(m_songs.at(index.row()).filePath) == -1)
                 return QColor(Qt::gray);
@@ -277,6 +279,11 @@ void TableModelHistorySongs::refresh() {
 
 
 QVariant TableModelHistorySongs::headerData(int section, Qt::Orientation orientation, int role) const {
+    if (role == Qt::FontRole) {
+        auto font = m_settings.applicationFont();
+        font.setBold(true);
+        return font;
+    }
     if (role == Qt::SizeHintRole && orientation == Qt::Horizontal)
         return getSizeHint(section);
     if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {

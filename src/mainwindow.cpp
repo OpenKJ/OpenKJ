@@ -842,6 +842,11 @@ void MainWindow::loadSettings() {
             }
         });
     }
+    // Without this, QAction items aren't getting set properly on program startup.  Not sure why, but it must be
+    // something to do with it needing to be set after the window is finished building.
+    QTimer::singleShot(250, [&] () {
+        appFontChanged(m_settings.applicationFont());
+    });
 }
 
 void MainWindow::setupConnections() {
@@ -3284,6 +3289,8 @@ void MainWindow::filesDroppedOnQueue(const QList<QUrl> &urls, const int &singerI
 }
 
 void MainWindow::appFontChanged(const QFont &font) {
+    QApplication::setFont(font);
+    ui->actionAbout->setFont(font);
     auto smallerFont = font;
     smallerFont.setPointSize(font.pointSize() - 2);
     auto smallerFontBold = smallerFont;
@@ -3301,7 +3308,6 @@ void MainWindow::appFontChanged(const QFont &font) {
     ui->labelSingerHeader->setFont(smallerFontBold);
     ui->labelSinger->setFont(smallerFont);
 
-    QApplication::setFont(font, "QWidget");
     setFont(font);
     QFontMetrics fm(m_settings.applicationFont());
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))

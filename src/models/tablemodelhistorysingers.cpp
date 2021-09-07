@@ -16,6 +16,11 @@ TableModelHistorySingers::TableModelHistorySingers(QObject *parent)
 
 QVariant TableModelHistorySingers::headerData(int section, Qt::Orientation orientation, int role) const
 {
+    if (role == Qt::FontRole) {
+        auto font = m_settings.applicationFont();
+        font.setBold(true);
+        return font;
+    }
     if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
     {
         switch (section) {
@@ -46,6 +51,9 @@ QVariant TableModelHistorySingers::data(const QModelIndex &index, int role) cons
 {
     if (!index.isValid())
         return {};
+    if (role == Qt::FontRole) {
+        return m_settings.applicationFont();
+    }
     if (role == Qt::TextAlignmentRole)
     {
         switch (index.column()) {

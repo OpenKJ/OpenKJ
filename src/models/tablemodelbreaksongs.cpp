@@ -39,6 +39,11 @@ TableModelBreakSongs::TableModelBreakSongs(QObject *parent)
 
 QVariant TableModelBreakSongs::headerData(int section, Qt::Orientation orientation, int role) const
 {
+    if (role == Qt::FontRole) {
+        auto font = m_settings.applicationFont();
+        font.setBold(true);
+        return font;
+    }
     if (role == Qt::DisplayRole && orientation == Qt::Horizontal)
     {
         switch (section) {
@@ -71,6 +76,8 @@ QVariant TableModelBreakSongs::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid())
         return QVariant();
+    if (role == Qt::FontRole)
+        return m_settings.applicationFont();
     if (role == Qt::DisplayRole)
     {
         switch (index.column()) {

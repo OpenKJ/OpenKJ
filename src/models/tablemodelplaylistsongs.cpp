@@ -20,6 +20,11 @@ TableModelPlaylistSongs::TableModelPlaylistSongs(TableModelBreakSongs &breakSong
 
 QVariant TableModelPlaylistSongs::headerData(int section, Qt::Orientation orientation, int role) const
 {
+    if (role == Qt::FontRole) {
+        auto font = m_settings.applicationFont();
+        font.setBold(true);
+        return font;
+    }
     if (role == Qt::DisplayRole && orientation == Qt::Horizontal)
     {
         switch (section) {
@@ -54,6 +59,8 @@ QVariant TableModelPlaylistSongs::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid())
         return {};
+    if (role == Qt::FontRole)
+        return m_settings.applicationFont();
     if (role == Qt::UserRole)
         return m_songs.at(index.row()).id;
     if (role == Qt::ForegroundRole)

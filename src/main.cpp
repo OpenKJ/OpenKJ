@@ -202,6 +202,7 @@ int main(int argc, char *argv[]) {
 //    }
     QApplication::setFont(settings.applicationFont(), "QWidget");
     QApplication::setFont(settings.applicationFont(), "QMenu");
+    QApplication::setFont(settings.applicationFont(), "QAction");
 
     // RunGuard seems to be broken by flatpak, ignore it if running in a flatpak sandbox
     logger->info("App dir path {}", QCoreApplication::applicationDirPath().toStdString());

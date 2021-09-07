@@ -7,6 +7,7 @@
 #include <spdlog/async_logger.h>
 #include "spdlog/spdlog.h"
 #include "spdlog/fmt/ostr.h"
+#include "settings.h"
 
 struct BreakSong {
     int id{0};
@@ -48,6 +49,7 @@ private:
     QString m_lastSearch;
     Qt::SortOrder m_lastSortOrder{Qt::AscendingOrder};
     int m_lastSortColumn{1};
+    Settings m_settings;
 
 };
 

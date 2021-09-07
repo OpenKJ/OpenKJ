@@ -18,6 +18,11 @@ TableModelQueueSongs::TableModelQueueSongs(TableModelKaraokeSongs &karaokeSongsM
 }
 
 QVariant TableModelQueueSongs::headerData(int section, Qt::Orientation orientation, int role) const {
+    if (role == Qt::FontRole) {
+        auto font = m_settings.applicationFont();
+        font.setBold(true);
+        return font;
+    }
     if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
         switch (section) {
             case COL_ID:
@@ -50,7 +55,6 @@ int TableModelQueueSongs::columnCount([[maybe_unused]]const QModelIndex &parent)
 }
 
 QVariant TableModelQueueSongs::data(const QModelIndex &index, int role) const {
-
     if (role == Qt::FontRole) {
         if (m_songs.at(index.row()).played) {
             auto font = m_settings.applicationFont();

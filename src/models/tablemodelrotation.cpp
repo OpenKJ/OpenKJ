@@ -40,6 +40,11 @@ TableModelRotation::TableModelRotation(QObject *parent)
 }
 
 QVariant TableModelRotation::headerData(int section, Qt::Orientation orientation, int role) const {
+    if (role == Qt::FontRole) {
+        auto font = m_settings.applicationFont();
+        font.setBold(true);
+        return font;
+    }
     if (role == Qt::SizeHintRole && orientation == Qt::Horizontal) {
         switch (section) {
             case COL_REGULAR:
@@ -76,6 +81,8 @@ QVariant TableModelRotation::data(const QModelIndex &index, int role) const {
     if (!index.isValid())
         return {};
     switch (role) {
+        case Qt::FontRole:
+            return m_settings.applicationFont();
         case Qt::ToolTipRole:
             return getTooltipData(index);
         case Qt::UserRole:
