@@ -34,16 +34,23 @@
     <release version="2.0.8" date="2021-09-14">
         <description>
             <ul>
-            <li>Fix intermittent crash to desktop on preview</li>
-            <li>Fix some fonts not being applied properly without program restart</li>
-            <li>Fix some fonts not being re-applied properly on program startup</li>
-            <li>Tweak UI layout to remove excessive dead-space/padding</li>
-            <li>Add missing tooltips to main window buttons</li>
-            <li>Eliminate UI hang when doing rotation/queue modifications with ticker enabled</li>
-            <li>Generally improve ticker performance</li>
-            <li>Fix incorrect queue song sometimes being marked as played when starting a karaoke song while another was currently playing</li>
-            <li>Fix gstreamer message callbacks being assigned multiple times</li>
-            <li>Massively speed up db updates for libraries with loose audio and cdg files in very large directories</li>
+                <li>Fix intermittent crash to desktop on preview</li>
+                <li>Fix some fonts not being applied properly without program restart</li>
+                <li>Fix some fonts not being re-applied properly on program startup</li>
+                <li>Tweak UI layout to remove excessive dead-space/padding</li>
+                <li>Add missing tooltips to main window buttons</li>
+                <li>Eliminate UI hang when doing rotation/queue modifications with ticker enabled</li>
+                <li>Generally improve ticker performance</li>
+                <li>Fix incorrect queue song sometimes being marked as played when starting a karaoke song while another
+                    was currently playing
+                </li>
+                <li>Fix gstreamer message callbacks being assigned multiple times</li>
+                <li>Massively speed up db updates for libraries with loose audio and cdg files in very large
+                    directories
+                </li>
+                <li>Improved debug logging</li>
+                <li>Refactored large amounts of code to improve efficiency and reduce resource utilization</li>
+                <li>Many small bugfixes</li>
             </ul>
         </description>
     </release>
