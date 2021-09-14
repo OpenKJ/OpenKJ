@@ -56,7 +56,7 @@
     </release>
 	<release version="2.0.7" date="2021-07-24">
 		<description>
-			<h3>Initial flatpak release</h3>
+			<p>Initial flatpak release</p>
 		</description>
 	</release>
 </releases>
