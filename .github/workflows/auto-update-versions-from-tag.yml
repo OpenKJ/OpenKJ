@@ -68,10 +68,6 @@ jobs:
           echo >> src/okjversion.h
           echo "#endif //OKJVERSION_H" >> src/okjversion.h
 
-      - name: Update appstream xml with git tag version
-        run: |
-          sed -i "s/<release version=.*/<release version=\"${{ steps.get_version.outputs.major }}.${{ steps.get_version.outputs.minor }}.${{ steps.get_version.outputs.patch }}\" date=\"${{ env.blddate }}\">/" src/org.openkj.OpenKJ.metainfo.xml
-
       - name: Commit changes to repo
         uses: test-room-7/action-update-file@v1
         with:
@@ -79,7 +75,6 @@ jobs:
             src/okjversion.h
             cd/openkj32.iss
             cd/openkj64.iss
-            src/org.openkj.OpenKJ.metainfo.xml
           commit-msg: Auto commit - update version from git tag
           github-token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ env.branch }}
