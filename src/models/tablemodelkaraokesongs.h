@@ -10,25 +10,9 @@
 #include "settings.h"
 #include <spdlog/spdlog.h>
 #include <spdlog/async_logger.h>
+#include "okjtypes.h"
 
 
-struct KaraokeSong {
-    int id{0};
-    QString artist;
-    QString artistL;
-    QString title;
-    QString titleL;
-    QString songid;
-    QString songidL;
-    int duration{0};
-    QString filename;
-    QString path;
-    QString searchString;
-    int plays;
-    QDateTime lastPlay;
-    bool bad{false};
-    bool dropped{false};
-};
 
 class TableModelKaraokeSongs : public QAbstractTableModel {
 Q_OBJECT
@@ -69,18 +53,18 @@ public:
     int getIdForPath(const QString &path);
     QString getPath(int songId);
     void updateSongHistory(int songId);
-    KaraokeSong &getSong(int songId);
+    okj::KaraokeSong &getSong(int songId);
     void markSongBad(QString path);
     DeleteStatus removeBadSong(QString path);
     QString findCdgAudioFile(const QString& path);
-    int addSong(KaraokeSong song);
+    int addSong(okj::KaraokeSong song);
 
 
 private:
     std::string m_loggingPrefix{"[KaraokeSongsModel]"};
     std::shared_ptr<spdlog::logger> m_logger;
-    std::vector<std::shared_ptr<KaraokeSong>> m_filteredSongs;
-    std::vector< std::shared_ptr<KaraokeSong> > m_allSongs;
+    std::vector<std::shared_ptr<okj::KaraokeSong>> m_filteredSongs;
+    std::vector< std::shared_ptr<okj::KaraokeSong> > m_allSongs;
     QString m_lastSearch;
     int m_curFontHeight{0};
     QImage m_iconCdg;
@@ -97,13 +81,13 @@ private:
 
     void searchExec();
     static QVariant getColumnName(int section) ;
-    QVariant getColumnSizeHint(int section) const;
+    [[nodiscard]] QVariant getColumnSizeHint(int section) const;
+    [[nodiscard]] QVariant getItemDisplayData(const QModelIndex &index) const;
 
 public slots:
     void setSongDuration(const QString &path, unsigned int duration);
     void resizeIconsForFont(const QFont &font);
 
-    QVariant getItemDisplayData(const QModelIndex &index) const;
 };
 
 #endif // TABLEMODELKARAOKESONGS_H

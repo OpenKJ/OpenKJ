@@ -29,6 +29,24 @@
 
 namespace okj {
 
+    struct KaraokeSong {
+        int id{0};
+        QString artist;
+        QString artistL;
+        QString title;
+        QString titleL;
+        QString songid;
+        QString songidL;
+        int duration{0};
+        QString filename;
+        QString path;
+        QString searchString;
+        int plays;
+        QDateTime lastPlay;
+        bool bad{false};
+        bool dropped{false};
+    };
+
     struct HistorySinger {
         int historySingerId{-1};
         QString name;

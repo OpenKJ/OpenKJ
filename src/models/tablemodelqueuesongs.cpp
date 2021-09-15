@@ -208,7 +208,7 @@ void TableModelQueueSongs::moveSongId(const int songId, const int newPosition) {
 }
 
 int TableModelQueueSongs::add(const int songId) {
-    KaraokeSong ksong = m_karaokeSongsModel.getSong(songId);
+    okj::KaraokeSong ksong = m_karaokeSongsModel.getSong(songId);
     QSqlQuery query;
     query.prepare("INSERT INTO queuesongs (singer,song,artist,title,discid,path,keychg,played,position) "
                   "VALUES (:singerId,:songId,:songId,:songId,:songId,:songId,:key,:played,:position)");
@@ -330,7 +330,7 @@ void TableModelQueueSongs::songAddSlot(int songId, int singerId, int keyChg) {
         setKey(queueSongId, keyChg);
     } else {
         int newPos{0};
-        KaraokeSong ksong = m_karaokeSongsModel.getSong(songId);
+        okj::KaraokeSong ksong = m_karaokeSongsModel.getSong(songId);
         QSqlQuery query;
         query.prepare("SELECT COUNT(qsongid) FROM queuesongs WHERE singer = :singerId");
         query.bindValue(":singerId", singerId);

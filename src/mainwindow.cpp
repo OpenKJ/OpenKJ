@@ -3266,7 +3266,7 @@ void MainWindow::filesDroppedOnQueue(const QList<QUrl> &urls, const int &singerI
                                position, file.toStdString());
                 QFileInfo dFileInfo(file);
 
-                KaraokeSong droppedSong{
+                okj::KaraokeSong droppedSong{
                         -1,
                         "--Dropped Song--",
                         "--dropped song--",
