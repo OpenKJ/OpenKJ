@@ -555,8 +555,11 @@
                     <property name="sortingEnabled">
                      <bool>true</bool>
                     </property>
-                    <attribute name="horizontalHeaderCascadingSectionResizes">
-                     <bool>true</bool>
+                    <attribute name="horizontalHeaderMinimumSectionSize">
+                     <number>10</number>
+                    </attribute>
+                    <attribute name="horizontalHeaderDefaultSectionSize">
+                     <number>10</number>
                     </attribute>
                     <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
                      <bool>true</bool>

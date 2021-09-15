@@ -1,6 +1,7 @@
 #ifndef TABLEMODELKARAOKESONGS_H
 #define TABLEMODELKARAOKESONGS_H
 
+#include <QApplication>
 #include <QAbstractTableModel>
 #include <QDateTime>
 #include <QImage>
@@ -87,14 +88,22 @@ private:
     QImage m_iconVid;
     SearchType m_searchType{SearchType::SEARCH_TYPE_ALL};
     Settings m_settings;
-
-    void resizeIconsForFont(const QFont &font);
-    void searchExec();
+    QFont m_itemFont;
+    QFont m_headerFont;
+    QFontMetrics m_itemFontMetrics{QApplication::fontMetrics()};
+    QFontMetrics m_headerFontMetrics{QApplication::fontMetrics()};
     QTimer searchTimer{this};
+    int m_itemHeight{20};
+
+    void searchExec();
+    static QVariant getColumnName(int section) ;
+    QVariant getColumnSizeHint(int section) const;
 
 public slots:
-
     void setSongDuration(const QString &path, unsigned int duration);
+    void resizeIconsForFont(const QFont &font);
+
+    QVariant getItemDisplayData(const QModelIndex &index) const;
 };
 
 #endif // TABLEMODELKARAOKESONGS_H

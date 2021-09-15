@@ -569,7 +569,7 @@ void MainWindow::treatAllSingersAsRegsChanged(bool enabled) {
         if (!m_rotModel.getSinger(curSelSingerId).regular && ui->tabWidgetQueue->count() == 2)
             ui->tabWidgetQueue->removeTab(1);
     }
-    resizeRotation();
+    autosizeRotationCols();
 }
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -643,7 +643,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewQueue->setItemDelegate(&m_qDelegate);
     ui->tableViewQueue->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewQueue));
     ui->labelNoSinger->setVisible(true);
-    autosizeQueue();
+    autosizeQueueCols();
     ui->tabWidgetQueue->setVisible(false);
     m_mediaTempDir = std::make_unique<QTemporaryDir>();
     dbDialog = std::make_unique<DlgDatabase>(m_karaokeSongsModel, this);
@@ -846,6 +846,7 @@ void MainWindow::loadSettings() {
     // something to do with it needing to be set after the window is finished building.
     QTimer::singleShot(250, [&] () {
         appFontChanged(m_settings.applicationFont());
+        m_settings.restoreColumnWidths(ui->tableViewDB);
     });
 }
 
@@ -1421,9 +1422,9 @@ void MainWindow::search() {
 void MainWindow::databaseUpdated() {
     m_karaokeSongsModel.loadData();
     search();
+    autosizeViews();
     m_settings.restoreColumnWidths(ui->tableViewDB);
     requestsDialog->databaseUpdateComplete();
-    autosizeViews();
     m_lazyDurationUpdater->stopWork();
     m_lazyDurationUpdater->deleteLater();
     m_lazyDurationUpdater = std::make_unique<LazyDurationUpdateController>(this);
@@ -1738,7 +1739,7 @@ void MainWindow::actionSettingsTriggered() {
     });
     connect(settingsDialog, &DlgSettings::requestServerEnableChanged, ui->pushButtonIncomingRequests,
             &QPushButton::setVisible);
-    connect(settingsDialog, &DlgSettings::rotationShowNextSongChanged, [&]() { resizeRotation(); });
+    connect(settingsDialog, &DlgSettings::rotationShowNextSongChanged, [&]() { autosizeRotationCols(); });
     connect(settingsDialog, &DlgSettings::rotationDurationSettingsModified, this, &MainWindow::updateRotationDuration);
     connect(settingsDialog, &DlgSettings::requestServerIntervalChanged, &m_songbookApi, &OKJSongbookAPI::setInterval);
     connect(settingsDialog, &DlgSettings::shortcutsChanged, this, &MainWindow::shortcutsUpdated);
@@ -1757,6 +1758,7 @@ void MainWindow::actionSettingsTriggered() {
     connect(settingsDialog, &DlgSettings::applicationFontChanged, &m_itemDelegatePlSongs, &ItemDelegatePlaylistSongs::resizeIconsForFont);
     connect(settingsDialog, &DlgSettings::applicationFontChanged, &m_qDelegate, &ItemDelegateQueueSongs::resizeIconsForFont);
     connect(settingsDialog, &DlgSettings::applicationFontChanged, &m_rotDelegate, &ItemDelegateRotation::resizeIconsForFont);
+    connect(settingsDialog, &DlgSettings::applicationFontChanged, &m_karaokeSongsModel, &TableModelKaraokeSongs::resizeIconsForFont);
     connect(settingsDialog, &DlgSettings::applicationFontChanged, this, &MainWindow::appFontChanged);
     connect(settingsDialog, &DlgSettings::alertBgColorChanged, cdgWindow.get(), &DlgCdg::alertBgColorChanged);
     connect(settingsDialog, &DlgSettings::alertTxtColorChanged, cdgWindow.get(), &DlgCdg::alertTxtColorChanged);
@@ -2043,7 +2045,7 @@ void MainWindow::rotationDataChanged() {
     m_logger->trace("{} [{}] Called", m_loggingPrefix, __func__);
     auto st = std::chrono::high_resolution_clock::now();
     if (m_settings.rotationShowNextSong())
-        resizeRotation();
+        autosizeRotationCols();
     updateRotationDuration();
     QString sep = "•";
     requestsDialog->rotationChanged();
@@ -3330,7 +3332,7 @@ void MainWindow::appFontChanged(const QFont &font) {
     autosizeViews();
 }
 
-void MainWindow::resizeRotation() {
+void MainWindow::autosizeRotationCols() {
     if (m_settings.rotationShowNextSong()) {
         ui->tableViewRotation->showColumn(TableModelRotation::COL_NEXT_SONG);
         ui->tableViewRotation->horizontalHeader()->setSectionResizeMode(TableModelRotation::COL_NAME,
@@ -3345,29 +3347,29 @@ void MainWindow::resizeRotation() {
 }
 
 void MainWindow::autosizeViews() {
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
-    int durationColSize = QFontMetrics(m_settings.applicationFont()).horizontalAdvance(" Duration ");
-    int songidColSize = QFontMetrics(m_settings.applicationFont()).horizontalAdvance(" AA0000000-0000 ");
-    int lastPlayColSize = QFontMetrics(m_settings.applicationFont()).horizontalAdvance("_00/00/00 00:00 MM_");
-#else
-    int durationColSize = QFontMetrics(m_settings.applicationFont()).width(" Duration ");
-    int songidColSize = QFontMetrics(m_settings.applicationFont()).width(" AA0000000-0000 ");
-    int lastPlayColSize = QFontMetrics(m_settings.applicationFont()).width("_00/00/00 00:00 MM_");
-#endif
-    int remainingSpace = ui->tableViewDB->width() - durationColSize - songidColSize;
-    int artistColSize = (remainingSpace / 2) - 120;
-    int titleColSize = (remainingSpace / 2) + 100;
-    ui->tableViewDB->horizontalHeader()->resizeSection(TableModelKaraokeSongs::COL_ARTIST, artistColSize);
-    ui->tableViewDB->horizontalHeader()->resizeSection(TableModelKaraokeSongs::COL_TITLE, titleColSize);
-    ui->tableViewDB->horizontalHeader()->resizeSection(TableModelKaraokeSongs::COL_DURATION, durationColSize);
-    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_DURATION, QHeaderView::Fixed);
-    ui->tableViewDB->horizontalHeader()->resizeSection(TableModelKaraokeSongs::COL_SONGID, songidColSize);
-    ui->tableViewDB->horizontalHeader()->resizeSection(TableModelKaraokeSongs::COL_LASTPLAY, lastPlayColSize);
-    resizeRotation();
-    autosizeQueue();
+    autosizeKaraokeDbCols();
+    autosizeRotationCols();
+    autosizeQueueCols();
 }
 
-void MainWindow::autosizeQueue() {
+void MainWindow::autosizeKaraokeDbCols() const {
+    // Toggling the mode on these to get the initial size then allowing manual resize
+    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_LASTPLAY, QHeaderView::ResizeToContents);
+    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_PLAYS, QHeaderView::ResizeToContents);
+    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_DURATION, QHeaderView::ResizeToContents);
+    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_ARTIST, QHeaderView::Stretch);
+    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_TITLE, QHeaderView::Stretch);
+    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_SONGID, QHeaderView::ResizeToContents);
+    QApplication::processEvents();
+    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_ARTIST, QHeaderView::Interactive);
+    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_TITLE, QHeaderView::Interactive);
+    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_SONGID, QHeaderView::Interactive);
+    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_LASTPLAY, QHeaderView::Interactive);
+    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_PLAYS, QHeaderView::Interactive);
+    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_DURATION, QHeaderView::Interactive);
+}
+
+void MainWindow::autosizeQueueCols() {
     if (ui->tabWidgetQueue->currentIndex() == 1)
         return;
     int fH = QFontMetrics(m_settings.applicationFont()).height();
@@ -3596,7 +3598,7 @@ void MainWindow::tableViewRotationCurrentChanged(const QModelIndex &cur, const Q
         ui->tabWidgetQueue->setVisible(true);
         ui->labelNoSinger->setVisible(false);
         QApplication::processEvents();
-        autosizeQueue();
+        autosizeQueueCols();
     }
 }
 

@@ -216,7 +216,7 @@ private slots:
     void karaokeAATimerTimeout();
     void timerButtonFlashTimeout();
     void autosizeViews();
-    void autosizeQueue();
+    void autosizeQueueCols();
     void autosizeBmViews();
     void bmDbUpdated();
     void bmDbCleared();
@@ -247,7 +247,7 @@ private slots:
     void setMultiUnplayed();
     void spinBoxTempoValueChanged(const int &arg1);
     static void audioError(const QString &msg);
-    void resizeRotation();
+    void autosizeRotationCols();
     static void songDropNoSingerSel();
     void newVersionAvailable(const QString &version);
     void filesDroppedOnQueue(const QList<QUrl> &urls, const int &singerId, const int &position);
@@ -313,6 +313,8 @@ protected:
     void tableViewQueueSelChanged();
     void tableViewPlaylistSelectionChanged();
     void tableViewRotationSelChanged();
+
+    void autosizeKaraokeDbCols() const;
 };
 
 

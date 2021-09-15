@@ -8,7 +8,6 @@
 #include <QDirIterator>
 #include <QSvgRenderer>
 #include <QMimeData>
-#include <QApplication>
 #include <array>
 
 std::ostream & operator<<(std::ostream& os, const QString& s);
@@ -21,34 +20,64 @@ TableModelKaraokeSongs::TableModelKaraokeSongs(QObject *parent)
 }
 
 QVariant TableModelKaraokeSongs::headerData(int section, Qt::Orientation orientation, int role) const {
-    if (role == Qt::FontRole) {
-        auto font = m_settings.applicationFont();
-        font.setBold(true);
-        return font;
-    }
-    if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
-        switch (section) {
-            case TableModelKaraokeSongs::COL_ID:
-                return "ID";
-            case TableModelKaraokeSongs::COL_ARTIST:
-                return "Artist";
-            case TableModelKaraokeSongs::COL_TITLE:
-                return "Title";
-            case TableModelKaraokeSongs::COL_SONGID:
-                return "SongID";
-            case TableModelKaraokeSongs::COL_FILENAME:
-                return "Filename";
-            case TableModelKaraokeSongs::COL_DURATION:
-                return "Duration";
-            case TableModelKaraokeSongs::COL_PLAYS:
-                return "Plays";
-            case TableModelKaraokeSongs::COL_LASTPLAY:
-                return "Last Played";
-            default:
-                return {};
-        }
+    switch (role) {
+        case Qt::FontRole:
+            return m_headerFont;
+        case Qt::DisplayRole:
+            if (orientation == Qt::Horizontal)
+                return getColumnName(section);
+            break;
+        case Qt::SizeHintRole:
+            if (orientation == Qt::Horizontal)
+                return getColumnSizeHint(section);
+        default:
+            return {};
     }
     return {};
+}
+
+QVariant TableModelKaraokeSongs::getColumnSizeHint(int section) const {
+    switch (section) {
+        case COL_ID:
+            return QSize(m_itemFontMetrics.size(Qt::TextSingleLine, "_ID_").width(), m_itemHeight);
+
+        case COL_DURATION:
+            return QSize(m_itemFontMetrics.size(Qt::TextSingleLine, "_Time_").width(), m_itemHeight);
+        case COL_PLAYS:
+            return QSize(m_itemFontMetrics.size(Qt::TextSingleLine, "_Plays_").width(), m_itemHeight);
+        case COL_LASTPLAY:
+            return QSize(m_itemFontMetrics.size(Qt::TextSingleLine, "_10:00 10/00/00_PM").width(), m_itemHeight);
+        case COL_SONGID:
+            return QSize(m_itemFontMetrics.size(Qt::TextSingleLine, "XXXX0000000-01-00").width(), m_itemHeight);
+        case COL_ARTIST:
+        case COL_TITLE:
+        case COL_FILENAME:
+        default:
+            return {};
+    }
+}
+
+QVariant TableModelKaraokeSongs::getColumnName(int section) {
+    switch (section) {
+        case COL_ID:
+            return "ID";
+        case COL_ARTIST:
+            return "Artist";
+        case COL_TITLE:
+            return "Title";
+        case COL_SONGID:
+            return "SongID";
+        case COL_FILENAME:
+            return "Filename";
+        case COL_DURATION:
+            return "Time";
+        case COL_PLAYS:
+            return "Plays";
+        case COL_LASTPLAY:
+            return "Last Played";
+        default:
+            return {};
+    }
 }
 
 int TableModelKaraokeSongs::rowCount([[maybe_unused]]const QModelIndex &parent) const {
@@ -63,7 +92,7 @@ QVariant TableModelKaraokeSongs::data(const QModelIndex &index, int role) const 
     if (!index.isValid())
         return {};
     if (role == Qt::FontRole)
-        return m_settings.applicationFont();
+        return m_itemFont;
     if (role == Qt::TextAlignmentRole) {
         switch (index.column()) {
             case COL_DURATION:
@@ -83,31 +112,40 @@ QVariant TableModelKaraokeSongs::data(const QModelIndex &index, int role) const 
                 return m_iconVid;
         }
     } else if (role == Qt::DisplayRole) {
-        switch (index.column()) {
-            case TableModelKaraokeSongs::COL_ID:
-                return m_filteredSongs.at(index.row())->id;
-            case TableModelKaraokeSongs::COL_ARTIST:
-                return m_filteredSongs.at(index.row())->artist;
-            case TableModelKaraokeSongs::COL_TITLE:
-                return m_filteredSongs.at(index.row())->title;
-            case TableModelKaraokeSongs::COL_SONGID:
-                return m_filteredSongs.at(index.row())->songid;
-            case TableModelKaraokeSongs::COL_FILENAME:
-                return m_filteredSongs.at(index.row())->filename;
-            case TableModelKaraokeSongs::COL_DURATION:
-                if (m_filteredSongs.at(index.row())->duration < 1)
-                    return {};
-                return QTime(0, 0, 0, 0).addSecs(m_filteredSongs.at(index.row())->duration / 1000).toString(
-                        "m:ss");
-            case TableModelKaraokeSongs::COL_PLAYS:
-                return m_filteredSongs.at(index.row())->plays;
-            case TableModelKaraokeSongs::COL_LASTPLAY:
-                QLocale locale;
-                return m_filteredSongs.at(index.row())->lastPlay.toString(
-                        locale.dateTimeFormat(QLocale::ShortFormat));
-        }
+        return getItemDisplayData(index);
     }
+    if (role == Qt::SizeHintRole)
+        return m_itemFontMetrics.size(Qt::TextSingleLine, getItemDisplayData(index).toString());
     return {};
+}
+
+QVariant TableModelKaraokeSongs::getItemDisplayData(const QModelIndex &index) const {
+    switch (index.column()) {
+        case COL_ID:
+            return m_filteredSongs.at(index.row())->id;
+        case COL_ARTIST:
+            return m_filteredSongs.at(index.row())->artist;
+        case COL_TITLE:
+            return m_filteredSongs.at(index.row())->title;
+        case COL_SONGID:
+            return m_filteredSongs.at(index.row())->songid;
+        case COL_FILENAME:
+            return m_filteredSongs.at(index.row())->filename;
+        case COL_DURATION:
+            if (m_filteredSongs.at(index.row())->duration < 1)
+                return {};
+            return QTime(0, 0, 0, 0).addSecs(m_filteredSongs.at(index.row())->duration / 1000).toString(
+                    "m:ss");
+        case COL_PLAYS:
+            return m_filteredSongs.at(index.row())->plays;
+        case COL_LASTPLAY: {
+            QLocale locale;
+            return m_filteredSongs.at(index.row())->lastPlay.toString(
+                    locale.dateTimeFormat(QLocale::ShortFormat));
+        }
+        default:
+            return {};
+    }
 }
 
 void TableModelKaraokeSongs::loadData() {
@@ -269,6 +307,14 @@ KaraokeSong &TableModelKaraokeSongs::getSong(const int songId) {
 }
 
 void TableModelKaraokeSongs::resizeIconsForFont(const QFont &font) {
+    m_logger->trace("{} resizeIconsForFont called with font: {} size: {}", m_loggingPrefix, font.toString().toStdString(), QFontMetrics(font).height());
+    m_itemFont = m_settings.applicationFont();
+    m_headerFont = m_settings.applicationFont();
+    m_headerFont.setBold(true);
+    m_itemFontMetrics = QFontMetrics(m_itemFont);
+    m_headerFontMetrics = QFontMetrics(m_headerFont);
+    m_itemHeight = m_itemFontMetrics.height() + 6;
+
     QString thm = (m_settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
     m_curFontHeight = QFontMetrics(font).height();
     m_iconVid = QImage(m_curFontHeight, m_curFontHeight, QImage::Format_ARGB32);

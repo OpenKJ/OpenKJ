@@ -470,6 +470,8 @@ void Settings::restoreColumnWidths(QTableView *tableView)
 {
     if (m_safeStartupMode)
         return;
+    if (!settings->childGroups().contains(tableView->objectName()))
+        return;
     settings->beginGroup(tableView->objectName());
     QStringList headers = settings->childGroups();
     for (int i=0; i < headers.size(); i++)
