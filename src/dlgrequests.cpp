@@ -299,60 +299,47 @@ void DlgRequests::on_tableViewRequests_clicked(const QModelIndex &index) {
 }
 
 void DlgRequests::on_pushButtonAddSong_clicked() {
-    if (ui->tableViewRequests->selectionModel()->selectedIndexes().size() < 1)
+    if (ui->tableViewRequests->selectionModel()->selectedIndexes().empty() ||
+        ui->tableViewSearch->selectionModel()->selectedIndexes().empty())
         return;
-    if (ui->tableViewSearch->selectionModel()->selectedIndexes().size() < 1)
-        return;
-
-    QModelIndex index = ui->tableViewSearch->selectionModel()->selectedIndexes().at(0);
-    QModelIndex rIndex = ui->tableViewRequests->selectionModel()->selectedIndexes().at(0);
-    int songid = index.sibling(index.row(), TableModelKaraokeSongs::COL_ID).data().toInt();
+    auto song = qvariant_cast<std::shared_ptr<okj::KaraokeSong>>(
+            ui->tableViewSearch->selectionModel()->selectedIndexes().at(0).data(Qt::UserRole)
+    );
     int keyChg = ui->spinBoxKey->value();
     if (ui->radioButtonNewSinger->isChecked()) {
-        if (ui->lineEditSingerName->text() == "")
+        if (ui->lineEditSingerName->text() == "" || rotModel.singerExists(ui->lineEditSingerName->text()))
             return;
-        else if (rotModel.singerExists(ui->lineEditSingerName->text()))
-            return;
-        else {
-            int newSingerId = rotModel.singerAdd(ui->lineEditSingerName->text(),
-                                                  ui->comboBoxAddPosition->currentIndex());
-            emit addRequestSong(songid, newSingerId, keyChg);
-            m_reqLogger->info(
-                    "RequestID: {} | Added to new singer | Name: {} | Position: {} | Wait: {} | Song: {} - {} - {} | Key: {}",
-                    curRequestId,
-                    ui->lineEditSingerName->text().toStdString(),
-                    rotModel.getSinger(newSingerId).position,
-                    rotModel.singerTurnDistance(newSingerId),
-                    index.sibling(index.row(),
-                                  TableModelKaraokeSongs::COL_SONGID).data().toString().toStdString(),
-                    index.sibling(index.row(),
-                                  TableModelKaraokeSongs::COL_ARTIST).data().toString().toStdString(),
-                    index.sibling(index.row(),
-                                  TableModelKaraokeSongs::COL_TITLE).data().toString().toStdString(),
-                    keyChg
-            );
-            m_reqLogger->flush();
-        }
+        int newSingerId = rotModel.singerAdd(ui->lineEditSingerName->text(),
+                                             ui->comboBoxAddPosition->currentIndex());
+        emit addRequestSong(song->id, newSingerId, keyChg);
+        m_reqLogger->info(
+                "RequestID: {} | Added to new singer | Name: {} | Position: {} | Wait: {} | Song: {} - {} - {} | Key: {}",
+                curRequestId,
+                ui->lineEditSingerName->text().toStdString(),
+                rotModel.getSinger(newSingerId).position,
+                rotModel.singerTurnDistance(newSingerId),
+                song->songid,
+                song->artist,
+                song->title,
+                keyChg
+        );
+        m_reqLogger->flush();
     } else if (ui->radioButtonExistingSinger->isChecked()) {
-        emit addRequestSong(songid, rotModel.getSingerByName(ui->comboBoxSingers->currentText()).id, keyChg);
+        emit addRequestSong(song->id, rotModel.getSingerByName(ui->comboBoxSingers->currentText()).id, keyChg);
         m_reqLogger->info("RequestID: {} | Added to existing singer | Name: {} | Song: {} - {} - {} | Key: {}",
                           curRequestId,
                           ui->comboBoxSingers->currentText().toStdString(),
-                          index.sibling(index.row(),
-                                        TableModelKaraokeSongs::COL_SONGID).data().toString().toStdString(),
-                          index.sibling(index.row(),
-                                        TableModelKaraokeSongs::COL_ARTIST).data().toString().toStdString(),
-                          index.sibling(index.row(), TableModelKaraokeSongs::COL_TITLE).data().toString().toStdString(),
+                          song->songid.toStdString(),
+                          song->artist.toStdString(),
+                          song->title.toStdString(),
                           keyChg
         );
         m_reqLogger->flush();
     }
     if (m_settings.requestRemoveOnRotAdd()) {
-
         songbookApi.removeRequest(curRequestId);
         m_reqLogger->info("RequestID: {} | Auto-removed after add to singer queue", curRequestId);
         m_reqLogger->flush();
-
         ui->tableViewRequests->selectionModel()->clearSelection();
         ui->lineEditSearch->clear();
         ui->lineEditSingerName->clear();
@@ -363,13 +350,12 @@ void DlgRequests::on_pushButtonAddSong_clicked() {
 
 void DlgRequests::on_tableViewSearch_customContextMenuRequested(const QPoint &pos) {
     QModelIndex index = ui->tableViewSearch->indexAt(pos);
-    if (index.isValid()) {
-        int songIdx = index.sibling(index.row(), TableModelKaraokeSongs::COL_ID).data().toInt();
-        rtClickFile = dbModel.getPath(songIdx);
-        QMenu contextMenu(this);
-        contextMenu.addAction(tr("Preview"), this, &DlgRequests::previewCdg);
-        contextMenu.exec(QCursor::pos());
-    }
+    if (!index.isValid())
+        return;
+    auto song = qvariant_cast<std::shared_ptr<okj::KaraokeSong>>(index.data(Qt::UserRole));
+    QMenu contextMenu(this);
+    contextMenu.addAction(tr("Preview"), [&] () { previewCdg(song); });
+    contextMenu.exec(QCursor::pos());
 }
 
 void DlgRequests::updateReceived(QTime updateTime) {
@@ -455,8 +441,8 @@ void DlgRequests::on_comboBoxVenue_activated(int index) {
     ui->checkBoxAccepting->setChecked(songbookApi.getAccepting());
 }
 
-void DlgRequests::previewCdg() {
-    DlgVideoPreview *videoPreviewDialog = new DlgVideoPreview(rtClickFile, this);
+void DlgRequests::previewCdg(const std::shared_ptr<okj::KaraokeSong>& song) {
+    auto videoPreviewDialog = new DlgVideoPreview(song->path, this);
     videoPreviewDialog->setAttribute(Qt::WA_DeleteOnClose);
     videoPreviewDialog->show();
 }
@@ -480,24 +466,19 @@ void DlgRequests::lineEditSearchEscapePressed() {
 
 void DlgRequests::autoSizeViews() {
     int fH = QFontMetrics(m_settings.applicationFont()).height();
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
-    int durationColSize = QFontMetrics(m_settings.applicationFont()).horizontalAdvance(tr(" Duration "));
-    int songidColSize = QFontMetrics(m_settings.applicationFont()).horizontalAdvance(" AA0000000-0000 ");
-#else
-    int durationColSize = QFontMetrics(settings.applicationFont()).width(tr(" Duration "));
-    int songidColSize = QFontMetrics(settings.applicationFont()).width(" AA0000000-0000 ");
-#endif
-    int remainingSpace = ui->tableViewSearch->width() - durationColSize - songidColSize - 12;
-    int artistColSize = (remainingSpace / 2) - 12;
-    int titleColSize = (remainingSpace / 2);
-    ui->tableViewSearch->hideColumn(TableModelKaraokeSongs::COL_ID);
-    ui->tableViewSearch->hideColumn(TableModelKaraokeSongs::COL_FILENAME);
-    ui->tableViewSearch->horizontalHeader()->resizeSection(TableModelKaraokeSongs::COL_ARTIST, artistColSize);
-    ui->tableViewSearch->horizontalHeader()->resizeSection(TableModelKaraokeSongs::COL_TITLE, titleColSize);
-    ui->tableViewSearch->horizontalHeader()->resizeSection(TableModelKaraokeSongs::COL_DURATION, durationColSize);
-    ui->tableViewSearch->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_DURATION,
-                                                                  QHeaderView::Fixed);
-    ui->tableViewSearch->horizontalHeader()->resizeSection(TableModelKaraokeSongs::COL_SONGID, songidColSize);
+    ui->tableViewSearch->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_LASTPLAY, QHeaderView::ResizeToContents);
+    ui->tableViewSearch->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_PLAYS, QHeaderView::ResizeToContents);
+    ui->tableViewSearch->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_DURATION, QHeaderView::ResizeToContents);
+    ui->tableViewSearch->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_ARTIST, QHeaderView::Stretch);
+    ui->tableViewSearch->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_TITLE, QHeaderView::Stretch);
+    ui->tableViewSearch->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_SONGID, QHeaderView::ResizeToContents);
+    QApplication::processEvents();
+    ui->tableViewSearch->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_ARTIST, QHeaderView::Interactive);
+    ui->tableViewSearch->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_TITLE, QHeaderView::Interactive);
+    ui->tableViewSearch->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_SONGID, QHeaderView::Interactive);
+    ui->tableViewSearch->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_LASTPLAY, QHeaderView::Interactive);
+    ui->tableViewSearch->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_PLAYS, QHeaderView::Interactive);
+    ui->tableViewSearch->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_DURATION, QHeaderView::Interactive);
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
     int tsWidth = QFontMetrics(m_settings.applicationFont()).horizontalAdvance(" 00/00/00 00:00 xx ");
     int keyWidth = QFontMetrics(m_settings.applicationFont()).horizontalAdvance("_Key_");
@@ -510,9 +491,9 @@ void DlgRequests::autoSizeViews() {
     qInfo() << "tsWidth = " << tsWidth;
     int delwidth = fH * 2;
     qInfo() << "singerColSize = " << singerColSize;
-    remainingSpace = ui->tableViewRequests->width() - tsWidth - delwidth - singerColSize - keyWidth - 10;
-    artistColSize = remainingSpace / 2;
-    titleColSize = remainingSpace / 2;
+    int remainingSpace = ui->tableViewRequests->width() - tsWidth - delwidth - singerColSize - keyWidth - 10;
+    int artistColSize = remainingSpace / 2;
+    int titleColSize = remainingSpace / 2;
     ui->tableViewRequests->horizontalHeader()->resizeSection(0, singerColSize);
     ui->tableViewRequests->horizontalHeader()->resizeSection(1, artistColSize);
     ui->tableViewRequests->horizontalHeader()->resizeSection(2, titleColSize);

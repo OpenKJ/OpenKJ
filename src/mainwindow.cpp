@@ -1503,8 +1503,11 @@ void MainWindow::buttonPauseClicked() {
 }
 
 void MainWindow::tableViewDbDoubleClicked(const QModelIndex &index) {
+    if (!index.isValid())
+        return;
+    auto song = qvariant_cast<std::shared_ptr<okj::KaraokeSong>>(index.data(Qt::UserRole));
     if (m_settings.dbDoubleClickAddsSong()) {
-        auto addSongDlg = new DlgAddSong(m_rotModel, m_qModel, index.sibling(index.row(), 0).data().toInt(), this);
+        auto addSongDlg = new DlgAddSong(m_rotModel, m_qModel, song->id, this);
         connect(addSongDlg, &DlgAddSong::newSingerAdded, [&](auto pos) {
             ui->tableViewRotation->selectRow(pos);
             ui->lineEdit->setFocus();
@@ -1513,8 +1516,8 @@ void MainWindow::tableViewDbDoubleClicked(const QModelIndex &index) {
         addSongDlg->show();
         return;
     }
-    if (m_qModel.getSingerId() >= 0) {
-        m_qModel.add(index.sibling(index.row(), 0).data().toInt());
+    if (m_qModel.getSingerId() >= 0 && ui->tableViewRotation->selectionModel()->hasSelection()) {
+        m_qModel.add(song->id);
         updateRotationDuration();
     } else {
         QMessageBox msgBox;
@@ -2153,22 +2156,17 @@ void MainWindow::silenceDetectedBm() {
 
 void MainWindow::tableViewDBContextMenuRequested(const QPoint &pos) {
     QModelIndex index = ui->tableViewDB->indexAt(pos);
-    if (index.isValid()) {
-        m_dbRtClickFile = m_karaokeSongsModel.getPath(
-                index.sibling(index.row(), TableModelKaraokeSongs::COL_ID).data().toInt());
-        QMenu contextMenu(this);
-        contextMenu.addAction("Preview", [&]() {
-            previewKaraokeSong(
-                    m_karaokeSongsModel.getPath(
-                            index.sibling(index.row(), TableModelKaraokeSongs::COL_ID).data().toInt()
-                    )
-            );
-        });
-        contextMenu.addSeparator();
-        contextMenu.addAction("Edit", this, &MainWindow::editSong);
-        contextMenu.addAction("Mark bad", this, &MainWindow::markSongBad);
-        contextMenu.exec(QCursor::pos());
-    }
+    if (!index.isValid())
+        return;
+    auto song = qvariant_cast<std::shared_ptr<okj::KaraokeSong>>(index.data(Qt::UserRole));
+    QMenu contextMenu(this);
+    contextMenu.addAction("Preview", [&]() {
+        previewKaraokeSong(song->path);
+    });
+    contextMenu.addSeparator();
+    contextMenu.addAction("Edit", [&] () { editSong(song); });
+    contextMenu.addAction("Mark bad", [&] () { markSongBad(song); });
+    contextMenu.exec(QCursor::pos());
 }
 
 void MainWindow::tableViewRotationContextMenuRequested(const QPoint &pos) {
@@ -2282,31 +2280,16 @@ void MainWindow::previewKaraokeSong(const QString &path) {
     videoPreview->show();
 }
 
-void MainWindow::editSong() {
+void MainWindow::editSong(const std::shared_ptr<okj::KaraokeSong>& song) {
+    QSqlQuery query;
     bool isCdg = false;
-    if (QFileInfo(m_dbRtClickFile).suffix().toLower() == "cdg")
+    if (QFileInfo(song->path).suffix().toLower() == "cdg")
         isCdg = true;
     QString mediaFile;
     if (isCdg)
-        mediaFile = DbUpdater::findMatchingAudioFile(m_dbRtClickFile);
+        mediaFile = DbUpdater::findMatchingAudioFile(song->path);
     TableModelKaraokeSourceDirs model;
-    SourceDir srcDir = model.getDirByPath(m_dbRtClickFile);
-    int rowId;
-    QString artist;
-    QString title;
-    QString songId;
-    QSqlQuery query;
-    query.prepare("SELECT songid,artist,title,discid FROM dbsongs WHERE path = :path LIMIT 1");
-    query.bindValue(":path", m_dbRtClickFile);
-    query.exec();
-    if (!query.next())
-        m_logger->warn("{} Unable to find song in db!", m_loggingPrefix);
-    artist = query.value("artist").toString();
-    title = query.value("title").toString();
-    songId = query.value("discid").toString();
-    rowId = query.value("songid").toInt();
-    m_logger->info("{} db song match: {} : {} - {} - {}", m_loggingPrefix, rowId, artist.toStdString(),
-                   title.toStdString(), songId.toStdString());
+    SourceDir srcDir = model.getDirByPath(song->path);
     bool allowRename = true;
     bool showSongId = true;
     if (srcDir.getPattern() == SourceDir::AT || srcDir.getPattern() == SourceDir::TA)
@@ -2322,14 +2305,14 @@ void MainWindow::editSong() {
         msgBoxErr.setStandardButtons(QMessageBox::Ok);
         msgBoxErr.exec();
     }
-    DlgEditSong dlg(artist, title, songId, showSongId, allowRename, this);
+    DlgEditSong dlg(song->artist, song->title, song->songid, showSongId, allowRename, this);
     int result = dlg.exec();
     if (result != QDialog::Accepted)
         return;
-    if (artist == dlg.artist() && title == dlg.title() && songId == dlg.songId())
+    if (song->artist == dlg.artist() && song->title == dlg.title() && song->songid == dlg.songId())
         return;
     if (dlg.renameFile()) {
-        if (!QFileInfo(m_dbRtClickFile).isWritable()) {
+        if (!QFileInfo(song->path).isWritable()) {
             QMessageBox msgBoxErr;
             msgBoxErr.setText("Unable to rename file");
             msgBoxErr.setInformativeText(
@@ -2355,46 +2338,46 @@ void MainWindow::editSong() {
         switch (srcDir.getPattern()) {
             case SourceDir::SAT:
                 newFn = dlg.songId() + " - " + dlg.artist() + " - " + dlg.title() + "." +
-                        QFileInfo(m_dbRtClickFile).suffix();
+                        QFileInfo(song->path).suffix();
                 if (isCdg)
                     newMediaFn = dlg.songId() + " - " + dlg.artist() + " - " + dlg.title() + "." +
                                  QFileInfo(mediaFile).suffix();
                 break;
             case SourceDir::STA:
                 newFn = dlg.songId() + " - " + dlg.title() + " - " + dlg.artist() + "." +
-                        QFileInfo(m_dbRtClickFile).suffix();
+                        QFileInfo(song->path).suffix();
                 if (isCdg)
                     newMediaFn = dlg.songId() + " - " + dlg.title() + " - " + dlg.artist() + "." +
                                  QFileInfo(mediaFile).suffix();
                 break;
             case SourceDir::ATS:
                 newFn = dlg.artist() + " - " + dlg.title() + " - " + dlg.songId() + "." +
-                        QFileInfo(m_dbRtClickFile).suffix();
+                        QFileInfo(song->path).suffix();
                 if (isCdg)
                     newMediaFn = dlg.artist() + " - " + dlg.title() + " - " + dlg.songId() + "." +
                                  QFileInfo(mediaFile).suffix();
                 break;
             case SourceDir::TAS:
                 newFn = dlg.title() + " - " + dlg.artist() + " - " + dlg.songId() + "." +
-                        QFileInfo(m_dbRtClickFile).suffix();
+                        QFileInfo(song->path).suffix();
                 if (isCdg)
                     newMediaFn = dlg.title() + " - " + dlg.artist() + " - " + dlg.songId() + "." +
                                  QFileInfo(mediaFile).suffix();
                 break;
             case SourceDir::S_T_A:
                 newFn = dlg.songId() + "_" + dlg.title() + "_" + dlg.artist() + "." +
-                        QFileInfo(m_dbRtClickFile).suffix();
+                        QFileInfo(song->path).suffix();
                 if (isCdg)
                     newMediaFn = dlg.songId() + "_" + dlg.title() + "_" + dlg.artist() + "." +
                                  QFileInfo(mediaFile).suffix();
                 break;
             case SourceDir::AT:
-                newFn = dlg.artist() + " - " + dlg.title() + "." + QFileInfo(m_dbRtClickFile).suffix();
+                newFn = dlg.artist() + " - " + dlg.title() + "." + QFileInfo(song->path).suffix();
                 if (isCdg)
                     newMediaFn = dlg.artist() + " - " + dlg.title() + "." + QFileInfo(mediaFile).suffix();
                 break;
             case SourceDir::TA:
-                newFn = dlg.title() + " - " + dlg.artist() + "." + QFileInfo(m_dbRtClickFile).suffix();
+                newFn = dlg.title() + " - " + dlg.artist() + "." + QFileInfo(song->path).suffix();
                 if (isCdg)
                     newMediaFn = dlg.title() + " - " + dlg.artist() + "." + QFileInfo(mediaFile).suffix();
                 break;
@@ -2432,10 +2415,10 @@ void MainWindow::editSong() {
                 return;
             }
         }
-        QString newFilePath = QFileInfo(m_dbRtClickFile).absoluteDir().absolutePath() + "/" + newFn;
-        if (newFilePath != m_dbRtClickFile) {
-            if (!QFile::rename(m_dbRtClickFile,
-                               QFileInfo(m_dbRtClickFile).absoluteDir().absolutePath() + "/" + newFn)) {
+        QString newFilePath = QFileInfo(song->path).absoluteDir().absolutePath() + "/" + newFn;
+        if (newFilePath != song->path) {
+            if (!QFile::rename(song->path,
+                               QFileInfo(song->path).absoluteDir().absolutePath() + "/" + newFn)) {
                 QMessageBox msgBoxErr;
                 msgBoxErr.setText("Error while renaming file!");
                 msgBoxErr.setInformativeText("An unknown error occurred while renaming the file. Operation cancelled.");
@@ -2445,7 +2428,7 @@ void MainWindow::editSong() {
             }
             if (isCdg) {
                 if (!QFile::rename(mediaFile,
-                                   QFileInfo(m_dbRtClickFile).absoluteDir().absolutePath() + "/" + newMediaFn)) {
+                                   QFileInfo(song->path).absoluteDir().absolutePath() + "/" + newMediaFn)) {
                     QMessageBox msgBoxErr;
                     msgBoxErr.setText("Error while renaming file!");
                     msgBoxErr.setInformativeText(
@@ -2462,7 +2445,7 @@ void MainWindow::editSong() {
         QString newArtist = dlg.artist();
         QString newTitle = dlg.title();
         QString newSongId = dlg.songId();
-        QString newPath = QFileInfo(m_dbRtClickFile).absoluteDir().absolutePath() + "/" + newFn;
+        QString newPath = QFileInfo(song->path).absoluteDir().absolutePath() + "/" + newFn;
         QString newSearchString =
                 QFileInfo(newPath).completeBaseName() + " " + newArtist + " " + newTitle + " " + newSongId;
         query.bindValue(":artist", newArtist);
@@ -2471,7 +2454,7 @@ void MainWindow::editSong() {
         query.bindValue(":path", newPath);
         query.bindValue(":filename", newFn);
         query.bindValue(":searchstring", newSearchString);
-        query.bindValue(":rowid", rowId);
+        query.bindValue(":rowid", song->id);
         query.exec();
         if (auto error = query.lastError(); error.type() != QSqlError::NoError) {
             m_logger->error("{} Database error: {}", m_loggingPrefix, error.text().toStdString());
@@ -2497,12 +2480,12 @@ void MainWindow::editSong() {
         QString newTitle = dlg.title();
         QString newSongId = dlg.songId();
         QString newSearchString =
-                QFileInfo(m_dbRtClickFile).completeBaseName() + " " + newArtist + " " + newTitle + " " + newSongId;
+                QFileInfo(song->path).completeBaseName() + " " + newArtist + " " + newTitle + " " + newSongId;
         query.bindValue(":artist", newArtist);
         query.bindValue(":title", newTitle);
         query.bindValue(":songid", newSongId);
         query.bindValue(":searchstring", newSearchString);
-        query.bindValue(":rowid", rowId);
+        query.bindValue(":rowid", song->id);
         query.exec();
         if (auto error = query.lastError(); error.type() != QSqlError::NoError) {
             m_logger->error("{} Database error: {}", m_loggingPrefix, error.text().toStdString());
@@ -2524,30 +2507,31 @@ void MainWindow::editSong() {
     }
 }
 
-void MainWindow::markSongBad() {
+void MainWindow::markSongBad(const std::shared_ptr<okj::KaraokeSong>& song) {
     QMessageBox msgBox;
     QMessageBox msgBoxResult;
-    msgBox.setText("Marking song as bad");
+    msgBox.setWindowTitle("Mark song as bad?");
+    msgBox.setText("Would you like mark the file as bad in the DB, or remove it from disk permanently?");
     msgBox.setIcon(QMessageBox::Question);
-    msgBox.setInformativeText("Would you like mark the file as bad in the DB, or remove it from disk permanently?");
+    msgBox.setInformativeText(song->path);
     auto markBadButton = msgBox.addButton(tr("Mark Bad"), QMessageBox::ActionRole);
     auto removeFileButton = msgBox.addButton(tr("Remove File"), QMessageBox::ActionRole);
     auto cancelButton = msgBox.addButton(QMessageBox::Cancel);
     msgBox.exec();
     if (msgBox.clickedButton() == markBadButton) {
-        m_karaokeSongsModel.markSongBad(m_dbRtClickFile);
+        m_karaokeSongsModel.markSongBad(song->path);
         msgBoxResult.setText("File marked as bad and will no longer show up in searches.");
         msgBoxResult.setIcon(QMessageBox::Information);
         msgBoxResult.exec();
     } else if (msgBox.clickedButton() == removeFileButton) {
         bool isCdg = false;
-        if (QFileInfo(m_dbRtClickFile).suffix().toLower() == "cdg")
+        if (QFileInfo(song->path).suffix().toLower() == "cdg")
             isCdg = true;
         QString mediaFile;
         if (isCdg)
-            mediaFile = DbUpdater::findMatchingAudioFile(m_dbRtClickFile);
-        QFile file(m_dbRtClickFile);
-        auto ret = m_karaokeSongsModel.removeBadSong(m_dbRtClickFile);
+            mediaFile = DbUpdater::findMatchingAudioFile(song->path);
+        QFile file(song->path);
+        auto ret = m_karaokeSongsModel.removeBadSong(song->path);
         switch (ret) {
             case TableModelKaraokeSongs::DELETE_OK:
                 msgBoxResult.setText("File removed successfully");

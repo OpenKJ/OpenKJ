@@ -211,8 +211,8 @@ private slots:
     void setKeyChange();
     void toggleQueuePlayed();
     void previewKaraokeSong(const QString &path);
-    void editSong();
-    void markSongBad();
+    void editSong(const std::shared_ptr<okj::KaraokeSong>& song);
+    void markSongBad(const std::shared_ptr<okj::KaraokeSong>& song);
     void karaokeAATimerTimeout();
     void timerButtonFlashTimeout();
     void autosizeViews();

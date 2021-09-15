@@ -89,7 +89,7 @@ private slots:
     void venuesChanged(OkjsVenues venues);
     void on_pushButtonUpdateDb_clicked();
     void on_comboBoxVenue_activated(int index);
-    void previewCdg();
+    void previewCdg(const std::shared_ptr<okj::KaraokeSong>& song);
     void on_lineEditSearch_textChanged(const QString &arg1);
     void lineEditSearchEscapePressed();
     void autoSizeViews();

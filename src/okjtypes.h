@@ -23,6 +23,7 @@
 
 #include <QDateTime>
 #include <QString>
+#include <qmetatype.h>
 #include <spdlog/async_logger.h>
 #include <spdlog/fmt/ostr.h>
 #include "settings.h"
@@ -85,6 +86,9 @@ namespace okj {
 
 
 }
+Q_DECLARE_METATYPE(okj::KaraokeSong)
+
+Q_DECLARE_METATYPE(std::shared_ptr<okj::KaraokeSong>)
 
 std::ostream& operator<<(std::ostream& os, const okj::RotationSinger& s);
 

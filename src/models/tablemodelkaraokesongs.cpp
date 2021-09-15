@@ -116,6 +116,11 @@ QVariant TableModelKaraokeSongs::data(const QModelIndex &index, int role) const 
     }
     if (role == Qt::SizeHintRole)
         return m_itemFontMetrics.size(Qt::TextSingleLine, getItemDisplayData(index).toString());
+    if (role == Qt::UserRole) {
+        QVariant retVal;
+        retVal.setValue(m_filteredSongs.at(index.row()));
+        return retVal;
+    }
     return {};
 }
 
