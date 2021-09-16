@@ -11,22 +11,9 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/async_logger.h>
 #include <spdlog/fmt/ostr.h>
+#include "okjtypes.h"
 
-struct QueueSong {
-    int id{0};
-    int singerId{0};
-    int dbSongId{0};
-    bool played{false};
-    int keyChange{0};
-    int position{0};
-    QString artist;
-    QString title;
-    QString songId;
-    int duration{0};
-    QString path;
-};
 
-Q_DECLARE_METATYPE(QueueSong)
 
 class ItemDelegateQueueSongs : public QItemDelegate
 {
@@ -83,7 +70,7 @@ private:
     std::shared_ptr<spdlog::logger> m_logger;
     int m_curSingerId{0};
     TableModelKaraokeSongs &m_karaokeSongsModel;
-    std::vector<QueueSong> m_songs;
+    std::vector<okj::QueueSong> m_songs;
     Settings m_settings;
 
 signals:

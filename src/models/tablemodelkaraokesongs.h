@@ -75,7 +75,6 @@ private:
     QFont m_itemFont;
     QFont m_headerFont;
     QFontMetrics m_itemFontMetrics{QApplication::fontMetrics()};
-    QFontMetrics m_headerFontMetrics{QApplication::fontMetrics()};
     QTimer searchTimer{this};
     int m_itemHeight{20};
 
@@ -83,6 +82,8 @@ private:
     static QVariant getColumnName(int section) ;
     [[nodiscard]] QVariant getColumnSizeHint(int section) const;
     [[nodiscard]] QVariant getItemDisplayData(const QModelIndex &index) const;
+    [[nodiscard]] static QVariant getColumnTextAlignmentHint(int column) ;
+    [[nodiscard]] QVariant getColumnDecorationRole(int column) const;
 
 public slots:
     void setSongDuration(const QString &path, unsigned int duration);

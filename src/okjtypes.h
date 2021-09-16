@@ -83,12 +83,25 @@ namespace okj {
         [[nodiscard]] int numSongsUnsung() const;
     };
 
-
+    struct QueueSong {
+        int id{0};
+        int singerId{0};
+        int dbSongId{0};
+        bool played{false};
+        int keyChange{0};
+        int position{0};
+        QString artist;
+        QString title;
+        QString songId;
+        int duration{0};
+        QString path;
+    };
 
 }
-Q_DECLARE_METATYPE(okj::KaraokeSong)
 
+Q_DECLARE_METATYPE(okj::KaraokeSong)
 Q_DECLARE_METATYPE(std::shared_ptr<okj::KaraokeSong>)
+Q_DECLARE_METATYPE(okj::QueueSong)
 
 std::ostream& operator<<(std::ostream& os, const okj::RotationSinger& s);
 

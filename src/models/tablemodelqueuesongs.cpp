@@ -130,7 +130,7 @@ void TableModelQueueSongs::loadSinger(const int singerId) {
     else
         m_logger->debug("{} Query returned {} rows", m_loggingPrefix, query.size());
     while (query.next()) {
-        m_songs.emplace_back(QueueSong{
+        m_songs.emplace_back(okj::QueueSong{
                 query.value(0).toInt(),
                 query.value(1).toInt(),
                 query.value(2).toInt(),
@@ -148,7 +148,7 @@ void TableModelQueueSongs::loadSinger(const int singerId) {
 }
 
 int TableModelQueueSongs::getPosition(const int songId) {
-    auto it = std::find_if(m_songs.begin(), m_songs.end(), [&songId](QueueSong &song) {
+    auto it = std::find_if(m_songs.begin(), m_songs.end(), [&songId](okj::QueueSong &song) {
         return (song.id == songId);
     });
     if (it == m_songs.end())
@@ -157,7 +157,7 @@ int TableModelQueueSongs::getPosition(const int songId) {
 }
 
 bool TableModelQueueSongs::getPlayed(const int songId) {
-    auto it = std::find_if(m_songs.begin(), m_songs.end(), [&songId](QueueSong &song) {
+    auto it = std::find_if(m_songs.begin(), m_songs.end(), [&songId](okj::QueueSong &song) {
         return (song.id == songId);
     });
     if (it == m_songs.end())
@@ -166,7 +166,7 @@ bool TableModelQueueSongs::getPlayed(const int songId) {
 }
 
 int TableModelQueueSongs::getKey(const int songId) {
-    auto it = std::find_if(m_songs.begin(), m_songs.end(), [&songId](QueueSong &song) {
+    auto it = std::find_if(m_songs.begin(), m_songs.end(), [&songId](okj::QueueSong &song) {
         return (song.id == songId);
     });
     if (it == m_songs.end())
@@ -180,7 +180,7 @@ void TableModelQueueSongs::move(const int oldPosition, const int newPosition) {
     emit layoutAboutToBeChanged();
     if (oldPosition > newPosition) {
         // moving up
-        std::for_each(m_songs.begin(), m_songs.end(), [&oldPosition, &newPosition](QueueSong &song) {
+        std::for_each(m_songs.begin(), m_songs.end(), [&oldPosition, &newPosition](okj::QueueSong &song) {
             if (song.position == oldPosition)
                 song.position = newPosition;
             else if (song.position >= newPosition && song.position < oldPosition)
@@ -188,14 +188,14 @@ void TableModelQueueSongs::move(const int oldPosition, const int newPosition) {
         });
     } else {
         // moving down
-        std::for_each(m_songs.begin(), m_songs.end(), [&oldPosition, &newPosition](QueueSong &song) {
+        std::for_each(m_songs.begin(), m_songs.end(), [&oldPosition, &newPosition](okj::QueueSong &song) {
             if (song.position == oldPosition)
                 song.position = newPosition;
             else if (song.position > oldPosition && song.position <= newPosition)
                 song.position--;
         });
     }
-    std::sort(m_songs.begin(), m_songs.end(), [](QueueSong &a, QueueSong &b) {
+    std::sort(m_songs.begin(), m_songs.end(), [](okj::QueueSong &a, okj::QueueSong &b) {
         return (a.position < b.position);
     });
     emit layoutChanged();
@@ -220,7 +220,7 @@ int TableModelQueueSongs::add(const int songId) {
     query.exec();
     auto queueSongId = query.lastInsertId().toInt();
     emit layoutAboutToBeChanged();
-    m_songs.emplace_back(QueueSong{
+    m_songs.emplace_back(okj::QueueSong{
             queueSongId,
             m_curSingerId,
             songId,
@@ -245,12 +245,12 @@ void TableModelQueueSongs::insert(const int songId, const int position) {
 
 void TableModelQueueSongs::remove(const int songId) {
     emit layoutAboutToBeChanged();
-    auto it = std::remove_if(m_songs.begin(), m_songs.end(), [&songId](QueueSong &song) {
+    auto it = std::remove_if(m_songs.begin(), m_songs.end(), [&songId](okj::QueueSong &song) {
         return (song.id == songId);
     });
     m_songs.erase(it, m_songs.end());
     int pos{0};
-    std::for_each(m_songs.begin(), m_songs.end(), [&pos](QueueSong &song) {
+    std::for_each(m_songs.begin(), m_songs.end(), [&pos](okj::QueueSong &song) {
         song.position = pos++;
     });
     emit layoutChanged();
@@ -264,7 +264,7 @@ void TableModelQueueSongs::setKey(const int songId, const int semitones) {
     query.bindValue(":id", songId);
     query.bindValue(":key", semitones);
     query.exec();
-    auto it = std::find_if(m_songs.begin(), m_songs.end(), [&songId](QueueSong &song) {
+    auto it = std::find_if(m_songs.begin(), m_songs.end(), [&songId](okj::QueueSong &song) {
         return (song.id == songId);
     });
     if (it == m_songs.end())
@@ -281,7 +281,7 @@ void TableModelQueueSongs::setPlayed(const int songId, const bool played) {
     query.bindValue(":id", songId);
     query.bindValue(":played", played);
     query.exec();
-    auto it = std::find_if(m_songs.begin(), m_songs.end(), [&songId](QueueSong &song) {
+    auto it = std::find_if(m_songs.begin(), m_songs.end(), [&songId](okj::QueueSong &song) {
         return (song.id == songId);
     });
     if (it == m_songs.end())
@@ -312,7 +312,7 @@ void TableModelQueueSongs::commitChanges() {
     query.exec();
     query.prepare("INSERT INTO queuesongs (qsongid,singer,song,artist,title,discid,path,keychg,played,position) "
                   "VALUES(:id,:singerId,:songId,:songId,:songId,:songId,:songId,:key,:played,:position)");
-    std::for_each(m_songs.begin(), m_songs.end(), [&](QueueSong &song) {
+    std::for_each(m_songs.begin(), m_songs.end(), [&](okj::QueueSong &song) {
         query.bindValue(":id", song.id);
         query.bindValue(":singerId", song.singerId);
         query.bindValue(":songId", song.dbSongId);
@@ -472,7 +472,7 @@ Qt::ItemFlags TableModelQueueSongs::flags([[maybe_unused]]const QModelIndex &ind
 void TableModelQueueSongs::sort(int column, Qt::SortOrder order) {
     emit layoutAboutToBeChanged();
     if (order == Qt::AscendingOrder) {
-        std::sort(m_songs.begin(), m_songs.end(), [&column](QueueSong &a, QueueSong &b) {
+        std::sort(m_songs.begin(), m_songs.end(), [&column](okj::QueueSong &a, okj::QueueSong &b) {
             switch (column) {
                 case COL_ARTIST:
                     return (a.artist < b.artist);
@@ -489,7 +489,7 @@ void TableModelQueueSongs::sort(int column, Qt::SortOrder order) {
             }
         });
     } else {
-        std::sort(m_songs.rbegin(), m_songs.rend(), [&column](QueueSong &a, QueueSong &b) {
+        std::sort(m_songs.rbegin(), m_songs.rend(), [&column](okj::QueueSong &a, okj::QueueSong &b) {
             switch (column) {
                 case COL_ARTIST:
                     return (a.artist < b.artist);
@@ -507,7 +507,7 @@ void TableModelQueueSongs::sort(int column, Qt::SortOrder order) {
         });
     }
     int pos{0};
-    std::for_each(m_songs.begin(), m_songs.end(), [&pos](QueueSong &song) {
+    std::for_each(m_songs.begin(), m_songs.end(), [&pos](okj::QueueSong &song) {
         song.position = pos++;
     });
     emit layoutChanged();

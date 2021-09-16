@@ -1658,7 +1658,7 @@ void MainWindow::tableViewRotationClicked(const QModelIndex &index) {
 void MainWindow::tableViewQueueDoubleClicked(const QModelIndex &index) {
     if (!index.isValid())
         return;
-    auto song = qvariant_cast<QueueSong>(index.data(Qt::UserRole));
+    auto song = qvariant_cast<okj::QueueSong>(index.data(Qt::UserRole));
     auto singer = m_rotModel.getSinger(song.singerId);
     m_k2kTransition = false;
     if (m_mediaBackendKar.state() == MediaBackend::PlayingState) {

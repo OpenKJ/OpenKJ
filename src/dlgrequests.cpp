@@ -466,6 +466,7 @@ void DlgRequests::lineEditSearchEscapePressed() {
 
 void DlgRequests::autoSizeViews() {
     int fH = QFontMetrics(m_settings.applicationFont()).height();
+    // toggle between resize modes to force sizing then switch back to interactive sizing
     ui->tableViewSearch->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_LASTPLAY, QHeaderView::ResizeToContents);
     ui->tableViewSearch->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_PLAYS, QHeaderView::ResizeToContents);
     ui->tableViewSearch->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_DURATION, QHeaderView::ResizeToContents);

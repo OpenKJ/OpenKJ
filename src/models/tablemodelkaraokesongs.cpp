@@ -91,37 +91,50 @@ int TableModelKaraokeSongs::columnCount([[maybe_unused]]const QModelIndex &paren
 QVariant TableModelKaraokeSongs::data(const QModelIndex &index, int role) const {
     if (!index.isValid())
         return {};
-    if (role == Qt::FontRole)
-        return m_itemFont;
-    if (role == Qt::TextAlignmentRole) {
-        switch (index.column()) {
-            case COL_DURATION:
-            case COL_PLAYS:
-            case COL_LASTPLAY:
-                return Qt::AlignRight + Qt::AlignVCenter;
-            default:
-                return Qt::AlignLeft + Qt::AlignVCenter;
+    switch (role) {
+        case Qt::FontRole:
+            return m_itemFont;
+        case Qt::TextAlignmentRole:
+            return getColumnTextAlignmentHint(index.column());
+        case Qt::DecorationRole:
+            return getColumnDecorationRole(index.column());
+        case Qt::DisplayRole:
+            return getItemDisplayData(index);
+        case Qt::SizeHintRole:
+            return m_itemFontMetrics.size(Qt::TextSingleLine, getItemDisplayData(index).toString());
+        case Qt::UserRole: {
+            QVariant retVal;
+            retVal.setValue(m_filteredSongs.at(index.row()));
+            return retVal;
         }
-    } else if (role == Qt::DecorationRole) {
-        if (index.column() == COL_SONGID) {
-            if (m_filteredSongs.at(index.row())->path.endsWith("cdg", Qt::CaseInsensitive))
+        default:
+            return {};
+    }
+}
+
+QVariant TableModelKaraokeSongs::getColumnDecorationRole(int column) const {
+    switch (column) {
+        case COL_SONGID:
+            if (m_filteredSongs.at(column)->path.endsWith("cdg", Qt::CaseInsensitive))
                 return m_iconCdg;
-            else if (m_filteredSongs.at(index.row())->path.endsWith("zip", Qt::CaseInsensitive))
+            else if (m_filteredSongs.at(column)->path.endsWith("zip", Qt::CaseInsensitive))
                 return m_iconZip;
             else
                 return m_iconVid;
-        }
-    } else if (role == Qt::DisplayRole) {
-        return getItemDisplayData(index);
+        default:
+            return {};
     }
-    if (role == Qt::SizeHintRole)
-        return m_itemFontMetrics.size(Qt::TextSingleLine, getItemDisplayData(index).toString());
-    if (role == Qt::UserRole) {
-        QVariant retVal;
-        retVal.setValue(m_filteredSongs.at(index.row()));
-        return retVal;
+}
+
+QVariant TableModelKaraokeSongs::getColumnTextAlignmentHint(int column) {
+    switch (column) {
+        case COL_DURATION:
+        case COL_PLAYS:
+        case COL_LASTPLAY:
+            return Qt::AlignRight + Qt::AlignVCenter;
+        default:
+            return Qt::AlignLeft + Qt::AlignVCenter;
     }
-    return {};
 }
 
 QVariant TableModelKaraokeSongs::getItemDisplayData(const QModelIndex &index) const {
@@ -158,8 +171,7 @@ void TableModelKaraokeSongs::loadData() {
     m_allSongs.clear();
     m_filteredSongs.clear();
     QSqlQuery query;
-    query.exec("SELECT songid,artist,title,discid,duration,filename,path,searchstring,plays,lastplay "
-               "FROM dbsongs");
+    query.exec("SELECT songid,artist,title,discid,duration,filename,path,searchstring,plays,lastplay FROM dbsongs");
     if (query.size() > 0)
         m_filteredSongs.reserve(query.size());
     while (query.next()) {
@@ -317,9 +329,7 @@ void TableModelKaraokeSongs::resizeIconsForFont(const QFont &font) {
     m_headerFont = m_settings.applicationFont();
     m_headerFont.setBold(true);
     m_itemFontMetrics = QFontMetrics(m_itemFont);
-    m_headerFontMetrics = QFontMetrics(m_headerFont);
     m_itemHeight = m_itemFontMetrics.height() + 6;
-
     QString thm = (m_settings.theme() == 1) ? ":/theme/Icons/okjbreeze-dark/" : ":/theme/Icons/okjbreeze/";
     m_curFontHeight = QFontMetrics(font).height();
     m_iconVid = QImage(m_curFontHeight, m_curFontHeight, QImage::Format_ARGB32);
@@ -331,12 +341,12 @@ void TableModelKaraokeSongs::resizeIconsForFont(const QFont &font) {
     QPainter painterVid(&m_iconVid);
     QPainter painterZip(&m_iconZip);
     QPainter painterCdg(&m_iconCdg);
-    QSvgRenderer svgrndrVid(thm + "mimetypes/22/video-mp4.svg");
-    QSvgRenderer svgrndrZip(thm + "mimetypes/22/application-zip.svg");
-    QSvgRenderer svgrndrCdg(thm + "mimetypes/22/application-x-cda.svg");
-    svgrndrVid.render(&painterVid);
-    svgrndrZip.render(&painterZip);
-    svgrndrCdg.render(&painterCdg);
+    QSvgRenderer svgRndrVid(thm + "mimetypes/22/video-mp4.svg");
+    QSvgRenderer svgRndrZip(thm + "mimetypes/22/application-zip.svg");
+    QSvgRenderer svgRndrCdg(thm + "mimetypes/22/application-x-cda.svg");
+    svgRndrVid.render(&painterVid);
+    svgRndrZip.render(&painterZip);
+    svgRndrCdg.render(&painterCdg);
 }
 
 
