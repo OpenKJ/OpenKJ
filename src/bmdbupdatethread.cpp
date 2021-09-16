@@ -40,6 +40,8 @@ BmDbUpdateThread::BmDbUpdateThread(QObject *parent) :
     supportedExtensions.append(".mp4");
     supportedExtensions.append(".mpg");
     supportedExtensions.append(".mpeg");
+    supportedExtensions.append(".wmv");
+    supportedExtensions.append(".wma");
 }
 
 QString BmDbUpdateThread::path() const
