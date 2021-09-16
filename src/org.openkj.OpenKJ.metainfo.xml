@@ -31,6 +31,14 @@
 	<binary>openkj</binary>
 </provides>
 <releases>
+   <release version="2.1.31" date="2021-09-16">
+	<description>
+	     <ul>
+		 <li>Improve DB listview column sizing and user change persistence</li>
+		 <li>Improve queue listview column sizing and user change persistence</li>
+	    </ul>
+	</description>
+    </release>
     <release version="2.0.8" date="2021-09-14">
         <description>
             <ul>
