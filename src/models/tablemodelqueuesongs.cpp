@@ -15,35 +15,45 @@ std::ostream & operator<<(std::ostream& os, const QString& s);
 TableModelQueueSongs::TableModelQueueSongs(TableModelKaraokeSongs &karaokeSongsModel, QObject *parent)
         : QAbstractTableModel(parent), m_karaokeSongsModel(karaokeSongsModel) {
     m_logger = spdlog::get("logger");
+    setFont(m_settings.applicationFont());
 }
 
 QVariant TableModelQueueSongs::headerData(int section, Qt::Orientation orientation, int role) const {
-    if (role == Qt::FontRole) {
-        auto font = m_settings.applicationFont();
-        font.setBold(true);
-        return font;
+    switch (role) {
+        case Qt::SizeHintRole:
+            if (orientation == Qt::Horizontal)
+                return getColumnSizeHint(section);
+            return {};
+        case Qt::FontRole:
+            return m_headerFont;
+        case Qt::DisplayRole:
+            if (orientation == Qt::Horizontal)
+                return getColumnName(section);
+            return {};
+        default:
+            return {};
     }
-    if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
-        switch (section) {
-            case COL_ID:
-                return "ID";
-            case COL_DBSONGID:
-                return "DBSongId";
-            case COL_ARTIST:
-                return "Artist";
-            case COL_TITLE:
-                return "Title";
-            case COL_SONGID:
-                return "SongID";
-            case COL_KEY:
-                return "Key";
-            case COL_DURATION:
-                return "Duration";
-            default:
-                return {};
-        }
+}
+
+QString TableModelQueueSongs::getColumnName(int section) {
+    switch (section) {
+        case COL_ID:
+            return "ID";
+        case COL_DBSONGID:
+            return "DBSongId";
+        case COL_ARTIST:
+            return "Artist";
+        case COL_TITLE:
+            return "Title";
+        case COL_SONGID:
+            return "SongID";
+        case COL_KEY:
+            return "Key";
+        case COL_DURATION:
+            return "Time";
+        default:
+            return {};
     }
-    return {};
 }
 
 int TableModelQueueSongs::rowCount([[maybe_unused]]const QModelIndex &parent) const {
@@ -55,59 +65,72 @@ int TableModelQueueSongs::columnCount([[maybe_unused]]const QModelIndex &parent)
 }
 
 QVariant TableModelQueueSongs::data(const QModelIndex &index, int role) const {
-    if (role == Qt::FontRole) {
-        if (m_songs.at(index.row()).played) {
-            auto font = m_settings.applicationFont();
-            font.setStrikeOut(true);
-            return font;
+    if (!index.isValid())
+        return {};
+    switch (role) {
+        case Qt::FontRole:
+            if (m_songs.at(index.row()).played)
+                return m_itemFontStrikeout;
+            return m_itemFont;
+        case Qt::ForegroundRole:
+            if (m_songs.at(index.row()).played)
+                return QColor("darkGrey");
+            return {};
+        case Qt::TextAlignmentRole:
+            return getColumnTextAlignmentRoleData(index.column());
+        case Qt::UserRole: {
+            QVariant retVal;
+            retVal.setValue(m_songs.at(index.row()));
+            return retVal;
         }
+        case Qt::DisplayRole:
+            return getItemDisplayRoleData(index);
+        default:
+            return {};
     }
-    if (role == Qt::ForegroundRole) {
-        if (m_songs.at(index.row()).played) {
-            return QColor("darkGrey");
-        }
-    }
-    if (role == Qt::TextAlignmentRole) {
-        if (index.column() == COL_KEY)
+}
+
+QVariant TableModelQueueSongs::getColumnTextAlignmentRoleData(int column) {
+    switch (column) {
+        case COL_KEY:
             return Qt::AlignHCenter + Qt::AlignVCenter;
-        if (index.column() == COL_DURATION)
+        case COL_DURATION:
             return Qt::AlignRight + Qt::AlignVCenter;
+        default:
+            return {};
     }
-    if (role == Qt::UserRole) {
-        QVariant retVal;
-        retVal.setValue(m_songs.at(index.row()));
-        return retVal;
+}
+
+QVariant TableModelQueueSongs::getItemDisplayRoleData(const QModelIndex &index) const {
+    switch (index.column()) {
+        case COL_ID:
+            return m_songs.at(index.row()).id;
+        case COL_DBSONGID:
+            return m_songs.at(index.row()).dbSongId;
+        case COL_ARTIST:
+            return m_songs.at(index.row()).artist;
+        case COL_TITLE:
+            return m_songs.at(index.row()).title;
+        case COL_SONGID:
+            if (m_songs.at(index.row()).songId == "!!DROPPED!!")
+                return {};
+            return m_songs.at(index.row()).songId;
+        case COL_KEY:
+            if (m_songs.at(index.row()).keyChange == 0)
+                return {};
+            else if (m_songs.at(index.row()).keyChange > 0)
+                return "+" + QString::number(m_songs.at(index.row()).keyChange);
+            else
+                return m_songs.at(index.row()).keyChange;
+        case COL_DURATION:
+            if (m_songs.at(index.row()).duration < 1)
+                return {};
+            return QTime(0, 0, 0, 0).addMSecs(m_songs.at(index.row()).duration).toString("m:ss");
+        case COL_PATH:
+            return m_songs.at(index.row()).path;
+        default:
+            return {};
     }
-    if (role == Qt::DisplayRole) {
-        switch (index.column()) {
-            case COL_ID:
-                return m_songs.at(index.row()).id;
-            case COL_DBSONGID:
-                return m_songs.at(index.row()).dbSongId;
-            case COL_ARTIST:
-                return m_songs.at(index.row()).artist;
-            case COL_TITLE:
-                return m_songs.at(index.row()).title;
-            case COL_SONGID:
-                if (m_songs.at(index.row()).songId == "!!DROPPED!!")
-                    return {};
-                return m_songs.at(index.row()).songId;
-            case COL_KEY:
-                if (m_songs.at(index.row()).keyChange == 0)
-                    return {};
-                else if (m_songs.at(index.row()).keyChange > 0)
-                    return "+" + QString::number(m_songs.at(index.row()).keyChange);
-                else
-                    return m_songs.at(index.row()).keyChange;
-            case COL_DURATION:
-                if (m_songs.at(index.row()).duration < 1)
-                    return {};
-                return QTime(0, 0, 0, 0).addMSecs(m_songs.at(index.row()).duration).toString("m:ss");
-            case COL_PATH:
-                return m_songs.at(index.row()).path;
-        }
-    }
-    return {};
 }
 
 void TableModelQueueSongs::loadSinger(const int singerId) {
@@ -444,14 +467,11 @@ bool TableModelQueueSongs::dropMimeData(const QMimeData *data, Qt::DropAction ac
             unsigned int droprow;
             if (parent.row() >= 0) {
                 droprow = parent.row();
-            }
-            else if (row >= 0) {
+            } else if (row >= 0) {
                 droprow = row;
-            }
-            else {
+            } else {
                 droprow = rowCount();
             }
-
             emit filesDroppedOnSinger(items, m_curSingerId, static_cast<int>(droprow));
         }
         commitChanges();
@@ -512,6 +532,36 @@ void TableModelQueueSongs::sort(int column, Qt::SortOrder order) {
     });
     emit layoutChanged();
     commitChanges();
+}
+
+void TableModelQueueSongs::setFont(const QFont &font) {
+    m_itemFont = font;
+    m_itemFontStrikeout = font;
+    m_itemFontStrikeout.setStrikeOut(true);
+    m_itemHeight = m_itemFontMetrics.height() + 6;
+    m_headerFont = font;
+    m_headerFont.setBold(true);
+}
+
+QSize TableModelQueueSongs::getColumnSizeHint(int section) const {
+    switch (section) {
+        case COL_ID:
+            return QSize(m_itemFontMetrics.size(Qt::TextSingleLine, "_ID").width(), m_itemHeight);
+        case COL_ARTIST:
+            return QSize(m_itemFontMetrics.size(Qt::TextSingleLine, "_Artist").width(), m_itemHeight);
+        case COL_TITLE:
+            return QSize(m_itemFontMetrics.size(Qt::TextSingleLine, "_Title").width(), m_itemHeight);
+        case COL_SONGID:
+            return QSize(m_itemFontMetrics.size(Qt::TextSingleLine, "XXXX0000000-01-00").width(), m_itemHeight);
+        case COL_KEY:
+            return QSize(m_itemFontMetrics.size(Qt::TextSingleLine, "_Key_").width(), m_itemHeight);
+        case COL_DURATION:
+            return QSize(m_itemFontMetrics.size(Qt::TextSingleLine, "_00:00").width(), m_itemHeight);
+        case COL_PATH:
+            // This is actually where the delete icon is displayed, reused the column since we don't actually show path info
+        default:
+            return QSize(m_itemHeight + 6, m_itemHeight);
+    }
 }
 
 void ItemDelegateQueueSongs::resizeIconsForFont(const QFont &font) {

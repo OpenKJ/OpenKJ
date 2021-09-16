@@ -1,7 +1,6 @@
 #ifndef TABLEMODELKARAOKESONGS_H
 #define TABLEMODELKARAOKESONGS_H
 
-#include <QApplication>
 #include <QAbstractTableModel>
 #include <QDateTime>
 #include <QImage>
@@ -74,7 +73,7 @@ private:
     Settings m_settings;
     QFont m_itemFont;
     QFont m_headerFont;
-    QFontMetrics m_itemFontMetrics{QApplication::fontMetrics()};
+    QFontMetrics m_itemFontMetrics{m_settings.applicationFont()};
     QTimer searchTimer{this};
     int m_itemHeight{20};
 

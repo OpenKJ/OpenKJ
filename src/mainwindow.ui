@@ -723,7 +723,7 @@ QPushButton:default {
                     </property>
                     <widget class="QTabWidget" name="tabWidgetQueue">
                      <property name="currentIndex">
-                      <number>1</number>
+                      <number>0</number>
                      </property>
                      <property name="tabBarAutoHide">
                       <bool>true</bool>
@@ -783,20 +783,11 @@ QPushButton:default {
                          <property name="wordWrap">
                           <bool>false</bool>
                          </property>
-                         <attribute name="horizontalHeaderCascadingSectionResizes">
-                          <bool>true</bool>
-                         </attribute>
                          <attribute name="horizontalHeaderMinimumSectionSize">
                           <number>6</number>
                          </attribute>
-                         <attribute name="horizontalHeaderHighlightSections">
-                          <bool>true</bool>
-                         </attribute>
                          <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
-                          <bool>false</bool>
-                         </attribute>
-                         <attribute name="horizontalHeaderStretchLastSection">
-                          <bool>false</bool>
+                          <bool>true</bool>
                          </attribute>
                          <attribute name="verticalHeaderVisible">
                           <bool>false</bool>

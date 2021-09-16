@@ -44,17 +44,17 @@ public:
     [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
     [[nodiscard]] QStringList mimeTypes() const override;
     [[nodiscard]] QMimeData *mimeData(const QModelIndexList &indexes) const override;
-    bool canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const override;
-    bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
+    [[nodiscard]] bool canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const override;
+    [[nodiscard]] bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
     [[nodiscard]] Qt::DropActions supportedDropActions() const override;
     [[nodiscard]] Qt::ItemFlags flags(const QModelIndex &index) const override;
     void sort(int column, Qt::SortOrder order) override;
 
     void loadSinger(int singerId);
     [[nodiscard]] int getSingerId() const { return m_curSingerId; }
-    int getPosition(int songId);
-    bool getPlayed(int songId);
-    int getKey(int songId);
+    [[nodiscard]] int getPosition(int songId);
+    [[nodiscard]] bool getPlayed(int songId);
+    [[nodiscard]] int getKey(int songId);
     void move(int oldPosition, int newPosition);
     void moveSongId(int songId, int newPosition);
     int add(int songId);
@@ -72,6 +72,18 @@ private:
     TableModelKaraokeSongs &m_karaokeSongsModel;
     std::vector<okj::QueueSong> m_songs;
     Settings m_settings;
+    QFont m_itemFont;
+    QFont m_itemFontStrikeout;
+    QFont m_headerFont;
+    QFontMetrics m_itemFontMetrics{m_settings.applicationFont()};
+    int m_itemHeight{20};
+
+    [[nodiscard]] QVariant getItemDisplayRoleData(const QModelIndex &index) const;
+    [[nodiscard]] static QVariant getColumnTextAlignmentRoleData(int column);
+    [[nodiscard]] static QString getColumnName(int section);
+    [[nodiscard]] QSize getColumnSizeHint(int section) const;
+
+
 
 signals:
     void queueModified(int singerId);
@@ -81,6 +93,8 @@ signals:
 
 public slots:
     void songAddSlot(int songId, int singerId, int keyChg = 0);
+    void setFont(const QFont &font);
+
 
 };
 

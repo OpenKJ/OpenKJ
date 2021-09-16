@@ -1,5 +1,6 @@
 #include "tablemodelkaraokesongs.h"
 
+#include <QApplication>
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QPainter>

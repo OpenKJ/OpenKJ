@@ -643,7 +643,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewQueue->setItemDelegate(&m_qDelegate);
     ui->tableViewQueue->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewQueue));
     ui->labelNoSinger->setVisible(true);
-    autosizeQueueCols();
     ui->tabWidgetQueue->setVisible(false);
     m_mediaTempDir = std::make_unique<QTemporaryDir>();
     dbDialog = std::make_unique<DlgDatabase>(m_karaokeSongsModel, this);
@@ -847,6 +846,7 @@ void MainWindow::loadSettings() {
     QTimer::singleShot(250, [&] () {
         appFontChanged(m_settings.applicationFont());
         m_settings.restoreColumnWidths(ui->tableViewDB);
+        m_settings.restoreColumnWidths(ui->tableViewQueue);
     });
 }
 
@@ -999,6 +999,9 @@ void MainWindow::setupConnections() {
             &MainWindow::tableViewDBContextMenuRequested);
     connect(ui->tableViewQueue, &QTableView::customContextMenuRequested, this,
             &MainWindow::tableViewQueueContextMenuRequested);
+    connect(ui->tableViewQueue->horizontalHeader(), &QHeaderView::sectionResized, [&] () {
+            m_settings.saveColumnWidths(ui->tableViewQueue);
+    });
     connect(ui->tableViewRotation, &QTableView::customContextMenuRequested, this,
             &MainWindow::tableViewRotationContextMenuRequested);
     connect(ui->sliderProgress, &QSlider::sliderPressed, this, &MainWindow::sliderProgressPressed);
@@ -1762,6 +1765,7 @@ void MainWindow::actionSettingsTriggered() {
     connect(settingsDialog, &DlgSettings::applicationFontChanged, &m_qDelegate, &ItemDelegateQueueSongs::resizeIconsForFont);
     connect(settingsDialog, &DlgSettings::applicationFontChanged, &m_rotDelegate, &ItemDelegateRotation::resizeIconsForFont);
     connect(settingsDialog, &DlgSettings::applicationFontChanged, &m_karaokeSongsModel, &TableModelKaraokeSongs::resizeIconsForFont);
+    connect(settingsDialog, &DlgSettings::applicationFontChanged, &m_qModel, &TableModelQueueSongs::setFont);
     connect(settingsDialog, &DlgSettings::applicationFontChanged, this, &MainWindow::appFontChanged);
     connect(settingsDialog, &DlgSettings::alertBgColorChanged, cdgWindow.get(), &DlgCdg::alertBgColorChanged);
     connect(settingsDialog, &DlgSettings::alertTxtColorChanged, cdgWindow.get(), &DlgCdg::alertTxtColorChanged);
@@ -3354,35 +3358,21 @@ void MainWindow::autosizeKaraokeDbCols() const {
 }
 
 void MainWindow::autosizeQueueCols() {
-    if (ui->tabWidgetQueue->currentIndex() == 1)
-        return;
     int fH = QFontMetrics(m_settings.applicationFont()).height();
     int iconWidth = fH + fH;
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
-    int keyColSize = QFontMetrics(m_settings.applicationFont()).horizontalAdvance("Key") + iconWidth;
-    int durationColSize = QFontMetrics(m_settings.applicationFont()).horizontalAdvance("Duration") + iconWidth;
-    int songidColSize = QFontMetrics(m_settings.applicationFont()).horizontalAdvance(" AA0000000-0000 ");
-    int lastPlayedColSize = QFontMetrics(m_settings.applicationFont()).horizontalAdvance("00-00-0000") + iconWidth;
-    int playsColSize = QFontMetrics(m_settings.applicationFont()).horizontalAdvance("Plays") + iconWidth;
-#else
-    int lastPlayedColSize = QFontMetrics(m_settings.applicationFont()).width("00-00-0000") + iconWidth;
-    int playsColSize = QFontMetrics(m_settings.applicationFont()).width("Plays") + iconWidth;
-    int durationColSize = QFontMetrics(m_settings.applicationFont()).width("Duration") + iconWidth;
-    int keyColSize = QFontMetrics(m_settings.applicationFont()).width("Key") + iconWidth;
-    int songidColSize = QFontMetrics(m_settings.applicationFont()).width(" AA0000000-0000 ");
-#endif
-    int remainingSpace = ui->tableViewQueue->width() - iconWidth - keyColSize - durationColSize - songidColSize - 16;
-    int artistColSize = (remainingSpace / 2);
-    int titleColSize = (remainingSpace / 2);
-    ui->tableViewQueue->horizontalHeader()->resizeSection(TableModelQueueSongs::COL_ARTIST, artistColSize);
-    ui->tableViewQueue->horizontalHeader()->resizeSection(TableModelQueueSongs::COL_TITLE, titleColSize);
-    ui->tableViewQueue->horizontalHeader()->resizeSection(TableModelQueueSongs::COL_SONGID, songidColSize);
-    ui->tableViewQueue->horizontalHeader()->resizeSection(TableModelQueueSongs::COL_DURATION, durationColSize);
-    ui->tableViewQueue->horizontalHeader()->resizeSection(TableModelQueueSongs::COL_PATH, iconWidth);
     ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(TableModelQueueSongs::COL_PATH, QHeaderView::Fixed);
-    ui->tableViewQueue->horizontalHeader()->resizeSection(TableModelQueueSongs::COL_KEY, keyColSize);
-    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(TableModelQueueSongs::COL_KEY, QHeaderView::Fixed);
-
+    ui->tableViewQueue->horizontalHeader()->resizeSection(TableModelQueueSongs::COL_PATH, iconWidth);
+    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(TableModelQueueSongs::COL_ARTIST, QHeaderView::Stretch);
+    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(TableModelQueueSongs::COL_TITLE, QHeaderView::Stretch);
+    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(TableModelQueueSongs::COL_SONGID, QHeaderView::ResizeToContents);
+    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(TableModelQueueSongs::COL_DURATION, QHeaderView::ResizeToContents);
+    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(TableModelQueueSongs::COL_KEY, QHeaderView::ResizeToContents);
+    QApplication::processEvents();
+    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(TableModelQueueSongs::COL_ARTIST, QHeaderView::Interactive);
+    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(TableModelQueueSongs::COL_TITLE, QHeaderView::Interactive);
+    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(TableModelQueueSongs::COL_SONGID, QHeaderView::Interactive);
+    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(TableModelQueueSongs::COL_DURATION, QHeaderView::Interactive);
+    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(TableModelQueueSongs::COL_KEY, QHeaderView::Interactive);
 }
 
 void MainWindow::autosizeBmViews() {
@@ -3583,6 +3573,7 @@ void MainWindow::tableViewRotationCurrentChanged(const QModelIndex &cur, const Q
         ui->labelNoSinger->setVisible(false);
         QApplication::processEvents();
         autosizeQueueCols();
+        m_settings.restoreColumnWidths(ui->tableViewQueue);
     }
 }
 
@@ -3618,9 +3609,7 @@ void MainWindow::rotationSelectionChanged(const QItemSelection &selected, const 
         ui->tabWidgetQueue->setVisible(false);
         ui->labelNoSinger->setVisible(true);
     }
-
     m_logger->trace("{} Rotation Selection Changed", m_loggingPrefix);
-
 }
 
 void MainWindow::lineEditBmSearchChanged(const QString &arg1) {
