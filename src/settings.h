@@ -122,7 +122,7 @@ public:
     void saveColumnWidths(QTreeView *treeView);
     void saveColumnWidths(QTableView *tableView);
     void restoreColumnWidths(QTreeView *treeView);
-    void restoreColumnWidths(QTableView *tableView);
+    bool restoreColumnWidths(QTableView *tableView);
     void saveSplitterState(QSplitter *splitter);
     void restoreSplitterState(QSplitter *splitter);
     void setTickerFont(const QFont &font);

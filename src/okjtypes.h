@@ -97,11 +97,23 @@ namespace okj {
         QString path;
     };
 
+    struct HistorySong {
+        unsigned int id{0};
+        unsigned int historySinger{0};
+        QString filePath;
+        QString artist;
+        QString title;
+        QString songid;
+        int keyChange{0};
+        int plays{0};
+        QDateTime lastPlayed; // unix time
+    };
 }
 
 Q_DECLARE_METATYPE(okj::KaraokeSong)
 Q_DECLARE_METATYPE(std::shared_ptr<okj::KaraokeSong>)
 Q_DECLARE_METATYPE(okj::QueueSong)
+Q_DECLARE_METATYPE(okj::HistorySong)
 
 std::ostream& operator<<(std::ostream& os, const okj::RotationSinger& s);
 

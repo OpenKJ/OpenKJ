@@ -72,10 +72,10 @@ private:
     SearchType m_searchType{SearchType::SEARCH_TYPE_ALL};
     Settings m_settings;
     QFont m_itemFont;
+    int m_itemHeight{20};
     QFont m_headerFont;
     QFontMetrics m_itemFontMetrics{m_settings.applicationFont()};
     QTimer searchTimer{this};
-    int m_itemHeight{20};
 
     void searchExec();
     static QVariant getColumnName(int section) ;

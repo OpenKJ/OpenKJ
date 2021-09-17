@@ -125,7 +125,7 @@ void DlgRegularExport::exportSingers(const std::vector<int> &historySingerIds, c
          jSinger.insert("name", singer.name);
          auto songs = m_historySongsModel.getSingerSongs(singer.historySingerId);
          QJsonArray jSongs;
-         std::for_each(songs.begin(), songs.end(), [&jSongs] (HistorySong song) {
+         std::for_each(songs.begin(), songs.end(), [&jSongs] (okj::HistorySong song) {
             QJsonObject jSong;
             jSong.insert("filepath", song.filePath);
             jSong.insert("artist", song.artist);

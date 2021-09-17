@@ -11,30 +11,28 @@
 
 std::ostream& operator<<(std::ostream& os, const QString& s);
 
-struct HistorySong {
-    unsigned int id{0};
-    unsigned int historySinger{0};
-    QString filePath;
-    QString artist;
-    QString title;
-    QString songid;
-    int keyChange{0};
-    int plays{0};
-    QDateTime lastPlayed; // unix time
-};
-
 class TableModelHistorySongs : public QAbstractTableModel
 {
     Q_OBJECT
 private:
     std::string m_loggingPrefix{"[HistorySongsModel]"};
     std::shared_ptr<spdlog::logger> m_logger;
-    std::vector<HistorySong> m_songs;
+    std::vector<okj::HistorySong> m_songs;
     QString m_currentSinger;
     int m_lastSortColumn{3};
     Qt::SortOrder m_lastSortOrder{Qt::AscendingOrder};
     TableModelKaraokeSongs &m_karaokeSongsModel;
     Settings m_settings;
+    QFont m_itemFont;
+    QFontMetrics m_itemFontMetrics{m_settings.applicationFont()};
+    int m_itemHeight{20};
+    QFont m_headerFont;
+
+    QVariant getSizeHint(int section) const;
+    QString getColumnName(int section) const;
+
+public slots:
+    void setFont(const QFont &font);
 
 public:
     enum {
@@ -62,19 +60,14 @@ public:
     [[nodiscard]] int addSinger(const QString &name) const;
     [[nodiscard]] bool songExists(int historySingerId, const QString &filePath) const;
     [[nodiscard]] int getSingerId(const QString &name) const;
-    [[nodiscard]] std::vector<HistorySong> getSingerSongs(int historySingerId);
+    [[nodiscard]] std::vector<okj::HistorySong> getSingerSongs(int historySingerId);
     [[nodiscard]] QString currentSingerName() const { return m_currentSinger; }
     void refresh();
-    // QAbstractItemModel interface
-public:
     [[nodiscard]] QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
-
-    // QAbstractItemModel interface
-public:
     void sort(int column, Qt::SortOrder order) override;
     [[nodiscard]] QVariant getDisplayData(const QModelIndex &index) const;
     [[nodiscard]] static QVariant getTextAlignment(const QModelIndex &index) ;
-    QVariant getSizeHint(int section) const;
+
 };
 
 #endif // SINGERHISTORYTABLEMODEL_H

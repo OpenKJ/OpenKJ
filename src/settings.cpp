@@ -466,12 +466,10 @@ void Settings::restoreColumnWidths(QTreeView *treeView)
     settings->endGroup();
 }
 
-void Settings::restoreColumnWidths(QTableView *tableView)
+bool Settings::restoreColumnWidths(QTableView *tableView)
 {
-    if (m_safeStartupMode)
-        return;
-    if (!settings->childGroups().contains(tableView->objectName()))
-        return;
+    if (m_safeStartupMode || !settings->childGroups().contains(tableView->objectName()))
+        return false;
     settings->beginGroup(tableView->objectName());
     QStringList headers = settings->childGroups();
     for (int i=0; i < headers.size(); i++)
@@ -485,6 +483,7 @@ void Settings::restoreColumnWidths(QTableView *tableView)
         settings->endGroup();
     }
     settings->endGroup();
+    return true;
 }
 
 void Settings::saveSplitterState(QSplitter *splitter)

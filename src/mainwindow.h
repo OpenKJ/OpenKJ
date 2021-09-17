@@ -218,6 +218,7 @@ private slots:
     void autosizeViews();
     void autosizeQueueCols();
     void autosizeBmViews();
+    void autosizeHistoryCols();
     void bmDbUpdated();
     void bmDbCleared();
     void bmMediaStateChanged(const MediaBackend::State &newState);

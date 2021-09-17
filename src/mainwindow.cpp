@@ -999,9 +999,6 @@ void MainWindow::setupConnections() {
             &MainWindow::tableViewDBContextMenuRequested);
     connect(ui->tableViewQueue, &QTableView::customContextMenuRequested, this,
             &MainWindow::tableViewQueueContextMenuRequested);
-    connect(ui->tableViewQueue->horizontalHeader(), &QHeaderView::sectionResized, [&] () {
-            m_settings.saveColumnWidths(ui->tableViewQueue);
-    });
     connect(ui->tableViewRotation, &QTableView::customContextMenuRequested, this,
             &MainWindow::tableViewRotationContextMenuRequested);
     connect(ui->sliderProgress, &QSlider::sliderPressed, this, &MainWindow::sliderProgressPressed);
@@ -1101,6 +1098,17 @@ void MainWindow::setupConnections() {
     connect(ui->actionBurn_in_EOS_Jump, &QAction::triggered, this, &MainWindow::actionBurnInEosJump);
     connect(ui->sliderVolume, &QSlider::valueChanged, this, &MainWindow::sliderVolumeChanged);
     connect(ui->sliderBmVolume, &QSlider::valueChanged, this, &MainWindow::sliderBmVolumeChanged);
+    connect(ui->tabWidgetQueue, &QTabWidget::currentChanged, [&] (auto current) {
+        if (current == 1) {
+            m_settings.saveColumnWidths(ui->tableViewQueue);
+            if (!m_settings.restoreColumnWidths(ui->tableViewHistory))
+                autosizeHistoryCols();
+        } else {
+            m_settings.saveColumnWidths(ui->tableViewHistory);
+            if (!m_settings.restoreColumnWidths(ui->tableViewQueue))
+                autosizeQueueCols();
+        }
+    });
 }
 
 void MainWindow::tableViewRotationSelChanged() {
@@ -1404,7 +1412,6 @@ MainWindow::~MainWindow() {
     m_settings.saveSplitterState(ui->splitter_3);
     m_settings.saveColumnWidths(ui->tableViewDB);
     m_settings.saveColumnWidths(ui->tableViewRotation);
-    m_settings.saveColumnWidths(ui->tableViewQueue);
     m_settings.saveWindowState(requestsDialog.get());
     m_settings.saveWindowState(dlgSongShop.get());
     m_settings.saveWindowState(dbDialog.get());
@@ -1766,6 +1773,7 @@ void MainWindow::actionSettingsTriggered() {
     connect(settingsDialog, &DlgSettings::applicationFontChanged, &m_rotDelegate, &ItemDelegateRotation::resizeIconsForFont);
     connect(settingsDialog, &DlgSettings::applicationFontChanged, &m_karaokeSongsModel, &TableModelKaraokeSongs::resizeIconsForFont);
     connect(settingsDialog, &DlgSettings::applicationFontChanged, &m_qModel, &TableModelQueueSongs::setFont);
+    connect(settingsDialog, &DlgSettings::applicationFontChanged, &m_historySongsModel, &TableModelHistorySongs::setFont);
     connect(settingsDialog, &DlgSettings::applicationFontChanged, this, &MainWindow::appFontChanged);
     connect(settingsDialog, &DlgSettings::alertBgColorChanged, cdgWindow.get(), &DlgCdg::alertBgColorChanged);
     connect(settingsDialog, &DlgSettings::alertTxtColorChanged, cdgWindow.get(), &DlgCdg::alertTxtColorChanged);
@@ -3338,6 +3346,7 @@ void MainWindow::autosizeViews() {
     autosizeKaraokeDbCols();
     autosizeRotationCols();
     autosizeQueueCols();
+    autosizeHistoryCols();
 }
 
 void MainWindow::autosizeKaraokeDbCols() const {
@@ -3373,6 +3382,22 @@ void MainWindow::autosizeQueueCols() {
     ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(TableModelQueueSongs::COL_SONGID, QHeaderView::Interactive);
     ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(TableModelQueueSongs::COL_DURATION, QHeaderView::Interactive);
     ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(TableModelQueueSongs::COL_KEY, QHeaderView::Interactive);
+}
+
+void MainWindow::autosizeHistoryCols() {
+    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(TableModelHistorySongs::LAST_SUNG, QHeaderView::ResizeToContents);
+    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(TableModelHistorySongs::SUNG_COUNT, QHeaderView::ResizeToContents);
+    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(TableModelHistorySongs::KEY_CHANGE, QHeaderView::ResizeToContents);
+    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(TableModelHistorySongs::ARTIST, QHeaderView::Stretch);
+    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(TableModelHistorySongs::TITLE, QHeaderView::Stretch);
+    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(TableModelHistorySongs::SONGID, QHeaderView::ResizeToContents);
+    QApplication::processEvents();
+    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(TableModelHistorySongs::LAST_SUNG, QHeaderView::Interactive);
+    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(TableModelHistorySongs::SUNG_COUNT, QHeaderView::Interactive);
+    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(TableModelHistorySongs::KEY_CHANGE, QHeaderView::Interactive);
+    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(TableModelHistorySongs::ARTIST, QHeaderView::Interactive);
+    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(TableModelHistorySongs::TITLE, QHeaderView::Interactive);
+    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(TableModelHistorySongs::SONGID, QHeaderView::Interactive);
 }
 
 void MainWindow::autosizeBmViews() {
@@ -3562,9 +3587,8 @@ void MainWindow::tableViewRotationCurrentChanged(const QModelIndex &cur, const Q
     m_historySongsModel.loadSinger(m_rotModel.getSinger(cur.data(Qt::UserRole).toInt()).name);
     if (!m_settings.treatAllSingersAsRegs() && !cur.sibling(cur.row(), TableModelRotation::COL_REGULAR).data().toBool())
         ui->tabWidgetQueue->removeTab(1);
-    else {
-        if (ui->tabWidgetQueue->count() == 1)
-            ui->tabWidgetQueue->addTab(m_historyTabWidget, "History");
+    else if (ui->tabWidgetQueue->count() == 1) {
+        ui->tabWidgetQueue->addTab(m_historyTabWidget, "History");
     }
     ui->gbxQueue->setTitle(
             QString("Song Queue - " + cur.sibling(cur.row(), TableModelRotation::COL_NAME).data().toString()));
@@ -4352,6 +4376,8 @@ void MainWindow::showAddSingerDialog() {
     } else
         dlgAddSinger->raise();
 }
+
+
 
 
 
