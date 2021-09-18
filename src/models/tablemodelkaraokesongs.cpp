@@ -98,7 +98,7 @@ QVariant TableModelKaraokeSongs::data(const QModelIndex &index, int role) const 
         case Qt::TextAlignmentRole:
             return getColumnTextAlignmentHint(index.column());
         case Qt::DecorationRole:
-            return getColumnDecorationRole(index.column());
+            return getColumnDecorationRole(index);
         case Qt::DisplayRole:
             return getItemDisplayData(index);
         case Qt::SizeHintRole:
@@ -113,12 +113,12 @@ QVariant TableModelKaraokeSongs::data(const QModelIndex &index, int role) const 
     }
 }
 
-QVariant TableModelKaraokeSongs::getColumnDecorationRole(int column) const {
-    switch (column) {
+QVariant TableModelKaraokeSongs::getColumnDecorationRole(const QModelIndex &index) const {
+    switch (index.column()) {
         case COL_SONGID:
-            if (m_filteredSongs.at(column)->path.endsWith("cdg", Qt::CaseInsensitive))
+            if (m_filteredSongs.at(index.row())->path.endsWith("cdg", Qt::CaseInsensitive))
                 return m_iconCdg;
-            else if (m_filteredSongs.at(column)->path.endsWith("zip", Qt::CaseInsensitive))
+            else if (m_filteredSongs.at(index.row())->path.endsWith("zip", Qt::CaseInsensitive))
                 return m_iconZip;
             else
                 return m_iconVid;

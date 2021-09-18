@@ -82,7 +82,7 @@ private:
     [[nodiscard]] QVariant getColumnSizeHint(int section) const;
     [[nodiscard]] QVariant getItemDisplayData(const QModelIndex &index) const;
     [[nodiscard]] static QVariant getColumnTextAlignmentHint(int column) ;
-    [[nodiscard]] QVariant getColumnDecorationRole(int column) const;
+    [[nodiscard]] QVariant getColumnDecorationRole(const QModelIndex &index) const;
 
 public slots:
     void setSongDuration(const QString &path, unsigned int duration);

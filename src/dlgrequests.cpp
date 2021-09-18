@@ -180,13 +180,19 @@ void DlgRequests::requestsModified() {
     autoSizeViews();
     if (requestsModel->count() > 0 && m_settings.testingEnabled() && testTimer.isActive()) {
         ui->tableViewRequests->selectRow(0);
-        QApplication::processEvents();
-        ui->tableViewSearch->selectRow(0);
-        QApplication::processEvents();
-        on_pushButtonAddSong_clicked();
-        songbookApi.removeRequest(requestsModel->requests().at(0).requestId());
-        if (rotModel.singerCount() > 5)
-            rotModel.singerDelete(rotModel.getSingerAtPosition(0).id);
+        for (auto i=0; i<20; i++)
+            QApplication::processEvents();
+        dbModel.search(ui->lineEditSearch->text());
+        for (auto i=0; i<20; i++)
+            QApplication::processEvents();
+        QTimer::singleShot(250, [&] () {
+            ui->tableViewSearch->selectRow(0);
+            QApplication::processEvents();
+            on_pushButtonAddSong_clicked();
+            songbookApi.removeRequest(requestsModel->requests().at(0).requestId());
+            if (rotModel.singerCount() > 5)
+                rotModel.singerDelete(rotModel.getSingerAtPosition(0).id);
+        });
         ui->pushButtonRunTortureTest->setText("Running Torture Test (" + QString::number(++testruns) + ")");
     }
 }
