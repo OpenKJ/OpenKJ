@@ -32,7 +32,7 @@
         <binary>openkj</binary>
     </provides>
     <releases>
-        <release version="2.1.33" date="2021-09-16">
+        <release version="2.1.33" date="2021-09-18">
             <description>
                 <ul>
                     <li>Fix crash to desktop bug introduced in 2.1.31 unstable</li>
