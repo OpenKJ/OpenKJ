@@ -33,18 +33,46 @@ class DbUpdater : public QObject
     Q_OBJECT
 
 private:
+
+    // file extension list must be sorted and in lower case:
+    const std::array<std::string, 9> karaoke_file_extensions {
+        "avi",
+        "cdg",
+        "m4v",
+        "mkv",
+        "mp4",
+        "mpeg",
+        "mpg",
+        "wmv",
+        "zip"
+    };
+
+    std::array<std::string, 5> audio_file_extensions {
+        "flac",
+        "mov",
+        "mp3",
+        "ogg",
+        "wav"
+    };
+
     QString m_path;
     SourceDir::NamingPattern m_pattern{SourceDir::SAT};
     Settings m_settings;
     QStringList m_errors;
+    QStringList m_karaokeFilesOnDisk;
+    QStringList m_audioFilesOnDisk;
+    QStringList m_filesInDB;
     void fixMissingFiles(QStringList &existingFiles);
     void importDragDropSongs(QStringList &existingFiles);
+    void findKaraokeFilesOnDisk();
+    void findKaraokeFilesInDB();
+    QString getPathWithTrailingSeparator();
 
 public:
     explicit DbUpdater(QObject *parent = nullptr);
     void setPath(const QString &value);
     void setPattern(SourceDir::NamingPattern value);
-    QStringList findKaraokeFiles(const QString& directory);
+
     static QStringList getMissingDbFiles();
     static QStringList getDragDropFiles();
     QStringList getErrors();
