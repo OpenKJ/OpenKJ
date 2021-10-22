@@ -2299,7 +2299,7 @@ void MainWindow::editSong(const std::shared_ptr<okj::KaraokeSong>& song) {
         isCdg = true;
     QString mediaFile;
     if (isCdg)
-        mediaFile = DbUpdater::findMatchingAudioFile(song->path);
+        mediaFile = findMatchingAudioFile(song->path);
     TableModelKaraokeSourceDirs model;
     SourceDir srcDir = model.getDirByPath(song->path);
     bool allowRename = true;
@@ -2541,7 +2541,7 @@ void MainWindow::markSongBad(const std::shared_ptr<okj::KaraokeSong>& song) {
             isCdg = true;
         QString mediaFile;
         if (isCdg)
-            mediaFile = DbUpdater::findMatchingAudioFile(song->path);
+            mediaFile = findMatchingAudioFile(song->path);
         QFile file(song->path);
         auto ret = m_karaokeSongsModel.removeBadSong(song->path);
         switch (ret) {

@@ -63,7 +63,7 @@ private:
     QStringList m_audioFilesOnDisk;
     QStringList m_filesInDB;
     void fixMissingFiles(QStringList &existingFiles);
-    void importDragDropSongs(QStringList &existingFiles);
+//    void importDragDropSongs(QStringList &existingFiles);
     void findKaraokeFilesOnDisk();
     void findKaraokeFilesInDB();
     QString getPathWithTrailingSeparator();
@@ -74,14 +74,13 @@ public:
     void setPattern(SourceDir::NamingPattern value);
 
     static QStringList getMissingDbFiles();
-    static QStringList getDragDropFiles();
+    //static QStringList getDragDropFiles();
     QStringList getErrors();
     void addSingleTrack(const QString& filePath);
     static int addDroppedFile(const QString& filePath);
     void process();
     static bool dbEntryExists(const QString &filepath, bool includeDropped = false);
     static QString findMatchingAudioFile(const QString& cdgFilePath);
-    static bool isSupportedMediaFile(const QString &filePath);
 
 signals:
     void errorsGenerated(QStringList);

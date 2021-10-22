@@ -48,39 +48,6 @@ bool DbUpdater::dbEntryExists(const QString &filepath, bool includeDropped) {
     return false;
 }
 
-// TODO: remove and consolidate - this method exists several places in the code...
-// Given a cdg file path, tries to find a matching supported audio file
-// Returns an empty QString if no match is found
-// Optimized for finding most common file extensions first
-QString DbUpdater::findMatchingAudioFile(const QString &cdgFilePath) {
-    std::array<QString, 41> audioExtensions{
-        "mp3",
-        "MP3",
-        "wav",
-        "WAV",
-        "ogg",
-        "OGG",
-        "mov",
-        "MOV",
-        "flac",
-        "FLAC",
-        "Mp3","mP3",
-        "Wav","wAv","waV","WAv","wAV","WaV",
-        "Ogg","oGg","ogG","OGg","oGG","OgG",
-        "Mov","mOv","moV","MOv","mOV","MoV",
-        "Flac","fLac","flAc","flaC","FLac","FLAc",
-        "flAC","fLAC","FlaC", "FLaC", "FlAC"
-    };
-
-    QFileInfo cdgInfo(cdgFilePath);
-    for (const auto &ext : audioExtensions) {
-        QString testPath = cdgInfo.absolutePath() + QDir::separator() + cdgInfo.completeBaseName() + '.' + ext;
-        if (QFile::exists(testPath))
-            return testPath;
-    }
-    return QString();
-}
-
 DbUpdater::DbUpdater(QObject *parent) :
         QObject(parent) {
 }
@@ -437,35 +404,6 @@ QString DbUpdater::getPathWithTrailingSeparator() {
     return m_path.endsWith(QDir::separator())
             ? m_path
             : m_path + QDir::separator();
-}
-
-
-// Checks the provided file path to see whether it's a file type that's supported by OpenKJ
-// Returns true if supported, false otherwise
-bool DbUpdater::isSupportedMediaFile(const QString &filePath) {
-    const std::array<std::string, 9> extensions{
-        "zip",
-        "mp4",
-        "cdg",
-        "mkv",
-        "avi",
-        "wmv",
-        "m4v",
-        "mpg",
-        "mpeg"
-    };
-    const std::string ext = QFileInfo(filePath).suffix().toLower().toStdString();
-    return std::any_of(
-            extensions.begin(),
-            extensions.end(),
-            [&ext,&filePath](const auto &val) {
-                if (val == "cdg")
-                {
-                    return (val == ext && !findMatchingAudioFile(filePath).isEmpty());
-                }
-                return (ext == val);
-            }
-            );
 }
 
 // Given a list of files found on disk, checks them against files that are
