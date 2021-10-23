@@ -52,11 +52,6 @@ DbUpdater::DbUpdater(QObject *parent) :
         QObject(parent) {
 }
 
-// Set the naming pattern to be used when processing the current path
-void DbUpdater::setPattern(SourceDir::NamingPattern value) {
-    m_pattern = value;
-}
-
 // Finds all potential supported karaoke files in a given directory
 void DbUpdater::findKaraokeFilesOnDisk() {
     qInfo() << "DbUpdater::findKaraokeFilesOnDisk(" << m_path << ") called";
@@ -138,7 +133,8 @@ QStringList DbUpdater::getDragDropFiles() {
 // Typically used for files purchased from the song m_songShop,
 // or files added through the directory watch feature.
 void DbUpdater::addSingleTrack(const QString &filePath) {
-    MzArchive archive;
+    // TODO: athom
+    /*MzArchive archive;
     QSqlQuery query;
     query.prepare(
             "INSERT OR IGNORE INTO dbSongs (discid,artist,title,path,filename,duration,searchstring) VALUES(:discid, :artist, :title, :path, :filename, :duration, :searchstring)");
@@ -164,7 +160,7 @@ void DbUpdater::addSingleTrack(const QString &filePath) {
     query.bindValue(":filename", file.completeBaseName());
     query.bindValue(":duration", duration);
     query.bindValue(":searchstring", QString(file.completeBaseName() + " " + artist + " " + title + " " + discid));
-    query.exec();
+    query.exec();*/
 }
 
 // Adds the given media file path to the database as a drag and dropped file
@@ -333,7 +329,9 @@ void DbUpdater::process() {
                 searchstring = :searchstring
            ));
     MzArchive archive;
-    KaraokeFileInfo parser;
+    // TODO: maybe just call the default constructor...
+    auto patternResolver = std::make_shared<KaraokeFilePatternResolver>();
+    KaraokeFileInfo parser(this, patternResolver);
     QFileInfo fileInfo;
     int loops{0};
     for (const auto &filePath : newSongs) {
@@ -350,16 +348,8 @@ void DbUpdater::process() {
             continue;
         }
 #endif
-        parser.setFileName(filePath);
-        parser.setPattern(m_pattern, m_path);
-        parser.getMetadata();
-        if (!parser.parseSuccess()) {
-            // Something went wrong, no metadata found. File is probably named wrong. If we didn't try media tags, give it a shot
-            if (m_pattern != SourceDir::METADATA) {
-                parser.setPattern(SourceDir::METADATA, m_path);
-                parser.getMetadata();
-            }
-        }
+        parser.setFile(filePath);
+
         if (!m_settings.dbLazyLoadDurations())
             duration = parser.getDuration();
         if (filePath.endsWith(".zip", Qt::CaseInsensitive) && !m_settings.dbSkipValidation()) {
@@ -372,7 +362,7 @@ void DbUpdater::process() {
         query.bindValue(":discid", parser.getSongId());
         query.bindValue(":artist", parser.getArtist());
         // If metadata parse wasn't successful, just put the filename in the title field
-        query.bindValue(":title", (parser.parseSuccess()) ? parser.getTitle() : fileInfo.completeBaseName());
+        query.bindValue(":title", (parser.parsedSuccessfully()) ? parser.getTitle() : fileInfo.completeBaseName());
         query.bindValue(":path", filePath);
         query.bindValue(":filename", fileInfo.completeBaseName());
         query.bindValue(":duration", duration);

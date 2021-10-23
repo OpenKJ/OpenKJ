@@ -6,15 +6,14 @@
 
 
 void DlgCustomPatterns::evaluateRegEx() {
-    KaraokeFileInfo parser;
     ui->labelArtistExample->setText(
-            parser.testPattern(ui->lineEditArtistRegEx->text(), ui->lineEditFilenameExample->text(),
+            KaraokeFileInfo::testPattern(ui->lineEditArtistRegEx->text(), ui->lineEditFilenameExample->text(),
                                ui->spinBoxArtistCaptureGrp->value()));
     ui->labelTitleExample->setText(
-            parser.testPattern(ui->lineEditTitleRegEx->text(), ui->lineEditFilenameExample->text(),
+            KaraokeFileInfo::testPattern(ui->lineEditTitleRegEx->text(), ui->lineEditFilenameExample->text(),
                                ui->spinBoxTitleCaptureGrp->value()));
     ui->labelDiscIdExample->setText(
-            parser.testPattern(ui->lineEditDiscIdRegEx->text(), ui->lineEditFilenameExample->text(),
+            KaraokeFileInfo::testPattern(ui->lineEditDiscIdRegEx->text(), ui->lineEditFilenameExample->text(),
                                ui->spinBoxDiscIdCaptureGrp->value()));
 }
 

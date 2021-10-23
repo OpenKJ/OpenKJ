@@ -184,7 +184,7 @@ void DlgDatabase::on_buttonUpdate_clicked()
         dbUpdateDlg->show();
         QApplication::processEvents();
         updater.setPath(sourcedirmodel->getDirByIndex(selectedRow).getPath());
-        updater.setPattern(sourcedirmodel->getDirByIndex(selectedRow).getPattern());
+        //updater.setPattern(sourcedirmodel->getDirByIndex(selectedRow).getPattern());
         QApplication::processEvents();
         updater.process();
         emit databaseUpdateComplete();
@@ -214,7 +214,7 @@ void DlgDatabase::on_buttonUpdateAll_clicked()
         //msgBox.setInformativeText("Processing path: " + sourcedirmodel->getDirByIndex(i)->getPath());
         dbUpdateDlg->changeDirectory(sourcedirmodel->getDirByIndex(i).getPath());
         updater.setPath(sourcedirmodel->getDirByIndex(i).getPath());
-        updater.setPattern(sourcedirmodel->getDirByIndex(i).getPattern());
+        //updater.setPattern(sourcedirmodel->getDirByIndex(i).getPattern());
         updater.process();
     }
     emit databaseUpdateComplete();

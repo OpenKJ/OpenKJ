@@ -459,6 +459,7 @@ set(SOURCE_FILES
         src/dlgpassword.cpp
         src/dlgpurchaseprogress.cpp
         src/karaokefileinfo.cpp
+        src/karaokefilepatternresolver.cpp
         src/dlgeditsong.cpp
         src/soundfxbutton.cpp
         src/runguard/runguard.cpp
@@ -518,6 +519,7 @@ set(SOURCE_FILES
         src/dlgpassword.h
         src/dlgpurchaseprogress.h
         src/karaokefileinfo.h
+        src/karaokefilepatternresolver.h
         src/dlgeditsong.h
         src/soundfxbutton.h
         src/runguard/runguard.h

@@ -56,12 +56,10 @@ private:
     };
 
     QString m_path;
-    SourceDir::NamingPattern m_pattern{SourceDir::SAT};
     Settings m_settings;
     QStringList m_errors;
     QStringList m_karaokeFilesOnDisk;
     QStringList m_audioFilesOnDisk;
-    QStringList m_filesInDB;
     void fixMissingFiles(QStringList &existingFiles);
 //    void importDragDropSongs(QStringList &existingFiles);
     void findKaraokeFilesOnDisk();
@@ -71,7 +69,6 @@ private:
 public:
     explicit DbUpdater(QObject *parent = nullptr);
     void setPath(const QString &value);
-    void setPattern(SourceDir::NamingPattern value);
 
     static QStringList getMissingDbFiles();
     //static QStringList getDragDropFiles();
@@ -80,7 +77,6 @@ public:
     static int addDroppedFile(const QString& filePath);
     void process();
     static bool dbEntryExists(const QString &filepath, bool includeDropped = false);
-    static QString findMatchingAudioFile(const QString& cdgFilePath);
 
 signals:
     void errorsGenerated(QStringList);
