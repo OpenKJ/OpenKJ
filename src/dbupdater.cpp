@@ -54,8 +54,6 @@ DbUpdater::DbUpdater(QObject *parent) :
 
 // Finds all potential supported karaoke files in a given directory
 void DbUpdater::findKaraokeFilesOnDisk() {
-    qInfo() << "DbUpdater::findKaraokeFilesOnDisk(" << m_path << ") called";
-    //emit progressMessage("Finding karaoke files in " + m_path);
 
     // cdg and zip files
     QStringList karaoke_files;
@@ -64,39 +62,44 @@ void DbUpdater::findKaraokeFilesOnDisk() {
     karaoke_files.reserve(200000);
     audio_files.reserve(200000);
 
-    QDir dir(m_path);
     int existing{0};
     int notInDb{0};
     int total{0};
     int loops{0};
-    QDirIterator iterator(dir.absolutePath(), QDirIterator::Subdirectories);
-    while (iterator.hasNext()) {
-        iterator.next();
-        if (!iterator.fileInfo().isDir()) {
-            total++;
-            const std::string ext = iterator.fileInfo().suffix().toLower().toStdString();
 
-            if (std::binary_search(karaoke_file_extensions.begin(), karaoke_file_extensions.end(), ext)) {
-                karaoke_files.append(iterator.filePath());
+    foreach(auto path, m_paths ) {
+
+        emit progressMessage("Finding karaoke files in " + path);
+        QDir dir(path);
+        QDirIterator iterator(dir.absolutePath(), QDirIterator::Subdirectories);
+        while (iterator.hasNext()) {
+            iterator.next();
+            if (!iterator.fileInfo().isDir()) {
+                total++;
+                const std::string ext = iterator.fileInfo().suffix().toLower().toStdString();
+
+                if (std::binary_search(karaoke_file_extensions.begin(), karaoke_file_extensions.end(), ext)) {
+                    karaoke_files.append(iterator.filePath());
+                }
+                else if (std::binary_search(audio_file_extensions.begin(), audio_file_extensions.end(), ext)) {
+                    const QString filePath = iterator.filePath();
+                    audio_files.append(filePath.left(filePath.lastIndexOf('.')));
+                }
             }
-            else if (std::binary_search(audio_file_extensions.begin(), audio_file_extensions.end(), ext)) {
-                const QString filePath = iterator.filePath();
-                audio_files.append(filePath.left(filePath.lastIndexOf('.')));
+            if (loops++ % 10 == 0) {
+                emit stateChanged("Finding potential karaoke files... " + QString::number(total) + " found. " +
+                                  QString::number(notInDb) + " new/" + QString::number(existing) + " existing");
+                QApplication::processEvents();
             }
         }
-        if (loops++ % 10 == 0) {
-            emit stateChanged("Finding potential karaoke files... " + QString::number(total) + " found. " +
-                              QString::number(notInDb) + " new/" + QString::number(existing) + " existing");
-            QApplication::processEvents();
-        }
+        emit stateChanged(
+                "Finding potential karaoke files... " + QString::number(total) + " found. " + QString::number(notInDb) +
+                " new/" + QString::number(existing) + " existing");
+    //    qInfo() << "File search results - Potential files: " << files.size() << " - Already in DB: " << existing
+    //            << " - New: " << notInDb;
     }
-    emit stateChanged(
-            "Finding potential karaoke files... " + QString::number(total) + " found. " + QString::number(notInDb) +
-            " new/" + QString::number(existing) + " existing");
-//    qInfo() << "File search results - Potential files: " << files.size() << " - Already in DB: " << existing
-//            << " - New: " << notInDb;
     emit progressMessage("Done searching for files.");
-    qInfo() << "DbUpdater::findKaraokeFiles(" << m_path << ") ended";
+
     m_karaokeFilesOnDisk = karaoke_files;
     m_audioFilesOnDisk = audio_files;
 }
@@ -194,7 +197,11 @@ int DbUpdater::addDroppedFile(const QString &filePath) {
 // Process files and do database update on the current directory.
 // Constraint: access the filesystem as little as possible to optimize performance for NAS scenarios.
 // Strategy: read list of files to memory and compare list to database to find added or removed files.
-void DbUpdater::process() {
+void DbUpdater::process(const QList<QString> &paths, bool handleMissingFiles)
+{
+    m_paths = QStringList(paths);
+    m_paths.sort();
+
     emit progressChanged(0);
     emit progressMaxChanged(0);
 
@@ -222,9 +229,16 @@ void DbUpdater::process() {
     QVector<int> nonExistentSongIds; nonExistentSongIds.reserve(20000);
 
     QSqlQuery dbSongs;
+    QStringList sql_path_filter;
+    for(int i=0; i<m_paths.size(); i++) {
+        sql_path_filter.append(QString("path LIKE :pathfilter%1").arg(i));
+    }
     dbSongs.setForwardOnly(true);
-    dbSongs.prepare("SELECT songid, path, CASE discid WHEN '!!DROPPED!!' THEN 1 ELSE 0 END FROM dbsongs WHERE path LIKE :pathfilter ORDER BY path");
-    dbSongs.bindValue(":pathfilter", getPathWithTrailingSeparator() + "%");
+    dbSongs.prepare("SELECT songid, path, CASE discid WHEN '!!DROPPED!!' THEN 1 ELSE 0 END FROM dbsongs WHERE " + sql_path_filter.join(" OR ") + " ORDER BY path");
+    for(int i=0; i<m_paths.size(); i++) {
+        auto key = QString(":pathfilter%1").arg(i);
+        dbSongs.bindValue(key, getPathWithTrailingSeparator(m_paths[i]) + "%");
+    }
     dbSongs.exec();
 
     QString disk_path, db_path = nullptr;
@@ -232,6 +246,10 @@ void DbUpdater::process() {
     int run = 0;
 
     do {
+        // Comparison result:
+        //   when negative: file is on disk but not in database.
+        //   when positive: file is in database but not on disk.
+        //   when 0: file is on disk AND in databse.
         int comp_result = 0;
 
         if (run > 0) {
@@ -250,7 +268,7 @@ void DbUpdater::process() {
                 nonExistentSongIds.append(dbSongs.value(0).toInt());
             }
 
-            if (comp_result == 0 && db_path != nullptr && db_is_dropped_file) {
+            if (comp_result == 0 && db_is_dropped_file) {
                 // Add drag'n'dropped files to the list of new songs so they
                 // will be properly added (upserted) to the database.
                 // TODO: needs testing - I can't make drag'n'drop work currently.../athom
@@ -385,15 +403,10 @@ void DbUpdater::process() {
     }
 }
 
-// Set the current path for processing
-void DbUpdater::setPath(const QString &value) {
-    m_path = value;
-}
-
-QString DbUpdater::getPathWithTrailingSeparator() {
-    return m_path.endsWith(QDir::separator())
-            ? m_path
-            : m_path + QDir::separator();
+QString DbUpdater::getPathWithTrailingSeparator(const QString &path) {
+    return path.endsWith(QDir::separator())
+            ? path
+            : path + QDir::separator();
 }
 
 // Given a list of files found on disk, checks them against files that are

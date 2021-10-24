@@ -55,8 +55,9 @@ private:
         "wav"
     };
 
-    QString m_path;
+    //QString m_path;
     Settings m_settings;
+    QStringList m_paths;
     QStringList m_errors;
     QStringList m_karaokeFilesOnDisk;
     QStringList m_audioFilesOnDisk;
@@ -64,18 +65,18 @@ private:
 //    void importDragDropSongs(QStringList &existingFiles);
     void findKaraokeFilesOnDisk();
     void findKaraokeFilesInDB();
-    QString getPathWithTrailingSeparator();
+    QString getPathWithTrailingSeparator(const QString &path);
 
 public:
     explicit DbUpdater(QObject *parent = nullptr);
-    void setPath(const QString &value);
+    //void setPath(const QString &value);
 
     static QStringList getMissingDbFiles();
     //static QStringList getDragDropFiles();
     QStringList getErrors();
     void addSingleTrack(const QString& filePath);
     static int addDroppedFile(const QString& filePath);
-    void process();
+    void process(const QList<QString> &paths, bool handleMissingFiles);
     static bool dbEntryExists(const QString &filepath, bool includeDropped = false);
 
 signals:

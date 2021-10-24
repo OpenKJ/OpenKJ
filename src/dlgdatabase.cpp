@@ -182,11 +182,11 @@ void DlgDatabase::on_buttonUpdate_clicked()
         connect(&updater, &DbUpdater::progressChanged, dbUpdateDlg, &DlgDbUpdate::changeProgress);
         dbUpdateDlg->changeDirectory(sourcedirmodel->getDirByIndex(selectedRow).getPath());
         dbUpdateDlg->show();
-        QApplication::processEvents();
-        updater.setPath(sourcedirmodel->getDirByIndex(selectedRow).getPath());
+        //QApplication::processEvents();
+        //updater.setPath(sourcedirmodel->getDirByIndex(selectedRow).getPath());
         //updater.setPattern(sourcedirmodel->getDirByIndex(selectedRow).getPattern());
         QApplication::processEvents();
-        updater.process();
+        updater.process(QList<QString> {sourcedirmodel->getDirByIndex(selectedRow).getPath()}, sourcedirmodel->size() == 1);
         emit databaseUpdateComplete();
         QApplication::processEvents();
         dbUpdateDlg->changeStatusTxt(tr("Database update complete!"));
@@ -213,9 +213,9 @@ void DlgDatabase::on_buttonUpdateAll_clicked()
     {
         //msgBox.setInformativeText("Processing path: " + sourcedirmodel->getDirByIndex(i)->getPath());
         dbUpdateDlg->changeDirectory(sourcedirmodel->getDirByIndex(i).getPath());
-        updater.setPath(sourcedirmodel->getDirByIndex(i).getPath());
+        //updater.setPath(sourcedirmodel->getDirByIndex(i).getPath());
         //updater.setPattern(sourcedirmodel->getDirByIndex(i).getPattern());
-        updater.process();
+        //updater.process();
     }
     emit databaseUpdateComplete();
     showDbUpdateErrors(updater.getErrors());
