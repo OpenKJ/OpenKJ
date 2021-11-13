@@ -6,10 +6,10 @@
 #include <QSqlQuery>
 
 KaraokeFileInfo::KaraokeFileInfo(QObject *parent, std::shared_ptr<KaraokeFilePatternResolver> patternResolver) : QObject(parent), m_patternResolver(patternResolver) {
+    m_logger = spdlog::get("logger");
 }
 
-KaraokeFileInfo::KaraokeFileInfo(QObject *parent) : QObject(parent) {
-    m_logger = spdlog::get("logger");
+KaraokeFileInfo::KaraokeFileInfo(QObject *parent) : KaraokeFileInfo(parent, std::make_shared<KaraokeFilePatternResolver>()) {
 }
 
 void KaraokeFileInfo::readTags()
