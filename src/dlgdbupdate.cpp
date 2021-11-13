@@ -1,5 +1,6 @@
 #include "dlgdbupdate.h"
 #include "ui_dlgdbupdate.h"
+#include <qscrollbar.h>
 
 DlgDbUpdate::DlgDbUpdate(QWidget *parent) :
     QDialog(parent),
@@ -7,6 +8,7 @@ DlgDbUpdate::DlgDbUpdate(QWidget *parent) :
 {
     ui->setupUi(this);
     reset();
+    m_logFlushTimer.start(200, this);
 }
 
 DlgDbUpdate::~DlgDbUpdate()
@@ -14,9 +16,10 @@ DlgDbUpdate::~DlgDbUpdate()
     delete ui;
 }
 
-void DlgDbUpdate::addProgressMsg(QString msg)
+void DlgDbUpdate::addProgressMsg(const QString& msg)
 {
-    ui->textEdit->append(msg);
+    m_log += msg;
+    m_log += "\n";
 }
 
 void DlgDbUpdate::changeStatusTxt(QString txt)
@@ -39,11 +42,24 @@ void DlgDbUpdate::changeDirectory(QString dir)
     ui->lblDirectory->setText(dir);
 }
 
+void DlgDbUpdate::timerEvent(QTimerEvent *event)
+{
+    if (event->timerId() == m_logFlushTimer.timerId()) {
+        if (!m_log.isEmpty()) {
+            ui->txtLog->appendPlainText(m_log);
+            m_log.clear();
+        }
+    } else {
+        QWidget::timerEvent(event);
+    }
+}
+
 void DlgDbUpdate::reset()
 {
+    m_log.clear();
     ui->lblDirectory->setText(tr("[none]"));
     ui->progressBar->setValue(0);
-    ui->textEdit->clear();
+    ui->txtLog->clear();
     ui->lblCurrentActivity->setText("");
 
 }

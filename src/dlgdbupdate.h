@@ -2,6 +2,7 @@
 #define DLGDBUPDATE_H
 
 #include <QDialog>
+#include <QBasicTimer>
 
 namespace Ui {
 class DlgDbUpdate;
@@ -15,11 +16,16 @@ public:
     explicit DlgDbUpdate(QWidget *parent = 0);
     ~DlgDbUpdate();
 
+protected:
+    void timerEvent(QTimerEvent *event) override;
+
 private:
     Ui::DlgDbUpdate *ui;
+    QBasicTimer m_logFlushTimer;
+    QString m_log;
 
 public slots:
-    void addProgressMsg(QString msg);
+    void addProgressMsg(const QString& msg);
     void changeStatusTxt(QString txt);
     void changeProgress(int progress);
     void setProgressMax(int max);
