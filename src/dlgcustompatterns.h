@@ -25,7 +25,7 @@ private slots:
     void btnApplyChangesClicked();
 
 private:
-    Pattern m_selectedPattern;
+    CustomPattern* getSelectedPattern();
     std::unique_ptr<Ui::DlgCustomPatterns> ui;
     TableModelCustomNamingPatterns m_patternsModel;
     Settings m_settings;

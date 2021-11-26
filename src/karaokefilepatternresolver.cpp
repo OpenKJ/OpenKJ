@@ -1,21 +1,46 @@
+#define SQL(...) #__VA_ARGS__
 #include "karaokefilepatternresolver.h"
 #include <QSqlQuery>
 
-KaraokeFilePatternResolver::KaraokeFilePatternResolver(QObject *parent) : QObject(parent)
+KaraokeFilePatternResolver::KaraokeFilePatternResolver()
 {
-
 }
 
 void KaraokeFilePatternResolver::InitializeData()
 {
-    QSqlQuery query("SELECT path, pattern, custompattern FROM sourceDirs ORDER BY path");
+    QSqlQuery query(SQL(
+        SELECT
+            sourceDirs.path, sourceDirs.pattern,
+            custompatterns.name,
+            custompatterns.artistregex, custompatterns.artistcapturegrp,
+            custompatterns.titleregex,  custompatterns.titlecapturegrp,
+            custompatterns.discidregex, custompatterns.discidcapturegrp
+        FROM sourceDirs
+        LEFT JOIN custompatterns ON sourceDirs.custompattern == custompatterns.patternid
+        ORDER BY sourceDirs.path
+    ));
+
     while (query.next()) {
-        m_path_pattern_map[query.value(0).toString()] = static_cast<SourceDir::NamingPattern>(query.value(1).toInt());
+        auto pattern = static_cast<SourceDir::NamingPattern>(query.value(1).toInt());
+        auto customPattern =
+                pattern == SourceDir::CUSTOM && !query.isNull("name")
+                    ? CustomPattern(
+                          query.value("name").toString(),
+                          query.value("artistregex").toString(), query.value("artistcapturegrp").toInt(),
+                          query.value("titleregex").toString(), query.value("titlecapturegrp").toInt(),
+                          query.value("discidregex").toString(), query.value("discidcapturegrp").toInt())
+                    : CustomPattern();
+
+        m_path_pattern_map[query.value(0).toString()] =
+                KaraokeFilePatternResolver::KaraokeFilePattern {
+                .pattern = pattern,
+                .customPattern = customPattern
+        };
     }
     m_initialized = true;
 }
 
-SourceDir::NamingPattern KaraokeFilePatternResolver::getPattern(const QString &filename)
+const KaraokeFilePatternResolver::KaraokeFilePattern& KaraokeFilePatternResolver::getPattern(const QString &filename)
 {
     if (!m_initialized) {
         InitializeData();
@@ -32,6 +57,14 @@ SourceDir::NamingPattern KaraokeFilePatternResolver::getPattern(const QString &f
         }
     }
     // default:
-    return SourceDir::SAT;
+    return getDefaultPattern();
 }
+
+static const KaraokeFilePatternResolver::KaraokeFilePattern defaultPattern { KaraokeFilePatternResolver::KaraokeFilePattern { .pattern = SourceDir::SAT } };
+
+const KaraokeFilePatternResolver::KaraokeFilePattern &KaraokeFilePatternResolver::getDefaultPattern()
+{
+    return defaultPattern;
+}
+
 

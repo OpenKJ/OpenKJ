@@ -460,6 +460,7 @@ set(SOURCE_FILES
         src/dlgpurchaseprogress.cpp
         src/karaokefileinfo.cpp
         src/karaokefilepatternresolver.cpp
+        src/custompattern.cpp
         src/dlgeditsong.cpp
         src/soundfxbutton.cpp
         src/runguard/runguard.cpp
@@ -520,6 +521,7 @@ set(SOURCE_FILES
         src/dlgpurchaseprogress.h
         src/karaokefileinfo.h
         src/karaokefilepatternresolver.h
+        src/custompattern.h
         src/dlgeditsong.h
         src/soundfxbutton.h
         src/runguard/runguard.h

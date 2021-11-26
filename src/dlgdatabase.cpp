@@ -54,11 +54,11 @@ DlgDatabase::DlgDatabase(TableModelKaraokeSongs &dbModel, QWidget *parent) :
             {
                 fsWatcher.addPath(path);
                 qInfo() << "Adding watch to path: " << path;
-                QDirIterator it(path, QDirIterator::Subdirectories);
+                QDirIterator it(path, QDir::AllDirs | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
                 while (it.hasNext()) {
                     QString subPath = it.next();
-                    if (!it.fileInfo().isDir() || subPath.endsWith("/.") || subPath.endsWith("/.."))
-                        continue;
+                    //if (!it.fileInfo().isDir() || subPath.endsWith("/.") || subPath.endsWith("/.."))
+                        //continue;
                     qInfo() << "Adding watch to subpath: " << subPath;
                     fsWatcher.addPath(subPath);
                 }
@@ -79,7 +79,7 @@ void DlgDatabase::singleSongAdd(const QString& path)
 {
     qInfo() << "singleSongAdd(" << path << ") called";
     DbUpdater updater;
-    updater.addSingleTrack(path);
+    updater.addFilesToDatabase(QStringList() << path);
     emit databaseUpdateComplete();
     //emit databaseSongAdded();
 }
@@ -209,14 +209,14 @@ void DlgDatabase::on_buttonUpdateAll_clicked()
     connect(&updater, &DbUpdater::progressChanged, dbUpdateDlg, &DlgDbUpdate::changeProgress);
     dbUpdateDlg->show();
 
+    dbUpdateDlg->changeDirectory("<all>");
+
+    QStringList allPaths;
     for (int i=0; i < sourcedirmodel->size(); i++)
-    {
-        //msgBox.setInformativeText("Processing path: " + sourcedirmodel->getDirByIndex(i)->getPath());
-        dbUpdateDlg->changeDirectory(sourcedirmodel->getDirByIndex(i).getPath());
-        //updater.setPath(sourcedirmodel->getDirByIndex(i).getPath());
-        //updater.setPattern(sourcedirmodel->getDirByIndex(i).getPattern());
-        //updater.process();
-    }
+        allPaths.append(sourcedirmodel->getDirByIndex(i).getPath());
+
+    updater.process(allPaths, true);
+
     emit databaseUpdateComplete();
     showDbUpdateErrors(updater.getErrors());
     dbUpdateDlg->hide();
@@ -304,10 +304,12 @@ void DlgDatabase::on_btnExport_clicked()
 
 void DlgDatabase::directoryChanged(const QString& dirPath)
 {
-    if (!m_settings.dbDirectoryWatchEnabled())
+    // TODO: athom
+    /*if (!m_settings.dbDirectoryWatchEnabled())
         return;
     DbUpdater updater;
     qInfo() << "Directory changed fired for dir: " << dirPath;
+    QStringList newFiles;
     QDirIterator it(dirPath);
     while (it.hasNext()) {
         QString file = it.next();
@@ -328,5 +330,5 @@ void DlgDatabase::directoryChanged(const QString& dirPath)
         qInfo() << "Adding file to the database";
         updater.addSingleTrack(file);
         emit databaseUpdateComplete();
-    }
+    }*/
 }

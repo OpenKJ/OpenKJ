@@ -91,12 +91,12 @@ void KaraokeFileInfo::setFile(const QString &filename)
 
 void KaraokeFileInfo::ensureMetadataParsed() {
     if (!m_metadata_parsed) {
-        auto pattern = m_patternResolver->getPattern(m_filename);
+        auto &pattern = m_patternResolver->getPattern(m_filename);
         m_metadata_parsed_success = parseMetadata(pattern);
 
-        if (!m_metadata_parsed_success && pattern != SourceDir::METADATA) {
+        if (!m_metadata_parsed_success && pattern.pattern != SourceDir::METADATA) {
             // Something went wrong, no metadata found. File is probably named wrong. If we didn't try media tags, give it a shot
-            m_metadata_parsed_success = parseMetadata(SourceDir::METADATA);
+            m_metadata_parsed_success = parseMetadata(m_patternResolver->getDefaultPattern());
         }
         m_metadata_parsed = true;
     }
@@ -136,7 +136,7 @@ const int& KaraokeFileInfo::getDuration()
     }
     else
     {
-        //TODO: make sure tags are not read twice!
+        //TODO: make sure tags are not read twice (here and if reading metadata tags)!
         TagReader reader;
         reader.setMedia(m_filename);
         try
@@ -151,15 +151,15 @@ const int& KaraokeFileInfo::getDuration()
     return duration;
 }
 
-bool KaraokeFileInfo::parseMetadata(SourceDir::NamingPattern pattern)
+bool KaraokeFileInfo::parseMetadata(const KaraokeFilePatternResolver::KaraokeFilePattern& pattern)
 {
     //TODO: This needs to be cleaned up, the logic is convoluted and is probably
     // slowing down db updates
-    int customPatternId{0};
+
     QString baseNameFiltered = fileBaseName;
     baseNameFiltered.replace("_", " ");
     QStringList parts = baseNameFiltered.split(" - ");
-    switch (pattern)
+    switch (pattern.pattern)
     {
     case SourceDir::STA:
         if (!parts.empty())
@@ -243,36 +243,24 @@ bool KaraokeFileInfo::parseMetadata(SourceDir::NamingPattern pattern)
         songId = tagSongid;
         break;
     case SourceDir::CUSTOM:
-        // TODO: move this to patternresolver
-        /*QSqlQuery query;
-        query.exec("SELECT custompattern FROM sourcedirs WHERE path == \"" + m_path + "\"" );
-        if (query.first())
-        {
-            customPatternId = query.value(0).toInt();
-        }
-        if (customPatternId < 1)
-        {
-            m_logger->error("{} Custom pattern set for path, but pattern ID is invalid!  Bailing out!", m_loggingPrefix);
+        if (pattern.customPattern.isNull())
             return false;
-        }
-        query.exec("SELECT * FROM custompatterns WHERE patternid == " + QString::number(customPatternId));
-        if (query.first())
-        {
-            setArtistRegEx(query.value("artistregex").toString(), query.value("artistcapturegrp").toInt());
-            setTitleRegEx(query.value("titleregex").toString(), query.value("titlecapturegrp").toInt());
-            setSongIdRegEx(query.value("discidregex").toString(), query.value("discidcapturegrp").toInt());
-        }
+
         QRegularExpression r;
         QRegularExpressionMatch match;
-        r.setPattern(artistPattern);
+
+        r.setPattern(pattern.customPattern.getArtistRegex());
         match = r.match(fileBaseName);
-        artist = match.captured(artistCaptureGroup).replace("_", " ");
-        r.setPattern(titlePattern);
+        artist = match.captured(pattern.customPattern.getArtistCaptureGrp()).replace("_", " ");
+
+        r.setPattern(pattern.customPattern.getTitleRegex());
         match = r.match(fileBaseName);
-        title = match.captured(titleCaptureGroup).replace("_", " ");
-        r.setPattern(songIdPattern);
+        title = match.captured(pattern.customPattern.getTitleCaptureGrp()).replace("_", " ");
+
+        r.setPattern(pattern.customPattern.getSongIdRegex());
         match = r.match(fileBaseName);
-        songId = match.captured(songIdCaptureGroup).replace("_", " ");*/
+        songId = match.captured(pattern.customPattern.getSongIdRegex()).replace("_", " ");
+
         break;
     }
     if ( !artist.isEmpty() || !title.isEmpty() || !songId.isEmpty())

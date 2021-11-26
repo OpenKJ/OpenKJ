@@ -15,12 +15,6 @@ class KaraokeFileInfo : public QObject
 {
     Q_OBJECT
     std::shared_ptr<KaraokeFilePatternResolver> m_patternResolver;
-    QString artistPattern;
-    int artistCaptureGroup{0};
-    QString titlePattern;
-    int titleCaptureGroup{0};
-    QString songIdPattern;
-    int songIdCaptureGroup{0};
     QString m_filename;
     QString fileBaseName;
     bool useMetadata{false};
@@ -30,8 +24,6 @@ class KaraokeFileInfo : public QObject
     QString tagTitle;
     QString tagSongid;
     int duration{0};
-    //SourceDir::NamingPattern m_pattern {SourceDir::SAT};
-    //QString m_path;
     QString artist;
     QString title;
     QString songId;
@@ -42,14 +34,11 @@ class KaraokeFileInfo : public QObject
     std::shared_ptr<spdlog::logger> m_logger;
 
     void ensureMetadataParsed();
-    bool parseMetadata(SourceDir::NamingPattern pattern);
+    bool parseMetadata(const KaraokeFilePatternResolver::KaraokeFilePattern& pattern);
 
 public:
     explicit KaraokeFileInfo(QObject *parent = nullptr);
     explicit KaraokeFileInfo(QObject *parent, std::shared_ptr<KaraokeFilePatternResolver> patternResolver);
-    void setArtistRegEx(QString pattern, int captureGroup = 0) {artistPattern = pattern; artistCaptureGroup = captureGroup;}
-    void setTitleRegEx(QString pattern, int captureGroup = 0) {titlePattern = pattern; titleCaptureGroup = captureGroup;}
-    void setSongIdRegEx(QString pattern, int captureGroup = 0) {songIdPattern = pattern; songIdCaptureGroup = captureGroup;}
 
     void setFile(const QString &filename);
     bool parsedSuccessfully() { return m_metadata_parsed_success; }

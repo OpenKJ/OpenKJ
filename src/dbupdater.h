@@ -101,20 +101,15 @@ private:
     QStringList m_errors;
 
     void fixMissingFiles(QVector<DbSongRecord> &filesMissingOnDisk, QStringList &newFilesOnDisk);
-    void findKaraokeFilesInDB();
     QString getPathWithTrailingSeparator(const QString &path);
 
 public:
     explicit DbUpdater(QObject *parent = nullptr);
 
-    static QStringList getMissingDbFiles();
-    //static QStringList getDragDropFiles();
     QStringList getErrors();
-    void addSingleTrack(const QString& filePath);
     static int addDroppedFile(const QString& filePath);
-    void process(const QList<QString> &paths, bool handleMissingFiles);
-    void addFilesToDatabase(QList<QString> files);
-    static bool dbEntryExists(const QString &filepath, bool includeDropped = false);
+    void process(const QList<QString> &paths, bool isAllPaths);
+    void addFilesToDatabase(const QList<QString> &files);
 
 signals:
     void errorsGenerated(QStringList);
