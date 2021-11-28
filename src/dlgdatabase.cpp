@@ -43,34 +43,16 @@ DlgDatabase::DlgDatabase(TableModelKaraokeSongs &dbModel, QWidget *parent) :
     selectedRow = -1;
     customPatternsDlg = new DlgCustomPatterns(this);
     dbUpdateDlg = new DlgDbUpdate(this);
-    if (m_settings.dbDirectoryWatchEnabled())
-    {
-        QStringList sourceDirs = sourcedirmodel->getSourceDirs();
-        QString path;
-        foreach (path, sourceDirs)
-        {
-            QFileInfo finfo(path);
-            if (finfo.isDir() && finfo.isReadable())
-            {
-                fsWatcher.addPath(path);
-                qInfo() << "Adding watch to path: " << path;
-                QDirIterator it(path, QDir::AllDirs | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
-                while (it.hasNext()) {
-                    QString subPath = it.next();
-                    //if (!it.fileInfo().isDir() || subPath.endsWith("/.") || subPath.endsWith("/.."))
-                        //continue;
-                    qInfo() << "Adding watch to subpath: " << subPath;
-                    fsWatcher.addPath(subPath);
-                }
-            }
-        }
-        connect(&fsWatcher, &QFileSystemWatcher::directoryChanged, this, &DlgDatabase::directoryChanged);
+
+    if (m_settings.dbDirectoryWatchEnabled()) {
+        m_directoryMonitor = new DirectoryMonitor(this, sourcedirmodel->getSourceDirs());
+        connect(m_directoryMonitor, &DirectoryMonitor::databaseUpdateComplete, this, &DlgDatabase::databaseUpdateComplete);
     }
 }
 
 DlgDatabase::~DlgDatabase()
 {
-    fsWatcher.removePaths(fsWatcher.directories());
+    delete m_directoryMonitor;
     delete sourcedirmodel;
     delete ui;
 }
@@ -245,10 +227,6 @@ void DlgDatabase::on_btnClearDatabase_clicked()
     }
 }
 
-void DlgDatabase::dbupdate_thread_finished()
-{
-}
-
 void DlgDatabase::showDbUpdateErrors(const QStringList& errors)
 {
     if (errors.count() > 0)
@@ -302,33 +280,3 @@ void DlgDatabase::on_btnExport_clicked()
     }
 }
 
-void DlgDatabase::directoryChanged(const QString& dirPath)
-{
-    // TODO: athom
-    /*if (!m_settings.dbDirectoryWatchEnabled())
-        return;
-    DbUpdater updater;
-    qInfo() << "Directory changed fired for dir: " << dirPath;
-    QStringList newFiles;
-    QDirIterator it(dirPath);
-    while (it.hasNext()) {
-        QString file = it.next();
-        QFileInfo fi(file);
-        if (fi.isDir())
-            continue;
-        if (file == dirPath + "/." || file == dirPath + "/..")
-            continue;
-        if (fi.suffix().toLower() != "zip" && fi.suffix().toLower() != "cdg")
-        {
-            continue;
-        }
-        if (DbUpdater::dbEntryExists(file))
-        {
-            continue;
-        }
-        qInfo() << "Detected new file: " << file;
-        qInfo() << "Adding file to the database";
-        updater.addSingleTrack(file);
-        emit databaseUpdateComplete();
-    }*/
-}

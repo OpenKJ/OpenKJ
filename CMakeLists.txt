@@ -414,6 +414,7 @@ set(SOURCE_FILES
         src/dlgvideopreview.cpp
         src/mainwindow.cpp
         src/dbupdater.cpp
+        src/directorymonitor.cpp
         src/dlgkeychange.cpp
         src/dlgdatabase.cpp
         src/dlgrequests.cpp
@@ -474,6 +475,7 @@ set(SOURCE_FILES
         src/okjutil.h
         src/okjtypes.h
         src/dbupdater.h
+        src/directorymonitor.h
         src/dlgkeychange.h
         src/dlgdatabase.h
         src/dlgrequests.h
