@@ -100,8 +100,8 @@ private:
     QStringList m_paths;
     QStringList m_errors;
 
+    void setPaths(const QList<QString> &paths);
     void fixMissingFiles(QVector<DbSongRecord> &filesMissingOnDisk, QStringList &newFilesOnDisk);
-    QString getPathWithTrailingSeparator(const QString &path);
 
 public:
     explicit DbUpdater(QObject *parent = nullptr);

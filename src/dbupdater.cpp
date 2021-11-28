@@ -68,8 +68,7 @@ int DbUpdater::addDroppedFile(const QString &filePath) {
 // Strategy: read list of files to memory and compare list to database to find added or removed files.
 void DbUpdater::process(const QList<QString> &paths, bool isAllPaths)
 {
-    m_paths = QStringList(paths);
-    m_paths.sort();
+    setPaths(paths);
 
     emit progressChanged(0);
     emit progressMaxChanged(0);
@@ -324,7 +323,7 @@ void DbUpdater::DbEnumerator::prepareQuery(bool limitToPaths)
         m_dbSongs.prepare("SELECT songid, path, CASE discid WHEN '!!DROPPED!!' THEN 1 ELSE 0 END FROM dbsongs WHERE " + sql_path_filter.join(" OR ") + " ORDER BY path");
         for(int i = 0; i < m_parent.m_paths.size(); i++) {
             auto key = QString(":pathfilter%1").arg(i);
-            m_dbSongs.bindValue(key, m_parent.getPathWithTrailingSeparator(m_parent.m_paths[i]) + "%");
+            m_dbSongs.bindValue(key, m_parent.m_paths[i] + "%");
         }
     }
     m_dbSongs.exec();
@@ -349,10 +348,29 @@ void DbUpdater::DbEnumerator::readNextRecord()
     }
 }
 
-QString DbUpdater::getPathWithTrailingSeparator(const QString &path) {
-    return path.endsWith(QDir::separator())
-            ? path
-            : path + QDir::separator();
+void DbUpdater::setPaths(const QList<QString> &paths)
+{
+    // Normalize paths:
+    //  * Ensure ending separator
+    //  * Remove any subpath as parent paths are scanned recursively
+    m_paths = QStringList();
+    foreach(auto path, paths) {
+        m_paths << (path.endsWith(QDir::separator())
+                ? path
+                : path + QDir::separator());
+    }
+
+    m_paths.sort();
+
+    int i=1;
+    while (i < m_paths.length()) {
+        if (m_paths[i].startsWith(m_paths[i-1]) && m_paths[i].length() > m_paths[i-1].length()) {
+            m_paths.removeAt(i);
+        }
+        else {
+            i++;
+        }
+    }
 }
 
 // Given a list of files found on disk, checks them against files that are
@@ -373,6 +391,8 @@ void DbUpdater::fixMissingFiles(QVector<DbSongRecord> &filesMissingOnDisk, QStri
         int filenameBeginsAt = s.lastIndexOf(QDir::separator()) + 1;
         filesOnDiskFilenamesOnlySorted.append(QStringRef(&s, filenameBeginsAt, s.length() - filenameBeginsAt));
     }
+
+    // TODO: make this and lower_bound case insensitive. That way we can detect case changes as well :-)
     std::sort(filesOnDiskFilenamesOnlySorted.begin(), filesOnDiskFilenamesOnlySorted.end());
 
     // Copy records that are still missing to a new list instead of removing them from filesMissingOnDisk.
