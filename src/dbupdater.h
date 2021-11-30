@@ -108,7 +108,7 @@ public:
 
     QStringList getErrors();
     static int addDroppedFile(const QString& filePath);
-    void process(const QList<QString> &paths, bool isAllPaths);
+    bool process(const QList<QString> &paths, bool isAllPaths);
     void addFilesToDatabase(const QList<QString> &files);
 
 signals:

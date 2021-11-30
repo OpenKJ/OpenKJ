@@ -66,8 +66,19 @@ int DbUpdater::addDroppedFile(const QString &filePath) {
 // Process files and do database update on the current directory.
 // Constraint: access the filesystem as little as possible to optimize performance for slow file access/network.
 // Strategy: read list of files to memory and compare list to database to find added or removed files.
-void DbUpdater::process(const QList<QString> &paths, bool isAllPaths)
+bool DbUpdater::process(const QList<QString> &paths, bool isAllPaths)
 {
+    // Make sure only one dbupdater runs at a time.
+    // Even though the program is primarily single threaded, exessive use of
+    // QApplication::processEvents can cause reentrant calls.
+
+    static std::mutex mutex;
+    if (!mutex.try_lock()) {
+        m_errors.append("Scanner already running");
+        return false;
+    }
+    const std::lock_guard<std::mutex> locker(mutex, std::adopt_lock);
+
     setPaths(paths);
 
     emit progressChanged(0);
@@ -139,6 +150,8 @@ void DbUpdater::process(const QList<QString> &paths, bool isAllPaths)
     }
 
     addFilesToDatabase(newFilesOnDisk);
+
+    return true;
 }
 
 void DbUpdater::addFilesToDatabase(const QList<QString> &files)

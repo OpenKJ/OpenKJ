@@ -56,7 +56,14 @@ void DirectoryMonitor::scanPaths()
     m_pathsWithChangedFiles.clear();
 
     DbUpdater dbUpdater(this);
-    dbUpdater.process(paths, true);
-    emit databaseUpdateComplete();
+    if (dbUpdater.process(paths, true)) {
+        emit databaseUpdateComplete();
+    }
+    else {
+        // scanning failed - perhaps another scan was running?
+        // Queue a new run
+        m_pathsWithChangedFiles.unite(QSet<QString>(paths.begin(), paths.end()));
+        m_scanTimer.start();
+    }
 }
 
