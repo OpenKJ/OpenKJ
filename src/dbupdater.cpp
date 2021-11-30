@@ -374,7 +374,7 @@ void DbUpdater::setPaths(const QList<QString> &paths)
 }
 
 // Given a list of files found on disk, checks them against files that are
-// currently missing to determine if they've just been moved.  For any that have
+// currently missing to determine if they've just been moved or or their caps changed.  For any that have
 // been determined to have moved, the existing db entry is updated with the new path
 // and the entry is removed from the provided existing files list.
 void DbUpdater::fixMissingFiles(QVector<DbSongRecord> &filesMissingOnDisk, QStringList &newFilesOnDisk) {
@@ -384,6 +384,11 @@ void DbUpdater::fixMissingFiles(QVector<DbSongRecord> &filesMissingOnDisk, QStri
     int count{0};
     qInfo() << "Looking for missing files";
 
+    // Strategy: create new list of only the filenames (without paths) of all the new files found.
+    //   Instead of creating new strings, use QStringRef of the full path string.
+    //   Use that new, sorted list as a lookup table for the missing files in the database.
+
+    // Keep a copy of "newFilesOnDisk" so the QStrings are not destructed, causing QStringRefs to fail.
     QStringList newFilesOnDiskCopy(newFilesOnDisk);
     QVector<QStringRef> filesOnDiskFilenamesOnlySorted;
     filesOnDiskFilenamesOnlySorted.reserve(newFilesOnDiskCopy.size());
@@ -392,11 +397,13 @@ void DbUpdater::fixMissingFiles(QVector<DbSongRecord> &filesMissingOnDisk, QStri
         filesOnDiskFilenamesOnlySorted.append(QStringRef(&s, filenameBeginsAt, s.length() - filenameBeginsAt));
     }
 
-    // TODO: make this and lower_bound case insensitive. That way we can detect case changes as well :-)
-    std::sort(filesOnDiskFilenamesOnlySorted.begin(), filesOnDiskFilenamesOnlySorted.end());
+    // Sort the list case insensitive
+    auto caseInsensitiveSort = [](const QStringRef &a, const QString &b) -> bool { return QStringRef::compare(a, b, Qt::CaseInsensitive) < 0; };
+    auto caseInsensitiveSortStringRef = [](const QStringRef &a, const QStringRef &b) -> bool { return QStringRef::compare(a, b, Qt::CaseInsensitive) < 0; };
 
-    // Copy records that are still missing to a new list instead of removing them from filesMissingOnDisk.
-    // It's faster that way.
+    std::sort(filesOnDiskFilenamesOnlySorted.begin(), filesOnDiskFilenamesOnlySorted.end(), caseInsensitiveSortStringRef);
+
+    // Copy records that are still missing to a new list instead of removing them from filesMissingOnDisk. It's faster that way.
     QVector<DbSongRecord> filesMissingOnDisk_still;
     QSqlQuery query;
     query.exec("BEGIN TRANSACTION");
@@ -411,8 +418,8 @@ void DbUpdater::fixMissingFiles(QVector<DbSongRecord> &filesMissingOnDisk, QStri
 
         bool matchFound = false;
         auto filenameWithoutPath = QFileInfo(missingFile.path).fileName();
-        auto const lb = std::lower_bound(filesOnDiskFilenamesOnlySorted.begin(), filesOnDiskFilenamesOnlySorted.end(), filenameWithoutPath);
-        if (lb->compare(filenameWithoutPath) == 0) {
+        auto const lb = std::lower_bound(filesOnDiskFilenamesOnlySorted.begin(), filesOnDiskFilenamesOnlySorted.end(), filenameWithoutPath, caseInsensitiveSort);
+        if (lb->compare(filenameWithoutPath, Qt::CaseInsensitive) == 0) {
             query.bindValue(":newpath", *lb->string());
             query.bindValue(":id", missingFile.id);
 
