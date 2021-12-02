@@ -38,8 +38,7 @@ public:
 signals:
     void progressMessage(QString msg);
     void stateChanged(QString state);
-    void progressChanged(int progress);
-    void progressMaxChanged(int max);
+    void progressChanged(int progress, int max);
     
 public slots:
 

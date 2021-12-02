@@ -158,22 +158,15 @@ void DlgDatabase::on_buttonUpdate_clicked()
         DbUpdater updater;
         //emit databaseAboutToUpdate();
         dbUpdateDlg->reset();
-        connect(&updater, &DbUpdater::progressMessage, dbUpdateDlg, &DlgDbUpdate::addProgressMsg);
+        connect(&updater, &DbUpdater::progressMessage, dbUpdateDlg, &DlgDbUpdate::addLogMsg);
         connect(&updater, &DbUpdater::stateChanged, dbUpdateDlg, &DlgDbUpdate::changeStatusTxt);
-        connect(&updater, &DbUpdater::progressMaxChanged, dbUpdateDlg, &DlgDbUpdate::setProgressMax);
         connect(&updater, &DbUpdater::progressChanged, dbUpdateDlg, &DlgDbUpdate::changeProgress);
-        dbUpdateDlg->changeDirectory(sourcedirmodel->getDirByIndex(selectedRow).getPath());
         dbUpdateDlg->show();
-        //QApplication::processEvents();
-        //updater.setPath(sourcedirmodel->getDirByIndex(selectedRow).getPath());
-        //updater.setPattern(sourcedirmodel->getDirByIndex(selectedRow).getPattern());
         QApplication::processEvents();
         updater.process(QList<QString> {sourcedirmodel->getDirByIndex(selectedRow).getPath()}, sourcedirmodel->size() == 1);
         emit databaseUpdateComplete();
         QApplication::processEvents();
         dbUpdateDlg->changeStatusTxt(tr("Database update complete!"));
-        dbUpdateDlg->setProgressMax(100);
-        dbUpdateDlg->changeProgress(100);
         QApplication::processEvents();
         showDbUpdateErrors(updater.getErrors());
         QMessageBox::information(this, tr("Update Complete"), tr("Database update complete."));
@@ -185,13 +178,10 @@ void DlgDatabase::on_buttonUpdateAll_clicked()
 {
     DbUpdater updater;
     dbUpdateDlg->reset();
-    connect(&updater, &DbUpdater::progressMessage, dbUpdateDlg, &DlgDbUpdate::addProgressMsg);
+    connect(&updater, &DbUpdater::progressMessage, dbUpdateDlg, &DlgDbUpdate::addLogMsg);
     connect(&updater, &DbUpdater::stateChanged, dbUpdateDlg, &DlgDbUpdate::changeStatusTxt);
-    connect(&updater, &DbUpdater::progressMaxChanged, dbUpdateDlg, &DlgDbUpdate::setProgressMax);
     connect(&updater, &DbUpdater::progressChanged, dbUpdateDlg, &DlgDbUpdate::changeProgress);
     dbUpdateDlg->show();
-
-    dbUpdateDlg->changeDirectory("<all>");
 
     QStringList allPaths;
     for (int i=0; i < sourcedirmodel->size(); i++)

@@ -25,11 +25,9 @@ private:
     QString m_log;
 
 public slots:
-    void addProgressMsg(const QString& msg);
+    void addLogMsg(const QString& msg);
     void changeStatusTxt(QString txt);
-    void changeProgress(int progress);
-    void setProgressMax(int max);
-    void changeDirectory(QString dir);
+    void changeProgress(int progress, int max);
     void reset();
 };
 

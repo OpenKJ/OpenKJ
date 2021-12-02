@@ -81,22 +81,18 @@ bool DbUpdater::process(const QList<QString> &paths, bool isAllPaths)
 
     setPaths(paths);
 
-    emit progressChanged(0);
-    emit progressMaxChanged(0);
-
     emit stateChanged("Scanning disk for files...");
     DiskEnumerator diskEnumerator(*this);
     diskEnumerator.findKaraokeFilesOnDisk();
 
     emit stateChanged("Scanning database for files...");
+    QApplication::processEvents();
     DbEnumerator dbEnumerator(*this);
     dbEnumerator.prepareQuery(!isAllPaths);
 
+    emit stateChanged("Checking files against database...");
     qInfo() << "Checking for new songs";
-    emit progressMaxChanged(MAX(diskEnumerator.count(), dbEnumerator.count()));
-
-    emit progressMessage("Importing new files into the karaoke database...");
-    emit stateChanged("Importing new files into the karaoke database...");
+    int progressMax = MAX(diskEnumerator.count(), dbEnumerator.count());
 
     QStringList newFilesOnDisk; newFilesOnDisk.reserve(20000);
     QVector<DbSongRecord> filesMissingOnDisk;
@@ -141,6 +137,10 @@ bool DbUpdater::process(const QList<QString> &paths, bool isAllPaths)
             dbEnumerator.readNextRecord();
         }
         run++;
+        if (shouldUpdateGui()) {
+            emit progressChanged(run, progressMax);
+            QApplication::processEvents();
+        }
     }
     while (diskEnumerator.IsValid || dbEnumerator.IsValid);
 
@@ -158,6 +158,8 @@ void DbUpdater::addFilesToDatabase(const QList<QString> &files)
 {
     if (files.empty())
         return;
+
+    emit stateChanged("Adding new files to database...")    ;
 
     QSqlQuery query;
     query.exec("PRAGMA synchronous=OFF");
@@ -216,9 +218,9 @@ void DbUpdater::addFilesToDatabase(const QList<QString> &files)
         // misnamed and don't import properly or who use media tags and have bad tags.
         query.bindValue(":searchstring", fileInfo.completeBaseName() + " " + parser.getArtist() + " " + parser.getTitle() + " " + parser.getSongId());
         query.exec();
-        if (++loops % 10 == 0) {
-            emit progressChanged(loops);
-            emit stateChanged(QString("Importing new files into the karaoke database... %1 of %2").arg(loops).arg(files.length()));
+        if (shouldUpdateGui()) {
+            emit progressChanged(loops, files.length());
+            //emit stateChanged(QString("Importing new files into the karaoke database... %1 of %2").arg(loops).arg(files.length()));
             QApplication::processEvents();
         }
     }
@@ -234,6 +236,8 @@ void DbUpdater::addFilesToDatabase(const QList<QString> &files)
 // Finds all potential supported karaoke files in a given directory
 void DbUpdater::DiskEnumerator::findKaraokeFilesOnDisk() {
 
+    emit m_parent.progressChanged(0, 0);
+
     // cdg and zip files
     QStringList karaoke_files;
     // audio files to match with cdg files
@@ -241,11 +245,10 @@ void DbUpdater::DiskEnumerator::findKaraokeFilesOnDisk() {
     karaoke_files.reserve(200000);
     audio_files.reserve(200000);
 
-    int loops{0};
-
     foreach(auto path, m_parent.m_paths ) {
+        emit m_parent.stateChanged("Finding karaoke files in " + path);
+        QApplication::processEvents();
 
-        emit m_parent.progressMessage("Finding karaoke files in " + path);
         int foundInPath = 0;
         QDir dir(path);
         QDirIterator iterator(dir.absolutePath(), QDirIterator::Subdirectories);
@@ -263,8 +266,9 @@ void DbUpdater::DiskEnumerator::findKaraokeFilesOnDisk() {
                     audio_files.append(filePath.left(filePath.lastIndexOf('.')));
                 }
             }
-            if (loops++ % 10 == 0) {
-                emit m_parent.stateChanged(QString("Finding potential karaoke files on disk... %1 found, %2 total.")
+            if (m_parent.shouldUpdateGui()) {
+                emit m_parent.stateChanged(QString("Scanning %1\n    %2 found, %3 total...")
+                                  .arg(path)
                                   .arg(foundInPath)
                                   .arg(karaoke_files.length()));
                 QApplication::processEvents();
@@ -272,12 +276,13 @@ void DbUpdater::DiskEnumerator::findKaraokeFilesOnDisk() {
         }
     }
 
-    emit m_parent.progressMessage("Sorting...");
+    emit m_parent.stateChanged("Sorting...");
+    QApplication::processEvents();
 
     karaoke_files.sort();
     audio_files.sort();
 
-    emit m_parent.progressMessage("Done searching for files.");
+    emit m_parent.stateChanged("Done searching for files.");
 
     m_karaokeFilesOnDisk = karaoke_files;
     m_audioFilesOnDisk = audio_files;
@@ -392,8 +397,8 @@ void DbUpdater::setPaths(const QList<QString> &paths)
 // and the entry is removed from the provided existing files list.
 void DbUpdater::fixMissingFiles(QVector<DbSongRecord> &filesMissingOnDisk, QStringList &newFilesOnDisk) {
 
-    emit stateChanged("Detecting and updating missing and moved files...");
-    emit progressMaxChanged(filesMissingOnDisk.size());
+    emit stateChanged("Detecting and updating missing or moved files...");
+
     int count{0};
     qInfo() << "Looking for missing files";
 
@@ -454,11 +459,25 @@ void DbUpdater::fixMissingFiles(QVector<DbSongRecord> &filesMissingOnDisk, QStri
             filesMissingOnDisk_still.append(missingFile);
             emit progressMessage("No match found");
         }
-
-        emit progressChanged(++count);
+        count++;
+        if (shouldUpdateGui()) {
+            emit progressChanged(count, filesMissingOnDisk.size());
+        }
     }
     query.exec("COMMIT");
     filesMissingOnDisk = filesMissingOnDisk_still;
+}
+
+bool DbUpdater::shouldUpdateGui()
+{
+    if (!m_guiUpdateTimer.isValid())
+        m_guiUpdateTimer.start();
+
+    if (m_guiUpdateTimer.elapsed() > 200) {
+        m_guiUpdateTimer.restart();
+        return true;
+    }
+    return false;
 }
 
 // Returns a list of errors encountered while processing

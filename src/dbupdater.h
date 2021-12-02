@@ -99,9 +99,11 @@ private:
     Settings m_settings;
     QStringList m_paths;
     QStringList m_errors;
+    QElapsedTimer m_guiUpdateTimer;
 
     void setPaths(const QList<QString> &paths);
     void fixMissingFiles(QVector<DbSongRecord> &filesMissingOnDisk, QStringList &newFilesOnDisk);
+    bool shouldUpdateGui();
 
 public:
     explicit DbUpdater(QObject *parent = nullptr);
@@ -115,8 +117,7 @@ signals:
     void errorsGenerated(QStringList);
     void progressMessage(const QString &msg);
     void stateChanged(QString state);
-    void progressChanged(int progress);
-    void progressMaxChanged(int max);
+    void progressChanged(int progress, int max);
 
 };
 
