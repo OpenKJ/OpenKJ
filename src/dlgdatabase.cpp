@@ -187,6 +187,20 @@ void DlgDatabase::on_buttonUpdateAll_clicked()
 
     emit databaseUpdateComplete();
     showDbUpdateErrors(updater.getErrors());
+
+    if (updater.missingFilesCount() > 0) {
+        QMessageBox msgBox;
+        msgBox.setText(tr("Remove missing files from database?"));
+        msgBox.setInformativeText(tr("There are %1 file(s) in the database that are no longer present on disk. Do you want to remove them from the database?").arg(updater.missingFilesCount()));
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.addButton(QMessageBox::Cancel);
+        QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
+        msgBox.exec();
+        if (msgBox.clickedButton() == yesButton) {
+            updater.removeMissingFilesFromDatabase();
+        }
+    }
+
     dbUpdateDlg->hide();
     QMessageBox::information(this, tr("Update Complete"), tr("Database update complete."));
     emit databaseUpdateComplete();

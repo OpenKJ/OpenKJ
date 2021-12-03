@@ -99,6 +99,7 @@ private:
     Settings m_settings;
     QStringList m_paths;
     QStringList m_errors;
+    QVector<int> m_missingFilesSongIds;
     QElapsedTimer m_guiUpdateTimer;
 
     void setPaths(const QList<QString> &paths);
@@ -112,6 +113,8 @@ public:
     static int addDroppedFile(const QString& filePath);
     bool process(const QList<QString> &paths, bool isAllPaths);
     void addFilesToDatabase(const QList<QString> &files);
+    int missingFilesCount();
+    void removeMissingFilesFromDatabase();
 
 signals:
     void errorsGenerated(QStringList);

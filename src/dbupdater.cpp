@@ -151,6 +151,11 @@ bool DbUpdater::process(const QList<QString> &paths, bool isAllPaths)
 
     addFilesToDatabase(newFilesOnDisk);
 
+    m_missingFilesSongIds.clear();
+    foreach(const auto &rec, filesMissingOnDisk) {
+        m_missingFilesSongIds.append(rec.id);
+    }
+
     return true;
 }
 
@@ -231,6 +236,34 @@ void DbUpdater::addFilesToDatabase(const QList<QString> &files)
     if (!m_errors.empty()) {
         emit errorsGenerated(m_errors);
     }
+}
+
+int DbUpdater::missingFilesCount()
+{
+    return m_missingFilesSongIds.length();
+}
+
+void DbUpdater::removeMissingFilesFromDatabase()
+{
+    if (m_missingFilesSongIds.empty())
+        return;
+
+    emit stateChanged("Removing missing files from database...");
+
+    QSqlQuery query;
+    query.exec("BEGIN TRANSACTION");
+    query.prepare("DELETE FROM dbSongs WHERE [songid] = :id");
+
+    foreach(const int id, m_missingFilesSongIds) {
+        query.bindValue(":id", id);
+        query.exec();
+    }
+
+    query.exec("DELETE FROM queueSongs WHERE [song] NOT IN (SELECT [songid] FROM dbSongs)");
+    query.exec("DELETE FROM regularSongs WHERE [songid] NOT IN (SELECT [songid] FROM dbSongs)");
+
+    query.exec("COMMIT");
+    m_missingFilesSongIds.clear();
 }
 
 // Finds all potential supported karaoke files in a given directory
