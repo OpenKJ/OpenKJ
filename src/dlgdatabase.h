@@ -46,9 +46,10 @@ private:
     DlgCustomPatterns *customPatternsDlg;
     TableModelKaraokeSongs &m_dbModel;
     DlgDbUpdate *dbUpdateDlg;
-    int selectedRow;
     Settings m_settings;
     DirectoryMonitor *m_directoryMonitor {nullptr};
+
+    void updateButtonsState();
 
 public:
     explicit DlgDatabase(TableModelKaraokeSongs &dbModel, QWidget *parent = nullptr);
@@ -69,12 +70,12 @@ private slots:
     void on_buttonNew_clicked();
     void on_buttonClose_clicked();
     void on_buttonDelete_clicked();
-    void on_tableViewFolders_clicked(const QModelIndex &index);
     void on_buttonUpdate_clicked();
     void on_btnClearDatabase_clicked();
     static void showDbUpdateErrors(const QStringList& errors);
     void on_btnCustomPatterns_clicked();
     void on_btnExport_clicked();
+    void on_foldersSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
 };
 
 #endif // DATABASEDIALOG_H

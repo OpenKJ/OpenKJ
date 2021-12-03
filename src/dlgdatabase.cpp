@@ -28,7 +28,6 @@
 #include "dbupdater.h"
 #include <QStandardPaths>
 
-
 DlgDatabase::DlgDatabase(TableModelKaraokeSongs &dbModel, QWidget *parent) :
     QDialog(parent),
     m_dbModel(dbModel),
@@ -40,7 +39,8 @@ DlgDatabase::DlgDatabase(TableModelKaraokeSongs &dbModel, QWidget *parent) :
     ui->tableViewFolders->setModel(sourcedirmodel);
     ui->tableViewFolders->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     ui->tableViewFolders->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    selectedRow = -1;
+    connect(ui->tableViewFolders->selectionModel(), &QItemSelectionModel::selectionChanged, this, &DlgDatabase::on_foldersSelectionChanged);
+    updateButtonsState();
     customPatternsDlg = new DlgCustomPatterns(this);
     dbUpdateDlg = new DlgDbUpdate(this);
 
@@ -126,6 +126,7 @@ void DlgDatabase::on_buttonNew_clicked()
             sourcedirmodel->addSourceDir(fileName, pattern, customPattern);
         }
     }
+    updateButtonsState();
 }
 
 void DlgDatabase::on_buttonClose_clicked()
@@ -137,23 +138,18 @@ void DlgDatabase::on_buttonClose_clicked()
 
 void DlgDatabase::on_buttonDelete_clicked()
 {
-    if (selectedRow >= 0)
-    {
     int index = ui->tableViewFolders->currentIndex().row();
-    sourcedirmodel->delSourceDir(index);
-    selectedRow = -1;
-    ui->tableViewFolders->clearSelection();
+    if (index >= 0)
+    {
+        sourcedirmodel->delSourceDir(index);
+        updateButtonsState();
     }
-}
-
-void DlgDatabase::on_tableViewFolders_clicked(const QModelIndex &index)
-{
-    selectedRow = index.row();
 }
 
 void DlgDatabase::on_buttonUpdate_clicked()
 {
-    if (selectedRow >= 0)
+    int index = ui->tableViewFolders->currentIndex().row();
+    if (index >= 0)
     {
         DbUpdater updater;
         //emit databaseAboutToUpdate();
@@ -163,7 +159,7 @@ void DlgDatabase::on_buttonUpdate_clicked()
         connect(&updater, &DbUpdater::progressChanged, dbUpdateDlg, &DlgDbUpdate::changeProgress);
         dbUpdateDlg->show();
         QApplication::processEvents();
-        updater.process(QList<QString> {sourcedirmodel->getDirByIndex(selectedRow).getPath()}, sourcedirmodel->size() == 1);
+        updater.process(QList<QString> {sourcedirmodel->getDirByIndex(index).getPath()}, sourcedirmodel->size() == 1);
         emit databaseUpdateComplete();
         QApplication::processEvents();
         dbUpdateDlg->changeStatusTxt(tr("Database update complete!"));
@@ -268,5 +264,20 @@ void DlgDatabase::on_btnExport_clicked()
         }
         csvFile.close();
     }
+}
+
+void DlgDatabase::on_foldersSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
+{
+    updateButtonsState();
+}
+
+void DlgDatabase::updateButtonsState()
+{
+    bool hasSelectedRow = ui->tableViewFolders->selectionModel()->selectedRows().count() > 0;
+    ui->buttonUpdate->setEnabled(hasSelectedRow);
+    ui->buttonDelete->setEnabled(hasSelectedRow);
+
+    auto model = ui->tableViewFolders->model();
+    ui->buttonUpdateAll->setEnabled(model && model->rowCount() > 0);
 }
 
