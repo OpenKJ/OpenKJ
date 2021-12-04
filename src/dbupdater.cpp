@@ -66,7 +66,7 @@ int DbUpdater::addDroppedFile(const QString &filePath) {
 // Process files and do database update on the current directory.
 // Constraint: access the filesystem as little as possible to optimize performance for slow file access/network.
 // Strategy: read list of files to memory and compare list to database to find added or removed files.
-bool DbUpdater::process(const QList<QString> &paths, bool isAllPaths)
+bool DbUpdater::process(const QList<QString> &paths, ProcessingOptions options)
 {
     // Make sure only one dbupdater runs at a time.
     // Even though the program is primarily single threaded, exessive use of
@@ -79,6 +79,7 @@ bool DbUpdater::process(const QList<QString> &paths, bool isAllPaths)
     }
     const std::lock_guard<std::mutex> locker(mutex, std::adopt_lock);
 
+    m_missingFilesSongIds.clear();
     setPaths(paths);
 
     emit stateChanged("Scanning disk for files...");
@@ -88,7 +89,7 @@ bool DbUpdater::process(const QList<QString> &paths, bool isAllPaths)
     emit stateChanged("Scanning database for files...");
     QApplication::processEvents();
     DbEnumerator dbEnumerator(*this);
-    dbEnumerator.prepareQuery(!isAllPaths);
+    dbEnumerator.prepareQuery(!options.testFlag(FixMovedFilesSearchInWholeDB));
 
     emit stateChanged("Checking files against database...");
     qInfo() << "Checking for new songs";
@@ -96,6 +97,7 @@ bool DbUpdater::process(const QList<QString> &paths, bool isAllPaths)
 
     QStringList newFilesOnDisk; newFilesOnDisk.reserve(20000);
     QVector<DbSongRecord> filesMissingOnDisk;
+    bool keepTrackOfMissig = options.testFlag(FixMovedFiles) || options.testFlag(PrepareForRemovalOfMissing);
 
     int run = 0;
     do {
@@ -117,7 +119,7 @@ bool DbUpdater::process(const QList<QString> &paths, bool isAllPaths)
                 newFilesOnDisk.append(diskEnumerator.CurrentFile);
             }
 
-            if (comp_result > 0) {
+            if (comp_result > 0 && keepTrackOfMissig) {
                 filesMissingOnDisk.append(dbEnumerator.CurrentRecord);
             }
 
@@ -145,15 +147,17 @@ bool DbUpdater::process(const QList<QString> &paths, bool isAllPaths)
     while (diskEnumerator.IsValid || dbEnumerator.IsValid);
 
 
-    if (isAllPaths && !newFilesOnDisk.empty() && !filesMissingOnDisk.empty()) {
+    if (options.testFlag(FixMovedFiles) && !newFilesOnDisk.empty() && !filesMissingOnDisk.empty()) {
         fixMissingFiles(filesMissingOnDisk, newFilesOnDisk);
     }
 
     addFilesToDatabase(newFilesOnDisk);
 
-    m_missingFilesSongIds.clear();
-    foreach(const auto &rec, filesMissingOnDisk) {
-        m_missingFilesSongIds.append(rec.id);
+    if (options.testFlag(PrepareForRemovalOfMissing)) {
+        m_missingFilesSongIds.reserve(filesMissingOnDisk.size());
+        foreach(const auto &rec, filesMissingOnDisk) {
+            m_missingFilesSongIds.append(rec.id);
+        }
     }
 
     return true;

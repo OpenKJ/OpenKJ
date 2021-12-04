@@ -148,52 +148,60 @@ void DlgDatabase::on_buttonDelete_clicked()
 
 void DlgDatabase::on_buttonUpdate_clicked()
 {
-    int index = ui->tableViewFolders->currentIndex().row();
-    if (index >= 0)
-    {
-        DbUpdater updater;
-        //emit databaseAboutToUpdate();
-        dbUpdateDlg->reset();
-        connect(&updater, &DbUpdater::progressMessage, dbUpdateDlg, &DlgDbUpdate::addLogMsg);
-        connect(&updater, &DbUpdater::stateChanged, dbUpdateDlg, &DlgDbUpdate::changeStatusTxt);
-        connect(&updater, &DbUpdater::progressChanged, dbUpdateDlg, &DlgDbUpdate::changeProgress);
-        dbUpdateDlg->show();
-        QApplication::processEvents();
-        updater.process(QList<QString> {sourcedirmodel->getDirByIndex(index).getPath()}, sourcedirmodel->size() == 1);
-        emit databaseUpdateComplete();
-        QApplication::processEvents();
-        dbUpdateDlg->changeStatusTxt(tr("Database update complete!"));
-        QApplication::processEvents();
-        showDbUpdateErrors(updater.getErrors());
-        QMessageBox::information(this, tr("Update Complete"), tr("Database update complete."));
-        dbUpdateDlg->hide();
-    }
+    scan(false);
 }
 
 void DlgDatabase::on_buttonUpdateAll_clicked()
 {
-    DbUpdater updater;
+    scan(true);
+}
+
+void DlgDatabase::scan(bool scanAllPaths)
+{
+    QStringList paths;
+    DbUpdater::ProcessingOptions processingOptions = DbUpdater::ProcessingOption::PrepareForRemovalOfMissing;
+
+    if (scanAllPaths) {
+        processingOptions |= DbUpdater::ProcessingOption::FixMovedFilesSearchInWholeDB;
+        for (int i=0; i < sourcedirmodel->size(); i++)
+            paths.append(sourcedirmodel->getDirByIndex(i).getPath());
+    }
+    else {
+        processingOptions |= DbUpdater::ProcessingOption::FixMovedFiles;
+        int index = ui->tableViewFolders->currentIndex().row();
+        if (index >= 0) {
+            paths.append(sourcedirmodel->getDirByIndex(index).getPath());
+        }
+    }
+
+    if (paths.isEmpty())
+        return;
+
     dbUpdateDlg->reset();
+    DbUpdater updater;
     connect(&updater, &DbUpdater::progressMessage, dbUpdateDlg, &DlgDbUpdate::addLogMsg);
     connect(&updater, &DbUpdater::stateChanged, dbUpdateDlg, &DlgDbUpdate::changeStatusTxt);
     connect(&updater, &DbUpdater::progressChanged, dbUpdateDlg, &DlgDbUpdate::changeProgress);
     dbUpdateDlg->show();
+    QApplication::processEvents();
 
-    QStringList allPaths;
-    for (int i=0; i < sourcedirmodel->size(); i++)
-        allPaths.append(sourcedirmodel->getDirByIndex(i).getPath());
-
-    updater.process(allPaths, true);
+    updater.process(paths, processingOptions);
 
     emit databaseUpdateComplete();
     showDbUpdateErrors(updater.getErrors());
 
     if (updater.missingFilesCount() > 0) {
+        QString text = "There are %1 file(s) in the database that are no longer present on disk. Do you want to remove them from the database?";
+        if (!scanAllPaths) {
+            text += "\n\nIf the files have been been moved to another path in the database, "
+                    "select 'No' and then 'Update all' to detect the new location and update the database.";
+        }
+
         QMessageBox msgBox;
         msgBox.setText(tr("Remove missing files from database?"));
-        msgBox.setInformativeText(tr("There are %1 file(s) in the database that are no longer present on disk. Do you want to remove them from the database?").arg(updater.missingFilesCount()));
-        msgBox.setIcon(QMessageBox::Warning);
-        msgBox.addButton(QMessageBox::Cancel);
+        msgBox.setInformativeText(tr(qPrintable(text)).arg(updater.missingFilesCount()));
+        msgBox.setIcon(QMessageBox::Question);
+        msgBox.addButton(QMessageBox::No);
         QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
         msgBox.exec();
         if (msgBox.clickedButton() == yesButton) {

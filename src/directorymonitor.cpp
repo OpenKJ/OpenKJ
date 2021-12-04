@@ -55,8 +55,10 @@ void DirectoryMonitor::scanPaths()
     auto paths = m_pathsWithChangedFiles.values();
     m_pathsWithChangedFiles.clear();
 
+    // Scan the folder for changes and add new files to the database.
+    // Fix moved files to detect files moved between folders (in that case, both folders will be in m_pathsWithChangedFiles).
     DbUpdater dbUpdater(this);
-    if (dbUpdater.process(paths, true)) {
+    if (dbUpdater.process(paths, DbUpdater::ProcessingOption::FixMovedFiles)) {
         emit databaseUpdateComplete();
     }
     else {

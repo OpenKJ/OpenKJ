@@ -49,6 +49,7 @@ private:
     Settings m_settings;
     DirectoryMonitor *m_directoryMonitor {nullptr};
 
+    void scan(bool scanAllPaths);
     void updateButtonsState();
 
 public:

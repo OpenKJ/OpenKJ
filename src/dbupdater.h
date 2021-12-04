@@ -107,11 +107,21 @@ private:
     bool shouldUpdateGui();
 
 public:
+
+    enum ProcessingOption
+    {
+        None                          = 0x0,
+        FixMovedFiles                 = 0x01,
+        FixMovedFilesSearchInWholeDB  = FixMovedFiles | 0x02,
+        PrepareForRemovalOfMissing    = 0x04
+    };
+    Q_DECLARE_FLAGS(ProcessingOptions, ProcessingOption)
+
     explicit DbUpdater(QObject *parent = nullptr);
 
     QStringList getErrors();
     static int addDroppedFile(const QString& filePath);
-    bool process(const QList<QString> &paths, bool isAllPaths);
+    bool process(const QList<QString> &paths, ProcessingOptions options);
     void addFilesToDatabase(const QList<QString> &files);
     int missingFilesCount();
     void removeMissingFilesFromDatabase();
@@ -123,5 +133,7 @@ signals:
     void progressChanged(int progress, int max);
 
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(DbUpdater::ProcessingOptions)
 
 #endif // DBUPDATER_H
