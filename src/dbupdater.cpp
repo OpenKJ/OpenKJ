@@ -126,7 +126,6 @@ bool DbUpdater::process(const QList<QString> &paths, ProcessingOptions options)
             if (comp_result == 0 && dbEnumerator.CurrentRecord.isDropped) {
                 // Add drag'n'dropped files to the list of new songs so they
                 // will be properly added (upserted) to the database.
-                // TODO: needs testing - I can't make drag'n'drop work currently.../athom
                 newFilesOnDisk.append(diskEnumerator.CurrentFile);
             }
         }
@@ -385,6 +384,7 @@ void DbUpdater::DbEnumerator::prepareQuery(bool limitToPaths)
     m_dbSongs.exec();
 
     // trick to do count in SQlite:
+    m_count = 0;
     if(m_dbSongs.last())
     {
         m_count =  m_dbSongs.at() + 1;
@@ -411,9 +411,9 @@ void DbUpdater::setPaths(const QList<QString> &paths)
     //  * Remove any subpath as parent paths are scanned recursively
     m_paths = QStringList();
     foreach(auto path, paths) {
-        m_paths << (path.endsWith(QDir::separator())
+        m_paths << (path.endsWith("/")
                 ? path
-                : path + QDir::separator());
+                : path + "/");
     }
 
     m_paths.sort();
@@ -449,7 +449,7 @@ void DbUpdater::fixMissingFiles(QVector<DbSongRecord> &filesMissingOnDisk, QStri
     QVector<QStringRef> filesOnDiskFilenamesOnlySorted;
     filesOnDiskFilenamesOnlySorted.reserve(newFilesOnDiskCopy.size());
     foreach(const QString &s, newFilesOnDiskCopy) {
-        int filenameBeginsAt = s.lastIndexOf(QDir::separator()) + 1;
+        int filenameBeginsAt = s.lastIndexOf('/') + 1;
         filesOnDiskFilenamesOnlySorted.append(QStringRef(&s, filenameBeginsAt, s.length() - filenameBeginsAt));
     }
 
