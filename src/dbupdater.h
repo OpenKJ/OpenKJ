@@ -26,6 +26,7 @@
 #include <QtSql>
 #include "src/models/tablemodelkaraokesourcedirs.h"
 #include "settings.h"
+#include <array>
 
 
 class DbUpdater : public QObject

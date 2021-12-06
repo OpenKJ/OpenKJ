@@ -190,9 +190,10 @@ void DbUpdater::addFilesToDatabase(const QList<QString> &files)
     MzArchive archive;
     KaraokeFileInfo parser(this);
     QFileInfo fileInfo;
-    int loops{0};
+    int loops = 0;
 
     for (const auto &filePath : files) {
+        loops++;
         int duration{-2};
         fileInfo.setFile(filePath);
 #ifdef Q_OS_WIN
@@ -201,7 +202,7 @@ void DbUpdater::addFilesToDatabase(const QList<QString> &files)
             // illegal character
             m_errors.append("Illegal character in filename: " + filePath);
             emit progressMessage("Illegal character in filename: " + filePath);
-            emit progressChanged(loops + 1);
+            emit progressChanged(loops, files.length());
             continue;
         }
 #endif
