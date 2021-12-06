@@ -121,7 +121,6 @@ public:
     explicit DbUpdater(QObject *parent = nullptr);
 
     QStringList getErrors();
-    static int addDroppedFile(const QString& filePath);
     bool process(const QList<QString> &paths, ProcessingOptions options);
     void addFilesToDatabase(const QList<QString> &files);
     int missingFilesCount();

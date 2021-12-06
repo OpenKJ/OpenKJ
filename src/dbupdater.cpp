@@ -35,34 +35,6 @@ DbUpdater::DbUpdater(QObject *parent) :
         QObject(parent) {
 }
 
-// Adds the given media file path to the database as a drag and dropped file
-// Returns the db ID of the created entry
-int DbUpdater::addDroppedFile(const QString &filePath) {
-    QSqlQuery query;
-    query.prepare("SELECT songid FROM dbsongs WHERE path = :path LIMIT 1");
-    query.bindValue(":path", filePath);
-    query.exec();
-    if (query.first()) {
-        return query.value("songid").toInt();
-    }
-    query.prepare(
-            "INSERT OR IGNORE INTO dbSongs (discid,artist,title,path,filename) VALUES(:discid, :artist, :title, :path, :filename)");
-    QFileInfo file(filePath);
-    QString artist = "-Dropped File-";
-    QString title = QFileInfo(filePath).fileName();
-    QString discid = "!!DROPPED!!";
-    query.bindValue(":discid", discid);
-    query.bindValue(":artist", artist);
-    query.bindValue(":title", title);
-    query.bindValue(":path", file.filePath());
-    query.bindValue(":filename", file.completeBaseName());
-    query.exec();
-    if (query.lastInsertId().isValid()) {
-        return query.lastInsertId().toInt();
-    }
-    return -1;
-}
-
 // Process files and do database update on the current directory.
 // Constraint: access the filesystem as little as possible to optimize performance for slow file access/network.
 // Strategy: read list of files to memory and compare list to database to find added or removed files.

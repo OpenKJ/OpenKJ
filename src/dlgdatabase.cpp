@@ -66,11 +66,6 @@ void DlgDatabase::singleSongAdd(const QString& path)
     //emit databaseSongAdded();
 }
 
-int DlgDatabase::dropFileAdd(const QString &path)
-{
-    return DbUpdater::addDroppedFile(path);
-}
-
 void DlgDatabase::on_buttonNew_clicked()
 {
 #ifdef Q_OS_LINUX
