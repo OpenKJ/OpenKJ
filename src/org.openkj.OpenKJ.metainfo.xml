@@ -32,6 +32,13 @@
         <binary>openkj</binary>
     </provides>
     <releases>
+        <release version="2.1.34" date="2021-12-13">
+            <description>
+                <ul>
+                    <li>Reimplement DB update code, massive db update speedup.</li>
+                </ul>
+            </description>
+        </release>
         <release version="2.1.33" date="2021-09-18">
             <description>
                 <ul>
