@@ -26,14 +26,14 @@ class ItemDelegatePlaylistSongs : public QItemDelegate
 {
     Q_OBJECT
 private:
-    int m_playingPlSongId;
+    int m_playingPlSongId{-1};
     QImage m_iconDelete;
     QImage m_iconPlaying;
-    int m_curFontHeight;
+    int m_curFontHeight{0};
     Settings m_settings;
 
 public:
-    explicit ItemDelegatePlaylistSongs(QObject *parent = 0);
+    explicit ItemDelegatePlaylistSongs(QObject *parent = nullptr);
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
     void setPlayingPlSongId(int plSongId);
 
