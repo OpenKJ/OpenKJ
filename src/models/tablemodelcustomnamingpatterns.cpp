@@ -9,14 +9,16 @@ void TableModelCustomNamingPatterns::loadFromDB()
     query.exec("SELECT * from custompatterns ORDER BY name");
     while (query.next())
     {
-        Pattern pattern;
-        pattern.setName(query.value("name").toString());
-        pattern.setArtistRegex(query.value("artistregex").toString());
-        pattern.setArtistCaptureGrp(query.value("artistcapturegrp").toInt());
-        pattern.setTitleRegex(query.value("titleregex").toString());
-        pattern.setTitleCaptureGrp(query.value("titlecapturegrp").toInt());
-        pattern.setSongIdRegex(query.value("discidregex").toString());
-        pattern.setSongIdCaptureGrp(query.value("discidcapturegrp").toInt());
+        CustomPattern pattern(
+            query.value("name").toString(),
+            query.value("artistregex").toString(),
+            query.value("artistcapturegrp").toInt(),
+            query.value("titleregex").toString(),
+            query.value("titlecapturegrp").toInt(),
+                    // TODO: disk id or song id??
+            query.value("discidregex").toString(),
+            query.value("discidcapturegrp").toInt()
+           );
         myData.append(pattern);
     }
     layoutChanged();
@@ -107,9 +109,9 @@ Qt::ItemFlags TableModelCustomNamingPatterns::flags(const QModelIndex &index) co
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
 
-Pattern TableModelCustomNamingPatterns::getPattern(int index)
+CustomPattern &TableModelCustomNamingPatterns::getPattern(int index)
 {
-    return myData.at(index);
+    return myData[index];
 }
 
 

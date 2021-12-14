@@ -77,10 +77,8 @@ void BmDbDialog::pushButtonUpdateClicked() {
     m_dbUpdateDlg.show();
     auto thread = new BmDbUpdateThread(this);
     thread->setPath(path);
-    m_dbUpdateDlg.changeDirectory(path);
-    connect(thread, &BmDbUpdateThread::progressMessage, &m_dbUpdateDlg, &DlgDbUpdate::addProgressMsg);
+    connect(thread, &BmDbUpdateThread::progressMessage, &m_dbUpdateDlg, &DlgDbUpdate::addLogMsg);
     connect(thread, &BmDbUpdateThread::stateChanged, &m_dbUpdateDlg, &DlgDbUpdate::changeStatusTxt);
-    connect(thread, &BmDbUpdateThread::progressMaxChanged, &m_dbUpdateDlg, &DlgDbUpdate::setProgressMax);
     connect(thread, &BmDbUpdateThread::progressChanged, &m_dbUpdateDlg, &DlgDbUpdate::changeProgress);
     thread->startUnthreaded();
     QMessageBox::information(this, tr("Update Complete"), tr("Database update complete."));
@@ -96,10 +94,8 @@ void BmDbDialog::pushButtonUpdateAllClicked() {
         QApplication::processEvents();
         auto thread = new BmDbUpdateThread(this);
         thread->setPath(m_pathsModel.data(m_pathsModel.index(i, 0)).toString());
-        m_dbUpdateDlg.changeDirectory(m_pathsModel.data(m_pathsModel.index(i, 0)).toString());
-        connect(thread, &BmDbUpdateThread::progressMessage, &m_dbUpdateDlg, &DlgDbUpdate::addProgressMsg);
+        connect(thread, &BmDbUpdateThread::progressMessage, &m_dbUpdateDlg, &DlgDbUpdate::addLogMsg);
         connect(thread, &BmDbUpdateThread::stateChanged, &m_dbUpdateDlg, &DlgDbUpdate::changeStatusTxt);
-        connect(thread, &BmDbUpdateThread::progressMaxChanged, &m_dbUpdateDlg, &DlgDbUpdate::setProgressMax);
         connect(thread, &BmDbUpdateThread::progressChanged, &m_dbUpdateDlg, &DlgDbUpdate::changeProgress);
         thread->startUnthreaded();
         delete (thread);

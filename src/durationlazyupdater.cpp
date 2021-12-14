@@ -25,7 +25,7 @@ void LazyDurationUpdateWorker::getDurations(const QStringList &files) {
         }
         if (duration == 0)
         {
-            parser.setFileName(path);
+            parser.setFile(path);
             duration = parser.getDuration();
         }
         if (duration == 0)

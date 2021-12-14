@@ -24,7 +24,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt5 COMPONENTS Widgets REQUIRED)
@@ -414,6 +414,7 @@ set(SOURCE_FILES
         src/dlgvideopreview.cpp
         src/mainwindow.cpp
         src/dbupdater.cpp
+        src/directorymonitor.cpp
         src/dlgkeychange.cpp
         src/dlgdatabase.cpp
         src/dlgrequests.cpp
@@ -459,6 +460,8 @@ set(SOURCE_FILES
         src/dlgpassword.cpp
         src/dlgpurchaseprogress.cpp
         src/karaokefileinfo.cpp
+        src/karaokefilepatternresolver.cpp
+        src/custompattern.cpp
         src/dlgeditsong.cpp
         src/soundfxbutton.cpp
         src/runguard/runguard.cpp
@@ -472,6 +475,7 @@ set(SOURCE_FILES
         src/okjutil.h
         src/okjtypes.h
         src/dbupdater.h
+        src/directorymonitor.h
         src/dlgkeychange.h
         src/dlgdatabase.h
         src/dlgrequests.h
@@ -518,6 +522,8 @@ set(SOURCE_FILES
         src/dlgpassword.h
         src/dlgpurchaseprogress.h
         src/karaokefileinfo.h
+        src/karaokefilepatternresolver.h
+        src/custompattern.h
         src/dlgeditsong.h
         src/soundfxbutton.h
         src/runguard/runguard.h

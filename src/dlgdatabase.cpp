@@ -28,7 +28,6 @@
 #include "dbupdater.h"
 #include <QStandardPaths>
 
-
 DlgDatabase::DlgDatabase(TableModelKaraokeSongs &dbModel, QWidget *parent) :
     QDialog(parent),
     m_dbModel(dbModel),
@@ -40,37 +39,20 @@ DlgDatabase::DlgDatabase(TableModelKaraokeSongs &dbModel, QWidget *parent) :
     ui->tableViewFolders->setModel(sourcedirmodel);
     ui->tableViewFolders->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     ui->tableViewFolders->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    selectedRow = -1;
+    connect(ui->tableViewFolders->selectionModel(), &QItemSelectionModel::selectionChanged, this, &DlgDatabase::on_foldersSelectionChanged);
+    updateButtonsState();
     customPatternsDlg = new DlgCustomPatterns(this);
     dbUpdateDlg = new DlgDbUpdate(this);
-    if (m_settings.dbDirectoryWatchEnabled())
-    {
-        QStringList sourceDirs = sourcedirmodel->getSourceDirs();
-        QString path;
-        foreach (path, sourceDirs)
-        {
-            QFileInfo finfo(path);
-            if (finfo.isDir() && finfo.isReadable())
-            {
-                fsWatcher.addPath(path);
-                qInfo() << "Adding watch to path: " << path;
-                QDirIterator it(path, QDirIterator::Subdirectories);
-                while (it.hasNext()) {
-                    QString subPath = it.next();
-                    if (!it.fileInfo().isDir() || subPath.endsWith("/.") || subPath.endsWith("/.."))
-                        continue;
-                    qInfo() << "Adding watch to subpath: " << subPath;
-                    fsWatcher.addPath(subPath);
-                }
-            }
-        }
-        connect(&fsWatcher, &QFileSystemWatcher::directoryChanged, this, &DlgDatabase::directoryChanged);
+
+    if (m_settings.dbDirectoryWatchEnabled()) {
+        m_directoryMonitor = new DirectoryMonitor(this, sourcedirmodel->getSourceDirs());
+        connect(m_directoryMonitor, &DirectoryMonitor::databaseUpdateComplete, this, &DlgDatabase::databaseUpdateComplete);
     }
 }
 
 DlgDatabase::~DlgDatabase()
 {
-    fsWatcher.removePaths(fsWatcher.directories());
+    delete m_directoryMonitor;
     delete sourcedirmodel;
     delete ui;
 }
@@ -79,14 +61,9 @@ void DlgDatabase::singleSongAdd(const QString& path)
 {
     qInfo() << "singleSongAdd(" << path << ") called";
     DbUpdater updater;
-    updater.addSingleTrack(path);
+    updater.addFilesToDatabase(QStringList() << path);
     emit databaseUpdateComplete();
     //emit databaseSongAdded();
-}
-
-int DlgDatabase::dropFileAdd(const QString &path)
-{
-    return DbUpdater::addDroppedFile(path);
 }
 
 void DlgDatabase::on_buttonNew_clicked()
@@ -144,6 +121,7 @@ void DlgDatabase::on_buttonNew_clicked()
             sourcedirmodel->addSourceDir(fileName, pattern, customPattern);
         }
     }
+    updateButtonsState();
 }
 
 void DlgDatabase::on_buttonClose_clicked()
@@ -155,70 +133,77 @@ void DlgDatabase::on_buttonClose_clicked()
 
 void DlgDatabase::on_buttonDelete_clicked()
 {
-    if (selectedRow >= 0)
-    {
     int index = ui->tableViewFolders->currentIndex().row();
-    sourcedirmodel->delSourceDir(index);
-    selectedRow = -1;
-    ui->tableViewFolders->clearSelection();
+    if (index >= 0)
+    {
+        sourcedirmodel->delSourceDir(index);
+        updateButtonsState();
     }
-}
-
-void DlgDatabase::on_tableViewFolders_clicked(const QModelIndex &index)
-{
-    selectedRow = index.row();
 }
 
 void DlgDatabase::on_buttonUpdate_clicked()
 {
-    if (selectedRow >= 0)
-    {
-        DbUpdater updater;
-        //emit databaseAboutToUpdate();
-        dbUpdateDlg->reset();
-        connect(&updater, &DbUpdater::progressMessage, dbUpdateDlg, &DlgDbUpdate::addProgressMsg);
-        connect(&updater, &DbUpdater::stateChanged, dbUpdateDlg, &DlgDbUpdate::changeStatusTxt);
-        connect(&updater, &DbUpdater::progressMaxChanged, dbUpdateDlg, &DlgDbUpdate::setProgressMax);
-        connect(&updater, &DbUpdater::progressChanged, dbUpdateDlg, &DlgDbUpdate::changeProgress);
-        dbUpdateDlg->changeDirectory(sourcedirmodel->getDirByIndex(selectedRow).getPath());
-        dbUpdateDlg->show();
-        QApplication::processEvents();
-        updater.setPath(sourcedirmodel->getDirByIndex(selectedRow).getPath());
-        updater.setPattern(sourcedirmodel->getDirByIndex(selectedRow).getPattern());
-        QApplication::processEvents();
-        updater.process();
-        emit databaseUpdateComplete();
-        QApplication::processEvents();
-        dbUpdateDlg->changeStatusTxt(tr("Database update complete!"));
-        dbUpdateDlg->setProgressMax(100);
-        dbUpdateDlg->changeProgress(100);
-        QApplication::processEvents();
-        showDbUpdateErrors(updater.getErrors());
-        QMessageBox::information(this, tr("Update Complete"), tr("Database update complete."));
-        dbUpdateDlg->hide();
-    }
+    scan(false);
 }
 
 void DlgDatabase::on_buttonUpdateAll_clicked()
 {
-    DbUpdater updater;
+    scan(true);
+}
+
+void DlgDatabase::scan(bool scanAllPaths)
+{
+    QStringList paths;
+    DbUpdater::ProcessingOptions processingOptions = DbUpdater::ProcessingOption::PrepareForRemovalOfMissing;
+
+    if (scanAllPaths) {
+        processingOptions |= DbUpdater::ProcessingOption::FixMovedFilesSearchInWholeDB;
+        for (int i=0; i < sourcedirmodel->size(); i++)
+            paths.append(sourcedirmodel->getDirByIndex(i).getPath());
+    }
+    else {
+        processingOptions |= DbUpdater::ProcessingOption::FixMovedFiles;
+        int index = ui->tableViewFolders->currentIndex().row();
+        if (index >= 0) {
+            paths.append(sourcedirmodel->getDirByIndex(index).getPath());
+        }
+    }
+
+    if (paths.isEmpty())
+        return;
+
     dbUpdateDlg->reset();
-    connect(&updater, &DbUpdater::progressMessage, dbUpdateDlg, &DlgDbUpdate::addProgressMsg);
+    DbUpdater updater;
+    connect(&updater, &DbUpdater::progressMessage, dbUpdateDlg, &DlgDbUpdate::addLogMsg);
     connect(&updater, &DbUpdater::stateChanged, dbUpdateDlg, &DlgDbUpdate::changeStatusTxt);
-    connect(&updater, &DbUpdater::progressMaxChanged, dbUpdateDlg, &DlgDbUpdate::setProgressMax);
     connect(&updater, &DbUpdater::progressChanged, dbUpdateDlg, &DlgDbUpdate::changeProgress);
     dbUpdateDlg->show();
+    QApplication::processEvents();
 
-    for (int i=0; i < sourcedirmodel->size(); i++)
-    {
-        //msgBox.setInformativeText("Processing path: " + sourcedirmodel->getDirByIndex(i)->getPath());
-        dbUpdateDlg->changeDirectory(sourcedirmodel->getDirByIndex(i).getPath());
-        updater.setPath(sourcedirmodel->getDirByIndex(i).getPath());
-        updater.setPattern(sourcedirmodel->getDirByIndex(i).getPattern());
-        updater.process();
-    }
+    updater.process(paths, processingOptions);
+
     emit databaseUpdateComplete();
     showDbUpdateErrors(updater.getErrors());
+
+    if (updater.missingFilesCount() > 0) {
+        QString text = "There are %1 file(s) in the database that are no longer present on disk. Do you want to remove them from the database?";
+        if (!scanAllPaths) {
+            text += "\n\nIf the files have been been moved to another path in the database, "
+                    "select 'No' and then 'Update all' to detect the new location and update the database.";
+        }
+
+        QMessageBox msgBox;
+        msgBox.setText(tr("Remove missing files from database?"));
+        msgBox.setInformativeText(tr(qPrintable(text)).arg(updater.missingFilesCount()));
+        msgBox.setIcon(QMessageBox::Question);
+        msgBox.addButton(QMessageBox::No);
+        QPushButton *yesButton = msgBox.addButton(QMessageBox::Yes);
+        msgBox.exec();
+        if (msgBox.clickedButton() == yesButton) {
+            updater.removeMissingFilesFromDatabase();
+        }
+    }
+
     dbUpdateDlg->hide();
     QMessageBox::information(this, tr("Update Complete"), tr("Database update complete."));
     emit databaseUpdateComplete();
@@ -243,10 +228,6 @@ void DlgDatabase::on_btnClearDatabase_clicked()
         emit databaseCleared();
         QMessageBox::information(this, tr("Database cleared"), tr("Song database, regular singers, and all rotation data has been cleared."));
     }
-}
-
-void DlgDatabase::dbupdate_thread_finished()
-{
 }
 
 void DlgDatabase::showDbUpdateErrors(const QStringList& errors)
@@ -302,31 +283,18 @@ void DlgDatabase::on_btnExport_clicked()
     }
 }
 
-void DlgDatabase::directoryChanged(const QString& dirPath)
+void DlgDatabase::on_foldersSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
 {
-    if (!m_settings.dbDirectoryWatchEnabled())
-        return;
-    DbUpdater updater;
-    qInfo() << "Directory changed fired for dir: " << dirPath;
-    QDirIterator it(dirPath);
-    while (it.hasNext()) {
-        QString file = it.next();
-        QFileInfo fi(file);
-        if (fi.isDir())
-            continue;
-        if (file == dirPath + "/." || file == dirPath + "/..")
-            continue;
-        if (fi.suffix().toLower() != "zip" && fi.suffix().toLower() != "cdg")
-        {
-            continue;
-        }
-        if (DbUpdater::dbEntryExists(file))
-        {
-            continue;
-        }
-        qInfo() << "Detected new file: " << file;
-        qInfo() << "Adding file to the database";
-        updater.addSingleTrack(file);
-        emit databaseUpdateComplete();
-    }
+    updateButtonsState();
 }
+
+void DlgDatabase::updateButtonsState()
+{
+    bool hasSelectedRow = ui->tableViewFolders->selectionModel()->selectedRows().count() > 0;
+    ui->buttonUpdate->setEnabled(hasSelectedRow);
+    ui->buttonDelete->setEnabled(hasSelectedRow);
+
+    auto model = ui->tableViewFolders->model();
+    ui->buttonUpdateAll->setEnabled(model && model->rowCount() > 0);
+}
+

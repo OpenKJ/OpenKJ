@@ -5,15 +5,22 @@
 #include "okarchive.h"
 #include <QSqlQuery>
 
+KaraokeFileInfo::KaraokeFileInfo(QObject *parent, std::shared_ptr<KaraokeFilePatternResolver> patternResolver) : QObject(parent), m_patternResolver(patternResolver) {
+    m_logger = spdlog::get("logger");
+}
+
+KaraokeFileInfo::KaraokeFileInfo(QObject *parent) : KaraokeFileInfo(parent, std::make_shared<KaraokeFilePatternResolver>()) {
+}
+
 void KaraokeFileInfo::readTags()
 {
     if (tagsRead)
         return;
     TagReader *tagReader = new TagReader(this);
 
-    if (fileName.endsWith(".cdg", Qt::CaseInsensitive))
+    if (m_filename.endsWith(".cdg", Qt::CaseInsensitive))
     {
-        QString baseFn = fileName;
+        QString baseFn = m_filename;
         QString mediaFile;
         baseFn.chop(3);
         if (QFile::exists(baseFn + "mp3"))
@@ -34,11 +41,11 @@ void KaraokeFileInfo::readTags()
             tagSongid.append("-" + track);
         }
     }
-    else if (fileName.endsWith(".zip", Qt::CaseInsensitive))
+    else if (m_filename.endsWith(".zip", Qt::CaseInsensitive))
     {
         OkArchive archive;
         QTemporaryDir dir;
-        archive.setArchiveFile(fileName);
+        archive.setArchiveFile(m_filename);
         archive.checkAudio();
         QString audioFile = "temp" + archive.audioExtension();
         archive.extractAudio(dir.path(), audioFile);
@@ -56,7 +63,7 @@ void KaraokeFileInfo::readTags()
     else
     {
         m_logger->info("{} readTags called on non zip or cdg file '{}'.  Trying taglib.", m_loggingPrefix);
-        tagReader->setMedia(fileName);
+        tagReader->setMedia(m_filename);
         tagArtist = tagReader->getArtist();
         tagTitle = tagReader->getTitle();
         tagSongid = tagReader->getAlbum();
@@ -66,9 +73,9 @@ void KaraokeFileInfo::readTags()
     delete tagReader;
 }
 
-void KaraokeFileInfo::setFileName(const QString &filename)
+void KaraokeFileInfo::setFile(const QString &filename)
 {
-    fileName = filename;
+    m_filename = filename;
     fileBaseName = QFileInfo(filename).completeBaseName();
     tagArtist = "";
     tagTitle = "";
@@ -78,65 +85,60 @@ void KaraokeFileInfo::setFileName(const QString &filename)
     songId = "";
     duration = 0;
     tagsRead = false;
-    m_success = false;
+    m_metadata_parsed = false;
+    m_metadata_parsed_success = false;
 }
 
-void KaraokeFileInfo::setPattern(SourceDir::NamingPattern pattern, QString path)
-{
-    artist = "";
-    title = "";
-    songId = "";
-    this->path = path;
-    this->pattern = pattern;
-    m_success = false;
+void KaraokeFileInfo::ensureMetadataParsed() {
+    if (!m_metadata_parsed) {
+        auto &pattern = m_patternResolver->getPattern(m_filename);
+        m_metadata_parsed_success = parseMetadata(pattern);
+
+        if (!m_metadata_parsed_success && pattern.pattern != SourceDir::METADATA) {
+            // Something went wrong, no metadata found. File is probably named wrong. If we didn't try media tags, give it a shot
+            m_metadata_parsed_success = parseMetadata(m_patternResolver->getDefaultPattern());
+        }
+        m_metadata_parsed = true;
+    }
 }
 
 const QString &KaraokeFileInfo::getArtist()
 {
-    getMetadata();
+    ensureMetadataParsed();
     return artist;
 }
 
 const QString &KaraokeFileInfo::getTitle()
 {
-    getMetadata();
+    ensureMetadataParsed();
     return title;
 }
 
 const QString &KaraokeFileInfo::getSongId()
 {
-    getMetadata();
+    ensureMetadataParsed();
     return songId;
-}
-
-QString KaraokeFileInfo::testPattern(const QString& regex, const QString& filename, int captureGroup)
-{
-    QRegularExpression r;
-    QRegularExpressionMatch match;
-    r.setPattern(regex);
-    match = r.match(filename);
-    return match.captured(captureGroup).replace("_", " ");
-
 }
 
 const int& KaraokeFileInfo::getDuration()
 {
     if (duration > 0)
         return duration;
-    if (fileName.endsWith(".zip", Qt::CaseInsensitive))
+    if (m_filename.endsWith(".zip", Qt::CaseInsensitive))
     {
         OkArchive archive;
-        archive.setArchiveFile(fileName);
+        archive.setArchiveFile(m_filename);
         duration = archive.getSongDuration();
     }
-    else if (fileName.endsWith(".cdg", Qt::CaseInsensitive))
+    else if (m_filename.endsWith(".cdg", Qt::CaseInsensitive))
     {
-        duration = ((QFile(fileName).size() / 96) / 75) * 1000;
+        duration = ((QFile(m_filename).size() / 96) / 75) * 1000;
     }
     else
     {
+        //TODO: make sure tags are not read twice (here and if reading metadata tags)!
         TagReader reader;
-        reader.setMedia(fileName);
+        reader.setMedia(m_filename);
         try
         {
             duration = reader.getDuration();
@@ -149,17 +151,15 @@ const int& KaraokeFileInfo::getDuration()
     return duration;
 }
 
-void KaraokeFileInfo::getMetadata()
+bool KaraokeFileInfo::parseMetadata(const KaraokeFilePatternResolver::KaraokeFilePattern& pattern)
 {
     //TODO: This needs to be cleaned up, the logic is convoluted and is probably
     // slowing down db updates
-    if ( !artist.isEmpty() || !title.isEmpty() || !songId.isEmpty())
-        return;
-    int customPatternId{0};
+
     QString baseNameFiltered = fileBaseName;
     baseNameFiltered.replace("_", " ");
     QStringList parts = baseNameFiltered.split(" - ");
-    switch (pattern)
+    switch (pattern.pattern)
     {
     case SourceDir::STA:
         if (!parts.empty())
@@ -243,44 +243,38 @@ void KaraokeFileInfo::getMetadata()
         songId = tagSongid;
         break;
     case SourceDir::CUSTOM:
-        QSqlQuery query;
-        query.exec("SELECT custompattern FROM sourcedirs WHERE path == \"" + path + "\"" );
-        if (query.first())
-        {
-            customPatternId = query.value(0).toInt();
-        }
-        if (customPatternId < 1)
-        {
-            m_logger->error("{} Custom pattern set for path, but pattern ID is invalid!  Bailing out!", m_loggingPrefix);
-            m_success = false;
-            return;
-        }
-        query.exec("SELECT * FROM custompatterns WHERE patternid == " + QString::number(customPatternId));
-        if (query.first())
-        {
-            setArtistRegEx(query.value("artistregex").toString(), query.value("artistcapturegrp").toInt());
-            setTitleRegEx(query.value("titleregex").toString(), query.value("titlecapturegrp").toInt());
-            setSongIdRegEx(query.value("discidregex").toString(), query.value("discidcapturegrp").toInt());
-        }
+        if (pattern.customPattern.isNull())
+            return false;
+
         QRegularExpression r;
         QRegularExpressionMatch match;
-        r.setPattern(artistPattern);
+
+        r.setPattern(pattern.customPattern.getArtistRegex());
         match = r.match(fileBaseName);
-        artist = match.captured(artistCaptureGroup).replace("_", " ");
-        r.setPattern(titlePattern);
+        artist = match.captured(pattern.customPattern.getArtistCaptureGrp()).replace("_", " ");
+
+        r.setPattern(pattern.customPattern.getTitleRegex());
         match = r.match(fileBaseName);
-        title = match.captured(titleCaptureGroup).replace("_", " ");
-        r.setPattern(songIdPattern);
+        title = match.captured(pattern.customPattern.getTitleCaptureGrp()).replace("_", " ");
+
+        r.setPattern(pattern.customPattern.getSongIdRegex());
         match = r.match(fileBaseName);
-        songId = match.captured(songIdCaptureGroup).replace("_", " ");
+        songId = match.captured(pattern.customPattern.getSongIdRegex()).replace("_", " ");
+
         break;
     }
     if ( !artist.isEmpty() || !title.isEmpty() || !songId.isEmpty())
-        m_success = true;
+        return true;
     else
-        m_success = false;
+        return false;
 }
 
-KaraokeFileInfo::KaraokeFileInfo(QObject *parent) : QObject(parent) {
-    m_logger = spdlog::get("logger");
+// Static:
+QString KaraokeFileInfo::testPattern(const QString& regex, const QString& filename, int captureGroup)
+{
+    QRegularExpression r;
+    QRegularExpressionMatch match;
+    r.setPattern(regex);
+    match = r.match(filename);
+    return match.captured(captureGroup).replace("_", " ");
 }

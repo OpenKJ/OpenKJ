@@ -6,15 +6,14 @@
 
 
 void DlgCustomPatterns::evaluateRegEx() {
-    KaraokeFileInfo parser;
     ui->labelArtistExample->setText(
-            parser.testPattern(ui->lineEditArtistRegEx->text(), ui->lineEditFilenameExample->text(),
+            KaraokeFileInfo::testPattern(ui->lineEditArtistRegEx->text(), ui->lineEditFilenameExample->text(),
                                ui->spinBoxArtistCaptureGrp->value()));
     ui->labelTitleExample->setText(
-            parser.testPattern(ui->lineEditTitleRegEx->text(), ui->lineEditFilenameExample->text(),
+            KaraokeFileInfo::testPattern(ui->lineEditTitleRegEx->text(), ui->lineEditFilenameExample->text(),
                                ui->spinBoxTitleCaptureGrp->value()));
     ui->labelDiscIdExample->setText(
-            parser.testPattern(ui->lineEditDiscIdRegEx->text(), ui->lineEditFilenameExample->text(),
+            KaraokeFileInfo::testPattern(ui->lineEditDiscIdRegEx->text(), ui->lineEditFilenameExample->text(),
                                ui->spinBoxDiscIdCaptureGrp->value()));
 }
 
@@ -51,8 +50,7 @@ void DlgCustomPatterns::btnCloseClicked() {
 }
 
 void DlgCustomPatterns::tableViewPatternsClicked(const QModelIndex &index) {
-    Pattern pattern = m_patternsModel.getPattern(index.row());
-    m_selectedPattern = pattern;
+    auto pattern = m_patternsModel.getPattern(index.row());
     ui->lineEditDiscIdRegEx->setText(pattern.getSongIdRegex());
     ui->spinBoxDiscIdCaptureGrp->setValue(pattern.getSongIdCaptureGrp());
     ui->lineEditArtistRegEx->setText(pattern.getArtistRegex());
@@ -73,15 +71,17 @@ void DlgCustomPatterns::btnAddClicked() {
 }
 
 void DlgCustomPatterns::btnDeleteClicked() {
-    if (ui->tableViewPatterns->selectionModel()->selectedIndexes().count() > 0) {
+    auto pattern = getSelectedPattern();
+    if (pattern) {
         QSqlQuery query;
-        query.exec("DELETE FROM custompatterns WHERE name == \"" + m_selectedPattern.getName() + "\"");
+        query.exec("DELETE FROM custompatterns WHERE name == \"" + pattern->getName() + "\"");
         m_patternsModel.loadFromDB();
     }
 }
 
 void DlgCustomPatterns::btnApplyChangesClicked() {
-    if (ui->tableViewPatterns->selectionModel()->selectedIndexes().count() > 0) {
+    auto pattern = getSelectedPattern();
+    if (pattern) {
         QSqlQuery query;
         QString arx, trx, drx, acg, tcg, dcg, name;
         arx = ui->lineEditArtistRegEx->text();
@@ -90,11 +90,20 @@ void DlgCustomPatterns::btnApplyChangesClicked() {
         acg = QString::number(ui->spinBoxArtistCaptureGrp->value());
         tcg = QString::number(ui->spinBoxTitleCaptureGrp->value());
         dcg = QString::number(ui->spinBoxDiscIdCaptureGrp->value());
-        name = m_selectedPattern.getName();
+        name = pattern->getName();
         query.exec("UPDATE custompatterns SET artistregex = \"" + arx + "\", titleregex = \"" + trx +
                    "\", discidregex = \"" + drx + \
                    "\", artistcapturegrp = " + acg + ", titlecapturegrp = " + tcg + ", discidcapturegrp = " + dcg +
                    " WHERE name = \"" + name + "\"");
         m_patternsModel.loadFromDB();
     }
+}
+
+CustomPattern *DlgCustomPatterns::getSelectedPattern()
+{
+    auto selected = ui->tableViewPatterns->selectionModel()->selectedRows();
+    if (selected.count() != 1)
+        return nullptr;
+
+    return &m_patternsModel.getPattern(selected[0].row());
 }

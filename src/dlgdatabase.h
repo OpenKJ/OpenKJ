@@ -28,8 +28,8 @@
 #include "dlgcustompatterns.h"
 #include <QSqlDatabase>
 #include "dlgdbupdate.h"
-#include <QFileSystemWatcher>
 #include "models/tablemodelkaraokesongs.h"
+#include "directorymonitor.h"
 #include "settings.h"
 
 namespace Ui {
@@ -46,9 +46,11 @@ private:
     DlgCustomPatterns *customPatternsDlg;
     TableModelKaraokeSongs &m_dbModel;
     DlgDbUpdate *dbUpdateDlg;
-    int selectedRow;
-    QFileSystemWatcher fsWatcher;
     Settings m_settings;
+    DirectoryMonitor *m_directoryMonitor {nullptr};
+
+    void scan(bool scanAllPaths);
+    void updateButtonsState();
 
 public:
     explicit DlgDatabase(TableModelKaraokeSongs &dbModel, QWidget *parent = nullptr);
@@ -62,21 +64,18 @@ signals:
 
 public slots:
     void singleSongAdd(const QString &path);
-    int dropFileAdd(const QString &path);
 
 private slots:
     void on_buttonUpdateAll_clicked();
     void on_buttonNew_clicked();
     void on_buttonClose_clicked();
     void on_buttonDelete_clicked();
-    void on_tableViewFolders_clicked(const QModelIndex &index);
     void on_buttonUpdate_clicked();
     void on_btnClearDatabase_clicked();
-    void dbupdate_thread_finished();
     static void showDbUpdateErrors(const QStringList& errors);
     void on_btnCustomPatterns_clicked();
     void on_btnExport_clicked();
-    void directoryChanged(const QString& dirPath);
+    void on_foldersSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
 };
 
 #endif // DATABASEDIALOG_H

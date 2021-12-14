@@ -81,8 +81,7 @@ void BmDbUpdateThread::run()
     database.open();
     qInfo() << database.lastError();
     TagReader reader;
-    emit progressMaxChanged(0);
-    emit progressChanged(0);
+    emit progressChanged(0, 0);
     emit progressMessage("Getting list of files in " + m_path);
     emit stateChanged("Finding media files...");
     QStringList files = findMediaFiles(m_path);
@@ -90,7 +89,6 @@ void BmDbUpdateThread::run()
     QSqlQuery query(database);
     emit stateChanged("Getting metadata and adding songs to the database");
     emit progressMessage("Getting metadata and adding songs to the database");
-    emit progressMaxChanged(files.size());
     qInfo() << "Setting sqlite synchronous mode to OFF";
     query.exec("PRAGMA synchronous=OFF");
     qInfo() << query.lastError();
@@ -117,7 +115,7 @@ void BmDbUpdateThread::run()
         query.bindValue(":duration", duration);
         query.bindValue(":searchstring", artist + title + files.at(i));
         query.exec();
-        emit progressChanged(i + 1);
+        emit progressChanged(i + 1, files.size());
     }
     query.exec("COMMIT TRANSACTION");
     qInfo() << query.lastError();
@@ -128,8 +126,7 @@ void BmDbUpdateThread::run()
 void BmDbUpdateThread::startUnthreaded()
 {
     TagReader reader;
-    emit progressMaxChanged(0);
-    emit progressChanged(0);
+    emit progressChanged(0, 0);
     emit progressMessage("Getting list of files in " + m_path);
     emit stateChanged("Finding media files...");
     QStringList files = findMediaFiles(m_path);
@@ -137,7 +134,6 @@ void BmDbUpdateThread::startUnthreaded()
     QSqlQuery query;
     emit stateChanged("Getting metadata and adding songs to the database");
     emit progressMessage("Getting metadata and adding songs to the database");
-    emit progressMaxChanged(files.size());
     qInfo() << "Setting sqlite synchronous mode to OFF";
     query.exec("PRAGMA synchronous=OFF");
     qInfo() << query.lastError();
@@ -165,7 +161,7 @@ void BmDbUpdateThread::startUnthreaded()
         query.bindValue(":duration", duration);
         query.bindValue(":searchstring", artist + title + files.at(i));
         query.exec();
-        emit progressChanged(i + 1);
+        emit progressChanged(i + 1, files.size());
     }
     database.commit();
     qInfo() << query.lastError();
