@@ -229,7 +229,7 @@ void TableModelPlaylistSongs::insertSong(const int songId, const int position)
 
 void TableModelPlaylistSongs::deleteSong(const int position)
 {
-    m_logger->debug("{} Songs before delete: {}", m_songs.size());
+    m_logger->debug("{} Songs before delete: {}", m_loggingPrefix, m_songs.size());
     emit layoutAboutToBeChanged();
     auto it = std::remove_if(m_songs.begin(), m_songs.end(), [&position] (PlaylistSong &song) {
        return (song.position == position);
@@ -240,7 +240,7 @@ void TableModelPlaylistSongs::deleteSong(const int position)
            song.position--;
     });
     emit layoutChanged();
-    m_logger->debug("{} Songs after delete: {}", m_songs.size());
+    m_logger->debug("{} Songs after delete: {}", m_loggingPrefix, m_songs.size());
 }
 
 int TableModelPlaylistSongs::currentPlaylist() const
