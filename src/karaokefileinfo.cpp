@@ -62,7 +62,7 @@ void KaraokeFileInfo::readTags()
     }
     else
     {
-        m_logger->info("{} readTags called on non zip or cdg file '{}'.  Trying taglib.", m_loggingPrefix);
+        m_logger->info("{} readTags called on non zip or cdg file '{}'.  Trying taglib.", m_loggingPrefix, m_filename);
         tagReader->setMedia(m_filename);
         tagArtist = tagReader->getArtist();
         tagTitle = tagReader->getTitle();
