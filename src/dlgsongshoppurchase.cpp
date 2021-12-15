@@ -121,7 +121,7 @@ void DlgSongShopPurchase::knLoginFailure()
     msgBoxInfo->hide();
     QMessageBox msgBox;
     msgBox.setWindowTitle("Login failed!");
-    msgBox.setText("Karaoke.NET login failed, incorrect username or password.");
+    msgBox.setText("PartyTyme login failed, incorrect username or password.");
     msgBox.exec();
     knLoginTest = false;
     authenticated = false;

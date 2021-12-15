@@ -99,7 +99,7 @@ void SongShop::downloadFile(const QString &url, const QString &destFn) {
     file.write(reply->readAll());
     delete reply;
     emit karaokeSongDownloaded(destPath);
-    // clear session ID to force login again before next download.  Workaround for expiring karaoke.net logins.
+    // clear session ID to force login again before next download.  Workaround for expiring PartyTyme logins.
     knSessionId = "";
 }
 
