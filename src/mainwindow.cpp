@@ -33,7 +33,6 @@
 #include "dlgeditsong.h"
 #include "soundfxbutton.h"
 #include "src/models/tableviewtooltipfilter.h"
-#include <tickernew.h>
 #include "dbupdater.h"
 #include "okjutil.h"
 #include <algorithm>
@@ -574,7 +573,8 @@ void MainWindow::treatAllSingersAsRegsChanged(bool enabled) {
 
 MainWindow::MainWindow(QWidget *parent) :
         QMainWindow(parent),
-        ui(new Ui::MainWindow) {
+        ui(new Ui::MainWindow),
+        rng(std::mt19937_64(std::chrono::system_clock::now().time_since_epoch().count())){
     m_logger = spdlog::get("logger");
 #ifdef _MSC_VER
     timeBeginPeriod(1);
@@ -869,7 +869,7 @@ void MainWindow::setupConnections() {
     connect(&m_mediaBackendKar, &MediaBackend::positionChanged, this, &MainWindow::karaokeMediaBackend_positionChanged);
     connect(&m_mediaBackendKar, &MediaBackend::durationChanged, this, &MainWindow::karaokeMediaBackend_durationChanged);
     connect(&m_mediaBackendKar, &MediaBackend::stateChanged, this, &MainWindow::karaokeMediaBackend_stateChanged);
-    connect(&m_mediaBackendKar, &MediaBackend::hasActiveVideoChanged, [=](const bool &isActive) {
+    connect(&m_mediaBackendKar, &MediaBackend::hasActiveVideoChanged, [&](const bool &isActive) {
         m_kHasActiveVideo = isActive;
         hasActiveVideoChanged();
     });
@@ -878,7 +878,7 @@ void MainWindow::setupConnections() {
     connect(&m_mediaBackendKar, &MediaBackend::silenceDetected, this, &MainWindow::silenceDetectedKar);
     connect(&m_mediaBackendBm, &MediaBackend::audioError, this, &MainWindow::audioError);
     connect(&m_mediaBackendBm, &MediaBackend::silenceDetected, this, &MainWindow::silenceDetectedBm);
-    connect(&m_mediaBackendBm, &MediaBackend::hasActiveVideoChanged, [=](const bool &isActive) {
+    connect(&m_mediaBackendBm, &MediaBackend::hasActiveVideoChanged, [&](const bool &isActive) {
         m_bmHasActiveVideo = isActive;
         hasActiveVideoChanged();
     });
@@ -1367,11 +1367,11 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k) {
         } else {
             // Close CDG if open to avoid double video playback
             m_logger->info("{} Playing non-CDG video file: {}", m_loggingPrefix, karaokeFilePath.toStdString());
-            QString tmpFileName = m_mediaTempDir->path() + QDir::separator() + "tmpvid." + karaokeFilePath.right(4);
-            QFile::copy(karaokeFilePath, tmpFileName);
+            QString tmpFilePath = m_mediaTempDir->path() + QDir::separator() + "tmpvid." + karaokeFilePath.right(4);
+            QFile::copy(karaokeFilePath, tmpFilePath);
             m_logger->info("{} Playing temporary copy to avoid bad filename stuff w/ gstreamer: {}", m_loggingPrefix,
-                           tmpFileName.toStdString());
-            m_mediaBackendKar.setMedia(tmpFileName);
+                           tmpFilePath.toStdString());
+            m_mediaBackendKar.setMedia(tmpFilePath);
             if (!k2k)
                 m_mediaBackendBm.fadeOut();
             m_mediaBackendKar.play();
@@ -3545,15 +3545,15 @@ void MainWindow::addSfxButtonPressed() {
 #endif
     if (path != "") {
         bool ok;
-        QString name = QInputDialog::getText(this, tr("Button Text"), tr("Enter button text:"), QLineEdit::Normal,
+        QString btnLabel = QInputDialog::getText(this, tr("Button Text"), tr("Enter button text:"), QLineEdit::Normal,
                                              QString(), &ok);
-        if (!ok || name.isEmpty())
+        if (!ok || btnLabel.isEmpty())
             return;
         SfxEntry entry;
-        entry.name = name;
+        entry.name = btnLabel;
         entry.path = path;
         m_settings.addSfxEntry(entry);
-        addSfxButton(path, name);
+        addSfxButton(path, btnLabel);
     }
 
 }
@@ -3892,7 +3892,8 @@ void MainWindow::actionKaraokeTorture() {
         ui->tableViewDB->scrollToBottom();
         ui->tableViewDB->scrollToBottom();
         ui->tableViewDB->scrollToBottom();
-        int randomNum = QRandomGenerator::global()->bounded(0, m_karaokeSongsModel.rowCount(QModelIndex()) - 1);
+        auto dist = std::uniform_int_distribution<int>(0, m_karaokeSongsModel.rowCount(QModelIndex()) - 1);
+        int randomNum = dist(rng);
         randomNum = 1;
         m_logger->info("{} randomNum: {}", m_loggingPrefix, randomNum);
         ui->tableViewDB->selectRow(randomNum);
@@ -3936,7 +3937,11 @@ void MainWindow::actionKAndBTorture() {
         ui->tableViewDB->scrollToBottom();
         ui->tableViewDB->scrollToBottom();
         ui->tableViewDB->scrollToBottom();
-        int randomNum = QRandomGenerator::global()->bounded(0, m_karaokeSongsModel.rowCount(QModelIndex()) - 1);
+        int randomNum = 0;
+        if (m_karaokeSongsModel.rowCount(QModelIndex()) > 0) {
+            auto dist = std::uniform_int_distribution<int>(0, m_karaokeSongsModel.rowCount(QModelIndex()) - 1);
+            randomNum = dist(rng);
+        }
         m_logger->info("{} randomNum: {}", m_loggingPrefix, randomNum);
         ui->tableViewDB->selectRow(randomNum);
         ui->tableViewDB->scrollTo(ui->tableViewDB->selectionModel()->selectedRows().at(0));
@@ -3966,12 +3971,14 @@ void MainWindow::actionBurnIn() {
             ui->labelSinger->setText("Torture run (" + QString::number(runs) + ")");
             return;
         }
-
-        m_rotModel.singerMove(QRandomGenerator::global()->bounded(0, 19), QRandomGenerator::global()->bounded(0, 19));
-        ui->tableViewRotation->selectRow(QRandomGenerator::global()->bounded(0, 19));
+        auto dist = std::uniform_int_distribution<int>(0, 19);
+        m_rotModel.singerMove(dist(rng), dist(rng));
+        ui->tableViewRotation->selectRow(dist(rng));
         int randomNum{0};
-        if (m_karaokeSongsModel.rowCount(QModelIndex()) > 1)
-            randomNum = QRandomGenerator::global()->bounded(0, m_karaokeSongsModel.rowCount(QModelIndex()) - 1);
+        if (m_karaokeSongsModel.rowCount(QModelIndex()) > 1) {
+            dist = std::uniform_int_distribution<int>(0, m_karaokeSongsModel.rowCount(QModelIndex()) - 1);
+            randomNum = dist(rng);
+        }
         m_logger->info("{} randomNum: {}", m_loggingPrefix, randomNum);
         ui->tableViewDB->selectRow(randomNum);
         ui->tableViewDB->scrollTo(ui->tableViewDB->selectionModel()->selectedRows().at(0));
@@ -3979,7 +3986,8 @@ void MainWindow::actionBurnIn() {
         ui->tableViewQueue->selectRow(m_qModel.rowCount() - 1);
         ui->tableViewQueue->scrollTo(ui->tableViewQueue->selectionModel()->selectedRows().at(0));
         if (m_qModel.rowCount() > 2) {
-            auto newPos = QRandomGenerator::global()->bounded(0, m_qModel.rowCount() - 1);
+            dist = std::uniform_int_distribution<int>(0, m_qModel.rowCount() - 1);
+            int newPos = dist(rng);
             m_qModel.move(m_qModel.rowCount() - 1, newPos);
             ui->tableViewQueue->selectRow(newPos);
             ui->tableViewQueue->scrollTo(ui->tableViewQueue->selectionModel()->selectedRows().at(0));
@@ -4004,7 +4012,10 @@ void MainWindow::actionPreviewBurnIn() {
         ui->labelSinger->setText("Preview burn-in run (" + QString::number(runs) + ")");
         int randomNum{0};
         if (m_karaokeSongsModel.rowCount(QModelIndex()) > 1)
-            randomNum = QRandomGenerator::global()->bounded(0, m_karaokeSongsModel.rowCount(QModelIndex()) - 1);
+        {
+            auto dist = std::uniform_int_distribution<int>(0, m_karaokeSongsModel.rowCount(QModelIndex()) - 1);
+            randomNum = dist(rng);
+        }
         m_logger->info("{} randomNum: {}", m_loggingPrefix, randomNum);
         ui->tableViewDB->selectRow(randomNum);
         ui->tableViewDB->scrollTo(ui->tableViewDB->selectionModel()->selectedRows().at(0));
@@ -4040,7 +4051,12 @@ void MainWindow::actionCdgDecodeTorture() {
         ui->tableViewDB->scrollToBottom();
         ui->tableViewDB->scrollToBottom();
         ui->tableViewDB->scrollToBottom();
-        int randomNum = QRandomGenerator::global()->bounded(0, m_karaokeSongsModel.rowCount(QModelIndex()) - 1);
+        int randomNum{0};
+        if (m_karaokeSongsModel.rowCount(QModelIndex()) > 0)
+        {
+            auto dist = std::uniform_int_distribution<int>(0, m_karaokeSongsModel.rowCount(QModelIndex()) - 1);
+            randomNum = dist(rng);
+        }
         m_logger->info("{} randomNum: {}", m_loggingPrefix, randomNum);
         ui->tableViewDB->selectRow(randomNum);
         ui->tableViewDB->scrollTo(ui->tableViewDB->selectionModel()->selectedRows().at(0));
@@ -4329,11 +4345,15 @@ void MainWindow::actionBurnInEosJump() {
         QApplication::beep();
         static bool playing = false;
         static int runs = 0;
-        m_rotModel.singerMove(QRandomGenerator::global()->bounded(0, 19), QRandomGenerator::global()->bounded(0, 19));
-        ui->tableViewRotation->selectRow(QRandomGenerator::global()->bounded(0, 19));
+        auto dist = std::uniform_int_distribution<int>(0, 19);
+        m_rotModel.singerMove(dist(rng), dist(rng));
+        ui->tableViewRotation->selectRow(dist(rng));
         int randomNum{0};
         if (m_karaokeSongsModel.rowCount(QModelIndex()) > 1)
-            randomNum = QRandomGenerator::global()->bounded(0, m_karaokeSongsModel.rowCount(QModelIndex()) - 1);
+        {
+            dist = std::uniform_int_distribution<int>(0, m_karaokeSongsModel.rowCount(QModelIndex()) - 1);
+            randomNum = dist(rng);
+        }
         m_logger->info("{} randomNum: {}", m_loggingPrefix, randomNum);
         ui->tableViewDB->selectRow(randomNum);
         ui->tableViewDB->scrollTo(ui->tableViewDB->selectionModel()->selectedRows().at(0));
@@ -4341,7 +4361,8 @@ void MainWindow::actionBurnInEosJump() {
         ui->tableViewQueue->selectRow(m_qModel.rowCount() - 1);
         ui->tableViewQueue->scrollTo(ui->tableViewQueue->selectionModel()->selectedRows().at(0));
         if (m_qModel.rowCount() > 2) {
-            auto newPos = QRandomGenerator::global()->bounded(0, m_qModel.rowCount() - 1);
+            dist = std::uniform_int_distribution<int>(0, m_qModel.rowCount() - 1);
+            int newPos = dist(rng);
             m_qModel.move(m_qModel.rowCount() - 1, newPos);
             ui->tableViewQueue->selectRow(newPos);
             ui->tableViewQueue->scrollTo(ui->tableViewQueue->selectionModel()->selectedRows().at(0));

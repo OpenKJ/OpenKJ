@@ -61,6 +61,8 @@
 #include "src/models/tablemodelqueuesongs.h"
 #include <spdlog/async_logger.h>
 #include <memory>
+#include <random>
+#include <chrono>
 
 namespace Ui {
     class MainWindow;
@@ -157,6 +159,7 @@ private:
     std::unique_ptr<UpdateChecker> m_updateChecker;
     OKJSongbookAPI m_songbookApi;
     QWidget *m_historyTabWidget;
+    std::mt19937_64 rng;
 
     void updateIcons();
     void setupShortcuts();

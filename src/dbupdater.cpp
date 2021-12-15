@@ -27,7 +27,6 @@
 #include <QDirIterator>
 #include <QStandardPaths>
 #include <QApplication>
-#include "models/tablemodelkaraokesourcedirs.h"
 #include "mzarchive.h"
 #include "karaokefileinfo.h"
 
@@ -41,7 +40,7 @@ DbUpdater::DbUpdater(QObject *parent) :
 bool DbUpdater::process(const QList<QString> &paths, ProcessingOptions options)
 {
     // Make sure only one dbupdater runs at a time.
-    // Even though the program is primarily single threaded, exessive use of
+    // Even though the program is primarily single threaded, excessive use of
     // QApplication::processEvents can cause reentrant calls.
 
     static std::mutex mutex;
@@ -69,14 +68,14 @@ bool DbUpdater::process(const QList<QString> &paths, ProcessingOptions options)
 
     QStringList newFilesOnDisk; newFilesOnDisk.reserve(20000);
     QVector<DbSongRecord> filesMissingOnDisk;
-    bool keepTrackOfMissig = options.testFlag(FixMovedFiles) || options.testFlag(PrepareForRemovalOfMissing);
+    bool keepTrackOfMissing = options.testFlag(FixMovedFiles) || options.testFlag(PrepareForRemovalOfMissing);
 
     int run = 0;
     do {
         // Comparison result:
         //   when negative: file is on disk but not in database.
         //   when positive: file is in database but not on disk.
-        //   when 0: file is on disk AND in databse.
+        //   when 0: file is on disk AND in database.
         int comp_result = 0;
 
         if (run > 0) {
@@ -91,7 +90,7 @@ bool DbUpdater::process(const QList<QString> &paths, ProcessingOptions options)
                 newFilesOnDisk.append(diskEnumerator.CurrentFile);
             }
 
-            if (comp_result > 0 && keepTrackOfMissig) {
+            if (comp_result > 0 && keepTrackOfMissing) {
                 filesMissingOnDisk.append(dbEnumerator.CurrentRecord);
             }
 
@@ -402,7 +401,7 @@ void DbUpdater::setPaths(const QList<QString> &paths)
 }
 
 // Given a list of files found on disk, checks them against files that are
-// currently missing to determine if they've just been moved or or their caps changed.  For any that have
+// currently missing to determine if they've just been moved or their case has just changed.  For any that have
 // been determined to have moved, the existing db entry is updated with the new path
 // and the entry is removed from the provided existing files list.
 void DbUpdater::fixMissingFiles(QVector<DbSongRecord> &filesMissingOnDisk, QStringList &newFilesOnDisk) {

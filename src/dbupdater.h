@@ -36,8 +36,8 @@ class DbUpdater : public QObject
 private:
 
     struct DbSongRecord {
-       int id;
-       bool isDropped;
+       int id{-1};
+       bool isDropped{false};
        QString path;
     };
 
@@ -68,13 +68,13 @@ private:
         DbUpdater& m_parent;
         QStringList m_karaokeFilesOnDisk;
         QStringList m_audioFilesOnDisk;
-        int m_i_kar;
-        int m_i_aud;
+        int m_i_kar{-1};
+        int m_i_aud{0};
 
     public:
-        bool IsValid = false;
+        bool IsValid{false};
         QString CurrentFile;
-        DiskEnumerator(DbUpdater& parent) : m_parent(parent) { reset(); }
+        explicit DiskEnumerator(DbUpdater& parent) : m_parent(parent) { reset(); }
         void findKaraokeFilesOnDisk();
         void readNextDiskFile();
         void reset() { m_i_kar = -1; m_i_aud = 0; IsValid = false; }
@@ -86,15 +86,15 @@ private:
     private:
         DbUpdater& m_parent;
         QSqlQuery m_dbSongs;
-        int m_count;
+        int m_count{0};
 
     public:
         bool IsValid = false;
         DbSongRecord CurrentRecord;
-        DbEnumerator(DbUpdater& parent) : m_parent(parent) {}
+        explicit DbEnumerator(DbUpdater& parent) : m_parent(parent) {}
         void prepareQuery(bool limitToPaths);
         void readNextRecord();
-        int count() { return m_count; }
+        [[nodiscard]] int count() const { return m_count; }
     };
 
     Settings m_settings;
