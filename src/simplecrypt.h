@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QString>
 #include <QVector>
 #include <QFlags>
+#include <random>
 
 /**
   @short Simple encryption and decryption of strings and byte arrays
@@ -219,6 +220,7 @@ private:
     CompressionMode m_compressionMode;
     IntegrityProtectionMode m_protectionMode;
     Error m_lastError;
+    std::mt19937 rng;
 };
 Q_DECLARE_OPERATORS_FOR_FLAGS(SimpleCrypt::CryptoFlags)
 
