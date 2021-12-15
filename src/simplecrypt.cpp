@@ -114,9 +114,8 @@ QByteArray SimpleCrypt::encryptToByteArray(QByteArray plaintext)
     }
 
     //prepend a random char to the string
-
-    auto dist = std::uniform_int_distribution<char>(std::numeric_limits<char>::min(), std::numeric_limits<char>::max());
-    char randomChar = dist(rng);
+    auto dist = std::uniform_int_distribution<short>(std::numeric_limits<char>::min(), std::numeric_limits<char>::max());
+    char randomChar = static_cast<char>(dist(rng));
     ba = randomChar + integrityProtection + ba;
 
     int pos(0);
