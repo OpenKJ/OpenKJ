@@ -12,6 +12,33 @@ If you would like to install Linux versions of the unstable builds, please refer
 
 Documentation can be found at https://docs.openkj.org
 
+* Flatpak based install on Ubuntu 18.10 or later:
+
+1. Install flatpak on Ubuntu:
+
+```
+  $ sudo apt install flatpak
+  $ sudo add-apt-repository ppa:flatpak/stable
+  $ sudo apt update
+  $ sudo apt install flatpak
+  $ sudo apt install gnome-software-plugin-flatpak
+```
+2. Choose Stable or Unstable
+  * To Add OpenKJ Stable:
+ ``` 
+  $ flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+  $ flatpak install flathub org.openkj.OpenKJ
+```
+  * To Instead Add OpenKJ Unstable:
+```
+  $ flatpak remote-add --if-not-exists flathub-beta https://flathub.org/beta-repo/flathub-beta.flatpakrepo
+  $ flatpak install flathub-beta org.openkj.OpenKJ
+```
+3. Run OpenKJ
+```
+  $ flatpak run org.openkj.OpenKJ
+```
+
 If you need help with OpenKJ, you can reach out to support@openkj.org via email.
 
 OpenKJ
