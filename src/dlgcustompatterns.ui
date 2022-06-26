@@ -311,6 +311,20 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>tableViewPatterns</tabstop>
+  <tabstop>btnAdd</tabstop>
+  <tabstop>btnDelete</tabstop>
+  <tabstop>lineEditDiscIdRegEx</tabstop>
+  <tabstop>lineEditArtistRegEx</tabstop>
+  <tabstop>lineEditTitleRegEx</tabstop>
+  <tabstop>spinBoxDiscIdCaptureGrp</tabstop>
+  <tabstop>spinBoxArtistCaptureGrp</tabstop>
+  <tabstop>spinBoxTitleCaptureGrp</tabstop>
+  <tabstop>btnApplyChanges</tabstop>
+  <tabstop>lineEditFilenameExample</tabstop>
+  <tabstop>btnClose</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

@@ -1222,7 +1222,7 @@ const char* MediaBackend::getVideoSinkElementNameForFactory()
         return "xvimagesink";
     }
 #elif defined(Q_OS_WIN)
-    return "d3dvideosink";
+    return "d3d11videosink";
 #endif
     return "glimagesink";
 }

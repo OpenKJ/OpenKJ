@@ -259,7 +259,7 @@ bool KaraokeFileInfo::parseMetadata(const KaraokeFilePatternResolver::KaraokeFil
 
         r.setPattern(pattern.customPattern.getSongIdRegex());
         match = r.match(fileBaseName);
-        songId = match.captured(pattern.customPattern.getSongIdRegex()).replace("_", " ");
+        songId = match.captured(pattern.customPattern.getSongIdCaptureGrp()).replace("_", " ");
 
         break;
     }
