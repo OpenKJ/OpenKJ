@@ -256,12 +256,12 @@ jobs:
         copy ${{ steps.download-source-code-pro-medium.outputs.file-path }} output\
         7z e -bb3 -y ${{ steps.download-openssl.outputs.file-path }} -o"output\"
 
-    - name: Sign OpenKJ executable
-      run: |
-        mkdir cscrt
-        7z e cd/cscrt.7z -p"${{ secrets.WIN_CSCRT_ARCHIVE_PASS }}" -ocscrt/
-        signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f cscrt\cscrt.pfx /p "${{ secrets.WIN_CSCRT_PFX_PASS }}" output/OpenKJ.exe
-      shell: cmd
+    # - name: Sign OpenKJ executable
+    #   run: |
+    #     mkdir cscrt
+    #     7z e cd/cscrt.7z -p"${{ secrets.WIN_CSCRT_ARCHIVE_PASS }}" -ocscrt/
+    #     signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f cscrt\cscrt.pfx /p "${{ secrets.WIN_CSCRT_PFX_PASS }}" output/OpenKJ.exe
+    #   shell: cmd
 
     - name: Create Installer
       run: |
@@ -270,10 +270,10 @@ jobs:
         "%programfiles(x86)%\Inno Setup 6\iscc.exe" inst.iss /Oinstaller\
       shell: cmd
 
-    - name: Sign Installer
-      run: |
-        signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f cscrt\cscrt.pfx /p "${{ secrets.WIN_CSCRT_PFX_PASS }}" installer\OpenKJ.exe
-      shell: cmd
+    # - name: Sign Installer
+    #   run: |
+    #     signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f cscrt\cscrt.pfx /p "${{ secrets.WIN_CSCRT_PFX_PASS }}" installer\OpenKJ.exe
+    #   shell: cmd
 
     - name: Rename Installer
       run: |
