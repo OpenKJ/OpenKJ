@@ -11,9 +11,8 @@ SoftwareRenderVideoSink::SoftwareRenderVideoSink(QWidget *surface)
     g_object_ref(m_appSink);
 
     GstAppSinkCallbacks appsinkCallbacks;
-    appsinkCallbacks.new_preroll	= nullptr;
-    appsinkCallbacks.new_sample		= &SoftwareRenderVideoSink::NewSampleCallback;
-    appsinkCallbacks.eos			= nullptr;
+    memset(&appsinkCallbacks, 0, sizeof(GstAppSinkCallbacks));
+    appsinkCallbacks.new_sample = &SoftwareRenderVideoSink::NewSampleCallback;
     gst_app_sink_set_callbacks(m_appSink, &appsinkCallbacks, this, nullptr);
 
     // Formats we can handle:
