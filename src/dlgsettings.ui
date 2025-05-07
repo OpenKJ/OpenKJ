@@ -65,7 +65,7 @@
                   <item row="0" column="0">
                    <widget class="QLabel" name="label_34">
                     <property name="text">
-                     <string>Auido output device</string>
+                     <string>Audio output device</string>
                     </property>
                    </widget>
                   </item>
@@ -1865,7 +1865,7 @@ For example, searching for &quot;im&quot; will find songs that contain &quot;I'm
                      <item>
                       <widget class="QSpinBox" name="spinBoxVideoOffset">
                        <property name="toolTip">
-                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Controls the offset between the video position displayed and the current audio position.&lt;/p&gt;&lt;p&gt;Positive numbers mean that the video will be ahead of the auido position by the number of ms specified.&lt;/p&gt;&lt;p&gt;Negative numbers mean that the video will be behind the audio by the number of ms specified.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Controls the offset between the video position displayed and the current audio position.&lt;/p&gt;&lt;p&gt;Positive numbers mean that the video will be ahead of the audio position by the number of ms specified.&lt;/p&gt;&lt;p&gt;Negative numbers mean that the video will be behind the audio by the number of ms specified.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                        </property>
                        <property name="suffix">
                         <string> ms</string>
