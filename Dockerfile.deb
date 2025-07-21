@@ -1,0 +1,22 @@
+FROM debian:12
+
+ENV DEBIAN_FRONTEND='noninteractive'
+
+RUN apt-get -qq update && \
+	apt-get -qq -y upgrade && \
+	apt-get -qq -y install \
+	cmake \
+	qtbase5-dev \
+	libqt5svg5-dev \
+	qtmultimedia5-dev \
+	libgstreamer1.0-dev \
+	libtagc0-dev \
+	libspdlog-dev \
+	libgstreamer-plugins-base1.0-dev \
+	&& \
+	rm -rf /var/cache/apt/*
+
+COPY ./ /src/
+WORKDIR /src/
+RUN cmake -DCMAKE_BUILD_TYPE=Debug . -B build
+
