@@ -1,0 +1,29 @@
+name: linux build in docker
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - run: echo "tagdate=$(date +%Y%m%d)" >> $GITHUB_ENV
+
+      - uses: docker/build-push-action@v5
+        name: docker image build
+        matrix:
+          include:
+            - name: debian
+            - name: fedora
+        with:
+          file: Dockerfile.${{ matrix.name }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ghcr.io/openkj/openkj:${{ matrix.name }}-${{ env.image_date }}
+
