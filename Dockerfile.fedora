@@ -1,0 +1,18 @@
+FROM fedora:latest
+
+RUN dnf upgrade -y && \
+	dnf install -y \
+	cmake \
+	qt5-qtbase-devel \
+	qt5-qtsvg-devel \
+	qt5-qtmultimedia-devel \
+	gstreamer1-devel \
+	gstreamer1-plugins-base-devel \
+	spdlog-devel \
+	taglib-devel \
+	taglib-extras-devel
+
+COPY ./ /src/
+WORKDIR /src/
+RUN cmake -DCMAKE_BUILD_TYPE=Debug . -B build
+
