@@ -39,6 +39,9 @@ jobs:
       with:
         submodules: recursive
 
+    - name: dependencies
+      run: sudo apt-get install -qq -y cmake build-essential
+
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
