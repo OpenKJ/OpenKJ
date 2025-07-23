@@ -25,7 +25,7 @@ jobs:
             qtarch: win64_msvc2019_64
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     - uses: seanmiddleditch/gha-setup-ninja@master
