@@ -44,8 +44,5 @@ jobs:
       with:
         languages: ${{ matrix.language }}
 
-    - name: Build
-      run: cmake -DCMAKE_BUILD_TYPE=Debug . -B build
-
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
