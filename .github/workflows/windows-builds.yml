@@ -8,20 +8,15 @@ on:
 jobs:
   build:
     name: Windows Builds
-    runs-on: windows-2019
+    runs-on: windows-2025
     strategy:
-      matrix: 
+      matrix:
         include:
-          - windows-arch: 32
-            bits: 32
-            arch: x86
-            msvcarch: x86
-            qtarch: win32_msvc2019
           - windows-arch: 64
             bits: 64
             arch: x86_64
             msvcarch: x64
-            qtarch: win64_msvc2019_64
+            qtarch: win64_msvc2025_64
 
     steps:
     - uses: actions/checkout@v4
@@ -150,7 +145,7 @@ jobs:
       uses: carlosperate/download-file-action@v1.0.3
       id: download-roboto-bold
       with:
-        file-url: 'https://storage.googleapis.com/okj-installer-deps/Roboto-Bold.ttf' 
+        file-url: 'https://storage.googleapis.com/okj-installer-deps/Roboto-Bold.ttf'
         file-name: Roboto-Bold.ttf
         location: /cached-downloads
 
@@ -159,7 +154,7 @@ jobs:
       uses: carlosperate/download-file-action@v1.0.3
       id: download-roboto-medium
       with:
-        file-url: 'https://storage.googleapis.com/okj-installer-deps/Roboto-Medium.ttf' 
+        file-url: 'https://storage.googleapis.com/okj-installer-deps/Roboto-Medium.ttf'
         file-name: Roboto-Medium.ttf
         location: /cached-downloads
 
@@ -168,7 +163,7 @@ jobs:
       uses: carlosperate/download-file-action@v1.0.3
       id: download-roboto-regular
       with:
-        file-url: 'https://storage.googleapis.com/okj-installer-deps/Roboto-Regular.ttf' 
+        file-url: 'https://storage.googleapis.com/okj-installer-deps/Roboto-Regular.ttf'
         file-name: Roboto-Regular.ttf
         location: /cached-downloads
 
@@ -177,7 +172,7 @@ jobs:
       uses: carlosperate/download-file-action@v1.0.3
       id: download-source-code-pro-medium
       with:
-        file-url: 'https://storage.googleapis.com/okj-installer-deps/SourceCodePro-Medium.ttf' 
+        file-url: 'https://storage.googleapis.com/okj-installer-deps/SourceCodePro-Medium.ttf'
         file-name: SourceCodePro-Medium.ttf
         location: /cached-downloads
 
@@ -185,7 +180,7 @@ jobs:
       if: steps.cache-gst.outputs.cache-hit != 'true'
       run: |
         cmd /c start /wait msiexec /package ${{ steps.download-gst.outputs.file-path }} /passive ADDLOCAL=ALL
-        
+
     - name: Make dist copy of gstreamer
       if: steps.cache-gst.outputs.cache-hit != 'true'
       run: |
@@ -239,7 +234,7 @@ jobs:
         windeployqt --release --compiler-runtime output/openkj.exe
         dir output
       shell: cmd
-      
+
     - name: Copy in gstreamer dependencies
       run: |
         cp -Rv ./gstreamer-dist/1.0/mingw_${{ matrix.arch }}/* output/
