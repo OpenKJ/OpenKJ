@@ -32,7 +32,7 @@ jobs:
 
       - run: echo "tagdate=$(date +%Y%m%d)" >> $GITHUB_ENV
 
-      - uses: docker/build-push-action@v5
+      - uses: docker/build-push-action@v6
         name: docker image build
         with:
           file: Dockerfile.${{ matrix.name }}
