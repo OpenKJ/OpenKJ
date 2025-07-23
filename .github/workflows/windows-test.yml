@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ master ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Windows Builds
@@ -65,7 +69,7 @@ jobs:
 
     - name: Cache Qt
       id: cache-qt
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
        path: "D:/a/OpenKJ/Qt"
        key: ${{ runner.os }}-QtCache-5.15.2-${{ matrix.arch }}-2
