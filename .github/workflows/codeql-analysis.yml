@@ -18,7 +18,7 @@ on:
     # The branches below must be a subset of the branches above
     branches: [ master ]
   schedule:
-    - cron: '34 16 * * 5'
+    - cron: '34 16 3 * *'
 
 jobs:
   analyze:
@@ -45,12 +45,12 @@ jobs:
         sudo apt-get -qq -y install cmake qtbase5-dev libqt5svg5-dev qtmultimedia5-dev libgstreamer1.0-dev libtagc0-dev libspdlog-dev libgstreamer-plugins-base1.0-dev
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v1
+      uses: github/codeql-action/init@v2
       with:
         languages: ${{ matrix.language }}
 
     - name: Autobuild
-      uses: github/codeql-action/autobuild@v1
+      uses: github/codeql-action/autobuild@v2
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v1
+      uses: github/codeql-action/analyze@v2
