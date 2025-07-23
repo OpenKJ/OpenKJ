@@ -23,6 +23,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: recursive
+
     - uses: seanmiddleditch/gha-setup-ninja@master
 
     - name: Cache GStreamer
