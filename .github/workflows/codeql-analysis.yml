@@ -39,8 +39,8 @@ jobs:
       with:
         submodules: recursive
 
-    - name: dependencies
-      run: sudo apt-get install -qq -y cmake build-essential
+    - name: Install build dependencies
+      run: sudo apt-get update && sudo apt-get -qq -y install cmake qtbase5-dev libqt5svg5-dev qtmultimedia5-dev libgstreamer1.0-dev libtagc0-dev libspdlog-dev libgstreamer-plugins-base1.0-dev
 
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
