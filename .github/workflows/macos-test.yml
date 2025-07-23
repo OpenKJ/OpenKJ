@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ master ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: macos-10.15
@@ -15,7 +19,7 @@ jobs:
         submodules: recursive
 
     - uses: lukka/get-cmake@latest
-    
+
     - name: Cache Qt
       id: cache-qt
       uses: actions/cache@v1
@@ -66,7 +70,7 @@ jobs:
         sudo installer -package ${{ steps.download-gst.outputs.file-path }} -target /
         sudo cp -R /Library/Frameworks/GStreamer.framework /Library/Frameworks/GStreamer.framework.dist
         sudo installer -package ${{ steps.download-gst-dev.outputs.file-path }} -target /
-      
+
     - name: Create Build Dir
       run: cmake -E make_directory ${{github.workspace}}/build
 
