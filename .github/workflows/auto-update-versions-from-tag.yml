@@ -69,7 +69,7 @@ jobs:
           echo "#endif //OKJVERSION_H" >> src/okjversion.h
 
       - name: Commit changes to repo
-        uses: test-room-7/action-update-file@v1
+        uses: test-room-7/action-update-file@v2
         with:
           file-path: |
             src/okjversion.h
