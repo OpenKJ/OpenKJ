@@ -102,7 +102,7 @@ jobs:
       run: cmake --build . --parallel 4
 
     - name: Upload executable artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: Windows ${{ matrix.arch }} binary
         path: build/openkj.exe
