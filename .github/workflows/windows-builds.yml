@@ -182,19 +182,18 @@ jobs:
 
     - name: Install GST
       if: steps.cache-gst.outputs.cache-hit != 'true'
+      shell: powershell
       run: |
-        cmd /c start /wait msiexec /package ${{ steps.download-gst.outputs.file-path }} /passive ADDLOCAL=ALL
+        start-process -wait msiexec -argumentlist '/q /i ${{ steps.download-gst.outputs.file-path }} ADDLOCAL=ALL'
+        start-sleep 10
+        start-process -wait msiexec -argumentlist '/q /i ${{ steps.download-gst-dev.outputs.file-path }} ADDLOCAL=ALL'
+        start-sleep 10
 
     - name: Make dist copy of gstreamer
       if: steps.cache-gst.outputs.cache-hit != 'true'
       run: |
-        cp -Rv c:/gstreamer ./gstreamer-dist
+        cp -Rv c:/Program\ Files/gstreamer ./gstreamer-dist
       shell: bash
-
-    - name: Install GST-Dev
-      if: steps.cache-gst.outputs.cache-hit != 'true'
-      run: |
-        cmd /c start /wait msiexec /package ${{ steps.download-gst-dev.outputs.file-path }} /passive ADDLOCAL=ALL
 
     - name: Cache Qt
       id: cache-qt
