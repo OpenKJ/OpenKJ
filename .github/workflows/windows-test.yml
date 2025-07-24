@@ -41,7 +41,7 @@ jobs:
 
     - name: Download GST Installer
       if: steps.cache-gst.outputs.cache-hit != 'true'
-      uses: carlosperate/download-file-action@v1.0.3
+      uses: carlosperate/download-file-action@v2
       id: download-gst
       with:
         file-url: 'https://gstreamer.freedesktop.org/data/pkg/windows/1.27.1/mingw/gstreamer-1.0-mingw-${{ matrix.arch }}-1.27.1.msi'
@@ -50,7 +50,7 @@ jobs:
 
     - name: Download GST-Dev Installer
       if: steps.cache-gst.outputs.cache-hit != 'true'
-      uses: carlosperate/download-file-action@v1.0.3
+      uses: carlosperate/download-file-action@v2
       id: download-gst-dev
       with:
         file-url: 'https://gstreamer.freedesktop.org/data/pkg/windows/1.27.1/mingw/gstreamer-1.0-devel-mingw-${{ matrix.arch }}-1.27.1.msi'

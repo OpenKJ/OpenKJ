@@ -102,7 +102,7 @@ jobs:
 
     - name: Download GST Installer
       if: steps.cache-gst.outputs.cache-hit != 'true'
-      uses: carlosperate/download-file-action@v1.0.3
+      uses: carlosperate/download-file-action@v2
       id: download-gst
       with:
         file-url: 'https://gstreamer.freedesktop.org/data/pkg/windows/1.27.1/mingw/gstreamer-1.0-mingw-${{ matrix.arch }}-1.27.1.msi'
@@ -111,7 +111,7 @@ jobs:
 
     - name: Download GST-Dev Installer
       if: steps.cache-gst.outputs.cache-hit != 'true'
-      uses: carlosperate/download-file-action@v1.0.3
+      uses: carlosperate/download-file-action@v2
       id: download-gst-dev
       with:
         file-url: 'https://gstreamer.freedesktop.org/data/pkg/windows/1.27.1/mingw/gstreamer-1.0-devel-mingw-${{ matrix.arch }}-1.27.1.msi'
@@ -128,7 +128,7 @@ jobs:
 
     - name: Download InfoZip Binary
       if: steps.cache-downloads.outputs.cache-hit != 'true'
-      uses: carlosperate/download-file-action@v1.0.3
+      uses: carlosperate/download-file-action@v2
       id: download-infozip
       with:
         file-url: 'https://storage.googleapis.com/okj-installer-deps/unzip.exe'
@@ -137,7 +137,7 @@ jobs:
 
     - name: Download OpenSSL dll files
       if: steps.cache-downloads.outputs.cache-hit != 'true'
-      uses: carlosperate/download-file-action@v1.0.3
+      uses: carlosperate/download-file-action@v2
       id: download-openssl
       with:
         file-url: 'https://storage.googleapis.com/okj-installer-deps/ssl-${{ matrix.arch }}-1.1.1.zip'
@@ -146,7 +146,7 @@ jobs:
 
     - name: Download Roboto Bold
       if: steps.cache-downloads.outputs.cache-hit != 'true'
-      uses: carlosperate/download-file-action@v1.0.3
+      uses: carlosperate/download-file-action@v2
       id: download-roboto-bold
       with:
         file-url: 'https://storage.googleapis.com/okj-installer-deps/Roboto-Bold.ttf'
@@ -155,7 +155,7 @@ jobs:
 
     - name: Download Roboto Medium
       if: steps.cache-downloads.outputs.cache-hit != 'true'
-      uses: carlosperate/download-file-action@v1.0.3
+      uses: carlosperate/download-file-action@v2
       id: download-roboto-medium
       with:
         file-url: 'https://storage.googleapis.com/okj-installer-deps/Roboto-Medium.ttf'
@@ -164,7 +164,7 @@ jobs:
 
     - name: Download Roboto Regular
       if: steps.cache-downloads.outputs.cache-hit != 'true'
-      uses: carlosperate/download-file-action@v1.0.3
+      uses: carlosperate/download-file-action@v2
       id: download-roboto-regular
       with:
         file-url: 'https://storage.googleapis.com/okj-installer-deps/Roboto-Regular.ttf'
@@ -173,7 +173,7 @@ jobs:
 
     - name: Download Source Code Pro Medium
       if: steps.cache-downloads.outputs.cache-hit != 'true'
-      uses: carlosperate/download-file-action@v1.0.3
+      uses: carlosperate/download-file-action@v2
       id: download-source-code-pro-medium
       with:
         file-url: 'https://storage.googleapis.com/okj-installer-deps/SourceCodePro-Medium.ttf'
