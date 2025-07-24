@@ -5,18 +5,17 @@ on:
     tags:
       - '*.*.*'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Windows Builds
-    runs-on: windows-2019
+    runs-on: windows-2025
     strategy:
-      matrix: 
+      matrix:
         include:
-          - windows-arch: 32
-            bits: 32
-            arch: x86
-            msvcarch: x86
-            qtarch: win32_msvc2019
           - windows-arch: 64
             bits: 64
             arch: x86_64
@@ -94,34 +93,34 @@ jobs:
 
     - name: Cache GStreamer
       id: cache-gst
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: |
           C:/gstreamer
           ${{github.workspace}}/gstreamer-dist
-        key: ${{ runner.os }}-GstCache-1.20.3-${{ matrix.bits }}-installer-build
+        key: ${{ runner.os }}-GstCache-1.27.1-${{ matrix.bits }}-installer-build
 
     - name: Download GST Installer
       if: steps.cache-gst.outputs.cache-hit != 'true'
-      uses: carlosperate/download-file-action@v1.0.3
+      uses: carlosperate/download-file-action@v2
       id: download-gst
       with:
-        file-url: 'https://gstreamer.freedesktop.org/data/pkg/windows/1.20.3/mingw/gstreamer-1.0-mingw-${{ matrix.arch }}-1.20.3.msi'
+        file-url: 'https://gstreamer.freedesktop.org/data/pkg/windows/1.27.1/mingw/gstreamer-1.0-mingw-${{ matrix.arch }}-1.27.1.msi'
         file-name: 'gstreamer.msi'
         location: './downloads'
 
     - name: Download GST-Dev Installer
       if: steps.cache-gst.outputs.cache-hit != 'true'
-      uses: carlosperate/download-file-action@v1.0.3
+      uses: carlosperate/download-file-action@v2
       id: download-gst-dev
       with:
-        file-url: 'https://gstreamer.freedesktop.org/data/pkg/windows/1.20.3/mingw/gstreamer-1.0-devel-mingw-${{ matrix.arch }}-1.20.3.msi'
+        file-url: 'https://gstreamer.freedesktop.org/data/pkg/windows/1.27.1/mingw/gstreamer-1.0-devel-mingw-${{ matrix.arch }}-1.27.1.msi'
         file-name: 'gstreamer-devel.msi'
         location: './downloads'
 
     - name: Cache Other Downloads
       id: cache-downloads
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: |
           /downloads
@@ -129,7 +128,7 @@ jobs:
 
     - name: Download InfoZip Binary
       if: steps.cache-downloads.outputs.cache-hit != 'true'
-      uses: carlosperate/download-file-action@v1.0.3
+      uses: carlosperate/download-file-action@v2
       id: download-infozip
       with:
         file-url: 'https://storage.googleapis.com/okj-installer-deps/unzip.exe'
@@ -138,7 +137,7 @@ jobs:
 
     - name: Download OpenSSL dll files
       if: steps.cache-downloads.outputs.cache-hit != 'true'
-      uses: carlosperate/download-file-action@v1.0.3
+      uses: carlosperate/download-file-action@v2
       id: download-openssl
       with:
         file-url: 'https://storage.googleapis.com/okj-installer-deps/ssl-${{ matrix.arch }}-1.1.1.zip'
@@ -147,55 +146,54 @@ jobs:
 
     - name: Download Roboto Bold
       if: steps.cache-downloads.outputs.cache-hit != 'true'
-      uses: carlosperate/download-file-action@v1.0.3
+      uses: carlosperate/download-file-action@v2
       id: download-roboto-bold
       with:
-        file-url: 'https://storage.googleapis.com/okj-installer-deps/Roboto-Bold.ttf' 
+        file-url: 'https://storage.googleapis.com/okj-installer-deps/Roboto-Bold.ttf'
         file-name: Roboto-Bold.ttf
         location: /cached-downloads
 
     - name: Download Roboto Medium
       if: steps.cache-downloads.outputs.cache-hit != 'true'
-      uses: carlosperate/download-file-action@v1.0.3
+      uses: carlosperate/download-file-action@v2
       id: download-roboto-medium
       with:
-        file-url: 'https://storage.googleapis.com/okj-installer-deps/Roboto-Medium.ttf' 
+        file-url: 'https://storage.googleapis.com/okj-installer-deps/Roboto-Medium.ttf'
         file-name: Roboto-Medium.ttf
         location: /cached-downloads
 
     - name: Download Roboto Regular
       if: steps.cache-downloads.outputs.cache-hit != 'true'
-      uses: carlosperate/download-file-action@v1.0.3
+      uses: carlosperate/download-file-action@v2
       id: download-roboto-regular
       with:
-        file-url: 'https://storage.googleapis.com/okj-installer-deps/Roboto-Regular.ttf' 
+        file-url: 'https://storage.googleapis.com/okj-installer-deps/Roboto-Regular.ttf'
         file-name: Roboto-Regular.ttf
         location: /cached-downloads
 
     - name: Download Source Code Pro Medium
       if: steps.cache-downloads.outputs.cache-hit != 'true'
-      uses: carlosperate/download-file-action@v1.0.3
+      uses: carlosperate/download-file-action@v2
       id: download-source-code-pro-medium
       with:
-        file-url: 'https://storage.googleapis.com/okj-installer-deps/SourceCodePro-Medium.ttf' 
+        file-url: 'https://storage.googleapis.com/okj-installer-deps/SourceCodePro-Medium.ttf'
         file-name: SourceCodePro-Medium.ttf
         location: /cached-downloads
 
     - name: Install GST
       if: steps.cache-gst.outputs.cache-hit != 'true'
+      shell: powershell
       run: |
-        cmd /c start /wait msiexec /package ${{ steps.download-gst.outputs.file-path }} /passive ADDLOCAL=ALL
-        
+        start-process -wait msiexec -argumentlist '/q /i ${{ steps.download-gst.outputs.file-path }} ADDLOCAL=ALL'
+        start-sleep 10
+        start-process -wait msiexec -argumentlist '/q /i ${{ steps.download-gst-dev.outputs.file-path }} ADDLOCAL=ALL'
+        start-sleep 10
+
     - name: Make dist copy of gstreamer
       if: steps.cache-gst.outputs.cache-hit != 'true'
       run: |
-        cp -Rv c:/gstreamer ./gstreamer-dist
+        cp -Rv c:/Program\ Files/gstreamer ./gstreamer-dist
       shell: bash
-
-    - name: Install GST-Dev
-      if: steps.cache-gst.outputs.cache-hit != 'true'
-      run: |
-        cmd /c start /wait msiexec /package ${{ steps.download-gst-dev.outputs.file-path }} /passive ADDLOCAL=ALL
 
     - name: Cache Qt
       id: cache-qt
@@ -205,12 +203,12 @@ jobs:
        key: ${{ runner.os }}-QtCache-5.15.2-${{ matrix.arch }}-2
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v2
+      uses: jurplel/install-qt-action@v4
       with:
-       cached: ${{ steps.cache-qt.outputs.cache-hit }}
        version: '5.15.2'
        arch: ${{ matrix.qtarch }}
-       modules: 'core gui sql network widgets concurrent svg printsupport'
+       modules: 'qtnetworkauth'
+       archives: 'qtbase qtsvg'
 
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/build
@@ -239,7 +237,7 @@ jobs:
         windeployqt --release --compiler-runtime output/openkj.exe
         dir output
       shell: cmd
-      
+
     - name: Copy in gstreamer dependencies
       run: |
         cp -Rv ./gstreamer-dist/1.0/mingw_${{ matrix.arch }}/* output/
