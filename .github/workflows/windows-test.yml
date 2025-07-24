@@ -77,7 +77,6 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v4
       with:
-       cached: ${{ steps.cache-qt.outputs.cache-hit }}
        version: '5.15.2'
        arch: ${{ matrix.qtarch }}
        modules: 'qtnetworkauth'
