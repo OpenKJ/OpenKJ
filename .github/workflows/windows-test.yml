@@ -60,12 +60,9 @@ jobs:
     - name: Install GST
       if: steps.cache-gst.outputs.cache-hit != 'true'
       run: |
-        cmd /c start /wait msiexec /package ${{ steps.download-gst.outputs.file-path }} /passive ADDLOCAL=ALL
-
-    - name: Install GST-Dev
-      if: steps.cache-gst.outputs.cache-hit != 'true'
-      run: |
-        cmd /c start /wait msiexec /package ${{ steps.download-gst-dev.outputs.file-path }} /passive ADDLOCAL=ALL
+        msiexec /q /i ${{ steps.download-gst.outputs.file-path }} ADDLOCAL=ALL
+        timeout 20
+        msiexec /q /i ${{ steps.download-gst-dev.outputs.file-path }} ADDLOCAL=ALL
 
     - name: Cache Qt
       id: cache-qt
