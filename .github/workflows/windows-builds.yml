@@ -204,7 +204,7 @@ jobs:
        key: ${{ runner.os }}-QtCache-5.15.2-${{ matrix.arch }}-2
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v2
+      uses: jurplel/install-qt-action@v4
       with:
        cached: ${{ steps.cache-qt.outputs.cache-hit }}
        version: '5.15.2'
