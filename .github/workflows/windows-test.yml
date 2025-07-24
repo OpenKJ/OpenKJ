@@ -62,9 +62,9 @@ jobs:
       shell: powershell
       run: |
         start-process -wait msiexec -argumentlist '/q /i ${{ steps.download-gst.outputs.file-path }} ADDLOCAL=ALL'
-        start-sleep 60
+        start-sleep 10
         start-process -wait msiexec -argumentlist '/q /i ${{ steps.download-gst-dev.outputs.file-path }} ADDLOCAL=ALL'
-        start-sleep 60
+        start-sleep 10
 
     - name: Cache Qt
       id: cache-qt
@@ -98,7 +98,7 @@ jobs:
     - name: Build
       working-directory: ${{github.workspace}}/build
       shell: bash
-      run: cmake --build . --parallel 4
+      run: cmake --build .
 
     - name: Upload executable artifact
       uses: actions/upload-artifact@v4
