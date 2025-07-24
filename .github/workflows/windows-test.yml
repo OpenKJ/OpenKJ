@@ -59,11 +59,12 @@ jobs:
 
     - name: Install GST
       if: steps.cache-gst.outputs.cache-hit != 'true'
+      shell: powershell
       run: |
-        msiexec /q /i ${{ steps.download-gst.outputs.file-path }} ADDLOCAL=ALL
-        timeout 60
-        msiexec /q /i ${{ steps.download-gst-dev.outputs.file-path }} ADDLOCAL=ALL
-        timeout 60
+        start-process -wait msiexec -argumentlist '/q /i ${{ steps.download-gst.outputs.file-path }} ADDLOCAL=ALL'
+        start-sleep 60
+        start-process -wait msiexec -argumentlist '/q /i ${{ steps.download-gst-dev.outputs.file-path }} ADDLOCAL=ALL'
+        start-sleep 60
 
     - name: Cache Qt
       id: cache-qt
