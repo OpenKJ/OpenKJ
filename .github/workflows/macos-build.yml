@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-10.15
+    runs-on: macos-latest
     steps:
     - uses: actions/checkout@v4
       with:
@@ -60,10 +60,10 @@ jobs:
 
     - name: Setup Signing Keychain
       uses: apple-actions/import-codesign-certs@v1
-      with: 
+      with:
         p12-file-base64: ${{ secrets.MACOS_SIGNING_CERTS_P12 }}
         p12-password: ${{ secrets.MACOS_SIGNING_CERTS_PASS }}
-    
+
     - name: Cache Qt
       id: cache-qt
       uses: actions/cache@v1
@@ -119,7 +119,7 @@ jobs:
       run: |
         echo "/Library/Frameworks/Python.framework/Versions/2.7/bin" >> $GITHUB_PATH
         pip2 install osxrelocator
-      
+
     - name: Create Build Dir
       run: cmake -E make_directory ${{github.workspace}}/build
 
@@ -131,7 +131,7 @@ jobs:
     - name: Build
       working-directory: ${{github.workspace}}/build
       run: cmake --build . --parallel 4
-      
+
     - name: Sign app bundle
       working-directory: ${{github.workspace}}/build
       run: |
