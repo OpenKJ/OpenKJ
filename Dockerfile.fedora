@@ -3,6 +3,7 @@ FROM fedora:latest
 RUN dnf upgrade -y && \
 	dnf install -y \
 	cmake \
+	ninja \
 	qt5-qtbase-devel \
 	qt5-qtsvg-devel \
 	qt5-qtmultimedia-devel \
@@ -10,9 +11,11 @@ RUN dnf upgrade -y && \
 	gstreamer1-plugins-base-devel \
 	spdlog-devel \
 	taglib-devel \
-	taglib-extras-devel
+	taglib-extras-devel \
+	&& \
+	dnf clean all
 
-COPY ./ /src/
-WORKDIR /src/
-RUN cmake -DCMAKE_BUILD_TYPE=Debug . -B build
-
+COPY ./ /openkj/
+WORKDIR /openkj/
+RUN cmake -DSPDLOG_USE_BUNDLED=true . -B build -G Ninja
+RUN ninja -C build
