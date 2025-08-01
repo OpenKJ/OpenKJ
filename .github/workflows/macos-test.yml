@@ -18,16 +18,15 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Install Qt
-      uses: jurplel/install-qt-action@v4
-      with:
-       version: '5.15.2'
-       modules: 'qtnetworkauth'
-       archives: 'qtbase qtsvg'
+          #    - name: Install Qt
+          #      uses: jurplel/install-qt-action@v4
+          #      with:
+          #       version: '5.15.2'
+          #       modules: 'qtnetworkauth'
+          #       archives: 'qtbase qtsvg'
 
     - name: install deps
-      run: brew install cmake cppunit utf8cpp ninja
-
+      run: brew install cmake cppunit utf8cpp ninja qt@5 taglib
 
     - name: Download Gstreamer
       run: |
