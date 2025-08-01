@@ -32,7 +32,7 @@ jobs:
       uses: carlosperate/download-file-action@v2
       id: download-gst
       with:
-        file-url: 'https://gstreamer.freedesktop.org/data/pkg/osx/1.16.3/gstreamer-1.0-1.27.1-universal.pkg'
+        file-url: 'https://gstreamer.freedesktop.org/data/pkg/osx/1.27.1/gstreamer-1.0-1.27.1-universal.pkg'
         file-name: 'gstreamer-1.0-1.27.1-universal.pkg'
         location: './downloads'
 
@@ -40,7 +40,7 @@ jobs:
       uses: carlosperate/download-file-action@v2
       id: download-gst-dev
       with:
-        file-url: 'https://gstreamer.freedesktop.org/data/pkg/osx/1.16.3/gstreamer-1.0-devel-1.27.1-universal.pkg'
+        file-url: 'https://gstreamer.freedesktop.org/data/pkg/osx/1.27.1/gstreamer-1.0-devel-1.27.1-universal.pkg'
         file-name: 'gstreamer-1.0-devel-1.27.1-universal.pkg'
         location: './downloads'
 
