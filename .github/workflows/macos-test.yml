@@ -26,7 +26,7 @@ jobs:
        archives: 'qtbase qtsvg'
 
     - name: install deps
-      run: brew install cmake cppunit utf8cpp
+      run: brew install cmake cppunit utf8cpp ninja
 
     - name: Download GST Installer
       uses: carlosperate/download-file-action@v2
@@ -51,4 +51,6 @@ jobs:
         sudo installer -package ${{ steps.download-gst-dev.outputs.file-path }} -target /
 
     - name: Build
-      run: cmake -DCMAKE_BUILD_TYPE=Release . -B build
+      run: |
+        cmake -DCMAKE_BUILD_TYPE=Release . -B build -G Ninja
+        ninja -C build
