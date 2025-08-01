@@ -25,8 +25,8 @@ jobs:
        modules: 'qtnetworkauth'
        archives: 'qtbase qtsvg'
 
-    - name: install cmake
-      run: brew install cmake
+    - name: install deps
+      run: brew install cmake taglib
 
     - name: Download GST Installer
       uses: carlosperate/download-file-action@v2
