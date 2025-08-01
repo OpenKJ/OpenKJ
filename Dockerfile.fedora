@@ -11,7 +11,9 @@ RUN dnf upgrade -y && \
 	gstreamer1-plugins-base-devel \
 	spdlog-devel \
 	taglib-devel \
-	taglib-extras-devel
+	taglib-extras-devel \
+	&& \
+	dnf clean all
 
 COPY ./ /openkj/
 WORKDIR /openkj/
