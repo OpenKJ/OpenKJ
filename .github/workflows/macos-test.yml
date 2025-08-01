@@ -26,7 +26,7 @@ jobs:
        archives: 'qtbase qtsvg'
 
     - name: install deps
-      run: brew install cmake taglib
+      run: brew install cmake cppunit utf8cpp
 
     - name: Download GST Installer
       uses: carlosperate/download-file-action@v2
@@ -50,15 +50,5 @@ jobs:
         sudo cp -R /Library/Frameworks/GStreamer.framework /Library/Frameworks/GStreamer.framework.dist
         sudo installer -package ${{ steps.download-gst-dev.outputs.file-path }} -target /
 
-    - name: Create Build Dir
-      run: |
-        cmake -E make_directory ${{github.workspace}}/build
-
-    - name: Configure CMake
-      working-directory: ${{github.workspace}}/build
-      run: |
-        cmake .. -DCMAKE_BUILD_TYPE=Release -G Ninja
-
     - name: Build
-      working-directory: ${{github.workspace}}/build
-      run: cmake --build .
+      run: cmake -DCMAKE_BUILD_TYPE=Debug . -B build
