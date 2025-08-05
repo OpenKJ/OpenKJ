@@ -40,7 +40,7 @@ jobs:
         cd taglib-1.13.1
         cmake -B build -G Ninja -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DBUILD_TESTING=OFF
         cmake --build build
-        cmake --install build
+        sudo cmake --install build
 
     - name: Install GST
       run: |
