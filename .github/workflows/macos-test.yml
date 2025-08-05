@@ -28,22 +28,19 @@ jobs:
     - name: install deps
       run: brew install cmake cppunit utf8cpp ninja
 
-    - name: Download Gstreamer
-      run: |
-        curl -sLO https://gstreamer.freedesktop.org/data/pkg/osx/1.27.1/gstreamer-1.0-1.27.1-universal.pkg
-        curl -sLO https://gstreamer.freedesktop.org/data/pkg/osx/1.27.1/gstreamer-1.0-devel-1.27.1-universal.pkg
-        curl -sLO https://taglib.org/releases/taglib-1.13.1.tar.gz
-
     - name: taglib
       run: |
+        curl -sLO https://taglib.org/releases/taglib-1.13.1.tar.gz
         tar xzf taglib-1.13.1.tar.gz
         cd taglib-1.13.1
-        cmake -B build -G Ninja -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DBUILD_TESTING=OFF
+        cmake -B build -G Ninja -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DBUILD_TESTING=OFF -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_BUILD_TYPE=Release
         cmake --build build
         sudo cmake --install build
 
-    - name: Install GST
+    - name: Gstreamer
       run: |
+        curl -sLO https://gstreamer.freedesktop.org/data/pkg/osx/1.27.1/gstreamer-1.0-1.27.1-universal.pkg
+        curl -sLO https://gstreamer.freedesktop.org/data/pkg/osx/1.27.1/gstreamer-1.0-devel-1.27.1-universal.pkg
         sudo installer -package gstreamer-1.0-1.27.1-universal.pkg -target /
         sudo installer -package gstreamer-1.0-devel-1.27.1-universal.pkg -target /
         sudo cp -R /Library/Frameworks/GStreamer.framework /Library/Frameworks/GStreamer.framework.dist
