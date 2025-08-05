@@ -38,7 +38,7 @@ jobs:
       run: |
         tar xzf taglib-1.13.1.tar.gz
         cd taglib-1.13.1
-        cmake -B build -G Ninja
+        cmake -B build -G Ninja -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DBUILD_TESTING=OFF
         cmake --build build
         cmake --install build
 
