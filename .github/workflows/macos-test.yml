@@ -26,12 +26,21 @@ jobs:
        archives: 'qtbase qtsvg'
 
     - name: install deps
-      run: brew install cmake cppunit utf8cpp ninja taglib
+      run: brew install cmake cppunit utf8cpp ninja
 
     - name: Download Gstreamer
       run: |
         curl -sLO https://gstreamer.freedesktop.org/data/pkg/osx/1.27.1/gstreamer-1.0-1.27.1-universal.pkg
         curl -sLO https://gstreamer.freedesktop.org/data/pkg/osx/1.27.1/gstreamer-1.0-devel-1.27.1-universal.pkg
+        curl -sLO https://taglib.org/releases/taglib-1.13.1.tar.gz
+
+    - name: taglib
+      run: |
+        tar xzf taglib-1.13.1.tar.gz
+        cd taglib-1.13.1
+        cmake -B build -G Ninja
+        cmake --build build
+        cmake --install build
 
     - name: Install GST
       run: |
