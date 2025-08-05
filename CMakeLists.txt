@@ -97,11 +97,11 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(STATIC_TAGLIB True)
     include_directories(
             /Library/Frameworks/GStreamer.framework/Headers
-	    src/taglib
+	    src/3rdparty/taglib
     )
     link_directories(
             /Library/Frameworks
-	    src/taglib/include
+	    src/3rdparty/taglib/include
     )
     if (DEFINED BUNDLE_GSTREAMER)
         message("Will bundle GStreamer into the app bundle")
