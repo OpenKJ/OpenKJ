@@ -32,9 +32,8 @@ jobs:
       run: |
         curl -sLO https://taglib.org/releases/taglib-1.13.1.tar.gz
         tar xzf taglib-1.13.1.tar.gz
-        mkdir $HOME/lib
         cd taglib-1.13.1
-        cmake -B build -G Ninja -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DBUILD_TESTING=OFF -DCMAKE_INSTALL_PREFIX=$HOME/lib -DCMAKE_BUILD_TYPE=Release
+        cmake -B build -G Ninja -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DBUILD_TESTING=OFF -DCMAKE_INSTALL_PREFIX=../src/taglib -DCMAKE_BUILD_TYPE=Release
         cmake --build build
         sudo cmake --install build
 
@@ -48,5 +47,5 @@ jobs:
 
     - name: Build
       run: |
-        cmake -DSPDLOG_USE_BUNDLED=true -I$HOME/lib/include/spdlog . -B build -G Ninja
+        cmake -DSPDLOG_USE_BUNDLED=true . -B build -G Ninja
         ninja -C build
