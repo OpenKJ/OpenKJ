@@ -37,6 +37,10 @@ jobs:
         sudo cp -R /Library/Frameworks/GStreamer.framework /Library/Frameworks/GStreamer.framework.dist
 
     - name: Build
+      env:
+        LDFLAGS: "-L/opt/homebrew/opt/qt@5/lib"
+        CPPFLAGS: "-I/opt/homebrew/opt/qt@5/include"
+        PKG_CONFIG_PATH: "/opt/homebrew/opt/qt@5/lib/pkgconfig"
       run: |
         cmake -DSPDLOG_USE_BUNDLED=true . -B build -G Ninja
         ninja -C build
