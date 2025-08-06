@@ -18,25 +18,15 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Install Qt
-      uses: jurplel/install-qt-action@v4
-      with:
-       version: '5.15.2'
-       modules: 'qtnetworkauth'
-       archives: 'qtbase qtsvg'
+    #- name: Install Qt
+    #  uses: jurplel/install-qt-action@v4
+    #  with:
+    #   version: '5.15.2'
+    #   modules: 'qtnetworkauth'
+    #   archives: 'qtbase qtsvg'
 
     - name: install deps
-      run: brew install cmake cppunit utf8cpp ninja
-
-    - name: taglib
-      run: |
-        curl -sLO https://taglib.org/releases/taglib-1.13.1.tar.gz
-        tar xzf taglib-1.13.1.tar.gz
-        mkdir src/3rdparty/taglib
-        cd taglib-1.13.1
-        cmake -B build -G Ninja -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DBUILD_TESTING=OFF -DCMAKE_INSTALL_PREFIX=../src/3rdparty/taglib -DCMAKE_BUILD_TYPE=Release
-        cmake --build build
-        cmake --install build
+      run: brew install cmake cppunit utf8cpp ninja qt@5
 
     - name: Gstreamer
       run: |
