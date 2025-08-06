@@ -41,6 +41,7 @@ jobs:
         LDFLAGS: "-L/opt/homebrew/opt/qt@5/lib"
         CPPFLAGS: "-I/opt/homebrew/opt/qt@5/include"
         PKG_CONFIG_PATH: "/opt/homebrew/opt/qt@5/lib/pkgconfig"
+        QT_DIR: "/opt/homebrew/opt/qt@5/"
       run: |
         cmake -DSPDLOG_USE_BUNDLED=true . -B build -G Ninja
         ninja -C build
