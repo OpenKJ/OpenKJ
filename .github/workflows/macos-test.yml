@@ -36,14 +36,13 @@ jobs:
         sudo installer -package gstreamer-1.0-devel-1.20.7-universal.pkg -target /
         echo "pkconfigdirs"
         find /Library/Frameworks/GStreamer.framework/Versions/Current/ -type d -name 'pkgconfig'
-        ls -alh /Library/Frameworks/GStreamer.framework/Versions/Current/lib/pkgconfig
         # sudo cp -R /Library/Frameworks/GStreamer.framework /Library/Frameworks/GStreamer.framework.dist
 
     - name: Build
       env:
         LDFLAGS: "-L/opt/homebrew/opt/qt@5/lib"
         CPPFLAGS: "-I/opt/homebrew/opt/qt@5/include"
-        PKG_CONFIG_PATH: "/opt/homebrew/opt/qt@5/lib/pkgconfig:/Library/Frameworks/GStreamer.framework/Versions/Current/lib/pkgconfig"
+        PKG_CONFIG_PATH: "/opt/homebrew/opt/qt@5/lib/pkgconfig:/Library/Frameworks/GStreamer.framework/Versions/Current/lib/pkgconfig:/Library/Frameworks/GStreamer.framework/Versions/Current/lib/gstreamer-1.0/pkgconfig"
         QT_DIR: "/opt/homebrew/opt/qt@5/"
         Qt5_DIR: "/opt/homebrew/opt/qt@5/"
       run: |
