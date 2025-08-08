@@ -97,6 +97,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(STATIC_TAGLIB True)
 
     find_package(PkgConfig)
+    set(ENV{PKG_CONFIG_PATH} "/Library/Frameworks/GStreamer.framework/Versions/Current/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
     pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0 gstreamer-pbutils-1.0 gstreamer-controller-1.0 gstreamer-video-1.0)
 
     include_directories(
@@ -111,6 +112,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
                 MAC_OVERRIDE_GST
         )
     endif ()
+    set(GSTREAMER_FRAMEWORK "-F /Library/Frameworks -framework GStreamer")
 endif ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -636,7 +638,9 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
             )
     target_link_libraries(openkj
             ${LIBRARIES}
-            "-F /Library/Frameworks -framework GStreamer"
+	    #"-F /Library/Frameworks -framework GStreamer"
+	    ${GSTREAMER_LIBRARIES}
+            ${GSTREAMER_FRAMEWORK}
             )
     if (NOT DEFINED BUILDONLY)
         get_target_property(_qt5_qmake_location Qt5::qmake IMPORTED_LOCATION)

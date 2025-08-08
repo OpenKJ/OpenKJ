@@ -26,7 +26,7 @@ jobs:
     #   archives: 'qtbase qtsvg'
 
     - name: install deps
-      run: brew install cmake ninja pkgconf cppunit utf8cpp qt@5 tree
+      run: brew install cmake ninja pkgconf cppunit utf8cpp qt@5
 
     - name: Gstreamer
       run: |
@@ -34,8 +34,7 @@ jobs:
         curl -sLO https://gstreamer.freedesktop.org/data/pkg/osx/1.20.7/gstreamer-1.0-devel-1.20.7-universal.pkg
         sudo installer -package gstreamer-1.0-1.20.7-universal.pkg -target /
         sudo installer -package gstreamer-1.0-devel-1.20.7-universal.pkg -target /
-        ls -alh /Library/Frameworks/GStreamer.framework
-        tree /Library/Frameworks/GStreamer.framework
+        export PKG_CONFIG_PATH=/Library/Frameworks/GStreamer.framework/Versions/Current/lib/pkgconfig:$PKG_CONFIG_PATH
         # sudo cp -R /Library/Frameworks/GStreamer.framework /Library/Frameworks/GStreamer.framework.dist
 
     - name: Build
