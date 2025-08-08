@@ -34,7 +34,7 @@ jobs:
         curl -sLO https://gstreamer.freedesktop.org/data/pkg/osx/1.20.7/gstreamer-1.0-devel-1.20.7-universal.pkg
         sudo installer -package gstreamer-1.0-1.20.7-universal.pkg -target /
         sudo installer -package gstreamer-1.0-devel-1.20.7-universal.pkg -target /
-        sudo cp -R /Library/Frameworks/GStreamer.framework /Library/Frameworks/GStreamer.framework.dist
+        # sudo cp -R /Library/Frameworks/GStreamer.framework /Library/Frameworks/GStreamer.framework.dist
 
     - name: Build
       env:
