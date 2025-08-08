@@ -26,7 +26,7 @@ jobs:
     #   archives: 'qtbase qtsvg'
 
     - name: install deps
-      run: brew install cmake ninja pkgconf cppunit utf8cpp qt@5
+      run: brew install cmake ninja pkgconf cppunit utf8cpp qt@5 gstreamer
 
     - name: Gstreamer
       run: |
@@ -42,11 +42,10 @@ jobs:
       env:
         LDFLAGS: "-L/opt/homebrew/opt/qt@5/lib"
         CPPFLAGS: "-I/opt/homebrew/opt/qt@5/include"
-        PKG_CONFIG_PATH: "/opt/homebrew/opt/qt@5/lib/pkgconfig:/Library/Frameworks/GStreamer.framework/Versions/Current/lib/pkgconfig:/Library/Frameworks/GStreamer.framework/Versions/Current/lib/gstreamer-1.0/pkgconfig"
+        PKG_CONFIG_PATH: "/opt/homebrew/opt/qt@5/lib/pkgconfig"
         QT_DIR: "/opt/homebrew/opt/qt@5/"
         Qt5_DIR: "/opt/homebrew/opt/qt@5/"
       run: |
-        echo $PKG_CONFIG_PATH
         pkg-config --cflags --libs gstreamer-1.0 gstreamer-video-1.0 gstreamer-audio-1.0 gstreamer-tag-1.0
         cmake -DSPDLOG_USE_BUNDLED=true . -B build -G Ninja
         ninja -C build
