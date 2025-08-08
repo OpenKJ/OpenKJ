@@ -44,5 +44,6 @@ jobs:
         QT_DIR: "/opt/homebrew/opt/qt@5/"
         Qt5_DIR: "/opt/homebrew/opt/qt@5/"
       run: |
+        export PKG_CONFIG_PATH=/Library/Frameworks/
         cmake -DSPDLOG_USE_BUNDLED=true . -B build -G Ninja
         ninja -C build
