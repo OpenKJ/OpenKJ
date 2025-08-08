@@ -18,25 +18,8 @@ jobs:
       with:
         submodules: recursive
 
-    #- name: Install Qt
-    #  uses: jurplel/install-qt-action@v4
-    #  with:
-    #   version: '5.15.2'
-    #   modules: 'qtnetworkauth'
-    #   archives: 'qtbase qtsvg'
-
     - name: install deps
       run: brew install cmake ninja pkgconf cppunit utf8cpp qt@5 gstreamer
-
-    - name: Gstreamer
-      run: |
-        curl -sLO https://gstreamer.freedesktop.org/data/pkg/osx/1.20.7/gstreamer-1.0-1.20.7-universal.pkg
-        curl -sLO https://gstreamer.freedesktop.org/data/pkg/osx/1.20.7/gstreamer-1.0-devel-1.20.7-universal.pkg
-        sudo installer -package gstreamer-1.0-1.20.7-universal.pkg -target /
-        sudo installer -package gstreamer-1.0-devel-1.20.7-universal.pkg -target /
-        echo "pkconfigdirs"
-        find /Library/Frameworks/GStreamer.framework/Versions/Current/ -type d -name 'pkgconfig'
-        # sudo cp -R /Library/Frameworks/GStreamer.framework /Library/Frameworks/GStreamer.framework.dist
 
     - name: Build
       env:
@@ -46,6 +29,10 @@ jobs:
         QT_DIR: "/opt/homebrew/opt/qt@5/"
         Qt5_DIR: "/opt/homebrew/opt/qt@5/"
       run: |
-        pkg-config --cflags --libs gstreamer-1.0 gstreamer-video-1.0 gstreamer-audio-1.0 gstreamer-tag-1.0
         cmake -DSPDLOG_USE_BUNDLED=true . -B build -G Ninja
         ninja -C build
+    - name: Upload app
+      uses: actions/upload-artifact@v4
+      with:
+        path: build/openkj.app
+        name: openkj.app
