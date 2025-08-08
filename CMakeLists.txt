@@ -97,7 +97,6 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(STATIC_TAGLIB True)
 
     find_package(PkgConfig)
-    set(ENV{PKG_CONFIG_PATH} "/Library/Frameworks/GStreamer.framework/Versions/Current/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
     pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0 gstreamer-pbutils-1.0 gstreamer-controller-1.0 gstreamer-video-1.0)
 
     include_directories(
