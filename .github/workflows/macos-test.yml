@@ -46,5 +46,7 @@ jobs:
         QT_DIR: "/opt/homebrew/opt/qt@5/"
         Qt5_DIR: "/opt/homebrew/opt/qt@5/"
       run: |
+        echo $PKG_CONFIG_PATH
+        pkg-config --cflags --libs gstreamer-1.0 gstreamer-video-1.0 gstreamer-audio-1.0 gstreamer-tag-1.0
         cmake -DSPDLOG_USE_BUNDLED=true . -B build -G Ninja
         ninja -C build

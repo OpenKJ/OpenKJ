@@ -96,7 +96,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     message("macOS detected")
     set(STATIC_TAGLIB True)
 
-    find_package(PkgConfig)
+    find_package(PkgConfig REQUIRED)
     pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0 gstreamer-pbutils-1.0 gstreamer-controller-1.0 gstreamer-video-1.0)
 
     include_directories(
@@ -111,7 +111,6 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
                 MAC_OVERRIDE_GST
         )
     endif ()
-    set(GSTREAMER_FRAMEWORK "-F /Library/Frameworks -framework GStreamer")
 endif ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -620,6 +619,10 @@ endif ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(openkj_ICON ${CMAKE_CURRENT_SOURCE_DIR}/src/Icons/OpenKJ.icns)
+
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0 gstreamer-pbutils-1.0 gstreamer-controller-1.0 gstreamer-video-1.0)
+
     set_source_files_properties(${openkj_ICON} PROPERTIES
             MACOSX_PACKAGE_LOCATION "Resources"
             )
