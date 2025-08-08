@@ -5,9 +5,13 @@ on:
     tags:
       - '*.*.*'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
-    runs-on: macos-10.15
+    runs-on: macos-latest
     steps:
     - uses: actions/checkout@v4
       with:
@@ -60,78 +64,30 @@ jobs:
 
     - name: Setup Signing Keychain
       uses: apple-actions/import-codesign-certs@v1
-      with: 
+      with:
         p12-file-base64: ${{ secrets.MACOS_SIGNING_CERTS_P12 }}
         p12-password: ${{ secrets.MACOS_SIGNING_CERTS_PASS }}
-    
-    - name: Cache Qt
-      id: cache-qt
-      uses: actions/cache@v1
-      with:
-       path: ../Qt
-       key: ${{ runner.os }}-QtCache
 
-    - name: Install Qt
-      uses: jurplel/install-qt-action@v2
-      with:
-       cached: ${{ steps.cache-qt.outputs.cache-hit }}
-
-    - name: Cache GStreamer
-      id: cache-gstreamer
-      uses: actions/cache@v2
-      with:
-        path: '/Library/Frameworks/GStreamer.framework'
-        key: ${{ runner.os }}-gstreamer
-
-    - name: Cache GStreamer dist
-      id: cache-gstreamer-dist
-      uses: actions/cache@v2
-      with:
-        path: '/Library/Frameworks/GStreamer.framework.dist'
-        key: ${{ runner.os }}-gstreamer-dist
-
-    - name: Download GST Installer
-      if: steps.cache-gstreamer.outputs.cache-hit != 'true'
-      uses: carlosperate/download-file-action@v1.0.3
-      id: download-gst
-      with:
-        file-url: 'https://gstreamer.freedesktop.org/data/pkg/osx/1.16.3/gstreamer-1.0-1.16.3-x86_64.pkg'
-        file-name: 'gstreamer-1.0-1.16.3-x86_64.pkg'
-        location: './downloads'
-
-    - name: Download GST-Dev Installer
-      if: steps.cache-gstreamer-dist.outputs.cache-hit != 'true'
-      uses: carlosperate/download-file-action@v1.0.3
-      id: download-gst-dev
-      with:
-        file-url: 'https://gstreamer.freedesktop.org/data/pkg/osx/1.16.3/gstreamer-1.0-devel-1.16.3-x86_64.pkg'
-        file-name: 'gstreamer-1.0-devel-1.16.3-x86_64.pkg'
-        location: './downloads'
-
-    - name: Install GST
-      if: steps.cache-gstreamer.outputs.cache-hit != 'true'
-      run: |
-        sudo installer -package ${{ steps.download-gst.outputs.file-path }} -target /
-        sudo cp -R /Library/Frameworks/GStreamer.framework /Library/Frameworks/GStreamer.framework.dist
-        sudo installer -package ${{ steps.download-gst-dev.outputs.file-path }} -target /
 
     - name: Install OSX Relocator
       run: |
         echo "/Library/Frameworks/Python.framework/Versions/2.7/bin" >> $GITHUB_PATH
         pip2 install osxrelocator
-      
-    - name: Create Build Dir
-      run: cmake -E make_directory ${{github.workspace}}/build
 
-    - name: Configure CMake
-      working-directory: ${{github.workspace}}/build
-      run: |
-        cmake .. -DCMAKE_BUILD_TYPE=Release -DBUNDLE_GSTREAMER=True -DMAC_SIGNING_IDENTITY=47W8CPBS5A -G Ninja
+    - name: install deps
+      run: brew install cmake ninja pkgconf cppunit utf8cpp qt@5 gstreamer
 
     - name: Build
-      working-directory: ${{github.workspace}}/build
-      run: cmake --build . --parallel 4
-      
+      env:
+        LDFLAGS: "-L/opt/homebrew/opt/qt@5/lib"
+        CPPFLAGS: "-I/opt/homebrew/opt/qt@5/include"
+        PKG_CONFIG_PATH: "/opt/homebrew/opt/qt@5/lib/pkgconfig"
+        QT_DIR: "/opt/homebrew/opt/qt@5/"
+        Qt5_DIR: "/opt/homebrew/opt/qt@5/"
+      run: |
+        cmake -DSPDLOG_USE_BUNDLED=true -DCMAKE_BUILD_TYPE=Release -DBUNDLE_GSTREAMER=True -DMAC_SIGNING_IDENTITY=47W8CPBS5A . -B build -G Ninja
+        ninja -C build
+
     - name: Sign app bundle
       working-directory: ${{github.workspace}}/build
       run: |

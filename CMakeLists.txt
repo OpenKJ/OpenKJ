@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.5...3.10)
 
 file(READ "src/okjversion.h" vercontents)
 string(REGEX MATCH "OKJ_VERSION_MAJOR ([0-9]*)" _ ${vercontents})
@@ -95,11 +95,15 @@ endif ()
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     message("macOS detected")
     set(STATIC_TAGLIB True)
+
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0 gstreamer-pbutils-1.0 gstreamer-controller-1.0 gstreamer-video-1.0)
+
     include_directories(
-            /Library/Frameworks/GStreamer.framework/Headers
+            ${GSTREAMER_INCLUDE_DIRS}
     )
     link_directories(
-            /Library/Frameworks
+            ${GSTREAMER_LIBRARY_DIRS}
     )
     if (DEFINED BUNDLE_GSTREAMER)
         message("Will bundle GStreamer into the app bundle")
@@ -615,6 +619,10 @@ endif ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(openkj_ICON ${CMAKE_CURRENT_SOURCE_DIR}/src/Icons/OpenKJ.icns)
+
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0 gstreamer-pbutils-1.0 gstreamer-controller-1.0 gstreamer-video-1.0)
+
     set_source_files_properties(${openkj_ICON} PROPERTIES
             MACOSX_PACKAGE_LOCATION "Resources"
             )
@@ -632,7 +640,9 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
             )
     target_link_libraries(openkj
             ${LIBRARIES}
-            "-F /Library/Frameworks -framework GStreamer"
+	    #"-F /Library/Frameworks -framework GStreamer"
+	    ${GSTREAMER_LIBRARIES}
+            ${GSTREAMER_FRAMEWORK}
             )
     if (NOT DEFINED BUILDONLY)
         get_target_property(_qt5_qmake_location Qt5::qmake IMPORTED_LOCATION)
