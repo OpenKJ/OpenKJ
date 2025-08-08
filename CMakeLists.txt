@@ -95,11 +95,15 @@ endif ()
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     message("macOS detected")
     set(STATIC_TAGLIB True)
+
+    find_package(PkgConfig)
+    pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0 gstreamer-pbutils-1.0 gstreamer-controller-1.0 gstreamer-video-1.0)
+
     include_directories(
-            /Library/Frameworks/GStreamer.framework/Headers
+            ${GSTREAMER_INCLUDE_DIRS}
     )
     link_directories(
-            /Library/Frameworks
+            ${GSTREAMER_LIBRARY_DIRS}
     )
     if (DEFINED BUNDLE_GSTREAMER)
         message("Will bundle GStreamer into the app bundle")

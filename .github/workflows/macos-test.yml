@@ -26,7 +26,7 @@ jobs:
     #   archives: 'qtbase qtsvg'
 
     - name: install deps
-      run: brew install cmake cppunit utf8cpp ninja qt@5
+      run: brew install cmake cppunit utf8cpp ninja qt@5 pkgconf
 
     - name: Gstreamer
       run: |
