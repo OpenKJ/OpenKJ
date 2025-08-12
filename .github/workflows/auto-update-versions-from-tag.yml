@@ -14,7 +14,7 @@ jobs:
         with:
           submodules: recursive
       - id: get_version
-        uses: battila7/get-version-action@v2
+        uses: dhkatz/get-version-action@v3.0.0
 
       - name: Setup OpenKJ verion env vars
         run: |

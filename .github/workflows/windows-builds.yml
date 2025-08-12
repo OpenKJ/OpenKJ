@@ -26,7 +26,14 @@ jobs:
     - uses: actions/checkout@v5
       with:
         submodules: recursive
+
     - uses: seanmiddleditch/gha-setup-ninja@master
+
+    - name: inno install
+      working-directory: 'C:\'
+      run: |
+        curl.exe -sLO https://files.jrsoftware.org/is/6/innosetup-6.4.3.exe
+        .\innosetup-6.4.3.exe /silent
 
     - name: Get version from git tag
       id: get_version
@@ -106,7 +113,6 @@ jobs:
         file-url: 'https://gstreamer.freedesktop.org/data/pkg/windows/1.27.1/mingw/gstreamer-1.0-devel-mingw-${{ matrix.arch }}-1.27.1.msi'
         file-name: 'gstreamer-devel.msi'
         location: './downloads'
-
 
     - name: Download InfoZip Binary
       uses: carlosperate/download-file-action@v2
@@ -190,15 +196,17 @@ jobs:
       working-directory: ${{github.workspace}}/build
       run: |
         cmake .. -DCMAKE_BUILD_TYPE=Release -G Ninja
+
     - name: Build
       working-directory: ${{github.workspace}}/build
       shell: bash
-      run: cmake --build . --parallel 4
+      run: cmake --build .
 
     - name: Create output dir and copy exe
       run: |
         mkdir output
         copy build\openkj.exe output\
+
     - name: Run windeployqt
       run: |
         windeployqt --release --compiler-runtime output/openkj.exe
@@ -230,7 +238,9 @@ jobs:
 
     - name: Create Installer
       run: |
-        cp cd\openkj${{ matrix.bits }}.iss inst.iss
+        curl.exe -sLO https://files.jrsoftware.org/is/6/innosetup-6.4.3.exe
+        .\innosetup-6.4.3.exe /silent
+        cp cd\openkj64.iss inst.iss
         mkdir installer
         "%programfiles(x86)%\Inno Setup 6\iscc.exe" inst.iss /Oinstaller\
       shell: cmd
