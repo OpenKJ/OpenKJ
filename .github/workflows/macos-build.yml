@@ -21,7 +21,7 @@ jobs:
 
     - name: Get version from git tag
       id: get_version
-      uses: battila7/get-version-action@v2
+      uses: dhkatz/get-version-action@v3
 
     - name: Get OpenKJ version being buit
       run: |
@@ -68,13 +68,10 @@ jobs:
         p12-file-base64: ${{ secrets.MACOS_SIGNING_CERTS_P12 }}
         p12-password: ${{ secrets.MACOS_SIGNING_CERTS_PASS }}
 
-
-    - name: Install OSX Relocator
-      run: |
-        pip install osxrelocator
-
     - name: install deps
-      run: brew install cmake ninja pkgconf cppunit utf8cpp qt@5 gstreamer
+      run: |
+        brew install cmake ninja pkgconf cppunit utf8cpp qt@5 gstreamer
+        pip install osxrelocator
 
     - name: Build
       env:
@@ -92,6 +89,7 @@ jobs:
       run: |
         codesign -s "Developer ID Application: Isaac Lightburn (47W8CPBS5A)" --identifier "org.freedesktop.gstreamer" --timestamp openkj.app/Contents/Frameworks/GStreamer.framework
         codesign --force -s "Developer ID Application: Isaac Lightburn (47W8CPBS5A)" --identifier "org.openkj.openkj" --timestamp openkj.app
+
     - name: Upload app
       uses: actions/upload-artifact@v4
       with:
