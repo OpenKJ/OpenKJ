@@ -21,7 +21,7 @@ jobs:
 
     - name: Get version from git tag
       id: get_version
-      uses: dhkatz/get-version-action@v3
+      uses: dhkatz/get-version-action@v3.0.0
 
     - name: Get OpenKJ version being buit
       run: |
