@@ -91,17 +91,7 @@ jobs:
         sed -i "s/#define MyAppVersion.*/#define MyAppVersion \"${{ steps.get_version.outputs.version-without-v }}\"/" cd/openkj${{ matrix.bits }}.iss
       shell: bash
 
-    - name: Cache GStreamer
-      id: cache-gst
-      uses: actions/cache@v4
-      with:
-        path: |
-          C:/gstreamer
-          ${{github.workspace}}/gstreamer-dist
-        key: ${{ runner.os }}-GstCache-1.27.1-${{ matrix.bits }}-installer-build
-
     - name: Download GST Installer
-      if: steps.cache-gst.outputs.cache-hit != 'true'
       uses: carlosperate/download-file-action@v2
       id: download-gst
       with:
@@ -110,7 +100,6 @@ jobs:
         location: './downloads'
 
     - name: Download GST-Dev Installer
-      if: steps.cache-gst.outputs.cache-hit != 'true'
       uses: carlosperate/download-file-action@v2
       id: download-gst-dev
       with:
@@ -118,16 +107,8 @@ jobs:
         file-name: 'gstreamer-devel.msi'
         location: './downloads'
 
-    - name: Cache Other Downloads
-      id: cache-downloads
-      uses: actions/cache@v4
-      with:
-        path: |
-          /downloads
-        key: ${{ runner.os }}-CachedDownloads-${{ matrix.bits }}-1
 
     - name: Download InfoZip Binary
-      if: steps.cache-downloads.outputs.cache-hit != 'true'
       uses: carlosperate/download-file-action@v2
       id: download-infozip
       with:
@@ -136,7 +117,6 @@ jobs:
         location: /cached-downloads
 
     - name: Download OpenSSL dll files
-      if: steps.cache-downloads.outputs.cache-hit != 'true'
       uses: carlosperate/download-file-action@v2
       id: download-openssl
       with:
@@ -145,7 +125,6 @@ jobs:
         location: /cached-downloads
 
     - name: Download Roboto Bold
-      if: steps.cache-downloads.outputs.cache-hit != 'true'
       uses: carlosperate/download-file-action@v2
       id: download-roboto-bold
       with:
@@ -154,7 +133,6 @@ jobs:
         location: /cached-downloads
 
     - name: Download Roboto Medium
-      if: steps.cache-downloads.outputs.cache-hit != 'true'
       uses: carlosperate/download-file-action@v2
       id: download-roboto-medium
       with:
@@ -163,7 +141,6 @@ jobs:
         location: /cached-downloads
 
     - name: Download Roboto Regular
-      if: steps.cache-downloads.outputs.cache-hit != 'true'
       uses: carlosperate/download-file-action@v2
       id: download-roboto-regular
       with:
@@ -172,7 +149,6 @@ jobs:
         location: /cached-downloads
 
     - name: Download Source Code Pro Medium
-      if: steps.cache-downloads.outputs.cache-hit != 'true'
       uses: carlosperate/download-file-action@v2
       id: download-source-code-pro-medium
       with:
@@ -181,7 +157,6 @@ jobs:
         location: /cached-downloads
 
     - name: Install GST
-      if: steps.cache-gst.outputs.cache-hit != 'true'
       shell: powershell
       run: |
         start-process -wait msiexec -argumentlist '/q /i ${{ steps.download-gst.outputs.file-path }} ADDLOCAL=ALL'
@@ -190,17 +165,9 @@ jobs:
         start-sleep 10
 
     - name: Make dist copy of gstreamer
-      if: steps.cache-gst.outputs.cache-hit != 'true'
       run: |
         cp -Rv c:/Program\ Files/gstreamer ./gstreamer-dist
       shell: bash
-
-    - name: Cache Qt
-      id: cache-qt
-      uses: actions/cache@v4
-      with:
-       path: "D:/a/OpenKJ/Qt"
-       key: ${{ runner.os }}-QtCache-5.15.2-${{ matrix.arch }}-2
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v4
