@@ -63,7 +63,7 @@ jobs:
       shell: bash
 
     - name: Setup Signing Keychain
-      uses: apple-actions/import-codesign-certs@v1
+      uses: apple-actions/import-codesign-certs@v5
       with:
         p12-file-base64: ${{ secrets.MACOS_SIGNING_CERTS_P12 }}
         p12-password: ${{ secrets.MACOS_SIGNING_CERTS_PASS }}
