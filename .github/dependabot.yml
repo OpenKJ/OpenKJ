@@ -5,7 +5,31 @@
 
 version: 2
 updates:
-  - package-ecosystem: "github-actions" # See documentation for possible values
-    directory: "/" # Location of package manifests
+  # Actions are pinned to commit SHAs for supply-chain reasons, so Dependabot is
+  # the mechanism that keeps them current — without it the pins silently rot.
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+  # Both Dockerfiles pin their base image by digest; nothing else would notice a
+  # rebased upstream image.
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # src/3rdparty/spdlog was pinned to a 2021 commit. This is the only automated
+  # signal that it has fallen behind again.
+  - package-ecosystem: "gitsubmodule"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # No pip entry: Dependabot needs a manifest, and the bare
+  # `pip install osxrelocator` in macos-build.yml is invisible to it. An entry
+  # here would look like coverage without providing any.

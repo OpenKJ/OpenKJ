@@ -1,0 +1,324 @@
+name: Security
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  schedule:
+    # Weekly, so newly published advisories surface without waiting for a commit.
+    - cron: '17 3 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+
+  # ---------------------------------------------------------------------------
+  # Static analysis of the C++ sources
+  # ---------------------------------------------------------------------------
+  flawfinder:
+    name: flawfinder (CWE-mapped C/C++)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Run flawfinder
+        uses: david-a-wheeler/flawfinder@c4216b74cf2639ffa98503768bd6e4299b5440c9 # master
+        with:
+          # minlevel 4 keeps this to the genuinely interesting hits. Scanned as an
+          # explicit list rather than src/, because src/taglib, src/miniz and
+          # src/3rdparty are vendored code this project does not patch — including
+          # them would bury real findings in third-party noise.
+          arguments: '--sarif --minlevel 4 --dataonly src/*.cpp src/*.h src/cdg src/models src/gstreamer src/runguard'
+          output: 'flawfinder.sarif'
+
+      - name: Upload results
+        uses: github/codeql-action/upload-sarif@f3712979fa5f215279b101dd0a2e3bdfb4353324 # v3
+        with:
+          sarif_file: flawfinder.sarif
+          category: flawfinder
+
+  # ---------------------------------------------------------------------------
+  # Dependency / supply-chain analysis
+  # ---------------------------------------------------------------------------
+  sbom:
+    name: SBOM (CycloneDX)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          submodules: recursive
+
+      - name: Generate CycloneDX SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
+        with:
+          path: .
+          format: cyclonedx-json
+          # sbom-action uploads the artifact itself when artifact-name is set, so
+          # no separate upload-artifact step is needed.
+          artifact-name: openkj-sbom.cyclonedx.json
+          output-file: openkj-sbom.cyclonedx.json
+
+  dependency-check:
+    name: OWASP Dependency-Check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          submodules: recursive
+
+      - name: Run OWASP Dependency-Check
+        # Without an NVD API key the NVD feed download is aggressively rate
+        # limited and this step can take 30+ minutes or fail outright. Add an
+        # NVD_API_KEY repository secret (free, from nvd.nist.gov) to make it
+        # reliable. Left non-blocking so a missing key cannot break the build.
+        continue-on-error: true
+        uses: dependency-check/Dependency-Check_Action@1e54355a8b4c8abaa8cc7d0b70aa655a3bb15a6c # 1.1.0
+        with:
+          project: OpenKJ
+          path: '.'
+          format: 'SARIF'
+          out: 'reports'
+          # No --failOnCVSS threshold: continue-on-error above already makes this
+          # advisory, and stacking both knobs only obscures that. Findings still
+          # reach the Security tab via the SARIF upload below.
+          args: >
+            --nvdApiKey ${{ secrets.NVD_API_KEY }}
+            --enableExperimental
+
+      - name: Upload results
+        if: hashFiles('reports/dependency-check-report.sarif') != ''
+        uses: github/codeql-action/upload-sarif@f3712979fa5f215279b101dd0a2e3bdfb4353324 # v3
+        with:
+          sarif_file: reports/dependency-check-report.sarif
+          category: dependency-check
+
+  osv-scanner:
+    name: OSV-Scanner
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          submodules: recursive
+
+      - name: Scan for known vulnerabilities
+        # Non-zero exit when findings exist; the SARIF still needs uploading.
+        continue-on-error: true
+        uses: google/osv-scanner-action@8deb546fdb875b9996d27d4950be7312dac076a1 # v2.5.0
+        with:
+          scan-args: |-
+            --recursive
+            --format=sarif
+            --output=osv.sarif
+            ./
+
+      - name: Upload results
+        if: hashFiles('osv.sarif') != ''
+        uses: github/codeql-action/upload-sarif@f3712979fa5f215279b101dd0a2e3bdfb4353324 # v3
+        with:
+          sarif_file: osv.sarif
+          category: osv-scanner
+
+  trivy:
+    name: Trivy (filesystem + container config)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Scan repository filesystem
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          # No secret scanner here: gitleaks below covers secrets across the full
+          # git history, so enabling it would only file the same findings twice.
+          scanners: vuln,misconfig
+          format: sarif
+          output: trivy-fs.sarif
+          severity: CRITICAL,HIGH,MEDIUM
+
+      - name: Upload results
+        if: hashFiles('trivy-fs.sarif') != ''
+        uses: github/codeql-action/upload-sarif@f3712979fa5f215279b101dd0a2e3bdfb4353324 # v3
+        with:
+          sarif_file: trivy-fs.sarif
+          category: trivy-fs
+
+  # ---------------------------------------------------------------------------
+  # Secrets
+  # ---------------------------------------------------------------------------
+  gitleaks:
+    name: gitleaks (secret scan)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          # Full history: a committed secret stays exploitable after the commit
+          # that removed it, so scanning only the tip would miss it.
+          fetch-depth: 0
+
+      - name: Install gitleaks
+        env:
+          GITLEAKS_VERSION: 8.30.1
+        run: |
+          curl -sSfL \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            | tar -xz gitleaks
+          ./gitleaks version
+
+      - name: Scan git history
+        run: ./gitleaks git . --report-format sarif --report-path gitleaks.sarif --exit-code 0
+
+      - name: Upload results
+        if: hashFiles('gitleaks.sarif') != ''
+        uses: github/codeql-action/upload-sarif@f3712979fa5f215279b101dd0a2e3bdfb4353324 # v3
+        with:
+          sarif_file: gitleaks.sarif
+          category: gitleaks
+
+  # ---------------------------------------------------------------------------
+  # CI configuration itself
+  # ---------------------------------------------------------------------------
+  workflows:
+    name: Workflow analysis (zizmor + actionlint)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: actionlint
+        env:
+          ACTIONLINT_VERSION: 1.7.12
+          # actionlint exits non-zero on any finding, including shellcheck style
+          # and info notes. Limited to warnings and above so this gate flags real
+          # problems rather than failing on pre-existing formatting preferences.
+          SHELLCHECK_OPTS: -S warning
+        run: |
+          curl -sSfL \
+            "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz" \
+            | tar -xz actionlint
+          ./actionlint -color
+
+      - name: zizmor
+        uses: zizmorcore/zizmor-action@3dc1ecc9bcb9e94e9b2c709687979e1298497054 # v0.6.2
+
+  scorecard:
+    name: OSSF Scorecard
+    # Scorecard's branch-protection and maintenance signals only make sense for
+    # the canonical branch, and the results upload requires a non-PR context.
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - uses: ossf/scorecard-action@2d1146689b8cda280b9bc96326124645441f03bc # v2.4.4
+        with:
+          results_file: scorecard.sarif
+          results_format: sarif
+          publish_results: false
+
+      - name: Upload results
+        uses: github/codeql-action/upload-sarif@f3712979fa5f215279b101dd0a2e3bdfb4353324 # v3
+        with:
+          sarif_file: scorecard.sarif
+          category: scorecard
+
+  # ---------------------------------------------------------------------------
+  # Verify the hardening flags survive into the shipped binary
+  # ---------------------------------------------------------------------------
+  hardening:
+    name: Binary hardening check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get -qq -y install cmake ninja-build checksec \
+            qtbase5-dev libqt5svg5-dev qtmultimedia5-dev libgstreamer1.0-dev \
+            libtagc0-dev libspdlog-dev libgstreamer-plugins-base1.0-dev
+
+      - name: Build
+        run: |
+          cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo . -B build -G Ninja
+          ninja -C build
+
+      - name: Assert hardening flags are present
+        run: |
+          checksec --file=build/openkj --format=json | tee checksec.json
+          fail=0
+          check() {
+            actual=$(jq -r ".[\"build/openkj\"].$1" checksec.json)
+            if [ "$actual" != "$2" ]; then
+              echo "::error::$1 is '$actual', expected '$2'"
+              fail=1
+            else
+              echo "ok: $1 = $actual"
+            fi
+          }
+          check relro "full"
+          check canary "yes"
+          check nx "yes"
+          check pie "yes"
+          exit $fail
+
+  # ---------------------------------------------------------------------------
+  # Regression guard for the cleartext-transport work
+  #
+  # Deliberately not a grep for concatenated SQL. That was tried and it is not
+  # reliably greppable: a statement assembled into a local variable before
+  # exec(), or quoted with single quotes, slips straight past — which would have
+  # missed two of the seven queries this branch fixed. A check that quietly
+  # matches nothing is worse than no check, because it reads as coverage.
+  # CodeQL's security-extended suite does that job properly with real dataflow.
+  #
+  # A cleartext URL, by contrast, is a literal that cannot be obfuscated by
+  # accident, so grep is exactly the right tool for it.
+  # ---------------------------------------------------------------------------
+  cleartext-urls:
+    name: No cleartext http:// endpoints
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Reject http:// URLs in source
+        run: |
+          if grep -rn '"http://' --include='*.cpp' --include='*.h' --include='*.ui' src/ \
+               | grep -v -e '^src/taglib/' -e '^src/miniz/' -e '^src/3rdparty/' \
+                         -e 'w3.org' -e 'purl.org' -e 'inkscape' -e 'sodipodi' \
+                         -e 'creativecommons' -e 'gnu.org/licenses'; then
+            echo "::error::Cleartext http:// endpoint. Use https://."
+            exit 1
+          fi
+          echo "No cleartext http:// endpoints found."

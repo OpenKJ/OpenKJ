@@ -691,7 +691,8 @@ void MediaBackend::gstBusFunc(GstMessage *message)
                           m_loggingPrefix,
                           message->src->name,
                           gst_message_type_get_name(message->type),
-                          message->type);
+                          // fmt 9 dropped implicit formatting of unscoped enums.
+                          static_cast<int>(message->type));
             break;
     }
 }

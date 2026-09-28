@@ -21,6 +21,7 @@
 #include "dlgrequests.h"
 #include "ui_dlgrequests.h"
 #include <QDesktopServices>
+#include <QUrlQuery>
 #include <QMenu>
 #include <QMessageBox>
 #include "okjsongbookapi.h"
@@ -531,8 +532,14 @@ void DlgRequests::on_spinBoxKey_valueChanged(int arg1) {
 }
 
 void DlgRequests::on_pushButtonWebSearch_clicked() {
-    QString link = "http://db.openkj.org/?type=All&searchstr=" + ui->lineEditSearch->text();
-    QDesktopServices::openUrl(QUrl(link));
+    // QUrlQuery percent-encodes the search text; raw concatenation let '&' and '#'
+    // inject or truncate query parameters.
+    QUrl url("https://db.openkj.org/");
+    QUrlQuery query;
+    query.addQueryItem("type", "All");
+    query.addQueryItem("searchstr", ui->lineEditSearch->text());
+    url.setQuery(query);
+    QDesktopServices::openUrl(url);
 }
 
 

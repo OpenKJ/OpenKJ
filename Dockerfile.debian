@@ -1,4 +1,4 @@
-FROM debian:12
+FROM debian:12@sha256:813017f3d62be4b5891a7acca6a01bdcd4b8513daa81b1ab99d3a50385b26931
 
 ENV DEBIAN_FRONTEND='noninteractive'
 
@@ -15,10 +15,15 @@ RUN apt-get -qq update && \
 	libspdlog-dev \
 	libgstreamer-plugins-base1.0-dev \
 	&& \
-	rm -rf /var/cache/apt/*
+	rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
-COPY ./ /openkj/
+RUN useradd --create-home --shell /usr/sbin/nologin build
+USER build
+
+COPY --chown=build:build ./ /openkj/
 WORKDIR /openkj/
-RUN cmake -DSPDLOG_USE_BUNDLED=true . -B build -G Ninja
+# An explicit build type matters for more than optimisation: _FORTIFY_SOURCE is
+# a no-op without one, so the hardening flags in CMakeLists.txt would silently
+# do nothing here.
+RUN cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DSPDLOG_USE_BUNDLED=true . -B build -G Ninja
 RUN ninja -C build
-

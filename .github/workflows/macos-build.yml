@@ -9,33 +9,45 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: macos-latest
+    permissions:
+      # softprops/action-gh-release publishes the installer to a GitHub release.
+      contents: write
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       with:
         submodules: recursive
 
-    - uses: lukka/get-cmake@latest
+    - uses: lukka/get-cmake@fffaaafeea488556c2c12dad60690008bc1caacb # latest@2025-08-10
 
     - name: Get version from git tag
       id: get_version
-      uses: dhkatz/get-version-action@v3.0.0
+      uses: dhkatz/get-version-action@9166b8a614609209809cdef096d62b39287139cb # v3.0.0
 
     - name: Get OpenKJ version being buit
+      # Tag-derived values go through env; see the note in
+      # auto-update-versions-from-tag.yml. This job holds the Apple signing
+      # certificate, so shell injection here would be especially costly.
+      env:
+        PRERELEASE: ${{ steps.get_version.outputs.prerelease }}
+        VERSION_WITHOUT_V: ${{ steps.get_version.outputs.version-without-v }}
       run: |
-        if [ "${{ steps.get_version.outputs.prerelease }}" = "" ];then
+        if [ "$PRERELEASE" = "" ];then
           RTYPE="release"
           BRANCH="release"
-        elif [ "${{ steps.get_version.outputs.prerelease }}" = "unstable" ];then
+        elif [ "$PRERELEASE" = "unstable" ];then
           RTYPE="unstable"
           BRANCH="unstable"
         else
-          RTYPE=${{ steps.get_version.outputs.prerelease }}
+          RTYPE="$PRERELEASE"
           BRANCH="unstable"
         fi
-        OKJVER=${{ steps.get_version.outputs.version-without-v }}
+        OKJVER="$VERSION_WITHOUT_V"
         FN="OpenKJ-${OKJVER}-osx-installer.pkg"
         echo "installer_fn=${FN}" >> $GITHUB_ENV
         echo "rtype=${RTYPE}" >> $GITHUB_ENV
@@ -43,27 +55,26 @@ jobs:
 
     - name: Update files with new version info
       if: steps.get_version.outputs.is-semver == 'true'
+      env:
+        MAJOR: ${{ steps.get_version.outputs.major }}
+        MINOR: ${{ steps.get_version.outputs.minor }}
+        PATCH: ${{ steps.get_version.outputs.patch }}
       run: |
-        MAJOR=${{ steps.get_version.outputs.major }}
-        MINOR=${{ steps.get_version.outputs.minor }}
-        PATCH=${{ steps.get_version.outputs.patch }}
-        BRANCH=${{ env.rtype }}
-
         echo "Updating okjversion.h"
         echo "#ifndef OKJVERSION_H" > src/okjversion.h
         echo "#define OKJVERSION_H" >> src/okjversion.h
         echo >> src/okjversion.h
-        echo "#define OKJ_VERSION_MAJOR ${{ steps.get_version.outputs.major }}" >> src/okjversion.h
-        echo "#define OKJ_VERSION_MINOR ${{ steps.get_version.outputs.minor }}" >> src/okjversion.h
-        echo "#define OKJ_VERSION_BUILD ${{ steps.get_version.outputs.patch }}" >> src/okjversion.h
-        echo "#define OKJ_VERSION_STRING \"${{ steps.get_version.outputs.major }}.${{ steps.get_version.outputs.minor }}.${{ steps.get_version.outputs.patch }}\"" >> src/okjversion.h
-        echo "#define OKJ_VERSION_BRANCH \"${{ env.rtype }}\"" >> src/okjversion.h
+        echo "#define OKJ_VERSION_MAJOR ${MAJOR}" >> src/okjversion.h
+        echo "#define OKJ_VERSION_MINOR ${MINOR}" >> src/okjversion.h
+        echo "#define OKJ_VERSION_BUILD ${PATCH}" >> src/okjversion.h
+        echo "#define OKJ_VERSION_STRING \"${MAJOR}.${MINOR}.${PATCH}\"" >> src/okjversion.h
+        echo "#define OKJ_VERSION_BRANCH \"${rtype}\"" >> src/okjversion.h
         echo >> src/okjversion.h
         echo "#endif //OKJVERSION_H" >> src/okjversion.h
       shell: bash
 
     - name: Setup Signing Keychain
-      uses: apple-actions/import-codesign-certs@v5
+      uses: apple-actions/import-codesign-certs@95e84a1a18f2bdbc5c6ab9b7f4429372e4b13a8b # v5
       with:
         p12-file-base64: ${{ secrets.MACOS_SIGNING_CERTS_P12 }}
         p12-password: ${{ secrets.MACOS_SIGNING_CERTS_PASS }}
@@ -91,7 +102,7 @@ jobs:
         codesign --force -s "Developer ID Application: Isaac Lightburn (47W8CPBS5A)" --identifier "org.openkj.openkj" --timestamp openkj.app
 
     - name: Upload app
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
       with:
         path: build/openkj.app
         name: openkj.app
@@ -120,14 +131,14 @@ jobs:
     - name: Upload to OpenKJ website
       id: upload_installer
       if: steps.get_version.outputs.is-semver == 'true'
-      uses: google-github-actions/upload-cloud-storage@main
+      uses: google-github-actions/upload-cloud-storage@d1308790579b5dcf26c7354c32ffbd2b9aa89377 # main@2025-07-29
       with:
         credentials: ${{ secrets.gcp_credentials }}
         path: ${{ github.workspace }}/build/${{ env.installer_fn }}
         destination: openkj-installers/macos/${{ env.branch }}
 
     - name: Release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
       if: steps.get_version.outputs.is-semver == 'true'
       with:
         files: ${{ github.workspace }}/build/${{ env.installer_fn }}

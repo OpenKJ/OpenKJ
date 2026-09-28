@@ -1,0 +1,19 @@
+# Without this file, `COPY ./ /openkj/` copies the entire working tree —
+# including the full .git history — into images published to ghcr.io.
+.git
+.github
+.gitignore
+.gitmodules
+
+# Build output
+build/
+result
+result-*
+
+# Packaging and CI material that the image does not need
+cd/
+Dockerfile.*
+.dockerignore
+flake.nix
+flake.lock
+nix/

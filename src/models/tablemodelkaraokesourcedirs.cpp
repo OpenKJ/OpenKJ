@@ -209,7 +209,9 @@ SourceDir TableModelKaraokeSourceDirs::getDirByPath(const QString& path)
         {
             if (i.getPath() == dir.absolutePath())
             {
-                m_logger->debug("{} Match found - {} - {}", m_loggingPrefix, i.getPath(), i.getPattern());
+                // fmt 9 dropped implicit formatting of unscoped enums.
+                m_logger->debug("{} Match found - {} - {}", m_loggingPrefix, i.getPath(),
+                                static_cast<int>(i.getPattern()));
                 return i;
             }
         }

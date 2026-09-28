@@ -59,7 +59,7 @@ void UpdateChecker::checkForUpdates()
         return;
     qInfo() << "Requesting current version info for branch: " << channel;
     connect(manager, &QNetworkAccessManager::finished, this, &UpdateChecker::onNetworkReply);
-    [[maybe_unused]]QNetworkReply *reply = manager->get(QNetworkRequest(QUrl("http://openkj.org/downloads/" + OS + "-" + channel + "-curversion.txt")));
+    [[maybe_unused]]QNetworkReply *reply = manager->get(QNetworkRequest(QUrl("https://openkj.org/downloads/" + OS + "-" + channel + "-curversion.txt")));
 //    while (!reply->isFinished())
 //        QApplication::processEvents();
 //    qInfo() << "Request completed";
@@ -83,9 +83,15 @@ void UpdateChecker::onNetworkReply(QNetworkReply *reply)
         qInfo() << "Got invalid version info from server";
         return;
     }
-    int availMajor = availVersionParts.at(0).toInt();
-    int availMinor = availVersionParts.at(1).toInt();
-    int availRevis = availVersionParts.at(2).toInt();
+    bool majorOk, minorOk, revisOk;
+    int availMajor = availVersionParts.at(0).toInt(&majorOk);
+    int availMinor = availVersionParts.at(1).toInt(&minorOk);
+    int availRevis = availVersionParts.at(2).toInt(&revisOk);
+    if (!majorOk || !minorOk || !revisOk)
+    {
+        qInfo() << "Got non-numeric version info from server";
+        return;
+    }
     int curMajor = OKJ_VERSION_MAJOR;
     int curMinor = OKJ_VERSION_MINOR;
     int curRevis = OKJ_VERSION_BUILD;
@@ -109,7 +115,7 @@ void UpdateChecker::onNetworkReply(QNetworkReply *reply)
     jsonObject.insert("arch", QSysInfo::currentCpuArchitecture());
     QJsonDocument jsonDocument;
     jsonDocument.setObject(jsonObject);
-    QNetworkRequest request(QUrl("http://openkj.org/appanalytics"));
+    QNetworkRequest request(QUrl("https://openkj.org/appanalytics"));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     reply = manager->post(request, jsonDocument.toJson());
 

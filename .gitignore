@@ -55,3 +55,6 @@ CMakeSettings.json
 
 # CLion
 .idea
+# Nix
+result
+result-*

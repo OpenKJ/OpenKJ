@@ -23,10 +23,17 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   analyze:
     name: Analyze
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
 
     strategy:
       fail-fast: false
@@ -35,22 +42,32 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       with:
         submodules: recursive
 
     - name: Install build dependencies
       run: |
         sudo apt-get update
-        sudo apt-get -qq -y install cmake qtbase5-dev libqt5svg5-dev qtmultimedia5-dev libgstreamer1.0-dev libtagc0-dev libspdlog-dev libgstreamer-plugins-base1.0-dev
+        sudo apt-get -qq -y install cmake ninja-build qtbase5-dev libqt5svg5-dev qtmultimedia5-dev libgstreamer1.0-dev libtagc0-dev libspdlog-dev libgstreamer-plugins-base1.0-dev
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
+      uses: github/codeql-action/init@f3712979fa5f215279b101dd0a2e3bdfb4353324 # v3
       with:
         languages: ${{ matrix.language }}
+        # security-extended adds the injection and tainted-path queries, which
+        # are the ones that matter for a C++ application handling untrusted
+        # files, tag metadata and network responses.
+        queries: security-extended
 
     - name: Build
-      run: cmake -DCMAKE_BUILD_TYPE=Debug . -B build
+      # This step previously ran cmake alone. CodeQL's C++ extractor builds its
+      # database by observing compiler invocations, so configuring without
+      # compiling produced an essentially empty database and the analysis had
+      # nothing to inspect. The compile is what makes this workflow real.
+      run: |
+        cmake -DCMAKE_BUILD_TYPE=Debug . -B build -G Ninja
+        ninja -C build
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
+      uses: github/codeql-action/analyze@f3712979fa5f215279b101dd0a2e3bdfb4353324 # v3

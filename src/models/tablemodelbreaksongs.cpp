@@ -25,6 +25,8 @@ std::ostream& operator<<(std::ostream& os, const BreakSong& b)
                     << ")}";
 }
 
+#include "qstringformatter.h"
+
 std::ostream & operator<<(std::ostream& os, const QString& s)
 {
     return os << s.toStdString();

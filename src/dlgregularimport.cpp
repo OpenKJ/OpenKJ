@@ -235,8 +235,11 @@ QStringList DlgRegularImport::legacyImportSinger(const QString &name)
                     QString title = xml.attributes().value("title").toString();
                     int keyChg = xml.attributes().value("key").toInt();
 
-                    QString sql = "SELECT path FROM dbsongs WHERE artist == \"" + artist + "\" AND title == \"" + title + "\" AND discid == \"" + songId + "\" LIMIT 1";
-                    query.exec(sql);
+                    query.prepare("SELECT path FROM dbsongs WHERE artist = :artist AND title = :title AND discid = :discid LIMIT 1");
+                    query.bindValue(":artist", artist);
+                    query.bindValue(":title", title);
+                    query.bindValue(":discid", songId);
+                    query.exec();
                     if (query.first())
                     {
                         QString path = query.value(0).toString();
@@ -254,8 +257,12 @@ QStringList DlgRegularImport::legacyImportSinger(const QString &name)
                             else
                                 break;
                         }
-                       sql = "SELECT path FROM dbsongs WHERE artist == \"" + artist + "\" AND title == \"" + title + "\" AND discid LIKE \"%" + vendorPart + "%\" LIMIT 1";
-                       query.exec(sql);
+                       query.prepare("SELECT path FROM dbsongs WHERE artist = :artist AND title = :title AND discid LIKE :discid LIMIT 1");
+                       query.bindValue(":artist", artist);
+                       query.bindValue(":title", title);
+                       // wildcards belong on the bound value, not in the statement text
+                       query.bindValue(":discid", "%" + vendorPart + "%");
+                       query.exec();
                        if (query.first())
                        {
                            QString path = query.value(0).toString();

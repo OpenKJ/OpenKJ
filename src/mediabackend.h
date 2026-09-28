@@ -48,7 +48,7 @@
 #include <spdlog/async_logger.h>
 #include <spdlog/fmt/ostr.h>
 
-std::ostream& operator<<(std::ostream& os, const QString& s);
+#include "qstringformatter.h"
 
 #define STUP 1.0594630943592952645618252949461
 #define STDN 0.94387431268169349664191315666784

@@ -2955,11 +2955,14 @@ void MainWindow::actionPlaylistImportTriggered() {
                 QString artist = reader.getArtist();
                 QString title = reader.getTitle();
                 QString filename = QFileInfo(files.at(i)).fileName();
-                QString queryString =
-                        "INSERT OR IGNORE INTO bmsongs (artist,title,path,filename,duration,searchstring) VALUES(\"" +
-                        artist + "\",\"" + title + "\",\"" + files.at(i) + "\",\"" + filename + "\",\"" + duration +
-                        "\",\"" + artist + title + filename + "\")";
-                query.exec(queryString);
+                query.prepare("INSERT OR IGNORE INTO bmsongs (artist,title,path,filename,duration,searchstring) VALUES(:artist,:title,:path,:filename,:duration,:searchstring)");
+                query.bindValue(":artist", artist);
+                query.bindValue(":title", title);
+                query.bindValue(":path", files.at(i));
+                query.bindValue(":filename", filename);
+                query.bindValue(":duration", duration);
+                query.bindValue(":searchstring", artist + title + filename);
+                query.exec();
             } else if (QFile(importPath + "/" + files.at(i)).exists()) {
                 reader.setMedia(importPath + "/" + files.at(i).toLocal8Bit());
                 QString duration = QString::number(reader.getDuration() / 1000);
@@ -3204,8 +3207,10 @@ void MainWindow::songDropNoSingerSel() {
 
 void MainWindow::newVersionAvailable(const QString &version) {
     QMessageBox msgBox;
+    // RichText is required for the download link below, so the server-supplied
+    // version string must be escaped rather than interpolated raw.
     msgBox.setTextFormat(Qt::RichText);
-    msgBox.setText("New version of OpenKJ is available: " + version);
+    msgBox.setText("New version of OpenKJ is available: " + version.toHtmlEscaped());
     msgBox.setIcon(QMessageBox::Information);
     if (m_updateChecker->getOS() == "Linux") {
         msgBox.setInformativeText(

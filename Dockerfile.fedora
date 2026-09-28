@@ -1,9 +1,9 @@
-FROM fedora:latest
+FROM fedora:42@sha256:99e203b80b1c3d8f7e161ec10a68fd02b081ef83a3963553e513c82846b97814
 
 RUN dnf upgrade -y && \
 	dnf install -y \
 	cmake \
-	ninja \
+	ninja-build \
 	qt5-qtbase-devel \
 	qt5-qtsvg-devel \
 	qt5-qtmultimedia-devel \
@@ -15,7 +15,13 @@ RUN dnf upgrade -y && \
 	&& \
 	dnf clean all
 
-COPY ./ /openkj/
+RUN useradd --create-home --shell /usr/sbin/nologin build
+USER build
+
+COPY --chown=build:build ./ /openkj/
 WORKDIR /openkj/
-RUN cmake -DSPDLOG_USE_BUNDLED=true . -B build -G Ninja
+# An explicit build type matters for more than optimisation: _FORTIFY_SOURCE is
+# a no-op without one, so the hardening flags in CMakeLists.txt would silently
+# do nothing here.
+RUN cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DSPDLOG_USE_BUNDLED=true . -B build -G Ninja
 RUN ninja -C build

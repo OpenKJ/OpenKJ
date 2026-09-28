@@ -65,7 +65,9 @@ void DlgCustomPatterns::btnAddClicked() {
                                          tr("New Pattern"), &ok);
     if (ok && !name.isEmpty()) {
         QSqlQuery query;
-        query.exec("INSERT INTO custompatterns (name) VALUES(\"" + name + "\")");
+        query.prepare("INSERT INTO custompatterns (name) VALUES(:name)");
+        query.bindValue(":name", name);
+        query.exec();
         m_patternsModel.loadFromDB();
     }
 }
@@ -74,7 +76,9 @@ void DlgCustomPatterns::btnDeleteClicked() {
     auto pattern = getSelectedPattern();
     if (pattern) {
         QSqlQuery query;
-        query.exec("DELETE FROM custompatterns WHERE name == \"" + pattern->getName() + "\"");
+        query.prepare("DELETE FROM custompatterns WHERE name = :name");
+        query.bindValue(":name", pattern->getName());
+        query.exec();
         m_patternsModel.loadFromDB();
     }
 }
@@ -83,18 +87,18 @@ void DlgCustomPatterns::btnApplyChangesClicked() {
     auto pattern = getSelectedPattern();
     if (pattern) {
         QSqlQuery query;
-        QString arx, trx, drx, acg, tcg, dcg, name;
-        arx = ui->lineEditArtistRegEx->text();
-        trx = ui->lineEditTitleRegEx->text();
-        drx = ui->lineEditDiscIdRegEx->text();
-        acg = QString::number(ui->spinBoxArtistCaptureGrp->value());
-        tcg = QString::number(ui->spinBoxTitleCaptureGrp->value());
-        dcg = QString::number(ui->spinBoxDiscIdCaptureGrp->value());
-        name = pattern->getName();
-        query.exec("UPDATE custompatterns SET artistregex = \"" + arx + "\", titleregex = \"" + trx +
-                   "\", discidregex = \"" + drx + \
-                   "\", artistcapturegrp = " + acg + ", titlecapturegrp = " + tcg + ", discidcapturegrp = " + dcg +
-                   " WHERE name = \"" + name + "\"");
+        query.prepare("UPDATE custompatterns SET artistregex = :artistregex, titleregex = :titleregex, "
+                      "discidregex = :discidregex, artistcapturegrp = :artistcapturegrp, "
+                      "titlecapturegrp = :titlecapturegrp, discidcapturegrp = :discidcapturegrp "
+                      "WHERE name = :name");
+        query.bindValue(":artistregex", ui->lineEditArtistRegEx->text());
+        query.bindValue(":titleregex", ui->lineEditTitleRegEx->text());
+        query.bindValue(":discidregex", ui->lineEditDiscIdRegEx->text());
+        query.bindValue(":artistcapturegrp", ui->spinBoxArtistCaptureGrp->value());
+        query.bindValue(":titlecapturegrp", ui->spinBoxTitleCaptureGrp->value());
+        query.bindValue(":discidcapturegrp", ui->spinBoxDiscIdCaptureGrp->value());
+        query.bindValue(":name", pattern->getName());
+        query.exec();
         m_patternsModel.loadFromDB();
     }
 }

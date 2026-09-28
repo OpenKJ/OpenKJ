@@ -27,6 +27,68 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# ---------------------------------------------------------------------------
+# Security hardening
+#
+# Set at directory scope, deliberately before the add_executable() calls and
+# before add_subdirectory(src/3rdparty/spdlog), so the vendored taglib and miniz
+# sources and the bundled spdlog inherit these too. Every flag is probed first,
+# because this same file is built by GCC, Clang, AppleClang and MSVC.
+# ---------------------------------------------------------------------------
+include(CheckCXXCompilerFlag)
+
+# _FORTIFY_SOURCE expands to nothing without optimisation, so leaving the build
+# type unset would quietly disable part of the hardening below. Both Dockerfiles
+# used to configure with no build type at all.
+if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type" FORCE)
+    message(STATUS "No CMAKE_BUILD_TYPE specified, defaulting to ${CMAKE_BUILD_TYPE}")
+endif ()
+
+function(okj_add_flag_if_supported flag)
+    string(MAKE_C_IDENTIFIER "OKJ_HAS_${flag}" flag_var)
+    check_cxx_compiler_flag("${flag}" ${flag_var})
+    if (${flag_var})
+        add_compile_options("${flag}")
+    endif ()
+endfunction()
+
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+if (MSVC)
+    # Not probed: check_cxx_compiler_flag is unreliable against MSVC, which warns
+    # (D9002) rather than failing on an unknown switch. /GS, /NXCOMPAT,
+    # /DYNAMICBASE and (on x64) /HIGHENTROPYVA are already MSVC defaults, so only
+    # the two that are not are requested here.
+    add_compile_options(/sdl /guard:cf)
+    string(APPEND CMAKE_EXE_LINKER_FLAGS " /guard:cf")
+else ()
+    # Universal on every GCC >= 4.9 and Clang >= 3.5, so probing them only costs
+    # configure time.
+    add_compile_options(-fstack-protector-strong -Wformat -Wformat-security)
+
+    # These two genuinely vary: -fstack-clash-protection needs GCC 8 / Clang 11,
+    # and -fcf-protection is x86-only.
+    okj_add_flag_if_supported(-fstack-clash-protection)
+    okj_add_flag_if_supported(-fcf-protection=full)
+
+    # Not probed either: check_cxx_compiler_flag builds a bare main() with no
+    # headers, so glibc's features.h never sees the define and the test passes
+    # unconditionally — it cannot tell level 3 from level 2. glibc below 2.35
+    # downgrades 3 to 2 on its own, which is the behaviour a fallback would have
+    # produced anyway.
+    #
+    # The generator expression rather than a CMAKE_BUILD_TYPE comparison so this
+    # is also correct under multi-config generators, where CMAKE_BUILD_TYPE is
+    # empty. Skipped for Debug, where it would warn on every translation unit.
+    add_compile_options($<$<NOT:$<CONFIG:Debug>>:-D_FORTIFY_SOURCE=3>)
+
+    # ELF-only linker hardening; ld64 on macOS rejects -z outright.
+    if (CMAKE_SYSTEM_NAME MATCHES "Linux|FreeBSD")
+        string(APPEND CMAKE_EXE_LINKER_FLAGS " -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack")
+    endif ()
+endif ()
+
 find_package(QT NAMES Qt5 COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Gui Sql Network Widgets Concurrent Svg PrintSupport REQUIRED)
 
@@ -87,7 +149,10 @@ if (NOT EXTERNAL_SPDLOG)
     else ()
         message(STATUS "No spdlog install found or CPM spdlog forced, pulling it in via CPM")
         include(cmake/CPM.cmake)
-        CPMAddPackage("gh:gabime/spdlog@1.8.2")
+        # Kept in step with the src/3rdparty/spdlog submodule. The previous 1.8.2
+        # pin predates the fix for CVE-2025-6140 (released in 1.15.2), and this
+        # branch is what produces the shipped Windows binaries.
+        CPMAddPackage("gh:gabime/spdlog@1.17.0")
     endif ()
 endif ()
 
