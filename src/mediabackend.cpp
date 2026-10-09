@@ -152,25 +152,162 @@ void MediaBackend::setAudioOutputDevice(const QString &deviceName) {
     // Left as default
 }
 
-void MediaBackend::setVideoOutputWidgets(const std::vector<QWidget*>& surfaces) {
+GstFlowReturn MediaBackend::onNewVideoSample(
+    GstAppSink *sink,
+    gpointer userData)
+{
+    auto *backend = static_cast<MediaBackend*>(userData);
+
+    GstSample *sample = gst_app_sink_pull_sample(sink);
+    if (!sample)
+        return GST_FLOW_EOS;
+
+    GstBuffer *buffer = gst_sample_get_buffer(sample);
+    GstCaps *caps = gst_sample_get_caps(sample);
+
+    GstVideoInfo info;
+
+    if (!buffer || !caps ||
+        !gst_video_info_from_caps(&info, caps)) {
+        gst_sample_unref(sample);
+        return GST_FLOW_ERROR;
+    }
+
+    GstVideoFrame videoFrame;
+
+    if (!gst_video_frame_map(
+            &videoFrame,
+            &info,
+            buffer,
+            GST_MAP_READ)) {
+        gst_sample_unref(sample);
+        return GST_FLOW_ERROR;
+    }
+
+    QImage image(
+        static_cast<const uchar*>(
+            GST_VIDEO_FRAME_PLANE_DATA(&videoFrame, 0)
+        ),
+        GST_VIDEO_INFO_WIDTH(&info),
+        GST_VIDEO_INFO_HEIGHT(&info),
+        GST_VIDEO_FRAME_PLANE_STRIDE(&videoFrame, 0),
+        QImage::Format_RGB888
+    );
+
+    // Take ownership of the pixels before releasing
+    // the GStreamer buffer.
+    QImage ownedImage = image.copy();
+
+    gst_video_frame_unmap(&videoFrame);
+    gst_sample_unref(sample);
+
+    if (!ownedImage.isNull())
+        emit backend->frameReady(ownedImage);
+
+    return GST_FLOW_OK;
+}
+
+void MediaBackend::setVideoOutputWidgets(
+    const std::vector<QWidget*>& surfaces)
+{
+    // Remove previous frame-delivery connections.
+    for (const auto &connection : m_videoConnections) {
+        QObject::disconnect(connection);
+    }
+
+    m_videoConnections.clear();
     m_videoSinks.clear();
-    for (auto* surface : surfaces) {
-        if (auto* display = qobject_cast<VideoDisplay*>(surface)) {
+
+    // Register every video display, including external monitors.
+    for (auto *surface : surfaces) {
+        if (auto *display = qobject_cast<VideoDisplay*>(surface)) {
             m_videoSinks.push_back(display);
+
+            m_videoConnections.push_back(
+                connect(
+                    this,
+                    &MediaBackend::frameReady,
+                    display,
+                    &VideoDisplay::updateFrame,
+                    Qt::QueuedConnection
+                )
+            );
         }
     }
-    
-    if (m_pipeline && !m_videoSinks.empty()) {
-        GstElement *q6sink = gst_element_factory_make("q6videosink", nullptr);
-        if (q6sink) {
-            QVideoSink *vsink = m_videoSinks.front()->videoSink();
-            g_object_set(G_OBJECT(q6sink), "video-sink", vsink, nullptr);
-            g_object_set(G_OBJECT(m_pipeline), "video-sink", q6sink, nullptr);
-            m_logger->info("{} Set q6videosink with QVideoSink", m_loggingPrefix);
-        } else {
-            m_logger->error("{} Failed to create q6videosink", m_loggingPrefix);
-        }
+
+    if (!m_pipeline || m_videoSinks.empty())
+        return;
+
+    // Build a GStreamer sink that converts decoded video
+    // into RGB frames suitable for QImage.
+    GError *error = nullptr;
+
+    GstElement *videoBin = gst_parse_bin_from_description(
+        "videoconvert ! "
+        "video/x-raw,format=RGB ! "
+        "appsink name=openkj_video_sink "
+        "sync=true max-buffers=2 drop=true",
+        TRUE,
+        &error
+    );
+
+    if (!videoBin) {
+        m_logger->error(
+            "{} Failed to create video bin: {}",
+            m_loggingPrefix,
+            error ? error->message : "Unknown error"
+        );
+
+        if (error)
+            g_error_free(error);
+
+        return;
     }
+
+    if (error)
+        g_error_free(error);
+
+    GstElement *appSink = gst_bin_get_by_name(
+        GST_BIN(videoBin),
+        "openkj_video_sink"
+    );
+
+    if (!appSink) {
+        m_logger->error(
+            "{} Failed to find appsink",
+            m_loggingPrefix
+        );
+
+        gst_object_unref(videoBin);
+        return;
+    }
+
+    GstAppSinkCallbacks callbacks{};
+    callbacks.new_sample = &MediaBackend::onNewVideoSample;
+
+    gst_app_sink_set_callbacks(
+        GST_APP_SINK(appSink),
+        &callbacks,
+        this,
+        nullptr
+    );
+
+    gst_object_unref(appSink);
+
+    // Give playbin our new video-output bin.
+    g_object_set(
+        G_OBJECT(m_pipeline),
+        "video-sink",
+        videoBin,
+        nullptr
+    );
+
+
+    m_logger->info(
+        "{} Configured appsink video output for {} displays",
+        m_loggingPrefix,
+        m_videoSinks.size()
+    );
 }
 
 void MediaBackend::setVideoEnabled(const bool &enabled) {

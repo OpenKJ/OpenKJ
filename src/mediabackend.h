@@ -13,6 +13,8 @@
 #include <vector>
 #include <atomic>
 #include <gst/gst.h>
+#include <gst/app/gstappsink.h>
+#include <gst/video/video.h>
 #include "settings.h"
 #include "audiofader.h"
 #include "videodisplay.h"
@@ -152,6 +154,13 @@ private:
 
     static gboolean busCall(GstBus *bus, GstMessage *msg, gpointer data);
     void handleBusMessage(GstMessage *msg);
+
+    std::vector<QMetaObject::Connection> m_videoConnections;
+
+    static GstFlowReturn onNewVideoSample(
+        GstAppSink *sink,
+        gpointer userData
+    );
 
 private slots:
     void eventTimer_timeout();

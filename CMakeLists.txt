@@ -82,7 +82,7 @@ endif()
 
 # GStreamer Configuration
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0 gstreamer-video-1.0 gstreamer-audio-1.0)
+pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0 gstreamer-video-1.0 gstreamer-audio-1.0 gstreamer-app-1.0)
 include_directories(${GSTREAMER_INCLUDE_DIRS})
 link_directories(${GSTREAMER_LIBRARY_DIRS})
 set(GSTREAMER_LIBRARIES ${GSTREAMER_LIBRARIES})
@@ -316,6 +316,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBS
     endif()
 endif ()
 
+option(OPENKJ_MACOS_DEPLOY "Bundle dependencies into the macOS application" ON)
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(openkj_ICON ${CMAKE_CURRENT_SOURCE_DIR}/src/Icons/OpenKJ.icns)
 
@@ -365,7 +366,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         find_program(MACDEPLOYQT macdeployqt
             HINTS "${qt6_install_prefix}"
             PATH_SUFFIXES bin)
-        if (MACDEPLOYQT)
+        if (MACDEPLOYQT AND OPENKJ_MACOS_DEPLOY)
             add_custom_command(TARGET openkj POST_BUILD
                 COMMAND "${MACDEPLOYQT}"
                         "$<TARGET_BUNDLE_DIR:openkj>"
