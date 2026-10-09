@@ -1,6 +1,7 @@
 #include "mediabackend.h"
 #include "mzarchive.h"
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QMutexLocker>
 #include <math.h>
@@ -39,6 +40,25 @@ MediaBackend::MediaBackend(QObject *parent, QString objectName, MediaType type)
         }
     });
 
+    m_cdgTempoTimer.setSingleShot(true);
+    m_cdgTempoTimer.setInterval(250);
+
+    connect(&m_cdgTempoTimer, &QTimer::timeout, this, [this]() {
+        if (!m_cdgPipeline)
+            return;
+
+        gint64 cdgPosition = GST_CLOCK_TIME_NONE;
+
+        if (gst_element_query_position(
+                m_cdgPipeline,
+                GST_FORMAT_TIME,
+                &cdgPosition) &&
+            GST_CLOCK_TIME_IS_VALID(cdgPosition)) {
+
+            seekCdg(cdgPosition / GST_MSECOND);
+        }
+    });
+
     // Apply saved settings on startup
     if (m_type == Karaoke) {
         setAudioOutputDevice(m_settings.audioOutputDevice());
@@ -55,16 +75,32 @@ MediaBackend::MediaBackend(QObject *parent, QString objectName, MediaType type)
 MediaBackend::~MediaBackend() {
     m_eventTimer.stop();
     rawStop();
+
+    destroyCdgPipeline();
+
     if (m_pipeline) {
         gst_element_set_state(m_pipeline, GST_STATE_NULL);
         gst_object_unref(m_pipeline);
         m_pipeline = nullptr;
     }
+
+    if (m_sharedClock) {
+        gst_object_unref(m_sharedClock);
+        m_sharedClock = nullptr;
+    }   
     m_tempDir.reset();
 }
 
 void MediaBackend::setupPipeline() {
     m_pipeline = gst_element_factory_make("playbin", nullptr);
+    // Use one clock for the audio and CDG pipelines.
+    m_sharedClock = gst_system_clock_obtain();
+
+    gst_pipeline_use_clock(
+        GST_PIPELINE(m_pipeline),
+        m_sharedClock
+    );
+
     if (!m_pipeline) {
         m_logger->error("{} Failed to create playbin", m_loggingPrefix);
         return;
@@ -91,11 +127,146 @@ void MediaBackend::setupPipeline() {
     } else {
         m_logger->error("{} Failed to create audio elements", m_loggingPrefix);
     }
+}
 
-    // Bus
-    GstBus *bus = gst_pipeline_get_bus(GST_PIPELINE(m_pipeline));
-    gst_bus_add_watch(bus, busCall, this);
-    gst_object_unref(bus);
+bool MediaBackend::setupCdgPipeline(const QString &cdgPath)
+{
+    destroyCdgPipeline();
+
+    if (cdgPath.isEmpty())
+        return false;
+
+    GError *error = nullptr;
+
+    GstElement *pipeline = gst_parse_launch(
+        "filesrc name=cdg_source ! "
+        "cdgparse ! cdgdec ! videoconvert ! "
+        "video/x-raw,format=RGB ! "
+        "appsink name=cdg_sink "
+        "sync=true max-buffers=2 drop=true",
+        &error
+    );
+
+    if (error) {
+        m_logger->error(
+            "{} CDG pipeline error: {}",
+            m_loggingPrefix,
+            error->message
+        );
+        g_error_free(error);
+        error = nullptr;
+    }
+
+    if (!pipeline)
+        return false;
+
+    GstElement *source = gst_bin_get_by_name(
+        GST_BIN(pipeline), "cdg_source"
+    );
+
+    GstElement *sink = gst_bin_get_by_name(
+        GST_BIN(pipeline), "cdg_sink"
+    );
+
+    if (!source || !sink) {
+        m_logger->error(
+            "{} Missing CDG source or appsink",
+            m_loggingPrefix
+        );
+
+        if (source) gst_object_unref(source);
+        if (sink) gst_object_unref(sink);
+
+        gst_element_set_state(pipeline, GST_STATE_NULL);
+        gst_object_unref(pipeline);
+        return false;
+    }
+
+    QByteArray pathBytes = QFile::encodeName(cdgPath);
+
+    g_object_set(
+        G_OBJECT(source),
+        "location",
+        pathBytes.constData(),
+        nullptr
+    );
+
+    GstAppSinkCallbacks callbacks{};
+    callbacks.new_sample = &MediaBackend::onNewVideoSample;
+
+    gst_app_sink_set_callbacks(
+        GST_APP_SINK(sink),
+        &callbacks,
+        this,
+        nullptr
+    );
+
+    gst_object_unref(source);
+    gst_object_unref(sink);
+    
+    // Use the same clock for the CDG pipeline as the main audio pipeline.
+    if (m_sharedClock) {
+        gst_pipeline_use_clock(
+            GST_PIPELINE(pipeline),
+            m_sharedClock
+        );
+    }
+    // Store the CDG pipeline for later use.
+    m_cdgPipeline = pipeline;
+
+    m_logger->info(
+        "{} Created separate CDG pipeline: {}",
+        m_loggingPrefix,
+        cdgPath.toStdString()
+    );
+
+    return true;
+}
+
+bool MediaBackend::seekCdg(qint64 positionMs)
+{
+    if (!m_cdgPipeline || positionMs < 0)
+        return false;
+
+    const double rate = m_tempoPercent / 100.0;
+
+    if (rate <= 0.0)
+        return false;
+
+    const gboolean success = gst_element_seek(
+        m_cdgPipeline,
+        rate,
+        GST_FORMAT_TIME,
+        static_cast<GstSeekFlags>(
+            GST_SEEK_FLAG_FLUSH |
+            GST_SEEK_FLAG_ACCURATE
+        ),
+        GST_SEEK_TYPE_SET,
+        static_cast<gint64>(positionMs) * GST_MSECOND,
+        GST_SEEK_TYPE_NONE,
+        GST_CLOCK_TIME_NONE
+    );
+
+    if (!success) {
+        m_logger->warn(
+            "{} CDG seek/rate change failed: {} ms at {}%",
+            m_loggingPrefix,
+            positionMs,
+            m_tempoPercent
+        );
+    }
+
+    return success;
+}
+
+void MediaBackend::destroyCdgPipeline()
+{
+    if (!m_cdgPipeline)
+        return;
+
+    gst_element_set_state(m_cdgPipeline, GST_STATE_NULL);
+    gst_object_unref(m_cdgPipeline);
+    m_cdgPipeline = nullptr;
 }
 
 gboolean MediaBackend::busCall(GstBus *bus, GstMessage *msg, gpointer data) {
@@ -135,6 +306,21 @@ void MediaBackend::handleBusMessage(GstMessage *msg) {
             }
             break;
         }
+        case GST_MESSAGE_ASYNC_DONE:
+            m_logger->info(
+            "{} GStreamer async operation completed; position={} ms",
+            m_loggingPrefix,
+            position()
+        );
+        break;
+
+        case GST_MESSAGE_SEGMENT_DONE:
+            m_logger->info(
+            "{} GStreamer segment completed; position={} ms",
+            m_loggingPrefix,
+            position()
+        );
+    break;
         default:
             break;
     }
@@ -349,12 +535,81 @@ QStringList MediaBackend::getOutputDevices() {
 }
 
 void MediaBackend::eventTimer_timeout() {
-    if (!m_pipeline) return;
-    
-    static qint64 lastDur = 0;
+     if (!m_pipeline)
+        return;
+
+    // Process pending GStreamer messages using Qt's event loop.
+    GstBus *bus = gst_element_get_bus(m_pipeline);
+
+    if (bus) {
+        // Limit work per tick so message bursts can't freeze the UI.
+        for (int i = 0; i < 100; ++i) {
+            GstMessage *msg = gst_bus_pop(bus);
+
+            if (!msg)
+                break;
+
+            handleBusMessage(msg);
+            gst_message_unref(msg);
+        }
+
+        gst_object_unref(bus);
+    }
+
+    // Keep CDG graphics synchronized with audio playback.
+    // Diagnostic: monitor CDG/audio positions without correcting.
+if (m_cdgPipeline &&
+    m_pipeline &&
+    m_state == PlayingState) {
+
+    if (!m_cdgSyncTimer.isValid())
+        m_cdgSyncTimer.start();
+
+    const qint64 now = m_cdgSyncTimer.elapsed();
+
+    if (m_lastCdgSyncCheckMs < 0 ||
+        now - m_lastCdgSyncCheckMs >= 1000) {
+
+        m_lastCdgSyncCheckMs = now;
+
+        gint64 audioPos = GST_CLOCK_TIME_NONE;
+        gint64 cdgPos = GST_CLOCK_TIME_NONE;
+
+        const gboolean audioOk = gst_element_query_position(
+            m_pipeline,
+            GST_FORMAT_TIME,
+            &audioPos
+        );
+
+        const gboolean cdgOk = gst_element_query_position(
+            m_cdgPipeline,
+            GST_FORMAT_TIME,
+            &cdgPos
+        );
+
+        if (audioOk && cdgOk &&
+            GST_CLOCK_TIME_IS_VALID(audioPos) &&
+            GST_CLOCK_TIME_IS_VALID(cdgPos)) {
+
+            const qint64 audioMs = audioPos / GST_MSECOND;
+            const qint64 cdgMs = cdgPos / GST_MSECOND;
+
+            m_logger->info(
+                "{} SYNC tempo={} audio={}ms cdg={}ms diff={}ms",
+                m_loggingPrefix,
+                m_tempoPercent,
+                audioMs,
+                cdgMs,
+                audioMs - cdgMs
+            );
+        }
+    }
+}
+
     qint64 dur = duration();
-    if (dur != lastDur) {
-        lastDur = dur;
+
+    if (dur != m_lastDuration) {
+        m_lastDuration = dur;
         emit durationChanged(dur);
     }
 
@@ -390,17 +645,26 @@ void MediaBackend::play() {
             m_fader->immediateIn();
         }
     }
+    
+    if (m_cdgPipeline) {
+        gst_element_set_state(m_cdgPipeline, GST_STATE_PLAYING);
+    }
 }
 
 void MediaBackend::pause() {
     if (m_pipeline) {
         gst_element_set_state(m_pipeline, GST_STATE_PAUSED);
     }
+
+    if (m_cdgPipeline) {
+        gst_element_set_state(m_cdgPipeline, GST_STATE_PAUSED);
+    }
 }
 
 void MediaBackend::setMedia(const QString &filename) {
     m_silenceDetectedEmitted = false;
     rawStop();
+    destroyCdgPipeline();
     m_filename = filename;
     m_cdgFilename.clear();
     m_tempDir.reset();
@@ -435,13 +699,16 @@ void MediaBackend::setMedia(const QString &filename) {
 
     if (!m_pipeline) return;
 
+    // Clear any CDG stream left over from the previous song.
+    g_object_set(G_OBJECT(m_pipeline), "suburi", nullptr, nullptr);
+
     QString uri = "file://" + playPath;
     g_object_set(G_OBJECT(m_pipeline), "uri", uri.toUtf8().constData(), nullptr);
     
     if (!m_cdgFilename.isEmpty()) {
-        QString subUri = "file://" + m_cdgFilename;
-        g_object_set(G_OBJECT(m_pipeline), "suburi", subUri.toUtf8().constData(), nullptr);
-        m_cdgLastDrawPosMs = getCdgLastDrawPositionMs(m_cdgFilename);
+        setupCdgPipeline(m_cdgFilename);
+        m_cdgLastDrawPosMs =
+            getCdgLastDrawPositionMs(m_cdgFilename);
     } else {
         m_cdgLastDrawPosMs = 0;
     }
@@ -456,6 +723,7 @@ void MediaBackend::setMedia(const QString &filename) {
 void MediaBackend::setMediaCdg(const QString &cdgFilename, const QString &audioFilename) {
     m_silenceDetectedEmitted = false;
     rawStop();
+    destroyCdgPipeline();
     m_filename = audioFilename;
     m_cdgFilename = cdgFilename;
     m_tempDir.reset();
@@ -469,8 +737,11 @@ void MediaBackend::setMediaCdg(const QString &cdgFilename, const QString &audioF
         if (QFile::copy(audioFilename, targetAudio) && QFile::copy(cdgFilename, targetCdg)) {
             QString uri = "file://" + targetAudio;
             g_object_set(G_OBJECT(m_pipeline), "uri", uri.toUtf8().constData(), nullptr);
-            QString subUri = "file://" + targetCdg;
-            g_object_set(G_OBJECT(m_pipeline), "suburi", subUri.toUtf8().constData(), nullptr);
+            g_object_set(G_OBJECT(m_pipeline), "suburi", nullptr, nullptr);
+
+            // Use the copied CDG file in the temporary directory.
+            m_cdgFilename = targetCdg;
+            setupCdgPipeline(m_cdgFilename);
 
             m_hasVideo = false;
             emit hasActiveVideoChanged(false);
@@ -501,11 +772,49 @@ bool MediaBackend::isMuted() {
     return m_muted;
 }
 
-void MediaBackend::setPosition(const qint64 &position) {
-    if (m_pipeline) {
-        gst_element_seek_simple(m_pipeline, GST_FORMAT_TIME, 
-            (GstSeekFlags)(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT), position * GST_MSECOND);
+void MediaBackend::setPosition(const qint64 &position)
+{
+    if (!m_pipeline || position < 0)
+        return;
+
+    const qint64 before = this->position();
+
+    m_logger->info(
+        "{} Seeking from {} ms to {} ms",
+        m_loggingPrefix,
+        before,
+        position
+    );
+
+    const GstSeekFlags flags = static_cast<GstSeekFlags>(
+        GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE
+    );
+
+    const gboolean success = gst_element_seek_simple(
+        m_pipeline,
+        GST_FORMAT_TIME,
+        flags,
+        static_cast<gint64>(position) * GST_MSECOND
+    );
+
+    m_logger->info(
+        "{} Seek accepted: {}",
+        m_loggingPrefix,
+        success ? "yes" : "no"
+    );
+
+    if (m_cdgPipeline) {
+        seekCdg(position);
     }
+
+    // Give both pipelines time to complete their seeks
+    // before checking synchronization again.
+    m_lastCdgSyncCheckMs =
+        m_cdgSyncTimer.isValid()
+        ? m_cdgSyncTimer.elapsed()
+        : -1;
+
+    m_lastCdgCorrectionMs = m_lastCdgSyncCheckMs;
 }
 
 void MediaBackend::setVolume(const int &volume) {
@@ -526,6 +835,10 @@ void MediaBackend::rawStop() {
     if (m_pipeline) {
         gst_element_set_state(m_pipeline, GST_STATE_NULL);
     }
+
+    if (m_cdgPipeline) {
+        gst_element_set_state(m_cdgPipeline, GST_STATE_NULL);
+    }
     m_state = StoppedState;
     emit stateChanged(m_state);
     for (auto* display : m_videoSinks) {
@@ -533,6 +846,11 @@ void MediaBackend::rawStop() {
             display->clearFrame();
         }
     }
+
+    m_cdgTempoTimer.stop();
+    m_cdgSyncTimer.invalidate();
+    m_lastCdgSyncCheckMs = -1;
+    m_lastCdgCorrectionMs = -1;
 }
 
 void MediaBackend::setPitchShift(const int &pitchShift) {
@@ -552,11 +870,61 @@ void MediaBackend::fadeIn(const bool &waitForFade) {
     m_fader->fadeIn(waitForFade);
 }
 
-void MediaBackend::setTempo(const int &percent) {
+void MediaBackend::setTempo(const int &percent)
+{
+    if (percent <= 0)
+        return;
+
+    // Capture CDG's actual position before changing its rate.
+    gint64 cdgPosition = GST_CLOCK_TIME_NONE;
+    bool haveCdgPosition = false;
+
+    if (m_cdgPipeline &&
+        (m_state == PlayingState ||
+         m_state == PausedState)) {
+        m_cdgTempoTimer.start();
+    }
+
     m_tempoPercent = percent;
+
+    // Update audio tempo through SoundTouch.
     if (m_pitch) {
-        double tempo = (double)percent / 100.0;
-        g_object_set(G_OBJECT(m_pitch), "tempo", tempo, nullptr);
+        const double tempo = percent / 100.0;
+
+        g_object_set(
+            G_OBJECT(m_pitch),
+            "tempo",
+            tempo,
+            nullptr
+        );
+    }
+
+    // Change CDG playback rate at its current position,
+    // not at the audio pipeline's reported position.
+    if (haveCdgPosition &&
+        GST_CLOCK_TIME_IS_VALID(cdgPosition)) {
+
+        const gboolean success = gst_element_seek(
+            m_cdgPipeline,
+            percent / 100.0,
+            GST_FORMAT_TIME,
+            static_cast<GstSeekFlags>(
+                GST_SEEK_FLAG_FLUSH |
+                GST_SEEK_FLAG_ACCURATE
+            ),
+            GST_SEEK_TYPE_SET,
+            cdgPosition,
+            GST_SEEK_TYPE_NONE,
+            GST_CLOCK_TIME_NONE
+        );
+
+        m_logger->info(
+            "{} CDG tempo changed to {}% at {} ms (success: {})",
+            m_loggingPrefix,
+            percent,
+            cdgPosition / GST_MSECOND,
+            success ? "yes" : "no"
+        );
     }
 }
 

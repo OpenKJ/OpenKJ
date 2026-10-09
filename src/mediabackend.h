@@ -9,6 +9,7 @@
 #include <QPointer>
 #include <QProcess>
 #include <QTemporaryDir>
+#include <QElapsedTimer>
 #include <memory>
 #include <vector>
 #include <atomic>
@@ -109,6 +110,8 @@ private:
 
     // GStreamer elements
     GstElement *m_pipeline{nullptr};
+    GstElement *m_cdgPipeline{nullptr};
+    GstClock *m_sharedClock{nullptr};
     GstElement *m_pitch{nullptr};
     GstElement *m_eq{nullptr};
     GstElement *m_panorama{nullptr};
@@ -129,6 +132,7 @@ private:
     std::vector<AudioOutputDevice> m_audioOutputDevices;
 
     QTimer m_eventTimer;
+    QTimer m_cdgTempoTimer;
     QPointer<AudioFader> m_fader{nullptr};
 
     int m_volume{100};
@@ -146,11 +150,18 @@ private:
     bool m_silenceDetectedEmitted{false};
     bool m_isMonoInitialized{false};
     qint64 m_cdgLastDrawPosMs{0};
+    qint64 m_lastDuration{-1};
 
     void setupPipeline();
+    bool setupCdgPipeline(const QString &cdgPath);
+    bool seekCdg(qint64 positionMs);
+    void destroyCdgPipeline();
     void updateVolume();
     void updateAudioFilters();
     qint64 getCdgLastDrawPositionMs(const QString &cdgPath);
+    QElapsedTimer m_cdgSyncTimer;
+    qint64 m_lastCdgSyncCheckMs{-1};
+    qint64 m_lastCdgCorrectionMs{-1};
 
     static gboolean busCall(GstBus *bus, GstMessage *msg, gpointer data);
     void handleBusMessage(GstMessage *msg);
