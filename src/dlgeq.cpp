@@ -45,7 +45,8 @@ DlgEq::DlgEq(QWidget *parent) :
     for (auto &slider : eqSliderControlsK)
     {
         slider->setValue(m_settings.getEqKLevel(band));
-        connect(slider, &QSlider::valueChanged, [&]( int newValue ) {
+        connect(slider, &QSlider::valueChanged,
+            this, [this, band](int newValue) {
             m_settings.setEqKLevel(band, newValue);
             emit karEqLevelChanged(band, newValue);
         });
@@ -55,7 +56,8 @@ DlgEq::DlgEq(QWidget *parent) :
     for (auto &slider : eqSliderControlsB)
     {
         slider->setValue(m_settings.getEqBLevel(band));
-        connect(slider, &QSlider::valueChanged, [&]( int newValue ) {
+        connect(slider, &QSlider::valueChanged,
+            this, [this, band](int newValue) {
             m_settings.setEqBLevel(band, newValue);
             emit bmEqLevelChanged(band, newValue);
         });
