@@ -556,8 +556,18 @@ void MediaBackend::eventTimer_timeout() {
         gst_object_unref(bus);
     }
 
-    // Keep CDG graphics synchronized with audio playback.
-    // Diagnostic: monitor CDG/audio positions without correcting.
+    // Handle coordinated seek if needed.
+    processCoordinatedSeek();
+
+    qint64 dur = duration();
+
+    if (dur != m_lastDuration) {
+        m_lastDuration = dur;
+        emit durationChanged(dur);
+    }
+
+// Keep CDG graphics synchronized with audio playback.
+// Diagnostic: monitor CDG/audio positions without correcting.
 if (m_cdgPipeline &&
     m_pipeline &&
     m_state == PlayingState) {
@@ -605,13 +615,6 @@ if (m_cdgPipeline &&
         }
     }
 }
-
-    qint64 dur = duration();
-
-    if (dur != m_lastDuration) {
-        m_lastDuration = dur;
-        emit durationChanged(dur);
-    }
 
     if (m_state == PlayingState) {
         emit positionChanged(position());
@@ -777,44 +780,237 @@ void MediaBackend::setPosition(const qint64 &position)
     if (!m_pipeline || position < 0)
         return;
 
-    const qint64 before = this->position();
+    // MP4 and other single-pipeline media keep their
+    // existing direct seeking behavior.
+    if (!m_cdgPipeline) {
+        const gboolean success = gst_element_seek_simple(
+            m_pipeline,
+            GST_FORMAT_TIME,
+            static_cast<GstSeekFlags>(
+                GST_SEEK_FLAG_FLUSH |
+                GST_SEEK_FLAG_ACCURATE
+            ),
+            static_cast<gint64>(position) * GST_MSECOND
+        );
+
+        if (!success) {
+            m_logger->warn(
+                "{} Seek failed at {} ms",
+                m_loggingPrefix,
+                position
+            );
+        }
+
+        return;
+    }
+
+    // MP3+G: coordinate both pipelines.
+    // Preserve the intended playback state, even if another
+    // seek arrives while a coordinated seek is underway.
+    if (m_seekPhase == SeekPhase::Idle) {
+        m_resumeAfterSeek = (m_state == PlayingState);
+    }
+
+    m_seekTargetMs = position;
+    m_seekPhase = SeekPhase::WaitingForPause;
+    m_seekTimer.start();
+
+    // Don't allow a pending tempo adjustment to interrupt seeking.
+    m_cdgTempoTimer.stop();
 
     m_logger->info(
-        "{} Seeking from {} ms to {} ms",
+        "{} Coordinated seek requested: {} ms",
         m_loggingPrefix,
-        before,
         position
     );
 
-    const GstSeekFlags flags = static_cast<GstSeekFlags>(
-        GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE
-    );
+    // Pause both pipelines before issuing either seek.
+    const GstStateChangeReturn audioResult =
+        gst_element_set_state(m_pipeline, GST_STATE_PAUSED);
 
-    const gboolean success = gst_element_seek_simple(
-        m_pipeline,
-        GST_FORMAT_TIME,
-        flags,
-        static_cast<gint64>(position) * GST_MSECOND
-    );
+    const GstStateChangeReturn cdgResult =
+        gst_element_set_state(m_cdgPipeline, GST_STATE_PAUSED);
 
-    m_logger->info(
-        "{} Seek accepted: {}",
-        m_loggingPrefix,
-        success ? "yes" : "no"
-    );
+    if (audioResult == GST_STATE_CHANGE_FAILURE ||
+        cdgResult == GST_STATE_CHANGE_FAILURE) {
 
-    if (m_cdgPipeline) {
-        seekCdg(position);
+        finishCoordinatedSeek(false);
+    }
+}
+
+void MediaBackend::processCoordinatedSeek()
+{
+    if (m_seekPhase == SeekPhase::Idle)
+        return;
+
+    if (!m_pipeline || !m_cdgPipeline) {
+        m_seekPhase = SeekPhase::Idle;
+        return;
     }
 
-    // Give both pipelines time to complete their seeks
-    // before checking synchronization again.
-    m_lastCdgSyncCheckMs =
-        m_cdgSyncTimer.isValid()
-        ? m_cdgSyncTimer.elapsed()
-        : -1;
+    // Never wait indefinitely for an element that fails to preroll.
+    constexpr qint64 seekTimeoutMs = 5000;
 
-    m_lastCdgCorrectionMs = m_lastCdgSyncCheckMs;
+    if (m_seekTimer.elapsed() > seekTimeoutMs) {
+        m_logger->error(
+            "{} Coordinated seek timed out after {} ms",
+            m_loggingPrefix,
+            m_seekTimer.elapsed()
+        );
+
+        finishCoordinatedSeek(false);
+        return;
+    }
+
+    GstState audioState = GST_STATE_VOID_PENDING;
+    GstState cdgState = GST_STATE_VOID_PENDING;
+
+    const GstStateChangeReturn audioResult =
+        gst_element_get_state(
+            m_pipeline,
+            &audioState,
+            nullptr,
+            0
+        );
+
+    const GstStateChangeReturn cdgResult =
+        gst_element_get_state(
+            m_cdgPipeline,
+            &cdgState,
+            nullptr,
+            0
+        );
+
+    if (audioResult == GST_STATE_CHANGE_FAILURE ||
+        cdgResult == GST_STATE_CHANGE_FAILURE) {
+
+        m_logger->error(
+            "{} Pipeline state failure during coordinated seek",
+            m_loggingPrefix
+        );
+
+        finishCoordinatedSeek(false);
+        return;
+    }
+
+    // Both pipelines must complete their pending operations.
+    if (audioResult == GST_STATE_CHANGE_ASYNC ||
+        cdgResult == GST_STATE_CHANGE_ASYNC ||
+        audioState != GST_STATE_PAUSED ||
+        cdgState != GST_STATE_PAUSED) {
+        return;
+    }
+
+    if (m_seekPhase == SeekPhase::WaitingForPause) {
+
+        m_logger->info(
+            "{} Both pipelines paused; seeking to {} ms",
+            m_loggingPrefix,
+            m_seekTargetMs
+        );
+
+        m_seekPhase = SeekPhase::WaitingForSeek;
+
+        const gboolean audioSeekAccepted =
+            gst_element_seek_simple(
+                m_pipeline,
+                GST_FORMAT_TIME,
+                static_cast<GstSeekFlags>(
+                    GST_SEEK_FLAG_FLUSH |
+                    GST_SEEK_FLAG_ACCURATE
+                ),
+                static_cast<gint64>(m_seekTargetMs) *
+                    GST_MSECOND
+            );
+
+        const gboolean cdgSeekAccepted =
+            seekCdg(m_seekTargetMs);
+
+        if (!audioSeekAccepted || !cdgSeekAccepted) {
+            m_logger->error(
+                "{} Coordinated seek rejected: audio={} cdg={}",
+                m_loggingPrefix,
+                audioSeekAccepted ? "yes" : "no",
+                cdgSeekAccepted ? "yes" : "no"
+            );
+
+            finishCoordinatedSeek(false);
+        }
+
+        return;
+    }
+
+    if (m_seekPhase == SeekPhase::WaitingForSeek) {
+
+        // Both pipelines have finished seeking and prerolling.
+        // They are now ready to resume.
+
+        gint64 audioPos = GST_CLOCK_TIME_NONE;
+        gint64 cdgPos = GST_CLOCK_TIME_NONE;
+
+        const gboolean audioOk = gst_element_query_position(
+            m_pipeline, GST_FORMAT_TIME, &audioPos
+        );
+
+        const gboolean cdgOk = gst_element_query_position(
+            m_cdgPipeline, GST_FORMAT_TIME, &cdgPos
+        );
+
+        if (audioOk && cdgOk &&
+            GST_CLOCK_TIME_IS_VALID(audioPos) &&
+            GST_CLOCK_TIME_IS_VALID(cdgPos)) {
+
+            m_logger->info(
+                "{} Seek ready: audio={}ms cdg={}ms diff={}ms",
+                m_loggingPrefix,
+                audioPos / GST_MSECOND,
+                cdgPos / GST_MSECOND,
+                (audioPos - cdgPos) / GST_MSECOND
+            );
+        }
+
+        finishCoordinatedSeek(true);
+    }
+}
+
+void MediaBackend::finishCoordinatedSeek(bool success)
+{
+    if (m_seekPhase == SeekPhase::Idle)
+        return;
+
+    const bool shouldResume = m_resumeAfterSeek;
+
+    m_seekPhase = SeekPhase::Idle;
+    m_resumeAfterSeek = false;
+
+    if (!m_pipeline || !m_cdgPipeline)
+        return;
+
+    if (success) {
+        m_logger->info(
+            "{} Coordinated seek completed in {} ms",
+            m_loggingPrefix,
+            m_seekTimer.elapsed()
+        );
+    } else {
+        m_logger->warn(
+            "{} Coordinated seek did not complete successfully",
+            m_loggingPrefix
+        );
+    }
+
+    // Restore the previous playback state.
+    if (shouldResume) {
+        gst_element_set_state(
+            m_cdgPipeline,
+            GST_STATE_PLAYING
+        );
+
+        gst_element_set_state(
+            m_pipeline,
+            GST_STATE_PLAYING
+        );
+    }
 }
 
 void MediaBackend::setVolume(const int &volume) {
@@ -832,6 +1028,11 @@ void MediaBackend::stop(const bool &skipFade) {
 }
 
 void MediaBackend::rawStop() {
+    // Prevent outstanding seek from restarting an old song.
+    m_seekPhase = SeekPhase::Idle;
+    m_resumeAfterSeek = false;
+    m_cdgTempoTimer.stop();
+
     if (m_pipeline) {
         gst_element_set_state(m_pipeline, GST_STATE_NULL);
     }

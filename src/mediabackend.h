@@ -173,6 +173,23 @@ private:
         gpointer userData
     );
 
+    // Coordinated seek handling code
+    enum class SeekPhase {
+        Idle,
+        WaitingForPause,
+        WaitingForSeek
+    };
+
+    SeekPhase m_seekPhase{SeekPhase::Idle};
+
+    qint64 m_seekTargetMs{0};
+    bool m_resumeAfterSeek{false};
+
+    QElapsedTimer m_seekTimer;
+
+    void processCoordinatedSeek();
+    void finishCoordinatedSeek(bool success);
+
 private slots:
     void eventTimer_timeout();
 
