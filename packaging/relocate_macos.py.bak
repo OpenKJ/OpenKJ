@@ -1,0 +1,173 @@
+
+#!/usr/bin/env python3
+"""Collect Homebrew dylib dependencies into an OpenKJ macOS bundle."""
+
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+if len(sys.argv) != 2:
+    sys.exit("Usage: python3 relocate_macos.py path/to/OpenKJ.app")
+
+app = Path(sys.argv[1]).expanduser().resolve()
+contents = app / "Contents"
+frameworks = contents / "Frameworks"
+
+if not (contents / "MacOS" / "openkj").exists():
+    sys.exit(f"Not an OpenKJ bundle: {app}")
+
+frameworks.mkdir(parents=True, exist_ok=True)
+
+
+def run(*args):
+    result = subprocess.run(
+        args, text=True, capture_output=True
+    )
+    if result.returncode:
+        raise RuntimeError(
+            f"{' '.join(map(str, args))}\n{result.stderr}"
+        )
+    return result.stdout
+
+
+def is_macho(path):
+    result = subprocess.run(
+        ["file", "-b", str(path)],
+        text=True, capture_output=True
+    )
+    return "Mach-O" in result.stdout
+
+
+def dependencies(path):
+    lines = run("otool", "-L", str(path)).splitlines()
+    # First line is the filename; the remaining lines
+    # contain the install ID (for dylibs) and dependencies.
+    return [
+        line.strip().split(" (compatibility version")[0]
+        for line in lines[1:]
+    ]
+
+
+def bundle_binaries():
+    for path in contents.rglob("*"):
+        if path.is_file() and not path.is_symlink():
+            if is_macho(path):
+                yield path
+
+
+def is_homebrew(path):
+    return path.startswith(("/opt/homebrew/", "/usr/local/"))
+
+
+def find_bundled_library(name):
+    matches = [
+        p for p in frameworks.rglob(name)
+        if p.is_file()
+    ]
+    return matches[0] if matches else None
+
+
+def find_source_library(name):
+    # Some libraries are referenced by @rpath,
+    # so their absolute location isn't in otool -L.
+    roots = [
+        Path("/opt/homebrew/opt/gstreamer/lib"),
+        Path("/opt/homebrew/lib"),
+    ]
+    for root in roots:
+        candidate = root / name
+        if candidate.is_file():
+            return candidate.resolve()
+    return None
+
+
+def collect_dependency(dep):
+    if is_homebrew(dep):
+        source = Path(dep)
+        if not source.is_file():
+            raise RuntimeError(f"Missing dependency: {dep}")
+        name = source.name
+    elif dep.startswith("@rpath/") and dep.endswith(".dylib"):
+        name = Path(dep).name
+        source = find_source_library(name)
+        if source is None:
+            return None
+    else:
+        return None
+
+    existing = find_bundled_library(name)
+    if existing:
+        return existing
+
+    dest = frameworks / name
+    print(f"COPY {source} -> {dest}")
+    shutil.copy2(source, dest)
+    return dest
+
+
+def relocate(path, dep, target):
+    relative = os.path.relpath(target, path.parent)
+    replacement = "@loader_path/" + relative
+
+    if dep == replacement:
+        return
+
+    print(f"FIX {path.name}: {dep} -> {replacement}")
+    run(
+        "install_name_tool",
+        "-change", dep, replacement, str(path)
+    )
+
+
+# Iterate until all newly copied libraries are processed.
+processed = set()
+
+while True:
+    pending = [
+        p for p in bundle_binaries()
+        if p not in processed
+    ]
+
+    if not pending:
+        break
+
+    for binary in pending:
+        processed.add(binary)
+
+        deps = dependencies(binary)
+
+        # For dylibs, the first entry is often the library's
+        # own install ID rather than a load dependency.
+        own_id = None
+
+        if binary.suffix == ".dylib" or any(
+            part.endswith(".framework") for part in binary.parts
+        ):
+            result = run("otool", "-D", str(binary)).splitlines()
+
+            if len(result) >= 2:
+                own_id = result[1].strip()
+
+        for dep in deps:
+            if dep == own_id:
+                continue
+
+            if is_homebrew(dep):
+                target = collect_dependency(dep)
+                relocate(binary, dep, target)
+
+            elif dep.startswith("@rpath/") and dep.endswith(".dylib"):
+                target = find_bundled_library(Path(dep).name)
+                if target is None:
+                    target = collect_dependency(dep)
+
+                # Leave other rpath references intact.
+                # Qt frameworks use their own rpath structure.
+                if target is not None:
+                    relocate(binary, dep, target)
+
+print("\nDependency collection complete.")
+print("Run the external-reference audit next.")
+

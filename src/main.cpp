@@ -1,5 +1,11 @@
 #include <algorithm>
 #include <QApplication>
+#include <QCoreApplication>
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
+#include <QStandardPaths>
+#include <QDebug>
 #include "mainwindow.h"
 #include <QStyleFactory>
 #include <QSplashScreen>
@@ -51,6 +57,79 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
           //  abort();
     }
 }
+
+
+#ifdef Q_OS_MACOS
+
+static void configureBundledGStreamer()
+{
+    // OpenKJ.app/Contents/MacOS/openkj
+    const QDir macOSDir(
+        QCoreApplication::applicationDirPath()
+    );
+
+    const QDir contentsDir(
+        macOSDir.filePath("..")
+    );
+
+    const QString pluginDir = contentsDir.filePath(
+        "PlugIns"
+    );
+
+    const QString scannerPath = contentsDir.filePath(
+        "Helpers/gst-plugin-scanner"
+    );
+
+    // Detect our packaged runtime.
+    // Development builds continue using Homebrew.
+    const QString corePlugin = QDir(pluginDir).filePath(
+        "libgstcoreelements.dylib"
+    );
+
+    if (!QFileInfo::exists(corePlugin) ||
+        !QFileInfo::exists(scannerPath)) {
+        qInfo() << "[GStreamer] Using system runtime";
+        return;
+    }
+
+    const QString cacheDir =
+        QStandardPaths::writableLocation(
+            QStandardPaths::CacheLocation
+        );
+
+    if (cacheDir.isEmpty() || !QDir().mkpath(cacheDir)) {
+        qWarning() << "[GStreamer] Cannot create registry directory";
+        return;
+    }
+
+    const QString registryPath =
+        QDir(cacheDir).filePath("gst-registry.bin");
+
+    // Prevent inherited paths from loading external plugins.
+    qputenv("GST_PLUGIN_PATH_1_0", QByteArray());
+
+    qputenv(
+        "GST_PLUGIN_SYSTEM_PATH_1_0",
+        QFile::encodeName(pluginDir)
+    );
+
+    qputenv(
+        "GST_PLUGIN_SCANNER",
+        QFile::encodeName(scannerPath)
+    );
+
+    qputenv(
+        "GST_REGISTRY_1_0",
+        QFile::encodeName(registryPath)
+    );
+
+    qInfo() << "[GStreamer] Using bundled runtime";
+    qInfo() << "[GStreamer] Plugins:" << pluginDir;
+    qInfo() << "[GStreamer] Scanner:" << scannerPath;
+}
+
+#endif
+
 
 int main(int argc, char *argv[]) {
     QString logDir = settings.logDir();
@@ -133,6 +212,9 @@ int main(int argc, char *argv[]) {
     //QLoggingCategory::setFilterRules("*.debug=true");
     qInstallMessageHandler(myMessageOutput);
     QApplication a(argc, argv);
+    #ifdef Q_OS_MACOS
+    configureBundledGStreamer();
+    #endif
 
     filter = new IdleDetect(&a);
     a.installEventFilter(filter);
