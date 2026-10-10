@@ -5,6 +5,7 @@
 #include <QFileInfo>
 #include <QMutexLocker>
 #include <math.h>
+#include <cmath>
 
 // MediaBackend constructor & methods
 MediaBackend::MediaBackend(QObject *parent, QString objectName, MediaType type)
@@ -923,8 +924,24 @@ void MediaBackend::processCoordinatedSeek()
                     GST_MSECOND
             );
 
+        // Diagnostic: map the audio seek timeline to the CDG timeline.
+        const double tempoRatio =
+        static_cast<double>(m_tempoPercent) / 100.0;
+
+        const qint64 cdgTargetMs = static_cast<qint64>(
+            std::llround(m_seekTargetMs * tempoRatio)
+        );
+
         const gboolean cdgSeekAccepted =
-            seekCdg(m_seekTargetMs);
+            seekCdg(cdgTargetMs);
+
+        m_logger->info(
+            "{} Tempo-aware seek: audio={}ms cdg={}ms tempo={}%",
+            m_loggingPrefix,
+            m_seekTargetMs,
+            cdgTargetMs,
+            m_tempoPercent
+        );
 
         if (!audioSeekAccepted || !cdgSeekAccepted) {
             m_logger->error(
