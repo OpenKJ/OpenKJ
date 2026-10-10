@@ -113,6 +113,7 @@ private:
     GstElement *m_cdgPipeline{nullptr};
     GstClock *m_sharedClock{nullptr};
     GstElement *m_pitch{nullptr};
+    GstElement *m_scaleTempo{nullptr};
     GstElement *m_eq{nullptr};
     GstElement *m_panorama{nullptr};
     GstElement *m_audioSink{nullptr};
@@ -142,6 +143,12 @@ private:
     int m_mplxMode{Multiplex_Normal};
     bool m_eqBypass{true};
     std::array<int,10> m_eqLevels{0,0,0,0,0,0,0,0,0,0};
+
+    // MP4 Rate-control Members
+    bool m_rateControlledVideo{false};
+    double m_appliedVideoRate{1.0};
+    QTimer m_videoTempoTimer;
+    bool seekVideoRate(qint64 positionMs);
 
     std::unique_ptr<QTemporaryDir> m_tempDir;
     State m_state{StoppedState};

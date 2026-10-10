@@ -41,6 +41,7 @@ MediaBackend::MediaBackend(QObject *parent, QString objectName, MediaType type)
         }
     });
 
+    // Set up CDG tempo timer for synchronizing CDG graphics with audio playback
     m_cdgTempoTimer.setSingleShot(true);
     m_cdgTempoTimer.setInterval(250);
 
@@ -59,6 +60,34 @@ MediaBackend::MediaBackend(QObject *parent, QString objectName, MediaType type)
             seekCdg(cdgPosition / GST_MSECOND);
         }
     });
+
+    // Set up video tempo timer for synchronizing video playback with audio playback
+    m_videoTempoTimer.setSingleShot(true);
+    m_videoTempoTimer.setInterval(250);
+
+    connect(
+        &m_videoTempoTimer,
+        &QTimer::timeout,
+        this,
+        [this]() {
+            if (!m_rateControlledVideo || !m_pipeline)
+                return;
+
+            if (m_state != PlayingState &&
+                m_state != PausedState)
+                return;
+
+            const double requestedRate =
+                static_cast<double>(m_tempoPercent) / 100.0;
+
+            // Do not issue another flushing seek if the
+            // requested rate is already applied.
+            if (std::abs(requestedRate - m_appliedVideoRate) < 0.0001)
+                return;
+
+            seekVideoRate(position());
+        }
+    );
 
     // Apply saved settings on startup
     if (m_type == Karaoke) {
@@ -111,14 +140,18 @@ void MediaBackend::setupPipeline() {
     m_audioBin = gst_bin_new("audio_sink_bin");
     
     m_pitch = gst_element_factory_make("pitch", "pitch");
+    // Create a scaletempo element for MP4 file tempo adjustment
+    m_scaleTempo = gst_element_factory_make(
+        "scaletempo", "scale_tempo"
+    );
     m_eq = gst_element_factory_make("equalizer-10bands", "eq");
     m_panorama = gst_element_factory_make("audiopanorama", "panorama");
     m_volumeElement = gst_element_factory_make("volume", "vol");
     m_audioSink = gst_element_factory_make("autoaudiosink", "audio_sink");
 
     if (m_audioBin && m_pitch && m_eq && m_panorama && m_volumeElement && m_audioSink) {
-        gst_bin_add_many(GST_BIN(m_audioBin), m_pitch, m_eq, m_panorama, m_volumeElement, m_audioSink, nullptr);
-        gst_element_link_many(m_pitch, m_eq, m_panorama, m_volumeElement, m_audioSink, nullptr);
+        gst_bin_add_many(GST_BIN(m_audioBin), m_pitch, m_scaleTempo, m_eq, m_panorama, m_volumeElement, m_audioSink, nullptr);
+        gst_element_link_many(m_pitch, m_scaleTempo, m_eq, m_panorama, m_volumeElement, m_audioSink, nullptr);
         
         GstPad *pad = gst_element_get_static_pad(m_pitch, "sink");
         gst_element_add_pad(m_audioBin, gst_ghost_pad_new("sink", pad));
@@ -643,6 +676,16 @@ if (m_cdgPipeline &&
 void MediaBackend::play() {
     if (m_pipeline) {
         gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
+        // Schedule initial tempo adjustment without tying it to every GStreamer state transition.
+        if (m_rateControlledVideo &&
+            m_tempoPercent != 100 &&
+            std::abs(
+                static_cast<double>(m_tempoPercent) / 100.0 -
+                m_appliedVideoRate
+            ) > 0.0001) {
+
+            m_videoTempoTimer.start();
+        }
         if (m_fade) {
             m_fader->fadeIn(false);
         } else {
@@ -668,12 +711,26 @@ void MediaBackend::pause() {
 void MediaBackend::setMedia(const QString &filename) {
     m_silenceDetectedEmitted = false;
     rawStop();
+    m_appliedVideoRate = 1.0;
     destroyCdgPipeline();
     m_filename = filename;
     m_cdgFilename.clear();
     m_tempDir.reset();
 
+    // Determine the actual file path to play, which may be extracted from a zip archive.
     QString playPath = filename;
+
+    // Determine if the media file is a type that requires rate-controlled video playback.
+    const QString extension =
+    QFileInfo(playPath).suffix().toLower();
+
+    m_rateControlledVideo =
+        extension == "mp4" ||
+        extension == "m4v" ||
+        extension == "mov" ||
+        extension == "mkv" ||
+        extension == "webm" ||
+        extension == "avi";
 
     if (filename.endsWith(".zip", Qt::CaseInsensitive)) {
         m_tempDir = std::make_unique<QTemporaryDir>();
@@ -703,6 +760,22 @@ void MediaBackend::setMedia(const QString &filename) {
 
     if (!m_pipeline) return;
 
+    // Reset SoundTouch when loading another media file, so that tempo and pitch adjustments start fresh.
+    // This prevents switching from an MP3+G track at 120% to an MP4 from leaving SoundTouch at 120%, which would cause double speed adjustment.
+    if (m_pitch) {
+        const double audioTempo =
+            m_rateControlledVideo
+                ? 1.0
+                : static_cast<double>(m_tempoPercent) / 100.0;
+
+        g_object_set(
+            G_OBJECT(m_pitch),
+            "tempo",
+            audioTempo,
+            nullptr
+        );
+    }
+
     // Clear any CDG stream left over from the previous song.
     g_object_set(G_OBJECT(m_pipeline), "suburi", nullptr, nullptr);
 
@@ -727,10 +800,12 @@ void MediaBackend::setMedia(const QString &filename) {
 void MediaBackend::setMediaCdg(const QString &cdgFilename, const QString &audioFilename) {
     m_silenceDetectedEmitted = false;
     rawStop();
+    m_appliedVideoRate = 1.0;
     destroyCdgPipeline();
     m_filename = audioFilename;
     m_cdgFilename = cdgFilename;
     m_tempDir.reset();
+    m_rateControlledVideo = false;
 
     m_tempDir = std::make_unique<QTemporaryDir>();
     if (m_tempDir->isValid()) {
@@ -784,21 +859,18 @@ void MediaBackend::setPosition(const qint64 &position)
     // MP4 and other single-pipeline media keep their
     // existing direct seeking behavior.
     if (!m_cdgPipeline) {
-        const gboolean success = gst_element_seek_simple(
-            m_pipeline,
-            GST_FORMAT_TIME,
-            static_cast<GstSeekFlags>(
-                GST_SEEK_FLAG_FLUSH |
-                GST_SEEK_FLAG_ACCURATE
-            ),
-            static_cast<gint64>(position) * GST_MSECOND
-        );
-
-        if (!success) {
-            m_logger->warn(
-                "{} Seek failed at {} ms",
-                m_loggingPrefix,
-                position
+        if (m_rateControlledVideo) {
+            m_videoTempoTimer.stop();
+            seekVideoRate(position);
+        } else {
+            gst_element_seek_simple(
+                m_pipeline,
+                GST_FORMAT_TIME,
+                static_cast<GstSeekFlags>(
+                    GST_SEEK_FLAG_FLUSH |
+                    GST_SEEK_FLAG_ACCURATE
+                ),
+                static_cast<gint64>(position) * GST_MSECOND
             );
         }
 
@@ -1030,6 +1102,46 @@ void MediaBackend::finishCoordinatedSeek(bool success)
     }
 }
 
+bool MediaBackend::seekVideoRate(qint64 positionMs)
+{
+    if (!m_pipeline || positionMs < 0)
+        return false;
+
+    const double rate =
+        static_cast<double>(m_tempoPercent) / 100.0;
+
+    if (rate <= 0.0)
+        return false;
+
+    const gboolean success = gst_element_seek(
+        m_pipeline,
+        rate,
+        GST_FORMAT_TIME,
+        static_cast<GstSeekFlags>(
+            GST_SEEK_FLAG_FLUSH |
+            GST_SEEK_FLAG_ACCURATE
+        ),
+        GST_SEEK_TYPE_SET,
+        static_cast<gint64>(positionMs) * GST_MSECOND,
+        GST_SEEK_TYPE_NONE,
+        GST_CLOCK_TIME_NONE
+    );
+
+    m_logger->info(
+        "{} Video playback rate={}x position={}ms accepted={}",
+        m_loggingPrefix,
+        rate,
+        positionMs,
+        success ? "yes" : "no"
+    );
+
+    if (success) {
+        m_appliedVideoRate = rate;
+    }
+
+    return success;
+}
+
 void MediaBackend::setVolume(const int &volume) {
     m_volume = volume;
     updateVolume();
@@ -1049,6 +1161,7 @@ void MediaBackend::rawStop() {
     m_seekPhase = SeekPhase::Idle;
     m_resumeAfterSeek = false;
     m_cdgTempoTimer.stop();
+    m_videoTempoTimer.stop();
 
     if (m_pipeline) {
         gst_element_set_state(m_pipeline, GST_STATE_NULL);
@@ -1097,24 +1210,41 @@ void MediaBackend::setTempo(const int &percent)
     gint64 cdgPosition = GST_CLOCK_TIME_NONE;
     bool haveCdgPosition = false;
 
-    if (m_cdgPipeline &&
-        (m_state == PlayingState ||
-         m_state == PausedState)) {
-        m_cdgTempoTimer.start();
-    }
-
     m_tempoPercent = percent;
 
     // Update audio tempo through SoundTouch.
     if (m_pitch) {
-        const double tempo = percent / 100.0;
+        const double audioTempo =
+            m_rateControlledVideo
+                ? 1.0
+                : static_cast<double>(percent) / 100.0;
 
         g_object_set(
             G_OBJECT(m_pitch),
             "tempo",
-            tempo,
+            audioTempo,
             nullptr
         );
+    }
+
+    // Update video playback rate through GStreamer.
+    if (m_rateControlledVideo) {
+        // MP4: change audio and video together.
+        m_cdgTempoTimer.stop();
+
+        if (m_state == PlayingState ||
+            m_state == PausedState) {
+            m_videoTempoTimer.start();
+        }
+    } else {
+        // MP3+G: preserve the existing debounced CDG behavior.
+        m_videoTempoTimer.stop();
+
+        if (m_cdgPipeline &&
+            (m_state == PlayingState ||
+             m_state == PausedState)) {
+            m_cdgTempoTimer.start();
+        }
     }
 
     // Change CDG playback rate at its current position,
