@@ -323,7 +323,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_source_files_properties(${openkj_ICON} PROPERTIES
             MACOSX_PACKAGE_LOCATION "Resources"
             )
-    add_executable(openkj
+    qt_add_executable(openkj
             MACOSX_BUNDLE
             ${openkj_ICON}
             ${SOURCE_FILES}

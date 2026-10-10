@@ -15,31 +15,26 @@ AudioRecorder::AudioRecorder(QObject *parent) : QObject(parent) {
     }
     logger->info("{} Initializing AudioRecorder instance using Qt6 Multimedia", m_loggingPrefix);
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
-    QMicrophonePermission micPermission;
-    switch (qApp->checkPermission(micPermission)) {
-        case Qt::PermissionStatus::Undetermined:
-            logger->info("{} Microphone permission undetermined, requesting...", m_loggingPrefix);
-            qApp->requestPermission(micPermission, [this](const QPermission &permission) {
-                if (permission.status() == Qt::PermissionStatus::Granted) {
-                    logger->info("{} Microphone permission granted by user", m_loggingPrefix);
-                } else {
-                    logger->warn("{} Microphone permission denied by user", m_loggingPrefix);
-                }
-            });
-            break;
-        case Qt::PermissionStatus::Granted:
-            logger->info("{} Microphone permission already granted", m_loggingPrefix);
-            break;
-        case Qt::PermissionStatus::Denied:
-            logger->warn("{} Microphone permission is denied", m_loggingPrefix);
-            break;
-    }
-#endif
     m_startDateTime = QDateTime::currentDateTime().toString("yyyy-MM-dd-hhmm");
 
     m_audioInput = new QAudioInput(this);
     m_recorder = new QMediaRecorder(this);
+    connect(
+        m_recorder,
+        &QMediaRecorder::errorOccurred,
+        this,
+        [this](QMediaRecorder::Error error,
+           const QString &errorString) {
+
+            logger->error(
+                "{} Recording error {}: {}",
+                m_loggingPrefix,
+                static_cast<int>(error),
+                errorString.toStdString()
+            );
+        }
+    );
+
     m_captureSession.setAudioInput(m_audioInput);
     m_captureSession.setRecorder(m_recorder);
 
@@ -134,11 +129,64 @@ void AudioRecorder::setCurrentCodec(const int value) {
     logger->info("{} Setting recording format to extension: {}", m_loggingPrefix, m_currentFileExt.toStdString());
 }
 
-void AudioRecorder::record(const QString &filename) {
-    if (!m_recorder) return;
-    
+void AudioRecorder::record(const QString &filename)
+{
+    if (!m_recorder)
+        return;
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+    QMicrophonePermission micPermission;
+
+    switch (qApp->checkPermission(micPermission)) {
+
+    case Qt::PermissionStatus::Undetermined:
+        logger->info(
+            "{} Requesting microphone permission",
+            m_loggingPrefix
+        );
+
+        qApp->requestPermission(
+            micPermission,
+            this,
+            [this, filename](const QPermission &permission) {
+                if (permission.status() == Qt::PermissionStatus::Granted) {
+                    logger->info(
+                        "{} Microphone permission granted",
+                        m_loggingPrefix
+                    );
+
+                    // Retry after permission has been granted.
+                    record(filename);
+                } else {
+                    logger->warn(
+                        "{} Microphone permission denied",
+                        m_loggingPrefix
+                    );
+                }
+            }
+        );
+        return;
+
+    case Qt::PermissionStatus::Denied:
+        logger->warn(
+            "{} Cannot record: microphone access denied",
+            m_loggingPrefix
+        );
+        return;
+
+    case Qt::PermissionStatus::Granted:
+        break;
+    }
+#endif
+
     getRecordingSettings();
-    logger->info("{} Recording to file: {}", m_loggingPrefix, filename.toStdString());
+
+    logger->info(
+        "{} Recording to file: {}",
+        m_loggingPrefix,
+        filename.toStdString()
+    );
+
     setOutputFile(filename);
     m_recorder->record();
 }
