@@ -2,6 +2,9 @@
 #define DLGEQ_H
 
 #include <QWidget>
+#include <QList>
+
+class QLabel;
 #include "settings.h"
 
 namespace Ui {
@@ -14,6 +17,7 @@ Q_OBJECT
 public:
     explicit DlgEq(QWidget *parent = 0);
     ~DlgEq();
+    void setFrequencyLabelsVisible(bool visible);
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
@@ -21,6 +25,7 @@ protected:
 private:
     Ui::DlgEq *ui;
     Settings m_settings;
+    QList<QLabel *> m_frequencyLabels;
 
 signals:
     void karEqBypassChanged(bool enabled);

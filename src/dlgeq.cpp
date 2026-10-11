@@ -80,6 +80,7 @@ DlgEq::DlgEq(QWidget *parent) :
             slider->setMaximumHeight(110);
             grid->addWidget(slider, 0, column, Qt::AlignHCenter);
             auto *label = new QLabel(frequencies.at(column));
+            m_frequencyLabels.append(label);
             label->setAlignment(Qt::AlignCenter);
             label->setToolTip(QObject::tr("Center frequency in Hz"));
             grid->addWidget(label, 1, column);
@@ -158,4 +159,10 @@ bool DlgEq::eventFilter(QObject *watched, QEvent *event)
         }
     }
     return QWidget::eventFilter(watched, event);
+}
+
+void DlgEq::setFrequencyLabelsVisible(bool visible)
+{
+    for (auto *label : m_frequencyLabels)
+        label->setVisible(visible);
 }

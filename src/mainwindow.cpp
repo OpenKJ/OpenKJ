@@ -1056,6 +1056,7 @@ void MainWindow::setupConnections() {
     });
     auto *eqPanel = new DlgEq(ui->cdgGroupBox);
     eqPanel->setObjectName("equalizerPanel");
+    eqPanel->setFrequencyLabelsVisible(m_settings.mainWindowVideoSize() != Settings::Small);
     ui->verticalLayout_10->insertWidget(
         ui->verticalLayout_10->indexOf(ui->widgetMplxControls), eqPanel);
     connect(eqPanel, &DlgEq::bmEqBypassChanged, &m_mediaBackendBm, &MediaBackend::setEqBypass);
@@ -4001,6 +4002,8 @@ void MainWindow::actionVideoSmallTriggered() {
     ui->mediaFrame->setMaximumWidth(300);
     ui->mediaFrame->setMinimumWidth(300);
     m_settings.setMainWindowVideoSize(Settings::Small);
+    if (auto *eqPanel = findChild<DlgEq *>(QStringLiteral("equalizerPanel")))
+        eqPanel->setFrequencyLabelsVisible(false);
     QTimer::singleShot(15, [&]() { autosizeViews(); });
 }
 
@@ -4012,6 +4015,8 @@ void MainWindow::actionVideoMediumTriggered() {
     ui->mediaFrame->setMaximumWidth(430);
     ui->mediaFrame->setMinimumWidth(430);
     m_settings.setMainWindowVideoSize(Settings::Medium);
+    if (auto *eqPanel = findChild<DlgEq *>(QStringLiteral("equalizerPanel")))
+        eqPanel->setFrequencyLabelsVisible(true);
     QTimer::singleShot(15, [&]() { autosizeViews(); });
 }
 
@@ -4023,6 +4028,8 @@ void MainWindow::actionVideoLargeTriggered() {
     ui->mediaFrame->setMaximumWidth(560);
     ui->mediaFrame->setMinimumWidth(560);
     m_settings.setMainWindowVideoSize(Settings::Large);
+    if (auto *eqPanel = findChild<DlgEq *>(QStringLiteral("equalizerPanel")))
+        eqPanel->setFrequencyLabelsVisible(true);
     QTimer::singleShot(15, [&]() { autosizeViews(); });
 }
 
