@@ -640,7 +640,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewHistory->hideColumn(0);
     ui->tableViewHistory->hideColumn(1);
     ui->tableViewHistory->hideColumn(2);
-    ui->tableViewHistory->sortByColumn(3, Qt::AscendingOrder);
+    ui->tableViewHistory->sortByColumn(TableModelHistorySongs::TITLE, Qt::AscendingOrder);
     ui->comboBoxSearchType->addItems({QString("All"), QString("Artist"), QString("Title")});
     ui->tableViewDB->hideColumn(TableModelKaraokeSongs::COL_ID);
     ui->tableViewDB->hideColumn(TableModelKaraokeSongs::COL_FILENAME);
@@ -679,6 +679,7 @@ MainWindow::MainWindow(QWidget *parent) :
     dlgSongShop = std::make_unique<DlgSongShop>(m_songShop);
     dlgSongShop->setModal(false);
     ui->tableViewDB->setModel(&m_karaokeSongsModel);
+    ui->tableViewDB->sortByColumn(TableModelKaraokeSongs::COL_SONGID, Qt::AscendingOrder);
     ui->tableViewDB->viewport()->installEventFilter(new TableViewToolTipFilter(ui->tableViewDB));
     if (!MediaBackend::canPitchShift()) {
         ui->spinBoxKey->hide();
