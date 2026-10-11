@@ -334,6 +334,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
             MACOSX_BUNDLE_GUI_IDENTIFIER org.openkj.openkj
             MACOSX_BUNDLE_BUNDLE_NAME OpenKJ
             MACOSX_BUNDLE_BUNDLE_VERSION ${sem_ver}
+            MACOSX_BUNDLE_SHORT_VERSION_STRING ${sem_ver}
             MACOSX_BUNDLE_ICON_FILE OpenKJ.icns
             # Ensure rpath inside the bundle is set so the linker embeds it
             MACOSX_RPATH TRUE
