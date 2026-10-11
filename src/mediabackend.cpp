@@ -1328,6 +1328,26 @@ void MediaBackend::updateAudioFilters() {
             }
         }
     }
+
+    // Diagnostic: log the actual EQ band 5 gain to verify that the GStreamer element is receiving the correct values.
+    if (m_eq) {
+        double actualGain = 0.0;
+
+        g_object_get(
+            G_OBJECT(m_eq),
+            "band5",
+            &actualGain,
+            nullptr
+        );
+
+        m_logger->info(
+            "{} EQ diagnostic: bypass={} requestedBand5={} actualBand5={}",
+            m_loggingPrefix,
+            m_eqBypass,
+            m_eqLevels[5],
+            actualGain
+        );
+    }
 }
 
 void MediaBackend::setDownmix(const bool &enabled) {
