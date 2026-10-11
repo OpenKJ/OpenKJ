@@ -3452,7 +3452,7 @@ void MainWindow::autosizeKaraokeDbCols() const
         {TableModelKaraokeSongs::COL_SONGID,   145},
         {TableModelKaraokeSongs::COL_DURATION,  75},
         {TableModelKaraokeSongs::COL_PLAYS,     75},
-        {TableModelKaraokeSongs::COL_LASTPLAY, 190}
+        {TableModelKaraokeSongs::COL_LASTPLAY, 170}
     };
 
     for (const auto &entry : fixedColumns) {
