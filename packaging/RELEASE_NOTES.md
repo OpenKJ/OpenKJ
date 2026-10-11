@@ -25,7 +25,7 @@ Do not disable Gatekeeper system-wide.
 ## Compatibility
 
 - Apple Silicon Macs (ARM64)
-- Tested successfully on two Apple Silicon systems
+- Tested successfully on two Apple Silicon systems running MacOS 27.0.1
 - Minimum supported macOS version has not yet been established
 
 ## Known limitations
