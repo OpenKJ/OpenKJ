@@ -23,7 +23,7 @@ DlgRegularSingers::DlgRegularSingers(TableModelRotation *rotationModel, QWidget 
     m_rotModel = rotationModel;
     ui->tableViewRegulars->hideColumn(0);
     ui->tableViewRegulars->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
-    ui->tableViewRegulars->horizontalHeader()->resizeSection(3, 20);
+    ui->tableViewRegulars->horizontalHeader()->resizeSection(3, 32);
     ui->tableViewRegulars->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Fixed);
     ui->tableViewRegulars->horizontalHeader()->resizeSection(4, 20);
     ui->tableViewRegulars->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Fixed);
@@ -161,12 +161,11 @@ void DlgRegularSingers::on_tableViewRegulars_doubleClicked(const QModelIndex &in
         return;
     }
     if ((ui->comboBoxAddPos->currentIndex() == 2) && (m_rotModel->currentSinger() != -1))
-        m_rotModel->singerAdd(singerName, m_rotModel->ADD_NEXT);
+        m_rotModel->singerAdd(singerName, m_rotModel->ADD_NEXT, true);
     else if ((ui->comboBoxAddPos->currentIndex() == 0) && (m_rotModel->currentSinger() != -1))
-        m_rotModel->singerAdd(singerName, m_rotModel->ADD_FAIR);
+        m_rotModel->singerAdd(singerName, m_rotModel->ADD_FAIR, true);
     else
-        m_rotModel->singerAdd(singerName, m_rotModel->ADD_BOTTOM);
-    m_rotModel->singerMakeRegular(m_rotModel->getSingerByName(singerName).id);
+        m_rotModel->singerAdd(singerName, m_rotModel->ADD_BOTTOM, true);
 }
 
 

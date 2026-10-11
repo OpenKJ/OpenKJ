@@ -221,9 +221,9 @@ void TableModelRotation::onSingerAdded(int singerId, const QString &name, int po
     emit newSingerAdded(pos);
 }
 
-int TableModelRotation::singerAdd(const QString &name, const int positionHint) {
+int TableModelRotation::singerAdd(const QString &name, const int positionHint, bool makeRegular) {
     m_logger->debug("{} requesting singer add: {} with positionHint {}", m_loggingPrefix, name, positionHint);
-    emit requestAddSinger(name, positionHint);
+    emit requestAddSinger(name, positionHint, makeRegular);
     return -1;
 }
 

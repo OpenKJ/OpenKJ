@@ -76,7 +76,7 @@ public:
     [[nodiscard]] int singerTurnDistance(int singerId) const;
     void loadData();
     void commitChanges();
-    int singerAdd(const QString& name, int positionHint = ADD_BOTTOM);
+    int singerAdd(const QString& name, int positionHint = ADD_BOTTOM, bool makeRegular = false);
     void singerAddWithSong(const QString &name, int positionHint, int songId, int keyChange, bool makeRegular = false);
     void singerMove(int oldPosition, int newPosition, bool skipCommit = false);
     void singerSetName(int singerId, const QString &newName);
@@ -123,7 +123,7 @@ signals:
 
     void requestLoadRotation();
     void requestCommitRotation(const QList<okj::RotationSinger> &singers);
-    void requestAddSinger(const QString &name, int positionHint);
+    void requestAddSinger(const QString &name, int positionHint, bool makeRegular);
     void requestAddSingerWithSong(const QString &name, int positionHint, int songId, int keyChange, bool makeRegular);
     void requestRenameSinger(int singerId, const QString &newName);
     void requestDeleteSinger(int singerId);

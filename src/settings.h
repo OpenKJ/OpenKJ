@@ -241,6 +241,7 @@ public:
     double bookCreatorMarginBtm();
     int bookCreatorCols();
     int bookCreatorPageSize();
+    bool eqPanelExpanded();
     bool eqKBypass();
     int getEqKLevel(int band);
     bool eqBBypass();
@@ -359,6 +360,7 @@ public slots:
     void setBookCreatorMarginLft(double margin);
     void setBookCreatorMarginTop(double margin);
     void setBookCreatorMarginBtm(double margin);
+    void setEqPanelExpanded(bool expanded);
     void setEqKBypass(bool bypass);
     void setEqKLevel(int band, int level);
     void setEqBBypass(bool bypass);

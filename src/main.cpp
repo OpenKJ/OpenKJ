@@ -81,13 +81,27 @@ static void configureBundledGStreamer()
     );
 
     // Detect our packaged runtime.
-    // Development builds continue using Homebrew.
+    // Development builds use Homebrew plus our custom SoundTouch plugin.
     const QString corePlugin = QDir(pluginDir).filePath(
         "libgstcoreelements.dylib"
     );
 
     if (!QFileInfo::exists(corePlugin) ||
         !QFileInfo::exists(scannerPath)) {
+        const QString soundTouchPlugin = QDir(pluginDir).filePath(
+            "libgstsoundtouch.dylib"
+        );
+        if (QFileInfo::exists(soundTouchPlugin)) {
+            // Add the app's custom plugin before GStreamer initializes, while
+            // retaining the system plugins and any user-provided plugin paths.
+            QByteArray paths = QFile::encodeName(pluginDir);
+            const QByteArray existingPaths = qEnvironmentVariableIsSet("GST_PLUGIN_PATH_1_0")
+                ? qgetenv("GST_PLUGIN_PATH_1_0") : qgetenv("GST_PLUGIN_PATH");
+            if (!existingPaths.isEmpty())
+                paths += ':' + existingPaths;
+            qputenv("GST_PLUGIN_PATH_1_0", paths);
+            qInfo() << "[GStreamer] Custom SoundTouch plugin:" << soundTouchPlugin;
+        }
         qInfo() << "[GStreamer] Using system runtime";
         return;
     }

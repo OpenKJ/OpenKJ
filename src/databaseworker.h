@@ -22,7 +22,7 @@ public slots:
     void loadQueue(int singerId);
     
     // Write Slots
-    void addSinger(const QString &name, int positionHint);
+    void addSinger(const QString &name, int positionHint, bool makeRegular);
     void addSingerWithSong(const QString &name, int positionHint, int songId, int keyChange, bool makeRegular = false);
     void moveSinger(int oldPosition, int newPosition);
     void renameSinger(int singerId, const QString &newName);

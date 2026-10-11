@@ -3385,7 +3385,6 @@ QPushButton:default {
     </property>
     <addaction name="actionSettings"/>
     <addaction name="actionSongbook_Generator"/>
-    <addaction name="actionEqualizer"/>
     <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuKaraoke">
@@ -3578,11 +3577,6 @@ QPushButton:default {
   <action name="actionSongbook_Generator">
    <property name="text">
     <string>Songbook Generator</string>
-   </property>
-  </action>
-  <action name="actionEqualizer">
-   <property name="text">
-    <string>Equalizer</string>
    </property>
   </action>
   <action name="actionSong_Shop">

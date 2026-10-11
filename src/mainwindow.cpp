@@ -7,6 +7,10 @@
 #include <QFileDialog>
 #include <QImageReader>
 #include <QDesktopServices>
+#include <QHeaderView>
+#include <QTableView>
+#include <QToolButton>
+#include <algorithm>
 #include "mzarchive.h"
 #include "tagreader.h"
 #include "dlgeditsong.h"
@@ -28,6 +32,51 @@
 #include <timeapi.h>
 #endif
 
+// Distribute available width between Artist and Title,
+// then allow both columns to be resized manually.
+// This means that at application start they will fill the available space, but the user can resize them as desired.
+static void sizeFlexibleColumns(
+    QTableView *table,
+    int artistColumn,
+    int titleColumn)
+{
+    auto *header = table->horizontalHeader();
+
+    // All sizing is performed manually.
+    header->setSectionResizeMode(
+        artistColumn, QHeaderView::Interactive);
+    header->setSectionResizeMode(
+        titleColumn, QHeaderView::Interactive);
+
+    // Calculate space after accounting for the other visible columns.
+    int available = table->viewport()->width();
+
+    for (int column = 0; column < header->count(); ++column) {
+        if (column == artistColumn ||
+            column == titleColumn ||
+            header->isSectionHidden(column))
+            continue;
+
+        available -= header->sectionSize(column);
+    }
+
+    // Minimum widths prevent columns from collapsing.
+    constexpr int minimumWidth = 150;
+
+    // Divide the remaining space 30% / 70%.
+    const int artistWidth = std::max(
+        minimumWidth,
+        static_cast<int>(available * 0.30)
+    );
+
+    const int titleWidth = std::max(
+        minimumWidth,
+        available - artistWidth
+    );
+
+    header->resizeSection(artistColumn, artistWidth);
+    header->resizeSection(titleColumn, titleWidth);
+}
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCDFAInspection"
@@ -592,7 +641,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableViewHistory->hideColumn(1);
     ui->tableViewHistory->hideColumn(2);
     ui->tableViewHistory->sortByColumn(3, Qt::AscendingOrder);
-    ui->tableViewHistory->resizeColumnsToContents();
     ui->comboBoxSearchType->addItems({QString("All"), QString("Artist"), QString("Title")});
     ui->tableViewDB->hideColumn(TableModelKaraokeSongs::COL_ID);
     ui->tableViewDB->hideColumn(TableModelKaraokeSongs::COL_FILENAME);
@@ -830,12 +878,6 @@ void MainWindow::loadSettings() {
 }
 
 void MainWindow::setupConnections() {
-    connect(ui->tabWidgetQueue, &QTabWidget::currentChanged, [&] (auto tab) {
-       if (tab == 1) {
-           QApplication::processEvents();
-           ui->tableViewHistory->resizeColumnsToContents();
-       }
-    });
     connect(cdgWindow.get(), &DlgCdg::visibilityChanged, ui->btnToggleCdgWindow, &QPushButton::setChecked);
     connect(ui->comboBoxHistoryDblClick, QOverload<int>::of(&QComboBox::currentIndexChanged), &m_settings,
             &Settings::setHistoryDblClickAction);
@@ -1011,19 +1053,30 @@ void MainWindow::setupConnections() {
         else
             dlgBookCreator->raise();
     });
-    connect(ui->actionEqualizer, &QAction::triggered, [&] () {
-        auto dlgEq = findChild<DlgEq *>(QString(), Qt::FindDirectChildrenOnly);
-        if (dlgEq == nullptr) {
-            dlgEq = new DlgEq(this);
-            connect(dlgEq, &DlgEq::finished, dlgEq, &DlgEq::deleteLater);
-            connect(dlgEq, &DlgEq::bmEqBypassChanged, &m_mediaBackendBm, &MediaBackend::setEqBypass);
-            connect(dlgEq, &DlgEq::karEqBypassChanged, &m_mediaBackendKar, &MediaBackend::setEqBypass);
-            connect(dlgEq, &DlgEq::bmEqLevelChanged, &m_mediaBackendBm, &MediaBackend::setEqLevel);
-            connect(dlgEq, &DlgEq::karEqLevelChanged, &m_mediaBackendKar, &MediaBackend::setEqLevel);
-            dlgEq->show();
-        } else
-            dlgEq->raise();
+    auto *eqPanel = new DlgEq(ui->cdgGroupBox);
+    eqPanel->setObjectName("equalizerPanel");
+    ui->verticalLayout_10->insertWidget(
+        ui->verticalLayout_10->indexOf(ui->widgetMplxControls), eqPanel);
+    connect(eqPanel, &DlgEq::bmEqBypassChanged, &m_mediaBackendBm, &MediaBackend::setEqBypass);
+    connect(eqPanel, &DlgEq::karEqBypassChanged, &m_mediaBackendKar, &MediaBackend::setEqBypass);
+    connect(eqPanel, &DlgEq::bmEqLevelChanged, &m_mediaBackendBm, &MediaBackend::setEqLevel);
+    connect(eqPanel, &DlgEq::karEqLevelChanged, &m_mediaBackendKar, &MediaBackend::setEqLevel);
+
+    auto *eqButton = new QToolButton(ui->progressFrame_2);
+    eqButton->setObjectName("buttonEqualizer");
+    eqButton->setText(tr("EQ"));
+    eqButton->setToolTip(tr("Show or hide the equalizer"));
+    eqButton->setCheckable(true);
+    eqButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    ui->horizontalLayout_14->addWidget(eqButton);
+    connect(eqButton, &QToolButton::toggled, this, [this, eqPanel, eqButton](bool expanded) {
+        eqPanel->setVisible(expanded);
+        eqButton->setArrowType(expanded ? Qt::DownArrow : Qt::RightArrow);
+        m_settings.setEqPanelExpanded(expanded);
     });
+    eqPanel->setVisible(m_settings.eqPanelExpanded());
+    eqButton->setArrowType(Qt::RightArrow);
+    eqButton->setChecked(m_settings.eqPanelExpanded());
     connect(ui->pushButtonIncomingRequests, &QPushButton::clicked, requestsDialog.get(), &DlgRequests::show);
     connect(ui->pushButtonShop, &QPushButton::clicked, dlgSongShop.get(), &DlgSongShop::show);
     connect(ui->actionSong_Shop, &QAction::triggered, dlgSongShop.get(), &DlgSongShop::show);
@@ -1077,17 +1130,31 @@ void MainWindow::setupConnections() {
     connect(ui->actionBurn_in_EOS_Jump, &QAction::triggered, this, &MainWindow::actionBurnInEosJump);
     connect(ui->sliderVolume, &QSlider::valueChanged, this, &MainWindow::sliderVolumeChanged);
     connect(ui->sliderBmVolume, &QSlider::valueChanged, this, &MainWindow::sliderBmVolumeChanged);
-    connect(ui->tabWidgetQueue, &QTabWidget::currentChanged, [&] (auto current) {
+    connect(ui->tabWidgetQueue, &QTabWidget::currentChanged,
+            this, [this](int current) {
+
         if (current == 1) {
+            // Switching to History.
             m_settings.saveColumnWidths(ui->tableViewQueue);
-            if (!m_settings.restoreColumnWidths(ui->tableViewHistory))
+
+            // Wait until Qt has completed the tab switch
+            // before calculating History column widths.
+            QTimer::singleShot(0, this, [this]() {
+            if (ui->tabWidgetQueue->currentIndex() == 1) {
                 autosizeHistoryCols();
+            }
+        });
+
         } else {
+            // Switching back to Queue.
             m_settings.saveColumnWidths(ui->tableViewHistory);
-            if (!m_settings.restoreColumnWidths(ui->tableViewQueue))
+
+            if (!m_settings.restoreColumnWidths(ui->tableViewQueue)) {
                 autosizeQueueCols();
+            }
         }
     });
+
 }
 
 void MainWindow::tableViewRotationSelChanged() {
@@ -3369,55 +3436,128 @@ void MainWindow::autosizeViews() {
     autosizeHistoryCols();
 }
 
-void MainWindow::autosizeKaraokeDbCols() const {
-    // Toggling the mode on these to get the initial size then allowing manual resize
-    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_LASTPLAY, QHeaderView::ResizeToContents);
-    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_PLAYS, QHeaderView::ResizeToContents);
-    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_DURATION, QHeaderView::ResizeToContents);
-    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_ARTIST, QHeaderView::Stretch);
-    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_TITLE, QHeaderView::Stretch);
-    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_SONGID, QHeaderView::ResizeToContents);
-    QApplication::processEvents();
-    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_ARTIST, QHeaderView::Interactive);
-    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_TITLE, QHeaderView::Interactive);
-    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_SONGID, QHeaderView::Interactive);
-    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_LASTPLAY, QHeaderView::Interactive);
-    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_PLAYS, QHeaderView::Interactive);
-    ui->tableViewDB->horizontalHeader()->setSectionResizeMode(TableModelKaraokeSongs::COL_DURATION, QHeaderView::Interactive);
+void MainWindow::autosizeKaraokeDbCols() const
+{
+    auto *header = ui->tableViewDB->horizontalHeader();
+
+    // Give metadata columns predictable widths.
+    // These remain manually resizable.
+    struct ColumnWidth {
+        int column;
+        int width;
+    };
+
+    const ColumnWidth fixedColumns[] = {
+        {TableModelKaraokeSongs::COL_SONGID,   145},
+        {TableModelKaraokeSongs::COL_DURATION,  75},
+        {TableModelKaraokeSongs::COL_PLAYS,     75},
+        {TableModelKaraokeSongs::COL_LASTPLAY, 190}
+    };
+
+    for (const auto &entry : fixedColumns) {
+        header->setSectionResizeMode(
+            entry.column,
+            QHeaderView::Interactive
+        );
+
+        header->resizeSection(
+            entry.column,
+            entry.width
+        );
+    }
+
+    // Let artist and title share the remaining space, but remain resizable by the user.
+    sizeFlexibleColumns(
+        ui->tableViewDB,
+        TableModelKaraokeSongs::COL_ARTIST,
+        TableModelKaraokeSongs::COL_TITLE
+    );
 }
 
-void MainWindow::autosizeQueueCols() {
-    int fH = QFontMetrics(m_settings.applicationFont()).height();
-    int iconWidth = fH + fH;
-    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(TableModelQueueSongs::COL_PATH, QHeaderView::Fixed);
-    ui->tableViewQueue->horizontalHeader()->resizeSection(TableModelQueueSongs::COL_PATH, iconWidth);
-    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(TableModelQueueSongs::COL_ARTIST, QHeaderView::Stretch);
-    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(TableModelQueueSongs::COL_TITLE, QHeaderView::Stretch);
-    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(TableModelQueueSongs::COL_SONGID, QHeaderView::ResizeToContents);
-    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(TableModelQueueSongs::COL_DURATION, QHeaderView::ResizeToContents);
-    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(TableModelQueueSongs::COL_KEY, QHeaderView::ResizeToContents);
-    QApplication::processEvents();
-    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(TableModelQueueSongs::COL_ARTIST, QHeaderView::Interactive);
-    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(TableModelQueueSongs::COL_TITLE, QHeaderView::Interactive);
-    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(TableModelQueueSongs::COL_SONGID, QHeaderView::Interactive);
-    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(TableModelQueueSongs::COL_DURATION, QHeaderView::Interactive);
-    ui->tableViewQueue->horizontalHeader()->setSectionResizeMode(TableModelQueueSongs::COL_KEY, QHeaderView::Interactive);
+void MainWindow::autosizeQueueCols()
+{
+    auto *table = ui->tableViewQueue;
+    auto *header = table->horizontalHeader();
+
+    const int fontHeight =
+        QFontMetrics(m_settings.applicationFont()).height();
+
+    // Path/status icon column.
+    header->setSectionResizeMode(
+        TableModelQueueSongs::COL_PATH,
+        QHeaderView::Fixed
+    );
+    header->resizeSection(
+        TableModelQueueSongs::COL_PATH,
+        fontHeight * 2
+    );
+
+    // Predictable widths, even when the queue is empty.
+    header->setSectionResizeMode(
+        TableModelQueueSongs::COL_SONGID,
+        QHeaderView::Interactive
+    );
+    header->resizeSection(
+        TableModelQueueSongs::COL_SONGID, 115
+    );
+
+    header->setSectionResizeMode(
+        TableModelQueueSongs::COL_DURATION,
+        QHeaderView::Interactive
+    );
+    header->resizeSection(
+        TableModelQueueSongs::COL_DURATION, 90
+    );
+
+    header->setSectionResizeMode(
+        TableModelQueueSongs::COL_KEY,
+        QHeaderView::Interactive
+    );
+    header->resizeSection(
+        TableModelQueueSongs::COL_KEY, 65
+    );
+
+    // Let artist and title share the remaining space, but remain resizable by the user.
+    sizeFlexibleColumns(
+        ui->tableViewQueue,
+        TableModelQueueSongs::COL_ARTIST,
+        TableModelQueueSongs::COL_TITLE
+    );
 }
 
-void MainWindow::autosizeHistoryCols() {
-    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(TableModelHistorySongs::LAST_SUNG, QHeaderView::ResizeToContents);
-    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(TableModelHistorySongs::SUNG_COUNT, QHeaderView::ResizeToContents);
-    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(TableModelHistorySongs::KEY_CHANGE, QHeaderView::ResizeToContents);
-    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(TableModelHistorySongs::ARTIST, QHeaderView::Stretch);
-    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(TableModelHistorySongs::TITLE, QHeaderView::Stretch);
-    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(TableModelHistorySongs::SONGID, QHeaderView::ResizeToContents);
-    QApplication::processEvents();
-    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(TableModelHistorySongs::LAST_SUNG, QHeaderView::Interactive);
-    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(TableModelHistorySongs::SUNG_COUNT, QHeaderView::Interactive);
-    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(TableModelHistorySongs::KEY_CHANGE, QHeaderView::Interactive);
-    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(TableModelHistorySongs::ARTIST, QHeaderView::Interactive);
-    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(TableModelHistorySongs::TITLE, QHeaderView::Interactive);
-    ui->tableViewHistory->horizontalHeader()->setSectionResizeMode(TableModelHistorySongs::SONGID, QHeaderView::Interactive);
+void MainWindow::autosizeHistoryCols()
+{
+    auto *header =
+        ui->tableViewHistory->horizontalHeader();
+
+    // Use explicit widths rather than measuring hidden rows.
+    const struct {
+        int column;
+        int width;
+    } columns[] = {
+        {TableModelHistorySongs::LAST_SUNG, 155},
+        {TableModelHistorySongs::SUNG_COUNT, 95},
+        {TableModelHistorySongs::KEY_CHANGE, 90},
+        {TableModelHistorySongs::SONGID, 115}
+    };
+
+    for (const auto &column : columns) {
+        header->setSectionResizeMode(
+            column.column,
+            QHeaderView::Interactive
+        );
+        header->resizeSection(
+            column.column,
+            column.width
+        );
+    }
+
+    // Let artist and title share the remaining space, but remain resizable by the user.
+    sizeFlexibleColumns(
+        ui->tableViewHistory,
+        TableModelHistorySongs::ARTIST,
+        TableModelHistorySongs::TITLE
+    );
 }
 
 void MainWindow::autosizeBmViews() {

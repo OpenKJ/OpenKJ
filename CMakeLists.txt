@@ -352,6 +352,23 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         INCLUDE_BY_TYPE permissions
     )
 
+    # Development builds use Homebrew's runtime plus the locally built
+    # SoundTouch plugin. Packaging relocates this plugin's dependencies later.
+    set(OPENKJ_SOUNDTOUCH_PLUGIN
+        "${CMAKE_CURRENT_SOURCE_DIR}/../gstreamer-build/gstreamer/build-soundtouch-standalone/ext/soundtouch/libgstsoundtouch.dylib"
+        CACHE FILEPATH "Custom GStreamer SoundTouch plugin for macOS")
+    if(EXISTS "${OPENKJ_SOUNDTOUCH_PLUGIN}")
+        add_custom_command(TARGET openkj POST_BUILD
+            COMMAND "${CMAKE_COMMAND}" -E make_directory
+                    "$<TARGET_BUNDLE_DIR:openkj>/Contents/PlugIns"
+            COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+                    "${OPENKJ_SOUNDTOUCH_PLUGIN}"
+                    "$<TARGET_BUNDLE_DIR:openkj>/Contents/PlugIns/libgstsoundtouch.dylib"
+            COMMENT "Including custom GStreamer SoundTouch plugin"
+            VERBATIM)
+        set_property(TARGET openkj APPEND PROPERTY LINK_DEPENDS "${OPENKJ_SOUNDTOUCH_PLUGIN}")
+    endif()
+
     # -------------------------------------------------------------------------
     # Step 1: Run macdeployqt to bundle Qt frameworks into the .app.
     # This always runs (no BUILDONLY guard) so every build is self-contained.

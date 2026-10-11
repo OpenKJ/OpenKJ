@@ -4,41 +4,70 @@
 #include <QVariant>
 #include "mzarchive.h"
 #include "karaokefileinfo.h"
+#include <QFileInfo>
 
 
-void LazyDurationUpdateWorker::getDurations(const QStringList &files) {
+
+void LazyDurationUpdateWorker::getDurations(const QStringList &files)
+{
     if (files.isEmpty())
         return;
-    std::string m_loggingPrefix{"[LazyDurationThread]"};
-    std::shared_ptr<spdlog::logger> logger;
-    logger = spdlog::get("logger");
-    logger->info("{} Starting scan", m_loggingPrefix);
+
+    const std::string loggingPrefix{"[LazyDurationThread]"};
+    auto logger = spdlog::get("logger");
+
+    logger->info("{} Starting scan of {} songs",
+                 loggingPrefix, files.size());
+
     MzArchive archive;
     KaraokeFileInfo parser;
+
+    qsizetype updated = 0;
+    qsizetype missing = 0;
+    qsizetype failed = 0;
+
     for (const auto &path : files)
     {
+        // Check cancellation before processing each file.
+        if (QThread::currentThread()->isInterruptionRequested()) {
+            logger->info("{} Scan interrupted", loggingPrefix);
+            break;
+        }
+
+        // Do not attempt to analyze inaccessible media.
+        // Preserve the database entry for disconnected drives.
+        if (!QFileInfo::exists(path)) {
+            ++missing;
+            continue;
+        }
+
         unsigned int duration = 0;
-        if (path.endsWith(".zip", Qt::CaseInsensitive))
-        {
+
+        if (path.endsWith(".zip", Qt::CaseInsensitive)) {
             archive.setArchiveFile(path);
             duration = archive.getSongDuration();
         }
-        if (duration == 0)
-        {
+
+        if (duration == 0) {
             parser.setFile(path);
             duration = parser.getDuration();
         }
-        if (duration == 0)
-            logger->warn("{} Unable to get duration for file {}. - File is likely corrupted or invalid", m_loggingPrefix, path);
-        else
-            logger->trace("{} Got duration: {} for file: {}", m_loggingPrefix, duration, path);
-        emit gotDuration(path, duration);
-        if (QThread::currentThread()->isInterruptionRequested()) {
-            logger->info("{} Scan interrupt requested", m_loggingPrefix);
-            break;
+
+        // A failed analysis must not trigger an unnecessary
+        // database write or a table-model update.
+        if (duration == 0) {
+            ++failed;
+            continue;
         }
+
+        ++updated;
+        emit gotDuration(path, duration);
     }
-    logger->info("{} Scan complete", m_loggingPrefix);
+
+    logger->info(
+        "{} Scan finished: updated={}, missing={}, failed={}",
+        loggingPrefix, updated, missing, failed
+    );
 }
 
 LazyDurationUpdateController::LazyDurationUpdateController(QObject *parent) : QObject(parent) {

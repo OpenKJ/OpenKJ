@@ -1277,6 +1277,11 @@ void Settings::setBookCreatorMarginBtm(double margin)
     settings->setValue("bookCreatorMarginBtm", margin);
 }
 
+void Settings::setEqPanelExpanded(bool expanded)
+{
+    settings->setValue("eqPanelExpanded", expanded);
+}
+
 void Settings::setEqKBypass(bool bypass)
 {
     settings->setValue("eqKBypass", bypass);
@@ -1578,6 +1583,11 @@ int Settings::bookCreatorCols()
 int Settings::bookCreatorPageSize()
 {
     return settings->value("bookCreatorPageSize", 0).toInt();
+}
+
+bool Settings::eqPanelExpanded()
+{
+    return settings->value("eqPanelExpanded", false).toBool();
 }
 
 bool Settings::eqKBypass()

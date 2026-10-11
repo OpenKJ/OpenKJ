@@ -155,7 +155,7 @@ void DatabaseWorker::loadQueue(int singerId)
     emit queueLoaded(songs);
 }
 
-void DatabaseWorker::addSinger(const QString &name, int positionHint)
+void DatabaseWorker::addSinger(const QString &name, int positionHint, bool makeRegular)
 {
     QSqlQuery query(m_db);
     int addPos = 0;
@@ -166,9 +166,10 @@ void DatabaseWorker::addSinger(const QString &name, int positionHint)
     
     QDateTime curTs = QDateTime::currentDateTime();
     query.prepare("INSERT INTO rotationsingers (name, position, regular, regularid, addts) "
-                  "VALUES (:name, :pos, 0, -1, :addts)");
+                  "VALUES (:name, :pos, :regular, -1, :addts)");
     query.bindValue(":name", name);
     query.bindValue(":pos", addPos);
+    query.bindValue(":regular", makeRegular);
     query.bindValue(":addts", curTs);
     if (!query.exec()) {
         emit errorOccurred(query.lastError().text());
