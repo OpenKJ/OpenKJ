@@ -3,7 +3,8 @@
 [![Windows Build](https://github.com/OpenKJ/OpenKJ/actions/workflows/windows-test.yml/badge.svg)](https://github.com/OpenKJ/OpenKJ/actions/workflows/windows-test.yml)
 [![Test building on macOS](https://github.com/OpenKJ/OpenKJ/actions/workflows/macos-test.yml/badge.svg)](https://github.com/OpenKJ/OpenKJ/actions/workflows/macos-test.yml)
 
-**Actively Maintained Fork**
+## **Actively Maintained Fork**
+
 Hey, I'm EquinoxEarth. I actively use this software to run my shows, and so I really don't want it to die over time. I'm putting my own time in to update it to newer frameworks and make sure it will continue to run on newer operating systems well into the future. If you decide to use my fork, please report issues so that I can work on them and keep this project alive. I really like this program, and find it way easier to use than most of the other options out there.
 
 Thank you Isaac Lightburn for creating this project, and putting your heart into building it. I will keep your dream alive as long as I can.
