@@ -29,7 +29,7 @@ DlgVideoPreview::DlgVideoPreview(QString mediaFilePath, QWidget *parent) :
         if ((archive.checkCDG()) && (archive.checkAudio())) {
             if (archive.checkAudio()) {
                 if (!archive.extractAudio(m_tmpDir.path(), "tmp" + archive.audioExtension())) {
-                    // We're not going to use it, but we extract it just to catch bad files during preview
+                    // Both files are needed by the CDG preview playback pipeline.
                     m_logger->warn("{} Bad karaoke file - Failed to extract audio file from archive: {}",
                                    m_loggingPrefix, m_mediaFilename);
                     QMessageBox::warning(nullptr, tr("Bad karaoke file"), tr("Failed to extract audio file."),
@@ -47,7 +47,7 @@ DlgVideoPreview::DlgVideoPreview(QString mediaFilePath, QWidget *parent) :
                 }
                 m_logger->info("{} Decompression successful - starting preview playback of: {}", m_loggingPrefix,
                                m_mediaFilename);
-                playCdg(m_tmpDir.path() + QDir::separator() + "tmp.cdg");
+                playCdg(m_tmpDir.filePath("tmp.cdg"), m_tmpDir.filePath("tmp" + archive.audioExtension()));
             }
         } else {
             QMessageBox::warning(nullptr, tr("Bad karaoke file"),
@@ -79,8 +79,7 @@ DlgVideoPreview::DlgVideoPreview(QString mediaFilePath, QWidget *parent) :
             return;
         }
         m_logger->info("{} Starting preview playback of media file: {}", m_loggingPrefix, m_mediaFilename);
-        cdgFile.copy(m_tmpDir.path() + QDir::separator() + "tmp.cdg");
-        playCdg(m_tmpDir.path() + QDir::separator() + "tmp.cdg");
+        playCdg(m_mediaFilename, audioFilePath);
     } else {
         m_logger->info("{} Starting preview playback of media file: {}", m_loggingPrefix, m_mediaFilename);
         playVideo(m_mediaFilename);
@@ -95,8 +94,9 @@ DlgVideoPreview::~DlgVideoPreview() {
     m_logger->trace("{} Playback stopped successfully", m_loggingPrefix);
 }
 
-void DlgVideoPreview::playCdg(const QString &filename) {
-    m_mediaBackend.setMediaCdg(filename, nullptr);
+void DlgVideoPreview::playCdg(const QString &cdgFilename, const QString &audioFilename) {
+    m_mediaBackend.setMuted(true);
+    m_mediaBackend.setMediaCdg(cdgFilename, audioFilename);
     m_mediaBackend.play();
 }
 

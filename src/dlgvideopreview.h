@@ -33,7 +33,7 @@ private:
     QString m_mediaFilename;
     MediaBackend m_mediaBackend { this, "PREVIEW", MediaBackend::VideoPreview };
 
-    void playCdg(const QString &filename);
+    void playCdg(const QString &cdgFilename, const QString &audioFilename);
     void playVideo(const QString &filename);
 
 };
