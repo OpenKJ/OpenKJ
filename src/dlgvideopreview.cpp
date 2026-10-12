@@ -24,6 +24,7 @@ DlgVideoPreview::DlgVideoPreview(QString mediaFilePath, QWidget *parent) :
     }
     m_mediaBackend.setVideoOutputWidgets({ui->videoDisplay});
     m_mediaBackend.setUseSilenceDetection(false);
+    m_mediaBackend.setMuted(true);
     if (m_mediaFilename.endsWith(".zip", Qt::CaseInsensitive)) {
         MzArchive archive(m_mediaFilename);
         if ((archive.checkCDG()) && (archive.checkAudio())) {
@@ -95,7 +96,6 @@ DlgVideoPreview::~DlgVideoPreview() {
 }
 
 void DlgVideoPreview::playCdg(const QString &cdgFilename, const QString &audioFilename) {
-    m_mediaBackend.setMuted(true);
     m_mediaBackend.setMediaCdg(cdgFilename, audioFilename);
     m_mediaBackend.play();
 }

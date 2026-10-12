@@ -843,6 +843,10 @@ void MediaBackend::setMediaCdg(const QString &cdgFilename, const QString &audioF
 
 void MediaBackend::setMuted(const bool &muted) {
     m_muted = muted;
+    // Also mute playbin itself, including its default sink if the custom
+    // audio bin could not be attached (for example, a missing plugin).
+    if (m_pipeline)
+        g_object_set(G_OBJECT(m_pipeline), "mute", muted, nullptr);
     updateVolume();
     emit mutedChanged(muted);
 }
