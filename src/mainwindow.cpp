@@ -291,7 +291,7 @@ void MainWindow::setupShortcuts() {
             m_mediaBackendBm.pause();
             ui->buttonBmPause->setChecked(true);
         } else if (mediaState == MediaBackend::PausedState) {
-            m_mediaBackendBm.play();
+            m_mediaBackendBm.play(m_mediaBackendKar.state() == MediaBackend::PlayingState);
             ui->buttonBmPause->setChecked(false);
         }
     });
@@ -858,7 +858,7 @@ void MainWindow::loadSettings() {
                 if (plSong.has_value()) {
                     if (QFile::exists(plSong->get().path)) {
                         m_mediaBackendBm.setMedia(plSong->get().path);
-                        m_mediaBackendBm.play();
+                        m_mediaBackendBm.play(m_mediaBackendKar.state() == MediaBackend::PlayingState);
                         m_mediaBackendBm.setVolume(ui->sliderBmVolume->value());
                     } else {
                         QMessageBox::warning(this, tr("Break music autostart failure"),
@@ -1364,6 +1364,13 @@ void MainWindow::dbInit(const QDir &okjDataDir) {
 }
 
 
+void MainWindow::restoreBreakMusicVolume() {
+    if (m_settings.bmKCrossFade())
+        m_mediaBackendBm.fadeIn(false);
+    else
+        m_mediaBackendBm.fadeInImmediate();
+}
+
 void MainWindow::play(const QString &karaokeFilePath, const bool &k2k) {
     m_mediaTempDir = std::make_unique<QTemporaryDir>();
     if (m_mediaBackendKar.state() != MediaBackend::PausedState) {
@@ -1401,7 +1408,10 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k) {
                                    audioFile.toStdString());
                     m_mediaBackendKar.setMediaCdg(cdgFile, audioFile);
                     if (!k2k) {
-                        m_mediaBackendBm.fadeOut(!m_settings.bmKCrossFade());
+                        if (m_settings.bmKCrossFade())
+                            m_mediaBackendBm.fadeOut(false);
+                        else
+                            m_mediaBackendBm.fadeOutImmediate();
                     }
                     m_logger->info("{} Beginning playback of file: {}", m_loggingPrefix, audioFile.toStdString());
                     QApplication::setOverrideCursor(Qt::WaitCursor);
@@ -1445,7 +1455,10 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k) {
             m_mediaBackendKar.setMediaCdg(m_mediaTempDir->path() + QDir::separator() + cdgTmpFile,
                                           m_mediaTempDir->path() + QDir::separator() + audTmpFile);
             if (!k2k) {
-                m_mediaBackendBm.fadeOut(!m_settings.bmKCrossFade());
+                if (m_settings.bmKCrossFade())
+                    m_mediaBackendBm.fadeOut(false);
+                else
+                    m_mediaBackendBm.fadeOutImmediate();
             }
             QApplication::setOverrideCursor(Qt::WaitCursor);
             m_mediaBackendKar.play();
@@ -1460,7 +1473,10 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k) {
                            tmpFilePath.toStdString());
             m_mediaBackendKar.setMedia(tmpFilePath);
             if (!k2k) {
-                m_mediaBackendBm.fadeOut();
+                if (m_settings.bmKCrossFade())
+                    m_mediaBackendBm.fadeOut(false);
+                else
+                    m_mediaBackendBm.fadeOutImmediate();
             }
             m_mediaBackendKar.play();
             m_mediaBackendKar.fadeInImmediate();
@@ -1570,11 +1586,11 @@ void MainWindow::buttonStopClicked() {
     cdgWindow->showAlert(false);
     audioRecorder.stop();
     if (m_settings.bmKCrossFade()) {
-        m_mediaBackendBm.fadeIn(false);
+        restoreBreakMusicVolume();
         m_mediaBackendKar.stop();
     } else {
         m_mediaBackendKar.stop();
-        m_mediaBackendBm.fadeIn();
+        restoreBreakMusicVolume();
     }
 }
 
@@ -2029,7 +2045,7 @@ void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &sta
         if (state == m_lastAudioState || m_k2kTransition)
             return;
         m_lastAudioState = state;
-        m_mediaBackendBm.fadeIn(false);
+        restoreBreakMusicVolume();
         if (m_settings.karaokeAutoAdvance()) {
             m_logger->info("{}  - Karaoke Autoplay is enabled", m_loggingPrefix);
             if (m_kAASkip) {
@@ -2092,7 +2108,7 @@ void MainWindow::karaokeMediaBackend_stateChanged(const MediaBackend::State &sta
 //        ipcClient->send_MessageToServer(KhIPCClient::CMD_FADE_IN);
         //m_mediaBackendBm.setVideoEnabled(true);
         m_mediaBackendKar.stop(true);
-        m_mediaBackendBm.fadeIn(false);
+        restoreBreakMusicVolume();
     }
     if (state == MediaBackend::PausedState) {
         m_logger->info("{} KAudio entered PausedState", m_loggingPrefix);
@@ -2251,7 +2267,7 @@ void MainWindow::silenceDetectedKar() {
     m_mediaBackendKar.rawStop();
     if (m_settings.karaokeAutoAdvance())
         m_kAASkip = false;
-    m_mediaBackendBm.fadeIn();
+    restoreBreakMusicVolume();
 }
 
 void MainWindow::silenceDetectedBm() {
@@ -2825,9 +2841,7 @@ void MainWindow::bmMediaStateChanged(const MediaBackend::State &newState) {
                 m_logger->info("{} Break music auto-advancing to song: {}", m_loggingPrefix,
                                plSong->get().path.toStdString());
                 m_mediaBackendBm.stop(true);
-                m_mediaBackendBm.play();
-                if (m_mediaBackendKar.state() == MediaBackend::PlayingState)
-                    m_mediaBackendBm.fadeOutImmediate();
+                m_mediaBackendBm.play(m_mediaBackendKar.state() == MediaBackend::PlayingState);
             } else {
                 m_mediaBackendBm.stop(true);
                 resetBmLabels();
@@ -2942,7 +2956,7 @@ void MainWindow::tableViewBmPlaylistDoubleClicked(const QModelIndex &index) {
     if (!plSong.has_value())
         return;
     m_mediaBackendBm.setMedia(plSong->get().path);
-    m_mediaBackendBm.play();
+    m_mediaBackendBm.play(m_mediaBackendKar.state() == MediaBackend::PlayingState);
     if (m_mediaBackendKar.state() != MediaBackend::PlayingState)
         m_mediaBackendBm.fadeInImmediate();
 }
@@ -2951,7 +2965,7 @@ void MainWindow::buttonBmPauseClicked(const bool &checked) {
     if (checked)
         m_mediaBackendBm.pause();
     else
-        m_mediaBackendBm.play();
+        m_mediaBackendBm.play(m_mediaBackendKar.state() == MediaBackend::PlayingState);
 }
 
 bool MainWindow::bmPlaylistExists(const QString &name) {

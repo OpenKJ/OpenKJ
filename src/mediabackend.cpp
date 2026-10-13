@@ -36,7 +36,7 @@ MediaBackend::MediaBackend(QObject *parent, QString objectName, MediaType type)
         }
     });
     connect(m_fader, &AudioFader::fadeComplete, this, [this]() {
-        if (m_fader->state() == AudioFader::FadedOut) {
+        if (m_stopAfterFade && m_fader->state() == AudioFader::FadedOut) {
             rawStop();
         }
     });
@@ -673,7 +673,15 @@ if (m_cdgPipeline &&
     }
 }
 
-void MediaBackend::play() {
+void MediaBackend::play(bool startSilent) {
+    m_stopAfterFade = false;
+    // Set gain before starting the pipeline, including silent playlist advances.
+    if (startSilent)
+        m_fader->immediateOut();
+    else if (m_fade)
+        m_fader->fadeIn(false);
+    else
+        m_fader->immediateIn();
     if (m_pipeline) {
         gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
         // Schedule initial tempo adjustment without tying it to every GStreamer state transition.
@@ -685,11 +693,6 @@ void MediaBackend::play() {
             ) > 0.0001) {
 
             m_videoTempoTimer.start();
-        }
-        if (m_fade) {
-            m_fader->fadeIn(false);
-        } else {
-            m_fader->immediateIn();
         }
     }
     
@@ -1153,6 +1156,7 @@ void MediaBackend::setVolume(const int &volume) {
 
 void MediaBackend::stop(const bool &skipFade) {
     if (m_fade && !skipFade && m_state == PlayingState) {
+        m_stopAfterFade = true;
         m_fader->fadeOut(false);
     } else {
         m_fader->immediateOut();
@@ -1161,6 +1165,8 @@ void MediaBackend::stop(const bool &skipFade) {
 }
 
 void MediaBackend::rawStop() {
+    m_stopAfterFade = false;
+    m_fader->immediateOut();
     // Prevent outstanding seek from restarting an old song.
     m_seekPhase = SeekPhase::Idle;
     m_resumeAfterSeek = false;
@@ -1198,11 +1204,29 @@ void MediaBackend::setPitchShift(const int &pitchShift) {
 }
 
 void MediaBackend::fadeOut(const bool &waitForFade) {
-    m_fader->fadeOut(waitForFade);
+    m_stopAfterFade = false;
+    if (m_fade)
+        m_fader->fadeOut(waitForFade);
+    else
+        m_fader->immediateOut();
 }
 
 void MediaBackend::fadeIn(const bool &waitForFade) {
-    m_fader->fadeIn(waitForFade);
+    m_stopAfterFade = false;
+    if (m_fade)
+        m_fader->fadeIn(waitForFade);
+    else
+        m_fader->immediateIn();
+}
+
+void MediaBackend::fadeInImmediate() {
+    m_stopAfterFade = false;
+    m_fader->immediateIn();
+}
+
+void MediaBackend::fadeOutImmediate() {
+    m_stopAfterFade = false;
+    m_fader->immediateOut();
 }
 
 void MediaBackend::setTempo(const int &percent)

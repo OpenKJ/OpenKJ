@@ -123,6 +123,7 @@ private:
     std::atomic<bool> m_hasVideo{false};
     bool m_videoEnabled{true};
     bool m_fade{false};
+    bool m_stopAfterFade{false};
 
     // Connected display widgets
     QList<VideoDisplay*> m_videoSinks;
@@ -202,7 +203,7 @@ private slots:
 
 public slots:
     void setVideoOffset(int offsetMs) {}
-    void play();
+    void play(bool startSilent = false);
     void pause();
     void setMedia(const QString &filename);
     void setMediaCdg(const QString &cdgFilename, const QString &audioFilename);
@@ -222,8 +223,8 @@ public slots:
     void setMplxMode(const int &mode);
     void setEqBypass(const bool &m_bypass);
     void setEqLevel(const int &band, const int &level);
-    void fadeInImmediate() { fadeIn(false); }
-    void fadeOutImmediate() { fadeOut(false); }
+    void fadeInImmediate();
+    void fadeOutImmediate();
     void setEnforceAspectRatio(const bool &enforce) {}
 
 signals:
