@@ -23,6 +23,12 @@
 
 #include <QDialog>
 #include <QStringList>
+#include <QJsonArray>
+#include <QMap>
+#include <QHash>
+
+class QTableWidget;
+class QGroupBox;
 #include "models/tablemodelhistorysongs.h"
 #include "models/tablemodelhistorysingers.h"
 #include "models/tablemodelkaraokesongs.h"
@@ -38,6 +44,15 @@ class DlgRegularImport : public QDialog
 private:
     Ui::DlgRegularImport *ui;
     QString m_curImportFile;
+    QJsonArray m_importSingers;
+    QTableWidget *m_rootTable;
+    QGroupBox *m_rootGroup;
+    QMap<QString, QString> m_mappings;
+    QHash<QString, QStringList> m_libraryMatches;
+    bool m_libraryIndexed{false};
+    void addRootMapping(const QString &source, const QString &destination, const QString &original = {});
+    bool readMappings();
+    QString matchingLibraryPath(const QJsonObject &song, QString &problem);
     QStringList legacyLoadSingerList(const QString &fileName);
     QStringList loadSingerList(const QString &filename);
     QStringList legacyImportSinger(const QString &name);

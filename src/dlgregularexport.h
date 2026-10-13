@@ -39,7 +39,7 @@ private:
     TableModelKaraokeSongs &m_karaokeSongsModel;
     TableModelHistorySingers m_historySingersModel;
     TableModelHistorySongs m_historySongsModel{m_karaokeSongsModel};
-    void exportSingers(const std::vector<int> &historySingerIds, const QString &savePath);
+    bool exportSingers(const std::vector<int> &historySingerIds, const QString &savePath);
 
 public:
     explicit DlgRegularExport(TableModelKaraokeSongs &karaokeSongsModel, QWidget *parent = 0);

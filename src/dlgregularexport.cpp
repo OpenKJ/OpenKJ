@@ -30,6 +30,8 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QSaveFile>
+#include "regularpathmapping.h"
 
 DlgRegularExport::DlgRegularExport(TableModelKaraokeSongs &karaokeSongsModel, QWidget *parent) :
         m_karaokeSongsModel(karaokeSongsModel),
@@ -37,6 +39,7 @@ DlgRegularExport::DlgRegularExport(TableModelKaraokeSongs &karaokeSongsModel, QW
     ui(new Ui::DlgRegularExport)
 {
     ui->setupUi(this);
+    m_historySingersModel.loadSingers();
     ui->tableViewRegulars->setModel(&m_historySingersModel);
     ui->tableViewRegulars->hideColumn(0);
     ui->tableViewRegulars->hideColumn(2);
@@ -77,9 +80,10 @@ void DlgRegularExport::on_pushButtonExport_clicked()
         msgBox->setStandardButtons(QFlags<QMessageBox::StandardButton>());
         msgBox->setText(tr("Exporting regular singers, please wait..."));
         msgBox->show();
-        exportSingers(historySingerIds, saveFilePath);
+        const bool saved = exportSingers(historySingerIds, saveFilePath);
         msgBox->close();
         delete msgBox;
+        if (!saved) return;
         QMessageBox::information(this, tr("Export complete"), tr("Regular singer export complete."));
         ui->tableViewRegulars->clearSelection();
     }
@@ -106,18 +110,31 @@ void DlgRegularExport::on_pushButtonExportAll_clicked()
             msgBox->setStandardButtons(QFlags<QMessageBox::StandardButton>());
             msgBox->setText(tr("Exporting regular singers, please wait..."));
             msgBox->show();
-            exportSingers(singerIds, saveFilePath);
+            const bool saved = exportSingers(singerIds, saveFilePath);
             msgBox->close();
             delete msgBox;
+            if (!saved) return;
             QMessageBox::information(this, tr("Export complete"), tr("Regular singer export complete."));
             ui->tableViewRegulars->clearSelection();
         }
     }
 }
 
-void DlgRegularExport::exportSingers(const std::vector<int> &historySingerIds, const QString &savePath)
+bool DlgRegularExport::exportSingers(const std::vector<int> &historySingerIds, const QString &savePath)
 {
-    QFile outfile(savePath);
+    QSaveFile outfile(savePath);
+    QMap<QString, QString> roots;
+    QSqlQuery rootQuery("SELECT DISTINCT path FROM sourceDirs ORDER BY path");
+    while (rootQuery.next()) {
+        const QString path = RegularPaths::normalized(rootQuery.value(0).toString());
+        if (!RegularPaths::absolute(path) || roots.values().contains(path)) continue;
+        const QString key = roots.isEmpty() ? QStringLiteral("karaokeroot")
+            : QStringLiteral("karaokeroot%1").arg(roots.size() + 1);
+        roots.insert(key, path);
+    }
+    QJsonObject rootObject;
+    for (auto it = roots.begin(); it != roots.end(); ++it)
+        rootObject.insert(it.key(), it.value());
     QJsonArray jArr;
     std::for_each(historySingerIds.begin(), historySingerIds.end(), [&] (auto singerId) {
          QJsonObject jSinger;
@@ -125,24 +142,27 @@ void DlgRegularExport::exportSingers(const std::vector<int> &historySingerIds, c
          jSinger.insert("name", singer.name);
          auto songs = m_historySongsModel.getSingerSongs(singer.historySingerId);
          QJsonArray jSongs;
-         std::for_each(songs.begin(), songs.end(), [&jSongs] (okj::HistorySong song) {
+         std::for_each(songs.begin(), songs.end(), [&jSongs, &roots] (okj::HistorySong song) {
             QJsonObject jSong;
-            jSong.insert("filepath", song.filePath);
+            jSong.insert("filepath", RegularPaths::encode(song.filePath, roots));
             jSong.insert("artist", song.artist);
             jSong.insert("title", song.title);
             jSong.insert("songid", song.songid);
             jSong.insert("keychange", song.keyChange);
             jSong.insert("plays", song.plays);
-            jSong.insert("lastplay", song.lastPlayed.toString());
+            jSong.insert("lastplay", song.lastPlayed.toString(Qt::ISODateWithMs));
             jSongs.append(jSong);
          });
          jSinger.insert("songs", jSongs);
          jArr.append(jSinger);
     });
-    outfile.open(QFile::WriteOnly);
-    QJsonDocument jDoc(jArr);
-    outfile.write(jDoc.toJson(QJsonDocument::Indented));
-    outfile.close();
+    const QJsonDocument jDoc(QJsonObject{{"formatVersion", 2}, {"roots", rootObject}, {"singers", jArr}});
+    const QByteArray contents = jDoc.toJson(QJsonDocument::Indented);
+    if (!outfile.open(QFile::WriteOnly) || outfile.write(contents) != contents.size() || !outfile.commit()) {
+        QMessageBox::warning(this, tr("Export failed"), outfile.errorString());
+        return false;
+    }
+    return true;
 }
 
 

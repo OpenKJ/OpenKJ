@@ -1830,6 +1830,10 @@ void MainWindow::actionExportRegularsTriggered() {
 
 void MainWindow::actionImportRegularsTriggered() {
     auto iDialog = new DlgRegularImport(m_karaokeSongsModel, this);
+    connect(iDialog, &QObject::destroyed, this, [this]() {
+        m_dlgRegularSingers.regularsChanged();
+        m_historySongsModel.loadSinger(m_historySongsModel.currentSingerName());
+    });
     iDialog->setModal(true);
     iDialog->show();
 }

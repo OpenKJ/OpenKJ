@@ -166,6 +166,7 @@ set(SOURCE_FILES
         src/dlgrequests.h
         src/dlgregularexport.h
         src/dlgregularimport.h
+        src/regularpathmapping.h
         src/dlgregularsingers.h
         src/dlgsettings.h
         src/dlgcdg.h
