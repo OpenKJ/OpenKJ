@@ -2,6 +2,7 @@
 
 #include <QApplication>
 #include <QSqlQuery>
+#include <QElapsedTimer>
 #include <QSqlError>
 #include <QPainter>
 #include <QFileInfo>
@@ -10,6 +11,7 @@
 #include <QSvgRenderer>
 #include <QMimeData>
 #include <array>
+#include <QtConcurrent/QtConcurrentRun>
 
 std::ostream & operator<<(std::ostream& os, const QString& s);
 
@@ -17,7 +19,34 @@ TableModelKaraokeSongs::TableModelKaraokeSongs(QObject *parent)
         : QAbstractTableModel(parent) {
     m_logger = spdlog::get("logger");
     resizeIconsForFont(m_settings.applicationFont());
+    searchTimer.setSingleShot(true);
     connect(&searchTimer, &QTimer::timeout, this, &TableModelKaraokeSongs::searchExec);
+    connect(&m_searchWatcher, &QFutureWatcher<std::shared_ptr<SearchResult>>::finished, this, [this] {
+        m_searchBusy = false;
+        auto result = m_searchWatcher.result();
+        if (result && result->revision == m_searchRevision->load()) {
+            QElapsedTimer applyTimer;
+            applyTimer.start();
+            beginResetModel();
+            m_filteredSongs.swap(result->songs);
+            m_visibleRows.swap(result->rows);
+            endResetModel();
+            m_logger->info("[DatabaseTiming] Library search worker: {} ms, matches={}, UI apply: {} ms",
+                           result->elapsedMs, m_filteredSongs.size(), applyTimer.elapsed());
+        }
+        if (m_searchPending && !searchTimer.isActive())
+            searchExec();
+    });
+}
+
+TableModelKaraokeSongs::~TableModelKaraokeSongs() {
+    // Jobs own their inputs; cancellation never waits for the UI or the worker.
+    ++*m_searchRevision;
+}
+
+void TableModelKaraokeSongs::invalidateSearchSnapshot() {
+    m_searchSnapshot.reset();
+    ++*m_searchRevision;
 }
 
 QVariant TableModelKaraokeSongs::headerData(int section, Qt::Orientation orientation, int role) const {
@@ -168,7 +197,11 @@ QVariant TableModelKaraokeSongs::getItemDisplayData(const QModelIndex &index) co
 }
 
 void TableModelKaraokeSongs::loadData() {
+    QElapsedTimer timer;
+    timer.start();
     emit layoutAboutToBeChanged();
+    invalidateSearchSnapshot();
+    m_songsByPath.clear();
     m_allSongs.clear();
     m_filteredSongs.clear();
     QSqlQuery query;
@@ -193,13 +226,17 @@ void TableModelKaraokeSongs::loadData() {
                 (query.value(3).toString() == "!!BAD!!"),
                 (query.value(3).toString() == "!!DROPPED!!")
         }));
+        m_songsByPath.insert(song->path, song);
     }
-    m_logger->info("{} Loaded {} karaoke songs from the db on disk", m_loggingPrefix, m_filteredSongs.size());
+    m_logger->info("[DatabaseTiming] Library reload: {} ms, songs={}", timer.elapsed(), m_allSongs.size());
     search(m_lastSearch);
+    rebuildVisibleRows();
     emit layoutChanged();
 }
 
 void TableModelKaraokeSongs::search(const QString &searchString) {
+    ++*m_searchRevision;
+    m_searchPending = true;
     m_lastSearch = searchString.toLower();
     m_lastSearch.replace(',', ' ');
     m_lastSearch.replace('&', " and ");
@@ -212,52 +249,62 @@ void TableModelKaraokeSongs::search(const QString &searchString) {
 
 void TableModelKaraokeSongs::searchExec() {
     searchTimer.stop();
-    emit layoutAboutToBeChanged();
-    std::vector<std::string> searchTerms;
-    std::string s = m_lastSearch.toLower().toStdString();
-    std::string::size_type prev_pos = 0, pos = 0;
-    while ((pos = s.find(' ', pos)) != std::string::npos) {
-        searchTerms.emplace_back(s.substr(prev_pos, pos - prev_pos));
-        prev_pos = ++pos;
-    }
-    searchTerms.emplace_back(s.substr(prev_pos, pos - prev_pos));
-    m_filteredSongs.clear();
-    m_filteredSongs.reserve(m_allSongs.size());
-    auto needles = m_lastSearch.split(' ', Qt::SkipEmptyParts);
-    for (const auto &song : m_allSongs) {
-        if (song->dropped)
-            continue;
-        if (song->bad)
-            continue;
-        QString haystack;
-        switch (m_searchType) {
-            case TableModelKaraokeSongs::SEARCH_TYPE_ALL: {
-                haystack = song->searchString;
-                break;
-            }
-            case TableModelKaraokeSongs::SEARCH_TYPE_ARTIST: {
-                haystack = song->artistL.replace('&', " and ");
-                break;
-            }
-            case TableModelKaraokeSongs::SEARCH_TYPE_TITLE: {
-                haystack = song->titleL.replace('&', " and ");
-                break;
-            }
+    if (m_searchBusy)
+        return; // One running job and one latest pending request, never a job per key.
+    if (!m_searchSnapshot) {
+        auto snapshot = std::make_shared<std::vector<SearchEntry>>();
+        snapshot->reserve(m_allSongs.size());
+        for (const auto &song : m_allSongs) {
+            snapshot->push_back({song->searchString,
+                                 QString(song->artistL).replace('&', " and "),
+                                 QString(song->titleL).replace('&', " and "),
+                                 song->id, song->bad || song->dropped, song});
         }
-        if (m_settings.ignoreAposInSearch())
-            haystack.remove('\'');
-        bool match{true};
-        for (const auto &needle : needles) {
-            if (!haystack.contains(needle)) {
-                match = false;
-                continue;
-            }
-        }
-        if (match)
-            m_filteredSongs.emplace_back(song);
+        m_searchSnapshot = std::move(snapshot);
     }
-    m_filteredSongs.shrink_to_fit();
-    emit layoutChanged();
+    m_searchPending = false;
+    m_searchBusy = true;
+    const auto revision = m_searchRevision->load();
+    const auto needles = m_lastSearch.split(' ', Qt::SkipEmptyParts);
+    const auto type = m_searchType;
+    const bool ignoreApos = m_settings.ignoreAposInSearch();
+    m_searchWatcher.setFuture(QtConcurrent::run(
+        [snapshot = m_searchSnapshot, cancellation = m_searchRevision, revision, needles, type, ignoreApos]() {
+            QElapsedTimer timer;
+            timer.start();
+            auto result = std::make_shared<SearchResult>();
+            result->revision = revision;
+            result->songs.reserve(snapshot->size());
+            result->rows.reserve(static_cast<int>(snapshot->size()));
+            size_t checked = 0;
+            for (const auto &entry : *snapshot) {
+                if ((checked++ % 256) == 0 && cancellation->load() != revision)
+                    return std::shared_ptr<SearchResult>{};
+                if (entry.excluded)
+                    continue;
+                QString haystack;
+                switch (type) {
+                    case SEARCH_TYPE_ALL: haystack = entry.all; break;
+                    case SEARCH_TYPE_ARTIST: haystack = entry.artist; break;
+                    case SEARCH_TYPE_TITLE: haystack = entry.title; break;
+                }
+                if (ignoreApos)
+                    haystack.remove('\'');
+                bool match = true;
+                for (const auto &needle : needles) {
+                    if (!haystack.contains(needle)) {
+                        match = false;
+                        break;
+                    }
+                }
+                if (match) {
+                    result->rows.insert(entry.id, static_cast<int>(result->songs.size()));
+                    result->songs.push_back(entry.song);
+                }
+            }
+            result->elapsedMs = timer.elapsed();
+            return result;
+        }));
 }
 
 void TableModelKaraokeSongs::setSearchType(TableModelKaraokeSongs::SearchType type) {
@@ -268,12 +315,11 @@ void TableModelKaraokeSongs::setSearchType(TableModelKaraokeSongs::SearchType ty
 }
 
 int TableModelKaraokeSongs::getIdForPath(const QString &path) {
-    auto it = std::find_if(m_allSongs.begin(), m_allSongs.end(), [&](const std::shared_ptr<okj::KaraokeSong> &song) {
-        return (song->path == path);
-    });
-    if (it == m_allSongs.end())
+    const auto entry = m_songsByPath.constFind(path);
+    if (entry == m_songsByPath.cend())
         return -1;
-    return it->get()->id;
+    const auto song = entry.value().lock();
+    return song ? song->id : -1;
 }
 
 QString TableModelKaraokeSongs::getPath(const int songId) {
@@ -362,6 +408,9 @@ Qt::ItemFlags TableModelKaraokeSongs::flags(const QModelIndex &index) const {
 
 
 void TableModelKaraokeSongs::sort(int column, Qt::SortOrder order) {
+    invalidateSearchSnapshot();
+    QElapsedTimer timer;
+    timer.start();
     auto sortLambda = [&column](const std::shared_ptr<okj::KaraokeSong> &a, const std::shared_ptr<okj::KaraokeSong> &b) -> bool {
         switch (column) {
             case COL_ARTIST:
@@ -403,25 +452,30 @@ void TableModelKaraokeSongs::sort(int column, Qt::SortOrder order) {
         std::sort(m_allSongs.rbegin(), m_allSongs.rend(), sortLambda);
     }
     QApplication::restoreOverrideCursor();
+    m_logger->info("[DatabaseTiming] Library sort: {} ms, songs={}, column={}",
+                   timer.elapsed(), m_allSongs.size(), column);
     search(m_lastSearch);
 }
 
+void TableModelKaraokeSongs::rebuildVisibleRows() {
+    m_visibleRows.clear();
+    m_visibleRows.reserve(static_cast<int>(m_filteredSongs.size()));
+    for (size_t row = 0; row < m_filteredSongs.size(); ++row)
+        m_visibleRows.insert(m_filteredSongs[row]->id, static_cast<int>(row));
+}
+
 void TableModelKaraokeSongs::setSongDuration(const QString &path, unsigned int duration) {
-    auto it = find_if(m_allSongs.begin(), m_allSongs.end(), [&path](const std::shared_ptr<okj::KaraokeSong> &song) {
-        return (song->path == path);
-    });
-    if (it == m_allSongs.end())
+    const auto entry = m_songsByPath.constFind(path);
+    if (entry == m_songsByPath.cend())
         return;
-    it->get()->duration = static_cast<int>(duration);
-    int songId = it->get()->id;
-    auto it2 = find_if(m_filteredSongs.begin(), m_filteredSongs.end(),
-                       [&songId](const std::shared_ptr<okj::KaraokeSong> &song) {
-                           return (song->id == songId);
-                       });
-    if (it2 != m_filteredSongs.end()) {
-        int row = (int) std::distance(m_filteredSongs.begin(), it2);
-        emit dataChanged(this->index(row, COL_DURATION), this->index(row, COL_DURATION), QVector<int>(Qt::DisplayRole));
-    }
+    auto song = entry.value().lock();
+    if (!song || song->duration > 0)
+        return;
+    song->duration = static_cast<int>(duration);
+    const auto row = m_visibleRows.constFind(song->id);
+    if (row != m_visibleRows.cend())
+        emit dataChanged(index(row.value(), COL_DURATION), index(row.value(), COL_DURATION),
+                         QVector<int>(Qt::DisplayRole));
 }
 
 void TableModelKaraokeSongs::markSongBad(QString path) {
@@ -436,6 +490,7 @@ void TableModelKaraokeSongs::markSongBad(QString path) {
                                              return (song->path == path);
                                          });
     m_filteredSongs.erase(newFilteredEnd, m_filteredSongs.end());
+    rebuildVisibleRows();
     emit layoutChanged();
 
     auto songEntry = std::find_if(m_allSongs.begin(), m_allSongs.end(),
@@ -444,6 +499,8 @@ void TableModelKaraokeSongs::markSongBad(QString path) {
                                          });
     if (songEntry != m_allSongs.end())
         songEntry->get()->bad = true;
+    invalidateSearchSnapshot();
+    search(m_lastSearch);
 }
 
 TableModelKaraokeSongs::DeleteStatus TableModelKaraokeSongs::removeBadSong(QString path) {
@@ -467,12 +524,16 @@ TableModelKaraokeSongs::DeleteStatus TableModelKaraokeSongs::removeBadSong(QStri
                                              });
         m_filteredSongs.erase(newFilteredEnd, m_filteredSongs.end());
 
+        rebuildVisibleRows();
         emit layoutChanged();
         auto newAllSongsEnd = std::remove_if(m_allSongs.begin(), m_allSongs.end(),
                                              [&path](const std::shared_ptr<okj::KaraokeSong> &song) {
                                                  return (song->path == path);
                                              });
         m_allSongs.erase(newAllSongsEnd, m_allSongs.end());
+        m_songsByPath.remove(path);
+        invalidateSearchSnapshot();
+        search(m_lastSearch);
 
         if (isCdg) {
             if (!QFile::remove(mediaFile)) {
@@ -539,6 +600,8 @@ int TableModelKaraokeSongs::addSong(okj::KaraokeSong song) {
         int lastInsertId = query.lastInsertId().toInt();
         song.id = lastInsertId;
         m_allSongs.push_back(std::make_shared<okj::KaraokeSong>(song));
+        m_songsByPath.insert(song.path, m_allSongs.back());
+        invalidateSearchSnapshot();
         search(m_lastSearch);
         return lastInsertId;
     }

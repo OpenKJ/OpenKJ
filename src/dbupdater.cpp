@@ -2,6 +2,8 @@
 #include "dbupdater.h"
 #include <array>
 #include <QSqlQuery>
+#include <QElapsedTimer>
+#include <spdlog/spdlog.h>
 #include <QFileInfo>
 #include <QDir>
 #include <QDirIterator>
@@ -184,7 +186,11 @@ void DbUpdater::addFilesToDatabase(const QList<QString> &files)
             QApplication::processEvents();
         }
     }
-    query.exec("COMMIT");
+    QElapsedTimer commitTimer;
+    commitTimer.start();
+    const bool committed = query.exec("COMMIT");
+    spdlog::get("logger")->info("[DatabaseTiming] Import commit: {} ms, files={}, success={}",
+                                commitTimer.elapsed(), files.size(), committed);
 
     emit progressMessage("Done processing new files.");
 

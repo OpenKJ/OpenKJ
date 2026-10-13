@@ -3,6 +3,8 @@
 
 #include <QObject>
 #include <QThread>
+#include <QSemaphore>
+#include <memory>
 #include <spdlog/spdlog.h>
 #include <spdlog/async_logger.h>
 #include <spdlog/fmt/ostr.h>
@@ -12,10 +14,12 @@ std::ostream& operator<<(std::ostream& os, const QString& s);
 class LazyDurationUpdateWorker : public QObject
 {
     Q_OBJECT
+public:
+    std::shared_ptr<QSemaphore> batchConsumed = std::make_shared<QSemaphore>();
 public slots:
-    void getDurations(const QStringList &files);
+    void getDurations(const QString &dbPath);
 signals:
-    void gotDuration(const QString&, unsigned int);
+    void durationsReady(const QStringList &paths, const QList<int> &durations);
 
 };
 
@@ -23,20 +27,17 @@ class LazyDurationUpdateController : public QObject
 {
     Q_OBJECT
     QThread workerThread;
-    QStringList files;
     std::string m_loggingPrefix{"[LazyDurationController]"};
     std::shared_ptr<spdlog::logger> m_logger;
 
 public:
     explicit LazyDurationUpdateController(QObject *parent = nullptr);
     ~LazyDurationUpdateController() override;
-    void getSongsRequiringUpdate();
     void stopWork();
 public slots:
-    void updateDbDuration(const QString& file, int duration);
     void getDurations();
 signals:
-    void operate(const QStringList &list);
+    void operate(const QString &dbPath);
     void gotDuration(const QString &path, unsigned int duration);
 };
 

@@ -1528,7 +1528,6 @@ void MainWindow::databaseUpdated() {
     m_settings.restoreColumnWidths(ui->tableViewDB);
     requestsDialog->databaseUpdateComplete();
     m_lazyDurationUpdater->stopWork();
-    m_lazyDurationUpdater->deleteLater();
     m_lazyDurationUpdater = std::make_unique<LazyDurationUpdateController>(this);
     connect(m_lazyDurationUpdater.get(), &LazyDurationUpdateController::gotDuration, &m_karaokeSongsModel,
             &TableModelKaraokeSongs::setSongDuration);

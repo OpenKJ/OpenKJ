@@ -6,6 +6,9 @@
 #include <QImage>
 #include <memory>
 #include <QTimer>
+#include <QHash>
+#include <QFutureWatcher>
+#include <atomic>
 #include "settings.h"
 #include <spdlog/spdlog.h>
 #include <spdlog/async_logger.h>
@@ -39,6 +42,7 @@ public:
     };
 
     explicit TableModelKaraokeSongs(QObject *parent = nullptr);
+    ~TableModelKaraokeSongs() override;
     [[nodiscard]] QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
     [[nodiscard]] int rowCount(const QModelIndex &parent) const override;
     [[nodiscard]] int columnCount(const QModelIndex &parent) const override;
@@ -64,6 +68,28 @@ private:
     std::shared_ptr<spdlog::logger> m_logger;
     std::vector<std::shared_ptr<okj::KaraokeSong>> m_filteredSongs;
     std::vector< std::shared_ptr<okj::KaraokeSong> > m_allSongs;
+    QHash<QString, std::weak_ptr<okj::KaraokeSong>> m_songsByPath;
+    QHash<int, int> m_visibleRows;
+    void rebuildVisibleRows();
+    // Immutable search fields: workers never read mutable song/model state.
+    struct SearchEntry {
+        QString all, artist, title;
+        int id;
+        bool excluded;
+        std::shared_ptr<okj::KaraokeSong> song;
+    };
+    struct SearchResult {
+        quint64 revision;
+        qint64 elapsedMs = 0;
+        std::vector<std::shared_ptr<okj::KaraokeSong>> songs;
+        QHash<int, int> rows;
+    };
+    std::shared_ptr<const std::vector<SearchEntry>> m_searchSnapshot;
+    QFutureWatcher<std::shared_ptr<SearchResult>> m_searchWatcher{this};
+    std::shared_ptr<std::atomic<quint64>> m_searchRevision = std::make_shared<std::atomic<quint64>>(0);
+    bool m_searchBusy = false;
+    bool m_searchPending = false;
+    void invalidateSearchSnapshot();
     QString m_lastSearch;
     int m_curFontHeight{0};
     QImage m_iconCdg;

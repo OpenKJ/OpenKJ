@@ -15,7 +15,8 @@ class MzArchive : public QObject
 public:
     explicit MzArchive(const QString &ArchiveFile, QObject *parent = nullptr);
     explicit MzArchive(QObject *parent = nullptr);
-    int getSongDuration();
+    // Batch scanners can report failures themselves without per-file warnings.
+    int getSongDuration(bool logErrors = true);
     void setArchiveFile(const QString &value);
     bool checkCDG();
     bool checkAudio();
@@ -29,7 +30,7 @@ private:
     QString archiveFile;
     QString audioExt;
     QString lastError;
-    bool findCDG();
+    bool findCDG(bool logErrors = true);
     bool findAudio();
     unsigned int m_audioFileIndex{0};
     unsigned int m_cdgFileIndex{0};
@@ -39,7 +40,7 @@ private:
     bool m_cdgSupportedCompression{true};
     bool m_cdgFound{false};
     bool m_audioFound{false};
-    bool findEntries();
+    bool findEntries(bool logErrors = true);
     QStringList audioExtensions;
     std::string m_loggingPrefix{"[MZArchive]"};
     std::shared_ptr<spdlog::logger> m_logger;

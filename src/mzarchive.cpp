@@ -22,12 +22,17 @@ MzArchive::MzArchive(QObject *parent) : QObject(parent)
     m_logger = spdlog::get("logger");
 }
 
-int MzArchive::getSongDuration()
+int MzArchive::getSongDuration(bool logErrors)
 {
-    if (findCDG())
-        return ((m_cdgSize / 96) / 75) * 1000;
-    else
+    if (!findCDG(logErrors)) {
+        if (lastError.isEmpty())
+            lastError = "CDG not found in zip file";
         return 0;
+    }
+    const int duration = ((m_cdgSize / 96) / 75) * 1000;
+    if (duration == 0)
+        lastError = "CDG entry is empty or too short to determine duration";
+    return duration;
 }
 
 void MzArchive::setArchiveFile(const QString &value)
@@ -185,11 +190,11 @@ QString MzArchive::getLastError()
     return lastError;
 }
 
-bool MzArchive::findCDG()
+bool MzArchive::findCDG(bool logErrors)
 {
     if (m_cdgFound)
         return true;
-    findEntries();
+    findEntries(logErrors);
     return m_cdgFound;
 }
 
@@ -199,7 +204,7 @@ bool MzArchive::findAudio()
     return m_audioFound;
 }
 
-bool MzArchive::findEntries()
+bool MzArchive::findEntries(bool logErrors)
 {
     if (m_audioFound && m_cdgFound)
         return true;
@@ -208,7 +213,13 @@ bool MzArchive::findEntries()
     zip_t *z = zip_open(archiveFile.toLocal8Bit().constData(), ZIP_RDONLY, &err);
     if (!z)
     {
-        m_logger->warn("{} Error opening zip file: {}", m_loggingPrefix, archiveFile);
+        zip_error_t zipError;
+        zip_error_init_with_code(&zipError, err);
+        lastError = QString::fromUtf8(zip_error_strerror(&zipError));
+        zip_error_fini(&zipError);
+        if (logErrors)
+            m_logger->warn("{} Error opening zip file: {} ({})",
+                           m_loggingPrefix, archiveFile, lastError);
         return false;
     }
 
