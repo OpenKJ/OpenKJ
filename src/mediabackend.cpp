@@ -377,6 +377,7 @@ GstFlowReturn MediaBackend::onNewVideoSample(
     gpointer userData)
 {
     auto *backend = static_cast<MediaBackend*>(userData);
+    const auto generation = backend->m_frameGeneration->load();
 
     GstSample *sample = gst_app_sink_pull_sample(sink);
     if (!sample)
@@ -421,8 +422,8 @@ GstFlowReturn MediaBackend::onNewVideoSample(
     gst_video_frame_unmap(&videoFrame);
     gst_sample_unref(sample);
 
-    if (!ownedImage.isNull())
-        emit backend->frameReady(ownedImage);
+    if (!ownedImage.isNull() && (generation & 1))
+        emit backend->frameReady(ownedImage, generation);
 
     return GST_FLOW_OK;
 }
@@ -448,7 +449,11 @@ void MediaBackend::setVideoOutputWidgets(
                     this,
                     &MediaBackend::frameReady,
                     display,
-                    &VideoDisplay::updateFrame,
+                    [frameGeneration = m_frameGeneration, display](const QImage &image, quint64 generation) {
+                        // A queued sample can outlive Stop or a track change.
+                        if ((generation & 1) && generation == frameGeneration->load())
+                            display->updateFrame(image);
+                    },
                     Qt::QueuedConnection
                 )
             );
@@ -674,6 +679,8 @@ if (m_cdgPipeline &&
 }
 
 void MediaBackend::play(bool startSilent) {
+    if (!(m_frameGeneration->load() & 1))
+        ++*m_frameGeneration;
     m_stopAfterFade = false;
     // Set gain before starting the pipeline, including silent playlist advances.
     if (startSilent)
@@ -1165,6 +1172,9 @@ void MediaBackend::stop(const bool &skipFade) {
 }
 
 void MediaBackend::rawStop() {
+    // Invalidate queued frames before waiting for the streaming threads to stop.
+    if (m_frameGeneration->load() & 1)
+        ++*m_frameGeneration;
     m_stopAfterFade = false;
     m_fader->immediateOut();
     // Prevent outstanding seek from restarting an old song.
@@ -1181,7 +1191,6 @@ void MediaBackend::rawStop() {
         gst_element_set_state(m_cdgPipeline, GST_STATE_NULL);
     }
     m_state = StoppedState;
-    emit stateChanged(m_state);
     for (auto* display : m_videoSinks) {
         if (display) {
             display->clearFrame();
@@ -1192,6 +1201,8 @@ void MediaBackend::rawStop() {
     m_cdgSyncTimer.invalidate();
     m_lastCdgSyncCheckMs = -1;
     m_lastCdgCorrectionMs = -1;
+    // Consumers may start another track synchronously. Complete cleanup first.
+    emit stateChanged(m_state);
 }
 
 void MediaBackend::setPitchShift(const int &pitchShift) {

@@ -124,6 +124,10 @@ private:
     bool m_videoEnabled{true};
     bool m_fade{false};
     bool m_stopAfterFade{false};
+    // Odd generations accept frames; even generations represent stopped playback.
+    // Streaming callbacks capture this before pulling a sample.
+    std::shared_ptr<std::atomic<quint64>> m_frameGeneration =
+        std::make_shared<std::atomic<quint64>>(0);
 
     // Connected display widgets
     QList<VideoDisplay*> m_videoSinks;
@@ -228,7 +232,7 @@ public slots:
     void setEnforceAspectRatio(const bool &enforce) {}
 
 signals:
-    void frameReady(const QImage &image);
+    void frameReady(const QImage &image, quint64 generation);
     void audioAvailableChanged(const bool audioAvailable);
     void bufferStatusChanged(const int status);
     void durationChanged(const qint64 duration);
