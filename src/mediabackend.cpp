@@ -1,5 +1,6 @@
 #include "mediabackend.h"
 #include "mzarchive.h"
+#include "localmediauri.h"
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -980,8 +981,8 @@ void MediaBackend::setMedia(const QString &filename) {
     // Clear any CDG stream left over from the previous song.
     g_object_set(G_OBJECT(m_pipeline), "suburi", nullptr, nullptr);
 
-    QString uri = "file://" + playPath;
-    g_object_set(G_OBJECT(m_pipeline), "uri", uri.toUtf8().constData(), nullptr);
+    const auto uri = localMediaUri(playPath);
+    g_object_set(G_OBJECT(m_pipeline), "uri", uri.constData(), nullptr);
     
     if (!m_cdgFilename.isEmpty()) {
         setupCdgPipeline(m_cdgFilename);
@@ -1029,8 +1030,8 @@ void MediaBackend::setMediaCdg(const QString &cdgFilename, const QString &audioF
 
         if (QFile::copy(audioFilename, targetAudio) && QFile::copy(cdgFilename, targetCdg)) {
             logStage("copying audio and CDG files");
-            QString uri = "file://" + targetAudio;
-            g_object_set(G_OBJECT(m_pipeline), "uri", uri.toUtf8().constData(), nullptr);
+            const auto uri = localMediaUri(targetAudio);
+            g_object_set(G_OBJECT(m_pipeline), "uri", uri.constData(), nullptr);
             g_object_set(G_OBJECT(m_pipeline), "suburi", nullptr, nullptr);
 
             // Use the copied CDG file in the temporary directory.

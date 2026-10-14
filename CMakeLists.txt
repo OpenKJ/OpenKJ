@@ -165,6 +165,7 @@ set(SOURCE_FILES
         src/dlgaddsong.h
         src/dlgvideopreview.h
         src/mediabackend.h
+        src/localmediauri.h
         src/mzarchive.h
         src/mediapreparation.h
         src/okjutil.h
