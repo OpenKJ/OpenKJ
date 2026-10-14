@@ -1,132 +1,114 @@
-name: Create MacOS Build & Installer
+name: Apple Silicon build and release
 
 on:
   push:
-    tags:
-      - '*.*.*'
+    branches: [macos-qt6-test]
+    tags: ['macos-v*']
+  pull_request:
+    branches: [macos-qt6-test]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  group: macos-build-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: macos-latest
-            arch: arm64
-          - os: macos-13
-            arch: x86_64
+    runs-on: macos-15
+    timeout-minutes: 90
     steps:
-    - uses: actions/checkout@v5
-      with:
-        submodules: recursive
+      - uses: actions/checkout@v5
+      - name: Validate release version
+        env:
+          RELEASE_REF: ${{ github.ref }}
+        run: |
+          python3 - <<'PYTHON'
+          import os, pathlib, re
+          ref = os.environ['RELEASE_REF']
+          if ref.startswith('refs/tags/'):
+              tag = ref.removeprefix('refs/tags/')
+              match = re.fullmatch(r'macos-v(\d+\.\d+\.\d+)-(?:prerelease|preview)\.\d+', tag)
+              if not match:
+                  raise SystemExit('Expected macos-vX.Y.Z-prerelease.N or macos-vX.Y.Z-preview.N')
+              header = pathlib.Path('src/okjversion.h').read_text()
+              version = re.search(r'OKJ_VERSION_STRING "([^"\n]+)"', header).group(1)
+              parts = [re.search(r'OKJ_VERSION_' + part + r' (\d+)', header).group(1)
+                       for part in ('MAJOR', 'MINOR', 'BUILD')]
+              if version != match[1] or '.'.join(parts) != version:
+                  raise SystemExit('Release tag and source version do not match')
+              notes = pathlib.Path('packaging/RELEASE_NOTES.md').read_text()
+              if not notes.startswith('# OpenKJ ' + version + ' —'):
+                  raise SystemExit('Update packaging/RELEASE_NOTES.md for this version')
+          PYTHON
+      - name: Set up native development dependencies
+        run: ./packaging/setup_macos.sh
+      - name: Build and run isolated runtime checks
+        run: |
+          source build-macos-deps/env.sh
+          cmake -S . -B build-macos-dev -DOPENKJ_BUILD_SMOKE_TESTS=ON
+          cmake --build build-macos-dev --target openkj-runtime-smoke --parallel 4
+          ctest --test-dir build-macos-dev --output-on-failure
+      - name: Build and sign standalone app
+        run: |
+          source build-macos-deps/env.sh
+          ./packaging/build_macos.sh
+      - name: Create and verify DMG
+        run: ./packaging/create_dmg.sh
+      - name: Prepare checksum and release notes
+        run: |
+          source build-macos-deps/env.sh
+          python3 - <<'PYTHON'
+          import hashlib, os, pathlib
+          dmg, = pathlib.Path('releases').glob('*.dmg')
+          digest = hashlib.file_digest(dmg.open('rb'), 'sha256').hexdigest()
+          dmg.with_suffix('.dmg.sha256').write_text(f'{digest}  {dmg.name}\n')
+          notes = pathlib.Path('packaging/RELEASE_NOTES.md').read_text()
+          source = os.environ['GITHUB_SERVER_URL'] + '/' + os.environ['GITHUB_REPOSITORY'] + '/commit/' + os.environ['GITHUB_SHA']
+          notes += f'\nSource: [release commit]({source}).\n\nDMG SHA-256: `{digest}`\n'
+          pathlib.Path('releases/RELEASE_NOTES.md').write_text(notes)
+          PYTHON
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OpenKJ-macos-arm64
+          path: releases/
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: macos-build-environment
+          path: build-macos-deps/environment.txt
+          if-no-files-found: ignore
 
-    - uses: lukka/get-cmake@latest
-
-    - name: Get version from git tag
-      id: get_version
-      uses: dhkatz/get-version-action@v3.0.0
-
-    - name: Get OpenKJ version being built
-      run: |
-        if [ "${{ steps.get_version.outputs.prerelease }}" = "" ];then
-          RTYPE="release"
-          BRANCH="release"
-        elif [ "${{ steps.get_version.outputs.prerelease }}" = "unstable" ];then
-          RTYPE="unstable"
-          BRANCH="unstable"
-        else
-          RTYPE=${{ steps.get_version.outputs.prerelease }}
-          BRANCH="unstable"
-        fi
-        OKJVER=${{ steps.get_version.outputs.version-without-v }}
-        FN="OpenKJ-${OKJVER}-osx-${{ matrix.arch }}.pkg"
-        echo "installer_fn=${FN}" >> $GITHUB_ENV
-        echo "rtype=${RTYPE}" >> $GITHUB_ENV
-        echo "branch=${BRANCH}" >> $GITHUB_ENV
-
-    - name: Update files with new version info
-      if: steps.get_version.outputs.is-semver == 'true'
-      run: |
-        MAJOR=${{ steps.get_version.outputs.major }}
-        MINOR=${{ steps.get_version.outputs.minor }}
-        PATCH=${{ steps.get_version.outputs.patch }}
-        BRANCH=${{ env.rtype }}
-
-        echo "Updating okjversion.h"
-        echo "#ifndef OKJVERSION_H" > src/okjversion.h
-        echo "#define OKJVERSION_H" >> src/okjversion.h
-        echo >> src/okjversion.h
-        echo "#define OKJ_VERSION_MAJOR ${{ steps.get_version.outputs.major }}" >> src/okjversion.h
-        echo "#define OKJ_VERSION_MINOR ${{ steps.get_version.outputs.minor }}" >> src/okjversion.h
-        echo "#define OKJ_VERSION_BUILD ${{ steps.get_version.outputs.patch }}" >> src/okjversion.h
-        echo "#define OKJ_VERSION_STRING \"${{ steps.get_version.outputs.major }}.${{ steps.get_version.outputs.minor }}.${{ steps.get_version.outputs.patch }}\"" >> src/okjversion.h
-        echo "#define OKJ_VERSION_BRANCH \"${{ env.rtype }}\"" >> src/okjversion.h
-        echo >> src/okjversion.h
-        echo "#endif //OKJVERSION_H" >> src/okjversion.h
-      shell: bash
-
-    - name: install deps
-      run: |
-        brew install cmake ninja pkgconf cppunit utf8cpp qt
-        brew install --cask vlc
-        QT_PREFIX=$(brew --prefix qt)
-        echo "QT_PREFIX=${QT_PREFIX}" >> $GITHUB_ENV
-
-    - name: Build
-      env:
-        LDFLAGS: "-L${{ env.QT_PREFIX }}/lib"
-        CPPFLAGS: "-I${{ env.QT_PREFIX }}/include"
-        PKG_CONFIG_PATH: "${{ env.QT_PREFIX }}/lib/pkgconfig"
-        QT_DIR: "${{ env.QT_PREFIX }}/"
-      run: |
-        cmake -DSPDLOG_USE_BUNDLED=true -DCMAKE_BUILD_TYPE=Release . -B build -G Ninja
-        ninja -C build
-
-    - name: Upload app
-      uses: actions/upload-artifact@v4
-      with:
-        path: build/openkj.app
-        name: openkj-app-${{ matrix.arch }}
-
-    - name: Create installer
-      working-directory: ${{github.workspace}}/build
-      run: |
-        mkdir -p fakeroot/Applications
-        mv "openkj.app" fakeroot/Applications/OpenKJ.app
-        pkgbuild --root "fakeroot" --component-plist ../macos/openkj.plist --identifier "org.openkj.openkj" ${{ env.installer_fn }}
-
-#  Disabled notarization because gstreamer doesn't ship hardened runtimes so it's pointelss to try as long as we're bundling gstreamer
-#    - name: "Notarize Release Build"
-#      uses: devbotsxyz/xcode-notarize@v1
-#      with:
-#        product-path: ${{ github.workspace }}/build/${{ env.installer_fn }}
-#        primary-bundle-id: org.openkj.openkj
-#        appstore-connect-username: ${{ secrets.APPLE_APP_STORE_CONNECT_USER }}
-#        appstore-connect-password: ${{ secrets.APPLE_APP_STORE_CONNECT_PASS }}
-
-#    - name: "Staple Release Build"
-#      uses: devbotsxyz/xcode-staple@v1
-#      with:
-#        product-path: ${{ github.workspace }}/build/${{ env.installer_fn }}
-
-    - name: Upload to OpenKJ website
-      id: upload_installer
-      if: steps.get_version.outputs.is-semver == 'true'
-      uses: google-github-actions/upload-cloud-storage@main
-      with:
-        credentials: ${{ secrets.gcp_credentials }}
-        path: ${{ github.workspace }}/build/${{ env.installer_fn }}
-        destination: openkj-installers/macos/${{ env.branch }}
-
-    - name: Release
-      uses: softprops/action-gh-release@v2
-      if: steps.get_version.outputs.is-semver == 'true'
-      with:
-        files: ${{ github.workspace }}/build/${{ env.installer_fn }}
-        prerelease: ${{ env.rtype != 'release' }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  publish:
+    if: startsWith(github.ref, 'refs/tags/macos-v') && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: OpenKJ-macos-arm64
+          path: release
+      - name: Attach verified DMG and publish prerelease
+        working-directory: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          sha256sum --check -- *.dmg.sha256
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            # Do not overwrite an already published asset on a rerun.
+            gh release upload "$RELEASE_TAG" ./*.dmg ./*.dmg.sha256
+          else
+            VERSION="${RELEASE_TAG#macos-v}"
+            VERSION="${VERSION%%-*}"
+            gh release create "$RELEASE_TAG" --verify-tag --draft --prerelease --latest=false \
+              --title "OpenKJ $VERSION — Apple Silicon Pre-release" --notes-file RELEASE_NOTES.md
+            gh release upload "$RELEASE_TAG" ./*.dmg ./*.dmg.sha256
+            gh release edit "$RELEASE_TAG" --draft=false
+          fi

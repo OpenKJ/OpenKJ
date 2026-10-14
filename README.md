@@ -38,41 +38,35 @@ Database entries for the songs are based on the file naming scheme. Custom patte
 
 ## Building OpenKJ
 
-OpenKJ is built using CMake and requires a C++20 compliant compiler, Qt6, and LibVLC. 
+OpenKJ is built using CMake and requires a C++20 compliant compiler, Qt 6, and GStreamer (including the SoundTouch pitch plugin).
 *Note: `spdlog`, `libzip`, and `taglib` are automatically fetched and built statically using CPM (CMake Package Manager) during configuration.*
 
 ### Requirements
 - **Qt 6** (Core, Gui, Sql, Network, NetworkAuth, Widgets, Concurrent, Svg, PrintSupport, Multimedia, WebSockets)
-- **LibVLC** (3.0+)
+- **GStreamer** (the macOS setup uses 1.28.x), with audio/video plugins and SoundTouch
 - **CMake** (3.14+)
 - **Ninja** or **Make**
 
 ---
 
-### **macOS**
+### **macOS (Apple Silicon)**
 
-1. **Install Dependencies** (using Homebrew):
-   ```bash
-   brew install cmake ninja pkgconf cppunit utf8cpp qt
-   brew install --cask vlc
-   ```
+Install Apple's Command Line Tools and native Homebrew, then run:
 
-2. **Configure & Build**:
-   ```bash
-   # Get the Qt installation prefix from Homebrew
-   QT_PREFIX=$(brew --prefix qt)
+```bash
+./packaging/setup_macos.sh
+source build-macos-deps/env.sh
+cmake --build build-macos-dev --parallel 4
+```
 
-   # Configure the build directory
-   cmake -DSPDLOG_USE_BUNDLED=true -DCMAKE_BUILD_TYPE=Release -DBUILDONLY=True -DCMAKE_PREFIX_PATH=$QT_PREFIX -B build -G Ninja
-
-   # Compile the app
-   cmake --build build
-   ```
-   The built `openkj.app` bundle will be located inside the `build/` directory.
+The setup builds the required SoundTouch plugin inside the checkout, configures
+Qt/GStreamer, and records installed dependency versions. See
+[macOS development and automated releases](packaging/MACOS_DEVELOPMENT.md)
+for first-machine setup, IDE use, checks, standalone app packaging, and DMGs.
 
 ---
 
-### **Linux**
+### **Linux (legacy instructions; not validated against this branch)**
 
 #### Ubuntu / Debian
 1. **Install Dependencies**:
@@ -102,19 +96,9 @@ cmake --build build
 
 ---
 
-### **Windows**
+### **Windows (initial Qt 6 development build)**
 
-1. **Install Dependencies**:
-   - **Visual Studio 2022**: Install with the "Desktop development with C++" workload (MSVC compiler).
-   - **Qt 6**: Install via the Qt Online Installer. Select the **MSVC 2022 64-bit** compiler component, along with modules for **SVG**, **Network Auth**, **Multimedia**, and **WebSockets**.
-   - **CMake** and **Ninja** (available via Visual Studio installer, or standalone).
-   - **LibVLC SDK**: Download the 64-bit VLC zip file (VLC 3.x) from VideoLAN and extract it to a directory, e.g., `C:/vlc-sdk`.
-
-2. **Configure & Build** (Run inside the **x64 Native Tools Command Prompt for VS 2022**):
-   ```cmd
-   # Configure the build directory (pointing to the extracted LibVLC SDK)
-   cmake -B build -DCMAKE_BUILD_TYPE=Release -DLIBVLC_SDK_PATH="C:/vlc-sdk" -G Ninja
-
-   # Compile the application
-   cmake --build build
-   ```
+The initial Windows x64 build uses a consistent MSYS2 UCRT64 compiler, Qt 6 and
+GStreamer stack. See [Windows development](packaging/WINDOWS_DEVELOPMENT.md)
+for setup commands, CI checks, and the native testing checklist. This is not yet
+a standalone Windows release or installer.

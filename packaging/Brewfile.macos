@@ -1,0 +1,10 @@
+# Native Apple Silicon development and packaging dependencies.
+# App dependencies spdlog, libzip and TagLib are fetched by CMake/CPM.
+brew "cmake"
+brew "ninja"
+brew "pkgconf"
+brew "meson"
+brew "python@3.14"
+brew "qt"
+brew "gstreamer"
+brew "sound-touch"

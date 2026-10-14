@@ -262,6 +262,15 @@ set(LIBRARIES
         Qt6::WebSockets
 )
 
+option(OPENKJ_BUILD_SMOKE_TESTS "Build isolated Qt/SQLite/GStreamer runtime checks" OFF)
+if(OPENKJ_BUILD_SMOKE_TESTS)
+    enable_testing()
+    add_executable(openkj-runtime-smoke packaging/runtime_smoke.cpp)
+    target_link_libraries(openkj-runtime-smoke PRIVATE Qt6::Widgets Qt6::Sql ${GSTREAMER_LIBRARIES})
+    add_test(NAME runtime-smoke COMMAND openkj-runtime-smoke)
+    set_tests_properties(runtime-smoke PROPERTIES TIMEOUT 45 ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+endif()
+
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     add_executable(openkj
             ${SOURCE_FILES}
@@ -357,8 +366,17 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
     # Development builds use Homebrew's runtime plus the locally built
     # SoundTouch plugin. Packaging relocates this plugin's dependencies later.
+    set(_openkj_soundtouch_default
+        "${CMAKE_CURRENT_SOURCE_DIR}/build-macos-deps/soundtouch-1.28.8/ext/soundtouch/libgstsoundtouch.dylib")
+    if(NOT EXISTS "${_openkj_soundtouch_default}")
+        set(_openkj_soundtouch_default
+            "${CMAKE_CURRENT_SOURCE_DIR}/../gstreamer-build/gstreamer/build-soundtouch-standalone/ext/soundtouch/libgstsoundtouch.dylib")
+    endif()
+    if(DEFINED ENV{SOUNDTOUCH_PLUGIN})
+        set(_openkj_soundtouch_default "$ENV{SOUNDTOUCH_PLUGIN}")
+    endif()
     set(OPENKJ_SOUNDTOUCH_PLUGIN
-        "${CMAKE_CURRENT_SOURCE_DIR}/../gstreamer-build/gstreamer/build-soundtouch-standalone/ext/soundtouch/libgstsoundtouch.dylib"
+        "${_openkj_soundtouch_default}"
         CACHE FILEPATH "Custom GStreamer SoundTouch plugin for macOS")
     if(EXISTS "${OPENKJ_SOUNDTOUCH_PLUGIN}")
         add_custom_command(TARGET openkj POST_BUILD

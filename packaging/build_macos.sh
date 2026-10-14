@@ -12,14 +12,21 @@ GST_PREFIX="$(brew --prefix gstreamer)"
 QT_PREFIX="$(brew --prefix qt)"
 MACDEPLOYQT="$QT_PREFIX/bin/macdeployqt"
 GST_SOURCE="$GST_PREFIX/lib/gstreamer-1.0"
-SOUNDTOUCH_PLUGIN="${SOUNDTOUCH_PLUGIN:-$HOME/Developer/gstreamer-build/gstreamer/build-soundtouch-standalone/ext/soundtouch/libgstsoundtouch.dylib}"
+LOCAL_SOUNDTOUCH="$ROOT/build-macos-deps/soundtouch-1.28.8/ext/soundtouch/libgstsoundtouch.dylib"
+if [[ -f "$LOCAL_SOUNDTOUCH" ]]; then
+  SOUNDTOUCH_PLUGIN="${SOUNDTOUCH_PLUGIN:-$LOCAL_SOUNDTOUCH}"
+else
+  # Preserve the original developer setup until setup_macos.sh has been run.
+  SOUNDTOUCH_PLUGIN="${SOUNDTOUCH_PLUGIN:-$HOME/Developer/gstreamer-build/gstreamer/build-soundtouch-standalone/ext/soundtouch/libgstsoundtouch.dylib}"
+fi
 
 for file in "$MACDEPLOYQT" "$SOUNDTOUCH_PLUGIN" "$GST_PREFIX/libexec/gstreamer-1.0/gst-plugin-scanner"; do
   [[ -f "$file" ]] || { echo "Missing required file: $file" >&2; exit 1; }
 done
 
 echo '[1/8] Build OpenKJ'
-cmake -S "$ROOT" -B "$BUILD"
+cmake -S "$ROOT" -B "$BUILD" -DCMAKE_PREFIX_PATH="$QT_PREFIX" \
+  -DOPENKJ_SOUNDTOUCH_PLUGIN="$SOUNDTOUCH_PLUGIN"
 cmake --build "$BUILD" --parallel 4
 [[ -d "$SOURCE_APP" ]] || { echo "Missing compiled app: $SOURCE_APP" >&2; exit 1; }
 

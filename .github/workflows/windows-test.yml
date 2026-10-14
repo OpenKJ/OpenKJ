@@ -1,88 +1,77 @@
-name: Windows build test
+name: Windows Qt 6 build test
 
 on:
   push:
-    branches: [ master ]
+    branches: [macos-qt6-test]
   pull_request:
-    branches: [ master ]
+    branches: [macos-qt6-test]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: windows-qt6-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   build:
-    name: Windows Builds
     runs-on: windows-2025
-    strategy:
-      matrix:
-        include:
-          - windows-arch: 64
-            bits: 64
-            arch: x86_64
-            msvcarch: x64
-            qtarch: win64_msvc2019_64
-
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: msys2 {0}
     steps:
-    - uses: actions/checkout@v5
-      with:
-        submodules: recursive
-
-    - uses: seanmiddleditch/gha-setup-ninja@master
-
-    - name: Download GST Installer
-      uses: carlosperate/download-file-action@v2
-      id: download-gst
-      with:
-        file-url: 'https://gstreamer.freedesktop.org/data/pkg/windows/1.27.1/mingw/gstreamer-1.0-mingw-${{ matrix.arch }}-1.27.1.msi'
-        file-name: 'gstreamer.msi'
-        location: './downloads'
-
-    - name: Download GST-Dev Installer
-      uses: carlosperate/download-file-action@v2
-      id: download-gst-dev
-      with:
-        file-url: 'https://gstreamer.freedesktop.org/data/pkg/windows/1.27.1/mingw/gstreamer-1.0-devel-mingw-${{ matrix.arch }}-1.27.1.msi'
-        file-name: 'gstreamer-devel.msi'
-        location: './downloads'
-
-    - name: Install GST
-      shell: powershell
-      run: |
-        start-process -wait msiexec -argumentlist '/q /i ${{ steps.download-gst.outputs.file-path }} ADDLOCAL=ALL'
-        start-sleep 10
-        start-process -wait msiexec -argumentlist '/q /i ${{ steps.download-gst-dev.outputs.file-path }} ADDLOCAL=ALL'
-        start-sleep 10
-
-    - name: Install Qt
-      uses: jurplel/install-qt-action@v4
-      with:
-       version: '5.15.2'
-       arch: ${{ matrix.qtarch }}
-       modules: 'qtnetworkauth'
-       archives: 'qtbase qtsvg'
-
-    - name: Create Build Environment
-      run: cmake -E make_directory ${{github.workspace}}/build
-
-    - name: Set up Visual Studio shell
-      uses: egor-tensin/vs-shell@v2
-      with:
-        arch: ${{ matrix.msvcarch }}
-
-    - name: Configure CMake
-      shell: cmd
-      working-directory: ${{github.workspace}}/build
-      run: |
-        cmake .. -DCMAKE_BUILD_TYPE=Release -G Ninja
-
-    - name: Build
-      working-directory: ${{github.workspace}}/build
-      shell: bash
-      run: cmake --build .
-
-    - name: Upload executable artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: Windows ${{ matrix.arch }} binary
-        path: build/openkj.exe
+      - uses: actions/checkout@v5
+      - name: Install matching UCRT64 compiler, Qt 6 and GStreamer
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            git
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-pkgconf
+            mingw-w64-ucrt-x86_64-qt6-base
+            mingw-w64-ucrt-x86_64-qt6-svg
+            mingw-w64-ucrt-x86_64-qt6-networkauth
+            mingw-w64-ucrt-x86_64-qt6-multimedia
+            mingw-w64-ucrt-x86_64-qt6-websockets
+            mingw-w64-ucrt-x86_64-gstreamer
+            mingw-w64-ucrt-x86_64-gst-plugins-base
+            mingw-w64-ucrt-x86_64-gst-plugins-good
+            mingw-w64-ucrt-x86_64-gst-plugins-bad
+            mingw-w64-ucrt-x86_64-gst-libav
+      - name: Record development environment
+        run: |
+          mkdir -p build-windows-dev
+          pacman -Q > build-windows-dev/environment.txt
+          cmake --version
+          g++ --version
+          pkg-config --modversion gstreamer-1.0
+          gst-inspect-1.0 pitch
+          gst-inspect-1.0 equalizer-10bands
+      - name: Configure Qt 6 build
+        run: >-
+          cmake -S . -B build-windows-dev -G Ninja
+          -DCMAKE_BUILD_TYPE=Release -DOPENKJ_BUILD_SMOKE_TESTS=ON
+      - name: Build application and runtime checks
+        run: cmake --build build-windows-dev --parallel 4
+      - name: Check Qt, SQLite, CDG and SoundTouch audio
+        run: ctest --test-dir build-windows-dev --output-on-failure
+      - name: Upload development build and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenKJ-Windows-x64-development
+          path: |
+            build-windows-dev/*.exe
+            build-windows-dev/*.dll
+            build-windows-dev/platforms/
+            build-windows-dev/sqldrivers/
+            build-windows-dev/environment.txt
+            build-windows-dev/Testing/Temporary/LastTest.log
+            build-windows-dev/CMakeFiles/CMakeConfigureLog.yaml
+          if-no-files-found: warn
