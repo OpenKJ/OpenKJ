@@ -49,7 +49,7 @@ ctest --test-dir build-macos-dev --output-on-failure
 ./packaging/create_dmg.sh
 ```
 
-The isolated smoke check tests Qt widgets, SQLite, required GStreamer elements,
+The isolated smoke check tests Qt widgets, ZIP creation/readback, SQLite, required GStreamer elements,
 SoundTouch/EQ audio processing, and synthetic CDG decoding. It never opens the
 real song library or settings. It does not replace a show test with audio output,
 external displays, pitch/tempo changes, break music, recording and real media.

@@ -75,6 +75,9 @@ CPMAddPackage(
       "WITH_MP4 ON"
 )
 if(taglib_ADDED)
+    # TagLib 1.x sets this only while compiling itself; static consumers need it
+    # too, otherwise Windows expects DLL import symbols from the static archive.
+    target_compile_definitions(tag INTERFACE TAGLIB_STATIC)
     target_include_directories(tag INTERFACE
         ${taglib_SOURCE_DIR}
         ${taglib_SOURCE_DIR}/taglib
@@ -271,7 +274,7 @@ option(OPENKJ_BUILD_SMOKE_TESTS "Build isolated Qt/SQLite/GStreamer runtime chec
 if(OPENKJ_BUILD_SMOKE_TESTS)
     enable_testing()
     add_executable(openkj-runtime-smoke packaging/runtime_smoke.cpp)
-    target_link_libraries(openkj-runtime-smoke PRIVATE Qt6::Widgets Qt6::Sql ${GSTREAMER_LIBRARIES})
+    target_link_libraries(openkj-runtime-smoke PRIVATE Qt6::Widgets Qt6::Sql zip ${GSTREAMER_LIBRARIES})
     add_test(NAME runtime-smoke COMMAND openkj-runtime-smoke)
     set_tests_properties(runtime-smoke PROPERTIES TIMEOUT 45 ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 endif()

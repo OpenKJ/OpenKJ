@@ -5,8 +5,46 @@
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QTemporaryFile>
+#include <QTemporaryDir>
 #include <QWidget>
 #include <gst/gst.h>
+#include <zip.h>
+
+static bool checkZip()
+{
+    QTemporaryDir directory;
+    if (!directory.isValid())
+        return false;
+    const auto path = directory.filePath(QString::fromUtf8("ZIP test café.zip")).toUtf8();
+    int error = 0;
+    auto *archive = zip_open(path.constData(), ZIP_CREATE | ZIP_TRUNCATE, &error);
+    if (!archive)
+        return false;
+    const QByteArray payload("OpenKJ ZIP round trip");
+    auto *source = zip_source_buffer(archive, payload.constData(), payload.size(), 0);
+    if (!source || zip_file_add(archive, "track.cdg", source, 0) < 0) {
+        if (source)
+            zip_source_free(source);
+        zip_discard(archive);
+        return false;
+    }
+    if (zip_close(archive) < 0) {
+        zip_discard(archive);
+        return false;
+    }
+    archive = zip_open(path.constData(), ZIP_RDONLY, &error);
+    if (!archive)
+        return false;
+    auto *file = zip_fopen(archive, "track.cdg", 0);
+    char buffer[64];
+    const auto count = file ? zip_fread(file, buffer, sizeof(buffer)) : -1;
+    const bool ok = count == payload.size() && QByteArray(buffer, count) == payload;
+    if (file)
+        zip_fclose(file);
+    if (zip_close(archive) < 0)
+        zip_discard(archive);
+    return ok;
+}
 
 static bool runPipeline(const QString &description)
 {
@@ -44,6 +82,10 @@ static bool runPipeline(const QString &description)
 int main(int argc, char **argv)
 {
     QApplication app(argc, argv);
+    if (!checkZip()) {
+        qCritical() << "ZIP creation/readback failed";
+        return 1;
+    }
     QWidget widget;
     widget.resize(320, 200);
     widget.show();
@@ -94,6 +136,6 @@ int main(int argc, char **argv)
     if (!runPipeline("filesrc location=\"" + path +
                      "\" ! cdgparse ! cdgdec ! videoconvert ! fakesink sync=false"))
         return 1;
-    qInfo() << "PASS: Qt GUI, SQLite, required media plugins, SoundTouch/EQ audio, and CDG decoding";
+    qInfo() << "PASS: Qt GUI, ZIP round trip, SQLite, required media plugins, SoundTouch/EQ audio, and CDG decoding";
     return 0;
 }

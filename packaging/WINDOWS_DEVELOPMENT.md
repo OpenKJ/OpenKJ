@@ -46,7 +46,7 @@ are recorded by `pacman -Q` in each CI run; they are not frozen.
 
 `windows-test.yml` builds on `windows-2025` for branch pushes and pull requests
 targeting `macos-qt6-test`, and supports manual runs. It checks Qt widgets,
-SQLite database access, required media factories, SoundTouch/EQ processing, and
+ZIP creation/readback, SQLite database access, required media factories, SoundTouch/EQ processing, and
 synthetic CDG decoding without opening the real application database.
 
 After compilation and smoke checks succeed, test MP3+G ZIPs and MP4s, pause/seek,
