@@ -1,18 +1,21 @@
-# OpenKJ 2.2.2 — Apple Silicon Pre-release
+# OpenKJ 2.2.3 — Apple Silicon Pre-release
 
 Experimental native ARM64 build for Apple Silicon Macs, using Qt 6.
 
 **This unofficial prerelease is ad-hoc signed. It is not Developer ID signed or notarized by Apple.**
 
-## Changes in 2.2.2
+## Changes in 2.2.3
 
-- Background song-duration analysis now selects songs and saves results on a worker thread, using small batches to keep the interface responsive.
-- Database searches run asynchronously. Progressive typing replaces obsolete searches with the latest query.
-- Indexed song lookups eliminate full-library scans while scrolling singer history and updating durations.
-- Removed the duplicate library refresh after imports and added timing diagnostics.
-- Failed ZIP duration checks are attempted once per scan, with detailed warnings limited to five examples and remaining failures summarized.
-- Regular singer exports include source-directory paths, with import path mapping for transferring libraries between machines.
-- CDG preview playback and preview audio muting fixes.
+- Initial library loading and reloading run asynchronously, with indexed lookups for large libraries.
+- Editing, renaming, or downloading individual songs updates the affected records without reloading the entire library.
+- Fixed file renaming when configured source-directory paths have trailing separators or equivalent path forms.
+- Song preparation, ZIP extraction, video copying, and playback startup move blocking work off the UI thread.
+- Improved CDG/audio startup synchronization and prevented late CDG frames from covering the idle logo after stopping playback.
+- Break music continues silently during karaoke playback and returns afterward, including when crossfade is enabled.
+- Fixed autoplay advancement and added a status-bar countdown for the next song.
+- Fixed rotation-duration totals to use available song durations.
+- Audio recording initializes capture only when requested, avoiding unnecessary microphone access while recording is disabled.
+- Added library-loading and background duration-analysis status, including the remaining queue count, on the right side of the status bar.
 
 Responsiveness improvements were verified with a synthetic 450,000-song library and user testing with a similarly sized library during playback.
 
@@ -28,7 +31,7 @@ Responsiveness improvements were verified with a synthetic 450,000-song library 
 
 - Apple Silicon Macs only; no Intel, Windows, or Linux installer in this prerelease.
 - Minimum supported macOS version has not yet been established.
-- Initial library loading and explicit sorting still run on the UI thread and can pause it with large libraries.
+- Sleeping external drives can still delay song loading while they spin up.
 - Additional media formats have not all been tested.
 - Recording music volume and incremental window-resizing behavior remain known issues.
 - Back up your existing database before trying a prerelease.
