@@ -25,7 +25,8 @@ pacman -S --needed git \
   mingw-w64-ucrt-x86_64-qt6-networkauth mingw-w64-ucrt-x86_64-qt6-multimedia \
   mingw-w64-ucrt-x86_64-qt6-websockets mingw-w64-ucrt-x86_64-gstreamer \
   mingw-w64-ucrt-x86_64-gst-plugins-base mingw-w64-ucrt-x86_64-gst-plugins-good \
-  mingw-w64-ucrt-x86_64-gst-plugins-bad mingw-w64-ucrt-x86_64-gst-libav
+  mingw-w64-ucrt-x86_64-gst-plugins-bad mingw-w64-ucrt-x86_64-gst-plugins-rs \
+  mingw-w64-ucrt-x86_64-gst-libav
 
 git clone --branch macos-qt6-test https://github.com/EquinoxEarth/OpenKJ.git
 cd OpenKJ
@@ -38,6 +39,8 @@ ctest --test-dir build-windows-dev --output-on-failure
 ```
 
 Run the executable from UCRT64 so it can find the installed GStreamer runtime.
+The Rust plugin package supplies `cdgparse` and `cdgdec`; it is required for CDG
+playback even though OpenKJ itself is a C++ application.
 The CI artifact contains the development executable, Qt deployment files and
 diagnostics, **not a standalone GStreamer distribution**. Downloading just the
 executable onto a clean Windows PC is not sufficient. MSYS2 package versions

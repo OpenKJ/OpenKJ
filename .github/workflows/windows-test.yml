@@ -43,6 +43,7 @@ jobs:
             mingw-w64-ucrt-x86_64-gst-plugins-base
             mingw-w64-ucrt-x86_64-gst-plugins-good
             mingw-w64-ucrt-x86_64-gst-plugins-bad
+            mingw-w64-ucrt-x86_64-gst-plugins-rs
             mingw-w64-ucrt-x86_64-gst-libav
       - name: Record development environment
         run: |
@@ -51,8 +52,9 @@ jobs:
           cmake --version
           g++ --version
           pkg-config --modversion gstreamer-1.0
-          gst-inspect-1.0 pitch
-          gst-inspect-1.0 equalizer-10bands
+          for element in pitch equalizer-10bands cdgparse cdgdec avdec_h264; do
+            gst-inspect-1.0 "$element"
+          done
       - name: Configure Qt 6 build
         run: >-
           cmake -S . -B build-windows-dev -G Ninja

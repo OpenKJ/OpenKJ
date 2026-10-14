@@ -48,9 +48,10 @@ static bool checkZip()
     const bool ok = count == payload.size() && QByteArray(buffer, count) == payload;
     if (file)
         zip_fclose(file);
-    if (zip_close(archive) < 0)
+    const bool closed = zip_close(archive) == 0;
+    if (!closed)
         zip_discard(archive);
-    return ok;
+    return ok && closed;
 }
 
 static bool runPipeline(const QString &description)
@@ -89,6 +90,10 @@ static bool runPipeline(const QString &description)
 int main(int argc, char **argv)
 {
     stage("initialize Qt GUI");
+    qInstallMessageHandler([](QtMsgType, const QMessageLogContext &, const QString &message) {
+        std::fprintf(stderr, "%s\n", message.toUtf8().constData());
+        std::fflush(stderr);
+    });
     QApplication app(argc, argv);
     stage("ZIP creation and readback");
     if (!checkZip()) {
@@ -146,6 +151,7 @@ int main(int argc, char **argv)
     if (cdg.write(packets) != packets.size() || !cdg.flush())
         return 1;
     QString path = cdg.fileName();
+    cdg.close(); // Release the writer before GStreamer opens the file on Windows.
     path.replace('\\', "\\\\");
     path.replace('"', "\\\"");
     if (!runPipeline("filesrc location=\"" + path +
