@@ -6,6 +6,7 @@
 #include <QUuid>
 #include <QElapsedTimer>
 #include <QVariant>
+#include <QScopeGuard>
 #include "mzarchive.h"
 #include "karaokefileinfo.h"
 #include <QFileInfo>
@@ -14,6 +15,8 @@
 
 void LazyDurationUpdateWorker::getDurations(const QString &dbPath, const QStringList &onlyPaths)
 {
+    emit scanStarted();
+    QString scanError;
     const QString connectionName = "duration-" + QUuid::createUuid().toString();
     {
         auto db = QSqlDatabase::addDatabase("QSQLITE", connectionName);
@@ -22,6 +25,7 @@ void LazyDurationUpdateWorker::getDurations(const QString &dbPath, const QString
         auto run = [&]() {
             auto logger = spdlog::get("logger");
             if (!db.open()) {
+                scanError = db.lastError().text();
                 logger->error("[LazyDurationThread] Database open failed: {}", db.lastError().text().toStdString());
                 return;
             }
@@ -33,6 +37,7 @@ void LazyDurationUpdateWorker::getDurations(const QString &dbPath, const QString
                 query.setForwardOnly(true);
                 if (onlyPaths.isEmpty()) {
                     if (!query.exec("SELECT path FROM dbsongs WHERE duration < 1 ORDER BY artist, title")) {
+                        scanError = query.lastError().text();
                         logger->error("[LazyDurationThread] Selection failed: {}", query.lastError().text().toStdString());
                         return;
                     }
@@ -48,6 +53,7 @@ void LazyDurationUpdateWorker::getDurations(const QString &dbPath, const QString
                             return;
                         query.bindValue(":path", path);
                         if (!query.exec()) {
+                            scanError = query.lastError().text();
                             logger->error("[LazyDurationThread] Song selection failed: {}", query.lastError().text().toStdString());
                             return;
                         }
@@ -69,6 +75,16 @@ void LazyDurationUpdateWorker::getDurations(const QString &dbPath, const QString
             qsizetype missing = 0;
             qsizetype failed = 0;
             qsizetype zipFailed = 0;
+            qint64 processed = 0;
+            QElapsedTimer progressTimer;
+            progressTimer.start();
+            const auto reportProgress = [&](bool force) {
+                if (force || progressTimer.elapsed() >= 250) {
+                    emit scanProgress(processed, files.size(), updated, missing, failed);
+                    progressTimer.restart();
+                }
+            };
+            reportProgress(true);
             constexpr qsizetype zipWarningLimit = 5;
 
             QStringList batchPaths;
@@ -88,6 +104,7 @@ void LazyDurationUpdateWorker::getDurations(const QString &dbPath, const QString
                 if (ok)
                     ok = db.commit();
                 if (!ok) {
+                    scanError = query.lastError().text() + " / " + db.lastError().text();
                     logger->error("{} Duration batch write failed: {} / {}", loggingPrefix,
                                   query.lastError().text().toStdString(), db.lastError().text().toStdString());
                     db.rollback();
@@ -115,6 +132,11 @@ void LazyDurationUpdateWorker::getDurations(const QString &dbPath, const QString
                     logger->info("{} Scan interrupted", loggingPrefix);
                     break;
                 }
+
+                const auto progressGuard = qScopeGuard([&] {
+                    ++processed;
+                    reportProgress(false);
+                });
 
                 // Do not attempt to analyze inaccessible media.
                 // Preserve the database entry for disconnected drives.
@@ -159,6 +181,7 @@ void LazyDurationUpdateWorker::getDurations(const QString &dbPath, const QString
             if (!writeFailed && !QThread::currentThread()->isInterruptionRequested())
                 flush();
 
+            reportProgress(true);
             logger->info(
                 "{} Scan finished: updated={}, missing={}, failed={}, zipFailed={}, zipWarningsSuppressed={}",
                 loggingPrefix, updated, missing, failed, zipFailed,
@@ -169,6 +192,7 @@ void LazyDurationUpdateWorker::getDurations(const QString &dbPath, const QString
         db.close();
     }
     QSqlDatabase::removeDatabase(connectionName);
+    emit scanFinished(QThread::currentThread()->isInterruptionRequested(), scanError);
 }
 
 LazyDurationUpdateController::LazyDurationUpdateController(QObject *parent) : QObject(parent) {
@@ -186,6 +210,22 @@ LazyDurationUpdateController::LazyDurationUpdateController(QObject *parent) : QO
         }
         consumed->release();
     });
+    connect(worker, &LazyDurationUpdateWorker::scanStarted, this, [this] {
+        if (!workerThread.isInterruptionRequested())
+            emit scanStarted();
+    });
+    connect(worker, &LazyDurationUpdateWorker::scanProgress, this,
+            [this](qint64 processed, qint64 total, qint64 updated, qint64 missing, qint64 failed) {
+        if (!workerThread.isInterruptionRequested())
+            emit scanProgress(processed, total, updated, missing, failed);
+    });
+    connect(worker, &LazyDurationUpdateWorker::scanFinished, this, [this](bool cancelled, const QString &error) {
+        if (!workerThread.isInterruptionRequested()) {
+            m_pendingJobs = qMax(0, m_pendingJobs - 1);
+            if (m_pendingJobs == 0 || !error.isEmpty())
+                emit scanFinished(cancelled, error);
+        }
+    });
     workerThread.start();
     workerThread.setPriority(QThread::IdlePriority);
 }
@@ -199,15 +239,26 @@ LazyDurationUpdateController::~LazyDurationUpdateController() {
 void LazyDurationUpdateController::stopWork()
 {
     workerThread.requestInterruption();
+    if (m_pendingJobs > 0) {
+        m_pendingJobs = 0;
+        emit scanFinished(true, {});
+    }
 }
 
 void LazyDurationUpdateController::getDurations()
 {
+    if (workerThread.isInterruptionRequested())
+        return;
+    if (++m_pendingJobs == 1)
+        emit scanStarted();
     emit operate(QSqlDatabase::database().databaseName(), {});
 }
 
 void LazyDurationUpdateController::getSongDuration(const QString &path)
 {
-    if (!path.isEmpty())
+    if (!path.isEmpty() && !workerThread.isInterruptionRequested()) {
+        if (++m_pendingJobs == 1)
+            emit scanStarted();
         emit operate(QSqlDatabase::database().databaseName(), {path});
+    }
 }

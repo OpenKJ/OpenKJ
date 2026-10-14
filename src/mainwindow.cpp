@@ -626,17 +626,22 @@ MainWindow::MainWindow(QWidget *parent) :
     setMouseTracking(true);
     m_songShop = std::make_unique<SongShop>(this);
     m_lazyDurationUpdater = std::make_unique<LazyDurationUpdateController>(this);
+    connectDurationScanStatus();
     m_timerLazyDurationStart.setSingleShot(true);
     m_timerLazyDurationStart.setInterval(50);
     connect(&m_timerLazyDurationStart, &QTimer::timeout, this, &MainWindow::restartLazyDurationScan);
     // Connect before the initial load: construction still processes some UI events.
     connect(&m_karaokeSongsModel, &TableModelKaraokeSongs::libraryLoadStarted, this, [this] {
+        m_libraryLoadFailed = false;
+        updateDatabaseStatus();
         ui->labelLibraryLoading->setText(tr("Loading song library…"));
         ui->labelLibraryLoading->show();
         m_timerLazyDurationStart.stop();
         m_lazyDurationUpdater->stopWork();
     });
     connect(&m_karaokeSongsModel, &TableModelKaraokeSongs::libraryLoadFinished, this, [this](bool success) {
+        m_libraryLoadFailed = !success;
+        updateDatabaseStatus();
         ui->labelLibraryLoading->setVisible(!success || m_karaokeSongsModel.isLoading());
         if (!success)
             ui->labelLibraryLoading->setText(tr("Could not load song library. See the log for details."));
@@ -739,9 +744,11 @@ MainWindow::MainWindow(QWidget *parent) :
     m_rotModel.setHeaderData(3, Qt::Horizontal, "");
     m_rotModel.setHeaderData(4, Qt::Horizontal, "");
     m_logger->info("{} Adding singer count to status bar", m_loggingPrefix);
+    ui->statusBar->setContentsMargins(12, 0, 12, 0);
     ui->statusBar->addWidget(&m_labelSingerCount);
     ui->statusBar->addWidget(&m_labelRotationDuration);
     ui->statusBar->addWidget(&m_labelAutoplayStatus);
+    ui->statusBar->addPermanentWidget(&m_labelDatabaseStatus);
     m_tableModelPlaylists = std::make_unique<QSqlTableModel>(this, m_database);
     m_tableModelPlaylists->setTable("bmplaylists");
     m_tableModelPlaylists->sort(2, Qt::AscendingOrder);
@@ -788,6 +795,7 @@ MainWindow::MainWindow(QWidget *parent) :
     setupShortcuts();
     setupConnections();
     updateAutoplayStatus();
+    updateDatabaseStatus();
     m_timerSlowUiUpdate.start(10000);
 }
 
@@ -978,6 +986,7 @@ void MainWindow::setupConnections() {
     connect(m_updateChecker.get(), &UpdateChecker::newVersionAvailable, this, &MainWindow::newVersionAvailable);
     connect(&m_timerButtonFlash, &QTimer::timeout, this, &MainWindow::timerButtonFlashTimeout);
     connect(&m_timerButtonFlash, &QTimer::timeout, this, &MainWindow::updateAutoplayStatus);
+    connect(&m_timerButtonFlash, &QTimer::timeout, this, &MainWindow::updateDatabaseStatus);
 
     connect(ui->actionSong_Shop, &QAction::triggered, [&]() { show(); });
     connect(&m_qModel, &TableModelQueueSongs::filesDroppedOnSinger, this, &MainWindow::filesDroppedOnQueue);
@@ -1633,6 +1642,7 @@ void MainWindow::restartLazyDurationScan() {
     }
     m_lazyDurationUpdater->stopWork();
     m_lazyDurationUpdater = std::make_unique<LazyDurationUpdateController>(this);
+    connectDurationScanStatus();
     connect(m_lazyDurationUpdater.get(), &LazyDurationUpdateController::gotDuration, &m_karaokeSongsModel,
             &TableModelKaraokeSongs::setSongDuration);
     connect(m_lazyDurationUpdater.get(), &LazyDurationUpdateController::gotDuration, requestsDialog.get(),
@@ -3871,6 +3881,66 @@ void MainWindow::tableViewRotationCurrentChanged(const QModelIndex &cur, const Q
         QApplication::processEvents();
         autosizeQueueCols();
         m_settings.restoreColumnWidths(ui->tableViewQueue);
+    }
+}
+
+void MainWindow::connectDurationScanStatus() {
+    connect(m_lazyDurationUpdater.get(), &LazyDurationUpdateController::scanStarted, this, [this] {
+        m_durationScanState = DurationScanState::Selecting;
+        m_durationScanError.clear();
+        m_durationProcessed = m_durationTotal = m_durationUpdated = m_durationMissing = m_durationFailed = 0;
+        updateDatabaseStatus();
+    });
+    connect(m_lazyDurationUpdater.get(), &LazyDurationUpdateController::scanProgress, this,
+            [this](qint64 processed, qint64 total, qint64 updated, qint64 missing, qint64 failed) {
+        m_durationScanState = DurationScanState::Scanning;
+        m_durationProcessed = processed;
+        m_durationTotal = total;
+        m_durationUpdated = updated;
+        m_durationMissing = missing;
+        m_durationFailed = failed;
+        updateDatabaseStatus();
+    });
+    connect(m_lazyDurationUpdater.get(), &LazyDurationUpdateController::scanFinished, this,
+            [this](bool cancelled, const QString &error) {
+        m_durationScanError = error;
+        m_durationScanState = !error.isEmpty() ? DurationScanState::Failed :
+            cancelled ? DurationScanState::Stopped : DurationScanState::Idle;
+        updateDatabaseStatus();
+    });
+}
+
+void MainWindow::updateDatabaseStatus() {
+    if (m_shuttingDown)
+        return;
+    const auto summary = tr("Duration scan: %1 of %2 checked; %3 updated, %4 inaccessible, %5 failed.")
+        .arg(QLocale().toString(m_durationProcessed), QLocale().toString(m_durationTotal),
+             QLocale().toString(m_durationUpdated), QLocale().toString(m_durationMissing), QLocale().toString(m_durationFailed));
+    if (m_karaokeSongsModel.isLoading() || (requestsDialog && requestsDialog->isLibraryLoading())) {
+        m_labelDatabaseStatus.setText(tr("Database: Loading library…"));
+        m_labelDatabaseStatus.setToolTip(tr("Loading the song library in the background."));
+    } else if (m_libraryLoadFailed) {
+        m_labelDatabaseStatus.setText(tr("Database: Load failed"));
+        m_labelDatabaseStatus.setToolTip(tr("The song library could not be loaded. See the log for details."));
+    } else {
+        switch (m_durationScanState) {
+        case DurationScanState::Selecting:
+            m_labelDatabaseStatus.setText(tr("Database: Finding missing durations…"));
+            break;
+        case DurationScanState::Scanning:
+            m_labelDatabaseStatus.setText(tr("Durations: %1 remaining").arg(QLocale().toString(qMax(qint64(0), m_durationTotal - m_durationProcessed))));
+            break;
+        case DurationScanState::Stopped:
+            m_labelDatabaseStatus.setText(tr("Database: Duration scan stopped"));
+            break;
+        case DurationScanState::Failed:
+            m_labelDatabaseStatus.setText(tr("Database: Duration scan failed"));
+            break;
+        case DurationScanState::Idle:
+            m_labelDatabaseStatus.setText(tr("Database: Ready"));
+            break;
+        }
+        m_labelDatabaseStatus.setToolTip(m_durationScanError.isEmpty() ? summary : m_durationScanError + "\n" + summary);
     }
 }
 

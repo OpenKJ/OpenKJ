@@ -107,6 +107,14 @@ private:
     QLabel m_labelSingerCount;
     QLabel m_labelRotationDuration;
     QLabel m_labelAutoplayStatus;
+    QLabel m_labelDatabaseStatus;
+    enum class DurationScanState { Idle, Selecting, Scanning, Stopped, Failed };
+    DurationScanState m_durationScanState{DurationScanState::Idle};
+    qint64 m_durationProcessed{0}, m_durationTotal{0}, m_durationUpdated{0}, m_durationMissing{0}, m_durationFailed{0};
+    bool m_libraryLoadFailed{false};
+    QString m_durationScanError;
+    void updateDatabaseStatus();
+    void connectDurationScanStatus();
     void updateAutoplayStatus();
     QTimer m_timerKaraokeAA;
     QTimer m_timerSlowUiUpdate;

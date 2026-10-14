@@ -19,6 +19,9 @@ public:
 public slots:
     void getDurations(const QString &dbPath, const QStringList &onlyPaths);
 signals:
+    void scanStarted();
+    void scanProgress(qint64 processed, qint64 total, qint64 updated, qint64 missing, qint64 failed);
+    void scanFinished(bool cancelled, const QString &error);
     void durationsReady(const QStringList &paths, const QList<int> &durations);
 
 };
@@ -29,6 +32,7 @@ class LazyDurationUpdateController : public QObject
     QThread workerThread;
     std::string m_loggingPrefix{"[LazyDurationController]"};
     std::shared_ptr<spdlog::logger> m_logger;
+    int m_pendingJobs{0};
 
 public:
     explicit LazyDurationUpdateController(QObject *parent = nullptr);
@@ -38,6 +42,9 @@ public slots:
     void getDurations();
     void getSongDuration(const QString &path);
 signals:
+    void scanStarted();
+    void scanProgress(qint64 processed, qint64 total, qint64 updated, qint64 missing, qint64 failed);
+    void scanFinished(bool cancelled, const QString &error);
     void operate(const QString &dbPath, const QStringList &onlyPaths);
     void gotDuration(const QString &path, unsigned int duration);
 };
