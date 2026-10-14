@@ -63,6 +63,7 @@ private:
     bool m_sliderBmPositionPressed{false};
     bool m_shuttingDown{false};
     bool m_kAASkip{false};
+    bool m_karaokePlaybackActive{false};
     bool m_k2kTransition{false};
     bool m_kHasActiveVideo{false};
     bool m_bmHasActiveVideo{false};
@@ -105,6 +106,8 @@ private:
     AudioRecorder audioRecorder;
     QLabel m_labelSingerCount;
     QLabel m_labelRotationDuration;
+    QLabel m_labelAutoplayStatus;
+    void updateAutoplayStatus();
     QTimer m_timerKaraokeAA;
     QTimer m_timerSlowUiUpdate;
     QTimer m_timerLazyDurationStart;
