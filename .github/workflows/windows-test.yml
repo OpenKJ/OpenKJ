@@ -62,6 +62,9 @@ jobs:
       - name: Check Qt, SQLite, CDG and SoundTouch audio
         run: |
           export QT_DEBUG_PLUGINS=1
+          # windeployqt deploys qwindows for the app; the headless check also
+          # needs qoffscreen from the installed SDK's plugin directory.
+          export QT_PLUGIN_PATH="$(qmake6 -query QT_INSTALL_PLUGINS)"
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File packaging/run_windows_checks.ps1
       - name: Upload development build and diagnostics
         if: always()

@@ -32,6 +32,7 @@ cd OpenKJ
 cmake -S . -B build-windows-dev -G Ninja \
   -DCMAKE_BUILD_TYPE=Release -DOPENKJ_BUILD_SMOKE_TESTS=ON
 cmake --build build-windows-dev --parallel 4
+export QT_PLUGIN_PATH="$(qmake6 -query QT_INSTALL_PLUGINS)"
 ctest --test-dir build-windows-dev --output-on-failure
 ./build-windows-dev/openkj.exe
 ```
