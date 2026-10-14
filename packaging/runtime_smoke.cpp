@@ -9,6 +9,13 @@
 #include <QWidget>
 #include <gst/gst.h>
 #include <zip.h>
+#include <cstdio>
+
+static void stage(const char *message)
+{
+    std::fprintf(stderr, "Runtime check: %s\n", message);
+    std::fflush(stderr);
+}
 
 static bool checkZip()
 {
@@ -81,15 +88,19 @@ static bool runPipeline(const QString &description)
 
 int main(int argc, char **argv)
 {
+    stage("initialize Qt GUI");
     QApplication app(argc, argv);
+    stage("ZIP creation and readback");
     if (!checkZip()) {
         qCritical() << "ZIP creation/readback failed";
         return 1;
     }
+    stage("show offscreen widget");
     QWidget widget;
     widget.resize(320, 200);
     widget.show();
     app.processEvents();
+    stage("SQLite plugin and queries");
     auto db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName(":memory:");
     if (!db.open()) {
@@ -105,7 +116,9 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    stage("initialize GStreamer");
     gst_init(nullptr, nullptr);
+    stage("find media elements");
     for (const auto *name : {"playbin", "pitch", "scaletempo", "equalizer-10bands",
              "audiopanorama", "volume", "autoaudiosink", "appsink", "cdgparse",
              "cdgdec", "qtdemux", "avdec_h264"}) {
@@ -116,10 +129,12 @@ int main(int argc, char **argv)
         }
         gst_object_unref(factory);
     }
+    stage("process SoundTouch and EQ audio");
     if (!runPipeline("audiotestsrc num-buffers=12 ! audioconvert ! pitch pitch=1.1 ! "
                      "scaletempo ! equalizer-10bands band0=3 ! audiopanorama ! volume ! fakesink"))
         return 1;
 
+    stage("decode CDG");
     QTemporaryFile cdg;
     if (!cdg.open())
         return 1;

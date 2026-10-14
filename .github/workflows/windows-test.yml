@@ -60,7 +60,9 @@ jobs:
       - name: Build application and runtime checks
         run: cmake --build build-windows-dev --parallel 4
       - name: Check Qt, SQLite, CDG and SoundTouch audio
-        run: ctest --test-dir build-windows-dev --output-on-failure
+        run: |
+          export QT_DEBUG_PLUGINS=1
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File packaging/run_windows_checks.ps1
       - name: Upload development build and diagnostics
         if: always()
         uses: actions/upload-artifact@v4
