@@ -4,8 +4,9 @@ The first Windows target from `macos-qt6-test` is **Windows x64, MSYS2 UCRT64**.
 Compiler, Qt 6 and GStreamer must come from that same environment. Do not mix
 MSVC Qt libraries with MinGW GStreamer, as the old workflow did.
 
-This is a development build, not a Windows release or installer. It needs native
-Windows testing before being used to host a show. The macOS pipeline and custom
+The native development build has passed the host's full-library import and
+singer-rotation testing. A portable experimental preview is now staged in CI;
+the ZIP still needs a clean-machine playback check before public release. The macOS pipeline and custom
 SoundTouch build remain unchanged. MSYS2 supplies the same upstream SoundTouch
 `pitch` element on Windows; the workflow verifies that it is available.
 Windows builds pin libzip 1.11.4 for corrected Windows callback types accepted
@@ -57,4 +58,35 @@ After compilation and smoke checks succeed, test MP3+G ZIPs and MP4s, pause/seek
 startup synchronization, Stop/track changes, pitch/tempo, both EQ tabs, break
 music/crossfades, secondary displays, autoplay, recording permissions, large
 library search/edits, and media paths containing spaces and non-ASCII text.
-Windows runtime bundling and an installer follow native playback validation.
+The preview ZIP below is the first distribution format; an installer can follow
+after testing the portable runtime on a machine without the development SDK.
+
+## Portable preview ZIP
+
+The `OpenKJ-Windows-x64-preview` CI artifact contains a ZIP and its SHA-256 hash.
+Extract the whole ZIP, then double-click `openkj.exe` inside the extracted
+folder. This bundle includes Qt, the GStreamer plugins/scanner, FFmpeg,
+SoundTouch and their native DLL dependencies; it does not need an MSYS2 install.
+It is unsigned and experimental. Keep all DLLs and subfolders beside the EXE.
+It uses your normal OpenKJ settings and database; back them up before testing.
+
+To stage the same folder locally from UCRT64, install its native Python:
+
+```bash
+pacman -S --needed mingw-w64-ucrt-x86_64-python
+python packaging/package_windows.py --prefix /ucrt64
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File packaging/check_windows_bundle.ps1
+```
+
+Staging requires a fresh `dist/OpenKJ-Windows-x64-preview` destination. It copies
+the deployed Qt plugins and installed GStreamer plugin set, follows PE imports
+recursively, and fails on unresolved dependencies or MSYS runtime binaries.
+It includes license notices, package versions and a per-file hash manifest.
+CI checks this exact folder using only Windows system paths, a fresh GStreamer
+registry and the bundled plugin scanner, then archives it. The check exercises
+the shared bundle-path configuration used by the application.
+
+The automated check uses offscreen Qt and fake audio/video outputs. Repeat
+physical playback, recording and display tests on a Windows PC without MSYS2
+before treating the portable preview as release-ready. Public distribution
+also requires reviewing the included dependency notices/source requirements.

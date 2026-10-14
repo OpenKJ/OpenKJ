@@ -13,6 +13,7 @@
 #include <QDataStream>
 #include <QFile>
 #include "localmediauri.h"
+#include "bundledruntime.h"
 
 static void stage(const char *message)
 {
@@ -125,6 +126,7 @@ int main(int argc, char **argv)
     }
 
     stage("initialize GStreamer");
+    configureWindowsBundledGStreamer();
     gst_init(nullptr, nullptr);
     stage("find media elements");
     for (const auto *name : {"playbin", "pitch", "scaletempo", "equalizer-10bands",

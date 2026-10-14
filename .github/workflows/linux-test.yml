@@ -1,0 +1,78 @@
+name: Fedora Qt 6 build test
+
+on:
+  push:
+    branches: [macos-qt6-test]
+  pull_request:
+    branches: [macos-qt6-test]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fedora-qt6-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    container: fedora:44
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Install checkout tools
+        run: dnf install -y git tar gzip findutils
+      - uses: actions/checkout@v5
+      - name: Enable full media codecs in the disposable test container
+        run: |
+          dnf install -y https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-44.noarch.rpm
+          dnf install -y libavcodec-freeworld
+      - name: Set up Fedora development environment
+        run: bash packaging/setup_fedora.sh --install-deps
+      - name: Build application and runtime checks
+        run: cmake --build build-linux-dev --parallel 4
+      - name: Check Qt, SQLite, local media, CDG and SoundTouch audio
+        run: |
+          source build-linux-deps/env.sh
+          ctest --test-dir build-linux-dev --output-on-failure -V
+      - name: Stage native Fedora development build
+        run: |
+          cmake --install build-linux-dev --prefix "$PWD/build-linux-dev/stage/usr"
+          cp -R build-linux-deps/plugins build-linux-dev/stage/runtime
+          cp build-linux-deps/environment.txt LICENSE packaging/LINUX_DEVELOPMENT.md build-linux-dev/stage/
+          mkdir -p build-linux-dev/stage/third-party
+          cp build-linux-dev/_deps/libzip-src/LICENSE build-linux-dev/stage/third-party/libzip-LICENSE
+          cp build-linux-dev/_deps/taglib-src/COPYING.* build-linux-dev/stage/third-party/
+          cp build-linux-dev/_deps/spdlog-src/LICENSE build-linux-dev/stage/third-party/spdlog-LICENSE
+          cp build-linux-dev/_deps/spdlog-src/include/spdlog/fmt/bundled/LICENSE.rst build-linux-dev/stage/third-party/fmt-LICENSE
+          if [ -f build-linux-deps/plugins/libgstcdg.so ]; then
+            cp build-linux-deps/gst-plugins-rs/LICENSE-{MIT,APACHE} build-linux-dev/stage/third-party/
+          fi
+          cat > build-linux-dev/stage/run-openkj.sh <<'LAUNCHER'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          directory="$(cd -- "$(dirname -- "$0")" && pwd)"
+          export GST_PLUGIN_PATH_1_0="$directory/runtime${GST_PLUGIN_PATH_1_0:+:$GST_PLUGIN_PATH_1_0}"
+          exec "$directory/usr/bin/openkj" "$@"
+          LAUNCHER
+          chmod +x build-linux-dev/stage/run-openkj.sh
+          tar -C build-linux-dev/stage -czf build-linux-dev/OpenKJ-Fedora44-x86_64-development.tar.gz .
+      - name: Upload Fedora development build
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenKJ-Fedora44-x86_64-development
+          path: build-linux-dev/OpenKJ-Fedora44-x86_64-development.tar.gz
+          if-no-files-found: error
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenKJ-Fedora44-diagnostics
+          path: |
+            build-linux-deps/environment.txt
+            build-linux-deps/*.txt
+            build-linux-dev/Testing/Temporary/LastTest.log
+            build-linux-dev/CMakeFiles/CMakeConfigureLog.yaml

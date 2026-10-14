@@ -15,6 +15,7 @@
 #include "idledetect.h"
 #include "runguard/runguard.h"
 #include "okjversion.h"
+#include "bundledruntime.h"
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/async_logger.h>
@@ -226,6 +227,7 @@ int main(int argc, char *argv[]) {
     //QLoggingCategory::setFilterRules("*.debug=true");
     qInstallMessageHandler(myMessageOutput);
     QApplication a(argc, argv);
+    configureWindowsBundledGStreamer();
     #ifdef Q_OS_MACOS
     configureBundledGStreamer();
     #endif

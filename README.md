@@ -66,39 +66,17 @@ for first-machine setup, IDE use, checks, standalone app packaging, and DMGs.
 
 ---
 
-### **Linux (legacy instructions; not validated against this branch)**
+### **Linux (Fedora Qt 6 development build)**
 
-#### Ubuntu / Debian
-1. **Install Dependencies**:
-   ```bash
-   sudo apt update
-   sudo apt install build-essential cmake ninja-build pkg-config \
-                    qt6-base-dev qt6-svg-dev qt6-multimedia-dev \
-                    qt6-networkauth-dev qt6-websockets-dev libvlc-dev
-   ```
-
-#### Fedora
-1. **Install Dependencies** (Note: `vlc-devel` requires the **RPM Fusion Free** repository to be enabled):
-   ```bash
-   sudo dnf install cmake ninja-build gcc-c++ pkgconfig \
-                    qt6-qtbase-devel qt6-qtsvg-devel qt6-qtmultimedia-devel \
-                    qt6-qtnetworkauth-devel qt6-qtwebsockets-devel vlc-devel
-   ```
-
-#### Build Commands
-```bash
-# Configure the build directory
-cmake -DSPDLOG_USE_BUNDLED=true -DCMAKE_BUILD_TYPE=Release -B build -G Ninja
-
-# Compile the application
-cmake --build build
-```
+The initial Linux target is Fedora 44 x86_64, using Qt 6 and GStreamer with
+SoundTouch, CDG and FFmpeg codecs. See [Fedora development](packaging/LINUX_DEVELOPMENT.md)
+for dependency setup, native builds, automated runtime checks and the development
+artifact. VLC is not required.
 
 ---
 
-### **Windows (initial Qt 6 development build)**
+### **Windows (Qt 6 development and portable preview)**
 
-The initial Windows x64 build uses a consistent MSYS2 UCRT64 compiler, Qt 6 and
-GStreamer stack. See [Windows development](packaging/WINDOWS_DEVELOPMENT.md)
-for setup commands, CI checks, and the native testing checklist. This is not yet
-a standalone Windows release or installer.
+Windows x64 uses a consistent MSYS2 UCRT64 compiler, Qt 6 and GStreamer stack.
+See [Windows development and portable preview](packaging/WINDOWS_DEVELOPMENT.md)
+for setup, runtime checks and the self-contained experimental ZIP produced by CI.

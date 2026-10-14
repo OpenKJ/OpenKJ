@@ -34,6 +34,7 @@ jobs:
             mingw-w64-ucrt-x86_64-cmake
             mingw-w64-ucrt-x86_64-ninja
             mingw-w64-ucrt-x86_64-pkgconf
+            mingw-w64-ucrt-x86_64-python
             mingw-w64-ucrt-x86_64-qt6-base
             mingw-w64-ucrt-x86_64-qt6-svg
             mingw-w64-ucrt-x86_64-qt6-networkauth
@@ -68,6 +69,25 @@ jobs:
           # needs qoffscreen from the installed SDK's plugin directory.
           export QT_PLUGIN_PATH="$(qmake6 -query QT_INSTALL_PLUGINS)"
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File packaging/run_windows_checks.ps1
+      - name: Stage self-contained Windows preview
+        run: python packaging/package_windows.py --prefix /ucrt64
+      - name: Check bundled runtime without installed SDK paths
+        shell: pwsh
+        run: ./packaging/check_windows_bundle.ps1
+      - name: Archive Windows preview
+        shell: pwsh
+        run: |
+          Compress-Archive -Path dist/OpenKJ-Windows-x64-preview -DestinationPath dist/OpenKJ-Windows-x64-preview.zip
+          (Get-FileHash dist/OpenKJ-Windows-x64-preview.zip -Algorithm SHA256).Hash.ToLower() + '  OpenKJ-Windows-x64-preview.zip' |
+            Set-Content dist/OpenKJ-Windows-x64-preview.zip.sha256
+      - name: Upload self-contained Windows preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenKJ-Windows-x64-preview
+          path: |
+            dist/OpenKJ-Windows-x64-preview.zip
+            dist/OpenKJ-Windows-x64-preview.zip.sha256
+          if-no-files-found: error
       - name: Upload development build and diagnostics
         if: always()
         uses: actions/upload-artifact@v4

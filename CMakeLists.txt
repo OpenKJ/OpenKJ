@@ -97,6 +97,7 @@ set(GSTREAMER_LIBRARIES ${GSTREAMER_LIBRARIES})
 
 set(SOURCE_FILES
         src/main.cpp
+        src/bundledruntime.h
         src/dlgaddsong.cpp
         src/mediabackend.cpp
         src/mzarchive.cpp
@@ -449,7 +450,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
     # -------------------------------------------------------------------------
     # Step 1: Run windeployqt to copy Qt DLLs and plugins next to the .exe.
-    # This always runs so every build (local and CI) is self-contained.
+    # GStreamer and its dependencies are staged separately by package_windows.py.
     # -------------------------------------------------------------------------
     get_target_property(_qt6_qmake_location Qt6::qmake IMPORTED_LOCATION)
     execute_process(
