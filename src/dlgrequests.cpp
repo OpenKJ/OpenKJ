@@ -109,6 +109,14 @@ void DlgRequests::databaseUpdateComplete() {
     autoSizeViews();
 }
 
+void DlgRequests::setSongDuration(const QString &path, unsigned int duration) {
+    dbModel.setSongDuration(path, duration);
+}
+
+void DlgRequests::refreshLibrarySong(int songId) {
+    dbModel.refreshSong(songId);
+}
+
 void DlgRequests::databaseSongAdded() {
     dbModel.loadData();
 }

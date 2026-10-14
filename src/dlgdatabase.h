@@ -61,6 +61,7 @@ signals:
     void databaseUpdateComplete();
     void databaseCleared();
     void databaseSongAdded();
+    void songChanged(int songId);
 
 public slots:
     void singleSongAdd(const QString &path);

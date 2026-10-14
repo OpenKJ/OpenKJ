@@ -17,7 +17,7 @@ class LazyDurationUpdateWorker : public QObject
 public:
     std::shared_ptr<QSemaphore> batchConsumed = std::make_shared<QSemaphore>();
 public slots:
-    void getDurations(const QString &dbPath);
+    void getDurations(const QString &dbPath, const QStringList &onlyPaths);
 signals:
     void durationsReady(const QStringList &paths, const QList<int> &durations);
 
@@ -36,8 +36,9 @@ public:
     void stopWork();
 public slots:
     void getDurations();
+    void getSongDuration(const QString &path);
 signals:
-    void operate(const QString &dbPath);
+    void operate(const QString &dbPath, const QStringList &onlyPaths);
     void gotDuration(const QString &path, unsigned int duration);
 };
 

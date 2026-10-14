@@ -61,8 +61,14 @@ TableModelKaraokeSongs::TableModelKaraokeSongs(QObject *parent)
                 m_pendingLibrary.reset();
                 m_durationsDuringLoad.clear();
                 m_historyDuringLoad.clear();
+                m_recordsDuringLoad.clear();
+                m_snapshotChanges.clear();
                 installedLibrary = true;
             } else {
+                if (result->snapshot) {
+                    m_searchSnapshot.swap(result->snapshot);
+                    m_snapshotChanges.clear();
+                }
                 beginResetModel();
             }
             m_filteredSongs.swap(result->songs);
@@ -95,6 +101,7 @@ TableModelKaraokeSongs::TableModelKaraokeSongs(QObject *parent)
             releaseOffThread(std::move(data));
             m_durationsDuringLoad.clear();
             m_historyDuringLoad.clear();
+            m_recordsDuringLoad.clear();
             emit libraryLoadFailed(error);
             emit libraryLoadFinished(false);
             search(m_lastSearch);
@@ -127,6 +134,7 @@ TableModelKaraokeSongs::~TableModelKaraokeSongs() {
 }
 
 void TableModelKaraokeSongs::invalidateSearchSnapshot() {
+    m_snapshotChanges.clear();
     releaseOffThread(std::move(m_searchSnapshot));
     ++*m_searchRevision;
 }
@@ -282,6 +290,7 @@ void TableModelKaraokeSongs::loadData() {
     if (!m_loadBusy && !m_pendingLibrary) {
         m_durationsDuringLoad.clear();
         m_historyDuringLoad.clear();
+        m_recordsDuringLoad.clear();
     }
     ++*m_loadRevision;
     ++*m_searchRevision;
@@ -291,6 +300,62 @@ void TableModelKaraokeSongs::loadData() {
     emit libraryLoadStarted();
     if (!m_loadBusy)
         startLibraryLoad();
+}
+
+bool TableModelKaraokeSongs::refreshSong(int songId) {
+    QSqlQuery query;
+    query.prepare("SELECT songid,artist,title,discid,duration,filename,path,searchstring,plays,lastplay FROM dbsongs WHERE songid=:id");
+    query.bindValue(":id", songId);
+    if (!query.exec() || !query.next()) {
+        m_logger->warn("{} Unable to refresh song {}: {}", m_loggingPrefix, songId, query.lastError().text().toStdString());
+        return false;
+    }
+    const okj::KaraokeSong record{
+        query.value(0).toInt(),
+        query.value(1).toString(), query.value(1).toString().toLower(),
+        query.value(2).toString(), query.value(2).toString().toLower(),
+        query.value(3).toString(), query.value(3).toString().toLower(),
+        query.value(4).toInt(), query.value(5).toString(), query.value(6).toString(),
+        query.value(7).toString().replace('&', " and ").toLower(),
+        query.value(8).toInt(), query.value(9).toDateTime(),
+        query.value(3).toString() == "!!BAD!!", query.value(3).toString() == "!!DROPPED!!"
+    };
+    applySongRecord(record);
+    return true;
+}
+
+void TableModelKaraokeSongs::applySongRecord(const okj::KaraokeSong &record) {
+    if (isLoading())
+        m_recordsDuringLoad.insert(record.id, record);
+    auto song = findSongById(record.id);
+    if (song) {
+        m_songsByPath.remove(song->path);
+        const auto old = std::find(m_allSongs.begin(), m_allSongs.end(), song);
+        if (old != m_allSongs.end())
+            m_allSongs.erase(old);
+        *song = record; // Preserve shared references held by views and menus.
+    } else {
+        song = std::make_shared<okj::KaraokeSong>(record);
+    }
+    const auto position = std::lower_bound(m_allSongs.begin(), m_allSongs.end(), song,
+        [this](const auto &a, const auto &b) {
+            return m_sortOrder == Qt::AscendingOrder ? songLess(a, b, m_sortColumn) : songLess(b, a, m_sortColumn);
+        });
+    const int beforeId = position == m_allSongs.end() ? -1 : (*position)->id;
+    m_allSongs.insert(position, song);
+    m_songsByPath.insert(song->path, song);
+    m_songsById.insert(song->id, song);
+    if (m_searchSnapshot) {
+        // Copy and update the large immutable snapshot in the search worker,
+        // retaining only small, ordered edits on the GUI thread.
+        m_snapshotChanges.push_back({{song->searchString,
+            QString(song->artistL).replace('&', " and "), QString(song->titleL).replace('&', " and "),
+            song->id, song->bad || song->dropped, song}, beforeId});
+    }
+    const auto row = m_visibleRows.constFind(song->id);
+    if (row != m_visibleRows.cend())
+        emit dataChanged(index(row.value(), 0), index(row.value(), columnCount({}) - 1));
+    search(m_lastSearch);
 }
 
 void TableModelKaraokeSongs::reloadIfLoading() {
@@ -366,6 +431,24 @@ void TableModelKaraokeSongs::searchExec() {
     searchTimer.stop();
     if (m_searchBusy || m_loadBusy || m_loadPending)
         return; // One running job and one latest pending request, never a job per key.
+    if (m_pendingLibrary && !m_recordsDuringLoad.isEmpty()) {
+        // No search job is active here, so the replacement belongs to the GUI
+        // thread until it is handed back to the worker for sorting/filtering.
+        auto &library = *m_pendingLibrary;
+        for (auto it = m_recordsDuringLoad.cbegin(); it != m_recordsDuringLoad.cend(); ++it) {
+            auto song = library.byId.value(it.key()).lock();
+            if (song) {
+                library.byPath.remove(song->path);
+                *song = it.value();
+            } else {
+                song = std::make_shared<okj::KaraokeSong>(it.value());
+                library.songs.push_back(song);
+                library.byId.insert(song->id, song);
+            }
+            library.byPath.insert(song->path, song);
+        }
+        releaseOffThread(std::move(library.snapshot));
+    }
     if (!m_searchSnapshot && !m_pendingLibrary) {
         auto snapshot = std::make_shared<std::vector<SearchEntry>>();
         snapshot->reserve(m_allSongs.size());
@@ -387,7 +470,7 @@ void TableModelKaraokeSongs::searchExec() {
     const auto sortOrder = m_sortOrder;
     m_searchWatcher.setFuture(QtConcurrent::run(
         [snapshot = m_searchSnapshot, library = m_pendingLibrary, cancellation = m_searchRevision,
-         revision, needles, type, ignoreApos, sortColumn, sortOrder]() mutable {
+         revision, needles, type, ignoreApos, sortColumn, sortOrder, changes = m_snapshotChanges]() mutable {
             QElapsedTimer timer;
             timer.start();
             if (library) {
@@ -409,8 +492,23 @@ void TableModelKaraokeSongs::searchExec() {
                 }
                 snapshot = library->snapshot;
             }
+            if (!library && !changes.empty()) {
+                auto updated = std::make_shared<std::vector<SearchEntry>>(*snapshot);
+                for (const auto &change : changes) {
+                    if (cancellation->load() != revision)
+                        return std::shared_ptr<SearchResult>{};
+                    updated->erase(std::remove_if(updated->begin(), updated->end(),
+                        [&change](const auto &entry) { return entry.id == change.entry.id; }), updated->end());
+                    const auto position = std::find_if(updated->begin(), updated->end(),
+                        [&change](const auto &entry) { return entry.id == change.beforeId; });
+                    updated->insert(position, change.entry);
+                }
+                snapshot = std::move(updated);
+            }
             auto result = std::make_shared<SearchResult>();
             result->library = library;
+            if (!library && !changes.empty())
+                result->snapshot = snapshot;
             result->revision = revision;
             result->songs.reserve(snapshot->size());
             result->rows.reserve(static_cast<int>(snapshot->size()));
@@ -549,41 +647,44 @@ Qt::ItemFlags TableModelKaraokeSongs::flags(const QModelIndex &index) const {
 }
 
 
-void TableModelKaraokeSongs::sortSongs(std::vector<std::shared_ptr<okj::KaraokeSong>> &songs,
-                                     int column, Qt::SortOrder order) {
-    auto sortLambda = [&column](const std::shared_ptr<okj::KaraokeSong> &a, const std::shared_ptr<okj::KaraokeSong> &b) -> bool {
-        switch (column) {
-            case COL_ARTIST:
-                if (a->artistL == b->artistL) {
-                    if (a->titleL == b->titleL) {
-                        return (a->songidL < b->songidL);
-                    }
-                    return (a->titleL < b->titleL);
-                }
-                return (a->artistL < b->artistL);
-            case COL_TITLE:
+bool TableModelKaraokeSongs::songLess(const std::shared_ptr<okj::KaraokeSong> &a,
+                                     const std::shared_ptr<okj::KaraokeSong> &b, int column) {
+    switch (column) {
+        case COL_ARTIST:
+            if (a->artistL == b->artistL) {
                 if (a->titleL == b->titleL) {
-                    if (a->artistL == b->artistL) {
-                        return (a->songidL < b->songidL);
-                    }
-                    return (a->artistL < b->artistL);
+                    return (a->songidL < b->songidL);
                 }
                 return (a->titleL < b->titleL);
-            case COL_SONGID:
-                return (a->songidL < b->songidL);
-            case COL_FILENAME:
-                return (a->filename.toLower() < b->filename.toLower());
-            case COL_DURATION:
-                return (a->duration < b->duration);
-            case COL_PLAYS:
-                return (a->plays < b->plays);
-            case COL_LASTPLAY:
-                return (a->lastPlay < b->lastPlay);
+            }
+            return (a->artistL < b->artistL);
+        case COL_TITLE:
+            if (a->titleL == b->titleL) {
+                if (a->artistL == b->artistL) {
+                    return (a->songidL < b->songidL);
+                }
+                return (a->artistL < b->artistL);
+            }
+            return (a->titleL < b->titleL);
+        case COL_SONGID:
+            return (a->songidL < b->songidL);
+        case COL_FILENAME:
+            return (a->filename.toLower() < b->filename.toLower());
+        case COL_DURATION:
+            return (a->duration < b->duration);
+        case COL_PLAYS:
+            return (a->plays < b->plays);
+        case COL_LASTPLAY:
+            return (a->lastPlay < b->lastPlay);
 
-            default:
-                return (a->id < b->id);
-        }
-    };
+        default:
+            return (a->id < b->id);
+    }
+}
+
+void TableModelKaraokeSongs::sortSongs(std::vector<std::shared_ptr<okj::KaraokeSong>> &songs,
+                                     int column, Qt::SortOrder order) {
+    auto sortLambda = [column](const auto &a, const auto &b) { return songLess(a, b, column); };
 
     if (order == Qt::AscendingOrder) {
         std::sort(songs.begin(), songs.end(), sortLambda);
@@ -757,12 +858,7 @@ int TableModelKaraokeSongs::addSong(okj::KaraokeSong song) {
     } else {
         int lastInsertId = query.lastInsertId().toInt();
         song.id = lastInsertId;
-        m_allSongs.push_back(std::make_shared<okj::KaraokeSong>(song));
-        m_songsByPath.insert(song.path, m_allSongs.back());
-        m_songsById.insert(song.id, m_allSongs.back());
-        invalidateSearchSnapshot();
-        search(m_lastSearch);
-        reloadIfLoading();
+        refreshSong(lastInsertId);
         return lastInsertId;
     }
 }

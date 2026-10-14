@@ -12,7 +12,7 @@
 
 
 
-void LazyDurationUpdateWorker::getDurations(const QString &dbPath)
+void LazyDurationUpdateWorker::getDurations(const QString &dbPath, const QStringList &onlyPaths)
 {
     const QString connectionName = "duration-" + QUuid::createUuid().toString();
     {
@@ -31,14 +31,29 @@ void LazyDurationUpdateWorker::getDurations(const QString &dbPath)
             {
                 QSqlQuery query(db);
                 query.setForwardOnly(true);
-                if (!query.exec("SELECT path FROM dbsongs WHERE duration < 1 ORDER BY artist, title")) {
-                    logger->error("[LazyDurationThread] Selection failed: {}", query.lastError().text().toStdString());
-                    return;
-                }
-                while (query.next()) {
-                    if (QThread::currentThread()->isInterruptionRequested())
+                if (onlyPaths.isEmpty()) {
+                    if (!query.exec("SELECT path FROM dbsongs WHERE duration < 1 ORDER BY artist, title")) {
+                        logger->error("[LazyDurationThread] Selection failed: {}", query.lastError().text().toStdString());
                         return;
-                    files.append(query.value(0).toString());
+                    }
+                    while (query.next()) {
+                        if (QThread::currentThread()->isInterruptionRequested())
+                            return;
+                        files.append(query.value(0).toString());
+                    }
+                } else {
+                    query.prepare("SELECT path FROM dbsongs WHERE path=:path AND duration < 1");
+                    for (const auto &path : onlyPaths) {
+                        if (QThread::currentThread()->isInterruptionRequested())
+                            return;
+                        query.bindValue(":path", path);
+                        if (!query.exec()) {
+                            logger->error("[LazyDurationThread] Song selection failed: {}", query.lastError().text().toStdString());
+                            return;
+                        }
+                        if (query.next())
+                            files.append(query.value(0).toString());
+                    }
                 }
             }
             logger->info("[DatabaseTiming] Missing-duration selection: {} ms, songs={}", selectionTimer.elapsed(), files.size());
@@ -188,5 +203,11 @@ void LazyDurationUpdateController::stopWork()
 
 void LazyDurationUpdateController::getDurations()
 {
-    emit operate(QSqlDatabase::database().databaseName());
+    emit operate(QSqlDatabase::database().databaseName(), {});
+}
+
+void LazyDurationUpdateController::getSongDuration(const QString &path)
+{
+    if (!path.isEmpty())
+        emit operate(QSqlDatabase::database().databaseName(), {path});
 }

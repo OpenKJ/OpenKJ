@@ -160,6 +160,7 @@ private:
     void resetBmLabels();
     void play(const QString &karaokeFilePath, const bool &k2k = false);
     void restoreBreakMusicVolume();
+    void refreshLibrarySong(int songId);
     void bmAddPlaylist(const QString& title);
     bool bmPlaylistExists(const QString& name);
     void addSfxButton(const QString &filename, const QString &label, bool reset = false);

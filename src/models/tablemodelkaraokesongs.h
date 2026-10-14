@@ -50,6 +50,7 @@ public:
     [[nodiscard]] Qt::ItemFlags flags(const QModelIndex &index) const override;
     [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
     void loadData();
+    bool refreshSong(int songId);
     bool isLoading() const { return m_loadBusy || m_loadPending || bool(m_pendingLibrary); }
     void sort(int column, Qt::SortOrder order) override;
     void search(const QString &searchString);
@@ -82,6 +83,10 @@ private:
         bool excluded;
         std::shared_ptr<okj::KaraokeSong> song;
     };
+    struct SnapshotChange { SearchEntry entry; int beforeId; };
+    std::vector<SnapshotChange> m_snapshotChanges;
+    QHash<int, okj::KaraokeSong> m_recordsDuringLoad;
+    void applySongRecord(const okj::KaraokeSong &record);
     struct LibraryData {
         quint64 revision = 0;
         qint64 elapsedMs = 0;
@@ -99,6 +104,7 @@ private:
         std::vector<std::shared_ptr<okj::KaraokeSong>> songs;
         QHash<int, int> rows;
         std::shared_ptr<LibraryData> library;
+        std::shared_ptr<const std::vector<SearchEntry>> snapshot;
     };
     std::shared_ptr<const std::vector<SearchEntry>> m_searchSnapshot;
     QFutureWatcher<std::shared_ptr<SearchResult>> m_searchWatcher{this};
@@ -118,6 +124,7 @@ private:
     Qt::SortOrder m_sortOrder = Qt::AscendingOrder;
     void startLibraryLoad();
     void reloadIfLoading();
+    static bool songLess(const std::shared_ptr<okj::KaraokeSong> &a, const std::shared_ptr<okj::KaraokeSong> &b, int column);
     static void sortSongs(std::vector<std::shared_ptr<okj::KaraokeSong>> &songs, int column, Qt::SortOrder order);
     QString m_lastSearch;
     int m_curFontHeight{0};

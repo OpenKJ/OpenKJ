@@ -46,6 +46,8 @@ public slots:
     void databaseAboutToUpdate();
     void databaseUpdateComplete();
     void databaseSongAdded();
+    void refreshLibrarySong(int songId);
+    void setSongDuration(const QString &path, unsigned int duration);
     void rotationChanged();
     void updateIcons();
 

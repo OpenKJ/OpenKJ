@@ -62,8 +62,11 @@ void DlgDatabase::singleSongAdd(const QString& path)
     qInfo() << "singleSongAdd(" << path << ") called";
     DbUpdater updater;
     updater.addFilesToDatabase(QStringList() << path);
-    emit databaseUpdateComplete();
-    //emit databaseSongAdded();
+    QSqlQuery query;
+    query.prepare("SELECT songid FROM dbsongs WHERE path=:path");
+    query.bindValue(":path", path);
+    if (query.exec() && query.next())
+        emit songChanged(query.value(0).toInt());
 }
 
 void DlgDatabase::on_buttonNew_clicked()

@@ -913,6 +913,7 @@ void MainWindow::setupConnections() {
             &Settings::setHistoryDblClickAction);
     connect(&m_rotModel, &TableModelRotation::songDroppedOnSinger, this, &MainWindow::songDroppedOnSinger);
     connect(dbDialog.get(), &DlgDatabase::databaseUpdateComplete, this, &MainWindow::databaseUpdated);
+    connect(dbDialog.get(), &DlgDatabase::songChanged, this, &MainWindow::refreshLibrarySong);
     connect(dbDialog.get(), &DlgDatabase::databaseSongAdded, &m_karaokeSongsModel, &TableModelKaraokeSongs::loadData);
     connect(dbDialog.get(), &DlgDatabase::databaseSongAdded, requestsDialog.get(), &DlgRequests::databaseSongAdded);
     connect(dbDialog.get(), &DlgDatabase::databaseCleared, this, &MainWindow::databaseCleared);
@@ -1589,6 +1590,13 @@ void MainWindow::search() {
     m_karaokeSongsModel.search(ui->lineEdit->text());
 }
 
+void MainWindow::refreshLibrarySong(int songId) {
+    const bool refreshed = m_karaokeSongsModel.refreshSong(songId);
+    requestsDialog->refreshLibrarySong(songId);
+    if (refreshed && m_settings.dbLazyLoadDurations() && m_karaokeSongsModel.getSong(songId).duration < 1)
+        m_lazyDurationUpdater->getSongDuration(m_karaokeSongsModel.getPath(songId));
+}
+
 void MainWindow::databaseUpdated() {
     m_karaokeSongsModel.loadData();
     search();
@@ -1610,6 +1618,8 @@ void MainWindow::restartLazyDurationScan() {
     m_lazyDurationUpdater = std::make_unique<LazyDurationUpdateController>(this);
     connect(m_lazyDurationUpdater.get(), &LazyDurationUpdateController::gotDuration, &m_karaokeSongsModel,
             &TableModelKaraokeSongs::setSongDuration);
+    connect(m_lazyDurationUpdater.get(), &LazyDurationUpdateController::gotDuration, requestsDialog.get(),
+            &DlgRequests::setSongDuration);
     m_lazyDurationUpdater->getDurations();
 }
 
@@ -2664,7 +2674,7 @@ void MainWindow::editSong(const std::shared_ptr<okj::KaraokeSong>& song) {
             msgBoxInfo.setInformativeText("The file has been renamed and the database has been updated successfully.");
             msgBoxInfo.setStandardButtons(QMessageBox::Ok);
             msgBoxInfo.exec();
-            m_karaokeSongsModel.loadData();
+            refreshLibrarySong(song->id);
             return;
         }
     } else {
@@ -2695,7 +2705,7 @@ void MainWindow::editSong(const std::shared_ptr<okj::KaraokeSong>& song) {
             msgBoxInfo.setInformativeText("The database has been updated successfully.");
             msgBoxInfo.setStandardButtons(QMessageBox::Ok);
             msgBoxInfo.exec();
-            m_karaokeSongsModel.loadData();
+            refreshLibrarySong(song->id);
             return;
         }
     }
