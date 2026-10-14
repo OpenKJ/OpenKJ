@@ -46,7 +46,7 @@ namespace okj {
         [[nodiscard]] std::string loggingPrefix() const { return "[RotationSinger] [" + name.toStdString() + "]"; }
         RotationSinger();
         RotationSinger(int id, QString name, int position, bool regular, QDateTime addTs, bool valid = true);
-        RotationSinger(const RotationSinger &r1);
+        RotationSinger(const RotationSinger &r1) = default;
         RotationSinger(RotationSinger &&other) = default;
         RotationSinger& operator=(RotationSinger&& other) = default;
         RotationSinger& operator=(const RotationSinger& other) = default;

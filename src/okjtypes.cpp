@@ -38,11 +38,7 @@ namespace okj {
         m_settings = std::make_shared<Settings>();
     }
 
-    RotationSinger::RotationSinger(const RotationSinger &r1)
-            : id(r1.id), name(r1.name), position(r1.position), regular(r1.regular), addTs(r1.addTs), valid(r1.valid) {
-        m_logger = spdlog::get("logger");
-        m_settings = std::make_shared<Settings>();
-    }
+
 
 
 }
