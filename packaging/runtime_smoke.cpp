@@ -128,7 +128,7 @@ int main(int argc, char **argv)
     gst_init(nullptr, nullptr);
     stage("find media elements");
     for (const auto *name : {"playbin", "pitch", "scaletempo", "equalizer-10bands",
-             "audiopanorama", "volume", "autoaudiosink", "appsink", "cdgparse",
+             "audiopanorama", "volume", "audioconvert", "audioresample", "autoaudiosink", "appsink", "cdgparse",
              "cdgdec", "qtdemux", "avdec_h264"}) {
         auto *factory = gst_element_factory_find(name);
         if (!factory) {
@@ -182,6 +182,22 @@ int main(int argc, char **argv)
                      "scaletempo ! equalizer-10bands band0=3 ! audiopanorama ! volume ! fakesink"))
         return 1;
 
+    stage("negotiate DSP output with a fixed-format audio device");
+    // Unlike fakesink alone, these caps require real format/rate conversion
+    // after SoundTouch/EQ, as a native output device may require on Windows.
+    const QString fixedOutput =
+        "pitch pitch=1.1 ! scaletempo ! equalizer-10bands band0=3 ! "
+        "audiopanorama ! volume ! audioconvert ! audioresample ! "
+        "audio/x-raw,format=S16LE,rate=48000,channels=2 ! fakesink sync=false";
+    if (!runPipeline("audiotestsrc num-buffers=12 ! "
+                     "audio/x-raw,format=F32LE,rate=44100,channels=2 ! " + fixedOutput))
+        return 1;
+    // Exercise playbin's negotiation into the same sink chain with the 8 kHz
+    // mono WAV above, in addition to the stereo synthetic source.
+    if (!runPipeline("playbin uri=\"" + QString::fromUtf8(uri) +
+                     "\" audio-sink=\"" + fixedOutput + "\" video-sink=fakesink"))
+        return 1;
+
     stage("decode CDG");
     QTemporaryFile cdg;
     if (!cdg.open())
@@ -200,6 +216,6 @@ int main(int argc, char **argv)
     if (!runPipeline("filesrc location=\"" + path +
                      "\" ! cdgparse ! cdgdec ! videoconvert ! fakesink sync=false"))
         return 1;
-    qInfo() << "PASS: Qt GUI, ZIP round trip, SQLite, local-file URI playback, required media plugins, SoundTouch/EQ audio, and CDG decoding";
+    qInfo() << "PASS: Qt GUI, ZIP round trip, SQLite, local-file URI playback, required media plugins, SoundTouch/EQ audio, output format negotiation, and CDG decoding";
     return 0;
 }

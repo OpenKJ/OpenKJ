@@ -188,11 +188,21 @@ void MediaBackend::setupPipeline() {
     m_eq = gst_element_factory_make("equalizer-10bands", "eq");
     m_panorama = gst_element_factory_make("audiopanorama", "panorama");
     m_volumeElement = gst_element_factory_make("volume", "vol");
+    // The DSP chain uses floating-point audio at the source rate. Native
+    // outputs may require a different format/rate (e.g. Windows shared audio).
+    auto *outputConvert = gst_element_factory_make("audioconvert", "output_convert");
+    auto *outputResample = gst_element_factory_make("audioresample", "output_resample");
     m_audioSink = gst_element_factory_make("autoaudiosink", "audio_sink");
 
-    if (m_audioBin && m_pitch && m_eq && m_panorama && m_volumeElement && m_audioSink) {
-        gst_bin_add_many(GST_BIN(m_audioBin), m_pitch, m_scaleTempo, m_eq, m_panorama, m_volumeElement, m_audioSink, nullptr);
-        gst_element_link_many(m_pitch, m_scaleTempo, m_eq, m_panorama, m_volumeElement, m_audioSink, nullptr);
+    if (m_audioBin && m_pitch && m_scaleTempo && m_eq && m_panorama &&
+        m_volumeElement && outputConvert && outputResample && m_audioSink) {
+        gst_bin_add_many(GST_BIN(m_audioBin), m_pitch, m_scaleTempo, m_eq, m_panorama,
+                         m_volumeElement, outputConvert, outputResample, m_audioSink, nullptr);
+        if (!gst_element_link_many(m_pitch, m_scaleTempo, m_eq, m_panorama,
+                                   m_volumeElement, outputConvert, outputResample, m_audioSink, nullptr)) {
+            m_logger->error("{} Failed to link audio output elements", m_loggingPrefix);
+            return;
+        }
         
         GstPad *pad = gst_element_get_static_pad(m_pitch, "sink");
         gst_element_add_pad(m_audioBin, gst_ghost_pad_new("sink", pad));
