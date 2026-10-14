@@ -201,6 +201,11 @@ private:
 
     void processCoordinatedSeek();
     void finishCoordinatedSeek(bool success);
+    bool m_cdgStartPending{false};
+    GstClockTime m_cdgRunningTime{0};
+    QElapsedTimer m_cdgStartTimer;
+    void prepareCdgPlayback();
+    void processCdgStartup();
 
 private slots:
     void eventTimer_timeout();

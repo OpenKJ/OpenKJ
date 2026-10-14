@@ -334,7 +334,11 @@ void MediaBackend::handleBusMessage(GstMessage *msg) {
                 GstState old_state, new_state, pending_state;
                 gst_message_parse_state_changed(msg, &old_state, &new_state, &pending_state);
                 if (new_state == GST_STATE_PLAYING) m_state = PlayingState;
-                else if (new_state == GST_STATE_PAUSED) m_state = PausedState;
+                else if (new_state == GST_STATE_PAUSED) {
+                    if (m_cdgStartPending)
+                        break; // Preroll is internal, not a user pause.
+                    m_state = PausedState;
+                }
                 else if (new_state == GST_STATE_NULL) m_state = StoppedState;
                 emit stateChanged(m_state);
             }
@@ -597,6 +601,7 @@ void MediaBackend::eventTimer_timeout() {
 
     // Handle coordinated seek if needed.
     processCoordinatedSeek();
+    processCdgStartup();
 
     qint64 dur = duration();
 
@@ -624,6 +629,8 @@ if (m_cdgPipeline &&
         gint64 audioPos = GST_CLOCK_TIME_NONE;
         gint64 cdgPos = GST_CLOCK_TIME_NONE;
 
+        QElapsedTimer queryTimer;
+        queryTimer.start();
         const gboolean audioOk = gst_element_query_position(
             m_pipeline,
             GST_FORMAT_TIME,
@@ -644,12 +651,15 @@ if (m_cdgPipeline &&
             const qint64 cdgMs = cdgPos / GST_MSECOND;
 
             m_logger->info(
-                "{} SYNC tempo={} audio={}ms cdg={}ms diff={}ms",
+                "{} SYNC tempo={} audio={}ms cdg={}ms diff={}ms querySpan={}us baseDiff={}us",
                 m_loggingPrefix,
                 m_tempoPercent,
                 audioMs,
                 cdgMs,
-                audioMs - cdgMs
+                audioMs - cdgMs,
+                queryTimer.nsecsElapsed() / 1000,
+                (static_cast<gint64>(gst_element_get_base_time(m_pipeline)) -
+                 static_cast<gint64>(gst_element_get_base_time(m_cdgPipeline))) / 1000
             );
         }
     }
@@ -689,6 +699,14 @@ void MediaBackend::play(bool startSilent) {
         m_fader->fadeIn(false);
     else
         m_fader->immediateIn();
+    if (m_cdgPipeline && m_pipeline) {
+        if (m_seekPhase != SeekPhase::Idle) {
+            m_resumeAfterSeek = true;
+            return;
+        }
+        prepareCdgPlayback();
+        return;
+    }
     if (m_pipeline) {
         gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
         // Schedule initial tempo adjustment without tying it to every GStreamer state transition.
@@ -708,7 +726,86 @@ void MediaBackend::play(bool startSilent) {
     }
 }
 
+void MediaBackend::prepareCdgPlayback() {
+    if (m_cdgStartPending || m_state == PlayingState)
+        return;
+    m_cdgStartPending = true;
+    m_cdgStartTimer.start();
+    const auto audio = gst_element_set_state(m_pipeline, GST_STATE_PAUSED);
+    const auto cdg = gst_element_set_state(m_cdgPipeline, GST_STATE_PAUSED);
+    if (audio == GST_STATE_CHANGE_FAILURE || cdg == GST_STATE_CHANGE_FAILURE) {
+        rawStop();
+        emit audioError("Unable to prepare synchronized CDG playback");
+    }
+}
+
+void MediaBackend::processCdgStartup() {
+    // Once both PLAYING transitions finish, let GStreamer manage future pause
+    // and flushing-seek running times again. The common base time stays intact.
+    if (!m_cdgStartPending) {
+        if (m_cdgPipeline && gst_element_get_start_time(m_pipeline) == GST_CLOCK_TIME_NONE) {
+            GstState audioState, cdgState;
+            const auto audio = gst_element_get_state(m_pipeline, &audioState, nullptr, 0);
+            const auto cdg = gst_element_get_state(m_cdgPipeline, &cdgState, nullptr, 0);
+            if (audio != GST_STATE_CHANGE_ASYNC && cdg != GST_STATE_CHANGE_ASYNC &&
+                audioState == GST_STATE_PLAYING && cdgState == GST_STATE_PLAYING) {
+                gst_element_set_start_time(m_pipeline, 0);
+                gst_element_set_start_time(m_cdgPipeline, 0);
+            }
+        }
+        return;
+    }
+    GstState audioState, cdgState;
+    const auto audio = gst_element_get_state(m_pipeline, &audioState, nullptr, 0);
+    const auto cdg = gst_element_get_state(m_cdgPipeline, &cdgState, nullptr, 0);
+    if (audio == GST_STATE_CHANGE_FAILURE || cdg == GST_STATE_CHANGE_FAILURE ||
+        m_cdgStartTimer.elapsed() > 5000) {
+        rawStop();
+        emit audioError("Synchronized CDG playback failed to preroll");
+        return;
+    }
+    if (audio == GST_STATE_CHANGE_ASYNC || cdg == GST_STATE_CHANGE_ASYNC ||
+        audioState != GST_STATE_PAUSED || cdgState != GST_STATE_PAUSED)
+        return;
+
+    // Both streams are ready. Give them one timing origin, with a short lead
+    // so neither starts rendering while the other is changing state.
+    const auto runningTime = gst_element_get_start_time(m_pipeline);
+    if (GST_CLOCK_TIME_IS_VALID(runningTime))
+        m_cdgRunningTime = runningTime;
+    const auto base = gst_clock_get_time(m_sharedClock) + 20 * GST_MSECOND - m_cdgRunningTime;
+    for (auto pipeline : {m_pipeline, m_cdgPipeline}) {
+        gst_element_set_start_time(pipeline, GST_CLOCK_TIME_NONE);
+        gst_element_set_base_time(pipeline, base);
+    }
+    m_cdgStartPending = false;
+    const auto cdgStart = gst_element_set_state(m_cdgPipeline, GST_STATE_PLAYING);
+    const auto audioStart = gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
+    if (audioStart == GST_STATE_CHANGE_FAILURE || cdgStart == GST_STATE_CHANGE_FAILURE) {
+        rawStop();
+        emit audioError("Unable to start synchronized CDG playback");
+        return;
+    }
+    if (audioStart == GST_STATE_CHANGE_SUCCESS && cdgStart == GST_STATE_CHANGE_SUCCESS) {
+        gst_element_set_start_time(m_pipeline, 0);
+        gst_element_set_start_time(m_cdgPipeline, 0);
+    }
+    m_logger->info("{} Coordinated CDG start: preroll={}ms, runningTime={}ms, shared base time",
+                   m_loggingPrefix, m_cdgStartTimer.elapsed(), m_cdgRunningTime / GST_MSECOND);
+}
+
 void MediaBackend::pause() {
+    if (m_cdgPipeline && m_sharedClock && !m_cdgStartPending && m_state == PlayingState) {
+        const auto now = gst_clock_get_time(m_sharedClock);
+        const auto base = gst_element_get_base_time(m_pipeline);
+        m_cdgRunningTime = now > base ? now - base : 0;
+    }
+    m_cdgStartPending = false;
+    m_resumeAfterSeek = false;
+    if (m_cdgPipeline && gst_element_get_start_time(m_pipeline) == GST_CLOCK_TIME_NONE) {
+        gst_element_set_start_time(m_pipeline, m_cdgRunningTime);
+        gst_element_set_start_time(m_cdgPipeline, m_cdgRunningTime);
+    }
     if (m_pipeline) {
         gst_element_set_state(m_pipeline, GST_STATE_PAUSED);
     }
@@ -895,9 +992,10 @@ void MediaBackend::setPosition(const qint64 &position)
     // Preserve the intended playback state, even if another
     // seek arrives while a coordinated seek is underway.
     if (m_seekPhase == SeekPhase::Idle) {
-        m_resumeAfterSeek = (m_state == PlayingState);
+        m_resumeAfterSeek = (m_state == PlayingState || m_cdgStartPending);
     }
 
+    m_cdgStartPending = false;
     m_seekTargetMs = position;
     m_seekPhase = SeekPhase::WaitingForPause;
     m_seekTimer.start();
@@ -1102,17 +1200,11 @@ void MediaBackend::finishCoordinatedSeek(bool success)
         );
     }
 
-    // Restore the previous playback state.
+    // Flushing seeks restart the running-time segment at zero.
+    if (success)
+        m_cdgRunningTime = 0;
     if (shouldResume) {
-        gst_element_set_state(
-            m_cdgPipeline,
-            GST_STATE_PLAYING
-        );
-
-        gst_element_set_state(
-            m_pipeline,
-            GST_STATE_PLAYING
-        );
+        prepareCdgPlayback();
     }
 }
 
@@ -1172,6 +1264,8 @@ void MediaBackend::stop(const bool &skipFade) {
 }
 
 void MediaBackend::rawStop() {
+    m_cdgStartPending = false;
+    m_cdgRunningTime = 0;
     // Invalidate queued frames before waiting for the streaming threads to stop.
     if (m_frameGeneration->load() & 1)
         ++*m_frameGeneration;
@@ -1190,6 +1284,11 @@ void MediaBackend::rawStop() {
     if (m_cdgPipeline) {
         gst_element_set_state(m_cdgPipeline, GST_STATE_NULL);
     }
+    // Return ownership of timing to GStreamer for subsequent single-pipeline media.
+    if (m_pipeline)
+        gst_element_set_start_time(m_pipeline, 0);
+    if (m_cdgPipeline)
+        gst_element_set_start_time(m_cdgPipeline, 0);
     m_state = StoppedState;
     for (auto* display : m_videoSinks) {
         if (display) {
