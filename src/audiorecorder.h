@@ -28,11 +28,12 @@ private:
     int m_currentDevice{0};
 
     // Qt6 Multimedia members
-    QMediaCaptureSession m_captureSession;
+    QMediaCaptureSession *m_captureSession{nullptr};
     QAudioInput *m_audioInput{nullptr};
     QMediaRecorder *m_recorder{nullptr};
     QList<QAudioDevice> m_audioDevices;
 
+    void ensureRecorder();
     void generateDeviceList();
     void getRecordingSettings();
 

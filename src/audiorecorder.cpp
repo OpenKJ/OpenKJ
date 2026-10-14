@@ -13,10 +13,16 @@ AudioRecorder::AudioRecorder(QObject *parent) : QObject(parent) {
     if (!logger) {
         logger = spdlog::default_logger();
     }
-    logger->info("{} Initializing AudioRecorder instance using Qt6 Multimedia", m_loggingPrefix);
-
     m_startDateTime = QDateTime::currentDateTime().toString("yyyy-MM-dd-hhmm");
+    // Settings dialogs also construct this object for device/codec lists.
+    // Leave capture hardware inactive until recording is explicitly requested.
+}
 
+void AudioRecorder::ensureRecorder() {
+    if (m_recorder)
+        return;
+    logger->info("{} Initializing AudioRecorder instance using Qt6 Multimedia", m_loggingPrefix);
+    m_captureSession = new QMediaCaptureSession(this);
     m_audioInput = new QAudioInput(this);
     m_recorder = new QMediaRecorder(this);
     connect(
@@ -35,25 +41,32 @@ AudioRecorder::AudioRecorder(QObject *parent) : QObject(parent) {
         }
     );
 
-    m_captureSession.setAudioInput(m_audioInput);
-    m_captureSession.setRecorder(m_recorder);
+    m_captureSession->setAudioInput(m_audioInput);
+    m_captureSession->setRecorder(m_recorder);
 
     // Set default quality
     m_recorder->setQuality(QMediaRecorder::HighQuality);
-
-    generateDeviceList();
-    getRecordingSettings();
 }
 
 AudioRecorder::~AudioRecorder() {
-    logger->debug("{} AudioRecorder destructor called", m_loggingPrefix);
+    if (m_recorder)
+        logger->debug("{} AudioRecorder destructor called", m_loggingPrefix);
 }
 
 void AudioRecorder::generateDeviceList() {
     m_inputDeviceNames.clear();
-    m_audioDevices = QMediaDevices::audioInputs();
-    
+    m_audioDevices.clear();
     m_inputDeviceNames.append("System default");
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+    if (qApp->checkPermission(QMicrophonePermission{}) != Qt::PermissionStatus::Granted) {
+        // Preserve a saved device selection without querying capture hardware.
+        const auto saved = m_settings.recordingInput();
+        if (!saved.isEmpty() && saved != "undefined" && !m_inputDeviceNames.contains(saved))
+            m_inputDeviceNames.append(saved);
+        return; // Browsing settings must not request microphone permission.
+    }
+#endif
+    m_audioDevices = QMediaDevices::audioInputs();
     for (const auto &device : m_audioDevices) {
         m_inputDeviceNames.append(device.description());
     }
@@ -77,6 +90,7 @@ void AudioRecorder::getRecordingSettings() {
 }
 
 QStringList AudioRecorder::getDeviceList() {
+    generateDeviceList();
     return m_inputDeviceNames;
 }
 
@@ -109,8 +123,6 @@ void AudioRecorder::setInputDevice(const int inputDeviceId) {
 }
 
 void AudioRecorder::setCurrentCodec(const int value) {
-    if (!m_recorder) return;
-
     QMediaFormat format;
     if (value == 0) {
         format.setFileFormat(QMediaFormat::MP3);
@@ -125,13 +137,15 @@ void AudioRecorder::setCurrentCodec(const int value) {
         format.setAudioCodec(QMediaFormat::AudioCodec::Wave);
         m_currentFileExt = ".wav";
     }
+    if (!m_recorder)
+        return;
     m_recorder->setMediaFormat(format);
     logger->info("{} Setting recording format to extension: {}", m_loggingPrefix, m_currentFileExt.toStdString());
 }
 
 void AudioRecorder::record(const QString &filename)
 {
-    if (!m_recorder)
+    if (!m_settings.recordingEnabled())
         return;
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
@@ -179,6 +193,7 @@ void AudioRecorder::record(const QString &filename)
     }
 #endif
 
+    ensureRecorder();
     getRecordingSettings();
 
     logger->info(
