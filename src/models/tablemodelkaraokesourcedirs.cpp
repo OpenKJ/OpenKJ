@@ -201,19 +201,26 @@ SourceDir TableModelKaraokeSourceDirs::getDirByIndex(int index)
 SourceDir TableModelKaraokeSourceDirs::getDirByPath(const QString& path)
 {
     loadFromDB();
-    QFileInfo fileInfo(path);
-    QDir dir = fileInfo.absoluteDir();
-    while (dir.absolutePath() != dir.rootPath())
-    {
-        for (const auto & i : mydata)
-        {
-            if (i.getPath() == dir.absolutePath())
-            {
-                m_logger->debug("{} Match found - {} - {}", m_loggingPrefix, i.getPath(), i.getPattern());
-                return i;
-            }
+    const auto normalize = [](const QString &value) {
+        return QDir::cleanPath(QDir::fromNativeSeparators(QDir(value).absolutePath()))
+            .normalized(QString::NormalizationForm_C);
+    };
+    const auto parent = normalize(QFileInfo(path).absolutePath());
+    SourceDir match;
+    qsizetype matchedLength = -1;
+    for (const auto &source : mydata) {
+        if (source.getPath().isEmpty())
+            continue;
+        const auto sourcePath = normalize(source.getPath());
+        const auto prefix = sourcePath.endsWith('/') ? sourcePath : sourcePath + '/';
+        if ((parent == sourcePath || parent.startsWith(prefix)) && sourcePath.size() > matchedLength) {
+            match = source;
+            matchedLength = sourcePath.size();
         }
-        dir.cdUp();
+    }
+    if (match.getIndex() != -1) {
+        m_logger->debug("{} Match found - {} - {}", m_loggingPrefix, match.getPath(), match.getPattern());
+        return match;
     }
     m_logger->debug("{} No match found - {}", m_loggingPrefix, path);
     return SourceDir();
