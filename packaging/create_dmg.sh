@@ -46,8 +46,21 @@ ln -s /Applications "$STAGE/Applications"
 
 echo '[3/5] Create compressed read-only DMG'
 # A plain Finder layout: app plus Applications shortcut. No external utilities.
-hdiutil create -quiet -ov -format UDZO -imagekey zlib-level=9 \
-  -volname "OpenKJ $VERSION" -srcfolder "$STAGE" "$DMG"
+# DiskImages can fail transiently on hosted runners. Keep its diagnostics and
+# retry a bounded number of times; never proceed without a verified image.
+for attempt in 1 2 3; do
+  if hdiutil create -ov -format UDZO -imagekey zlib-level=9 \
+    -volname "OpenKJ $VERSION" -srcfolder "$STAGE" "$DMG"; then
+    break
+  fi
+  df -h "$OUTDIR" "$STAGE"
+  if [[ "$attempt" == 3 ]]; then
+    echo 'ERROR: Disk image creation failed after three attempts.' >&2
+    exit 1
+  fi
+  echo "Disk image creation failed (attempt $attempt); retrying in 3 seconds." >&2
+  sleep 3
+done
 
 echo '[4/5] Verify disk image integrity'
 hdiutil verify -quiet "$DMG"
