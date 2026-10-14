@@ -11,6 +11,7 @@
 #include <QSvgRenderer>
 #include <QMimeData>
 #include <array>
+#include <stdexcept>
 #include <QtConcurrent/QtConcurrentRun>
 
 std::ostream & operator<<(std::ostream& os, const QString& s);
@@ -202,6 +203,7 @@ void TableModelKaraokeSongs::loadData() {
     emit layoutAboutToBeChanged();
     invalidateSearchSnapshot();
     m_songsByPath.clear();
+    m_songsById.clear();
     m_allSongs.clear();
     m_filteredSongs.clear();
     QSqlQuery query;
@@ -227,6 +229,7 @@ void TableModelKaraokeSongs::loadData() {
                 (query.value(3).toString() == "!!DROPPED!!")
         }));
         m_songsByPath.insert(song->path, song);
+        m_songsById.insert(song->id, song);
     }
     m_logger->info("[DatabaseTiming] Library reload: {} ms, songs={}", timer.elapsed(), m_allSongs.size());
     search(m_lastSearch);
@@ -322,48 +325,41 @@ int TableModelKaraokeSongs::getIdForPath(const QString &path) {
     return song ? song->id : -1;
 }
 
+std::shared_ptr<okj::KaraokeSong> TableModelKaraokeSongs::findSongById(int songId) const {
+    const auto entry = m_songsById.constFind(songId);
+    return entry == m_songsById.cend() ? nullptr : entry.value().lock();
+}
+
 QString TableModelKaraokeSongs::getPath(const int songId) {
-    auto it = std::find_if(m_allSongs.begin(), m_allSongs.end(), [&songId](const std::shared_ptr<okj::KaraokeSong> &song) {
-        return (song->id == songId);
-    });
-    return it->get()->path;
+    const auto song = findSongById(songId);
+    return song ? song->path : QString{};
 }
 
 void TableModelKaraokeSongs::updateSongHistory(const int songId) {
-    auto it = find_if(m_allSongs.begin(), m_allSongs.end(), [&songId](const std::shared_ptr<okj::KaraokeSong> &song) {
-        if (song->id == songId)
-            return true;
-        return false;
-    });
-    if (it != m_allSongs.end()) {
-        it->get()->plays++;
-        it->get()->lastPlay = QDateTime::currentDateTime();
-    }
-
-    auto it2 = find_if(m_filteredSongs.begin(), m_filteredSongs.end(),
-                       [&songId](const std::shared_ptr<okj::KaraokeSong> &song) {
-                           if (song->id == songId)
-                               return true;
-                           return false;
-                       });
-    if (it2 != m_filteredSongs.end()) {
-        int row = (int) std::distance(m_filteredSongs.begin(), it2);
-        emit dataChanged(this->index(row, COL_PLAYS), this->index(row, COL_LASTPLAY), QVector<int>(Qt::DisplayRole));
+    const auto now = QDateTime::currentDateTime();
+    if (const auto song = findSongById(songId)) {
+        ++song->plays;
+        song->lastPlay = now;
+        const auto row = m_visibleRows.constFind(songId);
+        if (row != m_visibleRows.cend()) {
+            emit dataChanged(index(row.value(), COL_PLAYS), index(row.value(), COL_LASTPLAY),
+                             QVector<int>(Qt::DisplayRole));
+        }
     }
 
     QSqlQuery query;
     query.prepare("UPDATE dbSongs set plays = plays + :incVal, lastplay = :curTs WHERE songid = :songid");
-    query.bindValue(":curTs", QDateTime::currentDateTime());
+    query.bindValue(":curTs", now);
     query.bindValue(":songid", songId);
     query.bindValue(":incVal", 1);
     query.exec();
 }
 
 okj::KaraokeSong &TableModelKaraokeSongs::getSong(const int songId) {
-    auto it = std::find_if(m_allSongs.begin(), m_allSongs.end(), [&songId](const std::shared_ptr<okj::KaraokeSong> &song) {
-        return (song->id == songId);
-    });
-    return **it;
+    const auto song = findSongById(songId);
+    if (!song)
+        throw std::out_of_range("Song ID is absent from the karaoke library");
+    return *song;
 }
 
 void TableModelKaraokeSongs::resizeIconsForFont(const QFont &font) {
@@ -504,6 +500,7 @@ void TableModelKaraokeSongs::markSongBad(QString path) {
 }
 
 TableModelKaraokeSongs::DeleteStatus TableModelKaraokeSongs::removeBadSong(QString path) {
+    const int removedSongId = getIdForPath(path);
     bool isCdg = false;
     if (QFileInfo(path).suffix().toLower() == "cdg")
         isCdg = true;
@@ -530,6 +527,7 @@ TableModelKaraokeSongs::DeleteStatus TableModelKaraokeSongs::removeBadSong(QStri
                                              [&path](const std::shared_ptr<okj::KaraokeSong> &song) {
                                                  return (song->path == path);
                                              });
+        m_songsById.remove(removedSongId);
         m_allSongs.erase(newAllSongsEnd, m_allSongs.end());
         m_songsByPath.remove(path);
         invalidateSearchSnapshot();
@@ -601,6 +599,7 @@ int TableModelKaraokeSongs::addSong(okj::KaraokeSong song) {
         song.id = lastInsertId;
         m_allSongs.push_back(std::make_shared<okj::KaraokeSong>(song));
         m_songsByPath.insert(song.path, m_allSongs.back());
+        m_songsById.insert(song.id, m_allSongs.back());
         invalidateSearchSnapshot();
         search(m_lastSearch);
         return lastInsertId;

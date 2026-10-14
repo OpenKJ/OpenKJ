@@ -56,6 +56,7 @@ public:
     int getIdForPath(const QString &path);
     QString getPath(int songId);
     void updateSongHistory(int songId);
+    // Requires an existing song ID; throws std::out_of_range if absent.
     okj::KaraokeSong &getSong(int songId);
     void markSongBad(QString path);
     DeleteStatus removeBadSong(QString path);
@@ -69,6 +70,8 @@ private:
     std::vector<std::shared_ptr<okj::KaraokeSong>> m_filteredSongs;
     std::vector< std::shared_ptr<okj::KaraokeSong> > m_allSongs;
     QHash<QString, std::weak_ptr<okj::KaraokeSong>> m_songsByPath;
+    QHash<int, std::weak_ptr<okj::KaraokeSong>> m_songsById;
+    std::shared_ptr<okj::KaraokeSong> findSongById(int songId) const;
     QHash<int, int> m_visibleRows;
     void rebuildVisibleRows();
     // Immutable search fields: workers never read mutable song/model state.
