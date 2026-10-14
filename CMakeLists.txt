@@ -40,10 +40,15 @@ include(cmake/CPM.cmake)
 CPMAddPackage("gh:gabime/spdlog@1.8.2")
 
 # libzip static build via CPM
+set(OPENKJ_LIBZIP_VERSION 1.10.1)
+if(WIN32)
+    # Corrected Windows callback types are required by current MinGW compilers.
+    set(OPENKJ_LIBZIP_VERSION 1.11.4)
+endif()
 CPMAddPackage(
     NAME libzip
     GITHUB_REPOSITORY nih-at/libzip
-    VERSION 1.10.1
+    VERSION ${OPENKJ_LIBZIP_VERSION}
     OPTIONS
       "ENABLE_COMMONCRYPTO OFF"
       "ENABLE_GNUTLS OFF"

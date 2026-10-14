@@ -8,6 +8,8 @@ This is a development build, not a Windows release or installer. It needs native
 Windows testing before being used to host a show. The macOS pipeline and custom
 SoundTouch build remain unchanged. MSYS2 supplies the same upstream SoundTouch
 `pitch` element on Windows; the workflow verifies that it is available.
+Windows builds pin libzip 1.11.4 for corrected Windows callback types accepted
+by current compilers; the existing macOS libzip pin is preserved.
 
 ## Local build
 
