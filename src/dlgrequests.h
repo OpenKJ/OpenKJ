@@ -34,6 +34,7 @@ private:
     Settings m_settings;
 
 public:
+    bool isLibraryLoading() const { return dbModel.isLoading(); }
     explicit DlgRequests(TableModelRotation &rotationModel, OKJSongbookAPI &songbookAPI, QWidget *parent = nullptr);
     int numRequests();
     ~DlgRequests();

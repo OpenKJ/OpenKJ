@@ -107,6 +107,7 @@ private:
     QLabel m_labelRotationDuration;
     QTimer m_timerKaraokeAA;
     QTimer m_timerSlowUiUpdate;
+    QTimer m_timerLazyDurationStart;
     QTimer m_timerTest;
     QTimer m_timerButtonFlash;
     QShortcut m_scutAddSinger{this};
@@ -166,6 +167,7 @@ public:
 private slots:
     void search();
     void databaseUpdated();
+    void restartLazyDurationScan();
     void databaseCleared();
     void buttonStopClicked();
     void buttonPauseClicked();

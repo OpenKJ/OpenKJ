@@ -614,6 +614,29 @@ MainWindow::MainWindow(QWidget *parent) :
     setMouseTracking(true);
     m_songShop = std::make_unique<SongShop>(this);
     m_lazyDurationUpdater = std::make_unique<LazyDurationUpdateController>(this);
+    m_timerLazyDurationStart.setSingleShot(true);
+    m_timerLazyDurationStart.setInterval(50);
+    connect(&m_timerLazyDurationStart, &QTimer::timeout, this, &MainWindow::restartLazyDurationScan);
+    // Connect before the initial load: construction still processes some UI events.
+    connect(&m_karaokeSongsModel, &TableModelKaraokeSongs::libraryLoadStarted, this, [this] {
+        ui->labelLibraryLoading->setText(tr("Loading song library…"));
+        ui->labelLibraryLoading->show();
+        m_timerLazyDurationStart.stop();
+        m_lazyDurationUpdater->stopWork();
+    });
+    connect(&m_karaokeSongsModel, &TableModelKaraokeSongs::libraryLoadFinished, this, [this](bool success) {
+        ui->labelLibraryLoading->setVisible(!success || m_karaokeSongsModel.isLoading());
+        if (!success)
+            ui->labelLibraryLoading->setText(tr("Could not load song library. See the log for details."));
+        if (success) {
+            const int rows = m_historySongsModel.rowCount({});
+            if (rows > 0)
+                emit m_historySongsModel.dataChanged(m_historySongsModel.index(0, 0),
+                    m_historySongsModel.index(rows - 1, m_historySongsModel.columnCount({}) - 1),
+                    {Qt::ForegroundRole, Qt::ToolTipRole});
+            restartLazyDurationScan();
+        }
+    });
     ui->tableViewBmPlaylist->setMouseTracking(true);
     m_historyTabWidget = ui->tabWidgetQueue->widget(1);
     ui->actionShow_Debug_Log->setChecked(m_settings.logShow());
@@ -737,8 +760,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_dlgRegularSingers.regularsChanged();
     m_dlgRegularSingers.setModal(false);
     updateRotationDuration();
-    if (m_settings.dbLazyLoadDurations())
-        m_lazyDurationUpdater->getDurations();
+    // The duration scan starts after the asynchronous library load finishes.
     ui->labelVolume->setPixmap(QIcon::fromTheme("player-volume").pixmap(QSize(22, 22)));
     ui->labelVolumeBm->setPixmap(QIcon::fromTheme("player-volume").pixmap(QSize(22, 22)));
     updateIcons();
@@ -948,8 +970,6 @@ void MainWindow::setupConnections() {
         updateRotationDuration();
         m_rotModel.layoutChanged();
     });
-    connect(m_lazyDurationUpdater.get(), &LazyDurationUpdateController::gotDuration, &m_karaokeSongsModel,
-            &TableModelKaraokeSongs::setSongDuration);
     connect(ui->tableViewRotation->selectionModel(), &QItemSelectionModel::selectionChanged, this,
             &MainWindow::rotationSelectionChanged);
     connect(ui->tableViewQueue->selectionModel(), &QItemSelectionModel::selectionChanged, this, &MainWindow::tableViewQueueSelChanged);
@@ -1543,6 +1563,17 @@ void MainWindow::databaseUpdated() {
     autosizeViews();
     m_settings.restoreColumnWidths(ui->tableViewDB);
     requestsDialog->databaseUpdateComplete();
+}
+
+void MainWindow::restartLazyDurationScan() {
+    if (!m_settings.dbLazyLoadDurations())
+        return;
+    // The request dialog owns a second library model. Wait for both read jobs
+    // before starting writes; keep this wait asynchronous as well.
+    if (m_karaokeSongsModel.isLoading() || (requestsDialog && requestsDialog->isLibraryLoading())) {
+        m_timerLazyDurationStart.start();
+        return;
+    }
     m_lazyDurationUpdater->stopWork();
     m_lazyDurationUpdater = std::make_unique<LazyDurationUpdateController>(this);
     connect(m_lazyDurationUpdater.get(), &LazyDurationUpdateController::gotDuration, &m_karaokeSongsModel,

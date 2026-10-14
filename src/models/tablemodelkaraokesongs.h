@@ -50,6 +50,7 @@ public:
     [[nodiscard]] Qt::ItemFlags flags(const QModelIndex &index) const override;
     [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
     void loadData();
+    bool isLoading() const { return m_loadBusy || m_loadPending || bool(m_pendingLibrary); }
     void sort(int column, Qt::SortOrder order) override;
     void search(const QString &searchString);
     void setSearchType(SearchType type);
@@ -81,11 +82,23 @@ private:
         bool excluded;
         std::shared_ptr<okj::KaraokeSong> song;
     };
+    struct LibraryData {
+        quint64 revision = 0;
+        qint64 elapsedMs = 0;
+        QString error;
+        std::vector<std::shared_ptr<okj::KaraokeSong>> songs;
+        QHash<QString, std::weak_ptr<okj::KaraokeSong>> byPath;
+        QHash<int, std::weak_ptr<okj::KaraokeSong>> byId;
+        std::shared_ptr<const std::vector<SearchEntry>> snapshot;
+        int sortColumn = -1;
+        Qt::SortOrder sortOrder = Qt::AscendingOrder;
+    };
     struct SearchResult {
         quint64 revision;
         qint64 elapsedMs = 0;
         std::vector<std::shared_ptr<okj::KaraokeSong>> songs;
         QHash<int, int> rows;
+        std::shared_ptr<LibraryData> library;
     };
     std::shared_ptr<const std::vector<SearchEntry>> m_searchSnapshot;
     QFutureWatcher<std::shared_ptr<SearchResult>> m_searchWatcher{this};
@@ -93,6 +106,19 @@ private:
     bool m_searchBusy = false;
     bool m_searchPending = false;
     void invalidateSearchSnapshot();
+    QFutureWatcher<std::shared_ptr<LibraryData>> m_loadWatcher{this};
+    std::shared_ptr<std::atomic<quint64>> m_loadRevision = std::make_shared<std::atomic<quint64>>(0);
+    std::shared_ptr<LibraryData> m_pendingLibrary;
+    bool m_loadBusy = false;
+    bool m_loadPending = false;
+    QHash<QString, int> m_durationsDuringLoad;
+    struct HistoryChange { int plays; QDateTime lastPlay; };
+    QHash<int, HistoryChange> m_historyDuringLoad;
+    int m_sortColumn = COL_ID;
+    Qt::SortOrder m_sortOrder = Qt::AscendingOrder;
+    void startLibraryLoad();
+    void reloadIfLoading();
+    static void sortSongs(std::vector<std::shared_ptr<okj::KaraokeSong>> &songs, int column, Qt::SortOrder order);
     QString m_lastSearch;
     int m_curFontHeight{0};
     QImage m_iconCdg;
@@ -112,6 +138,11 @@ private:
     [[nodiscard]] QVariant getItemDisplayData(const QModelIndex &index) const;
     [[nodiscard]] static QVariant getColumnTextAlignmentHint(int column) ;
     [[nodiscard]] QVariant getColumnDecorationRole(const QModelIndex &index) const;
+
+signals:
+    void libraryLoadStarted();
+    void libraryLoadFinished(bool success);
+    void libraryLoadFailed(const QString &message);
 
 public slots:
     void setSongDuration(const QString &path, unsigned int duration);
