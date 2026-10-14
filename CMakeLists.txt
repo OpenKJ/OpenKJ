@@ -92,6 +92,7 @@ set(SOURCE_FILES
         src/dlgaddsong.cpp
         src/mediabackend.cpp
         src/mzarchive.cpp
+        src/mediapreparation.cpp
         src/okjutil.h
         src/okjtypes.cpp
         src/dlgvideopreview.cpp
@@ -157,6 +158,7 @@ set(SOURCE_FILES
         src/dlgvideopreview.h
         src/mediabackend.h
         src/mzarchive.h
+        src/mediapreparation.h
         src/okjutil.h
         src/okjtypes.h
         src/dbupdater.h

@@ -13,6 +13,9 @@
 #include <memory>
 #include <vector>
 #include <atomic>
+#include <QFutureWatcher>
+#include <deque>
+#include <functional>
 #include <gst/gst.h>
 #include <gst/app/gstappsink.h>
 #include <gst/video/video.h>
@@ -206,6 +209,20 @@ private:
     QElapsedTimer m_cdgStartTimer;
     void prepareCdgPlayback();
     void processCdgStartup();
+    struct CdgStateResult {
+        GstState target;
+        quint64 revision;
+        GstStateChangeReturn audio, cdg;
+        bool cancelled;
+        qint64 elapsedMs;
+    };
+    QFutureWatcher<CdgStateResult> m_cdgStateWatcher{this};
+    std::shared_ptr<std::atomic<quint64>> m_cdgStateRevision = std::make_shared<std::atomic<quint64>>(0);
+    bool m_cdgStateBusy{false};
+    qint64 m_stateChangePosition{0}, m_stateChangeDuration{0};
+    std::deque<std::function<void()>> m_deferredControls;
+    bool deferControl(std::function<void()> control);
+    void requestCdgState(GstState target);
 
 private slots:
     void eventTimer_timeout();

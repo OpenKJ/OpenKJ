@@ -6,6 +6,7 @@
 #include <QMutexLocker>
 #include <math.h>
 #include <cmath>
+#include <QtConcurrent/QtConcurrentRun>
 
 // MediaBackend constructor & methods
 MediaBackend::MediaBackend(QObject *parent, QString objectName, MediaType type)
@@ -41,11 +42,43 @@ MediaBackend::MediaBackend(QObject *parent, QString objectName, MediaType type)
         }
     });
 
+    connect(&m_cdgStateWatcher, &QFutureWatcher<CdgStateResult>::finished, this, [this] {
+        m_cdgStateBusy = false;
+        const auto result = m_cdgStateWatcher.result();
+        m_logger->info("{} CDG state request {}: {}ms, cancelled={}", m_loggingPrefix,
+                       gst_element_state_get_name(result.target), result.elapsedMs, result.cancelled);
+        const bool cancelled = result.cancelled || result.revision != m_cdgStateRevision->load();
+        if (cancelled && !result.cancelled) {
+            // Stop may arrive after the worker returned but before this slot.
+            // Finish native cleanup asynchronously before replaying controls.
+            requestCdgState(GST_STATE_NULL);
+            return;
+        }
+        if (!cancelled) {
+            if (result.audio == GST_STATE_CHANGE_FAILURE || result.cdg == GST_STATE_CHANGE_FAILURE) {
+                rawStop();
+                emit audioError("Unable to change synchronized CDG playback state");
+            } else if (result.target == GST_STATE_PLAYING) {
+                m_cdgStartPending = false;
+                m_logger->info("{} Coordinated CDG start: preroll={}ms, runningTime={}ms, shared base time",
+                               m_loggingPrefix, m_cdgStartTimer.elapsed(), m_cdgRunningTime / GST_MSECOND);
+            }
+        }
+        auto controls = std::move(m_deferredControls);
+        m_deferredControls.clear();
+        for (auto &control : controls)
+            control();
+    });
+
     // Set up CDG tempo timer for synchronizing CDG graphics with audio playback
     m_cdgTempoTimer.setSingleShot(true);
     m_cdgTempoTimer.setInterval(250);
 
     connect(&m_cdgTempoTimer, &QTimer::timeout, this, [this]() {
+        if (m_cdgStateBusy) {
+            m_cdgTempoTimer.start();
+            return;
+        }
         if (!m_cdgPipeline)
             return;
 
@@ -104,6 +137,13 @@ MediaBackend::MediaBackend(QObject *parent, QString objectName, MediaType type)
 
 MediaBackend::~MediaBackend() {
     m_eventTimer.stop();
+    ++*m_cdgStateRevision;
+    // Streaming callbacks refer to this backend until the worker puts both
+    // pipelines in NULL. Destruction is the only place that joins the task.
+    if (m_cdgStateBusy) {
+        m_cdgStateWatcher.waitForFinished();
+        m_cdgStateBusy = false;
+    }
     rawStop();
 
     destroyCdgPipeline();
@@ -548,6 +588,8 @@ bool MediaBackend::hasActiveVideo() {
 }
 
 qint64 MediaBackend::position() {
+    if (m_cdgStateBusy)
+        return m_stateChangePosition;
     if (m_pipeline) {
         gint64 pos = 0;
         if (gst_element_query_position(m_pipeline, GST_FORMAT_TIME, &pos)) {
@@ -558,6 +600,8 @@ qint64 MediaBackend::position() {
 }
 
 qint64 MediaBackend::duration() {
+    if (m_cdgStateBusy)
+        return m_stateChangeDuration;
     if (m_pipeline) {
         gint64 dur = 0;
         if (gst_element_query_duration(m_pipeline, GST_FORMAT_TIME, &dur)) {
@@ -578,6 +622,9 @@ QStringList MediaBackend::getOutputDevices() {
 }
 
 void MediaBackend::eventTimer_timeout() {
+    // Even zero-timeout queries can contend with an element's state-change lock.
+    if (m_cdgStateBusy)
+        return;
      if (!m_pipeline)
         return;
 
@@ -599,9 +646,14 @@ void MediaBackend::eventTimer_timeout() {
         gst_object_unref(bus);
     }
 
+    if (m_cdgStateBusy)
+        return;
+
     // Handle coordinated seek if needed.
     processCoordinatedSeek();
     processCdgStartup();
+    if (m_cdgStateBusy)
+        return;
 
     qint64 dur = duration();
 
@@ -689,6 +741,8 @@ if (m_cdgPipeline &&
 }
 
 void MediaBackend::play(bool startSilent) {
+    if (deferControl([this, startSilent] { play(startSilent); }))
+        return;
     if (!(m_frameGeneration->load() & 1))
         ++*m_frameGeneration;
     m_stopAfterFade = false;
@@ -731,15 +785,12 @@ void MediaBackend::prepareCdgPlayback() {
         return;
     m_cdgStartPending = true;
     m_cdgStartTimer.start();
-    const auto audio = gst_element_set_state(m_pipeline, GST_STATE_PAUSED);
-    const auto cdg = gst_element_set_state(m_cdgPipeline, GST_STATE_PAUSED);
-    if (audio == GST_STATE_CHANGE_FAILURE || cdg == GST_STATE_CHANGE_FAILURE) {
-        rawStop();
-        emit audioError("Unable to prepare synchronized CDG playback");
-    }
+    requestCdgState(GST_STATE_PAUSED);
 }
 
 void MediaBackend::processCdgStartup() {
+    if (m_cdgStateBusy)
+        return;
     // Once both PLAYING transitions finish, let GStreamer manage future pause
     // and flushing-seek running times again. The common base time stays intact.
     if (!m_cdgStartPending) {
@@ -768,33 +819,73 @@ void MediaBackend::processCdgStartup() {
         audioState != GST_STATE_PAUSED || cdgState != GST_STATE_PAUSED)
         return;
 
-    // Both streams are ready. Give them one timing origin, with a short lead
-    // so neither starts rendering while the other is changing state.
     const auto runningTime = gst_element_get_start_time(m_pipeline);
     if (GST_CLOCK_TIME_IS_VALID(runningTime))
         m_cdgRunningTime = runningTime;
-    const auto base = gst_clock_get_time(m_sharedClock) + 20 * GST_MSECOND - m_cdgRunningTime;
-    for (auto pipeline : {m_pipeline, m_cdgPipeline}) {
-        gst_element_set_start_time(pipeline, GST_CLOCK_TIME_NONE);
-        gst_element_set_base_time(pipeline, base);
+    requestCdgState(GST_STATE_PLAYING);
+}
+
+bool MediaBackend::deferControl(std::function<void()> control) {
+    if (!m_cdgStateBusy)
+        return false;
+    m_deferredControls.push_back(std::move(control));
+    return true;
+}
+
+void MediaBackend::requestCdgState(GstState target) {
+    if (target != GST_STATE_NULL) {
+        m_stateChangePosition = position();
+        m_stateChangeDuration = duration();
     }
-    m_cdgStartPending = false;
-    const auto cdgStart = gst_element_set_state(m_cdgPipeline, GST_STATE_PLAYING);
-    const auto audioStart = gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
-    if (audioStart == GST_STATE_CHANGE_FAILURE || cdgStart == GST_STATE_CHANGE_FAILURE) {
-        rawStop();
-        emit audioError("Unable to start synchronized CDG playback");
-        return;
-    }
-    if (audioStart == GST_STATE_CHANGE_SUCCESS && cdgStart == GST_STATE_CHANGE_SUCCESS) {
-        gst_element_set_start_time(m_pipeline, 0);
-        gst_element_set_start_time(m_cdgPipeline, 0);
-    }
-    m_logger->info("{} Coordinated CDG start: preroll={}ms, runningTime={}ms, shared base time",
-                   m_loggingPrefix, m_cdgStartTimer.elapsed(), m_cdgRunningTime / GST_MSECOND);
+    m_cdgStateBusy = true;
+    auto audio = GST_ELEMENT(gst_object_ref(m_pipeline));
+    auto cdg = GST_ELEMENT(gst_object_ref(m_cdgPipeline));
+    auto clock = GST_CLOCK(gst_object_ref(m_sharedClock));
+    const auto revision = m_cdgStateRevision->load();
+    m_cdgStateWatcher.setFuture(QtConcurrent::run(
+        [audio, cdg, clock, target, revision, cancellation = m_cdgStateRevision,
+         runningTime = m_cdgRunningTime] {
+            QElapsedTimer timer;
+            timer.start();
+            CdgStateResult result{target, revision, GST_STATE_CHANGE_SUCCESS, GST_STATE_CHANGE_SUCCESS, false, 0};
+            if (cancellation->load() == revision) {
+                if (target == GST_STATE_PLAYING) {
+                    const auto base = gst_clock_get_time(clock) + 20 * GST_MSECOND - runningTime;
+                    for (auto pipeline : {audio, cdg}) {
+                        gst_element_set_start_time(pipeline, GST_CLOCK_TIME_NONE);
+                        gst_element_set_base_time(pipeline, base);
+                    }
+                }
+                result.audio = gst_element_set_state(audio, target);
+                if (cancellation->load() == revision)
+                    result.cdg = gst_element_set_state(cdg, target);
+            }
+            result.cancelled = cancellation->load() != revision;
+            if (result.cancelled || result.audio == GST_STATE_CHANGE_FAILURE || result.cdg == GST_STATE_CHANGE_FAILURE) {
+                for (auto pipeline : {audio, cdg}) {
+                    gst_element_set_state(pipeline, GST_STATE_NULL);
+                    gst_element_set_start_time(pipeline, 0);
+                }
+            }
+            if (target == GST_STATE_NULL) {
+                gst_element_set_start_time(audio, 0);
+                gst_element_set_start_time(cdg, 0);
+            }
+            result.elapsedMs = timer.elapsed();
+            gst_object_unref(audio);
+            gst_object_unref(cdg);
+            gst_object_unref(clock);
+            return result;
+        }));
 }
 
 void MediaBackend::pause() {
+    if (m_cdgStateBusy) {
+        m_cdgStartPending = false;
+        m_resumeAfterSeek = false;
+        deferControl([this] { pause(); });
+        return;
+    }
     if (m_cdgPipeline && m_sharedClock && !m_cdgStartPending && m_state == PlayingState) {
         const auto now = gst_clock_get_time(m_sharedClock);
         const auto base = gst_element_get_base_time(m_pipeline);
@@ -806,16 +897,19 @@ void MediaBackend::pause() {
         gst_element_set_start_time(m_pipeline, m_cdgRunningTime);
         gst_element_set_start_time(m_cdgPipeline, m_cdgRunningTime);
     }
-    if (m_pipeline) {
+    if (m_cdgPipeline && m_pipeline) {
+        requestCdgState(GST_STATE_PAUSED);
+    } else if (m_pipeline) {
         gst_element_set_state(m_pipeline, GST_STATE_PAUSED);
-    }
-
-    if (m_cdgPipeline) {
-        gst_element_set_state(m_cdgPipeline, GST_STATE_PAUSED);
     }
 }
 
 void MediaBackend::setMedia(const QString &filename) {
+    if (m_cdgStateBusy) {
+        rawStop();
+        deferControl([this, filename] { setMedia(filename); });
+        return;
+    }
     m_silenceDetectedEmitted = false;
     rawStop();
     m_appliedVideoRate = 1.0;
@@ -905,6 +999,18 @@ void MediaBackend::setMedia(const QString &filename) {
 }
 
 void MediaBackend::setMediaCdg(const QString &cdgFilename, const QString &audioFilename) {
+    if (m_cdgStateBusy) {
+        rawStop();
+        deferControl([this, cdgFilename, audioFilename] { setMediaCdg(cdgFilename, audioFilename); });
+        return;
+    }
+    QElapsedTimer preparationStage;
+    preparationStage.start();
+    const auto logStage = [this, &preparationStage](const char *stage) {
+        const auto elapsed = preparationStage.restart();
+        if (elapsed >= 50)
+            m_logger->warn("{} CDG preparation on UI thread: {} took {}ms", m_loggingPrefix, stage, elapsed);
+    };
     m_silenceDetectedEmitted = false;
     rawStop();
     m_appliedVideoRate = 1.0;
@@ -913,6 +1019,7 @@ void MediaBackend::setMediaCdg(const QString &cdgFilename, const QString &audioF
     m_cdgFilename = cdgFilename;
     m_tempDir.reset();
     m_rateControlledVideo = false;
+    logStage("pipeline and temporary file cleanup");
 
     m_tempDir = std::make_unique<QTemporaryDir>();
     if (m_tempDir->isValid()) {
@@ -921,6 +1028,7 @@ void MediaBackend::setMediaCdg(const QString &cdgFilename, const QString &audioF
         QString targetCdg = m_tempDir->path() + QDir::separator() + "song.cdg";
 
         if (QFile::copy(audioFilename, targetAudio) && QFile::copy(cdgFilename, targetCdg)) {
+            logStage("copying audio and CDG files");
             QString uri = "file://" + targetAudio;
             g_object_set(G_OBJECT(m_pipeline), "uri", uri.toUtf8().constData(), nullptr);
             g_object_set(G_OBJECT(m_pipeline), "suburi", nullptr, nullptr);
@@ -940,6 +1048,7 @@ void MediaBackend::setMediaCdg(const QString &cdgFilename, const QString &audioF
 
             updateVolume();
             updateAudioFilters();
+            logStage("pipeline setup and CDG analysis");
         } else {
             emit audioError("Failed to copy media files to temp dir");
         }
@@ -964,6 +1073,8 @@ bool MediaBackend::isMuted() {
 
 void MediaBackend::setPosition(const qint64 &position)
 {
+    if (deferControl([this, position] { setPosition(position); }))
+        return;
     if (!m_pipeline || position < 0)
         return;
 
@@ -1264,6 +1375,12 @@ void MediaBackend::stop(const bool &skipFade) {
 }
 
 void MediaBackend::rawStop() {
+    QElapsedTimer stopTimer;
+    stopTimer.start();
+    ++*m_cdgStateRevision;
+    m_deferredControls.clear();
+    m_stateChangePosition = 0;
+    m_stateChangeDuration = 0;
     m_cdgStartPending = false;
     m_cdgRunningTime = 0;
     // Invalidate queued frames before waiting for the streaming threads to stop.
@@ -1277,17 +1394,17 @@ void MediaBackend::rawStop() {
     m_cdgTempoTimer.stop();
     m_videoTempoTimer.stop();
 
-    if (m_pipeline) {
+    if (m_pipeline && !m_cdgStateBusy) {
         gst_element_set_state(m_pipeline, GST_STATE_NULL);
     }
 
-    if (m_cdgPipeline) {
+    if (m_cdgPipeline && !m_cdgStateBusy) {
         gst_element_set_state(m_cdgPipeline, GST_STATE_NULL);
     }
     // Return ownership of timing to GStreamer for subsequent single-pipeline media.
-    if (m_pipeline)
+    if (m_pipeline && !m_cdgStateBusy)
         gst_element_set_start_time(m_pipeline, 0);
-    if (m_cdgPipeline)
+    if (m_cdgPipeline && !m_cdgStateBusy)
         gst_element_set_start_time(m_cdgPipeline, 0);
     m_state = StoppedState;
     for (auto* display : m_videoSinks) {
@@ -1300,6 +1417,8 @@ void MediaBackend::rawStop() {
     m_cdgSyncTimer.invalidate();
     m_lastCdgSyncCheckMs = -1;
     m_lastCdgCorrectionMs = -1;
+    if (stopTimer.elapsed() >= 50)
+        m_logger->warn("{} Playback cleanup on UI thread took {}ms", m_loggingPrefix, stopTimer.elapsed());
     // Consumers may start another track synchronously. Complete cleanup first.
     emit stateChanged(m_state);
 }
@@ -1341,6 +1460,8 @@ void MediaBackend::fadeOutImmediate() {
 
 void MediaBackend::setTempo(const int &percent)
 {
+    if (deferControl([this, percent] { setTempo(percent); }))
+        return;
     if (percent <= 0)
         return;
 

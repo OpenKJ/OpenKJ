@@ -68,7 +68,7 @@ QString MzArchive::audioExtension()
     return audioExt;
 }
 
-bool MzArchive::extractAudio(const QString& destPath, const QString& destFile)
+bool MzArchive::extractAudio(const QString& destPath, const QString& destFile, const std::atomic_bool *cancelled)
 {
     m_logger->info("{} Extracting {} audio file to: {}/{}", m_loggingPrefix, archiveFile, destPath, destFile);
     if (!findAudio())
@@ -100,18 +100,22 @@ bool MzArchive::extractAudio(const QString& destPath, const QString& destFile)
     }
 
     char buf[8192];
-    zip_int64_t n;
-    while ((n = zip_fread(zf, buf, sizeof(buf))) > 0)
+    zip_int64_t n = -1;
+    while ((!cancelled || !cancelled->load()) && (n = zip_fread(zf, buf, sizeof(buf))) > 0)
     {
-        dest.write(buf, n);
+        if (dest.write(buf, n) != n) {
+            n = -1;
+            break;
+        }
     }
+    const bool extracted = n == 0 && dest.flush() && (!cancelled || !cancelled->load());
     dest.close();
     zip_fclose(zf);
     zip_close(z);
-    return true;
+    return extracted;
 }
 
-bool MzArchive::extractCdg(const QString& destPath, const QString& destFile)
+bool MzArchive::extractCdg(const QString& destPath, const QString& destFile, const std::atomic_bool *cancelled)
 {
     m_logger->info("{} Extracting {} cdg file to: {}/{}", m_loggingPrefix, archiveFile, destPath, destFile);
     if (!findCDG())
@@ -143,15 +147,19 @@ bool MzArchive::extractCdg(const QString& destPath, const QString& destFile)
     }
 
     char buf[8192];
-    zip_int64_t n;
-    while ((n = zip_fread(zf, buf, sizeof(buf))) > 0)
+    zip_int64_t n = -1;
+    while ((!cancelled || !cancelled->load()) && (n = zip_fread(zf, buf, sizeof(buf))) > 0)
     {
-        dest.write(buf, n);
+        if (dest.write(buf, n) != n) {
+            n = -1;
+            break;
+        }
     }
+    const bool extracted = n == 0 && dest.flush() && (!cancelled || !cancelled->load());
     dest.close();
     zip_fclose(zf);
     zip_close(z);
-    return true;
+    return extracted;
 }
 
 bool MzArchive::isValidKaraokeFile()

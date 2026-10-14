@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QStringList>
+#include <atomic>
 #include <spdlog/spdlog.h>
 #include <spdlog/async_logger.h>
 #include <spdlog/fmt/ostr.h>
@@ -21,8 +22,8 @@ public:
     bool checkCDG();
     bool checkAudio();
     QString audioExtension();
-    bool extractAudio(const QString& destPath, const QString& destFile);
-    bool extractCdg(const QString& destPath, const QString& destFile);
+    bool extractAudio(const QString& destPath, const QString& destFile, const std::atomic_bool *cancelled = nullptr);
+    bool extractCdg(const QString& destPath, const QString& destFile, const std::atomic_bool *cancelled = nullptr);
     bool isValidKaraokeFile();
     QString getLastError();
 

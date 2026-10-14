@@ -2,6 +2,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QMessageBox>
+#include <QElapsedTimer>
+#include <QtConcurrent/QtConcurrentRun>
+#include <QFutureWatcher>
 #include <QMenu>
 #include <QInputDialog>
 #include <QFileDialog>
@@ -12,6 +15,7 @@
 #include <QToolButton>
 #include <algorithm>
 #include "mzarchive.h"
+#include "mediapreparation.h"
 #include "tagreader.h"
 #include "dlgeditsong.h"
 #include "soundfxbutton.h"
@@ -393,7 +397,10 @@ void MainWindow::setupShortcuts() {
     m_scutKStop.setKey(m_settings.loadShortcutKeySequence("kStop"));
     m_scutKStop.setContext(Qt::ApplicationShortcut);
     connect(&m_scutKStop, &QShortcut::activated, [&]() {
-        m_mediaBackendKar.stop();
+        if (m_mediaPreparationCancelled)
+            buttonStopClicked();
+        else
+            m_mediaBackendKar.stop();
     });
 
     m_scutKVolDn.setKey(m_settings.loadShortcutKeySequence("kVolDn"));
@@ -1391,7 +1398,76 @@ void MainWindow::restoreBreakMusicVolume() {
         m_mediaBackendBm.fadeInImmediate();
 }
 
+void MainWindow::cancelMediaPreparation() {
+    if (m_mediaPreparationCancelled)
+        m_mediaPreparationCancelled->store(true);
+    m_mediaPreparationCancelled.reset();
+}
+
+void MainWindow::applyKaraokePlaybackSettings() {
+    m_mediaBackendKar.setTempo(ui->spinBoxTempo->value());
+    if (m_settings.recordingEnabled()) {
+        m_logger->info("{} Starting recording", m_loggingPrefix);
+        const auto timeStamp = QDateTime::currentDateTime().toString("yyyy-MM-dd-hhmm");
+        audioRecorder.record(m_curSinger + " - " + m_curArtist + " - " + m_curTitle + " - " + timeStamp);
+    }
+}
+
+void MainWindow::prepareKaraokePlayback(const QString &filename, bool k2k) {
+    // Complete the previous song's stop before callers update singer/title/key.
+    // A late fade completion must not reset the new song while its media loads.
+    m_mediaBackendKar.stop(true);
+    m_timerKaraokeAA.stop();
+    cdgWindow->showAlert(false);
+    const bool isZip = filename.endsWith(".zip", Qt::CaseInsensitive);
+    const auto cancelled = std::make_shared<std::atomic_bool>(false);
+    m_mediaPreparationCancelled = cancelled;
+    auto *watcher = new QFutureWatcher<PreparedKaraokeMedia>(this);
+    connect(watcher, &QFutureWatcher<PreparedKaraokeMedia>::finished, this,
+            [this, watcher, cancelled, k2k, isZip] {
+        const auto prepared = watcher->result();
+        watcher->deleteLater();
+        // A newer track or Stop invalidates even a result already queued for delivery.
+        if (cancelled->load() || m_shuttingDown)
+            return;
+        m_mediaPreparationCancelled.reset();
+        m_logger->info("{} {} preparation in background took {}ms", m_loggingPrefix, isZip ? "ZIP" : "Video", prepared.elapsedMs);
+        if (!prepared.error.isEmpty()) {
+            m_timerTest.stop();
+            QMessageBox::warning(this, tr("Bad karaoke file"), prepared.error, QMessageBox::Ok);
+            return;
+        }
+        // Retain the worker's files while a deferred backend source change uses them.
+        m_preparedPlaybackDir = prepared.directory;
+        if (isZip)
+            m_mediaBackendKar.setMediaCdg(prepared.cdgFile, prepared.audioFile);
+        else
+            m_mediaBackendKar.setMedia(prepared.audioFile);
+        if (!k2k) {
+            if (m_settings.bmKCrossFade())
+                m_mediaBackendBm.fadeOut(false);
+            else
+                m_mediaBackendBm.fadeOutImmediate();
+        }
+        m_mediaBackendKar.play();
+        m_mediaBackendKar.fadeInImmediate();
+        applyKaraokePlaybackSettings();
+    });
+    // The worker captures no window, backend, widget, or shared archive object.
+    watcher->setFuture(QtConcurrent::run([filename, cancelled, isZip] {
+        return isZip ? prepareKaraokeZip(filename, cancelled) : prepareKaraokeVideo(filename, cancelled);
+    }));
+}
+
 void MainWindow::play(const QString &karaokeFilePath, const bool &k2k) {
+    cancelMediaPreparation();
+    QElapsedTimer startupStage;
+    startupStage.start();
+    const auto logStage = [this, &startupStage](const char *stage) {
+        const auto elapsed = startupStage.restart();
+        if (elapsed >= 50)
+            m_logger->warn("{} Song startup on UI thread: {} took {}ms", m_loggingPrefix, stage, elapsed);
+    };
     m_mediaTempDir = std::make_unique<QTemporaryDir>();
     if (m_mediaBackendKar.state() != MediaBackend::PausedState) {
         m_logger->info("{} Playing file: {}", m_loggingPrefix, karaokeFilePath.toStdString());
@@ -1405,46 +1481,13 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k) {
                 m_rotModel.singerMove(0, static_cast<int>(m_rotModel.singerCount() - 1));
             ui->spinBoxTempo->setValue(100);
         }
+        logStage("previous track cleanup");
         if (karaokeFilePath.endsWith(".zip", Qt::CaseInsensitive)) {
-            MzArchive archive(karaokeFilePath);
-            if ((archive.checkCDG()) && (archive.checkAudio())) {
-                if (archive.checkAudio()) {
-                    if (!archive.extractAudio(m_mediaTempDir->path(), "tmp" + archive.audioExtension())) {
-                        m_timerTest.stop();
-                        QMessageBox::warning(this, tr("Bad karaoke file"), tr("Failed to extract audio file."),
-                                             QMessageBox::Ok);
-                        return;
-                    }
-                    if (!archive.extractCdg(m_mediaTempDir->path(), "tmp.cdg")) {
-                        m_timerTest.stop();
-                        QMessageBox::warning(this, tr("Bad karaoke file"), tr("Failed to extract CDG file."),
-                                             QMessageBox::Ok);
-                        return;
-                    }
-                    QString audioFile = m_mediaTempDir->path() + QDir::separator() + "tmp" + archive.audioExtension();
-                    QString cdgFile = m_mediaTempDir->path() + QDir::separator() + "tmp.cdg";
-                    m_logger->info("{} Extracted audio file size: {}", m_loggingPrefix, QFileInfo(audioFile).size());
-                    m_logger->info("{} Setting karaoke backend source file to: {}", m_loggingPrefix,
-                                   audioFile.toStdString());
-                    m_mediaBackendKar.setMediaCdg(cdgFile, audioFile);
-                    if (!k2k) {
-                        if (m_settings.bmKCrossFade())
-                            m_mediaBackendBm.fadeOut(false);
-                        else
-                            m_mediaBackendBm.fadeOutImmediate();
-                    }
-                    m_logger->info("{} Beginning playback of file: {}", m_loggingPrefix, audioFile.toStdString());
-                    QApplication::setOverrideCursor(Qt::WaitCursor);
-                    m_mediaBackendKar.play();
-                    QApplication::restoreOverrideCursor();
-                    m_mediaBackendKar.fadeInImmediate();
-                }
-            } else {
-                QMessageBox::warning(this, tr("Bad karaoke file"),
-                                     tr("Zip file does not contain a valid karaoke track.  CDG or audio file missing or corrupt."),
-                                     QMessageBox::Ok);
-                return;
-            }
+            prepareKaraokePlayback(karaokeFilePath, k2k);
+            m_k2kTransition = false;
+            if (m_settings.karaokeAutoAdvance())
+                m_kAASkip = false;
+            return;
         } else if (karaokeFilePath.endsWith(".cdg", Qt::CaseInsensitive)) {
             QString cdgTmpFile = "tmp.cdg";
             QString audTmpFile = "tmp.mp3";
@@ -1472,8 +1515,10 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k) {
             }
             cdgFile.copy(m_mediaTempDir->path() + QDir::separator() + cdgTmpFile);
             QFile::copy(audioFilename, m_mediaTempDir->path() + QDir::separator() + audTmpFile);
+            logStage("CDG and audio file preparation");
             m_mediaBackendKar.setMediaCdg(m_mediaTempDir->path() + QDir::separator() + cdgTmpFile,
                                           m_mediaTempDir->path() + QDir::separator() + audTmpFile);
+            logStage("CDG backend preparation");
             if (!k2k) {
                 if (m_settings.bmKCrossFade())
                     m_mediaBackendBm.fadeOut(false);
@@ -1485,29 +1530,14 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k) {
             QApplication::restoreOverrideCursor();
             m_mediaBackendKar.fadeInImmediate();
         } else {
-            // Close CDG if open to avoid double video playback
-            m_logger->info("{} Playing non-CDG video file: {}", m_loggingPrefix, karaokeFilePath.toStdString());
-            QString tmpFilePath = m_mediaTempDir->path() + QDir::separator() + "tmpvid." + karaokeFilePath.right(4);
-            QFile::copy(karaokeFilePath, tmpFilePath);
-            m_logger->info("{} Playing temporary copy to avoid bad filename stuff w/ gstreamer: {}", m_loggingPrefix,
-                           tmpFilePath.toStdString());
-            m_mediaBackendKar.setMedia(tmpFilePath);
-            if (!k2k) {
-                if (m_settings.bmKCrossFade())
-                    m_mediaBackendBm.fadeOut(false);
-                else
-                    m_mediaBackendBm.fadeOutImmediate();
-            }
-            m_mediaBackendKar.play();
-            m_mediaBackendKar.fadeInImmediate();
+            prepareKaraokePlayback(karaokeFilePath, k2k);
+            m_k2kTransition = false;
+            if (m_settings.karaokeAutoAdvance())
+                m_kAASkip = false;
+            return;
         }
-        m_mediaBackendKar.setTempo(ui->spinBoxTempo->value());
-        if (m_settings.recordingEnabled()) {
-            m_logger->info("{} Starting recording", m_loggingPrefix);
-            QString timeStamp = QDateTime::currentDateTime().toString("yyyy-MM-dd-hhmm");
-            audioRecorder.record(m_curSinger + " - " + m_curArtist + " - " + m_curTitle + " - " + timeStamp);
-        }
-
+        logStage("playback request and break music transition");
+        applyKaraokePlaybackSettings();
 
     } else if (m_mediaBackendKar.state() == MediaBackend::PausedState) {
         if (m_settings.recordingEnabled())
@@ -1515,6 +1545,7 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k) {
         m_mediaBackendKar.play();
         m_mediaBackendKar.fadeIn(false);
     }
+    logStage("playback settings and recording");
     m_k2kTransition = false;
     if (m_settings.karaokeAutoAdvance())
         m_kAASkip = false;
@@ -1522,6 +1553,7 @@ void MainWindow::play(const QString &karaokeFilePath, const bool &k2k) {
 
 MainWindow::~MainWindow() {
     m_shuttingDown = true;
+    cancelMediaPreparation();
     if (m_dbThread) {
         m_dbThread->quit();
         m_dbThread->wait();
@@ -1594,6 +1626,13 @@ void MainWindow::databaseCleared() {
 }
 
 void MainWindow::buttonStopClicked() {
+    const bool wasPreparing = bool(m_mediaPreparationCancelled);
+    cancelMediaPreparation();
+    if (wasPreparing) {
+        ui->labelArtist->setText("None");
+        ui->labelTitle->setText("None");
+        ui->labelSinger->setText("None");
+    }
     if (m_mediaBackendKar.state() == MediaBackend::PlayingState) {
         if (m_settings.showSongPauseStopWarning()) {
             QMessageBox msgBox(this);
