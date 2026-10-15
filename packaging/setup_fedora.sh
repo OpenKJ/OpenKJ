@@ -9,7 +9,7 @@ if [[ ${1:-} == --install-deps ]]; then
     if (( EUID != 0 )); then root_command=(sudo); fi
     "${root_command[@]}" dnf install -y \
         gcc gcc-c++ cmake ninja-build pkgconf-pkg-config git curl cargo rust \
-        qt6-qtbase-devel qt6-qtbase-sqlite qt6-qtsvg-devel qt6-qtmultimedia-devel \
+        qt6-qtbase-devel qt6-qtsvg-devel qt6-qtmultimedia-devel \
         qt6-qtnetworkauth-devel qt6-qtwebsockets-devel qt6-qtwayland \
         gstreamer1-devel gstreamer1-plugins-base-devel gstreamer1-plugins-good \
         gstreamer1-plugins-bad-free gstreamer1-plugins-bad-free-extras \
