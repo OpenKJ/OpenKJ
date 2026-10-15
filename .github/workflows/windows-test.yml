@@ -68,13 +68,13 @@ jobs:
               match = re.fullmatch(r'refs/tags/windows-v(\d+\.\d+\.\d+)-(?:prerelease|preview)\.\d+', ref)
               if not match:
                   raise SystemExit('Expected windows-vX.Y.Z-prerelease.N or windows-vX.Y.Z-preview.N')
-              header = pathlib.Path('src/okjversion.h').read_text()
+              header = pathlib.Path('src/okjversion.h').read_text(encoding='utf-8')
               version = re.search(r'OKJ_VERSION_STRING "([^"\n]+)"', header).group(1)
               parts = [re.search(r'OKJ_VERSION_' + part + r' (\d+)', header).group(1)
                        for part in ('MAJOR', 'MINOR', 'BUILD')]
               if version != match[1] or '.'.join(parts) != version:
                   raise SystemExit('Windows tag and source version do not match')
-              if not pathlib.Path('packaging/WINDOWS_RELEASE_NOTES.md').read_text().startswith('# OpenKJ ' + version + ' —'):
+              if not pathlib.Path('packaging/WINDOWS_RELEASE_NOTES.md').read_text(encoding='utf-8').startswith('# OpenKJ ' + version + ' —'):
                   raise SystemExit('Update packaging/WINDOWS_RELEASE_NOTES.md for this version')
           PYTHON
       - name: Configure Qt 6 build
