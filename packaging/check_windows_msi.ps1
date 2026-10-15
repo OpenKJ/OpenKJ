@@ -7,7 +7,7 @@ $ErrorActionPreference = 'Stop'
 $msi = (Resolve-Path $Installer).Path
 $previousMsi = (Resolve-Path $PreviousInstaller).Path
 $payload = (Resolve-Path $BundleDirectory).Path
-$install = Join-Path $env:ProgramW6432 'OpenKJ'
+$install = Join-Path $env:ProgramW6432 'OpenKJ MSI CI'
 $logs = New-Item -ItemType Directory -Force 'build-windows-msi/logs'
 $registryRoot = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall'
 $programs = Join-Path ([Environment]::GetFolderPath('CommonPrograms')) 'OpenKJ/OpenKJ.lnk'
@@ -31,7 +31,7 @@ function Invoke-Msi([string[]]$Arguments, [string]$LogName, [int[]]$Expected = @
         throw "MSI operation $LogName failed: $($process.ExitCode)"
     }
 }
-function Assert-Payload {
+function Assert-Payload([bool]$ExpectDesktop = $true) {
     $manifest = Get-Content (Join-Path $payload 'manifest.json') -Raw | ConvertFrom-Json
     foreach ($entry in $manifest.files.PSObject.Properties) {
         $path = Join-Path $install $entry.Name
@@ -41,7 +41,7 @@ function Assert-Payload {
         }
     }
     if (-not (Test-Path $programs)) { throw 'Start Menu shortcut missing' }
-    if (-not (Test-Path $desktop)) { throw 'Optional desktop shortcut missing' }
+    if ((Test-Path $desktop) -ne $ExpectDesktop) { throw 'Optional desktop shortcut selection was not respected' }
 }
 $currentCode = Get-MsiProperty $msi 'ProductCode'
 $previousCode = Get-MsiProperty $previousMsi 'ProductCode'
@@ -58,7 +58,7 @@ $media = Join-Path $env:RUNNER_TEMP ('msi-media-' + [Guid]::NewGuid() + '.mp3')
 [IO.File]::WriteAllText($sentinel, 'Existing user settings and library data must survive.')
 [IO.File]::WriteAllText($media, 'Existing media must survive.')
 try {
-    Invoke-Msi @('/i', "`"$previousMsi`"", 'ADDLOCAL=ALL') 'install-previous'
+    Invoke-Msi @('/i', "`"$previousMsi`"", 'ADDLOCAL=ALL', "INSTALLFOLDER=`"$install`"") 'install-previous'
     Assert-Payload
     if (-not (Test-Path (Join-Path $registryRoot $previousCode))) { throw 'Previous product not registered' }
     Invoke-Msi @('/i', "`"$msi`"", 'ADDLOCAL=ALL') 'upgrade'
@@ -78,6 +78,13 @@ try {
     if ((Test-Path $install) -or (Test-Path $programs) -or (Test-Path $desktop) -or (Test-Path (Join-Path $registryRoot $currentCode))) {
         throw 'Uninstall left installed files, shortcuts, or product registration'
     }
+    # A fresh default install must omit the optional desktop shortcut.
+    $install = Join-Path $env:ProgramW6432 'OpenKJ'
+    if (Test-Path $install) { throw 'Default install folder already exists' }
+    Invoke-Msi @('/i', "`"$msi`"") 'install-default'
+    Assert-Payload -ExpectDesktop $false
+    Invoke-Msi @('/x', $currentCode) 'uninstall-default'
+    if ((Test-Path $install) -or (Test-Path $programs) -or (Test-Path $desktop)) { throw 'Default uninstall left files or shortcuts' }
     if ((Get-Content $sentinel -Raw) -ne 'Existing user settings and library data must survive.' -or
         (Get-Content $media -Raw) -ne 'Existing media must survive.') { throw 'User data or media changed' }
     Write-Host 'PASS: MSI install, payload hashes, shortcuts, upgrade, repair, isolated runtime, downgrade rejection, uninstall, and user-data preservation.'

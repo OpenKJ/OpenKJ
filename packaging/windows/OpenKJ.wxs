@@ -12,6 +12,11 @@
     <Property Id="ARPHELPLINK" Value="https://github.com/EquinoxEarth/OpenKJ/issues" />
     <Property Id="ARPURLINFOABOUT" Value="https://github.com/EquinoxEarth/OpenKJ" />
     <Property Id="ARPNOMODIFY" Value="1" />
+    <Property Id="INSTALLFOLDER" Secure="yes">
+      <RegistrySearch Id="PreviousInstallFolder" Root="HKLM" Key="Software\OpenKJ\Installer"
+                      Name="InstallLocation" Type="raw" Bitness="always64" />
+    </Property>
+    <SetProperty Id="ARPINSTALLLOCATION" Value="[INSTALLFOLDER]" After="CostFinalize" Sequence="execute" />
     <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="INSTALLFOLDER" Name="OpenKJ">
         <Component Id="ApplicationExecutable" Guid="*">
@@ -19,6 +24,8 @@
             <Shortcut Id="StartMenuShortcut" Name="OpenKJ" Directory="ApplicationProgramsFolder"
                       Advertise="yes" WorkingDirectory="INSTALLFOLDER" Icon="OpenKJIcon" />
           </File>
+          <RegistryValue Root="HKLM" Key="Software\OpenKJ\Installer" Name="InstallLocation"
+                         Type="string" Value="[INSTALLFOLDER]" />
           <RemoveFolder Id="RemoveStartMenuFolder" Directory="ApplicationProgramsFolder" On="uninstall" />
         </Component>
       </Directory>
