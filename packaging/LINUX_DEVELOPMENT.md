@@ -1,5 +1,9 @@
 # Fedora Qt 6 development
 
+For an installable package on Aurora or another Flatpak desktop, use the
+[Linux Flatpak preview](flatpak/README.md). That package includes the extra
+media plugins and does not require host development packages or `env.sh`.
+
 The first Linux target on `macos-qt6-test` is **Fedora 44 x86_64**. This uses
 Fedora Qt 6, GStreamer and SoundTouch packages, preserving the same pitch, tempo,
 EQ and playback pipelines as the Mac and Windows builds. No VLC SDK is needed.
@@ -17,16 +21,20 @@ sudo dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-releas
 
 Fedora's `gstreamer1-plugin-libav` uses the distribution FFmpeg libraries. The
 restricted codec selection may omit `avdec_h264`; OpenKJ checks for it rather
-than allowing MP4 playback to fail later. Install `libavcodec-freeworld` from
-RPM Fusion. If `libavcodec-free` is already installed, use RPM Fusion's documented
-codec replacement instead of mixing incompatible FFmpeg library versions:
+than allowing MP4 playback to fail later. Update the installed packages, then
+install `libavcodec-freeworld` from RPM Fusion alongside Fedora's codec package:
 
 ```bash
-sudo dnf swap libavcodec-free libavcodec-freeworld
+sudo dnf upgrade --refresh
+sudo dnf install libavcodec-freeworld
 ```
 
-Review DNF's proposed changes before accepting. On a fresh environment where
-`libavcodec-free` is absent, use `sudo dnf install libavcodec-freeworld`.
+`libavcodec-freeworld` supplements Fedora's FFmpeg libraries; do not swap out
+`libavcodec-free`, which other Fedora packages require at an exact version.
+See the [RPM Fusion package definition](https://github.com/rpmfusion/ffmpeg/blob/f44/ffmpeg.spec).
+Review DNF's proposed changes before accepting. If versions still cannot be
+resolved after refreshing and updating, inspect the available package versions
+before forcing removals or enabling testing repositories.
 
 From this checkout:
 

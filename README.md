@@ -68,6 +68,9 @@ for first-machine setup, IDE use, checks, standalone app packaging, and DMGs.
 
 ### **Linux (Fedora Qt 6 development build)**
 
+An installable [Linux Flatpak preview](packaging/flatpak/README.md) targets Aurora
+and other Flatpak desktops, with SoundTouch and CDG included in the package.
+
 The initial Linux target is Fedora 44 x86_64, using Qt 6 and GStreamer with
 SoundTouch, CDG and FFmpeg codecs. See [Fedora development](packaging/LINUX_DEVELOPMENT.md)
 for dependency setup, native builds, automated runtime checks and the development

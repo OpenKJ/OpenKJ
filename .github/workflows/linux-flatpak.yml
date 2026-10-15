@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/linux-flatpak.yml'
       - 'packaging/flatpak/**'
+      - 'packaging/build_flatpak.sh'
       - 'src/**'
       - 'CMakeLists.txt'
       - 'cmake/**'
@@ -14,6 +15,10 @@ on:
 
 permissions:
   contents: read
+
+concurrency:
+  group: flatpak-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -24,13 +29,23 @@ jobs:
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v5
-      - name: Inspect KDE runtime media support
+      - name: Build and test installable Flatpak preview
+        env:
+          OPENKJ_FLATPAK_SYSTEM: '1'
         run: |
-          flatpak list --runtime
-          flatpak run --command=sh org.kde.Sdk//6.11 -c '
-            pkg-config --modversion gstreamer-1.0
-            gst-inspect-1.0 --version
-            for element in pitch cdgparse cdgdec avdec_h264 avdec_aac equalizer-10bands; do
-              gst-inspect-1.0 "$element" || true
-            done
-          '
+          set -o pipefail
+          bash packaging/build_flatpak.sh 2>&1 | tee build-flatpak.log
+      - name: Upload installable Linux preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenKJ-Linux-x86_64-flatpak-preview
+          path: releases/flatpak/
+          if-no-files-found: error
+      - name: Upload Flatpak build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenKJ-flatpak-diagnostics
+          path: |
+            build-flatpak.log
+            packaging/flatpak/org.openkj.OpenKJ.json

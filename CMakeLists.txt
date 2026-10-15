@@ -290,19 +290,26 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBS
     install(
             TARGETS openkj
             DESTINATION bin
+            COMPONENT OpenKJRuntime
     )
     install(
             FILES src/Icons/org.openkj.OpenKJ.svg
             DESTINATION share/icons/hicolor/scalable/apps
+            COMPONENT OpenKJRuntime
     )
     install(
             FILES src/org.openkj.OpenKJ.desktop
             DESTINATION share/applications
+            COMPONENT OpenKJRuntime
     )
     install(
             FILES src/org.openkj.OpenKJ.metainfo.xml
             DESTINATION share/metainfo
+            COMPONENT OpenKJRuntime
     )
+    if(OPENKJ_BUILD_SMOKE_TESTS)
+        install(TARGETS openkj-runtime-smoke DESTINATION libexec COMPONENT OpenKJRuntime)
+    endif()
 
     # ---------------------------------------------------------------------------
     # Optional AppImage — produces a single self-contained executable.

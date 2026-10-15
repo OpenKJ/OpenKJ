@@ -1,0 +1,139 @@
+{
+  "app-id": "org.openkj.OpenKJ",
+  "runtime": "org.kde.Platform",
+  "runtime-version": "6.11",
+  "sdk": "org.kde.Sdk",
+  "sdk-extensions": [
+    "org.freedesktop.Sdk.Extension.rust-stable"
+  ],
+  "command": "openkj",
+  "finish-args": [
+    "--share=ipc",
+    "--share=network",
+    "--socket=wayland",
+    "--socket=fallback-x11",
+    "--socket=pulseaudio",
+    "--device=dri",
+    "--filesystem=host",
+    "--env=GST_PLUGIN_PATH_1_0=/app/lib/gstreamer-1.0"
+  ],
+  "build-options": {
+    "env": {
+      "CMAKE_BUILD_PARALLEL_LEVEL": "4"
+    }
+  },
+  "cleanup": [
+    "/include",
+    "/lib/pkgconfig",
+    "/lib/cmake",
+    "*.a",
+    "*.la"
+  ],
+  "modules": [
+    {
+      "name": "soundtouch",
+      "buildsystem": "cmake-ninja",
+      "config-opts": [
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DBUILD_SHARED_LIBS=ON",
+        "-DCMAKE_INSTALL_LIBDIR=lib"
+      ],
+      "post-install": [
+        "install -Dm644 COPYING.TXT /app/share/licenses/openkj/soundtouch-COPYING.TXT"
+      ],
+      "sources": [
+        {
+          "type": "archive",
+          "url": "https://codeberg.org/soundtouch/soundtouch/archive/2.4.1.tar.gz",
+          "sha256": "35d404e6e8c2ebd12fb4000da6fadd75c99e37eed2126a04721828c11c0377ec"
+        }
+      ]
+    },
+    {
+      "name": "gstreamer-soundtouch",
+      "buildsystem": "simple",
+      "sources": [
+        {
+          "type": "archive",
+          "url": "https://gstreamer.freedesktop.org/src/gst-plugins-bad/gst-plugins-bad-1.26.11.tar.xz",
+          "sha256": "110fb82795f0e569b1e27b12ab9699d35c7762e1ff4db95335d6ac8d1442af3d"
+        }
+      ],
+      "build-commands": [
+        "meson setup build --prefix=/app --buildtype=release --wrap-mode=nofallback --auto-features=disabled -Dsoundtouch=enabled -Dintrospection=disabled -Ddoc=disabled -Dexamples=disabled -Dtests=disabled",
+        "meson compile -C build -j 4 gstsoundtouch",
+        "install -Dm755 build/ext/soundtouch/libgstsoundtouch.so /app/lib/gstreamer-1.0/libgstsoundtouch.so",
+        "install -Dm644 COPYING /app/share/licenses/openkj/gstreamer-soundtouch-COPYING"
+      ]
+    },
+    {
+      "name": "gstreamer-cdg",
+      "buildsystem": "simple",
+      "build-options": {
+        "append-path": "/usr/lib/sdk/rust-stable/bin",
+        "build-args": [
+          "--share=network"
+        ]
+      },
+      "build-commands": [
+        "cargo build --locked --release -p gst-plugin-cdg -j 4",
+        "install -Dm755 target/release/libgstcdg.so /app/lib/gstreamer-1.0/libgstcdg.so",
+        "install -Dm644 LICENSE-MIT /app/share/licenses/openkj/cdg-LICENSE-MIT",
+        "install -Dm644 LICENSE-APACHE /app/share/licenses/openkj/cdg-LICENSE-APACHE"
+      ],
+      "sources": [
+        {
+          "type": "git",
+          "url": "https://github.com/GStreamer/gst-plugins-rs.git",
+          "commit": "6302bea23b53e6461c104f9543df887a63b2d6ec"
+        }
+      ]
+    },
+    {
+      "name": "openkj",
+      "buildsystem": "simple",
+      "build-commands": [
+        "cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/app -DOPENKJ_BUILD_SMOKE_TESTS=ON -DCPM_SOURCE_CACHE=$PWD/vendor -DCPM_spdlog_SOURCE=$PWD/vendor/spdlog -DCPM_libzip_SOURCE=$PWD/vendor/libzip -DCPM_taglib_SOURCE=$PWD/vendor/taglib",
+        "cmake --build build --parallel 4",
+        "cmake --install build --component OpenKJRuntime",
+        "install -Dm644 LICENSE /app/share/licenses/openkj/LICENSE",
+        "install -Dm644 vendor/libzip/LICENSE /app/share/licenses/openkj/libzip-LICENSE",
+        "install -Dm644 vendor/spdlog/LICENSE /app/share/licenses/openkj/spdlog-LICENSE",
+        "install -Dm644 vendor/spdlog/include/spdlog/fmt/bundled/LICENSE.rst /app/share/licenses/openkj/fmt-LICENSE",
+        "install -Dm644 vendor/taglib/COPYING.LGPL /app/share/licenses/openkj/taglib-COPYING.LGPL",
+        "install -Dm644 vendor/taglib/COPYING.MPL /app/share/licenses/openkj/taglib-COPYING.MPL"
+      ],
+      "sources": [
+        {
+          "type": "dir",
+          "path": "../../build-flatpak-source"
+        },
+        {
+          "type": "file",
+          "url": "https://github.com/cpm-cmake/CPM.cmake/releases/download/v0.32.2/CPM.cmake",
+          "sha256": "c831e5a6a9a9004f025a2c094685b26aa6ee040834d3dd06f162480b628b1e9f",
+          "dest": "vendor/cpm",
+          "dest-filename": "CPM_0.32.2.cmake"
+        },
+        {
+          "type": "git",
+          "url": "https://github.com/gabime/spdlog.git",
+          "commit": "de0dbfa3596a18cd70a4619b6a9766847a941276",
+          "dest": "vendor/spdlog"
+        },
+        {
+          "type": "git",
+          "url": "https://github.com/nih-at/libzip.git",
+          "commit": "210b09d9d2d0f4c0bbc64f92ad45c1ac53598fec",
+          "dest": "vendor/libzip"
+        },
+        {
+          "type": "git",
+          "url": "https://github.com/taglib/taglib.git",
+          "commit": "c840222a391439285478820b4477d5fa6b78d63d",
+          "dest": "vendor/taglib"
+        }
+      ]
+    }
+  ]
+}
