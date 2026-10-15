@@ -62,6 +62,10 @@ ten-band EQ still uses GStreamer's equalizer element.
 
 ## GitHub builds and prereleases
 
+For releases covering all platforms, use [coordinated prereleases](RELEASING.md).
+The platform-specific tag path below remains available for individual previews.
+
+
 `macos-build.yml` uses a GitHub-hosted `macos-15` Apple Silicon runner, the same
 setup script, runtime checks, standalone packaging, ad-hoc signing and DMG
 verification. Branch pushes and pull requests targeting `master` produce
@@ -80,7 +84,7 @@ The workflow uses the repository's `GITHUB_TOKEN`; no personal access token,
 local paths, developer signing credentials, or self-hosted runner is required.
 Existing releases can receive a missing asset; existing assets are never
 overwritten automatically. A failed new upload leaves a draft for inspection.
-Legacy Windows release/version-update jobs skip the `macos-v` tag namespace.
+The obsolete Qt 5 and legacy Windows release/version-update workflows have been retired.
 Manual workflow runs use the selected branch or tag; selecting a release tag
 enables the same publishing path. Branch runs do not publish.
 

@@ -1,4 +1,4 @@
-# OpenKJ 2.2.3 — Windows x64 preview
+# OpenKJ 2.2.4 — Windows x64 preview
 
 Experimental, unsigned Windows x64 build using Qt 6 and GStreamer.
 

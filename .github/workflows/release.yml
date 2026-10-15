@@ -1,0 +1,108 @@
+name: Cross-platform prerelease
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - name: Check release integrity gates
+        run: python3 -m unittest discover -s packaging/tests -p 'test_prepare_release.py' -v
+      - name: Validate version and prerelease metadata
+        env:
+          RELEASE_REF: ${{ github.ref }}
+        run: |
+          python3 - <<'PY'
+          import os, pathlib, re, xml.etree.ElementTree as ET
+          header = pathlib.Path('src/okjversion.h').read_text()
+          version = re.search(r'OKJ_VERSION_STRING "([^"\n]+)"', header)[1]
+          parts = [re.search(r'OKJ_VERSION_' + part + r' (\d+)', header)[1]
+                   for part in ('MAJOR', 'MINOR', 'BUILD')]
+          if '.'.join(parts) != version or 'OKJ_VERSION_BRANCH "prerelease"' not in header:
+              raise SystemExit('Source version/prerelease metadata disagree')
+          ref = os.environ['RELEASE_REF']
+          if ref.startswith('refs/tags/'):
+              match = re.fullmatch(r'refs/tags/v(\d+\.\d+\.\d+)-(?:prerelease|preview)\.\d+', ref)
+              if not match or match[1] != version:
+                  raise SystemExit('Expected v' + version + '-prerelease.N or -preview.N')
+          for name in ('RELEASE_NOTES.md', 'WINDOWS_RELEASE_NOTES.md'):
+              if not pathlib.Path('packaging', name).read_text().startswith('# OpenKJ ' + version + ' —'):
+                  raise SystemExit('Update ' + name)
+          release = ET.parse('src/org.openkj.OpenKJ.metainfo.xml').find('./releases/release')
+          if release is None or release.get('version') != version or release.get('type') != 'development':
+              raise SystemExit('Update Linux AppStream prerelease metadata')
+          PY
+
+  macos:
+    needs: validate
+    uses: ./.github/workflows/macos-build.yml
+    permissions:
+      contents: write
+
+  windows:
+    needs: validate
+    uses: ./.github/workflows/windows-test.yml
+    permissions:
+      contents: write
+
+  linux:
+    needs: validate
+    uses: ./.github/workflows/linux-flatpak.yml
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [validate, macos, windows, linux]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: OpenKJ-macos-arm64
+          path: downloads/macos
+      - uses: actions/download-artifact@v4
+        with:
+          name: OpenKJ-Windows-x64-preview
+          path: downloads/windows-zip
+      - uses: actions/download-artifact@v4
+        with:
+          name: OpenKJ-Windows-x64-msi-preview
+          path: downloads/windows-msi
+      - uses: actions/download-artifact@v4
+        with:
+          name: OpenKJ-Linux-x86_64-flatpak-preview
+          path: downloads/linux
+      - name: Verify checksums, versions, and source provenance
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: python3 packaging/prepare_release.py --artifacts downloads --output release --tag "$RELEASE_TAG" --commit "$GITHUB_SHA"
+      - name: Publish all platforms together
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          cd release
+          sha256sum --check SHA256SUMS
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo 'A release already exists for this tag; refusing to overwrite it.' >&2
+            exit 1
+          fi
+          VERSION="${RELEASE_TAG#v}"
+          VERSION="${VERSION%%-*}"
+          gh release create "$RELEASE_TAG" --verify-tag --draft --prerelease --latest=false \
+            --title "OpenKJ $VERSION — Cross-platform Pre-release" --notes-file RELEASE_NOTES.md
+          gh release upload "$RELEASE_TAG" ./*
+          gh release edit "$RELEASE_TAG" --draft=false

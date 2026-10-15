@@ -87,4 +87,7 @@ artifact. VLC is not required.
 
 Windows x64 uses a consistent MSYS2 UCRT64 compiler, Qt 6 and GStreamer stack.
 See [Windows development and portable preview](packaging/WINDOWS_DEVELOPMENT.md)
-for setup, runtime checks and the self-contained experimental ZIP produced by CI.
+for setup, runtime checks, the portable ZIP and the MSI installer produced by CI.
+
+See [coordinated prereleases](packaging/RELEASING.md) for building and publishing
+all supported platform packages together.

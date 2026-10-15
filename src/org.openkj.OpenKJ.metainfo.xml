@@ -32,6 +32,15 @@
         <binary>openkj</binary>
     </provides>
     <releases>
+        <release version="2.2.4" date="2026-10-15" type="development">
+            <description>
+                <ul>
+                    <li>Qt 6 cross-platform prerelease for Linux, Windows and Apple Silicon macOS.</li>
+                    <li>Installable Linux Flatpak with bundled SoundTouch and CDG plugins.</li>
+                    <li>Windows portable and MSI packages with automated installation checks.</li>
+                </ul>
+            </description>
+        </release>
         <release version="2.2.3" date="2026-10-14" type="development">
             <description>
                 <ul>

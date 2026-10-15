@@ -1,12 +1,12 @@
-# Initial Windows Qt 6 build
+# Windows Qt 6 development and packages
 
 The first Windows target from `master` is **Windows x64, MSYS2 UCRT64**.
 Compiler, Qt 6 and GStreamer must come from that same environment. Do not mix
 MSVC Qt libraries with MinGW GStreamer, as the old workflow did.
 
 The native development build has passed the host's full-library import and
-singer-rotation testing. A portable experimental preview is now staged in CI;
-the ZIP still needs a clean-machine playback check before public release. The macOS pipeline and custom
+singer-rotation testing. The portable ZIP has also passed native playback
+testing without the development environment. The macOS pipeline and custom
 SoundTouch build remain unchanged. MSYS2 supplies the same upstream SoundTouch
 `pitch` element on Windows; the workflow verifies that it is available.
 Windows builds pin libzip 1.11.4 for corrected Windows callback types accepted
@@ -100,7 +100,8 @@ users need neither WiX, .NET nor MSYS2 to run the installed application.
 The installer requires administrator approval and installs to
 `Program Files\OpenKJ` by default. Its feature selection offers an optional
 desktop shortcut; the Start Menu shortcut is always installed. Installed Apps
-provides uninstall. Settings, databases and song media are not owned by the
+provides uninstall. Upgrades remember the selected install folder. Settings,
+databases and song media are not owned by the
 installer and are retained on uninstall. It upgrades this MSI product family;
 it does not migrate or remove older Inno Setup installations or portable ZIPs.
 
@@ -109,7 +110,8 @@ to the current MSI, verifies every payload hash, repairs a missing SQLite plugin
 runs the isolated installed-runtime check, rejects a downgrade, and uninstalls.
 It verifies shortcuts and product registration are removed while user-data and
 external-media sentinels survive. The fixture tests Windows Installer upgrade
-behavior; it is not a test of database migrations between app versions.
+behavior; it is not a test of database migrations between app versions. A fresh
+default installation also verifies that the desktop shortcut is omitted unless selected.
 `check_windows_msi.ps1` is for disposable clean Windows CI machines only.
 
 For a local installer build in PowerShell 7 after staging the portable payload:
@@ -128,6 +130,10 @@ WiX 5.0.2 is pinned before the maintenance-fee terms introduced with WiX 6;
 upgrading the installer tooling requires reviewing its current terms.
 
 ## Preview releases
+
+For releases covering all platforms, use [coordinated prereleases](RELEASING.md).
+The platform-specific tag path below remains available for individual previews.
+
 
 The same workflow builds and publishes GitHub prereleases for platform tags such
 as `windows-v2.2.3-prerelease.1`. The numeric version must match `okjversion.h`
