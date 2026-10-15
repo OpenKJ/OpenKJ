@@ -17,7 +17,7 @@ rm -rf build-flatpak-source
 mkdir build-flatpak-source
 git archive --format=tar HEAD --output=build-flatpak-source.tar
 tar -xf build-flatpak-source.tar -C build-flatpak-source
-flatpak-builder "${scope[@]}" --install-deps-from=flathub --force-clean \
+flatpak-builder "${scope[@]}" --install-deps-from=flathub --force-clean --disable-rofiles-fuse \
     --default-branch=preview --repo=build-flatpak-repo --install \
     build-flatpak-app packaging/flatpak/org.openkj.OpenKJ.json
 

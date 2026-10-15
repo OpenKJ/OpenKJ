@@ -32,6 +32,13 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/cache/restore@v4
+        with:
+          path: .flatpak-builder
+          key: flatpak-kde611-${{ runner.arch }}-${{ hashFiles('packaging/flatpak/org.openkj.OpenKJ.json') }}-${{ github.run_id }}
+          restore-keys: |
+            flatpak-kde611-${{ runner.arch }}-${{ hashFiles('packaging/flatpak/org.openkj.OpenKJ.json') }}-
+            flatpak-kde611-${{ runner.arch }}-
       - name: Build and test installable Flatpak preview
         env:
           OPENKJ_FLATPAK_SYSTEM: '1'
@@ -40,7 +47,8 @@ jobs:
           # The SDK container and Actions checkout use different home/UID
           # contexts. Trust only this runner-mounted source checkout.
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          bash packaging/build_flatpak.sh 2>&1 | tee build-flatpak.log
+          dbus-uuidgen --ensure=/etc/machine-id
+          dbus-run-session -- bash packaging/build_flatpak.sh 2>&1 | tee build-flatpak.log
       - name: Upload installable Linux preview
         uses: actions/upload-artifact@v4
         with:
@@ -55,3 +63,49 @@ jobs:
           path: |
             build-flatpak.log
             packaging/flatpak/org.openkj.OpenKJ.json
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: .flatpak-builder
+          key: flatpak-kde611-${{ runner.arch }}-${{ hashFiles('packaging/flatpak/org.openkj.OpenKJ.json') }}-${{ github.run_id }}
+
+  verify-install:
+    needs: build
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ['ubuntu:24.04', 'fedora:44']
+    container:
+      image: ${{ matrix.image }}
+      options: --privileged
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Install Flatpak tools in a clean distribution container
+        run: |
+          if command -v apt-get >/dev/null; then
+            apt-get update
+            DEBIAN_FRONTEND=noninteractive apt-get install -y flatpak dbus-daemon ca-certificates
+          else
+            dnf install -y flatpak dbus-daemon
+          fi
+          dbus-uuidgen --ensure=/etc/machine-id
+      - uses: actions/download-artifact@v4
+        with:
+          name: OpenKJ-Linux-x86_64-flatpak-preview
+          path: preview
+      - name: Install bundle and test its Platform runtime without an SDK
+        run: |
+          cd preview
+          sha256sum --check OpenKJ-Linux-x86_64-preview.flatpak.sha256
+          dbus-run-session -- bash -euo pipefail -c '
+            flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+            flatpak install --user --assumeyes --noninteractive ./OpenKJ-Linux-x86_64-preview.flatpak
+            flatpak info --user org.openkj.OpenKJ//preview
+            flatpak run --user --env=QT_QPA_PLATFORM=offscreen \
+              --env=GST_REGISTRY_1_0=/tmp/openkj-clean-install-registry.bin \
+              --command=/app/libexec/openkj-runtime-smoke org.openkj.OpenKJ//preview
+          '

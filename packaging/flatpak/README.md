@@ -32,7 +32,8 @@ The package supports Wayland and X11/XWayland, sound playback and microphone
 recording, graphics rendering and network features. It grants host-filesystem
 access so the existing library browser, imports, downloads and file renaming
 can work with home folders, `/run/media`, `/media`, `/mnt` and other mounted
-libraries. Access remains subject to your normal user permissions.
+libraries. `/var/mnt` is also exposed for static mounts on atomic desktops.
+Access remains subject to your normal user permissions.
 
 Flatpak keeps application configuration/data under
 `~/.var/app/org.openkj.OpenKJ/`. A native installation's settings/database are
@@ -62,7 +63,10 @@ This packages **committed HEAD**, excluding local build trees and user files.
 It downloads the KDE SDK/runtime and Rust SDK extension, builds the additional
 plugins and app, installs the preview per user, tests its Platform runtime, and
 writes the bundle/checksum/manifest to `releases/flatpak/`. CI uses the same
-script in the official KDE SDK build container.
+script in the official KDE SDK build container. The exported bundle is then
+installed and tested in clean Ubuntu and Fedora containers with the Platform
+runtime and no development SDK. Other distributions are intended targets;
+their hardware audio and display behavior still need native testing.
 
 The SoundTouch plugin is built from GStreamer 1.26.11 to match the KDE runtime's
 GStreamer ABI. It uses the existing `pitch` element and SoundTouch 2.4.1; DSP

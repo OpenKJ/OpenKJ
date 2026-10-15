@@ -15,6 +15,7 @@
     "--socket=pulseaudio",
     "--device=dri",
     "--filesystem=host",
+    "--filesystem=/var/mnt",
     "--env=GST_PLUGIN_PATH_1_0=/app/lib/gstreamer-1.0"
   ],
   "build-options": {
@@ -73,7 +74,10 @@
         "append-path": "/usr/lib/sdk/rust-stable/bin",
         "build-args": [
           "--share=network"
-        ]
+        ],
+        "env": {
+          "CARGO_HOME": "/run/build/gstreamer-cdg/cargo"
+        }
       },
       "build-commands": [
         "cargo build --locked --release -p gst-plugin-cdg -j 4",
