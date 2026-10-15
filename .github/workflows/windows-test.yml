@@ -3,6 +3,7 @@ name: Windows Qt 6 build test
 on:
   push:
     branches: [macos-qt6-test]
+    tags: ['windows-v*']
   pull_request:
     branches: [macos-qt6-test]
   workflow_dispatch:
@@ -56,6 +57,26 @@ jobs:
           for element in pitch equalizer-10bands cdgparse cdgdec avdec_h264; do
             gst-inspect-1.0 "$element"
           done
+      - name: Validate Windows preview tag
+        env:
+          RELEASE_REF: ${{ github.ref }}
+        run: |
+          python - <<'PYTHON'
+          import os, pathlib, re
+          ref = os.environ['RELEASE_REF']
+          if ref.startswith('refs/tags/'):
+              match = re.fullmatch(r'refs/tags/windows-v(\d+\.\d+\.\d+)-(?:prerelease|preview)\.\d+', ref)
+              if not match:
+                  raise SystemExit('Expected windows-vX.Y.Z-prerelease.N or windows-vX.Y.Z-preview.N')
+              header = pathlib.Path('src/okjversion.h').read_text()
+              version = re.search(r'OKJ_VERSION_STRING "([^"\n]+)"', header).group(1)
+              parts = [re.search(r'OKJ_VERSION_' + part + r' (\d+)', header).group(1)
+                       for part in ('MAJOR', 'MINOR', 'BUILD')]
+              if version != match[1] or '.'.join(parts) != version:
+                  raise SystemExit('Windows tag and source version do not match')
+              if not pathlib.Path('packaging/WINDOWS_RELEASE_NOTES.md').read_text().startswith('# OpenKJ ' + version + ' —'):
+                  raise SystemExit('Update packaging/WINDOWS_RELEASE_NOTES.md for this version')
+          PYTHON
       - name: Configure Qt 6 build
         run: >-
           cmake -S . -B build-windows-dev -G Ninja
@@ -80,6 +101,7 @@ jobs:
           Compress-Archive -Path dist/OpenKJ-Windows-x64-preview -DestinationPath dist/OpenKJ-Windows-x64-preview.zip
           (Get-FileHash dist/OpenKJ-Windows-x64-preview.zip -Algorithm SHA256).Hash.ToLower() + '  OpenKJ-Windows-x64-preview.zip' |
             Set-Content dist/OpenKJ-Windows-x64-preview.zip.sha256
+          Copy-Item packaging/WINDOWS_RELEASE_NOTES.md dist/WINDOWS_RELEASE_NOTES.md
       - name: Upload self-contained Windows preview
         uses: actions/upload-artifact@v4
         with:
@@ -87,6 +109,7 @@ jobs:
           path: |
             dist/OpenKJ-Windows-x64-preview.zip
             dist/OpenKJ-Windows-x64-preview.zip.sha256
+            dist/WINDOWS_RELEASE_NOTES.md
           if-no-files-found: error
       - name: Upload development build and diagnostics
         if: always()
@@ -102,3 +125,33 @@ jobs:
             build-windows-dev/Testing/Temporary/LastTest.log
             build-windows-dev/CMakeFiles/CMakeConfigureLog.yaml
           if-no-files-found: warn
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/windows-v') && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: OpenKJ-Windows-x64-preview
+          path: release
+      - name: Attach verified Windows ZIP and publish prerelease
+        working-directory: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          sha256sum --check OpenKJ-Windows-x64-preview.zip.sha256
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" ./*.zip ./*.zip.sha256
+          else
+            VERSION="${RELEASE_TAG#windows-v}"
+            VERSION="${VERSION%%-*}"
+            gh release create "$RELEASE_TAG" --verify-tag --draft --prerelease --latest=false \
+              --title "OpenKJ $VERSION — Windows x64 Preview" --notes-file WINDOWS_RELEASE_NOTES.md
+            gh release upload "$RELEASE_TAG" ./*.zip ./*.zip.sha256
+            gh release edit "$RELEASE_TAG" --draft=false
+          fi

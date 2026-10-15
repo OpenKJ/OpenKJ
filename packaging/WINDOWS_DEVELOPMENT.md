@@ -90,3 +90,12 @@ The automated check uses offscreen Qt and fake audio/video outputs. Repeat
 physical playback, recording and display tests on a Windows PC without MSYS2
 before treating the portable preview as release-ready. Public distribution
 also requires reviewing the included dependency notices/source requirements.
+
+## Preview releases
+
+The same workflow builds and publishes GitHub prereleases for tags such as
+`windows-v2.2.3-prerelease.1`. The numeric version must match `okjversion.h` and
+`WINDOWS_RELEASE_NOTES.md`. Publishing waits for the build and isolated bundle
+check, verifies the ZIP checksum, then attaches the ZIP and SHA-256 file. It
+does not overwrite existing assets on reruns. Branch pushes only make artifacts.
+The legacy Windows installer and auto-version workflows skip this tag namespace.

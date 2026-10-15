@@ -7,7 +7,7 @@ on:
 
 jobs:
   update-build-files:
-    if: ${{ !startsWith(github.ref, 'refs/tags/macos-v') }}
+    if: ${{ !startsWith(github.ref, 'refs/tags/macos-v') && !startsWith(github.ref, 'refs/tags/windows-v') }}
     runs-on: ubuntu-latest
 
     steps:
