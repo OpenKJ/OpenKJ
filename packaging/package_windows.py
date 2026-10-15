@@ -43,6 +43,10 @@ def stage(build, prefix, destination):
         deployed = build / directory.name
         if directory.is_dir() and deployed.is_dir():
             for source in deployed.rglob("*.dll"):
+                # windeployqt copies optional SQL drivers whose client SDKs
+                # need not be installed. OpenKJ uses SQLite exclusively.
+                if directory.name == "sqldrivers" and source.name.lower() != "qsqlite.dll":
+                    continue
                 copy(source, source.relative_to(build))
     copy(qt_plugins / "platforms/qoffscreen.dll", "platforms/qoffscreen.dll")
     (destination / "qt.conf").write_text("[Paths]\nPrefix=.\nPlugins=.\n", encoding="utf-8")
