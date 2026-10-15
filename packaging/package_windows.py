@@ -65,9 +65,12 @@ def stage(build, prefix, destination):
     # Never resolve against another SDK or ship DLLs from Windows itself.
     binaries = {p.name.lower(): p for p in (prefix / "bin").glob("*.dll")}
     system = Path(os.environ["SystemRoot"]) / "System32"
-    system_names = {p.name.lower() for p in system.glob("*.dll")}
+    # PE imports can include Windows drivers such as WINSPOOL.DRV, not just
+    # .dll names. These remain supplied by the OS, never copied into the ZIP.
+    system_names = {p.name.lower() for p in system.iterdir() if p.is_file()}
     queue = list(destination.rglob("*.dll")) + list(destination.glob("*.exe"))
     visited = set()
+    unresolved = set()
     while queue:
         binary = queue.pop()
         if binary in visited:
@@ -86,7 +89,9 @@ def stage(build, prefix, destination):
                     copy(binaries[key], target.name)
                     queue.append(target)
             elif key not in system_names:
-                raise RuntimeError(f"Unresolved dependency {name} imported by {binary}")
+                unresolved.add(f"{name} imported by {binary.relative_to(destination)}")
+    if unresolved:
+        raise RuntimeError("Unresolved dependencies:\n" + "\n".join(sorted(unresolved)))
 
     # Retain SDK notices and record exact package versions/build recipes. Static
     # CPM libraries' notices are separate from the dynamically linked runtime.
