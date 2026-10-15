@@ -93,6 +93,8 @@ jobs:
             dnf install -y flatpak dbus-daemon
           fi
           dbus-uuidgen --ensure=/etc/machine-id
+          mkdir -p /run/dbus
+          dbus-daemon --system --fork --nopidfile
       - uses: actions/download-artifact@v4
         with:
           name: OpenKJ-Linux-x86_64-flatpak-preview
@@ -101,6 +103,11 @@ jobs:
         run: |
           cd preview
           sha256sum --check OpenKJ-Linux-x86_64-preview.flatpak.sha256
+          # Minimal containers have no login session. Supply the standard
+          # runtime directory and system bus expected by older Flatpak hosts.
+          export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+          mkdir -p "$XDG_RUNTIME_DIR"
+          chmod 700 "$XDG_RUNTIME_DIR"
           dbus-run-session -- bash -euo pipefail -c '
             flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
             flatpak install --user --assumeyes --noninteractive ./OpenKJ-Linux-x86_64-preview.flatpak

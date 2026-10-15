@@ -32,6 +32,14 @@
         <binary>openkj</binary>
     </provides>
     <releases>
+        <release version="2.2.3" date="2026-10-14" type="development">
+            <description>
+                <ul>
+                    <li>Experimental Qt 6 preview with SoundTouch pitch, EQ, MP3+G and video playback.</li>
+                    <li>Responsive library loading and asynchronous song preparation.</li>
+                </ul>
+            </description>
+        </release>
         <release version="2.1.38" date="2022-08-12">
             <description>
                 <ul>
