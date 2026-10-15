@@ -91,11 +91,47 @@ physical playback, recording and display tests on a Windows PC without MSYS2
 before treating the portable preview as release-ready. Public distribution
 also requires reviewing the included dependency notices/source requirements.
 
+## MSI installer
+
+CI wraps the verified portable payload in an unsigned x64 MSI using pinned
+WiX 5.0.2 and its matching UI extension. WiX is a build-time dependency only;
+users need neither WiX, .NET nor MSYS2 to run the installed application.
+
+The installer requires administrator approval and installs to
+`Program Files\OpenKJ` by default. Its feature selection offers an optional
+desktop shortcut; the Start Menu shortcut is always installed. Installed Apps
+provides uninstall. Settings, databases and song media are not owned by the
+installer and are retained on uninstall. It upgrades this MSI product family;
+it does not migrate or remove older Inno Setup installations or portable ZIPs.
+
+CI builds a lower-version fixture using the same payload, installs it, upgrades
+to the current MSI, verifies every payload hash, repairs a missing SQLite plugin,
+runs the isolated installed-runtime check, rejects a downgrade, and uninstalls.
+It verifies shortcuts and product registration are removed while user-data and
+external-media sentinels survive. The fixture tests Windows Installer upgrade
+behavior; it is not a test of database migrations between app versions.
+`check_windows_msi.ps1` is for disposable clean Windows CI machines only.
+
+For a local installer build in PowerShell 7 after staging the portable payload:
+
+```powershell
+dotnet tool install wix --version 5.0.2 --tool-path build-windows-msi/tools
+./build-windows-msi/tools/wix.exe extension add -g WixToolset.UI.wixext/5.0.2
+./packaging/build_windows_msi.ps1
+```
+
+The resulting `dist/OpenKJ-X.Y.Z-windows-x64.msi` and SHA-256 file are uploaded
+as `OpenKJ-Windows-x64-msi-preview` after the installation checks pass. Install
+it normally on Windows to check the interactive wizard and real audio/displays.
+The portable ZIP remains available separately. Neither package is code signed.
+WiX 5.0.2 is pinned before the maintenance-fee terms introduced with WiX 6;
+upgrading the installer tooling requires reviewing its current terms.
+
 ## Preview releases
 
-The same workflow builds and publishes GitHub prereleases for tags such as
-`windows-v2.2.3-prerelease.1`. The numeric version must match `okjversion.h` and
-`WINDOWS_RELEASE_NOTES.md`. Publishing waits for the build and isolated bundle
-check, verifies the ZIP checksum, then attaches the ZIP and SHA-256 file. It
-does not overwrite existing assets on reruns. Branch pushes only make artifacts.
-The legacy Windows installer and auto-version workflows skip this tag namespace.
+The same workflow builds and publishes GitHub prereleases for platform tags such
+as `windows-v2.2.3-prerelease.1`. The numeric version must match `okjversion.h`
+and `WINDOWS_RELEASE_NOTES.md`. Publishing waits for both the portable runtime
+and MSI lifecycle checks, verifies all checksums, then attaches the ZIP, MSI
+and SHA-256 files. It does not overwrite existing assets on reruns. Branch
+pushes only make artifacts.

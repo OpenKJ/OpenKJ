@@ -126,9 +126,68 @@ jobs:
             build-windows-dev/CMakeFiles/CMakeConfigureLog.yaml
           if-no-files-found: warn
 
+  installer:
+    needs: build
+    runs-on: windows-2025
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: OpenKJ-Windows-x64-preview
+          path: dist
+      - name: Verify and extract the tested portable payload
+        shell: pwsh
+        run: |
+          $zip = 'dist/OpenKJ-Windows-x64-preview.zip'
+          $expected = ((Get-Content "$zip.sha256" -Raw).Trim() -split '\s+')[0]
+          if ((Get-FileHash $zip -Algorithm SHA256).Hash -ne $expected) { throw 'Portable ZIP checksum mismatch' }
+          Expand-Archive $zip -DestinationPath dist
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Install pinned WiX installer tools
+        shell: pwsh
+        run: |
+          dotnet tool install wix --version 5.0.2 --tool-path build-windows-msi/tools
+          if ($LASTEXITCODE -ne 0) { throw 'WiX installation failed' }
+          ./build-windows-msi/tools/wix.exe extension add -g WixToolset.UI.wixext/5.0.2
+          if ($LASTEXITCODE -ne 0) { throw 'WiX UI extension installation failed' }
+      - name: Build MSI and an older-version upgrade fixture
+        shell: pwsh
+        run: |
+          ./packaging/build_windows_msi.ps1
+          $header = Get-Content src/okjversion.h -Raw
+          $version = [version][regex]::Match($header, 'OKJ_VERSION_STRING "([0-9.]+)"').Groups[1].Value
+          if ($version.Build -lt 1) { throw 'Choose an older fixture version for a .0 release' }
+          $previous = "$($version.Major).$($version.Minor).$($version.Build - 1)"
+          ./packaging/build_windows_msi.ps1 -Version $previous -OutputDirectory build-windows-msi/previous
+      - name: Check install, upgrade, repair, runtime and uninstall
+        shell: pwsh
+        run: |
+          $msi = (Get-ChildItem dist/*.msi).FullName
+          $previous = (Get-ChildItem build-windows-msi/previous/*.msi).FullName
+          ./packaging/check_windows_msi.ps1 -Installer $msi -PreviousInstaller $previous
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OpenKJ-Windows-x64-msi-preview
+          path: |
+            dist/*.msi
+            dist/*.msi.sha256
+          if-no-files-found: error
+      - name: Upload MSI diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenKJ-Windows-msi-diagnostics
+          path: |
+            build-windows-msi/logs/
+            dist/*.wixpdb
+          if-no-files-found: ignore
+
   publish:
     if: startsWith(github.ref, 'refs/tags/windows-v') && github.event_name != 'pull_request'
-    needs: build
+    needs: [build, installer]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -137,21 +196,25 @@ jobs:
         with:
           name: OpenKJ-Windows-x64-preview
           path: release
-      - name: Attach verified Windows ZIP and publish prerelease
+      - uses: actions/download-artifact@v4
+        with:
+          name: OpenKJ-Windows-x64-msi-preview
+          path: release
+      - name: Attach verified Windows ZIP and MSI and publish prerelease
         working-directory: release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
-          sha256sum --check OpenKJ-Windows-x64-preview.zip.sha256
+          sha256sum --check -- *.sha256
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" ./*.zip ./*.zip.sha256
+            gh release upload "$RELEASE_TAG" ./*.zip ./*.msi ./*.sha256
           else
             VERSION="${RELEASE_TAG#windows-v}"
             VERSION="${VERSION%%-*}"
             gh release create "$RELEASE_TAG" --verify-tag --draft --prerelease --latest=false \
               --title "OpenKJ $VERSION — Windows x64 Preview" --notes-file WINDOWS_RELEASE_NOTES.md
-            gh release upload "$RELEASE_TAG" ./*.zip ./*.zip.sha256
+            gh release upload "$RELEASE_TAG" ./*.zip ./*.msi ./*.sha256
             gh release edit "$RELEASE_TAG" --draft=false
           fi

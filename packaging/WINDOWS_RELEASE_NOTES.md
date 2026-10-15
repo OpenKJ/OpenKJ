@@ -15,7 +15,13 @@ Experimental, unsigned Windows x64 build using Qt 6 and GStreamer.
 Extract the **entire ZIP**, then open `openkj.exe`. Keep all DLLs and plugin
 folders together. This uses your normal OpenKJ settings/library; back up your
 existing data before trying a preview. Windows may prompt because the build is
-unsigned. No installer or automatic updater is included.
+unsigned.
+
+Alternatively, run the **MSI installer** for a Start Menu entry, optional desktop
+shortcut and uninstall support. Installation requires administrator approval;
+settings, the song database and media are retained when uninstalling. MSI
+upgrades apply to this installer family, not older Inno Setup installations.
+No automatic updater is included.
 
 Automated tests use offscreen windows and fake audio/video outputs; they do not
 certify every audio device, microphone or multi-monitor configuration. Please

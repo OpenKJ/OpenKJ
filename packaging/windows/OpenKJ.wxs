@@ -1,0 +1,56 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+  <!-- Keep UpgradeCode stable across all Windows x64 MSI releases. -->
+  <Package Name="OpenKJ" Manufacturer="OpenKJ" Version="$(AppVersion)"
+           Language="1033" Scope="perMachine" InstallerVersion="500"
+           UpgradeCode="BD234FE9-21C7-4D0C-9B21-5692BD4B06F9">
+    <MajorUpgrade DowngradeErrorMessage="A newer version of OpenKJ is already installed."
+                  AllowSameVersionUpgrades="yes" Schedule="afterInstallInitialize" />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+    <Icon Id="OpenKJIcon" SourceFile="$(RepoDir)\src\Icons\okjicon.ico" />
+    <Property Id="ARPPRODUCTICON" Value="OpenKJIcon" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/EquinoxEarth/OpenKJ/issues" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/EquinoxEarth/OpenKJ" />
+    <Property Id="ARPNOMODIFY" Value="1" />
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="OpenKJ">
+        <Component Id="ApplicationExecutable" Guid="*">
+          <File Id="OpenKJExe" Source="$(PayloadDir)\openkj.exe" KeyPath="yes">
+            <Shortcut Id="StartMenuShortcut" Name="OpenKJ" Directory="ApplicationProgramsFolder"
+                      Advertise="yes" WorkingDirectory="INSTALLFOLDER" Icon="OpenKJIcon" />
+          </File>
+          <RemoveFolder Id="RemoveStartMenuFolder" Directory="ApplicationProgramsFolder" On="uninstall" />
+        </Component>
+      </Directory>
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ApplicationProgramsFolder" Name="OpenKJ" />
+    </StandardDirectory>
+    <StandardDirectory Id="DesktopFolder">
+      <Component Id="DesktopShortcut" Guid="7D20E976-76C5-49CF-90BA-FBA7BE64D8FC">
+        <Shortcut Id="DesktopShortcutLink" Name="OpenKJ" Target="[#OpenKJExe]"
+                  WorkingDirectory="INSTALLFOLDER" Icon="OpenKJIcon" />
+        <RegistryValue Root="HKCU" Key="Software\OpenKJ\Installer" Name="DesktopShortcut"
+                       Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </StandardDirectory>
+    <Feature Id="Application" Title="OpenKJ" Description="Karaoke host and bundled media runtime."
+             Level="1" Display="expand" AllowAbsent="no" ConfigurableDirectory="INSTALLFOLDER">
+      <ComponentRef Id="ApplicationExecutable" />
+      <ComponentGroupRef Id="RuntimeFiles" />
+      <Feature Id="DesktopShortcutFeature" Title="Desktop shortcut"
+               Description="Add an OpenKJ shortcut to the desktop." Level="2">
+        <ComponentRef Id="DesktopShortcut" />
+      </Feature>
+    </Feature>
+    <ui:WixUI Id="WixUI_FeatureTree" />
+    <WixVariable Id="WixUILicenseRtf" Value="$(LicenseRtf)" />
+  </Package>
+  <Fragment>
+    <ComponentGroup Id="RuntimeFiles" Directory="INSTALLFOLDER">
+      <Files Include="$(PayloadDir)\**">
+        <Exclude Files="$(PayloadDir)\openkj.exe" />
+      </Files>
+    </ComponentGroup>
+  </Fragment>
+</Wix>
