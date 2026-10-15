@@ -1,6 +1,15 @@
 name: Linux Flatpak preview
 
 on:
+  push:
+    branches: [macos-qt6-test]
+    paths:
+      - '.github/workflows/linux-flatpak.yml'
+      - 'packaging/flatpak/**'
+      - 'src/**'
+      - 'CMakeLists.txt'
+      - 'cmake/**'
+      - 'packaging/runtime_smoke.cpp'
   workflow_dispatch:
 
 permissions:
