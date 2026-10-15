@@ -367,7 +367,7 @@ void TableModelKaraokeSongs::startLibraryLoad() {
     m_loadPending = false;
     m_loadBusy = true;
     const auto revision = m_loadRevision->load();
-    const auto dbPath = QSqlDatabase::database(QSqlDatabase::defaultConnectionName(), false).databaseName();
+    const auto dbPath = QSqlDatabase::database(QLatin1String(QSqlDatabase::defaultConnection), false).databaseName();
     m_loadWatcher.setFuture(QtConcurrent::run([dbPath, revision, cancellation = m_loadRevision] {
         auto data = std::make_shared<LibraryData>();
         data->revision = revision;
