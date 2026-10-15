@@ -27,6 +27,9 @@ jobs:
       image: ghcr.io/flathub-infra/flatpak-github-actions:kde-6.11
       options: --privileged
     timeout-minutes: 90
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v5
       - name: Build and test installable Flatpak preview
@@ -34,6 +37,9 @@ jobs:
           OPENKJ_FLATPAK_SYSTEM: '1'
         run: |
           set -o pipefail
+          # The SDK container and Actions checkout use different home/UID
+          # contexts. Trust only this runner-mounted source checkout.
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           bash packaging/build_flatpak.sh 2>&1 | tee build-flatpak.log
       - name: Upload installable Linux preview
         uses: actions/upload-artifact@v4

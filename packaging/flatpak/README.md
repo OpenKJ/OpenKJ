@@ -1,12 +1,14 @@
 # OpenKJ Linux x86_64 Flatpak preview
 
-This experimental package is intended for Aurora and other Linux desktops with
-Flatpak. It uses the KDE 6.11 / Qt 6 runtime, with the SoundTouch pitch and Rust
+This experimental package targets Linux x86_64 distributions with Flatpak,
+including Aurora, Fedora, Ubuntu, Debian, Arch and openSUSE. The same bundle
+uses its Flatpak runtime across distributions; it does not link against each
+distribution's Qt or multimedia packages. It uses the KDE 6.11 / Qt 6 runtime, with the SoundTouch pitch and Rust
 CDG plugins included in the application. No Fedora RPM Fusion packages,
 development SDK, build tools or sourced environment file are needed to run it.
 The KDE runtime is downloaded through Flathub at installation if needed.
 
-## Install on Aurora
+## Install on Linux (including Aurora)
 
 Download the `OpenKJ-Linux-x86_64-flatpak-preview` GitHub Actions artifact and
 extract it. From the extracted folder:
