@@ -1,0 +1,27 @@
+name: Linux Flatpak preview
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:kde-6.11
+      options: --privileged
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v5
+      - name: Inspect KDE runtime media support
+        run: |
+          flatpak list --runtime
+          flatpak run --command=sh org.kde.Sdk//6.11 -c '
+            pkg-config --modversion gstreamer-1.0
+            gst-inspect-1.0 --version
+            for element in pitch cdgparse cdgdec avdec_h264 avdec_aac equalizer-10bands; do
+              gst-inspect-1.0 "$element" || true
+            done
+          '
