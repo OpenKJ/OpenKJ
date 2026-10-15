@@ -4,7 +4,7 @@ For an installable package on Aurora or another Flatpak desktop, use the
 [Linux Flatpak preview](flatpak/README.md). That package includes the extra
 media plugins and does not require host development packages or `env.sh`.
 
-The first Linux target on `macos-qt6-test` is **Fedora 44 x86_64**. This uses
+The first Linux target on `master` is **Fedora 44 x86_64**. This uses
 Fedora Qt 6, GStreamer and SoundTouch packages, preserving the same pitch, tempo,
 EQ and playback pipelines as the Mac and Windows builds. No VLC SDK is needed.
 Fedora 43 and other distributions are not covered by this workflow yet.

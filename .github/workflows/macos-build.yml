@@ -2,10 +2,10 @@ name: Apple Silicon build and release
 
 on:
   push:
-    branches: [macos-qt6-test]
+    branches: [master]
     tags: ['macos-v*']
   pull_request:
-    branches: [macos-qt6-test]
+    branches: [master]
   workflow_dispatch:
 
 permissions:

@@ -1,6 +1,6 @@
 # Apple Silicon development and releases
 
-This is the setup for `macos-qt6-test`. Use a native Apple Silicon terminal;
+This is the setup for `master`. Use a native Apple Silicon terminal;
 Intel and Rosetta builds are not covered. No files from the original developer's
 computer are needed, and application settings and song databases are not copied.
 
@@ -10,7 +10,7 @@ Install Apple's Command Line Tools (`xcode-select --install`) and
 [native Homebrew](https://brew.sh). Then:
 
 ```bash
-git clone --branch macos-qt6-test https://github.com/EquinoxEarth/OpenKJ.git
+git clone --branch master https://github.com/EquinoxEarth/OpenKJ.git
 cd OpenKJ
 ./packaging/setup_macos.sh
 source build-macos-deps/env.sh
@@ -64,7 +64,7 @@ ten-band EQ still uses GStreamer's equalizer element.
 
 `macos-build.yml` uses a GitHub-hosted `macos-15` Apple Silicon runner, the same
 setup script, runtime checks, standalone packaging, ad-hoc signing and DMG
-verification. Branch pushes and pull requests targeting `macos-qt6-test` produce
+verification. Branch pushes and pull requests targeting `master` produce
 downloadable build artifacts without publishing a release.
 
 To publish a future prerelease:

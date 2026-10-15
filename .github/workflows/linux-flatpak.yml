@@ -2,7 +2,7 @@ name: Linux Flatpak preview
 
 on:
   push:
-    branches: [macos-qt6-test]
+    branches: [master]
     paths:
       - '.github/workflows/linux-flatpak.yml'
       - 'packaging/flatpak/**'

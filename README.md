@@ -1,7 +1,7 @@
-[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/OpenKJ/OpenKJ.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/OpenKJ/OpenKJ/context:cpp)
-[![Copr build status](https://copr.fedorainfracloud.org/coprs/openkj/OpenKJ-unstable/package/openkjtools/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/openkj/OpenKJ-unstable/package/openkjtools/)
-[![Windows Build](https://github.com/OpenKJ/OpenKJ/actions/workflows/windows-test.yml/badge.svg)](https://github.com/OpenKJ/OpenKJ/actions/workflows/windows-test.yml)
-[![Test building on macOS](https://github.com/OpenKJ/OpenKJ/actions/workflows/macos-test.yml/badge.svg)](https://github.com/OpenKJ/OpenKJ/actions/workflows/macos-test.yml)
+[![macOS Apple Silicon](https://github.com/EquinoxEarth/OpenKJ/actions/workflows/macos-build.yml/badge.svg?branch=master)](https://github.com/EquinoxEarth/OpenKJ/actions/workflows/macos-build.yml)
+[![Windows x64](https://github.com/EquinoxEarth/OpenKJ/actions/workflows/windows-test.yml/badge.svg?branch=master)](https://github.com/EquinoxEarth/OpenKJ/actions/workflows/windows-test.yml)
+[![Linux Flatpak](https://github.com/EquinoxEarth/OpenKJ/actions/workflows/linux-flatpak.yml/badge.svg?branch=master)](https://github.com/EquinoxEarth/OpenKJ/actions/workflows/linux-flatpak.yml)
+[![CodeQL](https://github.com/EquinoxEarth/OpenKJ/actions/workflows/codeql-analysis.yml/badge.svg?branch=master)](https://github.com/EquinoxEarth/OpenKJ/actions/workflows/codeql-analysis.yml)
 
 ## **Actively Maintained Fork**
 
@@ -14,6 +14,11 @@ OpenKJ
 ======
 
 Cross-platform open source karaoke show hosting software.
+
+`master` is the main development branch for the Qt 6 / GStreamer codebase,
+covering macOS Apple Silicon, Windows x64, and Linux x86_64. It supersedes
+the former `macos-qt6-test` branch. Packaged builds remain experimental prereleases.
+The previous main-branch tip is preserved as `archive/pre-qt6-master`.
 
 OpenKJ is a fully featured karaoke hosting program.
 A few features:
@@ -68,8 +73,8 @@ for first-machine setup, IDE use, checks, standalone app packaging, and DMGs.
 
 ### **Linux (Fedora Qt 6 development build)**
 
-An installable [Linux Flatpak preview](packaging/flatpak/README.md) targets Aurora
-and other Flatpak desktops, with SoundTouch and CDG included in the package.
+An installable [Linux Flatpak preview](packaging/flatpak/README.md) targets compatible x86_64 Flatpak desktops
+and has been tested on Bazzite, with SoundTouch and CDG included in the package.
 
 The initial Linux target is Fedora 44 x86_64, using Qt 6 and GStreamer with
 SoundTouch, CDG and FFmpeg codecs. See [Fedora development](packaging/LINUX_DEVELOPMENT.md)

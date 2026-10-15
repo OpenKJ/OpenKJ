@@ -1,6 +1,6 @@
 # Initial Windows Qt 6 build
 
-The first Windows target from `macos-qt6-test` is **Windows x64, MSYS2 UCRT64**.
+The first Windows target from `master` is **Windows x64, MSYS2 UCRT64**.
 Compiler, Qt 6 and GStreamer must come from that same environment. Do not mix
 MSVC Qt libraries with MinGW GStreamer, as the old workflow did.
 
@@ -29,7 +29,7 @@ pacman -S --needed git \
   mingw-w64-ucrt-x86_64-gst-plugins-bad mingw-w64-ucrt-x86_64-gst-plugins-rs \
   mingw-w64-ucrt-x86_64-gst-libav
 
-git clone --branch macos-qt6-test https://github.com/EquinoxEarth/OpenKJ.git
+git clone --branch master https://github.com/EquinoxEarth/OpenKJ.git
 cd OpenKJ
 cmake -S . -B build-windows-dev -G Ninja \
   -DCMAKE_BUILD_TYPE=Release -DOPENKJ_BUILD_SMOKE_TESTS=ON
@@ -50,7 +50,7 @@ are recorded by `pacman -Q` in each CI run; they are not frozen.
 ## CI and testing
 
 `windows-test.yml` builds on `windows-2025` for branch pushes and pull requests
-targeting `macos-qt6-test`, and supports manual runs. It checks Qt widgets,
+targeting `master`, and supports manual runs. It checks Qt widgets,
 ZIP creation/readback, SQLite database access, required media factories, SoundTouch/EQ processing, and
 synthetic CDG decoding without opening the real application database.
 

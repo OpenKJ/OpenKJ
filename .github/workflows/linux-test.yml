@@ -2,9 +2,9 @@ name: Fedora Qt 6 build test
 
 on:
   push:
-    branches: [macos-qt6-test]
+    branches: [master]
   pull_request:
-    branches: [macos-qt6-test]
+    branches: [master]
   workflow_dispatch:
 
 permissions:
