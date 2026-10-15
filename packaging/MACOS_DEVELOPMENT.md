@@ -60,6 +60,12 @@ an alternate plugin build. Existing developer setups keep their original plugin
 fallback until the portable setup is run. The plugin is still SoundTouch; the
 ten-band EQ still uses GStreamer's equalizer element.
 
+Dependency notices, installed Homebrew formula metadata/receipts, static-library
+licenses and the build environment are included under
+`Contents/Resources/third-party` before signing. Qt license texts are downloaded
+from the exact installed release and cached under `build-macos-deps/license-cache`
+for subsequent builds. The inventory also includes build-only Homebrew formulae.
+
 ## GitHub builds and prereleases
 
 For releases covering all platforms, use [coordinated prereleases](RELEASING.md).

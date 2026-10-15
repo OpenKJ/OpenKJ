@@ -13,8 +13,10 @@ Apple Silicon macOS, and Linux x86_64. The modern codebase now lives on `master`
 | Linux x86_64 | `OpenKJ-2.2.4-linux-x86_64.flatpak` | Install with Flatpak using the commands below. |
 
 SHA-256 files and `SHA256SUMS` accompany the packages. Build metadata records the
-source commit and Linux runtime/dependency recipe. The Windows ZIP and installed
-app include dependency versions, license notices and a payload hash manifest.
+source commit and Linux runtime/dependency recipe. The macOS app also includes
+dependency notices, Homebrew package metadata and its build environment. The
+Windows ZIP and installed app include dependency versions, license notices and
+a payload hash manifest.
 
 ## Changes since 2.2.3
 

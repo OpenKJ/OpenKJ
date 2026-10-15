@@ -67,6 +67,9 @@ echo '[6/8] Check for previously observed Qt plugin resolution problems'
 # macdeployqt may copy plugins whose optional frameworks are not installed.
 # The relocator checks Homebrew load dependencies; signing verification comes next.
 
+# Add notices before signing so the bundle resource seal includes them.
+python3 "$ROOT/packaging/collect_macos_notices.py" "$APP"
+
 echo '[7/8] Sign inside-out with local ad-hoc signature'
 # Sign standalone dylibs and helper executables, leaving framework bundles
 # to be signed as a unit below. Symlinks are intentionally skipped.
