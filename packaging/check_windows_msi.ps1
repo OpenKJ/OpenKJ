@@ -60,10 +60,10 @@ $media = Join-Path $env:RUNNER_TEMP ('msi-media-' + [Guid]::NewGuid() + '.mp3')
 try {
     Invoke-Msi @('/i', "`"$previousMsi`"", 'ADDLOCAL=ALL') 'install-previous'
     Assert-Payload
-    if (-not (Test-Path "$registryRoot/$previousCode")) { throw 'Previous product not registered' }
+    if (-not (Test-Path (Join-Path $registryRoot $previousCode))) { throw 'Previous product not registered' }
     Invoke-Msi @('/i', "`"$msi`"", 'ADDLOCAL=ALL') 'upgrade'
-    if (Test-Path "$registryRoot/$previousCode") { throw 'Upgrade left the previous product registered' }
-    if ((Get-ItemProperty "$registryRoot/$currentCode").DisplayVersion -ne $version) { throw 'Installed version mismatch' }
+    if (Test-Path (Join-Path $registryRoot $previousCode)) { throw 'Upgrade left the previous product registered' }
+    if ((Get-ItemProperty (Join-Path $registryRoot $currentCode)).DisplayVersion -ne $version) { throw 'Installed version mismatch' }
     Assert-Payload
     # Validate repair of a required plugin, then test the real installed runtime
     # in a child shell so its isolated PATH cannot affect later MSI operations.
@@ -73,9 +73,9 @@ try {
     & (Join-Path $PSHOME 'pwsh.exe') -NoProfile -File (Join-Path $PSScriptRoot 'check_windows_bundle.ps1') -BundleDirectory $install
     if ($LASTEXITCODE -ne 0) { throw 'Installed runtime smoke test failed' }
     Invoke-Msi @('/i', "`"$previousMsi`"") 'reject-downgrade' @(1603)
-    if (-not (Test-Path "$registryRoot/$currentCode")) { throw 'Downgrade changed the installed product' }
+    if (-not (Test-Path (Join-Path $registryRoot $currentCode))) { throw 'Downgrade changed the installed product' }
     Invoke-Msi @('/x', $currentCode) 'uninstall'
-    if ((Test-Path $install) -or (Test-Path $programs) -or (Test-Path $desktop) -or (Test-Path "$registryRoot/$currentCode")) {
+    if ((Test-Path $install) -or (Test-Path $programs) -or (Test-Path $desktop) -or (Test-Path (Join-Path $registryRoot $currentCode))) {
         throw 'Uninstall left installed files, shortcuts, or product registration'
     }
     if ((Get-Content $sentinel -Raw) -ne 'Existing user settings and library data must survive.' -or
@@ -83,7 +83,7 @@ try {
     Write-Host 'PASS: MSI install, payload hashes, shortcuts, upgrade, repair, isolated runtime, downgrade rejection, uninstall, and user-data preservation.'
 } finally {
     foreach ($code in @($currentCode, $previousCode)) {
-        if (Test-Path "$registryRoot/$code") { Invoke-Msi @('/x', $code) "cleanup-$code" }
+        if (Test-Path (Join-Path $registryRoot $code)) { Invoke-Msi @('/x', $code) "cleanup-$code" }
     }
     Remove-Item -LiteralPath $sentinel, $media -Force -ErrorAction SilentlyContinue
 }
