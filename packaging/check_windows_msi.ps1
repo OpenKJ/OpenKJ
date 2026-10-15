@@ -17,10 +17,10 @@ function Get-MsiProperty([string]$Path, [string]$Name) {
     $engine = New-Object -ComObject WindowsInstaller.Installer
     $database = $engine.OpenDatabase($Path, 0)
     $view = $database.OpenView("SELECT ``Value`` FROM ``Property`` WHERE ``Property``='$Name'")
-    $view.Execute()
+    [void]$view.Execute()
     $record = $view.Fetch()
     if (-not $record) { throw "Missing MSI property: $Name" }
-    return $record.StringData(1)
+    return [string]$record.StringData(1)
 }
 function Invoke-Msi([string[]]$Arguments, [string]$LogName, [int[]]$Expected = @(0,3010)) {
     $log = Join-Path $logs.FullName "$LogName.log"
@@ -63,7 +63,8 @@ try {
     if (-not (Test-Path (Join-Path $registryRoot $previousCode))) { throw 'Previous product not registered' }
     Invoke-Msi @('/i', "`"$msi`"", 'ADDLOCAL=ALL') 'upgrade'
     if (Test-Path (Join-Path $registryRoot $previousCode)) { throw 'Upgrade left the previous product registered' }
-    if ((Get-ItemProperty (Join-Path $registryRoot $currentCode)).DisplayVersion -ne $version) { throw 'Installed version mismatch' }
+    $installedVersion = (Get-ItemProperty (Join-Path $registryRoot $currentCode)).DisplayVersion
+    if ($installedVersion -ne $version) { throw "Installed version mismatch: expected <$version>, got <$installedVersion>" }
     Assert-Payload
     # Validate repair of a required plugin, then test the real installed runtime
     # in a child shell so its isolated PATH cannot affect later MSI operations.
