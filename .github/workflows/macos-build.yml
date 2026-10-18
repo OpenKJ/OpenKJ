@@ -50,7 +50,7 @@ jobs:
         run: |
           source build-macos-deps/env.sh
           cmake -S . -B build-macos-dev -DOPENKJ_BUILD_SMOKE_TESTS=ON
-          cmake --build build-macos-dev --target openkj-runtime-smoke --parallel 4
+          cmake --build build-macos-dev --target openkj-runtime-smoke openkj-queue-append-test --parallel 4
           ctest --test-dir build-macos-dev --output-on-failure
       - name: Build and sign standalone app
         run: |
