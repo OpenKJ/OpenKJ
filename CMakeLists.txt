@@ -279,6 +279,16 @@ if(OPENKJ_BUILD_SMOKE_TESTS)
     target_link_libraries(openkj-runtime-smoke PRIVATE Qt6::Widgets Qt6::Sql zip ${GSTREAMER_LIBRARIES})
     add_test(NAME runtime-smoke COMMAND openkj-runtime-smoke)
     set_tests_properties(runtime-smoke PROPERTIES TIMEOUT 45 ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+    add_executable(openkj-queue-append-test
+        tests/queue_append.cpp
+        src/databaseworker.cpp
+        src/okjtypes.cpp
+        src/settings.cpp
+        src/simplecrypt.cpp)
+    target_link_libraries(openkj-queue-append-test PRIVATE Qt6::Widgets Qt6::Sql spdlog::spdlog)
+    add_test(NAME queue-append COMMAND openkj-queue-append-test)
+    set_tests_properties(queue-append PROPERTIES TIMEOUT 15 ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")

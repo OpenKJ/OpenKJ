@@ -30,7 +30,7 @@ public slots:
     void setSingerRegular(int singerId, bool isRegular);
     void clearRotation();
     
-    void addSongToQueue(int singerId, int songId, int keyChange, int position);
+    void addSongToQueue(int singerId, int songId, int keyChange);
     void moveQueueSong(int singerId, int oldPosition, int newPosition);
     void deleteQueueSong(int singerId, int queueSongId);
     void setQueueSongKey(int singerId, int songId, int key);

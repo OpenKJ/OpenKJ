@@ -96,7 +96,7 @@ signals:
     void requestSetQueueSongKey(int singerId, int qSongId, int semitones);
     void requestSetQueueSongPlayed(int singerId, int qSongId, bool played);
     void requestRemoveAllQueueSongs(int singerId);
-    void requestAddSongToQueue(int singerId, int songId, int keyChange, int position);
+    void requestAddSongToQueue(int singerId, int songId, int keyChange);
 
 public slots:
     void songAddSlot(int songId, int singerId, int keyChg = 0);

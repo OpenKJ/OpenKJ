@@ -253,16 +253,21 @@ void DatabaseWorker::clearRotation()
     loadRotation();
 }
 
-void DatabaseWorker::addSongToQueue(int singerId, int songId, int keyChange, int position)
+void DatabaseWorker::addSongToQueue(int singerId, int songId, int keyChange)
 {
+    // Use the destination queue's persisted order, independent of which singer
+    // is currently displayed. Compute the append position in the same statement.
     QSqlQuery query(m_db);
     query.prepare("INSERT INTO queuesongs (singer, song, artist, title, discid, path, keychg, played, position) "
-                  "VALUES (:singerId, :songId, :songId, :songId, :songId, :songId, :key, 0, :position)");
+                  "SELECT :singerId, :songId, :songId, :songId, :songId, :songId, :key, 0, "
+                  "COALESCE(MAX(position), -1) + 1 FROM queuesongs WHERE singer = :singerId");
     query.bindValue(":singerId", singerId);
     query.bindValue(":songId", songId);
     query.bindValue(":key", keyChange);
-    query.bindValue(":position", position);
-    query.exec();
+    if (!query.exec()) {
+        emit errorOccurred(query.lastError().text());
+        return;
+    }
     
     emit queueUpdated(singerId);
     loadRotation();

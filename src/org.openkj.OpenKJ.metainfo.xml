@@ -32,6 +32,14 @@
         <binary>openkj</binary>
     </provides>
     <releases>
+        <release version="2.2.5" date="2026-10-17" type="development">
+            <description>
+                <ul>
+                    <li>Fixed new songs being inserted in the middle of another singer's queue.</li>
+                    <li>Append songs using the destination singer's saved queue order.</li>
+                </ul>
+            </description>
+        </release>
         <release version="2.2.4" date="2026-10-15" type="development">
             <description>
                 <ul>

@@ -1,4 +1,4 @@
-# OpenKJ 2.2.4 — Cross-platform Pre-release
+# OpenKJ 2.2.5 — Cross-platform Pre-release
 
 Experimental Qt 6 / GStreamer builds from the same source for Windows x64,
 Apple Silicon macOS, and Linux x86_64. The modern codebase now lives on `master`.
@@ -7,10 +7,10 @@ Apple Silicon macOS, and Linux x86_64. The modern codebase now lives on `master`
 
 | Platform | Package | Installation |
 | --- | --- | --- |
-| Windows x64 | `OpenKJ-2.2.4-windows-x64.msi` | Run the installer; administrator approval is required. |
-| Windows x64 portable | `OpenKJ-2.2.4-windows-x64.zip` | Extract the entire folder and open `openkj.exe`. |
-| macOS Apple Silicon | `OpenKJ-2.2.4-macos-arm64.dmg` | Open the DMG and drag OpenKJ to Applications. |
-| Linux x86_64 | `OpenKJ-2.2.4-linux-x86_64.flatpak` | Install with Flatpak using the commands below. |
+| Windows x64 | `OpenKJ-2.2.5-windows-x64.msi` | Run the installer; administrator approval is required. |
+| Windows x64 portable | `OpenKJ-2.2.5-windows-x64.zip` | Extract the entire folder and open `openkj.exe`. |
+| macOS Apple Silicon | `OpenKJ-2.2.5-macos-arm64.dmg` | Open the DMG and drag OpenKJ to Applications. |
+| Linux x86_64 | `OpenKJ-2.2.5-linux-x86_64.flatpak` | Install with Flatpak using the commands below. |
 
 SHA-256 files and `SHA256SUMS` accompany the packages. Build metadata records the
 source commit and Linux runtime/dependency recipe. The macOS app also includes
@@ -18,24 +18,14 @@ dependency notices, Homebrew package metadata and its build environment. The
 Windows ZIP and installed app include dependency versions, license notices and
 a payload hash manifest.
 
-## Changes since 2.2.3
+## Changes since 2.2.4
 
-- Windows x64 portable package bundles Qt, GStreamer, FFmpeg, SoundTouch and CDG;
-  MSYS2 and development SDKs are not needed on the destination computer.
-- New Windows MSI adds a Start Menu entry, optional desktop shortcut, upgrade
-  handling, repair and uninstall. Settings, databases and media are retained.
-- Fixed Windows local-file URI handling and audio output format negotiation.
-- Linux Flatpak includes SoundTouch/CDG and uses the KDE 6.11 runtime across
-  compatible distributions. Native playback has been tested on Bazzite;
-  clean installation/runtime checks also run on Ubuntu and Fedora containers.
-- Reproducible platform setup/build scripts and isolated runtime checks cover
-  Qt, SQLite, ZIPs, local media playback, pitch/EQ and CDG decoding.
-- All platform packages are built from one release commit and published together
-  after their packaging checks pass. Windows checks include MSI upgrade,
-  repair, downgrade rejection, uninstall and user-data preservation.
-- Kept the asynchronous library loading, search, background scanning and song
-  preparation improvements introduced in the 2.2.3 macOS prerelease.
-- Fixed a build compatibility issue with older Qt 6 database connection APIs.
+- Fixed songs dropped onto another singer being inserted in the middle of their
+  queue because the previous singer's queue length was used.
+- Fixed additions to a singer whose queue is not displayed being saved at
+  position zero. New songs now append after that singer's existing songs.
+- Added queue regression checks for repeated additions, empty queues, gaps in
+  saved positions, key changes and preservation of played songs.
 
 ## Windows
 
@@ -60,7 +50,7 @@ Fedora RPM Fusion packages are not required.
 
 ```bash
 flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-flatpak install --user ./OpenKJ-2.2.4-linux-x86_64.flatpak
+flatpak install --user ./OpenKJ-2.2.5-linux-x86_64.flatpak
 flatpak run org.openkj.OpenKJ//preview
 ```
 

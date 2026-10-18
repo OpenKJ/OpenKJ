@@ -1,6 +1,10 @@
-# OpenKJ 2.2.4 — Windows x64 preview
+# OpenKJ 2.2.5 — Windows x64 preview
 
 Experimental, unsigned Windows x64 build using Qt 6 and GStreamer.
+
+Changes since 2.2.4: fixed songs landing in the middle of a singer's queue when
+added from another singer's view. These additions now append to the end of the
+destination queue.
 
 - Native Windows playback, full-library import and singer rotation have been
   tested by the maintainer.

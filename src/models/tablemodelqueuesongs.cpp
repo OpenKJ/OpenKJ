@@ -307,7 +307,7 @@ void TableModelQueueSongs::songAddSlot(int songId, int singerId, int keyChg) {
         int queueSongId = add(songId);
         setKey(queueSongId, keyChg);
     } else {
-        emit requestAddSongToQueue(singerId, songId, keyChg, 0);
+        emit requestAddSongToQueue(singerId, songId, keyChg);
     }
 }
 

@@ -2023,8 +2023,9 @@ void MainWindow::actionSettingsTriggered() {
 }
 
 void MainWindow::songDroppedOnSinger(const int &singerId, const int &songId, const int &dropRow) {
+    // Append before switching queues: loadSinger() completes asynchronously.
+    m_qModel.songAddSlot(songId, singerId);
     m_qModel.loadSinger(singerId);
-    m_qModel.add(songId);
     ui->tableViewRotation->clearSelection();
     auto selectionModel = ui->tableViewRotation->selectionModel();
     QModelIndex topLeft;
