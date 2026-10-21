@@ -228,6 +228,16 @@
                </attribute>
                <layout class="QVBoxLayout" name="verticalLayout_14">
                 <item>
+                 <widget class="QCheckBox" name="checkBoxBreakOutputFollowsKaraoke">
+                  <property name="text">
+                   <string>Use karaoke output</string>
+                  </property>
+                  <property name="toolTip">
+                   <string>Automatically follow the Karaoke audio output. Uncheck to restore a separate Break Music output.</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
                  <layout class="QFormLayout" name="formLayout_5">
                   <property name="topMargin">
                    <number>0</number>

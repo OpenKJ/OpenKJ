@@ -35,6 +35,7 @@
 #include "audiorecorder.h"
 #include <QTimer>
 #include <QScreen>
+#include <QSignalBlocker>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
@@ -90,6 +91,9 @@ DlgSettings::DlgSettings(MediaBackend &AudioBackend, MediaBackend &BmAudioBacken
     ui->checkBoxCdgPrescaling->setChecked(m_settings.cdgPrescalingEnabled());
     ui->checkBoxCurrentSingerTop->setChecked(m_settings.rotationAltSortOrder());
     audioOutputDevices = kAudioBackend.getOutputDevices();
+    const auto outputHint = tr("Output changes take effect after playback is stopped and started again.");
+    ui->comboBoxKAudioDevices->setToolTip(outputHint);
+    ui->comboBoxBAudioDevices->setToolTip(outputHint);
     ui->comboBoxKAudioDevices->addItems(audioOutputDevices);
     ui->checkBoxShowAddDlgOnDbDblclk->setChecked(m_settings.dbDoubleClickAddsSong());
     int selDevice = audioOutputDevices.indexOf(m_settings.audioOutputDevice());
@@ -99,12 +103,8 @@ DlgSettings::DlgSettings(MediaBackend &AudioBackend, MediaBackend &BmAudioBacken
         ui->comboBoxKAudioDevices->setCurrentIndex(selDevice);
     }
     ui->comboBoxBAudioDevices->addItems(audioOutputDevices);
-    selDevice = audioOutputDevices.indexOf(m_settings.audioOutputDeviceBm());
-    if (selDevice == -1)
-        ui->comboBoxBAudioDevices->setCurrentIndex(0);
-    else {
-        ui->comboBoxBAudioDevices->setCurrentIndex(selDevice);
-    }
+    ui->checkBoxBreakOutputFollowsKaraoke->setChecked(m_settings.audioOutputBmFollowsKaraoke());
+    updateBreakMusicOutput();
     ui->checkBoxProgressiveSearch->setChecked(m_settings.progressiveSearchEnabled());
     ui->horizontalSliderTickerSpeed->setValue(m_settings.tickerSpeed());
     QString ss = ui->pushButtonTextColor->styleSheet();
@@ -951,7 +951,7 @@ void DlgSettings::on_checkBoxProgressiveSearch_toggled(bool checked) {
 }
 
 void DlgSettings::on_comboBoxKAudioDevices_currentIndexChanged(int index) {
-    if (!m_pageSetupDone)
+    if (!m_pageSetupDone || index < 0)
         return;
     QString device = ui->comboBoxKAudioDevices->itemText(index);
     if (m_settings.audioOutputDevice() == device)
@@ -959,17 +959,36 @@ void DlgSettings::on_comboBoxKAudioDevices_currentIndexChanged(int index) {
     qInfo() << "Changing karaoke audio output device to: " << index << ")" << device;
     m_settings.setAudioOutputDevice(device);
     kAudioBackend.setAudioOutputDevice(device);
+    if (m_settings.audioOutputBmFollowsKaraoke())
+        updateBreakMusicOutput();
 }
 
 void DlgSettings::on_comboBoxBAudioDevices_currentIndexChanged(int index) {
-    if (!m_pageSetupDone)
+    if (!m_pageSetupDone || index < 0 || m_settings.audioOutputBmFollowsKaraoke())
         return;
     QString device = ui->comboBoxBAudioDevices->itemText(index);
     if (m_settings.audioOutputDeviceBm() == device)
         return;
-    qInfo() << "Changing karaoke audio output device to: " << index << ")" << device;
+    qInfo() << "Changing break music audio output device to: " << index << ")" << device;
     m_settings.setAudioOutputDeviceBm(device);
     bmAudioBackend.setAudioOutputDevice(device);
+}
+
+void DlgSettings::updateBreakMusicOutput() {
+    const QSignalBlocker blocker(ui->comboBoxBAudioDevices);
+    const auto device = m_settings.effectiveAudioOutputDeviceBm();
+    const int index = audioOutputDevices.indexOf(device);
+    ui->comboBoxBAudioDevices->setCurrentIndex(index < 0 ? 0 : index);
+    ui->comboBoxBAudioDevices->setEnabled(!m_settings.audioOutputBmFollowsKaraoke());
+    if (m_pageSetupDone)
+        bmAudioBackend.setAudioOutputDevice(device);
+}
+
+void DlgSettings::on_checkBoxBreakOutputFollowsKaraoke_toggled(bool checked) {
+    if (!m_pageSetupDone)
+        return;
+    m_settings.setAudioOutputBmFollowsKaraoke(checked);
+    updateBreakMusicOutput();
 }
 
 void DlgSettings::on_checkBoxEnforceAspectRatio_clicked(bool checked) {

@@ -55,6 +55,7 @@ private:
     QNetworkAccessManager *networkManager;
     bool m_pageSetupDone;
     QStringList audioOutputDevices;
+    void updateBreakMusicOutput();
     void setupHotkeysForm();
     struct KeyboardShortcut
     {
@@ -171,6 +172,7 @@ private slots:
     void on_checkBoxProgressiveSearch_toggled(bool checked);
     void on_comboBoxKAudioDevices_currentIndexChanged(int index);
     void on_comboBoxBAudioDevices_currentIndexChanged(int index);
+    void on_checkBoxBreakOutputFollowsKaraoke_toggled(bool checked);
     void on_checkBoxEnforceAspectRatio_clicked(bool checked);
     void on_pushButtonApplyTickerMsg_clicked();
     void on_pushButtonResetDurationPos_clicked();

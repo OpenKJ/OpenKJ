@@ -1063,6 +1063,21 @@ QString Settings::audioOutputDeviceBm()
     return settings->value("audioOutputDeviceBm", 0).toString();
 }
 
+bool Settings::audioOutputBmFollowsKaraoke()
+{
+    return settings->value("audioOutputBmFollowsKaraoke", false).toBool();
+}
+
+void Settings::setAudioOutputBmFollowsKaraoke(bool enabled)
+{
+    settings->setValue("audioOutputBmFollowsKaraoke", enabled);
+}
+
+QString Settings::effectiveAudioOutputDeviceBm()
+{
+    return audioOutputBmFollowsKaraoke() ? audioOutputDevice() : audioOutputDeviceBm();
+}
+
 void Settings::setAudioOutputDevice(QString device)
 {
     settings->setValue("audioOutputDevice", device);

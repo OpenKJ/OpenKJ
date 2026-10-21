@@ -127,7 +127,7 @@ MediaBackend::MediaBackend(QObject *parent, QString objectName, MediaType type)
     if (m_type == Karaoke) {
         setAudioOutputDevice(m_settings.audioOutputDevice());
     } else if (m_type == BackgroundMusic) {
-        setAudioOutputDevice(m_settings.audioOutputDeviceBm());
+        setAudioOutputDevice(m_settings.effectiveAudioOutputDeviceBm());
     } else {
         setAudioOutputDevice("Default");
     }
@@ -424,7 +424,74 @@ void MediaBackend::setAudioOutputDevice(const AudioOutputDevice &device) {
 }
 
 void MediaBackend::setAudioOutputDevice(const QString &deviceName) {
-    // Left as default
+    m_requestedOutputDevice = deviceName.isEmpty() ? QStringLiteral("Default") : deviceName;
+    applyAudioOutputDevice();
+}
+
+void MediaBackend::applyAudioOutputDevice() {
+    if (!m_pipeline || !m_audioSink || m_cdgStateBusy ||
+        m_requestedOutputDevice == m_activeOutputDevice)
+        return;
+
+    // Never unlink a running sink. A selection made during playback is applied
+    // before the next start from NULL, keeping CDG synchronization intact.
+    GstState current, pending;
+    gst_element_get_state(m_pipeline, &current, &pending, 0);
+    if (current != GST_STATE_NULL || pending > GST_STATE_NULL)
+        return;
+
+    GstElement *replacement = nullptr;
+    QString selected = m_requestedOutputDevice;
+    if (selected != "Default") {
+        auto *monitor = gst_device_monitor_new();
+        const auto filter = gst_device_monitor_add_filter(monitor, "Audio/Sink", nullptr);
+        auto *devices = filter ? gst_device_monitor_get_devices(monitor) : nullptr;
+        for (auto *entry = devices; entry; entry = entry->next) {
+            auto *device = GST_DEVICE(entry->data);
+            auto *name = gst_device_get_display_name(device);
+            if (selected == QString::fromUtf8(name))
+                replacement = gst_device_create_element(device, nullptr);
+            g_free(name);
+            if (replacement)
+                break;
+        }
+        g_list_free_full(devices, gst_object_unref);
+        gst_object_unref(monitor);
+        if (!replacement) {
+            m_logger->warn("{} Audio output '{}' unavailable; using Default", m_loggingPrefix,
+                           selected.toStdString());
+            selected = "Default";
+        }
+    }
+    if (!replacement)
+        replacement = gst_element_factory_make("autoaudiosink", nullptr);
+    if (!replacement)
+        return;
+
+    auto *upstream = gst_bin_get_by_name(GST_BIN(m_audioBin), "output_resample");
+    if (!upstream) {
+        gst_object_unref(replacement);
+        return;
+    }
+    // Retain the old sink until the new link succeeds so failures can roll back.
+    gst_object_ref(m_audioSink);
+    gst_element_set_state(m_audioSink, GST_STATE_NULL);
+    gst_element_unlink(upstream, m_audioSink);
+    gst_bin_remove(GST_BIN(m_audioBin), m_audioSink);
+    gst_bin_add(GST_BIN(m_audioBin), replacement);
+    if (gst_element_link(upstream, replacement)) {
+        gst_object_unref(m_audioSink);
+        m_audioSink = replacement;
+        m_activeOutputDevice = selected;
+        m_logger->info("{} Audio output: {}", m_loggingPrefix, selected.toStdString());
+    } else {
+        gst_bin_remove(GST_BIN(m_audioBin), replacement);
+        gst_bin_add(GST_BIN(m_audioBin), m_audioSink);
+        gst_element_link(upstream, m_audioSink);
+        gst_object_unref(m_audioSink);
+        m_logger->error("{} Failed to link selected audio output", m_loggingPrefix);
+    }
+    gst_object_unref(upstream);
 }
 
 GstFlowReturn MediaBackend::onNewVideoSample(
@@ -627,8 +694,20 @@ MediaBackend::State MediaBackend::state() {
 }
 
 QStringList MediaBackend::getOutputDevices() {
-    QStringList list;
-    list.append("Default");
+    QStringList list{"Default"};
+    auto *monitor = gst_device_monitor_new();
+    const auto filter = gst_device_monitor_add_filter(monitor, "Audio/Sink", nullptr);
+    // A one-shot probe also refreshes USB/Bluetooth outputs each time Settings opens.
+    auto *devices = filter ? gst_device_monitor_get_devices(monitor) : nullptr;
+    for (auto *entry = devices; entry; entry = entry->next) {
+        auto *name = gst_device_get_display_name(GST_DEVICE(entry->data));
+        const auto displayName = QString::fromUtf8(name);
+        if (!displayName.isEmpty() && !list.contains(displayName))
+            list.append(displayName);
+        g_free(name);
+    }
+    g_list_free_full(devices, gst_object_unref);
+    gst_object_unref(monitor);
     return list;
 }
 
@@ -754,6 +833,7 @@ if (m_cdgPipeline &&
 void MediaBackend::play(bool startSilent) {
     if (deferControl([this, startSilent] { play(startSilent); }))
         return;
+    applyAudioOutputDevice();
     if (!(m_frameGeneration->load() & 1))
         ++*m_frameGeneration;
     m_stopAfterFade = false;

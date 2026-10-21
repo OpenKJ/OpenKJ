@@ -137,8 +137,9 @@ private:
 
     QString m_filename;
     QString m_cdgFilename;
-    QStringList m_outputDeviceNames;
-    std::vector<AudioOutputDevice> m_audioOutputDevices;
+    QString m_requestedOutputDevice{"Default"};
+    QString m_activeOutputDevice{"Default"};
+    void applyAudioOutputDevice();
 
     QTimer m_eventTimer;
     QTimer m_cdgTempoTimer;

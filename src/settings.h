@@ -179,6 +179,9 @@ public:
     void setAudioDetectSilenceBm(bool enabled);
     QString audioOutputDevice();
     QString audioOutputDeviceBm();
+    bool audioOutputBmFollowsKaraoke();
+    void setAudioOutputBmFollowsKaraoke(bool enabled);
+    QString effectiveAudioOutputDeviceBm();
     void setAudioOutputDevice(QString device);
     void setAudioOutputDeviceBm(QString device);
     int audioBackend();

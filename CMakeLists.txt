@@ -289,6 +289,14 @@ if(OPENKJ_BUILD_SMOKE_TESTS)
     target_link_libraries(openkj-queue-append-test PRIVATE Qt6::Widgets Qt6::Sql spdlog::spdlog)
     add_test(NAME queue-append COMMAND openkj-queue-append-test)
     set_tests_properties(queue-append PROPERTIES TIMEOUT 15 ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+    add_executable(openkj-audio-outputs-test
+        packaging/audio_outputs_test.cpp
+        src/mediabackend.cpp src/mzarchive.cpp src/audiofader.cpp
+        src/videodisplay.cpp src/xbrz.cpp src/settings.cpp src/simplecrypt.cpp)
+    target_link_libraries(openkj-audio-outputs-test PRIVATE ${LIBRARIES})
+    add_test(NAME audio-outputs COMMAND openkj-audio-outputs-test)
+    set_tests_properties(audio-outputs PROPERTIES TIMEOUT 20 ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
@@ -406,6 +414,11 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         "${_openkj_soundtouch_default}"
         CACHE FILEPATH "Custom GStreamer SoundTouch plugin for macOS")
     if(EXISTS "${OPENKJ_SOUNDTOUCH_PLUGIN}")
+        if(OPENKJ_BUILD_SMOKE_TESTS)
+            get_filename_component(_openkj_soundtouch_dir "${OPENKJ_SOUNDTOUCH_PLUGIN}" DIRECTORY)
+            set_property(TEST audio-outputs APPEND PROPERTY ENVIRONMENT
+                "GST_PLUGIN_PATH_1_0=${_openkj_soundtouch_dir}")
+        endif()
         add_custom_command(TARGET openkj POST_BUILD
             COMMAND "${CMAKE_COMMAND}" -E make_directory
                     "$<TARGET_BUNDLE_DIR:openkj>/Contents/PlugIns"
