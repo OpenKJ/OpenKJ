@@ -27,15 +27,20 @@ private:
     TableModelQueueSongs &m_queueModel;
     int m_songId;
     Settings m_settings;
+    bool m_singerListReady{false};
+    bool m_singerLayoutPending{false};
+    int m_singerColumnWidth{180};
+    void updateSingerListLayout();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
 private slots:
     void pushButtonCancelClicked();
     void spinBoxKeyChangeChanged(int arg1);
     void pushButtonAddClicked();
-    void comboBoxRotSingersActivated(int index);
+    void rotationSingerSelected();
     void lineEditNewSingerNameTextChanged(const QString &arg1);
     void comboBoxRegSingersActivated(int index);
 

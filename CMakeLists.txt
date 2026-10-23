@@ -274,6 +274,7 @@ set(LIBRARIES
 
 option(OPENKJ_BUILD_SMOKE_TESTS "Build isolated Qt/SQLite/GStreamer runtime checks" OFF)
 if(OPENKJ_BUILD_SMOKE_TESTS)
+    find_package(Qt6 REQUIRED COMPONENTS Test)
     enable_testing()
     add_executable(openkj-runtime-smoke packaging/runtime_smoke.cpp)
     target_link_libraries(openkj-runtime-smoke PRIVATE Qt6::Widgets Qt6::Sql zip ${GSTREAMER_LIBRARIES})
@@ -297,6 +298,15 @@ if(OPENKJ_BUILD_SMOKE_TESTS)
     target_link_libraries(openkj-audio-outputs-test PRIVATE ${LIBRARIES})
     add_test(NAME audio-outputs COMMAND openkj-audio-outputs-test)
     set_tests_properties(audio-outputs PROPERTIES TIMEOUT 20 ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+    add_executable(openkj-add-song-dialog-test
+        packaging/add_song_dialog_test.cpp src/dlgaddsong.cpp src/dlgaddsong.ui
+        src/models/tablemodelrotation.cpp src/models/tablemodelqueuesongs.cpp
+        src/models/tablemodelkaraokesongs.cpp src/okjtypes.cpp src/settings.cpp src/simplecrypt.cpp
+        src/resources.qrc)
+    target_link_libraries(openkj-add-song-dialog-test PRIVATE Qt6::Test Qt6::Widgets Qt6::Sql
+        Qt6::Svg Qt6::Concurrent spdlog::spdlog)
+    add_test(NAME add-song-dialog COMMAND openkj-add-song-dialog-test)
+    set_tests_properties(add-song-dialog PROPERTIES TIMEOUT 20 ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
