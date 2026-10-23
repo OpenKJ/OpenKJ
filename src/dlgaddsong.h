@@ -29,8 +29,9 @@ private:
     Settings m_settings;
     bool m_singerListReady{false};
     bool m_singerLayoutPending{false};
-    int m_singerColumnWidth{180};
+    int m_singerColumnWidth{0};
     void updateSingerListLayout();
+    void updateControlLayout();
 
 protected:
     void closeEvent(QCloseEvent *event) override;

@@ -7,8 +7,8 @@
 #include <algorithm>
 
 namespace {
-constexpr int singersPerColumn = 15;
-constexpr int maxVisibleSingerColumns = 3;
+constexpr int singersPerColumn = 10;
+constexpr int dialogScreenWidthPercent = 45;
 }
 
 DlgAddSong::DlgAddSong(TableModelRotation &rotationModel, TableModelQueueSongs &queueModel, int songId, QWidget *parent) :
@@ -41,9 +41,9 @@ DlgAddSong::DlgAddSong(TableModelRotation &rotationModel, TableModelQueueSongs &
     ui->radioButtonAddToExistingSinger->setEnabled(!rotSingers.isEmpty());
     ui->listWidgetRotSingers->setEnabled(!rotSingers.isEmpty());
     m_singerListReady = true;
+    installEventFilter(this);
     ui->listWidgetRotSingers->installEventFilter(this);
     ui->listWidgetRotSingers->viewport()->installEventFilter(this);
-    updateSingerListLayout();
 
     auto regSingers = m_rotModel.historySingers();
     regSingers.sort(Qt::CaseInsensitive);
@@ -67,53 +67,99 @@ DlgAddSong::DlgAddSong(TableModelRotation &rotationModel, TableModelQueueSongs &
 
     // Size once on opening; subsequent resizes belong to the host.
     ensurePolished();
+    const int columns = std::max(1, (ui->listWidgetRotSingers->count() + singersPerColumn - 1) / singersPerColumn);
+    // Measure the longest name once as the minimum width for every column.
+    // Extra space is shared evenly when laying out the visible columns.
+    m_singerColumnWidth = 24;
     for (const auto &name : rotSingers)
         m_singerColumnWidth = std::max(m_singerColumnWidth,
-                                      std::min(320, ui->listWidgetRotSingers->fontMetrics().horizontalAdvance(name) + 24));
-    const int columns = std::max(1, (ui->listWidgetRotSingers->count() + singersPerColumn - 1) / singersPerColumn);
-    ui->positionAndKeyLayout->setDirection(columns == 1 ? QBoxLayout::TopToBottom : QBoxLayout::LeftToRight);
+            ui->listWidgetRotSingers->fontMetrics().horizontalAdvance(name) + 24);
+    ui->listWidgetRotSingers->setMinimumWidth(0);
+    updateSingerListLayout();
+    ui->positionAndKeyLayout->setDirection(QBoxLayout::TopToBottom);
+    ui->positionAndKeyLayout->setSpacing(24);
     ui->positionAndKeyLayout->setStretch(0, 1);
     ui->positionAndKeyLayout->setStretch(1, 1);
     layout()->activate();
     layout()->setGeometry(rect());
-    // The hidden viewport may still have its pre-layout geometry here.
-    const int margins = width() - ui->listWidgetRotSingers->width()
-                        + 2 * ui->listWidgetRotSingers->frameWidth();
-    const int availableWidth = screen()->availableGeometry().width() - 40;
-    const int initialWidth = std::max(minimumSizeHint().width(),
-                                     std::min(availableWidth, std::min(columns, maxVisibleSingerColumns)
-                                                              * m_singerColumnWidth + margins));
+    // Count layout padding rather than unused space around the compact list.
+    int margins = 2 * ui->listWidgetRotSingers->frameWidth();
+    for (const auto *containerLayout : {static_cast<QLayout *>(ui->verticalLayout_2),
+                                       static_cast<QLayout *>(ui->verticalLayout_8),
+                                       static_cast<QLayout *>(ui->horizontalLayout_2)}) {
+        const auto padding = containerLayout->contentsMargins();
+        margins += padding.left() + padding.right();
+    }
+    const auto framePadding = ui->frame_2->contentsMargins();
+    margins += framePadding.left() + framePadding.right();
+    // Limit the dialog to just under half the usable screen, except when
+    // its controls need more room (for example with accessibility fonts).
+    const int minimumWidth = minimumSizeHint().width();
+    const int widthBudget = std::max(minimumWidth,
+        screen()->availableGeometry().width() * dialogScreenWidthPercent / 100);
+    const int visibleColumns = std::clamp((widthBudget - margins) / m_singerColumnWidth, 1, columns);
+    const int initialWidth = std::max(minimumWidth,
+        std::min(widthBudget, visibleColumns * m_singerColumnWidth + margins));
+    // Keep the stacked minimum width even when the wider layout is active,
+    // so dragging the window narrower can trigger stacking again.
+    setMinimumWidth(minimumWidth);
+    setMaximumWidth(widthBudget);
+    layout()->setSizeConstraint(QLayout::SetNoConstraint);
     resize(initialWidth, sizeHint().height());
+    updateControlLayout();
     layout()->activate();
+    resize(width(), sizeHint().height());
     updateSingerListLayout();
 }
 
 DlgAddSong::~DlgAddSong() = default;
 
+void DlgAddSong::updateControlLayout()
+{
+    constexpr int horizontalGap = 16;
+    const int sectionWidth = std::max(ui->horizontalLayout_5->minimumSize().width(),
+                                      ui->horizontalLayoutKeyChange->minimumSize().width());
+    const auto outerPadding = layout()->contentsMargins();
+    const auto innerPadding = ui->positionAndKeyLayout->contentsMargins();
+    const int availableWidth = width() - outerPadding.left() - outerPadding.right()
+                               - innerPadding.left() - innerPadding.right();
+    const bool sideBySide = availableWidth >= 2 * sectionWidth + horizontalGap;
+    const auto direction = sideBySide ? QBoxLayout::LeftToRight : QBoxLayout::TopToBottom;
+    if (ui->positionAndKeyLayout->direction() != direction) {
+        ui->positionAndKeyLayout->setDirection(direction);
+        ui->positionAndKeyLayout->setSpacing(sideBySide ? horizontalGap : 24);
+        layout()->activate();
+    }
+    // Height follows the content, including responsive stacking and the
+    // singer list's scrollbar. Only the width can be resized by the host.
+    const int contentHeight = layout()->sizeHint().height();
+    if (minimumHeight() != contentHeight || maximumHeight() != contentHeight)
+        setFixedHeight(contentHeight);
+}
+
 void DlgAddSong::updateSingerListLayout()
 {
-    if (!m_singerListReady)
+    if (!m_singerListReady || m_singerColumnWidth == 0)
         return;
     auto *list = ui->listWidgetRotSingers;
     const int rowHeight = std::max(28, list->fontMetrics().height() + 10);
     const int visibleRows = std::clamp(list->count(), 1, singersPerColumn);
     const int columns = std::max(1, (list->count() + singersPerColumn - 1) / singersPerColumn);
-    const int visibleColumns = std::min(columns, maxVisibleSingerColumns);
-    const bool needsScroll = columns > maxVisibleSingerColumns ||
-                             columns * m_singerColumnWidth > list->viewport()->width();
+    const int visibleColumns = std::clamp(list->viewport()->width() / m_singerColumnWidth, 1, columns);
+    const int columnWidth = std::max(m_singerColumnWidth, list->viewport()->width() / visibleColumns);
+    const bool needsScroll = columns * columnWidth > list->viewport()->width();
     list->setHorizontalScrollBarPolicy(needsScroll ? Qt::ScrollBarAlwaysOn : Qt::ScrollBarAlwaysOff);
     // Some native styles overlay the scrollbar without shrinking viewport
     // geometry, but QListView still reserves its height when wrapping.
     const int scrollHeight = needsScroll ? list->horizontalScrollBar()->sizeHint().height() : 0;
     const int chromeHeight = 2 * list->frameWidth() + scrollHeight;
     // QListView wraps at its inclusive viewport boundary; leave one pixel so
-    // the fifteenth complete grid cell remains in the first column.
+    // the tenth complete grid cell remains in the first column.
     list->setFixedHeight(visibleRows * rowHeight + chromeHeight + 1);
-    const QSize cellSize(std::max(m_singerColumnWidth, list->viewport()->width() / visibleColumns), rowHeight);
-    list->setGridSize(cellSize);
     // Give the items the full cell dimensions, not just the text's size hint,
     // so selection and hit targets fill each row consistently.
     for (int row = 0; row < list->count(); ++row) {
+        const QSize cellSize(columnWidth, rowHeight);
         auto *item = list->item(row);
         if (item->sizeHint() != cellSize)
             item->setSizeHint(cellSize);
@@ -123,7 +169,8 @@ void DlgAddSong::updateSingerListLayout()
 bool DlgAddSong::eventFilter(QObject *watched, QEvent *event)
 {
     if (m_singerListReady && !m_singerLayoutPending &&
-        ((watched == ui->listWidgetRotSingers->viewport() && event->type() == QEvent::Resize) ||
+        ((watched == this && event->type() == QEvent::Resize) ||
+         (watched == ui->listWidgetRotSingers->viewport() && event->type() == QEvent::Resize) ||
          (watched == ui->listWidgetRotSingers &&
           (event->type() == QEvent::FontChange || event->type() == QEvent::StyleChange)))) {
         m_singerLayoutPending = true;
@@ -132,6 +179,7 @@ bool DlgAddSong::eventFilter(QObject *watched, QEvent *event)
         QTimer::singleShot(0, this, [this] {
             m_singerLayoutPending = false;
             updateSingerListLayout();
+            updateControlLayout();
         });
     }
     return QDialog::eventFilter(watched, event);
