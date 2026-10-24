@@ -32,6 +32,15 @@
         <binary>openkj</binary>
     </provides>
     <releases>
+        <release version="2.2.6" date="2026-10-23" type="development">
+            <description>
+                <ul>
+                    <li>Fixed audio output selection and added an option for break music to follow the karaoke output.</li>
+                    <li>Improved Add Song To Queue with responsive singer columns, clearer selection and spacing.</li>
+                    <li>Adapted dialog width to screen size and font size, with automatic height and horizontal resizing.</li>
+                </ul>
+            </description>
+        </release>
         <release version="2.2.5" date="2026-10-17" type="development">
             <description>
                 <ul>

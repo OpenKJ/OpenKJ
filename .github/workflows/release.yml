@@ -103,6 +103,6 @@ jobs:
           VERSION="${RELEASE_TAG#v}"
           VERSION="${VERSION%%-*}"
           gh release create "$RELEASE_TAG" --verify-tag --draft --prerelease --latest=false \
-            --title "OpenKJ $VERSION — Cross-platform Pre-release" --notes-file RELEASE_NOTES.md
+            --title "$VERSION - Cross Platform Beta" --notes-file RELEASE_NOTES.md
           gh release upload "$RELEASE_TAG" ./*
           gh release edit "$RELEASE_TAG" --draft=false

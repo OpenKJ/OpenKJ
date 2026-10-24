@@ -1,10 +1,11 @@
-# OpenKJ 2.2.5 — Windows x64 preview
+# OpenKJ 2.2.6 — Windows x64 preview
 
 Experimental, unsigned Windows x64 build using Qt 6 and GStreamer.
 
-Changes since 2.2.4: fixed songs landing in the middle of a singer's queue when
-added from another singer's view. These additions now append to the end of the
-destination queue.
+Changes since 2.2.5: fixed audio output device selection, added an option for
+break music to follow the karaoke output, and improved Add Song To Queue with
+an alphabetical singer list, ten singers per column, responsive sizing and
+clearer spacing. The dialog allows horizontal resizing and adjusts its own height.
 
 - Native Windows playback, full-library import and singer rotation have been
   tested by the maintainer.
